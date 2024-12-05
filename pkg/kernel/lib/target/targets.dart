@@ -347,7 +347,8 @@ abstract class Target {
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       importer.isScheme("dart") ||
       (importer.isScheme("package") &&
-          importer.path.startsWith("dart_internal/"));
+          (importer.path.startsWith("dart_internal/") ||
+              importer.path.startsWith("dynamic_modules/")));
 
   /// Whether the `native` language extension is supported within the library
   /// with the given import [uri].

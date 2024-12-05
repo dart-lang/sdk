@@ -6,7 +6,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -175,13 +175,13 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
     return [returnCode];
   }
 
-  ExecutableElement? _getFunctionElement(AstNode? node) {
+  ExecutableElement2? _getFunctionElement(AstNode? node) {
     if (node is MethodDeclaration) {
-      return node.declaredElement;
+      return node.declaredFragment?.element;
     } else if (node is ConstructorDeclaration) {
-      return node.declaredElement;
+      return node.declaredFragment?.element;
     } else if (node is FunctionExpression) {
-      return node.declaredElement;
+      return node.declaredFragment?.element ?? node.declaredElement2;
     }
     return null;
   }

@@ -25,8 +25,13 @@ import '../api_prototype/experimental_flags.dart';
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/crash.dart' show Crash;
 import '../base/identifiers.dart'
-    show Identifier, OperatorIdentifier, QualifiedName, SimpleIdentifier;
+    show
+        Identifier,
+        OperatorIdentifier,
+        QualifiedNameIdentifier,
+        SimpleIdentifier;
 import '../base/ignored_parser_errors.dart' show isIgnoredParserError;
+import '../base/local_scope.dart';
 import '../base/problems.dart' show DebugAbort;
 import '../base/scope.dart';
 import '../builder/builder.dart';
@@ -43,7 +48,6 @@ import '../type_inference/type_inferrer.dart' show TypeInferrer;
 import 'diet_parser.dart';
 import 'offset_map.dart';
 import 'source_constructor_builder.dart';
-import 'source_enum_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
@@ -68,7 +72,7 @@ class DietListener extends StackListenerImpl {
 
   /// For top-level declarations, this is the library scope. For class members,
   /// this is the instance scope of [currentDeclaration].
-  Scope memberScope;
+  LookupScope memberScope;
 
   @override
   final Uri uri;
@@ -449,7 +453,8 @@ class DietListener extends StackListenerImpl {
     } else {
       Identifier prefixIdentifier = prefix as Identifier;
       Identifier suffixIdentifier = suffix as Identifier;
-      push(new QualifiedName(prefixIdentifier, suffixIdentifier.token));
+      push(new QualifiedNameIdentifier(
+          prefixIdentifier, suffixIdentifier.token));
     }
   }
 
@@ -652,7 +657,7 @@ class DietListener extends StackListenerImpl {
       Token beginToken, Token factoryKeyword, Token endToken) {
     assert(checkState(beginToken, [
       /* bodyToken */ ValueKinds.Token,
-      /* name */ ValueKinds.IdentifierOrQualifiedNameOrOperatorOrParserRecovery,
+      /* name */ ValueKinds.IdentifierOrOperatorOrParserRecovery,
       /* metadata token */ ValueKinds.TokenOrNull,
     ]));
     debugEvent("ClassFactoryMethod");
@@ -826,10 +831,10 @@ class DietListener extends StackListenerImpl {
   }
 
   BodyBuilder createListener(
-      BodyBuilderContext bodyBuilderContext, Scope memberScope,
+      BodyBuilderContext bodyBuilderContext, LookupScope memberScope,
       {VariableDeclaration? thisVariable,
       List<TypeParameter>? thisTypeParameters,
-      Scope? formalParameterScope,
+      LocalScope? formalParameterScope,
       InferenceDataForTesting? inferenceDataForTesting}) {
     _benchmarker
         // Coverage-ignore(suite): Not run.
@@ -859,8 +864,8 @@ class DietListener extends StackListenerImpl {
 
   BodyBuilder createListenerInternal(
       BodyBuilderContext bodyBuilderContext,
-      Scope memberScope,
-      Scope? formalParameterScope,
+      LookupScope memberScope,
+      LocalScope? formalParameterScope,
       VariableDeclaration? thisVariable,
       List<TypeParameter>? thisTypeParameters,
       TypeInferrer typeInferrer,
@@ -868,7 +873,7 @@ class DietListener extends StackListenerImpl {
     return new BodyBuilder(
         libraryBuilder: libraryBuilder,
         context: bodyBuilderContext,
-        enclosingScope: memberScope,
+        enclosingScope: new EnclosingLocalScope(memberScope),
         formalParameterScope: formalParameterScope,
         hierarchy: hierarchy,
         coreTypes: coreTypes,
@@ -883,9 +888,9 @@ class DietListener extends StackListenerImpl {
       {required bool inOutlineBuildingPhase,
       required bool inMetadata,
       required bool inConstFields}) {
-    final Scope typeParameterScope =
+    final LookupScope typeParameterScope =
         builder.computeTypeParameterScope(memberScope);
-    final Scope formalParameterScope =
+    final LocalScope formalParameterScope =
         builder.computeFormalParameterScope(typeParameterScope);
     return createListener(
         builder.createBodyBuilderContext(
@@ -1174,22 +1179,6 @@ class DietListener extends StackListenerImpl {
       int memberCount, Token endToken) {
     debugEvent("Enum");
     checkEmpty(enumKeyword.charOffset);
-
-    SourceEnumBuilder? enumBuilder = currentClass as SourceEnumBuilder?;
-    if (enumBuilder != null) {
-      DeclaredSourceConstructorBuilder? defaultConstructorBuilder =
-          enumBuilder.synthesizedDefaultConstructorBuilder;
-      if (defaultConstructorBuilder != null) {
-        BodyBuilder bodyBuilder = createFunctionListener(
-            defaultConstructorBuilder,
-            inOutlineBuildingPhase: false,
-            inMetadata: false,
-            inConstFields: false);
-        bodyBuilder.finishConstructor(AsyncMarker.Sync, new EmptyStatement(),
-            superParametersAsArguments: null);
-      }
-    }
-
     currentDeclaration = null;
     memberScope = libraryBuilder.scope;
   }

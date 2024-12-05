@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidVoidAsyncTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_void_async';
+  String get lintRule => LintNames.avoid_void_async;
 
   test_function_async_futureVoidReturnType_arrow() async {
     await assertNoDiagnostics(r'''

@@ -8,47 +8,19 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use `??` operators to convert `null`s to `bool`s.';
 
-const _details = r'''
-From [Effective Dart](https://dart.dev/effective-dart/usage#prefer-using--to-convert-null-to-a-boolean-value):
-
-Use `??` operators to convert `null`s to `bool`s.
-
-**BAD:**
-```dart
-if (nullableBool == true) {
-}
-if (nullableBool != false) {
-}
-```
-
-**GOOD:**
-```dart
-if (nullableBool ?? false) {
-}
-if (nullableBool ?? true) {
-}
-```
-
-''';
-
 class UseIfNullToConvertNullsToBools extends LintRule {
-  static const LintCode code = LintCode('use_if_null_to_convert_nulls_to_bools',
-      "Use an if-null operator to convert a 'null' to a 'bool'.",
-      correctionMessage: 'Try using an if-null operator.');
-
   UseIfNullToConvertNullsToBools()
       : super(
-          name: 'use_if_null_to_convert_nulls_to_bools',
+          name: LintNames.use_if_null_to_convert_nulls_to_bools,
           description: _desc,
-          details: _details,
-          categories: {Category.style},
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_if_null_to_convert_nulls_to_bools;
 
   @override
   void registerNodeProcessors(

@@ -31,7 +31,10 @@ class ConstantValueTypeMasks
 
   @override
   TypeMask visitRecord(RecordConstantValue constant, JClosedWorld closedWorld) {
-    return _abstractValueDomain.recordType;
+    final representation =
+        closedWorld.recordData.representationForShape(constant.shape);
+    if (representation == null) return _abstractValueDomain.recordType;
+    return TypeMask.nonNullExact(representation.cls, closedWorld);
   }
 
   @override

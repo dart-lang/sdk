@@ -1684,7 +1684,7 @@ DebuggerStackTrace* DebuggerStackTrace::Collect() {
       OS::PrintErr("CollectStackTrace: visiting frame:\n\t%s\n",
                    frame->ToCString());
     }
-    if (frame->IsDartFrame()) {
+    if (frame->IsDartFrame() && !frame->is_interpreted()) {
       code = frame->LookupDartCode();
       stack_trace->AppendCodeFrames(frame, code);
     }
@@ -1743,6 +1743,9 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncAwaiters() {
   StackTraceUtils::CollectFrames(
       thread, /*skip_frames=*/0,
       [&](const StackTraceUtils::Frame& frame) {
+        if (frame.code.IsNull()) {
+          return;
+        }
         if (frame.frame != nullptr) {  // Synchronous portion of the stack.
           stack_trace->AppendCodeFrames(frame.frame, frame.code);
         } else {
@@ -4223,8 +4226,10 @@ void Debugger::AsyncStepInto(const Closure& awaiter) {
         Object::Handle(zone, suspend_state.function_data());
     SetBreakpointAtResumption(function_data);
   } else {
+    // We intentionally discard the value stored into the following variable.
+    Breakpoint* _ = nullptr;
     const Error& error = Error::Handle(
-        SetBreakpointAtActivation(awaiter, /*single_shot=*/true, nullptr));
+        SetBreakpointAtActivation(awaiter, /*single_shot=*/true, &_));
     // This method cannot be called while responding to a Service RPC, so we
     // know that the top error handler is an exit frame.
     DEBUG_ASSERT(Thread::Current()->TopErrorHandlerIsExitFrame());

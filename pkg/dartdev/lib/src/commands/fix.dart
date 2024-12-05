@@ -84,7 +84,8 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     var dryRun = args.flag('dry-run');
     var inTestMode = args.flag('compare-to-golden');
     var apply = args.flag('apply');
-    if (!apply && !dryRun && !inTestMode) {
+    if ((!apply && !dryRun && !inTestMode) ||
+        (apply && dryRun && !inTestMode)) {
       printUsage();
       return 0;
     }

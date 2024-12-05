@@ -26,8 +26,10 @@ import '../../SkeletalAnimation/dart/SkeletalAnimation.dart'
     deferred as lib_SkeletalAnimation;
 import '../../SkeletalAnimationSIMD/dart/SkeletalAnimationSIMD.dart'
     deferred as lib_SkeletalAnimationSIMD;
+import '../../SwitchFSM/dart/SwitchFSM.dart' deferred as lib_SwitchFSM;
 import '../../TypedDataDuplicate/dart/TypedDataDuplicate.dart'
     deferred as lib_TypedDataDuplicate;
+import '../../UiMatrix/dart/UiMatrixHarness.dart' deferred as lib_UiMatrix;
 import '../../Utf8Decode/dart/Utf8Decode.dart' deferred as lib_Utf8Decode;
 import '../../Utf8Encode/dart/Utf8Encode.dart' deferred as lib_Utf8Encode;
 
@@ -82,9 +84,17 @@ final Map<String, Lib> benchmarks = {
     lib_SkeletalAnimationSIMD.loadLibrary,
     () => lib_SkeletalAnimationSIMD.main(),
   ),
+  'SwitchFSM': Lib(
+    lib_SwitchFSM.loadLibrary,
+    () => lib_SwitchFSM.main(),
+  ),
   'TypedDataDuplicate': Lib(
     lib_TypedDataDuplicate.loadLibrary,
     () => lib_TypedDataDuplicate.main(),
+  ),
+  'UiMatrix': Lib(
+    lib_UiMatrix.loadLibrary,
+    () => lib_UiMatrix.main(),
   ),
   'Utf8Decode': Lib(
     lib_Utf8Decode.loadLibrary,

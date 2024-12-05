@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io' as io;
+import 'dart:typed_data';
 
 import 'package:front_end/src/api_unstable/vm.dart';
 
@@ -42,7 +43,7 @@ class HttpFileSystemEntity implements FileSystemEntity {
   Future<bool> existsAsyncIfPossible() => exists();
 
   @override
-  Future<List<int>> readAsBytes() async {
+  Future<Uint8List> readAsBytes() async {
     return connectAndRun((io.HttpClient httpClient) async {
       io.HttpClientRequest request = await httpClient.getUrl(uri);
       io.HttpClientResponse response = await request.close();
@@ -51,7 +52,7 @@ class HttpFileSystemEntity implements FileSystemEntity {
         throw new FileSystemException(uri, response.toString());
       }
       List<List<int>> list = await response.toList();
-      return list.expand((list) => list).toList();
+      return new Uint8List.fromList(list.expand((list) => list).toList());
     });
   }
 

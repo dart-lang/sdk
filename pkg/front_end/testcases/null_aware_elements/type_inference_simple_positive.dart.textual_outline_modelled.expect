@@ -1,0 +1,15 @@
+String? foo() => null;
+
+X contextType<X>(Object? value) => value as X;
+
+acceptsMap<X, Y>(Map<X, Y> m) {}
+
+acceptsSet<X>(Set<X> m) {}
+
+extension E<X> on X {
+  void expectStaticType<Y extends Exactly<X>>() {}
+}
+
+main() {}
+
+typedef Exactly<X> = X Function(X);

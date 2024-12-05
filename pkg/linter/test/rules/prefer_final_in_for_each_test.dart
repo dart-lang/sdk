@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferFinalInForEachTestLanguage300 extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_final_in_for_each';
+  String get lintRule => LintNames.prefer_final_in_for_each;
 
   test_int() async {
     await assertDiagnostics(r'''

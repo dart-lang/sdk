@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class MissingCodeBlockLanguageInDocCommentTest extends LintRuleTest {
   @override
-  String get lintRule => 'missing_code_block_language_in_doc_comment';
+  String get lintRule => LintNames.missing_code_block_language_in_doc_comment;
 
   test_hasLanguage() async {
     await assertNoDiagnostics(r'''

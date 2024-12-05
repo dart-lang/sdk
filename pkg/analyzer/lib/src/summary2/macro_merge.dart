@@ -26,14 +26,12 @@ class MacroElementsMerger {
   final Reference unitReference;
   final ast.CompilationUnit unitNode;
   final CompilationUnitElementImpl unitElement;
-  final LibraryAugmentationElementImpl augmentation;
 
   MacroElementsMerger({
     required this.partialUnits,
     required this.unitReference,
     required this.unitNode,
     required this.unitElement,
-    required this.augmentation,
   });
 
   void perform({
@@ -237,7 +235,7 @@ class MacroElementsMerger {
   void _rewriteImportPrefixes() {
     var uriToPartialPrefixes = <Uri, List<PrefixElementImpl>>{};
     for (var partialUnit in partialUnits) {
-      for (var import in partialUnit.container.libraryImports) {
+      for (var import in partialUnit.element.libraryImports) {
         var prefix = import.prefix?.element;
         var importedLibrary = import.importedLibrary;
         if (prefix != null && importedLibrary != null) {
@@ -251,7 +249,7 @@ class MacroElementsMerger {
     // different prefixes. Prepare the mapping.
     var partialPrefixToMerged =
         Map<PrefixElementImpl, PrefixElementImpl>.identity();
-    for (var import in augmentation.libraryImports) {
+    for (var import in unitElement.libraryImports) {
       var prefix = import.prefix?.element;
       var importedLibrary = import.importedLibrary;
       if (prefix != null && importedLibrary != null) {

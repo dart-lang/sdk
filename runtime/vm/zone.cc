@@ -57,7 +57,7 @@ static intptr_t segment_cache_size = 0;
 
 void Zone::Init() {
   ASSERT(segment_cache_mutex == nullptr);
-  segment_cache_mutex = new Mutex(NOT_IN_PRODUCT("segment_cache_mutex"));
+  segment_cache_mutex = new Mutex();
 }
 
 void Zone::Cleanup() {

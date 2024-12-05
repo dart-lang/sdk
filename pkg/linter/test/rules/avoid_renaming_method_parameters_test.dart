@@ -22,20 +22,20 @@ main() {
 @reflectiveTest
 class AvoidRenamingMethodParametersTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_renaming_method_parameters';
+  String get lintRule => LintNames.avoid_renaming_method_parameters;
 
   @FailingTest(
       reason: 'lint is limited to methods',
       issue: 'https://github.com/dart-lang/linter/issues/4891')
   test_augmentedFunction() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 void f(int p) {}
 ''');
 
     await assertDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment void f(int q) {}
 ''', [
@@ -45,7 +45,7 @@ augment void f(int q) {}
 
   test_augmentedMethod() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   void m(int p) {}
@@ -53,14 +53,14 @@ class A {
 ''');
 
     await assertDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment void m(int q) {}
-  augment void m(int q) {} 
+  augment void m(int q) {}
 }
 ''', [
-      lint(66, 1), // Only the first augmentation gets linted.
+      lint(58, 1), // Only the first augmentation gets linted.
     ]);
   }
 
@@ -152,6 +152,116 @@ class A {
 }
 class B extends A {
   void m(int p) {}
+}
+''');
+  }
+
+  test_wildcard_allowed() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void m(int p) {}
+}
+class B extends A {
+  void m(_) {}
+}
+''');
+  }
+
+  test_wildcard_featureDisabledFails() async {
+    await assertDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class A {
+  void m(int p) {}
+}
+class B extends A {
+  void m(_) {}
+}
+''', [
+      lint(104, 1),
+    ]);
+  }
+
+  test_wildcard_mixed() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void m(int a, int b, int c) {}
+}
+class B extends A {
+  void m(_, b, _) {}
+}
+''');
+  }
+
+  test_wildcard_mixedFails() async {
+    await assertDiagnostics(r'''
+class A {
+  void m(int a, int b, int c) {}
+}
+class B extends A {
+  void m(_, c, _) {}
+}
+''', [
+      lint(77, 1),
+    ]);
+  }
+
+  test_wildcard_multipleWildcards() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void m(int a, int b) {}
+}
+class B extends A {
+  void m(_, _) {}
+}
+''');
+  }
+
+  test_wildcard_nonWildcardButUnderscoreBefore() async {
+    await assertDiagnostics(r'''
+class A {
+  void m(int a, int b) {}
+}
+class B extends A {
+  void m(_, _b) {}
+}
+''', [
+      lint(70, 2),
+    ]);
+  }
+
+  test_wildcard_nonWildcardButUnderscoresAround() async {
+    await assertDiagnostics(r'''
+class A {
+  void m(int p) {}
+}
+class B extends A {
+  void m(_p_) {}
+}
+''', [
+      lint(60, 3),
+    ]);
+  }
+
+  test_wildcardInBase() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void m(int _, int b, int c) {}
+}
+class B extends A {
+  void m(a, b, c) {}
+}
+''');
+  }
+
+  test_wildcardInBaseAndSub() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void m(int _, int b, int c) {}
+}
+class B extends A {
+  void m(a, b, _) {}
 }
 ''');
   }

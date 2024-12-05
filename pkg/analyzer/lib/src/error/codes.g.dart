@@ -19,7 +19,6 @@
 // ignore_for_file: flutter_style_todos
 
 import "package:analyzer/error/error.dart";
-import "package:analyzer/src/dart/error/hint_codes.g.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
 
 class CompileTimeErrorCode extends AnalyzerErrorCode {
@@ -293,22 +292,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The declaration being augmented doesn't exist.",
     correctionMessage:
         "Try changing the augmentation to match an existing declaration.",
-  );
-
-  static const CompileTimeErrorCode AUGMENTATION_WITHOUT_IMPORT =
-      CompileTimeErrorCode(
-    'AUGMENTATION_WITHOUT_IMPORT',
-    "The library does not import this augmentation.",
-    correctionMessage:
-        "Try updating the augmented library to import this augmentation.",
-  );
-
-  static const CompileTimeErrorCode AUGMENTATION_WITHOUT_LIBRARY =
-      CompileTimeErrorCode(
-    'AUGMENTATION_WITHOUT_LIBRARY',
-    "The URI does not resolve to a library.",
-    correctionMessage:
-        "Try updating the URI to reference the augmented library.",
   );
 
   static const CompileTimeErrorCode AUGMENTED_EXPRESSION_IS_NOT_SETTER =
@@ -713,124 +696,124 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the name of the type variable
+  ///  0: the name of the type parameter
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_CLASS =
       CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
-    "'{0}' can't be used to name both a type variable and the class in which "
-        "the type variable is defined.",
-    correctionMessage: "Try renaming either the type variable or the class.",
+    "'{0}' can't be used to name both a type parameter and the class in which "
+        "the type parameter is defined.",
+    correctionMessage: "Try renaming either the type parameter or the class.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_CLASS',
   );
 
   ///  Parameters:
-  ///  0: the name of the type variable
+  ///  0: the name of the type parameter
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_ENUM =
       CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
-    "'{0}' can't be used to name both a type variable and the enum in which "
-        "the type variable is defined.",
-    correctionMessage: "Try renaming either the type variable or the enum.",
+    "'{0}' can't be used to name both a type parameter and the enum in which "
+        "the type parameter is defined.",
+    correctionMessage: "Try renaming either the type parameter or the enum.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_ENUM',
   );
 
   ///  Parameters:
-  ///  0: the name of the type variable
+  ///  0: the name of the type parameter
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_EXTENSION =
       CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
-    "'{0}' can't be used to name both a type variable and the extension in "
-        "which the type variable is defined.",
+    "'{0}' can't be used to name both a type parameter and the extension in "
+        "which the type parameter is defined.",
     correctionMessage:
-        "Try renaming either the type variable or the extension.",
+        "Try renaming either the type variaparameterble or the extension.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION',
   );
 
   ///  Parameters:
-  ///  0: the name of the type variable
+  ///  0: the name of the type parameter
   static const CompileTimeErrorCode
       CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE = CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
-    "'{0}' can't be used to name both a type variable and the extension type "
-        "in which the type variable is defined.",
+    "'{0}' can't be used to name both a type parameter and the extension type "
+        "in which the type parameter is defined.",
     correctionMessage:
-        "Try renaming either the type variable or the extension.",
+        "Try renaming either the type parameter or the extension.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE',
   );
 
   ///  Parameters:
-  ///  0: the name of the type variable
+  ///  0: the name of the type parameter
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS =
       CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
-    "'{0}' can't be used to name both a type variable and a member in this "
+    "'{0}' can't be used to name both a type parameter and a member in this "
         "class.",
-    correctionMessage: "Try renaming either the type variable or the member.",
+    correctionMessage: "Try renaming either the type parameter or the member.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS',
   );
 
   ///  Parameters:
-  ///  0: the name of the type variable
+  ///  0: the name of the type parameter
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM =
       CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
-    "'{0}' can't be used to name both a type variable and a member in this "
+    "'{0}' can't be used to name both a type parameter and a member in this "
         "enum.",
-    correctionMessage: "Try renaming either the type variable or the member.",
+    correctionMessage: "Try renaming either the type parameter or the member.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM',
   );
 
   ///  Parameters:
-  ///  0: the name of the type variable
+  ///  0: the name of the type parameter
   static const CompileTimeErrorCode
       CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION = CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
-    "'{0}' can't be used to name both a type variable and a member in this "
+    "'{0}' can't be used to name both a type parameter and a member in this "
         "extension.",
-    correctionMessage: "Try renaming either the type variable or the member.",
+    correctionMessage: "Try renaming either the type parameter or the member.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION',
   );
 
   ///  Parameters:
-  ///  0: the name of the type variable
+  ///  0: the name of the type parameter
   static const CompileTimeErrorCode
       CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE =
       CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
-    "'{0}' can't be used to name both a type variable and a member in this "
+    "'{0}' can't be used to name both a type parameter and a member in this "
         "extension type.",
-    correctionMessage: "Try renaming either the type variable or the member.",
+    correctionMessage: "Try renaming either the type parameter or the member.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE',
   );
 
   ///  Parameters:
-  ///  0: the name of the type variable
+  ///  0: the name of the type parameter
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN =
       CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
-    "'{0}' can't be used to name both a type variable and a member in this "
+    "'{0}' can't be used to name both a type parameter and a member in this "
         "mixin.",
-    correctionMessage: "Try renaming either the type variable or the member.",
+    correctionMessage: "Try renaming either the type parameter or the member.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN',
   );
 
   ///  Parameters:
-  ///  0: the name of the type variable
+  ///  0: the name of the type parameter
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_MIXIN =
       CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
-    "'{0}' can't be used to name both a type variable and the mixin in which "
-        "the type variable is defined.",
-    correctionMessage: "Try renaming either the type variable or the mixin.",
+    "'{0}' can't be used to name both a type parameter and the mixin in which "
+        "the type parameter is defined.",
+    correctionMessage: "Try renaming either the type parameter or the mixin.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MIXIN',
   );
@@ -1383,17 +1366,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "generic type, generic function, generic instance method, or generic "
         "constructor.",
     hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the URI of the duplicate augmentation
-  static const CompileTimeErrorCode DUPLICATE_AUGMENTATION_IMPORT =
-      CompileTimeErrorCode(
-    'DUPLICATE_AUGMENTATION_IMPORT',
-    "The library already contains an augmentation with the URI '{0}'.",
-    correctionMessage:
-        "Try removing all except one of the duplicated augmentation "
-        "directives.",
   );
 
   ///  No parameters.
@@ -2457,17 +2429,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Parameters:
-  ///  0: the URI of the imported file
-  static const CompileTimeErrorCode IMPORT_OF_NOT_AUGMENTATION =
-      CompileTimeErrorCode(
-    'IMPORT_OF_NOT_AUGMENTATION',
-    "The imported file '{0}' isn't an augmentation of this library.",
-    correctionMessage:
-        "Try adding an 'augment library' directive referencing this library to "
-        "the imported file.",
-  );
-
   ///  13.9 Switch: It is a compile-time error if values of the expressions
   ///  <i>e<sub>k</sub></i> are not instances of the same class <i>C</i>, for all
   ///  <i>1 &lt;= k &lt;= n</i>.
@@ -3018,7 +2979,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_LIST =
       CompileTimeErrorCode(
     'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
-    "Constant list literals can't include a type parameter as a type argument, "
+    "Constant list literals can't use a type parameter in a type argument, "
         "such as '{0}'.",
     correctionMessage:
         "Try replacing the type parameter with a different type.",
@@ -3031,8 +2992,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_MAP =
       CompileTimeErrorCode(
     'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
-    "Constant map literals can't include a type parameter as a type argument, "
-        "such as '{0}'.",
+    "Constant map literals can't use a type parameter in a type argument, such "
+        "as '{0}'.",
     correctionMessage:
         "Try replacing the type parameter with a different type.",
     hasPublishedDocs: true,
@@ -3044,8 +3005,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_SET =
       CompileTimeErrorCode(
     'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
-    "Constant set literals can't include a type parameter as a type argument, "
-        "such as '{0}'.",
+    "Constant set literals can't use a type parameter in a type argument, such "
+        "as '{0}'.",
     correctionMessage:
         "Try replacing the type parameter with a different type.",
     hasPublishedDocs: true,
@@ -3819,8 +3780,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Constant values from a deferred library can't be used as a default "
         "parameter value.",
     correctionMessage:
-        "Try leaving the default as null and initializing the parameter inside "
-        "the function body.",
+        "Try leaving the default as 'null' and initializing the parameter "
+        "inside the function body.",
     hasPublishedDocs: true,
   );
 
@@ -4231,7 +4192,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NOT_NULL_AWARE_NULL_SPREAD =
       CompileTimeErrorCode(
     'NOT_NULL_AWARE_NULL_SPREAD',
-    "The Null typed expression can't be used with a non-null-aware spread.",
+    "The Null-typed expression can't be used with a non-null-aware spread.",
   );
 
   ///  No parameters.
@@ -6110,8 +6071,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   static const StaticWarningCode
       INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT = StaticWarningCode(
     'INVALID_NULL_AWARE_OPERATOR',
-    "The receiver can't be null because of short-circuiting, so the null-aware "
-        "operator '{0}' can't be used.",
+    "The receiver can't be 'null' because of short-circuiting, so the "
+        "null-aware operator '{0}' can't be used.",
     correctionMessage: "Try replacing the operator '{0}' with '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
@@ -6286,6 +6247,19 @@ class WarningCode extends AnalyzerErrorCode {
         "Try reordering the catch clauses so that they can be reached, or "
         "removing the unreachable catch clauses.",
     hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER =
+      WarningCode(
+    'DEAD_CODE',
+    "Dead code: The assigned-to wildcard variable is marked late and can never "
+        "be referenced so this initializer will never be evaluated.",
+    correctionMessage:
+        "Try removing the code, removing the late modifier or changing the "
+        "variable to a non-wildcard.",
+    hasPublishedDocs: true,
+    uniqueName: 'DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER',
   );
 
   ///  Dead code is code that is never reached. This case covers cases where the
@@ -7108,8 +7082,8 @@ class WarningCode extends AnalyzerErrorCode {
   ///  1: the type argument associated with the method
   static const WarningCode NULL_ARGUMENT_TO_NON_NULL_TYPE = WarningCode(
     'NULL_ARGUMENT_TO_NON_NULL_TYPE',
-    "'{0}' shouldn't be called with a null argument for the non-nullable type "
-        "argument '{1}'.",
+    "'{0}' shouldn't be called with a 'null' argument for the non-nullable "
+        "type argument '{1}'.",
     correctionMessage: "Try adding a non-null argument.",
     hasPublishedDocs: true,
   );
@@ -7413,8 +7387,13 @@ class WarningCode extends AnalyzerErrorCode {
         "this is the only name in the list.",
   );
 
-  ///  This is the new replacement for [HintCode.UNNECESSARY_CAST].
-  static const HintCode UNNECESSARY_CAST = HintCode.UNNECESSARY_CAST;
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_CAST = WarningCode(
+    'UNNECESSARY_CAST',
+    "Unnecessary cast.",
+    correctionMessage: "Try removing the cast.",
+    hasPublishedDocs: true,
+  );
 
   ///  No parameters.
   static const WarningCode UNNECESSARY_CAST_PATTERN = WarningCode(
@@ -7470,23 +7449,45 @@ class WarningCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
-  static const WarningCode UNNECESSARY_NULL_COMPARISON_FALSE = WarningCode(
+  static const WarningCode UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE =
+      WarningCode(
     'UNNECESSARY_NULL_COMPARISON',
-    "The operand can't be null, so the condition is always 'false'.",
+    "The operand must be 'null', so the condition is always 'false'.",
+    correctionMessage: "Remove the condition.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE',
+  );
+
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE =
+      WarningCode(
+    'UNNECESSARY_NULL_COMPARISON',
+    "The operand must be 'null', so the condition is always 'true'.",
+    correctionMessage: "Remove the condition.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE',
+  );
+
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE =
+      WarningCode(
+    'UNNECESSARY_NULL_COMPARISON',
+    "The operand can't be 'null', so the condition is always 'false'.",
     correctionMessage:
         "Try removing the condition, an enclosing condition, or the whole "
         "conditional statement.",
     hasPublishedDocs: true,
-    uniqueName: 'UNNECESSARY_NULL_COMPARISON_FALSE',
+    uniqueName: 'UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE',
   );
 
   ///  No parameters.
-  static const WarningCode UNNECESSARY_NULL_COMPARISON_TRUE = WarningCode(
+  static const WarningCode UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE =
+      WarningCode(
     'UNNECESSARY_NULL_COMPARISON',
-    "The operand can't be null, so the condition is always 'true'.",
+    "The operand can't be 'null', so the condition is always 'true'.",
     correctionMessage: "Remove the condition.",
     hasPublishedDocs: true,
-    uniqueName: 'UNNECESSARY_NULL_COMPARISON_TRUE',
+    uniqueName: 'UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE',
   );
 
   ///  Parameters:
@@ -7532,9 +7533,25 @@ class WarningCode extends AnalyzerErrorCode {
     correctionMessage: "Try removing the wildcard pattern.",
   );
 
-  ///  This is the new replacement for [HintCode.UNREACHABLE_SWITCH_CASE].
-  static const HintCode UNREACHABLE_SWITCH_CASE =
-      HintCode.UNREACHABLE_SWITCH_CASE;
+  ///  No parameters.
+  static const WarningCode UNREACHABLE_SWITCH_CASE = WarningCode(
+    'UNREACHABLE_SWITCH_CASE',
+    "This case is covered by the previous cases.",
+    correctionMessage:
+        "Try removing the case clause, or restructuring the preceding "
+        "patterns.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode UNREACHABLE_SWITCH_DEFAULT = WarningCode(
+    'UNREACHABLE_SWITCH_DEFAULT',
+    "This default clause is covered by the previous cases.",
+    correctionMessage:
+        "Try removing the default clause, or restructuring the preceding "
+        "patterns.",
+    hasPublishedDocs: true,
+  );
 
   ///  Parameters:
   ///  0: the name of the exception variable
@@ -7555,12 +7572,24 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This is the new replacement for [HintCode.UNUSED_ELEMENT].
-  static const HintCode UNUSED_ELEMENT = HintCode.UNUSED_ELEMENT;
+  ///  Parameters:
+  ///  0: the name that is declared but not referenced
+  static const WarningCode UNUSED_ELEMENT = WarningCode(
+    'UNUSED_ELEMENT',
+    "The declaration '{0}' isn't referenced.",
+    correctionMessage: "Try removing the declaration of '{0}'.",
+    hasPublishedDocs: true,
+  );
 
-  ///  This is the new replacement for [HintCode.UNUSED_ELEMENT_PARAMETER].
-  static const HintCode UNUSED_ELEMENT_PARAMETER =
-      HintCode.UNUSED_ELEMENT_PARAMETER;
+  ///  Parameters:
+  ///  0: the name of the parameter that is declared but not used
+  static const WarningCode UNUSED_ELEMENT_PARAMETER = WarningCode(
+    'UNUSED_ELEMENT',
+    "A value for optional parameter '{0}' isn't ever given.",
+    correctionMessage: "Try removing the unused parameter.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNUSED_ELEMENT_PARAMETER',
+  );
 
   ///  Parameters:
   ///  0: the name of the unused field
@@ -7640,13 +7669,12 @@ class WarningCode extends AnalyzerErrorCode {
   ///  Parameters:
   ///  0: the URI pointing to a nonexistent file
   static const WarningCode URI_DOES_NOT_EXIST_IN_DOC_IMPORT = WarningCode(
-    'URI_DOES_NOT_EXIST',
+    'URI_DOES_NOT_EXIST_IN_DOC_IMPORT',
     "Target of URI doesn't exist: '{0}'.",
     correctionMessage:
         "Try creating the file referenced by the URI, or try using a URI for a "
         "file that does exist.",
     hasPublishedDocs: true,
-    uniqueName: 'URI_DOES_NOT_EXIST_IN_DOC_IMPORT',
   );
 
   ///  Parameters:

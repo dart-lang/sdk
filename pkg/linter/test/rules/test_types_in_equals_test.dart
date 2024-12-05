@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class TestTypesInEqualsTest extends LintRuleTest {
   @override
-  String get lintRule => 'test_types_in_equals';
+  String get lintRule => LintNames.test_types_in_equals;
 
   test_doesNotUseIs() async {
     await assertDiagnostics(r'''

@@ -126,6 +126,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitArgumentList(ArgumentList node) {
+    _invalidAccessVerifier._checkForInvalidDoNotSubmitParameter(node);
+    super.visitArgumentList(node);
+  }
+
+  @override
   void visitAsExpression(AsExpression node) {
     if (isUnnecessaryCast(node, _typeSystem)) {
       _errorReporter.atNode(
@@ -153,7 +159,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    _checkForDivisionOptimizationHint(node);
     _deprecatedVerifier.binaryExpression(node);
     _checkForInvariantNanComparison(node);
     _checkForInvariantNullComparison(node);
@@ -377,7 +382,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           var element = field.declaredElement;
           if (element is PropertyAccessorElement || element is FieldElement) {
             Name name = Name(_currentLibrary.source.uri, element!.name);
-            var enclosingElement = element.enclosingElement!;
+            var enclosingElement = element.enclosingElement3!;
             var enclosingDeclaration = enclosingElement is InstanceElement
                 ? enclosingElement.augmented.declaration
                 : enclosingElement;
@@ -409,7 +414,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
             arguments: [
               field.name.lexeme,
-              overriddenElement.enclosingElement.displayName
+              overriddenElement.enclosingElement3.displayName
             ],
           );
         }
@@ -563,7 +568,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     bool wasInDoNotStoreMember = _inDoNotStoreMember;
     var element = node.declaredElement!;
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     var enclosingDeclaration = enclosingElement is InstanceElement
         ? enclosingElement.augmented.declaration
         : enclosingElement;
@@ -607,7 +612,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
           arguments: [
             node.name.lexeme,
-            overriddenElement.enclosingElement.displayName
+            overriddenElement.enclosingElement3.displayName
           ],
         );
       }
@@ -843,45 +848,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Checks the passed binary expression for [HintCode.DIVISION_OPTIMIZATION].
-  ///
-  /// Returns whether a hint code is generated.
-  bool _checkForDivisionOptimizationHint(BinaryExpression node) {
-    if (node.operator.type != TokenType.SLASH) return false;
-
-    // Return if the two operands are not each `int`.
-    var leftType = node.leftOperand.staticType;
-    if (leftType == null || !leftType.isDartCoreInt) return false;
-
-    var rightType = node.rightOperand.staticType;
-    if (rightType == null || !rightType.isDartCoreInt) return false;
-
-    // Return if the '/' operator is not defined in core, or if we don't know
-    // its static type.
-    var methodElement = node.staticElement;
-    if (methodElement == null) return false;
-
-    var libraryElement = methodElement.library;
-    if (!libraryElement.isDartCore) return false;
-
-    var parent = node.parent;
-    if (parent is! ParenthesizedExpression) return false;
-
-    var outermostParentheses = parent.thisOrAncestorMatching(
-        (e) => e.parent is! ParenthesizedExpression) as ParenthesizedExpression;
-    var grandParent = outermostParentheses.parent;
-    if (grandParent is! MethodInvocation) return false;
-
-    // Report an error if the `(x / y)` expression has `toInt()` invoked on it.
-    if (grandParent.methodName.name == 'toInt' &&
-        grandParent.argumentList.arguments.isEmpty) {
-      _errorReporter.atNode(grandParent, HintCode.DIVISION_OPTIMIZATION);
-      return true;
-    }
-
-    return false;
-  }
-
   /// Generate hints related to duplicate elements (keys) in sets (maps).
   void _checkForDuplications(SetOrMapLiteral node) {
     // This only checks for top-level elements. If, for, and spread elements
@@ -1092,39 +1058,37 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForInvariantNullComparison(BinaryExpression node) {
-    void reportStartEnd(
-      ErrorCode errorCode,
-      SyntacticEntity startEntity,
-      SyntacticEntity endEntity,
-    ) {
-      var offset = startEntity.offset;
-      _errorReporter.atOffset(
-        offset: offset,
-        length: endEntity.end - offset,
-        errorCode: errorCode,
-      );
-    }
-
-    void checkLeftRight(ErrorCode errorCode) {
-      if (node.leftOperand is NullLiteral) {
-        var rightType = node.rightOperand.typeOrThrow;
-        if (_typeSystem.isStrictlyNonNullable(rightType)) {
-          reportStartEnd(errorCode, node.leftOperand, node.operator);
-        }
-      }
-
-      if (node.rightOperand is NullLiteral) {
-        var leftType = node.leftOperand.typeOrThrow;
-        if (_typeSystem.isStrictlyNonNullable(leftType)) {
-          reportStartEnd(errorCode, node.operator, node.rightOperand);
-        }
-      }
-    }
-
+    WarningCode errorCode;
     if (node.operator.type == TokenType.BANG_EQ) {
-      checkLeftRight(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE);
+      errorCode = WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE;
     } else if (node.operator.type == TokenType.EQ_EQ) {
-      checkLeftRight(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE);
+      errorCode = WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE;
+    } else {
+      return;
+    }
+
+    if (node.leftOperand is NullLiteral) {
+      var rightType = node.rightOperand.typeOrThrow;
+      if (_typeSystem.isStrictlyNonNullable(rightType)) {
+        var offset = node.leftOperand.offset;
+        _errorReporter.atOffset(
+          offset: offset,
+          length: node.operator.end - offset,
+          errorCode: errorCode,
+        );
+      }
+    }
+
+    if (node.rightOperand is NullLiteral) {
+      var leftType = node.leftOperand.typeOrThrow;
+      if (_typeSystem.isStrictlyNonNullable(leftType)) {
+        var offset = node.operator.offset;
+        _errorReporter.atOffset(
+          offset: offset,
+          length: node.rightOperand.end - offset,
+          errorCode: errorCode,
+        );
+      }
     }
   }
 
@@ -1278,7 +1242,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         SimpleIdentifier name = invocation.methodName;
         if (name.name == FunctionElement.NO_SUCH_METHOD_METHOD_NAME) {
           var methodElement = name.staticElement;
-          var classElement = methodElement?.enclosingElement;
+          var classElement = methodElement?.enclosingElement3;
           return methodElement is MethodElement &&
               classElement is ClassElement &&
               !classElement.isDartCoreObject;
@@ -1628,7 +1592,12 @@ class _InvalidAccessVerifier {
         ? grandparent.staticElement
         : identifier.writeOrReadElement;
 
-    if (element == null || _inCurrentLibrary(element)) {
+    if (element == null) {
+      return;
+    }
+    _checkForInvalidDoNotSubmitAccess(identifier, element);
+
+    if (_inCurrentLibrary(element)) {
       return;
     }
 
@@ -1690,7 +1659,13 @@ class _InvalidAccessVerifier {
       element = parent.staticElement;
     }
 
-    if (element == null || _inCurrentLibrary(element)) {
+    if (element == null) {
+      return;
+    }
+
+    _checkForInvalidDoNotSubmitAccess(node, element);
+
+    if (_inCurrentLibrary(element)) {
       return;
     }
 
@@ -1705,7 +1680,12 @@ class _InvalidAccessVerifier {
 
   void verifyPatternField(PatternFieldImpl node) {
     var element = node.element;
-    if (element == null || _inCurrentLibrary(element)) {
+    if (element == null) {
+      return;
+    }
+    _checkForInvalidDoNotSubmitAccess(node, element);
+
+    if (_inCurrentLibrary(element)) {
       return;
     }
 
@@ -1743,6 +1723,95 @@ class _InvalidAccessVerifier {
     }
   }
 
+  void _checkForInvalidDoNotSubmitAccess(AstNode node, Element element) {
+    if (element is ParameterElement || !_hasDoNotSubmit(element)) {
+      return;
+    }
+
+    // It's valid for a member annotated with `@doNotSubmit` to access another
+    // member annotated with `@doNotSubmit`. For example, this is valid:
+    // ```
+    // @doNotSubmit
+    // void foo() {}
+    //
+    // @doNotSubmit
+    // void bar() {
+    //   // OK: `foo` is annotated with `@doNotSubmit` but so is `bar`.
+    //   foo();
+    // }
+    // ```
+    var declaration = node.thisOrAncestorOfType<Declaration>();
+    if (declaration != null) {
+      var element = declaration.declaredElement;
+      if (element != null && _hasDoNotSubmit(element)) {
+        return;
+      }
+    }
+
+    var (name, errorEntity) = _getIdentifierNameAndErrorEntity(node, element);
+    _errorReporter.atOffset(
+      offset: errorEntity.offset,
+      length: errorEntity.length,
+      errorCode: WarningCode.invalid_use_of_do_not_submit_member,
+      arguments: [name],
+    );
+  }
+
+  // void a({@doNotSubmit int? b}) {}
+  // void c() {
+  //   // Error: `b` is annotated with `@doNotSubmit` and it's a parameter.
+  //   a(b: 0);
+  // }
+  void _checkForInvalidDoNotSubmitParameter(ArgumentList node) {
+    // void a({@doNotSubmit int? b}) {
+    //   // OK: `b` is annotated with `@doNotSubmit` but it's a parameter.
+    //   print(b);
+    // }
+    //
+    // void c({@doNotSubmit int? b}) {
+    //   void d() {
+    //     // OK: `b` is annotated with `@doNotSubmit` but it's a parent arg.
+    //     print(b);
+    //   }
+    // }
+
+    // Check if the method being called is a parent method of the current node.
+    var bodyParent = node.thisOrAncestorOfType<FunctionBody>()?.parent;
+    if (bodyParent == node.thisOrAncestorOfType<FunctionDeclaration>() ||
+        bodyParent == node.thisOrAncestorOfType<MethodDeclaration>()) {
+      return;
+    }
+
+    for (var argument in node.arguments) {
+      var element = argument.staticParameterElement;
+      if (element != null) {
+        if (!_hasDoNotSubmit(element)) {
+          continue;
+        }
+        if (argument is NamedExpression) {
+          argument = argument.name.label;
+          var (name, errorEntity) = _getIdentifierNameAndErrorEntity(
+            argument,
+            element,
+          );
+          _errorReporter.atOffset(
+            offset: errorEntity.offset,
+            length: errorEntity.length,
+            errorCode: WarningCode.invalid_use_of_do_not_submit_member,
+            arguments: [name],
+          );
+        } else {
+          // For positional arguments.
+          _errorReporter.atNode(
+            argument,
+            WarningCode.invalid_use_of_do_not_submit_member,
+            arguments: [element.displayName],
+          );
+        }
+      }
+    }
+  }
+
   void _checkForInvalidInternalAccess({
     required AstNode? parent,
     required Token nameToken,
@@ -1771,38 +1840,15 @@ class _InvalidAccessVerifier {
   }
 
   void _checkForOtherInvalidAccess(AstNode node, Element element) {
-    bool hasDoNotSubmit = _hasDoNotSubmit(element);
-    if (hasDoNotSubmit) {
-      // It's valid for a member annotated with `@doNotSubmit` to access another
-      // member annotated with `@doNotSubmit`. For example, this is valid:
-      // ```
-      // @doNotSubmit
-      // void foo() {}
-      //
-      // @doNotSubmit
-      // void bar() {
-      //   // OK: `foo` is annotated with `@doNotSubmit` but so is `bar`.
-      //   foo();
-      // }
-      // ```
-      var declaration = node.thisOrAncestorOfType<Declaration>();
-      if (declaration != null) {
-        var element = declaration.declaredElement;
-        if (element != null && _hasDoNotSubmit(element)) {
-          return;
-        }
-      }
-    }
-
     var hasProtected = element.isProtected;
     if (hasProtected) {
-      var definingClass = element.enclosingElement as InterfaceElement;
+      var definingClass = element.enclosingElement3 as InterfaceElement;
       if (_hasTypeOrSuperType(_enclosingClass, definingClass)) {
         return;
       }
     }
 
-    bool isVisibleForTemplateApplied = _isVisibleForTemplateApplied(element);
+    var isVisibleForTemplateApplied = _isVisibleForTemplateApplied(element);
     if (isVisibleForTemplateApplied) {
       if (_inTemplateSource || _inExportDirective(node)) {
         return;
@@ -1816,50 +1862,31 @@ class _InvalidAccessVerifier {
       }
     }
 
-    bool hasVisibleForOverriding = _hasVisibleForOverriding(element);
+    var (name, errorEntity) = _getIdentifierNameAndErrorEntity(node, element);
+
+    var hasVisibleForOverriding = _hasVisibleForOverriding(element);
+    if (hasVisibleForOverriding) {
+      var parent = node.parent;
+      if (parent is MethodInvocation && parent.target is SuperExpression ||
+          parent is PropertyAccess && parent.target is SuperExpression) {
+        var grandparent = parent?.parent;
+        var methodDeclaration =
+            grandparent?.thisOrAncestorOfType<MethodDeclaration>();
+        if (methodDeclaration?.name.lexeme == name) {
+          return;
+        }
+      }
+    }
 
     // At this point, [identifier] was not cleared as protected access, nor
     // cleared as access for templates or testing. Report a violation for each
     // annotation present.
 
-    String name;
-    SyntacticEntity errorEntity = node;
-
-    var parent = node.parent;
-    var grandparent = parent?.parent;
-    if (node is Identifier) {
-      if (grandparent is ConstructorName) {
-        name = grandparent.toSource();
-        errorEntity = grandparent;
-      } else {
-        name = node.name;
-      }
-    } else if (node is NamedType) {
-      if (parent is ConstructorName) {
-        name = parent.toSource();
-        errorEntity = parent;
-      } else {
-        name = node.name2.lexeme;
-      }
-    } else if (node is PatternFieldImpl) {
-      name = element.displayName;
-      errorEntity = node.errorEntity;
-    } else {
-      throw StateError('Can only handle Identifier or PatternField, but got '
-          '${node.runtimeType}');
-    }
-
-    var definingClass = element.enclosingElement;
+    var definingClass = element.enclosingElement3;
     if (definingClass == null) {
       return;
     }
-    if (hasDoNotSubmit) {
-      _errorReporter.atEntity(
-        errorEntity,
-        WarningCode.invalid_use_of_do_not_submit_member,
-        arguments: [name],
-      );
-    }
+
     if (hasProtected) {
       _errorReporter.atEntity(
         errorEntity,
@@ -1867,6 +1894,7 @@ class _InvalidAccessVerifier {
         arguments: [name, definingClass.source!.uri],
       );
     }
+
     if (isVisibleForTemplateApplied) {
       _errorReporter.atEntity(
         errorEntity,
@@ -1884,23 +1912,11 @@ class _InvalidAccessVerifier {
     }
 
     if (hasVisibleForOverriding) {
-      var parent = node.parent;
-      var validOverride = false;
-      if (parent is MethodInvocation && parent.target is SuperExpression ||
-          parent is PropertyAccess && parent.target is SuperExpression) {
-        var methodDeclaration =
-            grandparent?.thisOrAncestorOfType<MethodDeclaration>();
-        if (methodDeclaration?.name.lexeme == name) {
-          validOverride = true;
-        }
-      }
-      if (!validOverride) {
-        _errorReporter.atEntity(
-          errorEntity,
-          WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
-          arguments: [name],
-        );
-      }
+      _errorReporter.atEntity(
+        errorEntity,
+        WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
+        arguments: [name],
+      );
     }
   }
 
@@ -1951,7 +1967,7 @@ class _InvalidAccessVerifier {
         return true;
       }
     }
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (_hasVisibleForTemplate(enclosingElement)) {
       return true;
     }
@@ -1968,7 +1984,7 @@ class _InvalidAccessVerifier {
         return true;
       }
     }
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement != null &&
         _hasVisibleOutsideTemplate(enclosingElement)) {
       return true;
@@ -2012,6 +2028,39 @@ class _InvalidAccessVerifier {
       return _hasVisibleForTemplate(element) &&
           !_hasVisibleOutsideTemplate(element);
     }
+  }
+
+  static (String, SyntacticEntity) _getIdentifierNameAndErrorEntity(
+    AstNode node,
+    Element element,
+  ) {
+    String name;
+    SyntacticEntity errorEntity = node;
+
+    var parent = node.parent;
+    var grandparent = parent?.parent;
+    if (node is Identifier) {
+      if (grandparent is ConstructorName) {
+        name = grandparent.toSource();
+        errorEntity = grandparent;
+      } else {
+        name = node.name;
+      }
+    } else if (node is NamedType) {
+      if (parent is ConstructorName) {
+        name = parent.toSource();
+        errorEntity = parent;
+      } else {
+        name = node.name2.lexeme;
+      }
+    } else if (node is PatternFieldImpl) {
+      name = element.displayName;
+      errorEntity = node.errorEntity;
+    } else {
+      throw StateError('Unhandled node type: ${node.runtimeType}');
+    }
+
+    return (name, errorEntity);
   }
 }
 

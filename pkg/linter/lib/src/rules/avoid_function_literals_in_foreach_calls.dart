@@ -8,32 +8,9 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid using `forEach` with a function literal.';
-
-const _details = r'''
-**AVOID** using `forEach` with a function literal.
-
-The `for` loop enables a developer to be clear and explicit as to their intent.
-A return in the body of the `for` loop returns from the body of the function,
-where as a return in the body of the `forEach` closure only returns a value
-for that iteration of the `forEach`. The body of a `for` loop can contain
-`await`s, while the closure body of a `forEach` cannot.
-
-**BAD:**
-```dart
-people.forEach((person) {
-  ...
-});
-```
-
-**GOOD:**
-```dart
-for (var person in people) {
-  ...
-}
-```
-''';
 
 bool _hasMethodChaining(MethodInvocation node) {
   var exp = node.target;
@@ -59,21 +36,15 @@ bool _isIterable(DartType? type) =>
     type != null && type.implementsInterface('Iterable', 'dart.core');
 
 class AvoidFunctionLiteralsInForeachCalls extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_function_literals_in_foreach_calls',
-      "Function literals shouldn't be passed to 'forEach'.",
-      correctionMessage: "Try using a 'for' loop.",
-      hasPublishedDocs: true);
-
   AvoidFunctionLiteralsInForeachCalls()
       : super(
-            name: 'avoid_function_literals_in_foreach_calls',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.avoid_function_literals_in_foreach_calls,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.avoid_function_literals_in_foreach_calls;
 
   @override
   void registerNodeProcessors(

@@ -83,7 +83,7 @@ class AssignmentVerifier {
         _errorReporter.atNode(
           node,
           CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
-          arguments: [variable.name, variable.enclosingElement.displayName],
+          arguments: [variable.name, variable.enclosingElement3.displayName],
         );
       } else {
         _errorReporter.atNode(

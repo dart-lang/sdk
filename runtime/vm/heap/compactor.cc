@@ -122,7 +122,7 @@ struct Partition {
   Page* tail;
 };
 
-class CompactorTask : public ThreadPool::Task {
+class CompactorTask : public SafepointTask {
  public:
   CompactorTask(IsolateGroup* isolate_group,
                 GCCompactor* compactor,
@@ -134,9 +134,8 @@ class CompactorTask : public ThreadPool::Task {
                 intptr_t num_tasks,
                 Partition* partitions,
                 FreeList* freelist)
-      : isolate_group_(isolate_group),
+      : SafepointTask(isolate_group, barrier, Thread::kCompactorTask),
         compactor_(compactor),
-        barrier_(barrier),
         next_planning_task_(next_planning_task),
         next_setup_task_(next_setup_task),
         next_sliding_task_(next_sliding_task),
@@ -148,19 +147,15 @@ class CompactorTask : public ThreadPool::Task {
         free_current_(0),
         free_end_(0) {}
 
-  void Run();
-  void RunEnteredIsolateGroup();
-
  private:
+  void RunEnteredIsolateGroup() override;
   void PlanPage(Page* page);
   void SlidePage(Page* page);
   uword PlanBlock(uword first_object, ForwardingPage* forwarding_page);
   uword SlideBlock(uword first_object, ForwardingPage* forwarding_page);
   void PlanMoveToContiguousSize(intptr_t size);
 
-  IsolateGroup* isolate_group_;
   GCCompactor* compactor_;
-  ThreadBarrier* barrier_;
   RelaxedAtomic<intptr_t>* next_planning_task_;
   RelaxedAtomic<intptr_t>* next_setup_task_;
   RelaxedAtomic<intptr_t>* next_sliding_task_;
@@ -286,30 +281,20 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
   }
 
   {
-    ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
+    ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/1);
     RelaxedAtomic<intptr_t> next_planning_task = {0};
     RelaxedAtomic<intptr_t> next_setup_task = {0};
     RelaxedAtomic<intptr_t> next_sliding_task = {0};
     RelaxedAtomic<intptr_t> next_forwarding_task = {0};
 
-    for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
-      if (task_index < (num_tasks - 1)) {
-        // Begin compacting on a helper thread.
-        Dart::thread_pool()->Run<CompactorTask>(
-            thread()->isolate_group(), this, barrier, &next_planning_task,
-            &next_setup_task, &next_sliding_task, &next_forwarding_task,
-            num_tasks, partitions, freelist);
-      } else {
-        // Last worker is the main thread.
-        CompactorTask task(thread()->isolate_group(), this, barrier,
-                           &next_planning_task, &next_setup_task,
-                           &next_sliding_task, &next_forwarding_task, num_tasks,
-                           partitions, freelist);
-        task.RunEnteredIsolateGroup();
-        barrier->Sync();
-        barrier->Release();
-      }
+    IntrusiveDList<SafepointTask> tasks;
+    for (intptr_t i = 0; i < num_tasks; i++) {
+      tasks.Append(new CompactorTask(thread()->isolate_group(), this, barrier,
+                                     &next_planning_task, &next_setup_task,
+                                     &next_sliding_task, &next_forwarding_task,
+                                     num_tasks, partitions, freelist));
     }
+    thread()->isolate_group()->safepoint_handler()->RunTasks(&tasks);
   }
 
   // Update inner pointers in typed data views (needs to be done after all
@@ -327,8 +312,7 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
     const intptr_t length = typed_data_views_.length();
     for (intptr_t i = 0; i < length; ++i) {
       auto raw_view = typed_data_views_[i];
-      const classid_t cid =
-          raw_view->untag()->typed_data()->GetClassIdMayBeSmi();
+      const classid_t cid = raw_view->untag()->typed_data()->GetClassId();
 
       // If we have external typed data we can simply return, since the backing
       // store lives in C-heap and will not move. Otherwise we have to update
@@ -396,26 +380,6 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
 
     delete[] partitions;
   }
-}
-
-void CompactorTask::Run() {
-  if (!barrier_->TryEnter()) {
-    barrier_->Release();
-    return;
-  }
-
-  bool result =
-      Thread::EnterIsolateGroupAsHelper(isolate_group_, Thread::kCompactorTask,
-                                        /*bypass_safepoint=*/true);
-  ASSERT(result);
-
-  RunEnteredIsolateGroup();
-
-  Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
-
-  // This task is done. Notify the original thread.
-  barrier_->Sync();
-  barrier_->Release();
 }
 
 void CompactorTask::RunEnteredIsolateGroup() {
@@ -510,9 +474,8 @@ void CompactorTask::RunEnteredIsolateGroup() {
           TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardObjectIdRing");
           isolate_group_->ForEachIsolate(
               [&](Isolate* isolate) {
-                ObjectIdRing* ring = isolate->object_id_ring();
-                if (ring != nullptr) {
-                  ring->VisitPointers(compactor_);
+                for (intptr_t i = 0; i < isolate->NumServiceIdZones(); ++i) {
+                  isolate->GetServiceIdZone(i)->VisitPointers(*compactor_);
                 }
               },
               /*at_safepoint=*/true);
@@ -622,7 +585,7 @@ uword CompactorTask::SlideBlock(uword first_object,
         memmove(reinterpret_cast<void*>(new_addr),
                 reinterpret_cast<void*>(old_addr), size);
 
-        if (IsTypedDataClassId(new_obj->GetClassId())) {
+        if (IsTypedDataClassId(new_obj->GetClassIdOfHeapObject())) {
           static_cast<TypedDataPtr>(new_obj)->untag()->RecomputeDataField();
         }
       }

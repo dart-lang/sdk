@@ -1,0 +1,47 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/from_co19/label_scope_t05.dart:20:7: Error: The label 'Label' was already used in this switch statement.
+// Try choosing a different name for this label.
+//       Label: // Error
+//       ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method foo() → void {
+  try {
+    #L1:
+    switch(1) /* core::int */ {
+      #L2:
+      case #C1:
+        {
+          break #L1;
+        }
+      #L3:
+      case #C2:
+        {
+          break #L1;
+        }
+      #L4:
+      case #C3:
+        {
+          break #L1;
+        }
+      #L5:
+      default:
+        {
+          break #L1;
+        }
+    }
+  }
+  on core::Object catch(final core::Object x) {
+  }
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+  #C3 = 3
+}

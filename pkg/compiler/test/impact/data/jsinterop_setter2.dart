@@ -60,6 +60,7 @@ import 'package:js/js.dart';
   native:DomException,
   native:ErrorEvent,
   native:File,
+  native:LegacyJavaScriptObject,
   native:MediaError,
   native:NavigatorUserMediaError,
   native:OverconstrainedError,

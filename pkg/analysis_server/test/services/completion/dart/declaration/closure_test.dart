@@ -1,4 +1,4 @@
-import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -122,7 +122,7 @@ ${' ' * 4}
   Future<void> test_lint_alwaysSpecifyTypes() async {
     registerLintRules();
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(lints: [LintNames.always_specify_types]),
+      analysisOptionsContent(rules: [LintNames.always_specify_types]),
     );
 
     await computeSuggestions('''

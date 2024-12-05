@@ -6,8 +6,6 @@
 
 // Test that JS printer callbacks occur when expected.
 
-library js_ast.printer.callback_test;
-
 import 'package:expect/expect.dart';
 import 'package:js_ast/js_ast.dart';
 

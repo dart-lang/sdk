@@ -113,7 +113,7 @@ abstract class AbstractAugmentationCodeLensTest
 
   void setAugmentationContent(String content) {
     augmentationCode = TestCode.parse('''
-augment library 'main.dart';
+part of 'main.dart';
 
 $content
 ''');
@@ -122,7 +122,7 @@ $content
 
   void setLibraryContent(String content) {
     libraryCode = TestCode.parse('''
-import augment 'main_augmentation.dart';
+part 'main_augmentation.dart';
 
 $content
 ''');
@@ -204,7 +204,7 @@ enum [!A!] {
 ''');
     setAugmentationContent(r'''
 augment enum [!A!] {
-  one,
+  two,
 }
 ''');
 

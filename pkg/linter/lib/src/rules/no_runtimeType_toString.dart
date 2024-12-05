@@ -5,55 +5,23 @@
 // ignore_for_file: file_names
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid calling `toString()` on `runtimeType`.';
 
-const _details = r'''
-Calling `toString` on a runtime type is a non-trivial operation that can
-negatively impact performance. It's better to avoid it.
-
-**BAD:**
-```dart
-class A {
-  String toString() => '$runtimeType()';
-}
-```
-
-**GOOD:**
-```dart
-class A {
-  String toString() => 'A()';
-}
-```
-
-This lint has some exceptions where performance is not a problem or where real
-type information is more important than performance:
-
-* in an assertion
-* in a throw expression
-* in a catch clause
-* in a mixin declaration
-* in an abstract class declaration
-
-''';
-
 class NoRuntimeTypeToString extends LintRule {
-  static const LintCode code = LintCode('no_runtimeType_toString',
-      "Using 'toString' on a 'Type' is not safe in production code.");
-
   NoRuntimeTypeToString()
       : super(
-            name: 'no_runtimeType_toString',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.no_runtimeType_toString,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.no_runtimeType_toString;
 
   @override
   void registerNodeProcessors(
@@ -94,12 +62,12 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (n is MixinDeclaration) return true;
         if (n is ClassDeclaration && n.abstractKeyword != null) return true;
         if (n is ExtensionDeclaration) {
-          var declaredElement = n.declaredElement;
+          var declaredElement = n.declaredFragment?.element;
           if (declaredElement != null) {
             var extendedType = declaredElement.extendedType;
             if (extendedType is InterfaceType) {
-              var extendedElement = extendedType.element;
-              return !(extendedElement is ClassElement &&
+              var extendedElement = extendedType.element3;
+              return !(extendedElement is ClassElement2 &&
                   !extendedElement.isAbstract);
             }
           }
@@ -115,5 +83,5 @@ class _Visitor extends SimpleAstVisitor<void> {
           target.propertyName.name == 'runtimeType' ||
       target is SimpleIdentifier &&
           target.name == 'runtimeType' &&
-          target.staticElement is PropertyAccessorElement;
+          target.element is GetterElement;
 }

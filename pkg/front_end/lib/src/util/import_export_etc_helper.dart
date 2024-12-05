@@ -8,11 +8,11 @@ import 'dart:typed_data';
 import 'parser_ast.dart';
 import 'parser_ast_helper.dart';
 
-FileInfoHelper getFileInfoHelper(Uint8List zeroTerminatedBytes) {
+FileInfoHelper getFileInfoHelper(Uint8List rawBytes) {
   ImportExportPartLibraryHelperVisitor visitor =
       new ImportExportPartLibraryHelperVisitor();
   getAST(
-    zeroTerminatedBytes,
+    rawBytes,
     enableExtensionMethods: true,
     enableNonNullable: true,
     enableTripleShift: true,
@@ -24,9 +24,7 @@ FileInfoHelper getFileInfoHelper(Uint8List zeroTerminatedBytes) {
 
 FileInfoHelper getFileInfoHelperFromString(String source) {
   Uint8List rawBytes = utf8.encode(source);
-  Uint8List zeroTerminatedBytes = new Uint8List(rawBytes.length + 1);
-  zeroTerminatedBytes.setRange(0, rawBytes.length, rawBytes);
-  return getFileInfoHelper(zeroTerminatedBytes);
+  return getFileInfoHelper(rawBytes);
 }
 
 class FileInfoHelper {

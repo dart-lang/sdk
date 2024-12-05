@@ -15,6 +15,75 @@ main() {
 
 @reflectiveTest
 class ImportDirectiveParserTest extends ParserDiagnosticsTest {
+  test_afterPart() {
+    var parseResult = parseStringWithErrors(r'''
+part 'a.dart';
+import 'b.dart';
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, 15, 6),
+    ]);
+
+    var node = parseResult.findNode.singleImportDirective;
+    assertParsedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'b.dart'
+  semicolon: ;
+''');
+  }
+
+  test_afterPartOf() {
+    var parseResult = parseStringWithErrors(r'''
+part of 'a.dart';
+import 'b.dart';
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleImportDirective;
+    assertParsedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'b.dart'
+  semicolon: ;
+''');
+  }
+
+  test_configurableUri() {
+    var parseResult = parseStringWithErrors(r'''
+import 'foo.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleImportDirective;
+    assertParsedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'foo.dart'
+  configurations
+    Configuration
+      ifKeyword: if
+      leftParenthesis: (
+      name: DottedName
+        components
+          SimpleIdentifier
+            token: dart
+          SimpleIdentifier
+            token: library
+          SimpleIdentifier
+            token: html
+      rightParenthesis: )
+      uri: SimpleStringLiteral
+        literal: 'foo_html.dart'
+      resolvedUri: <null>
+  semicolon: ;
+''');
+  }
+
   test_it() {
     var parseResult = parseStringWithErrors(r'''
 import 'a.dart';
@@ -27,6 +96,46 @@ ImportDirective
   importKeyword: import
   uri: SimpleStringLiteral
     literal: 'a.dart'
+  semicolon: ;
+''');
+  }
+
+  test_language305_afterPartOf() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.5
+part of 'a.dart';
+import 'b.dart';
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, 33, 6),
+    ]);
+
+    var node = parseResult.findNode.singleImportDirective;
+    assertParsedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'b.dart'
+  semicolon: ;
+''');
+  }
+
+  test_language305_beforePartOf() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.5
+import 'b.dart';
+part of 'a.dart';
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, 32, 4),
+    ]);
+
+    var node = parseResult.findNode.singleImportDirective;
+    assertParsedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'b.dart'
   semicolon: ;
 ''');
   }

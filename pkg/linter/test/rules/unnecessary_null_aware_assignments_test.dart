@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryNullAwareAssignmentsTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_null_aware_assignments';
+  String get lintRule => LintNames.unnecessary_null_aware_assignments;
 
   test_explicitSetter() async {
     await assertNoDiagnostics(r'''

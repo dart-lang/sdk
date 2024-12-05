@@ -1,0 +1,20 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/instantiate_type_variable_test.dart:12:16: Error: Couldn't find constructor 'T'.
+//     return new T(); // Error
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo<T extends core::Object? = dynamic> extends core::Object {
+  constructor •() → self::Foo<self::Foo::T%>
+    : super core::Object::•() {}
+  method make() → dynamic {
+    return invalid-expression "pkg/front_end/testcases/coverage/instantiate_type_variable_test.dart:12:16: Error: Couldn't find constructor 'T'.
+    return new T(); // Error
+               ^";
+  }
+}

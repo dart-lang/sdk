@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_link.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:test/test.dart';
 
 import '../mini_ast.dart';
@@ -19,13 +20,24 @@ main() {
   late FlowAnalysisTestHarness h;
 
   setUp(() {
+    TypeRegistry.init();
+    TypeRegistry.addInterfaceTypeName('A');
+    TypeRegistry.addInterfaceTypeName('B');
+    TypeRegistry.addInterfaceTypeName('C');
+    TypeRegistry.addInterfaceTypeName('D');
+    TypeRegistry.addInterfaceTypeName('E');
+    TypeRegistry.addInterfaceTypeName('F');
     h = FlowAnalysisTestHarness();
+  });
+
+  tearDown(() {
+    TypeRegistry.uninit();
   });
 
   group('API', () {
     test('asExpression_end promotes variables', () {
       var x = Var('x');
-      late SsaNode<Type> ssaBeforePromotion;
+      late SsaNode<SharedTypeView<Type>> ssaBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
@@ -201,7 +213,7 @@ main() {
 
     test('equalityOp(x != null) promotes true branch', () {
       var x = Var('x');
-      late SsaNode<Type> ssaBeforePromotion;
+      late SsaNode<SharedTypeView<Type>> ssaBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
@@ -265,7 +277,7 @@ main() {
 
     test('equalityOp(x == null) promotes false branch', () {
       var x = Var('x');
-      late SsaNode<Type> ssaBeforePromotion;
+      late SsaNode<SharedTypeView<Type>> ssaBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
@@ -297,7 +309,7 @@ main() {
 
     test('equalityOp(null != x) promotes true branch', () {
       var x = Var('x');
-      late SsaNode<Type> ssaBeforePromotion;
+      late SsaNode<SharedTypeView<Type>> ssaBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
@@ -325,7 +337,7 @@ main() {
 
     test('equalityOp(null == x) promotes false branch', () {
       var x = Var('x');
-      late SsaNode<Type> ssaBeforePromotion;
+      late SsaNode<SharedTypeView<Type>> ssaBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
@@ -437,7 +449,7 @@ main() {
 
     test('doStatement_bodyBegin() un-promotes', () {
       var x = Var('x');
-      late SsaNode<Type> ssaBeforeLoop;
+      late SsaNode<SharedTypeView<Type>> ssaBeforeLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
@@ -592,10 +604,11 @@ main() {
     test('finish checks proper nesting', () {
       var e = expr('Null');
       var s = if_(e, []);
-      var flow = FlowAnalysis<Node, Statement, Expression, Var, Type>(
-          h.typeOperations, AssignedVariables<Node, Var>(),
-          respectImplicitlyTypedVarInitializers: true,
-          fieldPromotionEnabled: true);
+      var flow =
+          FlowAnalysis<Node, Statement, Expression, Var, SharedTypeView<Type>>(
+              h.typeOperations, AssignedVariables<Node, Var>(),
+              respectImplicitlyTypedVarInitializers: true,
+              fieldPromotionEnabled: true);
       flow.ifStatement_conditionBegin();
       flow.ifStatement_thenBegin(e, s);
       expect(() => flow.finish(), _asserts);
@@ -603,7 +616,7 @@ main() {
 
     test('for_conditionBegin() un-promotes', () {
       var x = Var('x');
-      late SsaNode<Type> ssaBeforeLoop;
+      late SsaNode<SharedTypeView<Type>> ssaBeforeLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
@@ -737,8 +750,8 @@ main() {
     test('for_end() with break updates Ssa of modified vars', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode<Type> xSsaInsideLoop;
-      late SsaNode<Type> ySsaInsideLoop;
+      late SsaNode<SharedTypeView<Type>> xSsaInsideLoop;
+      late SsaNode<SharedTypeView<Type>> ySsaInsideLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
@@ -765,8 +778,8 @@ main() {
         'tested', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode<Type> xSsaInsideLoop;
-      late SsaNode<Type> ySsaInsideLoop;
+      late SsaNode<SharedTypeView<Type>> xSsaInsideLoop;
+      late SsaNode<SharedTypeView<Type>> ySsaInsideLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
@@ -791,7 +804,7 @@ main() {
 
     test('forEach_bodyBegin() un-promotes', () {
       var x = Var('x');
-      late SsaNode<Type> ssaBeforeLoop;
+      late SsaNode<SharedTypeView<Type>> ssaBeforeLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
@@ -944,7 +957,7 @@ main() {
     test('functionExpression_begin() cancels promotions of written vars', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode<Type> ssaBeforeFunction;
+      late SsaNode<SharedTypeView<Type>> ssaBeforeFunction;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
@@ -1263,7 +1276,7 @@ main() {
       var x = Var('x');
       var y = Var('y');
       var z = Var('z');
-      late SsaNode<Type> xSsaNodeBeforeIf;
+      late SsaNode<SharedTypeView<Type>> xSsaNodeBeforeIf;
       h.run([
         declare(w, type: 'Object', initializer: expr('Object')),
         declare(x, type: 'bool', initializer: expr('bool')),
@@ -1291,7 +1304,7 @@ main() {
         'ifStatement_end() ignores non-matching SSA info from "then" path if '
         'unreachable', () {
       var x = Var('x');
-      late SsaNode<Type> xSsaNodeBeforeIf;
+      late SsaNode<SharedTypeView<Type>> xSsaNodeBeforeIf;
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
         getSsaNodes((nodes) {
@@ -1311,7 +1324,7 @@ main() {
         'ifStatement_end() ignores non-matching SSA info from "else" path if '
         'unreachable', () {
       var x = Var('x');
-      late SsaNode<Type> xSsaNodeBeforeIf;
+      late SsaNode<SharedTypeView<Type>> xSsaNodeBeforeIf;
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
         getSsaNodes((nodes) {
@@ -1346,7 +1359,7 @@ main() {
     group('initialize() promotes implicitly typed vars to type parameter types',
         () {
       test('when not final', () {
-        h.addTypeVariable('T');
+        TypeRegistry.addTypeParameter('T');
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('T&int')),
@@ -1355,7 +1368,7 @@ main() {
       });
 
       test('when final', () {
-        h.addTypeVariable('T');
+        TypeRegistry.addTypeParameter('T');
         var x = Var('x');
         h.run([
           declare(x,
@@ -1372,7 +1385,7 @@ main() {
         'parameter types', () {
       test('when not final', () {
         var x = Var('x');
-        h.addTypeVariable('T');
+        TypeRegistry.addTypeParameter('T');
         h.run([
           declare(x, type: 'T', initializer: expr('T&int')),
           checkNotPromoted(x),
@@ -1381,7 +1394,7 @@ main() {
 
       test('when final', () {
         var x = Var('x');
-        h.addTypeVariable('T');
+        TypeRegistry.addTypeParameter('T');
         h.run([
           declare(x, isFinal: true, type: 'T', initializer: expr('T&int')),
           checkNotPromoted(x),
@@ -1421,13 +1434,13 @@ main() {
         getSsaNodes((nodes) {
           var info = nodes[x]!.expressionInfo!;
           var key = h.promotionKeyStore.keyForVariable(y);
-          expect(info.after.promotionInfo!.get(h, key)!.promotedTypes, null);
           expect(info.ifTrue.promotionInfo!.get(h, key)!.promotedTypes, null);
           expect(
               info.ifFalse.promotionInfo!
                   .get(h, key)!
                   .promotedTypes!
                   .single
+                  .unwrapTypeView()
                   .type,
               'int');
         }),
@@ -1517,7 +1530,7 @@ main() {
         String? expectedPromotedTypeThen, String? expectedPromotedTypeElse,
         {bool inverted = false}) {
       var x = Var('x');
-      late SsaNode<Type> ssaBeforePromotion;
+      late SsaNode<SharedTypeView<Type>> ssaBeforePromotion;
       h.run([
         declare(x, type: declaredType, initializer: expr(declaredType)),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
@@ -1788,7 +1801,7 @@ main() {
 
     test('nonNullAssert_end(x) promotes', () {
       var x = Var('x');
-      late SsaNode<Type> ssaBeforePromotion;
+      late SsaNode<SharedTypeView<Type>> ssaBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
@@ -1810,7 +1823,7 @@ main() {
 
     test('nullAwareAccess temporarily promotes', () {
       var x = Var('x');
-      late SsaNode<Type> ssaBeforePromotion;
+      late SsaNode<SharedTypeView<Type>> ssaBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
@@ -2132,7 +2145,7 @@ main() {
 
     test('switchStatement_beginCase(true) un-promotes', () {
       var x = Var('x');
-      late SsaNode<Type> ssaBeforeSwitch;
+      late SsaNode<SharedTypeView<Type>> ssaBeforeSwitch;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
@@ -2296,7 +2309,7 @@ main() {
     test('tryCatchStatement_bodyEnd() un-promotes variables assigned in body',
         () {
       var x = Var('x');
-      late SsaNode<Type> ssaAfterTry;
+      late SsaNode<SharedTypeView<Type>> ssaAfterTry;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
@@ -2427,8 +2440,8 @@ main() {
         'tryFinallyStatement_finallyBegin() un-promotes variables assigned in '
         'body', () {
       var x = Var('x');
-      late SsaNode<Type> ssaAtStartOfTry;
-      late SsaNode<Type> ssaAfterTry;
+      late SsaNode<SharedTypeView<Type>> ssaAtStartOfTry;
+      late SsaNode<SharedTypeView<Type>> ssaAfterTry;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
@@ -2497,8 +2510,8 @@ main() {
         'variables assigned in finally', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode<Type> xSsaAtEndOfFinally;
-      late SsaNode<Type> ySsaAtEndOfFinally;
+      late SsaNode<SharedTypeView<Type>> xSsaAtEndOfFinally;
+      late SsaNode<SharedTypeView<Type>> ySsaAtEndOfFinally;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
@@ -2536,10 +2549,10 @@ main() {
           'is sound to do so', () {
         var x = Var('x');
         var y = Var('y');
-        late SsaNode<Type> xSsaAtEndOfTry;
-        late SsaNode<Type> ySsaAtEndOfTry;
-        late SsaNode<Type> xSsaAtEndOfFinally;
-        late SsaNode<Type> ySsaAtEndOfFinally;
+        late SsaNode<SharedTypeView<Type>> xSsaAtEndOfTry;
+        late SsaNode<SharedTypeView<Type>> ySsaAtEndOfTry;
+        late SsaNode<SharedTypeView<Type>> xSsaAtEndOfFinally;
+        late SsaNode<SharedTypeView<Type>> ySsaAtEndOfFinally;
         h.run([
           declare(x, type: 'int?', initializer: expr('int?')),
           declare(y, type: 'int?', initializer: expr('int?')),
@@ -2999,7 +3012,7 @@ main() {
 
     test('whileStatement_conditionBegin() un-promotes', () {
       var x = Var('x');
-      late SsaNode<Type> ssaBeforeLoop;
+      late SsaNode<SharedTypeView<Type>> ssaBeforeLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
@@ -3078,8 +3091,8 @@ main() {
     test('whileStatement_end() with break updates Ssa of modified vars', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode<Type> xSsaInsideLoop;
-      late SsaNode<Type> ySsaInsideLoop;
+      late SsaNode<SharedTypeView<Type>> xSsaInsideLoop;
+      late SsaNode<SharedTypeView<Type>> ySsaInsideLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
@@ -3106,8 +3119,8 @@ main() {
         'types were tested', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode<Type> xSsaInsideLoop;
-      late SsaNode<Type> ySsaInsideLoop;
+      late SsaNode<SharedTypeView<Type>> xSsaInsideLoop;
+      late SsaNode<SharedTypeView<Type>> ySsaInsideLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
@@ -3133,8 +3146,8 @@ main() {
     test('write() de-promotes and updates Ssa of a promoted variable', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode<Type> ssaBeforeWrite;
-      late ExpressionInfo<Type> writtenValueInfo;
+      late SsaNode<SharedTypeView<Type>> ssaBeforeWrite;
+      late ExpressionInfo<SharedTypeView<Type>> writtenValueInfo;
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
         declare(y, type: 'int?', initializer: expr('int?')),
@@ -3156,8 +3169,8 @@ main() {
     test('write() updates Ssa', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode<Type> ssaBeforeWrite;
-      late ExpressionInfo<Type> writtenValueInfo;
+      late SsaNode<SharedTypeView<Type>> ssaBeforeWrite;
+      late ExpressionInfo<SharedTypeView<Type>> writtenValueInfo;
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
         declare(y, type: 'int?', initializer: expr('int?')),
@@ -3188,8 +3201,8 @@ main() {
 
       var x = Var('x');
       var y = Var('y');
-      late SsaNode<Type> xSsaBeforeWrite;
-      late SsaNode<Type> ySsa;
+      late SsaNode<SharedTypeView<Type>> xSsaBeforeWrite;
+      late SsaNode<SharedTypeView<Type>> ySsa;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
@@ -3208,7 +3221,7 @@ main() {
     test('write() does not store expressionInfo for trivial expressions', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode<Type> ssaBeforeWrite;
+      late SsaNode<SharedTypeView<Type>> ssaBeforeWrite;
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
         declare(y, type: 'int?', initializer: expr('int?')),
@@ -3230,7 +3243,7 @@ main() {
 
     test('write() permits expression to be null', () {
       var x = Var('x');
-      late SsaNode<Type> ssaBeforeWrite;
+      late SsaNode<SharedTypeView<Type>> ssaBeforeWrite;
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
         getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
@@ -3437,20 +3450,28 @@ main() {
   });
 
   group('State', () {
-    var intVar = Var('x')..type = Type('int');
-    var intQVar = Var('x')..type = Type('int?');
-    var objectQVar = Var('x')..type = Type('Object?');
-    var nullVar = Var('x')..type = Type('Null');
+    late Var intVar;
+    late Var intQVar;
+    late Var objectQVar;
+    late Var nullVar;
+
+    setUp(() {
+      intVar = Var('x')..type = Type('int');
+      intQVar = Var('x')..type = Type('int?');
+      objectQVar = Var('x')..type = Type('Object?');
+      nullVar = Var('x')..type = Type('Null');
+    });
 
     group('setUnreachable', () {
-      var unreachable = FlowModel<Type>(Reachability.initial.setUnreachable());
-      var reachable = FlowModel<Type>(Reachability.initial);
+      var unreachable = FlowModel<SharedTypeView<Type>>(
+          Reachability.initial.setUnreachable());
+      var reachable = FlowModel<SharedTypeView<Type>>(Reachability.initial);
       test('unchanged', () {
         expect(unreachable.setUnreachable(), same(unreachable));
       });
 
       test('changed', () {
-        void _check(FlowModel<Type> initial) {
+        void _check(FlowModel<SharedTypeView<Type>> initial) {
           var s = initial.setUnreachable();
           expect(s, isNot(same(initial)));
           expect(s.reachable.overallReachable, false);
@@ -3462,33 +3483,33 @@ main() {
     });
 
     test('split', () {
-      var s1 = FlowModel<Type>(Reachability.initial);
+      var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
       var s2 = s1.split();
       expect(s2.reachable.parent, same(s1.reachable));
     });
 
     test('unsplit', () {
-      var s1 = FlowModel<Type>(Reachability.initial.split());
+      var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial.split());
       var s2 = s1.unsplit();
       expect(s2.reachable, same(Reachability.initial));
     });
 
     group('unsplitTo', () {
       test('no change', () {
-        var s1 = FlowModel<Type>(Reachability.initial.split());
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial.split());
         var result = s1.unsplitTo(s1.reachable.parent!);
         expect(result, same(s1));
       });
 
       test('unsplit once, reachable', () {
-        var s1 = FlowModel<Type>(Reachability.initial.split());
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial.split());
         var s2 = s1.split();
         var result = s2.unsplitTo(s1.reachable.parent!);
         expect(result.reachable, same(s1.reachable));
       });
 
       test('unsplit once, unreachable', () {
-        var s1 = FlowModel<Type>(Reachability.initial.split());
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial.split());
         var s2 = s1.split().setUnreachable();
         var result = s2.unsplitTo(s1.reachable.parent!);
         expect(result.reachable.locallyReachable, false);
@@ -3496,7 +3517,7 @@ main() {
       });
 
       test('unsplit twice, reachable', () {
-        var s1 = FlowModel<Type>(Reachability.initial.split());
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial.split());
         var s2 = s1.split();
         var s3 = s2.split();
         var result = s3.unsplitTo(s1.reachable.parent!);
@@ -3504,7 +3525,7 @@ main() {
       });
 
       test('unsplit twice, top unreachable', () {
-        var s1 = FlowModel<Type>(Reachability.initial.split());
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial.split());
         var s2 = s1.split();
         var s3 = s2.split().setUnreachable();
         var result = s3.unsplitTo(s1.reachable.parent!);
@@ -3513,7 +3534,7 @@ main() {
       });
 
       test('unsplit twice, previous unreachable', () {
-        var s1 = FlowModel<Type>(Reachability.initial.split());
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial.split());
         var s2 = s1.split().setUnreachable();
         var s3 = s2.split();
         var result = s3.unsplitTo(s1.reachable.parent!);
@@ -3524,25 +3545,25 @@ main() {
 
     group('tryPromoteForTypeCheck', () {
       test('unpromoted -> unchanged (same)', () {
-        var s1 = FlowModel<Type>(Reachability.initial);
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
         var s2 = s1._tryPromoteForTypeCheck(h, intVar, 'int').ifTrue;
         expect(s2, same(s1));
       });
 
       test('unpromoted -> unchanged (supertype)', () {
-        var s1 = FlowModel<Type>(Reachability.initial);
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
         var s2 = s1._tryPromoteForTypeCheck(h, intVar, 'Object').ifTrue;
         expect(s2, same(s1));
       });
 
       test('unpromoted -> unchanged (unrelated)', () {
-        var s1 = FlowModel<Type>(Reachability.initial);
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
         var s2 = s1._tryPromoteForTypeCheck(h, intVar, 'String').ifTrue;
         expect(s2, same(s1));
       });
 
       test('unpromoted -> subtype', () {
-        var s1 = FlowModel<Type>(Reachability.initial);
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
         var s2 = s1._tryPromoteForTypeCheck(h, intQVar, 'int').ifTrue;
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo.unwrap(h), {
@@ -3552,7 +3573,7 @@ main() {
       });
 
       test('promoted -> unchanged (same)', () {
-        var s1 = FlowModel<Type>(Reachability.initial)
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
             .ifTrue;
         var s2 = s1._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
@@ -3560,7 +3581,7 @@ main() {
       });
 
       test('promoted -> unchanged (supertype)', () {
-        var s1 = FlowModel<Type>(Reachability.initial)
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
             .ifTrue;
         var s2 = s1._tryPromoteForTypeCheck(h, objectQVar, 'Object').ifTrue;
@@ -3568,7 +3589,7 @@ main() {
       });
 
       test('promoted -> unchanged (unrelated)', () {
-        var s1 = FlowModel<Type>(Reachability.initial)
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
             .ifTrue;
         var s2 = s1._tryPromoteForTypeCheck(h, objectQVar, 'String').ifTrue;
@@ -3576,7 +3597,7 @@ main() {
       });
 
       test('promoted -> subtype', () {
-        var s1 = FlowModel<Type>(Reachability.initial)
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
             .ifTrue;
         var s2 = s1._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
@@ -3589,13 +3610,21 @@ main() {
     });
 
     group('write', () {
-      var objectQVar = Var('x')..type = Type('Object?');
+      late Var objectQVar;
+
+      setUp(() {
+        objectQVar = Var('x')..type = Type('Object?');
+      });
 
       test('without declaration', () {
         // This should not happen in valid code, but test that we don't crash.
 
-        var s = FlowModel<Type>(Reachability.initial)._write(
-            h, null, objectQVar, Type('Object?'), new SsaNode<Type>(null));
+        var s = FlowModel<SharedTypeView<Type>>(Reachability.initial)._write(
+            h,
+            null,
+            objectQVar,
+            SharedTypeView(Type('Object?')),
+            new SsaNode<SharedTypeView<Type>>(null));
         expect(
             s.promotionInfo
                 ?.get(h, h.promotionKeyStore.keyForVariable(objectQVar)),
@@ -3603,10 +3632,10 @@ main() {
       });
 
       test('unchanged', () {
-        var s1 =
-            FlowModel<Type>(Reachability.initial)._declare(h, objectQVar, true);
-        var s2 = s1._write(
-            h, null, objectQVar, Type('Object?'), new SsaNode<Type>(null));
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
+            ._declare(h, objectQVar, true);
+        var s2 = s1._write(h, null, objectQVar, SharedTypeView(Type('Object?')),
+            new SsaNode<SharedTypeView<Type>>(null));
         expect(s2, isNot(same(s1)));
         expect(s2.reachable, same(s1.reachable));
         expect(
@@ -3619,10 +3648,10 @@ main() {
       });
 
       test('marks as assigned', () {
-        var s1 = FlowModel<Type>(Reachability.initial)
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._declare(h, objectQVar, false);
-        var s2 = s1._write(
-            h, null, objectQVar, Type('int?'), new SsaNode<Type>(null));
+        var s2 = s1._write(h, null, objectQVar, SharedTypeView(Type('int?')),
+            new SsaNode<SharedTypeView<Type>>(null));
         expect(s2.reachable.overallReachable, true);
         expect(
             s2._infoFor(h, objectQVar),
@@ -3634,14 +3663,18 @@ main() {
       });
 
       test('un-promotes fully', () {
-        var s1 = FlowModel<Type>(Reachability.initial)
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._declare(h, objectQVar, true)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
             .ifTrue;
         expect(s1.promotionInfo.unwrap(h),
             contains(h.promotionKeyStore.keyForVariable(objectQVar)));
-        var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
-            Type('int?'), new SsaNode<Type>(null));
+        var s2 = s1._write(
+            h,
+            _MockNonPromotionReason(),
+            objectQVar,
+            SharedTypeView(Type('int?')),
+            new SsaNode<SharedTypeView<Type>>(null));
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
@@ -3653,7 +3686,7 @@ main() {
       });
 
       test('un-promotes partially, when no exact match', () {
-        var s1 = FlowModel<Type>(Reachability.initial)
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._declare(h, objectQVar, true)
             ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
             .ifTrue
@@ -3666,8 +3699,12 @@ main() {
               assigned: true,
               unassigned: false)
         });
-        var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
-            Type('num'), new SsaNode<Type>(null));
+        var s2 = s1._write(
+            h,
+            _MockNonPromotionReason(),
+            objectQVar,
+            SharedTypeView(Type('num')),
+            new SsaNode<SharedTypeView<Type>>(null));
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
@@ -3679,7 +3716,7 @@ main() {
       });
 
       test('un-promotes partially, when exact match', () {
-        var s1 = FlowModel<Type>(Reachability.initial)
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._declare(h, objectQVar, true)
             ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
             .ifTrue
@@ -3694,8 +3731,12 @@ main() {
               assigned: true,
               unassigned: false)
         });
-        var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
-            Type('num'), new SsaNode<Type>(null));
+        var s2 = s1._write(
+            h,
+            _MockNonPromotionReason(),
+            objectQVar,
+            SharedTypeView(Type('num')),
+            new SsaNode<SharedTypeView<Type>>(null));
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
@@ -3707,7 +3748,7 @@ main() {
       });
 
       test('leaves promoted, when exact match', () {
-        var s1 = FlowModel<Type>(Reachability.initial)
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._declare(h, objectQVar, true)
             ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
             .ifTrue
@@ -3720,8 +3761,8 @@ main() {
               assigned: true,
               unassigned: false)
         });
-        var s2 = s1._write(
-            h, null, objectQVar, Type('num'), new SsaNode<Type>(null));
+        var s2 = s1._write(h, null, objectQVar, SharedTypeView(Type('num')),
+            new SsaNode<SharedTypeView<Type>>(null));
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo, isNot(same(s1.promotionInfo)));
         expect(s2.promotionInfo.unwrap(h), {
@@ -3734,7 +3775,7 @@ main() {
       });
 
       test('leaves promoted, when writing a subtype', () {
-        var s1 = FlowModel<Type>(Reachability.initial)
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._declare(h, objectQVar, true)
             ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
             .ifTrue
@@ -3747,8 +3788,8 @@ main() {
               assigned: true,
               unassigned: false)
         });
-        var s2 = s1._write(
-            h, null, objectQVar, Type('int'), new SsaNode<Type>(null));
+        var s2 = s1._write(h, null, objectQVar, SharedTypeView(Type('int')),
+            new SsaNode<SharedTypeView<Type>>(null));
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo, isNot(same(s1.promotionInfo)));
         expect(s2.promotionInfo.unwrap(h), {
@@ -3764,13 +3805,15 @@ main() {
         test('when declared type', () {
           var x = Var('x')..type = Type('int?');
 
-          var s1 = FlowModel<Type>(Reachability.initial)._declare(h, x, true);
+          var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
+              ._declare(h, x, true);
           expect(s1.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(x):
                 _matchVariableModel(chain: null),
           });
 
-          var s2 = s1._write(h, null, x, Type('int'), new SsaNode<Type>(null));
+          var s2 = s1._write(h, null, x, SharedTypeView(Type('int')),
+              new SsaNode<SharedTypeView<Type>>(null));
           expect(s2.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(x):
                 _matchVariableModel(chain: ['int']),
@@ -3780,7 +3823,8 @@ main() {
         test('when declared type, if write-captured', () {
           var x = Var('x')..type = Type('int?');
 
-          var s1 = FlowModel<Type>(Reachability.initial)._declare(h, x, true);
+          var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
+              ._declare(h, x, true);
           expect(s1.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(x):
                 _matchVariableModel(chain: null),
@@ -3793,7 +3837,8 @@ main() {
           });
 
           // 'x' is write-captured, so not promoted
-          var s3 = s2._write(h, null, x, Type('int'), new SsaNode<Type>(null));
+          var s3 = s2._write(h, null, x, SharedTypeView(Type('int')),
+              new SsaNode<SharedTypeView<Type>>(null));
           expect(s3.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(x):
                 _matchVariableModel(chain: null, writeCaptured: true),
@@ -3801,7 +3846,7 @@ main() {
         });
 
         test('when promoted', () {
-          var s1 = FlowModel<Type>(Reachability.initial)
+          var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
               ._declare(h, objectQVar, true)
               ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
               .ifTrue;
@@ -3811,8 +3856,8 @@ main() {
               ofInterest: ['int?'],
             ),
           });
-          var s2 = s1._write(
-              h, null, objectQVar, Type('int'), new SsaNode<Type>(null));
+          var s2 = s1._write(h, null, objectQVar, SharedTypeView(Type('int')),
+              new SsaNode<SharedTypeView<Type>>(null));
           expect(s2.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['int?', 'int'],
@@ -3822,7 +3867,7 @@ main() {
         });
 
         test('when not promoted', () {
-          var s1 = FlowModel<Type>(Reachability.initial)
+          var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
               ._declare(h, objectQVar, true)
               ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
               .ifFalse;
@@ -3832,8 +3877,8 @@ main() {
               ofInterest: ['int?'],
             ),
           });
-          var s2 = s1._write(
-              h, null, objectQVar, Type('int'), new SsaNode<Type>(null));
+          var s2 = s1._write(h, null, objectQVar, SharedTypeView(Type('int')),
+              new SsaNode<SharedTypeView<Type>>(null));
           expect(s2.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['Object', 'int'],
@@ -3844,7 +3889,7 @@ main() {
       });
 
       test('Promotes to type of interest when not previously promoted', () {
-        var s1 = FlowModel<Type>(Reachability.initial)
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._declare(h, objectQVar, true)
             ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
             .ifFalse;
@@ -3854,8 +3899,12 @@ main() {
             ofInterest: ['num?'],
           ),
         });
-        var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
-            Type('num?'), new SsaNode<Type>(null));
+        var s2 = s1._write(
+            h,
+            _MockNonPromotionReason(),
+            objectQVar,
+            SharedTypeView(Type('num?')),
+            new SsaNode<SharedTypeView<Type>>(null));
         expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
             chain: ['num?'],
@@ -3865,7 +3914,7 @@ main() {
       });
 
       test('Promotes to type of interest when previously promoted', () {
-        var s1 = FlowModel<Type>(Reachability.initial)
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._declare(h, objectQVar, true)
             ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
             .ifTrue
@@ -3877,8 +3926,12 @@ main() {
             ofInterest: ['num?', 'int?'],
           ),
         });
-        var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
-            Type('int?'), new SsaNode<Type>(null));
+        var s2 = s1._write(
+            h,
+            _MockNonPromotionReason(),
+            objectQVar,
+            SharedTypeView(Type('int?')),
+            new SsaNode<SharedTypeView<Type>>(null));
         expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
             chain: ['num?', 'int?'],
@@ -3902,7 +3955,7 @@ main() {
           test('; first', () {
             var x = Var('x')..type = Type('Object?');
 
-            var s1 = FlowModel<Type>(Reachability.initial)
+            var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
                 ._declare(h, x, true)
                 ._tryPromoteForTypeCheck(h, x, 'B?')
                 .ifFalse
@@ -3915,7 +3968,8 @@ main() {
               ),
             });
 
-            var s2 = s1._write(h, null, x, Type('C'), new SsaNode<Type>(null));
+            var s2 = s1._write(h, null, x, SharedTypeView(Type('C')),
+                new SsaNode<SharedTypeView<Type>>(null));
             expect(s2.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
                 chain: ['Object', 'B'],
@@ -3927,7 +3981,7 @@ main() {
           test('; second', () {
             var x = Var('x')..type = Type('Object?');
 
-            var s1 = FlowModel<Type>(Reachability.initial)
+            var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
                 ._declare(h, x, true)
                 ._tryPromoteForTypeCheck(h, x, 'A?')
                 .ifFalse
@@ -3940,7 +3994,8 @@ main() {
               ),
             });
 
-            var s2 = s1._write(h, null, x, Type('C'), new SsaNode<Type>(null));
+            var s2 = s1._write(h, null, x, SharedTypeView(Type('C')),
+                new SsaNode<SharedTypeView<Type>>(null));
             expect(s2.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
                 chain: ['Object', 'B'],
@@ -3952,7 +4007,7 @@ main() {
           test('; nullable and non-nullable', () {
             var x = Var('x')..type = Type('Object?');
 
-            var s1 = FlowModel<Type>(Reachability.initial)
+            var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
                 ._declare(h, x, true)
                 ._tryPromoteForTypeCheck(h, x, 'A')
                 .ifFalse
@@ -3965,7 +4020,8 @@ main() {
               ),
             });
 
-            var s2 = s1._write(h, null, x, Type('B'), new SsaNode<Type>(null));
+            var s2 = s1._write(h, null, x, SharedTypeView(Type('B')),
+                new SsaNode<SharedTypeView<Type>>(null));
             expect(s2.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
                 chain: ['Object', 'A'],
@@ -3977,7 +4033,7 @@ main() {
 
         group('; ambiguous', () {
           test('; no promotion', () {
-            var s1 = FlowModel<Type>(Reachability.initial)
+            var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
                 ._declare(h, objectQVar, true)
                 ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
                 .ifFalse
@@ -3990,8 +4046,8 @@ main() {
                 ofInterest: ['num?', 'num*'],
               ),
             });
-            var s2 = s1._write(
-                h, null, objectQVar, Type('int'), new SsaNode<Type>(null));
+            var s2 = s1._write(h, null, objectQVar, SharedTypeView(Type('int')),
+                new SsaNode<SharedTypeView<Type>>(null));
             // It's ambiguous whether to promote to num? or num*, so we don't
             // promote.
             expect(s2, isNot(same(s1)));
@@ -4006,7 +4062,7 @@ main() {
         });
 
         test('exact match', () {
-          var s1 = FlowModel<Type>(Reachability.initial)
+          var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
               ._declare(h, objectQVar, true)
               ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
               .ifFalse
@@ -4018,8 +4074,12 @@ main() {
               ofInterest: ['num?', 'num*'],
             ),
           });
-          var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
-              Type('num?'), new SsaNode<Type>(null));
+          var s2 = s1._write(
+              h,
+              _MockNonPromotionReason(),
+              objectQVar,
+              SharedTypeView(Type('num?')),
+              new SsaNode<SharedTypeView<Type>>(null));
           // It's ambiguous whether to promote to num? or num*, but since the
           // written type is exactly num?, we use that.
           expect(s2.promotionInfo.unwrap(h), {
@@ -4036,7 +4096,7 @@ main() {
       test('when promoted via test', () {
         var x = Var('x')..type = Type('Object?');
 
-        var s1 = FlowModel<Type>(Reachability.initial)
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._declare(h, x, true)
             ._tryPromoteForTypeCheck(h, x, 'num?')
             .ifTrue
@@ -4049,8 +4109,12 @@ main() {
           ),
         });
 
-        var s2 = s1._write(h, _MockNonPromotionReason(), x, Type('double'),
-            new SsaNode<Type>(null));
+        var s2 = s1._write(
+            h,
+            _MockNonPromotionReason(),
+            x,
+            SharedTypeView(Type('double')),
+            new SsaNode<SharedTypeView<Type>>(null));
         expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
             chain: ['num?', 'num'],
@@ -4061,11 +4125,15 @@ main() {
     });
 
     group('declare', () {
-      var objectQVar = Var('x')..type = Type('Object?');
+      late Var objectQVar;
+
+      setUp(() {
+        objectQVar = Var('x')..type = Type('Object?');
+      });
 
       test('initialized', () {
-        var s =
-            FlowModel<Type>(Reachability.initial)._declare(h, objectQVar, true);
+        var s = FlowModel<SharedTypeView<Type>>(Reachability.initial)
+            ._declare(h, objectQVar, true);
         expect(s.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar):
               _matchVariableModel(assigned: true, unassigned: false),
@@ -4073,7 +4141,7 @@ main() {
       });
 
       test('not initialized', () {
-        var s = FlowModel<Type>(Reachability.initial)
+        var s = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._declare(h, objectQVar, false);
         expect(s.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar):
@@ -4084,13 +4152,13 @@ main() {
 
     group('markNonNullable', () {
       test('unpromoted -> unchanged', () {
-        var s1 = FlowModel<Type>(Reachability.initial);
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
         var s2 = s1._tryMarkNonNullable(h, intVar).ifTrue;
         expect(s2, same(s1));
       });
 
       test('unpromoted -> promoted', () {
-        var s1 = FlowModel<Type>(Reachability.initial);
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
         var s2 = s1._tryMarkNonNullable(h, intQVar).ifTrue;
         expect(s2.reachable.overallReachable, true);
         expect(s2._infoFor(h, intQVar),
@@ -4098,7 +4166,7 @@ main() {
       });
 
       test('promoted -> unchanged', () {
-        var s1 = FlowModel<Type>(Reachability.initial)
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
             .ifTrue;
         var s2 = s1._tryMarkNonNullable(h, objectQVar).ifTrue;
@@ -4106,7 +4174,7 @@ main() {
       });
 
       test('promoted -> re-promoted', () {
-        var s1 = FlowModel<Type>(Reachability.initial)
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
             .ifTrue;
         var s2 = s1._tryMarkNonNullable(h, objectQVar).ifTrue;
@@ -4118,7 +4186,7 @@ main() {
       });
 
       test('promote to Never', () {
-        var s1 = FlowModel<Type>(Reachability.initial);
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
         var s2 = s1._tryMarkNonNullable(h, nullVar).ifTrue;
         expect(s2.reachable.overallReachable, true);
         expect(s2._infoFor(h, nullVar),
@@ -4128,7 +4196,7 @@ main() {
 
     group('conservativeJoin', () {
       test('unchanged', () {
-        var s1 = FlowModel<Type>(Reachability.initial)
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._declare(h, intQVar, true)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
             .ifTrue;
@@ -4144,7 +4212,7 @@ main() {
       });
 
       test('written', () {
-        var s1 = FlowModel<Type>(Reachability.initial)
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
             .ifTrue
             ._tryPromoteForTypeCheck(h, intQVar, 'int')
@@ -4160,7 +4228,7 @@ main() {
       });
 
       test('write captured', () {
-        var s1 = FlowModel<Type>(Reachability.initial)
+        var s1 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
             .ifTrue
             ._tryPromoteForTypeCheck(h, intQVar, 'int')
@@ -4178,7 +4246,7 @@ main() {
 
     group('rebaseForward', () {
       test('reachability', () {
-        var reachable = FlowModel<Type>(Reachability.initial);
+        var reachable = FlowModel<SharedTypeView<Type>>(Reachability.initial);
         var unreachable = reachable.setUnreachable();
         expect(reachable.rebaseForward(h, reachable), same(reachable));
         expect(reachable.rebaseForward(h, unreachable), same(unreachable));
@@ -4195,17 +4263,21 @@ main() {
         var b = Var('b')..type = Type('int');
         var c = Var('c')..type = Type('int');
         var d = Var('d')..type = Type('int');
-        var s0 = FlowModel<Type>(Reachability.initial)
+        var s0 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._declare(h, a, false)
             ._declare(h, b, false)
             ._declare(h, c, false)
             ._declare(h, d, false);
         var s1 = s0
-            ._write(h, null, a, Type('int'), new SsaNode<Type>(null))
-            ._write(h, null, b, Type('int'), new SsaNode<Type>(null));
+            ._write(h, null, a, SharedTypeView(Type('int')),
+                new SsaNode<SharedTypeView<Type>>(null))
+            ._write(h, null, b, SharedTypeView(Type('int')),
+                new SsaNode<SharedTypeView<Type>>(null));
         var s2 = s0
-            ._write(h, null, a, Type('int'), new SsaNode<Type>(null))
-            ._write(h, null, c, Type('int'), new SsaNode<Type>(null));
+            ._write(h, null, a, SharedTypeView(Type('int')),
+                new SsaNode<SharedTypeView<Type>>(null))
+            ._write(h, null, c, SharedTypeView(Type('int')),
+                new SsaNode<SharedTypeView<Type>>(null));
         var result = s1.rebaseForward(h, s2);
         expect(result._infoFor(h, a).assigned, true);
         expect(result._infoFor(h, b).assigned, true);
@@ -4218,7 +4290,7 @@ main() {
         var b = Var('b')..type = Type('int');
         var c = Var('c')..type = Type('int');
         var d = Var('d')..type = Type('int');
-        var s0 = FlowModel<Type>(Reachability.initial)
+        var s0 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
             ._declare(h, a, false)
             ._declare(h, b, false)
             ._declare(h, c, false)
@@ -4247,7 +4319,8 @@ main() {
 
       test('write captured and promoted', () {
         var a = Var('a')..type = Type('num');
-        var s0 = FlowModel<Type>(Reachability.initial)._declare(h, a, false);
+        var s0 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
+            ._declare(h, a, false);
         // In s1, a is write captured.  In s2 it's promoted.
         var s1 = s0._conservativeJoin(h, [a], [a]);
         var s2 = s0._tryPromoteForTypeCheck(h, a, 'int').ifTrue;
@@ -4265,11 +4338,12 @@ main() {
         void _check(String? thisType, String? otherType, bool unsafe,
             List<String>? expectedChain) {
           var x = Var('x')..type = Type('Object?');
-          var s0 = FlowModel<Type>(Reachability.initial)._declare(h, x, true);
+          var s0 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
+              ._declare(h, x, true);
           var s1 = s0;
           if (unsafe) {
-            s1 =
-                s1._write(h, null, x, Type('Object?'), new SsaNode<Type>(null));
+            s1 = s1._write(h, null, x, SharedTypeView(Type('Object?')),
+                new SsaNode<SharedTypeView<Type>>(null));
           }
           if (thisType != null) {
             s1 = s1._tryPromoteForTypeCheck(h, x, thisType).ifTrue;
@@ -4287,7 +4361,7 @@ main() {
                 result
                     ._infoFor(h, x)
                     .promotedTypes!
-                    .map((t) => t.type)
+                    .map((t) => t.unwrapTypeView().type)
                     .toList(),
                 expectedChain);
           }
@@ -4310,8 +4384,11 @@ main() {
       test('promotion chains', () {
         // Verify that the given promotion chain matches the expected list of
         // strings.
-        void _checkChain(List<Type>? chain, List<String> expected) {
-          var strings = (chain ?? <Type>[]).map((t) => t.type).toList();
+        void _checkChain(
+            List<SharedTypeView<Type>>? chain, List<String> expected) {
+          var strings = (chain ?? <SharedTypeView<Type>>[])
+              .map((t) => t.unwrapTypeView().type)
+              .toList();
           expect(strings, expected);
         }
 
@@ -4328,7 +4405,8 @@ main() {
             List<String> inFinally, List<String> expectedResult) {
           var x = Var('x')..type = Type('Object?');
           var initialModel =
-              FlowModel<Type>(Reachability.initial)._declare(h, x, true);
+              FlowModel<SharedTypeView<Type>>(Reachability.initial)
+                  ._declare(h, x, true);
           for (var t in before) {
             initialModel = initialModel._tryPromoteForTypeCheck(h, x, t).ifTrue;
           }
@@ -4384,7 +4462,8 @@ main() {
 
       test('types of interest', () {
         var a = Var('a')..type = Type('Object');
-        var s0 = FlowModel<Type>(Reachability.initial)._declare(h, a, false);
+        var s0 = FlowModel<SharedTypeView<Type>>(Reachability.initial)
+            ._declare(h, a, false);
         var s1 = s0._tryPromoteForTypeCheck(h, a, 'int').ifFalse;
         var s2 = s0._tryPromoteForTypeCheck(h, a, 'String').ifFalse;
         expect(
@@ -4399,7 +4478,7 @@ main() {
 
       test('variable present in one state but not the other', () {
         var x = Var('x')..type = Type('Object?');
-        var s0 = FlowModel<Type>(Reachability.initial);
+        var s0 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
         var s1 = s0._declare(h, x, true);
         expect(s1.rebaseForward(h, s0), same(s1));
         expect(s0.rebaseForward(h, s1), same(s1));
@@ -4408,10 +4487,17 @@ main() {
   });
 
   group('joinPromotionChains', () {
-    var doubleType = Type('double');
-    var intType = Type('int');
-    var numType = Type('num');
-    var objectType = Type('Object');
+    late Type doubleType;
+    late Type intType;
+    late Type numType;
+    late Type objectType;
+
+    setUp(() {
+      doubleType = Type('double');
+      intType = Type('int');
+      numType = Type('num');
+      objectType = Type('Object');
+    });
 
     test('should handle nulls', () {
       expect(
@@ -4433,12 +4519,21 @@ main() {
 
     test('should return common prefix if there are common types', () {
       expect(
-          PromotionModel.joinPromotedTypes([objectType, intType],
-              [objectType, doubleType], h.typeOperations),
+          PromotionModel.joinPromotedTypes(
+              [SharedTypeView(objectType), SharedTypeView(intType)],
+              [SharedTypeView(objectType), SharedTypeView(doubleType)],
+              h.typeOperations),
           _matchPromotionChain(['Object']));
       expect(
-          PromotionModel.joinPromotedTypes([objectType, numType, intType],
-              [objectType, numType, doubleType], h.typeOperations),
+          PromotionModel.joinPromotedTypes([
+            SharedTypeView(objectType),
+            SharedTypeView(numType),
+            SharedTypeView(intType)
+          ], [
+            SharedTypeView(objectType),
+            SharedTypeView(numType),
+            SharedTypeView(doubleType)
+          ], h.typeOperations),
           _matchPromotionChain(['Object', 'num']));
     });
 
@@ -4483,7 +4578,8 @@ main() {
       h.addSuperInterfaces('B', (_) => [Type('A'), Type('Object')]);
       h.addSuperInterfaces('A', (_) => [Type('Object')]);
 
-      void check(List<Type> chain1, List<Type> chain2, Matcher matcher) {
+      void check(List<SharedTypeView<Type>> chain1,
+          List<SharedTypeView<Type>> chain2, Matcher matcher) {
         expect(
           PromotionModel.joinPromotedTypes(chain1, chain2, h.typeOperations),
           matcher,
@@ -4496,38 +4592,68 @@ main() {
       }
 
       {
-        var chain1 = [A, B, C];
-        var chain2 = [A, C];
+        var chain1 = [SharedTypeView(A), SharedTypeView(B), SharedTypeView(C)];
+        var chain2 = [SharedTypeView(A), SharedTypeView(C)];
         check(chain1, chain2, same(chain2));
       }
 
       check(
-        [A, B, C, F],
-        [A, D, E, F],
+        [
+          SharedTypeView(A),
+          SharedTypeView(B),
+          SharedTypeView(C),
+          SharedTypeView(F)
+        ],
+        [
+          SharedTypeView(A),
+          SharedTypeView(D),
+          SharedTypeView(E),
+          SharedTypeView(F)
+        ],
         _matchPromotionChain(['A', 'F']),
       );
 
       check(
-        [A, B, E, F],
-        [A, C, D, F],
+        [
+          SharedTypeView(A),
+          SharedTypeView(B),
+          SharedTypeView(E),
+          SharedTypeView(F)
+        ],
+        [
+          SharedTypeView(A),
+          SharedTypeView(C),
+          SharedTypeView(D),
+          SharedTypeView(F)
+        ],
         _matchPromotionChain(['A', 'F']),
       );
 
       check(
-        [A, C, E],
-        [B, C, D],
+        [SharedTypeView(A), SharedTypeView(C), SharedTypeView(E)],
+        [SharedTypeView(B), SharedTypeView(C), SharedTypeView(D)],
         _matchPromotionChain(['C']),
       );
 
       check(
-        [A, C, E, F],
-        [B, C, D, F],
+        [
+          SharedTypeView(A),
+          SharedTypeView(C),
+          SharedTypeView(E),
+          SharedTypeView(F)
+        ],
+        [
+          SharedTypeView(B),
+          SharedTypeView(C),
+          SharedTypeView(D),
+          SharedTypeView(F)
+        ],
         _matchPromotionChain(['C', 'F']),
       );
 
       check(
-        [A, B, C],
-        [A, B, D],
+        [SharedTypeView(A), SharedTypeView(B), SharedTypeView(C)],
+        [SharedTypeView(A), SharedTypeView(B), SharedTypeView(D)],
         _matchPromotionChain(['A', 'B']),
       );
     });
@@ -4576,36 +4702,41 @@ main() {
     late int y;
     late int z;
     late int w;
-    var intType = Type('int');
-    var intQType = Type('int?');
-    var stringType = Type('String');
+    late Type intType;
+    late Type intQType;
+    late Type stringType;
 
     setUp(() {
       x = h.promotionKeyStore.keyForVariable(Var('x')..type = Type('Object?'));
       y = h.promotionKeyStore.keyForVariable(Var('y')..type = Type('Object?'));
       z = h.promotionKeyStore.keyForVariable(Var('z')..type = Type('Object?'));
       w = h.promotionKeyStore.keyForVariable(Var('w')..type = Type('Object?'));
+      intType = Type('int');
+      intQType = Type('int?');
+      stringType = Type('String');
     });
 
-    PromotionModel<Type> model(List<Type>? promotionChain,
-            {List<Type>? typesOfInterest, bool assigned = false}) =>
-        PromotionModel<Type>(
+    PromotionModel<SharedTypeView<Type>> model(
+            List<SharedTypeView<Type>>? promotionChain,
+            {List<SharedTypeView<Type>>? typesOfInterest,
+            bool assigned = false}) =>
+        PromotionModel<SharedTypeView<Type>>(
             promotedTypes: promotionChain,
             tested: typesOfInterest ?? promotionChain ?? [],
             assigned: assigned,
             unassigned: !assigned,
-            ssaNode: new SsaNode<Type>(null));
+            ssaNode: new SsaNode<SharedTypeView<Type>>(null));
 
     group('without input reuse', () {
       test('promoted with unpromoted', () {
-        var s0 = FlowModel<Type>(Reachability.initial);
+        var s0 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
         var s1 = s0._setInfo(h, {
-          x: model([intType]),
+          x: model([SharedTypeView(intType)]),
           y: model(null)
         });
         var s2 = s0._setInfo(h, {
           x: model(null),
-          y: model([intType])
+          y: model([SharedTypeView(intType)])
         });
         expect(FlowModel.joinPromotionInfo(h, s1, s2).promotionInfo.unwrap(h), {
           x: _matchVariableModel(chain: null, ofInterest: ['int']),
@@ -4615,19 +4746,19 @@ main() {
     });
     group('should re-use an input if possible', () {
       test('identical inputs', () {
-        var s0 = FlowModel<Type>(Reachability.initial);
+        var s0 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
         var s1 = s0._setInfo(h, {
-          x: model([intType]),
-          y: model([stringType])
+          x: model([SharedTypeView(intType)]),
+          y: model([SharedTypeView(stringType)])
         });
         expect(FlowModel.joinPromotionInfo(h, s1, s1), same(s1));
       });
 
       test('one input empty', () {
-        var s0 = FlowModel<Type>(Reachability.initial);
+        var s0 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
         var s1 = s0._setInfo(h, {
-          x: model([intType]),
-          y: model([stringType])
+          x: model([SharedTypeView(intType)]),
+          y: model([SharedTypeView(stringType)])
         });
         var s2 = s0;
         const Null expected = null;
@@ -4638,9 +4769,9 @@ main() {
       });
 
       test('promoted with unpromoted', () {
-        var s0 = FlowModel<Type>(Reachability.initial);
+        var s0 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
         var s1 = s0._setInfo(h, {
-          x: model([intType])
+          x: model([SharedTypeView(intType)])
         });
         var s2 = s0._setInfo(h, {x: model(null)});
         var expected = {
@@ -4653,12 +4784,12 @@ main() {
       });
 
       test('related type chains', () {
-        var s0 = FlowModel<Type>(Reachability.initial);
+        var s0 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
         var s1 = s0._setInfo(h, {
-          x: model([intQType, intType])
+          x: model([SharedTypeView(intQType), SharedTypeView(intType)])
         });
         var s2 = s0._setInfo(h, {
-          x: model([intQType])
+          x: model([SharedTypeView(intQType)])
         });
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
@@ -4670,12 +4801,12 @@ main() {
       });
 
       test('unrelated type chains', () {
-        var s0 = FlowModel<Type>(Reachability.initial);
+        var s0 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
         var s1 = s0._setInfo(h, {
-          x: model([intType])
+          x: model([SharedTypeView(intType)])
         });
         var s2 = s0._setInfo(h, {
-          x: model([stringType])
+          x: model([SharedTypeView(stringType)])
         });
         var expected = {
           x: _matchVariableModel(chain: null, ofInterest: ['String', 'int'])
@@ -4687,11 +4818,11 @@ main() {
       });
 
       test('sub-map', () {
-        var s0 = FlowModel<Type>(Reachability.initial);
-        var xModel = model([intType]);
+        var s0 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
+        var xModel = model([SharedTypeView(intType)]);
         var s1 = s0._setInfo(h, {
           x: xModel,
-          y: model([stringType])
+          y: model([SharedTypeView(stringType)])
         });
         var s2 = s0._setInfo(h, {x: xModel});
         var expected = {x: xModel};
@@ -4702,13 +4833,13 @@ main() {
       });
 
       test('sub-map with matched subtype', () {
-        var s0 = FlowModel<Type>(Reachability.initial);
+        var s0 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
         var s1 = s0._setInfo(h, {
-          x: model([intQType, intType]),
-          y: model([stringType])
+          x: model([SharedTypeView(intQType), SharedTypeView(intType)]),
+          y: model([SharedTypeView(stringType)])
         });
         var s2 = s0._setInfo(h, {
-          x: model([intQType])
+          x: model([SharedTypeView(intQType)])
         });
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
@@ -4720,13 +4851,13 @@ main() {
       });
 
       test('sub-map with mismatched subtype', () {
-        var s0 = FlowModel<Type>(Reachability.initial);
+        var s0 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
         var s1 = s0._setInfo(h, {
-          x: model([intQType]),
-          y: model([stringType])
+          x: model([SharedTypeView(intQType)]),
+          y: model([SharedTypeView(stringType)])
         });
         var s2 = s0._setInfo(h, {
-          x: model([intQType, intType])
+          x: model([SharedTypeView(intQType), SharedTypeView(intType)])
         });
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
@@ -4738,7 +4869,7 @@ main() {
       });
 
       test('assigned', () {
-        var s0 = FlowModel<Type>(Reachability.initial);
+        var s0 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
         var unassigned = model(null, assigned: false);
         var assigned = model(null, assigned: true);
         var s1 = s0._setInfo(
@@ -4757,8 +4888,8 @@ main() {
       });
 
       test('write captured', () {
-        var s0 = FlowModel<Type>(Reachability.initial);
-        var intQModel = model([intQType]);
+        var s0 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
+        var intQModel = model([SharedTypeView(intQType)]);
         var writeCapturedModel = intQModel.writeCapture();
         var s1 = s0._setInfo(h, {
           x: writeCapturedModel,
@@ -4785,49 +4916,52 @@ main() {
 
   group('inheritTested', () {
     late int x;
-    var intType = Type('int');
-    var stringType = Type('String');
+    late Type intType;
+    late Type stringType;
 
     setUp(() {
       x = h.promotionKeyStore.keyForVariable(Var('x')..type = Type('Object?'));
+      intType = Type('int');
+      stringType = Type('String');
     });
 
-    PromotionModel<Type> model(List<Type> typesOfInterest) =>
-        PromotionModel<Type>(
+    PromotionModel<SharedTypeView<Type>> model(
+            List<SharedTypeView<Type>> typesOfInterest) =>
+        PromotionModel<SharedTypeView<Type>>(
             promotedTypes: null,
             tested: typesOfInterest,
             assigned: true,
             unassigned: false,
-            ssaNode: new SsaNode<Type>(null));
+            ssaNode: new SsaNode<SharedTypeView<Type>>(null));
 
     test('inherits types of interest from other', () {
-      var m0 = FlowModel<Type>(Reachability.initial);
+      var m0 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
       var m1 = m0._setInfo(h, {
-        x: model([intType])
+        x: model([SharedTypeView(intType)])
       });
       var m2 = m0._setInfo(h, {
-        x: model([stringType])
+        x: model([SharedTypeView(stringType)])
       });
       expect(m1.inheritTested(h, m2).promotionInfo!.get(h, x)!.tested,
           _matchOfInterestSet(['int', 'String']));
     });
 
     test('handles variable missing from other', () {
-      var m0 = FlowModel<Type>(Reachability.initial);
+      var m0 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
       var m1 = m0._setInfo(h, {
-        x: model([intType])
+        x: model([SharedTypeView(intType)])
       });
       var m2 = m0;
       expect(m1.inheritTested(h, m2), same(m1));
     });
 
     test('returns identical model when no changes', () {
-      var m0 = FlowModel<Type>(Reachability.initial);
+      var m0 = FlowModel<SharedTypeView<Type>>(Reachability.initial);
       var m1 = m0._setInfo(h, {
-        x: model([intType])
+        x: model([SharedTypeView(intType)])
       });
       var m2 = m0._setInfo(h, {
-        x: model([intType])
+        x: model([SharedTypeView(intType)])
       });
       expect(m1.inheritTested(h, m2), same(m1));
     });
@@ -5556,6 +5690,7 @@ main() {
         });
 
         test('even when the declared type is a type variable', () {
+          TypeRegistry.addTypeParameter('T');
           h.enableLegacy();
           h.addPromotionException('T', 'int', 'T&int');
           var x = Var('x');
@@ -5656,7 +5791,10 @@ main() {
         checkNotPromoted(x),
         x.whyNotPromoted((reasons) {
           expect(reasons.keys, unorderedEquals([Type('int'), Type('int?')]));
-          for (var type in [Type('int'), Type('int?')]) {
+          for (var type in [
+            SharedTypeView(Type('int')),
+            SharedTypeView(Type('int?'))
+          ]) {
             var nonPromotionReason =
                 reasons[type] as DemoteViaExplicitWrite<Var>;
             expect(nonPromotionReason.node, same(writeExpression));
@@ -5730,8 +5868,8 @@ main() {
         ]),
         checkPromoted(x, 'num'),
         x.whyNotPromoted((reasons) {
-          var nonPromotionReason =
-              reasons[Type('int')] as DemoteViaExplicitWrite<Var>;
+          var nonPromotionReason = reasons[SharedTypeView(Type('int'))]
+              as DemoteViaExplicitWrite<Var>;
           expect(nonPromotionReason.node, same(writeExpression));
           expect(nonPromotionReason.documentationLink,
               NonPromotionDocumentationLink.write);
@@ -8505,6 +8643,82 @@ main() {
       });
     });
 
+    group('Null-aware map entry:', () {
+      test('Promotes key within value', () {
+        var a = Var('a');
+
+        h.run([
+          declare(a, type: 'String?', initializer: expr('String?')),
+          mapLiteral(keyType: 'String', valueType: 'dynamic', [
+            mapEntry(a, checkPromoted(a, 'String'), isKeyNullAware: true),
+          ]),
+          checkNotPromoted(a),
+        ]);
+      });
+
+      test('Non-null-aware key', () {
+        var a = Var('a');
+
+        h.run([
+          declare(a, type: 'String?', initializer: expr('String?')),
+          mapLiteral(keyType: 'String?', valueType: 'dynamic', [
+            mapEntry(a, checkNotPromoted(a), isKeyNullAware: false),
+          ]),
+          checkNotPromoted(a),
+        ]);
+      });
+
+      test('Promotes', () {
+        var a = Var('a');
+        var x = Var('x');
+
+        h.run([
+          declare(a, type: 'String', initializer: expr('String')),
+          declare(x, type: 'num', initializer: expr('num')),
+          mapLiteral(keyType: 'String', valueType: 'dynamic', [
+            mapEntry(a, x.as_('int'), isKeyNullAware: true),
+          ]),
+          checkPromoted(x, 'int'),
+        ]);
+      });
+
+      test('Affects promotion', () {
+        var a = Var('a');
+        var x = Var('x');
+
+        h.run([
+          declare(a, type: 'String?', initializer: expr('String?')),
+          declare(x, type: 'num', initializer: expr('num')),
+          mapLiteral(keyType: 'String', valueType: 'dynamic', [
+            mapEntry(a, x.as_('int'), isKeyNullAware: true),
+          ]),
+          checkNotPromoted(x),
+        ]);
+      });
+
+      test('Unreachable', () {
+        var a = Var('a');
+        h.run([
+          declare(a, type: 'String', initializer: expr('String')),
+          mapLiteral(keyType: 'String', valueType: 'dynamic', [
+            mapEntry(a, throw_(expr('Object')), isKeyNullAware: true),
+          ]),
+          checkReachable(false),
+        ]);
+      });
+
+      test('Reachable', () {
+        var a = Var('a');
+        h.run([
+          declare(a, type: 'String?', initializer: expr('String?')),
+          mapLiteral(keyType: 'String', valueType: 'dynamic', [
+            mapEntry(a, throw_(expr('Object')), isKeyNullAware: true),
+          ]),
+          checkReachable(true),
+        ]);
+      });
+    });
+
     group('Map pattern:', () {
       test('Promotes', () {
         var x = Var('x');
@@ -8723,6 +8937,7 @@ main() {
           //         // x still might be `null`
           //       }
           //     }
+          TypeRegistry.addInterfaceTypeName('T');
           h.addDownwardInfer(name: 'T', context: 'Object?', result: 'int?');
           h.addMember('int?', 'foo', 'dynamic');
           var x = Var('x');
@@ -8891,6 +9106,7 @@ main() {
           //         // x still might be `null`
           //       }
           //     }
+          TypeRegistry.addInterfaceTypeName('T');
           h.addDownwardInfer(name: 'T', context: 'Object?', result: 'int?');
           h.addMember('int?', 'foo', 'dynamic');
           var x = Var('x');
@@ -11046,16 +11262,16 @@ String _describeMatcher(Matcher matcher) {
 
 Matcher _matchOfInterestSet(List<String> expectedTypes) {
   return predicate(
-      (List<Type> x) => unorderedEquals(expectedTypes)
-          .matches(x.map((t) => t.type).toList(), {}),
+      (List<SharedTypeView<Type>> x) => unorderedEquals(expectedTypes)
+          .matches(x.map((t) => t.unwrapTypeView().type).toList(), {}),
       'interest set $expectedTypes');
 }
 
 Matcher _matchPromotionChain(List<String>? expectedTypes) {
   if (expectedTypes == null) return isNull;
   return predicate(
-      (List<Type> x) =>
-          equals(expectedTypes).matches(x.map((t) => t.type).toList(), {}),
+      (List<SharedTypeView<Type>> x) => equals(expectedTypes)
+          .matches(x.map((t) => t.unwrapTypeView().type).toList(), {}),
       'promotion chain $expectedTypes');
 }
 
@@ -11078,7 +11294,7 @@ Matcher _matchVariableModel(
   Matcher assignedMatcher = wrapMatcher(assigned);
   Matcher unassignedMatcher = wrapMatcher(unassigned);
   Matcher writeCapturedMatcher = wrapMatcher(writeCaptured);
-  return predicate((PromotionModel<Type> model) {
+  return predicate((PromotionModel<SharedTypeView<Type>> model) {
     if (!chainMatcher.matches(model.promotedTypes, {})) return false;
     if (!ofInterestMatcher.matches(model.tested, {})) return false;
     if (!assignedMatcher.matches(model.assigned, {})) return false;
@@ -11108,8 +11324,8 @@ class _MockNonPromotionReason extends NonPromotionReason {
       fail('Unexpected call to accept');
 }
 
-extension on FlowModel<Type> {
-  FlowModel<Type> _conservativeJoin(FlowAnalysisTestHarness h,
+extension on FlowModel<SharedTypeView<Type>> {
+  FlowModel<SharedTypeView<Type>> _conservativeJoin(FlowAnalysisTestHarness h,
           Iterable<Var> writtenVariables, Iterable<Var> capturedVariables) =>
       conservativeJoin(h, [
         for (Var v in writtenVariables) h.promotionKeyStore.keyForVariable(v)
@@ -11117,17 +11333,18 @@ extension on FlowModel<Type> {
         for (Var v in capturedVariables) h.promotionKeyStore.keyForVariable(v)
       ]);
 
-  FlowModel<Type> _declare(
+  FlowModel<SharedTypeView<Type>> _declare(
           FlowAnalysisTestHarness h, Var variable, bool initialized) =>
       this.declare(
           h, h.promotionKeyStore.keyForVariable(variable), initialized);
 
-  PromotionModel<Type> _infoFor(FlowAnalysisTestHarness h, Var variable) =>
+  PromotionModel<SharedTypeView<Type>> _infoFor(
+          FlowAnalysisTestHarness h, Var variable) =>
       infoFor(h, h.promotionKeyStore.keyForVariable(variable),
           ssaNode: new SsaNode(null));
 
-  FlowModel<Type> _setInfo(
-      FlowAnalysisTestHarness h, Map<int, PromotionModel<Type>> newInfo) {
+  FlowModel<SharedTypeView<Type>> _setInfo(FlowAnalysisTestHarness h,
+      Map<int, PromotionModel<SharedTypeView<Type>>> newInfo) {
     var result = this;
     for (var core.MapEntry(:key, :value) in newInfo.entries) {
       if (result.promotionInfo?.get(h, key) != value) {
@@ -11137,43 +11354,46 @@ extension on FlowModel<Type> {
     return result;
   }
 
-  ExpressionInfo<Type> _tryMarkNonNullable(
+  ExpressionInfo<SharedTypeView<Type>> _tryMarkNonNullable(
           FlowAnalysisTestHarness h, Var variable) =>
       tryMarkNonNullable(h, _varRefWithType(h, variable));
 
-  ExpressionInfo<Type> _tryPromoteForTypeCheck(
+  ExpressionInfo<SharedTypeView<Type>> _tryPromoteForTypeCheck(
           FlowAnalysisTestHarness h, Var variable, String type) =>
-      tryPromoteForTypeCheck(h, _varRefWithType(h, variable), Type(type));
+      tryPromoteForTypeCheck(
+          h, _varRefWithType(h, variable), SharedTypeView(Type(type)));
 
   int _varRef(FlowAnalysisTestHarness h, Var variable) =>
       h.promotionKeyStore.keyForVariable(variable);
 
-  TrivialVariableReference<Type> _varRefWithType(
+  TrivialVariableReference<SharedTypeView<Type>> _varRefWithType(
           FlowAnalysisTestHarness h, Var variable) =>
-      new TrivialVariableReference<Type>(
+      new TrivialVariableReference<SharedTypeView<Type>>(
           promotionKey: _varRef(h, variable),
-          after: this,
+          model: this,
           type: promotionInfo
                   ?.get(h, h.promotionKeyStore.keyForVariable(variable))
                   ?.promotedTypes
                   ?.last ??
-              variable.type,
+              SharedTypeView(variable.type),
           isThisOrSuper: false,
           ssaNode: SsaNode(null));
 
-  FlowModel<Type> _write(
+  FlowModel<SharedTypeView<Type>> _write(
           FlowAnalysisTestHarness h,
           NonPromotionReason? nonPromotionReason,
           Var variable,
-          Type writtenType,
-          SsaNode<Type> newSsaNode) =>
+          SharedTypeView<Type> writtenType,
+          SsaNode<SharedTypeView<Type>> newSsaNode) =>
       write(h, nonPromotionReason, h.promotionKeyStore.keyForVariable(variable),
           writtenType, newSsaNode, h.typeOperations,
-          unpromotedType: variable.type);
+          unpromotedType: SharedTypeView(variable.type));
 }
 
-extension on PromotionInfo<Type>? {
-  Map<int, PromotionModel<Type>> unwrap(FlowAnalysisTestHarness h) => {
+extension on PromotionInfo<SharedTypeView<Type>>? {
+  Map<int, PromotionModel<SharedTypeView<Type>>> unwrap(
+          FlowAnalysisTestHarness h) =>
+      {
         for (var FlowLinkDiffEntry(:int key, right: second!)
             in h.reader.diff(null, this).entries)
           key: second.model

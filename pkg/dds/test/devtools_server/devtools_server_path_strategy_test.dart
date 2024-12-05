@@ -13,6 +13,7 @@ late final DevToolsServerTestController testController;
 
 void main() {
   testController = DevToolsServerTestController();
+  final baseHrefRegex = RegExp('<base href="([^"]+)"');
 
   setUp(() async {
     await testController.setUp();
@@ -22,49 +23,71 @@ void main() {
     await testController.tearDown();
   });
 
-  test('serves index.html contents for /inspector', () async {
-    final server = await DevToolsServerDriver.create();
+  group('serves index.html', () {
+    DevToolsServerDriver? server;
+    late Uri devToolsUrl;
     final httpClient = HttpClient();
-    late HttpClientResponse resp;
-    try {
-      final startedEvent = (await server.stdout.firstWhere(
+
+    setUpAll(() async {
+      server = await DevToolsServerDriver.create();
+      final startedEvent = (await server!.stdout.firstWhere(
         (map) => map!['event'] == 'server.started',
       ))!;
       final host = startedEvent['params']['host'];
       final port = startedEvent['params']['port'];
+      devToolsUrl = Uri(scheme: 'http', host: host, port: port);
+    });
 
-      final req = await httpClient.get(host, port, '/inspector');
-      resp = await req.close();
+    tearDownAll(() {
+      httpClient.close(force: true);
+      server?.kill();
+    });
+
+    test('correct content for /inspector', () async {
+      final req = await httpClient.getUrl(devToolsUrl.resolve('/inspector'));
+      final resp = await req.close();
       expect(resp.statusCode, 200);
       final bodyContent = await resp.transform(utf8.decoder).join();
       expect(bodyContent, contains('Dart DevTools'));
-      final expectedBaseHref = htmlEscape.convert('/');
-      expect(bodyContent, contains('<base href="$expectedBaseHref">'));
-    } finally {
-      httpClient.close();
-      server.kill();
-    }
-  }, timeout: const Timeout.factor(10));
+    }, timeout: const Timeout.factor(10));
 
-  test('serves 404 contents for requests that are not pages', () async {
-    final server = await DevToolsServerDriver.create();
-    final httpClient = HttpClient();
-    late HttpClientResponse resp;
-    try {
-      final startedEvent = (await server.stdout.firstWhere(
-        (map) => map!['event'] == 'server.started',
-      ))!;
-      final host = startedEvent['params']['host'];
-      final port = startedEvent['params']['port'];
-
+    test('serves 404 for requests that are not pages', () async {
       // The index page is only served up for extension-less requests.
-      final req = await httpClient.get(host, port, '/inspector.html');
-      resp = await req.close();
+      final req =
+          await httpClient.getUrl(devToolsUrl.resolve('/inspector.html'));
+      final resp = await req.close();
       expect(resp.statusCode, 404);
-    } finally {
-      httpClient.close();
       await resp.drain();
-      server.kill();
+    }, timeout: const Timeout.factor(10));
+
+    /// A set of test cases to verify base hrefs for.
+    ///
+    /// The key is a suffix to go after /devtools/ in the URI.
+    /// The value is the expected base href (which should always resolve back to
+    /// `/devtools/` or in the case of an extension, the base of the extension).
+    final testBaseHrefs = {
+      '': '.',
+      'inspector': '.',
+      // TODO(dantup): Is there a way we could verify extension URLs here?
+      // 'devtools_extensions/foo/': '.',
+      // 'devtools_extensions/foo/bar': '.',
+      // 'devtools_extensions/foo/bar/': '..',
+      // 'devtools_extensions/foo/bar/baz': '../..',
+    };
+
+    for (final MapEntry(key: suffix, value: expectedBaseHref)
+        in testBaseHrefs.entries) {
+      test('with correct base href for /$suffix', () async {
+        final req = await httpClient.getUrl(devToolsUrl.resolve('/inspector'));
+        final resp = await req.close();
+        expect(resp.statusCode, 200);
+        final bodyContent = await resp.transform(utf8.decoder).join();
+
+        // Extract the base href so if the test failures, we get a simpler error
+        // than just the entire content.
+        final actualBaseHref = baseHrefRegex.firstMatch(bodyContent)!.group(1);
+        expect(actualBaseHref, htmlEscape.convert(expectedBaseHref));
+      }, timeout: const Timeout.factor(10));
     }
   }, timeout: const Timeout.factor(10));
 }

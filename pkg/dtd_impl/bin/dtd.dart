@@ -4,7 +4,7 @@
 
 import 'dart:isolate';
 
-import 'package:dtd_impl/dart_tooling_daemon.dart';
+import 'package:dtd_impl/dtd.dart';
 
 /// Starts the Dart Tooling Daemon with a list of arguments and a nullable
 /// Object [port], which will be cast as a [SendPort?] object.

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferNullAwareOperatorsTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_null_aware_operators';
+  String get lintRule => LintNames.prefer_null_aware_operators;
 
   test_identifierEqualEqualNull_null_elseBinaryExpression() async {
     await assertNoDiagnostics(r'''

@@ -17,8 +17,6 @@ main() {
 class ExtensionDeclarationParserTest extends ParserDiagnosticsTest {
   test_augment() {
     var parseResult = parseStringWithErrors(r'''
-augment library 'a.dart';
-
 augment extension E {}
 ''');
     parseResult.assertNoErrors();
@@ -36,8 +34,6 @@ ExtensionDeclaration
 
   test_augment_generic() {
     var parseResult = parseStringWithErrors(r'''
-augment library 'a.dart';
-
 augment extension E<T> {}
 ''');
     parseResult.assertNoErrors();
@@ -61,12 +57,10 @@ ExtensionDeclaration
 
   test_augment_hasOnClause() {
     var parseResult = parseStringWithErrors(r'''
-augment library 'a.dart';
-
 augment extension E on int {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE, 47, 2),
+      error(ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE, 20, 2),
     ]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;

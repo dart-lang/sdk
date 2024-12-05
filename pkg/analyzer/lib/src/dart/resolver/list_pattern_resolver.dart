@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -32,16 +33,17 @@ class ListPatternResolver {
       }
     }
 
+    DartType? elementType = typeArguments?.arguments.first.typeOrThrow;
     var result = resolverVisitor.analyzeListPattern(context, node,
-        elementType: typeArguments?.arguments.first.typeOrThrow,
+        elementType: elementType?.wrapSharedTypeView(),
         elements: node.elements);
-    node.requiredType = result.requiredType;
+    node.requiredType = result.requiredType.unwrapTypeView();
 
     resolverVisitor.checkPatternNeverMatchesValueType(
       context: context,
       pattern: node,
-      requiredType: result.requiredType,
-      matchedValueType: result.matchedValueType,
+      requiredType: result.requiredType.unwrapTypeView(),
+      matchedValueType: result.matchedValueType.unwrapTypeView(),
     );
 
     return result;

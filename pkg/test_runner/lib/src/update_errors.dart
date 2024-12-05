@@ -3,10 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'static_error.dart';
 
-/// Matches leading indentation in a string.
-final _indentationRegExp = RegExp(r"^(\s*)");
+/// Matches end of leading indentation in a line.
+///
+/// Only used on single lines.
+final _indentationRegExp = RegExp(r"(?=\S|$)");
 
 /// Matches a line that contains only a line comment.
+///
+/// Only used on single lines.
 final _lineCommentRegExp = RegExp(r"^\s*//");
 
 /// Removes existing static error marker comments in [source] and adds markers
@@ -190,5 +194,5 @@ Map<StaticError, int> _numberErrors(List<StaticError> errors) {
 /// Returns the number of characters of leading spaces in [line].
 int _countIndentation(String line) {
   var match = _indentationRegExp.firstMatch(line)!;
-  return match.group(1)!.length;
+  return match.start;
 }

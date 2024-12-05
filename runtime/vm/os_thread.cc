@@ -57,10 +57,6 @@ OSThread::OSThread()
   ASSERT(stack_base_ > GetCurrentStackPointer());
   ASSERT(stack_limit_ < GetCurrentStackPointer());
   RELEASE_ASSERT(HasStackHeadroom());
-
-#if defined(SUPPORT_TIMELINE)
-  UpdateTimelineTrackMetadata(*this);
-#endif  // defined(SUPPORT_TIMELINE)
 }
 
 OSThread* OSThread::CreateOSThread() {
@@ -244,6 +240,10 @@ bool OSThread::IsThreadInList(ThreadId id) {
   return false;
 }
 
+bool OSThread::CanCreateOSThreads() {
+  return creation_enabled_;
+}
+
 void OSThread::DisableOSThreadCreation() {
   MutexLocker ml(thread_list_lock_);
   creation_enabled_ = false;
@@ -324,6 +324,18 @@ void OSThread::SetCurrentTLS(BaseThread* value) {
     current_vm_thread_ = static_cast<Thread*>(value);
   } else {
     current_vm_thread_ = nullptr;
+  }
+}
+
+void OSThread::Start(const char* name,
+                     ThreadStartFunction function,
+                     uword parameter) {
+  int result = TryStart(name, function, parameter);
+  if (result != 0) {
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    FATAL("Could not start thread %s: %d (%s)", name, result,
+          Utils::StrError(result, error_buf, kBufferSize));
   }
 }
 

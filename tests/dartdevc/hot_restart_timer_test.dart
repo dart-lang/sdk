@@ -28,6 +28,8 @@ Future<void> timeoutTest() async {
 
   Timer(Duration(milliseconds: 500), callback);
   dart.hotRestart();
+  // The async_helper library will have been reset so retrigger asyncStart.
+  asyncStart();
   beforeRestart = false;
   await new Future.delayed(Duration(milliseconds: 600));
   Expect.isFalse(calledBeforeRestart);
@@ -49,6 +51,8 @@ Future<void> periodicTest() async {
   Timer.periodic(Duration(milliseconds: 10), callback);
   await new Future.delayed(Duration(milliseconds: 100));
   dart.hotRestart();
+  // The async_helper library will have been reset so retrigger asyncStart.
+  asyncStart();
   beforeRestart = false;
   await new Future.delayed(Duration(milliseconds: 100));
   Expect.isTrue(calledBeforeRestart);

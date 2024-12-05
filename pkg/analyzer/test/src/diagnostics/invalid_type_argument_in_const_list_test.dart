@@ -15,26 +15,82 @@ main() {
 
 @reflectiveTest
 class InvalidTypeArgumentInConstListTest extends PubPackageResolutionTest {
-  test_type_parameter() async {
+  test_nonConst() async {
+    await assertNoErrorsInCode(r'''
+class A<E> {
+  void m() {
+    <E>[];
+  }
+}
+''');
+  }
+
+  test_typeParameter_asTypeArgument() async {
     await assertErrorsInCode(r'''
 class A<E> {
-  m() {
-    return const <E>[];
+  void m() {
+    const <E>[];
   }
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST, 39, 1,
+      error(
+        CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST,
+        37,
+        1,
+        messageContains: ["'E'"],
+      ),
+    ]);
+  }
+
+  test_typeParameter_deepInTypeArgument_functionType_parameter() async {
+    await assertErrorsInCode(r'''
+class A<E> {
+  void m() {
+    const <void Function(E)>[];
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST, 51, 1,
           messageContains: ["'E'"]),
     ]);
   }
 
-  test_valid() async {
-    await assertNoErrorsInCode(r'''
+  test_typeParameter_deepInTypeArgument_functionType_returnType() async {
+    await assertErrorsInCode(r'''
 class A<E> {
-  m() {
-    return <E>[];
+  void m() {
+    const <E Function()>[];
   }
 }
-''');
+''', [
+      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST, 37, 1,
+          messageContains: ["'E'"]),
+    ]);
+  }
+
+  test_typeParameter_deepInTypeArgument_namedType() async {
+    await assertErrorsInCode(r'''
+class A<E> {
+  void m() {
+    const <List<E>>[];
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST, 42, 1,
+          messageContains: ["'E'"]),
+    ]);
+  }
+
+  test_typeParameter_deepInTypeArgument_recordType_fieldType() async {
+    await assertErrorsInCode(r'''
+class A<E> {
+  void m() {
+    const <(E a, int b)>[];
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST, 38, 1,
+          messageContains: ["'E'"]),
+    ]);
   }
 }

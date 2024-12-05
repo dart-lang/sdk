@@ -89,8 +89,14 @@ void main() {
         filesystem.generationsToModifiedFilePaths,
         equals({
           '0': [
-            jsOutputUri.resolve('generation0/file1.ext').toFilePath(),
-            jsOutputUri.resolve('generation0/file2.ext').toFilePath()
+            [
+              'hot-reload-test:///file1.ext',
+              jsOutputUri.resolve('generation0/file1.ext').toFilePath()
+            ],
+            [
+              'hot-reload-test:///file2.ext',
+              jsOutputUri.resolve('generation0/file2.ext').toFilePath()
+            ]
           ]
         }),
         reason:
@@ -149,12 +155,24 @@ void main() {
         filesystem.generationsToModifiedFilePaths,
         equals({
           '0': [
-            jsOutputUri.resolve('generation0/file1.ext').toFilePath(),
-            jsOutputUri.resolve('generation0/file2.ext').toFilePath()
+            [
+              'hot-reload-test:///file1.ext',
+              jsOutputUri.resolve('generation0/file1.ext').toFilePath()
+            ],
+            [
+              'hot-reload-test:///file2.ext',
+              jsOutputUri.resolve('generation0/file2.ext').toFilePath()
+            ]
           ],
           '1': [
-            jsOutputUri.resolve('generation1/file3.ext').toFilePath(),
-            jsOutputUri.resolve('generation1/file4.ext').toFilePath(),
+            [
+              'hot-reload-test:///file3.ext',
+              jsOutputUri.resolve('generation1/file3.ext').toFilePath()
+            ],
+            [
+              'hot-reload-test:///file4.ext',
+              jsOutputUri.resolve('generation1/file4.ext').toFilePath()
+            ],
           ],
         }),
         reason:
@@ -164,11 +182,11 @@ void main() {
         filesystem.scriptDescriptorForBootstrap,
         equals([
           {
-            'id': 'file1.ext',
+            'id': 'hot-reload-test:///file1.ext',
             'src': jsOutputUri.resolve('generation0/file1.ext').toFilePath(),
           },
           {
-            'id': 'file2.ext',
+            'id': 'hot-reload-test:///file2.ext',
             'src': jsOutputUri.resolve('generation0/file2.ext').toFilePath(),
           },
         ]),

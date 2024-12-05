@@ -212,10 +212,9 @@ abstract mixin class Stream<T> {
   /// stack trace as well.
   @Since("2.5")
   factory Stream.error(Object error, [StackTrace? stackTrace]) {
-    // TODO(40614): Remove once non-nullability is sound.
-    checkNotNullable(error, "error");
+    AsyncError(:error, :stackTrace) = _interceptUserError(error, stackTrace);
     return (_AsyncStreamController<T>(null, null, null, null)
-          .._addError(error, stackTrace ?? AsyncError.defaultStackTrace(error))
+          .._addError(error, stackTrace)
           .._closeUnchecked())
         .stream;
   }

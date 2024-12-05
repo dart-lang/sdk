@@ -7,77 +7,23 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Missing deprecated annotation.';
 
-const _details = r'''
-**DO** apply `@Deprecated()` consistently:
-
-- if a class is deprecated, its constructors should also be deprecated.
-- if a field is deprecated, the constructor parameter pointing to it should also
-  be deprecated.
-- if a constructor parameter pointing to a field is deprecated, the field should
-  also be deprecated.
-
-**BAD:**
-```dart
-@deprecated
-class A {
-  A();
-}
-
-class B {
-  B({this.field});
-  @deprecated
-  Object field;
-}
-```
-
-**GOOD:**
-```dart
-@deprecated
-class A {
-  @deprecated
-  A();
-}
-
-class B {
-  B({@deprecated this.field});
-  @deprecated
-  Object field;
-}
-
-class C extends B {
-  C({@deprecated super.field});
-}
-```
-''';
-
 class DeprecatedConsistency extends LintRule {
-  static const LintCode constructorCode = LintCode('deprecated_consistency',
-      'Constructors in a deprecated class should be deprecated.',
-      correctionMessage: 'Try marking the constructor as deprecated.');
-
-  static const LintCode parameterCode = LintCode('deprecated_consistency',
-      'Parameters that initialize a deprecated field should be deprecated.',
-      correctionMessage: 'Try marking the parameter as deprecated.');
-
-  static const LintCode fieldCode = LintCode(
-      'deprecated_consistency',
-      'Fields that are initialized by a deprecated parameter should be '
-          'deprecated.',
-      correctionMessage: 'Try marking the field as deprecated.');
-
   DeprecatedConsistency()
       : super(
-          name: 'deprecated_consistency',
+          name: LintNames.deprecated_consistency,
           description: _desc,
-          details: _details,
-          categories: {Category.style},
         );
 
   @override
-  List<LintCode> get lintCodes => [constructorCode, parameterCode, fieldCode];
+  List<LintCode> get lintCodes => [
+        LinterLintCode.deprecated_consistency_constructor,
+        LinterLintCode.deprecated_consistency_field,
+        LinterLintCode.deprecated_consistency_parameter
+      ];
 
   @override
   void registerNodeProcessors(
@@ -97,11 +43,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var constructorElement = node.declaredElement;
     if (constructorElement != null &&
-        constructorElement.enclosingElement.hasDeprecated &&
+        constructorElement.enclosingElement3.hasDeprecated &&
         !constructorElement.hasDeprecated) {
       var nodeToAnnotate = node.name ?? node.returnType;
       rule.reportLintForOffset(nodeToAnnotate.offset, nodeToAnnotate.length,
-          errorCode: DeprecatedConsistency.constructorCode);
+          errorCode: LinterLintCode.deprecated_consistency_constructor);
     }
   }
 
@@ -114,11 +60,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (field == null) return;
 
     if (field.hasDeprecated && !declaredElement.hasDeprecated) {
-      rule.reportLint(node, errorCode: DeprecatedConsistency.fieldCode);
+      rule.reportLint(node,
+          errorCode: LinterLintCode.deprecated_consistency_field);
     }
     if (!field.hasDeprecated && declaredElement.hasDeprecated) {
       rule.reportLintForOffset(field.nameOffset, field.nameLength,
-          errorCode: DeprecatedConsistency.parameterCode);
+          errorCode: LinterLintCode.deprecated_consistency_parameter);
     }
   }
 }

@@ -18,7 +18,7 @@ import self as self;
 import "dart:core" as core;
 
 static method test() → dynamic {
-  function fn(wildcard dynamic _, wildcard dynamic _) → void {
+  function fn(dynamic _#wc0#formal, dynamic _#wc1#formal) → void {
     core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/local_function_declaration.dart:7:11: Error: Undefined name '_'.
     print(_);
           ^");
@@ -27,12 +27,12 @@ static method test() → dynamic {
   try {
     throw "!";
   }
-  on core::Exception catch(final wildcard core::Exception _, final wildcard core::StackTrace _) {
+  on core::Exception catch(final core::Exception _#wc2#formal, final core::StackTrace _#wc3#formal) {
     core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/local_function_declaration.dart:15:11: Error: Undefined name '_'.
     print(_);
           ^");
   }
-  on core::Object catch(final wildcard core::Object _, final wildcard core::StackTrace _) {
+  on core::Object catch(final core::Object _#wc4#formal, final core::StackTrace _#wc5#formal) {
     core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/local_function_declaration.dart:17:11: Error: Undefined name '_'.
     print(_);
           ^");

@@ -385,8 +385,8 @@ class StackTraceHeader {
   return null;
 }
 
-/// Parses strings of the format <static symbol>+<integer offset>, where
-/// <static symbol> is one of the static symbols used for Dart instruction
+/// Parses strings of the format `<static symbol>+<integer offset>`, where
+/// `<static symbol>` is one of the static symbols used for Dart instruction
 /// sections.
 ///
 /// Unless forceHexadecimal is true, an integer offset without a "0x" prefix or
@@ -418,7 +418,7 @@ PCOffset? tryParseSymbolOffset(String s,
 ///   - The location of the virtual address, which is one of the following:
 ///     - A dynamic symbol name, a plus sign, and an integer offset.
 ///     - The path to the snapshot, if it was loaded as a dynamic library,
-///       otherwise the string "<unknown>".
+///       otherwise the string `"<unknown>"`.
 const _symbolOffsetREString = r'(?<symbol>' +
     constants.vmSymbolName +
     r'|' +

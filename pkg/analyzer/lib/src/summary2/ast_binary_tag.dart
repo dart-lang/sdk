@@ -8,7 +8,6 @@ class AliasedElementTag {
 }
 
 enum DirectiveUriKind {
-  withAugmentation,
   withLibrary,
   withUnit,
   withSource,
@@ -97,6 +96,7 @@ class Tag {
   static const int MethodInvocation = 59;
   static const int NamedExpression = 60;
   static const int NamedType = 39;
+  static const int NullAwareElement = 44;
   static const int NullLiteral = 49;
   static const int ParenthesizedExpression = 53;
   static const int PostfixExpression = 94;

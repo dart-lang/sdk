@@ -12,11 +12,12 @@ import 'package:analysis_server/src/services/refactoring/move_top_level_to_file.
 import 'package:language_server_protocol/protocol_generated.dart';
 
 /// A function that can be executed to create a refactoring producer.
-typedef ProducerGenerator = RefactoringProducer Function(RefactoringContext);
+typedef RefactoringProducerGenerator = RefactoringProducer Function(
+    RefactoringContext);
 
 class RefactoringProcessor {
   /// A list of the generators used to produce refactorings.
-  static const Map<String, ProducerGenerator> generators = {
+  static const Map<String, RefactoringProducerGenerator> generators = {
     ConvertAllFormalParametersToNamed.commandName:
         ConvertAllFormalParametersToNamed.new,
     ConvertSelectedFormalParametersToNamed.commandName:

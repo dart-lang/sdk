@@ -4,7 +4,7 @@
 
 /// Utilities for building JS ASTs at runtime. Contains a builder class and a
 /// parser that parses part of the language.
-library js_ast.builder;
+library;
 
 import 'characters.dart' as char_codes;
 import 'nodes.dart';

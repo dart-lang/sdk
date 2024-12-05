@@ -281,6 +281,8 @@
   FIELD(Thread, float_not_address_offset)                                      \
   FIELD(Thread, float_zerow_address_offset)                                    \
   FIELD(Thread, global_object_pool_offset)                                     \
+  FIELD(Thread, interpret_call_entry_point_offset)                             \
+  FIELD(Thread, invoke_dart_code_from_bytecode_stub_offset)                    \
   FIELD(Thread, invoke_dart_code_stub_offset)                                  \
   FIELD(Thread, exit_through_ffi_offset)                                       \
   FIELD(Thread, isolate_offset)                                                \
@@ -313,6 +315,7 @@
   FIELD(Thread, return_async_stub_offset)                                      \
   FIELD(Thread, object_null_offset)                                            \
   FIELD(Thread, predefined_symbols_address_offset)                             \
+  FIELD(Thread, resume_interpreter_adjusted_entry_point_offset)                \
   FIELD(Thread, resume_pc_offset)                                              \
   FIELD(Thread, saved_shadow_call_stack_offset)                                \
   FIELD(Thread, safepoint_state_offset)                                        \
@@ -410,6 +413,7 @@
   SIZEOF(ApiError, InstanceSize, UntaggedApiError)                             \
   SIZEOF(Array, header_size, UntaggedArray)                                    \
   SIZEOF(Bool, InstanceSize, UntaggedBool)                                     \
+  SIZEOF(Bytecode, InstanceSize, UntaggedBytecode)                             \
   SIZEOF(Capability, InstanceSize, UntaggedCapability)                         \
   SIZEOF(Class, InstanceSize, UntaggedClass)                                   \
   SIZEOF(Closure, InstanceSize, UntaggedClosure)                               \

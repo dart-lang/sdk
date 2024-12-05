@@ -1,0 +1,51 @@
+{
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "version": "0.1.0"
+  },
+  "uris": [
+    "instance_method.dart"
+  ],
+  "ids": [
+    {
+      "uri": 0,
+      "name": "MyClass"
+    }
+  ],
+  "constants": [
+    {
+      "type": "int",
+      "value": 42
+    },
+    {
+      "type": "Instance",
+      "value": {
+        "i": 0
+      }
+    }
+  ],
+  "instances": [
+    {
+      "definition": {
+        "id": 0,
+        "@": {
+          "uri": 0,
+          "line": 17,
+          "column": 7
+        },
+        "loadingUnit": "1"
+      },
+      "references": [
+        {
+          "instanceConstant": 1,
+          "loadingUnit": "1",
+          "@": {
+            "uri": 0,
+            "line": 11,
+            "column": 2
+          }
+        }
+      ]
+    }
+  ]
+}

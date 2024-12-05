@@ -76,6 +76,9 @@ main(List<String> args) async {
       expect(
         await run(dartPrecompiledRuntime, <String>[
           '--enable-vm-service=0',
+          // Spawning DDS in SIMARM configs can be slow and causes this already
+          // slow test to timeout.
+          '--no-dds',
           '--profiler',
           elfFile,
         ]),

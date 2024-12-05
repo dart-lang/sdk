@@ -1,0 +1,3 @@
+const F0 = 42;
+
+const F1;

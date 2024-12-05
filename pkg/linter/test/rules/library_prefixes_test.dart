@@ -20,7 +20,7 @@ class LibraryPrefixesTest extends LintRuleTest {
       [WarningCode.UNUSED_IMPORT, WarningCode.UNUSED_LOCAL_VARIABLE];
 
   @override
-  String get lintRule => 'library_prefixes';
+  String get lintRule => LintNames.library_prefixes;
 
   test_camelCase() async {
     await assertDiagnostics(r'''
@@ -53,6 +53,23 @@ import 'dart:async' as _i1;
 import 'dart:async' as _1;
 ''', [
       lint(23, 2),
+    ]);
+  }
+
+  test_wildcard() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async' as _;
+''');
+  }
+
+  test_wildcard_preWildCards() async {
+    await assertDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+import 'dart:async' as _;
+''', [
+      lint(67, 1),
     ]);
   }
 }

@@ -15,12 +15,16 @@ typedef StaticOptions = Either2<bool, DocumentRangeFormattingOptions>;
 class FormatRangeHandler extends SharedMessageHandler<
     DocumentRangeFormattingParams, List<TextEdit>?> {
   FormatRangeHandler(super.server);
+
   @override
   Method get handlesMessage => Method.textDocument_rangeFormatting;
 
   @override
   LspJsonHandler<DocumentRangeFormattingParams> get jsonHandler =>
       DocumentRangeFormattingParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   Future<ErrorOr<List<TextEdit>?>> formatRange(String path, Range range) async {
     var file = server.resourceProvider.getFile(path);

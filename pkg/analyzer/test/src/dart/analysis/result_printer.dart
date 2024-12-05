@@ -12,10 +12,10 @@ import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
 import '../../../util/element_printer.dart';
-import '../../../util/tree_string_sink.dart';
 import '../../summary/resolved_ast_printer.dart';
 
 sealed class DriverEvent {}
@@ -63,9 +63,8 @@ class DriverEventsPrinter {
           sink.writelnWithIndent('uri: ${result.uri}');
 
           sink.writeFlags({
-            'isAugmentation': result.isAugmentation,
             'isLibrary': result.isLibrary,
-            'isMacroAugmentation': result.isMacroAugmentation,
+            'isMacroPart': result.isMacroPart,
             'isPart': result.isPart,
           });
 
@@ -105,8 +104,6 @@ class DriverEventsPrinter {
         _writeResultStreamEvent(event);
       case SchedulerStatusEvent():
         _writeSchedulerStatusEvent(event);
-      default:
-        throw UnimplementedError('${event.runtimeType}');
     }
   }
 
@@ -181,8 +178,6 @@ class DriverEventsPrinter {
     switch (result) {
       case CannotResolveUriResult():
         sink.writelnWithIndent('CannotResolveUriResult');
-      case NotLibraryButAugmentationResult():
-        sink.writelnWithIndent('NotLibraryButAugmentationResult');
       case NotLibraryButPartResult():
         sink.writelnWithIndent('NotLibraryButPartResult');
       default:
@@ -194,8 +189,6 @@ class DriverEventsPrinter {
     switch (result) {
       case CannotResolveUriResult():
         sink.writelnWithIndent('CannotResolveUriResult');
-      case NotLibraryButAugmentationResult():
-        sink.writelnWithIndent('NotLibraryButAugmentationResult');
       case NotLibraryButPartResult():
         sink.writelnWithIndent('NotLibraryButPartResult');
       case ResolvedLibraryResult():
@@ -206,7 +199,6 @@ class DriverEventsPrinter {
           elementPrinter: ElementPrinter(
             sink: sink,
             configuration: ElementPrinterConfiguration(),
-            selfUriStr: null,
           ),
         ).write(result);
       default:
@@ -280,9 +272,8 @@ class DriverEventsPrinter {
     sink.writelnWithIndent('uri: ${result.uri}');
 
     sink.writeFlags({
-      'isAugmentation': result.isAugmentation,
       'isLibrary': result.isLibrary,
-      'isMacroAugmentation': result.isMacroAugmentation,
+      'isMacroPart': result.isMacroPart,
       'isPart': result.isPart,
     });
 
@@ -290,7 +281,7 @@ class DriverEventsPrinter {
 
     elementPrinter.writeNamedElement(
       'enclosing',
-      unitElement.enclosingElement,
+      unitElement.enclosingElement3,
     );
 
     var elementsToWrite =
@@ -542,9 +533,8 @@ class ResolvedUnitResultPrinter {
 
       sink.writeFlags({
         'exists': result.exists,
-        'isAugmentation': result.isAugmentation,
         'isLibrary': result.isLibrary,
-        'isMacroAugmentation': result.isMacroAugmentation,
+        'isMacroPart': result.isMacroPart,
         'isPart': result.isPart,
       });
 

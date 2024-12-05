@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:test/test.dart' show expect;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -19,35 +17,50 @@ main() {
 class IntegerLiteralImpreciseAsDoubleTest extends PubPackageResolutionTest {
   test_excessiveExponent() async {
     await assertErrorsInCode(
-        'double x = 0xfffffffffffff80000000000000000000000000000000000000000000'
-        '0000000000000000000000000000000000000000000000000000000000000000000000'
-        '0000000000000000000000000000000000000000000000000000000000000000000000'
-        '000000000000000000000000000000000000000000000000000000000000;',
-        [
-          error(CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE, 11,
-              259),
-        ]);
-    AnalysisError firstError = result.errors[0];
-
-    // Check that we suggest the max double instead.
-    expect(
-        true,
-        firstError.correction!.contains(
-            '179769313486231570814527423731704356798070567525844996598917476803'
-            '157260780028538760589558632766878171540458953514382464234321326889'
-            '464182768467546703537516986049910576551282076245490090389328944075'
-            '868508455133942304583236903222948165808559332123348274797826204144'
-            '723168738177180919299881250404026184124858368'));
+      'double x = 0xfffffffffffff8000000000000000000000000000000000000000000000'
+      '000000000000000000000000000000000000000000000000000000000000000000000000'
+      '000000000000000000000000000000000000000000000000000000000000000000000000'
+      '000000000000000000000000000000000000000000000000000000;',
+      [
+        error(
+          CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE,
+          11,
+          259,
+          correctionContains:
+              // We suggest the max double instead.
+              '1797693134862315708145274237317043567980705675258449965989174768'
+              '0315726078002853876058955863276687817154045895351438246423432132'
+              '6889464182768467546703537516986049910576551282076245490090389328'
+              '9440758685084551339423045832369032229481658085593321233482747978'
+              '26204144723168738177180919299881250404026184124858368',
+        ),
+      ],
+    );
   }
 
   test_excessiveMantissa() async {
     await assertErrorsInCode('''
 double x = 9223372036854775809;
 ''', [
-      error(CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE, 11, 19),
+      error(
+        CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE, 11, 19,
+        // We suggest a valid double instead.
+        correctionContains: '9223372036854775808',
+      ),
     ]);
-    AnalysisError firstError = result.errors[0];
-    // Check that we suggest a valid double instead.
-    expect(true, firstError.correction!.contains('9223372036854775808'));
+  }
+
+  test_excessiveMantissa_withSeparators() async {
+    await assertErrorsInCode('''
+double x = 9_223_372_036_854_775_809;
+''', [
+      error(
+        CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE, 11, 25,
+        // We suggest a valid double instead.
+        // TODO(srawlins): This number should have separators that match the
+        // existing number literal.
+        correctionContains: '9223372036854775808',
+      ),
+    ]);
   }
 }

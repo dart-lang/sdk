@@ -159,7 +159,7 @@ static method controlFlow() → dynamic async /* emittedValueType= dynamic */ {
       throw "unreachable";
     }
     try {
-      throw await func<core::String>("string"){(core::String) → FutureOr<core::String>} /* runtimeCheckType= asy::Future<core::String> */ ;
+      throw await func<core::Object>("string"){(core::Object) → FutureOr<core::Object>} /* runtimeCheckType= asy::Future<core::Object> */ ;
     }
     on core::String catch(no-exception-var) {
     }

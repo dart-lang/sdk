@@ -38,26 +38,27 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: Enum
-      element: dart:core::@class::Enum
+      element: dart:core::<fragment>::@class::Enum
+      element2: dart:core::<fragment>::@class::Enum#element
       type: Enum
 ''');
   }
 
   test_in_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 mixin A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 augment mixin A on int {}
 ''');
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
       error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
-          45, 3),
+          37, 3),
     ]);
   }
 
@@ -76,7 +77,8 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<fragment>::@class::int
+      element2: dart:core::<fragment>::@class::int#element
       type: int
 ''');
   }

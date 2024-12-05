@@ -403,12 +403,14 @@ $asTypedList
 @patch
 extension ${nativeType}Array on Array<$nativeType> {
   @patch
+  @pragma("vm:prefer-inline")
   $dartType operator [](int index) {
     _checkIndex(index);
     return _load$nativeType(_typedDataBase, _offsetInBytes + ${sizeTimes}index,);
   }
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, $dartType value) {
     _checkIndex(index);
     return _store$nativeType(_typedDataBase, _offsetInBytes + ${sizeTimes}index , value,);

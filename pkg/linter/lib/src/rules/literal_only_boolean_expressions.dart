@@ -7,89 +7,9 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Boolean expression composed only with literals.';
-
-const _details = r'''
-**DON'T** test for conditions composed only by literals, since the value can be
-inferred at compile time.
-
-Conditional statements using a condition which cannot be anything but FALSE have
-the effect of making blocks of code non-functional.  If the condition cannot
-evaluate to anything but `true`, the conditional statement is completely
-redundant, and makes the code less readable.
-It is quite likely that the code does not match the programmer's intent.
-Either the condition should be removed or it should be updated so that it does
-not always evaluate to `true` or `false`.
-
-**BAD:**
-```dart
-void bad() {
-  if (true) {} // LINT
-}
-```
-
-**BAD:**
-```dart
-void bad() {
-  if (true && 1 != 0) {} // LINT
-}
-```
-
-**BAD:**
-```dart
-void bad() {
-  if (1 != 0 && true) {} // LINT
-}
-```
-
-**BAD:**
-```dart
-void bad() {
-  if (1 < 0 && true) {} // LINT
-}
-```
-
-**BAD:**
-```dart
-void bad() {
-  if (true && false) {} // LINT
-}
-```
-
-**BAD:**
-```dart
-void bad() {
-  if (1 != 0) {} // LINT
-}
-```
-
-**BAD:**
-```dart
-void bad() {
-  if (true && 1 != 0 || 3 < 4) {} // LINT
-}
-```
-
-**BAD:**
-```dart
-void bad() {
-  if (1 != 0 || 3 < 4 && true) {} // LINT
-}
-```
-
-**NOTE:** that an exception is made for the common `while (true) { }` idiom,
-which is often reasonably preferred to the equivalent `for (;;)`.
-
-**GOOD:**
-```dart
-void good() {
-  while (true) {
-    // Do stuff.
-  }
-}
-```
-''';
 
 bool _onlyLiterals(Expression? rawExpression) {
   var expression = rawExpression?.unParenthesized;
@@ -110,20 +30,14 @@ bool _onlyLiterals(Expression? rawExpression) {
 }
 
 class LiteralOnlyBooleanExpressions extends LintRule {
-  static const LintCode code = LintCode('literal_only_boolean_expressions',
-      'The Boolean expression has a constant value.',
-      correctionMessage: 'Try changing the expression.',
-      hasPublishedDocs: true);
-
   LiteralOnlyBooleanExpressions()
       : super(
-            name: 'literal_only_boolean_expressions',
-            description: _desc,
-            details: _details,
-            categories: {Category.errors});
+          name: LintNames.literal_only_boolean_expressions,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.literal_only_boolean_expressions;
 
   @override
   void registerNodeProcessors(

@@ -1,0 +1,30 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+}
+abstract sealed class B<X extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field () →? self::C? foo;
+  const constructor •({required () →? self::C? foo}) → self::B<self::B::X%>
+    : self::B::foo = foo, super core::Object::•()
+    ;
+  static factory redir<X extends core::Object? = dynamic>({() →? self::C? foo = null}) → self::B<self::B::redir::X%> /* redirection-target: self::A::•<self::B::redir::X%>*/
+    return new self::A::•<self::B::redir::X%>(foo: foo);
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+}
+abstract sealed class _A&B&M<X extends core::Object? = dynamic> = self::B<self::_A&B&M::X%> with self::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •({required () →? self::C? foo}) → self::_A&B&M<self::_A&B&M::X%>
+    : super self::B::•(foo: foo)
+    ;
+}
+final class A<X extends core::Object? = dynamic> extends self::_A&B&M<self::A::X%> /*hasConstConstructor*/  {
+  const constructor •({has-declared-initializer () →? self::C? foo = null}) → self::A<self::A::X%>
+    : super self::_A&B&M::•(foo: foo)
+    ;
+}
+static method main() → dynamic
+  ;

@@ -41,21 +41,59 @@ ThreadPool::~ThreadPool() {
   Shutdown();
 }
 
-void ThreadPool::Shutdown() {
-  {
-    MonitorLocker ml(&pool_monitor_);
+void ThreadPool::RequestWorkersToShutdown() {
+  MutexLocker ml(&pool_mutex_);
 
-    // Prevent scheduling of new tasks.
-    shutting_down_ = true;
+  // If we are just starting to shutdown threads then this should be done
+  // before OSThread::DisableOSThreadCreation is called. If |OSThread| creation
+  // is disabled after |Worker::StartThread| is called but before
+  // |ThreadPool::Worker::Main| is called then a worker will be stuck in the
+  // state idle but will never properly start and thus will never transition to
+  // dead - leading to a deadlock.
+  RELEASE_ASSERT(shutting_down_ || OSThread::CanCreateOSThreads());
 
-    if (running_workers_.IsEmpty() && idle_workers_.IsEmpty()) {
-      // All workers have already died.
-      all_workers_dead_ = true;
-    } else {
-      // Tell workers to drain remaining work and then shut down.
-      ml.NotifyAll();
+  // Prevent scheduling of new tasks.
+  shutting_down_ = true;
+
+  if (running_workers_.IsEmpty() && idle_workers_.IsEmpty()) {
+    // All workers have already died.
+    all_workers_dead_ = true;
+  } else {
+    // Tell all idling workers to drain remaining work and then shut down.
+    for (auto worker : idle_workers_) {
+      worker->Wakeup();
     }
   }
+}
+
+void ThreadPool::RequestShutdown(
+    ThreadPool* pool,
+    std::function<void(void)>&& shutdown_complete) {
+  pool->RequestWorkersToShutdown();
+
+  {
+    MonitorLocker eml(&pool->exit_monitor_);
+    if (!pool->all_workers_dead_) {
+      // Workers are still doing some work. Mark this pool for asynchronous
+      // deletion. When the last worker finishes it will delete itself and
+      // call shutdown_complete.
+      pool->shutdown_complete_callback_ = std::move(shutdown_complete);
+      return;
+    }
+
+    // Threads are in the process of exiting already and there is no way to ask
+    // them to do additional cleanup asynchronously. We will just join the
+    // last dead worker and delete it synchronously.
+  }
+  pool->DeleteLastDeadWorker();
+  shutdown_complete();
+}
+
+void ThreadPool::Shutdown() {
+  // Should not combine |Shutdown| and |RequestShutdown| on the same pool.
+  ASSERT(shutdown_complete_callback_ == nullptr);
+
+  RequestWorkersToShutdown();
 
   // Wait until all workers are dead. Any new death will notify the exit
   // monitor.
@@ -65,30 +103,28 @@ void ThreadPool::Shutdown() {
       eml.Wait();
     }
   }
+
+  DeleteLastDeadWorker();
+}
+
+void ThreadPool::DeleteLastDeadWorker() {
+  ASSERT(all_workers_dead_);
   ASSERT(count_idle_ == 0);
   ASSERT(count_running_ == 0);
   ASSERT(idle_workers_.IsEmpty());
   ASSERT(running_workers_.IsEmpty());
-
-  WorkerList dead_workers_to_join;
-  {
-    MonitorLocker ml(&pool_monitor_);
-    ObtainDeadWorkersLocked(&dead_workers_to_join);
-  }
-  JoinDeadWorkersLocked(&dead_workers_to_join);
-
-  ASSERT(count_dead_ == 0);
-  ASSERT(dead_workers_.IsEmpty());
+  JoinDeadWorker(last_dead_worker_);
+  last_dead_worker_ = nullptr;
 }
 
 bool ThreadPool::RunImpl(std::unique_ptr<Task> task) {
   Worker* new_worker = nullptr;
   {
-    MonitorLocker ml(&pool_monitor_);
+    MutexLocker ml(&pool_mutex_);
     if (shutting_down_) {
       return false;
     }
-    new_worker = ScheduleTaskLocked(&ml, std::move(task));
+    new_worker = ScheduleTaskLocked(std::move(task));
   }
   if (new_worker != nullptr) {
     new_worker->StartThread();
@@ -107,7 +143,7 @@ void ThreadPool::MarkCurrentWorkerAsBlocked() {
       static_cast<Worker*>(OSThread::Current()->owning_thread_pool_worker_);
   Worker* new_worker = nullptr;
   if (worker != nullptr) {
-    MonitorLocker ml(&pool_monitor_);
+    MutexLocker ml(&pool_mutex_);
     ASSERT(!worker->is_blocked_);
     worker->is_blocked_ = true;
     if (max_pool_size_ > 0) {
@@ -132,7 +168,7 @@ void ThreadPool::MarkCurrentWorkerAsUnBlocked() {
   auto worker =
       static_cast<Worker*>(OSThread::Current()->owning_thread_pool_worker_);
   if (worker != nullptr) {
-    MonitorLocker ml(&pool_monitor_);
+    MutexLocker ml(&pool_mutex_);
     if (worker->is_blocked_) {
       worker->is_blocked_ = false;
       if (max_pool_size_ > 0) {
@@ -143,36 +179,44 @@ void ThreadPool::MarkCurrentWorkerAsUnBlocked() {
   }
 }
 
+std::unique_ptr<ThreadPool::Task> ThreadPool::TakeNextAvailableTaskLocked() {
+  std::unique_ptr<Task> task(tasks_.RemoveFirst());
+  pending_tasks_--;
+  if (pending_tasks_ > 0 && !idle_workers_.IsEmpty()) {
+    // Wake up one more worker if more tasks are left.
+    idle_workers_.Last()->Wakeup();
+  }
+  return task;
+}
+
 void ThreadPool::WorkerLoop(Worker* worker) {
-  WorkerList dead_workers_to_join;
+  Worker* previous_dead_worker = nullptr;
 
   while (true) {
-    MonitorLocker ml(&pool_monitor_);
+    MutexLocker ml(&pool_mutex_);
 
     if (!tasks_.IsEmpty()) {
       IdleToRunningLocked(worker);
       while (!tasks_.IsEmpty()) {
-        std::unique_ptr<Task> task(tasks_.RemoveFirst());
-        pending_tasks_--;
-        MonitorLeaveScope mls(&ml);
+        auto task = TakeNextAvailableTaskLocked();
+        MutexUnlocker mls(&ml);
         task->Run();
         ASSERT(Isolate::Current() == nullptr);
-        task.reset();
+        task.reset();  // Delete the task while unlocked.
       }
       RunningToIdleLocked(worker);
     }
 
     if (running_workers_.IsEmpty()) {
       ASSERT(tasks_.IsEmpty());
-      OnEnterIdleLocked(&ml);
+      OnEnterIdleLocked(&ml, worker);
       if (!tasks_.IsEmpty()) {
         continue;
       }
     }
 
     if (shutting_down_) {
-      ObtainDeadWorkersLocked(&dead_workers_to_join);
-      IdleToDeadLocked(worker);
+      previous_dead_worker = IdleToDeadLocked(worker);
       break;
     }
 
@@ -180,28 +224,27 @@ void ThreadPool::WorkerLoop(Worker* worker) {
     const int64_t idle_start = OS::GetCurrentMonotonicMicros();
     bool done = false;
     while (!done) {
-      const auto result = ml.WaitMicros(ComputeTimeout(idle_start));
+      const auto result = worker->Sleep(ComputeTimeout(idle_start));
 
       // We have to drain all pending tasks.
       if (!tasks_.IsEmpty()) break;
 
-      if (shutting_down_ || result == Monitor::kTimedOut) {
+      if (shutting_down_ || result == ConditionVariable::kTimedOut) {
         done = true;
         break;
       }
     }
     if (done) {
-      ObtainDeadWorkersLocked(&dead_workers_to_join);
-      IdleToDeadLocked(worker);
+      previous_dead_worker = IdleToDeadLocked(worker);
       break;
     }
   }
 
-  // Before we transitioned to dead we obtained the list of previously died dead
-  // workers, which we join here. Since every death of a worker will join
-  // previously died workers, we keep the pending non-joined [dead_workers_] to
-  // effectively 1.
-  JoinDeadWorkersLocked(&dead_workers_to_join);
+  // |IdleToDeadLocked| obtained the worker which died before us, which we will
+  // join here. Since every dead worker will join the previous one, all dead
+  // workers effectively form a chain and it is enough to join the worker which
+  // died last to join all workers which died before it.
+  JoinDeadWorker(previous_dead_worker);
 }
 
 void ThreadPool::IdleToRunningLocked(Worker* worker) {
@@ -222,14 +265,14 @@ void ThreadPool::RunningToIdleLocked(Worker* worker) {
   count_idle_++;
 }
 
-void ThreadPool::IdleToDeadLocked(Worker* worker) {
+ThreadPool::Worker* ThreadPool::IdleToDeadLocked(Worker* worker) {
   ASSERT(tasks_.IsEmpty());
+  Worker* previous_dead = last_dead_worker_;
 
   ASSERT(idle_workers_.ContainsForDebugging(worker));
   idle_workers_.Remove(worker);
-  dead_workers_.Append(worker);
+  last_dead_worker_ = worker;
   count_idle_--;
-  count_dead_++;
 
   // Notify shutdown thread that the worker thread is about to finish.
   if (shutting_down_) {
@@ -239,28 +282,18 @@ void ThreadPool::IdleToDeadLocked(Worker* worker) {
       eml.Notify();
     }
   }
+
+  return previous_dead;
 }
 
-void ThreadPool::ObtainDeadWorkersLocked(WorkerList* dead_workers_to_join) {
-  dead_workers_to_join->AppendList(&dead_workers_);
-  ASSERT(dead_workers_.IsEmpty());
-  count_dead_ = 0;
-}
-
-void ThreadPool::JoinDeadWorkersLocked(WorkerList* dead_workers_to_join) {
-  auto it = dead_workers_to_join->begin();
-  while (it != dead_workers_to_join->end()) {
-    Worker* worker = *it;
-    it = dead_workers_to_join->Erase(it);
-
+void ThreadPool::JoinDeadWorker(Worker* worker) {
+  if (worker != nullptr) {
     OSThread::Join(worker->join_id_);
     delete worker;
   }
-  ASSERT(dead_workers_to_join->IsEmpty());
 }
 
-ThreadPool::Worker* ThreadPool::ScheduleTaskLocked(MonitorLocker* ml,
-                                                   std::unique_ptr<Task> task) {
+ThreadPool::Worker* ThreadPool::ScheduleTaskLocked(std::unique_ptr<Task> task) {
   // Enqueue the new task.
   tasks_.Append(task.release());
   pending_tasks_++;
@@ -269,7 +302,9 @@ ThreadPool::Worker* ThreadPool::ScheduleTaskLocked(MonitorLocker* ml,
   // Notify existing idle worker (if available).
   if (count_idle_ >= pending_tasks_) {
     ASSERT(!idle_workers_.IsEmpty());
-    ml->Notify();
+    // We always notify only the last worker which became idle. It will wake up
+    // more workers if needed.
+    idle_workers_.Last()->Wakeup();
     return nullptr;
   }
 
@@ -277,7 +312,9 @@ ThreadPool::Worker* ThreadPool::ScheduleTaskLocked(MonitorLocker* ml,
   // new one.
   if (max_pool_size_ > 0 && (count_idle_ + count_running_) >= max_pool_size_) {
     if (!idle_workers_.IsEmpty()) {
-      ml->Notify();
+      // We always notify only the last worker which became idle. It will
+      // wake up more workers if needed.
+      idle_workers_.Last()->Wakeup();
     }
     return nullptr;
   }
@@ -293,11 +330,7 @@ ThreadPool::Worker::Worker(ThreadPool* pool)
     : pool_(pool), join_id_(OSThread::kInvalidThreadJoinId) {}
 
 void ThreadPool::Worker::StartThread() {
-  int result = OSThread::Start("DartWorker", &Worker::Main,
-                               reinterpret_cast<uword>(this));
-  if (result != 0) {
-    FATAL("Could not start worker thread: result = %d.", result);
-  }
+  OSThread::Start("DartWorker", &Worker::Main, reinterpret_cast<uword>(this));
 }
 
 void ThreadPool::Worker::Main(uword args) {
@@ -322,7 +355,7 @@ void ThreadPool::Worker::Main(uword args) {
 
 #if defined(DEBUG)
   {
-    MonitorLocker ml(&pool->pool_monitor_);
+    MutexLocker ml(&pool->pool_mutex_);
     ASSERT(pool->idle_workers_.ContainsForDebugging(worker));
   }
 #endif
@@ -337,6 +370,28 @@ void ThreadPool::Worker::Main(uword args) {
   Dart_ThreadExitCallback exit_cb = Dart::thread_exit_callback();
   if (exit_cb != nullptr) {
     exit_cb();
+  }
+
+  ThreadPool::WorkerThreadExit(pool, worker);
+}
+
+void ThreadPool::WorkerThreadExit(ThreadPool* pool, Worker* worker) {
+  if (pool->shutdown_complete_callback_ != nullptr && pool->all_workers_dead_ &&
+      pool->last_dead_worker_ == worker) {
+    // Asynchronous shutdown was requested and this is the last exiting worker.
+    // It needs to delete itself and notify the code which requested the
+    // shutdown that we are done.
+    // Start by detaching the thread (because nobody is going to join it) so
+    // that we don't keep any thread related data structures behind.
+    OSThread::Detach(worker->join_id_);
+    delete worker;
+    pool->last_dead_worker_ = nullptr;
+
+    // Run the callback. It might (and most likely will) delete |pool| so this
+    // should be the last time we touch the |pool| pointer.
+    auto callback = pool->shutdown_complete_callback_;
+    pool->shutdown_complete_callback_ = nullptr;
+    callback();
   }
 }
 

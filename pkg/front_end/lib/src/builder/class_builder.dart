@@ -132,6 +132,8 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 
   abstract TypeBuilder? mixedInTypeBuilder;
 
+  bool get isFutureOr;
+
   /// The [Class] built by this builder.
   ///
   /// For an augmentation class the origin class is returned.
@@ -177,16 +179,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   InterfaceType? _nonNullableRawType;
   InterfaceType? _thisType;
 
-  ClassBuilderImpl(
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      String name,
-      Scope scope,
-      ConstructorScope constructorScope,
-      LibraryBuilder parent,
-      int charOffset)
-      : super(metadata, modifiers, name, parent, charOffset, scope,
-            constructorScope);
+  ClassBuilderImpl(List<MetadataBuilder>? metadata, int modifiers, String name,
+      LibraryBuilder parent, Uri fileUri, int fileOffset)
+      : super(metadata, modifiers, name, parent, fileUri, fileOffset);
 
   @override
   String get debugName => "ClassBuilder";
@@ -222,9 +217,15 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         name.startsWith("_")) {
       return null;
     }
-    Builder? declaration = isSetter
-        ? scope.lookupSetter(name, charOffset, fileUri, isInstanceScope: false)
-        : scope.lookup(name, charOffset, fileUri, isInstanceScope: false);
+    Builder? declaration = normalizeLookup(
+        getable: nameSpace.lookupLocalMember(name, setter: false),
+        setable: nameSpace.lookupLocalMember(name, setter: true),
+        name: name,
+        charOffset: charOffset,
+        fileUri: fileUri,
+        classNameOrDebugName: this.name,
+        isSetter: isSetter,
+        forStaticAccess: true);
     if (declaration == null && isAugmenting) {
       return origin.findStaticBuilder(
           name, charOffset, fileUri, accessingLibrary,
@@ -236,10 +237,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   Builder? lookupLocalMember(String name,
       {bool setter = false, bool required = false}) {
-    Builder? builder = scope.lookupLocalMember(name, setter: setter);
+    Builder? builder = nameSpace.lookupLocalMember(name, setter: setter);
     if (builder == null && isAugmenting) {
       // Coverage-ignore-block(suite): Not run.
-      builder = origin.scope.lookupLocalMember(name, setter: setter);
+      builder = origin.nameSpace.lookupLocalMember(name, setter: setter);
     }
     if (required && builder == null) {
       internalProblem(
@@ -311,6 +312,18 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   InterfaceType? aliasedTypeWithBuiltArgumentsCacheNullable;
 
   @override
+  bool get isFutureOr {
+    if (name == "FutureOr") {
+      LibraryBuilder parentLibrary = parent as LibraryBuilder;
+      if (parentLibrary.importUri.isScheme("dart") &&
+          parentLibrary.importUri.path == "async") {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   DartType buildAliasedTypeWithBuiltArguments(
       LibraryBuilder library,
       Nullability nullability,
@@ -323,13 +336,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     if (isNullClass) {
       return const NullType();
     }
-    if (name == "FutureOr") {
-      LibraryBuilder parentLibrary = parent as LibraryBuilder;
-      if (parentLibrary.importUri.isScheme("dart") &&
-          parentLibrary.importUri.path == "async") {
-        assert(arguments.length == 1);
-        return new FutureOrType(arguments.single, nullability);
-      }
+    if (isFutureOr) {
+      assert(arguments.length == 1);
+      return new FutureOrType(arguments.single, nullability);
     }
     if (arguments.isEmpty) {
       return rawType(nullability);
@@ -469,6 +478,24 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       }
     }
     return target;
+  }
+
+  @override
+  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    if (isNullClass) {
+      return Nullability.nullable;
+    } else if (isFutureOr) {
+      if (typeArguments != null && typeArguments.length == 1) {
+        return typeArguments.single.computeNullability(
+            typeVariablesTraversalState: typeVariablesTraversalState);
+      } else {
+        // This is `FutureOr<dynamic>`.
+        return Nullability.nullable;
+      }
+    }
+    return Nullability.nonNullable;
   }
 }
 

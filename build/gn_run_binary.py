@@ -24,8 +24,8 @@ def run_command(command):
         subprocess.check_output(command, stderr=subprocess.STDOUT)
         return 0
     except subprocess.CalledProcessError as e:
-        return ("Command failed: " + ' '.join(command) + "\n" + "output: " +
-                _decode(e.output))
+        return ("Command failed: " + ' '.join(command) + "\n" + "exitCode: " +
+                str(e.returncode) + "\n" + "output: " + _decode(e.output))
     except OSError as e:
         return ("Command failed: " + ' '.join(command) + "\n" + "output: " +
                 _decode(e.strerror))

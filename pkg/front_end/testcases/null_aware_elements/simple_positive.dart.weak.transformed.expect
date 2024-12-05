@@ -7,6 +7,8 @@
 //
 // sdk/lib/collection/collection.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
 //
+// sdk/lib/concurrent/concurrent.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
 // sdk/lib/convert/convert.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
 //
 // sdk/lib/developer/developer.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
@@ -43,16 +45,16 @@ import "dart:collection" as col;
 static method foo1(core::int? x) → dynamic
   return block {
     final core::List<core::int> #t1 = core::_GrowableList::•<core::int>(0);
-    final has-declared-initializer core::Iterable<core::int>? #t2 = null;
+    final core::int? #t2 = x;
     if(!(#t2 == null))
-      #t1.{core::List::addAll}{Invariant}(#t2{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+      #t1.{core::List::add}{Invariant}(#t2{core::int}){(core::int) → void};
   } =>#t1;
 static method foo2(core::String? x) → dynamic
   return block {
     final core::Set<core::String> #t3 = new col::_Set::•<core::String>();
-    final has-declared-initializer core::Iterable<core::String>? #t4 = null;
+    final core::String? #t4 = x;
     if(!(#t4 == null))
-      #t3.{core::Set::addAll}{Invariant}(#t4{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
+      #t3.{core::Set::add}{Invariant}(#t4{core::String}){(core::String) → core::bool};
   } =>#t3;
 static method foo3(core::bool? x, core::num y) → dynamic
   return block {
@@ -64,17 +66,17 @@ static method foo3(core::bool? x, core::num y) → dynamic
 static method bar1(core::int? x) → dynamic
   return block {
     final core::List<core::int> #t7 = core::_GrowableList::•<core::int>(0);
-    final has-declared-initializer core::Iterable<core::int>? #t8 = null;
+    final core::int? #t8 = x;
     if(!(#t8 == null))
-      #t7.{core::List::addAll}{Invariant}(#t8{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+      #t7.{core::List::add}{Invariant}(#t8{core::int}){(core::int) → void};
   } =>#t7;
 static method bar2(core::int? x, core::bool b) → dynamic
   return block {
     final core::Set<core::int> #t9 = new col::_Set::•<core::int>();
     if(b) {
-      final has-declared-initializer core::Iterable<core::int>? #t10 = null;
+      final core::int? #t10 = x;
       if(!(#t10 == null))
-        #t9.{core::Set::addAll}{Invariant}(#t10{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+        #t9.{core::Set::add}{Invariant}(#t10{core::int}){(core::int) → core::bool};
     }
   } =>#t9;
 static method bar3(core::int? x) → dynamic
@@ -85,9 +87,9 @@ static method bar3(core::int? x) → dynamic
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         dynamic _ = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final has-declared-initializer core::Iterable<core::int>? #t12 = null;
+          final core::int? #t12 = x;
           if(!(#t12 == null))
-            #t11.{core::Set::addAll}{Invariant}(#t12{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+            #t11.{core::Set::add}{Invariant}(#t12{core::int}){(core::int) → core::bool};
         }
       }
     }

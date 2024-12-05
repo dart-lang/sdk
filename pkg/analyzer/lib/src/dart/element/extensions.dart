@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -33,7 +34,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
         }
       }
     } else if (element is ConstructorElement) {
-      interfaceElement = element.enclosingElement.augmented.declaration;
+      interfaceElement = element.enclosingElement3.augmented.declaration;
     }
     if (interfaceElement == null) {
       return const <TargetKind>{};
@@ -82,21 +83,20 @@ extension ElementExtension on Element {
       return true;
     }
 
-    var ancestor = enclosingElement;
+    var ancestor = enclosingElement3;
     if (ancestor is InterfaceElement) {
       if (ancestor.hasDoNotStore) {
         return true;
       }
-      ancestor = ancestor.enclosingElement;
+      ancestor = ancestor.enclosingElement3;
     } else if (ancestor is ExtensionElement) {
       if (ancestor.hasDoNotStore) {
         return true;
       }
-      ancestor = ancestor.enclosingElement;
+      ancestor = ancestor.enclosingElement3;
     }
 
-    return ancestor is CompilationUnitElement &&
-        ancestor.enclosingElement.hasDoNotStore;
+    return ancestor is CompilationUnitElement && ancestor.library.hasDoNotStore;
   }
 
   /// Return `true` if this element is an instance member of a class or mixin.
@@ -110,7 +110,7 @@ extension ElementExtension on Element {
     assert(this is! PropertyInducingElement,
         'Check the PropertyAccessorElement instead');
     var this_ = this;
-    var enclosing = this_.enclosingElement;
+    var enclosing = this_.enclosingElement3;
     if (enclosing is InterfaceElement) {
       return this_ is MethodElement && !this_.isStatic ||
           this_ is PropertyAccessorElement && !this_.isStatic;
@@ -119,20 +119,22 @@ extension ElementExtension on Element {
   }
 
   /// Return true if this element is a wildcard variable.
-  bool get isWildcardVariable =>
-      name == '_' &&
-      (this is LocalVariableElement ||
-          this is TypeParameterElement ||
-          (this is ParameterElement &&
-              this is! FieldFormalParameterElement &&
-              this is! SuperFormalParameterElement)) &&
-      (library?.featureSet.isEnabled(Feature.wildcard_variables) ?? false);
+  bool get isWildcardVariable {
+    return name == '_' &&
+        (this is LocalVariableElement ||
+            this is PrefixElement ||
+            this is TypeParameterElement ||
+            (this is ParameterElement &&
+                this is! FieldFormalParameterElement &&
+                this is! SuperFormalParameterElement)) &&
+        library.hasWildcardVariablesFeatureEnabled;
+  }
 }
 
 extension ExecutableElementExtension on ExecutableElement {
   /// Whether the enclosing element is the class `Object`.
   bool get isObjectMember {
-    var enclosing = enclosingElement;
+    var enclosing = enclosingElement3;
     return enclosing is ClassElement && enclosing.isDartCoreObject;
   }
 }
@@ -151,6 +153,18 @@ extension InterfaceTypeExtension on InterfaceType {
   bool get isDartCoreObjectNone {
     return isDartCoreObject && nullabilitySuffix == NullabilitySuffix.none;
   }
+}
+
+extension LibraryExtension on LibraryElement? {
+  bool get hasWildcardVariablesFeatureEnabled {
+    var self = this;
+    return self?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
+  }
+}
+
+extension LibraryExtension2 on LibraryElement2? {
+  bool get hasWildcardVariablesFeatureEnabled2 =>
+      this?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
 }
 
 extension ParameterElementExtensions on ParameterElement {

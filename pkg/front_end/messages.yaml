@@ -1755,6 +1755,22 @@ UnexpectedDollarInString:
     - "'''$'''"
     - '"""$"""'
 
+UnexpectedSeparatorInNumber:
+  problemMessage: "Digit separators ('_') in a number literal can only be placed between two digits."
+  correctionMessage: "Try removing the '_'."
+  analyzerCode: UNEXPECTED_SEPARATOR_IN_NUMBER
+  experiments: digit-separators
+  expression:
+    - '123_'
+    - '1.23_'
+    - '1_.23'
+    - '0x_123'
+    - '0x123_'
+    - '1_e23'
+    - '1e_23'
+    - '1.2_e3'
+    - '1.2e_3'
+
 UnexpectedToken:
   problemMessage: "Unexpected token '#lexeme'."
   analyzerCode: UNEXPECTED_TOKEN
@@ -2501,10 +2517,6 @@ InternalProblemLabelUsageInVariablesDeclaration:
   problemMessage: "Unexpected usage of label inside declaration of variables."
   severity: INTERNAL_PROBLEM
 
-InternalProblemUnfinishedTypeVariable:
-  problemMessage: "Unfinished type variable '#name' found in non-source library '#uri'."
-  severity: INTERNAL_PROBLEM
-
 InternalProblemUnsupportedNullability:
   problemMessage: "Unsupported nullability value '#string' on type '#type'."
   severity: INTERNAL_PROBLEM
@@ -2566,10 +2578,7 @@ DuplicatedExport:
     lib2.dart: "class A {}"
     main.dart: "export 'lib1.dart'; export 'lib2.dart';"
 
-DuplicatedExportInType:
-  problemMessage: "'#name' is exported from both '#uri' and '#uri2'."
-
-DuplicatedImportInType:
+DuplicatedImport:
   problemMessage: "'#name' is imported from both '#uri' and '#uri2'."
   analyzerCode: AMBIGUOUS_IMPORT
   script:
@@ -3624,7 +3633,6 @@ InvalidThisInInitializer:
 
 ThisAccessInFieldInitializer:
   problemMessage: "Can't access 'this' in a field initializer to read '#name'."
-  analyzerCode: THIS_ACCESS_FROM_FIELD_INITIALIZER
 
 ThisOrSuperAccessInFieldInitializer:
   problemMessage: "Can't access '#string' in a field initializer."
@@ -4998,6 +5006,12 @@ FfiSizeAnnotationDimensions:
   problemMessage: "Field '#name' must have an 'Array' annotation that matches the dimensions."
   external: test/ffi_test.dart
 
+FfiVariableLengthArrayNotLast:
+  # Used by dart:ffi
+  problemMessage: "Variable length 'Array's must only occur as the last field of Structs."
+  correctionMessage: "Try adjusting the arguments in the 'Array' annotation."
+  external: test/ffi_test.dart
+
 FfiStructGeneric:
   # Used by dart:ffi
   problemMessage: "#string '#name' should not be generic."
@@ -5684,9 +5698,9 @@ JsInteropExportNoExportableMembers:
   problemMessage: "Class '#name' has no exportable members in the class or the inheritance chain."
   correctionMessage: "Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain."
 
-JsInteropIsAInvalidType:
-  problemMessage: "Type argument '#type' needs to be an interop 'ExtensionType'."
-  correctionMessage: "Use a valid interop extension type as the type argument instead."
+JsInteropIsAInvalidTypeVariable:
+  problemMessage: "Type argument '#type' provided to 'isA' cannot be a type variable and must be an interop extension type that can be determined at compile-time."
+  correctionMessage: "Use a valid interop extension type that can be determined at compile-time as the type argument instead."
 
 JsInteropIsAObjectLiteralType:
   problemMessage: "Type argument '#type' has an object literal constructor. Because 'isA' uses the type's name or '@JS()' rename, this may result in an incorrect type check."
@@ -7000,11 +7014,8 @@ DefaultInSwitchExpression:
       default => 'other'
     };
 
-ResourceIdentifiersNotStatic:
-  problemMessage: "Resource identifier pragma can be used on a static method only."
-
-ResourceIdentifiersMultiple:
-  problemMessage: "Only one resource identifier pragma can be used at a time."
+RecordUseCannotBePlacedHere:
+  problemMessage: "`RecordUse` annotation cannot be placed on this element."
 
 WasmImportOrExportInUserCode:
   problemMessage: "Pragmas `wasm:import` and `wasm:export` are for internal use only and cannot be used by user code."
@@ -7357,3 +7368,28 @@ ExperimentExpiredDisabled:
 
 DartFfiLibraryInDart2Wasm:
   problemMessage: "'dart:ffi' can't be imported when compiling to Wasm."
+
+UnexpectedSuperParametersInGenerativeConstructors:
+  problemMessage: "Super parameters can only be used in non-redirecting generative constructors."
+  analyzerCode: INVALID_SUPER_FORMAL_PARAMETER_LOCATION
+  script: |
+    class A { A(); A.named(super.x) : this(); }
+
+MissingPositionalSuperConstructorParameter:
+  problemMessage: "The super constructor has no corresponding positional parameter."
+  analyzerCode: SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL
+  script: |
+    class A { A(); } class B { B(super.foo); }
+
+MissingNamedSuperConstructorParameter:
+  problemMessage: "The super constructor has no corresponding named parameter."
+  analyzerCode: SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED
+  script: |
+    class A { A(); } class B { B({super.foo}); }
+
+ImplicitSuperInitializerMissingArguments:
+  problemMessage: "The implicitly called unnamed constructor from '#name' has required parameters."
+  correctionMessage: "Try adding an explicit super initializer with the required arguments."
+  analyzerCode: IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS
+  script: |
+    class A { A(int foo); } class B extends A { B(); }

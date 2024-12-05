@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class EolAtEndOfFileTest extends LintRuleTest {
   @override
-  String get lintRule => 'eol_at_end_of_file';
+  String get lintRule => LintNames.eol_at_end_of_file;
 
   test_hasEol() async {
     await assertDiagnostics(r'''

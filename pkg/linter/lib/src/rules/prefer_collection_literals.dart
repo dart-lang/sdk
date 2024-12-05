@@ -4,73 +4,25 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use collection literals when possible.';
 
-const _details = r'''
-**DO** use collection literals when possible.
-
-**BAD:**
-```dart
-var addresses = Map<String, String>();
-var uniqueNames = Set<String>();
-var ids = LinkedHashSet<int>();
-var coordinates = LinkedHashMap<int, int>();
-```
-
-**GOOD:**
-```dart
-var addresses = <String, String>{};
-var uniqueNames = <String>{};
-var ids = <int>{};
-var coordinates = <int, int>{};
-```
-
-**EXCEPTIONS:**
-
-When a `LinkedHashSet` or `LinkedHashMap` is expected, a collection literal is
-not preferred (or allowed).
-
-```dart
-void main() {
-  LinkedHashSet<int> linkedHashSet =  LinkedHashSet.from([1, 2, 3]); // OK
-  LinkedHashMap linkedHashMap = LinkedHashMap(); // OK
-  
-  printSet(LinkedHashSet<int>()); // LINT
-  printHashSet(LinkedHashSet<int>()); // OK
-
-  printMap(LinkedHashMap<int, int>()); // LINT
-  printHashMap(LinkedHashMap<int, int>()); // OK
-}
-
-void printSet(Set<int> ids) => print('$ids!');
-void printHashSet(LinkedHashSet<int> ids) => printSet(ids);
-void printMap(Map map) => print('$map!');
-void printHashMap(LinkedHashMap map) => printMap(map);
-```
-''';
-
 class PreferCollectionLiterals extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_collection_literals', 'Unnecessary constructor invocation.',
-      correctionMessage: 'Try using a collection literal.',
-      hasPublishedDocs: true);
-
   PreferCollectionLiterals()
       : super(
-            name: 'prefer_collection_literals',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.prefer_collection_literals,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_collection_literals;
 
   @override
   void registerNodeProcessors(
@@ -90,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var constructorName = node.constructorName.name?.name;
 
-    if (node.constructorName.type.element is TypeAliasElement) {
+    if (node.constructorName.type.element2 is TypeAliasElement2) {
       // Allow the use of typedef constructors.
       return;
     }

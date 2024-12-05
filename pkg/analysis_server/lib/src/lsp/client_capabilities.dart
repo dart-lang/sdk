@@ -24,6 +24,29 @@ const dartExperimentalTextDocumentContentProviderLegacyKey =
     // TODO(dantup): Remove this after the next beta branch.
     'supportsDartTextDocumentContentProviderEXP1';
 
+/// A fixed set of ClientCapabilities used for clients that may execute LSP
+/// requests without performing standard LSP initialization (such as a DTD
+/// client or LSP-over-Legacy).
+///
+/// These capabilities may affect the behaviour and format of responses so
+/// should be as stable as possible to avoid affecting existing callers.
+final fixedBasicLspClientCapabilities = LspClientCapabilities(
+  ClientCapabilities(
+    textDocument: TextDocumentClientCapabilities(
+      hover: HoverClientCapabilities(
+        contentFormat: [
+          MarkupKind.Markdown,
+        ],
+      ),
+    ),
+    workspace: WorkspaceClientCapabilities(
+      workspaceEdit: WorkspaceEditClientCapabilities(
+        documentChanges: true,
+      ),
+    ),
+  ),
+);
+
 /// Wraps the client (editor) capabilities to improve performance.
 ///
 /// Sets transferred as arrays in JSON will be converted to Sets for faster

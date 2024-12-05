@@ -138,7 +138,7 @@ class AnnotationVerifier {
         }
       }
     } else if (parent is ConstructorDeclaration) {
-      var class_ = parent.declaredElement!.enclosingElement;
+      var class_ = parent.declaredElement!.enclosingElement3;
       if (class_.isPrivate || parentElementIsPrivate) {
         _errorReporter.atNode(
           node.name,
@@ -165,7 +165,7 @@ class AnnotationVerifier {
         var invokedElement = element.element!;
         var name = invokedElement.name;
         if (invokedElement is ConstructorElement) {
-          var className = invokedElement.enclosingElement.name;
+          var className = invokedElement.enclosingElement3.name;
           if (name!.isEmpty) {
             name = className;
           } else {
@@ -383,7 +383,7 @@ class AnnotationVerifier {
         var declaredElement = parent.declaredElement!;
         if (element.isVisibleForOverriding &&
             (!declaredElement.isInstanceMember ||
-                declaredElement.enclosingElement is ExtensionTypeElement)) {
+                declaredElement.enclosingElement3 is ExtensionTypeElement)) {
           reportInvalidVisibleForOverriding();
         }
 
@@ -558,6 +558,12 @@ class AnnotationVerifier {
       TopLevelVariableDeclaration() =>
         kinds.contains(TargetKind.topLevelVariable),
       TypeParameter() => kinds.contains(TargetKind.typeParameter),
+      // extension type Foo (int bar) {}
+      //                     ^^^^^^^
+      // This is not a parameter in the *traditional sense, but assume you want
+      // to apply an annotation such as @mustBeConst to it; it makes sense that
+      // this is a valid target.
+      RepresentationDeclaration() => kinds.contains(TargetKind.parameter),
       _ => false,
     };
   }

@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:front_end/src/api_unstable/vm.dart' show resolveInputUri;
 
 import 'compiler_options.dart';
 
@@ -67,7 +68,7 @@ class UriOption extends ValueOption<Uri> {
   UriOption(
       String name, void Function(WasmCompilerOptions o, Uri v) applyToOptions,
       {String? defaultsTo})
-      : super(name, applyToOptions, (v) => Uri.file(Directory(v).absolute.path),
+      : super(name, applyToOptions, (v) => resolveInputUri(v as String),
             defaultsTo: defaultsTo);
 }
 

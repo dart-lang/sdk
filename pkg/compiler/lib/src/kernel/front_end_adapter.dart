@@ -7,6 +7,7 @@
 library compiler.kernel.front_end_adapter;
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
@@ -40,7 +41,7 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
 
   @override
   Future<String> readAsString() async {
-    api.Input<List<int>> input;
+    api.Input<Uint8List> input;
     try {
       input = await fs.inputProvider
           .readFromUri(uri, inputKind: api.InputKind.UTF8);
@@ -55,8 +56,8 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
   }
 
   @override
-  Future<List<int>> readAsBytes() async {
-    api.Input<List<int>> input;
+  Future<Uint8List> readAsBytes() async {
+    api.Input<Uint8List> input;
     try {
       input = await fs.inputProvider
           .readFromUri(uri, inputKind: api.InputKind.binary);

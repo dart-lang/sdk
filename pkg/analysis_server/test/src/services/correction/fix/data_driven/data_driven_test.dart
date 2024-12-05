@@ -5,8 +5,8 @@
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
-import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -506,7 +506,7 @@ class NoProducerOverlapsTest {
     // action accidentally executing data-driven fixes.
 
     var dataDrivenCodes = <String>{};
-    var bulkFixCodes = FixProcessor.lintProducerMap.entries
+    var bulkFixCodes = registeredFixGenerators.lintProducers.entries
         .where((e) => e.value
             .where((generator) =>
                 generator(context: StubCorrectionProducerContext.instance)
@@ -515,7 +515,7 @@ class NoProducerOverlapsTest {
         .map((e) => e.key);
     var nonDataDrivenCodes = {
       ...bulkFixCodes,
-      ...FixProcessor.nonLintProducerMap.entries
+      ...registeredFixGenerators.nonLintProducers.entries
           .where((e) => e.value
               .where((generator) =>
                   generator(context: StubCorrectionProducerContext.instance)

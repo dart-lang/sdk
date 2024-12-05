@@ -148,15 +148,6 @@ class LocalVariable : public ZoneAllocated {
     is_awaiter_link_ = value ? IsAwaiterLink::kLink : IsAwaiterLink::kNotLink;
   }
 
-  // Variables marked as forced to stack are skipped and not captured by
-  // CaptureLocalVariables - which iterates scope chain between two scopes
-  // and indiscriminately marks all variables as captured.
-  // TODO(27590) remove the hardcoded list of names from CaptureLocalVariables
-  bool is_forced_stack() const { return IsForcedStackBit::decode(bitfield_); }
-  void set_is_forced_stack() {
-    bitfield_ = IsForcedStackBit::update(true, bitfield_);
-  }
-
   bool is_late() const { return IsLateBit::decode(bitfield_); }
   void set_is_late() { bitfield_ = IsLateBit::update(true, bitfield_); }
 
@@ -226,6 +217,12 @@ class LocalVariable : public ZoneAllocated {
 
   bool Equals(const LocalVariable& other) const;
 
+  void PrintTo(BaseTextBuffer* f,
+               const char* label = "variable",
+               int depth = 0,
+               const LocalScope* scope = nullptr) const;
+  const char* ToCString() const;
+
  private:
   // If true, this variable is readonly.
   using IsFinalBit = BitField<uint32_t, bool, 0, 1>;
@@ -235,9 +232,8 @@ class LocalVariable : public ZoneAllocated {
   using IsInvisibleBit = BitField<uint32_t, bool, IsCapturedBit::kNextBit, 1>;
   using IsCapturedParameterBit =
       BitField<uint32_t, bool, IsInvisibleBit::kNextBit, 1>;
-  using IsForcedStackBit =
-      BitField<uint32_t, bool, IsCapturedParameterBit::kNextBit, 1>;
-  using IsLateBit = BitField<uint32_t, bool, IsForcedStackBit ::kNextBit, 1>;
+  using IsLateBit =
+      BitField<uint32_t, bool, IsCapturedParameterBit ::kNextBit, 1>;
 
   enum CovarianceMode {
     kNotCovariant,
@@ -431,10 +427,6 @@ class LocalScope : public ZoneAllocated {
   ContextScopePtr PreserveOuterScope(const Function& function,
                                      intptr_t current_context_level) const;
 
-  // Mark all local variables that are accessible from this scope up to
-  // top_scope (included) as captured unless they are marked as forced to stack.
-  void CaptureLocalVariables(LocalScope* top_scope);
-
   // Creates a LocalScope representing the outer scope of a local function to be
   // compiled. This outer scope contains the variables captured by the function
   // as specified by the given ContextScope, which was created during the
@@ -444,6 +436,9 @@ class LocalScope : public ZoneAllocated {
   // Create a ContextScope object which will capture "this" for an implicit
   // closure object.
   static ContextScopePtr CreateImplicitClosureScope(const Function& func);
+
+  void PrintTo(BaseTextBuffer* f, int depth = 0) const;
+  const char* ToCString() const;
 
  private:
   // Allocate the variable in the current context, possibly updating the current

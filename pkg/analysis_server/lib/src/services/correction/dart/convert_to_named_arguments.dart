@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -28,19 +28,19 @@ class ConvertToNamedArguments extends ResolvedCorrectionProducer {
     var argumentList = node.parent;
     if (argumentList is ArgumentList) {
       // Prepare parameters.
-      List<ParameterElement>? parameters;
+      List<FormalParameterElement>? parameters;
       var parent = argumentList.parent;
       if (parent is FunctionExpressionInvocation) {
         var invokeType = parent.staticInvokeType;
         if (invokeType is FunctionType) {
-          parameters = invokeType.parameters;
+          parameters = invokeType.formalParameters;
         }
       } else if (parent is InstanceCreationExpression) {
-        parameters = parent.constructorName.staticElement?.parameters;
+        parameters = parent.constructorName.element?.formalParameters;
       } else if (parent is MethodInvocation) {
         var invokeType = parent.staticInvokeType;
         if (invokeType is FunctionType) {
-          parameters = invokeType.parameters;
+          parameters = invokeType.formalParameters;
         }
       }
       if (parameters == null) {
@@ -49,7 +49,7 @@ class ConvertToNamedArguments extends ResolvedCorrectionProducer {
 
       // Prepare named parameters.
       var numberOfPositionalParameters = 0;
-      var namedParameters = <ParameterElement>[];
+      var namedParameters = <FormalParameterElement>[];
       for (var parameter in parameters) {
         if (parameter.isNamed) {
           namedParameters.add(parameter);
@@ -62,12 +62,12 @@ class ConvertToNamedArguments extends ResolvedCorrectionProducer {
       }
 
       // Find named parameters for extra arguments.
-      var argumentToParameter = <Expression, ParameterElement>{};
+      var argumentToParameter = <Expression, FormalParameterElement>{};
       var extraArguments =
           argumentList.arguments.skip(numberOfPositionalParameters);
       for (var argument in extraArguments) {
         if (argument is! NamedExpression) {
-          ParameterElement? uniqueNamedParameter;
+          FormalParameterElement? uniqueNamedParameter;
           for (var namedParameter in namedParameters) {
             if (typeSystem.isSubtypeOf(
                     argument.typeOrThrow, namedParameter.type) &&

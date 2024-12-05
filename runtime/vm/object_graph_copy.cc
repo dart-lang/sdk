@@ -33,6 +33,7 @@
   V(CodeSourceMap)                                                             \
   V(CompressedStackMaps)                                                       \
   V(ContextScope)                                                              \
+  V(Bytecode)                                                                  \
   V(DynamicLibrary)                                                            \
   V(Error)                                                                     \
   V(ExceptionHandlers)                                                         \
@@ -462,7 +463,7 @@ class IdentityMap {
   uint32_t GetHeaderHash(ObjectPtr object) {
     uint32_t hash = Object::GetCachedHash(object);
     if (hash == 0) {
-      switch (object->GetClassId()) {
+      switch (object->GetClassIdOfHeapObject()) {
         case kMintCid:
           hash = Mint::Value(static_cast<MintPtr>(object));
           // Don't write back: doesn't agree with dart:core's identityHash.
@@ -1021,7 +1022,7 @@ class RetainingPath {
       int length = working_list->length();
 
       do {  // This loop is here so that we can skip children processing
-        const intptr_t cid = raw->GetClassId();
+        const intptr_t cid = raw->GetClassIdOfHeapObject();
 
         if (traversal_rules_ == TraversalRules::kInternalToIsolateGroup) {
           if (CanShareObjectAcrossIsolates(raw)) {
@@ -1964,7 +1965,7 @@ class ObjectCopy : public Base {
   void CopyTypedData(TypedDataPtr from, TypedDataPtr to) {
     auto raw_from = from.untag();
     auto raw_to = to.untag();
-    const intptr_t cid = Types::GetTypedDataPtr(from)->GetClassId();
+    const intptr_t cid = Types::GetTypedDataPtr(from)->GetClassIdOfHeapObject();
     raw_to->length_ = raw_from->length_;
     raw_to->RecomputeDataField();
     const intptr_t length =
@@ -1975,7 +1976,7 @@ class ObjectCopy : public Base {
   void CopyTypedData(const TypedData& from, const TypedData& to) {
     auto raw_from = from.ptr().untag();
     auto raw_to = to.ptr().untag();
-    const intptr_t cid = Types::GetTypedDataPtr(from)->GetClassId();
+    const intptr_t cid = Types::GetTypedDataPtr(from)->GetClassIdOfHeapObject();
     ASSERT(raw_to->length_ == raw_from->length_);
     raw_to->RecomputeDataField();
     const intptr_t length =

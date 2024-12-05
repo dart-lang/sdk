@@ -198,7 +198,7 @@ class MacroIntrospection {
 
   /// Creates the [macro.LibraryImpl] corresponding to [builder].
   macro.LibraryImpl _createLibraryImpl(LibraryBuilder builder) {
-    final Version version = builder.library.languageVersion;
+    final Version version = builder.languageVersion;
     return new macro.LibraryImpl(
         id: macro.RemoteInstance.uniqueId,
         uri: builder.importUri,
@@ -369,6 +369,7 @@ class MacroIntrospection {
             metadata: const [],
             isRequired: formal.isRequiredNamed,
             isNamed: true,
+            style: formal.parameterStyle,
             type: type,
           );
           namedParameters.add(declaration);
@@ -384,6 +385,7 @@ class MacroIntrospection {
             metadata: const [],
             isRequired: formal.isRequiredPositional,
             isNamed: false,
+            style: formal.parameterStyle,
             type: type,
           );
           positionalParameters.add(declaration);
@@ -408,7 +410,7 @@ class MacroIntrospection {
       List<macro.FormalParameterDeclarationImpl> namedParameters
     ) = _createParameters(builder.libraryBuilder, formals);
     macro.ParameterizedTypeDeclaration definingTypeDeclaration;
-    Builder? parent = builder.parent;
+    DeclarationBuilder? parent = builder.declarationBuilder;
     if (parent is ClassBuilder) {
       definingTypeDeclaration = getClassDeclaration(parent);
     } else if (parent is ExtensionTypeDeclarationBuilder) {
@@ -427,6 +429,7 @@ class MacroIntrospection {
       // TODO: Provide metadata annotations.
       metadata: const [],
       definingType: definingTypeDeclaration.identifier as macro.IdentifierImpl,
+      isConst: builder.isConst,
       isFactory: builder.isFactory,
       // TODO(johnniwinther): Real implementation of hasBody.
       hasBody: true,
@@ -472,6 +475,7 @@ class MacroIntrospection {
       // TODO: Provide metadata annotations.
       metadata: const [],
       definingType: definingTypeDeclaration.identifier as macro.IdentifierImpl,
+      isConst: builder.isConst,
       isFactory: builder.isFactory,
       // TODO(johnniwinther): Real implementation of hasBody.
       hasBody: true,
@@ -689,8 +693,8 @@ class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
       memberName = name.substring(0, name.length - 1);
       isSetter = true;
     }
-    Builder? builder =
-        libraryBuilder.scope.lookupLocalMember(memberName, setter: isSetter);
+    Builder? builder = libraryBuilder.libraryNameSpace
+        .lookupLocalMember(memberName, setter: isSetter);
     if (builder == null) {
       return new Future.error(
           new macro.MacroImplementationExceptionImpl(
@@ -839,8 +843,28 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   @override
   Future<List<macro.TypeDeclaration>> typesOf(covariant macro.Library library) {
-    // TODO: implement typesOf
-    throw new UnimplementedError();
+    Uri uri = library.uri;
+    LibraryBuilder? libraryBuilder =
+        sourceLoader.lookupLoadedLibraryBuilder(uri);
+    if (libraryBuilder == null) {
+      return new Future.error(
+          new macro.MacroImplementationExceptionImpl(
+              'Library at uri $uri could not be resolved.'),
+          StackTrace.current);
+    }
+
+    List<macro.TypeDeclaration> result = [];
+    Iterator<Builder> iterator = libraryBuilder.localMembersIterator;
+    while (iterator.moveNext()) {
+      Builder builder = iterator.current;
+      // TODO(scheglov): This switch is not complete.
+      switch (builder) {
+        case ClassBuilder():
+          result.add(_introspection.getClassDeclaration(builder));
+      }
+    }
+
+    return new Future.value(result);
   }
 
   @override
@@ -883,4 +907,16 @@ class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
           'Unsupported identifier ${identifier} (${identifier.runtimeType})');
     }
   }
+}
+
+// Coverage-ignore(suite): Not run.
+extension on FormalParameterBuilder {
+  /// Returns the [macro.ParameterStyle] for this element.
+  macro.ParameterStyle get parameterStyle => switch (this) {
+        FormalParameterBuilder(isInitializingFormal: true) =>
+          macro.ParameterStyle.fieldFormal,
+        FormalParameterBuilder(isSuperInitializingFormal: true) =>
+          macro.ParameterStyle.superFormal,
+        _ => macro.ParameterStyle.normal,
+      };
 }

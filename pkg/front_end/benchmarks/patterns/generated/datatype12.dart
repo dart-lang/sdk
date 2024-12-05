@@ -1,4 +1,4 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -28,6 +28,10 @@ class Sub0 extends Base12 {
     counter.inc();
   }
 
+  void patternDispatch0(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor12<R, A> visitor, A arg) {
     return visitor.visitSub0(this, arg);
@@ -45,6 +49,10 @@ class Sub1 extends Base12 {
   }
 
   void visitorDispatch1(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch1(Counter counter) {
     counter.inc();
   }
 
@@ -68,6 +76,10 @@ class Sub2 extends Base12 {
     counter.inc();
   }
 
+  void patternDispatch2(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor12<R, A> visitor, A arg) {
     return visitor.visitSub2(this, arg);
@@ -85,6 +97,10 @@ class Sub3 extends Base12 {
   }
 
   void visitorDispatch3(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch3(Counter counter) {
     counter.inc();
   }
 
@@ -108,6 +124,10 @@ class Sub4 extends Base12 {
     counter.inc();
   }
 
+  void patternDispatch4(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor12<R, A> visitor, A arg) {
     return visitor.visitSub4(this, arg);
@@ -125,6 +145,10 @@ class Sub5 extends Base12 {
   }
 
   void visitorDispatch5(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch5(Counter counter) {
     counter.inc();
   }
 
@@ -148,6 +172,10 @@ class Sub6 extends Base12 {
     counter.inc();
   }
 
+  void patternDispatch6(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor12<R, A> visitor, A arg) {
     return visitor.visitSub6(this, arg);
@@ -165,6 +193,10 @@ class Sub7 extends Base12 {
   }
 
   void visitorDispatch7(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch7(Counter counter) {
     counter.inc();
   }
 
@@ -188,6 +220,10 @@ class Sub8 extends Base12 {
     counter.inc();
   }
 
+  void patternDispatch8(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor12<R, A> visitor, A arg) {
     return visitor.visitSub8(this, arg);
@@ -205,6 +241,10 @@ class Sub9 extends Base12 {
   }
 
   void visitorDispatch9(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch9(Counter counter) {
     counter.inc();
   }
 
@@ -228,6 +268,10 @@ class Sub10 extends Base12 {
     counter.inc();
   }
 
+  void patternDispatch10(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor12<R, A> visitor, A arg) {
     return visitor.visitSub10(this, arg);
@@ -245,6 +289,10 @@ class Sub11 extends Base12 {
   }
 
   void visitorDispatch11(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch11(Counter counter) {
     counter.inc();
   }
 
@@ -307,6 +355,46 @@ const Visitor12<void, Counter> visitor = CounterVisitor12();
 
 void incByVisitorDispatch12(Base12 base, Counter counter) {
   base.accept(visitor, counter);
+}
+
+void incByPatternDispatch12(Base12 base, Counter counter) {
+  switch (base) {
+    case Sub0():
+      base.patternDispatch0(counter);
+
+    case Sub1():
+      base.patternDispatch1(counter);
+
+    case Sub2():
+      base.patternDispatch2(counter);
+
+    case Sub3():
+      base.patternDispatch3(counter);
+
+    case Sub4():
+      base.patternDispatch4(counter);
+
+    case Sub5():
+      base.patternDispatch5(counter);
+
+    case Sub6():
+      base.patternDispatch6(counter);
+
+    case Sub7():
+      base.patternDispatch7(counter);
+
+    case Sub8():
+      base.patternDispatch8(counter);
+
+    case Sub9():
+      base.patternDispatch9(counter);
+
+    case Sub10():
+      base.patternDispatch10(counter);
+
+    case Sub11():
+      base.patternDispatch11(counter);
+  }
 }
 
 abstract class Visitor12<R, A> {

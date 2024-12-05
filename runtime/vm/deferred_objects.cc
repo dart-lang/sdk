@@ -356,15 +356,15 @@ void DeferredObject::Fill() {
       const int kDataIndex = 0;
       const int kTypeArgIndex = 1;
       ASSERT(field_count_ == 2);
-      ASSERT(Smi::Cast(Object::Handle(zone, GetFieldOffset(kDataIndex)))
-                 .AsInt64Value() == PointerBase::data_offset());
+      ASSERT(
+          Smi::Cast(Object::Handle(zone, GetFieldOffset(kDataIndex))).Value() ==
+          PointerBase::data_offset());
       ASSERT(Smi::Cast(Object::Handle(zone, GetFieldOffset(kTypeArgIndex)))
-                 .AsInt64Value() == Pointer::type_arguments_offset());
+                 .Value() == Pointer::type_arguments_offset());
 
       const auto& pointer = Pointer::Cast(*object_);
       const size_t address =
-          Integer::Cast(Object::Handle(zone, GetValue(kDataIndex)))
-              .AsInt64Value();
+          Integer::Cast(Object::Handle(zone, GetValue(kDataIndex))).Value();
       pointer.SetNativeAddress(address);
       const auto& type_args = TypeArguments::Handle(
           zone, IsolateGroup::Current()->object_store()->type_argument_never());
@@ -407,42 +407,41 @@ void DeferredObject::Fill() {
             case kTypedDataInt8ArrayCid:
               typed_data.SetInt8(
                   element_offset,
-                  static_cast<int8_t>(Integer::Cast(value).AsInt64Value()));
+                  static_cast<int8_t>(Integer::Cast(value).Value()));
               break;
             case kTypedDataUint8ArrayCid:
             case kTypedDataUint8ClampedArrayCid:
               typed_data.SetUint8(
                   element_offset,
-                  static_cast<uint8_t>(Integer::Cast(value).AsInt64Value()));
+                  static_cast<uint8_t>(Integer::Cast(value).Value()));
               break;
             case kTypedDataInt16ArrayCid:
               typed_data.SetInt16(
                   element_offset,
-                  static_cast<int16_t>(Integer::Cast(value).AsInt64Value()));
+                  static_cast<int16_t>(Integer::Cast(value).Value()));
               break;
             case kTypedDataUint16ArrayCid:
               typed_data.SetUint16(
                   element_offset,
-                  static_cast<uint16_t>(Integer::Cast(value).AsInt64Value()));
+                  static_cast<uint16_t>(Integer::Cast(value).Value()));
               break;
             case kTypedDataInt32ArrayCid:
               typed_data.SetInt32(
                   element_offset,
-                  static_cast<int32_t>(Integer::Cast(value).AsInt64Value()));
+                  static_cast<int32_t>(Integer::Cast(value).Value()));
               break;
             case kTypedDataUint32ArrayCid:
               typed_data.SetUint32(
                   element_offset,
-                  static_cast<uint32_t>(Integer::Cast(value).AsInt64Value()));
+                  static_cast<uint32_t>(Integer::Cast(value).Value()));
               break;
             case kTypedDataInt64ArrayCid:
-              typed_data.SetInt64(element_offset,
-                                  Integer::Cast(value).AsInt64Value());
+              typed_data.SetInt64(element_offset, Integer::Cast(value).Value());
               break;
             case kTypedDataUint64ArrayCid:
               typed_data.SetUint64(
                   element_offset,
-                  static_cast<uint64_t>(Integer::Cast(value).AsInt64Value()));
+                  static_cast<uint64_t>(Integer::Cast(value).Value()));
               break;
             case kTypedDataFloat32ArrayCid:
               typed_data.SetFloat32(

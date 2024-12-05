@@ -10,7 +10,7 @@ void main() {
   dynamic data = JS('', '[1, 2, 3, 4]');
   Expect.isFalse(data is List<int>);
 
-  var list = dart.constList(data, TYPE_REF<int>());
+  var list = dart.constList<int>(data);
   Expect.isTrue(list is List<int>);
   Expect.throws(() {
     list[0] = 0;

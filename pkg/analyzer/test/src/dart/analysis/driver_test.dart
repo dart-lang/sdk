@@ -14,12 +14,12 @@ import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../util/element_printer.dart';
-import '../../../util/tree_string_sink.dart';
 import '../resolution/context_collection_resolution.dart';
 import '../resolution/node_text_expectations.dart';
 import '../resolution/resolution.dart';
@@ -44,10 +44,12 @@ class AnalysisDriver_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
     var analysisSession = contextFor(innerFile).currentSession;
 
     void assertInnerUri(ResolvedUnitResult result) {
-      var innerLibrary = result.libraryElement.importedLibraries
-          .where((e) => e.source.fullName == innerFile.path)
+      var innerSource = result.libraryFragment.libraryImports2
+          .map((import) => import.importedLibrary2?.firstFragment.source)
+          .nonNulls
+          .where((importedSource) => importedSource.fullName == innerFile.path)
           .single;
-      expect(innerLibrary.source.uri, innerUri);
+      expect(innerSource.uri, innerUri);
     }
 
     // Reference "inner" using a non-canonical URI.
@@ -102,7 +104,6 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
     var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
-      selfUriStr: null,
     );
 
     var events = collector.take();
@@ -276,10 +277,10 @@ class A {}
   ResolvedUnitResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isAugmentation isMacroAugmentation
+    flags: exists isMacroPart isPart
     content
 ---
-augment library 'package:test/a.dart';
+part of 'package:test/a.dart';
 
 class B {}
 ---
@@ -858,7 +859,8 @@ var B = 0;
     flags: exists isLibrary
     selectedNode: SimpleIdentifier
       token: B
-      staticElement: package:test/b.dart::@getter::B
+      staticElement: package:test/b.dart::<fragment>::@getter::B
+      element: package:test/b.dart::<fragment>::@getter::B#element
       staticType: int
 [status] idle
 ''');
@@ -884,7 +886,8 @@ var B = 1.2;
     flags: exists isLibrary
     selectedNode: SimpleIdentifier
       token: B
-      staticElement: package:test/b.dart::@getter::B
+      staticElement: package:test/b.dart::<fragment>::@getter::B
+      element: package:test/b.dart::<fragment>::@getter::B#element
       staticType: double
 [status] idle
 ''');
@@ -936,10 +939,10 @@ class A {}
   ResolvedUnitResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isAugmentation isMacroAugmentation
+    flags: exists isMacroPart isPart
     content
 ---
-augment library 'package:test/a.dart';
+part of 'package:test/a.dart';
 
 class B2 {}
 ---
@@ -1016,10 +1019,10 @@ class B {}
   ResolvedUnitResult #1
     path: /home/test/lib/b.macro.dart
     uri: package:test/b.macro.dart
-    flags: exists isAugmentation isMacroAugmentation
+    flags: exists isMacroPart isPart
     content
 ---
-augment library 'package:test/b.dart';
+part of 'package:test/b.dart';
 
 class A2 {}
 ---
@@ -1049,10 +1052,10 @@ class A2 {}
   ResolvedUnitResult #3
     path: /home/test/lib/b.macro.dart
     uri: package:test/b.macro.dart
-    flags: exists isAugmentation isMacroAugmentation
+    flags: exists isMacroPart isPart
     content
 ---
-augment library 'package:test/b.dart';
+part of 'package:test/b.dart';
 
 class A1 {}
 ---
@@ -1126,10 +1129,10 @@ class B {}
   ResolvedUnitResult #1
     path: /home/test/lib/b.macro.dart
     uri: package:test/b.macro.dart
-    flags: exists isAugmentation isMacroAugmentation
+    flags: exists isMacroPart isPart
     content
 ---
-augment library 'package:test/b.dart';
+part of 'package:test/b.dart';
 
 class A2 {}
 ---
@@ -1163,10 +1166,10 @@ class A2 {}
   ErrorsResult #3
     path: /home/test/lib/b.macro.dart
     uri: package:test/b.macro.dart
-    flags: isAugmentation isMacroAugmentation
+    flags: isMacroPart isPart
     content
 ---
-augment library 'package:test/b.dart';
+part of 'package:test/b.dart';
 
 class A1 {}
 ---
@@ -1905,10 +1908,10 @@ class A {}
   ErrorsResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: isAugmentation isMacroAugmentation
+    flags: isMacroPart isPart
     content
 ---
-augment library 'package:test/a.dart';
+part of 'package:test/a.dart';
 
 class B {}
 ---
@@ -1916,10 +1919,10 @@ class B {}
   ResolvedUnitResult #2
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isAugmentation isMacroAugmentation
+    flags: exists isMacroPart isPart
     content
 ---
-augment library 'package:test/a.dart';
+part of 'package:test/a.dart';
 
 class B {}
 ---
@@ -2238,7 +2241,6 @@ void f(A a) {}
     flags: exists isLibrary
     errors
       25 +1 UNDEFINED_CLASS
-      7 +8 UNUSED_IMPORT
 [stream]
   ResolvedUnitResult #1
 [status] idle
@@ -2379,10 +2381,10 @@ class A {}
   ResolvedUnitResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isAugmentation isMacroAugmentation
+    flags: exists isMacroPart isPart
     content
 ---
-augment library 'package:test/a.dart';
+part of 'package:test/a.dart';
 
 void foo() {}
 void f() { foo(); }
@@ -2444,23 +2446,6 @@ class B {}
     await assertEventsText(collector, r'''
 [future] getLibraryByUri X
   CannotResolveUriResult
-''');
-  }
-
-  test_getLibraryByUri_notLibrary_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'package:test/b.dart';
-''');
-
-    var driver = driverFor(a);
-    var collector = DriverEventCollector(driver);
-
-    var uriStr = 'package:test/a.dart';
-    collector.getLibraryByUri('X', uriStr);
-
-    await assertEventsText(collector, r'''
-[future] getLibraryByUri X
-  NotLibraryButAugmentationResult
 ''');
   }
 
@@ -2540,19 +2525,6 @@ part of 'b.dart';
     expect(
       driver.getParsedLibraryByUri(uri),
       isA<CannotResolveUriResult>(),
-    );
-  }
-
-  test_getParsedLibraryByUri_notLibrary_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'package:test/b.dart';
-''');
-
-    var driver = driverFor(a);
-    var uri = Uri.parse('package:test/a.dart');
-    expect(
-      driver.getParsedLibraryByUri(uri),
-      isA<NotLibraryButAugmentationResult>(),
     );
   }
 
@@ -2683,24 +2655,6 @@ part of 'a.dart';
     expect(result, isA<InvalidPathResult>());
   }
 
-  test_getResolvedLibrary_notLibrary_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'package:test/b.dart';
-''');
-
-    var driver = driverFor(a);
-    var collector = DriverEventCollector(driver);
-
-    collector.getResolvedLibrary('X', a);
-
-    await assertEventsText(collector, r'''
-[status] working
-[future] getResolvedLibrary X
-  NotLibraryButAugmentationResult
-[status] idle
-''');
-  }
-
   test_getResolvedLibrary_notLibrary_part() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'b.dart';
@@ -2795,10 +2749,10 @@ class A {}
       ResolvedUnitResult #2
         path: /home/test/lib/a.macro.dart
         uri: package:test/a.macro.dart
-        flags: exists isAugmentation isMacroAugmentation
+        flags: exists isMacroPart isPart
         content
 ---
-augment library 'package:test/a.dart';
+part of 'package:test/a.dart';
 
 class B {}
 ---
@@ -2897,25 +2851,6 @@ part of 'a.dart';
 ''');
   }
 
-  test_getResolvedLibraryByUri_notLibrary_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'package:test/b.dart';
-''');
-
-    var driver = driverFor(a);
-    var collector = DriverEventCollector(driver);
-
-    var uri = Uri.parse('package:test/a.dart');
-    collector.getResolvedLibraryByUri('X', uri);
-
-    await assertEventsText(collector, r'''
-[status] working
-[future] getResolvedLibraryByUri X
-  NotLibraryButAugmentationResult
-[status] idle
-''');
-  }
-
   test_getResolvedLibraryByUri_notLibrary_part() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'b.dart';
@@ -3004,10 +2939,10 @@ class A {}
       ResolvedUnitResult #2
         path: /home/test/lib/a.macro.dart
         uri: package:test/a.macro.dart
-        flags: exists isAugmentation isMacroAugmentation
+        flags: exists isMacroPart isPart
         content
 ---
-augment library 'package:test/a.dart';
+part of 'package:test/a.dart';
 
 class B {}
 ---
@@ -3062,45 +2997,6 @@ class B {}
     flags: exists isLibrary
 [stream]
   ResolvedUnitResult #0
-[status] idle
-''');
-  }
-
-  test_getResolvedUnit_augmentation_library() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'package:test/a.dart';
-''');
-
-    var driver = driverFor(testFile);
-    var collector = DriverEventCollector(driver);
-
-    collector.getResolvedUnit('B1', b);
-    collector.getResolvedUnit('A1', a);
-
-    // Note, the library is resolved only once.
-    await assertEventsText(collector, r'''
-[status] working
-[operation] analyzeFile
-  file: /home/test/lib/b.dart
-  library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
-[future] getResolvedUnit B1
-  ResolvedUnitResult #1
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: exists isAugmentation
-[stream]
-  ResolvedUnitResult #1
 [status] idle
 ''');
   }
@@ -3238,45 +3134,6 @@ part of 'a.dart';
 ''');
   }
 
-  test_getResolvedUnit_library_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'package:test/a.dart';
-''');
-
-    var driver = driverFor(testFile);
-    var collector = DriverEventCollector(driver);
-
-    collector.getResolvedUnit('A1', a);
-    collector.getResolvedUnit('B1', b);
-
-    // Note, the library is resolved only once.
-    await assertEventsText(collector, r'''
-[status] working
-[operation] analyzeFile
-  file: /home/test/lib/a.dart
-  library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
-[future] getResolvedUnit B1
-  ResolvedUnitResult #1
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: exists isAugmentation
-[stream]
-  ResolvedUnitResult #1
-[status] idle
-''');
-  }
-
   test_getResolvedUnit_library_part() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -3394,10 +3251,10 @@ class A {}
   ResolvedUnitResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isAugmentation isMacroAugmentation
+    flags: exists isMacroPart isPart
     content
 ---
-augment library 'package:test/a.dart';
+part of 'package:test/a.dart';
 
 class B {}
 ---
@@ -3801,10 +3658,10 @@ void bar() {}
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   flags: isLibrary
-  enclosing: package:test/a.dart
+  enclosing: <null>
   selectedElements
-    package:test/a.dart::@function::foo
-    package:test/a.dart::@function::bar
+    package:test/a.dart::<fragment>::@function::foo
+    package:test/a.dart::<fragment>::@function::bar
 [status] idle
 ''');
   }
@@ -3845,7 +3702,7 @@ import 'package:test/b.dart';
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   flags: isLibrary
-  enclosing: package:test/a.dart
+  enclosing: <null>
 [status] idle
 ''');
   }
@@ -3886,10 +3743,10 @@ class A {}
 [future] getUnitElement AM1
   path: /home/test/lib/a.macro.dart
   uri: package:test/a.macro.dart
-  flags: isAugmentation isMacroAugmentation
-  enclosing: package:test/a.dart::@augmentation::package:test/a.macro.dart
+  flags: isMacroPart isPart
+  enclosing: package:test/a.dart::<fragment>
   selectedElements
-    package:test/a.dart::@augmentation::package:test/a.macro.dart::@class::B
+    package:test/a.dart::@fragment::package:test/a.macro.dart::@class::B
 [status] idle
 ''');
   }
@@ -4227,12 +4084,16 @@ CompilationUnit
     // Note, we put the library into a different directory.
     // Otherwise we will discover it.
     var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = A();
 ''');
@@ -4284,12 +4145,16 @@ final a = A();
 
   test_partOfName_getErrors_beforeLibrary_addedFiles() async {
     var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// preEnhancedParts
+// @dart = 3.4
 part of a;
 final a = A();
 ''');
@@ -4330,12 +4195,16 @@ final a = A();
 
   test_partOfName_getErrors_beforeLibrary_discovered() async {
     newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part 'b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4373,12 +4242,16 @@ final a = new A();
 
   test_partOfName_getErrors_beforeLibrary_notDiscovered() async {
     newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4400,26 +4273,30 @@ final a = new A();
     uri: package:test/b.dart
     flags: isPart
     errors
-      25 +1 CREATION_WITH_NON_TYPE
+      60 +1 CREATION_WITH_NON_TYPE
 [stream]
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
     errors
-      25 +1 CREATION_WITH_NON_TYPE
+      60 +1 CREATION_WITH_NON_TYPE
 [status] idle
 ''');
   }
 
   test_partOfName_getResolvedUnit_afterLibrary() async {
     var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4474,12 +4351,16 @@ final a = new A();
 
   test_partOfName_getResolvedUnit_beforeLibrary_addedFiles() async {
     var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4516,12 +4397,16 @@ final a = new A();
 
   test_partOfName_getResolvedUnit_beforeLibrary_notDiscovered() async {
     newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4543,7 +4428,7 @@ final a = new A();
     uri: package:test/b.dart
     flags: exists isPart
     errors
-      25 +1 CREATION_WITH_NON_TYPE
+      60 +1 CREATION_WITH_NON_TYPE
 [stream]
   ResolvedUnitResult #0
 [status] idle
@@ -4552,6 +4437,8 @@ final a = new A();
 
   test_partOfName_getResolvedUnit_changePart_invalidatesLibraryCycle() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 import 'dart:async';
 part 'b.dart';
 ''');
@@ -4573,8 +4460,8 @@ part 'b.dart';
     uri: package:test/a.dart
     flags: exists isLibrary
     errors
-      26 +8 URI_DOES_NOT_EXIST
-      7 +12 UNUSED_IMPORT
+      61 +8 URI_DOES_NOT_EXIST
+      42 +12 UNUSED_IMPORT
 [status] idle
 ''');
 
@@ -4582,6 +4469,8 @@ part 'b.dart';
     // This should invalidate library file state (specifically the library
     // cycle), so that we can re-link the library, and get new dependencies.
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of 'a.dart';
 Future<int>? f;
 ''');
@@ -4612,10 +4501,14 @@ Future<int>? f;
 
   test_partOfName_getResolvedUnit_hasLibrary_noPart() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library my.lib;
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of my.lib;
 final a = new A();
 ''');
@@ -4639,7 +4532,7 @@ final a = new A();
     uri: package:test/b.dart
     flags: exists isPart
     errors
-      30 +1 CREATION_WITH_NON_TYPE
+      65 +1 CREATION_WITH_NON_TYPE
 [stream]
   ResolvedUnitResult #0
 [status] idle
@@ -4648,6 +4541,8 @@ final a = new A();
 
   test_partOfName_getResolvedUnit_noLibrary() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of my.lib;
 var a = new A();
 ''');
@@ -4668,7 +4563,7 @@ var a = new A();
     uri: package:test/b.dart
     flags: exists isPart
     errors
-      28 +1 CREATION_WITH_NON_TYPE
+      63 +1 CREATION_WITH_NON_TYPE
 [stream]
   ResolvedUnitResult #0
 [status] idle
@@ -4677,12 +4572,16 @@ var a = new A();
 
   test_partOfName_getUnitElement_afterLibrary() async {
     var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4720,19 +4619,23 @@ final a = new A();
   path: /home/test/lib/b.dart
   uri: package:test/b.dart
   flags: isPart
-  enclosing: package:test/hidden/a.dart
+  enclosing: package:test/hidden/a.dart::<fragment>
 [status] idle
 ''');
   }
 
   test_partOfName_getUnitElement_beforeLibrary_addedFiles() async {
     var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4752,7 +4655,7 @@ final a = new A();
   path: /home/test/lib/b.dart
   uri: package:test/b.dart
   flags: isPart
-  enclosing: package:test/hidden/a.dart
+  enclosing: package:test/hidden/a.dart::<fragment>
 [operation] analyzeFile
   file: /home/test/lib/hidden/a.dart
   library: /home/test/lib/hidden/a.dart
@@ -4772,6 +4675,8 @@ final a = new A();
 
   test_partOfName_getUnitElement_noLibrary() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4788,7 +4693,7 @@ final a = new A();
   path: /home/test/lib/b.dart
   uri: package:test/b.dart
   flags: isPart
-  enclosing: package:test/b.dart
+  enclosing: <null>
 [status] idle
 ''');
   }
@@ -4797,12 +4702,16 @@ final a = new A();
     // Note, we put the library into a different directory.
     // Otherwise we will discover it.
     var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4840,12 +4749,16 @@ final a = new A();
     // Note, we put the library into a different directory.
     // Otherwise we will discover it.
     var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4883,12 +4796,16 @@ final a = new A();
     // Note, we put the library into a different directory.
     // Otherwise we will discover it.
     var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4925,6 +4842,8 @@ final a = new A();
 
   test_partOfName_results_noLibrary() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4947,13 +4866,15 @@ final a = new A();
     uri: package:test/b.dart
     flags: exists isPart
     errors
-      25 +1 CREATION_WITH_NON_TYPE
+      60 +1 CREATION_WITH_NON_TYPE
 [status] idle
 ''');
   }
 
   test_partOfName_results_noLibrary_priority() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4977,7 +4898,7 @@ final a = new A();
     uri: package:test/b.dart
     flags: exists isPart
     errors
-      25 +1 CREATION_WITH_NON_TYPE
+      60 +1 CREATION_WITH_NON_TYPE
 [status] idle
 ''');
   }
@@ -6168,10 +6089,10 @@ extension on AnalysisDriver {
 extension on DriverEventsPrinterConfiguration {
   void withMacroFileContent() {
     errorsConfiguration.withContentPredicate = (result) {
-      return result.isMacroAugmentation;
+      return result.isMacroPart;
     };
     libraryConfiguration.unitConfiguration.withContentPredicate = (result) {
-      return result.isMacroAugmentation;
+      return result.isMacroPart;
     };
   }
 }

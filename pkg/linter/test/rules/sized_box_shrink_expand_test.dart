@@ -18,7 +18,7 @@ class SizedBoxShrinkExpandTest extends LintRuleTest {
   bool get addFlutterPackageDep => true;
 
   @override
-  String get lintRule => 'sized_box_shrink_expand';
+  String get lintRule => LintNames.sized_box_shrink_expand;
 
   test_infiniteHeight_noWidth() async {
     await assertNoDiagnostics(r'''

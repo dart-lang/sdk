@@ -45,10 +45,10 @@ exhaustiveMapExtensionType3(ExtensionTypeMap<int, A> map) {
     Map() => 0,
     {1: _} => 1,
     //     ^^
-    // [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+    // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
     {2: _} => 2,
     //     ^^
-    // [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+    // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
   };
 }
 

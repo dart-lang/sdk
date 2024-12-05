@@ -102,6 +102,10 @@ class ValueKinds {
           NullValues.FormalParameters);
   static const ValueKind FormalParameterBuilder =
       const SingleValueKind<type.FormalParameterBuilder>();
+  static const ValueKind FunctionTypeParameterBuilder =
+      const SingleValueKind<type.FunctionTypeParameterBuilder>();
+  static const ValueKind FunctionTypeParameterBuilderList =
+      const SingleValueKind<List<type.FunctionTypeParameterBuilder>>();
   static const ValueKind Generator = const SingleValueKind<type.Generator>();
   static const ValueKind Identifier = const SingleValueKind<type.Identifier>();
   static const ValueKind IdentifierOrNull =
@@ -110,9 +114,8 @@ class ValueKinds {
       const UnionValueKind([Identifier, ParserRecovery]);
   static const ValueKind IdentifierOrParserRecoveryOrNull =
       const UnionValueKind([IdentifierOrNull, ParserRecovery]);
-  static const ValueKind IdentifierOrQualifiedNameOrOperatorOrParserRecovery =
-      const UnionValueKind(
-          [Identifier, QualifiedName, Operator, ParserRecovery]);
+  static const ValueKind IdentifierOrOperatorOrParserRecovery =
+      const UnionValueKind([Identifier, Operator, ParserRecovery]);
   static const ValueKind Initializer =
       const SingleValueKind<type.Initializer>();
   static const ValueKind Integer = const SingleValueKind<int>();
@@ -156,10 +159,6 @@ class ValueKinds {
       const SingleValueKind<type.String>(NullValues.Name);
   static const ValueKind NameOrOperator =
       const UnionValueKind([Name, Operator]);
-  static const ValueKind NameOrQualifiedNameOrOperator =
-      const UnionValueKind([Name, QualifiedName, Operator]);
-  static const ValueKind NameOrQualifiedNameOrOperatorOrParserRecovery =
-      const UnionValueKind([Name, QualifiedName, Operator, ParserRecovery]);
   static const ValueKind NameOrParserRecovery =
       const UnionValueKind([Name, ParserRecovery]);
   static const ValueKind NameOrParserRecoveryOrNull =
@@ -181,7 +180,6 @@ class ValueKinds {
   static const ValueKind RecordTypeFieldBuilderListOrNull =
       const SingleValueKind<List<type.RecordTypeFieldBuilder>>(
           NullValues.RecordTypeFieldList);
-  static const ValueKind Scope = const SingleValueKind<type.Scope>();
   static const ValueKind Selector = const SingleValueKind<type.Selector>();
   static const ValueKind SwitchCase = const SingleValueKind<type.SwitchCase>();
   static const ValueKind SwitchCaseList =
@@ -190,8 +188,6 @@ class ValueKinds {
       const SingleValueKind<type.SwitchExpressionCase>();
   static const ValueKind SwitchExpressionCaseList =
       const SingleValueKind<List<type.SwitchExpressionCase>>();
-  static const ValueKind SwitchScopeOrNull =
-      const SingleValueKind<type.Scope>(NullValues.SwitchScope);
   static const ValueKind Statement = const SingleValueKind<type.Statement>();
   static const ValueKind StatementOrNull =
       const SingleValueKind<type.Statement>(NullValues.Block);

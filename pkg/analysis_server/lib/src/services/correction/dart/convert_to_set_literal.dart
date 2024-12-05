@@ -145,7 +145,7 @@ class ConvertToSetLiteral extends ResolvedCorrectionProducer {
     }
 
     // TODO(brianwilkerson): Consider also accepting uses of LinkedHashSet.
-    if (type.element != typeProvider.setElement) {
+    if (type.element3 != typeProvider.setElement2) {
       return null;
     }
     return creation;
@@ -197,14 +197,15 @@ class ConvertToSetLiteral extends ResolvedCorrectionProducer {
       var parent2 = parent.parent;
       if (parent2 is VariableDeclarationList) {
         var type = parent2.type?.type;
-        if (type is InterfaceType && type.element == typeProvider.setElement) {
+        if (type is InterfaceType &&
+            type.element3 == typeProvider.setElement2) {
           return true;
         }
       }
     } else if (parent.parent is InvocationExpression) {
-      var parameterElement = creation.staticParameterElement;
+      var parameterElement = creation.correspondingParameter;
       var type = parameterElement?.type;
-      if (type is InterfaceType && type.element == typeProvider.setElement) {
+      if (type is InterfaceType && type.element3 == typeProvider.setElement2) {
         return true;
       }
     }

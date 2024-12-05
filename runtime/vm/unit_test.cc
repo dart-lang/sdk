@@ -560,6 +560,7 @@ Dart_Handle TestCase::TriggerReload(
   Thread* thread = Thread::Current();
   IsolateGroup* isolate_group = thread->isolate_group();
   JSONStream js;
+  js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
   bool success = false;
   {
     TransitionNativeToVM transition(thread);

@@ -7,36 +7,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use of angle brackets in a doc comment is treated as HTML by '
     'Markdown.';
-
-const _details = r'''
-**DO** reference only in-scope identifiers in doc comments.
-
-When a developer writes a reference with angle brackets within a doc comment,
-the angle brackets are interpreted as HTML. The text within pairs of opening and
-closing angle brackets generally get swallowed by the browser, and will not be
-displayed.
-
-You can use a code block or code span to wrap the text containing angle
-brackets. You can also replace `<` with `&lt;` and `>` with `&gt;`.
-
-**BAD:**
-```dart
-/// Text List<int>.
-/// Text [List<int>].
-/// <assignment> -> <variable> = <expression>
-```
-
-**GOOD:**
-```dart
-/// Text `List<int>`.
-/// `<assignment> -> <variable> = <expression>`
-/// <http://foo.bar.baz>
-```
-
-''';
 
 /// Valid HTML tags that should not be linted.
 ///
@@ -144,21 +118,14 @@ const _validHtmlTags = [
 ];
 
 class UnintendedHtmlInDocComment extends LintRule {
-  static const LintCode code = LintCode('unintended_html_in_doc_comment',
-      'Angle brackets will be interpreted as HTML.',
-      correctionMessage:
-          'Try using backticks around the content with angle brackets, or '
-          'try replacing `<` with `&lt;` and `>` with `&gt;`.');
-
   UnintendedHtmlInDocComment()
       : super(
-            name: 'unintended_html_in_doc_comment',
-            description: _desc,
-            details: _details,
-            categories: {Category.errors});
+          name: LintNames.unintended_html_in_doc_comment,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unintended_html_in_doc_comment;
 
   @override
   void registerNodeProcessors(
@@ -177,20 +144,61 @@ class _UnintendedTag {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  // Matches autolinks: starting angle bracket, starting alphabetic character,
-  // any alphabetic character or `-`, `+`, `.`, a semi-colon with optionally two
-  // `/`s then anything but whitespace until a closing angle bracket.
-  static final _autoLinkPattern =
-      RegExp(r'<(([a-zA-Z][a-zA-Z\-\+\.]+):(?://)?[^\s>]*)>');
+  /// Pattern for HTML-tags and non-HTML regions.
+  ///
+  /// Pattern which matches sequences of characters with content that is known
+  /// to *not* be interpreted as Markdown or HTML tags,  and anything else that
+  /// looks like an HTML tag.
+  /// Because [RegExp.allMatches] matches do not overlap, including the
+  /// non-HTML sections in the same RegExp ensures that the HTML tag match
+  /// will not be matched against the non-HTML content.
+  static final _markdownTokenPattern = RegExp(
+      // Escaped Markdown character, including `\<` and `\\`.
+      r'\\.'
 
-  // Matches codespans: starting backtick with anything but a backtick until a
-  // closing backtick.
-  static final _codeSpanPattern = RegExp(r'`([^`]+)`');
+      // Or a Markdown code span, from "`"*N to "`"*N.
+      // Also matches an unterminated start tag to avoid "```a``"
+      // being matched as "``a``".
+      // The ```-sequence is atomic.
+      r'|(?<cq>`+)(?:[^]+?\k<cq>)?'
 
-  // Matches unintential tags: starting `>`, optionally an opening `/` then one
-  // or more valid tag characters then anything but a `>` until a closing `>`.
-  static final _nonHtmlPattern =
-      RegExp("<(?!/?(${_validHtmlTags.join("|")})[>])[^>]*[>]");
+      // Or autolink, starting with scheme + `:`, followed by non-whitespace/
+      // control characters until a closing `>`.
+      r'|<[a-z][a-z\d\-+.]+:[^\x00-\x20\x7f<>]*>'
+
+      // Or HTML comments.
+      r'|<!--(?:-?>|[^]*?-->)'
+
+      // Or HTML declarations, like `<!DOCTYPE ...>`.
+      r'|<![a-z][^]*?!>'
+
+      // Or HTML processing instructions.
+      r'|<\?[^]*?\?>'
+
+      // Or HTML CDATA sections sections.
+      r'|<\[CDATA[^]*\]>'
+
+      // Or plain `[...]` which DartDoc interprets as Dart source links,
+      // and which can contain type parameters like `... [List<int>] ...`.
+      // Here recognized as `[...]` with no `]` inside, not preceded by `]`
+      // or followed by `(` or `[`.
+      r'|(?<!\])\[[^\]]*\](?![(\[])'
+
+      // Or valid HTML tag.
+      // Matches `<validTag>`, `<validTag ...>`, `<validTag/>`, `</validTag>`
+      // and `</validTag ...>.
+      r'|<(?<et>/?)(?:'
+      '${_validHtmlTags.join('|')}'
+      r')'
+      r'(?:/(?=\k<et>)>|>|[\x20\r\n\t][^]*?>)'
+
+      // Or any of the following matches which are considered invalid tags.
+      // If the "nh" capture group is participating, one of these matched.
+      r'|(?<nh>)(?:'
+
+      // Any other `</?tag ...>` sequence.
+      r'</?[a-z][^]*?>'
+      r')', caseSensitive: false);
 
   final LintRule rule;
 
@@ -220,18 +228,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Finds tags that are not valid HTML tags, not contained in a code span, and
   /// are not autolinks.
   List<_UnintendedTag> _findUnintendedHtmlTags(String text) {
-    var codeSpanOrAutoLink = [
-      ..._codeSpanPattern.allMatches(text),
-      ..._autoLinkPattern.allMatches(text)
-    ];
-    var unintendedHtmlTags = _nonHtmlPattern.allMatches(text);
-
     var matches = <_UnintendedTag>[];
-    for (var htmlTag in unintendedHtmlTags) {
-      // If the tag is in a code span or is an autolink, we won't report it.
-      if (!codeSpanOrAutoLink.any((match) =>
-          match.start <= htmlTag.start && htmlTag.end <= match.end)) {
-        matches.add(_UnintendedTag(htmlTag.start, htmlTag.end - htmlTag.start));
+    for (var match in _markdownTokenPattern.allMatches(text)) {
+      if (match.namedGroup('nh') != null) {
+        matches.add(_UnintendedTag(match.start, match.end - match.start));
       }
     }
     return matches;

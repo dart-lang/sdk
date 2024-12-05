@@ -38,14 +38,25 @@ class ConvertToIntLiteral extends ResolvedCorrectionProducer {
     try {
       intValue = literal.value.truncate();
     } catch (e) {
-      // Double cannot be converted to int
+      // A double that cannot be converted to an int.
+      return;
     }
 
-    if (intValue == null || intValue != literal.value) {
+    if (intValue != literal.value) {
       return;
     }
 
     await builder.addDartFileEdit(file, (builder) {
+      if (!literal.literal.lexeme.toLowerCase().contains('e')) {
+        var indexOfDecimal = literal.literal.lexeme.indexOf('.');
+        if (indexOfDecimal > 0) {
+          // Preserve digit separators by just truncating the existing lexeme.
+          builder.addDeletion(SourceRange(literal.offset + indexOfDecimal,
+              literal.length - indexOfDecimal));
+          return;
+        }
+      }
+
       builder.addReplacement(SourceRange(literal.offset, literal.length),
           (builder) {
         builder.write('$intValue');

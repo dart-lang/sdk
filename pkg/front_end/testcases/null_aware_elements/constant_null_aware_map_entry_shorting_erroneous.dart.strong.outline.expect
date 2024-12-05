@@ -1,0 +1,23 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/null_aware_elements/constant_null_aware_map_entry_shorting_erroneous.dart:6:59: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+// const Map<String, int> mapLiteral = <String, int>{?key: 1 / 0}; // Compile-time error: since the key is not null, the value is evaluated and causes a compile-time error.
+//                                                           ^
+//
+import self as self;
+import "dart:core" as core;
+
+static const field core::String? key = "key";
+static const field core::Map<core::String, core::int> mapLiteral = let final core::String? #t1 = self::key in #t1 == null ?{core::Map<core::String, core::int>} const <core::String, core::int>{} : const <core::String, core::int>{#t1{core::String}: invalid-expression "pkg/front_end/testcases/null_aware_elements/constant_null_aware_map_entry_shorting_erroneous.dart:6:59: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+const Map<String, int> mapLiteral = <String, int>{?key: 1 / 0}; // Compile-time error: since the key is not null, the value is evaluated and causes a compile-time error.
+                                                          ^" in 1.{core::num::/}(0){(core::num) → core::double} as{TypeError} core::int};
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_null_aware_map_entry_shorting_erroneous.dart:6:52 -> StringConstant("key")
+Evaluated: EqualsNull @ org-dartlang-testcase:///constant_null_aware_map_entry_shorting_erroneous.dart:6:52 -> BoolConstant(false)
+Evaluated: MapLiteral @ org-dartlang-testcase:///constant_null_aware_map_entry_shorting_erroneous.dart:6:55 -> MapConstant(const <String, int>{})
+Evaluated: VariableGet @ org-dartlang-testcase:///constant_null_aware_map_entry_shorting_erroneous.dart:6:52 -> StringConstant("key")
+Extra constant evaluation: evaluated: 8, effectively constant: 4

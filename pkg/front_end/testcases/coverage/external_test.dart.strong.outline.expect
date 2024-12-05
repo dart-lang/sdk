@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  field core::int x;
+  constructor •() → self::Foo
+    ;
+  external constructor n24(core::int x) → self::Foo;
+}

@@ -1,0 +1,77 @@
+//
+// Problems in component:
+//
+// sdk/lib/core/core.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/async/async.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/collection/collection.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/concurrent/concurrent.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/convert/convert.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/developer/developer.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/ffi/ffi.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/internal/internal.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/isolate/isolate.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/math/math.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/mirrors/mirrors.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/typed_data/typed_data.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/_internal/vm/bin/vmservice_io.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/vmservice/vmservice.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/_internal/vm/bin/builtin.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/html/dartium/nativewrappers.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/io/io.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/cli/cli.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+library;
+import self as self;
+import "dart:core" as core;
+
+class Verifier extends core::Object /*hasConstConstructor*/  {
+  const constructor test1() → self::Verifier
+    : assert(core::identical(#C2, #C2)), super core::Object::•()
+    ;
+  const constructor test2() → self::Verifier
+    : assert(core::identical(#C3, #C3)), super core::Object::•()
+    ;
+}
+static const field core::int? expr1 = #C1;
+static const field core::List<core::int> literal1 = #C2;
+static const field core::String? expr2 = #C4;
+static const field core::Set<core::String> literal2 = #C3;
+static field self::Verifier test1 = #C5;
+static field self::Verifier test2 = #C5;
+
+constants  {
+  #C1 = 5
+  #C2 = <core::int*>[#C1]
+  #C3 = <core::String*>{}
+  #C4 = null
+  #C5 = self::Verifier {}
+}
+
+Extra constant evaluation status:
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constant_collections.dart:12:35 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constant_collections.dart:14:35 -> BoolConstant(true)
+Extra constant evaluation: evaluated: 2, effectively constant: 2
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///constant_collections.dart:
+- Verifier.test1 (from org-dartlang-testcase:///constant_collections.dart:12:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- Verifier.test2 (from org-dartlang-testcase:///constant_collections.dart:14:9)

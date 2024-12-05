@@ -32,17 +32,16 @@ const String HOOKS_API_USAGE = """
 //    is loaded. It should load and eval the javascript of `uri`, and call
 //    successCallback. If it fails to do so, it should call errorCallback with
 //    an error. The loadId argument is the deferred import that resulted in
-//    this uri being loaded. The loadPriority argument is the priority the
-//    library should be loaded with as specified in the code via the
-//    load-priority annotation (0: normal, 1: high).
+//    this uri being loaded. The loadPriority argument is an arbitrary argument
+//    string forwarded from the 'dart2js:load-priority' pragma option.
 // dartDeferredLibraryMultiLoader(uris, successCallback, errorCallback, loadId, loadPriority):
 //    if this function is defined, it will be called when a deferred library
 //    is loaded. It should load and eval the javascript of every URI in `uris`,
 //    and call successCallback. If it fails to do so, it should call
 //    errorCallback with an error. The loadId argument is the deferred import
-//    that resulted in this uri being loaded. The loadPriority argument is the
-//    priority the library should be loaded with as specified in the code via
-//    the load-priority annotation (0: normal, 1: high).
+//    that resulted in this uri being loaded. The loadPriority argument is an
+//    arbitrary argument string forwarded from the 'dart2js:load-priority'
+//    pragma option.
 //
 // dartCallInstrumentation(id, qualifiedName):
 //    if this function is defined, it will be called at each entry of a

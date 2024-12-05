@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UseTestThrowsMatchersTest extends LintRuleTest {
   @override
-  String get lintRule => 'use_test_throws_matchers';
+  String get lintRule => LintNames.use_test_throws_matchers;
 
   @override
   void setUp() {

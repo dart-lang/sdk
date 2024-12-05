@@ -23,7 +23,7 @@ class UseLateForPrivateFieldsAndVariablesTest extends LintRuleTest {
       ];
 
   @override
-  String get lintRule => 'use_late_for_private_fields_and_variables';
+  String get lintRule => LintNames.use_late_for_private_fields_and_variables;
 
   test_extensionType_instanceField() async {
     await assertDiagnostics('''

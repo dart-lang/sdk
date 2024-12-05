@@ -95,27 +95,67 @@ analyzer:
     expect(analysisOptions.chromeOsManifestChecks, true);
   }
 
-  test_analyzer_errors_processors() {
+  test_analyzer_errors_cannotBeIgnoredByUniqueName() {
     configureContext('''
 analyzer:
   errors:
-    invalid_assignment: ignore
+    return_type_invalid_for_catch_error: ignore
+''');
+
+    var processors = analysisOptions.errorProcessors;
+    expect(processors, hasLength(1));
+
+    var warning = AnalysisError.tmp(
+      source: TestSource(),
+      offset: 0,
+      length: 1,
+      errorCode: WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
+      arguments: [
+        ['x'],
+        ['y'],
+      ],
+    );
+
+    var processor = processors.first;
+    expect(processor.appliesTo(warning), isFalse);
+  }
+
+  test_analyzer_errors_severityIsError() {
+    configureContext('''
+analyzer:
+  errors:
     unused_local_variable: error
 ''');
 
     var processors = analysisOptions.errorProcessors;
-    expect(processors, hasLength(2));
+    expect(processors, hasLength(1));
 
-    var unusedLocal = AnalysisError.tmp(
+    var warning = AnalysisError.tmp(
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: HintCode.UNUSED_LOCAL_VARIABLE,
+      errorCode: WarningCode.UNUSED_LOCAL_VARIABLE,
       arguments: [
         ['x'],
       ],
     );
-    var invalidAssignment = AnalysisError.tmp(
+
+    var processor = processors.first;
+    expect(processor.appliesTo(warning), isTrue);
+    expect(processor.severity, ErrorSeverity.ERROR);
+  }
+
+  test_analyzer_errors_severityIsIgnore() {
+    configureContext('''
+analyzer:
+  errors:
+    invalid_assignment: ignore
+''');
+
+    var processors = analysisOptions.errorProcessors;
+    expect(processors, hasLength(1));
+
+    var error = AnalysisError.tmp(
       source: TestSource(),
       offset: 0,
       length: 1,
@@ -126,15 +166,35 @@ analyzer:
       ],
     );
 
-    // ignore
-    var invalidAssignmentProcessor =
-        processors.firstWhere((p) => p.appliesTo(invalidAssignment));
-    expect(invalidAssignmentProcessor.severity, isNull);
+    var processor = processors.first;
+    expect(processor.appliesTo(error), isTrue);
+    expect(processor.severity, isNull);
+  }
 
-    // error
-    var unusedLocalProcessor =
-        processors.firstWhere((p) => p.appliesTo(unusedLocal));
-    expect(unusedLocalProcessor.severity, ErrorSeverity.ERROR);
+  test_analyzer_errors_sharedNameAppliesToAllSharedCodes() {
+    configureContext('''
+analyzer:
+  errors:
+    invalid_return_type_for_catch_error: ignore
+''');
+
+    var processors = analysisOptions.errorProcessors;
+    expect(processors, hasLength(1));
+
+    var warning = AnalysisError.tmp(
+      source: TestSource(),
+      offset: 0,
+      length: 1,
+      errorCode: WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
+      arguments: [
+        ['x'],
+        ['y'],
+      ],
+    );
+
+    var processor = processors.first;
+    expect(processor.appliesTo(warning), isTrue);
+    expect(processor.severity, isNull);
   }
 
   test_analyzer_exclude() {
@@ -160,6 +220,45 @@ analyzer:
 
     var excludes = analysisOptions.excludePatterns;
     expect(excludes, unorderedEquals(['foo/bar.dart', 'test/**']));
+  }
+
+  test_analyzer_legacyPlugins_list() {
+    // TODO(srawlins): Test legacy plugins as a list of non-scalar values
+    // (`- angular2: yes`).
+    configureContext('''
+analyzer:
+  plugins:
+    - angular2
+    - intl
+''');
+
+    var names = analysisOptions.enabledLegacyPluginNames;
+    expect(names, ['angular2']);
+  }
+
+  test_analyzer_legacyPlugins_map() {
+    // TODO(srawlins): Test legacy plugins as a map of scalar values
+    // (`angular2: yes`).
+    configureContext('''
+analyzer:
+  plugins:
+    angular2:
+      enabled: true
+''');
+
+    var names = analysisOptions.enabledLegacyPluginNames;
+    expect(names, ['angular2']);
+  }
+
+  test_analyzer_legacyPlugins_string() {
+    configureContext('''
+analyzer:
+  plugins:
+    angular2
+''');
+
+    var names = analysisOptions.enabledLegacyPluginNames;
+    expect(names, ['angular2']);
   }
 
   test_analyzer_optionalChecks_propagateLinterExceptions_default() {
@@ -195,44 +294,6 @@ analyzer:
     propagate-linter-exceptions: true
 ''');
     expect(analysisOptions.propagateLinterExceptions, true);
-  }
-
-  test_analyzer_plugins_list() {
-    // TODO(srawlins): Test plugins as a list of non-scalar values
-    // (`- angular2: yes`).
-    configureContext('''
-analyzer:
-  plugins:
-    - angular2
-    - intl
-''');
-
-    var names = analysisOptions.enabledPluginNames;
-    expect(names, ['angular2']);
-  }
-
-  test_analyzer_plugins_map() {
-    // TODO(srawlins): Test plugins as a map of scalar values (`angular2: yes`).
-    configureContext('''
-analyzer:
-  plugins:
-    angular2:
-      enabled: true
-''');
-
-    var names = analysisOptions.enabledPluginNames;
-    expect(names, ['angular2']);
-  }
-
-  test_analyzer_plugins_string() {
-    configureContext('''
-analyzer:
-  plugins:
-    angular2
-''');
-
-    var names = analysisOptions.enabledPluginNames;
-    expect(names, ['angular2']);
   }
 
   test_codeStyle_format_false() {
@@ -282,7 +343,7 @@ class OptionsProviderTest with ResourceProviderMixin {
     provider = AnalysisOptionsProvider(sourceFactory);
   }
 
-  test_chooseFirstPlugin() {
+  test_chooseFirstLegacyPlugin() {
     newFile('/more_options.yaml', '''
 analyzer:
   plugins:
@@ -308,13 +369,13 @@ analyzer:
 ''');
 
     var options = _getOptionsObject('/');
-    expect(options.enabledPluginNames, unorderedEquals(['plugin_ddd']));
+    expect(options.enabledLegacyPluginNames, unorderedEquals(['plugin_ddd']));
   }
 
   test_mergeIncludedOptions() {
     // TODO(srawlins): Split this into smaller tests.
     // TODO(srawlins): add tests for multiple includes.
-    // TODO(srawlins): add tests with duplicate plugin names.
+    // TODO(srawlins): add tests with duplicate legacy plugin names.
     // https://github.com/dart-lang/sdk/issues/50980
 
     newFile('/other_options.yaml', '''
@@ -350,7 +411,8 @@ linter:
     var options = _getOptionsObject('/');
 
     expect(options.lintRules, unorderedEquals([toplevellint, lowlevellint]));
-    expect(options.enabledPluginNames, unorderedEquals(['toplevelplugin']));
+    expect(
+        options.enabledLegacyPluginNames, unorderedEquals(['toplevelplugin']));
     expect(options.excludePatterns,
         unorderedEquals(['toplevelexclude.dart', 'lowlevelexclude.dart']));
     expect(
@@ -370,19 +432,22 @@ linter:
 }
 
 class TestRule extends LintRule {
+  static const LintCode code = LintCode(
+      'fantastic_test_rule', 'Fantastic test rule.',
+      correctionMessage: 'Try fantastic test rule.');
+
   TestRule()
       : super(
           name: 'fantastic_test_rule',
           description: '',
-          details: '',
-          categories: {Category.style},
         );
 
   TestRule.withName(String name)
       : super(
           name: name,
           description: '',
-          details: '',
-          categories: {Category.style},
         );
+
+  @override
+  LintCode get lintCode => code;
 }

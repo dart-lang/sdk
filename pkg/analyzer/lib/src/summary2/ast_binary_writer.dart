@@ -502,7 +502,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     _writeByte(Tag.MapLiteralEntry);
+    _writeByte(AstBinaryFlags.encode(
+        hasQuestion: node.keyQuestion?.type == TokenType.QUESTION));
     _writeNode(node.key);
+    _writeByte(AstBinaryFlags.encode(
+        hasQuestion: node.valueQuestion?.type == TokenType.QUESTION));
     _writeNode(node.value);
   }
 
@@ -554,6 +558,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _sink.writeElement(node.element);
     _sink.writeType(node.type);
+  }
+
+  @override
+  void visitNullAwareElement(NullAwareElement node) {
+    _writeByte(Tag.NullAwareElement);
+    _writeNode(node.value);
   }
 
   @override

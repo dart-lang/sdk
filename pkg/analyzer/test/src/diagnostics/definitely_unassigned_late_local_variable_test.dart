@@ -101,7 +101,7 @@ void f() {
   v += 1;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
       error(_errorCode, 27, 1),
     ]);
   }
@@ -113,7 +113,7 @@ void f() {
   v = 0;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
     ]);
   }
 
@@ -135,7 +135,7 @@ void f() {
   ++v;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
       error(_errorCode, 29, 1),
     ]);
   }
@@ -158,7 +158,7 @@ void f() {
   v++;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
       error(_errorCode, 27, 1),
     ]);
   }

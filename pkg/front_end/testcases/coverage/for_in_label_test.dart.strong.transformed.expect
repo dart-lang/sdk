@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → void {
+  #L1:
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal4<core::int>(1, 2, 3, 4).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      core::int x = :sync-for-iterator.{core::Iterator::current}{core::int};
+      #L2:
+      {
+        if(x =={core::num::==}{(core::Object) → core::bool} 2)
+          break #L2;
+        if(x =={core::num::==}{(core::Object) → core::bool} 3)
+          break #L1;
+        core::print("Hello ${x}");
+      }
+    }
+  }
+}

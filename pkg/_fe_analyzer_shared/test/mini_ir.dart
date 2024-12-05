@@ -113,9 +113,10 @@ class MiniIRBuilder {
     return MiniIRTmp._('t${_tmpCounter++}', _pop(Kind.expression).ir);
   }
 
-  /// Pops the top [numArgs] nodes from the stack and pushes a node that
-  /// combines them using [name].  For example, if the stack contains `1, 2, 3`,
-  /// calling `apply('f', 2)` results in a stack of `1, f(2, 3)`.
+  /// Pops the top [inputKinds].length nodes from the stack and pushes a node
+  /// that combines them using [name].  For example, if the stack contains
+  /// `1, 2, 3`, calling `apply('f', [Kind.expression, Kind.expression])`
+  /// results in a stack of `1, f(2, 3)`.
   ///
   /// Optional argument [names] allows applying names to the last n arguments.
   /// For example, if the stack contains `1, 2, 3`, calling

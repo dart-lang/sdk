@@ -178,6 +178,30 @@ JavaScriptFunction _functionToJSN(Function f, int maxLength) {
   return ret;
 }
 
+// TODO(srujzs): We could add specific arity stubs for this like we do with
+// `Function.toJS`, but unlike dart2js, unused ones aren't tree-shaken away.
+// Considering this isn't a very commonly used API, that seems wasteful.
+JavaScriptFunction _functionToJSCaptureThisN(Function f, int maxLength) {
+  if (!dart.isDartFunction(f)) {
+    throw ArgumentError('Attempting to rewrap a JS function.');
+  }
+  final ret = JS<JavaScriptFunction>(
+      '!',
+      '''
+        function (...arguments) {
+          let args = [this];
+          args.push.apply(args, arguments);
+          return #(#, Array.prototype.slice.call(args, 0,
+              Math.min(args.length, #)));
+        }
+      ''',
+      dart.dcall,
+      f,
+      maxLength);
+  JS('', '#[#] = #', ret, _functionToJSProperty, f);
+  return ret;
+}
+
 _callDartFunctionFast0(callback) => JS('', '#()', callback);
 
 _callDartFunctionFast1(callback, arg1, int length) {

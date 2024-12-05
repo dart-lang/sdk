@@ -12,13 +12,13 @@ import "dart:core" as core;
 [277]class Square extends core::Object implements self::Shape {
 [318]  final field core::double length;
 [328]  constructor •([340] core::double length) → self::Square
-    : [340] self::Square::length = [-1] [-1] length, [328] super core::Object::• [-1]()
+    : [340] self::Square::length = [-1] [-1] length, [328] super core::Object::• [328]()
 [-1]    ;
 }
 [358]class Circle extends core::Object implements self::Shape {
 [399]  final field core::double radius;
 [409]  constructor •([421] core::double radius) → self::Circle
-    : [421] self::Circle::radius = [-1] [-1] radius, [409] super core::Object::• [-1]()
+    : [421] self::Circle::radius = [-1] [-1] radius, [409] super core::Object::• [409]()
 [-1]    ;
 }
 [440]static method calculateArea([460] self::Shape shape) → core::double

@@ -52,8 +52,10 @@ class LocateElementTest extends PubPackageResolutionTest {
     var classOne = findClass(libraryOne, 'C');
     var classTwo = findClass(libraryTwo, 'C');
 
-    expect(await getElement(classOne.location!), classOne);
-    expect(await getElement(classTwo.location!), classTwo);
+    var c1 = await getElement(classOne.location!);
+    var c2 = await getElement(classTwo.location!);
+    expect(c1, classOne);
+    expect(c2, classTwo);
   }
 
   void test_invalid() async {

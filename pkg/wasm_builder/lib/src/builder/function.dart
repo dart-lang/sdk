@@ -13,22 +13,15 @@ class FunctionBuilder extends ir.BaseFunction
   /// The body of the function.
   late final InstructionsBuilder body;
 
-  FunctionBuilder(ModuleBuilder module, super.index, super.type,
+  FunctionBuilder(super.enclosingModule, super.index, super.type,
       [super.functionName]) {
-    body = InstructionsBuilder(module, type.outputs);
-    for (ir.ValueType paramType in type.inputs) {
-      body.addLocal(paramType, isParameter: true);
-    }
+    body = InstructionsBuilder(enclosingModule, type.inputs, type.outputs);
   }
 
-  /// Add a local variable to the function.
-  ir.Local addLocal(ir.ValueType type) =>
-      body.addLocal(type, isParameter: false);
+  @override
+  ir.DefinedFunction forceBuild() => ir.DefinedFunction(
+      enclosingModule, body.build(), finalizableIndex, type, functionName);
 
   @override
-  ir.DefinedFunction forceBuild() =>
-      ir.DefinedFunction(body.build(), finalizableIndex, type, functionName);
-
-  @override
-  String toString() => exportedName ?? "#$finalizableIndex";
+  String toString() => functionName ?? "#$finalizableIndex";
 }

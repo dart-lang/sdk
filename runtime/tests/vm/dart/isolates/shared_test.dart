@@ -33,8 +33,7 @@ void main(List<String> args) async {
   final Directory tempDir = Directory.systemTemp.createTempSync();
   try {
     if (isVmAotConfiguration) {
-      final scriptDill =
-          path.join(tempDir.path, 'shared_test_content.dart.dill');
+      final scriptDill = path.join(tempDir.path, 'shared_test_body.dart.dill');
       await run(
           path.joinAll([
             'pkg',
@@ -50,8 +49,7 @@ void main(List<String> args) async {
             testeeScriptPath
           ]);
 
-      final elfFile =
-          path.join(tempDir.path, 'shared_test_content.dart.dill.elf');
+      final elfFile = path.join(tempDir.path, 'shared_test_body.dart.dill.elf');
       final stderr = (await runError(genSnapshot, <String>[
         '--snapshot-kind=app-aot-elf',
         '--elf=$elfFile',
@@ -60,7 +58,7 @@ void main(List<String> args) async {
           .join('\n');
       print('stderr: $stderr');
       Expect.contains(
-          'Encountered vm:shared when functionality is disabled. '
+          'Encountered dart:concurrent when functionality is disabled. '
           'Pass --experimental-shared-data',
           stderr);
     } else {
@@ -71,6 +69,10 @@ void main(List<String> args) async {
       ]);
       if (Platform.version.contains('(main)') ||
           Platform.version.contains('(dev)')) {
+        if (result.exitCode != 0) {
+          print('stdout: ${result.stdout}');
+          print('stderr: ${result.stderr}');
+        }
         Expect.equals(0, result.exitCode);
       } else {
         Expect.notEquals(0, result.exitCode);

@@ -899,7 +899,6 @@ class _FlatBufferSchemaGenerator extends _BaseGenerator {
         typeStr = 'string';
       default:
         typeStr = type.typeName;
-        break;
     }
     if (type.isList) {
       // FlatBuffers don't natively support a packed list of booleans, so we

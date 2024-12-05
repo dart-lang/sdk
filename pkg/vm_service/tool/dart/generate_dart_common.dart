@@ -783,22 +783,19 @@ class Type extends Member {
       gen.writeln("String get type => 'Response';");
       gen.writeln();
       gen.writeln('''
-Map<String, dynamic> toJson() {
-  final localJson = json;
-  final result = localJson == null ? <String, dynamic>{} : Map<String, dynamic>.of(localJson);
-  result['type'] = type;
-  return result;
-}''');
+Map<String, dynamic> toJson() => <String, Object?>{
+    ...?json,
+    'type': type,
+  };
+''');
     } else if (name == 'TimelineEvent') {
       // TimelineEvent doesn't have any declared properties as the response is
       // fairly dynamic. Return the json directly.
       gen.writeln('''
-          Map<String, dynamic> toJson() {
-            final localJson = json;
-            final result = localJson == null ? <String, dynamic>{} : Map<String, dynamic>.of(localJson);
-            result['type'] = 'TimelineEvent';
-            return result;
-          }
+          Map<String, dynamic> toJson() => <String, Object?>{
+              ...?json,
+              'type': 'TimelineEvent',
+            };
       ''');
     } else {
       if (isResponse) {
@@ -810,39 +807,38 @@ Map<String, dynamic> toJson() {
       if (isResponse) {
         gen.writeln('@override');
       }
-      gen.writeln('Map<String, dynamic> toJson() {');
-      if (superName == null || superName == 'Response') {
-        // The base Response type doesn't have a toJson
-        gen.writeln('final json = <String, dynamic>{};');
-      } else {
-        gen.writeln('final json = super.toJson();');
+      gen.write('Map<String, dynamic> toJson() =>');
+      gen.writeln('<String, Object?>{');
+      if (superName != null && superName != 'Response') {
+        // The base Response type doesn't have a toJson.
+        gen.writeln('...super.toJson(),');
       }
 
       // Only Response objects have a `type` field, as defined by protocol.
       if (isResponse) {
         // Overwrites "type" from the super class if we had one.
-        gen.writeln("json['type'] = type;");
+        gen.writeln("'type': type,");
       }
 
       var requiredFields = fields.where((f) => !f.optional);
       if (requiredFields.isNotEmpty) {
-        gen.writeln('json.addAll({');
         for (var field in requiredFields) {
           gen.write("'${field.name}': ");
           generateSerializedFieldAccess(field, gen);
           gen.writeln(',');
         }
-        gen.writeln('});');
       }
 
       var optionalFields = fields.where((f) => f.optional);
       for (var field in optionalFields) {
-        gen.write("_setIfNotNull(json, '${field.name}', ");
+        var fieldName = field.name;
+        var patternVariableName = '${fieldName}Value';
+        gen.write('if (');
         generateSerializedFieldAccess(field, gen);
-        gen.writeln(');');
+        gen.writeln(' case final $patternVariableName?)');
+        gen.writeln("  '$fieldName': $patternVariableName,");
       }
-      gen.writeln('return json;');
-      gen.writeln('}');
+      gen.writeln('};');
       gen.writeln();
     }
 

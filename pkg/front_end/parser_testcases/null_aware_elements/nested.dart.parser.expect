@@ -1,0 +1,223 @@
+test1(List list, bool Function(dynamic) p, int? a) {
+return {
+for (var element in list)
+if (p(element))
+?a
+};
+}
+
+test2(List list, bool Function(dynamic) p, int? a, int? b) {
+return {
+for (var element in list)
+if (p(element))
+?a
+else
+?b
+};
+}
+
+test3(List list, bool t, int? a) {
+return {
+if (t)
+for (var element in list)
+?a
+};
+}
+
+test4(List list, bool t, int? a, int? b) {
+return {
+if (t)
+for (var element in list)
+?a
+else
+for (var element in list)
+?b
+};
+}
+
+test5(List list, bool Function(dynamic) p, int? a) {
+return {
+for (var element in list)
+if (p(element))
+?a: "value"
+};
+}
+
+test6(List list, bool Function(dynamic) p, int? a, int? b) {
+return {
+for (var element in list)
+if (p(element))
+?a: "value"
+else
+?b: "value"
+};
+}
+
+test7(List list, bool t, int? a) {
+return {
+if (t)
+for (var element in list)
+?a: "value"
+};
+}
+
+test8(List list, bool t, int? a, int? b) {
+return {
+if (t)
+for (var element in list)
+?a: "value"
+else
+for (var element in list)
+?b: "value"
+};
+}
+
+test9(List list, bool Function(dynamic) p, int? a) {
+return {
+for (var element in list)
+if (p(element))
+"key": ?a
+};
+}
+
+test10(List list, bool Function(dynamic) p, int? a, int? b) {
+return {
+for (var element in list)
+if (p(element))
+"key": ?a
+else
+"key": ?b
+};
+}
+
+test11(List list, bool t, int? a) {
+return {
+if (t)
+for (var element in list)
+"key": ?a
+};
+}
+
+test12(List list, bool t, int? a, int? b) {
+return {
+if (t)
+for (var element in list)
+"key": ?a
+else
+for (var element in list)
+"key": ?b
+};
+}
+
+
+test1[StringToken]([BeginToken]List[StringToken] list[StringToken],[SimpleToken] bool[StringToken] Function[KeywordToken]([BeginToken]dynamic[KeywordToken])[SimpleToken] p[StringToken],[SimpleToken] int[StringToken]?[SimpleToken] a[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] {[BeginToken]
+for[KeywordToken] ([BeginToken]var[KeywordToken] element[StringToken] in[KeywordToken] list[StringToken])[SimpleToken]
+if[KeywordToken] ([BeginToken]p[StringToken]([BeginToken]element[StringToken])[SimpleToken])[SimpleToken]
+?[SimpleToken]a[StringToken]
+}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+test2[StringToken]([BeginToken]List[StringToken] list[StringToken],[SimpleToken] bool[StringToken] Function[KeywordToken]([BeginToken]dynamic[KeywordToken])[SimpleToken] p[StringToken],[SimpleToken] int[StringToken]?[SimpleToken] a[StringToken],[SimpleToken] int[StringToken]?[SimpleToken] b[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] {[BeginToken]
+for[KeywordToken] ([BeginToken]var[KeywordToken] element[StringToken] in[KeywordToken] list[StringToken])[SimpleToken]
+if[KeywordToken] ([BeginToken]p[StringToken]([BeginToken]element[StringToken])[SimpleToken])[SimpleToken]
+?[SimpleToken]a[StringToken]
+else[KeywordToken]
+?[SimpleToken]b[StringToken]
+}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+test3[StringToken]([BeginToken]List[StringToken] list[StringToken],[SimpleToken] bool[StringToken] t[StringToken],[SimpleToken] int[StringToken]?[SimpleToken] a[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]t[StringToken])[SimpleToken]
+for[KeywordToken] ([BeginToken]var[KeywordToken] element[StringToken] in[KeywordToken] list[StringToken])[SimpleToken]
+?[SimpleToken]a[StringToken]
+}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+test4[StringToken]([BeginToken]List[StringToken] list[StringToken],[SimpleToken] bool[StringToken] t[StringToken],[SimpleToken] int[StringToken]?[SimpleToken] a[StringToken],[SimpleToken] int[StringToken]?[SimpleToken] b[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]t[StringToken])[SimpleToken]
+for[KeywordToken] ([BeginToken]var[KeywordToken] element[StringToken] in[KeywordToken] list[StringToken])[SimpleToken]
+?[SimpleToken]a[StringToken]
+else[KeywordToken]
+for[KeywordToken] ([BeginToken]var[KeywordToken] element[StringToken] in[KeywordToken] list[StringToken])[SimpleToken]
+?[SimpleToken]b[StringToken]
+}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+test5[StringToken]([BeginToken]List[StringToken] list[StringToken],[SimpleToken] bool[StringToken] Function[KeywordToken]([BeginToken]dynamic[KeywordToken])[SimpleToken] p[StringToken],[SimpleToken] int[StringToken]?[SimpleToken] a[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] {[BeginToken]
+for[KeywordToken] ([BeginToken]var[KeywordToken] element[StringToken] in[KeywordToken] list[StringToken])[SimpleToken]
+if[KeywordToken] ([BeginToken]p[StringToken]([BeginToken]element[StringToken])[SimpleToken])[SimpleToken]
+?[SimpleToken]a[StringToken]:[SimpleToken] "value"[StringToken]
+}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+test6[StringToken]([BeginToken]List[StringToken] list[StringToken],[SimpleToken] bool[StringToken] Function[KeywordToken]([BeginToken]dynamic[KeywordToken])[SimpleToken] p[StringToken],[SimpleToken] int[StringToken]?[SimpleToken] a[StringToken],[SimpleToken] int[StringToken]?[SimpleToken] b[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] {[BeginToken]
+for[KeywordToken] ([BeginToken]var[KeywordToken] element[StringToken] in[KeywordToken] list[StringToken])[SimpleToken]
+if[KeywordToken] ([BeginToken]p[StringToken]([BeginToken]element[StringToken])[SimpleToken])[SimpleToken]
+?[SimpleToken]a[StringToken]:[SimpleToken] "value"[StringToken]
+else[KeywordToken]
+?[SimpleToken]b[StringToken]:[SimpleToken] "value"[StringToken]
+}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+test7[StringToken]([BeginToken]List[StringToken] list[StringToken],[SimpleToken] bool[StringToken] t[StringToken],[SimpleToken] int[StringToken]?[SimpleToken] a[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]t[StringToken])[SimpleToken]
+for[KeywordToken] ([BeginToken]var[KeywordToken] element[StringToken] in[KeywordToken] list[StringToken])[SimpleToken]
+?[SimpleToken]a[StringToken]:[SimpleToken] "value"[StringToken]
+}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+test8[StringToken]([BeginToken]List[StringToken] list[StringToken],[SimpleToken] bool[StringToken] t[StringToken],[SimpleToken] int[StringToken]?[SimpleToken] a[StringToken],[SimpleToken] int[StringToken]?[SimpleToken] b[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]t[StringToken])[SimpleToken]
+for[KeywordToken] ([BeginToken]var[KeywordToken] element[StringToken] in[KeywordToken] list[StringToken])[SimpleToken]
+?[SimpleToken]a[StringToken]:[SimpleToken] "value"[StringToken]
+else[KeywordToken]
+for[KeywordToken] ([BeginToken]var[KeywordToken] element[StringToken] in[KeywordToken] list[StringToken])[SimpleToken]
+?[SimpleToken]b[StringToken]:[SimpleToken] "value"[StringToken]
+}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+test9[StringToken]([BeginToken]List[StringToken] list[StringToken],[SimpleToken] bool[StringToken] Function[KeywordToken]([BeginToken]dynamic[KeywordToken])[SimpleToken] p[StringToken],[SimpleToken] int[StringToken]?[SimpleToken] a[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] {[BeginToken]
+for[KeywordToken] ([BeginToken]var[KeywordToken] element[StringToken] in[KeywordToken] list[StringToken])[SimpleToken]
+if[KeywordToken] ([BeginToken]p[StringToken]([BeginToken]element[StringToken])[SimpleToken])[SimpleToken]
+"key"[StringToken]:[SimpleToken] ?[SimpleToken]a[StringToken]
+}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+test10[StringToken]([BeginToken]List[StringToken] list[StringToken],[SimpleToken] bool[StringToken] Function[KeywordToken]([BeginToken]dynamic[KeywordToken])[SimpleToken] p[StringToken],[SimpleToken] int[StringToken]?[SimpleToken] a[StringToken],[SimpleToken] int[StringToken]?[SimpleToken] b[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] {[BeginToken]
+for[KeywordToken] ([BeginToken]var[KeywordToken] element[StringToken] in[KeywordToken] list[StringToken])[SimpleToken]
+if[KeywordToken] ([BeginToken]p[StringToken]([BeginToken]element[StringToken])[SimpleToken])[SimpleToken]
+"key"[StringToken]:[SimpleToken] ?[SimpleToken]a[StringToken]
+else[KeywordToken]
+"key"[StringToken]:[SimpleToken] ?[SimpleToken]b[StringToken]
+}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+test11[StringToken]([BeginToken]List[StringToken] list[StringToken],[SimpleToken] bool[StringToken] t[StringToken],[SimpleToken] int[StringToken]?[SimpleToken] a[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]t[StringToken])[SimpleToken]
+for[KeywordToken] ([BeginToken]var[KeywordToken] element[StringToken] in[KeywordToken] list[StringToken])[SimpleToken]
+"key"[StringToken]:[SimpleToken] ?[SimpleToken]a[StringToken]
+}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+test12[StringToken]([BeginToken]List[StringToken] list[StringToken],[SimpleToken] bool[StringToken] t[StringToken],[SimpleToken] int[StringToken]?[SimpleToken] a[StringToken],[SimpleToken] int[StringToken]?[SimpleToken] b[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]t[StringToken])[SimpleToken]
+for[KeywordToken] ([BeginToken]var[KeywordToken] element[StringToken] in[KeywordToken] list[StringToken])[SimpleToken]
+"key"[StringToken]:[SimpleToken] ?[SimpleToken]a[StringToken]
+else[KeywordToken]
+for[KeywordToken] ([BeginToken]var[KeywordToken] element[StringToken] in[KeywordToken] list[StringToken])[SimpleToken]
+"key"[StringToken]:[SimpleToken] ?[SimpleToken]b[StringToken]
+}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

@@ -10,8 +10,6 @@ abstract class ITypeDeclarationBuilder implements Builder {
 
   bool get isNamedMixinApplication;
 
-  void set parent(Builder? value);
-
   List<MetadataBuilder>? get metadata;
 
   int get typeVariablesCount => 0;
@@ -51,10 +49,25 @@ abstract class ITypeDeclarationBuilder implements Builder {
       Uri fileUri,
       int charOffset,
       {required bool hasExplicitTypeArguments});
+
+  /// Computes the nullability of this type declaration when instantiated with
+  /// [typeArguments].
+  ///
+  /// [typeVariablesTraversalState] is passed to handle cyclic dependencies
+  /// between type variables,
+  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState});
 }
 
 abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
     implements ITypeDeclarationBuilder {
+  @override
+  final Builder? parent;
+
+  @override
+  final int charOffset;
+
   @override
   final List<MetadataBuilder>? metadata;
 
@@ -65,13 +78,13 @@ abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
   final String name;
 
   TypeDeclarationBuilderImpl(
-      this.metadata, this.modifiers, this.name, Builder? parent, int charOffset)
-      : super(parent, charOffset);
+      this.metadata, this.modifiers, this.name, this.parent, this.charOffset);
 
   @override
   TypeDeclarationBuilder get origin => this as TypeDeclarationBuilder;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isNamedMixinApplication => false;
 
   @override

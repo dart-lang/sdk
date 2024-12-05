@@ -1,0 +1,7 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::int i21 = 2097152;
+static method foo() → void
+  ;

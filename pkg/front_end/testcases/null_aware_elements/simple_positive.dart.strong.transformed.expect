@@ -1,56 +1,56 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 static method foo1(core::int? x) → dynamic
   return block {
     final core::List<core::int> #t1 = core::_GrowableList::•<core::int>(0);
-    final has-declared-initializer core::Iterable<core::int>? #t2 = null;
+    final core::int? #t2 = x;
     if(!(#t2 == null))
-      #t1.{core::List::addAll}{Invariant}(#t2{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+      #t1.{core::List::add}{Invariant}(#t2{core::int}){(core::int) → void};
   } =>#t1;
 static method foo2(core::String? x) → dynamic
   return block {
-    final core::Set<core::String> #t3 = new col::_Set::•<core::String>();
-    final has-declared-initializer core::Iterable<core::String>? #t4 = null;
+    final core::Set<core::String> #t3 = new _co::_Set::•<core::String>();
+    final core::String? #t4 = x;
     if(!(#t4 == null))
-      #t3.{core::Set::addAll}{Invariant}(#t4{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
+      #t3.{core::Set::add}{Invariant}(#t4{core::String}){(core::String) → core::bool};
   } =>#t3;
 static method foo3(core::bool? x, core::num y) → dynamic
   return block {
     final core::Map<core::bool, core::num> #t5 = <core::bool, core::num>{};
-    final has-declared-initializer core::Map<core::bool, core::num>? #t6 = null;
+    final core::bool? #t6 = x;
     if(!(#t6 == null))
-      #t5.{core::Map::addAll}{Invariant}(#t6{core::Map<core::bool, core::num>}){(core::Map<core::bool, core::num>) → void};
+      #t5.{core::Map::[]=}{Invariant}(#t6{core::bool}, y){(core::bool, core::num) → void};
   } =>#t5;
 static method bar1(core::int? x) → dynamic
   return block {
     final core::List<core::int> #t7 = core::_GrowableList::•<core::int>(0);
-    final has-declared-initializer core::Iterable<core::int>? #t8 = null;
+    final core::int? #t8 = x;
     if(!(#t8 == null))
-      #t7.{core::List::addAll}{Invariant}(#t8{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+      #t7.{core::List::add}{Invariant}(#t8{core::int}){(core::int) → void};
   } =>#t7;
 static method bar2(core::int? x, core::bool b) → dynamic
   return block {
-    final core::Set<core::int> #t9 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t9 = new _co::_Set::•<core::int>();
     if(b) {
-      final has-declared-initializer core::Iterable<core::int>? #t10 = null;
+      final core::int? #t10 = x;
       if(!(#t10 == null))
-        #t9.{core::Set::addAll}{Invariant}(#t10{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+        #t9.{core::Set::add}{Invariant}(#t10{core::int}){(core::int) → core::bool};
     }
   } =>#t9;
-static method bar3(core::int? x) → dynamic
+static method bar3(core::int? x, core::List<core::String> y) → dynamic
   return block {
-    final core::Set<core::int> #t11 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t11 = new _co::_Set::•<core::int>();
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<core::String> :sync-for-iterator = y.{core::Iterable::iterator}{core::Iterator<core::String>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        dynamic _ = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        core::String _ = :sync-for-iterator.{core::Iterator::current}{core::String};
         {
-          final has-declared-initializer core::Iterable<core::int>? #t12 = null;
+          final core::int? #t12 = x;
           if(!(#t12 == null))
-            #t11.{core::Set::addAll}{Invariant}(#t12{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+            #t11.{core::Set::add}{Invariant}(#t12{core::int}){(core::int) → core::bool};
         }
       }
     }
@@ -58,45 +58,175 @@ static method bar3(core::int? x) → dynamic
 static method bar4(core::String x, core::bool? y) → dynamic
   return block {
     final core::Map<core::String, core::bool> #t13 = <core::String, core::bool>{};
-    final has-declared-initializer core::Map<core::String, core::bool>? #t14 = null;
+    final core::bool? #t14 = y;
     if(!(#t14 == null))
-      #t13.{core::Map::addAll}{Invariant}(#t14{core::Map<core::String, core::bool>}){(core::Map<core::String, core::bool>) → void};
+      #t13.{core::Map::[]=}{Invariant}(x, #t14{core::bool}){(core::String, core::bool) → void};
   } =>#t13;
 static method bar5(core::int? x, core::num y) → dynamic
   return block {
     final core::Map<core::int, core::num> #t15 = <core::int, core::num>{};
-    final has-declared-initializer core::Map<core::int, core::num>? #t16 = null;
+    final core::int? #t16 = x;
     if(!(#t16 == null))
-      #t15.{core::Map::addAll}{Invariant}(#t16{core::Map<core::int, core::num>}){(core::Map<core::int, core::num>) → void};
+      #t15.{core::Map::[]=}{Invariant}(#t16{core::int}, y){(core::int, core::num) → void};
   } =>#t15;
-static method bar6(core::double? x, core::Symbol? y) → dynamic
+static method bar6(core::Symbol? x, core::String? y) → dynamic
   return block {
-    final core::Map<core::double, core::Symbol> #t17 = <core::double, core::Symbol>{};
-    final has-declared-initializer core::Map<core::double, core::Symbol>? #t18 = null;
-    if(!(#t18 == null))
-      #t17.{core::Map::addAll}{Invariant}(#t18{core::Map<core::double, core::Symbol>}){(core::Map<core::double, core::Symbol>) → void};
-  } =>#t17;
-static method bar7(core::num? x, core::double? y, core::bool b) → dynamic
-  return block {
-    final core::Map<core::num, core::double> #t19 = <core::num, core::double>{};
-    if(b) {
-      final has-declared-initializer core::Map<core::num, core::double>? #t20 = null;
-      if(!(#t20 == null))
-        #t19.{core::Map::addAll}{Invariant}(#t20{core::Map<core::num, core::double>}){(core::Map<core::num, core::double>) → void};
+    final core::Map<core::Symbol, core::String> #t17 = <core::Symbol, core::String>{};
+    final core::Symbol? #t18 = x;
+    if(!(#t18 == null)) {
+      final core::String? #t19 = y;
+      if(!(#t19 == null))
+        #t17.{core::Map::[]=}{Invariant}(#t18{core::Symbol}, #t19{core::String}){(core::Symbol, core::String) → void};
     }
-  } =>#t19;
-static method bar8(core::num? x, core::double? y) → dynamic
+  } =>#t17;
+static method bar7(core::int? x, core::double? y, core::bool b) → dynamic
   return block {
-    final core::Map<core::num, core::double> #t21 = <core::num, core::double>{};
+    final core::Map<core::int, core::double> #t20 = <core::int, core::double>{};
+    if(b) {
+      final core::int? #t21 = x;
+      if(!(#t21 == null)) {
+        final core::double? #t22 = y;
+        if(!(#t22 == null))
+          #t20.{core::Map::[]=}{Invariant}(#t21{core::int}, #t22{core::double}){(core::int, core::double) → void};
+      }
+    }
+  } =>#t20;
+static method bar8(core::bool? x, core::Symbol? y, core::List<core::num> z) → dynamic
+  return block {
+    final core::Map<core::bool, core::Symbol> #t23 = <core::bool, core::Symbol>{};
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<core::num> :sync-for-iterator = z.{core::Iterable::iterator}{core::Iterator<core::num>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        dynamic _ = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        core::num _ = :sync-for-iterator.{core::Iterator::current}{core::num};
         {
-          final has-declared-initializer core::Map<core::num, core::double>? #t22 = null;
-          if(!(#t22 == null))
-            #t21.{core::Map::addAll}{Invariant}(#t22{core::Map<core::num, core::double>}){(core::Map<core::num, core::double>) → void};
+          final core::bool? #t24 = x;
+          if(!(#t24 == null)) {
+            final core::Symbol? #t25 = y;
+            if(!(#t25 == null))
+              #t23.{core::Map::[]=}{Invariant}(#t24{core::bool}, #t25{core::Symbol}){(core::bool, core::Symbol) → void};
+          }
         }
       }
     }
-  } =>#t21;
+  } =>#t23;
+static method main() → dynamic {
+  self::expectShallowEqualLists(self::foo1(0) as{TypeError,ForDynamic} core::List<dynamic>, core::_GrowableList::_literal1<core::int>(0));
+  self::expectShallowEqualLists(self::foo1(null) as{TypeError,ForDynamic} core::List<dynamic>, core::_GrowableList::•<core::int>(0));
+  self::expectShallowEqualSets(self::foo2("") as{TypeError,ForDynamic} core::Set<dynamic>, block {
+    final core::Set<core::String> #t26 = new _co::_Set::•<core::String>();
+    #t26.{core::Set::add}{Invariant}(""){(core::String) → core::bool};
+  } =>#t26);
+  self::expectShallowEqualSets(self::foo2(null) as{TypeError,ForDynamic} core::Set<dynamic>, block {
+    final core::Set<core::String> #t27 = new _co::_Set::•<core::String>();
+  } =>#t27);
+  self::expectShallowEqualMaps(self::foo3(false, 0) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::bool, core::num>{false: 0});
+  self::expectShallowEqualMaps(self::foo3(null, 0) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::bool, core::num>{});
+  self::expectShallowEqualLists(self::bar1(0) as{TypeError,ForDynamic} core::List<dynamic>, core::_GrowableList::_literal1<core::int>(0));
+  self::expectShallowEqualLists(self::bar1(null) as{TypeError,ForDynamic} core::List<dynamic>, core::_GrowableList::•<core::int>(0));
+  self::expectShallowEqualSets(self::bar2(0, true) as{TypeError,ForDynamic} core::Set<dynamic>, block {
+    final core::Set<core::int> #t28 = new _co::_Set::•<core::int>();
+    #t28.{core::Set::add}{Invariant}(0){(core::int) → core::bool};
+  } =>#t28);
+  self::expectShallowEqualSets(self::bar2(0, false) as{TypeError,ForDynamic} core::Set<dynamic>, block {
+    final core::Set<core::int> #t29 = new _co::_Set::•<core::int>();
+  } =>#t29);
+  self::expectShallowEqualSets(self::bar2(null, true) as{TypeError,ForDynamic} core::Set<dynamic>, block {
+    final core::Set<core::int> #t30 = new _co::_Set::•<core::int>();
+  } =>#t30);
+  self::expectShallowEqualSets(self::bar2(null, false) as{TypeError,ForDynamic} core::Set<dynamic>, block {
+    final core::Set<core::int> #t31 = new _co::_Set::•<core::int>();
+  } =>#t31);
+  self::expectShallowEqualSets(self::bar3(0, core::_GrowableList::_literal2<core::String>("", "")) as{TypeError,ForDynamic} core::Set<dynamic>, block {
+    final core::Set<core::int> #t32 = new _co::_Set::•<core::int>();
+    #t32.{core::Set::add}{Invariant}(0){(core::int) → core::bool};
+  } =>#t32);
+  self::expectShallowEqualSets(self::bar3(null, core::_GrowableList::_literal2<core::String>("", "")) as{TypeError,ForDynamic} core::Set<dynamic>, block {
+    final core::Set<core::int> #t33 = new _co::_Set::•<core::int>();
+  } =>#t33);
+  self::expectShallowEqualSets(self::bar3(0, core::_GrowableList::•<core::String>(0)) as{TypeError,ForDynamic} core::Set<dynamic>, block {
+    final core::Set<core::int> #t34 = new _co::_Set::•<core::int>();
+  } =>#t34);
+  self::expectShallowEqualSets(self::bar3(null, core::_GrowableList::•<core::String>(0)) as{TypeError,ForDynamic} core::Set<dynamic>, block {
+    final core::Set<core::int> #t35 = new _co::_Set::•<core::int>();
+  } =>#t35);
+  self::expectShallowEqualMaps(self::bar4("", false) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::String, core::bool>{"": false});
+  self::expectShallowEqualMaps(self::bar4("", null) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::String, core::bool>{});
+  self::expectShallowEqualMaps(self::bar5(0, 1.0) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::int, core::num>{0: 1.0});
+  self::expectShallowEqualMaps(self::bar5(null, 1.0) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::int, core::num>{});
+  self::expectShallowEqualMaps(self::bar6(#C1, "") as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::Symbol, core::String>{#C1: ""});
+  self::expectShallowEqualMaps(self::bar6(#C1, null) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::Symbol, core::String>{});
+  self::expectShallowEqualMaps(self::bar6(null, "") as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::Symbol, core::String>{});
+  self::expectShallowEqualMaps(self::bar6(null, null) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::Symbol, core::String>{});
+  self::expectShallowEqualMaps(self::bar7(0, 1.0, true) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::int, core::double>{0: 1.0});
+  self::expectShallowEqualMaps(self::bar7(0, 1.0, false) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::int, core::double>{});
+  self::expectShallowEqualMaps(self::bar7(0, null, true) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::int, core::double>{});
+  self::expectShallowEqualMaps(self::bar7(0, null, false) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::int, core::double>{});
+  self::expectShallowEqualMaps(self::bar7(null, 1.0, true) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::int, core::double>{});
+  self::expectShallowEqualMaps(self::bar7(null, 1.0, false) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::int, core::double>{});
+  self::expectShallowEqualMaps(self::bar7(null, null, true) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::int, core::double>{});
+  self::expectShallowEqualMaps(self::bar7(null, null, false) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::int, core::double>{});
+  self::expectShallowEqualMaps(self::bar8(false, #C2, core::_GrowableList::_literal1<core::num>(1.0)) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::bool, core::Symbol>{false: #C2});
+  self::expectShallowEqualMaps(self::bar8(false, #C2, core::_GrowableList::•<core::num>(0)) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::int, core::double>{});
+  self::expectShallowEqualMaps(self::bar8(false, null, core::_GrowableList::_literal1<core::num>(1.0)) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::int, core::double>{});
+  self::expectShallowEqualMaps(self::bar8(false, null, core::_GrowableList::•<core::num>(0)) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::int, core::double>{});
+  self::expectShallowEqualMaps(self::bar8(null, #C2, core::_GrowableList::_literal1<core::num>(1.0)) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::int, core::double>{});
+  self::expectShallowEqualMaps(self::bar8(null, #C2, core::_GrowableList::•<core::num>(0)) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::int, core::double>{});
+  self::expectShallowEqualMaps(self::bar8(null, null, core::_GrowableList::_literal1<core::num>(1.0)) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::int, core::double>{});
+  self::expectShallowEqualMaps(self::bar8(null, null, core::_GrowableList::•<core::num>(0)) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::int, core::double>{});
+}
+static method expectShallowEqualLists(core::List<dynamic> x, core::List<dynamic> y) → void {
+  core::bool equals = true;
+  if(!(x.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} y.{core::List::length}{core::int})) {
+    equals = false;
+  }
+  else {
+    #L1:
+    for (core::int i = 0; i.{core::num::<}(x.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+      if(!(x.{core::List::[]}(i){(core::int) → dynamic} =={core::Object::==}{(core::Object) → core::bool} y.{core::List::[]}(i){(core::int) → dynamic})) {
+        equals = false;
+        break #L1;
+      }
+    }
+  }
+  if(!equals) {
+    throw "Expected the values to be equal, got '${x}' != '${y}'.";
+  }
+}
+static method expectShallowEqualSets(core::Set<dynamic> x, core::Set<dynamic> y) → void {
+  if(!x.{core::Set::containsAll}(y){(core::Iterable<core::Object?>) → core::bool} || !y.{core::Set::containsAll}(x){(core::Iterable<core::Object?>) → core::bool}) {
+    throw "Expected the values to be equal, got '${x}' != '${y}'.";
+  }
+}
+static method expectShallowEqualMaps(core::Map<dynamic, dynamic> x, core::Map<dynamic, dynamic> y) → void {
+  core::bool equals = true;
+  #L2:
+  {
+    synthesized core::Iterator<dynamic> :sync-for-iterator = x.{core::Map::keys}{core::Iterable<dynamic>}.{core::Iterable::iterator}{core::Iterator<dynamic>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      dynamic key = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      {
+        if(!y.{core::Map::containsKey}(key){(core::Object?) → core::bool}) {
+          equals = false;
+          break #L2;
+        }
+        else {
+          if(!(x.{core::Map::[]}(key){(core::Object?) → dynamic} =={core::Object::==}{(core::Object) → core::bool} y.{core::Map::[]}(key){(core::Object?) → dynamic})) {
+            equals = false;
+            break #L2;
+          }
+        }
+      }
+    }
+  }
+  if(!x.{core::Map::keys}{core::Iterable<dynamic>}.{core::Iterable::toSet}(){() → core::Set<dynamic>}.{core::Set::containsAll}(y.{core::Map::keys}{core::Iterable<dynamic>}){(core::Iterable<core::Object?>) → core::bool}) {
+    equals = false;
+  }
+  if(!equals) {
+    throw "Expected the values to be equal, got '${x}' != '${y}'.";
+  }
+}
+
+constants  {
+  #C1 = #key
+  #C2 = #value
+}

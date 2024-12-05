@@ -4,11 +4,11 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -47,7 +47,8 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
       var parent = node.parent;
       if (parent is AssignmentExpression && parent.rightHandSide == node) {
         await _forAssignment(builder, node, parent);
-      } else if (parent is VariableDeclaration && parent.initializer == node) {
+      } else if (parent is VariableDeclarationImpl &&
+          parent.initializer == node) {
         await _forVariableDeclaration(builder, node, parent);
       }
     }
@@ -57,14 +58,14 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
   /// given [variable] that is located in the given [block] or in a surrounding
   /// block. Return `null` if the declaration can't be found.
   VariableDeclarationList? _findDeclaration(
-      LocalVariableElement variable, Block? block) {
+      LocalVariableElement2 variable, Block? block) {
     var currentBlock = block;
     while (currentBlock != null) {
       for (var statement in currentBlock.statements) {
         if (statement is VariableDeclarationStatement) {
           var variableList = statement.variables;
           for (var declaration in variableList.variables) {
-            if (declaration.declaredElement == variable) {
+            if (declaration.declaredElement2 == variable) {
               return variableList;
             }
           }
@@ -82,8 +83,8 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
       return;
     }
 
-    var element = leftHandSide.staticElement;
-    if (element is! LocalVariableElement) {
+    var element = leftHandSide.element;
+    if (element is! LocalVariableElement2) {
       return;
     }
 
@@ -200,7 +201,7 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
   }
 
   Future<void> _forVariableDeclaration(ChangeBuilder builder, Expression node,
-      VariableDeclaration parent) async {
+      VariableDeclarationImpl parent) async {
     var declarationList = parent.parent;
     if (declarationList is! VariableDeclarationList) {
       return;
@@ -209,7 +210,7 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
       return;
     }
 
-    var oldType = parent.declaredElement!.type;
+    var oldType = parent.type;
     if (oldType is! InterfaceTypeImpl && oldType is! RecordTypeImpl) {
       return;
     }

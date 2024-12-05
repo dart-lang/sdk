@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidSlowAsyncIoTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_slow_async_io';
+  String get lintRule => LintNames.avoid_slow_async_io;
 
   test_directory_exists() async {
     await assertDiagnostics(r'''

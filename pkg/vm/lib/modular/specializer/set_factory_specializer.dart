@@ -8,9 +8,10 @@ import 'package:kernel/core_types.dart';
 
 import 'factory_specializer.dart';
 
-/// Replaces invocation of Set factory constructors with
-/// factories of VM-specific classes.
-/// new LinkedHashSet<E>() => new _Set<E>()
+/// Replaces invocation of Set factory constructors with factories of
+/// VM-specific classes.
+///
+///     new LinkedHashSet<E>() => new _Set<E>()
 class SetFactorySpecializer extends BaseSpecializer {
   final Procedure _linkedHashSetDefaultFactory;
   final Constructor _internalLinkedHashSetConstructor;
@@ -25,7 +26,7 @@ class SetFactorySpecializer extends BaseSpecializer {
         ),
         _internalLinkedHashSetConstructor = assertNotNull(
           coreTypes.index.getConstructor(
-            'dart:collection',
+            'dart:_compact_hash',
             '_Set',
             '',
           ),

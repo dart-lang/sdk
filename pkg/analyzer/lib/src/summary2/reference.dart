@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:meta/meta.dart';
 
 /// Indirection between a name and the corresponding [Element].
@@ -36,6 +37,9 @@ class Reference {
 
   /// The corresponding [Element], or `null` if a named container.
   Element? element;
+
+  /// The corresponding [Element2], or `null` if a named container.
+  Element2? element2;
 
   /// Temporary index used during serialization and linking.
   int? index;
@@ -99,8 +103,6 @@ class Reference {
 
   /// Return the child with the given name, or `null` if does not exist.
   Reference? operator [](String name) {
-    name = _rewriteDartUi(name);
-
     var childrenUnion = _childrenUnion;
     if (childrenUnion == null) return null;
     if (childrenUnion is Reference) {
@@ -155,8 +157,6 @@ class Reference {
 
   /// Return the child with the given name, create if does not exist yet.
   Reference getChild(String name) {
-    name = _rewriteDartUi(name);
-
     var childrenUnion = _childrenUnion;
     if (childrenUnion == null) {
       // 0 -> 1 children.
@@ -174,9 +174,27 @@ class Reference {
         Reference._(this, name);
   }
 
-  Reference? removeChild(String name) {
-    name = _rewriteDartUi(name);
+  /// Returns children with the given name.
+  /// Usually returns zero or one child.
+  /// But in case of duplicates will return more than one.
+  List<Reference> getChildrenByName(String name) {
+    var result = this[name];
 
+    // No such child yet.
+    if (result == null) {
+      return const [];
+    }
+
+    // Maybe has the container with duplicates.
+    if (result[_defName] case var defContainer?) {
+      return defContainer.children.toList();
+    }
+
+    // Should be the only child with such name.
+    return [result];
+  }
+
+  Reference? removeChild(String name) {
     var childrenUnion = _childrenUnion;
     if (childrenUnion == null) return null;
     if (childrenUnion is Reference) {
@@ -214,15 +232,5 @@ class Reference {
       return;
     }
     (childrenUnion as Map<String, Reference>)[name] ??= child;
-  }
-
-  // TODO(scheglov): Remove it, once when the actual issue is fixed.
-  // https://buganizer.corp.google.com/issues/203423390
-  static String _rewriteDartUi(String name) {
-    const srcPrefix = 'dart:ui/src/ui/';
-    if (name.startsWith(srcPrefix)) {
-      return 'dart:ui/${name.substring(srcPrefix.length)}';
-    }
-    return name;
   }
 }

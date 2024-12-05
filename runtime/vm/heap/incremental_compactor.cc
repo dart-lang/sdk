@@ -99,37 +99,19 @@ struct PrologueState {
   intptr_t freelist_limit;
 };
 
-class PrologueTask : public ThreadPool::Task {
+class PrologueTask : public SafepointTask {
  public:
   PrologueTask(ThreadBarrier* barrier,
                IsolateGroup* isolate_group,
                PageSpace* old_space,
                PrologueState* state)
-      : barrier_(barrier),
-        isolate_group_(isolate_group),
+      : SafepointTask(isolate_group,
+                      barrier,
+                      Thread::kIncrementalCompactorTask),
         old_space_(old_space),
         state_(state) {}
 
-  void Run() {
-    if (!barrier_->TryEnter()) {
-      barrier_->Release();
-      return;
-    }
-
-    bool result = Thread::EnterIsolateGroupAsHelper(
-        isolate_group_, Thread::kIncrementalCompactorTask,
-        /*bypass_safepoint=*/true);
-    ASSERT(result);
-
-    RunEnteredIsolateGroup();
-
-    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
-
-    barrier_->Sync();
-    barrier_->Release();
-  }
-
-  void RunEnteredIsolateGroup() {
+  void RunEnteredIsolateGroup() override {
     MarkEvacuationCandidates();
     PruneFreeLists();
   }
@@ -186,8 +168,6 @@ class PrologueTask : public ThreadPool::Task {
   }
 
  private:
-  ThreadBarrier* barrier_;
-  IsolateGroup* isolate_group_;
   PageSpace* old_space_;
   PrologueState* state_;
 
@@ -252,24 +232,16 @@ bool GCIncrementalCompactor::SelectEvacuationCandidates(PageSpace* old_space) {
 
   old_space->ReleaseBumpAllocation();
 
-  const intptr_t num_tasks = Utils::Maximum(1, FLAG_scavenger_tasks);
-  RELEASE_ASSERT(num_tasks > 0);
-  ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
   IsolateGroup* isolate_group = IsolateGroup::Current();
+  const intptr_t num_tasks =
+      isolate_group->heap()->new_space()->NumScavengeWorkers();
+  RELEASE_ASSERT(num_tasks > 0);
+  ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/1);
+  IntrusiveDList<SafepointTask> tasks;
   for (intptr_t i = 0; i < num_tasks; i++) {
-    if (i < (num_tasks - 1)) {
-      // Begin compacting on a helper thread.
-      bool result = Dart::thread_pool()->Run<PrologueTask>(
-          barrier, isolate_group, old_space, &state);
-      ASSERT(result);
-    } else {
-      // Last worker is the main thread.
-      PrologueTask task(barrier, isolate_group, old_space, &state);
-      task.RunEnteredIsolateGroup();
-      barrier->Sync();
-      barrier->Release();
-    }
+    tasks.Append(new PrologueTask(barrier, isolate_group, old_space, &state));
   }
+  isolate_group->safepoint_handler()->RunTasks(&tasks);
 
   for (intptr_t i = PageSpace::kDataFreelist, n = old_space->num_freelists_;
        i < n; i++) {
@@ -480,8 +452,7 @@ class IncrementalForwardingVisitor : public ObjectPointerVisitor,
     const intptr_t length = typed_data_views_.length();
     for (intptr_t i = 0; i < length; ++i) {
       auto raw_view = typed_data_views_[i];
-      const classid_t cid =
-          raw_view->untag()->typed_data()->GetClassIdMayBeSmi();
+      const classid_t cid = raw_view->untag()->typed_data()->GetClassId();
       // If we have external typed data we can simply return, since the backing
       // store lives in C-heap and will not move. Otherwise we have to update
       // the inner pointer.
@@ -627,34 +598,21 @@ class EpilogueState {
   RelaxedAtomic<intptr_t> new_free_size_ = {0};
 };
 
-class EpilogueTask : public ThreadPool::Task {
+class EpilogueTask : public SafepointTask {
  public:
   EpilogueTask(ThreadBarrier* barrier,
                IsolateGroup* isolate_group,
                PageSpace* old_space,
                FreeList* freelist,
                EpilogueState* state)
-      : barrier_(barrier),
-        isolate_group_(isolate_group),
+      : SafepointTask(isolate_group,
+                      barrier,
+                      Thread::kIncrementalCompactorTask),
         old_space_(old_space),
         freelist_(freelist),
         state_(state) {}
 
-  void Run() {
-    bool result = Thread::EnterIsolateGroupAsHelper(
-        isolate_group_, Thread::kIncrementalCompactorTask,
-        /*bypass_safepoint=*/true);
-    ASSERT(result);
-
-    RunEnteredIsolateGroup();
-
-    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
-
-    barrier_->Sync();
-    barrier_->Release();
-  }
-
-  void RunEnteredIsolateGroup() {
+  void RunEnteredIsolateGroup() override {
     Thread* thread = Thread::Current();
 
     Evacuate();
@@ -681,9 +639,8 @@ class EpilogueTask : public ThreadPool::Task {
       TIMELINE_FUNCTION_GC_DURATION(thread, "IdRing");
       isolate_group_->ForEachIsolate(
           [&](Isolate* isolate) {
-            ObjectIdRing* ring = isolate->object_id_ring();
-            if (ring != nullptr) {
-              ring->VisitPointers(&visitor);
+            for (intptr_t i = 0; i < isolate->NumServiceIdZones(); ++i) {
+              isolate->GetServiceIdZone(i)->VisitPointers(visitor);
             }
           },
           /*at_safepoint=*/true);
@@ -754,7 +711,7 @@ class EpilogueTask : public ThreadPool::Task {
             ObjectPtr copied_obj = UntaggedObject::FromAddr(copied);
 
             copied_obj->untag()->ClearIsEvacuationCandidateUnsynchronized();
-            if (IsTypedDataClassId(copied_obj->GetClassId())) {
+            if (IsTypedDataClassId(copied_obj->GetClassIdOfHeapObject())) {
               static_cast<TypedDataPtr>(copied_obj)
                   ->untag()
                   ->RecomputeDataField();
@@ -863,8 +820,6 @@ class EpilogueTask : public ThreadPool::Task {
   }
 
  private:
-  ThreadBarrier* barrier_;
-  IsolateGroup* isolate_group_;
   PageSpace* old_space_;
   FreeList* freelist_;
   EpilogueState* state_;
@@ -877,26 +832,18 @@ void GCIncrementalCompactor::Evacuate(PageSpace* old_space) {
       old_space->pages_, isolate_group->store_buffer()->PopAll(),
       old_space->heap_->new_space()->head(), &old_space->pages_lock_);
 
-  // This must use FLAG_scavenger_tasks because that determines the number of
+  // This must use NumScavengeWorkers because that determines the number of
   // freelists available for workers.
-  const intptr_t num_tasks = Utils::Maximum(1, FLAG_scavenger_tasks);
+  const intptr_t num_tasks =
+      isolate_group->heap()->new_space()->NumScavengeWorkers();
   RELEASE_ASSERT(num_tasks > 0);
-  ThreadBarrier* barrier = new ThreadBarrier(num_tasks, num_tasks);
+  ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/1);
+  IntrusiveDList<SafepointTask> tasks;
   for (intptr_t i = 0; i < num_tasks; i++) {
-    // Begin compacting on a helper thread.
-    FreeList* freelist = old_space->DataFreeList(i);
-    if (i < (num_tasks - 1)) {
-      bool result = Dart::thread_pool()->Run<EpilogueTask>(
-          barrier, isolate_group, old_space, freelist, &state);
-      ASSERT(result);
-    } else {
-      // Last worker is the main thread.
-      EpilogueTask task(barrier, isolate_group, old_space, freelist, &state);
-      task.RunEnteredIsolateGroup();
-      barrier->Sync();
-      barrier->Release();
-    }
+    tasks.Append(new EpilogueTask(barrier, isolate_group, old_space,
+                                  old_space->DataFreeList(i), &state));
   }
+  isolate_group->safepoint_handler()->RunTasks(&tasks);
 
   old_space->heap_->new_space()->set_freed_in_words(state.NewFreeSize() >>
                                                     kWordSizeLog2);

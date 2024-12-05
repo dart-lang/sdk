@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart' show InterfaceElement;
+import 'package:analyzer/dart/element/element2.dart' hide ElementKind;
 import 'package:analyzer/dart/element/type.dart';
 
 /// A description of an element.
@@ -139,9 +139,9 @@ class ElementDescriptor {
         } else {
           var type = target.staticType;
           if (type == null && target is SimpleIdentifier) {
-            var element = target.staticElement;
+            var element = target.element;
             // TODO(brianwilkerson): Handle more than `InterfaceElement`.
-            if (element is InterfaceElement) {
+            if (element is InterfaceElement2) {
               type = element.thisType;
             }
           }
@@ -151,11 +151,11 @@ class ElementDescriptor {
             return true;
           }
           if (type is InterfaceType) {
-            if (components[1] == type.element.name) {
+            if (components[1] == type.element3.name) {
               return true;
             }
             for (var supertype in type.allSupertypes) {
-              if (components[1] == supertype.element.name) {
+              if (components[1] == supertype.element3.name) {
                 return true;
               }
             }

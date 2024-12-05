@@ -49,7 +49,7 @@ void testUnreachableCase(Object x) {
       y = true;
     case int _:
 //  ^^^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       y = null;
   }
   y.expectStaticType<Exactly<bool>>();

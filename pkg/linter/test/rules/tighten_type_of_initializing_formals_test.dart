@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class TightenTypeOfInitializingFormalsTest extends LintRuleTest {
   @override
-  String get lintRule => 'tighten_type_of_initializing_formals';
+  String get lintRule => LintNames.tighten_type_of_initializing_formals;
 
   test_superInit() async {
     await assertDiagnostics(r'''
@@ -93,8 +93,8 @@ class A {
 }
 ''', [
       // No lint
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 53, 7),
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 93, 7),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 53, 7),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 93, 7),
     ]);
   }
 }

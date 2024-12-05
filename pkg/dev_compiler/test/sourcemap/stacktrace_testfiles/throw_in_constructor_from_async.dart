@@ -7,9 +7,9 @@ void main() {
   /*1:main*/ test();
 }
 
-void test /*2:test*/ () async {
+void /*2:test*/ test() async {
   // ignore: UNUSED_LOCAL_VARIABLE
-  var c = /*3:test*/ Class();
+  var /*3*/ c = Class();
 }
 
 class Class {

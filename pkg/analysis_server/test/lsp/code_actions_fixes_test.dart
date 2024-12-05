@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
@@ -24,14 +25,21 @@ void main() {
 
 /// A version of `camel_case_types` that is deprecated.
 class DeprecatedCamelCaseTypes extends LintRule {
+  static const LintCode code = LintCode('camel_case_types',
+      "The type name '{0}' isn't an UpperCamelCase identifier.",
+      correctionMessage:
+          'Try changing the name to follow the UpperCamelCase style.',
+      hasPublishedDocs: true);
+
   DeprecatedCamelCaseTypes()
       : super(
           name: 'camel_case_types',
-          categories: {Category.style},
           state: State.deprecated(),
           description: '',
-          details: '',
         );
+
+  @override
+  LintCode get lintCode => code;
 }
 
 @reflectiveTest
@@ -142,10 +150,7 @@ MyCla^ss? a;
 
     expect(
       codeActionTitles,
-      containsAllInOrder([
-        "Import library 'package:test/class.dart'",
-        "Import library 'class.dart'",
-      ]),
+      containsAllInOrder(["Import library 'package:test/class.dart'"]),
     );
   }
 
@@ -171,10 +176,7 @@ MyCla^ss? a;
 
     expect(
       codeActionTitles,
-      containsAllInOrder([
-        "Import library 'class.dart'",
-        "Import library 'package:test/class.dart'",
-      ]),
+      containsAllInOrder(["Import library 'class.dart'"]),
     );
   }
 
@@ -784,7 +786,7 @@ class A {
   void a() => c((cell) => cell.south);
   void b() => c((cell) => cell.west);
 
-  ${1:c}(${2:Function(dynamic cell)} ${3:param0}) {}
+  ${1:void} ${2:c}(${3:Function(dynamic cell)} ${4:param0}) {}
 }
 ''';
 

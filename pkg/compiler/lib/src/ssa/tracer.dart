@@ -781,4 +781,22 @@ class HInstructionStringifier implements HVisitor<String> {
     var inputs = node.inputs.map(temporaryId).join(', ');
     return "TypeBind: $inputs";
   }
+
+  @override
+  String visitArrayFlagsCheck(HArrayFlagsCheck node) {
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "ArrayFlagsCheck: $inputs";
+  }
+
+  @override
+  String visitArrayFlagsGet(HArrayFlagsGet node) {
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "ArrayFlagsGet: $inputs";
+  }
+
+  @override
+  String visitArrayFlagsSet(HArrayFlagsSet node) {
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "ArrayFlagsSet: $inputs";
+  }
 }

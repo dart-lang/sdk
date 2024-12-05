@@ -7,13 +7,17 @@ import 'builder.dart';
 import 'util.dart';
 
 class MemoriesBuilder with Builder<ir.Memories> {
+  final ModuleBuilder _module;
+
+  MemoriesBuilder(this._module);
+
   final _definedMemories = <ir.DefinedMemory>[];
   final _importedMemories = <ir.ImportedMemory>[];
 
   /// Add a new memory to the module.
   ir.DefinedMemory define(bool shared, int minSize, [int? maxSize]) {
-    final memory =
-        ir.DefinedMemory(ir.FinalizableIndex(), shared, minSize, maxSize);
+    final memory = ir.DefinedMemory(
+        _module, ir.FinalizableIndex(), shared, minSize, maxSize);
     _definedMemories.add(memory);
     return memory;
   }
@@ -22,7 +26,7 @@ class MemoriesBuilder with Builder<ir.Memories> {
   ir.ImportedMemory import(String module, String name, bool shared, int minSize,
       [int? maxSize]) {
     final memory = ir.ImportedMemory(
-        module, name, ir.FinalizableIndex(), shared, minSize, maxSize);
+        _module, module, name, ir.FinalizableIndex(), shared, minSize, maxSize);
     _importedMemories.add(memory);
     return memory;
   }

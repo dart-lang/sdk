@@ -463,7 +463,7 @@ static const NativeType* CompoundFromPragma(Zone* zone,
   const auto& packed_value = Integer::Handle(
       zone, Integer::RawCast(struct_layout.GetField(packed_field)));
   const intptr_t member_packing =
-      packed_value.IsNull() ? kMaxInt32 : packed_value.AsInt64Value();
+      packed_value.IsNull() ? kMaxInt32 : packed_value.Value();
 
   auto& field_instance = Instance::Handle(zone);
   auto& field_type = AbstractType::Handle(zone);
@@ -506,7 +506,7 @@ static const NativeType* CompoundFromPragma(Zone* zone,
         return nullptr;
       }
       const auto field_native_type =
-          new (zone) NativeArrayType(*element_type, length.AsInt64Value());
+          new (zone) NativeArrayType(*element_type, length.Value());
       field_native_types.Add(field_native_type);
     }
   }

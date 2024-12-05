@@ -198,7 +198,11 @@ class Selector {
   bool get isGetter => kind == SelectorKind.GETTER;
   bool get isSetter => kind == SelectorKind.SETTER;
   bool get isCall => kind == SelectorKind.CALL;
-  bool get isClosureCall => isCall && memberName == Names.CALL_NAME;
+
+  /// Whether this selector might be invoking a closure. In some cases this
+  /// selector is used to invoke a getter named 'call' and then invoke it. This
+  /// can have different semantics than invoking a 'call' method.
+  bool get isMaybeClosureCall => isCall && memberName == Names.CALL_NAME;
 
   bool get isIndex => kind == SelectorKind.INDEX && argumentCount == 1;
   bool get isIndexSet => kind == SelectorKind.INDEX && argumentCount == 2;

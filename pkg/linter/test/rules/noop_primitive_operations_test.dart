@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class NoopPrimitiveOperationsTest extends LintRuleTest {
   @override
-  String get lintRule => 'noop_primitive_operations';
+  String get lintRule => LintNames.noop_primitive_operations;
 
   test_double_toDouble() async {
     await assertDiagnostics(r'''

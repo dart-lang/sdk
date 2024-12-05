@@ -74,9 +74,6 @@ static uint32_t CollisionHash2(uint32_t key) {
 static uint32_t CollisionHash3(uint32_t key) {
   return kInitialSize - 2;
 }
-static uint32_t CollisionHash4(uint32_t key) {
-  return kInitialSize - 2;
-}
 
 void TestSet(IntKeyHash hash, int size) {
   IntSet set(hash);
@@ -174,7 +171,6 @@ VM_UNIT_TEST_CASE(SimpleHashMap_Basic) {
   TestSet(CollisionHash1, 50);
   TestSet(CollisionHash2, 50);
   TestSet(CollisionHash3, 50);
-  TestSet(CollisionHash4, 50);
 }
 
 }  // namespace dart

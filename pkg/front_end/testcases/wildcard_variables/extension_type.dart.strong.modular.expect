@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type Id(core::int _) {
+  abstract extension-type-member representation-field get _() → core::int;
+  operator < = self::Id|<;
+  constructor • = self::Id|constructor#;
+  constructor tearoff • = self::Id|constructor#_#new#tearOff;
+}
+static extension-type-member method Id|constructor#(core::int _) → self::Id% /* erasure=core::int, declared=! */ {
+  lowered final self::Id% /* erasure=core::int, declared=! */ #this = _;
+  return #this;
+}
+static extension-type-member method Id|constructor#_#new#tearOff(core::int _) → self::Id% /* erasure=core::int, declared=! */
+  return self::Id|constructor#(_);
+static extension-type-member method Id|<(lowered final self::Id% /* erasure=core::int, declared=! */ #this, self::Id% /* erasure=core::int, declared=! */ other) → dynamic
+  return (#this as{Unchecked} core::int).{core::num::<}(other as{Unchecked} core::int){(core::num) → core::bool};

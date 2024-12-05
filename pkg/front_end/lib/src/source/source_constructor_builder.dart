@@ -9,7 +9,7 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/constant_context.dart' show ConstantContext;
-import '../base/identifiers.dart';
+import '../base/local_scope.dart';
 import '../base/messages.dart'
     show
         LocatedMessage,
@@ -44,7 +44,6 @@ import '../kernel/kernel_helper.dart'
         finishProcedureAugmentation;
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart';
-import '../util/helpers.dart' show DelayedActionPerformer;
 import 'constructor_declaration.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
@@ -53,7 +52,8 @@ import 'source_extension_type_declaration_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
-import 'source_loader.dart' show SourceLoader;
+import 'source_loader.dart'
+    show CompilationPhaseForProblemReporting, SourceLoader;
 import 'source_member_builder.dart';
 
 abstract class SourceConstructorBuilder
@@ -79,6 +79,12 @@ abstract class AbstractSourceConstructorBuilder
     extends SourceFunctionBuilderImpl
     implements SourceConstructorBuilder, Inferable, ConstructorDeclaration {
   @override
+  final SourceLibraryBuilder libraryBuilder;
+
+  @override
+  final DeclarationBuilder declarationBuilder;
+
+  @override
   final OmittedTypeBuilder returnType;
 
   final int charOpenParenOffset;
@@ -94,12 +100,15 @@ abstract class AbstractSourceConstructorBuilder
       String name,
       List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
-      SourceLibraryBuilder compilationUnit,
+      this.libraryBuilder,
+      this.declarationBuilder,
+      Uri fileUri,
       int charOffset,
       this.charOpenParenOffset,
-      String? nativeMethodName)
+      String? nativeMethodName,
+      this.beginInitializers)
       : super(metadata, modifiers, name, typeVariables, formals,
-            compilationUnit, charOffset, nativeMethodName) {
+            declarationBuilder, fileUri, charOffset, nativeMethodName) {
     if (formals != null) {
       for (FormalParameterBuilder formal in formals) {
         if (formal.isInitializingFormal || formal.isSuperInitializingFormal) {
@@ -108,9 +117,6 @@ abstract class AbstractSourceConstructorBuilder
       }
     }
   }
-
-  @override
-  DeclarationBuilder get declarationBuilder => super.declarationBuilder!;
 
   @override
   bool get isConstructor => true;
@@ -300,11 +306,9 @@ abstract class AbstractSourceConstructorBuilder
   }
 
   void _buildConstructorForOutline(
-      Token? beginInitializers,
-      List<DelayedActionPerformer> delayedActionPerformers,
-      Scope declarationScope) {
+      Token? beginInitializers, LookupScope declarationScope) {
     if (beginInitializers != null) {
-      final Scope? formalParameterScope;
+      final LocalScope? formalParameterScope;
       if (isConst) {
         // We're going to fully build the constructor so we need scopes.
         formalParameterScope = computeFormalParameterInitializerScope(
@@ -326,11 +330,10 @@ abstract class AbstractSourceConstructorBuilder
       if (isConst) {
         bodyBuilder.constantContext = ConstantContext.required;
       }
+      inferFormalTypes(bodyBuilder.hierarchy);
       bodyBuilder.parseInitializers(beginInitializers,
           doFinishConstructor: isConst);
-      bodyBuilder.performBacklogComputations(
-          delayedActionPerformers: delayedActionPerformers,
-          allowFurtherDelays: false);
+      bodyBuilder.performBacklogComputations();
     }
   }
 
@@ -396,7 +399,7 @@ class DeclaredSourceConstructorBuilder
 
   @override
   String get fullNameForErrors {
-    return "${flattenName(declarationBuilder.name, charOffset, fileUri)}"
+    return "${declarationBuilder.name}"
         "${name.isEmpty ? '' : '.$name'}";
   }
 
@@ -407,7 +410,9 @@ class DeclaredSourceConstructorBuilder
       String name,
       List<NominalVariableBuilder>? typeVariables,
       this.formals,
-      SourceLibraryBuilder compilationUnit,
+      SourceLibraryBuilder libraryBuilder,
+      DeclarationBuilder declarationBuilder,
+      Uri fileUri,
       int startCharOffset,
       int charOffset,
       int charOpenParenOffset,
@@ -417,6 +422,7 @@ class DeclaredSourceConstructorBuilder
       NameScheme nameScheme,
       {String? nativeMethodName,
       required bool forAbstractClassOrEnumOrMixin,
+      required Token? beginInitializers,
       bool isSynthetic = false})
       : _hasSuperInitializingFormals =
             formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
@@ -428,13 +434,16 @@ class DeclaredSourceConstructorBuilder
             name,
             typeVariables,
             formals,
-            compilationUnit,
+            libraryBuilder,
+            declarationBuilder,
+            fileUri,
             charOffset,
             charOpenParenOffset,
-            nativeMethodName) {
+            nativeMethodName,
+            beginInitializers) {
     _constructor = new Constructor(new FunctionNode(null),
         name: dummyName,
-        fileUri: compilationUnit.fileUri,
+        fileUri: fileUri,
         reference: constructorReference,
         isSynthetic: isSynthetic)
       ..startFileOffset = startCharOffset
@@ -445,8 +454,8 @@ class DeclaredSourceConstructorBuilder
         .attachMember(_constructor);
     _constructorTearOff = createConstructorTearOffProcedure(
         nameScheme.getConstructorMemberName(name, isTearOff: true),
-        compilationUnit,
-        compilationUnit.fileUri,
+        libraryBuilder,
+        fileUri,
         charOffset,
         tearOffReference,
         forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin);
@@ -588,24 +597,15 @@ class DeclaredSourceConstructorBuilder
     ClassBuilder superclassBuilder;
 
     TypeBuilder? supertype = classBuilder.supertypeBuilder;
-    if (supertype is NamedTypeBuilder) {
-      TypeDeclarationBuilder? declaration = supertype.declaration;
-      if (declaration is ClassBuilder) {
-        superclassBuilder = declaration;
-      } else if (declaration is TypeAliasBuilder) {
-        declaration = declaration.unaliasDeclaration(supertype.typeArguments);
-        if (declaration is ClassBuilder) {
-          superclassBuilder = declaration;
-        } else {
-          // The error in this case should be reported elsewhere.
-          return null;
-        }
-      } else {
-        // The error in this case should be reported elsewhere.
-        return null;
-      }
+    TypeDeclarationBuilder? supertypeDeclaration =
+        supertype?.computeUnaliasedDeclaration(isUsedAsClass: false);
+    if (supertypeDeclaration is ClassBuilder) {
+      superclassBuilder = supertypeDeclaration;
     } else {
-      // The error in this case should be reported elsewhere.
+      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+          "DeclaredSourceConstructorBuilder._computeSuperTargetBuilder: "
+          "Unaliased 'declaration' isn't a ClassBuilder.",
+          expectedPhase: CompilationPhaseForProblemReporting.outline));
       return null;
     }
 
@@ -619,7 +619,10 @@ class DeclaredSourceConstructorBuilder
       if (memberBuilder is ConstructorBuilder) {
         superTarget = memberBuilder.invokeTarget;
       } else {
-        // The error in this case should be reported elsewhere.
+        assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+            "DeclaredSourceConstructorBuilder._computeSuperTargetBuilder: "
+            "Can't find the implied unnamed constructor in the superclass.",
+            expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding));
         return null;
       }
     }
@@ -627,7 +630,17 @@ class DeclaredSourceConstructorBuilder
     MemberBuilder? constructorBuilder =
         superclassBuilder.findConstructorOrFactory(superTarget.name.text,
             charOffset, libraryBuilder.fileUri, libraryBuilder);
-    return constructorBuilder is ConstructorBuilder ? constructorBuilder : null;
+    if (constructorBuilder is ConstructorBuilder) {
+      return constructorBuilder;
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+          "DeclaredSourceConstructorBuilder._computeSuperTargetBuilder: "
+          "Can't find a constructor with name '${superTarget.name.text}' in "
+          "the superclass.",
+          expectedPhase: CompilationPhaseForProblemReporting.outline));
+      return null;
+    }
   }
 
   final bool _hasSuperInitializingFormals;
@@ -691,8 +704,11 @@ class DeclaredSourceConstructorBuilder
       superTarget = superTargetBuilder.invokeTarget;
       superConstructorFunction = superTargetBuilder.function;
     } else {
-      // The error in this case should be reported elsewhere. Here we perform a
-      // simple recovery.
+      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+          "DeclaredSourceConstructorBuilder.finalizeSuperInitializingFormals: "
+          "Can't compute super target.",
+          expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding));
+      // Perform a simple recovery.
       return performRecoveryForErroneousCase();
     }
 
@@ -752,7 +768,13 @@ class DeclaredSourceConstructorBuilder
               (positionalSuperParameters ??= <int?>[]).add(null);
             }
           } else {
-            // The error is reported elsewhere.
+            assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+                "DeclaredSourceConstructorBuilder"
+                ".finalizeSuperInitializingFormals: "
+                "Super initializer count is greater than the count of "
+                "positional formals in the super constructor.",
+                expectedPhase:
+                    CompilationPhaseForProblemReporting.bodyBuilding));
           }
         } else {
           if (namedSuperFormalHasInitializer[formal.name] != null) {
@@ -809,24 +831,20 @@ class DeclaredSourceConstructorBuilder
   bool _hasBuiltOutlines = false;
 
   @override
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
     if (isConst && isAugmenting) {
       origin.buildOutlineExpressions(
-          classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
+          classHierarchy, delayedDefaultValueCloners);
     }
-    super.buildOutlineExpressions(
-        classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
+    super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
 
     // For modular compilation purposes we need to include initializers
     // for const constructors into the outline. We also need to parse
     // initializers to infer types of the super-initializing parameters.
     if (isConst || _hasSuperInitializingFormals) {
-      _buildConstructorForOutline(
-          beginInitializers, delayedActionPerformers, classBuilder.scope);
+      _buildConstructorForOutline(beginInitializers, classBuilder.scope);
     }
     addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
     if (isConst && isAugmenting) {
@@ -839,11 +857,25 @@ class DeclaredSourceConstructorBuilder
   @override
   void addSuperParameterDefaultValueCloners(
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    ConstructorBuilder? superTargetBuilder =
-        _computeSuperTargetBuilder(constructor.initializers);
-    if (superTargetBuilder is SourceConstructorBuilder) {
-      superTargetBuilder
-          .addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
+    if (beginInitializers != null && constructor.initializers.isNotEmpty) {
+      // If the initializers aren't built yet, we can't compute the super
+      // target. The synthetic initializers should be excluded, since they can
+      // be built separately from formal field initializers.
+      bool allInitializersAreSynthetic = true;
+      for (Initializer initializer in constructor.initializers) {
+        if (!initializer.isSynthetic) {
+          allInitializersAreSynthetic = false;
+          break;
+        }
+      }
+      if (!allInitializersAreSynthetic) {
+        ConstructorBuilder? superTargetBuilder =
+            _computeSuperTargetBuilder(constructor.initializers);
+        if (superTargetBuilder is SourceConstructorBuilder) {
+          superTargetBuilder
+              .addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
+        }
+      }
     }
 
     delayedDefaultValueCloners.addAll(_delayedDefaultValueCloners);
@@ -1057,9 +1089,7 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
   }
 
   @override
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_immediatelyDefiningConstructor != null) {
       // Ensure that default value expressions have been created for [_origin].
@@ -1067,8 +1097,8 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
       // values and initializers first.
       MemberBuilder origin = _immediatelyDefiningConstructor!;
       if (origin is SourceConstructorBuilder) {
-        origin.buildOutlineExpressions(classHierarchy, delayedActionPerformers,
-            delayedDefaultValueCloners);
+        origin.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
       }
       addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
       _immediatelyDefiningConstructor = null;
@@ -1128,7 +1158,9 @@ class SourceExtensionTypeConstructorBuilder
       String name,
       List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
-      SourceLibraryBuilder compilationUnit,
+      SourceLibraryBuilder libraryBuilder,
+      SourceExtensionTypeDeclarationBuilder declarationBuilder,
+      Uri fileUri,
       int startCharOffset,
       int charOffset,
       int charOpenParenOffset,
@@ -1137,7 +1169,8 @@ class SourceExtensionTypeConstructorBuilder
       Reference? tearOffReference,
       NameScheme nameScheme,
       {String? nativeMethodName,
-      required bool forAbstractClassOrEnumOrMixin})
+      required bool forAbstractClassOrEnumOrMixin,
+      required Token? beginInitializers})
       : _memberName = nameScheme.getDeclaredName(name),
         super(
             metadata,
@@ -1146,13 +1179,16 @@ class SourceExtensionTypeConstructorBuilder
             name,
             typeVariables,
             formals,
-            compilationUnit,
+            libraryBuilder,
+            declarationBuilder,
+            fileUri,
             charOffset,
             charOpenParenOffset,
-            nativeMethodName) {
+            nativeMethodName,
+            beginInitializers) {
     _constructor = new Procedure(
         dummyName, ProcedureKind.Method, new FunctionNode(null),
-        fileUri: compilationUnit.fileUri, reference: constructorReference)
+        fileUri: fileUri, reference: constructorReference)
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset;
     nameScheme
@@ -1160,8 +1196,8 @@ class SourceExtensionTypeConstructorBuilder
         .attachMember(_constructor);
     _constructorTearOff = createConstructorTearOffProcedure(
         nameScheme.getConstructorMemberName(name, isTearOff: true),
-        compilationUnit,
-        compilationUnit.fileUri,
+        libraryBuilder,
+        fileUri,
         charOffset,
         tearOffReference,
         forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
@@ -1218,20 +1254,16 @@ class SourceExtensionTypeConstructorBuilder
   }
 
   @override
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    super.buildOutlineExpressions(
-        classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
+    super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
 
     if (isConst) {
       // For modular compilation purposes we need to include initializers
       // for const constructors into the outline.
-      Scope typeParameterScope =
+      LookupScope typeParameterScope =
           computeTypeParameterScope(extensionTypeDeclarationBuilder.scope);
-      _buildConstructorForOutline(
-          beginInitializers, delayedActionPerformers, typeParameterScope);
+      _buildConstructorForOutline(beginInitializers, typeParameterScope);
       _buildBody();
     }
     beginInitializers = null;
@@ -1450,7 +1482,6 @@ class ExtensionTypeInitializerToStatementConverter
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void visitAssertInitializer(AssertInitializer node) {
     statements.add(node.statement);
   }

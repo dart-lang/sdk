@@ -16,7 +16,7 @@ main() {
 class ThisExpressionResolutionTest extends PubPackageResolutionTest {
   test_class_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   void f() {
@@ -26,7 +26,7 @@ augment class A {
 ''');
 
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 ''');
@@ -40,13 +40,14 @@ class A {}
 ThisExpression
   thisKeyword: this
   staticType: A
-    element: self::@class::A
+    element: <testLibraryFragment>::@class::A
+    element: <testLibraryFragment>::@class::A#element
 ''');
   }
 
   test_mixin_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment mixin M {
   void f() {
@@ -56,7 +57,7 @@ augment mixin M {
 ''');
 
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 mixin M {}
 ''');
@@ -71,7 +72,8 @@ mixin M {}
 ThisExpression
   thisKeyword: this
   staticType: M
-    element: self::@mixin::M
+    element: <testLibraryFragment>::@mixin::M
+    element: <testLibraryFragment>::@mixin::M#element
 ''');
   }
 }

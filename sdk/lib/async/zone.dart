@@ -154,20 +154,37 @@ typedef RegisterBinaryCallbackHandler
 
 /// The type of a custom [Zone.errorCallback] implementation function.
 ///
-/// Receives the [Zone] that the handler was registered on as [self],
-/// a delegate forwarding to the handlers of [self]'s parent zone as [parent],
-/// and the current zone where the error was uncaught as [zone],
-/// which will have [self] as a parent zone.
-///
 /// The [error] and [stackTrace] are the error and stack trace
 /// passed to [Zone.errorCallback] of [zone].
 ///
-/// The function should return either `null` if it doesn't want
-/// to replace the original error and stack trace,
-/// or an [AsyncError] containing a replacement error and stack trace
-/// which will be used to replace the originals.
+/// The function will be called when a synchronous error becomes an
+/// asynchronous error, either by being caught, for example by a `Future.then`
+/// callback throwing, or when used to create an asynchronous error
+/// programmatically, for example using `Future.error` or `Completer.complete`.
 ///
-/// The error callback handler must not throw.
+/// If the function does not want to replace the error or stack trace,
+/// it should just return `parent.errorCallback(zone, error, stackTrace)`,
+/// giving the parent zone the chance to intercept.
+///
+/// If the function does want to replace the error and/or stack trace,
+/// say with `error2` and `stackTrace2`, it should still allow the
+/// parent zone to intercept those errors, for examples as:
+/// ```dart
+///   return parent.errorCallback(zone, error, stackTrace) ??
+///       AsyncError(error, stackTrace);
+/// ```
+///
+/// The function returns either `null` if the original error and stack trace
+/// is unchanged, avoiding any allocation in the most common case,
+/// or an [AsyncError] containing a replacement error and stack trace
+/// which will be used in place of the originals as the asynchronous error.
+///
+/// The [self] [Zone] is the zone the handler was registered on,
+/// the [parent] delegate forwards to the handlers of [self]'s parent zone,
+/// and [zone] is the current zone where the error was uncaught,
+/// which will have [self] as an ancestor zone.
+///
+/// The error callback handler **must not** throw.
 ///
 /// The function must only access zone-related functionality through
 /// [self], [parent] or [zone].
@@ -989,7 +1006,6 @@ base class _ZoneDelegate implements ZoneDelegate {
   }
 
   AsyncError? errorCallback(Zone zone, Object error, StackTrace? stackTrace) {
-    checkNotNullable(error, "error");
     var implementation = _delegationTarget._errorCallback;
     _Zone implZone = implementation.zone;
     if (identical(implZone, _rootZone)) return null;
@@ -1338,7 +1354,6 @@ base class _CustomZone extends _Zone {
   }
 
   AsyncError? errorCallback(Object error, StackTrace? stackTrace) {
-    checkNotNullable(error, "error");
     var implementation = this._errorCallback;
     final _Zone implementationZone = implementation.zone;
     if (identical(implementationZone, _rootZone)) return null;
@@ -1745,7 +1760,6 @@ R runZoned<R>(R body(),
     {Map<Object?, Object?>? zoneValues,
     ZoneSpecification? zoneSpecification,
     @Deprecated("Use runZonedGuarded instead") Function? onError}) {
-  checkNotNullable(body, "body");
   if (onError != null) {
     // TODO: Remove this when code have been migrated off using [onError].
     if (onError is! void Function(Object, StackTrace)) {
@@ -1789,8 +1803,6 @@ R runZoned<R>(R body(),
 @Since("2.8")
 R? runZonedGuarded<R>(R body(), void onError(Object error, StackTrace stack),
     {Map<Object?, Object?>? zoneValues, ZoneSpecification? zoneSpecification}) {
-  checkNotNullable(body, "body");
-  checkNotNullable(onError, "onError");
   _Zone parentZone = Zone._current;
   HandleUncaughtErrorHandler errorHandler = (Zone self, ZoneDelegate parent,
       Zone zone, Object error, StackTrace stackTrace) {

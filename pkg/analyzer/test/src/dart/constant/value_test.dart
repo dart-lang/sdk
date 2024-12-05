@@ -1060,11 +1060,35 @@ class DartObjectImplTest {
     _assertIdentical(_boolValue(null), _stringValue(null), _stringValue("def"));
   }
 
+  void test_identical_Type_functionType() {
+    var toStringType = _typeProvider.intType.methods
+        .firstWhere((e) => e.name == 'toString')
+        .type;
+
+    _assertIdentical(
+      _boolValue(true),
+      _typeValue(toStringType),
+      _typeValue(toStringType),
+    );
+
+    _assertIdentical(
+      _boolValue(false),
+      _typeValue(toStringType),
+      _typeValue(_typeSystem.makeNullable(toStringType)),
+    );
+  }
+
   void test_identical_Type_interfaceType() {
     _assertIdentical(
       _boolValue(true),
       _typeValue(_typeProvider.intType),
       _typeValue(_typeProvider.intType),
+    );
+
+    _assertIdentical(
+      _boolValue(false),
+      _typeValue(_typeProvider.intType),
+      _typeValue(_typeSystem.makeNullable(_typeProvider.intType)),
     );
 
     _assertIdentical(

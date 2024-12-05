@@ -6,11 +6,11 @@ import 'package:compiler/src/util/testing.dart';
 
 // Test derived from language/generic_methods_dynamic_test/05
 
-/*spec.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],needsArgs,test*/
+/*spec.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],needsArgs,test*/
 /*prod.class: global#JSArray:deps=[List],implicit=[JSArray.E],needsArgs,test*/
 
-/*spec.class: global#List:deps=[C.bar,JSArray.markFixedList],explicit=[List<B>,List<Object>,List<Object?>,List<String>?,List<markFixedList.T>],needsArgs,test*/
-/*prod.class: global#List:deps=[C.bar],explicit=[List<B>],needsArgs,test*/
+/*spec.class: global#List:deps=[C.bar,JSArray.markFixedList],explicit=[List,List<B>,List<Object>,List<Object?>,List<String>?,List<markFixedList.T>],needsArgs,test*/
+/*prod.class: global#List:deps=[C.bar],explicit=[List,List<B>],needsArgs,test*/
 
 class A {}
 

@@ -47,7 +47,8 @@ mutableListDynamicValueIndexAssign(dynamic value) {
   list[0] = value;
 }
 
-/*member: immutableListIndexAssign:Specializer=[!IndexAssign]*/
+/*spec.member: immutableListIndexAssign:Specializer=[!IndexAssign]*/
+/*prod.member: immutableListIndexAssign:Specializer=[IndexAssign]*/
 @pragma('dart2js:noInline')
 immutableListIndexAssign() {
   var list = const [0];

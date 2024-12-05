@@ -368,3 +368,8 @@ class _MarkdownCell {
 
   _MarkdownCell(this.value, this.right);
 }
+
+/// The lowest macOS version that Dart supports.
+///
+/// From https://dart.dev/get-dart#system-requirements
+const minimumSupportedMacOSVersion = 12;

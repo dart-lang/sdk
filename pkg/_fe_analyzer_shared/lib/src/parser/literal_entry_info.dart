@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../scanner/scanner.dart';
+import '../scanner/token.dart';
 import 'identifier_context.dart';
 import 'literal_entry_info_impl.dart';
 import 'parser_impl.dart';
@@ -56,14 +56,15 @@ class LiteralEntryInfo {
 /// Compute the [LiteralEntryInfo] for the literal list, map, or set entry.
 LiteralEntryInfo computeLiteralEntry(Token token) {
   Token next = token.next!;
-  if (optional('if', next)) {
+  if (optional2(Keyword.IF, next)) {
     return ifCondition;
-  } else if (optional('for', next) ||
-      (optional('await', next) && optional('for', next.next!))) {
+  } else if (optional2(Keyword.FOR, next) ||
+      (optional2(Keyword.AWAIT, next) && optional2(Keyword.FOR, next.next!))) {
     return new ForCondition();
-  } else if (optional('...', next) || optional('...?', next)) {
+  } else if (optional2(TokenType.PERIOD_PERIOD_PERIOD, next) ||
+      optional2(TokenType.PERIOD_PERIOD_PERIOD_QUESTION, next)) {
     return spreadOperator;
-  } else if (optional('?', next)) {
+  } else if (optional2(TokenType.QUESTION, next)) {
     return nullAwareEntry;
   }
   return simpleEntry;

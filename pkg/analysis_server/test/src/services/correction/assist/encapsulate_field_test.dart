@@ -31,6 +31,220 @@ void f(A a) {
     await assertNoAssistAt('_test =');
   }
 
+  Future<void> test_annotations_deprecated2() async {
+    await resolveTestCode('''
+class A {
+  @deprecated
+  @deprecated
+  int foo = 0;
+}
+''');
+    await assertHasAssistAt('foo = 0', '''
+class A {
+  int _foo = 0;
+
+  @deprecated
+  @deprecated
+  int get foo => _foo;
+
+  @deprecated
+  @deprecated
+  set foo(int value) {
+    _foo = value;
+  }
+}
+''');
+  }
+
+  Future<void> test_annotations_overrides_deprecated2() async {
+    await resolveTestCode('''
+abstract class A {
+  int get foo;
+}
+
+class B extends A {
+  @deprecated
+  @override
+  @deprecated
+  int foo = 0;
+}
+''');
+    await assertHasAssistAt('foo = 0', '''
+abstract class A {
+  int get foo;
+}
+
+class B extends A {
+  int _foo = 0;
+
+  @deprecated
+  @override
+  @deprecated
+  int get foo => _foo;
+
+  @deprecated
+  @deprecated
+  set foo(int value) {
+    _foo = value;
+  }
+}
+''');
+  }
+
+  Future<void> test_annotations_overrides_deprecated2_sameLine() async {
+    await resolveTestCode('''
+abstract class A {
+  int get foo;
+}
+
+class B extends A {
+  @deprecated @override @deprecated
+  int foo = 0;
+}
+''');
+    await assertHasAssistAt('foo = 0', '''
+abstract class A {
+  int get foo;
+}
+
+class B extends A {
+  int _foo = 0;
+
+  @deprecated
+  @override
+  @deprecated
+  int get foo => _foo;
+
+  @deprecated
+  @deprecated
+  set foo(int value) {
+    _foo = value;
+  }
+}
+''');
+  }
+
+  Future<void> test_annotations_overrides_getter() async {
+    await resolveTestCode('''
+abstract class A {
+  int get foo;
+}
+
+class B extends A {
+  @override
+  int foo = 0;
+}
+''');
+    await assertHasAssistAt('foo = 0', '''
+abstract class A {
+  int get foo;
+}
+
+class B extends A {
+  int _foo = 0;
+
+  @override
+  int get foo => _foo;
+
+  set foo(int value) {
+    _foo = value;
+  }
+}
+''');
+  }
+
+  Future<void> test_annotations_overrides_getter_setter() async {
+    await resolveTestCode('''
+abstract class A {
+  int get foo;
+  set foo(int value);
+}
+
+class B extends A {
+  @override
+  int foo = 0;
+}
+''');
+    await assertHasAssistAt('foo = 0', '''
+abstract class A {
+  int get foo;
+  set foo(int value);
+}
+
+class B extends A {
+  int _foo = 0;
+
+  @override
+  int get foo => _foo;
+
+  @override
+  set foo(int value) {
+    _foo = value;
+  }
+}
+''');
+  }
+
+  Future<void> test_annotations_overrides_setter() async {
+    await resolveTestCode('''
+abstract class A {
+  set foo(int value);
+}
+
+class B extends A {
+  @override
+  int foo = 0;
+}
+''');
+    await assertHasAssistAt('foo = 0', '''
+abstract class A {
+  set foo(int value);
+}
+
+class B extends A {
+  int _foo = 0;
+
+  int get foo => _foo;
+
+  @override
+  set foo(int value) {
+    _foo = value;
+  }
+}
+''');
+  }
+
+  Future<void> test_annotations_unresolved() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+abstract class A {
+  int get foo;
+}
+
+class B extends A {
+  @unresolved
+  int foo = 0;
+}
+''');
+    await assertHasAssistAt('foo = 0', '''
+abstract class A {
+  int get foo;
+}
+
+class B extends A {
+  int _foo = 0;
+
+  @unresolved
+  int get foo => _foo;
+
+  @unresolved
+  set foo(int value) {
+    _foo = value;
+  }
+}
+''');
+  }
+
   Future<void> test_documentation() async {
     await resolveTestCode('''
 class A {
@@ -56,6 +270,18 @@ class A {
   }
 }
 ''');
+  }
+
+  Future<void> test_enum_hasType() async {
+    await resolveTestCode('''
+enum E {
+  v;
+  final int test = 42;
+}
+''');
+    // Enums can have only final fields, and final fields cannot be encapsulated
+    // right now.
+    await assertNoAssistAt('test = 42');
   }
 
   Future<void> test_extension_hasType() async {
@@ -173,6 +399,56 @@ class A {
     _field = value;
   }
   A({int? field}) : _field = field;
+}
+''');
+  }
+
+  Future<void> test_named_formalParameter_noType() async {
+    await resolveTestCode('''
+class C {
+  var foo;
+
+  C({required this.foo});
+}
+''');
+    await assertHasAssistAt('foo;', '''
+class C {
+  var _foo;
+
+  get foo => _foo;
+
+  set foo(value) {
+    _foo = value;
+  }
+
+  C({required foo}) : _foo = foo;
+}
+''');
+  }
+
+  Future<void> test_named_formalParameter_prefixedType() async {
+    await resolveTestCode('''
+import 'dart:math' as math;
+
+class C {
+  math.Random foo;
+
+  C({required this.foo});
+}
+''');
+    await assertHasAssistAt('foo;', '''
+import 'dart:math' as math;
+
+class C {
+  math.Random _foo;
+
+  math.Random get foo => _foo;
+
+  set foo(math.Random value) {
+    _foo = value;
+  }
+
+  C({required math.Random foo}) : _foo = foo;
 }
 ''');
   }

@@ -35,10 +35,20 @@ extension type _JSPerformance(JSObject performance) {
   @JS('mark')
   external JSAny? get _markMethod;
 
+  @JS('clearMeasures')
+  external JSAny? get _clearMeasuresMethod;
+
+  @JS('clearMarks')
+  external JSAny? get _clearMarksMethod;
+
   external void measure(
       JSString measureName, JSString startMark, JSString endMark);
 
   external void mark(JSString markName, JSObject markOptions);
+
+  external void clearMeasures();
+
+  external void clearMarks();
 }
 
 extension type _JSJSON(JSObject performance) {
@@ -49,7 +59,10 @@ _JSPerformance? _performance = (() {
   final value = _jsPerformance;
   if (value.isA<JSObject>()) {
     final performance = _JSPerformance(value as JSObject);
-    if (performance._measureMethod != null && performance._markMethod != null) {
+    if (performance._measureMethod != null &&
+        performance._markMethod != null &&
+        performance._clearMeasuresMethod != null &&
+        performance._clearMarksMethod != null) {
       return performance;
     }
   }
@@ -124,6 +137,13 @@ int _getTraceClock() {
   return DateTime.now().millisecondsSinceEpoch;
 }
 
+// The sum of the number of "mark" `PerformanceEntry`s and the number of
+// "measure" `PerformanceEntry`s in the browser.
+int _markAndMeasureEntryCount = 0;
+
+// The target upper bound on [_markAndMeasureEntryCount].
+const int _markAndMeasureEntryCountLimit = 10000;
+
 int _taskId = 1;
 
 @patch
@@ -178,11 +198,32 @@ void _decrementEventCount(String eventName) {
   }
 }
 
+bool get _areAllBeginEventsPaired => _eventNameToCount.isEmpty;
+
 @patch
 void _reportTaskEvent(
     int taskId, int flowId, int type, String name, String argumentsAsJson) {
   // Ignore any unsupported events.
   if (_isUnsupportedEvent(type)) return;
+
+  // Enforce the upper bound on the sum of the number of "mark"
+  // `PerformanceEntry`s and the number of "measure" `PerformanceEntry`s to the
+  // best of our ability. Sometimes the upper bound may be exceeded because we
+  // cannot clear begin events that haven't yet been paired with end events.
+  // `PerformanceEntry`s can only be seen by a user after they record a
+  // performance profile that includes the entries, so our clearing of
+  // `PerformanceEntry`s will never have a negative effect on a user's profiling
+  // experience. For any cleared set of entries: either 1) the user was
+  // recording and captured those entries in a profile, or 2) the user was not
+  // recording and missed their chance to capture those entries, as even if
+  // those entries weren't deleted, it wouldn't be possible to retroactively add
+  // them to a profile.
+  if (_markAndMeasureEntryCount > _markAndMeasureEntryCountLimit &&
+      _areAllBeginEventsPaired) {
+    _performance!.clearMarks();
+    _performance!.clearMeasures();
+    _markAndMeasureEntryCount = 0;
+  }
 
   final isBeginEvent = _isBeginEvent(type);
   final isEndEvent = _isEndEvent(type);
@@ -201,6 +242,7 @@ void _reportTaskEvent(
 
   // Start by creating a mark event.
   _performance!.mark(currentEventName.toJS, _json.parse(argumentsAsJson.toJS));
+  _markAndMeasureEntryCount++;
 
   // If it's an end event, then create a measurement from the most recent begin
   // event with the same name.
@@ -209,8 +251,10 @@ void _reportTaskEvent(
         taskId: taskId, name: name, isBeginEvent: true, isEndEvent: false);
     _performance!.measure(name.toJS, _postfixWithCount(beginEventName).toJS,
         currentEventName.toJS);
+    _markAndMeasureEntryCount++;
     _decrementEventCount(beginEventName);
   }
+  _markAndMeasureEntryCount.clamp(0, _markAndMeasureEntryCountLimit + 1);
 }
 
 @patch

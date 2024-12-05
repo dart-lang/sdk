@@ -46,4 +46,5 @@ heap_sources_tests = [
   "heap_test.cc",
   "weak_table_test.cc",
   "safepoint_test.cc",
+  "splay_test.cc",
 ]

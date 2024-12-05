@@ -1,0 +1,126 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Verifier extends core::Object /*hasConstConstructor*/  {
+  const constructor test1() → self::Verifier
+    : assert(core::identical(#C2, #C2)), super core::Object::•()
+    ;
+  const constructor test2() → self::Verifier
+    : assert(core::identical(#C3, #C3)), super core::Object::•()
+    ;
+  const constructor test3a() → self::Verifier
+    : assert(core::identical(#C6, #C6)), super core::Object::•()
+    ;
+  const constructor test3b() → self::Verifier
+    : assert(core::identical(#C7, #C7)), super core::Object::•()
+    ;
+  const constructor test4a() → self::Verifier
+    : assert(core::identical(#C10, #C10)), super core::Object::•()
+    ;
+  const constructor test4b() → self::Verifier
+    : assert(core::identical(#C11, #C11)), super core::Object::•()
+    ;
+  const constructor test5aa() → self::Verifier
+    : assert(core::identical(#C14, #C14)), super core::Object::•()
+    ;
+  const constructor test5ab() → self::Verifier
+    : assert(core::identical(#C15, #C15)), super core::Object::•()
+    ;
+  const constructor test5ba() → self::Verifier
+    : assert(core::identical(#C15, #C15)), super core::Object::•()
+    ;
+  const constructor test5bb() → self::Verifier
+    : assert(core::identical(#C15, #C15)), super core::Object::•()
+    ;
+}
+static const field core::int? expr1 = #C1;
+static const field core::List<core::int> literal1 = #C2;
+static const field core::List<core::int> literal1expected = #C2;
+static const field core::String? expr2 = #C16;
+static const field core::Set<core::String> literal2 = #C3;
+static const field core::Set<core::String> literal2expected = #C3;
+static const field core::int? key3a = #C4;
+static const field core::int? key3b = #C16;
+static const field core::bool value3 = #C5;
+static const field core::Map<core::int, core::bool> literal3a = #C6;
+static const field core::Map<core::int, core::bool> literal3aExpected = #C6;
+static const field core::Map<core::int, core::bool> literal3b = #C7;
+static const field core::Map<core::int, core::bool> literal3bExpected = #C7;
+static const field core::Symbol key4 = #C8;
+static const field core::int? value4a = #C9;
+static const field core::int? value4b = #C16;
+static const field core::Map<core::Symbol, core::int> literal4a = #C10;
+static const field core::Map<core::Symbol, core::int> literal4aExpected = #C10;
+static const field core::Map<core::Symbol, core::int> literal4b = #C11;
+static const field core::Map<core::Symbol, core::int> literal4bExpected = #C11;
+static const field core::bool? key5a = #C12;
+static const field core::bool? key5b = #C16;
+static const field core::String? value5a = #C13;
+static const field core::String? value5b = #C16;
+static const field core::Map<core::bool, core::String> literal5aa = #C14;
+static const field core::Map<core::bool, core::String> literal5aaExpected = #C14;
+static const field core::Map<core::bool, core::String> literal5ab = #C15;
+static const field core::Map<core::bool, core::String> literal5abExpected = #C15;
+static const field core::Map<core::bool, core::String> literal5ba = #C15;
+static const field core::Map<core::bool, core::String> literal5baExpected = #C15;
+static const field core::Map<core::bool, core::String> literal5bb = #C15;
+static const field core::Map<core::bool, core::String> literal5bbExpected = #C15;
+static field self::Verifier test1 = #C17;
+static field self::Verifier test2 = #C17;
+static field self::Verifier test3a = #C17;
+static field self::Verifier test3b = #C17;
+static field self::Verifier test4a = #C17;
+static field self::Verifier test4b = #C17;
+static field self::Verifier test5aa = #C17;
+static field self::Verifier test5ab = #C17;
+static field self::Verifier test5ba = #C17;
+static field self::Verifier test5bb = #C17;
+
+constants  {
+  #C1 = 5
+  #C2 = <core::int>[#C1]
+  #C3 = <core::String>{}
+  #C4 = 1
+  #C5 = false
+  #C6 = <core::int, core::bool>{#C4:#C5}
+  #C7 = <core::int, core::bool>{}
+  #C8 = #key4
+  #C9 = 0
+  #C10 = <core::Symbol, core::int>{#C8:#C9}
+  #C11 = <core::Symbol, core::int>{}
+  #C12 = true
+  #C13 = "value5a"
+  #C14 = <core::bool, core::String>{#C12:#C13}
+  #C15 = <core::bool, core::String>{}
+  #C16 = null
+  #C17 = self::Verifier {}
+}
+
+Extra constant evaluation status:
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constant_collections.dart:43:35 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constant_collections.dart:44:35 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constant_collections.dart:45:36 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constant_collections.dart:46:36 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constant_collections.dart:47:36 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constant_collections.dart:48:36 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constant_collections.dart:49:37 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constant_collections.dart:50:37 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constant_collections.dart:51:37 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constant_collections.dart:52:37 -> BoolConstant(true)
+Extra constant evaluation: evaluated: 10, effectively constant: 10
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///constant_collections.dart:
+- Verifier.test1 (from org-dartlang-testcase:///constant_collections.dart:43:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- Verifier.test2 (from org-dartlang-testcase:///constant_collections.dart:44:9)
+- Verifier.test3a (from org-dartlang-testcase:///constant_collections.dart:45:9)
+- Verifier.test3b (from org-dartlang-testcase:///constant_collections.dart:46:9)
+- Verifier.test4a (from org-dartlang-testcase:///constant_collections.dart:47:9)
+- Verifier.test4b (from org-dartlang-testcase:///constant_collections.dart:48:9)
+- Verifier.test5aa (from org-dartlang-testcase:///constant_collections.dart:49:9)
+- Verifier.test5ab (from org-dartlang-testcase:///constant_collections.dart:50:9)
+- Verifier.test5ba (from org-dartlang-testcase:///constant_collections.dart:51:9)
+- Verifier.test5bb (from org-dartlang-testcase:///constant_collections.dart:52:9)

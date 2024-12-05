@@ -7,7 +7,15 @@ import 'dart:typed_data';
 // Based on (as in mostly a copy from) the _IntervalListBuilder in
 // package:kernel/class_hierarchy.dart.
 class IntervalListBuilder {
+  bool _finished = false;
   final List<int> _events = <int>[];
+
+  IntervalListBuilder clone() {
+    if (_finished) throw "Can't clone an already finished builder.";
+    IntervalListBuilder clone = new IntervalListBuilder();
+    clone._events.addAll(_events);
+    return clone;
+  }
 
   void addIntervalIncludingEnd(int start, int end) {
     // Add an event point for each interval end point, using the low bit to
@@ -31,6 +39,7 @@ class IntervalListBuilder {
   }
 
   IntervalList buildIntervalList() {
+    if (_finished) throw "Can't build an already finished builder.";
     // Sort the event points and sweep left to right while tracking how many
     // intervals we are currently inside.  Record an interval end point when the
     // number of intervals drop to zero or increase from zero to one.
@@ -61,6 +70,8 @@ class IntervalListBuilder {
     for (int i = 0; i < storeIndex; ++i) {
       result[i] = _events[i];
     }
+
+    _finished = true;
     return new IntervalList._(result);
   }
 }

@@ -135,11 +135,7 @@ void DartDevIsolate::DartDevRunner::Run(
   }
 
   MonitorLocker locker(monitor_);
-  int result = Thread::Start("DartDev Runner", RunCallback,
-                             reinterpret_cast<uword>(this));
-  if (result != 0) {
-    FATAL("Failed to start DartDev thread: %d", result);
-  }
+  Thread::Start("DartDev Runner", RunCallback, reinterpret_cast<uword>(this));
   monitor_->WaitMicros(Monitor::kNoTimeout);
 
   if (result_ == DartDevIsolate::DartDev_Result_Run) {

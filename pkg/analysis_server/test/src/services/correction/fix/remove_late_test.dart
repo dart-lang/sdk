@@ -38,6 +38,19 @@ class RemoveLateTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_LATE;
 
+  Future<void> test_deadLateWildcardVariableInitializer() async {
+    await resolveTestCode('''
+f() {
+  late var _ = 0;
+}
+''');
+    await assertHasFix('''
+f() {
+  var _ = 0;
+}
+''');
+  }
+
   Future<void> test_it() async {
     await resolveTestCode('''
 void f(Object? x) {

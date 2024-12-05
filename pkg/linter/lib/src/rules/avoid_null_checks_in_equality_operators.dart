@@ -10,38 +10,9 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't check for `null` in custom `==` operators.";
-
-const _details = r'''
-**DON'T** check for `null` in custom `==` operators.
-
-As `null` is a special value, no instance of any class (other than `Null`) can
-be equivalent to it.  Thus, it is redundant to check whether the other instance
-is `null`.
-
-**BAD:**
-```dart
-class Person {
-  final String? name;
-
-  @override
-  operator ==(Object? other) =>
-      other != null && other is Person && name == other.name;
-}
-```
-
-**GOOD:**
-```dart
-class Person {
-  final String? name;
-
-  @override
-  operator ==(Object? other) => other is Person && name == other.name;
-}
-```
-
-''';
 
 bool _isComparingEquality(TokenType tokenType) =>
     tokenType == TokenType.BANG_EQ || tokenType == TokenType.EQ_EQ;
@@ -62,20 +33,15 @@ bool _isParameterWithQuestionQuestion(
     _isParameter(node.leftOperand, parameter);
 
 class AvoidNullChecksInEqualityOperators extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_null_checks_in_equality_operators',
-      "Unnecessary null comparison in implementation of '=='.",
-      correctionMessage: 'Try removing the comparison.');
-
   AvoidNullChecksInEqualityOperators()
       : super(
-            name: 'avoid_null_checks_in_equality_operators',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.avoid_null_checks_in_equality_operators,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.avoid_null_checks_in_equality_operators;
 
   @override
   void registerNodeProcessors(
@@ -85,9 +51,10 @@ class AvoidNullChecksInEqualityOperators extends LintRule {
   }
 }
 
-class _BodyVisitor extends RecursiveAstVisitor {
+class _BodyVisitor extends RecursiveAstVisitor<void> {
   final Element? parameter;
   final LintRule rule;
+
   _BodyVisitor(this.parameter, this.rule);
 
   @override

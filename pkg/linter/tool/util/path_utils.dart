@@ -6,6 +6,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
+String get linterPackageRoot => path.joinAll(_packageRoot);
+
 List<String> get _packageRoot {
   var parts = path.split(path.dirname(path.fromUri(Platform.script.path)));
   while (parts.last != 'linter') {

@@ -191,6 +191,7 @@ template("_prebuilt_tool_action") {
 #    depfile
 #    deps
 #    inputs
+#    metadata
 #    outputs
 #    testonly
 #    visibility
@@ -229,6 +230,7 @@ template("prebuilt_dart_action") {
 #    depfile
 #    deps
 #    inputs
+#    metadata
 #    outputs
 #    testonly
 #    visibility
@@ -250,6 +252,7 @@ template("_built_tool_action") {
                              "depfile",
                              "deps",
                              "inputs",
+                             "metadata",
                              "outputs",
                              "pool",
                              "tool",
@@ -301,6 +304,7 @@ template("_built_tool_action") {
 #    depfile
 #    deps
 #    inputs
+#    metadata
 #    outputs
 #    testonly
 #    visibility
@@ -314,6 +318,7 @@ template("dart_action") {
                              "depfile",
                              "deps",
                              "inputs",
+                             "metadata",
                              "outputs",
                              "packages",
                              "pool",
@@ -357,6 +362,7 @@ template("dart_action") {
 #    depfile
 #    deps
 #    inputs
+#    metadata
 #    outputs
 #    testonly
 #    visibility
@@ -379,6 +385,7 @@ template("gen_snapshot_action") {
                              "depfile",
                              "deps",
                              "inputs",
+                             "metadata",
                              "outputs",
                              "packages",
                              "pool",

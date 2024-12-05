@@ -10,62 +10,9 @@ import 'package:collection/collection.dart' show IterableExtension;
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't override fields.";
-
-const _details = r'''
-**DON'T** override fields.
-
-Overriding fields is almost always done unintentionally.  Regardless, it is a
-bad practice to do so.
-
-**BAD:**
-```dart
-class Base {
-  Object field = 'lorem';
-
-  Object something = 'change';
-}
-
-class Bad1 extends Base {
-  @override
-  final field = 'ipsum'; // LINT
-}
-
-class Bad2 extends Base {
-  @override
-  Object something = 'done'; // LINT
-}
-```
-
-**GOOD:**
-```dart
-class Base {
-  Object field = 'lorem';
-
-  Object something = 'change';
-}
-
-class Ok extends Base {
-  Object newField; // OK
-
-  final Object newFinal = 'ignore'; // OK
-}
-```
-
-**GOOD:**
-```dart
-abstract class BaseLoggingHandler {
-  Base transformer;
-}
-
-class LogPrintHandler implements BaseLoggingHandler {
-  @override
-  Derived transformer; // OK
-}
-```
-
-''';
 
 Iterable<InterfaceType> _findAllSupertypesAndMixins(
     InterfaceType? interface, List<InterfaceType> accumulator) {
@@ -98,22 +45,14 @@ Iterable<InterfaceType> _findAllSupertypesInMixin(MixinElement mixinElement) {
 }
 
 class OverriddenFields extends LintRule {
-  static const LintCode code = LintCode(
-      'overridden_fields', "Field overrides a field inherited from '{0}'.",
-      correctionMessage:
-          'Try removing the field, overriding the getter and setter if '
-          'necessary.',
-      hasPublishedDocs: true);
-
   OverriddenFields()
       : super(
-            name: 'overridden_fields',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.overridden_fields,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.overridden_fields;
 
   @override
   void registerNodeProcessors(
@@ -139,7 +78,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var overriddenField = _getOverriddenMember(declaredField);
         if (overriddenField != null && !overriddenField.isAbstract) {
           rule.reportLintForToken(variable.name,
-              arguments: [overriddenField.enclosingElement.displayName]);
+              arguments: [overriddenField.enclosingElement3.displayName]);
         }
       }
     }
@@ -164,7 +103,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     bool containsOverriddenMember(InterfaceType i) =>
         i.accessors.any(isOverriddenMember);
-    var enclosingElement = member.enclosingElement;
+    var enclosingElement = member.enclosingElement3;
     if (enclosingElement is! InterfaceElement) {
       return null;
     }

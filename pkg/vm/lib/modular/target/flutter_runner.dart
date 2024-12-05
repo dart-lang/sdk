@@ -17,6 +17,7 @@ class FlutterRunnerTarget extends VmTarget {
   List<String> get extraRequiredLibraries => const <String>[
         'dart:async',
         'dart:collection',
+        'dart:concurrent',
         'dart:convert',
         'dart:developer',
         'dart:ffi',

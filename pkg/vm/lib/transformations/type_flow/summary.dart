@@ -635,7 +635,6 @@ class TypeCheck extends Statement {
   final TreeNode node;
 
   final Type staticType;
-  final SubtypeTestKind kind;
 
   // 'isTestedOnlyOnCheckedEntryPoint' is whether or not this parameter's type-check will
   // occur on the "checked" entrypoint in the VM but will be skipped on
@@ -648,7 +647,7 @@ class TypeCheck extends Statement {
   bool alwaysPass = true;
   bool alwaysFail = true;
 
-  TypeCheck(this.arg, this.type, this.node, this.staticType, this.kind)
+  TypeCheck(this.arg, this.type, this.node, this.staticType)
       : isTestedOnlyOnCheckedEntryPoint =
             node is VariableDeclaration && !node.isCovariantByDeclaration;
 
@@ -681,7 +680,7 @@ class TypeCheck extends Statement {
       // guarantee that it will pass.
       pass = false;
     } else if (checkType is RuntimeType) {
-      pass = argType.isSubtypeOfRuntimeType(typeHierarchy, checkType, kind);
+      pass = argType.isSubtypeOfRuntimeType(typeHierarchy, checkType);
       argType = argType.intersection(
           typeHierarchy.fromStaticType(checkType.representedTypeRaw, true),
           typeHierarchy);

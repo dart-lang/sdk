@@ -393,9 +393,18 @@ class ForwardingTestListener extends ForwardingListener {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {
-    super.beginMethod(declarationKind, augmentToken, externalToken, staticToken,
-        covariantToken, varFinalOrConst, getOrSet, name);
+      Token name,
+      String? enclosingDeclarationName) {
+    super.beginMethod(
+        declarationKind,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        varFinalOrConst,
+        getOrSet,
+        name,
+        enclosingDeclarationName);
     begin('Method');
   }
 
@@ -1180,9 +1189,9 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endOptionalFormalParameters(
-      int count, Token beginToken, Token endToken) {
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     end('OptionalFormalParameters');
-    super.endOptionalFormalParameters(count, beginToken, endToken);
+    super.endOptionalFormalParameters(count, beginToken, endToken, kind);
   }
 
   @override

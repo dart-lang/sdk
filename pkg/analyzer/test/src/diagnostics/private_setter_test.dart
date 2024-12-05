@@ -37,25 +37,31 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/a.dart::@class::A
+      staticElement: package:test/a.dart::<fragment>::@class::A
+      element: package:test/a.dart::<fragment>::@class::A#element
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: _foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: package:test/a.dart::@class::A::@setter::_foo::@parameter::__foo
+    parameter: package:test/a.dart::<fragment>::@class::A::@setter::_foo::@parameter::__foo
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
-  writeElement: package:test/a.dart::@class::A::@setter::_foo
+  writeElement: package:test/a.dart::<fragment>::@class::A::@setter::_foo
+  writeElement2: package:test/a.dart::<fragment>::@class::A::@setter::_foo#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -97,25 +103,31 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/a.dart::@class::A
+      staticElement: package:test/a.dart::<fragment>::@class::A
+      element: package:test/a.dart::<fragment>::@class::A#element
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: _foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: package:test/a.dart::@class::A::@setter::_foo::@parameter::_
+    parameter: package:test/a.dart::<fragment>::@class::A::@setter::_foo::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
-  writeElement: package:test/a.dart::@class::A::@setter::_foo
+  writeElement: package:test/a.dart::<fragment>::@class::A::@setter::_foo
+  writeElement2: package:test/a.dart::<fragment>::@class::A::@setter::_foo#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -142,25 +154,31 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/a.dart::@class::A
+      staticElement: package:test/a.dart::<fragment>::@class::A
+      element: package:test/a.dart::<fragment>::@class::A#element
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: _foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: package:test/a.dart::@class::A::@setter::_foo::@parameter::_
+    parameter: package:test/a.dart::<fragment>::@class::A::@setter::_foo::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
-  writeElement: package:test/a.dart::@class::A::@setter::_foo
+  writeElement: package:test/a.dart::<fragment>::@class::A::@setter::_foo
+  writeElement2: package:test/a.dart::<fragment>::@class::A::@setter::_foo#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }

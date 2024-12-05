@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -19,13 +19,13 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
   /// Local variable reference used in assignment switch expression generation.
-  LocalVariableElement? writeElement;
+  LocalVariableElement2? writeElement;
 
   /// Assignment operator used in assignment switch expression generation.
   TokenType? assignmentOperator;
 
   /// Function reference used in argument switch expression generation.
-  FunctionElement? functionElement;
+  TopLevelFunctionElement? functionElement;
 
   ConvertToSwitchExpression({required super.context});
 
@@ -449,8 +449,8 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
           // An assignment switch case's statement can't be a method invocation.
           canBeAssignment = false;
 
-          var element = expression.methodName.staticElement;
-          if (element is! FunctionElement) return null;
+          var element = expression.methodName.element;
+          if (element is! TopLevelFunctionElement) return null;
           if (functionElement == null) {
             functionElement = element;
           } else if (functionElement != element) {
@@ -464,11 +464,11 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
           var leftHandSide = expression.leftHandSide;
           if (leftHandSide is! SimpleIdentifierImpl) return null;
           if (writeElement == null) {
-            var element = leftHandSide.staticElement;
-            if (element is! LocalVariableElement) return null;
+            var element = leftHandSide.element;
+            if (element is! LocalVariableElement2) return null;
             writeElement = element;
             assignmentOperator = expression.operator.type;
-          } else if (writeElement != leftHandSide.staticElement ||
+          } else if (writeElement != leftHandSide.element ||
               expression.operator.type != assignmentOperator) {
             // The variable written to and the assignment operator used
             // in each case must be the same.

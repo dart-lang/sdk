@@ -8,42 +8,21 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use a non-nullable type for a final variable initialized '
     'with a non-nullable value.';
 
-const _details = r'''
-Use a non-nullable type for a final variable initialized with a non-nullable
-value.
-
-**BAD:**
-```dart
-final int? i = 1;
-```
-
-**GOOD:**
-```dart
-final int i = 1;
-```
-
-''';
-
 class UnnecessaryNullableForFinalVariableDeclarations extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_nullable_for_final_variable_declarations',
-      'Type could be non-nullable.',
-      correctionMessage: 'Try changing the type to be non-nullable.',
-      hasPublishedDocs: true);
-
   UnnecessaryNullableForFinalVariableDeclarations()
       : super(
-            name: 'unnecessary_nullable_for_final_variable_declarations',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.unnecessary_nullable_for_final_variable_declarations,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.unnecessary_nullable_for_final_variable_declarations;
 
   @override
   void registerNodeProcessors(

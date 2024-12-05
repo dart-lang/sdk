@@ -493,6 +493,30 @@ void f() {
 ''');
   }
 
+  Future<void> test_switchCase_sharedStatements_last() async {
+    await resolveTestCode('''
+void f() {
+  var m = 5;
+  switch(m) {
+    case 5:
+    case 3:
+    case 5:
+      break;
+  }
+}
+''');
+    await assertHasFix('''
+void f() {
+  var m = 5;
+  switch(m) {
+    case 5:
+    case 3:
+    break;
+  }
+}
+''');
+  }
+
   Future<void> test_switchCase_uniqueStatements() async {
     await resolveTestCode('''
 void f() {
@@ -511,6 +535,52 @@ void f() {
     case 5: print('');
     case 3: break;
   }
+}
+''');
+  }
+
+  Future<void> test_switchDefault_sharedStatements() async {
+    await resolveTestCode('''
+enum E { e1, e2 }
+void f(E e) {
+  switch(e) {
+    case E.e1:
+    case E.e2:
+    default:
+      break;
+  }
+}
+''');
+    await assertHasFix('''
+enum E { e1, e2 }
+void f(E e) {
+  switch(e) {
+    case E.e1:
+    case E.e2:
+    break;
+  }
+}
+''');
+  }
+
+  Future<void> test_switchDefault_uniqueStatements() async {
+    await resolveTestCode('''
+enum E { e1, e2 }
+void f(E e) {
+  switch(e) {
+    case E.e1: print('e1');
+    case E.e2: print('e2');
+    default: print('e3');
+  }
+}
+''');
+    await assertHasFix('''
+enum E { e1, e2 }
+void f(E e) {
+  switch(e) {
+    case E.e1: print('e1');
+    case E.e2: print('e2');
+    }
 }
 ''');
   }

@@ -67,6 +67,35 @@ class ErrorReporter {
 
   Source get source => _source;
 
+  /// Report a diagnostic with the given [errorCode] and [arguments].
+  /// The location of the diagnostic will be the name of the [node].
+  void atConstructorDeclaration(
+    ConstructorDeclaration node,
+    ErrorCode errorCode, {
+    List<Object>? arguments,
+    List<DiagnosticMessage>? contextMessages,
+    Object? data,
+  }) {
+    // TODO(brianwilkerson): Consider extending this method to take any
+    //  declaration and compute the correct range for the name of that
+    //  declaration. This might make it easier to be consistent.
+    if (node.name case var nameToken?) {
+      var offset = node.returnType.offset;
+      atOffset(
+        offset: offset,
+        length: nameToken.end - offset,
+        errorCode: errorCode,
+        arguments: arguments,
+      );
+    } else {
+      atNode(
+        node.returnType,
+        errorCode,
+        arguments: arguments,
+      );
+    }
+  }
+
   /// Report an error with the given [errorCode] and [arguments].
   /// The [element] is used to compute the location of the error.
   void atElement(
@@ -155,6 +184,25 @@ class ErrorReporter {
     );
   }
 
+  /// Report an error with the given [errorCode] and [arguments].
+  /// The [span] is used to compute the location of the error.
+  void atSourceSpan(
+    SourceSpan span,
+    ErrorCode errorCode, {
+    List<Object>? arguments,
+    List<DiagnosticMessage>? contextMessages,
+    Object? data,
+  }) {
+    atOffset(
+      errorCode: errorCode,
+      offset: span.start.offset,
+      length: span.length,
+      arguments: arguments,
+      contextMessages: contextMessages,
+      data: data,
+    );
+  }
+
   /// Report an error with the given [errorCode] and [arguments]. The [token] is
   /// used to compute the location of the error.
   void atToken(
@@ -190,30 +238,6 @@ class ErrorReporter {
       arguments: arguments,
       contextMessages: messages,
     );
-  }
-
-  /// Report a diagnostic with the given [code] and [arguments]. The
-  /// location of the diagnostic will be the name of the [constructor].
-  void reportErrorForName(ErrorCode code, ConstructorDeclaration constructor,
-      {List<Object>? arguments}) {
-    // TODO(brianwilkerson): Consider extending this method to take any
-    //  declaration and compute the correct range for the name of that
-    //  declaration. This might make it easier to be consistent.
-    if (constructor.name != null) {
-      var offset = constructor.returnType.offset;
-      atOffset(
-        offset: offset,
-        length: constructor.name!.end - offset,
-        errorCode: code,
-        arguments: arguments,
-      );
-    } else {
-      atNode(
-        constructor.returnType,
-        code,
-        arguments: arguments,
-      );
-    }
   }
 
   /// Report an error with the given [errorCode] and [arguments].
@@ -258,12 +282,15 @@ class ErrorReporter {
 
   /// Report an error with the given [errorCode] and [arguments]. The location
   /// of the error is specified by the given [span].
-  void reportErrorForSpan(ErrorCode errorCode, SourceSpan span,
-      [List<Object>? arguments]) {
-    atOffset(
-      offset: span.start.offset,
-      length: span.length,
-      errorCode: errorCode,
+  @Deprecated('Use atSourceSpan() instead')
+  void reportErrorForSpan(
+    ErrorCode errorCode,
+    SourceSpan span, [
+    List<Object>? arguments,
+  ]) {
+    atSourceSpan(
+      span,
+      errorCode,
       arguments: arguments,
     );
   }

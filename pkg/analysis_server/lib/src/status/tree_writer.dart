@@ -9,7 +9,6 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /// Utility methods that can be mixed in to classes that produce an HTML
 /// representation of a tree structure.

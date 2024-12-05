@@ -72,6 +72,13 @@ class A<T> {
 ''');
   }
 
+  test_class_isUsed_exposedViaTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+class _A {}
+typedef T = _A;
+''');
+  }
+
   test_class_isUsed_extends() async {
     await assertNoErrorsInCode(r'''
 class _A {}
@@ -387,6 +394,27 @@ class B extends A {
     ]);
   }
 
+  test_constructorPublic_privateClass_exposedViaTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A.constructor();
+}
+typedef T = _A;
+''');
+  }
+
+  test_constructorPublic_privateClass_notUsed() async {
+    await assertErrorsInCode(r'''
+class _A {
+  _A.named();
+  _A();
+}
+var a = _A();
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 16, 5),
+    ]);
+  }
+
   test_enum_constructor_parameter_optionalNamed_isUsed() async {
     await assertNoErrorsInCode(r'''
 enum E {
@@ -540,6 +568,56 @@ void f() {
 ''', [
       error(WarningCode.UNUSED_ELEMENT, 15, 2),
     ]);
+  }
+
+  test_extensionType_privateConstructor() async {
+    await assertErrorsInCode('''
+extension type E(int i) {
+  E._named(this.i);
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 30, 6),
+    ]);
+  }
+
+  test_extensionType_privateConstructor_notExposedViaTypeAlias() async {
+    await assertErrorsInCode('''
+extension type E(int i) {
+  E._named(this.i);
+}
+typedef A = E;
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 30, 6),
+    ]);
+  }
+
+  test_extensionTypePrivate_publicConstructor() async {
+    await assertErrorsInCode('''
+extension type _E(int i) {
+  _E.named(this.i);
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 32, 5),
+    ]);
+  }
+
+  test_extensionTypePrivate_publicConstructor_exposedViaTypeAlias() async {
+    await assertNoErrorsInCode('''
+extension type _E(int i) {
+  _E.named(this.i);
+}
+typedef A = _E;
+''');
+  }
+
+  test_extensionTypePrivate_publicConstructor_exposedViaTypeAlias_indirect() async {
+    await assertNoErrorsInCode('''
+extension type _E(int i) {
+  _E.named(this.i);
+}
+typedef _A = _E;
+typedef B = _A;
+''');
   }
 
   test_factoryConstructor_notUsed_multiple() async {
@@ -714,7 +792,7 @@ class A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1),
     ]);
   }
 
@@ -763,7 +841,7 @@ void f(A a) {
   var v = a._g;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
     ]);
   }
 
@@ -776,7 +854,7 @@ main() {
   var v = new A()._g;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
     ]);
   }
 
@@ -911,6 +989,18 @@ main() {
 ''', [
       error(WarningCode.UNUSED_ELEMENT, 11, 2),
     ]);
+  }
+
+  test_method_isUsed_call_inExtension() async {
+    await assertNoErrorsInCode(r'''
+extension<T> on T {
+  void call() {}
+}
+
+void f() {
+  (<T>(T t) => t())(7);
+}
+''');
   }
 
   test_method_isUsed_hasPragma_vmEntryPoint() async {
@@ -1288,6 +1378,16 @@ void main() {
 ''');
   }
 
+  test_method_notUsed_call_inExtension() async {
+    await assertErrorsInCode(r'''
+extension<T> on T {
+  void call() {}
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 27, 4),
+    ]);
+  }
+
   test_method_notUsed_hasSameNameAsUsed() async {
     await assertErrorsInCode(r'''
 class A {
@@ -1542,6 +1642,33 @@ f() {
   test_optionalParameter_isUsed_override() async {
     await assertNoErrorsInCode(r'''
 class A {
+  void _m([int? a]) {}
+}
+class B implements A {
+  void _m([int? a]) {}
+}
+f() => A()._m(0);
+''');
+  }
+
+  test_optionalParameter_isUsed_override_inAugmentation() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void _m([int? a]) {}
+}
+class B implements A {}
+augment class B {
+  void _m([int? a]) {}
+}
+f() => A()._m(0);
+''');
+  }
+
+  test_optionalParameter_isUsed_override_ofAugmentation() async {
+    await assertNoErrorsInCode(r'''
+class A {
+}
+augment class A {
   void _m([int? a]) {}
 }
 class B implements A {
@@ -2415,6 +2542,21 @@ enum E {
 ''');
   }
 
+  test_publicEnum_privateConstructor_notExposedViaTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+enum _E {
+  one(), two();
+  const _E();
+  const _E.named();
+}
+typedef T = _E;
+void f() {
+  _E.one;
+  _E.two;
+}
+''');
+  }
+
   test_publicEnum_privateConstructor_notUsed() async {
     await assertErrorsInCode(r'''
 enum E {
@@ -2527,7 +2669,6 @@ enum E {
   v.foo();
   const E.foo();
   const E.bar();
-  factory E.baz() => throw 0;
 }
 ''', [
       error(WarningCode.UNUSED_ELEMENT, 47, 3),

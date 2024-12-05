@@ -6,59 +6,20 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/ascii_utils.dart';
 
 const _desc = r'Name source files using `lowercase_with_underscores`.';
 
-const _details = r'''
-**DO** name source files using `lowercase_with_underscores`.
-
-Some file systems are not case-sensitive, so many projects require filenames to
-be all lowercase. Using a separating character allows names to still be readable
-in that form. Using underscores as the separator ensures that the name is still
-a valid Dart identifier, which may be helpful if the language later supports
-symbolic imports.
-
-**BAD:**
-
-* `SliderMenu.dart`
-* `filesystem.dart`
-* `file-system.dart`
-
-**GOOD:**
-
-* `slider_menu.dart`
-* `file_system.dart`
-
-Files without a strict `.dart` extension are ignored.  For example:
-
-**OK:**
-
-* `file-system.g.dart`
-* `SliderMenu.css.dart`
-
-The lint `library_names` can be used to enforce the same kind of naming on the
-library.
-
-''';
-
 class FileNames extends LintRule {
-  static const LintCode code = LintCode('file_names',
-      "The file name '{0}' isn't a lower_case_with_underscores identifier.",
-      correctionMessage:
-          'Try changing the name to follow the lower_case_with_underscores '
-          'style.',
-      hasPublishedDocs: true);
-
   FileNames()
       : super(
-            name: 'file_names',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.file_names,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.file_names;
 
   @override
   void registerNodeProcessors(
@@ -75,9 +36,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var declaredElement = node.declaredElement;
-    if (declaredElement != null) {
-      var fileName = declaredElement.source.shortName;
+    var element = node.declaredFragment?.element;
+    if (element != null) {
+      var fileName = element.library2.firstFragment.source.shortName;
       if (!isValidDartFileName(fileName)) {
         rule.reportLintForOffset(0, 0, arguments: [fileName]);
       }

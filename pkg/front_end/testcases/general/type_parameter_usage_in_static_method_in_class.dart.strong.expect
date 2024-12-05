@@ -2,6 +2,14 @@ library;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_class.dart:54:15: Error: Type variables can't be used in static members.
+//   static late U foo14;
+//               ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_class.dart:55:20: Error: Type variables can't be used in static members.
+//   static late List<U> foo14Prime;
+//                    ^
+//
 // pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_class.dart:6:10: Error: Type variables can't be used in static members.
 //   static U foo1() {
 //          ^
@@ -57,14 +65,6 @@ library;
 // pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_class.dart:52:45: Error: Type variables can't be used in static members.
 //   static void foo13Prime(void Function(List<U> b)) {}
 //                                             ^
-//
-// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_class.dart:54:15: Error: Type variables can't be used in static members.
-//   static late U foo14;
-//               ^
-//
-// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_class.dart:55:20: Error: Type variables can't be used in static members.
-//   static late List<U> foo14Prime;
-//                    ^
 //
 // pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_class.dart:56:15: Error: Type variables can't be used in static members.
 //   static late U Function(U) foo15;

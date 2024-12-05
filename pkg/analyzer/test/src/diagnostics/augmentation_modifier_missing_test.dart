@@ -17,130 +17,130 @@ main() {
 class AugmentationModifierMissingTest extends PubPackageResolutionTest {
   test_class_abstract() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 abstract class A {}
 ''');
 
     await assertErrorsInCode(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {}
 ''', [
-      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 27, 7),
+      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 19, 7),
     ]);
   }
 
   test_class_abstract_base() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 abstract base class A {}
 ''');
 
     await assertErrorsInCode(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {}
 ''', [
-      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 27, 7),
-      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 27, 7),
+      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 19, 7),
+      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 19, 7),
     ]);
   }
 
   test_class_base() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 base class A {}
 ''');
 
     await assertErrorsInCode(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {}
 ''', [
-      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 27, 7),
+      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 19, 7),
     ]);
   }
 
   test_class_final() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 final class A {}
 ''');
 
     await assertErrorsInCode(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {}
 ''', [
-      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 27, 7),
+      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 19, 7),
     ]);
   }
 
   test_class_interface() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 interface class A {}
 ''');
 
     await assertErrorsInCode(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {}
 ''', [
-      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 27, 7),
+      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 19, 7),
     ]);
   }
 
   test_class_mixin() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 mixin class A {}
 ''');
 
     await assertErrorsInCode(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {}
 ''', [
-      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 27, 7),
+      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 19, 7),
     ]);
   }
 
   test_class_sealed() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 sealed class A {}
 ''');
 
     await assertErrorsInCode(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {}
 ''', [
-      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 27, 7),
+      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 19, 7),
     ]);
   }
 
   test_mixin_base() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 base mixin A {}
 ''');
 
     await assertErrorsInCode(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment mixin A {}
 ''', [
-      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 27, 7),
+      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 19, 7),
     ]);
   }
 }

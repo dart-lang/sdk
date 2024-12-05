@@ -54,9 +54,9 @@ Future<List<DiagnosticMessage>> outline(String objectHeader) async {
         ..librariesSpecificationUri = librariesSpecificationUri,
       inputs: [Uri.parse("dart:core"), Uri.parse("dart:collection")]));
 
-  await context.runInContext<void>((_) async {
+  await context.runInContext<void>((CompilerContext c) async {
     await context.options.validateOptions(errorOnMissingInput: false);
-    await generateKernelInternal(buildSummary: true);
+    await generateKernelInternal(c, buildSummary: true);
   });
   return messages;
 }

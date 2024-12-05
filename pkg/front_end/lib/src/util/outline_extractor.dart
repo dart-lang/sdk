@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
@@ -129,7 +130,7 @@ class _Processor {
       fileUri = uriTranslator.translate(importUri)!;
     }
     if (verbosityLevel >= 20) log("$fileUri");
-    final List<int> bytes =
+    final Uint8List bytes =
         await fileSystem.entityForUri(fileUri).readAsBytes();
     // TODO: Support updating the configuration; also default it to match
     // the package version.
@@ -142,7 +143,7 @@ class _Processor {
         textualOutline(bytes, configuration, enablePatterns: true);
     textualOutlineStopwatch.stop();
     if (outlined == null) throw "Textual outline returned null";
-    final List<int> bytes2 = utf8.encode(outlined);
+    final Uint8List bytes2 = utf8.encode(outlined);
     getAstStopwatch.start();
     List<Token> languageVersionsSeen = [];
     final ParserAstNode ast = getAST(bytes2,

@@ -111,6 +111,7 @@ library;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 static method bar<K extends core::Object? = dynamic, V extends core::Object? = dynamic>() → core::Map<self::bar::K%, self::bar::V%>
   return throw "";
@@ -230,7 +231,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   List<dynamic> lhs40 = <dynamic>[...notSpreadInt];
                                      ^");
   core::Set<dynamic> set40 = block {
-    final core::Set<dynamic> #t26 = new col::_Set::•<dynamic>();
+    final core::Set<dynamic> #t26 = new _co::_Set::•<dynamic>();
     #t26.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:109:37: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
   Set<dynamic> set40 = <dynamic>{...notSpreadInt};
                                     ^"){(dynamic) → core::bool};
@@ -242,7 +243,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   List<dynamic> lhs50 = <dynamic>[...notSpreadFunction];
                                      ^");
   core::Set<dynamic> set50 = block {
-    final core::Set<dynamic> #t27 = new col::_Set::•<dynamic>();
+    final core::Set<dynamic> #t27 = new _co::_Set::•<dynamic>();
     #t27.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:115:37: Error: Unexpected type 'int Function()?' of a spread.  Expected 'dynamic' or an Iterable.
   Set<dynamic> set50 = <dynamic>{...notSpreadFunction};
                                     ^"){(dynamic) → core::bool};
@@ -254,7 +255,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   List<String> lhs60 = <String>[...spread];
                                    ^");
   core::Set<core::String> set60 = block {
-    final core::Set<core::String> #t28 = new col::_Set::•<core::String>();
+    final core::Set<core::String> #t28 = new _co::_Set::•<core::String>();
     #t28.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:121:35: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
   Set<String> set60 = <String>{...spread};
                                   ^"){(core::String) → core::bool};
@@ -269,13 +270,13 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   List<int> lhs70 = <int>[...null];
                              ^");
   core::Set<core::int> set70 = block {
-    final core::Set<core::int> #t29 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t29 = new _co::_Set::•<core::int>();
     #t29.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:129:29: Error: Can't spread a value with static type 'Null'.
   Set<int> set70 = <int>{...null};
                             ^"){(core::int) → core::bool};
   } =>#t29;
   core::Set<dynamic> set71ambiguous = block {
-    final core::Set<dynamic> #t30 = new col::_Set::•<dynamic>();
+    final core::Set<dynamic> #t30 = new _co::_Set::•<dynamic>();
     #t30.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:133:8: Error: Can't spread a value with static type 'Null'.
     ...null,
        ^"){(dynamic) → core::bool};
@@ -291,13 +292,13 @@ Try providing type arguments for the literal explicitly to disambiguate it.
       #t31.{core::List::addAll}{Invariant}(#t32{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
   } =>#t31;
   core::Set<core::int> set80 = block {
-    final core::Set<core::int> #t33 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t33 = new _co::_Set::•<core::int>();
     final has-declared-initializer core::Iterable<core::int>? #t34 = null;
     if(!(#t34 == null))
       #t33.{core::Set::addAll}{Invariant}(#t34{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
   } =>#t33;
   core::Set<dynamic> set81ambiguous = block {
-    final core::Set<dynamic> #t35 = new col::_Set::•<dynamic>();
+    final core::Set<dynamic> #t35 = new _co::_Set::•<dynamic>();
     final has-declared-initializer core::Iterable<dynamic>? #t36 = null;
     if(!(#t36 == null))
       #t35.{core::Set::addAll}{Invariant}(#t36{core::Iterable<dynamic>}){(core::Iterable<dynamic>) → void};

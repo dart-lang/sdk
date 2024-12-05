@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class OnlyThrowErrorsTest extends LintRuleTest {
   @override
-  String get lintRule => 'only_throw_errors';
+  String get lintRule => LintNames.only_throw_errors;
 
   test_argumentError() async {
     await assertNoDiagnostics(r'''

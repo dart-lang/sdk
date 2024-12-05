@@ -7,6 +7,7 @@ import("//third_party/protobuf/proto_library.gni")
 import("../../build/executable_suffix.gni")
 import("../../sdk/lib/async/async_sources.gni")
 import("../../sdk/lib/collection/collection_sources.gni")
+import("../../sdk/lib/concurrent/concurrent_sources.gni")
 import("../../sdk/lib/convert/convert_sources.gni")
 import("../../sdk/lib/core/core_sources.gni")
 import("../../sdk/lib/developer/developer_sources.gni")
@@ -23,6 +24,7 @@ import("../bin/cli_sources.gni")
 import("../bin/io_sources.gni")
 import("../configs.gni")
 import("../lib/async_sources.gni")
+import("../lib/concurrent_sources.gni")
 import("../lib/convert_sources.gni")
 import("../lib/core_sources.gni")
 import("../lib/developer_sources.gni")
@@ -168,16 +170,12 @@ source_set("libprotozero") {
 
 library_for_all_configs("libdart_vm") {
   target_type = "source_set"
-  extra_product_deps = [
-    "//third_party/icu:icui18n_hidden_visibility",
-    "//third_party/icu:icuuc_hidden_visibility",
-  ]
-  extra_nonproduct_deps = [
-    ":libprotozero",
+  extra_product_deps = []
+  extra_nonproduct_deps = [ ":libprotozero" ]
+  extra_deps = [
     "//third_party/icu:icui18n",
     "//third_party/icu:icuuc",
   ]
-  extra_deps = []
   if (is_fuchsia) {
     extra_deps += [
       "$fuchsia_sdk/fidl/fuchsia.intl",
@@ -225,11 +223,12 @@ library_for_all_configs("libdart_lib") {
     extra_deps += [ "$fuchsia_sdk/pkg/trace-engine" ]
   }
   include_dirs = [ ".." ]
-  allsources = async_runtime_cc_files + core_runtime_cc_files +
-               developer_runtime_cc_files + isolate_runtime_cc_files +
+  allsources = async_runtime_cc_files + concurrent_runtime_cc_files +
+               core_runtime_cc_files + developer_runtime_cc_files +
+               ffi_runtime_cc_files + isolate_runtime_cc_files +
                math_runtime_cc_files + mirrors_runtime_cc_files +
-               typed_data_runtime_cc_files + vmservice_runtime_cc_files +
-               ffi_runtime_cc_files
+               typed_data_runtime_cc_files + vmservice_runtime_cc_files
+
   sources = [ "bootstrap.cc" ] + rebase_path(allsources, ".", "../lib")
   snapshot_sources = []
 }

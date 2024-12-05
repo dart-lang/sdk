@@ -6,68 +6,19 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid empty statements in else clauses.';
 
-const _details = r'''
-**AVOID** empty statements in the `else` clause of `if` statements.
-
-**BAD:**
-```dart
-if (x > y)
-  print('1');
-else ;
-  print('2');
-```
-
-If you want a statement that follows the empty clause to _conditionally_ run,
-remove the dangling semicolon to include it in the `else` clause.
-Optionally, also enclose the else's statement in a block.
-
-**GOOD:**
-```dart
-if (x > y)
-  print('1');
-else
-  print('2');
-```
-
-**GOOD:**
-```dart
-if (x > y) {
-  print('1');
-} else {
-  print('2');
-}
-```
-
-If you want a statement that follows the empty clause to _unconditionally_ run,
-remove the `else` clause.
-
-**GOOD:**
-```dart
-if (x > y) print('1');
-
-print('2');
-```
-''';
-
 class AvoidEmptyElse extends LintRule {
-  static const LintCode code = LintCode('avoid_empty_else',
-      "Empty statements are not allowed in an 'else' clause.",
-      correctionMessage:
-          'Try removing the empty statement or removing the else clause.',
-      hasPublishedDocs: true);
-
   AvoidEmptyElse()
       : super(
-            name: 'avoid_empty_else',
-            description: _desc,
-            details: _details,
-            categories: {Category.errors});
+          name: LintNames.avoid_empty_else,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_empty_else;
 
   @override
   void registerNodeProcessors(

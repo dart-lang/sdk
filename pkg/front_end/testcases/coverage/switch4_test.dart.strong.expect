@@ -1,0 +1,53 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/switch4_test.dart:15:7: Error: Can't find label 'L'.
+// Try defining the label, or correcting the name to match an existing label.
+//       continue L; // Error
+//       ^
+//
+// pkg/front_end/testcases/coverage/switch4_test.dart:22:10: Error: Can't return a value from a void function.
+//   return a;
+//          ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method foo() → void {
+  core::int a = 5;
+  dynamic x;
+  #L1:
+  switch(a) /* core::int */ {
+    #L2:
+    case #C1:
+      {
+        x = 1;
+        invalid-expression "pkg/front_end/testcases/coverage/switch4_test.dart:15:7: Error: Can't find label 'L'.
+Try defining the label, or correcting the name to match an existing label.
+      continue L; // Error
+      ^";
+        break #L1;
+      }
+    #L3:
+    case #C2:
+      {
+        x = 2;
+        break #L1;
+      }
+    #L4:
+    case #C3:
+      {
+        break #L1;
+      }
+  }
+  return invalid-expression "pkg/front_end/testcases/coverage/switch4_test.dart:22:10: Error: Can't return a value from a void function.
+  return a;
+         ^" in a;
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 6
+  #C3 = 8
+}

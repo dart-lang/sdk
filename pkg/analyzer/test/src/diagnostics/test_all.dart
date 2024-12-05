@@ -185,7 +185,6 @@ import 'deprecated_implements_function_test.dart'
     as deprecated_implements_function;
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
-import 'division_optimization_test.dart' as division_optimization;
 import 'doc_directive_argument_wrong_format_test.dart'
     as doc_directive_argument_wrong_format;
 import 'doc_directive_has_extra_arguments_test.dart'
@@ -202,8 +201,6 @@ import 'doc_import_cannot_be_deferred_test.dart'
     as doc_import_cannot_be_deferred;
 import 'doc_import_cannot_have_configurations_test.dart'
     as doc_import_cannot_have_configurations;
-import 'duplicate_augmentation_import_test.dart'
-    as duplicate_augmentation_import;
 import 'duplicate_constructor_default_test.dart'
     as duplicate_constructor_default;
 import 'duplicate_constructor_name_test.dart' as duplicate_constructor_name;
@@ -310,6 +307,7 @@ import 'extra_annotation_on_struct_field_test.dart'
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
 import 'extra_size_annotation_carray_test.dart' as extra_size_annotation_carray;
 import 'extraneous_modifier_test.dart' as extraneous_modifier;
+import 'ffi_address_of_cast_test.dart' as ffi_addresss_of_cast_test;
 import 'ffi_async_callback_test.dart' as ffi_async_callback_test;
 import 'ffi_leaf_call_must_not_use_handle_test.dart'
     as ffi_leaf_call_must_not_use_handle;
@@ -383,7 +381,6 @@ import 'import_deferred_library_with_load_function_test.dart'
     as import_deferred_library_with_load_function;
 import 'import_internal_library_test.dart' as import_internal_library;
 import 'import_of_non_library_test.dart' as import_of_non_library;
-import 'import_of_not_augmentation_test.dart' as import_of_not_augmentation;
 import 'inconsistent_inheritance_getter_and_method_test.dart'
     as inconsistent_inheritance_getter_and_method;
 import 'inconsistent_inheritance_test.dart' as inconsistent_inheritance;
@@ -694,7 +691,6 @@ import 'override_on_non_overriding_setter_test.dart'
     as override_on_non_overriding_setter;
 import 'packed_annotation_alignment_test.dart' as packed_annotation_alignment;
 import 'packed_annotation_test.dart' as packed_annotation;
-import 'part_of_different_library_test.dart' as part_of_different_library;
 import 'part_of_non_part_test.dart' as part_of_non_part;
 import 'pattern_assignment_not_local_variable_test.dart'
     as pattern_assignment_not_local_variable;
@@ -892,6 +888,7 @@ import 'unqualified_reference_to_non_local_static_member_test.dart'
 import 'unqualified_reference_to_static_member_of_extended_type_test.dart'
     as unqualified_reference_to_static_member_of_extended_type;
 import 'unreachable_switch_case_test.dart' as unreachable_switch_case;
+import 'unreachable_switch_default_test.dart' as unreachable_switch_default;
 import 'unused_catch_clause_test.dart' as unused_catch_clause;
 import 'unused_catch_stack_test.dart' as unused_catch_stack;
 import 'unused_element_test.dart' as unused_element;
@@ -1049,7 +1046,6 @@ main() {
     deprecated_implements_function.main();
     deprecated_member_use.main();
     deprecated_mixin_function.main();
-    division_optimization.main();
     doc_directive_argument_wrong_format.main();
     doc_directive_has_extra_arguments.main();
     doc_directive_has_unexpected_named_argument.main();
@@ -1058,7 +1054,6 @@ main() {
     doc_directive_missing_two_arguments.main();
     doc_import_cannot_be_deferred.main();
     doc_import_cannot_have_configurations.main();
-    duplicate_augmentation_import.main();
     duplicate_constructor_default.main();
     duplicate_constructor_name.main();
     duplicate_definition.main();
@@ -1128,6 +1123,7 @@ main() {
     extra_positional_arguments.main();
     extra_size_annotation_carray.main();
     extraneous_modifier.main();
+    ffi_addresss_of_cast_test.main();
     ffi_async_callback_test.main();
     ffi_leaf_call_must_not_use_handle.main();
     ffi_native_test.main();
@@ -1172,7 +1168,6 @@ main() {
     import_deferred_library_with_load_function.main();
     import_internal_library.main();
     import_of_non_library.main();
-    import_of_not_augmentation.main();
     inconsistent_inheritance_getter_and_method.main();
     inconsistent_inheritance.main();
     inconsistent_language_version_override.main();
@@ -1373,7 +1368,6 @@ main() {
     override_on_non_overriding_setter.main();
     packed_annotation.main();
     packed_annotation_alignment.main();
-    part_of_different_library.main();
     part_of_non_part.main();
     pattern_assignment_not_local_variable.main();
     pattern_never_matches_value_type.main();
@@ -1507,6 +1501,7 @@ main() {
     unqualified_reference_to_non_local_static_member.main();
     unqualified_reference_to_static_member_of_extended_type.main();
     unreachable_switch_case.main();
+    unreachable_switch_default.main();
     unused_catch_clause.main();
     unused_catch_stack.main();
     unused_element.main();

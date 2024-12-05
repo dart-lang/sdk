@@ -2,27 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:9:7: Error: 'instanceMethod' is already declared in this scope.
-//   int instanceMethod() => 2;
-//       ^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:8:7: Context: Previous declaration of 'instanceMethod'.
-//   int instanceMethod() => 1;
-//       ^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:12:11: Error: 'instanceGetter' is already declared in this scope.
-//   int get instanceGetter => 2;
-//           ^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:11:11: Context: Previous declaration of 'instanceGetter'.
-//   int get instanceGetter => 1;
-//           ^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:18:12: Error: 'instanceSetter' is already declared in this scope.
-//   void set instanceSetter(value) {
-//            ^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:14:12: Context: Previous declaration of 'instanceSetter'.
-//   void set instanceSetter(value) {
-//            ^^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:22:7: Error: Extensions can't declare instance fields
 // Try removing the field declaration or making it a static field
 //   int instanceField = 1;
@@ -31,13 +10,6 @@ library;
 // pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:23:7: Error: Extensions can't declare instance fields
 // Try removing the field declaration or making it a static field
 //   int instanceField = 2;
-//       ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:23:7: Error: 'instanceField' is already declared in this scope.
-//   int instanceField = 2;
-//       ^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:22:7: Context: Previous declaration of 'instanceField'.
-//   int instanceField = 1;
 //       ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:25:7: Error: Extensions can't declare instance fields
@@ -70,24 +42,10 @@ library;
 //   final int instanceDuplicateFieldAndSetter = 2;
 //             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:46:13: Error: 'instanceDuplicateFieldAndSetter' is already declared in this scope.
-//   final int instanceDuplicateFieldAndSetter = 2;
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:45:13: Context: Previous declaration of 'instanceDuplicateFieldAndSetter'.
-//   final int instanceDuplicateFieldAndSetter = 1;
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:51:13: Error: Extensions can't declare instance fields
 // Try removing the field declaration or making it a static field
 //   final int instanceFieldAndDuplicateSetter = 1;
 //             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:56:12: Error: 'instanceFieldAndDuplicateSetter' is already declared in this scope.
-//   void set instanceFieldAndDuplicateSetter(int value) {
-//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:52:12: Context: Previous declaration of 'instanceFieldAndDuplicateSetter'.
-//   void set instanceFieldAndDuplicateSetter(int value) {
-//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:60:13: Error: Extensions can't declare instance fields
 // Try removing the field declaration or making it a static field
@@ -98,6 +56,48 @@ library;
 // Try removing the field declaration or making it a static field
 //   final int instanceDuplicateFieldAndDuplicateSetter = 2;
 //             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:9:7: Error: 'instanceMethod' is already declared in this scope.
+//   int instanceMethod() => 2;
+//       ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:8:7: Context: Previous declaration of 'instanceMethod'.
+//   int instanceMethod() => 1;
+//       ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:12:11: Error: 'instanceGetter' is already declared in this scope.
+//   int get instanceGetter => 2;
+//           ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:11:11: Context: Previous declaration of 'instanceGetter'.
+//   int get instanceGetter => 1;
+//           ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:18:12: Error: 'instanceSetter' is already declared in this scope.
+//   void set instanceSetter(value) {
+//            ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:14:12: Context: Previous declaration of 'instanceSetter'.
+//   void set instanceSetter(value) {
+//            ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:23:7: Error: 'instanceField' is already declared in this scope.
+//   int instanceField = 2;
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:22:7: Context: Previous declaration of 'instanceField'.
+//   int instanceField = 1;
+//       ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:46:13: Error: 'instanceDuplicateFieldAndSetter' is already declared in this scope.
+//   final int instanceDuplicateFieldAndSetter = 2;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:45:13: Context: Previous declaration of 'instanceDuplicateFieldAndSetter'.
+//   final int instanceDuplicateFieldAndSetter = 1;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:56:12: Error: 'instanceFieldAndDuplicateSetter' is already declared in this scope.
+//   void set instanceFieldAndDuplicateSetter(int value) {
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:52:12: Context: Previous declaration of 'instanceFieldAndDuplicateSetter'.
+//   void set instanceFieldAndDuplicateSetter(int value) {
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:61:13: Error: 'instanceDuplicateFieldAndDuplicateSetter' is already declared in this scope.
 //   final int instanceDuplicateFieldAndDuplicateSetter = 2;

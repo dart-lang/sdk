@@ -23,6 +23,7 @@ import 'record_type_test.dart' as record_type;
 import 'type_member_test.dart' as type_member;
 import 'uri_test.dart' as uri;
 import 'variable_name_test.dart' as variable_name;
+import 'wildcard_variables_test.dart' as wildcard_variables;
 
 /// Tests suggestions produced for various kinds of declarations.
 void main() {
@@ -46,5 +47,6 @@ void main() {
     type_member.main();
     uri.main();
     variable_name.main();
+    wildcard_variables.main();
   });
 }

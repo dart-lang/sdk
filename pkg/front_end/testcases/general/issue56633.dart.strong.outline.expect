@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef F<unrelated T extends core::Object? = dynamic, unrelated S extends T% = dynamic> = core::int;
+typedef G<invariant T extends core::Object? = dynamic> = <S extends T% = dynamic>() → core::int;
+abstract class A<T extends core::Object? = dynamic> extends core::Object {
+  covariant-by-class field <S extends self::A::T% = dynamic>(S%) → self::A::T% foo;
+  synthetic constructor •() → self::A<self::A::T%>
+    ;
+}
+static method method<T extends core::Object? = dynamic>(<S extends self::method::T% = dynamic>() → S% f) → <S extends self::method::T% = dynamic>() → self::method::T%
+  ;
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#F#fromEnvironment#tearOff<unrelated T extends core::Object? = dynamic, unrelated S extends self::_#F#fromEnvironment#tearOff::T% = dynamic>(core::String name, {has-declared-initializer core::int defaultValue}) → core::int
+  return core::int::fromEnvironment(name, defaultValue: defaultValue);

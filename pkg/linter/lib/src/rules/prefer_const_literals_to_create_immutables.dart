@@ -8,51 +8,21 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const desc =
     'Prefer const literals as parameters of constructors on @immutable classes.';
 
-const details = '''
-**PREFER** using `const` for instantiating list, map and set literals used as
-parameters in immutable class instantiations.
-
-**BAD:**
-```dart
-@immutable
-class A {
-  A(this.v);
-  final v;
-}
-
-A a1 = new A([1]);
-A a2 = new A({});
-```
-
-**GOOD:**
-```dart
-A a1 = new A(const [1]);
-A a2 = new A(const {});
-```
-
-''';
-
 class PreferConstLiteralsToCreateImmutables extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_const_literals_to_create_immutables',
-      "Use 'const' literals as arguments to constructors of '@immutable' "
-          'classes.',
-      correctionMessage: "Try adding 'const' before the literal.",
-      hasPublishedDocs: true);
-
   PreferConstLiteralsToCreateImmutables()
       : super(
-            name: 'prefer_const_literals_to_create_immutables',
-            description: desc,
-            details: details,
-            categories: {Category.style});
+          name: LintNames.prefer_const_literals_to_create_immutables,
+          description: desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.prefer_const_literals_to_create_immutables;
 
   @override
   void registerNodeProcessors(
@@ -110,7 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     InterfaceType? current = type;
     while (current != null) {
-      if (current.element.hasImmutable) return true;
+      if (current.element3.hasImmutable) return true;
       current = current.superclass;
     }
 

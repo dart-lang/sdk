@@ -30,6 +30,7 @@ import 'package:vm/modular/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
 
 import 'await_transformer.dart' as awaitTrans;
+import 'ffi_native_address_transformer.dart' as wasmFfiNativeAddressTrans;
 import 'ffi_native_transformer.dart' as wasmFfiNativeTrans;
 import 'records.dart' show RecordShape;
 import 'transformers.dart' as wasmTrans;
@@ -142,6 +143,10 @@ class WasmTarget extends Target {
 
   @override
   List<String> get extraRequiredLibraries => [
+        'dart:_boxed_bool',
+        'dart:_boxed_double',
+        'dart:_boxed_int',
+        'dart:_compact_hash',
         'dart:_http',
         'dart:_internal',
         'dart:_js_helper',
@@ -153,7 +158,6 @@ class WasmTarget extends Target {
         'dart:developer',
         'dart:ffi',
         'dart:io',
-        'dart:js',
         'dart:js_interop',
         'dart:js_interop_unsafe',
         'dart:js_util',
@@ -163,6 +167,10 @@ class WasmTarget extends Target {
 
   @override
   List<String> get extraIndexedLibraries => [
+        'dart:_boxed_bool',
+        'dart:_boxed_double',
+        'dart:_boxed_int',
+        'dart:_compact_hash',
         'dart:_js_helper',
         'dart:_js_types',
         'dart:_list',
@@ -196,7 +204,7 @@ class WasmTarget extends Target {
     // Flutter's dart:ui is also package:ui (in test mode)
     if (importerString.startsWith('package:ui/')) return true;
 
-    // package:js can import dart:js* & dart:_js_*
+    // package:js can import dart:js_util & dart:_js_*
     if (importerString.startsWith('package:js/')) return true;
 
     return false;
@@ -333,6 +341,13 @@ class WasmTarget extends Target {
     if (transitiveImportingDartFfi == null) {
       logger?.call("Skipped ffi transformation");
     } else {
+      wasmFfiNativeAddressTrans.transformLibraries(
+          component,
+          coreTypes,
+          hierarchy,
+          transitiveImportingDartFfi,
+          diagnosticReporter,
+          referenceFromIndex);
       wasmFfiNativeTrans.transformLibraries(component, coreTypes, hierarchy,
           transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
       transformFfiDefinitions.transformLibraries(
@@ -467,25 +482,25 @@ class WasmTarget extends Target {
   @override
   Class concreteMapLiteralClass(CoreTypes coreTypes) {
     return _wasmDefaultMap ??=
-        coreTypes.index.getClass('dart:collection', '_WasmDefaultMap');
+        coreTypes.index.getClass('dart:_compact_hash', 'DefaultMap');
   }
 
   @override
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) {
     return _wasmImmutableMap ??=
-        coreTypes.index.getClass('dart:collection', '_WasmImmutableMap');
+        coreTypes.index.getClass('dart:_compact_hash', '_ConstMap');
   }
 
   @override
   Class concreteSetLiteralClass(CoreTypes coreTypes) {
     return _wasmDefaultSet ??=
-        coreTypes.index.getClass('dart:collection', '_WasmDefaultSet');
+        coreTypes.index.getClass('dart:_compact_hash', 'DefaultSet');
   }
 
   @override
   Class concreteConstSetLiteralClass(CoreTypes coreTypes) {
     return _wasmImmutableSet ??=
-        coreTypes.index.getClass('dart:collection', '_WasmImmutableSet');
+        coreTypes.index.getClass('dart:_compact_hash', '_ConstSet');
   }
 
   @override
@@ -524,11 +539,12 @@ class WasmTarget extends Target {
 
   @override
   Class concreteIntLiteralClass(CoreTypes coreTypes, int value) =>
-      _boxedInt ??= coreTypes.index.getClass("dart:core", "_BoxedInt");
+      _boxedInt ??= coreTypes.index.getClass("dart:_boxed_int", "BoxedInt");
 
   @override
   Class concreteDoubleLiteralClass(CoreTypes coreTypes, double value) =>
-      _boxedDouble ??= coreTypes.index.getClass("dart:core", "_BoxedDouble");
+      _boxedDouble ??=
+          coreTypes.index.getClass("dart:_boxed_double", "BoxedDouble");
 
   @override
   DartLibrarySupport get dartLibrarySupport => CustomizedDartLibrarySupport(

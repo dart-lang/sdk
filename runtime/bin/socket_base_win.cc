@@ -238,8 +238,6 @@ intptr_t SocketBase::GetStdioHandle(intptr_t num) {
   }
   StdHandle* std_handle = StdHandle::Stdin(handle);
   std_handle->Retain();
-  std_handle->MarkDoesNotSupportOverlappedIO();
-  std_handle->EnsureInitialized(EventHandler::delegate());
   return reinterpret_cast<intptr_t>(std_handle);
 }
 

@@ -3,38 +3,29 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
-
-import 'tree_string_sink.dart';
 
 class ElementPrinter {
   final TreeStringSink _sink;
   final ElementPrinterConfiguration _configuration;
-  final String? _selfUriStr;
 
   ElementPrinter({
     required TreeStringSink sink,
     required ElementPrinterConfiguration configuration,
-    required String? selfUriStr,
   })  : _sink = sink,
-        _configuration = configuration,
-        _selfUriStr = selfUriStr;
+        _configuration = configuration;
 
   void writeDirectiveUri(DirectiveUri? uri) {
     if (uri == null) {
       _sink.writeln('<null>');
-    } else if (uri is DirectiveUriWithAugmentation) {
-      _sink.writeln('DirectiveUriWithAugmentation');
-      _sink.withIndent(() {
-        var uriStr = _stringOfSource(uri.augmentation.source);
-        _sink.writelnWithIndent('uri: $uriStr');
-      });
     } else if (uri is DirectiveUriWithLibrary) {
       _sink.writeln('DirectiveUriWithLibrary');
       _sink.withIndent(() {
@@ -76,8 +67,6 @@ class ElementPrinter {
         _writeMember(element);
       case MultiplyDefinedElement():
         _sink.writeln('<null>');
-      case AugmentationImportElement():
-        _writeAugmentationImportElement(element);
       case LibraryExportElement():
         _writeLibraryExportElement(element);
       case LibraryImportElement():
@@ -90,10 +79,84 @@ class ElementPrinter {
     }
   }
 
+  void writeElement2(Element2? element) {
+    switch (element) {
+      case null:
+        _sink.write('<null>');
+      case TypeParameterElementImpl2():
+        // TODO(scheglov): update when implemented
+        _sink.write('<not-implemented>');
+      case ConstructorElement2 element:
+        var firstFragment = element.firstFragment as ElementImpl;
+        var reference = firstFragment.reference;
+        writeReference(reference!);
+        _sink.write('#element');
+      case DynamicElementImpl():
+        _sink.write('dynamic@-1');
+      case FormalParameterElementImpl():
+        var firstFragment = element.firstFragment;
+        var referenceStr = _elementToReferenceString(firstFragment);
+        _sink.write(referenceStr);
+        _sink.write('#element');
+      case FragmentedElementMixin element:
+        var firstFragment = element.firstFragment as ElementImpl;
+        var reference = firstFragment.reference!;
+        writeReference(reference);
+        _sink.write('#element');
+      case GetterElement element:
+        var firstFragment = element.firstFragment as ElementImpl;
+        var reference = firstFragment.reference;
+        writeReference(reference!);
+        _sink.write('#element');
+      case LabelElementImpl():
+        _sink.write('${element.name}@${element.nameOffset}');
+      case LabelElementImpl2():
+        _sink.write('${element.name}@${element.nameOffset}');
+      case LibraryElementImpl e:
+        writeReference(e.reference!);
+      case LocalFunctionElementImpl():
+        _sink.write('${element.name}@${element.nameOffset}');
+      case LocalVariableElementImpl():
+        _sink.write('${element.name}@${element.nameOffset}');
+      case LocalVariableElementImpl2():
+        _sink.write('${element.name}@${element.nameOffset}');
+      case MaybeAugmentedInstanceElementMixin element:
+        var firstFragment = element.firstFragment as ElementImpl;
+        var reference = firstFragment.reference!;
+        writeReference(reference);
+        _sink.write('#element');
+      case MethodElement2 element:
+        var firstFragment = element.firstFragment as ElementImpl;
+        var reference = firstFragment.reference;
+        writeReference(reference!);
+        _sink.write('#element');
+      case MultiplyDefinedElementImpl():
+        _sink.write('<null>');
+      case NeverElementImpl():
+        _sink.write('Never@-1');
+      case PrefixElementImpl2 element:
+        writeReference(element.reference);
+      case SetterElement element:
+        var firstFragment = element.firstFragment as ElementImpl;
+        var reference = firstFragment.reference;
+        writeReference(reference!);
+        _sink.write('#element');
+      default:
+        throw UnimplementedError('(${element.runtimeType}) $element');
+    }
+  }
+
   void writeElementList(String name, List<Element> elements) {
     _sink.writeElements(name, elements, (element) {
       _sink.writeIndent();
       writeElement(element);
+    });
+  }
+
+  void writelnNamedElement2(String name, Element2? element) {
+    _sink.writeIndentedLine(() {
+      _sink.write('$name: ');
+      writeElement2(element);
     });
   }
 
@@ -121,6 +184,7 @@ class ElementPrinter {
         if (_configuration.withInterfaceTypeElements) {
           _sink.withIndent(() {
             writeNamedElement('element', type.element);
+            writelnNamedElement2('element', type.element3);
           });
         }
       }
@@ -152,7 +216,7 @@ class ElementPrinter {
   }
 
   String _elementToReferenceString(Element element) {
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     var reference = (element as ElementImpl).reference;
     if (reference != null) {
       return _referenceToString(reference);
@@ -182,21 +246,24 @@ class ElementPrinter {
     var parent = reference.parent!;
     if (parent.parent == null) {
       var libraryUriStr = reference.name;
-      if (libraryUriStr == _selfUriStr) {
-        return 'self';
+
+      // Very often we have just the test library.
+      if (libraryUriStr == 'package:test/test.dart') {
+        return '<testLibrary>';
       }
 
-      // TODO(scheglov): Make it precise again, after Windows.
-      if (libraryUriStr.startsWith('file:')) {
-        return libraryUriStr.substring(libraryUriStr.lastIndexOf('/') + 1);
-      }
-
-      return libraryUriStr;
+      return _toPosixUriStr(libraryUriStr);
     }
 
-    // Ignore the unit, skip to the library.
-    if (parent.name == '@unit') {
-      return _referenceToString(parent.parent!);
+    // Compress often used library fragments.
+    if (parent.name == '@fragment') {
+      var libraryRef = parent.parent!;
+      if (reference.name == libraryRef.name) {
+        if (libraryRef.name == 'package:test/test.dart') {
+          return '<testLibraryFragment>';
+        }
+        return '${_referenceToString(libraryRef)}::<fragment>';
+      }
     }
 
     var name = reference.name;
@@ -217,16 +284,16 @@ class ElementPrinter {
     return '{$entriesStr}';
   }
 
-  String _typeStr(DartType type) {
-    return type.getDisplayString();
+  String _toPosixUriStr(String uriStr) {
+    // TODO(scheglov): Make it precise again, after Windows.
+    if (uriStr.startsWith('file:')) {
+      return uriStr.substring(uriStr.lastIndexOf('/') + 1);
+    }
+    return uriStr;
   }
 
-  void _writeAugmentationImportElement(AugmentationImportElement element) {
-    _sink.writeln('AugmentationImportElement');
-    _sink.withIndent(() {
-      _sink.writeWithIndent('uri: ');
-      writeDirectiveUri(element.uri);
-    });
+  String _typeStr(DartType type) {
+    return type.getDisplayString();
   }
 
   void _writeLibraryExportElement(LibraryExportElement element) {

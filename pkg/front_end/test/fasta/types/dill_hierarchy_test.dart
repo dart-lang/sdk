@@ -78,6 +78,7 @@ class F implements D<int, bool>;""",
 
   asyncTest(() => context.runInContext<void>((_) async {
         DillTarget target = new DillTarget(
+            context,
             ticker,
             await context.options.getUriTranslator(),
             new NoneTarget(new TargetFlags()));

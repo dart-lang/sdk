@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class PreferFinalFieldsExtensionTypesTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_final_fields';
+  String get lintRule => LintNames.prefer_final_fields;
 
   test_field_instance() async {
     await assertDiagnostics(r'''
@@ -59,7 +59,7 @@ extension type E(Object o) {
 @reflectiveTest
 class PreferFinalFieldsTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_final_fields';
+  String get lintRule => LintNames.prefer_final_fields;
 
   test_assignedInPart() async {
     newFile('$testPackageLibPath/part.dart', r'''

@@ -6,33 +6,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't import implementation files from another package.";
-
-const _details = r'''
-From the the [pub package layout doc](https://dart.dev/tools/pub/package-layout#implementation-files):
-
-**DON'T** import implementation files from another package.
-
-The libraries inside `lib` are publicly visible: other packages are free to
-import them.  But much of a package's code is internal implementation libraries
-that should only be imported and used by the package itself.  Those go inside a
-subdirectory of `lib` called `src`.  You can create subdirectories in there if
-it helps you organize things.
-
-You are free to import libraries that live in `lib/src` from within other Dart
-code in the same package (like other libraries in `lib`, scripts in `bin`,
-and tests) but you should never import from another package's `lib/src`
-directory.  Those files are not part of the package's public API, and they
-might change in ways that could break your code.
-
-**BAD:**
-```dart
-// In 'road_runner'
-import 'package:acme/src/internals.dart';
-```
-
-''';
 
 bool isImplementation(Uri? uri) {
   var segments = uri?.pathSegments ?? const <String>[];
@@ -59,22 +35,14 @@ bool samePackage(Uri? uri1, Uri? uri2) {
 }
 
 class ImplementationImports extends LintRule {
-  static const LintCode code = LintCode('implementation_imports',
-      "Import of a library in the 'lib/src' directory of another package.",
-      correctionMessage:
-          'Try importing a public library that exports this library, or '
-          'removing the import.',
-      hasPublishedDocs: true);
-
   ImplementationImports()
       : super(
-            name: 'implementation_imports',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.implementation_imports,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.implementation_imports;
 
   @override
   void registerNodeProcessors(

@@ -76,9 +76,10 @@ library;
 // const ExtendsFoo1 extendsFoo1 = const ExtendsFoo1();
 //                                       ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:131:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
+// pkg/front_end/testcases/general/constants/various.dart:131:9: Error: The implicitly called unnamed constructor from 'Foo' has required parameters.
+// Try adding an explicit super initializer with the required arguments.
 //   const ExtendsFoo2();
-//         ^^^^^^^^^^^
+//         ^
 //
 // pkg/front_end/testcases/general/constants/various.dart:196:14: Error: Not a constant expression.
 //   final z1 = y;
@@ -131,9 +132,10 @@ class ExtendsFoo1 extends self::Foo {
 }
 class ExtendsFoo2 extends self::Foo /*hasConstConstructor*/  {
   const constructor •() → self::ExtendsFoo2
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:131:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:131:9: Error: The implicitly called unnamed constructor from 'Foo' has required parameters.
+Try adding an explicit super initializer with the required arguments.
   const ExtendsFoo2();
-        ^^^^^^^^^^^"
+        ^"
     ;
 }
 class ConstClassWithFailingAssertWithEmptyMessage extends core::Object /*hasConstConstructor*/  {

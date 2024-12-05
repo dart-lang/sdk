@@ -57,6 +57,16 @@ const a = [!12^.3!];
     _expectSdkCoreType(result, 'double');
   }
 
+  Future<void> test_doubleLiteral_wildcard() async {
+    var code = TestCode.parse('''
+const _ = [!12^.3!];
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'double');
+  }
+
   Future<void> test_getter() async {
     var code = TestCode.parse('''
 class A {
@@ -98,6 +108,19 @@ const a^ = 'test string';
     _expectNameRange(result.range, 'String');
   }
 
+  Future<void> test_namedParameter_closure() async {
+    var code = TestCode.parse('''
+void bar(void Function(String, {required int? value}) f) {}
+void foo() {
+  bar((str, {required [!val^ue!]}) {});
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'int');
+  }
+
   Future<void> test_nonDartFile() async {
     var code = TestCode.parse('''
 const a = '^';
@@ -108,6 +131,32 @@ const a = '^';
     var results =
         await getTypeDefinitionAsLocation(mainFileUri, code.position.position);
     expect(results, isEmpty);
+  }
+
+  Future<void> test_optionalNamedParameter_closure() async {
+    var code = TestCode.parse('''
+void bar(void Function() f) {}
+void foo() {
+  bar(({String [!s^tr!] = ''}) {});
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
+  }
+
+  Future<void> test_optionalPositionalParameter_closure() async {
+    var code = TestCode.parse('''
+void bar(void Function() f) {}
+void foo() {
+  bar(([String [!s^tr!] = '']) {});
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
   }
 
   Future<void> test_otherFile() async {
@@ -134,6 +183,44 @@ class [!A!] {}
   Future<void> test_parameter() async {
     var code = TestCode.parse('''
 void f(String a) {
+  f([!'te^st'!]);
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
+  }
+
+  Future<void> test_parameter_closure() async {
+    var code = TestCode.parse('''
+void bar(void Function(String) f) {}
+void foo() {
+  bar(([!st^r!]) {});
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
+  }
+
+  Future<void> test_parameter_named_closure() async {
+    var code = TestCode.parse('''
+void bar({required void Function(String) f}) {}
+void foo() {
+  bar(f: ([!st^r!]) {});
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
+  }
+
+  Future<void> test_parameter_wildcard() async {
+    var code = TestCode.parse('''
+void f(String _) {
   f([!'te^st'!]);
 }
 ''');
@@ -192,6 +279,32 @@ const a = [!'te^st string'!];
     _expectSdkCoreType(result, 'String');
   }
 
+  Future<void> test_type_underscore() async {
+    var code = TestCode.parse('''
+class _ { }
+
+_ a = _();
+_ f() => [!^a!];
+''');
+
+    var result = await _getResult(code);
+    expect(result.targetUri, mainFileUri);
+    expect(result.targetRange, rangeOfString(code, 'class _ { }'));
+  }
+
+  Future<void> test_typedParameter_closure() async {
+    var code = TestCode.parse('''
+void bar(void Function(String) f) {}
+void foo() {
+  bar((String [!s^tr!]) {});
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
+  }
+
   Future<void> test_unopenedFile() async {
     var code = TestCode.parse('''
 const a = [!'^'!];
@@ -211,6 +324,32 @@ const [!a^!] = 'test string';
     var result = await _getResult(code);
     expect(result.originSelectionRange, code.range.range);
     _expectSdkCoreType(result, 'String');
+  }
+
+  Future<void> test_variableDeclaration_forInLoop() async {
+    var code = TestCode.parse('''
+void f() {
+  for (final [!a^!] in ['']) {
+  }
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
+  }
+
+  Future<void> test_variableDeclaration_forLoop() async {
+    var code = TestCode.parse('''
+void f() {
+  for (var [!i^!] = 0; i < 1; i++) {
+  }
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'int');
   }
 
   Future<void> test_variableDeclaration_inferredType() async {
@@ -234,6 +373,34 @@ void f() {
     var result = await _getResult(code);
     expect(result.originSelectionRange, code.range.range);
     _expectSdkCoreType(result, 'String');
+  }
+
+  Future<void> test_variableReference_forInLoop() async {
+    var code = TestCode.parse('''
+void f() {
+  for (final a in ['']) {
+    print([!a^!]);
+  }
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
+  }
+
+  Future<void> test_variableReference_forLoop() async {
+    var code = TestCode.parse('''
+void f() {
+  for (var i = 0; i < 1; i++) {
+    print([!i^!]);
+  }
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'int');
   }
 
   Future<void> test_variableReference_inferredType() async {

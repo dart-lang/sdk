@@ -209,6 +209,8 @@ import 'remove_returned_value_test.dart' as remove_returned_value;
 import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_type_arguments_test.dart' as remove_type_arguments;
+import 'remove_unexpected_underscores_test.dart'
+    as remove_unexpected_underscores;
 import 'remove_unnecessary_cast_test.dart' as remove_unnecessary_cast;
 import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
 import 'remove_unnecessary_final_test.dart' as remove_unnecessary_final;
@@ -243,6 +245,8 @@ import 'replace_boolean_with_bool_test.dart' as replace_boolean_with_bool;
 import 'replace_cascade_with_dot_test.dart' as replace_cascade_with_dot;
 import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_colon_with_in_test.dart' as replace_colon_with_in;
+import 'replace_container_with_colored_box_test.dart'
+    as replace_container_with_colored_box;
 import 'replace_container_with_sized_box_test.dart'
     as replace_container_with_sized_box;
 import 'replace_empty_amp_pattern_test.dart' as replace_empty_amp_pattern;
@@ -475,6 +479,7 @@ void main() {
     remove_this_expression.main();
     remove_type_annotation.main();
     remove_type_arguments.main();
+    remove_unexpected_underscores.main();
     remove_unnecessary_cast.main();
     remove_unnecessary_const.main();
     remove_unnecessary_final.main();
@@ -503,6 +508,7 @@ void main() {
     replace_cascade_with_dot.main();
     replace_colon_with_equals.main();
     replace_colon_with_in.main();
+    replace_container_with_colored_box.main();
     replace_container_with_sized_box.main();
     replace_empty_amp_pattern.main();
     replace_final_with_const.main();

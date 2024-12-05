@@ -62,6 +62,38 @@ void f((int a, {int a}) r) {}
     ]);
   }
 
+  void test_duplicated_wildcard_named() async {
+    await assertErrorsInCode(r'''
+void f(({int _, int _}) r) {}
+''', [
+      // Only positional wildcard fields can be duplicated.
+      error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 13, 1),
+      error(CompileTimeErrorCode.DUPLICATE_FIELD_NAME, 20, 1,
+          contextMessages: [message(testFile, 13, 1)]),
+      error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 20, 1),
+    ]);
+  }
+
+  void test_duplicated_wildcard_positional() async {
+    await assertNoErrorsInCode(r'''
+void f((int _, int _) r) {}
+''');
+  }
+
+  void test_duplicated_wildcard_positional_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+void f((int _, int _) r) {}
+''', [
+      error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 56, 1),
+      error(CompileTimeErrorCode.DUPLICATE_FIELD_NAME, 63, 1,
+          contextMessages: [message(testFile, 56, 1)]),
+      error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 63, 1),
+    ]);
+  }
+
   void test_notDuplicated_named() async {
     await assertNoErrorsInCode(r'''
 void f(({int a, int b}) r) {}

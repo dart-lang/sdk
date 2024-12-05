@@ -100,15 +100,16 @@ class Package implements Comparable<Package> {
   Package(this.dir) {
     var pubspec = File(path.join(dir, 'pubspec.yaml'));
     var doc = yaml.loadYamlDocument(pubspec.readAsStringSync());
-    dynamic contents = doc.contents.value;
+    var contents = doc.contents as yaml.YamlMap;
     _packageName = contents['name'];
     _publishToNone = contents['publish_to'] == 'none';
 
     Set<String> process(String section, List<PubDep> target) {
       if (contents[section] != null) {
-        final value = Set<String>.from(contents[section].keys);
+        final value =
+            Set<String>.from((contents[section] as yaml.YamlMap).keys);
 
-        var deps = contents[section];
+        var deps = contents[section] as yaml.YamlMap;
         for (var package in deps.keys) {
           target.add(PubDep.parse(package, deps[package]));
         }
@@ -345,7 +346,7 @@ class Package implements Comparable<Package> {
           'pkg/front_end/testcases/',
           'pkg/linter/test/rules/',
           'pkg/linter/test_data/',
-          'pkg/native_assets_builder/test/test_projects/',
+          'pkg/record_use/test_data/',
           'pkg/vm/testcases/',
         };
         if (excludedPaths.contains(uriPath)) {
@@ -452,8 +453,6 @@ class SdkDeps {
     _findPackages(Directory('pkg'));
     _findPackages(Directory(path.join('third_party', 'devtools')));
     _findPackages(Directory(path.join('third_party', 'pkg')));
-    _findPackages(
-        Directory(path.join('third_party', 'pkg', 'file', 'packages')));
 
     if (verbose) {
       print('Package versions in the SDK:');
@@ -469,7 +468,7 @@ class SdkDeps {
     var pubspec = File(path.join(dir.path, 'pubspec.yaml'));
     if (pubspec.existsSync()) {
       var doc = yaml.loadYamlDocument(pubspec.readAsStringSync());
-      dynamic contents = doc.contents.value;
+      var contents = doc.contents as yaml.YamlMap;
       var name = contents['name'];
       var version = contents['version'];
       var dep = ResolvedDep(

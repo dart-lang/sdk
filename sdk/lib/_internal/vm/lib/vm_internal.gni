@@ -8,6 +8,7 @@ vm_internal_sdk_sources = [
   "array.dart",
   "async_patch.dart",
   "class_id_fasta.dart",
+  "concurrent_patch.dart",
   "convert_patch.dart",
   "core_patch.dart",
   "developer.dart",

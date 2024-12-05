@@ -33,6 +33,9 @@ Future<void> foo() async {
 Future<void> bar() async {
   await foo();
   stacktraces.add(StackTrace.current);
+  await Completer().future.timeout(Duration(milliseconds: 1), onTimeout: () {
+    stacktraces.add(StackTrace.current);
+  });
 }
 
 Future<void> runTest() {
@@ -75,7 +78,7 @@ Future<void> main() async {
   for (var st in stacktraces) {
     await harness.checkExpectedStack(st);
   }
-  Expect.equals(6, stacktraces.length);
+  Expect.equals(9, stacktraces.length);
 
   harness.updateExpectations();
 }
@@ -135,6 +138,35 @@ final currentExpectations = [
 #0    bar (%test%)
 <asynchronous suspension>
 #1    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    _registerUnaryCallback (%test%)
+#1    _CustomZone.registerUnaryCallback (zone.dart)
+#2    Future.then (future_impl.dart)
+#3    Future.timeout (future_impl.dart)
+#4    bar (%test%)
+<asynchronous suspension>
+#5    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    _registerBinaryCallback (%test%)
+#1    _CustomZone.registerBinaryCallback (zone.dart)
+#2    _registerErrorHandler (future_impl.dart)
+#3    Future.then (future_impl.dart)
+#4    Future.timeout (future_impl.dart)
+#5    bar (%test%)
+<asynchronous suspension>
+#6    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    bar.<anonymous closure> (%test%)
+#1    _rootRun (zone.dart)
+#2    _CustomZone.run (zone.dart)
+#3    Future.timeout.<anonymous closure> (future_impl.dart)
+<asynchronous suspension>
+#4    bar (%test%)
+<asynchronous suspension>
+#5    main (%test%)
 <asynchronous suspension>"""
 ];
 // CURRENT EXPECTATIONS END

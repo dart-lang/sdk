@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class LinesLongerThan80CharsTest extends LintRuleTest {
   @override
-  String get lintRule => 'lines_longer_than_80_chars';
+  String get lintRule => LintNames.lines_longer_than_80_chars;
 
   test_blockComment_noSpaceAfter80() async {
     await assertNoDiagnostics(

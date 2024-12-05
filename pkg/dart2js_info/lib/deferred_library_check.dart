@@ -36,7 +36,7 @@
 /// instance, if you have `import 'package:foo/bar.dart' deferred as baz;` in
 /// your dart file, then the corresponding name in the specification file is
 /// 'baz'.
-library dart2js_info.deferred_library_check;
+library;
 
 import 'info.dart';
 

@@ -111,6 +111,23 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     });
   }
 
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    var initializer = node.initializer;
+    if (initializer != null && node.isLate) {
+      var element = node.declaredElement;
+      // TODO(pq): ask the LocalVariableElement once implemented
+      if (_wildCardVariablesEnabled &&
+          element is LocalVariableElement &&
+          element.name == '_') {
+        _errorReporter.atNode(initializer,
+            WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER);
+      }
+    }
+
+    super.visitVariableDeclaration(node);
+  }
+
   /// Resolve the names in the given [combinator] in the scope of the given
   /// [library].
   void _checkCombinator(LibraryElement library, Combinator combinator) {
@@ -195,6 +212,10 @@ class NullSafetyDeadCodeVerifier {
   /// not `null`, and is covered by the [node], then we reached the end of
   /// the current dead code interval.
   void flowEnd(AstNode node) {
+    // Note that `firstDeadNode` could be a node that will later be replaced
+    // in the syntax tree. It's not safe to query whether it is _equal_ to, for
+    // example, another node's child.
+    // TODO(srawlins): Change this code to avoid this issue.
     var firstDeadNode = _firstDeadNode;
     if (firstDeadNode == null) {
       return;
@@ -251,7 +272,7 @@ class NullSafetyDeadCodeVerifier {
         if (node is SwitchMember && node.statements.isNotEmpty) {
           node = node.statements.last;
         }
-      } else if (parent is BinaryExpression && node == parent.rightOperand) {
+      } else if (parent is BinaryExpression) {
         offset = parent.operator.offset;
       }
       if (parent is ConstructorInitializer) {
@@ -294,7 +315,11 @@ class NullSafetyDeadCodeVerifier {
         if (grandParent is ForStatement) {
           _reportForUpdaters(grandParent);
         }
-      } else if (parent is LogicalOrPattern && node == parent.rightOperand) {
+      } else if (parent is BinaryExpression) {
+        offset = parent.operator.offset;
+        node = parent.rightOperand;
+      } else if (parent is LogicalOrPattern &&
+          firstDeadNode == parent.rightOperand) {
         offset = parent.operator.offset;
       }
 
@@ -566,7 +591,8 @@ class _LabelTracker {
 
 extension on FunctionElement {
   bool get isLocal =>
-      enclosingElement is FunctionElement || enclosingElement is MethodElement;
+      enclosingElement3 is FunctionElement ||
+      enclosingElement3 is MethodElement;
 }
 
 extension DoStatementExtension on DoStatement {

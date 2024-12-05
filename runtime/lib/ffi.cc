@@ -54,7 +54,7 @@ DEFINE_NATIVE_ENTRY(Ffi_deleteNativeCallable, 1, 1) {
 
 DEFINE_NATIVE_ENTRY(Ffi_updateNativeCallableKeepIsolateAliveCounter, 1, 1) {
   const int64_t delta =
-      Integer::CheckedHandle(zone, arguments->NativeArg0()).AsInt64Value();
+      Integer::CheckedHandle(zone, arguments->NativeArg0()).Value();
   isolate->UpdateNativeCallableKeepIsolateAliveCounter(delta);
   return Object::null();
 }

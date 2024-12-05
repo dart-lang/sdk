@@ -39,12 +39,8 @@ const int requiredMask = lateMask << 1;
 
 const int namedMixinApplicationMask = requiredMask << 1;
 
-/// Not a modifier, used for mixins declared explicitly by using the `mixin`
-/// keyword.
-const int mixinDeclarationMask = namedMixinApplicationMask << 1;
-
 /// Not a modifier, used by fields to track if they have an initializer.
-const int hasInitializerMask = mixinDeclarationMask << 1;
+const int hasInitializerMask = namedMixinApplicationMask << 1;
 
 /// Not a modifier, used by formal parameters to track if they are initializing.
 const int initializingFormalMask = hasInitializerMask << 1;
@@ -124,8 +120,7 @@ class Modifier {
   /// Method [maskContainsActualModifiers] returns `true` if the mask has any of
   /// the actual modifier bits set, and `false` otherwise.
   static bool maskContainsActualModifiers(int mask) {
-    mask &= ~(mixinDeclarationMask |
-        hasInitializerMask |
+    mask &= ~(hasInitializerMask |
         initializingFormalMask |
         declaresConstConstructorMask |
         superInitializingFormalMask |

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// This imports 'codes/cfe_codes.dart' instead of 'api_prototype/codes.dart' to
+// avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
         messageFfiAddressOfMustBeNative,
@@ -1479,11 +1481,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           parent.addProcedure(newTarget);
       }
     }
-
     return StaticInvocation(
       newTarget,
       Arguments(newArguments),
-    );
+    )..parent = parent;
   }
 
   /// Converts a single parameter with argument for [_replaceNativeCall].
@@ -1508,6 +1509,24 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       return ('', parameterType, argument);
     }
 
+    if (argument is InvalidExpression && argument.expression is AsExpression) {
+      final parent = argument.expression as AsExpression;
+      final (_, _, transformedArgument) =
+          _replaceNativeCallParameterAndArgument(
+              parameter, parameterType, parent.operand, fileOffset);
+      return (
+        'E',
+        parameterType,
+        InvalidExpression('Invalid Type', transformedArgument)
+      );
+    }
+    if (argument is InstanceInvocation &&
+        argument.interfaceTarget == castMethod) {
+      // Argument is .address.cast(), so truncating .cast()
+      final subExpression = argument.receiver;
+      return _replaceNativeCallParameterAndArgument(
+          parameter, parameterType, subExpression, fileOffset);
+    }
     if (argument is! StaticInvocation ||
         !addressOfMethods.contains(argument.target)) {
       // The argument has type Pointer, but it's not produced by any of the

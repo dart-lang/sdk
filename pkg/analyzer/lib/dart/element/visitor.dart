@@ -85,10 +85,6 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   const GeneralizingElementVisitor();
 
   @override
-  R? visitAugmentationImportElement(AugmentationImportElement element) =>
-      visitElement(element);
-
-  @override
   R? visitClassElement(ClassElement element) => visitElement(element);
 
   @override
@@ -134,10 +130,6 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R? visitLabelElement(LabelElement element) => visitElement(element);
-
-  @override
-  R? visitLibraryAugmentationElement(LibraryAugmentationElement element) =>
-      visitElement(element);
 
   @override
   R? visitLibraryElement(LibraryElement element) => visitElement(element);
@@ -227,12 +219,6 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   const RecursiveElementVisitor();
 
   @override
-  R? visitAugmentationImportElement(AugmentationImportElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
   R? visitClassElement(ClassElement element) {
     element.visitChildren(this);
     return null;
@@ -294,12 +280,6 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R? visitLabelElement(LabelElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R? visitLibraryAugmentationElement(LibraryAugmentationElement element) {
     element.visitChildren(this);
     return null;
   }
@@ -406,9 +386,6 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   const SimpleElementVisitor();
 
   @override
-  R? visitAugmentationImportElement(AugmentationImportElement element) => null;
-
-  @override
   R? visitClassElement(ClassElement element) => null;
 
   @override
@@ -442,10 +419,6 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R? visitLabelElement(LabelElement element) => null;
-
-  @override
-  R? visitLibraryAugmentationElement(LibraryAugmentationElement element) =>
-      null;
 
   @override
   R? visitLibraryElement(LibraryElement element) => null;
@@ -506,10 +479,6 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
   const ThrowingElementVisitor();
 
   @override
-  R? visitAugmentationImportElement(AugmentationImportElement element) =>
-      _throw(element);
-
-  @override
   R? visitClassElement(ClassElement element) => _throw(element);
 
   @override
@@ -544,10 +513,6 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R? visitLabelElement(LabelElement element) => _throw(element);
-
-  @override
-  R? visitLibraryAugmentationElement(LibraryAugmentationElement element) =>
-      _throw(element);
 
   @override
   R? visitLibraryElement(LibraryElement element) => _throw(element);

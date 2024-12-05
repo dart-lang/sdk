@@ -50,6 +50,10 @@ class AnalysisSessionImpl implements AnalysisSession {
   /// Check to see that results from this session will be consistent, and throw
   /// an [InconsistentAnalysisException] if they might not be.
   void checkConsistency() {
+    if (!_driver.shouldReportInconsistentAnalysisException) {
+      return;
+    }
+
     if (_driver.hasPendingFileChanges || _driver.currentSession != this) {
       throw InconsistentAnalysisException();
     }

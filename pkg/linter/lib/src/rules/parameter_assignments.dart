@@ -7,78 +7,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r"Don't reassign references to parameters of functions or methods.";
-
-const _details = r'''
-**DON'T** assign new values to parameters of methods or functions.
-
-Assigning new values to parameters is generally a bad practice unless an
-operator such as `??=` is used.  Otherwise, arbitrarily reassigning parameters
-is usually a mistake.
-
-**BAD:**
-```dart
-void badFunction(int parameter) { // LINT
-  parameter = 4;
-}
-```
-
-**BAD:**
-```dart
-void badFunction(int required, {int optional: 42}) { // LINT
-  optional ??= 8;
-}
-```
-
-**BAD:**
-```dart
-void badFunctionPositional(int required, [int optional = 42]) { // LINT
-  optional ??= 8;
-}
-```
-
-**BAD:**
-```dart
-class A {
-  void badMethod(int parameter) { // LINT
-    parameter = 4;
-  }
-}
-```
-
-**GOOD:**
-```dart
-void ok(String parameter) {
-  print(parameter);
-}
-```
-
-**GOOD:**
-```dart
-void actuallyGood(int required, {int optional}) { // OK
-  optional ??= ...;
-}
-```
-
-**GOOD:**
-```dart
-void actuallyGoodPositional(int required, [int optional]) { // OK
-  optional ??= ...;
-}
-```
-
-**GOOD:**
-```dart
-class A {
-  void ok(String parameter) {
-    print(parameter);
-  }
-}
-```
-
-''';
 
 bool _isDefaultFormalParameterWithDefaultValue(FormalParameter parameter) =>
     parameter is DefaultFormalParameter && parameter.defaultValue != null;
@@ -91,20 +23,14 @@ bool _isFormalParameterReassigned(
 }
 
 class ParameterAssignments extends LintRule {
-  static const LintCode code = LintCode(
-      'parameter_assignments', "Invalid assignment to the parameter '{0}'.",
-      correctionMessage:
-          'Try using a local variable in place of the parameter.');
-
   ParameterAssignments()
       : super(
-            name: 'parameter_assignments',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.parameter_assignments,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.parameter_assignments;
 
   @override
   void registerNodeProcessors(
@@ -115,7 +41,7 @@ class ParameterAssignments extends LintRule {
   }
 }
 
-class _DeclarationVisitor extends RecursiveAstVisitor {
+class _DeclarationVisitor extends RecursiveAstVisitor<void> {
   final FormalParameter parameter;
   final LintRule rule;
   final bool paramIsNotNullByDefault;

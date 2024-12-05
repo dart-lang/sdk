@@ -575,6 +575,14 @@ constexpr double MicrosecondsToMilliseconds(int64_t micros) {
   return static_cast<double>(micros) / kMicrosecondsPerMillisecond;
 }
 
+// The expression ARRAY_SIZE(array) is a compile-time constant of type
+// size_t which represents the number of elements of the given
+// array. You should only use ARRAY_SIZE on statically allocated
+// arrays.
+#define ARRAY_SIZE(array)                                                      \
+  ((sizeof(array) / sizeof(*(array))) /                                        \
+   static_cast<intptr_t>(!(sizeof(array) % sizeof(*(array)))))  // NOLINT
+
 // A macro to disallow the copy constructor and operator= functions.
 // This should be used in the private: declarations for a class.
 #if !defined(DISALLOW_COPY_AND_ASSIGN)
@@ -795,6 +803,14 @@ DART_FORCE_INLINE D bit_copy(const S& source) {
 #define kTargetOperatingSystemName "windows"
 #else
 #error Target operating system detection failed.
+#endif
+
+#if __GNUC__
+#define DART_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
+#elif _MSC_VER
+#define DART_WARN_UNUSED_RESULT _Check_return_
+#else
+#define DART_WARN_UNUSED_RESULT
 #endif
 
 }  // namespace dart

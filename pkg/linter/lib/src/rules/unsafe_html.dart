@@ -13,53 +13,16 @@ import '../extensions.dart';
 const _desc = '$_descPrefix.';
 const _descPrefix = r'Avoid unsafe HTML APIs';
 
-const _details = r'''
-**AVOID**
-
-* assigning directly to the `href` field of an AnchorElement
-* assigning directly to the `src` field of an EmbedElement, IFrameElement, or
-  ScriptElement
-* assigning directly to the `srcdoc` field of an IFrameElement
-* calling the `createFragment` method of Element
-* calling the `open` method of Window
-* calling the `setInnerHtml` method of Element
-* calling the `Element.html` constructor
-* calling the `DocumentFragment.html` constructor
-
-
-**BAD:**
-```dart
-var script = ScriptElement()..src = 'foo.js';
-```
-''';
-
 class UnsafeHtml extends LintRule {
-  // TODO(brianwilkerson): These lint codes aren't being used by the lint, but
-  //  are being used to pass the test that ensures that all lint rules define
-  //  their own codes. We would like to use the codes in the future, but doing
-  //  so requires coordination with other tool teams.
-  static const LintCode attributeCode = LintCode(
-      'unsafe_html', "Assigning to the attribute '{0}' is unsafe.",
-      correctionMessage: 'Try finding a different way to implement the page.',
-      uniqueName: 'LintCode.unsafe_html_attribute');
-
-  static const LintCode methodCode = LintCode(
-      'unsafe_html', "Invoking the method '{0}' is unsafe.",
-      correctionMessage: 'Try finding a different way to implement the page.',
-      uniqueName: 'LintCode.unsafe_html_method');
-
-  static const LintCode constructorCode = LintCode(
-      'unsafe_html', "Invoking the constructor '{0}' is unsafe.",
-      correctionMessage: 'Try finding a different way to implement the page.',
-      uniqueName: 'LintCode.unsafe_html_constructor');
-
   UnsafeHtml()
       : super(
-            name: 'unsafe_html',
-            description: _desc,
-            details: _details,
-            categories: {Category.errors});
+          name: LintNames.unsafe_html,
+          description: _desc,
+        );
 
+  // TODO(brianwilkerson): This lint is not yet using the generated LintCodes.
+  //   We would like to use the codes in the future, but doing
+  //   so requires coordination with other tool teams.
   @override
   List<LintCode> get lintCodes => [
         _Visitor.unsafeAttributeCode,
@@ -109,7 +72,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (leftPart is SimpleIdentifier) {
       var leftPartElement = node.writeElement;
       if (leftPartElement == null) return;
-      var enclosingElement = leftPartElement.enclosingElement;
+      var enclosingElement = leftPartElement.enclosingElement3;
       if (enclosingElement is ClassElement) {
         _checkAssignment(enclosingElement.thisType, leftPart, node);
       }
@@ -149,7 +112,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Implicit `this` target.
       var methodElement = node.methodName.staticElement;
       if (methodElement == null) return;
-      var enclosingElement = methodElement.enclosingElement;
+      var enclosingElement = methodElement.enclosingElement3;
       if (enclosingElement is ClassElement) {
         type = enclosingElement.thisType;
       } else {

@@ -64,7 +64,8 @@ FunctionExpression
           expression: MethodInvocation
             methodName: SimpleIdentifier
               token: foo
-              staticElement: self::@function::foo
+              staticElement: <testLibraryFragment>::@function::foo
+              element: <testLibraryFragment>::@function::foo#element
               staticType: T Function<T>()
             argumentList: ArgumentList
               leftParenthesis: (
@@ -118,7 +119,8 @@ FunctionExpression
     expression: MethodInvocation
       methodName: SimpleIdentifier
         token: foo
-        staticElement: self::@function::foo
+        staticElement: <testLibraryFragment>::@function::foo
+        element: <testLibraryFragment>::@function::foo#element
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -159,7 +161,8 @@ FunctionExpression
     expression: MethodInvocation
       methodName: SimpleIdentifier
         token: foo
-        staticElement: self::@function::foo
+        staticElement: <testLibraryFragment>::@function::foo
+        element: <testLibraryFragment>::@function::foo#element
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -193,7 +196,8 @@ FunctionExpression
     expression: MethodInvocation
       methodName: SimpleIdentifier
         token: foo
-        staticElement: self::@function::foo
+        staticElement: <testLibraryFragment>::@function::foo
+        element: <testLibraryFragment>::@function::foo#element
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -243,7 +247,8 @@ FunctionExpression
           expression: MethodInvocation
             methodName: SimpleIdentifier
               token: foo
-              staticElement: self::@function::foo
+              staticElement: <testLibraryFragment>::@function::foo
+              element: <testLibraryFragment>::@function::foo#element
               staticType: T Function<T>()
             argumentList: ArgumentList
               leftParenthesis: (
@@ -293,7 +298,8 @@ FunctionExpression
           expression: MethodInvocation
             methodName: SimpleIdentifier
               token: foo
-              staticElement: self::@function::foo
+              staticElement: <testLibraryFragment>::@function::foo
+              element: <testLibraryFragment>::@function::foo#element
               staticType: T Function<T>()
             argumentList: ArgumentList
               leftParenthesis: (
@@ -346,7 +352,8 @@ FunctionExpression
     expression: MethodInvocation
       methodName: SimpleIdentifier
         token: foo
-        staticElement: self::@function::foo
+        staticElement: <testLibraryFragment>::@function::foo
+        element: <testLibraryFragment>::@function::foo#element
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -396,7 +403,8 @@ FunctionExpression
           expression: MethodInvocation
             methodName: SimpleIdentifier
               token: foo
-              staticElement: self::@function::foo
+              staticElement: <testLibraryFragment>::@function::foo
+              element: <testLibraryFragment>::@function::foo#element
               staticType: T Function<T>()
             argumentList: ArgumentList
               leftParenthesis: (
@@ -440,6 +448,7 @@ FunctionExpression
           expression: SimpleIdentifier
             token: item
             staticElement: @42::@parameter::item
+            element: @42::@parameter::item#element
             staticType: int
           semicolon: ;
       rightBracket: }
@@ -475,7 +484,7 @@ FunctionExpression
       rightBracket: }
   declaredElement: @52
     type: void Function(Object?)
-  parameter: self::@function::foo::@parameter::a
+  parameter: <testLibraryFragment>::@function::foo::@parameter::a
   staticType: void Function(Object?)
 ''');
   }
@@ -505,7 +514,7 @@ FunctionExpression
       rightBracket: }
   declaredElement: @51
     type: void Function(Object?)
-  parameter: self::@function::foo::@parameter::a
+  parameter: <testLibraryFragment>::@function::foo::@parameter::a
   staticType: void Function(Object?)
 ''');
   }
@@ -535,6 +544,7 @@ FunctionExpression
       type: NamedType
         name: T
         element: T@24
+        element2: <not-implemented>
         type: T
       name: a
       declaredElement: @23::@parameter::a
@@ -549,6 +559,7 @@ FunctionExpression
           NamedType
             name: T
             element: T@24
+            element2: <not-implemented>
             type: T
         rightBracket: >
       leftBracket: [
@@ -556,6 +567,7 @@ FunctionExpression
         SimpleIdentifier
           token: a
           staticElement: @23::@parameter::a
+          element: @23::@parameter::a#element
           staticType: T
       rightBracket: ]
       staticType: List<T>

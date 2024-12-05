@@ -1,0 +1,30 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::List<self::A> field;
+  constructor •({core::List<self::A> field = #C2}) → self::C
+    : self::C::field = field, super core::Object::•()
+    ;
+}
+abstract class A extends core::Object {
+  static factory redir() → self::A /* redirection-target: self::B::•<dynamic>*/
+    return new self::B::•<dynamic>();
+}
+class B<X extends core::Object? = dynamic> extends core::Object implements self::A /*hasConstConstructor*/  {
+  const constructor •() → self::B<self::B::X%>
+    : super core::Object::•()
+    ;
+}
+
+constants  {
+  #C1 = self::B<dynamic> {}
+  #C2 = <self::A>[#C1]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///redirecting_constructors_declaration_order.dart:
+- B. (from org-dartlang-testcase:///redirecting_constructors_declaration_order.dart:15:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

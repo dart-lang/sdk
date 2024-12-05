@@ -10,51 +10,20 @@ import 'package:collection/collection.dart' show IterableExtension;
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer declaring `const` constructors on `@immutable` classes.';
 
-const _details = r'''
-**PREFER** declaring `const` constructors on `@immutable` classes.
-
-If a class is immutable, it is usually a good idea to make its constructor a
-`const` constructor.
-
-**BAD:**
-```dart
-@immutable
-class A {
-  final a;
-  A(this.a);
-}
-```
-
-**GOOD:**
-```dart
-@immutable
-class A {
-  final a;
-  const A(this.a);
-}
-```
-
-''';
-
 class PreferConstConstructorsInImmutables extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_const_constructors_in_immutables',
-      "Constructors in '@immutable' classes should be declared as 'const'.",
-      correctionMessage: "Try adding 'const' to the constructor declaration.",
-      hasPublishedDocs: true);
-
   PreferConstConstructorsInImmutables()
       : super(
-            name: 'prefer_const_constructors_in_immutables',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.prefer_const_constructors_in_immutables,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.prefer_const_constructors_in_immutables;
 
   @override
   void registerNodeProcessors(
@@ -76,7 +45,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element == null) return;
     if (element.isConst) return;
     if (node.body is! EmptyFunctionBody) return;
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement.isMacro) return;
     if (enclosingElement.mixins.isNotEmpty) return;
     if (!_hasImmutableAnnotation(enclosingElement)) return;
@@ -116,7 +85,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (declaredElement == null) {
       return false;
     }
-    var clazz = declaredElement.enclosingElement;
+    var clazz = declaredElement.enclosingElement3;
     // Constructor with super-initializer.
     var superInvocation =
         node.initializers.whereType<SuperConstructorInvocation>().firstOrNull;

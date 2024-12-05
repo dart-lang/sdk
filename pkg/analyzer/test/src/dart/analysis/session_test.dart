@@ -9,10 +9,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../util/tree_string_sink.dart';
 import '../resolution/context_collection_resolution.dart';
 import '../resolution/node_text_expectations.dart';
 
@@ -20,6 +20,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisSessionImplTest);
     defineReflectiveTests(AnalysisSessionImpl_BlazeWorkspaceTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -279,16 +280,6 @@ class B {}
     );
   }
 
-  test_getLibraryByUri_notLibrary_augmentation() async {
-    newFile(testFile.path, r'''
-augment library 'a.dart';
-''');
-
-    var session = contextFor(testFile).currentSession;
-    var result = await session.getLibraryByUri('package:test/test.dart');
-    expect(result, isA<NotLibraryButAugmentationResult>());
-  }
-
   test_getLibraryByUri_notLibrary_part() async {
     newFile(testFile.path, r'''
 part of 'a.dart';
@@ -422,16 +413,6 @@ part 'c.dart';
     var test = newFile(testFile.path, 'part of "a.dart";');
     var session = contextFor(testFile).currentSession;
     expect(session.getParsedLibrary(test.path), isA<NotLibraryButPartResult>());
-  }
-
-  test_getParsedLibrary_notLibrary_augmentation() async {
-    newFile(testFile.path, r'''
-augment library 'a.dart';
-''');
-
-    var session = contextFor(testFile).currentSession;
-    var result = session.getParsedLibrary(testFile.path);
-    expect(result, isA<NotLibraryButAugmentationResult>());
   }
 
   test_getParsedLibrary_parts() async {
@@ -686,16 +667,6 @@ part 'c.dart';
     expect(result, isA<InvalidPathResult>());
   }
 
-  test_getResolvedLibrary_notLibrary_augmentation() async {
-    newFile(testFile.path, r'''
-augment library of 'a.dart';
-''');
-
-    var session = contextFor(testFile).currentSession;
-    var result = await session.getResolvedLibrary(testFile.path);
-    expect(result, isA<NotLibraryButAugmentationResult>());
-  }
-
   test_getResolvedLibrary_notLibrary_part() async {
     var test = newFile(testFile.path, 'part of "a.dart";');
 
@@ -764,46 +735,6 @@ class B {}
     );
   }
 
-  test_getUnitElement_augmentationKnown_inLibrary() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-class A {}
-class B {}
-''');
-
-    newFile(testFile.path, r'''
-import augment 'a.dart';
-''');
-
-    await _assertFileUnitElementResultText(a, r'''
-unitElementResult
-  path: /home/test/lib/a.dart
-  uri: package:test/a.dart
-  element
-    reference: root::package:test/test.dart::@augmentation::package:test/a.dart
-    library: root::package:test/test.dart
-    classes: A, B
-''');
-  }
-
-  test_getUnitElement_augmentationKnown_notInLibrary() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-class A {}
-class B {}
-''');
-
-    await _assertFileUnitElementResultText(a, r'''
-unitElementResult
-  path: /home/test/lib/a.dart
-  uri: package:test/a.dart
-  element
-    reference: root::package:test/a.dart::@unit::package:test/a.dart
-    library: root::package:test/a.dart
-    classes: A, B
-''');
-  }
-
   test_getUnitElement_inconsistent() async {
     var test = newFile(testFile.path, '');
     var session = contextFor(test).currentSession;
@@ -825,7 +756,7 @@ unitElementResult
   path: /home/test/lib/test.dart
   uri: package:test/test.dart
   element
-    reference: root::package:test/test.dart::@unit::package:test/test.dart
+    reference: root::package:test/test.dart::@fragment::package:test/test.dart
     library: root::package:test/test.dart
     classes: A, B
 ''');
@@ -847,7 +778,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    reference: root::package:test/test.dart::@unit::package:test/a.dart
+    reference: root::package:test/test.dart::@fragment::package:test/a.dart
     library: root::package:test/test.dart
     classes: A, B
 ''');
@@ -865,7 +796,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    reference: root::package:test/a.dart::@unit::package:test/a.dart
+    reference: root::package:test/a.dart::@fragment::package:test/a.dart
     library: root::package:test/a.dart
     classes: A, B
 ''');
@@ -888,7 +819,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    reference: root::package:test/test.dart::@unit::package:test/a.dart
+    reference: root::package:test/test.dart::@fragment::package:test/a.dart
     library: root::package:test/test.dart
     classes: A, B
 ''');
@@ -906,7 +837,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    reference: root::package:test/a.dart::@unit::package:test/a.dart
+    reference: root::package:test/a.dart::@fragment::package:test/a.dart
     library: root::package:test/a.dart
     classes: A, B
 ''');
@@ -924,7 +855,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    reference: root::package:test/a.dart::@unit::package:test/a.dart
+    reference: root::package:test/a.dart::@fragment::package:test/a.dart
     library: root::package:test/a.dart
     classes: A, B
 ''');

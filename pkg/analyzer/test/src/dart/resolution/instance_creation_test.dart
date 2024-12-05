@@ -43,20 +43,23 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::new
+      staticElement: <testLibraryFragment>::@class::A::@constructor::new
+      element: <testLibraryFragment>::@class::A::@constructor::new#element
       staticType: null
-    staticElement: self::@class::A::@constructor::new
+    staticElement: <testLibraryFragment>::@class::A::@constructor::new
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@constructor::new::@parameter::a
+        parameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -82,38 +85,42 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
-    staticElement: self::@class::A::@constructor::new
+    staticElement: <testLibraryFragment>::@class::A::@constructor::new
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@constructor::new::@parameter::a
+        parameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
         staticType: int
       NamedExpression
         name: Label
           label: SimpleIdentifier
             token: b
-            staticElement: self::@class::A::@constructor::new::@parameter::b
+            staticElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b
+            element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b#element
             staticType: null
           colon: :
         expression: BooleanLiteral
           literal: true
           staticType: bool
-        parameter: self::@class::A::@constructor::new::@parameter::b
+        parameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b
       NamedExpression
         name: Label
           label: SimpleIdentifier
             token: c
-            staticElement: self::@class::A::@constructor::new::@parameter::c
+            staticElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::c
+            element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::c#element
             staticType: null
           colon: :
         expression: DoubleLiteral
           literal: 1.2
           staticType: double
-        parameter: self::@class::A::@constructor::new::@parameter::c
+        parameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::c
     rightParenthesis: )
   staticType: A
 ''');
@@ -121,14 +128,14 @@ InstanceCreationExpression
 
   test_class_generic_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A<T2> {
   A.named(T2 value);
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A<T> {}
 
@@ -143,27 +150,30 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A<int>
     period: .
     name: SimpleIdentifier
       token: named
       staticElement: ConstructorMember
-        base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+        base: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
         augmentationSubstitution: {T2: T}
         substitution: {T: dynamic}
+      element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named#element
       staticType: null
     staticElement: ConstructorMember
-      base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+      base: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
       augmentationSubstitution: {T2: T}
       substitution: {T: int}
+    element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named::@parameter::value
+          base: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named::@parameter::value
           augmentationSubstitution: {T2: T}
           substitution: {T: int}
         staticType: int
@@ -174,14 +184,14 @@ InstanceCreationExpression
 
   test_class_generic_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A<T2> {
   A(T2 value);
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A<T> {
   A._();
@@ -198,19 +208,21 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A<int>
     staticElement: ConstructorMember
-      base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new
+      base: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
       augmentationSubstitution: {T2: T}
       substitution: {T: int}
+    element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new::@parameter::value
+          base: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new::@parameter::value
           augmentationSubstitution: {T2: T}
           substitution: {T: int}
         staticType: int
@@ -236,25 +248,28 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A<int>
     period: .
     name: SimpleIdentifier
       token: named
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::named
+        base: <testLibraryFragment>::@class::A::@constructor::named
         substitution: {T: dynamic}
+      element: <testLibraryFragment>::@class::A::@constructor::named#element
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::named
+      base: <testLibraryFragment>::@class::A::@constructor::named
       substitution: {T: int}
+    element: <testLibraryFragment>::@class::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@class::A::@constructor::named::@parameter::t
+          base: <testLibraryFragment>::@class::A::@constructor::named::@parameter::t
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -284,21 +299,25 @@ InstanceCreationExpression
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
         rightBracket: >
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A<int>
     period: .
     name: SimpleIdentifier
       token: named
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::named
+        base: <testLibraryFragment>::@class::A::@constructor::named
         substitution: {T: int}
+      element: <testLibraryFragment>::@class::A::@constructor::named#element
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::named
+      base: <testLibraryFragment>::@class::A::@constructor::named
       substitution: {T: int}
+    element: <testLibraryFragment>::@class::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -323,18 +342,20 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A<int>
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::new
+      base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: int}
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@class::A::@constructor::new::@parameter::t
+          base: <testLibraryFragment>::@class::A::@constructor::new::@parameter::t
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -362,14 +383,17 @@ InstanceCreationExpression
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
         rightBracket: >
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A<int>
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::new
+      base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: int}
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -379,14 +403,14 @@ InstanceCreationExpression
 
   test_class_notGeneric_constructor_named_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   augment A.named();
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   A.named();
@@ -403,14 +427,17 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
     period: .
     name: SimpleIdentifier
       token: named
-      staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+      staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+      element: <testLibraryFragment>::@class::A::@constructor::named#element
       staticType: null
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+    element: <testLibraryFragment>::@class::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -420,14 +447,14 @@ InstanceCreationExpression
 
   test_class_notGeneric_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   A.named();
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 
@@ -442,14 +469,17 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
     period: .
     name: SimpleIdentifier
       token: named
-      staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+      staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
+      element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named#element
       staticType: null
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
+    element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -459,14 +489,14 @@ InstanceCreationExpression
 
   test_class_notGeneric_constructor_unnamed_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   augment A();
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   A();
@@ -483,9 +513,11 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
+    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -495,14 +527,14 @@ InstanceCreationExpression
 
   test_class_notGeneric_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   A();
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   A._();
@@ -519,9 +551,11 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new
+    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
+    element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -546,20 +580,23 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
     period: .
     name: SimpleIdentifier
       token: named
-      staticElement: self::@class::A::@constructor::named
+      staticElement: <testLibraryFragment>::@class::A::@constructor::named
+      element: <testLibraryFragment>::@class::A::@constructor::named#element
       staticType: null
-    staticElement: self::@class::A::@constructor::named
+    staticElement: <testLibraryFragment>::@class::A::@constructor::named
+    element: <testLibraryFragment>::@class::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@constructor::named::@parameter::a
+        parameter: <testLibraryFragment>::@class::A::@constructor::named::@parameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -584,15 +621,17 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
-    staticElement: self::@class::A::@constructor::new
+    staticElement: <testLibraryFragment>::@class::A::@constructor::new
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@constructor::new::@parameter::a
+        parameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -618,14 +657,17 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
     period: .
     name: SimpleIdentifier
       token: unresolved
       staticElement: <null>
+      element: <null>
       staticType: null
     staticElement: <null>
+    element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -658,20 +700,23 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A<S>
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::new
+      base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: S}
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: s
         parameter: ParameterMember
-          base: self::@class::A::@constructor::new::@parameter::t
+          base: <testLibraryFragment>::@class::A::@constructor::new::@parameter::t
           substitution: {T: S}
-        staticElement: self::@function::f::@parameter::s
+        staticElement: <testLibraryFragment>::@function::f::@parameter::s
+        element: <testLibraryFragment>::@function::f::@parameter::s#element
         staticType: S & int
     rightParenthesis: )
   staticType: A<S>
@@ -696,14 +741,17 @@ InstanceCreationExpression
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
         rightBracket: >
-      element: dart:core::@class::Map
+      element: dart:core::<fragment>::@class::Map
+      element2: dart:core::<fragment>::@class::Map#element
       type: Map<dynamic, dynamic>
     staticElement: ConstructorMember
-      base: dart:core::@class::Map::@constructor::new
+      base: dart:core::<fragment>::@class::Map::@constructor::new
       substitution: {K: dynamic, V: dynamic}
+    element: dart:core::<fragment>::@class::Map::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -733,24 +781,28 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: Foo
-      element: self::@class::Foo
+      element: <testLibraryFragment>::@class::Foo
+      element2: <testLibraryFragment>::@class::Foo#element
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
       token: bar
       staticElement: ConstructorMember
-        base: self::@class::Foo::@constructor::bar
+        base: <testLibraryFragment>::@class::Foo::@constructor::bar
         substitution: {X: dynamic}
+      element: <testLibraryFragment>::@class::Foo::@constructor::bar#element
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::Foo::@constructor::bar
+      base: <testLibraryFragment>::@class::Foo::@constructor::bar
       substitution: {X: dynamic}
+    element: <testLibraryFragment>::@class::Foo::@constructor::bar#element
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -782,24 +834,28 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: Foo
-      element: self::@class::Foo
+      element: <testLibraryFragment>::@class::Foo
+      element2: <testLibraryFragment>::@class::Foo#element
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::Foo::@constructor::new
+        base: <testLibraryFragment>::@class::Foo::@constructor::new
         substitution: {X: dynamic}
+      element: <testLibraryFragment>::@class::Foo::@constructor::new#element
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::Foo::@constructor::new
+      base: <testLibraryFragment>::@class::Foo::@constructor::new
       substitution: {X: dynamic}
+    element: <testLibraryFragment>::@class::Foo::@constructor::new#element
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -836,26 +892,31 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: self::@prefix::p
+        element: <testLibraryFragment>::@prefix::p
+        element2: <testLibraryFragment>::@prefix2::p
       name: Foo
-      element: package:test/a.dart::@class::Foo
+      element: package:test/a.dart::<fragment>::@class::Foo
+      element2: package:test/a.dart::<fragment>::@class::Foo#element
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
       token: bar
       staticElement: ConstructorMember
-        base: package:test/a.dart::@class::Foo::@constructor::bar
+        base: package:test/a.dart::<fragment>::@class::Foo::@constructor::bar
         substitution: {X: dynamic}
+      element: package:test/a.dart::<fragment>::@class::Foo::@constructor::bar#element
       staticType: null
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::Foo::@constructor::bar
+      base: package:test/a.dart::<fragment>::@class::Foo::@constructor::bar
       substitution: {X: dynamic}
+    element: package:test/a.dart::<fragment>::@class::Foo::@constructor::bar#element
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -885,24 +946,28 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: Foo
-      element: self::@class::Foo
+      element: <testLibraryFragment>::@class::Foo
+      element2: <testLibraryFragment>::@class::Foo#element
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
       token: bar
       staticElement: ConstructorMember
-        base: self::@class::Foo::@constructor::bar
+        base: <testLibraryFragment>::@class::Foo::@constructor::bar
         substitution: {X: dynamic}
+      element: <testLibraryFragment>::@class::Foo::@constructor::bar#element
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::Foo::@constructor::bar
+      base: <testLibraryFragment>::@class::Foo::@constructor::bar
       substitution: {X: dynamic}
+    element: <testLibraryFragment>::@class::Foo::@constructor::bar#element
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -937,28 +1002,33 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: self::@prefix::p
+        element: <testLibraryFragment>::@prefix::p
+        element2: <testLibraryFragment>::@prefix2::p
       name: Foo
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
         rightBracket: >
-      element: package:test/a.dart::@class::Foo
+      element: package:test/a.dart::<fragment>::@class::Foo
+      element2: package:test/a.dart::<fragment>::@class::Foo#element
       type: Foo<int>
     period: .
     name: SimpleIdentifier
       token: bar
       staticElement: ConstructorMember
-        base: package:test/a.dart::@class::Foo::@constructor::bar
+        base: package:test/a.dart::<fragment>::@class::Foo::@constructor::bar
         substitution: {X: int}
+      element: package:test/a.dart::<fragment>::@class::Foo::@constructor::bar#element
       staticType: null
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::Foo::@constructor::bar
+      base: package:test/a.dart::<fragment>::@class::Foo::@constructor::bar
       substitution: {X: int}
+    element: package:test/a.dart::<fragment>::@class::Foo::@constructor::bar#element
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -981,18 +1051,20 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@extensionType::A
+      element: <testLibraryFragment>::@extensionType::A
+      element2: <testLibraryFragment>::@extensionType::A#element
       type: A<int>
     staticElement: ConstructorMember
-      base: self::@extensionType::A::@constructor::new
+      base: <testLibraryFragment>::@extensionType::A::@constructor::new
       substitution: {T: int}
+    element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
         parameter: FieldFormalParameterMember
-          base: self::@extensionType::A::@constructor::new::@parameter::it
+          base: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1017,18 +1089,20 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@extensionType::A
+      element: <testLibraryFragment>::@extensionType::A
+      element2: <testLibraryFragment>::@extensionType::A#element
       type: A<int>
     staticElement: ConstructorMember
-      base: self::@extensionType::A::@constructor::new
+      base: <testLibraryFragment>::@extensionType::A::@constructor::new
       substitution: {T: int}
+    element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
         parameter: FieldFormalParameterMember
-          base: self::@extensionType::A::@constructor::new::@parameter::it
+          base: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1051,20 +1125,23 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@extensionType::A
+      element: <testLibraryFragment>::@extensionType::A
+      element2: <testLibraryFragment>::@extensionType::A#element
       type: A
     period: .
     name: SimpleIdentifier
       token: named
-      staticElement: self::@extensionType::A::@constructor::named
+      staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named
+      element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
       staticType: null
-    staticElement: self::@extensionType::A::@constructor::named
+    staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named
+    element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@extensionType::A::@constructor::named::@parameter::it
+        parameter: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -1086,15 +1163,17 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@extensionType::A
+      element: <testLibraryFragment>::@extensionType::A
+      element2: <testLibraryFragment>::@extensionType::A#element
       type: A
-    staticElement: self::@extensionType::A::@constructor::new
+    staticElement: <testLibraryFragment>::@extensionType::A::@constructor::new
+    element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@extensionType::A::@constructor::new::@parameter::it
+        parameter: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -1118,20 +1197,23 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@extensionType::A
+      element: <testLibraryFragment>::@extensionType::A
+      element2: <testLibraryFragment>::@extensionType::A#element
       type: A
     period: .
     name: SimpleIdentifier
       token: named
-      staticElement: self::@extensionType::A::@constructor::named
+      staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named
+      element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
       staticType: null
-    staticElement: self::@extensionType::A::@constructor::named
+    staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named
+    element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@extensionType::A::@constructor::named::@parameter::it
+        parameter: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -1155,15 +1237,17 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@extensionType::A
+      element: <testLibraryFragment>::@extensionType::A
+      element2: <testLibraryFragment>::@extensionType::A#element
       type: A
-    staticElement: self::@extensionType::A::@constructor::new
+    staticElement: <testLibraryFragment>::@extensionType::A::@constructor::new
+    element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@extensionType::A::@constructor::new::@parameter::it
+        parameter: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -1188,14 +1272,17 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@extensionType::A
+      element: <testLibraryFragment>::@extensionType::A
+      element2: <testLibraryFragment>::@extensionType::A#element
       type: A
     period: .
     name: SimpleIdentifier
       token: named
       staticElement: <null>
+      element: <null>
       staticType: null
     staticElement: <null>
+    element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -1227,9 +1314,11 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: prefix
-      element: self::@prefix::prefix
+      element: <null>
+      element2: <testLibraryFragment>::@prefix2::prefix
       type: InvalidType
     staticElement: <null>
+    element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -1244,13 +1333,13 @@ InstanceCreationExpression
 
   test_importPrefix_class_generic_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A<T> {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart'
+part of 'a.dart'
 
 augment class A<T2> {
   A.named(T2 value);
@@ -1273,29 +1362,33 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: self::@prefix::prefix
+        element: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
+      element2: package:test/a.dart::<fragment>::@class::A#element
       type: A<int>
     period: .
     name: SimpleIdentifier
       token: named
       staticElement: ConstructorMember
-        base: package:test/a.dart::@augmentation::package:test/b.dart::@classAugmentation::A::@constructor::named
+        base: package:test/a.dart::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::named
         augmentationSubstitution: {T2: T}
         substitution: {T: dynamic}
+      element: package:test/a.dart::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::named#element
       staticType: null
     staticElement: ConstructorMember
-      base: package:test/a.dart::@augmentation::package:test/b.dart::@classAugmentation::A::@constructor::named
+      base: package:test/a.dart::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::named
       augmentationSubstitution: {T2: T}
       substitution: {T: int}
+    element: package:test/a.dart::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: package:test/a.dart::@augmentation::package:test/b.dart::@classAugmentation::A::@constructor::named::@parameter::value
+          base: package:test/a.dart::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::named::@parameter::value
           augmentationSubstitution: {T2: T}
           substitution: {T: int}
         staticType: int
@@ -1306,7 +1399,7 @@ InstanceCreationExpression
 
   test_importPrefix_class_generic_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A<T> {
   A._();
@@ -1314,7 +1407,7 @@ class A<T> {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart'
+part of 'a.dart'
 
 augment class A<T2> {
   A(T2 value);
@@ -1337,21 +1430,24 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: self::@prefix::prefix
+        element: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
+      element2: package:test/a.dart::<fragment>::@class::A#element
       type: A<int>
     staticElement: ConstructorMember
-      base: package:test/a.dart::@augmentation::package:test/b.dart::@classAugmentation::A::@constructor::new
+      base: package:test/a.dart::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::new
       augmentationSubstitution: {T2: T}
       substitution: {T: int}
+    element: package:test/a.dart::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: package:test/a.dart::@augmentation::package:test/b.dart::@classAugmentation::A::@constructor::new::@parameter::value
+          base: package:test/a.dart::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::new::@parameter::value
           augmentationSubstitution: {T2: T}
           substitution: {T: int}
         staticType: int
@@ -1384,22 +1480,26 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: self::@prefix::prefix
+        element: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
+      element2: package:test/a.dart::<fragment>::@class::A#element
       type: A
     period: .
     name: SimpleIdentifier
       token: named
-      staticElement: package:test/a.dart::@class::A::@constructor::named
+      staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::named
+      element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
       staticType: null
-    staticElement: package:test/a.dart::@class::A::@constructor::named
+    staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::named
+    element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: package:test/a.dart::@class::A::@constructor::named::@parameter::a
+        parameter: package:test/a.dart::<fragment>::@class::A::@constructor::named::@parameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -1408,13 +1508,13 @@ InstanceCreationExpression
 
   test_importPrefix_class_notGeneric_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart'
+part of 'a.dart'
 
 augment class A {
   A.named();
@@ -1437,16 +1537,20 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: self::@prefix::prefix
+        element: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
+      element2: package:test/a.dart::<fragment>::@class::A#element
       type: A
     period: .
     name: SimpleIdentifier
       token: named
-      staticElement: package:test/a.dart::@augmentation::package:test/b.dart::@classAugmentation::A::@constructor::named
+      staticElement: package:test/a.dart::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::named
+      element: package:test/a.dart::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::named#element
       staticType: null
-    staticElement: package:test/a.dart::@augmentation::package:test/b.dart::@classAugmentation::A::@constructor::named
+    staticElement: package:test/a.dart::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::named
+    element: package:test/a.dart::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -1456,7 +1560,7 @@ InstanceCreationExpression
 
   test_importPrefix_class_notGeneric_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {
   A._();
@@ -1464,7 +1568,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart'
+part of 'a.dart'
 
 augment class A {
   A();
@@ -1487,11 +1591,14 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: self::@prefix::prefix
+        element: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
+      element2: package:test/a.dart::<fragment>::@class::A#element
       type: A
-    staticElement: package:test/a.dart::@augmentation::package:test/b.dart::@classAugmentation::A::@constructor::new
+    staticElement: package:test/a.dart::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::new
+    element: package:test/a.dart::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -1523,35 +1630,40 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: self::@prefix::prefix
+        element: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
         rightBracket: >
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
+      element2: package:test/a.dart::<fragment>::@class::A#element
       type: A<int>
     period: .
     name: SimpleIdentifier
       token: named
       staticElement: ConstructorMember
-        base: package:test/a.dart::@class::A::@constructor::named
+        base: package:test/a.dart::<fragment>::@class::A::@constructor::named
         substitution: {T: int}
+      element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
       staticType: null
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::A::@constructor::named
+      base: package:test/a.dart::<fragment>::@class::A::@constructor::named
       substitution: {T: int}
+    element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: package:test/a.dart::@class::A::@constructor::named::@parameter::a
+          base: package:test/a.dart::<fragment>::@class::A::@constructor::named::@parameter::a
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1583,28 +1695,32 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: self::@prefix::prefix
+        element: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
         rightBracket: >
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
+      element2: package:test/a.dart::<fragment>::@class::A#element
       type: A<int>
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::A::@constructor::new
+      base: package:test/a.dart::<fragment>::@class::A::@constructor::new
       substitution: {T: int}
+    element: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: package:test/a.dart::@class::A::@constructor::new::@parameter::a
+          base: package:test/a.dart::<fragment>::@class::A::@constructor::new::@parameter::a
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1636,17 +1752,20 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: self::@prefix::prefix
+        element: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
+      element2: package:test/a.dart::<fragment>::@class::A#element
       type: A
-    staticElement: package:test/a.dart::@class::A::@constructor::new
+    staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::new
+    element: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: package:test/a.dart::@class::A::@constructor::new::@parameter::a
+        parameter: package:test/a.dart::<fragment>::@class::A::@constructor::new::@parameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -1678,16 +1797,20 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: self::@prefix::prefix
+        element: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
+      element2: package:test/a.dart::<fragment>::@class::A#element
       type: A
     period: .
     name: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticElement: <null>
+    element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -1721,16 +1844,20 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: self::@prefix::prefix
+        element: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: Foo
       element: <null>
+      element2: <null>
       type: InvalidType
     period: .
     name: SimpleIdentifier
       token: bar
       staticElement: <null>
+      element: <null>
       staticType: null
     staticElement: <null>
+    element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -1770,21 +1897,24 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: X
-      element: self::@class::X
+      element: <testLibraryFragment>::@class::X
+      element2: <testLibraryFragment>::@class::X#element
       type: X
-    staticElement: self::@class::X::@constructor::new
+    staticElement: <testLibraryFragment>::@class::X::@constructor::new
+    element: <testLibraryFragment>::@class::X::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       MethodInvocation
         methodName: SimpleIdentifier
           token: g1
-          staticElement: self::@function::g1
+          staticElement: <testLibraryFragment>::@function::g1
+          element: <testLibraryFragment>::@function::g1#element
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        parameter: self::@class::X::@constructor::new::@parameter::a
+        parameter: <testLibraryFragment>::@class::X::@constructor::new::@parameter::a
         staticInvokeType: A Function()
         staticType: A
         typeArgumentTypes
@@ -1793,13 +1923,15 @@ InstanceCreationExpression
         name: Label
           label: SimpleIdentifier
             token: c
-            staticElement: self::@class::X::@constructor::new::@parameter::c
+            staticElement: <testLibraryFragment>::@class::X::@constructor::new::@parameter::c
+            element: <testLibraryFragment>::@class::X::@constructor::new::@parameter::c#element
             staticType: null
           colon: :
         expression: MethodInvocation
           methodName: SimpleIdentifier
             token: g3
-            staticElement: self::@function::g3
+            staticElement: <testLibraryFragment>::@function::g3
+            element: <testLibraryFragment>::@function::g3#element
             staticType: T Function<T>()
           argumentList: ArgumentList
             leftParenthesis: (
@@ -1808,16 +1940,17 @@ InstanceCreationExpression
           staticType: C?
           typeArgumentTypes
             C?
-        parameter: self::@class::X::@constructor::new::@parameter::c
+        parameter: <testLibraryFragment>::@class::X::@constructor::new::@parameter::c
       MethodInvocation
         methodName: SimpleIdentifier
           token: g2
-          staticElement: self::@function::g2
+          staticElement: <testLibraryFragment>::@function::g2
+          element: <testLibraryFragment>::@function::g2#element
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        parameter: self::@class::X::@constructor::new::@parameter::b
+        parameter: <testLibraryFragment>::@class::X::@constructor::new::@parameter::b
         staticInvokeType: B Function()
         staticType: B
         typeArgumentTypes
@@ -1826,13 +1959,15 @@ InstanceCreationExpression
         name: Label
           label: SimpleIdentifier
             token: d
-            staticElement: self::@class::X::@constructor::new::@parameter::d
+            staticElement: <testLibraryFragment>::@class::X::@constructor::new::@parameter::d
+            element: <testLibraryFragment>::@class::X::@constructor::new::@parameter::d#element
             staticType: null
           colon: :
         expression: MethodInvocation
           methodName: SimpleIdentifier
             token: g4
-            staticElement: self::@function::g4
+            staticElement: <testLibraryFragment>::@function::g4
+            element: <testLibraryFragment>::@function::g4#element
             staticType: T Function<T>()
           argumentList: ArgumentList
             leftParenthesis: (
@@ -1841,7 +1976,7 @@ InstanceCreationExpression
           staticType: D?
           typeArgumentTypes
             D?
-        parameter: self::@class::X::@constructor::new::@parameter::d
+        parameter: <testLibraryFragment>::@class::X::@constructor::new::@parameter::d
     rightParenthesis: )
   staticType: X
 ''');
@@ -1849,14 +1984,14 @@ InstanceCreationExpression
 
   test_typeAlias_generic_class_generic_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A<T2> {
   A.named(T2 value);
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A<T> {}
 
@@ -1873,27 +2008,30 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: X
-      element: self::@typeAlias::X
+      element: <testLibraryFragment>::@typeAlias::X
+      element2: <testLibraryFragment>::@typeAlias::X#element
       type: A<int>
     period: .
     name: SimpleIdentifier
       token: named
       staticElement: ConstructorMember
-        base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+        base: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
         augmentationSubstitution: {T2: T}
         substitution: {T: dynamic}
+      element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named#element
       staticType: null
     staticElement: ConstructorMember
-      base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+      base: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
       augmentationSubstitution: {T2: T}
       substitution: {T: int}
+    element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named::@parameter::value
+          base: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named::@parameter::value
           augmentationSubstitution: {T2: T}
           substitution: {T: int}
         staticType: int
@@ -1904,14 +2042,14 @@ InstanceCreationExpression
 
   test_typeAlias_generic_class_generic_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A<T2> {
   A(T2 value);
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A<T> {
   A._();
@@ -1930,19 +2068,21 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: X
-      element: self::@typeAlias::X
+      element: <testLibraryFragment>::@typeAlias::X
+      element2: <testLibraryFragment>::@typeAlias::X#element
       type: A<int>
     staticElement: ConstructorMember
-      base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new
+      base: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
       augmentationSubstitution: {T2: T}
       substitution: {T: int}
+    element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new::@parameter::value
+          base: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new::@parameter::value
           augmentationSubstitution: {T2: T}
           substitution: {T: int}
         staticType: int
@@ -1970,25 +2110,28 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element: self::@typeAlias::B
+      element: <testLibraryFragment>::@typeAlias::B
+      element2: <testLibraryFragment>::@typeAlias::B#element
       type: A<int>
     period: .
     name: SimpleIdentifier
       token: named
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::named
+        base: <testLibraryFragment>::@class::A::@constructor::named
         substitution: {T: dynamic}
+      element: <testLibraryFragment>::@class::A::@constructor::named#element
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::named
+      base: <testLibraryFragment>::@class::A::@constructor::named
       substitution: {T: int}
+    element: <testLibraryFragment>::@class::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@class::A::@constructor::named::@parameter::t
+          base: <testLibraryFragment>::@class::A::@constructor::named::@parameter::t
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -2015,25 +2158,28 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element: self::@typeAlias::B
+      element: <testLibraryFragment>::@typeAlias::B
+      element2: <testLibraryFragment>::@typeAlias::B#element
       type: A<int, String>
     period: .
     name: SimpleIdentifier
       token: named
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::named
+        base: <testLibraryFragment>::@class::A::@constructor::named
         substitution: {T: dynamic, U: String}
+      element: <testLibraryFragment>::@class::A::@constructor::named#element
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::named
+      base: <testLibraryFragment>::@class::A::@constructor::named
       substitution: {T: int, U: String}
+    element: <testLibraryFragment>::@class::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@class::A::@constructor::named::@parameter::t
+          base: <testLibraryFragment>::@class::A::@constructor::named::@parameter::t
           substitution: {T: int, U: String}
         staticType: int
       SimpleStringLiteral
@@ -2062,18 +2208,20 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element: self::@typeAlias::B
+      element: <testLibraryFragment>::@typeAlias::B
+      element2: <testLibraryFragment>::@typeAlias::B#element
       type: A<int>
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::new
+      base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: int}
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@class::A::@constructor::new::@parameter::t
+          base: <testLibraryFragment>::@class::A::@constructor::new::@parameter::t
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -2100,18 +2248,20 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element: self::@typeAlias::B
+      element: <testLibraryFragment>::@typeAlias::B
+      element2: <testLibraryFragment>::@typeAlias::B#element
       type: A<int, String>
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::new
+      base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: int, U: String}
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@class::A::@constructor::new::@parameter::t
+          base: <testLibraryFragment>::@class::A::@constructor::new::@parameter::t
           substitution: {T: int, U: String}
         staticType: int
       SimpleStringLiteral
@@ -2142,25 +2292,28 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element: self::@typeAlias::B
+      element: <testLibraryFragment>::@typeAlias::B
+      element2: <testLibraryFragment>::@typeAlias::B#element
       type: A<String>
     period: .
     name: SimpleIdentifier
       token: named
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::named
+        base: <testLibraryFragment>::@class::A::@constructor::named
         substitution: {T: String}
+      element: <testLibraryFragment>::@class::A::@constructor::named#element
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::named
+      base: <testLibraryFragment>::@class::A::@constructor::named
       substitution: {T: String}
+    element: <testLibraryFragment>::@class::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@class::A::@constructor::named::@parameter::t
+          base: <testLibraryFragment>::@class::A::@constructor::named::@parameter::t
           substitution: {T: String}
         staticType: int
     rightParenthesis: )
@@ -2189,18 +2342,20 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element: self::@typeAlias::B
+      element: <testLibraryFragment>::@typeAlias::B
+      element2: <testLibraryFragment>::@typeAlias::B#element
       type: A<String>
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::new
+      base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: String}
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@class::A::@constructor::new::@parameter::t
+          base: <testLibraryFragment>::@class::A::@constructor::new::@parameter::t
           substitution: {T: String}
         staticType: int
     rightParenthesis: )
@@ -2210,14 +2365,14 @@ InstanceCreationExpression
 
   test_typeAlias_notGeneric_class_notGeneric_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   A.named();
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 
@@ -2234,14 +2389,17 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: X
-      element: self::@typeAlias::X
+      element: <testLibraryFragment>::@typeAlias::X
+      element2: <testLibraryFragment>::@typeAlias::X#element
       type: A
     period: .
     name: SimpleIdentifier
       token: named
-      staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+      staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
+      element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named#element
       staticType: null
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
+    element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -2251,14 +2409,14 @@ InstanceCreationExpression
 
   test_typeAlias_notGeneric_class_notGeneric_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   A();
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   A._();
@@ -2277,9 +2435,11 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: X
-      element: self::@typeAlias::X
+      element: <testLibraryFragment>::@typeAlias::X
+      element2: <testLibraryFragment>::@typeAlias::X#element
       type: A
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new
+    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
+    element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -2305,15 +2465,17 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
-    staticElement: self::@class::A::@constructor::new
+    staticElement: <testLibraryFragment>::@class::A::@constructor::new
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@constructor::new::@parameter::a
+        parameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -2338,20 +2500,23 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::new
+      staticElement: <testLibraryFragment>::@class::A::@constructor::new
+      element: <testLibraryFragment>::@class::A::@constructor::new#element
       staticType: null
-    staticElement: self::@class::A::@constructor::new
+    staticElement: <testLibraryFragment>::@class::A::@constructor::new
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@constructor::new::@parameter::a
+        parameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -2376,20 +2541,23 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::new
+      staticElement: <testLibraryFragment>::@class::A::@constructor::new
+      element: <testLibraryFragment>::@class::A::@constructor::new#element
       staticType: null
-    staticElement: self::@class::A::@constructor::new
+    staticElement: <testLibraryFragment>::@class::A::@constructor::new
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@constructor::new::@parameter::a
+        parameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -2414,8 +2582,10 @@ InstanceCreationExpression
     type: NamedType
       name: Unresolved
       element: <null>
+      element2: <null>
       type: InvalidType
     staticElement: <null>
+    element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -2448,10 +2618,13 @@ InstanceCreationExpression
         name: Unresolved
         period: .
         element: <null>
+        element2: <null>
       name: named
       element: <null>
+      element2: <null>
       type: InvalidType
     staticElement: <null>
+    element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -2484,15 +2657,19 @@ InstanceCreationExpression
         name: unresolved
         period: .
         element: <null>
+        element2: <null>
       name: Foo
       element: <null>
+      element2: <null>
       type: InvalidType
     period: .
     name: SimpleIdentifier
       token: bar
       staticElement: <null>
+      element: <null>
       staticType: null
     staticElement: <null>
+    element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
     arguments

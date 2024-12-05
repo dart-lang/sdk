@@ -8,58 +8,20 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r"Don't use the Null type, unless you are positive that you don't want void.";
 
-const _details = r'''
-**DON'T** use the type Null where void would work.
-
-**BAD:**
-```dart
-Null f() {}
-Future<Null> f() {}
-Stream<Null> f() {}
-f(Null x) {}
-```
-
-**GOOD:**
-```dart
-void f() {}
-Future<void> f() {}
-Stream<void> f() {}
-f(void x) {}
-```
-
-Some exceptions include formulating special function types:
-
-```dart
-Null Function(Null, Null);
-```
-
-and for making empty literals which are safe to pass into read-only locations
-for any type of map or list:
-
-```dart
-<Null>[];
-<int, Null>{};
-```
-''';
-
 class PreferVoidToNull extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_void_to_null', "Unnecessary use of the type 'Null'.",
-      correctionMessage: "Try using 'void' instead.", hasPublishedDocs: true);
-
   PreferVoidToNull()
       : super(
-            name: 'prefer_void_to_null',
-            description: _desc,
-            details: _details,
-            categories: {Category.errors});
+          name: LintNames.prefer_void_to_null,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_void_to_null;
 
   @override
   void registerNodeProcessors(

@@ -98,8 +98,9 @@ void AssemblerBase::StoreToSlotNoBarrier(Register src,
                                          const Slot& slot,
                                          MemoryOrder memory_order) {
   if (!slot.is_tagged()) {
-    // The stored value cannot be a floating point or SIMD value.
+    // The stored value cannot be a SIMD value.
     ASSERT(slot.representation() == kUntagged ||
+           RepresentationUtils::IsUnboxedFloat(slot.representation()) ||
            RepresentationUtils::IsUnboxedInteger(slot.representation()));
     // Since we only have a single source register, the stored value must
     // fit into a register.

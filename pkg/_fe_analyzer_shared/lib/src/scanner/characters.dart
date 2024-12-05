@@ -4,7 +4,7 @@
 
 library _fe_analyzer_shared.scanner.characters;
 
-const int $EOF = 0;
+const int $EOF = -1;
 const int $STX = 2;
 const int $BS = 8;
 const int $TAB = 9;

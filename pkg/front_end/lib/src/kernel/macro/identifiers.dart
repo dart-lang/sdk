@@ -297,3 +297,30 @@ class OmittedTypeIdentifier extends IdentifierImpl {
         'Cannot resolve type declaration from omitted type.'));
   }
 }
+
+// Coverage-ignore(suite): Not run.
+class VoidTypeIdentifier extends IdentifierImpl {
+  VoidTypeIdentifier({required int id}) : super(id: id, name: 'void');
+
+  @override
+  DartType buildType(
+      NullabilityBuilder nullabilityBuilder, List<DartType> typeArguments) {
+    return const VoidType();
+  }
+
+  @override
+  macro.ResolvedIdentifier resolveIdentifier() {
+    return new macro.ResolvedIdentifier(
+        kind: macro.IdentifierKind.topLevelMember,
+        name: name,
+        staticScope: null,
+        uri: null);
+  }
+
+  @override
+  Future<macro.TypeDeclaration> resolveTypeDeclaration(
+      MacroIntrospection macroIntrospection) {
+    return new Future.error(new macro.MacroImplementationExceptionImpl(
+        'Cannot resolve type declaration from void type.'));
+  }
+}

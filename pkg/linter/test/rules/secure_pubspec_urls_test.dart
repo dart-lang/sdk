@@ -18,7 +18,7 @@ class SecurePubspecUrlsTest extends LintRuleTest {
   bool get dumpAstOnFailures => false;
 
   @override
-  String get lintRule => 'secure_pubspec_urls';
+  String get lintRule => LintNames.secure_pubspec_urls;
 
   test_dependencyGit_insecure() async {
     await assertPubspecDiagnostics(r'''

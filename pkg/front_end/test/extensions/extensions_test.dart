@@ -134,7 +134,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     SourceLibraryBuilder libraryBuilder =
         lookupLibraryBuilder(compilerResult, library) as SourceLibraryBuilder;
     libraryBuilder.forEachExtensionInScope((ExtensionBuilder extension) {
-      LibraryBuilder library = extension.parent as LibraryBuilder;
+      LibraryBuilder library = extension.libraryBuilder;
       if (library.importUri.isScheme('dart')) {
         // Don't include dart: extensions.
         return;

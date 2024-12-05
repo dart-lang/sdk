@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → void {
+  #L1:
+  for (core::int x in <core::int>[1, 2, 3, 4])
+    #L2:
+    {
+      if(x =={core::num::==}{(core::Object) → core::bool} 2)
+        break #L2;
+      if(x =={core::num::==}{(core::Object) → core::bool} 3)
+        break #L1;
+      core::print("Hello ${x}");
+    }
+}

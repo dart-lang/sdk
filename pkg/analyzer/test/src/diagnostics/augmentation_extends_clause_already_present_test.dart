@@ -18,7 +18,7 @@ class AugmentationExtendsClauseAlreadyPresentTest
     extends PubPackageResolutionTest {
   test_alreadyPresent() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {}
 
@@ -26,20 +26,20 @@ class B extends A {};
 ''');
 
     await assertErrorsInCode(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class B extends A {}
 ''', [
       error(CompileTimeErrorCode.AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT,
-          43, 7,
-          contextMessages: [message(a, 47, 1)]),
+          35, 7,
+          contextMessages: [message(a, 37, 1)]),
     ]);
   }
 
   test_alreadyPresent2() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-import augment 'test.dart';
+part 'b.dart';
+part 'test.dart';
 
 class A {}
 
@@ -47,25 +47,25 @@ class B extends A {};
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class B {}
 ''');
 
     await assertErrorsInCode(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class B extends A {}
 ''', [
       error(CompileTimeErrorCode.AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT,
-          43, 7,
-          contextMessages: [message(a, 72, 1)]),
+          35, 7,
+          contextMessages: [message(a, 52, 1)]),
     ]);
   }
 
   test_notPresent() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {}
 
@@ -73,7 +73,7 @@ class B {};
 ''');
 
     await assertNoErrorsInCode(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class B extends A {}
 ''');

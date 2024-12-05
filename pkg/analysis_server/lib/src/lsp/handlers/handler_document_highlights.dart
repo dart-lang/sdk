@@ -13,7 +13,7 @@ import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 typedef StaticOptions = Either2<bool, DocumentHighlightOptions>;
 
 class DocumentHighlightsHandler extends SharedMessageHandler<
-    TextDocumentPositionParams, List<DocumentHighlight>?> {
+    TextDocumentPositionParams, List<DocumentHighlight>> {
   DocumentHighlightsHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_documentHighlight;
@@ -23,7 +23,10 @@ class DocumentHighlightsHandler extends SharedMessageHandler<
       TextDocumentPositionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<DocumentHighlight>?>> handle(
+  bool get requiresTrustedCaller => false;
+
+  @override
+  Future<ErrorOr<List<DocumentHighlight>>> handle(
       TextDocumentPositionParams params,
       MessageInfo message,
       CancellationToken token) async {
@@ -55,12 +58,10 @@ class DocumentHighlightsHandler extends SharedMessageHandler<
           .where((occurrence) => occurrence.offsets.any(
               (offset) => spansRequestedPosition(offset, occurrence.length)))
           .toList();
-      if (occurrences.isNotEmpty) {
-        return success(toHighlights(unit.lineInfo, occurrences));
-      }
 
-      // No matches.
-      return success(null);
+      // No matches will return an empty list (not null) because that prevents
+      // the editor falling back to a text search.
+      return success(toHighlights(unit.lineInfo, occurrences));
     });
   }
 }

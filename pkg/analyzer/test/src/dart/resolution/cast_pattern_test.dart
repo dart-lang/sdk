@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -21,7 +21,7 @@ void f(x) {
   if (x case var y as int) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -35,7 +35,8 @@ CastPattern
   asToken: as
   type: NamedType
     name: int
-    element: dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
+    element2: dart:core::<fragment>::@class::int#element
     type: int
   matchedValueType: dynamic
 ''');
@@ -58,12 +59,14 @@ CastPattern
     expression: SimpleIdentifier
       token: a
       staticElement: a@20
+      element: a@20
       staticType: int
     matchedValueType: int
   asToken: as
   type: NamedType
     name: int
-    element: dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
+    element2: dart:core::<fragment>::@class::int#element
     type: int
   matchedValueType: dynamic
 ''');
@@ -75,7 +78,7 @@ void f(x) {
   var (a as int) = x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
     ]);
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -92,7 +95,8 @@ PatternVariableDeclaration
       asToken: as
       type: NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
       matchedValueType: dynamic
     rightParenthesis: )
@@ -100,7 +104,8 @@ PatternVariableDeclaration
   equals: =
   expression: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: dynamic
   patternTypeSchema: _
 ''');

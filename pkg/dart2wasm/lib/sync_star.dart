@@ -9,6 +9,73 @@ import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
 import 'state_machine.dart';
+import 'translator.dart' show CompilationTask;
+
+mixin SyncStarCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
+  late final ClassInfo suspendStateInfo =
+      translator.classInfo[translator.suspendStateClass]!;
+
+  late final ClassInfo syncStarIterableInfo =
+      translator.classInfo[translator.syncStarIterableClass]!;
+
+  @override
+  void generateOuter(
+      FunctionNode functionNode, Context? context, Source functionSource) {
+    final resumeFun = _defineInnerBodyFunction(functionNode);
+
+    // Instantiate a [_SyncStarIterable] containing the context and resume
+    // function for this `sync*` function.
+    DartType elementType = functionNode.emittedValueType!;
+    translator.functions.recordClassAllocation(syncStarIterableInfo.classId);
+    b.i32_const(syncStarIterableInfo.classId);
+    b.i32_const(initialIdentityHash);
+    types.makeType(this, elementType);
+    if (context != null) {
+      assert(!context.isEmpty);
+      b.local_get(context.currentLocal);
+    } else {
+      b.ref_null(w.HeapType.struct);
+    }
+    translator.globals
+        .readGlobal(b, translator.makeFunctionRef(b.module, resumeFun));
+    b.struct_new(syncStarIterableInfo.struct);
+    b.return_();
+    b.end();
+
+    translator.compilationQueue.add(CompilationTask(
+        resumeFun,
+        SyncStarStateMachineCodeGenerator(translator, resumeFun,
+            enclosingMember, functionNode, functionSource, closures)));
+  }
+
+  w.FunctionBuilder _defineInnerBodyFunction(FunctionNode functionNode) =>
+      translator.moduleForReference(enclosingMember.reference).functions.define(
+          translator.typesBuilder.defineFunction([
+            suspendStateInfo.nonNullableType, // _SuspendState
+            translator.topInfo.nullableType, // Object?, error value
+            translator.stackTraceInfo.repr
+                .nullableType // StackTrace?, error stack trace
+          ], const [
+            // bool for whether the generator has more to do
+            w.NumType.i32
+          ]),
+          "${function.functionName} inner");
+}
+
+/// Generates code for sync* procedures.
+class SyncStarProcedureCodeGenerator
+    extends ProcedureStateMachineEntryCodeGenerator
+    with SyncStarCodeGeneratorMixin {
+  SyncStarProcedureCodeGenerator(
+      super.translator, super.function, super.enclosingMember);
+}
+
+/// Generates code for sync* closures.
+class SyncStarLambdaCodeGenerator extends LambdaStateMachineEntryCodeGenerator
+    with SyncStarCodeGeneratorMixin {
+  SyncStarLambdaCodeGenerator(
+      super.translator, super.enclosingMember, super.lambda, super.closures);
+}
 
 /// A specialized code generator for generating code for `sync*` functions.
 ///
@@ -25,8 +92,14 @@ import 'state_machine.dart';
 /// Local state is preserved via the closure contexts, which will implicitly
 /// capture all local variables in a `sync*` function even if they are not
 /// captured by any lambdas.
-class SyncStarCodeGenerator extends StateMachineCodeGenerator {
-  SyncStarCodeGenerator(super.translator, super.function, super.reference);
+class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
+  SyncStarStateMachineCodeGenerator(
+      super.translator,
+      super.function,
+      super.enclosingMember,
+      super.functionNode,
+      super.functionSource,
+      super.closures);
 
   late final ClassInfo suspendStateInfo =
       translator.classInfo[translator.suspendStateClass]!;
@@ -41,19 +114,6 @@ class SyncStarCodeGenerator extends StateMachineCodeGenerator {
   w.Local get _suspendStateLocal => function.locals[0];
   w.Local get _pendingExceptionLocal => function.locals[1];
   w.Local get _pendingStackTraceLocal => function.locals[2];
-
-  w.FunctionBuilder _defineBodyFunction(FunctionNode functionNode) =>
-      m.functions.define(
-          m.types.defineFunction([
-            suspendStateInfo.nonNullableType, // _SuspendState
-            translator.topInfo.nullableType, // Object?, error value
-            translator.stackTraceInfo.repr
-                .nullableType // StackTrace?, error stack trace
-          ], const [
-            // bool for whether the generator has more to do
-            w.NumType.i32
-          ]),
-          "${function.functionName} inner");
 
   @override
   void setSuspendStateCurrentException(void Function() emitValue) {
@@ -104,58 +164,22 @@ class SyncStarCodeGenerator extends StateMachineCodeGenerator {
   }
 
   @override
-  void generateFunctions(FunctionNode functionNode, Context? context) {
-    final resumeFun = _defineBodyFunction(functionNode);
-
-    _generateOuter(functionNode, context, resumeFun);
-
-    // Forget about the outer function locals containing the type arguments,
-    // so accesses to the type arguments in the inner function will fetch them
-    // from the context.
-    typeLocals.clear();
-
-    _generateInner(functionNode, context, resumeFun);
-  }
-
-  void _generateOuter(
-      FunctionNode functionNode, Context? context, w.BaseFunction resumeFun) {
-    // Instantiate a [_SyncStarIterable] containing the context and resume
-    // function for this `sync*` function.
-    DartType elementType = functionNode.emittedValueType!;
-    translator.functions.recordClassAllocation(syncStarIterableInfo.classId);
-    b.i32_const(syncStarIterableInfo.classId);
-    b.i32_const(initialIdentityHash);
-    types.makeType(this, elementType);
-    if (context != null) {
-      assert(!context.isEmpty);
-      b.local_get(context.currentLocal);
-    } else {
-      b.ref_null(w.HeapType.struct);
-    }
-    b.global_get(translator.makeFunctionRef(resumeFun));
-    b.struct_new(syncStarIterableInfo.struct);
-    b.end();
-  }
-
-  void _generateInner(FunctionNode functionNode, Context? context,
-      w.FunctionBuilder resumeFun) {
-    // Set the current Wasm function for the code generator to the inner
-    // function of the `sync*`, which is to contain the body.
-    function = resumeFun;
-
+  void generateInner(FunctionNode functionNode, Context? context) {
     // Set up locals for contexts and `this`.
     thisLocal = null;
     Context? localContext = context;
     while (localContext != null) {
       if (!localContext.isEmpty) {
-        localContext.currentLocal = function
-            .addLocal(w.RefType.def(localContext.struct, nullable: true));
+        localContext.currentLocal =
+            b.addLocal(w.RefType.def(localContext.struct, nullable: true));
         if (localContext.containsThis) {
           assert(thisLocal == null);
-          thisLocal = function.addLocal(localContext
+          thisLocal = b.addLocal(localContext
               .struct.fields[localContext.thisFieldIndex].type.unpacked
               .withNullability(false));
-          translator.globals.instantiateDummyValue(b, thisLocal!.type);
+          translator
+              .getDummyValuesCollectorForModule(b.module)
+              .instantiateDummyValue(b, thisLocal!.type);
           b.local_set(thisLocal!);
 
           preciseThisLocal = thisLocal;
@@ -188,13 +212,14 @@ class SyncStarCodeGenerator extends StateMachineCodeGenerator {
         FieldIndex.suspendStateContext, closures, context, thisLocal,
         cloneContextFor: functionNode);
 
-    visitStatement(functionNode.body!);
+    translateStatement(functionNode.body!);
 
     // Final state: just keep returning.
     emitTargetLabel(targets.last);
     emitReturn(() {});
     b.end(); // masterLoop
 
+    b.return_();
     b.end(); // inner function
   }
 
@@ -204,7 +229,7 @@ class SyncStarCodeGenerator extends StateMachineCodeGenerator {
     // `_yieldStarIterable` for `yield*`.
     b.local_get(_suspendStateLocal);
     b.struct_get(suspendStateInfo.struct, FieldIndex.suspendStateIterator);
-    wrap(node.expression, translator.topInfo.nullableType);
+    translateExpression(node.expression, translator.topInfo.nullableType);
     if (node.isYieldStar) {
       b.ref_cast(translator.objectInfo.nonNullableType);
       b.struct_set(syncStarIteratorInfo.struct,
@@ -267,7 +292,7 @@ class SyncStarCodeGenerator extends StateMachineCodeGenerator {
       b.local_get(_pendingStackTraceLocal);
       b.ref_as_non_null();
 
-      b.throw_(translator.exceptionTag);
+      b.throw_(translator.getExceptionTag(b.module));
       b.end(); // exceptionCheck
     }
   }

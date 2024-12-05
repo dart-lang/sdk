@@ -400,7 +400,8 @@ class RegisterSource {
     // Spilled register source represented as its spill slot.
     kStackSlot = 0,
     // Register source represented as its register index.
-    kRegister = 1
+    kRegister = 1,
+    // If more kinds are added, update KindField below.
   };
 
   explicit RegisterSource(intptr_t source_index)
@@ -437,9 +438,8 @@ class RegisterSource {
   }
 
  private:
-  class KindField : public BitField<intptr_t, intptr_t, 0, 1> {};
-  class UntaggedIndexField
-      : public BitField<intptr_t, intptr_t, 1, kBitsPerWord - 1> {};
+  using KindField = BitField<intptr_t, Kind, 0, Utils::BitLength(kRegister)>;
+  using UntaggedIndexField = BitField<intptr_t, intptr_t, KindField::kNextBit>;
 
   bool is_register() const {
     return KindField::decode(source_index_) == kRegister;
@@ -586,8 +586,12 @@ class DeoptTable : public AllStatic {
     return Smi::New(ReasonField::encode(reason) | FlagsField::encode(flags));
   }
 
-  class ReasonField : public BitField<intptr_t, ICData::DeoptReasonId, 0, 8> {};
-  class FlagsField : public BitField<intptr_t, uint32_t, 8, 8> {};
+  using ReasonField = BitField<intptr_t,
+                               ICData::DeoptReasonId,
+                               0,
+                               Utils::BitLength(ICData::kDeoptNumReasons - 1)>;
+  using FlagsField = BitField<intptr_t, uint32_t, ReasonField::kNextBit, 8>;
+  COMPILE_ASSERT(FlagsField::kNextBit <= kSmiBits);
 
  private:
   static constexpr intptr_t kEntrySize = 3;

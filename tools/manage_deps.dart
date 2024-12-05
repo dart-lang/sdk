@@ -6,7 +6,11 @@
 /// Helps rolling dependency to the newest version available
 /// (or a target version).
 ///
-/// Usage: ./tools/manage_deps.dart bump <dependency> [--branch <branch>] [--target <ref>]
+/// Usage:
+///
+/// ```bash
+/// ./tools/manage_deps.dart bump <dependency> [--branch <branch>] [--target <ref>]
+/// ```
 ///
 /// This will:
 /// 0. Check that git is clean
@@ -73,7 +77,7 @@ This will:
       usageException('No directory $pkgDir');
     }
     final toUpdate = p.split(pkgDir).last;
-    final branchName = argResults['branch'] ?? 'bump_$toUpdate';
+    final branchName = argResults.option('branch') ?? 'bump_$toUpdate';
 
     final exists = runProcessForExitCode(
         ['git', 'rev-parse', '--verify', branchName],
@@ -115,7 +119,7 @@ This will:
       'git',
       'rev-parse',
       if (argResults.wasParsed('target'))
-        argResults['target']
+        argResults.option('target')!
       else
         'origin/${defaultBranchTarget(pkgDir)}',
     ], workingDirectory: pkgDir, explanation: 'Finding sha-id');

@@ -16,7 +16,8 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
+      // Adding the missing cases is not a sufficient fix (user logic needs
+      // to be added as well).
       CorrectionApplicability.singleLocation;
 
   @override
@@ -53,6 +54,20 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     }
   }
 
+  /// Returns whether [parts] references an enum field where either the enum
+  /// class itself or the missing field is not reachable because it's private.
+  bool _hasInaccessibleEnumMemberPart(List<MissingPatternPart> parts) {
+    for (var part in parts) {
+      if (part is MissingPatternEnumValuePart &&
+          (part.enumElement.isPrivate || part.value.isPrivate) &&
+          libraryElement != part.enumElement.library) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   Future<void> _switchExpression({
     required ChangeBuilder builder,
     required SwitchExpression node,
@@ -61,6 +76,11 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     var lineIndent = utils.getLinePrefix(node.offset);
     var singleIndent = utils.oneIndent;
 
+    // It is possible that a missing pattern is unrepresentable at the location
+    // of the switch. For instance, an enum with a private member can't be
+    // matched outside of its library.
+    var needsDefault = false;
+
     await builder.addDartFileEdit(file, (builder) {
       builder.insertCaseClauseAtEnd(
           switchKeyword: node.switchKeyword,
@@ -68,6 +88,11 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
           leftBracket: node.leftBracket,
           rightBracket: node.rightBracket, (builder) {
         for (var patternParts in patternPartsList) {
+          if (_hasInaccessibleEnumMemberPart(patternParts)) {
+            needsDefault = true;
+            continue;
+          }
+
           builder.write(lineIndent);
           builder.write(singleIndent);
           builder.writeln('// TODO: Handle this case.');
@@ -75,6 +100,15 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
           builder.write(singleIndent);
           _writePatternPart(builder, patternParts);
           builder.writeln(' => throw UnimplementedError(),');
+        }
+
+        if (needsDefault) {
+          builder.write(lineIndent);
+          builder.write(singleIndent);
+          builder.writeln('// TODO: Handle this case.');
+          builder.write(lineIndent);
+          builder.write(singleIndent);
+          builder.writeln('_ => throw UnimplementedError(),');
         }
       });
     });
@@ -87,6 +121,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
   }) async {
     var lineIndent = utils.getLinePrefix(node.offset);
     var singleIndent = utils.oneIndent;
+    var needsDefault = false;
 
     await builder.addDartFileEdit(file, (builder) {
       builder.insertCaseClauseAtEnd(
@@ -94,16 +129,36 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
           rightParenthesis: node.rightParenthesis,
           leftBracket: node.leftBracket,
           rightBracket: node.rightBracket, (builder) {
+        void addTodoAndThrow() {
+          builder.write(lineIndent);
+          builder.write(singleIndent);
+          builder.write(singleIndent);
+          builder.writeln('// TODO: Handle this case.');
+          builder.write(lineIndent);
+          builder.write(singleIndent);
+          builder.write(singleIndent);
+          builder.writeln('throw UnimplementedError();');
+        }
+
         for (var patternParts in patternPartsList) {
+          if (_hasInaccessibleEnumMemberPart(patternParts)) {
+            needsDefault = true;
+            continue;
+          }
+
           builder.write(lineIndent);
           builder.write(singleIndent);
           builder.write('case ');
           _writePatternPart(builder, patternParts);
           builder.writeln(':');
+          addTodoAndThrow();
+        }
+
+        if (needsDefault) {
           builder.write(lineIndent);
           builder.write(singleIndent);
-          builder.write(singleIndent);
-          builder.writeln('// TODO: Handle this case.');
+          builder.writeln('default:');
+          addTodoAndThrow();
         }
       });
     });

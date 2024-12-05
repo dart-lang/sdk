@@ -31,6 +31,9 @@ import 'source_member_builder.dart';
 
 class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     implements ProcedureBuilder {
+  @override
+  final SourceLibraryBuilder libraryBuilder;
+
   final int charOpenParenOffset;
 
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
@@ -84,7 +87,9 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
       this.kind,
-      SourceLibraryBuilder libraryBuilder,
+      this.libraryBuilder,
+      DeclarationBuilder? declarationBuilder,
+      Uri fileUri,
       int startCharOffset,
       int charOffset,
       this.charOpenParenOffset,
@@ -101,15 +106,23 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         this.isExtensionTypeInstanceMember =
             nameScheme.isInstanceMember && nameScheme.isExtensionTypeMember,
         _memberName = nameScheme.getDeclaredName(name),
-        super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
-            charOffset, nativeMethodName) {
+        super(
+            metadata,
+            modifiers,
+            name,
+            typeVariables,
+            formals,
+            declarationBuilder ?? libraryBuilder,
+            fileUri,
+            charOffset,
+            nativeMethodName) {
     _procedure = new Procedure(
         dummyName,
         isExtensionInstanceMember || isExtensionTypeInstanceMember
             ? ProcedureKind.Method
             : kind,
         new FunctionNode(null),
-        fileUri: libraryBuilder.fileUri,
+        fileUri: fileUri,
         reference: procedureReference,
         isSynthetic: isSynthetic)
       ..fileStartOffset = startCharOffset
@@ -186,7 +199,6 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     assert(
         overriddenMembers.every((overriddenMember) =>
             overriddenMember.declarationBuilder != classBuilder),
-        // Coverage-ignore(suite): Not run.
         "Unexpected override dependencies for $this: $overriddenMembers");
     _overrideDependencies ??= {};
     _overrideDependencies!.addAll(overriddenMembers);
@@ -372,8 +384,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   void _buildExtensionTearOff(SourceLibraryBuilder sourceLibraryBuilder,
       SourceDeclarationBuilderMixin declarationBuilder) {
     assert(
-        _extensionTearOff != null, // Coverage-ignore(suite): Not run.
-        "No extension tear off created for $this.");
+        _extensionTearOff != null, "No extension tear off created for $this.");
 
     _extensionTearOffParameterMap = {};
 

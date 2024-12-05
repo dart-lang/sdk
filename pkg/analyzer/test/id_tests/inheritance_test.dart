@@ -93,7 +93,7 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
       for (var name in interface.map.keys) {
         var executable = interface.map[name]!;
 
-        var enclosingClass = executable.enclosingElement as InterfaceElement;
+        var enclosingClass = executable.enclosingElement3 as InterfaceElement;
         if (enclosingClass is ClassElement && enclosingClass.isDartCoreObject) {
           continue;
         }

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferAssertsWithMessageTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_asserts_with_message';
+  String get lintRule => LintNames.prefer_asserts_with_message;
 
   test_assertInitializer_message() async {
     await assertNoDiagnostics(r'''

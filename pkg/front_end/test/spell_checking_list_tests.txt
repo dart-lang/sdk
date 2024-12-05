@@ -12,6 +12,7 @@
 aa
 aaa
 aarhus
+ab
 abcompile
 ac
 aci
@@ -19,6 +20,7 @@ acn
 acr
 adapter
 adaptor
+adequately
 adopted
 advantages
 aei
@@ -173,8 +175,10 @@ concurrently
 confidence
 confident
 confirm
+cons
 consecutive
 considering
+constantly
 constr
 constrains
 consts
@@ -423,6 +427,7 @@ inaccessible
 inclosure
 inconsistencies
 increasing
+increasingly
 incrementally
 increments
 indention
@@ -514,6 +519,7 @@ misses
 misspelled
 mistake
 mistakes
+mixture
 mixups
 ml
 mmethod
@@ -574,6 +580,7 @@ oracle
 ot
 outbound
 outliers
+overflows
 overhead
 overlay
 overly
@@ -835,6 +842,7 @@ unassignment
 unawaited
 unbreak
 uncaught
+uncommitted
 uncompiled
 unconverted
 uncover
@@ -864,6 +872,7 @@ val
 verbatim
 versioned
 vf
+virtually
 visualization
 vp
 vt
@@ -883,6 +892,7 @@ wording
 workers
 workflow
 worlds
+worse
 wrongly
 ws
 x's

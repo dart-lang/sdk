@@ -8,48 +8,24 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import 'implementation_imports.dart' show samePackage;
 
 const _desc = r'Prefer relative imports for files in `lib/`.';
 
-const _details = r'''
-**PREFER** relative imports for files in `lib/`.
-
-When mixing relative and absolute imports it's possible to create confusion
-where the same member gets imported in two different ways. One way to avoid
-that is to ensure you consistently use relative imports for files within the
-`lib/` directory.
-
-**BAD:**
-```dart
-import 'package:my_package/bar.dart';
-```
-
-**GOOD:**
-```dart
-import 'bar.dart';
-```
-
-''';
-
 class PreferRelativeImports extends LintRule {
-  static const LintCode code = LintCode('prefer_relative_imports',
-      "Use relative imports for files in the 'lib' directory.",
-      correctionMessage: 'Try converting the URI to a relative URI.',
-      hasPublishedDocs: true);
-
   PreferRelativeImports()
       : super(
-            name: 'prefer_relative_imports',
-            description: _desc,
-            details: _details,
-            categories: {Category.errors});
+          name: LintNames.prefer_relative_imports,
+          description: _desc,
+        );
 
   @override
-  List<String> get incompatibleRules => const ['always_use_package_imports'];
+  List<String> get incompatibleRules =>
+      const [LintNames.always_use_package_imports];
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_relative_imports;
 
   @override
   void registerNodeProcessors(

@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type Ext(core::String _) implements core::String {
+  abstract extension-type-member representation-field get _() → core::String;
+  constructor _ = self::Ext|constructor#_;
+  constructor tearoff _ = self::Ext|constructor#_#_#tearOff;
+  constructor • = self::Ext|constructor#;
+  constructor tearoff • = self::Ext|constructor#_#new#tearOff;
+}
+static const field core::String? maybe = const core::bool::fromEnvironment("not there") ?{core::String?} "string" : null;
+static extension-type-member method Ext|constructor#_(core::String _) → self::Ext /* erasure=core::String */ {
+  lowered final self::Ext /* erasure=core::String */ #this = _;
+  return #this;
+}
+static extension-type-member method Ext|constructor#_#_#tearOff(core::String _) → self::Ext /* erasure=core::String */
+  return self::Ext|constructor#_(_);
+static extension-type-member method Ext|constructor#() → self::Ext /* erasure=core::String */ {
+  lowered final self::Ext /* erasure=core::String */ #this = "OK";
+  assert(!(self::maybe == null), "Must not be null");
+  return #this;
+}
+static extension-type-member method Ext|constructor#_#new#tearOff() → self::Ext /* erasure=core::String */
+  return self::Ext|constructor#();
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated with empty environment: Not @ org-dartlang-testcase:///issue56803.dart:8:22 -> BoolConstant(false)
+Evaluated with empty environment: EqualsNull @ org-dartlang-testcase:///issue56803.dart:8:22 -> BoolConstant(true)
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///issue56803.dart:8:16 -> NullConstant(null)
+Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///issue56803.dart:5:57 -> NullConstant(null)
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///issue56803.dart:5:28 -> BoolConstant(false)
+Extra constant evaluation: evaluated: 11, effectively constant: 5

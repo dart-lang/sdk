@@ -264,7 +264,6 @@ abstract class CombinedMemberSignatureBase {
                 norm(_coreTypes, getMemberType(index)));
             assert(
                 _combinedMemberSignatureType != null,
-                // Coverage-ignore(suite): Not run.
                 "No combined member signature found for "
                 "${_mutualSubtypes!.values.map((int i) => getMemberType(i))} "
                 "for members ${members}");

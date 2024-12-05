@@ -167,12 +167,11 @@ suggestions
   Future<void> test_beforeRightBrace_deferred_inPart() async {
     allowedIdentifiers = {'Future', 'loadLibrary'};
     newFile('$testPackageLibPath/a.dart', '''
-library testA;
 import "dart:async" deferred as bar;
 part "test.dart";
 ''');
     await computeSuggestions('''
-part of testA;
+part of 'a.dart';
 f0() {
   bar.^
 }
@@ -284,14 +283,13 @@ class X0 {}
 class Y0 {}
 ''');
     newFile('$testPackageLibPath/a.dart', '''
-library testA;
 import "b.dart" as b0;
 part "test.dart";
 var T2;
 class A0 {}
 ''');
     await computeSuggestions('''
-part of testA;
+part of 'a.dart';
 void f() {
   b0.^
 }

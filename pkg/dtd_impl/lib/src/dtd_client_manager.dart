@@ -13,13 +13,19 @@ class DTDClientManager extends ClientManager {
   void addClient(Client client) {
     client as DTDClient;
     super.addClient(client);
-    client.done.then((_) => removeClient(client));
+    client.done.then((_) {
+      client.onClientDisconnect();
+      removeClient(client);
+    });
   }
 
-  /// Finds a client that has [service] registered to it.
+  /// Finds the first client that has [service] registered to it.
+  ///
+  /// There should only ever be one client that owns a service but this method
+  /// only assumes and does not verify that.
   Client? findClientThatOwnsService(String service) {
     for (final client in clients) {
-      if (client.services.keys.any((k) => k.startsWith('$service.'))) {
+      if (client.services.containsKey(service)) {
         return client;
       }
     }

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class NullCheckOnNullableTypeParameterTest extends LintRuleTest {
   @override
-  String get lintRule => 'null_check_on_nullable_type_parameter';
+  String get lintRule => LintNames.null_check_on_nullable_type_parameter;
 
   test_expectedDynamic() async {
     await assertNoDiagnostics(r'''

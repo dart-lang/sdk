@@ -811,11 +811,11 @@ class A {
     // into a library augmentation.
     assertResolvedLibraryResultText(result, configure: (configuration) {
       configuration.unitConfiguration.withContentPredicate = (unitResult) {
-        return unitResult.isAugmentation;
+        return unitResult.isMacroPart;
       };
     }, r'''
 ResolvedLibraryResult #0
-  element: package:test/test.dart
+  element: <testLibrary>
   units
     ResolvedUnitResult #1
       path: /home/test/lib/test.dart
@@ -826,10 +826,10 @@ ResolvedLibraryResult #0
     ResolvedUnitResult #2
       path: /home/test/lib/test.macro.dart
       uri: package:test/test.macro.dart
-      flags: exists isAugmentation isMacroAugmentation
+      flags: exists isMacroPart isPart
       content
 ---
-augment library 'package:test/test.dart';
+part of 'package:test/test.dart';
 
 import 'package:test/diagnostic.dart' as prefix0;
 
@@ -1051,7 +1051,7 @@ class User {
 
     assertResolvedLibraryResultText(result, r'''
 ResolvedLibraryResult #0
-  element: package:test/test.dart
+  element: <testLibrary>
   units
     ResolvedUnitResult #1
       path: /home/test/lib/test.dart
@@ -1060,7 +1060,7 @@ ResolvedLibraryResult #0
     ResolvedUnitResult #2
       path: /home/test/lib/test.macro.dart
       uri: package:test/test.macro.dart
-      flags: exists isAugmentation isMacroAugmentation
+      flags: exists isMacroPart isPart
 ''');
   }
 
@@ -1085,17 +1085,17 @@ class A {}
     assertResolvedLibraryResultText(result, configure: (configuration) {
       configuration.unitConfiguration
         ..nodeSelector = (unitResult) {
-          if (unitResult.isMacroAugmentation) {
+          if (unitResult.isMacroPart) {
             return unitResult.findNode.namedType('NotType');
           }
           return null;
         }
         ..withContentPredicate = (unitResult) {
-          return unitResult.isAugmentation;
+          return unitResult.isMacroPart;
         };
     }, r'''
 ResolvedLibraryResult #0
-  element: package:test/test.dart
+  element: <testLibrary>
   units
     ResolvedUnitResult #1
       path: /home/test/lib/test.dart
@@ -1104,20 +1104,21 @@ ResolvedLibraryResult #0
     ResolvedUnitResult #2
       path: /home/test/lib/test.macro.dart
       uri: package:test/test.macro.dart
-      flags: exists isAugmentation isMacroAugmentation
+      flags: exists isMacroPart isPart
       content
 ---
-augment library 'package:test/test.dart';
+part of 'package:test/test.dart';
 
 augment class A {
   NotType foo() {}
 }
 ---
       errors
-        63 +7 UNDEFINED_CLASS
+        55 +7 UNDEFINED_CLASS
       selectedNode: NamedType
         name: NotType
         element: <null>
+        element2: <null>
         type: InvalidType
 ''');
   }
@@ -1152,11 +1153,11 @@ void f() {
           return null;
         }
         ..withContentPredicate = (unitResult) {
-          return unitResult.isAugmentation;
+          return unitResult.isMacroPart;
         };
     }, r'''
 ResolvedLibraryResult #0
-  element: package:test/test.dart
+  element: <testLibrary>
   units
     ResolvedUnitResult #1
       path: /home/test/lib/test.dart
@@ -1168,17 +1169,18 @@ ResolvedLibraryResult #0
           ExpressionStatement
             expression: SimpleIdentifier
               token: x
-              staticElement: package:test/test.dart::@augmentation::package:test/test.macro.dart::@accessor::x
+              staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x#element
               staticType: int
             semicolon: ;
         rightBracket: }
     ResolvedUnitResult #2
       path: /home/test/lib/test.macro.dart
       uri: package:test/test.macro.dart
-      flags: exists isAugmentation isMacroAugmentation
+      flags: exists isMacroPart isPart
       content
 ---
-augment library 'package:test/test.dart';
+part of 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1283,9 +1285,7 @@ typedef A<T> = List<T>;
 
     newAnalysisOptionsYamlFile(
       myMacroRootPath,
-      AnalysisOptionsFileConfig(
-        experiments: experiments,
-      ).toContent(),
+      analysisOptionsContent(experiments: experiments),
     );
 
     newFile(
@@ -1310,9 +1310,9 @@ void f(B b) {}
   }
 
   test_withLints() async {
-    writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig(
-      lints: ['unnecessary_this'],
-      experiments: ['macros'],
+    writeTestPackageAnalysisOptionsFile(analysisOptionsContent(
+      rules: ['unnecessary_this'],
+      experiments: ['enhanced-parts', 'macros'],
     ));
 
     /// A macro that will produce an augmented class with `unnecessary_this`

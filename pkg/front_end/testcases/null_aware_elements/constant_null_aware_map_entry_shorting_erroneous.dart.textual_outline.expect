@@ -1,0 +1,3 @@
+const String? key = "key";
+
+const Map<String, int> mapLiteral = <String, int>{?key: 1 / 0};

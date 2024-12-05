@@ -12,43 +12,46 @@ import 'package:path/path.dart' as path;
 import 'package:unified_analytics/unified_analytics.dart';
 
 import '../dtd_client.dart';
+import 'internal_service.dart';
 
-class UnifiedAnalyticsService {
+class UnifiedAnalyticsService extends InternalService {
   UnifiedAnalyticsService({bool fake = false}) : _useFake = fake;
 
-  static const String _serviceName = 'UnifiedAnalytics';
+  @override
+  String get serviceName => 'UnifiedAnalytics';
 
   final bool _useFake;
 
+  @override
   void register(DTDClient client) {
     client
       ..registerServiceMethod(
-        _serviceName,
+        serviceName,
         'getConsentMessage',
         _getConsentMessage,
       )
       ..registerServiceMethod(
-        _serviceName,
+        serviceName,
         'shouldShowMessage',
         _shouldShowMessage,
       )
       ..registerServiceMethod(
-        _serviceName,
+        serviceName,
         'clientShowedMessage',
         _clientShowedMessage,
       )
       ..registerServiceMethod(
-        _serviceName,
+        serviceName,
         'telemetryEnabled',
         _telemetryEnabled,
       )
       ..registerServiceMethod(
-        _serviceName,
+        serviceName,
         'setTelemetry',
         _setTelemetry,
       )
       ..registerServiceMethod(
-        _serviceName,
+        serviceName,
         'send',
         _send,
       );
@@ -57,7 +60,7 @@ class UnifiedAnalyticsService {
     // the fake events.
     if (_useFake) {
       client.registerServiceMethod(
-        _serviceName,
+        serviceName,
         'listFakeAnalyticsSentEvents',
         _listFakeAnalyticsSentEvents,
       );

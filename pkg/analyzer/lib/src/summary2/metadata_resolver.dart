@@ -22,7 +22,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
     this._linker,
     this._unitElement,
     this._libraryBuilder,
-  ) : _containerScope = _unitElement.enclosingElement.scope {
+  ) : _containerScope = _unitElement.scope {
     _scope = _containerScope;
   }
 
@@ -36,12 +36,6 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
       astResolver.resolveAnnotation(node);
       annotationElement.element = node.element;
     }
-  }
-
-  @override
-  void visitAugmentationImportDirective(AugmentationImportDirective node) {
-    // TODO(scheglov): write test
-    node.metadata.accept(this);
   }
 
   @override
@@ -195,12 +189,6 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    node.metadata.accept(this);
-  }
-
-  @override
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    // TODO(scheglov): write test
     node.metadata.accept(this);
   }
 

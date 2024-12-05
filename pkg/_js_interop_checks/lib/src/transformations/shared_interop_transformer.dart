@@ -4,18 +4,16 @@
 
 // ignore_for_file: implementation_imports
 
-import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show
-        messageJsInteropIsATearoff,
-        templateJsInteropExportClassNotMarkedExportable;
 import 'package:_js_interop_checks/js_interop_checks.dart'
     show JsInteropDiagnosticReporter;
 import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
-import 'package:front_end/src/codes/cfe_codes.dart'
+import 'package:front_end/src/api_prototype/codes.dart'
     show
+        messageJsInteropIsATearoff,
+        templateJsInteropExportClassNotMarkedExportable,
         templateJsInteropExportInvalidInteropTypeArgument,
         templateJsInteropExportInvalidTypeArgument,
-        templateJsInteropIsAInvalidType,
+        templateJsInteropIsAInvalidTypeVariable,
         templateJsInteropIsAObjectLiteralType,
         templateJsInteropIsAPrimitiveExtensionType;
 import 'package:kernel/ast.dart';
@@ -151,8 +149,10 @@ class SharedInteropTransformer extends Transformer {
         // Generated tear-offs call the original method, so ignore that
         // invocation.
         if (!_inIsATearoff) {
+          assert(interopType is TypeParameterType);
           _diagnosticReporter.report(
-              templateJsInteropIsAInvalidType.withArguments(interopType),
+              templateJsInteropIsAInvalidTypeVariable
+                  .withArguments(interopType),
               invocation.fileOffset,
               invocation.name.text.length,
               invocation.location?.file);

@@ -762,7 +762,7 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   }
 
   void _registerFeature(_Feature feature) {
-    (_data._features ??= EnumSet<_Feature>()).add(feature);
+    _data._features += feature;
   }
 
   void _registerTypeUse(ir.DartType type, _TypeUseKind kind) {
@@ -1190,7 +1190,7 @@ class ImpactData {
   List<_StaticInvocation>? _staticInvocations;
   List<_ConstructorInvocation>? _constructorInvocations;
   List<_ConstInstantiation>? _constInstantiations;
-  EnumSet<_Feature>? _features;
+  EnumSet<_Feature> _features = EnumSet.empty();
   List<_TypeUse>? _typeUses;
   List<_RedirectingInitializer>? _redirectingInitializers;
   List<ir.Field>? _fieldInitializers;
@@ -1337,8 +1337,8 @@ class ImpactData {
             data.cls, data.typeArguments, data.import);
       }
     }
-    if (_features != null) {
-      for (_Feature data in _features!.iterable(_Feature.values)) {
+    if (_features.isNotEmpty) {
+      for (_Feature data in _features.iterable(_Feature.values)) {
         switch (data) {
           case _Feature.lazyField:
             registry.registerLazyField();

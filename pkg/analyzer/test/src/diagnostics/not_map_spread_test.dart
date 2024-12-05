@@ -61,7 +61,7 @@ var v = <int, int>{...a};
 var a = 0;
 var v = <int, int>{for (var i in []) ...a};
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
       error(CompileTimeErrorCode.NOT_MAP_SPREAD, 51, 1),
     ]);
   }

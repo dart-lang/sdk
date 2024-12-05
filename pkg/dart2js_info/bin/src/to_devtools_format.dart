@@ -1,7 +1,5 @@
 // ignore_for_file: avoid_dynamic_calls
 
-library dart2js_info.bin.to_devtools_format;
-
 import 'dart:convert';
 import 'dart:io' as io;
 
@@ -146,7 +144,7 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode?> {
   /// [PackageInfo] objects.
   final Map<String, PackageInfo> packageInfos = {};
 
-  /// Mapping between an <unnamed> [LibraryInfo] object and the name of the
+  /// Mapping between an `<unnamed>` [LibraryInfo] object and the name of the
   /// corresponding [vm.ProgramInfoNode] object.
   final Map<Info, String> unnamedLibraries = {};
 

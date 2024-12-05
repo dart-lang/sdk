@@ -56,26 +56,6 @@ static inline int Log2OperandSizeBytes(OperandSize os) {
   return -1;
 }
 
-static inline bool IsSignedOperand(OperandSize os) {
-  switch (os) {
-    case kByte:
-    case kTwoBytes:
-    case kFourBytes:
-      return true;
-    case kUnsignedByte:
-    case kUnsignedTwoBytes:
-    case kUnsignedFourBytes:
-    case kEightBytes:
-    case kSWord:
-    case kDWord:
-    case kQWord:
-      return false;
-    default:
-      UNREACHABLE();
-      break;
-  }
-  return false;
-}
 class Immediate : public ValueObject {
  public:
   explicit Immediate(int64_t value) : value_(value) {}
@@ -795,7 +775,7 @@ class Assembler : public AssemblerBase {
             Register rn,
             const Immediate& imm,
             OperandSize sz = kEightBytes) {
-    ASSERT(sz == kEightBytes || sz == kFourBytes);
+    ASSERT(sz == kEightBytes || sz == kUnsignedFourBytes || sz == kFourBytes);
     int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
     Operand imm_op;
     const bool immok = Operand::IsImmLogical(imm.value(), width, &imm_op);
@@ -1012,7 +992,7 @@ class Assembler : public AssemblerBase {
       ASSERT(sz == kEightBytes);
       EmitLoadRegLiteral(LDRpc, rt, a, sz);
     } else {
-      if (IsSignedOperand(sz)) {
+      if (NeedsSignExtension(sz)) {
         EmitLoadStoreReg(LDRS, rt, a, sz);
       } else {
         EmitLoadStoreReg(LDR, rt, a, sz);
@@ -1619,13 +1599,19 @@ class Assembler : public AssemblerBase {
   void LslImmediate(Register rd,
                     Register rn,
                     int32_t shift,
-                    OperandSize sz = kEightBytes) {
-    const int32_t reg_size =
-        (sz == kEightBytes) ? kXRegSizeInBits : kWRegSizeInBits;
+                    OperandSize sz = kEightBytes) override {
+    int reg_size = OperandSizeInBits(sz);
     ASSERT((shift >= 0) && (shift < reg_size));
-    ubfm(rd, rn, (reg_size - shift) % reg_size, reg_size - shift - 1, sz);
+    if (shift == 0 && sz == kWordBytes) {
+      MoveRegister(rd, rn);  // Is a no-op if rd == rn.
+    } else {
+      // LSL/LSLW are aliases of UBFM.
+      ubfm(rd, rn, (reg_size - shift) % reg_size, reg_size - shift - 1, sz);
+    }
   }
-  void LslImmediate(Register rd, int32_t shift, OperandSize sz = kEightBytes) {
+  void LslImmediate(Register rd,
+                    int32_t shift,
+                    OperandSize sz = kEightBytes) override {
     LslImmediate(rd, rd, shift, sz);
   }
   void LslRegister(Register dst, Register shift) override {
@@ -1635,10 +1621,13 @@ class Assembler : public AssemblerBase {
                     Register rn,
                     int shift,
                     OperandSize sz = kEightBytes) {
-    const int reg_size =
-        (sz == kEightBytes) ? kXRegSizeInBits : kWRegSizeInBits;
+    int reg_size = OperandSizeInBits(sz);
     ASSERT((shift >= 0) && (shift < reg_size));
-    ubfm(rd, rn, shift, reg_size - 1, sz);
+    if (shift != 0) {
+      ubfm(rd, rn, shift, reg_size - 1, sz);
+    } else {
+      ExtendValue(rd, rn, sz);
+    }
   }
   void LsrImmediate(Register rd, int32_t shift) override {
     LsrImmediate(rd, rd, shift);
@@ -1647,10 +1636,15 @@ class Assembler : public AssemblerBase {
                     Register rn,
                     int shift,
                     OperandSize sz = kEightBytes) {
-    const int reg_size =
-        (sz == kEightBytes) ? kXRegSizeInBits : kWRegSizeInBits;
+    ASSERT(IsSignedOperand(sz));
+    int reg_size = OperandSizeInBits(sz);
     ASSERT((shift >= 0) && (shift < reg_size));
-    sbfm(rd, rn, shift, reg_size - 1, sz);
+    if (shift == 0 && sz == kWordBytes) {
+      MoveRegister(rd, rn);  // Is a no-op if rd == rn.
+    } else {
+      // ASR/ASRW are aliases of SBFM.
+      sbfm(rd, rn, shift, reg_size - 1, sz);
+    }
   }
 
   void VRecps(VRegister vd, VRegister vn);
@@ -1826,9 +1820,11 @@ class Assembler : public AssemblerBase {
   void AndImmediate(Register rd,
                     Register rn,
                     int64_t imm,
-                    OperandSize sz = kEightBytes);
-  void AndImmediate(Register rd, int64_t imm) override {
-    AndImmediate(rd, rd, imm);
+                    OperandSize sz = kEightBytes) override;
+  void AndImmediate(Register rd,
+                    int64_t imm,
+                    OperandSize sz = kEightBytes) override {
+    AndImmediate(rd, rd, imm, sz);
   }
   void AndRegisters(Register dst,
                     Register src1,
@@ -2057,7 +2053,17 @@ class Assembler : public AssemblerBase {
   void SetupCSPFromThread(Register thr);
   void RestoreCSP();
 
-  void ArithmeticShiftRightImmediate(Register reg, intptr_t shift) override;
+  void ArithmeticShiftRightImmediate(Register dst,
+                                     Register src,
+                                     int32_t shift,
+                                     OperandSize sz = kEightBytes) override {
+    AsrImmediate(dst, src, shift, sz);
+  }
+  void ArithmeticShiftRightImmediate(Register reg,
+                                     int32_t shift,
+                                     OperandSize sz = kEightBytes) override {
+    ArithmeticShiftRightImmediate(reg, reg, shift, sz);
+  }
   void CompareWords(Register reg1,
                     Register reg2,
                     intptr_t offset,
@@ -2358,7 +2364,7 @@ class Assembler : public AssemblerBase {
                       int s_imm,
                       OperandSize size) {
     if (size != kEightBytes) {
-      ASSERT(size == kFourBytes);
+      ASSERT(size == kFourBytes || size == kUnsignedFourBytes);
       ASSERT(r_imm < 32 && s_imm < 32);
     } else {
       ASSERT(r_imm < 64 && s_imm < 64);

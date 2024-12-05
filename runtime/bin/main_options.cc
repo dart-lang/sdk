@@ -719,6 +719,13 @@ bool Options::ParseArguments(int argc,
       OptionProcessor::TryProcess(argv[tmp_i], vm_options);
       tmp_i++;
     }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    if (Options::disable_dart_dev()) {
+      Syslog::PrintErr(
+          "Attempted to use --disable-dart-dev with a Dart CLI command.\n");
+      Platform::Exit(kErrorExitCode);
+    }
+#endif  // !defined(DART_PRECOMIPLED_RUNTIME)
   }
   bool first_option = true;
   // Parse out options to be passed to dart main.

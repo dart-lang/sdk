@@ -14,61 +14,10 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'Do not use `BuildContext` across asynchronous gaps.';
-
-const _details = r'''
-**DON'T** use `BuildContext` across asynchronous gaps.
-
-Storing `BuildContext` for later usage can easily lead to difficult to diagnose
-crashes. Asynchronous gaps are implicitly storing `BuildContext` and are some of
-the easiest to overlook when writing code.
-
-When a `BuildContext` is used, a `mounted` property must be checked after an
-asynchronous gap, depending on how the `BuildContext` is accessed:
-
-* When using a `State`'s `context` property, the `State`'s `mounted` property
-  must be checked.
-* For other `BuildContext` instances (like a local variable or function
-  argument), the `BuildContext`'s `mounted` property must be checked.
-
-**BAD:**
-```dart
-void onButtonTapped(BuildContext context) async {
-  await Future.delayed(const Duration(seconds: 1));
-  Navigator.of(context).pop();
-}
-```
-
-**GOOD:**
-```dart
-void onButtonTapped(BuildContext context) {
-  Navigator.of(context).pop();
-}
-```
-
-**GOOD:**
-```dart
-void onButtonTapped(BuildContext context) async {
-  await Future.delayed(const Duration(seconds: 1));
-
-  if (!context.mounted) return;
-  Navigator.of(context).pop();
-}
-```
-
-**GOOD:**
-```dart
-abstract class MyState extends State<MyWidget> {
-  void foo() async {
-    await Future.delayed(const Duration(seconds: 1));
-    if (!mounted) return; // Checks `this.mounted`, not `context.mounted`.
-    Navigator.of(context).pop();
-  }
-}
-```
-''';
 
 /// An enum whose values describe the state of asynchrony that a certain node
 /// has in the syntax tree, with respect to another node.
@@ -269,12 +218,14 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
       return switch ((leftGuardState, rightGuardState)) {
         // Anything on the left followed by async on the right is async.
         (_, AsyncState.asynchronous) => AsyncState.asynchronous,
-        // Async on the left followed by anything on the right is async.
+        // Anything on the left followed by not-mounted on the right is a
+        // not-mounted check.
+        (_, AsyncState.notMountedCheck) => AsyncState.notMountedCheck,
+        // Async on the left followed by anything else on the right is async.
         (AsyncState.asynchronous, _) => AsyncState.asynchronous,
         // A mounted guard only applies if both sides are guarded.
         (AsyncState.mountedCheck, AsyncState.mountedCheck) =>
           AsyncState.mountedCheck,
-        (_, AsyncState.notMountedCheck) => AsyncState.notMountedCheck,
         (AsyncState.notMountedCheck, _) => AsyncState.notMountedCheck,
         // Otherwise it's just uninteresting.
         (_, _) => null,
@@ -951,38 +902,18 @@ class ProtectedFunction {
 }
 
 class UseBuildContextSynchronously extends LintRule {
-  static const LintCode asyncUseCode = LintCode(
-    'use_build_context_synchronously',
-    "Don't use 'BuildContext's across async gaps.",
-    correctionMessage:
-        "Try rewriting the code to not use the 'BuildContext', or guard the "
-        "use with a 'mounted' check.",
-    uniqueName: 'LintCode.use_build_context_synchronously_async_use',
-    hasPublishedDocs: true,
-  );
-
-  static const LintCode wrongMountedCode = LintCode(
-    'use_build_context_synchronously',
-    "Don't use 'BuildContext's across async gaps, guarded by an unrelated "
-        "'mounted' check.",
-    correctionMessage:
-        "Guard a 'State.context' use with a 'mounted' check on the State, and "
-        "other BuildContext use with a 'mounted' check on the BuildContext.",
-    uniqueName: 'LintCode.use_build_context_synchronously_wrong_mounted',
-    hasPublishedDocs: true,
-  );
-
   UseBuildContextSynchronously()
       : super(
-          name: 'use_build_context_synchronously',
+          name: LintNames.use_build_context_synchronously,
           description: _desc,
-          details: _details,
-          categories: {Category.errors},
           state: State.stable(since: Version(3, 2, 0)),
         );
 
   @override
-  List<LintCode> get lintCodes => [asyncUseCode, wrongMountedCode];
+  List<LintCode> get lintCodes => [
+        LinterLintCode.use_build_context_synchronously_async_use,
+        LinterLintCode.use_build_context_synchronously_wrong_mounted
+      ];
 
   @override
   void registerNodeProcessors(
@@ -998,7 +929,7 @@ class UseBuildContextSynchronously extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   static const mountedName = 'mounted';
 
   static const protectedConstructors = [
@@ -1099,8 +1030,8 @@ class _Visitor extends SimpleAstVisitor {
 
       if (asyncState == AsyncState.asynchronous) {
         var errorCode = asyncStateTracker.hasUnrelatedMountedCheck
-            ? UseBuildContextSynchronously.wrongMountedCode
-            : UseBuildContextSynchronously.asyncUseCode;
+            ? LinterLintCode.use_build_context_synchronously_wrong_mounted
+            : LinterLintCode.use_build_context_synchronously_async_use;
         rule.reportLint(node, errorCode: errorCode);
         return;
       }
@@ -1218,7 +1149,8 @@ class _Visitor extends SimpleAstVisitor {
       if (argument == null) continue;
       if (callback == argument.expression) {
         rule.reportLint(errorNode,
-            errorCode: UseBuildContextSynchronously.asyncUseCode);
+            errorCode:
+                LinterLintCode.use_build_context_synchronously_async_use);
       }
     }
   }
@@ -1234,7 +1166,8 @@ class _Visitor extends SimpleAstVisitor {
       if (positionalArguments.length > position &&
           callback == positionalArguments[position]) {
         rule.reportLint(errorNode,
-            errorCode: UseBuildContextSynchronously.asyncUseCode);
+            errorCode:
+                LinterLintCode.use_build_context_synchronously_async_use);
       }
     }
   }
@@ -1403,7 +1336,7 @@ extension ElementExtension on Element {
     var self = this;
 
     if (self is PropertyAccessorElement) {
-      var enclosingElement = self.enclosingElement;
+      var enclosingElement = self.enclosingElement3;
       if (enclosingElement is InterfaceElement && isState(enclosingElement)) {
         // The BuildContext object is the field on Flutter's State class.
         // This object can only be guarded by async gaps with a mounted

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:linter/src/rules/invalid_runtime_check_with_js_interop_types.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -19,7 +18,7 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
   bool get addJsPackageDep => true;
 
   @override
-  String get lintRule => InvalidRuntimeCheckWithJSInteropTypes.lintName;
+  String get lintRule => LintNames.invalid_runtime_check_with_js_interop_types;
 
   test_baseTypesAs_dart_type_as_js_type() async {
     await _testCasts([_AsCast('int', 'JSNumber')]);
@@ -109,6 +108,30 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
       // generic.
       _IsCheck('Object', 'List<JSAny>', lint: false),
       _IsCheck('dynamic', 'List<JSObject>', lint: false)
+    ]);
+  }
+
+  test_cyclicGenericInterfaceType_as() async {
+    await _testCasts([
+      _AsCast('Object', 'A<T>', lint: false)
+    ], typeDeclarations: [
+      r'''
+      class A<T extends A<T>> {}
+      '''
+    ], typeParameters: [
+      'T extends A<T>'
+    ]);
+  }
+
+  test_cyclicGenericInterfaceType_is() async {
+    await _testChecks([
+      _IsCheck('Object', 'A<T>', lint: false)
+    ], typeDeclarations: [
+      r'''
+      class A<T extends A<T>> {}
+      '''
+    ], typeParameters: [
+      'T extends A<T>'
     ]);
   }
 
@@ -1058,7 +1081,7 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
     var code =
         StringBuffer("// ignore: unused_import\nimport 'dart:html' hide JS;\n"
             "// ignore: unused_import\nimport 'dart:js';\n"
-            "import 'dart:js_interop';\n"
+            "// ignore: unused_import\nimport 'dart:js_interop';\n"
             "// ignore: unused_import\nimport 'package:js/js.dart' as js;\n");
     for (var typeDeclaration in typeDeclarations) {
       code.write('$typeDeclaration\n');

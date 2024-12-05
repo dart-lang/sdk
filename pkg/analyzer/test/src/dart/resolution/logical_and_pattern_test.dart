@@ -27,7 +27,8 @@ LogicalAndPattern
   leftOperand: WildcardPattern
     type: NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<fragment>::@class::int
+      element2: dart:core::<fragment>::@class::int#element
       type: int
     name: _
     matchedValueType: dynamic
@@ -35,7 +36,8 @@ LogicalAndPattern
   rightOperand: WildcardPattern
     type: NamedType
       name: double
-      element: dart:core::@class::double
+      element: dart:core::<fragment>::@class::double
+      element2: dart:core::<fragment>::@class::double#element
       type: double
     name: _
     matchedValueType: int
@@ -58,7 +60,8 @@ LogicalAndPattern
   leftOperand: WildcardPattern
     type: NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<fragment>::@class::int
+      element2: dart:core::<fragment>::@class::int#element
       type: int
     name: _
     matchedValueType: dynamic
@@ -66,7 +69,8 @@ LogicalAndPattern
   rightOperand: WildcardPattern
     type: NamedType
       name: double
-      element: dart:core::@class::double
+      element: dart:core::<fragment>::@class::double
+      element2: dart:core::<fragment>::@class::double#element
       type: double
     name: _
     matchedValueType: int
@@ -80,8 +84,8 @@ void f() {
   var (a && b) = 0;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 23, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
     ]);
     var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''

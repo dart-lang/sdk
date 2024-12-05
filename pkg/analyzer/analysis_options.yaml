@@ -49,7 +49,6 @@ linter:
     - avoid_dynamic_calls
     - avoid_redundant_argument_values
     - avoid_unused_constructor_parameters
-    - enable_null_safety
     - flutter_style_todos
     - library_annotations
     - unawaited_futures

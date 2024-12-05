@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore: unnecessary_library_name (library name referenced by tests)
 library dev_compiler.test.sourcemap.ddc_common;
 
 import 'dart:io';

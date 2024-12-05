@@ -1,14 +1,94 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+library dart._compact_hash;
 
 import "dart:_internal" as internal;
 
-import "dart:_internal" show patch, IterableElementError, ClassID;
+import "dart:_internal" show patch, IterableElementError, ClassID, TypeTest;
+
+import "dart:collection" show MapMixin, SetMixin, LinkedHashMap, LinkedHashSet;
 
 import "dart:math" show max;
 
 import "dart:typed_data" show Uint32List;
+
+mixin _UnmodifiableMapMixin<K, V> implements LinkedHashMap<K, V> {
+  /// This operation is not supported by an unmodifiable map.
+  void operator []=(K key, V value) {
+    throw UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /// This operation is not supported by an unmodifiable map.
+  void addAll(Map<K, V> other) {
+    throw UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /// This operation is not supported by an unmodifiable map.
+  void addEntries(Iterable<MapEntry<K, V>> entries) {
+    throw UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /// This operation is not supported by an unmodifiable map.
+  void clear() {
+    throw UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /// This operation is not supported by an unmodifiable map.
+  V? remove(Object? key) {
+    throw UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /// This operation is not supported by an unmodifiable map.
+  void removeWhere(bool test(K key, V value)) {
+    throw UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /// This operation is not supported by an unmodifiable map.
+  V putIfAbsent(K key, V ifAbsent()) {
+    throw UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /// This operation is not supported by an unmodifiable map.
+  V update(K key, V update(V value), {V Function()? ifAbsent}) {
+    throw UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /// This operation is not supported by an unmodifiable map.
+  void updateAll(V update(K key, V value)) {
+    throw UnsupportedError("Cannot modify unmodifiable map");
+  }
+}
+
+mixin _UnmodifiableSetMixin<E> implements LinkedHashSet<E> {
+  static Never _throwUnmodifiable() {
+    throw UnsupportedError("Cannot change an unmodifiable set");
+  }
+
+  /// This operation is not supported by an unmodifiable set.
+  bool add(E value) => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  void clear() => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  void addAll(Iterable<E> elements) => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  void removeAll(Iterable<Object?> elements) => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  void retainAll(Iterable<Object?> elements) => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  void removeWhere(bool test(E element)) => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  void retainWhere(bool test(E element)) => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  bool remove(Object? value) => _throwUnmodifiable();
+}
 
 // Hash table with open addressing that separates the index from keys/values.
 
@@ -83,51 +163,41 @@ abstract class _HashVMBase implements _HashAbstractBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:typed_data#_Uint32List")
   @pragma("vm:prefer-inline")
-  @pragma("vm:external-name", "LinkedHashBase_getIndex")
   external Uint32List get _index;
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  @pragma("vm:external-name", "LinkedHashBase_setIndex")
   external void set _index(Uint32List value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  @pragma("vm:external-name", "LinkedHashBase_getHashMask")
   external int get _hashMask;
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  @pragma("vm:external-name", "LinkedHashBase_setHashMask")
   external void set _hashMask(int value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_List")
   @pragma("vm:prefer-inline")
-  @pragma("vm:external-name", "LinkedHashBase_getData")
   external List<Object?> get _data;
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  @pragma("vm:external-name", "LinkedHashBase_setData")
   external void set _data(List<Object?> value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  @pragma("vm:external-name", "LinkedHashBase_getUsedData")
   external int get _usedData;
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  @pragma("vm:external-name", "LinkedHashBase_setUsedData")
   external void set _usedData(int value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  @pragma("vm:external-name", "LinkedHashBase_getDeletedKeys")
   external int get _deletedKeys;
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  @pragma("vm:external-name", "LinkedHashBase_setDeletedKeys")
   external void set _deletedKeys(int value);
 }
 
@@ -138,20 +208,17 @@ abstract class _HashVMImmutableBase extends _HashVMBase
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_ImmutableList")
   @pragma("vm:prefer-inline")
-  @pragma("vm:external-name", "ImmutableLinkedHashBase_getData")
   external List<Object?> get _data;
 
   // The index is nullable rather than not nullable.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  @pragma("vm:external-name", "ImmutableLinkedHashBase_getIndex")
   external Uint32List? get _indexNullable;
   Uint32List get _index => _indexNullable!;
 
   // Uses store-release atomic.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  @pragma("vm:external-name", "ImmutableLinkedHashBase_setIndexStoreRelease")
   external void set _index(Uint32List value);
 }
 
@@ -309,8 +376,7 @@ base class _Map<K, V> extends _HashVMBase
   }
 
   void addAll(Map<K, V> other) {
-    if (other is _Map) {
-      final otherBase = other as _Map; // manual promotion.
+    if (other case final _Map otherBase) {
       // If this map is empty we might be able to block-copy from [other].
       if (isEmpty && _quickCopy(otherBase)) return;
       // TODO(48143): Pre-grow capacity if it will reduce rehashing.
@@ -448,6 +514,33 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
           this[key] = oldData[i + 1];
         }
       }
+    }
+  }
+
+  /// Populate this hash table from the given list of key-value pairs.
+  ///
+  /// This function is unsafe: it does not perform any type checking on
+  /// keys and values assuming that caller has ensured that types are
+  /// correct.
+  void _populateUnsafe(List<Object?> keyValuePairs) {
+    assert(keyValuePairs.length.isEven);
+    int size = _roundUpToPowerOfTwo(keyValuePairs.length);
+    if (size < _HashBase._INITIAL_INDEX_SIZE) {
+      size = _HashBase._INITIAL_INDEX_SIZE;
+    }
+    int hashMask = _HashBase._indexSizeToHashMask(size);
+
+    assert(size & (size - 1) == 0);
+    assert(_HashBase._UNUSED_PAIR == 0);
+    _index = new Uint32List(size);
+    _hashMask = hashMask;
+    _data = new List.filled(size, null);
+    _usedData = 0;
+    _deletedKeys = 0;
+    for (int i = 0; i < keyValuePairs.length; i += 2) {
+      final key = internal.unsafeCast<K>(keyValuePairs[i]);
+      final value = internal.unsafeCast<V>(keyValuePairs[i + 1]);
+      _set(key, value, _hashCode(key));
     }
   }
 
@@ -641,7 +734,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
   Iterable<V> get values => _CompactIterable<V>(this, -1, 2);
 }
 
-base class _CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
+base class CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
     with
         MapMixin<K, V>,
         _HashBase,
@@ -649,8 +742,7 @@ base class _CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
         _LinkedHashMapMixin<K, V>
     implements LinkedHashMap<K, V> {
   void addAll(Map<K, V> other) {
-    if (other is _CompactLinkedIdentityHashMap) {
-      final otherBase = other as _CompactLinkedIdentityHashMap;
+    if (other case final CompactLinkedIdentityHashMap otherBase) {
       // If this map is empty we might be able to block-copy from [other].
       if (isEmpty && _quickCopy(otherBase)) return;
       // TODO(48143): Pre-grow capacity if it will reduce rehashing.
@@ -659,7 +751,7 @@ base class _CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
   }
 }
 
-base class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
+base class CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
     with
         MapMixin<K, V>,
         _HashBase,
@@ -674,9 +766,9 @@ base class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
   V? operator [](Object? o) => _validKey(o) ? super[o] : null;
   V? remove(Object? o) => _validKey(o) ? super.remove(o) : null;
 
-  _CompactLinkedCustomHashMap(
+  CompactLinkedCustomHashMap(
       this._equality, this._hasher, bool Function(Object?)? validKey)
-      : _validKey = validKey ?? _TypeTest<K>().test;
+      : _validKey = validKey ?? TypeTest<K>().test;
 }
 
 // Iterates through _data[_offset + _step], _data[_offset + 2*_step], ...
@@ -951,7 +1043,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
 
 // Set implementation, analogous to _Map. Set literals create instances of this
 // class.
-@pragma('vm:entry-point')
+@pragma("vm:entry-point")
 base class _Set<E> extends _HashVMBase
     with
         SetMixin<E>,
@@ -967,24 +1059,20 @@ base class _Set<E> extends _HashVMBase
     _deletedKeys = 0;
   }
 
-  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
-
-  static Set<R> _newEmpty<R>() => _Set<R>();
-
-  // Returns a set of the same type, although this
-  // is not required by the spec. (For instance, always using an identity set
-  // would be technically correct, albeit surprising.)
-  Set<E> toSet() => _Set<E>()..addAll(this);
-
   void addAll(Iterable<E> other) {
-    if (other is _Set) {
-      final otherBase = other as _Set;
+    if (other case final _Set otherBase) {
       // If this set is empty we might be able to block-copy from [other].
       if (isEmpty && _quickCopy(otherBase)) return;
       // TODO(48143): Pre-grow capacity if it will reduce rehashing.
     }
     super.addAll(other);
   }
+
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
+
+  static Set<R> _newEmpty<R>() => _Set<R>();
+
+  Set<E> toSet() => _Set<E>()..addAll(this);
 }
 
 @pragma("vm:entry-point")
@@ -1070,30 +1158,30 @@ mixin _ImmutableLinkedHashSetMixin<E>
       _CompactIteratorImmutable<E>(this, _data, _usedData, -1, 1);
 }
 
-base class _CompactLinkedIdentityHashSet<E> extends _HashFieldBase
+base class CompactLinkedIdentityHashSet<E> extends _HashFieldBase
     with
         SetMixin<E>,
         _HashBase,
         _IdenticalAndIdentityHashCode,
         _LinkedHashSetMixin<E>
     implements LinkedHashSet<E> {
-  Set<E> toSet() => _CompactLinkedIdentityHashSet<E>()..addAll(this);
-
-  static Set<R> _newEmpty<R>() => _CompactLinkedIdentityHashSet<R>();
-
-  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
-
   void addAll(Iterable<E> other) {
-    if (other is _CompactLinkedIdentityHashSet<E>) {
+    if (other is CompactLinkedIdentityHashSet<E>) {
       // If this set is empty we might be able to block-copy from [other].
       if (isEmpty && _quickCopy(other)) return;
       // TODO(48143): Pre-grow capacity if it will reduce rehashing.
     }
     super.addAll(other);
   }
+
+  Set<E> toSet() => CompactLinkedIdentityHashSet<E>()..addAll(this);
+
+  static Set<R> _newEmpty<R>() => CompactLinkedIdentityHashSet<R>();
+
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
 }
 
-base class _CompactLinkedCustomHashSet<E> extends _HashFieldBase
+base class CompactLinkedCustomHashSet<E> extends _HashFieldBase
     with
         SetMixin<E>,
         _HashBase,
@@ -1108,12 +1196,22 @@ base class _CompactLinkedCustomHashSet<E> extends _HashFieldBase
   E? lookup(Object? o) => _validKey(o) ? super.lookup(o) : null;
   bool remove(Object? o) => _validKey(o) ? super.remove(o) : false;
 
-  _CompactLinkedCustomHashSet(
+  CompactLinkedCustomHashSet(
       this._equality, this._hasher, bool Function(Object?)? validKey)
-      : _validKey = validKey ?? _TypeTest<E>().test;
+      : _validKey = validKey ?? TypeTest<E>().test;
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this);
-  Set<E> toSet() =>
-      _CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
-        ..addAll(this);
+  Set<E> toSet() => CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
+    ..addAll(this);
 }
+
+/// Expose [_Map] as [DefaultMap] and [_Set] as [DefaultSet] so that
+/// `dart:collection` could use these classes. We maintain original private
+/// names unchanged to avoid breaking user code which incorrectly relies
+/// on stability of [Type.toString].
+typedef DefaultMap<K, V> = _Map<K, V>;
+typedef DefaultSet<E> = _Set<E>;
+
+@pragma('vm:prefer-inline')
+Map<K, V> createMapFromKeyValueListUnsafe<K, V>(List<Object?> keyValuePairs) =>
+    DefaultMap<K, V>().._populateUnsafe(keyValuePairs);

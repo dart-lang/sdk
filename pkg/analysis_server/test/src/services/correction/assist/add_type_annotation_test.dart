@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
@@ -66,6 +66,19 @@ class A {
     await assertHasAssistAt('var ', '''
 class A {
   (int, {int b}) f = (2, b: 3);
+}
+''');
+  }
+
+  Future<void> test_classField_typeParameter() async {
+    await resolveTestCode('''
+class A<T> {
+  var f = <T>[];
+}
+''');
+    await assertHasAssistAt('var ', '''
+class A<T> {
+  List<T> f = <T>[];
 }
 ''');
   }
@@ -225,12 +238,11 @@ HashMap<String, int> getMap() => null;
 ''');
 
     var appCode = r'''
-library my_app;
 import 'my_lib.dart';
 part 'test.dart';
 ''';
     addTestSource(r'''
-part of my_app;
+part of 'app.dart';
 void f() {
   var /*caret*/v = getMap();
 }
@@ -242,7 +254,7 @@ void f() {
     await resolveTestFile();
 
     await assertHasAssist('''
-part of my_app;
+part of 'app.dart';
 void f() {
   HashMap<String, int> v = getMap();
 }
@@ -250,7 +262,6 @@ void f() {
       appPath: [
         appCode,
         '''
-library my_app;
 import 'dart:collection';
 
 import 'my_lib.dart';
@@ -871,6 +882,32 @@ var v = (a: 1, 2);
 ''');
     await assertHasAssistAt('var ', '''
 (int, {int a}) v = (a: 1, 2);
+''');
+  }
+
+  Future<void> test_typeParameter() async {
+    await resolveTestCode('''
+void f<T>(List<T> items) {
+  for (var item in items) {
+    var x = item;
+  }
+}
+''');
+    // on identifier
+    await assertHasAssistAt('item in', '''
+void f<T>(List<T> items) {
+  for (T item in items) {
+    var x = item;
+  }
+}
+''');
+    // on inner variable
+    await assertHasAssistAt('x', '''
+void f<T>(List<T> items) {
+  for (var item in items) {
+    T x = item;
+  }
+}
 ''');
   }
 }

@@ -14,13 +14,7 @@ abstract class ModifierBuilderImpl extends BuilderImpl {
 
   String get debugName;
 
-  @override
-  Builder? parent;
-
-  @override
-  final int charOffset;
-
-  ModifierBuilderImpl(Builder? parent, this.charOffset) : this.parent = parent;
+  ModifierBuilderImpl();
 
   @override
   bool get isConst => (modifiers & constMask) != 0;

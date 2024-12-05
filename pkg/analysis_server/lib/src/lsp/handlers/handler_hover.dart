@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -18,6 +19,7 @@ typedef StaticOptions = Either2<bool, HoverOptions>;
 class HoverHandler
     extends SharedMessageHandler<TextDocumentPositionParams, Hover?> {
   HoverHandler(super.server);
+
   @override
   Method get handlesMessage => Method.textDocument_hover;
 
@@ -26,20 +28,33 @@ class HoverHandler
       TextDocumentPositionParams.jsonHandler;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<Hover?>> handle(TextDocumentPositionParams params,
       MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }
 
+    var clientCapabilities = message.clientCapabilities;
+    if (clientCapabilities == null) {
+      return serverNotInitializedError;
+    }
+
     var pos = params.position;
     var path = pathOfDoc(params.textDocument);
     var unit = await path.mapResult(requireResolvedUnit);
     var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
-    return (unit, offset).mapResultsSync(_getHover);
+    return (success(clientCapabilities), unit, offset)
+        .mapResultsSync(_getHover);
   }
 
-  Hover? toHover(LineInfo lineInfo, HoverInformation? hover) {
+  Hover? toHover(
+    LspClientCapabilities clientCapabilities,
+    LineInfo lineInfo,
+    HoverInformation? hover,
+  ) {
     if (hover == null) {
       return null;
     }
@@ -88,7 +103,7 @@ class HoverHandler
       content.writeln(cleanDartdoc(hover.dartdoc));
     }
 
-    var formats = server.lspClientCapabilities?.hoverContentFormats;
+    var formats = clientCapabilities.hoverContentFormats;
     return Hover(
       contents:
           asMarkupContentOrString(formats, content.toString().trimRight()),
@@ -96,7 +111,8 @@ class HoverHandler
     );
   }
 
-  ErrorOr<Hover?> _getHover(ResolvedUnitResult unit, int offset) {
+  ErrorOr<Hover?> _getHover(LspClientCapabilities clientCapabilities,
+      ResolvedUnitResult unit, int offset) {
     var compilationUnit = unit.unit;
     var computer = DartUnitHoverComputer(
       server.getDartdocDirectiveInfoFor(unit),
@@ -106,7 +122,7 @@ class HoverHandler
           server.lspClientConfiguration.global.preferredDocumentation,
     );
     var hover = computer.compute();
-    return success(toHover(unit.lineInfo, hover));
+    return success(toHover(clientCapabilities, unit.lineInfo, hover));
   }
 }
 

@@ -56,6 +56,7 @@ class FieldIndex {
   static const syncStarIteratorYieldStarIterable = 4;
   static const recordFieldBase = 2;
   static const jsStringImplRef = 2;
+  static const ffiPointerAddress = 3;
 
   static void validate(Translator translator) {
     void check(Class cls, String name, int expectedIndex) {
@@ -116,12 +117,16 @@ class FieldIndex {
         FieldIndex.syncStarIteratorCurrent);
     check(translator.syncStarIteratorClass, "_yieldStarIterable",
         FieldIndex.syncStarIteratorYieldStarIterable);
+    check(translator.ffiPointerClass, "_address", FieldIndex.ffiPointerAddress);
   }
 }
 
 /// Initial value for the hash code field of objects. This value is recognized
 /// by `Object._objectHashCode` wich updates the field first time it's read.
 const int initialIdentityHash = 0;
+
+/// We do not assign real class ids to anonymous mixin classes.
+const int anonymousMixinClassId = -1;
 
 /// Information about the Wasm representation for a class.
 class ClassInfo {
@@ -130,7 +135,14 @@ class ClassInfo {
   final Class? cls;
 
   /// The Class ID of this class, stored in every instance of the class.
-  final int classId;
+  int get classId {
+    if (_classId == anonymousMixinClassId) {
+      throw 'Tried to access class ID of anonymous mixin $cls';
+    }
+    return _classId;
+  }
+
+  final int _classId;
 
   /// Depth of this class in the Wasm type hierarchy.
   final int depth;
@@ -169,7 +181,7 @@ class ClassInfo {
   w.RefType typeWithNullability(bool nullable) =>
       nullable ? nullableType : nonNullableType;
 
-  ClassInfo(this.cls, this.classId, this.depth, this.struct, this.superInfo,
+  ClassInfo(this.cls, this._classId, this.depth, this.struct, this.superInfo,
       {this.typeParameterMatch = const {}})
       : nullableType = w.RefType.def(struct, nullable: true),
         nonNullableType = w.RefType.def(struct, nullable: false);
@@ -266,12 +278,10 @@ class ClassInfoCollector {
 
   ClassInfoCollector(this.translator);
 
-  w.ModuleBuilder get m => translator.m;
-
   TranslatorOptions get options => translator.options;
 
   void _createStructForClassTop(int classCount) {
-    final w.StructType struct = m.types.defineStruct("#Top");
+    final w.StructType struct = translator.typesBuilder.defineStruct("#Top");
     topInfo = ClassInfo(null, 0, 0, struct, null);
     translator.classForHeapType[struct] = topInfo;
   }
@@ -284,8 +294,8 @@ class ClassInfoCollector {
     Class? superclass = cls.superclass;
     if (superclass == null) {
       ClassInfo superInfo = topInfo;
-      final w.StructType struct =
-          m.types.defineStruct(cls.name, superType: superInfo.struct);
+      final w.StructType struct = translator.typesBuilder
+          .defineStruct(cls.name, superType: superInfo.struct);
       info = ClassInfo(cls, classId, superInfo.depth + 1, struct, superInfo);
       // Mark Top type as implementing Object to force the representation
       // type of Object to be Top.
@@ -329,15 +339,17 @@ class ClassInfoCollector {
         }
       }
 
-      w.StructType struct =
-          m.types.defineStruct(cls.name, superType: superInfo.struct);
+      w.StructType struct = translator.typesBuilder
+          .defineStruct(cls.name, superType: superInfo.struct);
       info = ClassInfo(cls, classId, superInfo.depth + 1, struct, superInfo,
           typeParameterMatch: typeParameterMatch);
     }
     translator.classesSupersFirst.add(info);
-    translator.classes[classId] = info;
     translator.classInfo[cls] = info;
     translator.classForHeapType.putIfAbsent(info.struct, () => info!);
+    if (classId != anonymousMixinClassId) {
+      translator.classes[classId] = info;
+    }
   }
 
   void _createStructForRecordClass(Map<Class, int> classIds, Class cls) {
@@ -345,7 +357,7 @@ class ClassInfoCollector {
 
     final struct = _recordStructs.putIfAbsent(
         numFields,
-        () => m.types.defineStruct(
+        () => translator.typesBuilder.defineStruct(
               'Record$numFields',
               superType: translator.recordInfo.struct,
             ));
@@ -438,7 +450,8 @@ class ClassInfoCollector {
 
     // Class infos by class-id, will be populated by the calls to
     // [_createStructForClass] and [_createStructForRecordClass] below.
-    translator.classes = List<ClassInfo>.filled(1 + dfsOrder.length, topInfo);
+    translator.classes =
+        List<ClassInfo>.filled(classIdNumbering.maxClassId + 1, topInfo);
 
     // Class infos in different order: Infos of super class and super interfaces
     // before own info.
@@ -480,8 +493,7 @@ class ClassInfoCollector {
           representation = upperBound(representation, current);
         }
       }
-      final classId = classIdNumbering.classIds[cls]!;
-      final info = translator.classes[classId];
+      final info = translator.classInfo[cls]!;
       info._repr = representation ?? info;
     }
 
@@ -503,19 +515,23 @@ class ClassInfoCollector {
 class ClassIdNumbering {
   final Map<Class, List<Class>> _subclasses;
   final Map<Class, List<Class>> _implementors;
-  final List<Range> _concreteSubclassIdRanges;
+  final Map<Class, Range> _concreteSubclassIdRange;
   final Set<Class> _masqueraded;
 
   final List<Class> dfsOrder;
   final Map<Class, int> classIds;
+  final int maxConcreteClassId;
+  final int maxClassId;
 
   ClassIdNumbering._(
       this._subclasses,
       this._implementors,
-      this._concreteSubclassIdRanges,
+      this._concreteSubclassIdRange,
       this._masqueraded,
       this.dfsOrder,
-      this.classIds);
+      this.classIds,
+      this.maxConcreteClassId,
+      this.maxClassId);
 
   final Map<Class, Set<Class>> _transitiveImplementors = {};
   Set<Class> _getTransitiveImplementors(Class klass) {
@@ -550,10 +566,10 @@ class ClassIdNumbering {
 
     ranges = [];
     final transitiveImplementors = _getTransitiveImplementors(klass);
-    final range = _concreteSubclassIdRanges[classIds[klass]!];
+    final range = _concreteSubclassIdRange[klass]!;
     if (!range.isEmpty) ranges.add(range);
     for (final implementor in transitiveImplementors) {
-      final range = _concreteSubclassIdRanges[classIds[implementor]!];
+      final range = _concreteSubclassIdRange[implementor]!;
       if (!range.isEmpty) ranges.add(range);
     }
     ranges.normalize();
@@ -578,11 +594,19 @@ class ClassIdNumbering {
     late final Class root;
     final subclasses = <Class, List<Class>>{};
     final implementors = <Class, List<Class>>{};
-    int abstractClassCount = 0;
     int concreteClassCount = 0;
+    int abstractClassCount = 0;
+    int anonymousMixinClassCount = 0;
     for (final library in translator.component.libraries) {
       for (final cls in library.classes) {
-        cls.isAbstract ? abstractClassCount++ : concreteClassCount++;
+        if (cls.isAnonymousMixin) {
+          assert(cls.isAbstract);
+          anonymousMixinClassCount++;
+        } else if (cls.isAbstract) {
+          abstractClassCount++;
+        } else {
+          concreteClassCount++;
+        }
         final superClass = cls.superclass;
         if (superClass == null) {
           root = cls;
@@ -594,7 +618,6 @@ class ClassIdNumbering {
         }
       }
     }
-    final int classCount = abstractClassCount + concreteClassCount;
 
     // We have a preference in which order we explore the direct subclasses of
     // `Object` as that allows us to keep class ids of certain hierarchies
@@ -658,14 +681,16 @@ class ClassIdNumbering {
 
     // Maps any class to a dense range of concrete class ids that are subclasses
     // of that class.
-    final concreteSubclassRanges = List<Range>.filled(
-        firstClassId + classCount, Range.empty(),
-        growable: false);
+    final concreteSubclassRange = <Class, Range>{};
 
     int nextConcreteClassId = firstClassId;
     int nextAbstractClassId = firstClassId + concreteClassCount;
     dfs(root, (Class cls) {
       dfsOrder.add(cls);
+      if (cls.isAnonymousMixin) {
+        classIds[cls] = anonymousMixinClassId;
+        return nextConcreteClassId;
+      }
       if (cls.isAbstract) {
         var classId = classIds[cls];
         if (classId == null) classIds[cls] = nextAbstractClassId++;
@@ -677,17 +702,25 @@ class ClassIdNumbering {
       return nextConcreteClassId - 1;
     }, (Class cls, int firstClassId) {
       final range = Range(firstClassId, nextConcreteClassId - 1);
-      if (!cls.isAbstract) {
-        assert(classIds[cls] == firstClassId);
-        concreteSubclassRanges[firstClassId] = range;
-      } else {
-        concreteSubclassRanges[classIds[cls]!] = range;
-      }
+      concreteSubclassRange[cls] = range;
     });
 
-    return ClassIdNumbering._(subclasses, implementors, concreteSubclassRanges,
-        masqueraded, dfsOrder, classIds);
+    assert(dfsOrder.length ==
+        (concreteClassCount + abstractClassCount + anonymousMixinClassCount));
+
+    return ClassIdNumbering._(
+        subclasses,
+        implementors,
+        concreteSubclassRange,
+        masqueraded,
+        dfsOrder,
+        classIds,
+        firstClassId + concreteClassCount - 1,
+        firstClassId + concreteClassCount + abstractClassCount - 1);
   }
+
+  Range getConcreteSubclassRange(Class klass) =>
+      _concreteSubclassIdRange[klass]!;
 }
 
 // A range of class ids, both ends inclusive.
@@ -716,6 +749,13 @@ class Range {
   }
 
   @override
+  int get hashCode => Object.hash(start, end);
+
+  @override
+  bool operator ==(other) =>
+      other is Range && other.start == start && other.end == end;
+
+  @override
   String toString() => isEmpty ? '[]' : '[$start, $end]';
 }
 
@@ -736,7 +776,8 @@ extension RangeListExtention on List<Range> {
       }
       if (nextRange.isEmpty) continue;
       if (currentRange.containsRange(nextRange)) continue;
-      if (currentRange.contains(nextRange.start)) {
+      if (currentRange.contains(nextRange.start) ||
+          (currentRange.end + 1) == nextRange.start) {
         currentRange = Range(currentRange.start, nextRange.end);
         continue;
       }

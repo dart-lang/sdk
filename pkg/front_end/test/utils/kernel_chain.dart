@@ -334,12 +334,8 @@ class ErrorCommentChecker
     File f = new File.fromUri(uri);
     if (!f.existsSync()) return const {};
     Uint8List rawBytes = f.readAsBytesSync();
-
-    Uint8List bytes = new Uint8List(rawBytes.length + 1);
-    bytes.setRange(0, rawBytes.length, rawBytes);
-
     Utf8BytesScanner scanner = new Utf8BytesScanner(
-      bytes,
+      rawBytes,
       configuration: const ScannerConfiguration(
           enableExtensionMethods: true,
           enableNonNullable: true,
@@ -354,7 +350,7 @@ class ErrorCommentChecker
 
     Token? token = firstToken;
     Token? previousToken;
-    Source lineStartsHelper = new Source(lineStarts, const [], null, null);
+    Source lineStartsHelper = new Source.emptySource(lineStarts, null, null);
     Map<int, List<CommentToken>> linesToComments = {};
     while (token != null && !token.isEof) {
       CommentToken? precedingComments = token.precedingComments;

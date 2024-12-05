@@ -1938,10 +1938,28 @@ class TestParser extends Parser {
   }
 
   @override
+  Token parseLiteralIntWithSeparators(Token token) {
+    doPrint('parseLiteralIntWithSeparators(' '$token)');
+    indent++;
+    var result = super.parseLiteralIntWithSeparators(token);
+    indent--;
+    return result;
+  }
+
+  @override
   Token parseLiteralDouble(Token token) {
     doPrint('parseLiteralDouble(' '$token)');
     indent++;
     var result = super.parseLiteralDouble(token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseLiteralDoubleWithSeparators(Token token) {
+    doPrint('parseLiteralDoubleWithSeparators(' '$token)');
+    indent++;
+    var result = super.parseLiteralDoubleWithSeparators(token);
     indent--;
     return result;
   }

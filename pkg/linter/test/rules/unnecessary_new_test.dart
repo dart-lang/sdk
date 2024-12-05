@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryNewTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_new';
+  String get lintRule => LintNames.unnecessary_new;
 
   test_named_new() async {
     await assertDiagnostics(r'''

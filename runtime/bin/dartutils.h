@@ -290,6 +290,7 @@ class DartUtils {
   static constexpr const char* kDartScheme = "dart:";
   static constexpr const char* kAsyncLibURL = "dart:async";
   static constexpr const char* kBuiltinLibURL = "dart:_builtin";
+  static constexpr const char* kConcurrentLibURL = "dart:concurrent";
   static constexpr const char* kCoreLibURL = "dart:core";
   static constexpr const char* kInternalLibURL = "dart:_internal";
   static constexpr const char* kIsolateLibURL = "dart:isolate";

@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class DuplicateHiddenNameTest extends PubPackageResolutionTest {
-  test_hidden() async {
+  test_library_hidden() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 class A {}
 class B {}
@@ -24,6 +24,23 @@ class B {}
 export 'lib1.dart' hide A, B, A;
 ''', [
       error(WarningCode.DUPLICATE_HIDDEN_NAME, 30, 1),
+    ]);
+  }
+
+  test_part_hidden() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+export 'dart:math' hide pi, Random, pi;
+''');
+
+    await assertErrorsInFile2(a, []);
+
+    await assertErrorsInFile2(b, [
+      error(WarningCode.DUPLICATE_HIDDEN_NAME, 54, 2),
     ]);
   }
 }

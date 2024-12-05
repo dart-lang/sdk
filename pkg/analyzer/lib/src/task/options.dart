@@ -370,10 +370,11 @@ class CannotIgnoreOptionValidator extends OptionsValidator {
             if (!_errorCodes.contains(upperCaseName) &&
                 !_lintCodes.contains(upperCaseName) &&
                 !_removedErrorCodes.contains(upperCaseName)) {
-              reporter.reportErrorForSpan(
-                  AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
-                  unignorableNameNode.span,
-                  [unignorableName]);
+              reporter.atSourceSpan(
+                unignorableNameNode.span,
+                AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
+                arguments: [unignorableName],
+              );
             } else if (listedNames.contains(upperCaseName)) {
               // TODO(srawlins): Create a "duplicate value" code and report it
               // here.
@@ -381,17 +382,19 @@ class CannotIgnoreOptionValidator extends OptionsValidator {
               listedNames.add(upperCaseName);
             }
           } else {
-            reporter.reportErrorForSpan(
-                AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
-                unignorableNameNode.span,
-                [AnalyzerOptions.cannotIgnore]);
+            reporter.atSourceSpan(
+              unignorableNameNode.span,
+              AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+              arguments: [AnalyzerOptions.cannotIgnore],
+            );
           }
         }
       } else if (unignorableNames != null) {
-        reporter.reportErrorForSpan(
-            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
-            unignorableNames.span,
-            [AnalyzerOptions.cannotIgnore]);
+        reporter.atSourceSpan(
+          unignorableNames.span,
+          AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+          arguments: [AnalyzerOptions.cannotIgnore],
+        );
       }
     }
   }
@@ -408,46 +411,54 @@ class CodeStyleOptionsValidator extends OptionsValidator {
         if (key == AnalyzerOptions.format) {
           _validateFormat(reporter, valueNode);
         } else {
-          reporter.reportErrorForSpan(
-              AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
-              keyNode.span,
-              [AnalyzerOptions.codeStyle, keyNode.toString()]);
+          reporter.atSourceSpan(
+            keyNode.span,
+            AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
+            arguments: [AnalyzerOptions.codeStyle, keyNode.toString()],
+          );
         }
       });
     } else if (codeStyle is YamlScalar && codeStyle.value != null) {
-      reporter.reportErrorForSpan(
-          AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
-          codeStyle.span,
-          [AnalyzerOptions.codeStyle]);
+      reporter.atSourceSpan(
+        codeStyle.span,
+        AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+        arguments: [AnalyzerOptions.codeStyle],
+      );
     } else if (codeStyle is YamlList) {
-      reporter.reportErrorForSpan(
-          AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
-          codeStyle.span,
-          [AnalyzerOptions.codeStyle]);
+      reporter.atSourceSpan(
+        codeStyle.span,
+        AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+        arguments: [AnalyzerOptions.codeStyle],
+      );
     }
   }
 
   void _validateFormat(ErrorReporter reporter, YamlNode format) {
     if (format is YamlMap) {
-      reporter.reportErrorForSpan(
-          AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
-          format.span,
-          [AnalyzerOptions.format]);
+      reporter.atSourceSpan(
+        format.span,
+        AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+        arguments: [AnalyzerOptions.format],
+      );
     } else if (format is YamlScalar) {
       var formatValue = toBool(format.valueOrThrow);
       if (formatValue == null) {
-        reporter.reportErrorForSpan(
-            AnalysisOptionsWarningCode.UNSUPPORTED_VALUE, format.span, [
-          AnalyzerOptions.format,
-          format.valueOrThrow,
-          AnalyzerOptions.trueOrFalseProposal
-        ]);
+        reporter.atSourceSpan(
+          format.span,
+          AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
+          arguments: [
+            AnalyzerOptions.format,
+            format.valueOrThrow,
+            AnalyzerOptions.trueOrFalseProposal
+          ],
+        );
       }
     } else if (format is YamlList) {
-      reporter.reportErrorForSpan(
-          AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
-          format.span,
-          [AnalyzerOptions.format]);
+      reporter.atSourceSpan(
+        format.span,
+        AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+        arguments: [AnalyzerOptions.format],
+      );
     }
   }
 }
@@ -480,22 +491,28 @@ class EnabledExperimentsValidator extends OptionsValidator {
           var flagIndex = validationResult.stringIndex;
           var span = experimentNames.nodes[flagIndex].span;
           if (validationResult is UnrecognizedFlag) {
-            reporter.reportErrorForSpan(
-                AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
-                span,
-                [AnalyzerOptions.enableExperiment, flags[flagIndex]]);
+            reporter.atSourceSpan(
+              span,
+              AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
+              arguments: [AnalyzerOptions.enableExperiment, flags[flagIndex]],
+            );
           } else {
-            reporter.reportErrorForSpan(
-                AnalysisOptionsWarningCode.INVALID_OPTION,
-                span,
-                [AnalyzerOptions.enableExperiment, validationResult.message]);
+            reporter.atSourceSpan(
+              span,
+              AnalysisOptionsWarningCode.INVALID_OPTION,
+              arguments: [
+                AnalyzerOptions.enableExperiment,
+                validationResult.message
+              ],
+            );
           }
         }
       } else if (experimentNames != null) {
-        reporter.reportErrorForSpan(
-            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
-            experimentNames.span,
-            [AnalyzerOptions.enableExperiment]);
+        reporter.atSourceSpan(
+          experimentNames.span,
+          AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+          arguments: [AnalyzerOptions.enableExperiment],
+        );
       }
     }
   }
@@ -536,11 +553,17 @@ class ErrorBuilder {
   /// Report an unsupported [node] value, defined in the given [scopeName].
   void reportError(ErrorReporter reporter, String scopeName, YamlNode node) {
     if (proposal.isNotEmpty) {
-      reporter.reportErrorForSpan(
-          code, node.span, [scopeName, node.valueOrThrow, proposal]);
+      reporter.atSourceSpan(
+        node.span,
+        code,
+        arguments: [scopeName, node.valueOrThrow, proposal],
+      );
     } else {
-      reporter
-          .reportErrorForSpan(code, node.span, [scopeName, node.valueOrThrow]);
+      reporter.atSourceSpan(
+        node.span,
+        code,
+        arguments: [scopeName, node.valueOrThrow],
+      );
     }
   }
 }
@@ -586,37 +609,40 @@ class ErrorFilterOptionValidator extends OptionsValidator {
             if (!_errorCodes.contains(value) &&
                 !_lintCodes.contains(value) &&
                 !_removedErrorCodes.contains(value)) {
-              reporter.reportErrorForSpan(
-                  AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
-                  k.span,
-                  [k.value.toString()]);
+              reporter.atSourceSpan(
+                k.span,
+                AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
+                arguments: [k.value.toString()],
+              );
             }
           }
           if (v is YamlScalar) {
             value = toLowerCase(v.value);
             if (!legalValues.contains(value)) {
-              reporter.reportErrorForSpan(
-                  AnalysisOptionsWarningCode
-                      .UNSUPPORTED_OPTION_WITH_LEGAL_VALUES,
-                  v.span,
-                  [
-                    AnalyzerOptions.errors,
-                    v.value.toString(),
-                    legalValueString
-                  ]);
+              reporter.atSourceSpan(
+                v.span,
+                AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES,
+                arguments: [
+                  AnalyzerOptions.errors,
+                  v.value.toString(),
+                  legalValueString
+                ],
+              );
             }
           } else {
-            reporter.reportErrorForSpan(
-                AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
-                v.span,
-                [AnalyzerOptions.enableExperiment]);
+            reporter.atSourceSpan(
+              v.span,
+              AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+              arguments: [AnalyzerOptions.enableExperiment],
+            );
           }
         });
       } else if (filters != null) {
-        reporter.reportErrorForSpan(
-            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
-            filters.span,
-            [AnalyzerOptions.enableExperiment]);
+        reporter.atSourceSpan(
+          filters.span,
+          AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+          arguments: [AnalyzerOptions.enableExperiment],
+        );
       }
     }
   }
@@ -649,23 +675,30 @@ class LanguageOptionValidator extends OptionsValidator {
             // `null` is not a valid key, so we can safely assume `key` is
             // non-`null`.
             if (!AnalyzerOptions.trueOrFalse.contains(value)) {
-              reporter.reportErrorForSpan(
-                  AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
-                  v.span,
-                  [key!, v.valueOrThrow, AnalyzerOptions.trueOrFalseProposal]);
+              reporter.atSourceSpan(
+                v.span,
+                AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
+                arguments: [
+                  key!,
+                  v.valueOrThrow,
+                  AnalyzerOptions.trueOrFalseProposal
+                ],
+              );
             }
           }
         });
       } else if (language is YamlScalar && language.value != null) {
-        reporter.reportErrorForSpan(
-            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
-            language.span,
-            [AnalyzerOptions.language]);
+        reporter.atSourceSpan(
+          language.span,
+          AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+          arguments: [AnalyzerOptions.language],
+        );
       } else if (language is YamlList) {
-        reporter.reportErrorForSpan(
-            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
-            language.span,
-            [AnalyzerOptions.language]);
+        reporter.atSourceSpan(
+          language.span,
+          AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+          arguments: [AnalyzerOptions.language],
+        );
       }
     }
   }
@@ -704,21 +737,25 @@ class OptionalChecksValueValidator extends OptionsValidator {
             } else {
               value = toLowerCase(v.value);
               if (!AnalyzerOptions.trueOrFalse.contains(value)) {
-                reporter.reportErrorForSpan(
-                    AnalysisOptionsWarningCode.UNSUPPORTED_VALUE, v.span, [
-                  key!,
-                  v.valueOrThrow,
-                  AnalyzerOptions.trueOrFalseProposal
-                ]);
+                reporter.atSourceSpan(
+                  v.span,
+                  AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
+                  arguments: [
+                    key!,
+                    v.valueOrThrow,
+                    AnalyzerOptions.trueOrFalseProposal
+                  ],
+                );
               }
             }
           }
         });
       } else if (v != null) {
-        reporter.reportErrorForSpan(
-            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
-            v.span,
-            [AnalyzerOptions.enableExperiment]);
+        reporter.atSourceSpan(
+          v.span,
+          AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+          arguments: [AnalyzerOptions.enableExperiment],
+        );
       }
     }
   }
@@ -776,10 +813,10 @@ class PluginsOptionValidator extends OptionsValidator {
     if (plugins is YamlScalar && plugins.value != null) {
       if (_firstIncludedPluginName != null &&
           _firstIncludedPluginName != plugins.value) {
-        reporter.reportErrorForSpan(
-          AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
+        reporter.atSourceSpan(
           plugins.span,
-          [_firstIncludedPluginName],
+          AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
+          arguments: [_firstIncludedPluginName],
         );
       }
     } else if (plugins is YamlList) {
@@ -788,10 +825,10 @@ class PluginsOptionValidator extends OptionsValidator {
         // There is already at least one plugin specified in included options.
         for (var plugin in pluginValues) {
           if (plugin.value != _firstIncludedPluginName) {
-            reporter.reportErrorForSpan(
-              AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
+            reporter.atSourceSpan(
               plugin.span,
-              [_firstIncludedPluginName],
+              AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
+              arguments: [_firstIncludedPluginName],
             );
           }
         }
@@ -808,10 +845,10 @@ class PluginsOptionValidator extends OptionsValidator {
               continue;
             }
           } else if (plugin.value != firstPlugin) {
-            reporter.reportErrorForSpan(
-              AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
+            reporter.atSourceSpan(
               plugin.span,
-              [firstPlugin],
+              AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
+              arguments: [firstPlugin],
             );
           }
         }
@@ -822,10 +859,10 @@ class PluginsOptionValidator extends OptionsValidator {
         // There is already at least one plugin specified in included options.
         for (var plugin in pluginValues) {
           if (plugin != null && plugin.value != _firstIncludedPluginName) {
-            reporter.reportErrorForSpan(
-              AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
+            reporter.atSourceSpan(
               plugin.span,
-              [_firstIncludedPluginName],
+              AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
+              arguments: [_firstIncludedPluginName],
             );
           }
         }
@@ -842,10 +879,10 @@ class PluginsOptionValidator extends OptionsValidator {
               continue;
             }
           } else if (plugin != null && plugin.value != firstPlugin) {
-            reporter.reportErrorForSpan(
-              AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
+            reporter.atSourceSpan(
               plugin.span,
-              [firstPlugin],
+              AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
+              arguments: [firstPlugin],
             );
           }
         }
@@ -866,10 +903,11 @@ class StrongModeOptionValueValidator extends OptionsValidator {
       if (strongModeNode is YamlMap) {
         return _validateStrongModeAsMap(reporter, strongModeNode);
       } else if (strongModeNode != null) {
-        reporter.reportErrorForSpan(
-            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
-            strongModeNode.span,
-            [AnalyzerOptions.strongMode]);
+        reporter.atSourceSpan(
+          strongModeNode.span,
+          AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+          arguments: [AnalyzerOptions.strongMode],
+        );
       }
     }
   }
@@ -882,21 +920,29 @@ class StrongModeOptionValueValidator extends OptionsValidator {
         if (!AnalyzerOptions.strongModeOptions.contains(key)) {
           _builder.reportError(reporter, AnalyzerOptions.strongMode, k);
         } else if (key == AnalyzerOptions.declarationCasts) {
-          reporter.reportErrorForSpan(
-              AnalysisOptionsWarningCode.UNSUPPORTED_VALUE, v.span, [
-            AnalyzerOptions.strongMode,
-            v.valueOrThrow,
-            AnalyzerOptions.trueOrFalseProposal
-          ]);
+          reporter.atSourceSpan(
+            v.span,
+            AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
+            arguments: [
+              AnalyzerOptions.strongMode,
+              v.valueOrThrow,
+              AnalyzerOptions.trueOrFalseProposal
+            ],
+          );
         } else {
           // The key is valid.
           if (v is YamlScalar) {
             var value = toLowerCase(v.value);
             if (!AnalyzerOptions.trueOrFalse.contains(value)) {
-              reporter.reportErrorForSpan(
-                  AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
-                  v.span,
-                  [key!, v.valueOrThrow, AnalyzerOptions.trueOrFalseProposal]);
+              reporter.atSourceSpan(
+                v.span,
+                AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
+                arguments: [
+                  key!,
+                  v.valueOrThrow,
+                  AnalyzerOptions.trueOrFalseProposal
+                ],
+              );
             }
           }
         }
@@ -934,8 +980,11 @@ class TopLevelOptionValidator extends OptionsValidator {
       node.nodes.forEach((k, v) {
         if (k is YamlScalar) {
           if (!supportedOptions.contains(k.value)) {
-            reporter.reportErrorForSpan(_warningCode, k.span,
-                [pluginName, k.valueOrThrow, _valueProposal]);
+            reporter.atSourceSpan(
+              k.span,
+              _warningCode,
+              arguments: [pluginName, k.valueOrThrow, _valueProposal],
+            );
           }
         }
         // TODO(pq): consider an error if the node is not a Scalar.

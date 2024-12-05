@@ -167,4 +167,40 @@ void f((int _a, int b) r) {}
       error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 12, 2),
     ]);
   }
+
+  void test_wildcard_named() async {
+    await assertErrorsInCode(r'''
+void f(({int _, int b}) r) {}
+''', [
+      error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 13, 1),
+    ]);
+  }
+
+  void test_wildcard_named_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+void f(({int _, int b}) r) {}
+''', [
+      error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 57, 1),
+    ]);
+  }
+
+  void test_wildcard_positional() async {
+    await assertNoErrorsInCode(r'''
+void f((int _, int b) r) {}
+''');
+  }
+
+  void test_wildcard_positional_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+void f((int _, int b) r) {}
+''', [
+      error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 56, 1),
+    ]);
+  }
 }

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferAdjacentStringConcatenationTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_adjacent_string_concatenation';
+  String get lintRule => LintNames.prefer_adjacent_string_concatenation;
 
   test_concatenation() async {
     await assertNoDiagnostics(r'''

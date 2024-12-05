@@ -7,59 +7,20 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Use trailing commas for all parameter lists and argument lists.';
 
-const _details = r'''
-**DO** use trailing commas for all multi-line parameter lists and argument
-lists. A parameter list or argument list that fits on one line, including the
-opening parenthesis and closing parenthesis, does not require a trailing comma.
-
-**BAD:**
-```dart
-void run() {
-  method('does not fit on one line',
-      'test test test test test test test test test test test');
-}
-```
-
-**GOOD:**
-```dart
-void run() {
-  method(
-    'does not fit on one line',
-    'test test test test test test test test test test test',
-  );
-}
-```
-
-**EXCEPTION:** If the final argument in an argument list is positional (vs
-named) and is either a function literal with curly braces, a map literal, a set
-literal, or a list literal, then a trailing comma is not required.
-This exception only applies if the final argument does not fit entirely on one
-line.
-
-**NOTE:** This lint rule assumes that code has been formatted with `dart format`
-and may produce false positives on unformatted code.
-
-''';
-
 class RequireTrailingCommas extends LintRule {
-  static const LintCode code = LintCode(
-      'require_trailing_commas', 'Missing trailing comma.',
-      correctionMessage: 'Try adding a trailing comma.');
-
   RequireTrailingCommas()
       : super(
-          name: 'require_trailing_commas',
+          name: LintNames.require_trailing_commas,
           description: _desc,
-          details: _details,
-          categories: {Category.style},
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.require_trailing_commas;
 
   @override
   void registerNodeProcessors(
@@ -79,11 +40,6 @@ class RequireTrailingCommas extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  static const _trailingCommaCode = LintCode(
-    'require_trailing_commas',
-    'Missing a required trailing comma.',
-  );
-
   final LintRule rule;
 
   late LineInfo _lineInfo;
@@ -181,7 +137,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Check the last parameter to determine if there are any exceptions.
     if (_shouldAllowTrailingCommaException(lastNode)) return;
 
-    rule.reportLintForToken(errorToken, errorCode: _trailingCommaCode);
+    rule.reportLintForToken(errorToken);
   }
 
   bool _isSameLine(Token token1, Token token2) =>

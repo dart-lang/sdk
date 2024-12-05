@@ -24,7 +24,7 @@ void f(x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -39,7 +39,8 @@ MapPattern
       value: DeclaredVariablePattern
         type: NamedType
           name: String
-          element: dart:core::@class::String
+          element: dart:core::<fragment>::@class::String
+          element2: dart:core::<fragment>::@class::String#element
           type: String
         name: a
         declaredElement: a@47
@@ -60,7 +61,7 @@ void f(x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -93,7 +94,7 @@ void f(x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -103,11 +104,13 @@ MapPattern
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
       NamedType
         name: String
-        element: dart:core::@class::String
+        element: dart:core::<fragment>::@class::String
+        element2: dart:core::<fragment>::@class::String#element
         type: String
     rightBracket: >
   leftBracket: {
@@ -283,7 +286,7 @@ void f(Map<int, String> x) {
   if (x case {0: var a}) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -313,7 +316,7 @@ void f(Map<bool, num> x) {
   if (x case <bool, int>{true: var a}) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -323,11 +326,13 @@ MapPattern
     arguments
       NamedType
         name: bool
-        element: dart:core::@class::bool
+        element: dart:core::<fragment>::@class::bool
+        element2: dart:core::<fragment>::@class::bool#element
         type: bool
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   leftBracket: {
@@ -400,7 +405,7 @@ void f(Object x) {
   if (x case {true: int a}) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 43, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -415,7 +420,8 @@ MapPattern
       value: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
         name: a
         declaredElement: a@43
@@ -433,7 +439,7 @@ void f(Object x) {
   if (x case {true: var a}) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 43, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -471,11 +477,13 @@ MapPattern
     arguments
       NamedType
         name: bool
-        element: dart:core::@class::bool
+        element: dart:core::<fragment>::@class::bool
+        element2: dart:core::<fragment>::@class::bool#element
         type: bool
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   leftBracket: {
@@ -502,7 +510,7 @@ void f(Object x) {
   if (x case <bool, int>{true: var a}) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -512,11 +520,13 @@ MapPattern
     arguments
       NamedType
         name: bool
-        element: dart:core::@class::bool
+        element: dart:core::<fragment>::@class::bool
+        element2: dart:core::<fragment>::@class::bool#element
         type: bool
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   leftBracket: {
@@ -555,12 +565,14 @@ MapPattern
       key: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: a
-          staticElement: self::@function::f::@parameter::a
+          staticElement: <testLibraryFragment>::@function::f::@parameter::a
+          element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: bool Function()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
         staticElement: <null>
+        element: <null>
         staticInvokeType: bool Function()
         staticType: bool
       separator: :
@@ -581,7 +593,7 @@ void f(Map<bool, int> x) {
   var {true: a} = x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
     ]);
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -606,7 +618,8 @@ PatternVariableDeclaration
   equals: =
   expression: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Map<bool, int>
   patternTypeSchema: Map<_, _>
 ''');
@@ -620,7 +633,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
     ]);
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -632,11 +645,13 @@ PatternVariableDeclaration
       arguments
         NamedType
           name: bool
-          element: dart:core::@class::bool
+          element: dart:core::<fragment>::@class::bool
+          element2: dart:core::<fragment>::@class::bool#element
           type: bool
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     leftBracket: {
@@ -658,7 +673,8 @@ PatternVariableDeclaration
   expression: MethodInvocation
     methodName: SimpleIdentifier
       token: g
-      staticElement: self::@function::g
+      staticElement: <testLibraryFragment>::@function::g
+      element: <testLibraryFragment>::@function::g#element
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -679,7 +695,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 28, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 28, 1),
     ]);
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -696,7 +712,8 @@ PatternVariableDeclaration
         value: DeclaredVariablePattern
           type: NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
           name: a
           declaredElement: a@28
@@ -709,7 +726,8 @@ PatternVariableDeclaration
   expression: MethodInvocation
     methodName: SimpleIdentifier
       token: g
-      staticElement: self::@function::g
+      staticElement: <testLibraryFragment>::@function::g
+      element: <testLibraryFragment>::@function::g#element
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (

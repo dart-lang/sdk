@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /// An instance of [RangeFactory] made available for convenience.
 final RangeFactory range = RangeFactory();
@@ -63,11 +62,15 @@ class RangeFactory {
 
   /// Return the deletion range of the [node], considering the spaces and
   /// comments before and after it.
-  SourceRange deletionRange(AstNode node) {
+  ///
+  /// If a non-`null` [overrideEnd] is supplied, it will be used in place of
+  /// [AstNode.endToken] to determine the range of tokens to delete.
+  SourceRange deletionRange(AstNode node, {Token? overrideEnd}) {
     var begin = node.beginToken;
     begin = begin.precedingComments ?? begin;
 
-    var end = node.endToken.next!;
+    var initialEndToken = overrideEnd ?? node.endToken;
+    var end = initialEndToken.next!;
     end = end.precedingComments ?? end;
 
     int startOffset;
@@ -84,7 +87,7 @@ class RangeFactory {
       } else {
         startOffset = begin.previous!.end;
       }
-      endOffset = node.endToken.end;
+      endOffset = initialEndToken.end;
     } else {
       startOffset = begin.offset;
       endOffset = end.offset;

@@ -5,6 +5,7 @@
 library dart2js.test.memory_source_file_helper;
 
 import 'dart:async' show Future;
+import 'dart:typed_data';
 export 'dart:io' show Platform;
 
 import 'package:compiler/compiler_api.dart' as api;
@@ -26,7 +27,7 @@ class MemorySourceFileProvider extends CompilerSourceFileProvider {
   MemorySourceFileProvider(Map<String, dynamic> this.memorySourceFiles);
 
   @override
-  Future<api.Input<List<int>>> readBytesFromUri(
+  Future<api.Input<Uint8List>> readBytesFromUri(
       Uri resourceUri, api.InputKind inputKind) {
     if (!resourceUri.isScheme('memory')) {
       return super.readBytesFromUri(resourceUri, inputKind);
@@ -39,7 +40,7 @@ class MemorySourceFileProvider extends CompilerSourceFileProvider {
       return Future.error(Exception(
           'No such memory file $resourceUri in ${memorySourceFiles.keys}'));
     }
-    api.Input<List<int>> input;
+    api.Input<Uint8List> input;
     StringSourceFile? stringFile;
     registerUri(resourceUri);
     if (source is String) {
@@ -60,12 +61,12 @@ class MemorySourceFileProvider extends CompilerSourceFileProvider {
   }
 
   @override
-  Future<api.Input<List<int>>> readFromUri(Uri resourceUri,
+  Future<api.Input<Uint8List>> readFromUri(Uri resourceUri,
           {api.InputKind inputKind = api.InputKind.UTF8}) =>
       readBytesFromUri(resourceUri, inputKind);
 
   @override
-  api.Input<List<int>>? getUtf8SourceFile(Uri resourceUri) {
+  api.Input<Uint8List>? getUtf8SourceFile(Uri resourceUri) {
     var source = memorySourceFiles[resourceUri.path];
     if (source == null) return null;
     return source is String

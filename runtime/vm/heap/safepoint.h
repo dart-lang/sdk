@@ -14,6 +14,8 @@
 
 namespace dart {
 
+class ThreadBarrier;
+
 // A stack based scope that can be used to perform an operation after getting
 // all threads to a safepoint. At the end of the operation all the threads are
 // resumed.
@@ -76,6 +78,32 @@ class ForceGrowthSafepointOperationScope : public ThreadStackResource {
   DISALLOW_COPY_AND_ASSIGN(ForceGrowthSafepointOperationScope);
 };
 
+// Subclasses of SafepointTask are able to run on thread blocked at a safepoint.
+class SafepointTask : public ThreadPool::Task,
+                      public IntrusiveDListEntry<SafepointTask> {
+ protected:
+  SafepointTask(IsolateGroup* isolate_group,
+                ThreadBarrier* barrier,
+                Thread::TaskKind kind)
+      : isolate_group_(isolate_group), barrier_(barrier), kind_(kind) {}
+
+ public:
+  virtual ~SafepointTask();
+
+  void Run();
+  void RunBlockedAtSafepoint();
+  void RunMain();
+  virtual void RunEnteredIsolateGroup() = 0;
+
+ protected:
+  IsolateGroup* isolate_group_;
+  ThreadBarrier* barrier_;
+  Thread::TaskKind kind_;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(SafepointTask);
+};
+
 // Implements handling of safepoint operations for all threads in an
 // IsolateGroup.
 class SafepointHandler {
@@ -113,6 +141,8 @@ class SafepointHandler {
     }
     return false;
   }
+
+  void RunTasks(IntrusiveDList<SafepointTask>* tasks);
 
  private:
   class LevelHandler {
@@ -201,6 +231,7 @@ class SafepointHandler {
   IsolateGroup* isolate_group_;
 
   LevelHandler* handlers_[SafepointLevel::kNumLevels];
+  IntrusiveDList<SafepointTask> tasks_;
 
   friend class Isolate;
   friend class IsolateGroup;

@@ -130,7 +130,7 @@ void unreachableCase1(bool b) {
       break;
     case true: // Unreachable
 //  ^^^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('true2');
       break;
   }
@@ -164,8 +164,24 @@ void unreachableCase3(bool? b) {
       break;
     case null: // Unreachable
 //  ^^^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('null2');
+      break;
+  }
+}
+
+void unreachableDefault(bool b) {
+  switch (b) /* Ok */ {
+    case true:
+      print('true');
+      break;
+    case false:
+      print('false');
+      break;
+    default: // Unreachable
+//  ^^^^^^^
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT
+      print('default');
       break;
   }
 }

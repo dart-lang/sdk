@@ -10,44 +10,19 @@ import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Document ignore comments.';
 
-const _details = r'''
-**DO** document all ignored diagnostic reports.
-
-**BAD:**
-```dart
-// ignore: unused_element
-int _x = 1;
-```
-
-**GOOD:**
-```dart
-// This private field will be used later.
-// ignore: unused_element
-int _x = 1;
-```
-
-''';
-
 class DocumentIgnores extends LintRule {
-  static const LintCode code = LintCode(
-    'document_ignores',
-    'Missing documentation explaining why a diagnostic is ignored.',
-    correctionMessage:
-        'Try adding a comment immediately above the ignore comment.',
-  );
-
   DocumentIgnores()
       : super(
-            name: 'document_ignores',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.document_ignores,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.document_ignores;
 
   @override
   void registerNodeProcessors(
@@ -64,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var content = node.declaredElement?.source.contents.data;
+    var content = node.declaredFragment?.source.contents.data;
     for (var comment in node.ignoreComments) {
       var ignoredElements = comment.ignoredElements;
       if (ignoredElements.isEmpty) {

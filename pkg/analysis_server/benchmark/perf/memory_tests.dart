@@ -183,7 +183,6 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
     _test.instrumentationService = InstrumentationLogAdapter(_logger);
     await _test.setUp();
     _test.projectFolderPath = roots.single;
-    _test.projectFolderUri = Uri.file(_test.projectFolderPath);
     await _test.initialize();
   }
 
@@ -218,7 +217,8 @@ class LspAnalysisServerMemoryUsageTest
       '--enable-vm-service=$_vmServicePort',
       '-DSILENT_OBSERVATORY=true',
       '--disable-service-auth-codes',
-      '--disable-dart-dev'
+      '--disable-dart-dev',
+      '--no-dds',
     ]);
     await super.setUp();
 

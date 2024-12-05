@@ -6,49 +6,19 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Start multiline strings with a newline.';
 
-const _details = r"""
-Multiline strings are easier to read when they start with a newline (a newline
-starting a multiline string is ignored).
-
-**BAD:**
-```dart
-var s1 = '''{
-  "a": 1,
-  "b": 2
-}''';
-```
-
-**GOOD:**
-```dart
-var s1 = '''
-{
-  "a": 1,
-  "b": 2
-}''';
-
-var s2 = '''This one-liner multiline string is ok. It usually allows to escape both ' and " in the string.''';
-```
-
-""";
-
 class LeadingNewlinesInMultilineStrings extends LintRule {
-  static const LintCode code = LintCode('leading_newlines_in_multiline_strings',
-      'Missing a newline at the beginning of a multiline string.',
-      correctionMessage:
-          'Try adding a newline at the beginning of the string.');
-
   LeadingNewlinesInMultilineStrings()
       : super(
-            name: 'leading_newlines_in_multiline_strings',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.leading_newlines_in_multiline_strings,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.leading_newlines_in_multiline_strings;
 
   @override
   void registerNodeProcessors(

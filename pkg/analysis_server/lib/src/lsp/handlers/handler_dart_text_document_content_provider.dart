@@ -23,6 +23,9 @@ class DartTextDocumentContentProviderHandler extends SharedMessageHandler<
       DartTextDocumentContentParams.jsonHandler;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<DartTextDocumentContent>> handle(
       DartTextDocumentContentParams params,
       MessageInfo message,

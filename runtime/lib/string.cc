@@ -259,7 +259,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 0, 3) {
 
 DEFINE_NATIVE_ENTRY(Internal_allocateOneByteString, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, length_obj, arguments->NativeArgAt(0));
-  const int64_t length = length_obj.AsInt64Value();
+  const int64_t length = length_obj.Value();
   if ((length < 0) || (length > OneByteString::kMaxElements)) {
     // Assume that negative lengths are the result of wrapping in code in
     // string_patch.dart.
@@ -273,7 +273,7 @@ DEFINE_NATIVE_ENTRY(Internal_allocateOneByteString, 0, 1) {
 
 DEFINE_NATIVE_ENTRY(Internal_allocateTwoByteString, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, length_obj, arguments->NativeArgAt(0));
-  const int64_t length = length_obj.AsInt64Value();
+  const int64_t length = length_obj.Value();
   if ((length < 0) || (length > TwoByteString::kMaxElements)) {
     // Assume that negative lengths are the result of wrapping in code in
     // string_patch.dart.

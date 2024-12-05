@@ -157,7 +157,7 @@ final a = A(^);
 
   Future<void> test_augmentation_method() async {
     var content = '''
-import augment 'a.dart';
+part 'a.dart';
 
 class Foo {}
 
@@ -168,7 +168,7 @@ void bar() {
 
     var augmentationFilePath = join(projectFolderPath, 'lib', 'a.dart');
     var augmentationCode = '''
-augment library 'main.dart';
+part of 'main.dart';
 
 augment class Foo {
   /// My method.
@@ -185,6 +185,30 @@ augment class Foo {
       expectedDoc,
       [
         ParameterInformation(label: 'String s'),
+      ],
+    );
+  }
+
+  Future<void> test_callableClass() async {
+    var content = '''
+class Foo {
+  /// Does foo.
+  int call(String s, int i) {
+    var foo = Foo();
+    return foo(^);
+  }
+}
+''';
+    var expectedLabel = 'foo(String s, int i)';
+    var expectedDoc = 'Does foo.';
+
+    await _expectSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
       ],
     );
   }
@@ -355,6 +379,50 @@ foo(String s, int i) {
     // We say we prefer PlainText as a client, but since we only really
     // support Markdown and the client supports it, we expect the server
     // to provide Markdown.
+
+    await _expectSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
+      ],
+    );
+  }
+
+  Future<void> test_functionExpression_local() async {
+    var content = '''
+
+void f() {
+  var foo = (String s, int i) => s;
+  foo(^);
+}
+''';
+    var expectedLabel = 'foo(String s, int i)';
+
+    await _expectSignature(
+      content,
+      expectedLabel,
+      null, // expectedDoc, not dartDocs on local vars.
+      [
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
+      ],
+    );
+  }
+
+  Future<void> test_functionExpression_topLevel() async {
+    var content = '''
+/// Does foo.
+var foo = (String s, int i) => s;
+
+void f() {
+  foo(^);
+}
+''';
+    var expectedLabel = 'foo(String s, int i)';
+    var expectedDoc = 'Does foo.';
 
     await _expectSignature(
       content,

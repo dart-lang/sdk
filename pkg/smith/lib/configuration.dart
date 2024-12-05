@@ -821,6 +821,7 @@ class Compiler extends NamedEnum {
   static const dartkp = Compiler._('dartkp');
   static const specParser = Compiler._('spec_parser');
   static const fasta = Compiler._('fasta');
+  static const dart2bytecode = Compiler._('dart2bytecode');
 
   static final List<String> names = _all.keys.toList();
 
@@ -834,6 +835,7 @@ class Compiler extends NamedEnum {
     dartkp,
     specParser,
     fasta,
+    dart2bytecode,
   ], key: (compiler) => (compiler as Compiler).name);
 
   static Compiler find(String name) {
@@ -897,6 +899,8 @@ class Compiler extends NamedEnum {
         return const [Runtime.none];
       case Compiler.fasta:
         return const [Runtime.none];
+      case Compiler.dart2bytecode:
+        return const [Runtime.vm, Runtime.dartPrecompiled];
     }
 
     throw "unreachable";
@@ -922,6 +926,8 @@ class Compiler extends NamedEnum {
       case Compiler.specParser:
       case Compiler.fasta:
         return Runtime.none;
+      case Compiler.dart2bytecode:
+        return Runtime.dartPrecompiled;
     }
 
     throw "unreachable";

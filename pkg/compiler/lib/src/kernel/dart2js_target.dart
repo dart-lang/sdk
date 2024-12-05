@@ -156,8 +156,9 @@ class Dart2jsTarget extends Target {
         jsInteropReporter,
         jsInteropChecks.exportChecker,
         jsInteropChecks.extensionIndex);
-    var jsUtilOptimizer =
-        JsUtilOptimizer(coreTypes, hierarchy, jsInteropChecks.extensionIndex);
+    var jsUtilOptimizer = JsUtilOptimizer(
+        coreTypes, hierarchy, jsInteropChecks.extensionIndex,
+        isDart2JS: true);
     for (var library in libraries) {
       // Shared transformer has static checks, so we still visit even if there
       // are errors.
@@ -255,6 +256,7 @@ const implicitlyUsedLibraries = <String>[
 // compile-platform should just specify which libraries to compile instead.
 const requiredLibraries = <String, List<String>>{
   'dart2js': [
+    'dart:_array_flags',
     'dart:_async_status_codes',
     'dart:_dart2js_only',
     'dart:_dart2js_runtime_metrics',
@@ -272,7 +274,6 @@ const requiredLibraries = <String, List<String>>{
     'dart:_js_shared_embedded_names',
     'dart:_js_types',
     'dart:_late_helper',
-    'dart:_load_library_priority',
     'dart:_metadata',
     'dart:_native_typed_data',
     'dart:_recipe_syntax',
@@ -297,6 +298,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:web_gl',
   ],
   'dart2js_server': [
+    'dart:_array_flags',
     'dart:_async_status_codes',
     'dart:_dart2js_only',
     'dart:_dart2js_runtime_metrics',
@@ -314,7 +316,6 @@ const requiredLibraries = <String, List<String>>{
     'dart:_js_shared_embedded_names',
     'dart:_js_types',
     'dart:_late_helper',
-    'dart:_load_library_priority',
     'dart:_native_typed_data',
     'dart:_recipe_syntax',
     'dart:_rti',

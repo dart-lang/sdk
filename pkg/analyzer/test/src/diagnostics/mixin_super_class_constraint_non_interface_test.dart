@@ -33,6 +33,7 @@ MixinOnClause
     NamedType
       name: dynamic
       element: dynamic@-1
+      element2: dynamic@-1
       type: dynamic
 ''');
   }
@@ -53,7 +54,8 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: E
-      element: self::@enum::E
+      element: <testLibraryFragment>::@enum::E
+      element2: <testLibraryFragment>::@enum::E#element
       type: E
 ''');
   }
@@ -74,7 +76,8 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: A
-      element: self::@extensionType::A
+      element: <testLibraryFragment>::@extensionType::A
+      element2: <testLibraryFragment>::@extensionType::A#element
       type: A
 ''');
   }
@@ -95,6 +98,7 @@ MixinOnClause
     NamedType
       name: Never
       element: Never@-1
+      element2: Never@-1
       type: Never
 ''');
   }
@@ -116,6 +120,7 @@ MixinOnClause
     NamedType
       name: void
       element: <null>
+      element2: <null>
       type: void
 ''');
   }

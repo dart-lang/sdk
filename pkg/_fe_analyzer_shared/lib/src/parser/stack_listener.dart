@@ -80,7 +80,6 @@ enum NullValues implements NullValue<Object> {
   ShowClause,
   StringLiteral,
   StructuralVariables,
-  SwitchScope,
   Token,
   Type,
   TypeArguments,
@@ -422,16 +421,16 @@ abstract class StackListener extends Listener with StackChecker {
 
 abstract class Stack {
   /// Pops [count] elements from the stack and puts it into [list].
-  /// Returns [null] if a [ParserRecovery] value is found, or [list] otherwise.
+  /// Returns `null` if a [ParserRecovery] value is found, or [list] otherwise.
   List<T?>? popList<T>(int count, List<T?> list, NullValue? nullValue);
 
   /// Pops [count] elements from the stack and puts it into [list].
-  /// Returns [null] if a [ParserRecovery] value is found, or [list] otherwise.
+  /// Returns `null` if a [ParserRecovery] value is found, or [list] otherwise.
   List<T>? popNonNullableList<T>(int count, List<T> list);
 
   void push(Object value);
 
-  /// Will return [null] instead of [NullValue].
+  /// Will return `null` instead of [NullValue].
   Object? get last;
 
   bool get isNotEmpty;
@@ -442,7 +441,7 @@ abstract class Stack {
 
   int get length;
 
-  /// Raw, i.e. [NullValue]s will be returned instead of [null].
+  /// Raw, i.e. [NullValue]s will be returned instead of `null`.
   Object? operator [](int index);
 }
 

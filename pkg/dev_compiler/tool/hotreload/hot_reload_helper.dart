@@ -29,7 +29,7 @@
 ///
 /// The program will run `example` once and wait for you to hit `<enter>` before
 /// performing a hot reload and rerunning the `example` method again.
-library hot_reload_helper;
+library;
 
 import 'dart:developer';
 import 'dart:io' as io;

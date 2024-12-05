@@ -6,44 +6,22 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid return types on setters.';
 
-const _details = r'''
-**AVOID** return types on setters.
-
-As setters do not return a value, declaring the return type of one is redundant.
-
-**BAD:**
-```dart
-void set speed(int ms);
-```
-
-**GOOD:**
-```dart
-set speed(int ms);
-```
-
-''';
-
 class AvoidReturnTypesOnSetters extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_return_types_on_setters', 'Unnecessary return type on a setter.',
-      correctionMessage: 'Try removing the return type.',
-      hasPublishedDocs: true);
-
   AvoidReturnTypesOnSetters()
       : super(
-            name: 'avoid_return_types_on_setters',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.avoid_return_types_on_setters,
+          description: _desc,
+        );
 
   @override
   bool get canUseParsedResult => true;
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_return_types_on_setters;
 
   @override
   void registerNodeProcessors(

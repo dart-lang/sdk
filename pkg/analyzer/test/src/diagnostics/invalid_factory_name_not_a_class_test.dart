@@ -38,13 +38,13 @@ class A {
 
   test_notEnclosingClassName_inAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   factory B() => throw 0;
@@ -53,7 +53,7 @@ augment class A {
 
     await resolveFile2(b);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, 55, 1),
+      error(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, 47, 1),
     ]);
   }
 
@@ -67,7 +67,7 @@ class A {
 
   test_valid_inAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {}
 
@@ -77,7 +77,7 @@ class B implements A {
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   const factory A() = B;

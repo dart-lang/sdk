@@ -165,7 +165,14 @@ void matchIL$throwInALoop(FlowGraph graph) {
         ]),
     'loop_inc' <<
         match.block('Target', [
-          'inc_i' << match.BinaryInt64Op('i', match.any),
+          if (is32BitConfiguration) ...[
+            'i_32' << match.IntConverter('i', from: 'int64', to: 'int32'),
+            'inc_i_32' << match.BinaryInt32Op('i_32', match.any),
+            'inc_i' <<
+                match.IntConverter('inc_i_32', from: 'int32', to: 'int64'),
+          ] else ...[
+            'inc_i' << match.BinaryInt64Op('i', match.any),
+          ],
           match.Goto('loop_header'),
         ]),
     'return_found' <<

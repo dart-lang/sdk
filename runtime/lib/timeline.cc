@@ -56,15 +56,14 @@ DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 0, 5) {
   }
 
   std::unique_ptr<const int64_t[]> flow_ids;
-  if (flow_id.AsInt64Value() != TimelineEvent::kNoFlowId) {
+  if (flow_id.Value() != TimelineEvent::kNoFlowId) {
     int64_t* flow_ids_internal = new int64_t[1];
-    flow_ids_internal[0] = flow_id.AsInt64Value();
+    flow_ids_internal[0] = flow_id.Value();
     flow_ids = std::unique_ptr<const int64_t[]>(flow_ids_internal);
   }
-  intptr_t flow_id_count =
-      flow_id.AsInt64Value() == TimelineEvent::kNoFlowId ? 0 : 1;
+  intptr_t flow_id_count = flow_id.Value() == TimelineEvent::kNoFlowId ? 0 : 1;
   DartTimelineEventHelpers::ReportTaskEvent(
-      event, id.AsInt64Value(), flow_id_count, flow_ids, type.Value(),
+      event, id.Value(), flow_id_count, flow_ids, type.Value(),
       name.ToMallocCString(), args.ToMallocCString());
 #endif  // SUPPORT_TIMELINE
   return Object::null();

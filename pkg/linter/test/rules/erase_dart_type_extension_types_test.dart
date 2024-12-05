@@ -18,7 +18,7 @@ class EraseDartTypeExtensionTypesTest extends LintRuleTest {
   bool get addKernelPackageDep => true;
 
   @override
-  String get lintRule => 'erase_dart_type_extension_types';
+  String get lintRule => LintNames.erase_dart_type_extension_types;
 
   test_isDartType() async {
     await assertDiagnostics(r'''

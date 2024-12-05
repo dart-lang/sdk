@@ -2223,13 +2223,12 @@ suggestions
 
   Future<void> test_combinator_hide() async {
     newFile('$testPackageLibPath/ab.dart', '''
-library libAB;
 part 'partAB.dart';
 class A {}
 class B {}
 ''');
     newFile('$testPackageLibPath/partAB.dart', '''
-part of libAB;
+part of 'ab.dart';
 var T1;
 PB F1() => new PB();
 class PB {}
@@ -2254,13 +2253,12 @@ suggestions
 
   Future<void> test_combinator_show() async {
     newFile('$testPackageLibPath/ab.dart', '''
-library libAB;
 part 'partAB.dart';
 class A {}
 class B {}
 ''');
     newFile('$testPackageLibPath/partAB.dart', '''
-part of libAB;
+part of 'ab.dart';
 var T1;
 PB F1() => new PB();
 typedef PB F2(int blat);

@@ -525,6 +525,7 @@ COMPRESSED_VISITOR(TypeParameter)
 COMPRESSED_VISITOR(Function)
 COMPRESSED_VISITOR(Closure)
 COMPRESSED_VISITOR(LibraryPrefix)
+COMPRESSED_VISITOR(Bytecode)
 REGULAR_VISITOR(SingleTargetCache)
 REGULAR_VISITOR(UnlinkedCall)
 NULL_VISITOR(MonomorphicSmiableCall)
@@ -560,7 +561,7 @@ VARIABLE_COMPRESSED_VISITOR(Context, raw_obj->untag()->num_variables_)
 VARIABLE_COMPRESSED_VISITOR(Array, Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(
     TypedData,
-    TypedData::ElementSizeInBytes(raw_obj->GetClassId()) *
+    TypedData::ElementSizeInBytes(raw_obj->GetClassIdOfHeapObject()) *
         Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(ContextScope, raw_obj->untag()->num_variables_)
 VARIABLE_COMPRESSED_VISITOR(Record,
@@ -681,6 +682,16 @@ intptr_t UntaggedCode::VisitCodePointers(CodePtr raw_obj,
 #endif
 }
 
+bool UntaggedBytecode::ContainsPC(ObjectPtr raw_obj, uword pc) {
+  if (raw_obj->IsBytecode()) {
+    BytecodePtr raw_bytecode = static_cast<BytecodePtr>(raw_obj);
+    uword start = raw_bytecode->untag()->instructions_;
+    uword size = raw_bytecode->untag()->instructions_size_;
+    return (pc - start) <= size;  // pc may point past last instruction.
+  }
+  return false;
+}
+
 intptr_t UntaggedObjectPool::VisitObjectPoolPointers(
     ObjectPoolPtr raw_obj,
     ObjectPointerVisitor* visitor) {
@@ -715,7 +726,8 @@ intptr_t UntaggedInstance::VisitInstancePointers(
   uword tags = raw_obj->untag()->tags_;
   intptr_t instance_size = SizeTag::decode(tags);
   if (instance_size == 0) {
-    instance_size = visitor->class_table()->SizeAt(raw_obj->GetClassId());
+    instance_size =
+        visitor->class_table()->SizeAt(raw_obj->GetClassIdOfHeapObject());
   }
 
   // Calculate the first and last raw object pointer fields.

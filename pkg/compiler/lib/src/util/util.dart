@@ -231,26 +231,6 @@ void writeJsonEscapedCharsOn(String string, StringSink buffer) {
   buffer.write(string);
 }
 
-class Pair<A, B> {
-  final A a;
-  final B b;
-
-  Pair(this.a, this.b);
-
-  @override
-  int get hashCode => 13 * a.hashCode + 17 * b.hashCode;
-
-  @override
-  bool operator ==(var other) {
-    if (identical(this, other)) return true;
-    if (other is! Pair) return false;
-    return a == other.a && b == other.b;
-  }
-
-  @override
-  String toString() => '($a,$b)';
-}
-
 int longestCommonPrefixLength(List<Object?> a, List<Object?> b) {
   int index = 0;
   for (; index < a.length && index < b.length; index++) {

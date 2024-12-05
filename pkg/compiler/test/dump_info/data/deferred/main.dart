@@ -94,7 +94,7 @@
   "id": "library/memory:sdk/tests/web/native/main.dart::",
   "kind": "library",
   "name": "<unnamed>",
-  "size": 304,
+  "size": 305,
   "children": [
     "function/memory:sdk/tests/web/native/main.dart::main"
   ],
@@ -137,7 +137,7 @@ import 'lib.dart' deferred as lib;
   "id": "function/memory:sdk/tests/web/native/main.dart::main",
   "kind": "function",
   "name": "main",
-  "size": 304,
+  "size": 305,
   "outputUnit": "outputUnit/main",
   "parent": "library/memory:sdk/tests/web/native/main.dart::",
   "children": [
@@ -154,7 +154,7 @@ import 'lib.dart' deferred as lib;
   "parameters": [],
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 0,
-  "code": "main() {\n      return A.loadDeferredLibrary(\"lib\", 0).then$1$1(new A.main_closure(), type$.Null);\n    }",
+  "code": "main() {\n      return A.loadDeferredLibrary(\"lib\", \"\").then$1$1(new A.main_closure(), type$.Null);\n    }",
   "type": "dynamic Function()",
   "functionKind": 0
 },

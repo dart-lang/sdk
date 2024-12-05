@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: constant_identifier_names, library_names
+// ignore_for_file: constant_identifier_names
 
 /// Contains the names of globals that are embedded into the output by the
 /// compiler.
@@ -11,7 +11,7 @@
 /// the `_foreign_helper` library.
 ///
 /// This library is shared between the compiler and the runtime system.
-library dart2js._embedded_names;
+library;
 
 /// The name of the property that is used to find the native superclass of
 /// an extended class.

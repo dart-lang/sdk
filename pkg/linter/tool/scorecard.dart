@@ -16,7 +16,6 @@ import 'package:linter/src/utils.dart';
 import '../tool/util/path_utils.dart';
 import 'crawl.dart';
 import 'parse.dart';
-import 'since.dart';
 
 void main() async {
   var scorecard = await ScoreCard.calculate();
@@ -124,16 +123,15 @@ class LintScore {
   String name;
   bool hasFix;
   State state;
-  SinceInfo? since;
 
   List<String> ruleSets;
 
-  LintScore(
-      {required this.name,
-      required this.hasFix,
-      required this.state,
-      required this.ruleSets,
-      this.since});
+  LintScore({
+    required this.name,
+    required this.hasFix,
+    required this.state,
+    required this.ruleSets,
+  });
 
   String get _ruleSets => ruleSets.isNotEmpty ? ' $ruleSets' : '';
 
@@ -143,8 +141,6 @@ class LintScore {
       switch (detail) {
         case Detail.rule:
           sb.write(' [$name](https://dart.dev/lints/$name) |');
-        case Detail.sdk:
-          sb.write(' ${since!.sinceDartSdk} |');
         case Detail.fix:
           sb.write('${hasFix ? " $bulb" : ""} |');
         case Detail.flutterUser:
@@ -210,12 +206,12 @@ class ScoreCard {
       }
 
       scorecard.add(LintScore(
-          name: lint.name,
-          hasFix: lintsWithFixes.contains(lint.name) ||
-              lintsWithAssists.contains(lint.name),
-          state: lint.state,
-          ruleSets: ruleSets,
-          since: sinceMap[lint.name]));
+        name: lint.name,
+        hasFix: lintsWithFixes.contains(lint.name) ||
+            lintsWithAssists.contains(lint.name),
+        state: lint.state,
+        ruleSets: ruleSets,
+      ));
     }
 
     return scorecard;

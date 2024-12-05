@@ -111,6 +111,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
         if (!enableAuthCodes) '--disable-service-auth-codes'
       ],
       '--disable-dart-dev',
+      '--no-dds',
       if (debug && vmServiceInfoFile != null) ...[
         '-DSILENT_VM_SERVICE=true',
         '--write-service-info=${Uri.file(vmServiceInfoFile.path)}'

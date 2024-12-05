@@ -1,0 +1,6 @@
+import 'prefix_vs_import_lib1.dart' as bar;
+import 'prefix_vs_import_lib1.dart' as foo;
+import 'prefix_vs_import_lib2.dart';
+import 'prefix_vs_import_lib3.dart';
+
+test() {}

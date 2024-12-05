@@ -39,6 +39,7 @@ const _errorNetworkAccessDenied = 65;
 const _errorBadNetName = 67;
 const _errorFileExists = 80;
 const _errorDriveLocked = 108;
+const _errorInvalidName = 123;
 const _errorBadPathName = 161;
 const _errorAlreadyExists = 183;
 const _errorFilenameExedRange = 206;

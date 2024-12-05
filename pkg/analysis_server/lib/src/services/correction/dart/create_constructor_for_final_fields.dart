@@ -8,7 +8,7 @@ import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -57,7 +57,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     _FixContext fixContext;
     switch (container) {
       case ClassDeclaration():
-        superType = container.declaredElement?.supertype;
+        superType = container.declaredFragment?.element.supertype;
         if (superType == null) {
           return;
         }
@@ -68,7 +68,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
           variableLists: container.members.interestingVariableLists,
         );
       case EnumDeclaration():
-        superType = container.declaredElement?.supertype;
+        superType = container.declaredFragment?.element.supertype;
         if (superType == null) {
           return;
         }
@@ -147,7 +147,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     required _FixContext fixContext,
     required NamedCompilationUnitMember classDeclaration,
   }) async {
-    var keyClass = await sessionHelper.getFlutterClass('Key');
+    var keyClass = await sessionHelper.getFlutterClass2('Key');
     if (keyClass == null) {
       return;
     }
@@ -392,10 +392,10 @@ class _FixContext {
     required this.variableLists,
   });
 
-  List<ParameterElement>? get superNamed {
-    var superConstructor = superType.constructors.singleOrNull;
+  List<FormalParameterElement>? get superNamed {
+    var superConstructor = superType.constructors2.singleOrNull;
     if (superConstructor != null) {
-      var superAll = superConstructor.parameters;
+      var superAll = superConstructor.formalParameters;
       var superNamed = superAll.where((e) => e.isNamed).toList();
       return superNamed.length == superAll.length ? superNamed : null;
     }

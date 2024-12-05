@@ -682,6 +682,8 @@ DeclarationCode _buildFunctionAugmentation(
     if (declaration is MethodDeclaration) '  ',
     'augment ',
     if (declaration is ConstructorDeclaration) ...[
+      if (declaration.isConst) 'const ',
+      if (declaration.isFactory) 'factory ',
       declaration.definingType.name,
       if (declaration.identifier.name.isNotEmpty) '.',
     ] else ...[

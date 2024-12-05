@@ -191,7 +191,7 @@ bool isLocalElement(Element? element) {
   return element is LocalVariableElement ||
       element is ParameterElement ||
       element is FunctionElement &&
-          element.enclosingElement is! CompilationUnitElement;
+          element.enclosingElement3 is! CompilationUnitElement;
 }
 
 Element? _getLocalElement(SimpleIdentifier node) {
@@ -1783,7 +1783,7 @@ extension on LibraryElement {
   ///
   /// May be `null` if was not imported, i.e. declared in the same library.
   LibraryImportElement? _getImportElement(Element element) {
-    for (var imp in library.libraryImports) {
+    for (var imp in library.definingCompilationUnit.libraryImports) {
       var definedNames = getImportNamespace(imp);
       if (definedNames.containsValue(element)) {
         return imp;

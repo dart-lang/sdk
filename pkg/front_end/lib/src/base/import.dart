@@ -10,20 +10,15 @@ import '../builder/builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/prefix_builder.dart';
-import '../kernel/load_library_builder.dart';
-import '../kernel/utils.dart' show toKernelCombinators;
 import '../source/source_library_builder.dart';
 import 'combinator.dart' show CombinatorBuilder;
 import 'configuration.dart' show Configuration;
 
 class Import {
-  /// The library that is importing [imported];
-  final SourceLibraryBuilder importer;
-
   /// The library being imported.
   CompilationUnit? importedCompilationUnit;
 
-  final PrefixBuilder? prefixBuilder;
+  final PrefixFragment? prefixFragment;
 
   final bool isAugmentationImport;
 
@@ -35,9 +30,9 @@ class Import {
 
   final List<Configuration>? configurations;
 
-  final int charOffset;
+  final int importOffset;
 
-  final int prefixCharOffset;
+  final int prefixOffset;
 
   // The LibraryBuilder for the imported library ('imported') may be null when
   // this field is set.
@@ -49,43 +44,56 @@ class Import {
   LibraryDependency? libraryDependency;
 
   Import(
-      this.importer,
+      SourceCompilationUnit importer,
       this.importedCompilationUnit,
       this.isAugmentationImport,
       this.deferred,
       this.prefix,
       this.combinators,
       this.configurations,
-      this.charOffset,
-      this.prefixCharOffset,
-      int importIndex,
+      Uri fileUri,
+      this.importOffset,
+      this.prefixOffset,
       {this.nativeImportPath})
-      : prefixBuilder = createPrefixBuilder(
+      : prefixFragment = createPrefixFragment(
             prefix,
             importer,
             importedCompilationUnit,
             combinators,
             deferred,
-            charOffset,
-            prefixCharOffset,
-            importIndex);
+            fileUri,
+            importOffset,
+            prefixOffset);
 
   LibraryBuilder? get importedLibraryBuilder =>
       importedCompilationUnit?.libraryBuilder;
 
-  void finalizeImports(SourceLibraryBuilder importer) {
+  void finalizeImports(SourceCompilationUnit importer) {
     if (nativeImportPath != null) return;
+
     void Function(String, Builder) add;
-    if (prefixBuilder == null) {
-      add = (String name, Builder member) {
-        importer.addToScope(name, member, charOffset, true);
+
+    PrefixFragment? prefixFragment = this.prefixFragment;
+    if (prefixFragment == null) {
+      add = (String name, Builder builder) {
+        importer.addImportedBuilderToScope(
+            name: name, builder: builder, charOffset: importOffset);
       };
     } else {
+      if (importer.addPrefixFragment(
+          prefixFragment.name, prefixFragment, prefixOffset)) {
+        importer.addImportedBuilderToScope(
+            name: prefixFragment.name,
+            builder: prefixFragment.builder,
+            charOffset: prefixOffset);
+      }
+
       add = (String name, Builder member) {
-        prefixBuilder!.addToExportScope(name, member, charOffset);
+        prefixFragment.builder.addToPrefixScope(name, member,
+            importOffset: importOffset, prefixOffset: prefixOffset);
       };
     }
-    NameIterator<Builder> iterator = importedLibraryBuilder!.exportScope
+    NameIterator<Builder> iterator = importedLibraryBuilder!.exportNameSpace
         .filteredNameIterator(
             includeDuplicates: false, includeAugmentations: false);
     while (iterator.moveNext()) {
@@ -108,32 +116,26 @@ class Import {
         add(name, member);
       }
     }
-    if (prefixBuilder != null) {
-      Builder? existing = importer.addBuilder(
-          prefixBuilder!.name, prefixBuilder!, prefixCharOffset);
-      if (existing == prefixBuilder) {
-        importer.addToScope(prefix!, prefixBuilder!, prefixCharOffset, true);
-      }
-    }
   }
 }
 
-PrefixBuilder? createPrefixBuilder(
+PrefixFragment? createPrefixFragment(
     String? prefix,
-    SourceLibraryBuilder importer,
+    SourceCompilationUnit importer,
     CompilationUnit? imported,
     List<CombinatorBuilder>? combinators,
     bool deferred,
+    Uri fileUri,
     int charOffset,
-    int prefixCharOffset,
-    int importIndex) {
+    int prefixCharOffset) {
   if (prefix == null) return null;
-  LoadLibraryBuilder? loadLibraryBuilder;
-  if (deferred) {
-    loadLibraryBuilder = new LoadLibraryBuilder(importer, prefixCharOffset,
-        imported!, prefix, charOffset, toKernelCombinators(combinators));
-  }
-
-  return new PrefixBuilder(prefix, deferred, importer, loadLibraryBuilder,
-      prefixCharOffset, importIndex);
+  return new PrefixFragment(
+      name: prefix,
+      importer: importer,
+      imported: imported,
+      combinators: combinators,
+      deferred: deferred,
+      fileUri: fileUri,
+      importOffset: charOffset,
+      prefixOffset: prefixCharOffset);
 }

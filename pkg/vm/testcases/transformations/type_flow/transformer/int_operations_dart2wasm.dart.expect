@@ -3,26 +3,26 @@ import self as self;
 import "dart:core" as core;
 
 
-[@vm.inferred-type.metadata=dart.core::_BoxedInt]
+[@vm.inferred-type.metadata=library dart:_boxed_int::BoxedInt]
 [@vm.unboxing-info.metadata=(i)->i]
-static field core::int x = [@vm.inferred-type.metadata=dart.core::_BoxedInt] core::int::parse("2");
+static field core::int x = [@vm.inferred-type.metadata=library dart:_boxed_int::BoxedInt] core::int::parse("2");
 
-[@vm.inferred-type.metadata=dart.core::_BoxedInt]
+[@vm.inferred-type.metadata=library dart:_boxed_int::BoxedInt]
 [@vm.unboxing-info.metadata=(i)->i]
-static field core::int y = [@vm.inferred-type.metadata=dart.core::_BoxedInt] core::int::parse("3");
+static field core::int y = [@vm.inferred-type.metadata=library dart:_boxed_int::BoxedInt] core::int::parse("3");
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.unboxing-info.metadata=(i,i,i)->b]
-static method use([@vm.inferred-arg-type.metadata=dart.core::_BoxedInt] final dynamic a, [@vm.inferred-arg-type.metadata=dart.core::_BoxedInt] final dynamic b, [@vm.inferred-arg-type.metadata=dart.core::_BoxedInt] final dynamic c) → void {
+static method use([@vm.inferred-arg-type.metadata=library dart:_boxed_int::BoxedInt] final dynamic a, [@vm.inferred-arg-type.metadata=library dart:_boxed_int::BoxedInt] final dynamic b, [@vm.inferred-arg-type.metadata=library dart:_boxed_int::BoxedInt] final dynamic c) → void {
   core::print(a);
   core::print(b);
   core::print(c);
-  core::print([@vm.direct-call.metadata=dart.core::_BoxedInt.~/] [@vm.inferred-type.metadata=dart.core::_BoxedInt] a{dynamic}.~/(2));
-  core::print([@vm.direct-call.metadata=dart.core::_BoxedInt.~/] [@vm.inferred-type.metadata=dart.core::_BoxedInt] b{dynamic}.~/(2));
-  core::print([@vm.direct-call.metadata=dart.core::_BoxedInt.~/] [@vm.inferred-type.metadata=dart.core::_BoxedInt] c{dynamic}.~/(2));
+  core::print([@vm.direct-call.metadata=library dart:_boxed_int::BoxedInt.~/] [@vm.inferred-type.metadata=library dart:_boxed_int::BoxedInt] a{dynamic}.~/(2));
+  core::print([@vm.direct-call.metadata=library dart:_boxed_int::BoxedInt.~/] [@vm.inferred-type.metadata=library dart:_boxed_int::BoxedInt] b{dynamic}.~/(2));
+  core::print([@vm.direct-call.metadata=library dart:_boxed_int::BoxedInt.~/] [@vm.inferred-type.metadata=library dart:_boxed_int::BoxedInt] c{dynamic}.~/(2));
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → dynamic {
-  self::use([@vm.direct-call.metadata=dart.core::_BoxedInt.+] [@vm.inferred-type.metadata=dart.core::_BoxedInt (skip check)] [@vm.inferred-type.metadata=dart.core::_BoxedInt] self::x.{core::num::+}([@vm.inferred-type.metadata=dart.core::_BoxedInt] self::y){(core::num) → core::int}, [@vm.direct-call.metadata=dart.core::_BoxedInt.-] [@vm.inferred-type.metadata=dart.core::_BoxedInt (skip check)] [@vm.inferred-type.metadata=dart.core::_BoxedInt] self::x.{core::num::-}([@vm.inferred-type.metadata=dart.core::_BoxedInt] self::y){(core::num) → core::int}, [@vm.direct-call.metadata=dart.core::_BoxedInt.*] [@vm.inferred-type.metadata=dart.core::_BoxedInt (skip check)] [@vm.inferred-type.metadata=dart.core::_BoxedInt] self::x.{core::num::*}([@vm.inferred-type.metadata=dart.core::_BoxedInt] self::y){(core::num) → core::int});
+  self::use([@vm.direct-call.metadata=library dart:_boxed_int::BoxedInt.+] [@vm.inferred-type.metadata=library dart:_boxed_int::BoxedInt (skip check)] [@vm.inferred-type.metadata=library dart:_boxed_int::BoxedInt] self::x.{core::num::+}([@vm.inferred-type.metadata=library dart:_boxed_int::BoxedInt] self::y){(core::num) → core::int}, [@vm.direct-call.metadata=library dart:_boxed_int::BoxedInt.-] [@vm.inferred-type.metadata=library dart:_boxed_int::BoxedInt (skip check)] [@vm.inferred-type.metadata=library dart:_boxed_int::BoxedInt] self::x.{core::num::-}([@vm.inferred-type.metadata=library dart:_boxed_int::BoxedInt] self::y){(core::num) → core::int}, [@vm.direct-call.metadata=library dart:_boxed_int::BoxedInt.*] [@vm.inferred-type.metadata=library dart:_boxed_int::BoxedInt (skip check)] [@vm.inferred-type.metadata=library dart:_boxed_int::BoxedInt] self::x.{core::num::*}([@vm.inferred-type.metadata=library dart:_boxed_int::BoxedInt] self::y){(core::num) → core::int});
 }

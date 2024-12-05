@@ -310,6 +310,9 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
     if (fp == nullptr) {
       return false;
     }
+    if (!Utils::IsAligned(fp, kWordSize)) {
+      return false;
+    }
     uword cursor = reinterpret_cast<uword>(fp);
     cursor += sizeof(fp);
     bool r = (cursor >= lower_bound_) && (cursor < stack_upper_);

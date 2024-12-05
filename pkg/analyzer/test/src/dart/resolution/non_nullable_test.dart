@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.g.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -78,8 +77,8 @@ main() {
   int b = 0;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
     ]);
 
     assertType(findNode.namedType('int? a'), 'int?');
@@ -95,10 +94,10 @@ main() {
   List<int> d = [];
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 23, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 85, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 65, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 85, 1),
     ]);
 
     assertType(findNode.namedType('List<int?>? a'), 'List<int?>?');
@@ -149,8 +148,8 @@ void f<T>(T a) {
   T? y;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 21, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 21, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
     ]);
 
     assertType(findNode.namedType('T x'), 'T');
@@ -163,7 +162,7 @@ main() {
   int? Function(bool, String?)? a;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 1),
     ]);
 
     assertType(
@@ -362,7 +361,7 @@ main() {
   F? a;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
     ]);
 
     assertType(findNode.namedType('F? a'), 'int? Function(bool, String?)?');
@@ -376,7 +375,7 @@ main() {
   F<String>? a;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 1),
     ]);
 
     assertType(
@@ -405,8 +404,8 @@ main() {
   F<double>? b;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 68, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 68, 1),
     ]);
 
     assertType(findNode.namedType('F<int>'), 'int Function(int)?');

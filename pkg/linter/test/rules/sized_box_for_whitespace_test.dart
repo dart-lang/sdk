@@ -18,7 +18,7 @@ class SizedBoxForWhitespaceTest extends LintRuleTest {
   bool get addFlutterPackageDep => true;
 
   @override
-  String get lintRule => 'sized_box_for_whitespace';
+  String get lintRule => LintNames.sized_box_for_whitespace;
 
   test_hasChild() async {
     await assertNoDiagnostics(r'''

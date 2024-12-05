@@ -2,7 +2,8 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:10:9: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
+// pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:10:9: Error: The implicitly called unnamed constructor from 'A' has required parameters.
+// Try adding an explicit super initializer with the required arguments.
 //   const B();
 //         ^
 //
@@ -22,14 +23,16 @@ class A extends core::Object {
 }
 class B extends self::A /*hasConstConstructor*/  {
   const constructor •() → self::B
-    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:10:9: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
+    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:10:9: Error: The implicitly called unnamed constructor from 'A' has required parameters.
+Try adding an explicit super initializer with the required arguments.
   const B();
         ^"
     ;
 }
 static method main() → dynamic {
   new self::B::•();
-  invalid-expression "pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:10:9: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
+  invalid-expression "pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:10:9: Error: The implicitly called unnamed constructor from 'A' has required parameters.
+Try adding an explicit super initializer with the required arguments.
   const B();
         ^";
 }

@@ -11,7 +11,7 @@ test_cast_insideCast(x) {
   switch (x) {
     case (_ as int) as num:
       break;
-    default:
+    default: // ignore: unreachable_switch_default
       Expect.fail('failed to match');
   }
 }
@@ -20,7 +20,7 @@ test_cast_insideNullAssert(x) {
   switch (x) {
     case (_ as int)!:
       break;
-    default:
+    default: // ignore: unreachable_switch_default
       Expect.fail('failed to match');
   }
 }
@@ -38,7 +38,7 @@ test_nullAssert_insideCast(x) {
   switch (x) {
     case (_!) as num?:
       break;
-    default:
+    default: // ignore: unreachable_switch_default
       Expect.fail('failed to match');
   }
 }
@@ -47,7 +47,7 @@ test_nullAssert_insideNullAssert(x) {
   switch (x) {
     case (_!)!:
       break;
-    default:
+    default: // ignore: unreachable_switch_default
       Expect.fail('failed to match');
   }
 }
@@ -56,7 +56,7 @@ test_nullAssert_insideNullCheck(x) {
   switch (x) {
     case (_!)?:
       break;
-    default:
+    default: // ignore: unreachable_switch_default
       Expect.fail('failed to match');
   }
 }
@@ -74,7 +74,7 @@ test_nullCheck_insideNullAssert(x) {
   switch (x) {
     case (_?)!:
       break;
-    default:
+    default: // ignore: unreachable_switch_default
       Expect.fail('failed to match');
   }
 }

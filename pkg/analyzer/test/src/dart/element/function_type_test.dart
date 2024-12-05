@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -239,6 +240,175 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     expect(f1, isNot(equals(f2)));
   }
 
+  test_hash_namedParameterOptionality() {
+    _testHashesSometimesDifferPairwise((i) => (
+          FunctionTypeImpl(
+              typeFormals: const [],
+              parameters: [
+                namedParameter(name: 'p$i', type: typeProvider.intType)
+              ],
+              returnType: typeProvider.voidType,
+              nullabilitySuffix: NullabilitySuffix.none),
+          FunctionTypeImpl(
+              typeFormals: const [],
+              parameters: [
+                namedRequiredParameter(name: 'p$i', type: typeProvider.intType)
+              ],
+              returnType: typeProvider.voidType,
+              nullabilitySuffix: NullabilitySuffix.none)
+        ));
+  }
+
+  test_hash_nullabilitySuffix() {
+    _testHashesSometimesDifferPairwise((i) {
+      var c = class_(name: 'C$i');
+      return (
+        FunctionTypeImpl(
+            typeFormals: const [],
+            parameters: [requiredParameter(name: 'x', type: c.thisType)],
+            returnType: typeProvider.voidType,
+            nullabilitySuffix: NullabilitySuffix.none),
+        FunctionTypeImpl(
+            typeFormals: const [],
+            parameters: [requiredParameter(name: 'x', type: c.thisType)],
+            returnType: typeProvider.voidType,
+            nullabilitySuffix: NullabilitySuffix.question)
+      );
+    });
+  }
+
+  test_hash_optionalNamedParameterName() {
+    _testHashesSometimesDiffer((i) => FunctionTypeImpl(
+        typeFormals: const [],
+        parameters: [namedParameter(name: 'p$i', type: typeProvider.intType)],
+        returnType: typeProvider.voidType,
+        nullabilitySuffix: NullabilitySuffix.none));
+  }
+
+  test_hash_optionalNamedParameterType() {
+    _testHashesSometimesDiffer((i) => FunctionTypeImpl(
+            typeFormals: const [],
+            parameters: [
+              namedParameter(name: 'x', type: class_(name: 'C$i').thisType)
+            ],
+            returnType: typeProvider.voidType,
+            nullabilitySuffix: NullabilitySuffix.none));
+  }
+
+  test_hash_optionalPositionalParameterName() {
+    // Optional parameter names are irrelevant
+    _testHashesAlwaysEqual((i) => FunctionTypeImpl(
+            typeFormals: const [],
+            parameters: [
+              positionalParameter(name: 'p$i', type: typeProvider.intType)
+            ],
+            returnType: typeProvider.voidType,
+            nullabilitySuffix: NullabilitySuffix.none));
+  }
+
+  test_hash_optionalPositionalParameterType() {
+    _testHashesSometimesDiffer((i) => FunctionTypeImpl(
+            typeFormals: const [],
+            parameters: [
+              positionalParameter(name: 'x', type: class_(name: 'C$i').thisType)
+            ],
+            returnType: typeProvider.voidType,
+            nullabilitySuffix: NullabilitySuffix.none));
+  }
+
+  test_hash_positionalParameterOptionality() {
+    _testHashesSometimesDifferPairwise((i) => (
+          FunctionTypeImpl(
+              typeFormals: const [],
+              parameters: [
+                requiredParameter(name: 'p$i', type: typeProvider.intType)
+              ],
+              returnType: typeProvider.voidType,
+              nullabilitySuffix: NullabilitySuffix.none),
+          FunctionTypeImpl(
+              typeFormals: const [],
+              parameters: [
+                positionalParameter(name: 'p$i', type: typeProvider.intType)
+              ],
+              returnType: typeProvider.voidType,
+              nullabilitySuffix: NullabilitySuffix.none)
+        ));
+  }
+
+  test_hash_requiredNamedParameterName() {
+    _testHashesSometimesDiffer((i) => FunctionTypeImpl(
+            typeFormals: const [],
+            parameters: [
+              namedRequiredParameter(name: 'p$i', type: typeProvider.intType)
+            ],
+            returnType: typeProvider.voidType,
+            nullabilitySuffix: NullabilitySuffix.none));
+  }
+
+  test_hash_requiredNamedParameterType() {
+    _testHashesSometimesDiffer((i) => FunctionTypeImpl(
+            typeFormals: const [],
+            parameters: [
+              namedRequiredParameter(
+                  name: 'x', type: class_(name: 'C$i').thisType)
+            ],
+            returnType: typeProvider.voidType,
+            nullabilitySuffix: NullabilitySuffix.none));
+  }
+
+  test_hash_requiredPositionalParameterName() {
+    // Required parameter names are irrelevant
+    _testHashesAlwaysEqual((i) => FunctionTypeImpl(
+            typeFormals: const [],
+            parameters: [
+              requiredParameter(name: 'p$i', type: typeProvider.intType)
+            ],
+            returnType: typeProvider.voidType,
+            nullabilitySuffix: NullabilitySuffix.none));
+  }
+
+  test_hash_requiredPositionalParameterType() {
+    _testHashesSometimesDiffer((i) => FunctionTypeImpl(
+            typeFormals: const [],
+            parameters: [
+              requiredParameter(name: 'x', type: class_(name: 'C$i').thisType)
+            ],
+            returnType: typeProvider.voidType,
+            nullabilitySuffix: NullabilitySuffix.none));
+  }
+
+  test_hash_returnType() {
+    _testHashesSometimesDiffer((i) => FunctionTypeImpl(
+        typeFormals: const [],
+        parameters: const [],
+        returnType: class_(name: 'C$i').thisType,
+        nullabilitySuffix: NullabilitySuffix.none));
+  }
+
+  test_hash_typeFormalNames() {
+    _testHashesAlwaysEqual((i) {
+      var t = TypeParameterElementImpl.synthetic('T$i');
+      var u = TypeParameterElementImpl.synthetic('U$i');
+      return FunctionTypeImpl(
+          typeFormals: [
+            t,
+            u
+          ],
+          parameters: [
+            requiredParameter(
+                name: 'x',
+                type: TypeParameterTypeImpl(
+                    element: t, nullabilitySuffix: NullabilitySuffix.none)),
+            requiredParameter(
+                name: 'y',
+                type: TypeParameterTypeImpl(
+                    element: t, nullabilitySuffix: NullabilitySuffix.none))
+          ],
+          returnType: typeProvider.voidType,
+          nullabilitySuffix: NullabilitySuffix.none);
+    });
+  }
+
   test_new_sortsNamedParameters() {
     var f = functionTypeNone(
       returnType: typeProvider.voidType,
@@ -382,5 +552,62 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
         displayName: 'T Function<T>()',
         returnType: typeParameterTypeNone(t),
         typeFormals: [same(t)]);
+  }
+
+  /// Verifies that the objects returned by [generate] always have equal hashes,
+  /// regardless of the integer passed to [generate].
+  ///
+  /// This can be used to verify that an implementation of `Object.hashCode`
+  /// properly ignores a given property when computing the hash.
+  ///
+  /// The verification is done probabilistically, by calling [generate] 10 times
+  /// (passing 10 different integer values), and verifying that all the hashes
+  /// are the same.
+  void _testHashesAlwaysEqual<T>(T Function(int) generate) {
+    var x = generate(0);
+    for (var i = 1; i < 10; i++) {
+      var y = generate(i);
+      expect(x.hashCode, y.hashCode);
+      x = y;
+    }
+  }
+
+  /// Verifies that the objects returned by [generate] sometimes have different
+  /// hashes.
+  ///
+  /// This can be used to verify that an implementation of `Object.hashCode`
+  /// properly includes a given property as part of the hash computation, if
+  /// that property can take on a large number of possible values.
+  ///
+  /// To avoid spurious failures due to the probabilistic nature of hashing,
+  /// [generate] is called 10 times (passing 10 different integer values), and
+  /// the test only fails if all 10 returned values have the same hash.
+  void _testHashesSometimesDiffer<T>(T Function(int) generate) {
+    var x = generate(0);
+    for (var i = 1; i < 10; i++) {
+      var y = generate(i);
+      if (x.hashCode != y.hashCode) return;
+      x = y;
+    }
+    fail('Hashes never differed');
+  }
+
+  /// Verifies that the two objects returned by [generate] sometimes have
+  /// different hashes.
+  ///
+  /// This can be used to verify that an implementation of `Object.hashCode`
+  /// properly includes a given property as part of the hash computation, if
+  /// that property can only take on two possible values.
+  ///
+  /// To avoid spurious failures due to the probabilistic nature of hashing,
+  /// [generate] is called 10 times (passing 10 different integer values), and
+  /// the test only fails if all 10 returned pairs have the same hash.
+  void _testHashesSometimesDifferPairwise<T>((T, T) Function(int) generate) {
+    for (var i = 1; i < 10; i++) {
+      var (x, y) = generate(i);
+      if (x.hashCode != y.hashCode) return;
+      x = y;
+    }
+    fail('Hashes never differed');
   }
 }

@@ -6,64 +6,19 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Separate the control structure expression from its statement.';
 
-const _details = r'''
-From the [style guide for the flutter repo](https://flutter.dev/style-guide/):
-
-**DO** separate the control structure expression from its statement.
-
-Don't put the statement part of an `if`, `for`, `while`, `do` on the same line
-as the expression, even if it is short.  Doing so makes it unclear that there
-is relevant code there.  This is especially important for early returns.
-
-**BAD:**
-```dart
-if (notReady) return;
-
-if (notReady)
-  return;
-else print('ok')
-
-while (condition) i += 1;
-```
-
-**GOOD:**
-```dart
-if (notReady)
-  return;
-
-if (notReady)
-  return;
-else
-  print('ok')
-
-while (condition)
-  i += 1;
-```
-
-Note that this rule can conflict with the
-[Dart formatter](https://dart.dev/tools/dart-format), and should not be enabled
-when the Dart formatter is used.
-
-''';
-
 class AlwaysPutControlBodyOnNewLine extends LintRule {
-  static const LintCode code = LintCode('always_put_control_body_on_new_line',
-      'Statement should be on a separate line.',
-      correctionMessage: 'Try moving the statement to a new line.',
-      hasPublishedDocs: true);
-
   AlwaysPutControlBodyOnNewLine()
       : super(
-            name: 'always_put_control_body_on_new_line',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.always_put_control_body_on_new_line,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.always_put_control_body_on_new_line;
 
   @override
   void registerNodeProcessors(

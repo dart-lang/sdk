@@ -38,13 +38,14 @@ Map<String, Element> _getExportNamespaceForLibrary(LibraryElement library) {
 /// [element] - the referenced element.
 LibraryImportElement? _getImportElement(
     LibraryElement libraryElement, String prefix, Element element) {
-  if (element.enclosingElement is! CompilationUnitElement) {
+  if (element.enclosingElement3 is! CompilationUnitElement) {
     return null;
   }
   var usedLibrary = element.library;
   // find ImportElement that imports used library with used prefix
   List<LibraryImportElement>? candidates;
-  for (var importElement in libraryElement.libraryImports) {
+  for (var importElement
+      in libraryElement.definingCompilationUnit.libraryImports) {
     // required library
     if (importElement.importedLibrary != usedLibrary) {
       continue;

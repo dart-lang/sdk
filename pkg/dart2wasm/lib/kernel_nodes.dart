@@ -21,17 +21,19 @@ mixin KernelNodes {
 
   // dart:collection classes
   late final Class hashFieldBaseClass =
-      index.getClass("dart:collection", "_HashFieldBase");
+      index.getClass("dart:_compact_hash", "_HashFieldBase");
   late final Class immutableMapClass =
-      index.getClass("dart:collection", "_WasmImmutableMap");
+      index.getClass("dart:_compact_hash", "_ConstMap");
   late final Class immutableSetClass =
-      index.getClass("dart:collection", "_WasmImmutableSet");
+      index.getClass("dart:_compact_hash", "_ConstSet");
 
   // dart:core various classes
-  late final Class boxedBoolClass = index.getClass("dart:core", "_BoxedBool");
+  late final Class boxedBoolClass =
+      index.getClass("dart:_boxed_bool", "BoxedBool");
   late final Class boxedDoubleClass =
-      index.getClass("dart:core", "_BoxedDouble");
-  late final Class boxedIntClass = index.getClass("dart:core", "_BoxedInt");
+      index.getClass("dart:_boxed_double", "BoxedDouble");
+  late final Class boxedIntClass =
+      index.getClass("dart:_boxed_int", "BoxedInt");
   late final Class closureClass = index.getClass("dart:core", "_Closure");
   late final Class listBaseClass = index.getClass("dart:_list", "WasmListBase");
   late final Class fixedLengthListClass =
@@ -147,7 +149,6 @@ mixin KernelNodes {
       index.getTopLevelProcedure("dart:async", "_newAsyncSuspendState");
 
   // dart:ffi classes
-  late final Class ffiCompoundClass = index.getClass("dart:ffi", "_Compound");
   late final Class ffiPointerClass = index.getClass("dart:ffi", "Pointer");
 
   // dart:_wasm classes
@@ -177,8 +178,8 @@ mixin KernelNodes {
   late final Class wasmArrayClass = index.getClass("dart:_wasm", "WasmArray");
   late final Field wasmArrayValueField =
       index.getField("dart:_wasm", "WasmArray", "_value");
-  late final Field uninitializedHashBaseIndex =
-      index.getTopLevelField("dart:collection", "_uninitializedHashBaseIndex");
+  late final Field uninitializedHashBaseIndex = index.getTopLevelField(
+      "dart:_compact_hash", "_uninitializedHashBaseIndex");
   late final Field wasmI64ValueField =
       index.getField("dart:_wasm", "WasmI64", "_value");
 
@@ -187,6 +188,8 @@ mixin KernelNodes {
       index.getTopLevelProcedure("dart:_internal", "loadLibrary");
   late final Procedure checkLibraryIsLoaded =
       index.getTopLevelProcedure("dart:_internal", "checkLibraryIsLoaded");
+  late final Procedure loadLibraryImportMap =
+      index.getTopLevelProcedure("dart:_internal", "get:_importMapping");
 
   // dart:_js_helper procedures
   late final Procedure getInternalizedString =
@@ -204,11 +207,11 @@ mixin KernelNodes {
   late final Procedure mapFactory =
       index.getProcedure("dart:collection", "LinkedHashMap", "_default");
   late final Procedure mapFromWasmArray =
-      index.getProcedure("dart:collection", "_WasmDefaultMap", "fromWasmArray");
+      index.getProcedure("dart:_compact_hash", "DefaultMap", "fromWasmArray");
   late final Procedure setFactory =
       index.getProcedure("dart:collection", "LinkedHashSet", "_default");
   late final Procedure setFromWasmArray =
-      index.getProcedure("dart:collection", "_WasmDefaultSet", "fromWasmArray");
+      index.getProcedure("dart:_compact_hash", "DefaultSet", "fromWasmArray");
   late final Procedure growableListEmpty =
       index.getProcedure("dart:_list", "GrowableList", "empty");
   late final Constructor growableListFromWasmArray =
@@ -216,23 +219,29 @@ mixin KernelNodes {
   late final Procedure hashImmutableIndexNullable = index.getProcedure(
       "dart:collection", "_HashAbstractImmutableBase", "get:_indexNullable");
   late final Field hashFieldBaseIndexField =
-      index.getField("dart:collection", "_HashFieldBase", "_index");
+      index.getField("dart:_compact_hash", "_HashFieldBase", "_index");
   late final Field hashFieldBaseHashMaskField =
-      index.getField("dart:collection", "_HashFieldBase", "_hashMask");
+      index.getField("dart:_compact_hash", "_HashFieldBase", "_hashMask");
   late final Field hashFieldBaseDataField =
-      index.getField("dart:collection", "_HashFieldBase", "_data");
+      index.getField("dart:_compact_hash", "_HashFieldBase", "_data");
   late final Field hashFieldBaseUsedDataField =
-      index.getField("dart:collection", "_HashFieldBase", "_usedData");
+      index.getField("dart:_compact_hash", "_HashFieldBase", "_usedData");
   late final Field hashFieldBaseDeletedKeysField =
-      index.getField("dart:collection", "_HashFieldBase", "_deletedKeys");
+      index.getField("dart:_compact_hash", "_HashFieldBase", "_deletedKeys");
 
   // dart:core various procedures
+  late final Procedure boxedBoolEquals =
+      index.getProcedure("dart:_boxed_bool", "BoxedBool", "==");
+  late final Procedure boxedIntEquals =
+      index.getProcedure("dart:_boxed_int", "BoxedInt", "==");
   late final Procedure objectHashCode =
       index.getProcedure("dart:core", "Object", "get:hashCode");
   late final Procedure objectNoSuchMethod =
       index.getProcedure("dart:core", "Object", "noSuchMethod");
   late final Procedure objectGetTypeArguments =
       index.getProcedure("dart:core", "Object", "_getTypeArguments");
+  late final Procedure objectTypeArguments =
+      index.getProcedure("dart:core", "Object", "get:_typeArguments");
   late final Procedure nullToString =
       index.getProcedure("dart:core", "Object", "_nullToString");
   late final Procedure nullNoSuchMethod =
@@ -250,7 +259,7 @@ mixin KernelNodes {
   late final Procedure stringInterpolate4 =
       index.getProcedure("dart:_string", "StringBase", "_interpolate4");
   late final Procedure truncDiv =
-      index.getProcedure("dart:core", "_BoxedInt", "_truncDiv");
+      index.getProcedure("dart:_boxed_int", "BoxedInt", "_truncDiv");
   late final Procedure runtimeTypeEquals =
       index.getTopLevelProcedure("dart:core", "_runtimeTypeEquals");
   late final Procedure runtimeTypeHashCode =
@@ -276,6 +285,12 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "_TypeError", "_throwNullCheckError");
   late final Procedure throwAsCheckError =
       index.getProcedure("dart:core", "_TypeError", "_throwAsCheckError");
+  late final Procedure throwInterfaceTypeAsCheckError1 = index
+      .getTopLevelProcedure("dart:core", "_throwInterfaceTypeAsCheckError1");
+  late final Procedure throwInterfaceTypeAsCheckError2 = index
+      .getTopLevelProcedure("dart:core", "_throwInterfaceTypeAsCheckError2");
+  late final Procedure throwInterfaceTypeAsCheckError = index
+      .getTopLevelProcedure("dart:core", "_throwInterfaceTypeAsCheckError");
   late final Procedure throwWasmRefError =
       index.getProcedure("dart:core", "_TypeError", "_throwWasmRefError");
   late final Procedure throwArgumentTypeCheckError = index.getProcedure(
@@ -301,6 +316,8 @@ mixin KernelNodes {
       index.getProcedure("dart:core", '_Closure', "_getClosureRuntimeType");
   late final Procedure getMasqueradedRuntimeType =
       index.getTopLevelProcedure("dart:core", "_getMasqueradedRuntimeType");
+  late final Procedure isNullabilityCheck =
+      index.getTopLevelProcedure("dart:core", "_isNullabilityCheck");
   late final Procedure isSubtype =
       index.getTopLevelProcedure("dart:core", "_isSubtype");
   late final Procedure isInterfaceSubtype =

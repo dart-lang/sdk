@@ -11,13 +11,14 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -27,59 +28,42 @@ import 'mocks.dart';
 import 'support/configuration_files.dart';
 import 'test_macros.dart';
 
-// TODO(scheglov): this is duplicate
-class AnalysisOptionsFileConfig {
-  final String? include;
-  final List<String> experiments;
-  final List<String> plugins;
-  final List<String> lints;
-  final bool strictCasts;
-  final bool strictInference;
-  final bool strictRawTypes;
+// TODO(scheglov): This is duplicate with pkg/linter/test/rule_test_support.dart.
+// Keep them as consistent with each other as they are today. Ultimately combine
+// them in a shared analyzer test utilities package (e.g. the analyzer_utilities
+// package).
+String analysisOptionsContent({
+  String? include,
+  List<String> experiments = const [],
+  List<String> plugins = const [],
+  List<String> rules = const [],
+}) {
+  var buffer = StringBuffer();
 
-  AnalysisOptionsFileConfig({
-    this.include,
-    this.experiments = const [],
-    this.plugins = const [],
-    this.lints = const [],
-    this.strictCasts = false,
-    this.strictInference = false,
-    this.strictRawTypes = false,
-  });
-
-  String toContent() {
-    var buffer = StringBuffer();
-
-    var include = this.include;
-    if (include != null) {
-      buffer.writeln('include: $include');
-    }
-    buffer.writeln('analyzer:');
-    if (experiments.isNotEmpty) {
-      buffer.writeln('  enable-experiment:');
-      for (var experiment in experiments) {
-        buffer.writeln('    - $experiment');
-      }
-    }
-    buffer.writeln('  language:');
-    buffer.writeln('    strict-casts: $strictCasts');
-    buffer.writeln('    strict-inference: $strictInference');
-    buffer.writeln('    strict-raw-types: $strictRawTypes');
-    if (plugins.isNotEmpty) {
-      buffer.writeln('  plugins:');
-      for (var plugin in plugins) {
-        buffer.writeln('    - $plugin');
-      }
-    }
-
-    buffer.writeln('linter:');
-    buffer.writeln('  rules:');
-    for (var lint in lints) {
-      buffer.writeln('    - $lint');
-    }
-
-    return buffer.toString();
+  if (include != null) {
+    buffer.writeln('include: $include');
   }
+  buffer.writeln('analyzer:');
+  if (experiments.isNotEmpty) {
+    buffer.writeln('  enable-experiment:');
+    for (var experiment in experiments) {
+      buffer.writeln('    - $experiment');
+    }
+  }
+  if (plugins.isNotEmpty) {
+    buffer.writeln('  plugins:');
+    for (var plugin in plugins) {
+      buffer.writeln('    - $plugin');
+    }
+  }
+
+  buffer.writeln('linter:');
+  buffer.writeln('  rules:');
+  for (var rule in rules) {
+    buffer.writeln('    - $rule');
+  }
+
+  return buffer.toString();
 }
 
 class BlazeWorkspaceAnalysisServerTest extends ContextResolutionTest {
@@ -98,6 +82,14 @@ class BlazeWorkspaceAnalysisServerTest extends ContextResolutionTest {
 }
 
 abstract class ContextResolutionTest with ResourceProviderMixin {
+  /// The byte store that is reused between tests. This allows reusing all
+  /// unlinked and linked summaries for SDK, so that tests run much faster.
+  /// However nothing is preserved between Dart VM runs, so changes to the
+  /// implementation are still fully verified.
+  static final MemoryByteStore _sharedByteStore = MemoryByteStore();
+
+  MemoryByteStore _byteStore = _sharedByteStore;
+
   final TestPluginManager pluginManager = TestPluginManager();
   late final MockServerChannel serverChannel;
   late final LegacyAnalysisServer server;
@@ -198,6 +190,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
       CrashReportingAttachmentsBuilder.empty,
       InstrumentationService.NULL_SERVICE,
       dartFixPromptManager: dartFixPromptManager,
+      providedByteStore: _byteStore,
       pluginManager: pluginManager,
     );
 
@@ -228,12 +221,9 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   // TODO(scheglov): Consider turning it back into a getter.
   late String testFilePath = '$testPackageLibPath/test.dart';
 
-  // If experiments are needed,
-  // add `import 'package:analyzer/dart/analysis/features.dart';`
-  // and list the necessary experiments here.
-  List<String> get experiments => [
-        Feature.macros.enableString,
-      ];
+  /// Return a list of the experiments that are to be enabled for tests in this
+  /// class, an empty list if there are no experiments that should be enabled.
+  List<String> get experiments => experimentsForTests;
 
   /// The path that is not in [workspaceRootPath], contains external packages.
   @override
@@ -284,9 +274,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
     writeTestPackagePubspecYamlFile('name: test');
 
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: experiments,
-      ),
+      analysisOptionsContent(experiments: experiments),
     );
   }
 
@@ -318,11 +306,14 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
     return offset;
   }
 
-  void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      config.toContent(),
-    );
+  /// Call this method if the test needs to use the empty byte store, without
+  /// any information cached.
+  void useEmptyByteStore() {
+    _byteStore = MemoryByteStore();
+  }
+
+  void writeTestPackageAnalysisOptionsFile(String content) {
+    newAnalysisOptionsYamlFile(testPackageRootPath, content);
   }
 
   void writeTestPackagePubspecYamlFile(String content) {

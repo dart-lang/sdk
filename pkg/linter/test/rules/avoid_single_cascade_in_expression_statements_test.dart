@@ -15,7 +15,8 @@ main() {
 @reflectiveTest
 class AvoidSingleCascadeInExpressionStatementsTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_single_cascade_in_expression_statements';
+  String get lintRule =>
+      LintNames.avoid_single_cascade_in_expression_statements;
 
   test_multipleCascades() async {
     await assertNoDiagnostics(r'''

@@ -18,9 +18,8 @@
 ///
 /// This utility can be compiled to JavaScript using Dart2JS while the rest
 /// of the application is compiled with DDC or could be compiled with DDC.
-
 @JS()
-library stack_trace_mapper;
+library;
 
 import 'package:js/js.dart';
 import 'package:path/path.dart' as p;

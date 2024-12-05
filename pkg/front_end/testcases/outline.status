@@ -69,3 +69,4 @@ nnbd_mixed/bad_mixins: TypeCheckError
 nnbd_mixed/covariant_from_opt_in: TypeCheckError
 no_such_method_forwarders/mixin_nsm: TypeCheckError
 rasta/native_is_illegal: Pass # Issue 29763
+coverage/static2_test: TypeCheckError

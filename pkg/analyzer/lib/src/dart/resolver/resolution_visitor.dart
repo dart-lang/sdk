@@ -55,6 +55,7 @@ class ElementHolder {
 
   void enclose(ElementImpl element) {
     element.enclosingElement = _element;
+    element.enclosingElement3 = _element;
   }
 }
 
@@ -128,6 +129,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     var namedTypeResolver = NamedTypeResolver(
       libraryElement,
+      unitElement,
       errorReporter,
       strictInference: strictInference,
       strictCasts: strictCasts,
@@ -137,6 +139,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var recordTypeResolver = RecordTypeAnnotationResolver(
       typeProvider: typeProvider,
       errorReporter: errorReporter,
+      libraryElement: libraryElement,
     );
 
     return ResolutionVisitor._(
@@ -203,20 +206,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
       );
     }
-  }
-
-  @override
-  void visitAugmentationImportDirective(
-    covariant AugmentationImportDirectiveImpl node,
-  ) {
-    var element = node.element;
-    if (element is AugmentationImportElementImpl) {
-      _setOrCreateMetadataElements(element, node.metadata);
-    }
-
-    _withElementWalker(null, () {
-      super.visitAugmentationImportDirective(node);
-    });
   }
 
   @override
@@ -700,14 +689,20 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
+    var expression = node.functionExpression;
+
     ExecutableElementImpl element;
     if (_elementWalker != null) {
       element = node.isGetter || node.isSetter
           ? _elementWalker!.getAccessor()
           : _elementWalker!.getFunction();
       node.declaredElement = element;
+      expression.declaredElement = element;
     } else {
-      element = node.declaredElement as ExecutableElementImpl;
+      var functionElement = node.declaredElement as FunctionElementImpl;
+      element = functionElement;
+      expression.declaredElement = functionElement;
+      expression.declaredElement2 = functionElement.element2;
 
       _setCodeRange(element, node);
       setElementDocumentationComment(element, node);
@@ -723,9 +718,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.hasImplicitReturnType = true;
       }
     }
-
-    var expression = node.functionExpression;
-    expression.declaredElement = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -772,10 +764,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(covariant FunctionExpressionImpl node) {
     var element = FunctionElementImpl.forOffset(node.offset);
     _elementHolder.enclose(element);
-    (node as FunctionExpressionImpl).declaredElement = element;
+    node.declaredElement = element;
+    node.declaredElement2 = element.element2;
 
     element.hasImplicitReturnType = true;
     element.returnType = DynamicTypeImpl.instance;
@@ -1004,20 +997,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     } finally {
       _labelScope = outerScope;
     }
-  }
-
-  @override
-  void visitLibraryAugmentationDirective(
-    covariant LibraryAugmentationDirectiveImpl node,
-  ) {
-    var element = node.element;
-    if (element is LibraryOrAugmentationElementImpl) {
-      _setOrCreateMetadataElements(element, node.metadata);
-    }
-
-    _withElementWalker(null, () {
-      super.visitLibraryAugmentationDirective(node);
-    });
   }
 
   @override
@@ -1494,7 +1473,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var nameToken = node.name;
     var element = FunctionElementImpl(nameToken.lexeme, nameToken.offset);
     node.declaredElement = element;
-    _define(element);
+    node.declaredElement2 = element.element2;
+
+    if (!_isWildCardVariable(nameToken.lexeme)) {
+      _define(element);
+    }
+
     _elementHolder.enclose(element);
   }
 
@@ -1548,7 +1532,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _setCodeRange(element, typeParameter);
       }
       typeParameter.declaredElement = element;
-      _define(element);
+
+      if (!_isWildCardVariable(element.name)) {
+        _define(element);
+      }
+
       _setOrCreateMetadataElements(element, typeParameter.metadata);
     }
   }
@@ -1593,6 +1581,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return NullabilitySuffix.none;
     }
   }
+
+  bool _isWildCardVariable(String name) =>
+      name == '_' &&
+      _libraryElement.featureSet.isEnabled(Feature.wildcard_variables);
 
   void _resolveGuardedPattern(
     GuardedPatternImpl guardedPattern, {
@@ -1690,7 +1682,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         }
     }
 
-    if (_libraryElement.shouldIgnoreUndefinedNamedType(namedType)) {
+    if (_unitElement.shouldIgnoreUndefinedNamedType(namedType)) {
       return;
     }
 
@@ -1960,7 +1952,9 @@ class _VariableBinder
             .map((e) => e.inconsistency),
       ),
     )
+      // ignore: deprecated_member_use_from_same_package
       ..enclosingElement = first.enclosingElement
+      ..enclosingElement3 = first.enclosingElement3
       ..type = InvalidTypeImpl.instance;
   }
 }

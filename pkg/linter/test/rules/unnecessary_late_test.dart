@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryLateTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_late';
+  String get lintRule => LintNames.unnecessary_late;
 
   test_local_initializer() async {
     await assertNoDiagnostics(r'''

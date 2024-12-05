@@ -83,14 +83,14 @@ class B extends A {
 
   Future<void> test_class_augmentation() async {
     addTestFile('''
-import augment 'a.dart';
+part 'a.dart';
 
 class MyClass1 {}
 class C {}
 ''');
 
     newFile('$testPackageLibPath/a.dart', '''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class C extends MyClass1 {}
  ''');

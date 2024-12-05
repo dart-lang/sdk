@@ -21,7 +21,7 @@ jsAst.Statement? buildJsInteropBootstrap(
   codegenWorld.forEachInvokedName(
       (String name, Map<Selector, SelectorConstraints> selectors) {
     selectors.forEach((Selector selector, SelectorConstraints constraints) {
-      if (selector.isClosureCall) {
+      if (selector.isMaybeClosureCall) {
         // TODO(jacobr): support named arguments.
         if (selector.namedArgumentCount > 0) return;
         int argumentCount = selector.argumentCount;

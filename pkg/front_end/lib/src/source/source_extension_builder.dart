@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 
 import '../base/common.dart';
+import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
@@ -22,6 +23,7 @@ import 'name_scheme.dart';
 import 'source_builder_mixins.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
+import 'type_parameter_scope_builder.dart';
 
 class SourceExtensionBuilder extends ExtensionBuilderImpl
     with SourceDeclarationBuilderMixin {
@@ -32,8 +34,19 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   MergedClassMemberScope? _mergedScope;
 
+  final DeclarationNameSpaceBuilder _nameSpaceBuilder;
+
+  late final LookupScope _scope;
+
+  late final DeclarationNameSpace _nameSpace;
+
+  late final ConstructorScope _constructorScope;
+
   @override
   final List<NominalVariableBuilder>? typeParameters;
+
+  @override
+  final LookupScope typeParameterScope;
 
   @override
   final TypeBuilder onType;
@@ -41,29 +54,62 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   final ExtensionName extensionName;
 
   SourceExtensionBuilder(
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      this.extensionName,
-      this.typeParameters,
-      this.onType,
-      Scope scope,
-      SourceLibraryBuilder parent,
-      int startOffset,
-      int nameOffset,
-      int endOffset,
-      Extension? referenceFrom)
+      {required List<MetadataBuilder>? metadata,
+      required int modifiers,
+      required this.extensionName,
+      required this.typeParameters,
+      required this.onType,
+      required this.typeParameterScope,
+      required DeclarationNameSpaceBuilder nameSpaceBuilder,
+      required SourceLibraryBuilder enclosingLibraryBuilder,
+      required Uri fileUri,
+      required int startOffset,
+      required int nameOffset,
+      required int endOffset,
+      required Reference? reference})
       : _extension = new Extension(
             name: extensionName.name,
-            fileUri: parent.fileUri,
+            fileUri: fileUri,
             typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
                 typeParameters),
-            reference: referenceFrom?.reference)
-          ..isExtensionTypeDeclaration = false
+            reference: reference)
           ..isUnnamedExtension = extensionName.isUnnamedExtension
           ..fileOffset = nameOffset,
-        super(metadata, modifiers, extensionName.name, parent, nameOffset,
-            scope) {
+        _nameSpaceBuilder = nameSpaceBuilder,
+        super(metadata, modifiers, extensionName.name, enclosingLibraryBuilder,
+            fileUri, nameOffset) {
     extensionName.attachExtension(_extension);
+  }
+
+  @override
+  LookupScope get scope => _scope;
+
+  @override
+  DeclarationNameSpace get nameSpace => _nameSpace;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ConstructorScope get constructorScope => _constructorScope;
+
+  @override
+  void buildScopes(LibraryBuilder coreLibrary) {
+    _nameSpace = _nameSpaceBuilder.buildNameSpace(
+        loader: libraryBuilder.loader,
+        problemReporting: libraryBuilder,
+        enclosingLibraryBuilder: libraryBuilder,
+        declarationBuilder: this,
+        indexedLibrary: libraryBuilder.indexedLibrary,
+        // Extensions do not have a corresponding [IndexedContainer] since their
+        // members are stored in the enclosing library.
+        indexedContainer: null,
+        containerType: ContainerType.Extension,
+        containerName: extensionName,
+        includeConstructors: false);
+    _scope = new NameSpaceLookupScope(
+        _nameSpace, ScopeKind.declaration, "extension ${extensionName.name}",
+        parent: typeParameterScope);
+    _constructorScope =
+        new DeclarationNameSpaceConstructorScope(name, _nameSpace);
   }
 
   @override
@@ -193,16 +239,16 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       // TODO(johnniwinther): Check that type parameters and on-type match
       // with origin declaration.
 
-      scope.forEachLocalMember((String name, Builder member) {
+      nameSpace.forEachLocalMember((String name, Builder member) {
         Builder? memberAugmentation =
-            augmentation.scope.lookupLocalMember(name, setter: false);
+            augmentation.nameSpace.lookupLocalMember(name, setter: false);
         if (memberAugmentation != null) {
           member.applyAugmentation(memberAugmentation);
         }
       });
-      scope.forEachLocalSetter((String name, Builder member) {
+      nameSpace.forEachLocalSetter((String name, Builder member) {
         Builder? memberAugmentation =
-            augmentation.scope.lookupLocalMember(name, setter: true);
+            augmentation.nameSpace.lookupLocalMember(name, setter: true);
         if (memberAugmentation != null) {
           member.applyAugmentation(memberAugmentation);
         }

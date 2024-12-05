@@ -18,7 +18,7 @@ class PreferConstConstructorsInImmutablesTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  String get lintRule => 'prefer_const_constructors_in_immutables';
+  String get lintRule => LintNames.prefer_const_constructors_in_immutables;
 
   test_assertInitializer_canBeConst() async {
     await assertDiagnostics(r'''

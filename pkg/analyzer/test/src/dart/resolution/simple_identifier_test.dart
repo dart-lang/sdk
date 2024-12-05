@@ -17,13 +17,13 @@ main() {
 class SimpleIdentifierResolutionTest extends PubPackageResolutionTest {
   test_augment_topLevel_function_with_function() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment void foo() {}
 ''');
 
     await assertNoErrorsInCode('''
-import augment 'a.dart';
+part 'a.dart';
 
 void foo() {}
 
@@ -36,20 +36,21 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@augmentation::package:test/a.dart::@functionAugmentation::foo
+  staticElement: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
+  element: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo#element
   staticType: void Function()
 ''');
   }
 
   test_augment_topLevel_getter_with_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment int get foo => 1;
 ''');
 
     await assertNoErrorsInCode('''
-import augment 'a.dart';
+part 'a.dart';
 
 int get foo => 0;
 
@@ -62,20 +63,21 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@augmentation::package:test/a.dart::@getterAugmentation::foo
+  staticElement: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
+  element: <testLibraryFragment>::@getter::foo#element
   staticType: int
 ''');
   }
 
   test_augment_topLevel_setter_with_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment set foo(int _) {}
 ''');
 
     await assertNoErrorsInCode('''
-import augment 'a.dart';
+part 'a.dart';
 
 set foo(int _) {}
 
@@ -90,30 +92,34 @@ AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: self::@augmentation::package:test/a.dart::@setterAugmentation::foo::@parameter::_
+    parameter: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
-  writeElement: self::@augmentation::package:test/a.dart::@setterAugmentation::foo
+  writeElement: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
+  writeElement2: <testLibraryFragment>::@setter::foo#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
 
   test_augment_topLevel_variable_with_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment int get foo() => 1;
 ''');
 
     await assertNoErrorsInCode('''
-import augment 'a.dart';
+part 'a.dart';
 
 int foo = 0;
 
@@ -126,20 +132,21 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@augmentation::package:test/a.dart::@getterAugmentation::foo
+  staticElement: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
+  element: <testLibraryFragment>::@getter::foo#element
   staticType: int
 ''');
   }
 
   test_augment_topLevel_variable_with_variable() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment int foo = 1;
 ''');
 
     await assertNoErrorsInCode('''
-import augment 'a.dart';
+part 'a.dart';
 
 int foo = 0;
 
@@ -152,7 +159,8 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@getter::foo
+  staticElement: <testLibraryFragment>::@getter::foo
+  element: <testLibraryFragment>::@getter::foo#element
   staticType: int
 ''');
   }
@@ -171,6 +179,7 @@ main() {
 SimpleIdentifier
   token: dynamic
   staticElement: dynamic@-1
+  element: dynamic@-1
   staticType: Type
 ''');
   }
@@ -191,6 +200,7 @@ main() {
 SimpleIdentifier
   token: dynamic
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -207,6 +217,7 @@ main() {
 SimpleIdentifier
   token: dynamic
   staticElement: dynamic@-1
+  element: dynamic@-1
   staticType: Type
 ''');
   }
@@ -226,6 +237,7 @@ enum E<T> {
 SimpleIdentifier
   token: T
   staticElement: T@7
+  element: <not-implemented>
   staticType: Type
 ''');
   }
@@ -243,7 +255,8 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: self::@getter::a
+  staticElement: <testLibraryFragment>::@getter::a
+  element: <testLibraryFragment>::@getter::a#element
   staticType: int
 ''');
   }
@@ -265,7 +278,8 @@ class C {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: self::@getter::a
+  staticElement: <testLibraryFragment>::@getter::a
+  element: <testLibraryFragment>::@getter::a#element
   staticType: int
 ''');
   }
@@ -287,7 +301,8 @@ class C {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: self::@getter::a
+  staticElement: <testLibraryFragment>::@getter::a
+  element: <testLibraryFragment>::@getter::a#element
   staticType: int
 ''');
   }
@@ -307,8 +322,9 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  parameter: self::@function::foo::@parameter::a
-  staticElement: self::@getter::a
+  parameter: <testLibraryFragment>::@function::foo::@parameter::a
+  staticElement: <testLibraryFragment>::@getter::a
+  element: <testLibraryFragment>::@getter::a#element
   staticType: int
 ''');
   }
@@ -365,21 +381,22 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@class::A::@getter::foo
+  staticElement: <testLibraryFragment>::@class::A::@getter::foo
+  element: <testLibraryFragment>::@class::A::@getter::foo#element
   staticType: int
 ''');
   }
 
   test_inClass_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 int get foo => 0;
 
@@ -394,7 +411,8 @@ class A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+  staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
+  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
   staticType: int
 ''');
   }
@@ -413,6 +431,7 @@ extension E on int Function(double) {
 SimpleIdentifier
   token: call
   staticElement: <null>
+  element: <null>
   staticType: int Function(double)
 ''');
   }
@@ -431,6 +450,7 @@ extension E on int Function<T>(T) {
 SimpleIdentifier
   token: call
   staticElement: <null>
+  element: <null>
   staticType: int Function(double)
   tearOffTypeArgumentTypes
     double
@@ -451,6 +471,7 @@ extension E<T extends ({int foo})> on T {
 SimpleIdentifier
   token: foo
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -469,6 +490,7 @@ extension E<T extends (int, String)> on T {
 SimpleIdentifier
   token: $1
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -487,6 +509,7 @@ extension E on ({int foo}) {
 SimpleIdentifier
   token: foo
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -506,7 +529,8 @@ extension E on ({int foo}) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: bar
-  staticElement: self::@extension::E::@getter::bar
+  staticElement: <testLibraryFragment>::@extension::E::@getter::bar
+  element: <testLibraryFragment>::@extension::E::@getter::bar#element
   staticType: bool
 ''');
   }
@@ -527,6 +551,7 @@ extension E on ({int foo}) {
 SimpleIdentifier
   token: bar
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -545,6 +570,7 @@ extension E on (int, String) {
 SimpleIdentifier
   token: $1
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -563,6 +589,7 @@ extension E on (int, String) {
 SimpleIdentifier
   token: $2
   staticElement: <null>
+  element: <null>
   staticType: String
 ''');
   }
@@ -582,7 +609,8 @@ extension E on (int, String) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: $3
-  staticElement: self::@extension::E::@getter::$3
+  staticElement: <testLibraryFragment>::@extension::E::@getter::$3
+  element: <testLibraryFragment>::@extension::E::@getter::$3#element
   staticType: bool
 ''');
   }
@@ -603,6 +631,7 @@ extension E on (int, String) {
 SimpleIdentifier
   token: $3
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -622,7 +651,8 @@ extension type A(int it) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@extensionType::A::@getter::foo
+  staticElement: <testLibraryFragment>::@extensionType::A::@getter::foo
+  element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   staticType: int
 ''');
   }
@@ -646,21 +676,22 @@ extension type X(B it) implements A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@class::A::@getter::foo
+  staticElement: <testLibraryFragment>::@class::A::@getter::foo
+  element: <testLibraryFragment>::@class::A::@getter::foo#element
   staticType: int
 ''');
   }
 
   test_inMixin_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment mixin A {
   int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 int get foo => 0;
 
@@ -675,7 +706,8 @@ mixin A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo
+  staticElement: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo
+  element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo#element
   staticType: int
 ''');
   }
@@ -707,6 +739,7 @@ main() {
 SimpleIdentifier
   token: Never
   staticElement: Never@-1
+  element: Never@-1
   staticType: Type
 ''');
   }

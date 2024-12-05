@@ -2,13 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper" show JS, jsStringFromDartString, jsStringToDartString;
+import 'dart:async';
+import "dart:_js_helper"
+    show JS, JSAnyToExternRef, jsStringFromDartString, jsStringToDartString;
 import "dart:_js_types" show JSStringImpl;
 import 'dart:_string';
 import 'dart:js_interop'
-    show JSArray, JSString, JSArrayToList, JSStringToString;
+    show
+        JSArray,
+        JSString,
+        JSArrayToList,
+        JSStringToString,
+        JSPromise,
+        JSPromiseToFuture,
+        StringToJSString;
 import 'dart:_js_helper' show JSValue;
+import 'dart:_js_types';
 import 'dart:_wasm';
+import 'dart:typed_data' show Uint8List;
 
 part "class_id.dart";
 part "deferred.dart";
@@ -171,7 +182,7 @@ external bool get _checkBounds;
 /// Assumes that [length] is positive.
 @pragma("wasm:prefer-inline")
 void indexCheck(int index, int length) {
-  if (_checkBounds && index.geU(length)) {
+  if (_checkBounds && length.leU(index)) {
     throw IndexError.withLength(index, length);
   }
 }
@@ -179,7 +190,29 @@ void indexCheck(int index, int length) {
 /// Same as [indexCheck], but passes [name] to [IndexError].
 @pragma("wasm:prefer-inline")
 void indexCheckWithName(int index, int length, String name) {
-  if (_checkBounds && index.geU(length)) {
+  if (_checkBounds && length.leU(index)) {
     throw IndexError.withLength(index, length, name: name);
   }
 }
+
+@patch
+Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) =>
+    throw 'Unsupported operation';
+
+/// Compiler intrinsic to push an element to a Wasm array in a class field or
+/// variable.
+///
+/// The `array` and `length` arguments need to be `InstanceGet`s (e.g. `this.x`)
+/// or `VariableGet`s (e.g. `x`). This function will update the class field
+/// (when the argument is `InstanceGet`) or the variable (when the argument is
+/// `InstanceGet`).
+///
+/// `elem` is the element to be pushed onto the array and can have any shape.
+///
+/// `nextCapacity` is the capacity to be used when growing the array. It can
+/// have any shape, and it will be evaluated only when the array is full.
+external void pushWasmArray<T>(
+    WasmArray<T> array, int length, T elem, int nextCapacity);
+
+/// Similar to `pushWasmArray`, but for popping.
+external T? popWasmArray<T>(WasmArray<T?> array, int length);

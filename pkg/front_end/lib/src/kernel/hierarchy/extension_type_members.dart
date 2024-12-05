@@ -360,12 +360,10 @@ class _Tuple {
     assert(value!.forSetter);
     assert(
         _declaredExtensionTypeSetable == null,
-        // Coverage-ignore(suite): Not run.
         "Declared extension type setable already set to "
         "$_declaredExtensionTypeSetable, trying to set it to $value.");
     assert(
         _declaredNonExtensionTypeSetable == null,
-        // Coverage-ignore(suite): Not run.
         "Declared non-extension type setable already set to "
         "$_declaredNonExtensionTypeSetable, trying to set the declared "
         "extension type setable to $value.");

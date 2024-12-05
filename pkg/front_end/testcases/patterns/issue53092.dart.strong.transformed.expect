@@ -1,11 +1,12 @@
 library;
 import self as self;
 import "dart:core" as core;
+import "dart:_compact_hash" as _co;
 import "dart:collection" as col;
 
 static method test(dynamic y) → core::Iterable<dynamic> {
   return block {
-    final core::Set<dynamic> #t1 = new col::_Set::•<dynamic>();
+    final core::Set<dynamic> #t1 = new _co::_Set::•<dynamic>();
     {
       synthesized core::Iterator<dynamic> :sync-for-iterator = ( block {
         final core::Set<dynamic> #t2 = col::LinkedHashSet::of<dynamic>(y as{TypeError,ForDynamic} core::Iterable<dynamic>);

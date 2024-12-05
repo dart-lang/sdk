@@ -7,126 +7,19 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't assign a variable to itself.";
 
-const _details = r'''
-**DON'T** assign a variable to itself. Usually this is a mistake.
-
-**BAD:**
-```dart
-class C {
-  int x;
-
-  C(int x) {
-    x = x;
-  }
-}
-```
-
-**GOOD:**
-```dart
-class C {
-  int x;
-
-  C(int x) : x = x;
-}
-```
-
-**GOOD:**
-```dart
-class C {
-  int x;
-
-  C(int x) {
-    this.x = x;
-  }
-}
-```
-
-**BAD:**
-```dart
-class C {
-  int _x = 5;
-
-  int get x => _x;
-
-  set x(int x) {
-    _x = x;
-    _customUpdateLogic();
-  }
-
-  void _customUpdateLogic() {
-    print('updated');
-  }
-
-  void example() {
-    x = x;
-  }
-}
-```
-
-**GOOD:**
-```dart
-class C {
-  int _x = 5;
-
-  int get x => _x;
-
-  set x(int x) {
-    _x = x;
-    _customUpdateLogic();
-  }
-
-  void _customUpdateLogic() {
-    print('updated');
-  }
-
-  void example() {
-    _customUpdateLogic();
-  }
-}
-```
-
-**BAD:**
-```dart
-class C {
-  int x = 5;
-
-  void update(C other) {
-    this.x = this.x;
-  }
-}
-```
-
-**GOOD:**
-```dart
-class C {
-  int x = 5;
-
-  void update(C other) {
-    this.x = other.x;
-  }
-}
-```
-
-''';
-
 class NoSelfAssignments extends LintRule {
-  static const LintCode code = LintCode('no_self_assignments',
-      'The variable or property is being assigned to itself.',
-      correctionMessage:
-          'Try removing the assignment that has no direct effect.');
-
   NoSelfAssignments()
       : super(
-            name: 'no_self_assignments',
-            description: _desc,
-            details: _details,
-            categories: {Category.errors});
+          name: LintNames.no_self_assignments,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.no_self_assignments;
 
   @override
   void registerNodeProcessors(

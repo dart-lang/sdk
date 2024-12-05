@@ -12,53 +12,20 @@ import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = 'Unreachable top-level members in executable libraries.';
 
-const _details = r'''
-Any member declared in an executable library should be used directly inside that
-library.  An executable library is a library that contains a `main` top-level
-function or that contains a top-level function annotated with
-`@pragma('vm:entry-point')`).  Executable libraries are not usually imported
-and it's better to avoid defining unused members.
-
-This rule assumes that an executable library isn't imported by other libraries
-except to execute its `main` function.
-
-**BAD:**
-
-```dart
-main() {}
-void f() {}
-```
-
-**GOOD:**
-
-```dart
-main() {
-  f();
-}
-void f() {}
-```
-
-''';
-
 class UnreachableFromMain extends LintRule {
-  static const LintCode code = LintCode('unreachable_from_main',
-      "Unreachable member '{0}' in an executable library.",
-      correctionMessage: 'Try referencing the member or removing it.');
-
   UnreachableFromMain()
       : super(
-          name: 'unreachable_from_main',
+          name: LintNames.unreachable_from_main,
           description: _desc,
-          details: _details,
-          categories: {Category.style},
           state: State.stable(since: Version(3, 1, 0)),
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unreachable_from_main;
 
   @override
   void registerNodeProcessors(
@@ -172,7 +139,7 @@ class _DeclarationGatherer {
 ///
 /// "References" are most often [SimpleIdentifier]s, but can also be other
 /// nodes which refer to a declaration.
-class _ReferenceVisitor extends RecursiveAstVisitor {
+class _ReferenceVisitor extends RecursiveAstVisitor<void> {
   Map<Element, Declaration> declarationMap;
 
   Set<Declaration> declarations = {};
@@ -404,8 +371,8 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
   void _addDeclaration(Element element) {
     // First add the enclosing top-level declaration.
     var enclosingTopLevelElement = element.thisOrAncestorMatching((a) =>
-        a.enclosingElement == null ||
-        a.enclosingElement is CompilationUnitElement);
+        a.enclosingElement3 == null ||
+        a.enclosingElement3 is CompilationUnitElement);
     var enclosingTopLevelDeclaration = declarationMap[enclosingTopLevelElement];
     if (enclosingTopLevelDeclaration != null) {
       declarations.add(enclosingTopLevelDeclaration);
@@ -416,7 +383,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
     if (element.isPrivate) {
       return;
     }
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement == null || enclosingElement.isPrivate) {
       return;
     }

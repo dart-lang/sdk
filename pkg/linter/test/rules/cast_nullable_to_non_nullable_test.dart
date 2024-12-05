@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class CastNullableToNonNullableTest extends LintRuleTest {
   @override
-  String get lintRule => 'cast_nullable_to_non_nullable';
+  String get lintRule => LintNames.cast_nullable_to_non_nullable;
 
   test_castDynamic_toNonNullable() async {
     await assertNoDiagnostics(r'''

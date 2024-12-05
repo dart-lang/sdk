@@ -7,7 +7,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -33,7 +33,7 @@ class ConvertToFieldParameter extends ResolvedCorrectionProducer {
 
     // analyze parameter
     var parameterName = context.identifier.lexeme;
-    var parameterElement = context.parameter.declaredElement!;
+    var parameterElement = context.parameter.declaredFragment!.element;
     var initializers = context.constructor.initializers;
 
     // check number of references
@@ -149,7 +149,7 @@ class _Context {
 }
 
 class _ReferenceCounter extends RecursiveAstVisitor<void> {
-  final ParameterElement parameterElement;
+  final FormalParameterElement parameterElement;
 
   int count = 0;
 
@@ -157,7 +157,7 @@ class _ReferenceCounter extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.staticElement == parameterElement) {
+    if (node.element == parameterElement) {
       count++;
     }
   }

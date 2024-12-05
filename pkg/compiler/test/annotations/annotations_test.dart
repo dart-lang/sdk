@@ -103,7 +103,7 @@ class AnnotationIrComputer extends IrDataExtractor<String> {
       return getMemberValue(info.callMethod as FunctionEntity);
     }
     if (node is ir.LoadLibrary) {
-      return _annotationData.getLoadLibraryPriorityAt(node).name;
+      return _annotationData.getLoadLibraryPriority(node);
     }
     return null;
   }

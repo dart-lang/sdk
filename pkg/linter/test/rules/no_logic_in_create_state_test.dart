@@ -18,7 +18,7 @@ class NoLogicInCreateStateTest extends LintRuleTest {
   bool get addFlutterPackageDep => true;
 
   @override
-  String get lintRule => 'no_logic_in_create_state';
+  String get lintRule => LintNames.no_logic_in_create_state;
 
   test_abstract() async {
     await assertNoDiagnostics(r'''

@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// A CompletionTarget represents an edge in the parse tree which connects an
@@ -532,7 +531,9 @@ class CompletionTarget {
     if (entity is Token) {
       var previousTokenType = containingNode.findPrevious(entity)?.type;
       return previousTokenType == TokenType.DOUBLE ||
-          previousTokenType == TokenType.INT;
+          previousTokenType == TokenType.DOUBLE_WITH_SEPARATORS ||
+          previousTokenType == TokenType.INT ||
+          previousTokenType == TokenType.INT_WITH_SEPARATORS;
     }
     return false;
   }

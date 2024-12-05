@@ -66,7 +66,7 @@ class CanRenameResponse {
 
   void _analyzePossibleConflicts(
       ConstructorElement element, RefactoringStatus result, String newName) {
-    var parentClass = element.enclosingElement;
+    var parentClass = element.enclosingElement3;
     // Check if the "newName" is the name of the enclosing class.
     if (parentClass.name == newName) {
       result.addError('The constructor should not have the same name '
@@ -217,7 +217,7 @@ class CheckNameResponse {
       }
     } else if (element is LibraryImportElement) {
       var unit = (await canRename._fileResolver.resolve(path: sourcePath)).unit;
-      var index = element.library.libraryImports.indexOf(element);
+      var index = element.enclosingElement3.libraryImports.indexOf(element);
       var node = unit.directives.whereType<ImportDirective>().elementAt(index);
       var prefixNode = node.prefix;
       if (newName.isEmpty) {
@@ -254,8 +254,8 @@ class CheckNameResponse {
     var stateName = flutterState.newName;
     var match = await canRename._fileResolver.findReferences2(stateClass);
     var sourcePath = stateClass.source.fullName;
-    var location =
-        stateClass.enclosingElement.lineInfo.getLocation(stateClass.nameOffset);
+    var location = stateClass.enclosingElement3.lineInfo
+        .getLocation(stateClass.nameOffset);
     CiderSearchMatch ciderMatch;
     var searchInfo =
         CiderSearchInfo(location, stateClass.nameLength, MatchKind.DECLARATION);
@@ -297,7 +297,7 @@ class CheckNameResponse {
 
   Future<CiderReplaceMatch?> _replaceSyntheticConstructor() async {
     var element = canRename.refactoringElement.element;
-    var interfaceElement = element.enclosingElement;
+    var interfaceElement = element.enclosingElement3;
 
     var fileResolver = canRename._fileResolver;
     var libraryPath = interfaceElement!.library!.source.fullName;
@@ -382,7 +382,7 @@ class CiderRenameComputer {
   }
 
   bool _canRenameElement(Element element) {
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (element is ConstructorElement) {
       return true;
     }

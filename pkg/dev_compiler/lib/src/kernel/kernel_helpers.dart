@@ -20,6 +20,13 @@ Never throwUnsupportedAuxiliaryType(AuxiliaryType type) =>
 Constructor? unnamedConstructor(Class c) =>
     c.constructors.firstWhereOrNull((c) => c.name.text == '');
 
+/// Returns `true` when a class is eligible to be used as a mixin without
+/// having the mixin class modifier in Dart language versions < 3.0.
+extension ClassExtension on Class {
+  bool isLegacyMixinEligible(CoreTypes coreTypes) =>
+      !isMixinDeclaration && superclass == coreTypes.objectClass;
+}
+
 /// Returns the enclosing library for reference [node].
 Library getLibrary(NamedNode node) {
   for (TreeNode? n = node; n != null; n = n.parent) {
@@ -45,15 +52,9 @@ String escapeIdentifier(String identifier) {
 ///
 /// The caller of this function has to make sure that this name is unique in
 /// the current scope.
-///
-/// In the current encoding, generic classes are generated in a function scope
-/// which avoids name clashes of the escaped class name.
 String getLocalClassName(Class node) => escapeIdentifier(node.name);
 
 /// Returns the escaped name for the type parameter [node].
-///
-/// In the current encoding, generic classes are generated in a function scope
-/// which avoids name clashes of the escaped parameter name.
 String getTypeParameterName(
     /* TypeParameter | StructuralParameter */ Object node) {
   assert(node is TypeParameter || node is StructuralParameter);

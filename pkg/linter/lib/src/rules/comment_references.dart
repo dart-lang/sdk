@@ -6,74 +6,19 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
-const _desc = r'Only reference in scope identifiers in doc comments.';
-
-const _details = r'''
-**DO** reference only in scope identifiers in doc comments.
-
-If you surround things like variable, method, or type names in square brackets,
-then [`dart doc`](https://dart.dev/tools/dart-doc) will look up the name and
-link to its docs.  For this all to work, ensure that all identifiers in docs
-wrapped in brackets are in scope.
-
-For example, assuming `outOfScopeId` is out of scope:
-
-**BAD:**
-```dart
-/// Return true if [value] is larger than [outOfScopeId].
-bool isOutOfRange(int value) { ... }
-```
-
-**GOOD:**
-```dart
-/// Return the larger of [a] or [b].
-int max_int(int a, int b) { ... }
-```
-
-Note that the square bracket comment format is designed to allow comments to
-refer to declarations using a fairly natural format but does not allow
-*arbitrary expressions*.  In particular, code references within square brackets
-can consist of either
-
-- a single identifier where the identifier is any identifier in scope for the
-  comment (see the spec for what is in scope in doc comments),
-- two identifiers separated by a period where the first identifier is the name
-  of a class that is in scope and the second is the name of a member declared in
-  the class,
-- a single identifier followed by a pair of parentheses where the identifier is
-  the name of a class that is in scope (used to refer to the unnamed constructor
-  for the class), or
-- two identifiers separated by a period and followed by a pair of parentheses
-  where the first identifier is the name of a class that is in scope and the
-  second is the name of a named constructor (not strictly necessary, but allowed
-  for consistency).
-
-**Known limitations**
-
-The `comment_references` linter rule aligns with the Dart analyzer's notion of
-comment references, which is separate from Dartdoc's notion of comment
-references. The linter rule may report comment references which cannot be
-resolved by the analyzer, but which Dartdoc can. See
-[dartdoc#1142](https://github.com/dart-lang/linter/issues/1142) for more
-information.
-
-''';
+const _desc = r'Only reference in-scope identifiers in doc comments.';
 
 class CommentReferences extends LintRule {
-  static const LintCode code = LintCode(
-      'comment_references', "The referenced name isn't visible in scope.",
-      correctionMessage: 'Try adding an import for the referenced name.');
-
   CommentReferences()
       : super(
-            name: 'comment_references',
-            description: _desc,
-            details: _details,
-            categories: {Category.errors});
+          name: LintNames.comment_references,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.comment_references;
 
   @override
   void registerNodeProcessors(
@@ -85,50 +30,75 @@ class CommentReferences extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  static final _commentStartPattern = RegExp(r'^///+\s*$');
+
   final LintRule rule;
-  final links = <String>[];
+
+  /// Recognized Markdown link references (see
+  /// https://spec.commonmark.org/0.31.2/#link-reference-definitions).
+  final linkReferences = <String>[];
 
   _Visitor(this.rule);
 
   @override
   void visitComment(Comment node) {
-    // clear links of previous comments
-    links.clear();
+    // Clear any link references of the previous comment.
+    linkReferences.clear();
 
     // Check for keywords that are not treated as references by the parser
-    // but should be flagged by the linter.
+    // but should be reported.
     // Note that no special care is taken to handle embedded code blocks.
+    // TODO(srawlins): Skip over code blocks, made available via
+    // `Comment.codeBlocks`.
     for (var token in node.tokens) {
-      if (!token.isSynthetic) {
-        var comment = token.lexeme;
-        var leftIndex = comment.indexOf('[');
-        while (leftIndex >= 0) {
-          var rightIndex = comment.indexOf(']', leftIndex);
-          if (rightIndex >= 0) {
-            var reference = comment.substring(leftIndex + 1, rightIndex);
-            if (_isParserSpecialCase(reference)) {
-              var nameOffset = token.offset + leftIndex + 1;
-              rule.reportLintForOffset(nameOffset, reference.length);
-            }
-            if (rightIndex + 1 < comment.length &&
-                comment[rightIndex + 1] == ':') {
-              links.add(reference);
-            }
-          }
-          leftIndex = rightIndex < 0 ? -1 : comment.indexOf('[', rightIndex);
+      if (token.isSynthetic) continue;
+
+      var comment = token.lexeme;
+      var referenceIndices = comment.referenceIndices(0);
+      if (referenceIndices == null) continue;
+      var (leftIndex, rightIndex) = referenceIndices;
+      var prefix = comment.substring(0, leftIndex);
+      if (_commentStartPattern.hasMatch(prefix)) {
+        // Check for a Markdown [link reference
+        // definition](https://spec.commonmark.org/0.31.2/#link-reference-definitions).
+        var reference = comment.substring(leftIndex + 1, rightIndex);
+        if (rightIndex + 1 < comment.length && comment[rightIndex + 1] == ':') {
+          linkReferences.add(reference);
         }
+      }
+
+      while (referenceIndices != null) {
+        (leftIndex, rightIndex) = referenceIndices;
+        var reference = comment.substring(leftIndex + 1, rightIndex);
+        if (_isParserSpecialCase(reference)) {
+          var nameOffset = token.offset + leftIndex + 1;
+          rule.reportLintForOffset(nameOffset, reference.length);
+        }
+
+        referenceIndices = comment.referenceIndices(rightIndex);
       }
     }
   }
 
   @override
   void visitCommentReference(CommentReference node) {
+    if (node.isSynthetic) return;
     var expression = node.expression;
     if (expression.isSynthetic) return;
+
     if (expression is Identifier &&
-        expression.staticElement == null &&
-        !links.contains(expression.name)) {
+        expression.element == null &&
+        !linkReferences.contains(expression.name)) {
       rule.reportLint(expression);
+    } else if (expression is PropertyAccess &&
+        expression.propertyName.element == null) {
+      var target = expression.target;
+      if (target is PrefixedIdentifier) {
+        var name = '${target.name}.${expression.propertyName.name}';
+        if (!linkReferences.contains(name)) {
+          rule.reportLint(expression);
+        }
+      }
     }
   }
 
@@ -137,4 +107,17 @@ class _Visitor extends SimpleAstVisitor<void> {
       reference == 'null' ||
       reference == 'true' ||
       reference == 'false';
+}
+
+extension on String {
+  /// Returns the first indices of a left and right bracket, if a left bracket
+  /// is found before a right bracket in this [String], starting at [start], and
+  /// `null` otherwise.
+  (int, int)? referenceIndices(int start) {
+    var leftIndex = indexOf('[', start);
+    if (leftIndex < 0) return null;
+    var rightIndex = indexOf(']', leftIndex);
+    if (rightIndex < 0) return null;
+    return (leftIndex, rightIndex);
+  }
 }

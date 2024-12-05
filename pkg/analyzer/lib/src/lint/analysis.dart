@@ -14,7 +14,6 @@ import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/apply_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter.dart';
 
@@ -66,22 +65,6 @@ class DriverOptions {
 
   /// Whether to use Dart's Strong Mode analyzer.
   bool strongMode = true;
-
-  /// The mock SDK (to speed up testing) or `null` to use the actual SDK.
-  @Deprecated('Use createMockSdk() and set dartSdkPath')
-  DartSdk? mockSdk;
-
-  /// Return `true` is the parser is able to parse asserts in the initializer
-  /// list of a constructor.
-  @deprecated
-  bool get enableAssertInitializer => true;
-
-  /// Set whether the parser is able to parse asserts in the initializer list of
-  /// a constructor to match [enable].
-  @deprecated
-  set enableAssertInitializer(bool enable) {
-    // Ignored because the option is now always enabled.
-  }
 }
 
 /// A driver _only used_ by [DartLinter], which is only used by package:linter

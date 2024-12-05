@@ -13,8 +13,10 @@ final class AsyncError implements Error {
   final StackTrace stackTrace;
 
   AsyncError(Object error, StackTrace? stackTrace)
-      : error = checkNotNullable(error, "error"),
+      : error = error,
         stackTrace = stackTrace ?? defaultStackTrace(error);
+
+  AsyncError._(this.error, this.stackTrace);
 
   /// A default stack trace for an error.
   ///

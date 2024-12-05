@@ -22,7 +22,7 @@ import '../builder/null_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/void_type_declaration_builder.dart';
+import '../builder/void_type_builder.dart';
 import '../kernel/utils.dart';
 
 class TypeBuilderComputer {
@@ -43,9 +43,6 @@ class _TypeBuilderComputerHelper
   late final DynamicTypeDeclarationBuilder dynamicDeclaration =
       new DynamicTypeDeclarationBuilder(
           const DynamicType(), loader.coreLibrary, -1);
-
-  late final VoidTypeDeclarationBuilder voidDeclaration =
-      new VoidTypeDeclarationBuilder(const VoidType(), loader.coreLibrary, -1);
 
   late final NeverTypeDeclarationBuilder neverDeclaration =
       new NeverTypeDeclarationBuilder(
@@ -95,9 +92,7 @@ class _TypeBuilderComputerHelper
   @override
   TypeBuilder visitVoidType(VoidType node,
       Map<TypeParameter, NominalVariableBuilder> pendingNominalVariables) {
-    // 'void' is always nullable.
-    return new NamedTypeBuilderImpl.forDartType(
-        node, voidDeclaration, const NullabilityBuilder.inherent());
+    return new VoidTypeBuilder(/* fileUri = */ null, /* charOffset = */ null);
   }
 
   @override

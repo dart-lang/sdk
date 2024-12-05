@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../completion_test_support.dart';
@@ -223,21 +224,51 @@ void f(String s) {
     assertHasCompletion('m');
   }
 
-  @failingTest
   Future<void> test_explicitTarget_method_notImported() async {
-    // Available suggestions data doesn't yet have information about extension
-    // methods.
-    newFile(convertPath('/project/bin/lib.dart'), '''
+    newFile(convertPath('$testPackageLibPath/extensions.dart'), '''
 extension E on String {
   void m() {}
 }
+''');
+    // Files that merely import extensions do not add completions for them.
+    newFile(convertPath('$testPackageLibPath/imported.dart'), '''
+import 'extensions.dart';
 ''');
     await getTestCodeSuggestions('''
 void f(String s) {
   s.^;
 }
 ''');
-    assertHasCompletion('m');
+    var matchingSuggestions = suggestions.where((s) => s.completion == 'm');
+    expect(matchingSuggestions, hasLength(1));
+    expect(
+        matchingSuggestions.single.libraryUri, 'package:test/extensions.dart');
+  }
+
+  /// Extensions can also be imported from libraries that export them.
+  Future<void> test_explicitTarget_method_notImported_exported() async {
+    newFile(convertPath('$testPackageLibPath/extensions.dart'), '''
+extension E on String {
+  void m() {}
+}
+''');
+    newFile(convertPath('$testPackageLibPath/reexported.dart'), '''
+export 'extensions.dart';
+''');
+    await getTestCodeSuggestions('''
+void f(String s) {
+  s.^;
+}
+''');
+    var matchingSuggestions = suggestions.where((s) => s.completion == 'm');
+    expect(matchingSuggestions, hasLength(2));
+    expect(
+      matchingSuggestions.map((s) => s.libraryUri),
+      [
+        'package:test/extensions.dart',
+        'package:test/reexported.dart',
+      ],
+    );
   }
 
   Future<void> test_explicitTarget_method_sameUnit() async {

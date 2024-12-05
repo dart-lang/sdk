@@ -26,11 +26,14 @@ class DocumentSymbolHandler extends SharedMessageHandler<DocumentSymbolParams,
       DocumentSymbolParams.jsonHandler;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<TextDocumentDocumentSymbolResult>> handle(
       DocumentSymbolParams params,
       MessageInfo message,
       CancellationToken token) async {
-    var clientCapabilities = server.lspClientCapabilities;
+    var clientCapabilities = message.clientCapabilities;
     if (clientCapabilities == null || !isDartDocument(params.textDocument)) {
       return success(
         TextDocumentDocumentSymbolResult.t2([]),

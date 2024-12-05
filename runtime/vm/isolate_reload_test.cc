@@ -1110,13 +1110,14 @@ TEST_CASE(IsolateReload_LibraryLookup) {
   result = Dart_LookupLibrary(NewString("test:lib1"));
   EXPECT(Dart_IsLibrary(result));
 
-  // Reload and remove 'test:lib1' from isolate.
+  // Reload, making 'test:lib1' unreachable along the import graph from the root
+  // library.
   lib = TestCase::ReloadTestScript(kScript);
   EXPECT_VALID(lib);
 
-  // Fail to find 'test:lib1' in the isolate.
+  // Continue to find 'test:lib1' in the isolate.
   result = Dart_LookupLibrary(NewString("test:lib1"));
-  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_IsLibrary(result));
 }
 
 TEST_CASE(IsolateReload_LibraryHide) {
@@ -2259,6 +2260,49 @@ TEST_CASE(IsolateReload_EnumIdentityReload) {
                SimpleInvokeStr(lib, "main"));
 }
 
+TEST_CASE(IsolateReload_EnumDeleteMultiple) {
+  // See https://github.com/dart-lang/sdk/issues/56583.
+  // Accessing Fruit.values will cause a const array with all the enum values
+  // to stick around in the canonical table for _List.
+  const char* kScript =
+      "enum Fruit { Apple, Banana, Cherry }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = Fruit.values[0];\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
+
+  // Both Banana and Cherry forwarded to the deleted-enum sentinel, and
+  // two copies of the sentinel remain in Fruit's canonical table.
+  const char* kReloadScript0 =
+      "enum Fruit { Apple }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript0);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
+
+  // When visiting Fruit's canonical table, we try to forward both entries of
+  // the old sentinel to the new sentinel, creating a become conflict.
+  const char* kReloadScript1 =
+      "enum Fruit { Apple }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript1);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
+}
+
 TEST_CASE(IsolateReload_EnumShapeChange) {
   const char* kScript =
       "enum Fruit { Apple, Banana }\n"
@@ -2413,6 +2457,148 @@ TEST_CASE(IsolateReload_EnumReferentShapeChangeAdd) {
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_EnumRetainedHash) {
+  const char* kScript = R"(
+enum A {
+   A1(B.B1, 1),
+   A2(null, 2),
+   A3(B.B3, 3);
+   const A(this.a, this.x);
+   final a;
+   final x;
+}
+enum B {
+   B1(C.C1),
+   B2(C.C2),
+   B3(null);
+   const B(this.b);
+   final b;
+}
+enum C {
+   C1(null),
+   C2(A.A2),
+   C3(A.A3);
+   const C(this.c);
+   final c;
+}
+
+var a1;
+var a1_hash;
+var a2;
+var a2_hash;
+var a3;
+var a3_hash;
+var b1;
+var b1_hash;
+var b2;
+var b2_hash;
+var b3;
+var b3_hash;
+var c1;
+var c1_hash;
+var c2;
+var c2_hash;
+var c3;
+var c3_hash;
+
+main() {
+  a1 = A.A1;
+  a1_hash = a1.hashCode;
+  a2 = A.A2;
+  a2_hash = a2.hashCode;
+  a3 = A.A3;
+  a3_hash = a3.hashCode;
+  b1 = B.B1;
+  b1_hash = b1.hashCode;
+  b2 = B.B2;
+  b2_hash = b2.hashCode;
+  b3 = B.B3;
+  b3_hash = b3.hashCode;
+  c1 = C.C1;
+  c1_hash = c1.hashCode;
+  c2 = C.C2;
+  c2_hash = c2.hashCode;
+  c3 = C.C3;
+  c3_hash = c3.hashCode;
+  return 'okay';
+}
+)";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript = R"(
+enum A {
+   A1(B.B1),
+   A2(null),
+   A3(B.B3);
+   const A(this.a);
+   final a;
+}
+enum B {
+   B1(C.C1, 1),
+   B2(C.C2, 2),
+   B3(null, 3);
+   const B(this.b, this.x);
+   final b;
+   final x;
+}
+enum C {
+   C1(null),
+   C2(A.A2),
+   C3(A.A3);
+   const C(this.c);
+   final c;
+}
+
+var a1;
+var a1_hash;
+var a2;
+var a2_hash;
+var a3;
+var a3_hash;
+var b1;
+var b1_hash;
+var b2;
+var b2_hash;
+var b3;
+var b3_hash;
+var c1;
+var c1_hash;
+var c2;
+var c2_hash;
+var c3;
+var c3_hash;
+
+main() {
+  if (!identical(a1, A.A1)) return "i-a1";
+  if (a1.hashCode != A.A1.hashCode) return "h-a1";
+  if (!identical(a2, A.A2)) return "i-a2";
+  if (a2.hashCode != A.A2.hashCode) return "h-a2";
+  if (!identical(a3, A.A3)) return "i-a3";
+  if (a3.hashCode != A.A3.hashCode) return "h-a3";
+  if (!identical(b1, B.B1)) return "i-b1";
+  if (b1.hashCode != B.B1.hashCode) return "h-b1";
+  if (!identical(b2, B.B2)) return "i-b2";
+  if (b2.hashCode != B.B2.hashCode) return "h-b2";
+  if (!identical(b3, B.B3)) return "i-b3";
+  if (b3.hashCode != B.B3.hashCode) return "h-b3";
+  if (!identical(c1, C.C1)) return "i-c1";
+  if (c1.hashCode != C.C1.hashCode) return "h-c1";
+  if (!identical(c2, C.C2)) return "i-c2";
+  if (c2.hashCode != C.C2.hashCode) return "h-c2";
+  if (!identical(c3, C.C3)) return "i-c3";
+  if (c3.hashCode != C.C3.hashCode) return "h-c3";
+  return 'okay';
+}
+)";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 }
 
 TEST_CASE(IsolateReload_ConstantIdentical) {
@@ -5336,7 +5522,7 @@ class CidCountingVisitor : public ObjectVisitor {
   virtual ~CidCountingVisitor() {}
 
   virtual void VisitObject(ObjectPtr obj) {
-    if (obj->GetClassId() == cid_) {
+    if (obj->GetClassIdOfHeapObject() == cid_) {
       count_++;
     }
   }
@@ -6520,6 +6706,181 @@ TEST_CASE(IsolateReload_KeepPragma3) {
   // Should not appear on previous version of bar().
   EXPECT(!Library::FindPragma(thread, /*only_core=*/false, bar1,
                               Symbols::vm_never_inline()));
+}
+
+TEST_CASE(IsolateReload_IsImplementedBit) {
+  const char* kScript = R"(
+import 'file:///lib.dart';
+
+class C1 implements A1 {}
+class C2 extends A2Impl {}
+class C3 implements A4 {}
+abstract class C4 extends A5 {}
+class C5 implements C4 {}
+
+main() {
+  C1();
+  C2();
+  C3();
+  C5();
+  return "ok";
+}
+)";
+
+  TestCase::AddTestLib("file:///lib.dart", R"(
+abstract class A1 { }
+abstract class A2 { }
+abstract class A2Impl implements A2 {}
+abstract class A3 { }
+abstract class A4 extends A3 {}
+abstract class A5 { }
+)");
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("ok", SimpleInvokeStr(lib, "main"));
+
+  const auto check_implemented =
+      [](const Library& lib, const char* cls_name, bool expected,
+         std::initializer_list<const char*> expected_direct_implementors,
+         intptr_t expected_implementor_cid) {
+        const auto& cls = Class::Handle(
+            lib.LookupClass(String::Handle(String::New(cls_name))));
+        EXPECT(!cls.IsNull());
+        EXPECT_EQ(expected, cls.is_implemented());
+
+        EXPECT_EQ(expected_implementor_cid, cls.implementor_cid());
+
+        const auto& implementors =
+            GrowableObjectArray::Handle(cls.direct_implementors_unsafe());
+        if (implementors.IsNull()) {
+          EXPECT_EQ(expected_direct_implementors.size(),
+                    static_cast<size_t>(0));
+        } else {
+          auto& implementor = Class::Handle();
+          auto& implementor_name = String::Handle();
+          EXPECT_EQ(expected_direct_implementors.size(),
+                    static_cast<size_t>(implementors.Length()));
+          for (intptr_t i = 0; i < implementors.Length(); i++) {
+            implementor ^= implementors.At(i);
+            implementor_name = implementor.UserVisibleName();
+            bool found = false;
+            for (auto expected_name : expected_direct_implementors) {
+              if (implementor_name.Equals(expected_name)) {
+                found = true;
+                break;
+              }
+            }
+            if (!found) {
+              FAIL("Found unexpected implementor: %s",
+                   implementor_name.ToCString());
+            }
+          }
+        }
+      };
+
+  const auto cid_of = [&](const char* cls_name) {
+    const auto& lib = Library::Handle(Library::LookupLibrary(
+        thread, String::Handle(String::New(RESOLVED_USER_TEST_URI))));
+    const auto& cls =
+        Class::Handle(lib.LookupClass(String::Handle(String::New(cls_name))));
+    EXPECT(!cls.IsNull());
+    return cls.id();
+  };
+
+  const auto check_class_hierarchy_state = [&]() {
+    TransitionNativeToVM transition(thread);
+    const auto& lib = Library::Handle(Library::LookupLibrary(
+        thread, String::Handle(String::New("file:///lib.dart"))));
+    EXPECT(!lib.IsNull());
+
+    check_implemented(lib, "A1", true, {"C1"}, cid_of("C1"));
+    check_implemented(lib, "A2", true, {"A2Impl"}, cid_of("C2"));
+    check_implemented(lib, "A2Impl", false, {}, cid_of("C2"));
+    check_implemented(lib, "A3", true, {}, cid_of("C3"));
+    check_implemented(lib, "A4", true, {"C3"}, cid_of("C3"));
+    check_implemented(lib, "A5", true, {}, cid_of("C5"));
+  };
+
+  check_class_hierarchy_state();
+
+  Dart_SetFileModifiedCallback([](const char* url, int64_t since) {
+    return strcmp(url, "file:///lib.dart") == 0;
+  });
+
+  lib = TestCase::TriggerReload(nullptr, 0);
+  EXPECT_VALID(lib);
+
+  Dart_SetFileModifiedCallback(nullptr);
+
+  check_class_hierarchy_state();
+}
+
+// https://github.com/flutter/flutter/issues/153536
+TEST_CASE(IsolateReload_ClosureHashStablity) {
+  const char* kScript =
+      "var retained;\n"
+      "var retainedHashes;\n"
+      "static1() {} \n"
+      "static2<T>() {} \n"
+      "static3<T extends num>() {} \n"
+      "class Foo {\n"
+      "  method1() {}\n"
+      "  method2<T>() {}\n"
+      "  method3<T extends num>() {}\n"
+      "}\n"
+      "extension Ext on Foo {\n"
+      "  extensionMethod1() {}\n"
+      "  extensionMethod2<T>() {}\n"
+      "  extensionMethod3<T extends num>() {}\n"
+      "}\n"
+      "main() {\n"
+      "  local1() {}\n"
+      "  local2<T>() {}\n"
+      "  local3<T extends num>() {}\n"
+      "  var f = new Foo();\n"
+      "  retained = [ static1, static2<String>, static3,\n"
+      "               f.method1, f.method2<String>, f.method3,\n"
+      "               f.extensionMethod1, f.extensionMethod2<String>,\n"
+      "               f.extensionMethod3,\n"
+      "               local1, local2<String>, local3 ];\n"
+      "  retainedHashes = retained.map((c) => c.hashCode).toList();\n"
+      "  return 'Setup';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+  EXPECT_VALID(Dart_FinalizeAllClasses());
+  EXPECT_STREQ("Setup", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "extraFunctionShiftingDownAllTokenPositions() {}\n"
+      "var retained;\n"
+      "var retainedHashes;\n"
+      "static1() {} \n"
+      "static2<T>() {} \n"
+      "static3<T extends num>() {} \n"
+      "class Foo {\n"
+      "  method1() {}\n"
+      "  method2<T>() {}\n"
+      "  method3<T extends num>() {}\n"
+      "}\n"
+      "extension Ext on Foo {\n"
+      "  extensionMethod1() {}\n"
+      "  extensionMethod2<T>() {}\n"
+      "  extensionMethod3<T extends num>() {}\n"
+      "}\n"
+      "main() {\n"
+      "  for (var i = 0; i < retained.length; i++) {\n"
+      "    if (retained[i].hashCode != retainedHashes[i]){\n"
+      "      return 'Changed: ${retained[i]}';\n"
+      "    }\n"
+      "  }\n"
+      "  return 'Okay';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
 }
 
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

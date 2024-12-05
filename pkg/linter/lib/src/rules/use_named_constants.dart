@@ -9,40 +9,19 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
-
-const lintName = 'use_named_constants';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use predefined named constants.';
-const _details = r'''
-Where possible, use already defined const values.
-
-**BAD:**
-```dart
-const Duration(seconds: 0);
-```
-
-**GOOD:**
-```dart
-Duration.zero;
-```
-
-''';
 
 class UseNamedConstants extends LintRule {
-  static const LintCode code = LintCode('use_named_constants',
-      "Use the constant '{0}' rather than a constructor returning the same object.",
-      correctionMessage: "Try using '{0}'.");
-
   UseNamedConstants()
       : super(
-          name: lintName,
+          name: LintNames.use_named_constants,
           description: _desc,
-          details: _details,
-          categories: {Category.style},
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_named_constants;
 
   @override
   void registerNodeProcessors(
@@ -73,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         //   static const a = A();
         //   static const b = A();
         // }
-        if (nodeField?.enclosingElement == element) return;
+        if (nodeField?.enclosingElement3 == element) return;
 
         var library = (node.root as CompilationUnit).declaredElement?.library;
         if (library == null) return;

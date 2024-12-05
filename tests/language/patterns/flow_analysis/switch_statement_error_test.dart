@@ -287,7 +287,7 @@ test() {
           return;
         case int _:
 //      ^^^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
           reachability0 = null;
       }
       reachability1 = null;
@@ -327,7 +327,7 @@ test() {
           return;
         case int _:
 //      ^^^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
           reachability0 = null;
           break;
       }

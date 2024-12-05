@@ -193,7 +193,9 @@ class CompilationCommand extends ProcessCommand {
   CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
       List<int> stderr, Duration time, bool compilationSkipped,
       [int pid = 0]) {
-    if (displayName == 'precompiler' || displayName == 'app_jit') {
+    if (displayName == 'precompiler' ||
+        displayName == 'app_jit' ||
+        displayName == 'dart2bytecode') {
       return VMCommandOutput(
           this, exitCode, timedOut, stdout, stderr, time, pid);
     } else if (displayName == 'dart2wasm') {

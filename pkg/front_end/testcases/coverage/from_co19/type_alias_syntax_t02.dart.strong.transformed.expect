@@ -1,0 +1,29 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+@#C1
+typedef CAlias1 = self::C<dynamic>;
+@#C1
+typedef CAlias2<T extends core::Object? = dynamic> = self::C<T%>;
+typedef CAlias3 = self::C<core::String>;
+typedef CAlias4<unrelated T extends core::Object? = dynamic> = self::C<core::int>;
+class C<T extends core::Object? = dynamic> extends core::Object {
+  covariant-by-class field self::C::T% t;
+  constructor •(self::C::T% t) → self::C<self::C::T%>
+    : self::C::t = t, super core::Object::•()
+    ;
+}
+static const field core::int meta = #C1;
+static method foo() → void {
+  self::C<dynamic> ca1 = new self::C::•<dynamic>(42);
+  self::C<core::int> ca2 = new self::C::•<core::int>(1);
+  self::C<core::String> ca3 = new self::C::•<core::String>("");
+  self::C<core::int> ca4 = new self::C::•<core::int>(1);
+}
+static method _#CAlias4#new#tearOff<unrelated T extends core::Object? = dynamic>(core::int t) → self::C<core::int>
+  return new self::C::•<core::int>(t);
+
+constants  {
+  #C1 = 1
+}

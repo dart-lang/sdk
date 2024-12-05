@@ -766,7 +766,9 @@ Future<FunctionBodyCode> _buildFunctionAugmentation(
     if (function is MethodDeclaration)
       "print('definingClass: ${function.definingType.name}');\n",
     if (function is ConstructorDeclaration)
-      "print('isFactory: ${function.isFactory}');\n",
+      '''
+        print('isConst: ${function.isConst}');
+        print('isFactory: ${function.isFactory}');''',
     '''
       print('isExternal: ${function.hasExternal}');
       print('isGetter: ${function.isGetter}');

@@ -335,8 +335,10 @@ def IsCrossBuild(target_os, arch):
 
 def GetBuildConf(mode, arch, conf_os=None, sanitizer=None):
     if conf_os is not None and conf_os != GuessOS() and conf_os != 'host':
-        return '{}{}{}'.format(GetBuildMode(mode), conf_os.title(),
-                               arch.upper())
+        os_fragment = conf_os.title()
+        if (conf_os == 'ios_simulator'):
+            os_fragment = 'IosSim'
+        return '{}{}{}'.format(GetBuildMode(mode), os_fragment, arch.upper())
 
     # Ask for a cross build if the host and target architectures don't match.
     cross_build = ''

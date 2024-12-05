@@ -31,6 +31,25 @@ abstract class C implements A, B {}
     ]);
   }
 
+  test_class_getter_method_inconsistentInheritance() async {
+    await assertErrorsInCode(r'''
+abstract interface class I {
+  String foo();
+}
+
+mixin M {
+  int get foo => 42;
+}
+
+abstract class C with M implements I {
+  String foo() => 'C';
+}
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 97,
+          1),
+    ]);
+  }
+
   test_class_method_getter() async {
     await assertErrorsInCode(r'''
 abstract class A {

@@ -12,4 +12,4 @@ To regenerate the generated code, run the script in "tool/dap/generate_all.dart"
 with no arguments. To download the latest version of the specification before
 regenerating the code, run the same script with the "--download" argument.
 
-More information on Dart support for DAP is available [here](https://github.com/dart-lang/sdk/blob/main/pkg/dds/tool/dap/README.md).
+More information on Dart support for DAP is available [here](https://github.com/dart-lang/sdk/blob/main/third_party/pkg/dap/tool/README.md).

@@ -83,6 +83,8 @@ REUSABLE_HANDLE_LIST(REUSABLE_SCOPE)
   ReusableClassHandleScope reused_class_handle(thread);
 #define REUSABLE_CODE_HANDLESCOPE(thread)                                      \
   ReusableCodeHandleScope reused_code_handle(thread);
+#define REUSABLE_BYTECODE_HANDLESCOPE(thread)                                  \
+  ReusableBytecodeHandleScope reused_bytecode_handle(thread);
 #define REUSABLE_ERROR_HANDLESCOPE(thread)                                     \
   ReusableErrorHandleScope reused_error_handle(thread);
 #define REUSABLE_EXCEPTION_HANDLERS_HANDLESCOPE(thread)                        \

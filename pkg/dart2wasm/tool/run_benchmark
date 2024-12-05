@@ -55,9 +55,6 @@ while [ $# -gt 0 ]; do
     --jsc)
       SHELL_BIN="$JSC_BIN"
       SHELL_ARG_SEPERATOR="--"
-      export JSC_useWebAssemblyTypedFunctionReferences=1
-      export JSC_useWebAssemblyExtendedConstantExpression=1
-      export JSC_useWebAssemblyGC=1
       shift
       ;;
 

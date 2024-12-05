@@ -168,7 +168,7 @@ main() {
               .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
           60,
           1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 150, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 150, 1),
     ]);
   }
 }

@@ -4,9 +4,8 @@
 
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
-
-import '../../../test/util/tree_string_sink.dart';
 
 String formatSizeInBytes(int value) {
   var buffer = StringBuffer();

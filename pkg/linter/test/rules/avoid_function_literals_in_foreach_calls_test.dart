@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidFunctionLiteralsInForeachCalls extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_function_literals_in_foreach_calls';
+  String get lintRule => LintNames.avoid_function_literals_in_foreach_calls;
 
   test_expectedIdentifier() async {
     await assertDiagnostics(r'''

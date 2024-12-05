@@ -32,6 +32,7 @@ void f() {
 SimpleIdentifier
   token: v
   staticElement: v@34
+  element: v@34
   staticType: InvalidType
 ''');
   }
@@ -68,7 +69,7 @@ main() {
 }
 print(x) {}
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
     ]);
   }
 

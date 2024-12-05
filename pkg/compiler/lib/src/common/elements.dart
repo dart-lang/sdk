@@ -820,6 +820,9 @@ abstract class CommonElements {
   FunctionEntity get cyclicThrowHelper =>
       _findHelperFunction("throwCyclicInit");
 
+  FunctionEntity get throwUnsupportedOperation =>
+      _findHelperFunction('throwUnsupportedOperation');
+
   FunctionEntity get defineProperty => _findHelperFunction('defineProperty');
 
   FunctionEntity get throwLateFieldNI =>

@@ -6,40 +6,19 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Unnecessary raw string.';
 
-const _details = r'''
-Use raw string only when needed.
-
-**BAD:**
-```dart
-var s1 = r'a';
-```
-
-**GOOD:**
-```dart
-var s1 = 'a';
-var s2 = r'$a';
-var s3 = r'\a';
-```
-
-''';
-
 class UnnecessaryRawStrings extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_raw_strings', 'Unnecessary use of a raw string.',
-      correctionMessage: 'Try using a normal string.');
-
   UnnecessaryRawStrings()
       : super(
-            name: 'unnecessary_raw_strings',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.unnecessary_raw_strings,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_raw_strings;
 
   @override
   void registerNodeProcessors(

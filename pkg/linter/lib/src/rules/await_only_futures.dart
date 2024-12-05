@@ -9,48 +9,19 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Await only futures.';
 
-const _details = r'''
-**AVOID** using await on anything which is not a future.
-
-Await is allowed on the types: `Future<X>`, `FutureOr<X>`, `Future<X>?`, 
-`FutureOr<X>?` and `dynamic`.
-
-Further, using `await null` is specifically allowed as a way to introduce a
-microtask delay.
-
-**BAD:**
-```dart
-main() async {
-  print(await 23);
-}
-```
-**GOOD:**
-```dart
-main() async {
-  await null; // If a delay is really intended.
-  print(23);
-}
-```
-''';
-
 class AwaitOnlyFutures extends LintRule {
-  static const LintCode code = LintCode('await_only_futures',
-      "Uses 'await' on an instance of '{0}', which is not a subtype of 'Future'.",
-      correctionMessage: "Try removing the 'await' or changing the expression.",
-      hasPublishedDocs: true);
-
   AwaitOnlyFutures()
       : super(
-            name: 'await_only_futures',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.await_only_futures,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.await_only_futures;
 
   @override
   void registerNodeProcessors(

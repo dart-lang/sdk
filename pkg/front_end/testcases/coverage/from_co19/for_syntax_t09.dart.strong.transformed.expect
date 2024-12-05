@@ -1,0 +1,37 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/from_co19/for_syntax_t09.dart:9:10: Error: Unexpected token ','.
+//     var x, // Error
+//          ^
+//
+// pkg/front_end/testcases/coverage/from_co19/for_syntax_t09.dart:9:5: Error: A for-in loop can't have more than one loop variable.
+//     var x, // Error
+//     ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method foo() → void {
+  {
+    invalid-expression "pkg/front_end/testcases/coverage/from_co19/for_syntax_t09.dart:9:5: Error: A for-in loop can't have more than one loop variable.
+    var x, // Error
+    ^^^";
+    #L1:
+    {
+      synthesized core::Iterator<core::String> :sync-for-iterator = core::_List::filled<core::String>(10, "").{core::Iterable::iterator}{core::Iterator<core::String>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::String #t1 = :sync-for-iterator.{core::Iterator::current}{core::String};
+        {
+          invalid-expression "pkg/front_end/testcases/coverage/from_co19/for_syntax_t09.dart:9:5: Error: A for-in loop can't have more than one loop variable.
+    var x, // Error
+    ^^^";
+          dynamic x;
+          dynamic y;
+          break #L1;
+        }
+      }
+    }
+  }
+}

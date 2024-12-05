@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PackagePrefixedLibraryNamesTest extends LintRuleTest {
   @override
-  String get lintRule => 'package_prefixed_library_names';
+  String get lintRule => LintNames.package_prefixed_library_names;
 
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3395')
   test_badName() async {

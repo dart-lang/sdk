@@ -18,7 +18,6 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
 import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting;
-import '../util/helpers.dart' show DelayedActionPerformer;
 import 'source_class_builder.dart';
 import 'source_library_builder.dart';
 
@@ -34,9 +33,7 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   /// Builds the core AST structures for this member as needed for the outline.
   void buildOutlineNodes(BuildNodesCallback f);
 
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
 
   /// Builds the AST nodes for this member as needed for the full compilation.
@@ -118,17 +115,13 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   @override
   MemberDataForTesting? dataForTesting;
 
-  SourceMemberBuilderImpl(Builder parent, int charOffset, [Uri? fileUri])
+  SourceMemberBuilderImpl(Builder parent, Uri fileUri, int charOffset)
       : dataForTesting = retainDataForTesting
             ?
             // Coverage-ignore(suite): Not run.
             new MemberDataForTesting()
             : null,
-        super(parent, charOffset, fileUri);
-
-  @override
-  SourceLibraryBuilder get libraryBuilder =>
-      super.libraryBuilder as SourceLibraryBuilder;
+        super(parent, fileUri, charOffset);
 
   @override
   bool get isAugmentation => modifiers & augmentMask != 0;
@@ -141,9 +134,7 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   }
 
   void set isConflictingSetter(bool value) {
-    assert(
-        _isConflictingSetter == null,
-        // Coverage-ignore(suite): Not run.
+    assert(_isConflictingSetter == null,
         '$this.isConflictingSetter has already been fixed.');
     _isConflictingSetter = value;
   }
@@ -157,9 +148,7 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
 
   @override
   void set isConflictingAugmentationMember(bool value) {
-    assert(
-        _isConflictingAugmentationMember == null,
-        // Coverage-ignore(suite): Not run.
+    assert(_isConflictingAugmentationMember == null,
         '$this.isConflictingAugmentationMember has already been fixed.');
     _isConflictingAugmentationMember = value;
   }
@@ -171,9 +160,7 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {}
 
   @override

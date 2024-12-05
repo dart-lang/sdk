@@ -4,10 +4,12 @@
 
 /// A library used to spawn the Dart Developer Service, used to communicate
 /// with a Dart VM Service instance.
-library dds;
+library;
 
 import 'dart:async';
 import 'dart:io';
+
+import 'package:devtools_shared/devtools_shared.dart' show DtdInfo;
 
 import 'src/dds_impl.dart';
 
@@ -154,7 +156,7 @@ abstract class DartDevelopmentService {
   ///
   /// This will be null if DTD was not started by the DevTools server. For
   /// example, it may have been started by an IDE.
-  ({String? uri, String? secret})? get hostedDartToolingDaemon;
+  DtdInfo? get hostedDartToolingDaemon;
 
   /// Set to `true` if this instance of [DartDevelopmentService] is accepting
   /// requests.
@@ -169,6 +171,8 @@ abstract class DartDevelopmentService {
   static const String protocolVersion = '2.0';
 }
 
+/// Thrown by DDS during initialization failures, unexpected connection issues,
+/// and when attempting to spawn DDS when an existing DDS instance exists.
 class DartDevelopmentServiceException implements Exception {
   /// Set when `DartDeveloperService.startDartDevelopmentService` is called and
   /// the target VM service already has a Dart Developer Service instance
@@ -182,6 +186,32 @@ class DartDevelopmentServiceException implements Exception {
   /// Set when a connection error has occurred after startup.
   static const int connectionError = 3;
 
+  factory DartDevelopmentServiceException.fromJson(Map<String, Object?> json) {
+    if (json
+        case {
+          'error_code': final int errorCode,
+          'message': final String message,
+        }) {
+      return switch (errorCode) {
+        existingDdsInstanceError =>
+          DartDevelopmentServiceException.existingDdsInstance(
+            message,
+            ddsUri: Uri.parse(json['uri']! as String),
+          ),
+        failedToStartError => DartDevelopmentServiceException.failedToStart(),
+        connectionError =>
+          DartDevelopmentServiceException.connectionIssue(message),
+        _ => throw StateError(
+            'Invalid DartDevelopmentServiceException error_code: $errorCode',
+          ),
+      };
+    }
+    throw StateError('Invalid DartDevelopmentServiceException JSON: $json');
+  }
+
+  /// Thrown when `DartDeveloperService.startDartDevelopmentService` is called
+  /// and the target VM service already has a Dart Developer Service instance
+  /// connected.
   factory DartDevelopmentServiceException.existingDdsInstance(
     String message, {
     Uri? ddsUri,
@@ -192,11 +222,14 @@ class DartDevelopmentServiceException implements Exception {
     );
   }
 
+  /// Thrown when the connection to the remote VM service terminates unexpectedly
+  /// during Dart Development Service startup.
   factory DartDevelopmentServiceException.failedToStart() {
     return DartDevelopmentServiceException._(
         failedToStartError, 'Failed to start Dart Development Service');
   }
 
+  /// Thrown when a connection error has occurred after startup.
   factory DartDevelopmentServiceException.connectionIssue(String message) {
     return DartDevelopmentServiceException._(connectionError, message);
   }
@@ -215,6 +248,7 @@ class DartDevelopmentServiceException implements Exception {
   final String message;
 }
 
+/// Thrown when attempting to start a new DDS instance when one already exists.
 class ExistingDartDevelopmentServiceException
     extends DartDevelopmentServiceException {
   ExistingDartDevelopmentServiceException._(

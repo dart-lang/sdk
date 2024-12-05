@@ -16,6 +16,7 @@
 #include "platform/unicode.h"
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
+#include "vm/bytecode_reader.h"
 #include "vm/canonical_tables.h"
 #include "vm/class_finalizer.h"
 #include "vm/class_id.h"
@@ -24,6 +25,7 @@
 #include "vm/code_descriptors.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/cpu.h"
@@ -173,6 +175,7 @@ ClassPtr Object::var_descriptors_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::exception_handlers_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::context_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::context_scope_class_ = static_cast<ClassPtr>(RAW_NULL);
+ClassPtr Object::bytecode_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::sentinel_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::singletargetcache_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::unlinkedcall_class_ = static_cast<ClassPtr>(RAW_NULL);
@@ -551,6 +554,23 @@ static type SpecialCharacter(type value) {
   return '\0';
 }
 
+#if defined(DART_DYNAMIC_MODULES)
+static BytecodePtr CreateVMInternalBytecode(KernelBytecode::Opcode opcode) {
+  const KBCInstr* instructions = nullptr;
+  intptr_t instructions_size = 0;
+
+  KernelBytecode::GetVMInternalBytecodeInstructions(opcode, &instructions,
+                                                    &instructions_size);
+
+  const auto& bytecode = Bytecode::Handle(
+      Bytecode::New(reinterpret_cast<uword>(instructions), instructions_size,
+                    -1, TypedDataBase::Handle(), Object::empty_object_pool()));
+  bytecode.set_pc_descriptors(Object::empty_descriptors());
+  bytecode.set_exception_handlers(Object::empty_exception_handlers());
+  return bytecode.ptr();
+}
+#endif  // defined(DART_DYNAMIC_MODULES)
+
 void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   // Should only be run by the vm isolate.
   ASSERT(isolate_group == Dart::vm_isolate_group());
@@ -912,6 +932,9 @@ void Object::Init(IsolateGroup* isolate_group) {
   cls = Class::New<ContextScope, RTN::ContextScope>(isolate_group);
   context_scope_class_ = cls.ptr();
 
+  cls = Class::New<Bytecode, RTN::Bytecode>(isolate_group);
+  bytecode_class_ = cls.ptr();
+
   cls = Class::New<SingleTargetCache, RTN::SingleTargetCache>(isolate_group);
   singletargetcache_class_ = cls.ptr();
 
@@ -1270,6 +1293,44 @@ void Object::Init(IsolateGroup* isolate_group) {
   // synthetic_getter_parameter_names_ object needs to be created earlier as
   // VM isolate snapshot reader references it before Object::FinalizeVMIsolate.
 
+#if defined(DART_DYNAMIC_MODULES)
+  *implicit_getter_bytecode_ =
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_ImplicitGetter);
+
+  *implicit_setter_bytecode_ =
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_ImplicitSetter);
+
+  *implicit_static_getter_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitStaticGetter);
+
+  *implicit_static_setter_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitStaticSetter);
+
+  *method_extractor_bytecode_ =
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_MethodExtractor);
+
+  *invoke_closure_bytecode_ =
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_InvokeClosure);
+
+  *invoke_field_bytecode_ =
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_InvokeField);
+
+  *nsm_dispatcher_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_NoSuchMethodDispatcher);
+
+  *dynamic_invocation_forwarder_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ForwardDynamicInvocation);
+
+  *implicit_static_closure_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitStaticClosure);
+
+  *implicit_instance_closure_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitInstanceClosure);
+
+  *implicit_constructor_closure_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitConstructorClosure);
+#endif  // defined(DART_DYNAMIC_MODULES)
+
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
   thread->ClearStickyError();
@@ -1347,6 +1408,30 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(synthetic_getter_parameter_types_->IsArray());
   ASSERT(!synthetic_getter_parameter_names_->IsSmi());
   ASSERT(synthetic_getter_parameter_names_->IsArray());
+  ASSERT(!implicit_getter_bytecode_->IsSmi());
+  ASSERT(implicit_getter_bytecode_->IsBytecode());
+  ASSERT(!implicit_setter_bytecode_->IsSmi());
+  ASSERT(implicit_setter_bytecode_->IsBytecode());
+  ASSERT(!implicit_static_getter_bytecode_->IsSmi());
+  ASSERT(implicit_static_getter_bytecode_->IsBytecode());
+  ASSERT(!implicit_static_setter_bytecode_->IsSmi());
+  ASSERT(implicit_static_setter_bytecode_->IsBytecode());
+  ASSERT(!method_extractor_bytecode_->IsSmi());
+  ASSERT(method_extractor_bytecode_->IsBytecode());
+  ASSERT(!invoke_closure_bytecode_->IsSmi());
+  ASSERT(invoke_closure_bytecode_->IsBytecode());
+  ASSERT(!invoke_field_bytecode_->IsSmi());
+  ASSERT(invoke_field_bytecode_->IsBytecode());
+  ASSERT(!nsm_dispatcher_bytecode_->IsSmi());
+  ASSERT(nsm_dispatcher_bytecode_->IsBytecode());
+  ASSERT(!dynamic_invocation_forwarder_bytecode_->IsSmi());
+  ASSERT(dynamic_invocation_forwarder_bytecode_->IsBytecode());
+  ASSERT(!implicit_static_closure_bytecode_->IsSmi());
+  ASSERT(implicit_static_closure_bytecode_->IsBytecode());
+  ASSERT(!implicit_instance_closure_bytecode_->IsSmi());
+  ASSERT(implicit_instance_closure_bytecode_->IsBytecode());
+  ASSERT(!implicit_constructor_closure_bytecode_->IsSmi());
+  ASSERT(implicit_constructor_closure_bytecode_->IsBytecode());
 }
 
 void Object::FinishInit(IsolateGroup* isolate_group) {
@@ -1392,6 +1477,7 @@ void Object::Cleanup() {
   exception_handlers_class_ = static_cast<ClassPtr>(RAW_NULL);
   context_class_ = static_cast<ClassPtr>(RAW_NULL);
   context_scope_class_ = static_cast<ClassPtr>(RAW_NULL);
+  bytecode_class_ = static_cast<ClassPtr>(RAW_NULL);
   singletargetcache_class_ = static_cast<ClassPtr>(RAW_NULL);
   unlinkedcall_class_ = static_cast<ClassPtr>(RAW_NULL);
   monomorphicsmiablecall_class_ = static_cast<ClassPtr>(RAW_NULL);
@@ -1451,8 +1537,10 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (obj->IsClass()) {
         // Won't be able to update read-only VM isolate classes if implementors
-        // are discovered later.
-        static_cast<ClassPtr>(obj)->untag()->implementor_cid_ = kDynamicCid;
+        // are discovered later. We use kVoidCid instead of kDynamicCid here to
+        // be able to distinguish read-only VM isolate classes during reload.
+        // See ProgramReloadContext::RestoreClassHierarchyInvariants.
+        static_cast<ClassPtr>(obj)->untag()->implementor_cid_ = kVoidCid;
       }
 #endif
     }
@@ -1507,6 +1595,7 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
   SET_CLASS_NAME(exception_handlers, ExceptionHandlers);
   SET_CLASS_NAME(context, Context);
   SET_CLASS_NAME(context_scope, ContextScope);
+  SET_CLASS_NAME(bytecode, Bytecode);
   SET_CLASS_NAME(sentinel, Sentinel);
   SET_CLASS_NAME(singletargetcache, SingleTargetCache);
   SET_CLASS_NAME(unlinkedcall, UnlinkedCall);
@@ -1556,7 +1645,7 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
 
 void Object::FinalizeReadOnlyObject(ObjectPtr object) {
   NoSafepointScope no_safepoint;
-  intptr_t cid = object->GetClassId();
+  intptr_t cid = object->GetClassIdOfHeapObject();
   if (cid == kOneByteStringCid) {
     OneByteStringPtr str = static_cast<OneByteStringPtr>(object);
     if (String::GetCachedHash(str) == 0) {
@@ -2009,18 +2098,18 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<MirrorReference, RTN::MirrorReference>(isolate_group);
     RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
 
-    // Pre-register the collection library so we can place the vm class
-    // Map there rather than the core library.
-    lib = Library::LookupLibrary(thread, Symbols::DartCollection());
+    // Pre-register dart:_compact_hash library so that we could place
+    // collection classes (_Map, _ConstMap, _Set, _ConstSet) here.
+    lib = Library::LookupLibrary(thread, Symbols::DartCompactHash());
     if (lib.IsNull()) {
-      lib = Library::NewLibraryHelper(Symbols::DartCollection(), true);
+      lib = Library::NewLibraryHelper(Symbols::DartCompactHash(), true);
       lib.SetLoadRequested();
       lib.Register(thread);
     }
+    object_store->set_bootstrap_library(ObjectStore::kCompactHash, lib);
 
-    object_store->set_bootstrap_library(ObjectStore::kCollection, lib);
     ASSERT(!lib.IsNull());
-    ASSERT(lib.ptr() == Library::CollectionLibrary());
+    ASSERT(lib.ptr() == Library::CompactHashLibrary());
     cls = Class::New<Map, RTN::Map>(isolate_group);
     object_store->set_map_impl_class(cls);
     cls.set_type_arguments_field_offset(Map::type_arguments_offset(),
@@ -2054,6 +2143,15 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls.set_is_prefinalized();
     RegisterPrivateClass(cls, Symbols::_ConstSet(), lib);
     pending_classes.Add(cls);
+
+    // Pre-register the collection library.
+    lib = Library::LookupLibrary(thread, Symbols::DartCollection());
+    if (lib.IsNull()) {
+      lib = Library::NewLibraryHelper(Symbols::DartCollection(), true);
+      lib.SetLoadRequested();
+      lib.Register(thread);
+    }
+    object_store->set_bootstrap_library(ObjectStore::kCollection, lib);
 
     // Pre-register the async library so we can place the vm class
     // FutureOr there rather than the core library.
@@ -2440,9 +2538,6 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
     ClassFinalizer::VerifyBootstrapClasses();
 
-    // Set up the intrinsic state of all functions (core, math and typed data).
-    compiler::Intrinsifier::InitializeState();
-
     // Adds static const fields (class ids) to the class 'ClassID');
     lib = Library::LookupLibrary(thread, Symbols::DartInternal());
     ASSERT(!lib.IsNull());
@@ -2748,7 +2843,7 @@ void Object::InitializeObject(uword address,
 void Object::CheckHandle() const {
 #if defined(DEBUG)
   if (ptr_ != Object::null()) {
-    intptr_t cid = ptr_->GetClassIdMayBeSmi();
+    intptr_t cid = ptr_->GetClassId();
     if (cid >= kNumPredefinedCids) {
       cid = kInstanceCid;
     }
@@ -2900,6 +2995,7 @@ bool Object::IsNotTemporaryScopedHandle() const {
 ObjectPtr Object::Clone(const Object& orig,
                         Heap::Space space,
                         bool load_with_relaxed_atomics) {
+  ASSERT(orig.ptr()->IsHeapObject());
   // Generic function types should be cloned with FunctionType::Clone.
   ASSERT(!orig.IsFunctionType() || !FunctionType::Cast(orig).IsGeneric());
   const Class& cls = Class::Handle(orig.clazz());
@@ -2929,7 +3025,7 @@ ObjectPtr Object::Clone(const Object& orig,
             size - kHeaderSizeInBytes);
   }
 
-  if (IsTypedDataClassId(raw_clone->GetClassId())) {
+  if (IsTypedDataClassId(raw_clone->GetClassIdOfHeapObject())) {
     auto raw_typed_data = TypedData::RawCast(raw_clone);
     raw_typed_data.untag()->RecomputeDataField();
   }
@@ -3096,7 +3192,7 @@ ClassPtr Class::New(IsolateGroup* isolate_group, bool register_class) {
   return result.ptr();
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 static void ReportTooManyTypeArguments(const Class& cls) {
   Report::MessageF(Report::kError, Script::Handle(cls.script()),
                    cls.token_pos(), Report::AtLocation,
@@ -3105,10 +3201,10 @@ static void ReportTooManyTypeArguments(const Class& cls) {
                    String::Handle(cls.Name()).ToCString());
   UNREACHABLE();
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
 void Class::set_num_type_arguments(intptr_t value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
   if (!Utils::IsInt(16, value)) {
@@ -3120,7 +3216,7 @@ void Class::set_num_type_arguments(intptr_t value) const {
   DEBUG_ASSERT(old_value == kUnknownNumTypeArguments || old_value == value);
   StoreNonPointer<int16_t, int16_t, std::memory_order_relaxed>(
       &untag()->num_type_arguments_, value);
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
 }
 
 void Class::set_num_type_arguments_unsafe(intptr_t value) const {
@@ -3442,7 +3538,7 @@ void Class::set_library(const Library& value) const {
 
 void Class::set_type_parameters(const TypeParameters& value) const {
   ASSERT((num_type_arguments() == kUnknownNumTypeArguments) ||
-         is_prefinalized());
+         is_declared_in_bytecode() || is_prefinalized());
   untag()->set_type_parameters(value.ptr());
 }
 
@@ -3957,6 +4053,26 @@ FunctionPtr Class::CreateInvocationDispatcher(
   signature ^= ClassFinalizer::FinalizeType(signature);
   invocation.SetSignature(signature);
 
+#if defined(DART_DYNAMIC_MODULES)
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const bool attach_bytecode = true;
+#else
+  const bool attach_bytecode = is_declared_in_bytecode();
+#endif
+  if (attach_bytecode) {
+    switch (kind) {
+      case UntaggedFunction::kNoSuchMethodDispatcher:
+        invocation.AttachBytecode(Object::nsm_dispatcher_bytecode());
+        break;
+      case UntaggedFunction::kInvokeFieldDispatcher:
+        invocation.AttachBytecode(Object::invoke_field_bytecode());
+        break;
+      default:
+        UNREACHABLE();
+    }
+  }
+#endif  // defined(DART_DYNAMIC_MODULES)
+
   return invocation.ptr();
 }
 
@@ -4005,6 +4121,17 @@ FunctionPtr Function::CreateMethodExtractor(const String& getter_name) const {
 
   signature ^= ClassFinalizer::FinalizeType(signature);
   extractor.SetSignature(signature);
+
+#if defined(DART_DYNAMIC_MODULES)
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const bool attach_bytecode = true;
+#else
+  const bool attach_bytecode = is_declared_in_bytecode();
+#endif
+  if (attach_bytecode) {
+    extractor.AttachBytecode(Object::method_extractor_bytecode());
+  }
+#endif  // defined(DART_DYNAMIC_MODULES)
 
   owner.AddFunction(extractor);
 
@@ -4207,7 +4334,7 @@ StringPtr Function::CreateDynamicInvocationForwarderName(const String& name) {
   return Symbols::FromConcat(Thread::Current(), Symbols::DynamicPrefix(), name);
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 FunctionPtr Function::CreateDynamicInvocationForwarder(
     const String& mangled_name) const {
   Thread* thread = Thread::Current();
@@ -4243,6 +4370,17 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
   forwarder.InheritKernelOffsetFrom(*this);
   forwarder.SetForwardingTarget(*this);
 
+#if defined(DART_DYNAMIC_MODULES)
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const bool attach_bytecode = true;
+#else
+  const bool attach_bytecode = is_declared_in_bytecode();
+#endif
+  if (attach_bytecode) {
+    forwarder.AttachBytecode(Object::dynamic_invocation_forwarder_bytecode());
+  }
+#endif
+
   return forwarder.ptr();
 }
 
@@ -4262,7 +4400,12 @@ FunctionPtr Function::GetDynamicInvocationForwarder(
   if (!result.IsNull()) return result.ptr();
 
   const bool needs_dyn_forwarder =
+#if defined(DART_DYNAMIC_MODULES) && defined(DART_PRECOMPILED_RUNTIME)
+      // TODO(alexmarkov)
+      false;
+#else
       kernel::NeedsDynamicInvocationForwarder(*this);
+#endif
   if (!needs_dyn_forwarder) {
     return ptr();
   }
@@ -4281,6 +4424,22 @@ FunctionPtr Function::GetDynamicInvocationForwarder(
   result = CreateDynamicInvocationForwarder(mangled_name);
   owner.AddInvocationDispatcher(mangled_name, Array::null_array(), result);
   return result.ptr();
+}
+
+void Function::ReadParameterCovariance(
+    BitVector* is_covariant,
+    BitVector* is_generic_covariant_impl) const {
+#if defined(DART_DYNAMIC_MODULES)
+  if (is_declared_in_bytecode()) {
+    bytecode::BytecodeReader::ReadParameterCovariance(
+        *this, is_covariant, is_generic_covariant_impl);
+    return;
+  }
+#endif
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  kernel::ReadParameterCovariance(*this, is_covariant,
+                                  is_generic_covariant_impl);
+#endif
 }
 
 #endif
@@ -4913,11 +5072,21 @@ ObjectPtr Instance::EvaluateCompiledExpression(
 
 void Class::EnsureDeclarationLoaded() const {
   if (!is_declaration_loaded()) {
+#if defined(DART_DYNAMIC_MODULES)
+    // Loading of class declaration can be postponed until needed
+    // if class comes from bytecode.
+    if (is_declared_in_bytecode()) {
+      bytecode::BytecodeReader::LoadClassDeclaration(*this);
+      ASSERT(is_declaration_loaded());
+      ASSERT(is_type_finalized());
+      return;
+    }
+#endif  // defined(DART_DYNAMIC_MODULES)
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
     FATAL("Unable to use class %s which is not loaded yet.", ToCString());
-#endif
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
   }
 }
 
@@ -4927,7 +5096,7 @@ ErrorPtr Class::EnsureIsFinalized(Thread* thread) const {
   if (is_finalized()) {
     return Error::null();
   }
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
   return Error::null();
 #else
@@ -4947,7 +5116,7 @@ ErrorPtr Class::EnsureIsFinalized(Thread* thread) const {
     }
   }
   return error.ptr();
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
 }
 
 // Ensure that code outdated by finalized class is cleaned up, new instance of
@@ -5488,6 +5657,8 @@ const char* Class::GenerateUserVisibleName() const {
       return Symbols::WeakArray().ToCString();
     case kCodeCid:
       return Symbols::Code().ToCString();
+    case kBytecodeCid:
+      return Symbols::Bytecode().ToCString();
     case kInstructionsCid:
       return Symbols::Instructions().ToCString();
     case kInstructionsSectionCid:
@@ -5578,6 +5749,14 @@ void Class::set_implementor_cid(intptr_t value) const {
   StoreNonPointer(&untag()->implementor_cid_, value);
 }
 
+void Class::ClearImplementor() const {
+  // Check raw implementor_cid_ without normalization done by
+  // implementor_cid() accessor.
+  if (untag()->implementor_cid_ != kVoidCid) {
+    set_implementor_cid(kIllegalCid);
+  }
+}
+
 bool Class::NoteImplementor(const Class& implementor) const {
   ASSERT(!implementor.is_abstract());
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
@@ -5604,6 +5783,9 @@ uint32_t Class::Hash(ClassPtr obj) {
 
 int32_t Class::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  if (is_declared_in_bytecode()) {
+    return 0;
+  }
   return kernel::KernelSourceFingerprintHelper::CalculateClassFingerprint(
       *this);
 #else
@@ -5611,13 +5793,13 @@ int32_t Class::SourceFingerprint() const {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
-void Class::set_is_implemented() const {
+void Class::set_is_implemented(bool value) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  set_is_implemented_unsafe();
+  set_is_implemented_unsafe(value);
 }
 
-void Class::set_is_implemented_unsafe() const {
-  set_state_bits(ImplementedBit::update(true, state_bits()));
+void Class::set_is_implemented_unsafe(bool value) const {
+  set_state_bits(ImplementedBit::update(value, state_bits()));
 }
 
 void Class::set_is_abstract() const {
@@ -5711,6 +5893,13 @@ void Class::set_is_loaded(bool value) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(IsLoadedBit::update(value, state_bits()));
 }
+
+#if defined(DART_DYNAMIC_MODULES)
+void Class::set_is_declared_in_bytecode(bool value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(IsDeclaredInBytecodeBit::update(value, state_bits()));
+}
+#endif  // defined(DART_DYNAMIC_MODULES)
 
 void Class::set_is_finalized() const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
@@ -7878,12 +8067,12 @@ void PatchClass::set_script(const Script& value) const {
 }
 
 uword Function::Hash() const {
-  uword hash = String::HashRawSymbol(name());
-  if (IsClosureFunction()) {
-    hash = hash ^ token_pos().Hash();
+  uint32_t hash = String::HashRawSymbol(name());
+  if (IsNonImplicitClosureFunction()) {
+    hash = CombineHashes(hash, token_pos().Hash());
   }
   if (Owner()->IsClass()) {
-    hash = hash ^ Class::Hash(Class::RawCast(Owner()));
+    hash = CombineHashes(hash, Class::Hash(Class::RawCast(Owner())));
   }
   return hash;
 }
@@ -7940,6 +8129,24 @@ bool Function::HasCode() const {
   return untag()->code() != StubCode::LazyCompile().ptr();
 }
 
+#if defined(DART_DYNAMIC_MODULES)
+
+void Function::AttachBytecode(const Bytecode& value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  ASSERT(!value.IsNull());
+  // Finish setting up code before activating it.
+  if (!value.InVMIsolateHeap()) {
+    value.set_function(*this);
+  }
+  ASSERT(untag()->ic_data_array_or_bytecode() == Object::null());
+  untag()->set_ic_data_array_or_bytecode(value.ptr());
+
+  // Set the code entry_point to InterpretCall stub.
+  SetInstructions(StubCode::InterpretCall());
+}
+
+#endif  // defined(DART_DYNAMIC_MODULES)
+
 bool Function::HasCode(FunctionPtr function) {
   NoSafepointScope no_safepoint;
   ASSERT(function->untag()->code() != Code::null());
@@ -7970,14 +8177,22 @@ void Function::EnsureHasCompiledUnoptimizedCode() const {
   ASSERT(!ForceOptimize());
   Thread* thread = Thread::Current();
   ASSERT(thread->IsDartMutatorThread());
-  // TODO(35224): DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
+  DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   Zone* zone = thread->zone();
 
   const Error& error =
-      Error::Handle(zone, Compiler::EnsureUnoptimizedCode(thread, *this));
+      Error::Handle(zone, EnsureHasCompiledUnoptimizedCodeNoThrow());
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }
+}
+
+ErrorPtr Function::EnsureHasCompiledUnoptimizedCodeNoThrow() const {
+  ASSERT(!ForceOptimize());
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsDartMutatorThread());
+
+  return Compiler::EnsureUnoptimizedCode(thread, *this);
 }
 
 void Function::SwitchToUnoptimizedCode() const {
@@ -8473,10 +8688,11 @@ RegExpPtr Function::regexp() const {
   return RegExp::RawCast(pair.At(0));
 }
 
-class StickySpecialization : public BitField<intptr_t, bool, 0, 1> {};
-class StringSpecializationCid
-    : public BitField<intptr_t, intptr_t, 1, UntaggedObject::kClassIdTagSize> {
-};
+using StickySpecialization = BitField<intptr_t, bool>;
+using StringSpecializationCid = BitField<intptr_t,
+                                         intptr_t,
+                                         StickySpecialization::kNextBit,
+                                         UntaggedObject::ClassIdTag::bitsize()>;
 
 intptr_t Function::string_specialization_cid() const {
   ASSERT(kind() == UntaggedFunction::kIrregexpFunction);
@@ -8656,7 +8872,7 @@ StringPtr FunctionType::ParameterNameAt(intptr_t index) const {
 
 void FunctionType::SetParameterNameAt(intptr_t index,
                                       const String& value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
   ASSERT(!value.IsNull() && value.IsSymbol());
@@ -8691,7 +8907,7 @@ void Function::CreateNameArray(Heap::Space space) const {
 }
 
 void FunctionType::CreateNameArrayIncludingFlags(Heap::Space space) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
   const intptr_t num_named_parameters = NumOptionalNamedParameters();
@@ -8920,14 +9136,6 @@ bool Function::is_eval_function() const {
   return false;
 }
 
-void Function::set_packed_fields(uint32_t packed_fields) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-#else
-  StoreNonPointer(&untag()->packed_fields_, packed_fields);
-#endif
-}
-
 bool Function::IsOptimizable() const {
   if (FLAG_precompiled_mode) {
     return true;
@@ -8944,15 +9152,6 @@ bool Function::IsOptimizable() const {
             FLAG_huge_method_cutoff_in_code_size);
   }
   return false;
-}
-
-void Function::SetIsOptimizable(bool value) const {
-  ASSERT(!is_native());
-  set_is_optimizable(value);
-  if (!value) {
-    set_is_inlinable(false);
-    set_usage_counter(INT32_MIN);
-  }
 }
 
 bool Function::IsTypedDataViewFactory() const {
@@ -10256,7 +10455,6 @@ FunctionPtr Function::New(const FunctionType& signature,
   ASSERT(!signature.IsNull());
   const Function& result = Function::Handle(Function::New(space));
   result.set_kind_tag(0);
-  result.set_packed_fields(0);
   result.set_name(name);
   result.set_kind_tag(0);  // Ensure determinism of uninitialized bits.
   result.set_kind(kind);
@@ -10284,7 +10482,7 @@ FunctionPtr Function::New(const FunctionType& signature,
   NOT_IN_PRECOMPILED(result.set_optimized_call_site_count(0));
   NOT_IN_PRECOMPILED(result.set_inlining_depth(0));
   NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
-  result.set_is_optimizable(is_native ? false : true);
+  NOT_IN_PRECOMPILED(result.set_is_optimizable(is_native ? false : true));
   result.set_is_inlinable(true);
   result.reset_unboxed_parameters_and_return();
   result.SetInstructionsSafe(StubCode::LazyCompile());
@@ -10389,7 +10587,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
     return implicit_closure_function();
   }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   // In AOT mode all implicit closures are pre-created.
   FATAL("Cannot create implicit closure in AOT!");
   return Function::null();
@@ -10409,6 +10607,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
       zone, NewImplicitClosureFunction(closure_name, *this, token_pos()));
 
   // Set closure function's context scope.
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (is_static() || IsConstructor()) {
     closure_function.set_context_scope(Object::empty_context_scope());
   } else {
@@ -10416,6 +10615,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
         zone, LocalScope::CreateImplicitClosureScope(*this));
     closure_function.set_context_scope(context_scope);
   }
+#endif
 
   FunctionType& closure_signature =
       FunctionType::Handle(zone, closure_function.signature());
@@ -10523,7 +10723,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   closure_signature.set_result_type(result_type);
 
   // Set closure function's end token to this end token.
-  closure_function.set_end_token_pos(end_token_pos());
+  NOT_IN_PRECOMPILED(closure_function.set_end_token_pos(end_token_pos()));
 
   // The closurized method stub just calls into the original method and should
   // therefore be skipped by the debugger and in stack traces.
@@ -10546,21 +10746,22 @@ FunctionPtr Function::ImplicitClosureFunction() const {
                                              has_opt_pos_params);
   closure_signature.set_parameter_types(
       Array::Handle(zone, Array::New(num_params, Heap::kOld)));
-  closure_function.CreateNameArray();
+  NOT_IN_PRECOMPILED(closure_function.CreateNameArray());
   closure_signature.CreateNameArrayIncludingFlags();
   AbstractType& param_type = AbstractType::Handle(zone);
   String& param_name = String::Handle(zone);
   // Add implicit closure object parameter.
   param_type = Type::DynamicType();
   closure_signature.SetParameterTypeAt(0, param_type);
-  closure_function.SetParameterNameAt(0, Symbols::ClosureParameter());
+  NOT_IN_PRECOMPILED(
+      closure_function.SetParameterNameAt(0, Symbols::ClosureParameter()));
   for (int i = kClosure; i < num_pos_params; i++) {
     param_type = ParameterTypeAt(num_implicit_params - kClosure + i);
     transform_type(param_type);
     closure_signature.SetParameterTypeAt(i, param_type);
     param_name = ParameterNameAt(num_implicit_params - kClosure + i);
     // Set the name in the function for positional parameters.
-    closure_function.SetParameterNameAt(i, param_name);
+    NOT_IN_PRECOMPILED(closure_function.SetParameterNameAt(i, param_name));
   }
   for (int i = num_pos_params; i < num_params; i++) {
     param_type = ParameterTypeAt(num_implicit_params - kClosure + i);
@@ -10580,8 +10781,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
     // Change covariant parameter types to Object?.
     BitVector is_covariant(zone, NumParameters());
     BitVector is_generic_covariant_impl(zone, NumParameters());
-    kernel::ReadParameterCovariance(*this, &is_covariant,
-                                    &is_generic_covariant_impl);
+    ReadParameterCovariance(&is_covariant, &is_generic_covariant_impl);
 
     ObjectStore* object_store = IsolateGroup::Current()->object_store();
     const auto& object_type =
@@ -10595,6 +10795,27 @@ FunctionPtr Function::ImplicitClosureFunction() const {
       }
     }
   }
+
+#if defined(DART_DYNAMIC_MODULES)
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const bool attach_bytecode = true;
+#else
+  const bool attach_bytecode = is_declared_in_bytecode();
+#endif
+  if (attach_bytecode) {
+    if (is_static()) {
+      closure_function.AttachBytecode(
+          Object::implicit_static_closure_bytecode());
+    } else if (IsConstructor()) {
+      closure_function.AttachBytecode(
+          Object::implicit_constructor_closure_bytecode());
+    } else {
+      closure_function.AttachBytecode(
+          Object::implicit_instance_closure_bytecode());
+    }
+  }
+#endif
+
   ASSERT(!closure_signature.IsFinalized());
   closure_signature ^= ClassFinalizer::FinalizeType(closure_signature);
   closure_function.SetSignature(closure_signature);
@@ -10839,19 +11060,27 @@ bool Function::IsPrivate() const {
   return Library::IsPrivate(String::Handle(name()));
 }
 
-ClassPtr Function::Owner() const {
-  ASSERT(untag()->owner() != Object::null());
-  if (untag()->owner()->IsClass()) {
-    return Class::RawCast(untag()->owner());
+ClassPtr Function::Owner(FunctionPtr function) {
+  ObjectPtr owner = function->untag()->owner();
+  ASSERT(owner != Object::null());
+  if (owner->IsClass()) {
+    return Class::RawCast(owner);
   }
-  const Object& obj = Object::Handle(untag()->owner());
-  ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).wrapped_class();
+  ASSERT(owner->IsPatchClass());
+  return PatchClass::RawCast(owner)->untag()->wrapped_class();
 }
+
+#if defined(DART_DYNAMIC_MODULES)
+bool Function::is_declared_in_bytecode() const {
+  return Class::Handle(Owner()).is_declared_in_bytecode();
+}
+#endif
 
 void Function::InheritKernelOffsetFrom(const Function& src) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
+#endif
 #else
   StoreNonPointer(&untag()->kernel_offset_, src.untag()->kernel_offset_);
 #endif
@@ -10859,7 +11088,9 @@ void Function::InheritKernelOffsetFrom(const Function& src) const {
 
 void Function::InheritKernelOffsetFrom(const Field& src) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
+#endif
 #else
   set_kernel_offset(src.kernel_offset());
 #endif
@@ -10947,6 +11178,7 @@ intptr_t Function::KernelLibraryOffset() const {
 }
 
 intptr_t Function::KernelLibraryIndex() const {
+  ASSERT(!is_declared_in_bytecode());
   if (IsNoSuchMethodDispatcher() || IsInvokeFieldDispatcher() ||
       IsFfiCallbackTrampoline()) {
     return -1;
@@ -11169,6 +11401,9 @@ StringPtr Function::GetSource() const {
 // arguments.
 int32_t Function::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  if (is_declared_in_bytecode()) {
+    return 0;
+  }
   return kernel::KernelSourceFingerprintHelper::CalculateFunctionFingerprint(
       *this);
 #else
@@ -11267,11 +11502,22 @@ ArrayPtr Function::GetCoverageArray() const {
 }
 
 void Function::set_ic_data_array(const Array& value) const {
-  untag()->set_ic_data_array<std::memory_order_release>(value.ptr());
+#if defined(DART_DYNAMIC_MODULES)
+  ASSERT(!HasBytecode());
+#endif
+  untag()->set_ic_data_array_or_bytecode<std::memory_order_release>(
+      value.ptr());
 }
 
 ArrayPtr Function::ic_data_array() const {
-  return untag()->ic_data_array<std::memory_order_acquire>();
+  ObjectPtr value =
+      untag()->ic_data_array_or_bytecode<std::memory_order_acquire>();
+#if defined(DART_DYNAMIC_MODULES)
+  if (value->IsBytecode()) {
+    return Array::null();
+  }
+#endif
+  return Array::RawCast(value);
 }
 
 void Function::ClearICDataArray() const {
@@ -11324,6 +11570,8 @@ bool Function::CheckSourceFingerprint(int32_t fp, const char* kind) const {
       (Dart::vm_snapshot_kind() != Snapshot::kNone)) {
     return true;  // The kernel structure has been altered, skip checking.
   }
+
+  ASSERT(!is_declared_in_bytecode());
 
   if (SourceFingerprint() != fp) {
     // This output can be copied into a file, then used with sed
@@ -11458,6 +11706,12 @@ bool Function::PrologueNeedsArgumentsDescriptor() const {
   if (HasSavedArgumentsDescriptor()) {
     return false;
   }
+#if defined(DART_DYNAMIC_MODULES)
+  // Entering interpreter needs arguments descriptor.
+  if (is_declared_in_bytecode()) {
+    return true;
+  }
+#endif
   // The prologue of those functions need to examine the arg descriptor for
   // various purposes.
   return IsGeneric() || HasOptionalParameters();
@@ -11913,6 +12167,12 @@ uint32_t Field::Hash() const {
   return String::HashRawSymbol(name());
 }
 
+#if defined(DART_DYNAMIC_MODULES)
+bool Field::is_declared_in_bytecode() const {
+  return Class::Handle(Owner()).is_declared_in_bytecode();
+}
+#endif
+
 void Field::InheritKernelOffsetFrom(const Field& src) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
@@ -11979,7 +12239,6 @@ void Field::InitializeNew(const Field& result,
                           const Object& owner,
                           TokenPosition token_pos,
                           TokenPosition end_token_pos) {
-  result.set_kind_bits(0);
   result.set_name(name);
   result.set_is_static(is_static);
   if (is_static) {
@@ -12085,6 +12344,9 @@ FieldPtr Field::Clone(const Field& original) const {
 
 int32_t Field::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  if (is_declared_in_bytecode()) {
+    return 0;
+  }
   return kernel::KernelSourceFingerprintHelper::CalculateFieldFingerprint(
       *this);
 #else
@@ -12318,7 +12580,7 @@ FunctionPtr Field::EnsureInitializerFunction() const {
   Zone* zone = thread->zone();
   Function& initializer = Function::Handle(zone, InitializerFunction());
   if (initializer.IsNull()) {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
     UNREACHABLE();
 #else
     SafepointMutexLocker ml(
@@ -12326,17 +12588,82 @@ FunctionPtr Field::EnsureInitializerFunction() const {
     // Double check after grabbing the lock.
     initializer = InitializerFunction();
     if (initializer.IsNull()) {
-      initializer = kernel::CreateFieldInitializerFunction(thread, zone, *this);
+      initializer = CreateFieldInitializerFunction(thread);
     }
 #endif
   }
   return initializer.ptr();
 }
 
-void Field::SetInitializerFunction(const Function& initializer) const {
+#if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
+
+FunctionPtr Field::CreateFieldInitializerFunction(Thread* thread) const {
+  Zone* zone = thread->zone();
+  ASSERT(InitializerFunction() == Function::null());
+
+  String& init_name = String::Handle(zone, name());
+  init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
+
+  const auto& field_owner = Class::Handle(zone, Owner());
+
 #if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
+  const auto& initializer_owner = Class::Handle(zone, field_owner.ptr());
 #else
+  // Static field initializers are not added as members of their owning class,
+  // so they must be preemptively given a patch class to avoid the meaning of
+  // their kernel/token position changing during a reload. Compare
+  // Class::PatchFieldsAndFunctions().
+  // This might also be necessary for lazy computation of local var descriptors.
+  // Compare https://codereview.chromium.org//1317753004
+  const auto& script = Script::Handle(zone, Script());
+  const auto& kernel_program_info =
+      KernelProgramInfo::Handle(zone, KernelProgramInfo());
+  const auto& initializer_owner = PatchClass::Handle(
+      zone, PatchClass::New(field_owner, kernel_program_info, script));
+  if (!is_declared_in_bytecode()) {
+    const Library& lib = Library::Handle(zone, field_owner.library());
+    initializer_owner.set_kernel_library_index(lib.kernel_library_index());
+  }
+#endif
+
+  // Create a static initializer.
+  FunctionType& signature = FunctionType::Handle(zone, FunctionType::New());
+  const Function& initializer_fun = Function::Handle(
+      zone,
+      Function::New(signature, init_name, UntaggedFunction::kFieldInitializer,
+                    is_static(),  // is_static
+                    false,        // is_const
+                    false,        // is_abstract
+                    false,        // is_external
+                    false,        // is_native
+                    initializer_owner, TokenPosition::kNoSource));
+  if (!is_static()) {
+    signature.set_num_fixed_parameters(1);
+    signature.set_parameter_types(
+        Array::Handle(zone, Array::New(1, Heap::kOld)));
+    signature.SetParameterTypeAt(
+        0, AbstractType::Handle(zone, field_owner.DeclarationType()));
+    NOT_IN_PRECOMPILED(initializer_fun.CreateNameArray());
+    NOT_IN_PRECOMPILED(initializer_fun.SetParameterNameAt(0, Symbols::This()));
+  }
+  signature.set_result_type(AbstractType::Handle(zone, type()));
+  initializer_fun.set_is_reflectable(false);
+  initializer_fun.set_is_inlinable(false);
+  NOT_IN_PRECOMPILED(initializer_fun.set_token_pos(token_pos()));
+  NOT_IN_PRECOMPILED(initializer_fun.set_end_token_pos(end_token_pos()));
+  initializer_fun.set_accessor_field(*this);
+  initializer_fun.InheritKernelOffsetFrom(*this);
+  initializer_fun.set_is_extension_member(is_extension_member());
+  initializer_fun.set_is_extension_type_member(is_extension_type_member());
+
+  signature ^= ClassFinalizer::FinalizeType(signature);
+  initializer_fun.SetSignature(signature);
+
+  SetInitializerFunction(initializer_fun);
+  return initializer_fun.ptr();
+}
+
+void Field::SetInitializerFunction(const Function& initializer) const {
   ASSERT(IsOriginal());
   ASSERT(IsolateGroup::Current()
              ->initializer_functions_mutex()
@@ -12346,8 +12673,9 @@ void Field::SetInitializerFunction(const Function& initializer) const {
   // accessed without grabbing the lock.
   untag()->set_initializer_function<std::memory_order_release>(
       initializer.ptr());
-#endif
 }
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
 bool Field::HasInitializerFunction() const {
   return untag()->initializer_function() != Function::null();
@@ -14781,6 +15109,10 @@ LibraryPtr Library::AsyncLibrary() {
   return IsolateGroup::Current()->object_store()->async_library();
 }
 
+LibraryPtr Library::ConcurrentLibrary() {
+  return IsolateGroup::Current()->object_store()->concurrent_library();
+}
+
 LibraryPtr Library::ConvertLibrary() {
   return IsolateGroup::Current()->object_store()->convert_library();
 }
@@ -14791,6 +15123,10 @@ LibraryPtr Library::CoreLibrary() {
 
 LibraryPtr Library::CollectionLibrary() {
   return IsolateGroup::Current()->object_store()->collection_library();
+}
+
+LibraryPtr Library::CompactHashLibrary() {
+  return IsolateGroup::Current()->object_store()->_compact_hash_library();
 }
 
 LibraryPtr Library::DeveloperLibrary() {
@@ -15303,7 +15639,7 @@ ErrorPtr Library::FinalizeAllClasses() {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 // Return Function::null() if function does not exist in libs.
-FunctionPtr Library::GetFunction(const GrowableArray<Library*>& libs,
+FunctionPtr Library::GetFunction(const Library& lib,
                                  const char* class_name,
                                  const char* function_name) {
   Thread* thread = Thread::Current();
@@ -15312,28 +15648,22 @@ FunctionPtr Library::GetFunction(const GrowableArray<Library*>& libs,
   String& class_str = String::Handle(zone);
   String& func_str = String::Handle(zone);
   Class& cls = Class::Handle(zone);
-  for (intptr_t l = 0; l < libs.length(); l++) {
-    const Library& lib = *libs[l];
-    if (strcmp(class_name, "::") == 0) {
-      cls = lib.toplevel_class();
-    } else {
-      class_str = String::New(class_name);
-      cls = lib.LookupClassAllowPrivate(class_str);
-    }
-    if (!cls.IsNull()) {
-      if (cls.EnsureIsFinalized(thread) == Error::null()) {
-        func_str = String::New(function_name);
-        if (function_name[0] == '.') {
-          func_str = String::Concat(class_str, func_str);
-        }
-        func = cls.LookupFunctionAllowPrivate(func_str);
+  if (strcmp(class_name, "::") == 0) {
+    cls = lib.toplevel_class();
+  } else {
+    class_str = String::New(class_name);
+    cls = lib.LookupClassAllowPrivate(class_str);
+  }
+  if (!cls.IsNull()) {
+    if (cls.EnsureIsFinalized(thread) == Error::null()) {
+      func_str = String::New(function_name);
+      if (function_name[0] == '.') {
+        func_str = String::Concat(class_str, func_str);
       }
-    }
-    if (!func.IsNull()) {
-      return func.ptr();
+      func = cls.LookupFunctionAllowPrivate(func_str);
     }
   }
-  return Function::null();
+  return func.ptr();
 }
 
 ObjectPtr Library::GetFunctionClosure(const String& name) const {
@@ -15363,12 +15693,14 @@ ObjectPtr Library::GetFunctionClosure(const String& name) const {
 
 #if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
 void Library::CheckFunctionFingerprints() {
-  GrowableArray<Library*> all_libs;
+  Library& lib = Library::Handle();
   Function& func = Function::Handle();
   bool fingerprints_match = true;
 
-#define CHECK_FINGERPRINTS_INNER(class_name, function_name, dest, fp, kind)    \
-  func = GetFunction(all_libs, #class_name, #function_name);                   \
+#define CHECK_FINGERPRINTS_INNER(library, class_name, function_name, dest, fp, \
+                                 kind)                                         \
+  lib = Library::library();                                                    \
+  func = Library::GetFunction(lib, #class_name, #function_name);               \
   if (func.IsNull()) {                                                         \
     fingerprints_match = false;                                                \
     OS::PrintErr("Function not found %s.%s\n", #class_name, #function_name);   \
@@ -15377,40 +15709,25 @@ void Library::CheckFunctionFingerprints() {
         func.CheckSourceFingerprint(fp, kind) && fingerprints_match;           \
   }
 
-#define CHECK_FINGERPRINTS(class_name, function_name, dest, fp)                \
-  CHECK_FINGERPRINTS_INNER(class_name, function_name, dest, fp, nullptr)
-#define CHECK_FINGERPRINTS_ASM_INTRINSIC(class_name, function_name, dest, fp)  \
-  CHECK_FINGERPRINTS_INNER(class_name, function_name, dest, fp, "asm-intrinsic")
-#define CHECK_FINGERPRINTS_GRAPH_INTRINSIC(class_name, function_name, dest,    \
-                                           fp)                                 \
-  CHECK_FINGERPRINTS_INNER(class_name, function_name, dest, fp,                \
+#define CHECK_FINGERPRINTS(library, class_name, function_name, dest, fp)       \
+  CHECK_FINGERPRINTS_INNER(library, class_name, function_name, dest, fp,       \
+                           nullptr)
+#define CHECK_FINGERPRINTS_ASM_INTRINSIC(library, class_name, function_name,   \
+                                         dest, fp)                             \
+  CHECK_FINGERPRINTS_INNER(library, class_name, function_name, dest, fp,       \
+                           "asm-intrinsic")
+#define CHECK_FINGERPRINTS_GRAPH_INTRINSIC(library, class_name, function_name, \
+                                           dest, fp)                           \
+  CHECK_FINGERPRINTS_INNER(library, class_name, function_name, dest, fp,       \
                            "graph-intrinsic")
-#define CHECK_FINGERPRINTS_OTHER(class_name, function_name, dest, fp)          \
-  CHECK_FINGERPRINTS_INNER(class_name, function_name, dest, fp, "other")
+#define CHECK_FINGERPRINTS_OTHER(library, class_name, function_name, dest, fp) \
+  CHECK_FINGERPRINTS_INNER(library, class_name, function_name, dest, fp,       \
+                           "other")
 
-  all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
-  CORE_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
-  CORE_INTEGER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
-  GRAPH_CORE_INTRINSICS_LIST(CHECK_FINGERPRINTS_GRAPH_INTRINSIC);
-
-  all_libs.Add(&Library::ZoneHandle(Library::AsyncLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::ConvertLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::IsolateLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::FfiLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::NativeWrappersLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
-  INTERNAL_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
-  OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS_OTHER);
-  POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
-  GRAPH_TYPED_DATA_INTRINSICS_LIST(CHECK_FINGERPRINTS_GRAPH_INTRINSIC);
-
-  all_libs.Clear();
-  all_libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
-  DEVELOPER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
+  POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS)
+  ASM_INTRINSICS_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC)
+  GRAPH_INTRINSICS_LIST(CHECK_FINGERPRINTS_GRAPH_INTRINSIC)
+  OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS_OTHER)
 
 #undef CHECK_FINGERPRINTS_INNER
 #undef CHECK_FINGERPRINTS
@@ -15418,19 +15735,19 @@ void Library::CheckFunctionFingerprints() {
 #undef CHECK_FINGERPRINTS_GRAPH_INTRINSIC
 #undef CHECK_FINGERPRINTS_OTHER
 
-#define CHECK_FACTORY_FINGERPRINTS(symbol, class_name, factory_name, cid, fp)  \
-  func = GetFunction(all_libs, #class_name, #factory_name);                    \
+#define CHECK_FACTORY_FINGERPRINTS(symbol, library, class_name, factory_name,  \
+                                   cid, fp)                                    \
+  lib = Library::library();                                                    \
+  func = GetFunction(lib, #class_name, #factory_name);                         \
   if (func.IsNull()) {                                                         \
     fingerprints_match = false;                                                \
-    OS::PrintErr("Function not found %s.%s\n", #class_name, #factory_name);    \
+    OS::PrintErr("Function not found %s.%s.%s\n", #library, #class_name,       \
+                 #factory_name);                                               \
   } else {                                                                     \
     fingerprints_match =                                                       \
         func.CheckSourceFingerprint(fp) && fingerprints_match;                 \
   }
 
-  all_libs.Clear();
-  all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   RECOGNIZED_LIST_FACTORY_LIST(CHECK_FACTORY_FINGERPRINTS);
 
 #undef CHECK_FACTORY_FINGERPRINTS
@@ -16139,7 +16456,7 @@ LocalVarDescriptorsPtr LocalVarDescriptors::New(intptr_t num_variables) {
     FATAL(
         "Fatal error in LocalVarDescriptors::New: "
         "invalid num_variables %" Pd ". Maximum is: %d\n",
-        num_variables, UntaggedLocalVarDescriptors::kMaxIndex);
+        num_variables, UntaggedLocalVarDescriptors::VarInfo::kMaxIndex);
   }
   auto raw = Object::Allocate<LocalVarDescriptors>(Heap::kOld, num_variables);
   NoSafepointScope no_safepoint;
@@ -18499,6 +18816,199 @@ void Code::DumpSourcePositions(bool relative_addresses) const {
   reader.DumpSourcePositions(relative_addresses ? 0 : PayloadStart());
 }
 
+void Bytecode::Disassemble(DisassemblyFormatter* formatter) const {
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+#if defined(DART_DYNAMIC_MODULES)
+  if (!FLAG_support_disassembler) {
+    return;
+  }
+  uword start = PayloadStart();
+  intptr_t size = Size();
+  if (formatter == NULL) {
+    KernelBytecodeDisassembler::Disassemble(start, start + size, *this);
+  } else {
+    KernelBytecodeDisassembler::Disassemble(start, start + size, formatter,
+                                            *this);
+  }
+#endif  // defined(DART_DYNAMIC_MODULES)
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+}
+
+BytecodePtr Bytecode::New(uword instructions,
+                          intptr_t instructions_size,
+                          intptr_t instructions_offset,
+                          const TypedDataBase& binary,
+                          const ObjectPool& object_pool) {
+  ASSERT(Object::bytecode_class() != Class::null());
+  Bytecode& result = Bytecode::Handle();
+  {
+    auto raw = Object::Allocate<Bytecode>(Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result = raw;
+    result.set_instructions(instructions);
+    result.set_instructions_size(instructions_size);
+    result.set_object_pool(object_pool);
+    result.set_pc_descriptors(Object::empty_descriptors());
+    result.set_binary(binary);
+    result.set_instructions_binary_offset(instructions_offset);
+    result.set_code_offset(0);
+    result.set_source_positions_binary_offset(0);
+  }
+  return result.ptr();
+}
+
+TokenPosition Bytecode::GetTokenIndexOfPC(uword return_address) const {
+#if defined(DART_DYNAMIC_MODULES)
+  if (!HasSourcePositions()) {
+    return TokenPosition::kNoSource;
+  }
+  Zone* zone = Thread::Current()->zone();
+  uword pc_offset = return_address - PayloadStart();
+  // pc_offset could equal to bytecode size if the last instruction is Throw.
+  ASSERT(pc_offset <= static_cast<uword>(Size()));
+  bytecode::BytecodeSourcePositionsIterator iter(zone, *this);
+  TokenPosition token_pos = TokenPosition::kNoSource;
+  while (iter.MoveNext()) {
+    if (pc_offset <= iter.PcOffset()) {
+      break;
+    }
+    token_pos = iter.TokenPos();
+  }
+  return token_pos;
+#else
+  UNREACHABLE();
+#endif
+}
+
+intptr_t Bytecode::GetTryIndexAtPc(uword return_address) const {
+#if defined(DART_DYNAMIC_MODULES)
+  intptr_t try_index = -1;
+  const uword pc_offset = return_address - PayloadStart();
+  const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
+  PcDescriptors::Iterator iter(descriptors, UntaggedPcDescriptors::kAnyKind);
+  while (iter.MoveNext()) {
+    // PC descriptors for try blocks in bytecode are generated in pairs,
+    // marking start and end of a try block.
+    // See BytecodeReaderHelper::ReadExceptionsTable for details.
+    const intptr_t current_try_index = iter.TryIndex();
+    const uword start_pc = iter.PcOffset();
+    if (pc_offset < start_pc) {
+      break;
+    }
+    const bool has_next = iter.MoveNext();
+    ASSERT(has_next);
+    const uword end_pc = iter.PcOffset();
+    if (start_pc <= pc_offset && pc_offset < end_pc) {
+      ASSERT(try_index < current_try_index);
+      try_index = current_try_index;
+    }
+  }
+  return try_index;
+#else
+  UNREACHABLE();
+#endif
+}
+
+uword Bytecode::GetFirstDebugCheckOpcodePc() const {
+#if defined(DART_DYNAMIC_MODULES)
+  uword pc = PayloadStart();
+  const uword end_pc = pc + Size();
+  while (pc < end_pc) {
+    if (KernelBytecode::IsDebugCheckOpcode(
+            reinterpret_cast<const KBCInstr*>(pc))) {
+      return pc;
+    }
+    pc = KernelBytecode::Next(pc);
+  }
+  return 0;
+#else
+  UNREACHABLE();
+#endif
+}
+
+uword Bytecode::GetDebugCheckedOpcodeReturnAddress(uword from_offset,
+                                                   uword to_offset) const {
+#if defined(DART_DYNAMIC_MODULES)
+  uword pc = PayloadStart() + from_offset;
+  const uword end_pc = pc + (to_offset - from_offset);
+  while (pc < end_pc) {
+    uword next_pc = KernelBytecode::Next(pc);
+    if (KernelBytecode::IsDebugCheckedOpcode(
+            reinterpret_cast<const KBCInstr*>(pc))) {
+      // Return the pc after the opcode, i.e. its 'return address'.
+      return next_pc;
+    }
+    pc = next_pc;
+  }
+  return 0;
+#else
+  UNREACHABLE();
+#endif
+}
+
+const char* Bytecode::ToCString() const {
+  return Thread::Current()->zone()->PrintToString("Bytecode(%s)",
+                                                  QualifiedName());
+}
+
+static const char* BytecodeStubName(const Bytecode& bytecode) {
+  if (bytecode.ptr() == Object::implicit_getter_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_ImplicitGetter";
+  } else if (bytecode.ptr() == Object::implicit_setter_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_ImplicitSetter";
+  } else if (bytecode.ptr() ==
+             Object::implicit_static_getter_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_ImplicitStaticGetter";
+  } else if (bytecode.ptr() ==
+             Object::implicit_static_setter_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_ImplicitStaticSetter";
+  } else if (bytecode.ptr() == Object::method_extractor_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_MethodExtractor";
+  } else if (bytecode.ptr() == Object::invoke_closure_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_InvokeClosure";
+  } else if (bytecode.ptr() == Object::invoke_field_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_InvokeField";
+  }
+  return "[unknown stub]";
+}
+
+const char* Bytecode::Name() const {
+  Zone* zone = Thread::Current()->zone();
+  const Function& fun = Function::Handle(zone, function());
+  if (fun.IsNull()) {
+    return BytecodeStubName(*this);
+  }
+  const char* function_name =
+      String::Handle(zone, fun.UserVisibleName()).ToCString();
+  return zone->PrintToString("[Bytecode] %s", function_name);
+}
+
+const char* Bytecode::QualifiedName() const {
+  Zone* zone = Thread::Current()->zone();
+  const Function& fun = Function::Handle(zone, function());
+  if (fun.IsNull()) {
+    return BytecodeStubName(*this);
+  }
+  const char* function_name =
+      String::Handle(zone, fun.QualifiedScrubbedName()).ToCString();
+  return zone->PrintToString("[Bytecode] %s", function_name);
+}
+
+const char* Bytecode::FullyQualifiedName() const {
+  Zone* zone = Thread::Current()->zone();
+  const Function& fun = Function::Handle(zone, function());
+  if (fun.IsNull()) {
+    return BytecodeStubName(*this);
+  }
+  const char* function_name = fun.ToFullyQualifiedCString();
+  return zone->PrintToString("[Bytecode] %s", function_name);
+}
+
+void Bytecode::set_binary(const TypedDataBase& binary) const {
+  ASSERT(binary.IsNull() || binary.IsExternalOrExternalView());
+  untag()->set_binary(binary.ptr());
+}
+
 intptr_t Context::GetLevel() const {
   intptr_t level = 0;
   Context& parent_ctx = Context::Handle(parent());
@@ -20217,6 +20727,9 @@ ObjectPtr Instance::HashCode() const {
 // Keep in sync with AsmIntrinsifier::Object_getHash.
 IntegerPtr Instance::IdentityHashCode(Thread* thread) const {
   if (IsInteger()) return Integer::Cast(*this).ptr();
+  if (IsString()) {
+    return Smi::New(String::Cast(*this).Hash());
+  }
 
 #if defined(HASH_IN_OBJECT_HEADER)
   intptr_t hash = Object::GetCachedHash(ptr());
@@ -20507,7 +21020,7 @@ void Instance::SetField(const Field& field, const Object& value) const {
         break;
       default:
         StoreNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field)),
-                        Integer::Cast(value).AsInt64Value());
+                        Integer::Cast(value).Value());
         break;
     }
   } else {
@@ -20516,12 +21029,70 @@ void Instance::SetField(const Field& field, const Object& value) const {
   }
 }
 
-AbstractTypePtr Instance::GetType(Heap::Space space) const {
+void Instance::SetFieldWithoutFieldGuard(const Field& field,
+                                         const Object& value) const {
+  if (field.is_unboxed()) {
+    switch (field.guarded_cid()) {
+      case kDoubleCid:
+        StoreNonPointer(reinterpret_cast<double_t*>(FieldAddr(field)),
+                        Double::Cast(value).value());
+        break;
+      case kFloat32x4Cid:
+        StoreNonPointer(reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
+                        Float32x4::Cast(value).value());
+        break;
+      case kFloat64x2Cid:
+        StoreNonPointer(reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
+                        Float64x2::Cast(value).value());
+        break;
+      default:
+        StoreNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field)),
+                        Integer::Cast(value).Value());
+        break;
+    }
+  } else {
+    // Some basic validation that we are not violating guarded cid.
+    RELEASE_ASSERT(!Thread::Current()->isolate_group()->use_field_guards() ||
+                   field.guarded_cid() == kDynamicCid ||
+                   field.guarded_cid() == value.GetClassId() ||
+                   (field.is_nullable() && value.IsNull()));
+    StoreCompressedPointer(FieldAddr(field), value.ptr());
+  }
+}
+
+AbstractTypePtr Instance::GetType(Heap::Space space,
+                                  TypeVisibility visibility) const {
   if (IsNull()) {
     return Type::NullType();
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  if (visibility == TypeVisibility::kUserVisibleType) {
+    // VM hides certain internal implementation classes
+    // and substitutes them with public user-visible types
+    // (String, int, double, Type, List).
+    if (IsString()) {
+      return Type::StringType();
+    } else if (IsInteger()) {
+      return Type::IntType();
+    } else if (IsDouble()) {
+      return Type::Double();
+    } else if (IsAbstractType()) {
+      return Type::DartTypeType();
+    } else if (IsArrayClassId(GetClassId())) {
+      const auto& cls = Class::Handle(
+          zone, thread->isolate_group()->object_store()->list_class());
+      auto& type_arguments = TypeArguments::Handle(zone, GetTypeArguments());
+      type_arguments = type_arguments.FromInstanceTypeArguments(thread, cls);
+      // Assume internal VM types are properly encapsulated in the core
+      // libraries and cannot appear in type arguments.
+      const auto& type =
+          Type::Handle(zone, Type::New(cls, type_arguments,
+                                       Nullability::kNonNullable, Heap::kNew));
+      type.SetIsFinalized();
+      return type.Canonicalize(thread);
+    }
+  }
   const Class& cls = Class::Handle(zone, clazz());
   if (!cls.is_finalized()) {
     // Various predefined classes can be instantiated by the VM or
@@ -20541,7 +21112,7 @@ AbstractTypePtr Instance::GetType(Heap::Space space) const {
   if (IsRecord()) {
     ASSERT(cls.IsRecordClass());
     auto& record_type =
-        RecordType::Handle(zone, Record::Cast(*this).GetRecordType());
+        RecordType::Handle(zone, Record::Cast(*this).GetRecordType(visibility));
     ASSERT(record_type.IsFinalized());
     ASSERT(record_type.IsCanonical());
     return record_type.ptr();
@@ -21022,7 +21593,8 @@ const char* Instance::ToCString() const {
     }
     // Background compiler disassembly of instructions referring to pool objects
     // calls this function and requires allocation of Type in old space.
-    const AbstractType& type = AbstractType::Handle(GetType(Heap::kOld));
+    const AbstractType& type = AbstractType::Handle(
+        GetType(Heap::kOld, TypeVisibility::kUserVisibleType));
     const String& type_name = String::Handle(type.UserVisibleName());
     return OS::SCreate(Thread::Current()->zone(), "Instance of '%s'",
                        type_name.ToCString());
@@ -23036,69 +23608,25 @@ bool Integer::Equals(const Instance& other) const {
   return false;
 }
 
-bool Integer::IsZero() const {
-  // Integer is an abstract class.
-  UNREACHABLE();
-  return false;
-}
-
-bool Integer::IsNegative() const {
-  // Integer is an abstract class.
-  UNREACHABLE();
-  return false;
-}
-
-double Integer::AsDoubleValue() const {
-  // Integer is an abstract class.
-  UNREACHABLE();
-  return 0.0;
-}
-
-int64_t Integer::AsInt64Value() const {
-  // Integer is an abstract class.
-  UNREACHABLE();
-  return 0;
-}
-
-uint32_t Integer::AsTruncatedUint32Value() const {
-  // Integer is an abstract class.
-  UNREACHABLE();
-  return 0;
-}
-
-bool Integer::FitsIntoSmi() const {
-  // Integer is an abstract class.
-  UNREACHABLE();
-  return false;
-}
-
 int Integer::CompareWith(const Integer& other) const {
-  // Integer is an abstract class.
-  UNREACHABLE();
-  return 0;
+  int64_t a = Value();
+  int64_t b = other.Value();
+  if (a < b) {
+    return -1;
+  } else if (a > b) {
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
 uint32_t Integer::CanonicalizeHash() const {
-  return Multiply64Hash(AsInt64Value());
-}
-
-IntegerPtr Integer::AsValidInteger() const {
-  if (IsSmi()) return ptr();
-  if (IsMint()) {
-    Mint& mint = Mint::Handle();
-    mint ^= ptr();
-    if (Smi::IsValid(mint.value())) {
-      return Smi::New(static_cast<intptr_t>(mint.value()));
-    } else {
-      return ptr();
-    }
-  }
-  return ptr();
+  return Multiply64Hash(Value());
 }
 
 const char* Integer::ToHexCString(Zone* zone) const {
   ASSERT(IsSmi() || IsMint());
-  int64_t value = AsInt64Value();
+  int64_t value = Value();
   if (value < 0) {
     return OS::SCreate(zone, "-0x%" PX64, -static_cast<uint64_t>(value));
   } else {
@@ -23143,8 +23671,8 @@ IntegerPtr Integer::ArithmeticOp(Token::Kind operation,
         UNIMPLEMENTED();
     }
   }
-  const int64_t left_value = AsInt64Value();
-  const int64_t right_value = other.AsInt64Value();
+  const int64_t left_value = Value();
+  const int64_t right_value = other.Value();
   switch (operation) {
     case Token::kADD:
       return Integer::New(Utils::AddWithWrapAround(left_value, right_value),
@@ -23211,8 +23739,8 @@ IntegerPtr Integer::BitOp(Token::Kind kind,
     ASSERT(Smi::IsValid(result));
     return Smi::New(result);
   } else {
-    int64_t a = AsInt64Value();
-    int64_t b = other.AsInt64Value();
+    int64_t a = Value();
+    int64_t b = other.Value();
     switch (kind) {
       case Token::kBIT_AND:
         return Integer::New(a & b, space);
@@ -23230,8 +23758,8 @@ IntegerPtr Integer::BitOp(Token::Kind kind,
 IntegerPtr Integer::ShiftOp(Token::Kind kind,
                             const Integer& other,
                             Heap::Space space) const {
-  int64_t a = AsInt64Value();
-  int64_t b = other.AsInt64Value();
+  int64_t a = Value();
+  int64_t b = other.Value();
   ASSERT(b >= 0);
   switch (kind) {
     case Token::kSHL:
@@ -23252,40 +23780,6 @@ bool Smi::Equals(const Instance& other) const {
     return false;
   }
   return (this->Value() == Smi::Cast(other).Value());
-}
-
-double Smi::AsDoubleValue() const {
-  return static_cast<double>(this->Value());
-}
-
-int64_t Smi::AsInt64Value() const {
-  return this->Value();
-}
-
-uint32_t Smi::AsTruncatedUint32Value() const {
-  return this->Value() & 0xFFFFFFFF;
-}
-
-int Smi::CompareWith(const Integer& other) const {
-  if (other.IsSmi()) {
-    const Smi& other_smi = Smi::Cast(other);
-    if (this->Value() < other_smi.Value()) {
-      return -1;
-    } else if (this->Value() > other_smi.Value()) {
-      return 1;
-    } else {
-      return 0;
-    }
-  }
-  ASSERT(!other.FitsIntoSmi());
-  if (other.IsMint()) {
-    if (this->IsNegative() == other.IsNegative()) {
-      return this->IsNegative() ? 1 : -1;
-    }
-    return this->IsNegative() ? -1 : 1;
-  }
-  UNREACHABLE();
-  return 0;
 }
 
 const char* Smi::ToCString() const {
@@ -23325,41 +23819,11 @@ bool Mint::Equals(const Instance& other) const {
   if (!other.IsMint() || other.IsNull()) {
     return false;
   }
-  return value() == Mint::Cast(other).value();
-}
-
-double Mint::AsDoubleValue() const {
-  return static_cast<double>(this->value());
-}
-
-int64_t Mint::AsInt64Value() const {
-  return this->value();
-}
-
-uint32_t Mint::AsTruncatedUint32Value() const {
-  return this->value() & 0xFFFFFFFF;
-}
-
-bool Mint::FitsIntoSmi() const {
-  return Smi::IsValid(AsInt64Value());
-}
-
-int Mint::CompareWith(const Integer& other) const {
-  ASSERT(!FitsIntoSmi());
-  ASSERT(other.IsMint() || other.IsSmi());
-  int64_t a = AsInt64Value();
-  int64_t b = other.AsInt64Value();
-  if (a < b) {
-    return -1;
-  } else if (a > b) {
-    return 1;
-  } else {
-    return 0;
-  }
+  return Value() == Mint::Cast(other).Value();
 }
 
 const char* Mint::ToCString() const {
-  return OS::SCreate(Thread::Current()->zone(), "%" Pd64 "", value());
+  return OS::SCreate(Thread::Current()->zone(), "%" Pd64 "", Value());
 }
 
 void Double::set_value(double value) const {
@@ -23519,7 +23983,7 @@ uword String::Hash(const uint16_t* characters, intptr_t len) {
 }
 
 intptr_t String::CharSize() const {
-  intptr_t class_id = ptr()->GetClassId();
+  intptr_t class_id = ptr()->GetClassIdOfHeapObject();
   if (class_id == kOneByteStringCid) {
     return kOneByteChar;
   }
@@ -24300,8 +24764,8 @@ bool String::EqualsIgnoringPrivateKey(const String& str1, const String& str2) {
     return true;  // Both handles point to the same raw instance.
   }
   NoSafepointScope no_safepoint;
-  intptr_t str1_class_id = str1.ptr()->GetClassId();
-  intptr_t str2_class_id = str2.ptr()->GetClassId();
+  intptr_t str1_class_id = str1.ptr()->GetClassIdOfHeapObject();
+  intptr_t str2_class_id = str2.ptr()->GetClassIdOfHeapObject();
   switch (str1_class_id) {
     case kOneByteStringCid:
       EQUALS_IGNORING_PRIVATE_KEY(str2_class_id, OneByteString, str1, str2);
@@ -25068,18 +25532,12 @@ class DefaultHashTraits {
     if (obj.IsNull()) {
       return 0;
     }
-    // TODO(koda): Ensure VM classes only produce Smi hash codes, and remove
-    // non-Smi cases once Dart-side implementation is complete.
     Thread* thread = Thread::Current();
     REUSABLE_INSTANCE_HANDLESCOPE(thread);
     Instance& hash_code = thread->InstanceHandle();
     hash_code ^= Instance::Cast(obj).HashCode();
-    if (hash_code.IsSmi()) {
-      // May waste some bits on 64-bit, to ensure consistency with non-Smi case.
-      return static_cast<uword>(Smi::Cast(hash_code).AsTruncatedUint32Value());
-    } else if (hash_code.IsInteger()) {
-      return static_cast<uword>(
-          Integer::Cast(hash_code).AsTruncatedUint32Value());
+    if (hash_code.IsInteger()) {
+      return static_cast<uword>(Integer::Cast(hash_code).Value() & 0xFFFFFFFF);
     } else {
       return 0;
     }
@@ -25544,7 +26002,7 @@ const intptr_t
         16,  // kTypedDataFloat32x4ArrayCid.
         16,  // kTypedDataInt32x4ArrayCid.
         16,  // kTypedDataFloat64x2ArrayCid,
-    };
+};
 
 bool TypedData::CanonicalizeEquals(const Instance& other) const {
   if (this->ptr() == other.ptr()) {
@@ -25926,14 +26384,15 @@ uword Closure::ComputeHash() const {
           Instance::Handle(zone, GetImplicitClosureReceiver());
       const Integer& receiverHash =
           Integer::Handle(zone, receiver.IdentityHashCode(thread));
-      result = CombineHashes(result, receiverHash.AsTruncatedUint32Value());
+      result =
+          CombineHashes(result, static_cast<uint32_t>(receiverHash.Value()));
     }
   } else {
     // Non-implicit closures of non-generic functions are unique,
     // so identityHashCode of closure object is good enough.
     const Integer& identityHash =
         Integer::Handle(zone, this->IdentityHashCode(thread));
-    result = identityHash.AsTruncatedUint32Value();
+    result = static_cast<uint32_t>(identityHash.Value());
   }
   return FinalizeHash(result, String::kHashBits);
 }
@@ -26375,6 +26834,26 @@ const char* StackTrace::ToCString() const {
       }
 
       const uword pc_offset = stack_trace.PcOffsetAtFrame(i);
+
+      // A visible frame ends any gap we might be in.
+      in_gap = false;
+
+#if defined(DART_DYNAMIC_MODULES)
+      if (code_object.IsBytecode()) {
+        const auto& bytecode = Bytecode::Cast(code_object);
+        function = bytecode.function();
+
+        if (!function.IsNull() &&
+            (FLAG_show_invisible_frames || function.is_visible())) {
+          auto const pos =
+              bytecode.GetTokenIndexOfPC(bytecode.PayloadStart() + pc_offset);
+          PrintSymbolicStackFrame(zone, &buffer, function, pos, frame_index);
+          frame_index++;
+        }
+        continue;
+      }
+#endif  // defined(DART_DYNAMIC_MODULES)
+
       ASSERT(code_object.IsCode());
       code ^= code_object.ptr();
       ASSERT(code.IsFunctionCode());
@@ -26388,9 +26867,6 @@ const char* StackTrace::ToCString() const {
 
       const bool is_future_listener =
           pc_offset == StackTraceUtils::kFutureListenerPcOffset;
-
-      // A visible frame ends any gap we might be in.
-      in_gap = false;
 
 #if defined(DART_PRECOMPILED_RUNTIME)
       // When printing non-symbolic frames, we normally print call
@@ -27124,6 +27600,7 @@ EntryPointPragma FindEntryPointPragma(IsolateGroup* IG,
         Instance::Cast(*pragma).GetField(*reusable_field_handle);
     if ((pragma_name != Symbols::vm_entry_point().ptr()) &&
         (pragma_name != Symbols::dyn_module_callable().ptr()) &&
+        (pragma_name != Symbols::dyn_module_implicitly_callable().ptr()) &&
         (pragma_name != Symbols::dyn_module_extendable().ptr())) {
       continue;
     }
@@ -27826,7 +28303,7 @@ void Record::CanonicalizeFieldsLocked(Thread* thread) const {
   }
 }
 
-RecordTypePtr Record::GetRecordType() const {
+RecordTypePtr Record::GetRecordType(TypeVisibility visibility) const {
   Zone* const zone = Thread::Current()->zone();
   const intptr_t num_fields = this->num_fields();
   const Array& field_types =
@@ -27835,7 +28312,7 @@ RecordTypePtr Record::GetRecordType() const {
   AbstractType& type = AbstractType::Handle(zone);
   for (intptr_t i = 0; i < num_fields; ++i) {
     obj ^= FieldAt(i);
-    type = obj.GetType(Heap::kNew);
+    type = obj.GetType(Heap::kNew, visibility);
     field_types.SetAt(i, type);
   }
   type = RecordType::New(shape(), field_types, Nullability::kNonNullable);

@@ -58,6 +58,7 @@ Future<CompilerResult?> kernelForProgramInternal(
       options: options, inputs: [source, ...additionalSources]);
   return await CompilerContext.runWithOptions(pOptions, (context) async {
     CompilerResult result = await generateKernelInternal(
+      context,
       includeHierarchyAndCoreTypes: true,
       retainDataForTesting: retainDataForTesting,
       buildComponent: buildComponent,
@@ -68,6 +69,7 @@ Future<CompilerResult?> kernelForProgramInternal(
 
     if (requireMain && component.mainMethod == null) {
       context.options.report(
+          context,
           messageMissingMain.withLocation(source, -1, noLength),
           Severity.error);
       return null;
@@ -116,12 +118,6 @@ abstract class CompilerResult {
 
   /// The components loaded from dill (excluding the sdk).
   List<Component> get loadedComponents;
-
-  /// Dependencies traversed by the compiler. Used only for generating
-  /// dependency .GN files in the dart-sdk build system.
-  /// Note this might be removed when we switch to compute dependencies without
-  /// using the compiler itself.
-  List<Uri> get deps;
 
   /// The [ClassHierarchy] for the compiled [component], if it was requested.
   ClassHierarchy? get classHierarchy;

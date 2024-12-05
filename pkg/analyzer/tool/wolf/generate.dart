@@ -106,7 +106,7 @@ class _Instructions {
     _addInstruction('yield_', []);
     // Invocations and tearoffs
     _addInstruction('call',
-        [(callDescriptor('callDescriptor')), (argumentNames('argumentNames'))]);
+        [callDescriptor('callDescriptor'), argumentNames('argumentNames')]);
   }
 
   _NontrivialEncoding encoding(String type,

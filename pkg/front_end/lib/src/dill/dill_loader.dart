@@ -106,9 +106,7 @@ class DillLoader extends Loader {
     DillLibraryBuilder? libraryBuilder = _builders[uri];
     if (libraryBuilder == null) {
       libraryBuilder = _knownLibraryBuilders.remove(uri);
-      assert(
-          libraryBuilder != null, // Coverage-ignore(suite): Not run.
-          "No library found for $uri.");
+      assert(libraryBuilder != null, "No library found for $uri.");
       _builders[uri] = libraryBuilder!;
       assert(libraryBuilder.loader == this);
       if (uri.isScheme("dart")) {

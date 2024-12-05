@@ -12,6 +12,7 @@
 namespace dart {
 
 enum class ExperimentalFeature {
+  digit_separators,
   inference_update_3,
   inline_class,
   inference_update_2,

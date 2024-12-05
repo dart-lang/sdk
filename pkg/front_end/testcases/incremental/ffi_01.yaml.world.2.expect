@@ -8,38 +8,45 @@ library from "org-dartlang-test:///lib.dart" as lib {
     constructor #fromTypedDataBase(synthesized dart.core::Object #typedDataBase, synthesized dart.core::int #offsetInBytes) → lib::Coordinate
       : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
       ;
+    @#C9
     constructor #fromTypedData(synthesized dart.typed_data::TypedData #typedData, synthesized dart.core::int #offset, synthesized dart.core::int #sizeInBytes) → lib::Coordinate
       : super dart.ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
       ;
-    @#C8
+    @#C10
+    @#C9
     get x() → dart.core::double
       return dart.ffi::_loadDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Coordinate::x#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num});
-    @#C8
+    @#C10
+    @#C9
     set x(synthesized dart.core::double #externalFieldValue) → void
       return dart.ffi::_storeDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Coordinate::x#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue);
-    @#C8
+    @#C10
+    @#C9
     get y() → dart.core::double
       return dart.ffi::_loadDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Coordinate::y#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num});
-    @#C8
+    @#C10
+    @#C9
     set y(synthesized dart.core::double #externalFieldValue) → void
       return dart.ffi::_storeDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Coordinate::y#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue);
+    @#C9
     get next() → dart.ffi::Pointer<lib::Coordinate>
       return dart.ffi::_loadPointer<lib::Coordinate>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Coordinate::next#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num});
+    @#C9
     set next(synthesized dart.ffi::Pointer<lib::Coordinate> #externalFieldValue) → void
       return dart.ffi::_storePointer<lib::Coordinate>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Coordinate::next#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue);
     static factory allocate(dart.core::double x, dart.core::double y, dart.ffi::Pointer<lib::Coordinate>? next) → lib::Coordinate {
       throw "";
     }
-    @#C10
+    @#C9
     static get x#offsetOf() → dart.core::int
       return #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
-    @#C10
+    @#C9
     static get y#offsetOf() → dart.core::int
       return #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
-    @#C10
+    @#C9
     static get next#offsetOf() → dart.core::int
       return #C16.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
-    @#C10
+    @#C9
     static get #sizeOf() → dart.core::int
       return #C19.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
   }
@@ -67,9 +74,9 @@ constants  {
   #C5 = null
   #C6 = dart.ffi::_FfiStructLayout {fieldTypes:#C4, packing:#C5}
   #C7 = dart.core::pragma {name:#C1, options:#C6}
-  #C8 = dart.ffi::Double {}
-  #C9 = "vm:prefer-inline"
-  #C10 = dart.core::pragma {name:#C9, options:#C5}
+  #C8 = "vm:prefer-inline"
+  #C9 = dart.core::pragma {name:#C8, options:#C5}
+  #C10 = dart.ffi::Double {}
   #C11 = 0
   #C12 = <dart.core::int>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
   #C13 = 8

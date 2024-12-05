@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/kernel/constructor_tearoff_lowering.dart'
+import 'package:front_end/src/api_prototype/lowering_predicates.dart'
     show isTearOffLowering;
 import 'package:kernel/kernel.dart';
 

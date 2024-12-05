@@ -8,12 +8,13 @@
 library source_mapping.test.viewer;
 
 import 'dart:async';
+
 import 'package:_fe_analyzer_shared/src/util/filenames.dart';
-import 'package:compiler/src/util/util.dart';
-import 'source_mapping_tester.dart';
+
 import '../helpers/sourcemap_helper.dart';
 import '../helpers/sourcemap_html_helper.dart';
 import '../helpers/sourcemap_html_templates.dart';
+import 'source_mapping_tester.dart';
 
 const String DEFAULT_OUTPUT_PATH = 'out.js.map.html';
 
@@ -91,27 +92,21 @@ class OutputConfigurations implements Configurations {
   final Iterable<String> configs;
   @override
   final Iterable<String> files;
-  final Map<Pair, String> pathMap = {};
-  final Map<Pair, Uri> uriMap = {};
+  final Map<(String, String), String> pathMap = {};
+  final Map<(String, String), Uri> uriMap = {};
 
   OutputConfigurations(this.configs, this.files);
 
   void registerPathUri(String config, String file, String path, Uri uri) {
-    Pair key = Pair(config, file);
+    var key = (config, file);
     pathMap[key] = path;
     uriMap[key] = uri;
   }
 
-  Uri? getUri(String config, String file) {
-    Pair key = Pair(config, file);
-    return uriMap[key];
-  }
+  Uri? getUri(String config, String file) => uriMap[(config, file)];
 
   @override
-  String getPath(String config, String file) {
-    Pair key = Pair(config, file);
-    return pathMap[key]!;
-  }
+  String getPath(String config, String file) => pathMap[(config, file)]!;
 }
 
 Future<Measurement> runTest(

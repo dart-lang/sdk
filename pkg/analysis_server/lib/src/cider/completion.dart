@@ -7,11 +7,13 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/fuzzy_filter_sort.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analyzer/dart/element/element.dart' show LibraryElement;
+import 'package:analyzer/dart/element/element.dart'
+    show CompilationUnitElement, LibraryElement;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:meta/meta.dart';
 
 /// The cache that can be reuse for across multiple completion request.
@@ -117,7 +119,7 @@ class CiderCompletionComputer {
           _logger.run('Add imported suggestions', () {
             suggestions.addAll(
               _importedLibrariesSuggestions(
-                target: resolvedUnit.libraryElement,
+                target: resolvedUnit.unitElement,
                 performance: performance,
               ),
             );
@@ -166,11 +168,16 @@ class CiderCompletionComputer {
   // TODO(scheglov): Implement show / hide combinators.
   // TODO(scheglov): Implement prefixes.
   List<CompletionSuggestionBuilder> _importedLibrariesSuggestions({
-    required LibraryElement target,
+    required CompilationUnitElement target,
     required OperationPerformanceImpl performance,
   }) {
     var suggestionBuilders = <CompletionSuggestionBuilder>[];
-    for (var importedLibrary in target.importedLibraries) {
+    var importedLibraries = target.withEnclosing
+        .expand((fragment) => fragment.libraryImports)
+        .map((import) => import.importedLibrary)
+        .nonNulls
+        .toSet();
+    for (var importedLibrary in importedLibraries) {
       var importedSuggestions = _importedLibrarySuggestions(
         element: importedLibrary,
         performance: performance,

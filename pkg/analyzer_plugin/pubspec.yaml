@@ -10,6 +10,7 @@ dependencies:
   analyzer: ^6.0.0
   collection: ^1.15.0
   dart_style: ^2.2.1
+  meta: ^1.15.0
   pub_semver: ^2.1.0
   yaml: ^3.1.0
   path: ^1.9.0
@@ -22,6 +23,5 @@ dev_dependencies:
   analyzer_utilities: any
   lints: any
   linter: any
-  meta: any
   test_reflective_loader: any
   test: any

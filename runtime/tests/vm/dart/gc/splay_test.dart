@@ -17,10 +17,10 @@
 // VMOptions=--profiler --concurrent_mark --concurrent_sweep
 // VMOptions=--profiler --concurrent_mark --use_compactor
 // VMOptions=--profiler --concurrent_mark --use_compactor --force_evacuation
+// VMOptions=--profiler --scavenger_tasks=-1
 // VMOptions=--profiler --scavenger_tasks=0
 // VMOptions=--profiler --scavenger_tasks=1
 // VMOptions=--profiler --scavenger_tasks=2
-// VMOptions=--profiler --scavenger_tasks=3
 // VMOptions=--profiler --verify_before_gc
 // VMOptions=--profiler --verify_after_gc
 // VMOptions=--profiler --verify_before_gc --verify_after_gc

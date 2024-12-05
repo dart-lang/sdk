@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'string_scanner.dart';
+/// @docImport 'utf8_bytes_scanner.dart';
+/// @docImport '../parser/class_member_parser.dart';
 library _fe_analyzer_shared.scanner.abstract_scanner;
 
 import 'dart:collection' show ListMixin;
@@ -26,6 +29,7 @@ import '../messages/codes.dart'
         messageExpectedHexDigit,
         messageMissingExponent,
         messageUnexpectedDollarInString,
+        messageUnexpectedSeparatorInNumber,
         messageUnterminatedComment;
 
 import '../util/link.dart' show Link;
@@ -138,10 +142,11 @@ abstract class AbstractScanner implements Scanner {
 
   final bool inRecoveryOption;
   int recoveryCount = 0;
+  final bool allowLazyStrings;
 
   AbstractScanner(ScannerConfiguration? config, this.includeComments,
       this.languageVersionChanged,
-      {int? numberOfBytesHint})
+      {required int numberOfBytesHint, this.allowLazyStrings = true})
       : lineStarts = new LineStarts(numberOfBytesHint),
         inRecoveryOption = false {
     this.tail = this.tokens;
@@ -155,7 +160,8 @@ abstract class AbstractScanner implements Scanner {
       : lineStarts = [],
         includeComments = false,
         languageVersionChanged = null,
-        inRecoveryOption = true {
+        inRecoveryOption = true,
+        allowLazyStrings = true {
     this.tail = this.tokens;
     this.errorTail = this.tokens;
     this._enableExtensionMethods = copyFrom._enableExtensionMethods;
@@ -246,6 +252,7 @@ abstract class AbstractScanner implements Scanner {
   /**
    * Notifies that a new token starts at current offset.
    */
+  @pragma("vm:prefer-inline")
   void beginToken() {
     tokenStart = stringOffset;
   }
@@ -261,7 +268,8 @@ abstract class AbstractScanner implements Scanner {
    */
   void appendSubstringToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
-    appendToken(createSubstringToken(type, start, asciiOnly, extraOffset));
+    appendToken(createSubstringToken(
+        type, start, asciiOnly, extraOffset, allowLazyStrings));
   }
 
   /**
@@ -273,9 +281,8 @@ abstract class AbstractScanner implements Scanner {
    * Note that [extraOffset] can only be used if the covered character(s) are
    * known to be ASCII.
    */
-  analyzer.StringToken createSubstringToken(
-      TokenType type, int start, bool asciiOnly,
-      [int extraOffset = 0]);
+  analyzer.StringToken createSubstringToken(TokenType type, int start,
+      bool asciiOnly, int extraOffset, bool allowLazy);
 
   /**
    * Appends a substring from the scan offset [start] to the current
@@ -318,7 +325,7 @@ abstract class AbstractScanner implements Scanner {
    */
   int select(int choice, TokenType yes, TokenType no) {
     int next = advance();
-    if (identical(next, choice)) {
+    if (next == choice) {
       appendPrecedenceToken(yes);
       return advance();
     } else {
@@ -381,8 +388,7 @@ abstract class AbstractScanner implements Scanner {
     appendToken(token);
 
     // { [ ${ cannot appear inside a type parameters / arguments.
-    if (!identical(type.kind, LT_TOKEN) &&
-        !identical(type.kind, OPEN_PAREN_TOKEN)) {
+    if (type.kind != LT_TOKEN && type.kind != OPEN_PAREN_TOKEN) {
       discardOpenLt();
     }
     groupingStack = groupingStack.prepend(token);
@@ -395,7 +401,7 @@ abstract class AbstractScanner implements Scanner {
    * and [appendGtGtGt].
    */
   int appendEndGroup(TokenType type, int openKind) {
-    assert(!identical(openKind, LT_TOKEN)); // openKind is < for > and >>
+    assert(openKind != LT_TOKEN); // openKind is < for > and >>
     bool foundMatchingBrace = discardBeginGroupUntil(openKind);
     return appendEndGroupInternal(foundMatchingBrace, type, openKind);
   }
@@ -415,7 +421,7 @@ abstract class AbstractScanner implements Scanner {
     appendPrecedenceToken(type);
     Token close = tail;
     BeginToken begin = groupingStack.head;
-    if (!identical(begin.kind, openKind)) {
+    if (begin.kind != openKind) {
       assert(begin.kind == STRING_INTERPOLATION_TOKEN &&
           openKind == OPEN_CURLY_BRACKET_TOKEN);
       // We're ending an interpolated expression.
@@ -438,7 +444,7 @@ abstract class AbstractScanner implements Scanner {
   void appendGt(TokenType type) {
     appendPrecedenceToken(type);
     if (groupingStack.isEmpty) return;
-    if (identical(groupingStack.head.kind, LT_TOKEN)) {
+    if (groupingStack.head.kind == LT_TOKEN) {
       groupingStack.head.endGroup = tail;
       groupingStack = groupingStack.tail!;
     }
@@ -452,13 +458,13 @@ abstract class AbstractScanner implements Scanner {
   void appendGtGt(TokenType type) {
     appendPrecedenceToken(type);
     if (groupingStack.isEmpty) return;
-    if (identical(groupingStack.head.kind, LT_TOKEN)) {
+    if (groupingStack.head.kind == LT_TOKEN) {
       // Don't assign endGroup: in "T<U<V>>", the '>>' token closes the outer
       // '<', the inner '<' is left without endGroup.
       groupingStack = groupingStack.tail!;
     }
     if (groupingStack.isEmpty) return;
-    if (identical(groupingStack.head.kind, LT_TOKEN)) {
+    if (groupingStack.head.kind == LT_TOKEN) {
       groupingStack.head.endGroup = tail;
       groupingStack = groupingStack.tail!;
     }
@@ -474,15 +480,15 @@ abstract class AbstractScanner implements Scanner {
 
     // Don't assign endGroup: in "T<U<V<X>>>", the '>>>' token closes the
     // outer '<', all the inner '<' are left without endGroups.
-    if (identical(groupingStack.head.kind, LT_TOKEN)) {
+    if (groupingStack.head.kind == LT_TOKEN) {
       groupingStack = groupingStack.tail!;
     }
     if (groupingStack.isEmpty) return;
-    if (identical(groupingStack.head.kind, LT_TOKEN)) {
+    if (groupingStack.head.kind == LT_TOKEN) {
       groupingStack = groupingStack.tail!;
     }
     if (groupingStack.isEmpty) return;
-    if (identical(groupingStack.head.kind, LT_TOKEN)) {
+    if (groupingStack.head.kind == LT_TOKEN) {
       groupingStack.head.endGroup = tail;
       groupingStack = groupingStack.tail!;
     }
@@ -649,7 +655,7 @@ abstract class AbstractScanner implements Scanner {
     // This recovers nicely from situations like "{[}".
     while (!identical(originalStack, entryToUse)) {
       // Don't report unmatched errors for <; it is also the less-than operator.
-      if (!identical(entryToUse.head.kind, LT_TOKEN)) {
+      if (entryToUse.head.kind != LT_TOKEN) {
         unmatchedBeginGroup(originalStack.head);
       }
       originalStack = originalStack.tail!;
@@ -659,7 +665,7 @@ abstract class AbstractScanner implements Scanner {
   /**
    * This method is called to discard '<' from the "grouping" stack.
    *
-   * [PartialParser.skipExpression] relies on the fact that we do not
+   * [ClassMemberParser.skipExpression] relies on the fact that we do not
    * create groups for stuff like:
    * [:a = b < c, d = e > f:].
    *
@@ -668,8 +674,7 @@ abstract class AbstractScanner implements Scanner {
    * list, like the '=' in the above example.
    */
   void discardOpenLt() {
-    while (!groupingStack.isEmpty &&
-        identical(groupingStack.head.kind, LT_TOKEN)) {
+    while (!groupingStack.isEmpty && groupingStack.head.kind == LT_TOKEN) {
       groupingStack = groupingStack.tail!;
     }
   }
@@ -685,7 +690,7 @@ abstract class AbstractScanner implements Scanner {
       BeginToken beginToken = groupingStack.head;
       unmatchedBeginGroup(beginToken);
       groupingStack = groupingStack.tail!;
-      if (identical(beginToken.kind, STRING_INTERPOLATION_TOKEN)) break;
+      if (beginToken.kind == STRING_INTERPOLATION_TOKEN) break;
     }
   }
 
@@ -750,20 +755,20 @@ abstract class AbstractScanner implements Scanner {
       int next = advance();
 
       // Scan the header looking for a language version
-      if (!identical(next, $EOF)) {
+      if (next != $EOF) {
         Token oldTail = tail;
         next = bigHeaderSwitch(next);
-        if (!identical(next, $EOF) && tail.kind == SCRIPT_TOKEN) {
+        if (next != $EOF && tail.kind == SCRIPT_TOKEN) {
           oldTail = tail;
           next = bigHeaderSwitch(next);
         }
-        while (!identical(next, $EOF) && tail == oldTail) {
+        while (next != $EOF && tail == oldTail) {
           next = bigHeaderSwitch(next);
         }
         next = next;
       }
 
-      while (!identical(next, $EOF)) {
+      while (next != $EOF) {
         next = bigSwitch(next);
       }
       if (atEndOfFile()) {
@@ -785,7 +790,7 @@ abstract class AbstractScanner implements Scanner {
   int recoveryOptionTokenizer(int next) {
     int iterations = 0;
     while (!atEndOfFile()) {
-      while (!identical(next, $EOF)) {
+      while (next != $EOF) {
         // TODO(jensj): Look at number of lines, tokens, parenthesis stack,
         // semi-colon etc, not just number of iterations.
         next = bigSwitch(next);
@@ -809,11 +814,11 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int bigHeaderSwitch(int next) {
-    if (!identical(next, $SLASH)) {
+    if (next != $SLASH) {
       return bigSwitch(next);
     }
     beginToken();
-    if (!identical($SLASH, peek())) {
+    if ($SLASH != peek()) {
       return tokenizeSlashOrComment(next);
     }
     return tokenizeLanguageVersionOrSingleLineComment(next);
@@ -821,14 +826,11 @@ abstract class AbstractScanner implements Scanner {
 
   int bigSwitch(int next) {
     beginToken();
-    if (identical(next, $SPACE) ||
-        identical(next, $TAB) ||
-        identical(next, $LF) ||
-        identical(next, $CR)) {
+    if (next == $SPACE || next == $TAB || next == $LF || next == $CR) {
       appendWhiteSpace(next);
       next = advance();
       // Sequences of spaces are common, so advance through them fast.
-      while (identical(next, $SPACE)) {
+      while (next == $SPACE) {
         // We don't invoke [:appendWhiteSpace(next):] here for efficiency,
         // assuming that it does not do anything for space characters.
         next = advance();
@@ -839,90 +841,90 @@ abstract class AbstractScanner implements Scanner {
     int nextLower = next | 0x20;
 
     if ($a <= nextLower && nextLower <= $z) {
-      if (identical($r, next)) {
+      if ($r == next) {
         return tokenizeRawStringKeywordOrIdentifier(next);
       }
       return tokenizeKeywordOrIdentifier(next, /* allowDollar = */ true);
     }
 
-    if (identical(next, $CLOSE_PAREN)) {
+    if (next == $CLOSE_PAREN) {
       return appendEndGroup(TokenType.CLOSE_PAREN, OPEN_PAREN_TOKEN);
     }
 
-    if (identical(next, $OPEN_PAREN)) {
+    if (next == $OPEN_PAREN) {
       appendBeginGroup(TokenType.OPEN_PAREN);
       return advance();
     }
 
-    if (identical(next, $SEMICOLON)) {
+    if (next == $SEMICOLON) {
       appendPrecedenceToken(TokenType.SEMICOLON);
       // Type parameters and arguments cannot contain semicolon.
       discardOpenLt();
       return advance();
     }
 
-    if (identical(next, $PERIOD)) {
+    if (next == $PERIOD) {
       return tokenizeDotsOrNumber(next);
     }
 
-    if (identical(next, $COMMA)) {
+    if (next == $COMMA) {
       appendPrecedenceToken(TokenType.COMMA);
       return advance();
     }
 
-    if (identical(next, $EQ)) {
+    if (next == $EQ) {
       return tokenizeEquals(next);
     }
 
-    if (identical(next, $CLOSE_CURLY_BRACKET)) {
+    if (next == $CLOSE_CURLY_BRACKET) {
       return appendEndGroup(
           TokenType.CLOSE_CURLY_BRACKET, OPEN_CURLY_BRACKET_TOKEN);
     }
 
-    if (identical(next, $SLASH)) {
+    if (next == $SLASH) {
       return tokenizeSlashOrComment(next);
     }
 
-    if (identical(next, $OPEN_CURLY_BRACKET)) {
+    if (next == $OPEN_CURLY_BRACKET) {
       appendBeginGroup(TokenType.OPEN_CURLY_BRACKET);
       return advance();
     }
 
-    if (identical(next, $DQ) || identical(next, $SQ)) {
+    if (next == $DQ || next == $SQ) {
       return tokenizeString(next, scanOffset, /* raw = */ false);
     }
 
-    if (identical(next, $_)) {
+    if (next == $_) {
       return tokenizeKeywordOrIdentifier(next, /* allowDollar = */ true);
     }
 
-    if (identical(next, $COLON)) {
+    if (next == $COLON) {
       appendPrecedenceToken(TokenType.COLON);
       return advance();
     }
 
-    if (identical(next, $LT)) {
+    if (next == $LT) {
       return tokenizeLessThan(next);
     }
 
-    if (identical(next, $GT)) {
+    if (next == $GT) {
       return tokenizeGreaterThan(next);
     }
 
-    if (identical(next, $BANG)) {
+    if (next == $BANG) {
       return tokenizeExclamation(next);
     }
 
-    if (identical(next, $OPEN_SQUARE_BRACKET)) {
+    if (next == $OPEN_SQUARE_BRACKET) {
       return tokenizeOpenSquareBracket(next);
     }
 
-    if (identical(next, $CLOSE_SQUARE_BRACKET)) {
+    if (next == $CLOSE_SQUARE_BRACKET) {
       return appendEndGroup(
           TokenType.CLOSE_SQUARE_BRACKET, OPEN_SQUARE_BRACKET_TOKEN);
     }
 
-    if (identical(next, $AT)) {
+    if (next == $AT) {
       return tokenizeAt(next);
     }
 
@@ -930,61 +932,61 @@ abstract class AbstractScanner implements Scanner {
       return tokenizeNumber(next);
     }
 
-    if (identical(next, $AMPERSAND)) {
+    if (next == $AMPERSAND) {
       return tokenizeAmpersand(next);
     }
 
-    if (identical(next, $0)) {
+    if (next == $0) {
       return tokenizeHexOrNumber(next);
     }
 
-    if (identical(next, $QUESTION)) {
+    if (next == $QUESTION) {
       return tokenizeQuestion(next);
     }
 
-    if (identical(next, $BAR)) {
+    if (next == $BAR) {
       return tokenizeBar(next);
     }
 
-    if (identical(next, $PLUS)) {
+    if (next == $PLUS) {
       return tokenizePlus(next);
     }
 
-    if (identical(next, $$)) {
+    if (next == $$) {
       return tokenizeKeywordOrIdentifier(next, /* allowDollar = */ true);
     }
 
-    if (identical(next, $MINUS)) {
+    if (next == $MINUS) {
       return tokenizeMinus(next);
     }
 
-    if (identical(next, $STAR)) {
+    if (next == $STAR) {
       return tokenizeMultiply(next);
     }
 
-    if (identical(next, $CARET)) {
+    if (next == $CARET) {
       return tokenizeCaret(next);
     }
 
-    if (identical(next, $TILDE)) {
+    if (next == $TILDE) {
       return tokenizeTilde(next);
     }
 
-    if (identical(next, $PERCENT)) {
+    if (next == $PERCENT) {
       return tokenizePercent(next);
     }
 
-    if (identical(next, $BACKPING)) {
+    if (next == $BACKPING) {
       appendPrecedenceToken(TokenType.BACKPING);
       return advance();
     }
 
-    if (identical(next, $BACKSLASH)) {
+    if (next == $BACKSLASH) {
       appendPrecedenceToken(TokenType.BACKSLASH);
       return advance();
     }
 
-    if (identical(next, $HASH)) {
+    if (next == $HASH) {
       return tokenizeTag(next);
     }
 
@@ -1000,15 +1002,13 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeTag(int next) {
     // # or #!.*[\n\r]
     if (scanOffset == 0) {
-      if (identical(peek(), $BANG)) {
+      if (peek() == $BANG) {
         int start = scanOffset;
         bool asciiOnly = true;
         do {
           next = advance();
           if (next > 127) asciiOnly = false;
-        } while (!identical(next, $LF) &&
-            !identical(next, $CR) &&
-            !identical(next, $EOF));
+        } while (next != $LF && next != $CR && next != $EOF);
         if (!asciiOnly) handleUnicode(start);
         appendSubstringToken(TokenType.SCRIPT_TAG, start, asciiOnly);
         return next;
@@ -1021,7 +1021,7 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeTilde(int next) {
     // ~ ~/ ~/=
     next = advance();
-    if (identical(next, $SLASH)) {
+    if (next == $SLASH) {
       return select($EQ, TokenType.TILDE_SLASH_EQ, TokenType.TILDE_SLASH);
     } else {
       appendPrecedenceToken(TokenType.TILDE);
@@ -1032,7 +1032,7 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeOpenSquareBracket(int next) {
     // [ [] []=
     next = advance();
-    if (identical(next, $CLOSE_SQUARE_BRACKET)) {
+    if (next == $CLOSE_SQUARE_BRACKET) {
       return select($EQ, TokenType.INDEX_EQ, TokenType.INDEX);
     }
     appendBeginGroup(TokenType.OPEN_SQUARE_BRACKET);
@@ -1047,13 +1047,13 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeQuestion(int next) {
     // ? ?. ?.. ?? ??=
     next = advance();
-    if (identical(next, $QUESTION)) {
+    if (next == $QUESTION) {
       return select(
           $EQ, TokenType.QUESTION_QUESTION_EQ, TokenType.QUESTION_QUESTION);
-    } else if (identical(next, $PERIOD)) {
+    } else if (next == $PERIOD) {
       next = advance();
       if (_enableNonNullable) {
-        if (identical($PERIOD, next)) {
+        if ($PERIOD == next) {
           appendPrecedenceToken(TokenType.QUESTION_PERIOD_PERIOD);
           return advance();
         }
@@ -1069,15 +1069,15 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeBar(int next) {
     // | || |= ||=
     next = advance();
-    if (identical(next, $BAR)) {
+    if (next == $BAR) {
       next = advance();
-      if (LAZY_ASSIGNMENT_ENABLED && identical(next, $EQ)) {
+      if (LAZY_ASSIGNMENT_ENABLED && next == $EQ) {
         appendPrecedenceToken(TokenType.BAR_BAR_EQ);
         return advance();
       }
       appendPrecedenceToken(TokenType.BAR_BAR);
       return next;
-    } else if (identical(next, $EQ)) {
+    } else if (next == $EQ) {
       appendPrecedenceToken(TokenType.BAR_EQ);
       return advance();
     } else {
@@ -1089,15 +1089,15 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeAmpersand(int next) {
     // && &= & &&=
     next = advance();
-    if (identical(next, $AMPERSAND)) {
+    if (next == $AMPERSAND) {
       next = advance();
-      if (LAZY_ASSIGNMENT_ENABLED && identical(next, $EQ)) {
+      if (LAZY_ASSIGNMENT_ENABLED && next == $EQ) {
         appendPrecedenceToken(TokenType.AMPERSAND_AMPERSAND_EQ);
         return advance();
       }
       appendPrecedenceToken(TokenType.AMPERSAND_AMPERSAND);
       return next;
-    } else if (identical(next, $EQ)) {
+    } else if (next == $EQ) {
       appendPrecedenceToken(TokenType.AMPERSAND_EQ);
       return advance();
     } else {
@@ -1119,10 +1119,10 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeMinus(int next) {
     // - -- -=
     next = advance();
-    if (identical(next, $MINUS)) {
+    if (next == $MINUS) {
       appendPrecedenceToken(TokenType.MINUS_MINUS);
       return advance();
-    } else if (identical(next, $EQ)) {
+    } else if (next == $EQ) {
       appendPrecedenceToken(TokenType.MINUS_EQ);
       return advance();
     } else {
@@ -1134,10 +1134,10 @@ abstract class AbstractScanner implements Scanner {
   int tokenizePlus(int next) {
     // + ++ +=
     next = advance();
-    if (identical($PLUS, next)) {
+    if ($PLUS == next) {
       appendPrecedenceToken(TokenType.PLUS_PLUS);
       return advance();
-    } else if (identical($EQ, next)) {
+    } else if ($EQ == next) {
       appendPrecedenceToken(TokenType.PLUS_EQ);
       return advance();
     } else {
@@ -1151,10 +1151,10 @@ abstract class AbstractScanner implements Scanner {
     // !== is kept for user-friendly error reporting.
 
     next = advance();
-    if (identical(next, $EQ)) {
+    if (next == $EQ) {
       //was `return select($EQ, TokenType.BANG_EQ_EQ, TokenType.BANG_EQ);`
       int next = advance();
-      if (identical(next, $EQ)) {
+      if (next == $EQ) {
         appendPrecedenceToken(TokenType.BANG_EQ_EQ);
         prependErrorToken(new UnsupportedOperator(tail, tokenStart));
         return advance();
@@ -1176,10 +1176,10 @@ abstract class AbstractScanner implements Scanner {
     discardOpenLt();
 
     next = advance();
-    if (identical(next, $EQ)) {
+    if (next == $EQ) {
       // was `return select($EQ, TokenType.EQ_EQ_EQ, TokenType.EQ_EQ);`
       int next = advance();
-      if (identical(next, $EQ)) {
+      if (next == $EQ) {
         appendPrecedenceToken(TokenType.EQ_EQ_EQ);
         prependErrorToken(new UnsupportedOperator(tail, tokenStart));
         return advance();
@@ -1187,7 +1187,7 @@ abstract class AbstractScanner implements Scanner {
         appendPrecedenceToken(TokenType.EQ_EQ);
         return next;
       }
-    } else if (identical(next, $GT)) {
+    } else if (next == $GT) {
       appendPrecedenceToken(TokenType.FUNCTION);
       return advance();
     }
@@ -1198,21 +1198,21 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeGreaterThan(int next) {
     // > >= >> >>= >>> >>>=
     next = advance();
-    if (identical($EQ, next)) {
+    if ($EQ == next) {
       // Saw `>=` only.
       appendPrecedenceToken(TokenType.GT_EQ);
       return advance();
-    } else if (identical($GT, next)) {
+    } else if ($GT == next) {
       // Saw `>>` so far.
       next = advance();
-      if (identical($EQ, next)) {
+      if ($EQ == next) {
         // Saw `>>=` only.
         appendPrecedenceToken(TokenType.GT_GT_EQ);
         return advance();
-      } else if (_enableTripleShift && identical($GT, next)) {
+      } else if (_enableTripleShift && $GT == next) {
         // Saw `>>>` so far.
         next = advance();
-        if (identical($EQ, next)) {
+        if ($EQ == next) {
           // Saw `>>>=` only.
           appendPrecedenceToken(TokenType.GT_GT_GT_EQ);
           return advance();
@@ -1236,10 +1236,10 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeLessThan(int next) {
     // < <= << <<=
     next = advance();
-    if (identical($EQ, next)) {
+    if ($EQ == next) {
       appendPrecedenceToken(TokenType.LT_EQ);
       return advance();
-    } else if (identical($LT, next)) {
+    } else if ($LT == next) {
       return select($EQ, TokenType.LT_LT_EQ, TokenType.LT_LT);
     } else {
       appendBeginGroup(TokenType.LT);
@@ -1249,20 +1249,49 @@ abstract class AbstractScanner implements Scanner {
 
   int tokenizeNumber(int next) {
     int start = scanOffset;
+    bool hasSeparators = false;
+    bool previousWasSeparator = false;
     while (true) {
       next = advance();
       if ($0 <= next && next <= $9) {
+        previousWasSeparator = false;
         continue;
-      } else if (identical(next, $e) || identical(next, $E)) {
-        return tokenizeFractionPart(next, start);
+      } else if (next == $_) {
+        hasSeparators = true;
+        previousWasSeparator = true;
+        continue;
+      } else if (next == $e || next == $E) {
+        if (previousWasSeparator) {
+          // Not allowed.
+          prependErrorToken(new UnterminatedToken(
+              messageUnexpectedSeparatorInNumber, start, stringOffset));
+        }
+        return tokenizeFractionPart(next, start, hasSeparators);
       } else {
-        if (identical(next, $PERIOD)) {
+        if (next == $PERIOD) {
+          if (previousWasSeparator) {
+            // Not allowed.
+            prependErrorToken(new UnterminatedToken(
+                messageUnexpectedSeparatorInNumber, start, stringOffset));
+          }
           int nextnext = peek();
           if ($0 <= nextnext && nextnext <= $9) {
-            return tokenizeFractionPart(advance(), start);
+            return tokenizeFractionPart(nextnext, start, hasSeparators);
+          } else {
+            TokenType tokenType =
+                hasSeparators ? TokenType.INT_WITH_SEPARATORS : TokenType.INT;
+            appendSubstringToken(tokenType, start, /* asciiOnly = */ true);
+            return next;
           }
         }
-        appendSubstringToken(TokenType.INT, start, /* asciiOnly = */ true);
+        if (previousWasSeparator) {
+          // End of the number is a separator; not allowed.
+          prependErrorToken(new UnterminatedToken(
+              messageUnexpectedSeparatorInNumber, start, stringOffset));
+        }
+        TokenType tokenType =
+            hasSeparators ? TokenType.INT_WITH_SEPARATORS : TokenType.INT;
+        appendSubstringToken(tokenType, start, /* asciiOnly = */ true);
         return next;
       }
     }
@@ -1270,7 +1299,7 @@ abstract class AbstractScanner implements Scanner {
 
   int tokenizeHexOrNumber(int next) {
     int x = peek();
-    if (identical(x, $x) || identical(x, $X)) {
+    if (x == $x || x == $X) {
       return tokenizeHex(next);
     }
     return tokenizeNumber(next);
@@ -1280,12 +1309,23 @@ abstract class AbstractScanner implements Scanner {
     int start = scanOffset;
     next = advance(); // Advance past the $x or $X.
     bool hasDigits = false;
+    bool hasSeparators = false;
+    bool previousWasSeparator = false;
     while (true) {
       next = advance();
       if (($0 <= next && next <= $9) ||
           ($A <= next && next <= $F) ||
           ($a <= next && next <= $f)) {
         hasDigits = true;
+        previousWasSeparator = false;
+      } else if (next == $_) {
+        if (!hasDigits) {
+          // Not allowed.
+          prependErrorToken(new UnterminatedToken(
+              messageUnexpectedSeparatorInNumber, start, stringOffset));
+        }
+        hasSeparators = true;
+        previousWasSeparator = true;
       } else {
         if (!hasDigits) {
           prependErrorToken(new UnterminatedToken(
@@ -1295,8 +1335,15 @@ abstract class AbstractScanner implements Scanner {
               TokenType.HEXADECIMAL, start, /* asciiOnly = */ true, "0");
           return next;
         }
-        appendSubstringToken(
-            TokenType.HEXADECIMAL, start, /* asciiOnly = */ true);
+        if (previousWasSeparator) {
+          // End of the number is a separator; not allowed.
+          prependErrorToken(new UnterminatedToken(
+              messageUnexpectedSeparatorInNumber, start, stringOffset));
+        }
+        TokenType tokenType = hasSeparators
+            ? TokenType.HEXADECIMAL_WITH_SEPARATORS
+            : TokenType.HEXADECIMAL;
+        appendSubstringToken(tokenType, start, /* asciiOnly = */ true);
         return next;
       }
     }
@@ -1306,12 +1353,12 @@ abstract class AbstractScanner implements Scanner {
     int start = scanOffset;
     next = advance();
     if (($0 <= next && next <= $9)) {
-      return tokenizeFractionPart(next, start);
-    } else if (identical($PERIOD, next)) {
+      return tokenizeFractionPart(next, start, /* hasSeparators = */ false);
+    } else if ($PERIOD == next) {
       next = advance();
-      if (identical(next, $PERIOD)) {
+      if (next == $PERIOD) {
         next = advance();
-        if (identical(next, $QUESTION)) {
+        if (next == $QUESTION) {
           appendPrecedenceToken(TokenType.PERIOD_PERIOD_PERIOD_QUESTION);
           return advance();
         } else {
@@ -1328,23 +1375,54 @@ abstract class AbstractScanner implements Scanner {
     }
   }
 
-  int tokenizeFractionPart(int next, int start) {
+  int tokenizeFractionPart(int next, int start, bool hasSeparators) {
     bool done = false;
     bool hasDigit = false;
+    bool previousWasSeparator = false;
     LOOP:
     while (!done) {
       if ($0 <= next && next <= $9) {
         hasDigit = true;
-      } else if (identical($e, next) || identical($E, next)) {
+        previousWasSeparator = false;
+      } else if ($_ == next) {
+        if (!hasDigit) {
+          prependErrorToken(new UnterminatedToken(
+              messageUnexpectedSeparatorInNumber, start, stringOffset));
+        }
+        hasSeparators = true;
+        previousWasSeparator = true;
+      } else if ($e == next || $E == next) {
+        if (previousWasSeparator) {
+          // Not allowed.
+          prependErrorToken(new UnterminatedToken(
+              messageUnexpectedSeparatorInNumber, start, stringOffset));
+        }
         hasDigit = true;
+        previousWasSeparator = false;
         next = advance();
-        if (identical(next, $PLUS) || identical(next, $MINUS)) {
+        while (next == $_) {
+          prependErrorToken(new UnterminatedToken(
+              messageUnexpectedSeparatorInNumber, start, stringOffset));
+          hasSeparators = true;
+          previousWasSeparator = true;
+          next = advance();
+        }
+        if (next == $PLUS || next == $MINUS) {
+          previousWasSeparator = false;
           next = advance();
         }
         bool hasExponentDigits = false;
         while (true) {
           if ($0 <= next && next <= $9) {
             hasExponentDigits = true;
+            previousWasSeparator = false;
+          } else if (next == $_) {
+            if (!hasExponentDigits) {
+              prependErrorToken(new UnterminatedToken(
+                  messageUnexpectedSeparatorInNumber, start, stringOffset));
+            }
+            hasSeparators = true;
+            previousWasSeparator = true;
           } else {
             if (!hasExponentDigits) {
               appendSyntheticSubstringToken(
@@ -1357,10 +1435,20 @@ abstract class AbstractScanner implements Scanner {
           }
           next = advance();
         }
+        if (previousWasSeparator) {
+          // End of the number is a separator; not allowed.
+          prependErrorToken(new UnterminatedToken(
+              messageUnexpectedSeparatorInNumber, start, stringOffset));
+        }
 
         done = true;
         continue LOOP;
       } else {
+        if (previousWasSeparator) {
+          // End of the number is a separator; not allowed.
+          prependErrorToken(new UnterminatedToken(
+              messageUnexpectedSeparatorInNumber, start, stringOffset));
+        }
         done = true;
         continue LOOP;
       }
@@ -1373,25 +1461,27 @@ abstract class AbstractScanner implements Scanner {
 
       // TODO(ahe): Wrong offset for the period. Cannot call beginToken because
       // the scanner already advanced past the period.
-      if (identical($PERIOD, next)) {
+      if ($PERIOD == next) {
         return select(
             $PERIOD, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD);
       }
       appendPrecedenceToken(TokenType.PERIOD);
       return next;
     }
-    appendSubstringToken(TokenType.DOUBLE, start, /* asciiOnly = */ true);
+    TokenType tokenType =
+        hasSeparators ? TokenType.DOUBLE_WITH_SEPARATORS : TokenType.DOUBLE;
+    appendSubstringToken(tokenType, start, /* asciiOnly = */ true);
     return next;
   }
 
   int tokenizeSlashOrComment(int next) {
     int start = scanOffset;
     next = advance();
-    if (identical($STAR, next)) {
+    if ($STAR == next) {
       return tokenizeMultiLineComment(next, start);
-    } else if (identical($SLASH, next)) {
+    } else if ($SLASH == next) {
       return tokenizeSingleLineComment(next, start);
-    } else if (identical($EQ, next)) {
+    } else if ($EQ == next) {
       appendPrecedenceToken(TokenType.SLASH_EQ);
       return advance();
     } else {
@@ -1405,47 +1495,47 @@ abstract class AbstractScanner implements Scanner {
     next = advance();
 
     // Dart doc
-    if (identical($SLASH, peek())) {
+    if ($SLASH == peek()) {
       return tokenizeSingleLineComment(next, start);
     }
 
     // "@dart"
     next = advance();
-    while (identical($SPACE, next)) {
+    while ($SPACE == next) {
       next = advance();
     }
-    if (!identical($AT, next)) {
+    if ($AT != next) {
       return tokenizeSingleLineCommentRest(next, start, /* dartdoc = */ false);
     }
     next = advance();
-    if (!identical($d, next)) {
+    if ($d != next) {
       return tokenizeSingleLineCommentRest(next, start, /* dartdoc = */ false);
     }
     next = advance();
-    if (!identical($a, next)) {
+    if ($a != next) {
       return tokenizeSingleLineCommentRest(next, start, /* dartdoc = */ false);
     }
     next = advance();
-    if (!identical($r, next)) {
+    if ($r != next) {
       return tokenizeSingleLineCommentRest(next, start, /* dartdoc = */ false);
     }
     next = advance();
-    if (!identical($t, next)) {
+    if ($t != next) {
       return tokenizeSingleLineCommentRest(next, start, /* dartdoc = */ false);
     }
     next = advance();
 
     // "="
-    while (identical($SPACE, next)) {
+    while ($SPACE == next) {
       next = advance();
     }
-    if (!identical($EQ, next)) {
+    if ($EQ != next) {
       return tokenizeSingleLineCommentRest(next, start, /* dartdoc = */ false);
     }
     next = advance();
 
     // major
-    while (identical($SPACE, next)) {
+    while ($SPACE == next) {
       next = advance();
     }
     int major = 0;
@@ -1459,7 +1549,7 @@ abstract class AbstractScanner implements Scanner {
     }
 
     // minor
-    if (!identical($PERIOD, next)) {
+    if ($PERIOD != next) {
       return tokenizeSingleLineCommentRest(next, start, /* dartdoc = */ false);
     }
     next = advance();
@@ -1474,7 +1564,7 @@ abstract class AbstractScanner implements Scanner {
     }
 
     // trailing spaces
-    while (identical($SPACE, next)) {
+    while ($SPACE == next) {
       next = advance();
     }
     if (next != $LF && next != $CR && next != $EOF) {
@@ -1498,7 +1588,7 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int tokenizeSingleLineComment(int next, int start) {
-    bool dartdoc = identical($SLASH, peek());
+    bool dartdoc = $SLASH == peek();
     next = advance();
     return tokenizeSingleLineCommentRest(next, start, dartdoc);
   }
@@ -1507,9 +1597,7 @@ abstract class AbstractScanner implements Scanner {
     bool asciiOnly = true;
     while (true) {
       if (next > 127) asciiOnly = false;
-      if (identical($LF, next) ||
-          identical($CR, next) ||
-          identical($EOF, next)) {
+      if ($LF == next || $CR == next || $EOF == next) {
         if (!asciiOnly) handleUnicode(start);
         if (dartdoc) {
           appendDartDoc(start, TokenType.SINGLE_LINE_COMMENT, asciiOnly);
@@ -1528,17 +1616,17 @@ abstract class AbstractScanner implements Scanner {
     int unicodeStart = start;
     int nesting = 1;
     next = advance();
-    bool dartdoc = identical($STAR, next);
+    bool dartdoc = $STAR == next;
     while (true) {
-      if (identical($EOF, next)) {
+      if ($EOF == next) {
         if (!asciiOnlyLines) handleUnicode(unicodeStart);
         prependErrorToken(new UnterminatedToken(
             messageUnterminatedComment, tokenStart, stringOffset));
-        advanceAfterError(/* shouldAdvance = */ true);
+        advanceAfterError();
         break;
-      } else if (identical($STAR, next)) {
+      } else if ($STAR == next) {
         next = advance();
-        if (identical($SLASH, next)) {
+        if ($SLASH == next) {
           --nesting;
           if (0 == nesting) {
             if (!asciiOnlyLines) handleUnicode(unicodeStart);
@@ -1555,13 +1643,13 @@ abstract class AbstractScanner implements Scanner {
             next = advance();
           }
         }
-      } else if (identical($SLASH, next)) {
+      } else if ($SLASH == next) {
         next = advance();
-        if (identical($STAR, next)) {
+        if ($STAR == next) {
           next = advance();
           ++nesting;
         }
-      } else if (identical(next, $LF)) {
+      } else if (next == $LF) {
         if (!asciiOnlyLines) {
           // Synchronize the string offset in the utf8 scanner.
           handleUnicode(unicodeStart);
@@ -1624,7 +1712,7 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeRawStringKeywordOrIdentifier(int next) {
     // [next] is $r.
     int nextnext = peek();
-    if (identical(nextnext, $DQ) || identical(nextnext, $SQ)) {
+    if (nextnext == $DQ || nextnext == $SQ) {
       int start = scanOffset;
       next = advance();
       return tokenizeString(next, start, /* raw = */ true);
@@ -1668,8 +1756,8 @@ abstract class AbstractScanner implements Scanner {
     }
     if (($A <= next && next <= $Z) ||
         ($0 <= next && next <= $9) ||
-        identical(next, $_) ||
-        (allowDollar && identical(next, $$))) {
+        next == $_ ||
+        (allowDollar && next == $$)) {
       return tokenizeIdentifier(next, start, allowDollar);
     } else {
       appendKeywordToken(keyword);
@@ -1707,9 +1795,9 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeString(int next, int start, bool raw) {
     int quoteChar = next;
     next = advance();
-    if (identical(quoteChar, next)) {
+    if (quoteChar == next) {
       next = advance();
-      if (identical(quoteChar, next)) {
+      if (quoteChar == next) {
         // Multiline string.
         return tokenizeMultiLineString(quoteChar, start, raw);
       } else {
@@ -1740,20 +1828,17 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeSingleLineString(int next, int quoteChar, int quoteStart) {
     int start = quoteStart;
     bool asciiOnly = true;
-    while (!identical(next, quoteChar)) {
-      if (identical(next, $BACKSLASH)) {
+    while (next != quoteChar) {
+      if (next == $BACKSLASH) {
         next = advance();
-      } else if (identical(next, $$)) {
+      } else if (next == $$) {
         if (!asciiOnly) handleUnicode(start);
         next = tokenizeStringInterpolation(start, asciiOnly);
         start = scanOffset;
         asciiOnly = true;
         continue;
       }
-      if (next <= $CR &&
-          (identical(next, $LF) ||
-              identical(next, $CR) ||
-              identical(next, $EOF))) {
+      if (next <= $CR && (next == $LF || next == $CR || next == $EOF)) {
         if (!asciiOnly) handleUnicode(start);
         unterminatedString(quoteChar, quoteStart, start,
             asciiOnly: asciiOnly, isMultiLine: false, isRaw: false);
@@ -1773,7 +1858,7 @@ abstract class AbstractScanner implements Scanner {
     appendSubstringToken(TokenType.STRING, start, asciiOnly);
     beginToken(); // $ starts here.
     int next = advance();
-    if (identical(next, $OPEN_CURLY_BRACKET)) {
+    if (next == $OPEN_CURLY_BRACKET) {
       return tokenizeInterpolatedExpression(next);
     } else {
       return tokenizeInterpolatedIdentifier(next);
@@ -1784,10 +1869,10 @@ abstract class AbstractScanner implements Scanner {
     appendBeginGroup(TokenType.STRING_INTERPOLATION_EXPRESSION);
     beginToken(); // The expression starts here.
     next = advance(); // Move past the curly bracket.
-    while (!identical(next, $EOF) && !identical(next, $STX)) {
+    while (next != $EOF && next != $STX) {
       next = bigSwitch(next);
     }
-    if (identical(next, $EOF)) {
+    if (next == $EOF) {
       beginToken();
       discardInterpolation();
       return next;
@@ -1800,9 +1885,7 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeInterpolatedIdentifier(int next) {
     appendPrecedenceToken(TokenType.STRING_INTERPOLATION_IDENTIFIER);
 
-    if ($a <= next && next <= $z ||
-        $A <= next && next <= $Z ||
-        identical(next, $_)) {
+    if ($a <= next && next <= $z || $A <= next && next <= $Z || next == $_) {
       beginToken(); // The identifier starts here.
       next = tokenizeKeywordOrIdentifier(next, /* allowDollar = */ false);
     } else {
@@ -1819,12 +1902,12 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeSingleLineRawString(int next, int quoteChar, int quoteStart) {
     bool asciiOnly = true;
     while (next != $EOF) {
-      if (identical(next, quoteChar)) {
+      if (next == quoteChar) {
         if (!asciiOnly) handleUnicode(quoteStart);
         next = advance();
         appendSubstringToken(TokenType.STRING, quoteStart, asciiOnly);
         return next;
-      } else if (identical(next, $LF) || identical(next, $CR)) {
+      } else if (next == $LF || next == $CR) {
         if (!asciiOnly) handleUnicode(quoteStart);
         unterminatedString(quoteChar, quoteStart, quoteStart,
             asciiOnly: asciiOnly, isMultiLine: false, isRaw: true);
@@ -1846,9 +1929,9 @@ abstract class AbstractScanner implements Scanner {
     int unicodeStart = quoteStart;
     int next = advance(); // Advance past the (last) quote (of three).
     outer:
-    while (!identical(next, $EOF)) {
-      while (!identical(next, quoteChar)) {
-        if (identical(next, $LF)) {
+    while (next != $EOF) {
+      while (next != quoteChar) {
+        if (next == $LF) {
           if (!asciiOnlyLine) {
             // Synchronize the string offset in the utf8 scanner.
             handleUnicode(unicodeStart);
@@ -1861,12 +1944,12 @@ abstract class AbstractScanner implements Scanner {
           asciiOnlyString = false;
         }
         next = advance();
-        if (identical(next, $EOF)) break outer;
+        if (next == $EOF) break outer;
       }
       next = advance();
-      if (identical(next, quoteChar)) {
+      if (next == quoteChar) {
         next = advance();
-        if (identical(next, quoteChar)) {
+        if (next == quoteChar) {
           if (!asciiOnlyLine) handleUnicode(unicodeStart);
           next = advance();
           appendSubstringToken(TokenType.STRING, quoteStart, asciiOnlyString);
@@ -1887,8 +1970,8 @@ abstract class AbstractScanner implements Scanner {
     bool asciiOnlyLine = true;
     int unicodeStart = start;
     int next = advance(); // Advance past the (last) quote (of three).
-    while (!identical(next, $EOF)) {
-      if (identical(next, $$)) {
+    while (next != $EOF) {
+      if (next == $$) {
         if (!asciiOnlyLine) handleUnicode(unicodeStart);
         next = tokenizeStringInterpolation(start, asciiOnlyString);
         start = scanOffset;
@@ -1897,11 +1980,11 @@ abstract class AbstractScanner implements Scanner {
         asciiOnlyLine = true;
         continue;
       }
-      if (identical(next, quoteChar)) {
+      if (next == quoteChar) {
         next = advance();
-        if (identical(next, quoteChar)) {
+        if (next == quoteChar) {
           next = advance();
-          if (identical(next, quoteChar)) {
+          if (next == quoteChar) {
             if (!asciiOnlyLine) handleUnicode(unicodeStart);
             next = advance();
             appendSubstringToken(TokenType.STRING, start, asciiOnlyString);
@@ -1910,11 +1993,11 @@ abstract class AbstractScanner implements Scanner {
         }
         continue;
       }
-      if (identical(next, $BACKSLASH)) {
+      if (next == $BACKSLASH) {
         next = advance();
-        if (identical(next, $EOF)) break;
+        if (next == $EOF) break;
       }
-      if (identical(next, $LF)) {
+      if (next == $LF) {
         if (!asciiOnlyLine) {
           // Synchronize the string offset in the utf8 scanner.
           handleUnicode(unicodeStart);
@@ -1949,7 +2032,7 @@ abstract class AbstractScanner implements Scanner {
       }
       codeUnits.add(errorToken.character);
       prependErrorToken(errorToken);
-      int next = advanceAfterError(/* shouldAdvance = */ true);
+      int next = advanceAfterError();
       while (_isIdentifierChar(next, /* allowDollar = */ true)) {
         codeUnits.add(next);
         next = advance();
@@ -1960,7 +2043,7 @@ abstract class AbstractScanner implements Scanner {
       return next;
     } else {
       prependErrorToken(errorToken);
-      return advanceAfterError(/* shouldAdvance = */ true);
+      return advanceAfterError();
     }
   }
 
@@ -1983,13 +2066,9 @@ abstract class AbstractScanner implements Scanner {
     prependErrorToken(new UnterminatedString(prefix, errorStart, stringOffset));
   }
 
-  int advanceAfterError(bool shouldAdvance) {
+  int advanceAfterError() {
     if (atEndOfFile()) return $EOF;
-    if (shouldAdvance) {
-      return advance(); // Ensure progress.
-    } else {
-      return -1;
-    }
+    return advance(); // Ensure progress.
   }
 }
 
@@ -2007,7 +2086,7 @@ class LineStarts extends Object with ListMixin<int> {
   List<int> array;
   int arrayLength = 0;
 
-  LineStarts(int? numberOfBytesHint)
+  LineStarts(int numberOfBytesHint)
       : array = _createInitialArray(numberOfBytesHint) {
     // The first line starts at character offset 0.
     add(/* value = */ 0);
@@ -2073,10 +2152,7 @@ class LineStarts extends Object with ListMixin<int> {
     array = newArray;
   }
 
-  static List<int> _createInitialArray(int? numberOfBytesHint) {
-    // Let's assume the average Dart file is 300 bytes.
-    numberOfBytesHint ??= 300;
-
+  static List<int> _createInitialArray(int numberOfBytesHint) {
     // Let's assume we have on average 22 bytes per line.
     final int expectedNumberOfLines = 1 + (numberOfBytesHint ~/ 22);
 
@@ -2111,20 +2187,17 @@ class ScannerConfiguration {
   final bool forAugmentationLibrary;
 
   const ScannerConfiguration({
-    bool enableExtensionMethods = false,
-    bool enableNonNullable = false,
-    bool enableTripleShift = false,
-    bool forAugmentationLibrary = false,
-  })  : this.enableExtensionMethods = enableExtensionMethods,
-        this.enableNonNullable = enableNonNullable,
-        this.enableTripleShift = enableTripleShift,
-        this.forAugmentationLibrary = forAugmentationLibrary;
+    this.enableExtensionMethods = false,
+    this.enableNonNullable = false,
+    this.enableTripleShift = false,
+    this.forAugmentationLibrary = false,
+  });
 }
 
 bool _isIdentifierChar(int next, bool allowDollar) {
   return ($a <= next && next <= $z) ||
       ($A <= next && next <= $Z) ||
       ($0 <= next && next <= $9) ||
-      identical(next, $_) ||
-      (identical(next, $$) && allowDollar);
+      next == $_ ||
+      (next == $$ && allowDollar);
 }

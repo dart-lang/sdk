@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UseRethrowWhenPossibleTest extends LintRuleTest {
   @override
-  String get lintRule => 'use_rethrow_when_possible';
+  String get lintRule => LintNames.use_rethrow_when_possible;
 
   test_catchError_throwSameError() async {
     await assertDiagnostics(r'''

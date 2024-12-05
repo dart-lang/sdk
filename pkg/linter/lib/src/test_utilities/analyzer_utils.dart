@@ -55,7 +55,7 @@ class ErrorWatchingSink implements IOSink {
   ErrorWatchingSink(this.delegate);
 
   @override
-  Future get done => delegate.done;
+  Future<void> get done => delegate.done;
 
   @override
   Encoding get encoding => delegate.encoding;
@@ -77,13 +77,14 @@ class ErrorWatchingSink implements IOSink {
   }
 
   @override
-  Future addStream(Stream<List<int>> stream) => delegate.addStream(stream);
+  Future<void> addStream(Stream<List<int>> stream) =>
+      delegate.addStream(stream);
 
   @override
-  Future close() => delegate.close();
+  Future<void> close() => delegate.close();
 
   @override
-  Future flush() => delegate.flush();
+  Future<void> flush() => delegate.flush();
 
   @override
   void write(Object? obj) {
@@ -91,7 +92,7 @@ class ErrorWatchingSink implements IOSink {
   }
 
   @override
-  void writeAll(Iterable objects, [String separator = '']) {
+  void writeAll(Iterable<Object?> objects, [String separator = '']) {
     delegate.writeAll(objects, separator);
   }
 

@@ -14,22 +14,23 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 class RuntimeTypeEqualityHelper {
   final TypeSystemImpl _typeSystem;
 
-  RuntimeTypeEqualityHelper(TypeSystemImpl typeSystem)
-      : _typeSystem = typeSystem;
+  RuntimeTypeEqualityHelper(this._typeSystem);
 
-  /// Return `true` if runtime types [T1] and [T2] are equal.
+  /// Returns whether runtime types [T1] and [T2] are equal.
   ///
   /// nnbd/feature-specification.md#runtime-type-equality-operator
   bool equal(DartType T1, DartType T2) {
     var N1 = _typeSystem.normalize(T1);
     var N2 = _typeSystem.normalize(T2);
-    return N1.acceptWithArgument(const RuntimeTypeEqualityVisitor(), N2);
+    return N1.acceptWithArgument(RuntimeTypeEqualityVisitor(_typeSystem), N2);
   }
 }
 
 class RuntimeTypeEqualityVisitor
     extends TypeVisitorWithArgument<bool, DartType> {
-  const RuntimeTypeEqualityVisitor();
+  final TypeSystemImpl _typeSystem;
+
+  RuntimeTypeEqualityVisitor(this._typeSystem);
 
   @override
   bool visitDynamicType(DynamicType T1, DartType T2) {
@@ -38,51 +39,59 @@ class RuntimeTypeEqualityVisitor
 
   @override
   bool visitFunctionType(FunctionType T1, DartType T2) {
-    if (T2 is FunctionType) {
-      var typeParameters = _typeParameters(T1.typeFormals, T2.typeFormals);
-      if (typeParameters == null) {
-        return false;
-      }
-
-      bool equal(DartType T1, DartType T2) {
-        T1 = typeParameters.T1_substitution.substituteType(T1);
-        T2 = typeParameters.T2_substitution.substituteType(T2);
-        return T1.acceptWithArgument(this, T2);
-      }
-
-      if (!equal(T1.returnType, T2.returnType)) {
-        return false;
-      }
-
-      var T1_parameters = T1.parameters;
-      var T2_parameters = T2.parameters;
-      if (T1_parameters.length != T2_parameters.length) {
-        return false;
-      }
-
-      for (var i = 0; i < T1_parameters.length; i++) {
-        var T1_parameter = T1_parameters[i];
-        var T2_parameter = T2_parameters[i];
-
-        // ignore: deprecated_member_use_from_same_package
-        if (T1_parameter.parameterKind != T2_parameter.parameterKind) {
-          return false;
-        }
-
-        if (T1_parameter.isNamed) {
-          if (T1_parameter.name != T2_parameter.name) {
-            return false;
-          }
-        }
-
-        if (!equal(T1_parameter.type, T2_parameter.type)) {
-          return false;
-        }
-      }
-
-      return true;
+    if (T2 is! FunctionType) {
+      return false;
     }
-    return false;
+
+    var typeParameters = _typeParameters(T1.typeFormals, T2.typeFormals);
+    if (typeParameters == null) {
+      return false;
+    }
+
+    if (_typeSystem.isNullable(T1) != _typeSystem.isNullable(T2)) {
+      // The nullabilities are different.
+      return false;
+    }
+
+    bool equal(DartType T1, DartType T2) {
+      T1 = typeParameters.T1_substitution.substituteType(T1);
+      T2 = typeParameters.T2_substitution.substituteType(T2);
+      return T1.acceptWithArgument(this, T2);
+    }
+
+    if (!equal(T1.returnType, T2.returnType)) {
+      return false;
+    }
+
+    var T1_parameters = T1.parameters;
+    var T2_parameters = T2.parameters;
+    if (T1_parameters.length != T2_parameters.length) {
+      return false;
+    }
+
+    for (var i = 0; i < T1_parameters.length; i++) {
+      var T1_parameter = T1_parameters[i];
+      var T2_parameter = T2_parameters[i];
+
+      if (T1_parameter.isPositional != T2_parameter.isPositional) {
+        return false;
+      }
+      if (T1_parameter.isOptional != T2_parameter.isOptional) {
+        return false;
+      }
+
+      if (T1_parameter.isNamed) {
+        if (T1_parameter.name != T2_parameter.name) {
+          return false;
+        }
+      }
+
+      if (!equal(T1_parameter.type, T2_parameter.type)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   @override

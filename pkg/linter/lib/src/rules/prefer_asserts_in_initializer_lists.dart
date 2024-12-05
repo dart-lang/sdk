@@ -8,44 +8,19 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer putting asserts in initializer lists.';
 
-const _details = r'''
-**DO** put asserts in initializer lists.
-
-**BAD:**
-```dart
-class A {
-  A(int a) {
-    assert(a != 0);
-  }
-}
-```
-
-**GOOD:**
-```dart
-class A {
-  A(int a) : assert(a != 0);
-}
-```
-
-''';
-
 class PreferAssertsInInitializerLists extends LintRule {
-  static const LintCode code = LintCode('prefer_asserts_in_initializer_lists',
-      'Assert should be in the initializer list.',
-      correctionMessage: 'Try moving the assert to the initializer list.');
-
   PreferAssertsInInitializerLists()
       : super(
-            name: 'prefer_asserts_in_initializer_lists',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.prefer_asserts_in_initializer_lists,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_asserts_in_initializer_lists;
 
   @override
   void registerNodeProcessors(
@@ -56,7 +31,7 @@ class PreferAssertsInInitializerLists extends LintRule {
   }
 }
 
-class _AssertVisitor extends RecursiveAstVisitor {
+class _AssertVisitor extends RecursiveAstVisitor<void> {
   final ConstructorElement constructorElement;
   final _ClassAndSuperClasses? classAndSuperClasses;
 
@@ -87,12 +62,12 @@ class _AssertVisitor extends RecursiveAstVisitor {
 
   bool _hasAccessor(PropertyAccessorElement element) {
     var classes = classAndSuperClasses?.classes;
-    return classes != null && classes.contains(element.enclosingElement);
+    return classes != null && classes.contains(element.enclosingElement3);
   }
 
   bool _hasMethod(MethodElement element) {
     var classes = classAndSuperClasses?.classes;
-    return classes != null && classes.contains(element.enclosingElement);
+    return classes != null && classes.contains(element.enclosingElement3);
   }
 
   bool _paramMatchesField(

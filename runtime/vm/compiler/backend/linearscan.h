@@ -289,6 +289,13 @@ class FlowGraphAllocator : public ValueObject {
                                 intptr_t pos,
                                 Location::Kind kind);
 
+  // Returns true if |defn| is not used after |current|.
+  //
+  // Only works during range construction (e.g. ProcessOneInstruction).
+  bool IsDeadAfterCurrentInstruction(BlockEntryInstr* block,
+                                     Instruction* current,
+                                     Definition* defn);
+
   void PrintLiveRanges();
 
   // Assign locations for each outgoing argument. Outgoing argumenst are

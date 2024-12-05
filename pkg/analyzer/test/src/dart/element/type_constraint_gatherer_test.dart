@@ -590,7 +590,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     );
   }
 
-  /// If `P` is `C<M0, ..., Mk> and `Q` is `C<N0, ..., Nk>`, then the match
+  /// If `P` is `C<M0, ..., Mk>` and `Q` is `C<N0, ..., Nk>`, then the match
   /// holds under constraints `C0 + ... + Ck`:
   ///   If `Mi` is a subtype match for `Ni` with respect to L under
   ///   constraints `Ci`.
@@ -667,18 +667,10 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
       DartType implementsTypeArgument,
       String expectedConstraint,
     ) {
-      var library = library_(
-        uriStr: 'package:test/test.dart',
-        analysisContext: analysisContext,
-        analysisSession: analysisContext.analysisSession,
-        typeSystem: typeSystem,
-      );
-
       // class A<T> {}
       var A = class_(name: 'A', typeParameters: [
         typeParameter('T'),
       ]);
-      A.enclosingElement = library.definingCompilationUnit;
 
       // class B<T> extends A<T> {}
       var B_T = typeParameter('T');
@@ -688,7 +680,6 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
         typeParameters: [B_T],
         superType: interfaceTypeNone(A, typeArguments: [B_T_none]),
       );
-      B.enclosingElement = library.definingCompilationUnit;
 
       // class Cx extends A<> implements B<> {}
       var C = class_(
@@ -704,7 +695,6 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
           )
         ],
       );
-      C.enclosingElement = library.definingCompilationUnit;
 
       _checkMatch(
         [T],

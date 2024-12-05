@@ -2,12 +2,14 @@
 
 Download and install the Dart source tree using the standard instructions for building Dart.
 
-To build for Fuchsia, you must first update your `.gclient file with:
+To build for Fuchsia, you must first update your `.gclient` file with:
 ```
     "custom_vars": {
       "download_fuchsia_deps": True,
     },
 ```
+
+and re-run `gclient sync`.
 
 # Building
 

@@ -11,6 +11,7 @@ import 'package:path/path.dart' as path;
 
 import '../dds.dart';
 import 'arg_parser.dart';
+import 'bazel_uri_converter.dart';
 
 Uri _getDevToolsAssetPath() {
   final dartDir = File(Platform.resolvedExecutable).parent.path;
@@ -54,16 +55,18 @@ ${argParser.usage}
     argResults[DartDevelopmentServiceOptions.vmServiceUriOption],
   );
 
-  // Resolve the address which is potentially provided by the user.
-  late InternetAddress address;
+  // Ensure that the bind address, which is potentially provided by the user,
+  // can be resolved at all, and check whether it can be resolved to an IPv4
+  // address.
+  bool doesBindAddressResolveToIpv4Address = false;
   final bindAddress =
       argResults[DartDevelopmentServiceOptions.bindAddressOption];
   try {
     final addresses = await InternetAddress.lookup(bindAddress);
-    // Prefer IPv4 addresses.
-    for (int i = 0; i < addresses.length; i++) {
-      address = addresses[i];
-      if (address.type == InternetAddressType.IPv4) break;
+    for (final address in addresses) {
+      if (address.type == InternetAddressType.IPv4) {
+        doesBindAddressResolveToIpv4Address = true;
+      }
     }
   } on SocketException catch (e, st) {
     writeErrorResponse('Invalid bind address: $bindAddress', st);
@@ -80,7 +83,7 @@ ${argParser.usage}
   }
   final serviceUri = Uri(
     scheme: 'http',
-    host: address.address,
+    host: bindAddress,
     port: port,
   );
   final disableServiceAuthCodes =
@@ -102,12 +105,19 @@ ${argParser.usage}
   final cachedUserTags =
       argResults[DartDevelopmentServiceOptions.cachedUserTagsOption];
 
+  final google3WorkspaceRoot =
+      argResults[DartDevelopmentServiceOptions.google3WorkspaceRootOption];
+  if (google3WorkspaceRoot != null) {
+    uriConverter = BazelUriConverter(google3WorkspaceRoot).uriToPath;
+  }
   try {
     final dds = await DartDevelopmentService.startDartDevelopmentService(
       remoteVmServiceUri,
       serviceUri: serviceUri,
       enableAuthCodes: !disableServiceAuthCodes,
-      ipv6: address.type == InternetAddressType.IPv6,
+      // Only use IPv6 to serve DDS if the bind address cannot be resolved to an
+      // IPv4 address.
+      ipv6: !doesBindAddressResolveToIpv4Address,
       devToolsConfiguration: serveDevTools && devToolsBuildDirectory != null
           ? DevToolsConfiguration(
               enable: serveDevTools,
@@ -126,7 +136,9 @@ ${argParser.usage}
       if (dds.devToolsUri != null) 'devToolsUri': dds.devToolsUri.toString(),
       if (dtdInfo != null)
         'dtd': {
-          'uri': dtdInfo.uri,
+          // For DDS-hosted DTD, there's only ever a local URI since there
+          // is no mechanism for exposing URIs.
+          'uri': dtdInfo.localUri.toString(),
         },
     }));
   } catch (e, st) {

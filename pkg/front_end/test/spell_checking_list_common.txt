@@ -25,6 +25,7 @@ absent
 absolute
 abstract
 abstracted
+abstracting
 abstraction
 abstractly
 abstracts
@@ -345,6 +346,7 @@ breakpoint
 breaks
 briefly
 bring
+bringing
 brittle
 broken
 browser
@@ -585,6 +587,7 @@ concatenated
 concatenating
 concatenation
 concepts
+concise
 conclude
 conclusion
 concrete
@@ -922,6 +925,7 @@ discover
 discovered
 discovery
 discrepancy
+discrepant
 disk
 dispatch
 dispatches
@@ -1858,6 +1862,7 @@ lowercase
 lowered
 lowering
 lowerings
+lowers
 lowest
 machine
 made
@@ -1868,6 +1873,7 @@ mainly
 maintain
 maintains
 major
+majority
 make
 makers
 makes
@@ -2093,6 +2099,7 @@ object
 object's
 objects
 oblivious
+obliviousness
 observation
 observations
 observed
@@ -2219,6 +2226,7 @@ parentheses
 parenthesis
 parenthesized
 parents
+parsable
 parse
 parsed
 parser
@@ -2505,6 +2513,7 @@ recognized
 recognizes
 recommend
 recommendations
+recommended
 recomputation
 recomputes
 record
@@ -2675,6 +2684,7 @@ returned
 returning
 returns
 retype
+reusable
 reuse
 reused
 reuses
@@ -2698,6 +2708,7 @@ rights
 rise
 roles
 roll
+rolled
 root
 roots
 round
@@ -2720,6 +2731,7 @@ same
 sample
 samples
 sanity
+sate
 satisfied
 satisfies
 satisfy
@@ -2805,6 +2817,7 @@ shadowing
 shake
 shaken
 shape
+shapes
 shard
 shards
 share
@@ -2912,6 +2925,7 @@ specify
 specifying
 speed
 speedup
+spending
 split
 splits
 splitter
@@ -2965,6 +2979,8 @@ strictly
 string
 strings
 stripped
+stripping
+strips
 strong
 stronger
 strongest
@@ -3286,6 +3302,7 @@ unhandled
 unhelpful
 unicode
 unified
+uniformity
 unifying
 unimplemented
 uninitialized
@@ -3310,6 +3327,7 @@ unnecessarily
 unnecessary
 unparsable
 unpromoted
+unquoted
 unread
 unrecognized
 unrecoverable

@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
@@ -271,7 +273,7 @@ extension ConstructorElementExtension on ConstructorElement {
     required String constructorName,
   }) =>
       library.name == uri &&
-      enclosingElement.name == className &&
+      enclosingElement3.name == className &&
       name == constructorName;
 }
 
@@ -356,6 +358,15 @@ extension ElementExtension on Element {
   bool get isMacro {
     var self = this;
     return self is ClassElementImpl && self.isMacro;
+  }
+}
+
+extension ElementExtension2 on Element2? {
+  bool get isDartCorePrint {
+    var self = this;
+    return self is TopLevelFunctionElement &&
+        self.name == 'print' &&
+        self.firstFragment.libraryFragment.element.isDartCore;
   }
 }
 
@@ -546,6 +557,16 @@ extension InterfaceTypeExtension on InterfaceType {
   }
 }
 
+extension LibraryElementExtension2 on LibraryElement2? {
+  Uri? get uri => this?.library2.firstFragment.source.uri;
+}
+
+extension LinterContextExtension on LinterContext {
+  /// Whether the given [feature] is enabled in this linter context.
+  bool isEnabled(Feature feature) =>
+      libraryElement2!.featureSet.isEnabled(feature);
+}
+
 extension MethodDeclarationExtension on MethodDeclaration {
   bool get hasInheritedMethod => lookUpInheritedMethod() != null;
 
@@ -555,7 +576,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
     if (name == null) {
       return false;
     }
-    var parentElement = declaredElement?.enclosingElement;
+    var parentElement = declaredElement?.enclosingElement3;
     if (parentElement is! InterfaceElement) {
       return false;
     }
@@ -581,7 +602,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
     if (declaredElement == null) {
       return null;
     }
-    var parent = declaredElement.enclosingElement;
+    var parent = declaredElement.enclosingElement3;
     if (parent is InterfaceElement) {
       return parent.augmented
           .lookUpGetter(name: name.lexeme, library: declaredElement.library);
@@ -597,7 +618,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
     if (declaredElement == null) {
       return null;
     }
-    var parent = declaredElement.enclosingElement;
+    var parent = declaredElement.enclosingElement3;
     if (parent is InterfaceElement) {
       return parent.lookUpInheritedConcreteGetter(
           name.lexeme, declaredElement.library);
@@ -609,7 +630,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
   MethodElement? lookUpInheritedConcreteMethod() {
     var declaredElement = this.declaredElement;
     if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement;
+      var parent = declaredElement.enclosingElement3;
       if (parent is InterfaceElement) {
         return parent.lookUpInheritedConcreteMethod(
             name.lexeme, declaredElement.library);
@@ -622,7 +643,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
   PropertyAccessorElement? lookUpInheritedConcreteSetter() {
     var declaredElement = this.declaredElement;
     if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement;
+      var parent = declaredElement.enclosingElement3;
       if (parent is InterfaceElement) {
         return parent.lookUpInheritedConcreteSetter(
             name.lexeme, declaredElement.library);
@@ -635,7 +656,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
   MethodElement? lookUpInheritedMethod() {
     var declaredElement = this.declaredElement;
     if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement;
+      var parent = declaredElement.enclosingElement3;
       if (parent is InterfaceElement) {
         return parent.lookUpInheritedMethod(
             name.lexeme, declaredElement.library);

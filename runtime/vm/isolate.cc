@@ -10,6 +10,7 @@
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
 #include "platform/atomic.h"
+#include "platform/growable_array.h"
 #include "platform/text_buffer.h"
 #include "vm/canonical_tables.h"
 #include "vm/class_finalizer.h"
@@ -275,7 +276,7 @@ class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
   DISALLOW_COPY_AND_ASSIGN(FinalizeWeakPersistentHandlesVisitor);
 };
 
-void MutatorThreadPool::OnEnterIdleLocked(MonitorLocker* ml) {
+void MutatorThreadPool::OnEnterIdleLocked(MutexLocker* ml, Worker* worker) {
   if (FLAG_idle_timeout_micros == 0) return;
 
   // If the isolate has not started running application code yet, we ignore the
@@ -285,7 +286,7 @@ void MutatorThreadPool::OnEnterIdleLocked(MonitorLocker* ml) {
   int64_t idle_expiry = 0;
   // Obtain the idle time we should wait.
   if (isolate_group_->idle_time_handler()->ShouldNotifyIdle(&idle_expiry)) {
-    MonitorLeaveScope mls(ml);
+    MutexUnlocker mls(ml);
     NotifyIdle();
     return;
   }
@@ -296,7 +297,7 @@ void MutatorThreadPool::OnEnterIdleLocked(MonitorLocker* ml) {
   // Wait for the recommended idle timeout.
   // We can be woken up because of a), b) or c)
   const auto result =
-      ml->WaitMicros(idle_expiry - OS::GetCurrentMonotonicMicros());
+      worker->Sleep(idle_expiry - OS::GetCurrentMonotonicMicros());
 
   // a) If there are new tasks we have to run them.
   if (TasksWaitingToRunLocked()) return;
@@ -307,7 +308,7 @@ void MutatorThreadPool::OnEnterIdleLocked(MonitorLocker* ml) {
   // c) We timed out and should run the idle notifier.
   if (result == Monitor::kTimedOut &&
       isolate_group_->idle_time_handler()->ShouldNotifyIdle(&idle_expiry)) {
-    MonitorLeaveScope mls(ml);
+    MutexUnlocker mls(ml);
     NotifyIdle();
     return;
   }
@@ -357,30 +358,20 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 #if !defined(DART_PRECOMPILED_RUNTIME)
       background_compiler_(new BackgroundCompiler(this)),
 #endif
-      symbols_mutex_(NOT_IN_PRODUCT("IsolateGroup::symbols_mutex_")),
-      type_canonicalization_mutex_(
-          NOT_IN_PRODUCT("IsolateGroup::type_canonicalization_mutex_")),
-      type_arguments_canonicalization_mutex_(NOT_IN_PRODUCT(
-          "IsolateGroup::type_arguments_canonicalization_mutex_")),
-      subtype_test_cache_mutex_(
-          NOT_IN_PRODUCT("IsolateGroup::subtype_test_cache_mutex_")),
-      megamorphic_table_mutex_(
-          NOT_IN_PRODUCT("IsolateGroup::megamorphic_table_mutex_")),
-      type_feedback_mutex_(
-          NOT_IN_PRODUCT("IsolateGroup::type_feedback_mutex_")),
-      patchable_call_mutex_(
-          NOT_IN_PRODUCT("IsolateGroup::patchable_call_mutex_")),
-      constant_canonicalization_mutex_(
-          NOT_IN_PRODUCT("IsolateGroup::constant_canonicalization_mutex_")),
-      kernel_data_lib_cache_mutex_(
-          NOT_IN_PRODUCT("IsolateGroup::kernel_data_lib_cache_mutex_")),
-      kernel_data_class_cache_mutex_(
-          NOT_IN_PRODUCT("IsolateGroup::kernel_data_class_cache_mutex_")),
-      kernel_constants_mutex_(
-          NOT_IN_PRODUCT("IsolateGroup::kernel_constants_mutex_")),
-      field_list_mutex_(NOT_IN_PRODUCT("Isolate::field_list_mutex_")),
+      symbols_mutex_(),
+      type_canonicalization_mutex_(),
+      type_arguments_canonicalization_mutex_(),
+      subtype_test_cache_mutex_(),
+      megamorphic_table_mutex_(),
+      type_feedback_mutex_(),
+      patchable_call_mutex_(),
+      constant_canonicalization_mutex_(),
+      kernel_data_lib_cache_mutex_(),
+      kernel_data_class_cache_mutex_(),
+      kernel_constants_mutex_(),
+      field_list_mutex_(),
       boxed_field_list_(GrowableObjectArray::null()),
-      program_lock_(new SafepointRwLock()),
+      program_lock_(new SafepointRwLock(SafepointLevel::kGCAndDeopt)),
       active_mutators_monitor_(new Monitor()),
       max_active_mutators_(Scavenger::MaxMutatorThreadCount())
 #if !defined(PRODUCT)
@@ -1013,8 +1004,12 @@ void IsolateGroup::RehashConstants(Become* become) {
         ASSERT(!old_value.IsNull());
 
         if (become == nullptr) {
-          ASSERT(old_value.IsCanonical());
-          cls.InsertCanonicalConstant(zone, old_value);
+          if (old_value.IsCanonical()) {
+            cls.InsertCanonicalConstant(zone, old_value);
+          } else {
+            // The deleted enum value sentinel is not marked canonical.
+            ASSERT(cls.is_enum_class());
+          }
         } else {
           new_value = old_value.Canonicalize(thread);
           if (old_value.ptr() != new_value.ptr()) {
@@ -1078,25 +1073,23 @@ class IsolateMessageHandler : public MessageHandler {
   explicit IsolateMessageHandler(Isolate* isolate);
   ~IsolateMessageHandler();
 
-  const char* name() const;
-  void MessageNotify(Message::Priority priority);
-  MessageStatus HandleMessage(std::unique_ptr<Message> message);
+  const char* name() const override;
+  void MessageNotify(Message::Priority priority) override;
+  MessageStatus HandleMessage(std::unique_ptr<Message> message) override;
 #ifndef PRODUCT
-  void NotifyPauseOnStart();
-  void NotifyPauseOnExit();
+  void NotifyPauseOnStart() override;
+  void NotifyPauseOnExit() override;
 #endif  // !PRODUCT
 
 #if defined(DEBUG)
   // Check that it is safe to access this handler.
-  void CheckAccess() const;
+  void CheckAccess() const override;
 #endif
-  bool IsCurrentIsolate() const;
-  virtual Isolate* isolate() const { return isolate_; }
-  virtual IsolateGroup* isolate_group() const { return isolate_->group(); }
 
-  virtual bool KeepAliveLocked() {
-    // If the message handler was asked to shutdown we shut down.
-    if (!MessageHandler::KeepAliveLocked()) return false;
+  Isolate* isolate() const override { return isolate_; }
+  IsolateGroup* isolate_group() const { return isolate_->group(); }
+
+  bool KeepAliveLocked() override {
     // Otherwise we only stay alive as long as there's active receive ports, or
     // there are FFI callbacks keeping the isolate alive.
     return isolate_->HasLivePorts() || isolate_->HasOpenNativeCallables();
@@ -1359,7 +1352,9 @@ bool Isolate::HasPendingMessages() {
 
 MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     std::unique_ptr<Message> message) {
-  ASSERT(IsCurrentIsolate());
+#ifdef DEBUG
+  CheckAccess();
+#endif
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
@@ -1507,13 +1502,9 @@ void IsolateMessageHandler::NotifyPauseOnExit() {
 
 #if defined(DEBUG)
 void IsolateMessageHandler::CheckAccess() const {
-  ASSERT(IsCurrentIsolate());
+  ASSERT(isolate() == Isolate::Current());
 }
 #endif
-
-bool IsolateMessageHandler::IsCurrentIsolate() const {
-  return (I == Isolate::Current());
-}
 
 static MessageHandler::MessageStatus StoreError(Thread* thread,
                                                 const Error& error) {
@@ -1748,6 +1739,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       vm_tag_counters_(),
       pending_service_extension_calls_(GrowableObjectArray::null()),
       registered_service_extension_handlers_(GrowableObjectArray::null()),
+      service_id_zones_(nullptr),
 #define ISOLATE_METRIC_CONSTRUCTORS(type, variable, name, unit)                \
   metric_##variable##_(),
       ISOLATE_METRIC_LIST(ISOLATE_METRIC_CONSTRUCTORS)
@@ -1758,7 +1750,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       on_shutdown_callback_(Isolate::ShutdownCallback()),
       on_cleanup_callback_(Isolate::CleanupCallback()),
       random_(),
-      mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
+      mutex_(),
       tag_table_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
       spawn_count_monitor_(),
@@ -1786,8 +1778,13 @@ Isolate::~Isolate() {
 #if !defined(PRODUCT)
   delete debugger_;
   debugger_ = nullptr;
-  delete object_id_ring_;
-  object_id_ring_ = nullptr;
+  if (service_id_zones_ != nullptr) {
+    for (intptr_t i = 0; i < service_id_zones_->length(); ++i) {
+      delete service_id_zones_->At(i);
+    }
+    delete service_id_zones_;
+    service_id_zones_ = nullptr;
+  }
   delete pause_loop_monitor_;
   pause_loop_monitor_ = nullptr;
 #endif  // !defined(PRODUCT)
@@ -1881,7 +1878,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
 
 #if !defined(PRODUCT)
   result->debugger_ = new Debugger(result);
-#endif
+#endif  // !defined(PRODUCT)
 
   // Now we register the isolate in the group. From this point on any GC would
   // traverse the isolate roots (before this point, the roots are only pointing
@@ -2984,12 +2981,12 @@ void IsolateGroup::VisitStackPointers(ObjectPointerVisitor* visitor,
   visitor->clear_gc_root_type();
 }
 
-void IsolateGroup::VisitObjectIdRingPointers(ObjectPointerVisitor* visitor) {
+void IsolateGroup::VisitPointersInAllServiceIdZones(
+    ObjectPointerVisitor& visitor) {
 #if !defined(PRODUCT)
   for (Isolate* isolate : isolates_) {
-    ObjectIdRing* ring = isolate->object_id_ring();
-    if (ring != nullptr) {
-      ring->VisitPointers(visitor);
+    for (intptr_t i = 0; i < isolate->NumServiceIdZones(); ++i) {
+      isolate->GetServiceIdZone(i)->VisitPointers(visitor);
     }
   }
 #endif  // !defined(PRODUCT)
@@ -3011,15 +3008,54 @@ void IsolateGroup::RememberLiveTemporaries() {
 }
 
 #if !defined(PRODUCT)
-ObjectIdRing* Isolate::EnsureObjectIdRing() {
-  if (object_id_ring_ == nullptr) {
-    object_id_ring_ = new ObjectIdRing();
+RingServiceIdZone& Isolate::AddServiceIdZone(
+    ObjectIdRing::BackingBufferKind backing_buffer_kind,
+    ObjectIdRing::IdPolicy id_assignment_policy,
+    int32_t capacity) {
+  EnsureDefaultServiceIdZone();
+  switch (backing_buffer_kind) {
+    case ObjectIdRing::BackingBufferKind::kRing:
+      service_id_zones_->Add(new RingServiceIdZone(
+          service_id_zones_->length(), id_assignment_policy, capacity));
+      return *service_id_zones_->Last();
+    default:
+      UNREACHABLE();
   }
-  return object_id_ring_;
 }
-#endif  // !defined(PRODUCT)
 
-#ifndef PRODUCT
+void Isolate::DeleteServiceIdZone(int32_t id) {
+  ASSERT(service_id_zones_ != nullptr);
+  ASSERT(id < service_id_zones_->length());
+  delete service_id_zones_->At(id);
+  (*service_id_zones_)[id] = nullptr;
+}
+
+RingServiceIdZone& Isolate::EnsureDefaultServiceIdZone() {
+  if (service_id_zones_ == nullptr) {
+    service_id_zones_ = new MallocGrowableArray<RingServiceIdZone*>();
+  }
+  if (service_id_zones_->is_empty()) {
+    service_id_zones_->Add(
+        new RingServiceIdZone(0, ObjectIdRing::IdPolicy::kAllocateId,
+                              RingServiceIdZone::kCapacityOfDefaultIdZone));
+  }
+  return *service_id_zones_->At(0);
+}
+
+RingServiceIdZone* Isolate::GetServiceIdZone(intptr_t zone_id) const {
+  if (service_id_zones_ == nullptr || service_id_zones_->length() <= zone_id) {
+    return nullptr;
+  }
+  return service_id_zones_->At(zone_id);
+}
+
+intptr_t Isolate::NumServiceIdZones() const {
+  if (service_id_zones_ == nullptr) {
+    return 0;
+  }
+  return service_id_zones_->length();
+}
+
 static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
   switch (pi) {
     case kPauseOnAllExceptions:
@@ -3213,7 +3249,7 @@ void Isolate::PrintPauseEventJSON(JSONStream* stream) {
   IsolatePauseEvent(this).PrintJSON(stream);
 }
 
-#endif
+#endif  // !defined(PRODUCT)
 
 void Isolate::set_tag_table(const GrowableObjectArray& value) {
   tag_table_ = value.ptr();
@@ -3247,9 +3283,7 @@ void Isolate::set_registered_service_extension_handlers(
     const GrowableObjectArray& value) {
   registered_service_extension_handlers_ = value.ptr();
 }
-#endif  // !defined(PRODUCT)
 
-#ifndef PRODUCT
 ErrorPtr Isolate::InvokePendingServiceExtensionCalls() {
   GrowableObjectArray& calls =
       GrowableObjectArray::Handle(GetAndClearPendingServiceExtensionCalls());
@@ -3526,7 +3560,7 @@ void Isolate::PauseEventHandler() {
   set_message_notify_callback(saved_notify_callback);
   Dart_ExitScope();
 }
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT)
 
 void Isolate::VisitIsolates(IsolateVisitor* visitor) {
   if (visitor == nullptr) {

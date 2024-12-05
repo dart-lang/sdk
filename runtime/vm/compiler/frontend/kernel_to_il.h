@@ -51,7 +51,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                    bool optimizing,
                    intptr_t osr_id,
                    intptr_t first_block_id = 1,
-                   bool inlining_unchecked_entry = false);
+                   bool inlining_unchecked_entry = false,
+                   const Function* caller = nullptr);
   virtual ~FlowGraphBuilder();
 
   FlowGraph* BuildGraph();
@@ -270,7 +271,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment EvaluateAssertion();
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
                                           const String& name_symbol);
-  Fragment CheckBoolean(TokenPosition position);
   Fragment CheckAssignable(
       const AbstractType& dst_type,
       const String& dst_name,
@@ -532,6 +532,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // expression stack only as needed, switching to Smis as soon as possible.
   template <typename T>
   Fragment BuildExtractUnboxedSlotBitFieldIntoSmi(const Slot& slot) {
+    // Currently this method is not used with any sign-extended BitFields.
+    COMPILE_ASSERT(!T::sign_extended());
     ASSERT(RepresentationUtils::IsUnboxedInteger(slot.representation()));
     Fragment instructions;
     if (!Boxing::RequiresAllocation(slot.representation())) {
@@ -572,7 +574,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Zone* zone_;
 
   ParsedFunction* parsed_function_;
-  const bool optimizing_;
   ZoneGrowableArray<const ICData*>& ic_data_array_;
 
   intptr_t next_function_id_;

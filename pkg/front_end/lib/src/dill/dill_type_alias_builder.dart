@@ -29,7 +29,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   DartType? thisType;
 
   DillTypeAliasBuilder(this.typedef, this.tearOffs, DillLibraryBuilder parent)
-      : super(null, typedef.name, parent, typedef.fileOffset);
+      : super(null, typedef.name, parent, typedef.fileUri, typedef.fileOffset);
 
   @override
   // Coverage-ignore(suite): Not run.

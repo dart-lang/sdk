@@ -7,48 +7,19 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Unnecessary `await` keyword in return.';
 
-const _details = r'''
-Avoid returning an awaited expression when the expression type is assignable to
-the function's return type.
-
-
-**BAD:**
-```dart
-Future<int> future;
-Future<int> f1() async => await future;
-Future<int> f2() async {
-  return await future;
-}
-```
-
-**GOOD:**
-```dart
-Future<int> future;
-Future<int> f1() => future;
-Future<int> f2() {
-  return future;
-}
-```
-
-''';
-
 class UnnecessaryAwaitInReturn extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_await_in_return', "Unnecessary 'await'.",
-      correctionMessage: "Try removing the 'await'.");
-
   UnnecessaryAwaitInReturn()
       : super(
-            name: 'unnecessary_await_in_return',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.unnecessary_await_in_return,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_await_in_return;
 
   @override
   void registerNodeProcessors(

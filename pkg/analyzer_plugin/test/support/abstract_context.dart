@@ -15,8 +15,10 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 import 'package:linter/src/rules.dart';
+import 'package:meta/meta.dart';
 
 /// Finds an [Element] with the given [name].
 Element? findChildElement(Element root, String name, [ElementKind? kind]) {
@@ -44,6 +46,10 @@ class AbstractContextTest with MockPackagesMixin, ResourceProviderMixin {
   AnalysisContextCollection? _analysisContextCollection;
 
   List<String> get collectionIncludedPaths => [workspaceRootPath];
+
+  /// Return a list of the experiments that are to be enabled for tests in this
+  /// class, an empty list if there are no experiments that should be enabled.
+  List<String> get experiments => experimentsForTests;
 
   @override
   String get packagesRootPath => '/packages';
@@ -112,6 +118,7 @@ class AbstractContextTest with MockPackagesMixin, ResourceProviderMixin {
     return analysisContext.currentSession;
   }
 
+  @mustCallSuper
   void setUp() {
     createMockSdk(
       resourceProvider: resourceProvider,
@@ -120,8 +127,10 @@ class AbstractContextTest with MockPackagesMixin, ResourceProviderMixin {
 
     newFolder(testPackageRootPath);
     writeTestPackageConfig();
+    createAnalysisOptionsFile(experiments: experiments);
   }
 
+  @mustCallSuper
   void tearDown() {
     AnalysisEngine.instance.clearCaches();
   }

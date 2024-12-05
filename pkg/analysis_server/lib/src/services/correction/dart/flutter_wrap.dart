@@ -158,7 +158,9 @@ class _FlutterWrapPadding extends _WrapSingleWidget {
   @override
   List<String> get _leadingLines {
     var keyword = widgetExpr.inConstantContext ? '' : ' const';
-    return ['padding:$keyword EdgeInsets.all(8.0),'];
+    var codeStyleOptions = getCodeStyleOptions(unitResult.file);
+    var paddingStr = codeStyleOptions.preferIntLiterals ? '8' : '8.0';
+    return ['padding:$keyword EdgeInsets.all($paddingStr),'];
   }
 
   @override

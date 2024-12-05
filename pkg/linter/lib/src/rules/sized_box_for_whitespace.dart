@@ -6,62 +6,20 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'`SizedBox` for whitespace.';
 
-const _details = r'''
-Use `SizedBox` to add whitespace to a layout.
-
-A `Container` is a heavier Widget than a `SizedBox`, and as bonus, `SizedBox`
-has a `const` constructor.
-
-**BAD:**
-```dart
-Widget buildRow() {
-  return Row(
-    children: <Widget>[
-      const MyLogo(),
-      Container(width: 4),
-      const Expanded(
-        child: Text('...'),
-      ),
-    ],
-  );
-}
-```
-
-**GOOD:**
-```dart
-Widget buildRow() {
-  return Row(
-    children: const <Widget>[
-      MyLogo(),
-      SizedBox(width: 4),
-      Expanded(
-        child: Text('...'),
-      ),
-    ],
-  );
-}
-```
-''';
-
 class SizedBoxForWhitespace extends LintRule {
-  static const LintCode code = LintCode('sized_box_for_whitespace',
-      "Use a 'SizedBox' to add whitespace to a layout.",
-      correctionMessage: "Try using a 'SizedBox' rather than a 'Container'.",
-      hasPublishedDocs: true);
-
   SizedBoxForWhitespace()
       : super(
-            name: 'sized_box_for_whitespace',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.sized_box_for_whitespace,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.sized_box_for_whitespace;
 
   @override
   void registerNodeProcessors(
@@ -72,7 +30,7 @@ class SizedBoxForWhitespace extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);

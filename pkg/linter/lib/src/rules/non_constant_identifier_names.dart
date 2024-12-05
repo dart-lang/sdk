@@ -8,47 +8,21 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 import '../util/ascii_utils.dart';
 import '../utils.dart';
 
 const _desc = r'Name non-constant identifiers using lowerCamelCase.';
 
-const _details = r'''
-**DO** name non-constant identifiers using lowerCamelCase.
-
-Class members, top-level definitions, variables, parameters, named parameters
-and named constructors should capitalize the first letter of each word
-except the first word, and use no separators.
-
-**GOOD:**
-```dart
-var item;
-
-HttpRequest httpRequest;
-
-align(clearItems) {
-  // ...
-}
-```
-
-''';
-
 class NonConstantIdentifierNames extends LintRule {
-  static const LintCode code = LintCode('non_constant_identifier_names',
-      "The variable name '{0}' isn't a lowerCamelCase identifier.",
-      correctionMessage:
-          'Try changing the name to follow the lowerCamelCase style.',
-      hasPublishedDocs: true);
-
   NonConstantIdentifierNames()
       : super(
-            name: 'non_constant_identifier_names',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.non_constant_identifier_names,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.non_constant_identifier_names;
 
   @override
   void registerNodeProcessors(
@@ -92,6 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitCatchClause(CatchClause node) {
     checkIdentifier(node.exceptionParameter?.name, underscoresOk: true);
+    checkIdentifier(node.stackTraceParameter?.name, underscoresOk: true);
   }
 
   @override

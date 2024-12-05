@@ -308,9 +308,7 @@ class MatchingCache {
       required int fileOffset}) {
     CacheKey cacheKey;
     if (staticTarget != null) {
-      assert(
-          typeArguments != null,
-          // Coverage-ignore(suite): Not run.
+      assert(typeArguments != null,
           "No type arguments provided for static target $staticTarget.");
       cacheKey = new StaticAccessKey(
           receiver.cacheKey, staticTarget, typeArguments!, propertyName);
@@ -334,9 +332,7 @@ class MatchingCache {
       required int fileOffset}) {
     CacheKey cacheKey;
     if (staticTarget != null) {
-      assert(
-          typeArguments != null,
-          // Coverage-ignore(suite): Not run.
+      assert(typeArguments != null,
           "No type arguments provided for static target $staticTarget.");
       cacheKey = new StaticAccessKey(left.cacheKey, staticTarget,
           typeArguments!, operator, [right.cacheKey]);
@@ -1152,9 +1148,7 @@ class Cache {
         }
         result = createVariableGet(variable)..fileOffset = TreeNode.noOffset;
       } else {
-        assert(
-            _isLate, // Coverage-ignore(suite): Not run.
-            "Unexpected non-late cache ${cacheKey.name}");
+        assert(_isLate, "Unexpected non-late cache ${cacheKey.name}");
 
         VariableDeclaration? variable = _variable;
         VariableDeclaration? isSetVariable = _isSetVariable;

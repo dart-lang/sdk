@@ -67,6 +67,7 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
     externalSummaries: dataStore,
     packages: packages,
     macroSupport: KernelMacroSupport(),
+    shouldReportInconsistentAnalysisException: false,
   );
 
   scheduler.start();

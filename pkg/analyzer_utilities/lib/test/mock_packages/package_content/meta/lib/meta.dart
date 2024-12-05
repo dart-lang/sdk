@@ -236,7 +236,7 @@ const _Literal literal = _Literal();
 /// any warnings.
 ///
 /// An example use could be the arguments to functions annotated with
-/// [ResourceIdentifier], as only constant arguments can be made available
+/// [RecordUse], as only constant arguments can be made available
 /// to the post-compile steps.
 ///
 /// ```dart
@@ -539,6 +539,24 @@ class Immutable {
   const Immutable([this.reason = '']);
 }
 
+/// Annotates a static method to be recorded.
+///
+/// Applies to static functions, top-level functions, or extension methods.
+///
+/// During compilation, all statically resolved calls to an annotated function
+/// are registered, and information about the annotated functions, the calls,
+/// and their arguments, is then made available to post-compile steps.
+// TODO(srawlins): Enforce with `TargetKind.method`.
+@experimental
+class RecordUse {
+  /// Creates a [RecordUse] instance.
+  ///
+  /// This annotation can be placed as an annotation on functions whose
+  /// statically resolved calls should be registered together with the optional
+  /// [metadata] information.
+  const RecordUse();
+}
+
 /// Used to annotate a named parameter `p` in a method or function `f`.
 ///
 /// See [required] for more details.
@@ -565,38 +583,6 @@ class Required {
 
   /// Initialize a newly created instance to have the given [reason].
   const Required([this.reason = '']);
-}
-
-/// Annotates a static method as referencing a native resource.
-///
-/// Applies to static functions, top-level functions, or extension methods.
-///
-/// During compilation, all statically resolved calls to an annotated function
-/// are registered, and information about the annotated functions, the calls,
-/// and their arguments, is then made available to post-compile steps.
-// TODO(srawlins): Enforce with `TargetKind.method`.
-@experimental
-class ResourceIdentifier {
-  /// Information which is stored together with the function call.
-  ///
-  /// This could, for example, be the name of the package containing the
-  /// function annotated with this annotation. Allowed types are [bool], [int],
-  /// [double], and [String].
-  final Object? metadata;
-
-  /// Creates a [ResourceIdentifier] instance.
-  ///
-  /// This annotation can be placed as an annotation on functions whose
-  /// statically resolved calls should be registered together with the optional
-  /// [metadata] information.
-  const ResourceIdentifier([this.metadata])
-      : assert(
-          metadata == null ||
-              metadata is bool ||
-              metadata is num ||
-              metadata is String,
-          'Valid metadata types are bool, int, double, and String.',
-        );
 }
 
 /// See [useResult] for more details.

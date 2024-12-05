@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/analysis/context_builder.dart';
 /// A utility class used to build an analysis context based on a context root.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use AnalysisContextCollection instead')
 abstract class ContextBuilder {
   /// Initialize a newly created context builder. If a [resourceProvider] is
   /// given, then it will be used to access the file system, otherwise the

@@ -47,6 +47,14 @@ Future<HttpServer> setupServer({Uri? targetServer}) {
       response.close();
     });
 
+    addRequestHandler("/redirect-no-location",
+        (HttpRequest request, HttpResponse response) {
+      response
+        ..statusCode = HttpStatus.movedPermanently
+        ..reasonPhrase = "Moved Permanently"
+        ..close();
+    });
+
     // Setup redirects with relative url.
     addRequestHandler("/redirectUrl",
         (HttpRequest request, HttpResponse response) {
@@ -321,6 +329,22 @@ void testAutoRedirect() {
       });
     });
   });
+}
+
+Future<void> testAutoRedirectNoLocationHeader() async {
+  final server = await setupServer();
+  HttpClient client = new HttpClient();
+
+  final request = await client.getUrl(
+      Uri.parse("http://127.0.0.1:${server.port}/redirect-no-location"));
+
+  try {
+    final response = await request.close();
+  } on RedirectException catch (e) {
+    Expect.equals(0, e.redirects.length);
+  }
+  await server.close();
+  client.close();
 }
 
 void testAutoRedirectZeroMaxRedirects() {
@@ -627,10 +651,11 @@ void testRedirectRelativeToAbsolute() {
   });
 }
 
-main() {
+main() async {
   testManualRedirect();
   testManualRedirectWithHeaders();
   testAutoRedirect();
+  await testAutoRedirectNoLocationHeader();
   testAutoRedirectZeroMaxRedirects();
   testAutoRedirectWithHeaders();
   testShouldCopyHeadersOnRedirect();

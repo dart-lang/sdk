@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Note: the VM concatenates all patch files into a single patch file. This
-/// file is the first patch in "dart:convert" which contains all the imports
-/// used by patches of that library. We plan to change this when we have a
-/// shared front end and simply use parts.
+import "dart:_compact_hash" show createMapFromKeyValueListUnsafe;
 
 import "dart:_internal"
     show
@@ -89,33 +86,30 @@ class _JsonListener {
    * Stack used to handle nested containers.
    *
    * The current container is pushed on the stack when a new one is
-   * started. If the container is a [Map], there is also a current [key]
-   * which is also stored on the stack.
+   * started.
    */
   final List<Object?> stack = [];
 
-  /** The current [Map] or [List] being built, or null if not building a
+  /** Contents of the current container being built, or null if not building a
   * container.
+  *
+  * When building [Map] this will contain array of key-value pairs.
   */
-  Object? currentContainer;
-
-  /** The most recently read property key. */
-  String key = '';
+  List<dynamic>? currentContainer;
 
   /** The most recently read value. */
   Object? value;
 
-  /** Pushes the currently active container (and key, if a [Map]). */
-  void pushContainer() {
-    if (currentContainer is Map) stack.add(key);
+  /** Pushes the currently active container. */
+  void beginContainer() {
     stack.add(currentContainer);
+    currentContainer = [];
   }
 
-  /** Pops the top container from the [stack], including a key if applicable. */
+  /** Pops the top container from the [stack]. */
   void popContainer() {
     value = currentContainer;
-    currentContainer = stack.removeLast();
-    if (currentContainer is Map) key = unsafeCast<String>(stack.removeLast());
+    currentContainer = unsafeCast<List?>(stack.removeLast());
   }
 
   void handleString(String value) {
@@ -135,33 +129,33 @@ class _JsonListener {
   }
 
   void beginObject() {
-    pushContainer();
-    currentContainer = <String, dynamic>{};
+    beginContainer();
   }
 
   void propertyName() {
-    key = unsafeCast<String>(value);
+    unsafeCast<List>(currentContainer).add(value);
     value = null;
   }
 
   void propertyValue() {
-    var map = unsafeCast<Map>(currentContainer);
-    var reviver = this.reviver;
-    if (reviver != null) {
-      value = reviver(key, value);
+    final keyValuePairs = unsafeCast<List>(currentContainer);
+    if (reviver case final reviver?) {
+      final key = keyValuePairs.last;
+      keyValuePairs.add(reviver(key, value));
+    } else {
+      keyValuePairs.add(value);
     }
-    map[key] = value;
-    key = '';
     value = null;
   }
 
   void endObject() {
     popContainer();
+    value = createMapFromKeyValueListUnsafe<String, dynamic>(
+        unsafeCast<List>(value));
   }
 
   void beginArray() {
-    pushContainer();
-    currentContainer = <dynamic>[];
+    beginContainer();
   }
 
   void arrayElement() {
@@ -516,7 +510,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
   /**
    * Length of current chunk.
    *
-   * The valid arguments to [getChar] are 0 .. `chunkEnd - 1`.
+   * The valid arguments to [_getCharUnsafe] are 0 .. `chunkEnd - 1`.
    */
   int get chunkEnd;
 
@@ -534,12 +528,12 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * In practice, [index] will be no smaller than the `start` argument passed
    * to [parse].
    */
-  int getChar(int index);
+  int _getCharUnsafe(int index);
 
   /**
-   * Returns [true] if [getChar] is returning UTF16 code units.
+   * Returns [true] if [_getCharUnsafe] is returning UTF16 code units.
    *
-   * Otherwise it is expected that [getChar] is returning UTF8 bytes.
+   * Otherwise it is expected that [_getCharUnsafe] is returning UTF8 bytes.
    */
   bool get isUtf16Input;
 
@@ -658,7 +652,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
     toBailout:
     {
       if (position == end) break toBailout;
-      int char = getChar(position);
+      int char = _getCharUnsafe(position);
       int digit = char ^ CHAR_0;
       if (state == NUM_SIGN) {
         if (digit <= 9) {
@@ -669,7 +663,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
           }
           position++;
           if (position == end) break toBailout;
-          char = getChar(position);
+          char = _getCharUnsafe(position);
           digit = char ^ CHAR_0;
         } else {
           fail(position);
@@ -693,7 +687,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         }
         position++;
         if (position == end) break toBailout;
-        char = getChar(position);
+        char = _getCharUnsafe(position);
         digit = char ^ CHAR_0;
       }
       if (state == NUM_DOT) {
@@ -711,7 +705,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         }
         position++;
         if (position == end) break toBailout;
-        char = getChar(position);
+        char = _getCharUnsafe(position);
         digit = char ^ CHAR_0;
       }
       if (state == NUM_E) {
@@ -719,7 +713,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
           state = NUM_E_SIGN;
           position++;
           if (position == end) break toBailout;
-          char = getChar(position);
+          char = _getCharUnsafe(position);
           digit = char ^ CHAR_0;
         }
       }
@@ -728,7 +722,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         state = NUM_E_DIGIT;
         position++;
         if (position == end) break toBailout;
-        char = getChar(position);
+        char = _getCharUnsafe(position);
         digit = char ^ CHAR_0;
       }
       finishChunkNumber(state, start, position, buffer);
@@ -761,7 +755,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
     int count = (partialState >> STR_U_COUNT_SHIFT) & TWO_BIT_MASK;
     for (int i = count; i < 4; i++, position++) {
       if (position == chunkEnd) return chunkStringEscapeU(i, value);
-      int char = getChar(position);
+      int char = _getCharUnsafe(position);
       int digit = parseHexDigit(char);
       if (digit < 0) fail(position, "Invalid hex digit");
       value = 16 * value + digit;
@@ -787,7 +781,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         return chunkEnd;
       }
       int expectedChar = keyword.codeUnitAt(count);
-      if (getChar(position) != expectedChar) {
+      if (_getCharUnsafe(position) != expectedChar) {
         if (count == 0) {
           assert(keywordType == KWD_BOM);
           return position;
@@ -836,7 +830,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
     while (position < length) {
       int char = 0;
       do {
-        char = getChar(position);
+        char = _getCharUnsafe(position);
         if (isUtf16Input && char > 0xFF) {
           break;
         }
@@ -943,13 +937,13 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * The character `source[position]` must be "t".
    */
   int parseTrue(int position) {
-    assert(getChar(position) == CHAR_t);
+    assert(_getCharUnsafe(position) == CHAR_t);
     if (chunkEnd < position + 4) {
       return parseKeywordPrefix(position, "true", KWD_TRUE);
     }
-    if (getChar(position + 1) != CHAR_r ||
-        getChar(position + 2) != CHAR_u ||
-        getChar(position + 3) != CHAR_e) {
+    if (_getCharUnsafe(position + 1) != CHAR_r ||
+        _getCharUnsafe(position + 2) != CHAR_u ||
+        _getCharUnsafe(position + 3) != CHAR_e) {
       fail(position);
     }
     listener.handleBool(true);
@@ -962,14 +956,14 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * The character `source[position]` must be "f".
    */
   int parseFalse(int position) {
-    assert(getChar(position) == CHAR_f);
+    assert(_getCharUnsafe(position) == CHAR_f);
     if (chunkEnd < position + 5) {
       return parseKeywordPrefix(position, "false", KWD_FALSE);
     }
-    if (getChar(position + 1) != CHAR_a ||
-        getChar(position + 2) != CHAR_l ||
-        getChar(position + 3) != CHAR_s ||
-        getChar(position + 4) != CHAR_e) {
+    if (_getCharUnsafe(position + 1) != CHAR_a ||
+        _getCharUnsafe(position + 2) != CHAR_l ||
+        _getCharUnsafe(position + 3) != CHAR_s ||
+        _getCharUnsafe(position + 4) != CHAR_e) {
       fail(position);
     }
     listener.handleBool(false);
@@ -982,13 +976,13 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * The character `source[position]` must be "n".
    */
   int parseNull(int position) {
-    assert(getChar(position) == CHAR_n);
+    assert(_getCharUnsafe(position) == CHAR_n);
     if (chunkEnd < position + 4) {
       return parseKeywordPrefix(position, "null", KWD_NULL);
     }
-    if (getChar(position + 1) != CHAR_u ||
-        getChar(position + 2) != CHAR_l ||
-        getChar(position + 3) != CHAR_l) {
+    if (_getCharUnsafe(position + 1) != CHAR_u ||
+        _getCharUnsafe(position + 2) != CHAR_l ||
+        _getCharUnsafe(position + 3) != CHAR_l) {
       fail(position);
     }
     listener.handleNull();
@@ -996,12 +990,12 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
   }
 
   int parseKeywordPrefix(int position, String chars, int type) {
-    assert(getChar(position) == chars.codeUnitAt(0));
+    assert(_getCharUnsafe(position) == chars.codeUnitAt(0));
     int length = chunkEnd;
     int start = position;
     int count = 1;
     while (++position < length) {
-      int char = getChar(position);
+      int char = _getCharUnsafe(position);
       if (char != chars.codeUnitAt(count)) fail(start);
       count++;
     }
@@ -1047,7 +1041,6 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * Returned position right after the final quote.
    */
   @pragma('vm:unsafe:no-interrupts')
-  @pragma('vm:unsafe:no-bounds-checks')
   int parseString(int position) {
     final charAttributes = _characterAttributes;
 
@@ -1062,7 +1055,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         // Caveat: do not combine the following two lines together. It helps
         // compiler to generate better code (it currently can't reorder operations
         // to reduce register pressure).
-        char = getChar(position);
+        char = _getCharUnsafe(position);
         position++;
         bits |= char; // Includes final '"', but that never matters.
         if (isUtf16Input && char > 0xFF) {
@@ -1132,7 +1125,6 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * slices of non-escape characters using [addSliceToString].
    */
   @pragma('vm:unsafe:no-interrupts')
-  @pragma('vm:unsafe:no-bounds-checks')
   int parseStringToBuffer(int position) {
     final charAttributes = _characterAttributes;
 
@@ -1148,7 +1140,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
 
       int char = 0;
       do {
-        char = getChar(position);
+        char = _getCharUnsafe(position);
         position++;
         if (isUtf16Input && char > 0xFF) {
           continue;
@@ -1198,7 +1190,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * Returns position after the last character of the escape.
    */
   int parseStringEscape(int position) {
-    int char = getChar(position++);
+    int char = _getCharUnsafe(position++);
     int length = chunkEnd;
     switch (char) {
       case CHAR_b:
@@ -1225,7 +1217,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         int value = 0;
         for (int i = 0; i < 4; i++) {
           if (position == length) return chunkStringEscapeU(i, value);
-          char = getChar(position++);
+          char = _getCharUnsafe(position++);
           int digit = char ^ 0x30;
           value *= 16;
           if (digit <= 9) {
@@ -1321,7 +1313,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
       sign = -1;
       position++;
       if (position == length) return beginChunkNumber(NUM_SIGN, start);
-      char = getChar(position);
+      char = _getCharUnsafe(position);
     }
     int digit = char ^ CHAR_0;
     if (digit > 9) {
@@ -1335,7 +1327,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
     if (digit == 0) {
       position++;
       if (position == length) return beginChunkNumber(NUM_ZERO, start);
-      char = getChar(position);
+      char = _getCharUnsafe(position);
       digit = char ^ CHAR_0;
       // If starting with zero, next character must not be digit.
       if (digit <= 9) fail(position);
@@ -1358,7 +1350,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         digitCount++;
         position++;
         if (position == length) return beginChunkNumber(NUM_DIGIT, start);
-        char = getChar(position);
+        char = _getCharUnsafe(position);
         digit = char ^ CHAR_0;
       } while (digit <= 9);
     }
@@ -1370,7 +1362,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
       intValue = 0;
       position++;
       if (position == length) return beginChunkNumber(NUM_DOT, start);
-      char = getChar(position);
+      char = _getCharUnsafe(position);
       digit = char ^ CHAR_0;
       if (digit > 9) fail(position);
       do {
@@ -1378,7 +1370,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         intValue -= 1;
         position++;
         if (position == length) return beginChunkNumber(NUM_DOT_DIGIT, start);
-        char = getChar(position);
+        char = _getCharUnsafe(position);
         digit = char ^ CHAR_0;
       } while (digit <= 9);
     }
@@ -1390,14 +1382,14 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
       }
       position++;
       if (position == length) return beginChunkNumber(NUM_E, start);
-      char = getChar(position);
+      char = _getCharUnsafe(position);
       int expSign = 1;
       int exponent = 0;
       if (((char + 1) | 2) == 0x2e /*+ or -*/) {
         expSign = 0x2C - char; // -1 for MINUS, +1 for PLUS
         position++;
         if (position == length) return beginChunkNumber(NUM_E_SIGN, start);
-        char = getChar(position);
+        char = _getCharUnsafe(position);
       }
       digit = char ^ CHAR_0;
       if (digit > 9) {
@@ -1409,7 +1401,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         if (exponent > 400) exponentOverflow = true;
         position++;
         if (position == length) return beginChunkNumber(NUM_E_DIGIT, start);
-        char = getChar(position);
+        char = _getCharUnsafe(position);
         digit = char ^ CHAR_0;
       } while (digit <= 9);
       if (exponentOverflow) {
@@ -1480,7 +1472,8 @@ class _JsonStringParser extends _JsonParserWithListener
   bool get isUtf16Input => true;
 
   @pragma('vm:prefer-inline')
-  int getChar(int position) => chunk.codeUnitAt(position);
+  @pragma('vm:unsafe:no-bounds-checks')
+  int _getCharUnsafe(int position) => chunk.codeUnitAt(position);
 
   String getString(int start, int end, int bits) {
     return chunk.substring(start, end);
@@ -1605,7 +1598,8 @@ class _JsonUtf8Parser extends _JsonParserWithListener
   bool get isUtf16Input => false;
 
   @pragma('vm:prefer-inline')
-  int getChar(int position) => chunk[position];
+  @pragma('vm:unsafe:no-bounds-checks')
+  int _getCharUnsafe(int position) => chunk[position];
 
   String getString(int start, int end, int bits) {
     const int maxAsciiChar = 0x7f;

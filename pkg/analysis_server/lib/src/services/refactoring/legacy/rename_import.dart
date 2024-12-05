@@ -13,7 +13,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// A [Refactoring] for renaming [LibraryImportElement]s.
@@ -104,7 +103,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
       return null;
     }
     var unit = unitResult.unit;
-    var index = library.libraryImports.indexOf(element);
+    var index = library.definingCompilationUnit.libraryImports.indexOf(element);
     return unit.directives.whereType<ImportDirective>().elementAt(index);
   }
 

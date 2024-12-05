@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
-import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
+import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 
@@ -21,7 +22,7 @@ class DartAssistContextImpl implements DartAssistContext {
   final ResolvedUnitResult resolveResult;
 
   @override
-  final Map<ProducerGenerator, Set<String>> producerGeneratorsForLintRules;
+  final Map<ProducerGenerator, Set<LintCode>> producerGeneratorsForLintRules;
 
   @override
   final int selectionOffset;
@@ -45,6 +46,11 @@ abstract final class DartAssistKind {
     'dart.assist.add.diagnosticPropertyReference',
     DartAssistKindPriority.DEFAULT,
     'Add a debug reference to this property',
+  );
+  static const ADD_DIGIT_SEPARATORS = AssistKind(
+    'dart.assist.add.digitSeparators',
+    DartAssistKindPriority.DEFAULT,
+    'Add digit separators',
   );
   static const ADD_RETURN_TYPE = AssistKind(
     'dart.assist.add.returnType',
@@ -336,6 +342,11 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     "Inline invocation of '{0}'",
   );
+  static const INVERT_CONDITIONAL_EXPRESSION = AssistKind(
+    'dart.assist.invertConditional',
+    DartAssistKindPriority.DEFAULT,
+    'Invert conditional expression',
+  );
   static const INVERT_IF_STATEMENT = AssistKind(
     'dart.assist.invertIf',
     DartAssistKindPriority.DEFAULT,
@@ -355,6 +366,11 @@ abstract final class DartAssistKind {
     'dart.assist.joinVariableDeclaration',
     DartAssistKindPriority.DEFAULT,
     'Join variable declaration',
+  );
+  static const REMOVE_DIGIT_SEPARATORS = AssistKind(
+    'dart.assist.remove.digitSeparators',
+    DartAssistKindPriority.DEFAULT,
+    'Remove digit separators',
   );
   static const REMOVE_TYPE_ANNOTATION = AssistKind(
     // TODO(pq): unify w/ fix

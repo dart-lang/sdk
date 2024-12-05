@@ -7,7 +7,7 @@
 /// performance, scalability, and stability characteristics.
 ///
 /// Call with `--help` to see all of the args.
-library generate_testing_package;
+library;
 
 import 'dart:io';
 import 'dart:math';

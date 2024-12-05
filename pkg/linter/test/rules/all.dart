@@ -5,10 +5,13 @@
 // ignore_for_file: library_prefixes
 
 import 'always_declare_return_types_test.dart' as always_declare_return_types;
+import 'always_put_control_body_on_new_line_test.dart'
+    as always_put_control_body_on_new_line;
 import 'always_put_required_named_parameters_first_test.dart'
     as always_put_required_named_parameters_first;
 import 'always_specify_types_test.dart' as always_specify_types;
 import 'always_use_package_imports_test.dart' as always_use_package_imports;
+import 'analyzer_use_new_elements_test.dart' as analyzer_use_new_elements;
 import 'annotate_overrides_test.dart' as annotate_overrides;
 import 'annotate_redeclares_test.dart' as annotate_redeclares;
 import 'avoid_annotating_with_dynamic_test.dart'
@@ -20,22 +23,28 @@ import 'avoid_catches_without_on_clauses_test.dart'
 import 'avoid_catching_errors_test.dart' as avoid_catching_errors;
 import 'avoid_classes_with_only_static_members_test.dart'
     as avoid_classes_with_only_static_members;
+import 'avoid_double_and_int_checks_test.dart' as avoid_double_and_int_checks;
 import 'avoid_dynamic_calls_test.dart' as avoid_dynamic_calls;
 import 'avoid_empty_else_test.dart' as avoid_empty_else;
 import 'avoid_equals_and_hash_code_on_mutable_classes_test.dart'
     as avoid_equals_and_hash_code_on_mutable_classes;
 import 'avoid_escaping_inner_quotes_test.dart' as avoid_escaping_inner_quotes;
+import 'avoid_field_initializers_in_const_classes_test.dart'
+    as avoid_field_initializers_in_const_classes;
 import 'avoid_field_initializers_in_non_const_classes_test.dart'
     as avoid_field_initializers_in_non_const_classes;
 import 'avoid_final_parameters_test.dart' as avoid_final_parameters;
 import 'avoid_function_literals_in_foreach_calls_test.dart'
     as avoid_function_literals_in_foreach_calls;
+import 'avoid_futureor_void_test.dart' as avoid_futureor_void;
 import 'avoid_implementing_value_types_test.dart'
     as avoid_implementing_value_types;
 import 'avoid_init_to_null_test.dart' as avoid_init_to_null;
 import 'avoid_js_rounded_ints_test.dart' as avoid_js_rounded_ints;
 import 'avoid_multiple_declarations_per_line_test.dart'
     as avoid_multiple_declarations_per_line;
+import 'avoid_null_checks_in_equality_operators_test.dart'
+    as avoid_null_checks_in_equality_operators;
 import 'avoid_positional_boolean_parameters_test.dart'
     as avoid_positional_boolean_parameters;
 import 'avoid_print_test.dart' as avoid_print;
@@ -48,6 +57,8 @@ import 'avoid_renaming_method_parameters_test.dart'
     as avoid_renaming_method_parameters;
 import 'avoid_return_types_on_setters_test.dart'
     as avoid_return_types_on_setters;
+import 'avoid_returning_null_for_void_test.dart'
+    as avoid_returning_null_for_void;
 import 'avoid_returning_null_test.dart' as avoid_returning_null;
 import 'avoid_returning_this_test.dart' as avoid_returning_this;
 import 'avoid_setters_without_getters_test.dart'
@@ -72,11 +83,13 @@ import 'await_only_futures_test.dart' as await_only_futures;
 import 'camel_case_extensions_test.dart' as camel_case_extensions;
 import 'camel_case_types_test.dart' as camel_case_types;
 import 'cancel_subscriptions_test.dart' as cancel_subscriptions;
+import 'cascade_invocations_test.dart' as cascade_invocations;
 import 'cast_nullable_to_non_nullable_test.dart'
     as cast_nullable_to_non_nullable;
 import 'close_sinks_test.dart' as close_sinks;
 import 'collection_methods_unrelated_type_test.dart'
     as collection_methods_unrelated_type;
+import 'combinators_ordering_test.dart' as combinators_ordering;
 import 'comment_references_test.dart' as comment_references;
 import 'conditional_uri_does_not_exist_test.dart'
     as conditional_uri_does_not_exist;
@@ -107,11 +120,12 @@ import 'exhaustive_cases_test.dart' as exhaustive_cases;
 import 'file_names_test.dart' as file_names;
 import 'flutter_style_todos_test.dart' as flutter_style_todos;
 import 'hash_and_equals_test.dart' as hash_and_equals;
+import 'implementation_imports_test.dart' as implementation_imports;
 import 'implicit_call_tearoffs_test.dart' as implicit_call_tearoffs;
 import 'implicit_reopen_test.dart' as implicit_reopen;
 import 'invalid_case_patterns_test.dart' as invalid_case_patterns;
 import 'invalid_runtime_check_with_js_interop_types_test.dart'
-    as invalid_runtime_check_with_js_interop_types_test;
+    as invalid_runtime_check_with_js_interop_types;
 import 'join_return_with_assignment_test.dart' as join_return_with_assignment;
 import 'leading_newlines_in_multiline_strings_test.dart'
     as leading_newlines_in_multiline_strings;
@@ -146,9 +160,12 @@ import 'null_check_on_nullable_type_parameter_test.dart'
     as null_check_on_nullable_type_parameter;
 import 'null_closures_test.dart' as null_closures;
 import 'omit_local_variable_types_test.dart' as omit_local_variable_types;
+import 'omit_obvious_local_variable_types_test.dart'
+    as omit_obvious_local_variable_types;
 import 'one_member_abstracts_test.dart' as one_member_abstracts;
 import 'only_throw_errors_test.dart' as only_throw_errors;
 import 'overridden_fields_test.dart' as overridden_fields;
+import 'package_api_docs_test.dart' as package_api_docs;
 import 'package_names_test.dart' as package_names;
 import 'package_prefixed_library_names_test.dart'
     as package_prefixed_library_names;
@@ -159,6 +176,8 @@ import 'prefer_asserts_in_initializer_lists_test.dart'
     as prefer_asserts_in_initializer_lists;
 import 'prefer_asserts_with_message_test.dart' as prefer_asserts_with_message;
 import 'prefer_collection_literals_test.dart' as prefer_collection_literals;
+import 'prefer_conditional_assignment_test.dart'
+    as prefer_conditional_assignment;
 import 'prefer_const_constructors_in_immutables_test.dart'
     as prefer_const_constructors_in_immutables;
 import 'prefer_const_constructors_test.dart' as prefer_const_constructors;
@@ -184,9 +203,13 @@ import 'prefer_generic_function_type_aliases_test.dart'
     as prefer_generic_function_type_aliases;
 import 'prefer_if_elements_to_conditional_expressions_test.dart'
     as prefer_if_elements_to_conditional_expressions;
+import 'prefer_if_null_operators_test.dart' as prefer_if_null_operators;
+import 'prefer_initializing_formals_test.dart' as prefer_initializing_formals;
 import 'prefer_inlined_adds_test.dart' as prefer_inlined_adds;
+import 'prefer_int_literals_test.dart' as prefer_int_literals;
 import 'prefer_interpolation_to_compose_strings_test.dart'
     as prefer_interpolation_to_compose_strings;
+import 'prefer_is_empty_test.dart' as prefer_is_empty;
 import 'prefer_iterable_whereType_test.dart' as prefer_iterable_whereType;
 import 'prefer_mixin_test.dart' as prefer_mixin;
 import 'prefer_null_aware_method_calls_test.dart'
@@ -211,6 +234,8 @@ import 'sort_constructors_first_test.dart' as sort_constructors_first;
 import 'sort_pub_dependencies_test.dart' as sort_pub_dependencies;
 import 'sort_unnamed_constructors_first_test.dart'
     as sort_unnamed_constructors_first;
+import 'specify_nonobvious_local_variable_types_test.dart'
+    as specify_nonobvious_local_variable_types;
 import 'test_types_in_equals_test.dart' as test_types_in_equals;
 import 'throw_in_finally_test.dart' as throw_in_finally;
 import 'tighten_type_of_initializing_formals_test.dart'
@@ -282,17 +307,22 @@ import 'use_rethrow_when_possible_test.dart' as use_rethrow_when_possible;
 import 'use_setters_to_change_properties_test.dart'
     as use_setters_to_change_properties;
 import 'use_string_buffers_test.dart' as use_string_buffers;
+import 'use_string_in_part_of_directives_test.dart'
+    as use_string_in_part_of_directives;
 import 'use_super_parameters_test.dart' as use_super_parameters;
 import 'use_test_throws_matchers_test.dart' as use_test_throws_matchers;
 import 'use_to_and_as_if_applicable_test.dart' as use_to_and_as_if_applicable;
+import 'use_truncating_division_test.dart' as use_truncating_division;
 import 'valid_regexps_test.dart' as valid_regexps;
 import 'void_checks_test.dart' as void_checks;
 
 void main() {
   always_declare_return_types.main();
+  always_put_control_body_on_new_line.main();
   always_put_required_named_parameters_first.main();
   always_specify_types.main();
   always_use_package_imports.main();
+  analyzer_use_new_elements.main();
   annotate_overrides.main();
   annotate_redeclares.main();
   avoid_annotating_with_dynamic.main();
@@ -300,17 +330,21 @@ void main() {
   avoid_catches_without_on_clauses.main();
   avoid_catching_errors.main();
   avoid_classes_with_only_static_members.main();
+  avoid_double_and_int_checks.main();
   avoid_dynamic_calls.main();
   avoid_empty_else.main();
   avoid_equals_and_hash_code_on_mutable_classes.main();
   avoid_escaping_inner_quotes.main();
+  avoid_field_initializers_in_const_classes.main();
   avoid_field_initializers_in_non_const_classes.main();
   avoid_final_parameters.main();
   avoid_function_literals_in_foreach_calls.main();
+  avoid_futureor_void.main();
   avoid_implementing_value_types.main();
   avoid_init_to_null.main();
   avoid_js_rounded_ints.main();
   avoid_multiple_declarations_per_line.main();
+  avoid_null_checks_in_equality_operators.main();
   avoid_positional_boolean_parameters.main();
   avoid_print.main();
   avoid_private_typedef_functions.main();
@@ -319,6 +353,7 @@ void main() {
   avoid_renaming_method_parameters.main();
   avoid_return_types_on_setters.main();
   avoid_returning_null.main();
+  avoid_returning_null_for_void.main();
   avoid_returning_this.main();
   avoid_setters_without_getters.main();
   avoid_shadowing_type_parameters.main();
@@ -335,9 +370,11 @@ void main() {
   camel_case_extensions.main();
   camel_case_types.main();
   cancel_subscriptions.main();
+  cascade_invocations.main();
   cast_nullable_to_non_nullable.main();
   close_sinks.main();
   collection_methods_unrelated_type.main();
+  combinators_ordering.main();
   comment_references.main();
   conditional_uri_does_not_exist.main();
   constant_identifier_names.main();
@@ -361,10 +398,11 @@ void main() {
   file_names.main();
   flutter_style_todos.main();
   hash_and_equals.main();
+  implementation_imports.main();
   implicit_call_tearoffs.main();
   implicit_reopen.main();
   invalid_case_patterns.main();
-  invalid_runtime_check_with_js_interop_types_test.main();
+  invalid_runtime_check_with_js_interop_types.main();
   join_return_with_assignment.main();
   leading_newlines_in_multiline_strings.main();
   library_annotations.main();
@@ -390,9 +428,11 @@ void main() {
   null_check_on_nullable_type_parameter.main();
   null_closures.main();
   omit_local_variable_types.main();
+  omit_obvious_local_variable_types.main();
   one_member_abstracts.main();
   only_throw_errors.main();
   overridden_fields.main();
+  package_api_docs.main();
   package_names.main();
   package_prefixed_library_names.main();
   parameter_assignments.main();
@@ -400,6 +440,7 @@ void main() {
   prefer_asserts_in_initializer_lists.main();
   prefer_asserts_with_message.main();
   prefer_collection_literals.main();
+  prefer_conditional_assignment.main();
   prefer_const_constructors_in_immutables.main();
   prefer_const_constructors.main();
   prefer_const_declarations.main();
@@ -417,8 +458,12 @@ void main() {
   prefer_function_declarations_over_variables.main();
   prefer_generic_function_type_aliases.main();
   prefer_if_elements_to_conditional_expressions.main();
+  prefer_if_null_operators.main();
+  prefer_initializing_formals.main();
   prefer_inlined_adds.main();
+  prefer_int_literals.main();
   prefer_interpolation_to_compose_strings.main();
+  prefer_is_empty.main();
   prefer_iterable_whereType.main();
   prefer_mixin.main();
   prefer_null_aware_method_calls.main();
@@ -440,6 +485,7 @@ void main() {
   sort_constructors_first.main();
   sort_pub_dependencies.main();
   sort_unnamed_constructors_first.main();
+  specify_nonobvious_local_variable_types.main();
   test_types_in_equals.main();
   throw_in_finally.main();
   tighten_type_of_initializing_formals.main();
@@ -491,9 +537,11 @@ void main() {
   use_rethrow_when_possible.main();
   use_setters_to_change_properties.main();
   use_string_buffers.main();
+  use_string_in_part_of_directives.main();
   use_super_parameters.main();
   use_test_throws_matchers.main();
   use_to_and_as_if_applicable.main();
+  use_truncating_division.main();
   valid_regexps.main();
   void_checks.main();
 }

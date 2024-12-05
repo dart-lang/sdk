@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/context_builder.dart';
+import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
@@ -91,7 +91,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     // ignore: prefer_initializing_formals
     this.macroSupportFactory = macroSupportFactory;
 
-    var contextLocator = ContextLocator(
+    var contextLocator = ContextLocatorImpl(
       resourceProvider: this.resourceProvider,
     );
     var roots = contextLocator.locateRoots(
@@ -156,6 +156,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     throw StateError('Unable to find the context to $path');
   }
 
+  @override
   Future<void> dispose({
     bool forTesting = false,
   }) async {

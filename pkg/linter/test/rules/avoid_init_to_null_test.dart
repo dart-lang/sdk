@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class AvoidInitToNullSuperFormalsTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_init_to_null';
+  String get lintRule => LintNames.avoid_init_to_null;
 
   test_nullableStringInit() async {
     await assertDiagnostics(r'''
@@ -64,7 +64,7 @@ class AvoidInitToNullTest extends LintRuleTest {
   // TODO(pq): mock and add FutureOr examples
 
   @override
-  String get lintRule => 'avoid_init_to_null';
+  String get lintRule => LintNames.avoid_init_to_null;
 
   test_fieldFormalParameter_inferredType() async {
     await assertDiagnostics(r'''

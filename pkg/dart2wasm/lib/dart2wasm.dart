@@ -18,8 +18,6 @@ final WasmCompilerOptions _d = WasmCompilerOptions.defaultOptions();
 
 final List<Option> options = [
   Flag("help", (o, _) {}, abbr: "h", negatable: false, defaultsTo: false),
-  Flag("export-all", (o, value) => o.translatorOptions.exportAll = value,
-      defaultsTo: _d.translatorOptions.exportAll),
   Flag("import-shared-memory",
       (o, value) => o.translatorOptions.importSharedMemory = value,
       defaultsTo: _d.translatorOptions.importSharedMemory),
@@ -98,6 +96,12 @@ final List<Option> options = [
   Flag("no-source-maps",
       (o, value) => o.translatorOptions.generateSourceMaps = !value,
       defaultsTo: !_d.translatorOptions.generateSourceMaps),
+  Flag("enable-deferred-loading",
+      (o, value) => o.translatorOptions.enableDeferredLoading = value,
+      defaultsTo: _d.translatorOptions.enableDeferredLoading),
+  Flag("enable-multi-module-stress-test-mode",
+      (o, value) => o.translatorOptions.enableMultiModuleStressTestMode = value,
+      defaultsTo: _d.translatorOptions.enableMultiModuleStressTestMode),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(

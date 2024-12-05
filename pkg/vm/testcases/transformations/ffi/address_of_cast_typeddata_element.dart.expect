@@ -1,0 +1,34 @@
+library #lib;
+import self as self;
+import "dart:typed_data" as typ;
+import "dart:ffi" as ffi;
+import "dart:core" as core;
+
+import "dart:ffi";
+import "dart:typed_data";
+
+static method main() → void {
+  final typ::Int8List typedData = typ::Int8List::•(20);
+  self::myNative#T(typedData);
+  self::myNative#C(new ffi::_Compound::_fromTypedDataBase(typedData, #C1.{core::num::*}(0){(core::num) → core::num}));
+}
+@#C7
+@#C9
+external static method myNative(ffi::Pointer<ffi::Void> pointer) → core::int;
+@#C7
+@#C9
+external static method myNative#T(typ::TypedData pointer) → core::int;
+@#C7
+@#C9
+external static method myNative#C(ffi::_Compound pointer) → core::int;
+constants  {
+  #C1 = 1
+  #C2 = "cfe:ffi:native-marker"
+  #C3 = "myNative"
+  #C4 = "#lib"
+  #C5 = true
+  #C6 = ffi::Native<(ffi::Pointer<ffi::Void>) → ffi::Int8> {symbol:#C3, assetId:#C4, isLeaf:#C5}
+  #C7 = core::pragma {name:#C2, options:#C6}
+  #C8 = "vm:ffi:native"
+  #C9 = core::pragma {name:#C8, options:#C6}
+}

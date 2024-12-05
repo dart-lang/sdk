@@ -33,10 +33,10 @@ extension type CustomJSString(JSString _) implements JSString {}
 void test<T extends JSAny?, U extends NonLiteral>(JSAny? any) {
   any.isA<T>();
   //  ^
-  // [web] Type argument 'T' needs to be an interop 'ExtensionType'.
+  // [web] Type argument 'T' provided to 'isA' cannot be a type variable and must be an interop extension type that can be determined at compile-time.
   any.isA<U>();
   //  ^
-  // [web] Type argument 'U' needs to be an interop 'ExtensionType'.
+  // [web] Type argument 'U' provided to 'isA' cannot be a type variable and must be an interop extension type that can be determined at compile-time.
 
   final tearoff = 0.toJS.isA;
   //                     ^

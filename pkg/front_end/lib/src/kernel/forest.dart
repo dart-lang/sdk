@@ -17,8 +17,14 @@ import 'collections.dart'
         ForInElement,
         ForInMapEntry,
         ForMapEntry,
+        IfCaseElement,
+        IfCaseMapEntry,
         IfElement,
         IfMapEntry,
+        NullAwareElement,
+        NullAwareMapEntry,
+        PatternForElement,
+        PatternForMapEntry,
         SpreadElement;
 
 import 'internal_ast.dart';
@@ -109,8 +115,9 @@ class Forest {
     return new IntJudgment(value, literal)..fileOffset = fileOffset;
   }
 
-  IntLiteral createIntLiteralLarge(int fileOffset, String literal) {
-    return new ShadowLargeIntLiteral(literal, fileOffset);
+  IntLiteral createIntLiteralLarge(
+      int fileOffset, String strippedLiteral, String literal) {
+    return new ShadowLargeIntLiteral(strippedLiteral, literal, fileOffset);
   }
 
   /// Return a representation of a list literal at the given [fileOffset]. The
@@ -191,6 +198,24 @@ class Forest {
     return new MapLiteralEntry(key, value)..fileOffset = fileOffset;
   }
 
+  /// Return a representation of a null-aware key/value pair, were either the
+  /// key or the value might be `null`, in a literal map at the given
+  /// [fileOffset]. The [key] is the representation of the expression used to
+  /// compute the key. The [value] is the representation of the expression used
+  /// to compute the value.
+  NullAwareMapEntry createNullAwareMapEntry(int fileOffset,
+      {required bool isKeyNullAware,
+      required Expression key,
+      required bool isValueNullAware,
+      required Expression value}) {
+    return new NullAwareMapEntry(
+        isKeyNullAware: isKeyNullAware,
+        key: key,
+        isValueNullAware: isValueNullAware,
+        value: value)
+      ..fileOffset = fileOffset;
+  }
+
   LoadLibrary createLoadLibrary(
       int fileOffset, LibraryDependency dependency, Arguments? arguments) {
     return new LoadLibraryImpl(dependency, arguments)..fileOffset = fileOffset;
@@ -213,6 +238,10 @@ class Forest {
       {required bool isNullAware}) {
     return new SpreadElement(expression, isNullAware: isNullAware)
       ..fileOffset = fileOffset;
+  }
+
+  Expression createNullAwareElement(int fileOffset, Expression expression) {
+    return new NullAwareElement(expression)..fileOffset = fileOffset;
   }
 
   Expression createIfElement(
@@ -721,21 +750,15 @@ class Forest {
   }
 
   ConstructorTearOff createConstructorTearOff(int fileOffset, Member target) {
-    assert(
-        target is Constructor || (target is Procedure && target.isFactory),
-        // Coverage-ignore(suite): Not run.
+    assert(target is Constructor || (target is Procedure && target.isFactory),
         "Unexpected constructor tear off target: $target");
     return new ConstructorTearOff(target)..fileOffset = fileOffset;
   }
 
   StaticTearOff createStaticTearOff(int fileOffset, Procedure procedure) {
-    assert(
-        procedure.kind == ProcedureKind.Method,
-        // Coverage-ignore(suite): Not run.
+    assert(procedure.kind == ProcedureKind.Method,
         "Unexpected static tear off target: $procedure");
-    assert(
-        !procedure.isRedirectingFactory,
-        // Coverage-ignore(suite): Not run.
+    assert(!procedure.isRedirectingFactory,
         "Unexpected static tear off target: $procedure");
     return new StaticTearOff(procedure)..fileOffset = fileOffset;
   }

@@ -8,58 +8,20 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 import '../utils.dart';
 
 const _desc = r'Prefer using lowerCamelCase for constant names.';
 
-const _details = r'''
-**PREFER** using lowerCamelCase for constant names.
-
-In new code, use `lowerCamelCase` for constant variables, including enum values.
-
-In existing code that uses `ALL_CAPS_WITH_UNDERSCORES` for constants, you may
-continue to use all caps to stay consistent.
-
-**BAD:**
-```dart
-const PI = 3.14;
-const kDefaultTimeout = 1000;
-final URL_SCHEME = RegExp('^([a-z]+):');
-
-class Dice {
-  static final NUMBER_GENERATOR = Random();
-}
-```
-
-**GOOD:**
-```dart
-const pi = 3.14;
-const defaultTimeout = 1000;
-final urlScheme = RegExp('^([a-z]+):');
-
-class Dice {
-  static final numberGenerator = Random();
-}
-```
-
-''';
-
 class ConstantIdentifierNames extends LintRule {
-  static const LintCode code = LintCode('constant_identifier_names',
-      "The constant name '{0}' isn't a lowerCamelCase identifier.",
-      correctionMessage:
-          'Try changing the name to follow the lowerCamelCase style.',
-      hasPublishedDocs: true);
-
   ConstantIdentifierNames()
       : super(
-            name: 'constant_identifier_names',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.constant_identifier_names,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.constant_identifier_names;
 
   @override
   void registerNodeProcessors(

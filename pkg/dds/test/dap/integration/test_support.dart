@@ -305,12 +305,13 @@ environment:
 
   static Future<DapTestSession> setUp({
     List<String>? additionalArgs,
+    bool forceVerboseLogging = false,
   }) async {
     final server = await startServer(additionalArgs: additionalArgs);
     final client = await DapTestClient.connect(
       server,
-      captureVmServiceTraffic: verboseLogging,
-      logger: verboseLogging ? print : null,
+      captureVmServiceTraffic: forceVerboseLogging || verboseLogging,
+      logger: forceVerboseLogging || verboseLogging ? print : null,
     );
     return DapTestSession._(server, client);
   }

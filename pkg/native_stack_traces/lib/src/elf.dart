@@ -1262,16 +1262,25 @@ class Elf extends DwarfContainer {
   String? get architecture => _header.architecture;
 
   @override
-  Reader abbreviationsTableReader(Reader containerReader) =>
-      namedSections('.debug_abbrev').single.shrink(containerReader);
+  Reader? abbreviationsTableReader(Reader containerReader) {
+    final sections = namedSections('.debug_abbrev');
+    if (sections.length != 1) return null;
+    return sections.single.shrink(containerReader);
+  }
 
   @override
-  Reader lineNumberInfoReader(Reader containerReader) =>
-      namedSections('.debug_line').single.shrink(containerReader);
+  Reader? lineNumberInfoReader(Reader containerReader) {
+    final sections = namedSections('.debug_line');
+    if (sections.length != 1) return null;
+    return sections.single.shrink(containerReader);
+  }
 
   @override
-  Reader debugInfoReader(Reader containerReader) =>
-      namedSections('.debug_info').single.shrink(containerReader);
+  Reader? debugInfoReader(Reader containerReader) {
+    final sections = namedSections('.debug_info');
+    if (sections.length != 1) return null;
+    return sections.single.shrink(containerReader);
+  }
 
   @override
   int? get vmStartAddress => dynamicSymbolFor(constants.vmSymbolName)?.value;

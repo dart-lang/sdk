@@ -1,0 +1,3 @@
+extension type Id(int _) {
+  operator <(Id other) => _ < other._;
+}

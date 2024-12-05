@@ -15,6 +15,7 @@ import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../../../dds.dart';
+import '../../../dds_launcher.dart';
 import '../../rpc_error_codes.dart';
 import '../base_debug_adapter.dart';
 import '../isolate_manager.dart';
@@ -357,7 +358,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   ///
   /// `null` if the session is running in noDebug mode of the connection has not
   /// yet been made or has been shut down.
-  DartDevelopmentService? _dds;
+  DartDevelopmentServiceLauncher? _dds;
 
   /// The [DartInitializeRequestArguments] provided by the client in the
   /// `initialize` request.
@@ -415,7 +416,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// VM Service closing).
   bool _hasSentTerminatedEvent = false;
 
-  late final sendLogsToClient = args.sendLogsToClient ?? false;
+  /// Whether verbose internal logs (such as VM Service traffic) should be sent
+  /// to the client in `dart.log` events.
+  bool get sendLogsToClient => _sendLogsToClient;
+  var _sendLogsToClient = false;
 
   /// Whether or not the DAP is terminating.
   ///
@@ -563,17 +567,23 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     TA args,
     void Function() sendResponse,
   ) async {
-    this.args = args as DartCommonLaunchAttachRequestArguments;
-    isAttach = true;
-    _subscribeToOutputStreams = true;
+    try {
+      this.args = args as DartCommonLaunchAttachRequestArguments;
+      isAttach = true;
+      _subscribeToOutputStreams = true;
 
-    // Common setup.
-    await _prepareForLaunchOrAttach(null);
+      // Common setup.
+      await _prepareForLaunchOrAttach(null);
 
-    // Delegate to the sub-class to attach to the process.
-    await attachImpl();
+      // Delegate to the sub-class to attach to the process.
+      await attachImpl();
 
-    sendResponse();
+      sendResponse();
+    } on DebugAdapterException catch (e) {
+      // Any errors that are thrown as part of an AttachRequest should be shown
+      // to the user.
+      throw DebugAdapterException(e.message, showToUser: true);
+    }
   }
 
   /// Builds an evaluateName given a parent VM InstanceRef ID and a suffix.
@@ -651,9 +661,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// If a new DDS instance was started, it is assigned to [_dds].
   Future<Uri?> _startOrReuseDds(Uri uri) async {
     try {
-      final dds = await startDds(uri, uriConverter());
+      final dds = await startDds(uri);
       _dds = dds;
-      return dds.wsUri!;
+      return dds.wsUri;
     } catch (error, stack) {
       if (error is DartDevelopmentServiceException &&
           error.errorCode ==
@@ -779,12 +789,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     shutdown();
   }
 
-  Future<DartDevelopmentService> startDds(Uri uri, UriConverter? uriConverter) {
-    return DartDevelopmentService.startDartDevelopmentService(
-      vmServiceUriToHttp(uri),
+  Future<DartDevelopmentServiceLauncher> startDds(Uri uri) {
+    return DartDevelopmentServiceLauncher.start(
+      remoteVmServiceUri: vmServiceUriToHttp(uri),
       enableAuthCodes: enableAuthCodes,
-      ipv6: ipv6,
-      uriConverter: uriConverter,
     );
   }
 
@@ -932,7 +940,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     ContinueArguments args,
     void Function(ContinueResponseBody) sendResponse,
   ) async {
-    await isolateManager.resumeThread(args.threadId);
+    // When we resume, it's always possible that the VM will shut down (because
+    // it was paused-on-exit and we just allowed it to complete and exit), so
+    // we should handle shutdown errors and just accept them as successful
+    // resumes.
+    await _withErrorHandling(() => isolateManager.resumeThread(args.threadId));
     sendResponse(ContinueResponseBody(allThreadsContinued: false));
   }
 
@@ -968,6 +980,17 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       case 'updateDebugOptions':
         if (args != null) {
           await _updateDebugOptions(args.args);
+        }
+        sendResponse(_noResult);
+        break;
+
+      // Used to enable/disable sending logs to the client. This can also be
+      // enabled in launch args, but this allows selective logging to produce
+      // more targeted log files (used by Dart-Code's "Capture Debugging Logs"
+      // command).
+      case 'updateSendLogsToClient':
+        if (args != null) {
+          await _updateSendLogsToClient(args.args);
         }
         sendResponse(_noResult);
         break;
@@ -1381,14 +1404,20 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     TL args,
     void Function() sendResponse,
   ) async {
-    this.args = args as DartCommonLaunchAttachRequestArguments;
-    isAttach = false;
+    try {
+      this.args = args as DartCommonLaunchAttachRequestArguments;
+      isAttach = false;
 
-    // Common setup.
-    await _prepareForLaunchOrAttach(args.noDebug);
+      // Common setup.
+      await _prepareForLaunchOrAttach(args.noDebug);
 
-    // Delegate to the sub-class to launch the process.
-    await launchAndRespond(sendResponse);
+      // Delegate to the sub-class to launch the process.
+      await launchAndRespond(sendResponse);
+    } on DebugAdapterException catch (e) {
+      // Any errors that are thrown as part of an AttachRequest should be shown
+      // to the user.
+      throw DebugAdapterException(e.message, showToUser: true);
+    }
   }
 
   /// Overridden by sub-classes that need to control when the response is sent
@@ -2683,6 +2712,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// Performs some setup that is common to both [launchRequest] and
   /// [attachRequest].
   Future<void> _prepareForLaunchOrAttach(bool? noDebug) async {
+    _sendLogsToClient = args.sendLogsToClient ?? false;
+
     // Don't start launching until configurationDone.
     if (!_configurationDoneCompleter.isCompleted) {
       logger?.call('Waiting for configurationDone request...');
@@ -2752,6 +2783,14 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           args['debugExternalPackageLibraries'] as bool;
     }
     await isolateManager.applyDebugOptions();
+  }
+
+  /// Configures whether verbose logs should be sent to the client in `dart.log`
+  /// events.
+  Future<void> _updateSendLogsToClient(Map<String, Object?> args) async {
+    if (args.containsKey('enabled')) {
+      _sendLogsToClient = args['enabled'] as bool;
+    }
   }
 
   /// A wrapper around the same name function from package:vm_service that
@@ -2826,7 +2865,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       // outside of the DAP (eg. closing the simulator) so it's possible our
       // requests will fail in this way before we've handled any event to set
       // `isTerminating`.
-      if (e.code == RpcErrorCodes.kServiceDisappeared) {
+      if (e.code == RpcErrorCodes.kServiceDisappeared ||
+          e.code == RpcErrorCodes.kConnectionDisposed) {
         return null;
       }
 
@@ -2845,7 +2885,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         // errors because these can always occur during shutdown if we were
         // just starting to send (or had just sent) a request.
         if (e.message.contains("The client is closed") ||
-            e.message.contains("The client closed with pending request")) {
+            e.message.contains("The client closed with pending request") ||
+            e.message.contains("Service connection disposed")) {
           return null;
         }
       }

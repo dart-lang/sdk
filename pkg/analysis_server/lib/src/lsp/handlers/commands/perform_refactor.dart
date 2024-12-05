@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/abstract_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -35,6 +36,7 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler
     int offset,
     int length,
     Map<String, Object?>? options,
+    LspClientCapabilities clientCapabilities,
     CancellationToken cancellationToken,
     ProgressReporter reporter,
     int? docVersion,
@@ -93,7 +95,7 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler
             return fileModifiedError;
           }
 
-          var edit = createWorkspaceEdit(server, change);
+          var edit = createWorkspaceEdit(server, clientCapabilities, change);
           return await sendWorkspaceEditToClient(edit);
         } finally {
           manager.end(cancelableToken);

@@ -334,9 +334,9 @@ List<Expression> _difference(List<Expression> aList, List<Expression> bList) {
 
 /// Finds the first occurrence of [expressionToFind] in [expressions] or
 /// returns null.
-Expression? _findFirst<Expression>(
-    expressionToFind, List<Expression> expressions) {
-  return expressions.cast<Expression?>().firstWhere(
+TExpression? _findFirst<TExpression>(
+    expressionToFind, List<TExpression> expressions) {
+  return expressions.cast<TExpression?>().firstWhere(
       (otherExpression) => expressionToFind.compareTo(otherExpression) == 0,
       orElse: () => null);
 }

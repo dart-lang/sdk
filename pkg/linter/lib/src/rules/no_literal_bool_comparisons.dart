@@ -8,41 +8,19 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
-const _desc = r"Don't compare booleans to boolean literals.";
-
-const _details = r'''
-From [Effective Dart](https://dart.dev/effective-dart/usage#dont-use-true-or-false-in-equality-operations):
-
-**DON'T** use `true` or `false` in equality operations.
-
-This lint applies only if the expression is of a non-nullable `bool` type.
-
-**BAD:**
-```dart
-if (someBool == true) {
-}
-while (someBool == false) {
-}
-```
-
-**GOOD:**
-```dart
-if (someBool) {
-}
-while (!someBool) {
-}
-```
-''';
+const _desc = r"Don't compare boolean expressions to boolean literals.";
 
 class NoLiteralBoolComparisons extends LintRule {
   NoLiteralBoolComparisons()
       : super(
-          name: 'no_literal_bool_comparisons',
+          name: LintNames.no_literal_bool_comparisons,
           description: _desc,
-          details: _details,
-          categories: {Category.style},
         );
+
+  @override
+  LintCode get lintCode => LinterLintCode.no_literal_bool_comparisons;
 
   @override
   void registerNodeProcessors(

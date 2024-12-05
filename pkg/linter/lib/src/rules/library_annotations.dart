@@ -10,52 +10,19 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:meta/meta_meta.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Attach library annotations to library directives.';
 
-const _details = r'''
-Attach library annotations to library directives, rather than
-some other library-level element.
-
-**BAD:**
-```dart
-@TestOn('browser')
-
-import 'package:test/test.dart';
-
-void main() {}
-```
-
-**GOOD:**
-```dart
-@TestOn('browser')
-library;
-
-import 'package:test/test.dart';
-
-void main() {}
-```
-
-**NOTE:** An unnamed library, like `library;` above, is only supported in Dart
-2.19 and later. Code which might run in earlier versions of Dart will need to
-provide a name in the `library` directive.
-''';
-
 class LibraryAnnotations extends LintRule {
-  static const LintCode code = LintCode('library_annotations',
-      'This annotation must be attached to a library directive.',
-      correctionMessage:
-          'Try attaching library annotations to library directives.');
-
   LibraryAnnotations()
       : super(
-            name: 'library_annotations',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.library_annotations,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.library_annotations;
 
   @override
   void registerNodeProcessors(
@@ -78,9 +45,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       firstDirective = node.directives.first;
     }
     for (var directive in node.directives) {
-      if (directive is PartDirective) {
-        return;
-      }
+      if (directive is PartOfDirective) return;
+
       if (directive is! LibraryDirective) {
         _check(directive);
       }
@@ -125,7 +91,7 @@ extension on ElementAnnotation {
   }) {
     var element = this.element;
     return element is ConstructorElement &&
-        element.enclosingElement.name == className &&
+        element.enclosingElement3.name == className &&
         element.library.name == libraryName;
   }
 }

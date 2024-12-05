@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryNullInIfNullOperatorsTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_null_in_if_null_operators';
+  String get lintRule => LintNames.unnecessary_null_in_if_null_operators;
 
   test_localVariableDeclaration_noNull() async {
     await assertDiagnostics(r'''

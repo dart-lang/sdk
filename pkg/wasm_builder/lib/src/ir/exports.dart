@@ -2,12 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../builder/module.dart';
 import '../serialize/serialize.dart';
 
 /// Any class which can be exported from a module.
-abstract class Exportable {
+mixin Exportable {
+  late final String exportedName;
+  ModuleBuilder get enclosingModule;
+
+  Export buildExport(String name);
+
   /// All exports must have unique names.
-  Export export(String name);
+  Export export(String name) {
+    exportedName = name;
+    return buildExport(name);
+  }
 }
 
 /// Any export (function, table, memory or global).

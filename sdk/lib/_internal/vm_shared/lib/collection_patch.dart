@@ -4,11 +4,7 @@
 
 import "dart:_internal" as internal;
 
-import "dart:_internal" show unsafeCast, patch, IterableElementError;
-
-class _TypeTest<T> {
-  bool test(v) => v is T;
-}
+import "dart:_internal" show unsafeCast, patch, IterableElementError, TypeTest;
 
 @patch
 class HashMap<K, V> {
@@ -258,7 +254,7 @@ base class _CustomHashMap<K, V> extends _HashMap<K, V> {
   final _Hasher<K> _hashCode;
   final _Predicate _validKey;
   _CustomHashMap(this._equals, this._hashCode, _Predicate? validKey)
-      : _validKey = (validKey != null) ? validKey : new _TypeTest<K>().test;
+      : _validKey = (validKey != null) ? validKey : TypeTest<K>().test;
 
   bool containsKey(Object? key) {
     if (!_validKey(key)) return false;
@@ -802,7 +798,7 @@ base class _CustomHashSet<E> extends _HashSet<E> {
   final _Hasher<E> _hasher;
   final _Predicate _validKey;
   _CustomHashSet(this._equality, this._hasher, _Predicate? validKey)
-      : _validKey = (validKey != null) ? validKey : new _TypeTest<E>().test;
+      : _validKey = (validKey != null) ? validKey : TypeTest<E>().test;
 
   bool remove(Object? element) {
     if (!_validKey(element)) return false;

@@ -13,11 +13,14 @@ class InsertSemicolon extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+      // Supports single instance and in file corrections
+      CorrectionApplicability.acrossSingleFile;
 
   @override
   FixKind get fixKind => DartFixKind.INSERT_SEMICOLON;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.INSERT_SEMICOLON_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

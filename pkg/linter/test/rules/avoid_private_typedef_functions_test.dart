@@ -23,7 +23,7 @@ class AvoidPrivateTypedefFunctionsTest extends LintRuleTest {
       ];
 
   @override
-  String get lintRule => 'avoid_private_typedef_functions';
+  String get lintRule => LintNames.avoid_private_typedef_functions;
 
   test_nonFunctionTypeAlias() async {
     await assertNoDiagnostics(r'''

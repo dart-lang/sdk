@@ -6,40 +6,19 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Put a single newline at end of file.';
 
-const _details = r'''
-**DO** put a single newline at the end of non-empty files.
-
-**BAD:**
-```dart
-a {
-}
-```
-
-**GOOD:**
-```dart
-b {
-}
-    <-- newline
-```
-''';
-
 class EolAtEndOfFile extends LintRule {
-  static const LintCode code = LintCode(
-      'eol_at_end_of_file', 'Missing a newline at the end of the file.',
-      correctionMessage: 'Try adding a newline at the end of the file.');
-
   EolAtEndOfFile()
       : super(
-            name: 'eol_at_end_of_file',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.eol_at_end_of_file,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.eol_at_end_of_file;
 
   @override
   void registerNodeProcessors(
@@ -57,7 +36,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var content = node.declaredElement?.source.contents.data;
+    var content = node.declaredFragment?.source.contents.data;
     if (content != null &&
         content.isNotEmpty &&
         // TODO(srawlins): Re-implement this check without iterating over

@@ -35,12 +35,13 @@ T g<T>() => throw 0;
 MethodInvocation
   methodName: SimpleIdentifier
     token: g
-    staticElement: self::@function::g
+    staticElement: <testLibraryFragment>::@function::g
+    element: <testLibraryFragment>::@function::g#element
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: self::@class::A::@method::[]::@parameter::index
+  parameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::index
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -67,12 +68,13 @@ T g<T>() => throw 0;
 MethodInvocation
   methodName: SimpleIdentifier
     token: g
-    staticElement: self::@function::g
+    staticElement: <testLibraryFragment>::@function::g
+    element: <testLibraryFragment>::@function::g#element
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: self::@class::A::@method::[]=::@parameter::index
+  parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -101,12 +103,13 @@ T g<T>() => throw 0;
 MethodInvocation
   methodName: SimpleIdentifier
     token: g
-    staticElement: self::@function::g
+    staticElement: <testLibraryFragment>::@function::g
+    element: <testLibraryFragment>::@function::g#element
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: self::@class::A::@method::[]=::@parameter::index
+  parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -133,12 +136,13 @@ T g<T>() => throw 0;
 MethodInvocation
   methodName: SimpleIdentifier
     token: g
-    staticElement: self::@function::g
+    staticElement: <testLibraryFragment>::@function::g
+    element: <testLibraryFragment>::@function::g#element
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: self::@class::A::@method::[]=::@parameter::index
+  parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index
   staticInvokeType: String Function()
   staticType: String
   typeArgumentTypes
@@ -157,6 +161,7 @@ IndexExpression
   target: SimpleIdentifier
     token: b
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   leftBracket: [
   index: IntegerLiteral
@@ -165,6 +170,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -179,6 +185,7 @@ IndexExpression
   target: SimpleIdentifier
     token: b
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   leftBracket: [
   index: IntegerLiteral
@@ -187,6 +194,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -207,15 +215,17 @@ void f(A a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   leftBracket: [
   index: IntegerLiteral
     literal: 0
-    parameter: self::@class::A::@method::[]::@parameter::index
+    parameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
-  staticElement: self::@class::A::@method::[]
+  staticElement: <testLibraryFragment>::@class::A::@method::[]
+  element: <testLibraryFragment>::@class::A::@method::[]#element
   staticType: bool
 ''');
   }
@@ -237,10 +247,11 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
-    parameter: self::@class::A::@method::[]::@parameter::index
+    parameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
-  staticElement: self::@class::A::@method::[]
+  staticElement: <testLibraryFragment>::@class::A::@method::[]
+  element: <testLibraryFragment>::@class::A::@method::[]#element
   staticType: bool
 ''');
 
@@ -250,10 +261,11 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 1
-    parameter: self::@class::A::@method::[]::@parameter::index
+    parameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
-  staticElement: self::@class::A::@method::[]
+  staticElement: <testLibraryFragment>::@class::A::@method::[]
+  element: <testLibraryFragment>::@class::A::@method::[]#element
   staticType: bool
 ''');
 
@@ -276,19 +288,21 @@ void f(A<double> a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A<double>
   leftBracket: [
   index: IntegerLiteral
     literal: 0
     parameter: ParameterMember
-      base: self::@class::A::@method::[]::@parameter::index
+      base: <testLibraryFragment>::@class::A::@method::[]::@parameter::index
       substitution: {T: double}
     staticType: int
   rightBracket: ]
   staticElement: MethodMember
-    base: self::@class::A::@method::[]
+    base: <testLibraryFragment>::@class::A::@method::[]
     substitution: {T: double}
+  element: <testLibraryFragment>::@class::A::@method::[]#element
   staticType: double
 ''');
   }
@@ -317,7 +331,8 @@ IndexExpression
     superKeyword: super
     staticType: A
   rightBracket: ]
-  staticElement: self::@class::A::@method::[]
+  staticElement: <testLibraryFragment>::@class::A::@method::[]
+  element: <testLibraryFragment>::@class::A::@method::[]#element
   staticType: int
 ''');
   }
@@ -336,20 +351,23 @@ void f(List<int> a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: List<int>
   leftBracket: [
   index: SimpleIdentifier
     token: b
     parameter: ParameterMember
-      base: dart:core::@class::List::@method::[]::@parameter::index
+      base: dart:core::<fragment>::@class::List::@method::[]::@parameter::index
       substitution: {E: int}
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   rightBracket: ]
   staticElement: MethodMember
-    base: dart:core::@class::List::@method::[]
+    base: dart:core::<fragment>::@class::List::@method::[]
     substitution: {E: int}
+  element: dart:core::<fragment>::@class::List::@method::[]#element
   staticType: int
 ''');
   }
@@ -370,15 +388,17 @@ void f(A? a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   leftBracket: [
   index: IntegerLiteral
     literal: 0
-    parameter: self::@class::A::@method::[]::@parameter::index
+    parameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
-  staticElement: self::@class::A::@method::[]
+  staticElement: <testLibraryFragment>::@class::A::@method::[]
+  element: <testLibraryFragment>::@class::A::@method::[]#element
   staticType: bool?
 ''');
   }
@@ -403,17 +423,18 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 1
-    parameter: self::@extension::E::@method::[]::@parameter::index
+    parameter: <testLibraryFragment>::@extension::E::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
-  staticElement: self::@extension::E::@method::[]
+  staticElement: <testLibraryFragment>::@extension::E::@method::[]
+  element: <testLibraryFragment>::@extension::E::@method::[]#element
   staticType: bool
 ''');
   }
 
   test_read_ofExtension_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment extension E {
   bool operator[](int index) => false;
@@ -421,7 +442,7 @@ augment extension E {
 ''');
 
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 extension E on int {}
 
@@ -439,10 +460,11 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 1
-    parameter: self::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::[]::@parameter::index
+    parameter: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
-  staticElement: self::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::[]
+  staticElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]
+  element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]#element
   staticType: bool
 ''');
   }
@@ -468,7 +490,8 @@ IndexExpression
     leftParenthesis: (
     expression: SimpleIdentifier
       token: x
-      staticElement: self::@function::f::@parameter::x
+      staticElement: <testLibraryFragment>::@function::f::@parameter::x
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -483,9 +506,11 @@ IndexExpression
           constructorName: ConstructorName
             type: NamedType
               name: A
-              element: self::@class::A
+              element: <testLibraryFragment>::@class::A
+              element2: <testLibraryFragment>::@class::A#element
               type: A
-            staticElement: self::@class::A::@constructor::new
+            staticElement: <testLibraryFragment>::@class::A::@constructor::new
+            element: <testLibraryFragment>::@class::A::@constructor::new#element
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
@@ -495,10 +520,11 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
-    parameter: self::@class::A::@method::[]::@parameter::index
+    parameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
-  staticElement: self::@class::A::@method::[]
+  staticElement: <testLibraryFragment>::@class::A::@method::[]
+  element: <testLibraryFragment>::@class::A::@method::[]#element
   staticType: bool
 ''');
   }
@@ -515,7 +541,8 @@ void f(dynamic a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: dynamic
   leftBracket: [
   index: IntegerLiteral
@@ -524,6 +551,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <null>
+  element: <null>
   staticType: dynamic
 ''');
   }
@@ -543,6 +571,7 @@ IndexExpression
   target: SimpleIdentifier
     token: a
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   leftBracket: [
   index: IntegerLiteral
@@ -551,6 +580,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -573,26 +603,31 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      parameter: self::@class::A::@method::[]=::@parameter::index
+      parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: +=
   rightHandSide: DoubleLiteral
     literal: 1.2
-    parameter: dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: double
-  readElement: self::@class::A::@method::[]
+  readElement: <testLibraryFragment>::@class::A::@method::[]
+  readElement2: <testLibraryFragment>::@class::A::@method::[]#element
   readType: num
-  writeElement: self::@class::A::@method::[]=
+  writeElement: <testLibraryFragment>::@class::A::@method::[]=
+  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
   writeType: num
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
+  element: dart:core::<fragment>::@class::num::@method::+#element
   staticType: double
 ''');
   }
@@ -616,32 +651,37 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A<double>
     leftBracket: [
     index: IntegerLiteral
       literal: 0
       parameter: ParameterMember
-        base: self::@class::A::@method::[]=::@parameter::index
+        base: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index
         substitution: {T: double}
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: +=
   rightHandSide: DoubleLiteral
     literal: 1.2
-    parameter: dart:core::@class::double::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::double::@method::+::@parameter::other
     staticType: double
   readElement: MethodMember
-    base: self::@class::A::@method::[]
+    base: <testLibraryFragment>::@class::A::@method::[]
     substitution: {T: double}
+  readElement2: <testLibraryFragment>::@class::A::@method::[]#element
   readType: double
   writeElement: MethodMember
-    base: self::@class::A::@method::[]=
+    base: <testLibraryFragment>::@class::A::@method::[]=
     substitution: {T: double}
+  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
   writeType: double
-  staticElement: dart:core::@class::double::@method::+
+  staticElement: dart:core::<fragment>::@class::double::@method::+
+  element: dart:core::<fragment>::@class::double::@method::+#element
   staticType: double
 ''');
   }
@@ -665,26 +705,31 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A?
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      parameter: self::@class::A::@method::[]=::@parameter::index
+      parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: +=
   rightHandSide: DoubleLiteral
     literal: 1.2
-    parameter: dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: double
-  readElement: self::@class::A::@method::[]
+  readElement: <testLibraryFragment>::@class::A::@method::[]
+  readElement2: <testLibraryFragment>::@class::A::@method::[]#element
   readType: num
-  writeElement: self::@class::A::@method::[]=
+  writeElement: <testLibraryFragment>::@class::A::@method::[]=
+  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
   writeType: num
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
+  element: dart:core::<fragment>::@class::num::@method::+#element
   staticType: double?
 ''');
   }
@@ -707,26 +752,31 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      parameter: self::@class::A::@method::[]=::@parameter::index
+      parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: DoubleLiteral
     literal: 1.2
-    parameter: self::@class::A::@method::[]=::@parameter::value
+    parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::value
     staticType: double
   readElement: <null>
+  readElement2: <null>
   readType: null
-  writeElement: self::@class::A::@method::[]=
+  writeElement: <testLibraryFragment>::@class::A::@method::[]=
+  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
   writeType: num
   staticElement: <null>
+  element: <null>
   staticType: double
 ''');
   }
@@ -747,7 +797,8 @@ void f(A? a) {
 CascadeExpression
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   cascadeSections
     AssignmentExpression
@@ -756,22 +807,27 @@ CascadeExpression
         leftBracket: [
         index: IntegerLiteral
           literal: 0
-          parameter: self::@class::A::@method::[]=::@parameter::index
+          parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index
           staticType: int
         rightBracket: ]
         staticElement: <null>
+        element: <null>
         staticType: null
       operator: =
       rightHandSide: SimpleIdentifier
         token: a
-        parameter: self::@class::A::@method::[]=::@parameter::a
-        staticElement: self::@function::f::@parameter::a
+        parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::a
+        staticElement: <testLibraryFragment>::@function::f::@parameter::a
+        element: <testLibraryFragment>::@function::f::@parameter::a#element
         staticType: A
       readElement: <null>
+      readElement2: <null>
       readType: null
-      writeElement: self::@class::A::@method::[]=
+      writeElement: <testLibraryFragment>::@class::A::@method::[]=
+      writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
       writeType: A
       staticElement: <null>
+      element: <null>
       staticType: A
     AssignmentExpression
       leftHandSide: IndexExpression
@@ -779,22 +835,27 @@ CascadeExpression
         leftBracket: [
         index: IntegerLiteral
           literal: 1
-          parameter: self::@class::A::@method::[]=::@parameter::index
+          parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index
           staticType: int
         rightBracket: ]
         staticElement: <null>
+        element: <null>
         staticType: null
       operator: =
       rightHandSide: SimpleIdentifier
         token: a
-        parameter: self::@class::A::@method::[]=::@parameter::a
-        staticElement: self::@function::f::@parameter::a
+        parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::a
+        staticElement: <testLibraryFragment>::@function::f::@parameter::a
+        element: <testLibraryFragment>::@function::f::@parameter::a#element
         staticType: A
       readElement: <null>
+      readElement2: <null>
       readType: null
-      writeElement: self::@class::A::@method::[]=
+      writeElement: <testLibraryFragment>::@class::A::@method::[]=
+      writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
       writeType: A
       staticElement: <null>
+      element: <null>
       staticType: A
   staticType: A?
 ''');
@@ -818,32 +879,37 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A<double>
     leftBracket: [
     index: IntegerLiteral
       literal: 0
       parameter: ParameterMember
-        base: self::@class::A::@method::[]=::@parameter::index
+        base: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index
         substitution: {T: double}
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: DoubleLiteral
     literal: 1.2
     parameter: ParameterMember
-      base: self::@class::A::@method::[]=::@parameter::value
+      base: <testLibraryFragment>::@class::A::@method::[]=::@parameter::value
       substitution: {T: double}
     staticType: double
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: MethodMember
-    base: self::@class::A::@method::[]=
+    base: <testLibraryFragment>::@class::A::@method::[]=
     substitution: {T: double}
+  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
   writeType: double
   staticElement: <null>
+  element: <null>
   staticType: double
 ''');
   }
@@ -866,26 +932,31 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A?
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      parameter: self::@class::A::@method::[]=::@parameter::index
+      parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: DoubleLiteral
     literal: 1.2
-    parameter: self::@class::A::@method::[]=::@parameter::value
+    parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::value
     staticType: double
   readElement: <null>
+  readElement2: <null>
   readType: null
-  writeElement: self::@class::A::@method::[]=
+  writeElement: <testLibraryFragment>::@class::A::@method::[]=
+  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
   writeType: num
   staticElement: <null>
+  element: <null>
   staticType: double?
 ''');
   }
@@ -911,28 +982,32 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 1
-      parameter: self::@extension::E::@method::[]=::@parameter::index
+      parameter: <testLibraryFragment>::@extension::E::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: DoubleLiteral
     literal: 2.3
-    parameter: self::@extension::E::@method::[]=::@parameter::value
+    parameter: <testLibraryFragment>::@extension::E::@method::[]=::@parameter::value
     staticType: double
   readElement: <null>
+  readElement2: <null>
   readType: null
-  writeElement: self::@extension::E::@method::[]=
+  writeElement: <testLibraryFragment>::@extension::E::@method::[]=
+  writeElement2: <testLibraryFragment>::@extension::E::@method::[]=#element
   writeType: num
   staticElement: <null>
+  element: <null>
   staticType: double
 ''');
   }
 
   test_write_ofExtension_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment extension E {
   operator[]=(int index, num value) {}
@@ -940,7 +1015,7 @@ augment extension E {
 ''');
 
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 extension E on int {}
 
@@ -959,21 +1034,25 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 1
-      parameter: self::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::[]=::@parameter::index
+      parameter: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: DoubleLiteral
     literal: 2.3
-    parameter: self::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::[]=::@parameter::value
+    parameter: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]=::@parameter::value
     staticType: double
   readElement: <null>
+  readElement2: <null>
   readType: null
-  writeElement: self::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::[]=
+  writeElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]=
+  writeElement2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]=#element
   writeType: num
   staticElement: <null>
+  element: <null>
   staticType: double
 ''');
   }
@@ -1000,7 +1079,8 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: x
-        staticElement: self::@function::f::@parameter::x
+        staticElement: <testLibraryFragment>::@function::f::@parameter::x
+        element: <testLibraryFragment>::@function::f::@parameter::x#element
         staticType: Object?
       rightParenthesis: )
       leftBracket: {
@@ -1015,9 +1095,11 @@ AssignmentExpression
             constructorName: ConstructorName
               type: NamedType
                 name: A
-                element: self::@class::A
+                element: <testLibraryFragment>::@class::A
+                element2: <testLibraryFragment>::@class::A#element
                 type: A
-              staticElement: self::@class::A::@constructor::new
+              staticElement: <testLibraryFragment>::@class::A::@constructor::new
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
             argumentList: ArgumentList
               leftParenthesis: (
               rightParenthesis: )
@@ -1027,21 +1109,25 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      parameter: self::@class::A::@method::[]=::@parameter::index
+      parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: DoubleLiteral
     literal: 1.2
-    parameter: self::@class::A::@method::[]=::@parameter::value
+    parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::value
     staticType: double
   readElement: <null>
+  readElement2: <null>
   readType: null
-  writeElement: self::@class::A::@method::[]=
+  writeElement: <testLibraryFragment>::@class::A::@method::[]=
+  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
   writeType: num
   staticElement: <null>
+  element: <null>
   staticType: double
 ''');
   }

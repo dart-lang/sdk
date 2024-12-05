@@ -380,12 +380,15 @@ abstract final class double extends num {
 }
 
 class Duration implements Comparable<Duration> {
+  static const Duration zero = Duration(seconds: 0);
+
   const Duration({int days = 0,
       int hours = 0,
       int minutes = 0,
       int seconds = 0,
       int milliseconds = 0,
       int microseconds = 0});
+
   int compareTo(Duration other) => 0;
 }
 
@@ -685,6 +688,12 @@ abstract final class String implements Comparable<String>, Pattern {
   String toUpperCase();
 }
 
+class StringBuffer implements StringSink {
+  external void write(Object? object);
+}
+
+abstract interface class StringSink {}
+
 class Symbol {
   const factory Symbol(String name) = internal.Symbol;
 }
@@ -736,6 +745,8 @@ final MockSdkLibrary _LIB_FFI = MockSdkLibrary('ffi', [
     '''
 @Since('2.6')
 library dart.ffi;
+
+import 'dart:typed_data';
 
 abstract final class NativeType {}
 
@@ -824,6 +835,9 @@ final class Pointer<T extends NativeType> implements SizedNativeType {
   static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
       @DartRepresentationOf("T") Function f,
       [Object exceptionalReturn]) {}
+
+  external Pointer<U> cast<U extends NativeType>();
+
 }
 
 final Pointer<Never> nullptr = Pointer.fromAddress(0);
@@ -847,11 +861,20 @@ extension NativeFunctionPointer<NF extends Function>
 
 abstract final class _Compound implements NativeType {}
 
-@Since('2.12')
-abstract base class Struct extends _Compound implements SizedNativeType {}
+abstract base class Struct extends _Compound implements SizedNativeType {
+  @Since('3.4')
+  external static T create<T extends Struct>([TypedData typedData, int offset]);
+}
 
 @Since('2.14')
-abstract base class Union extends _Compound implements SizedNativeType {}
+abstract base class Union extends _Compound implements SizedNativeType {
+  @Since('3.4')
+  external static T create<T extends Union>([TypedData typedData, int offset]);
+}
+
+extension IntAddress on int {
+  external Pointer<Never> address;
+}
 
 @Since('2.13')
 final class Packed {
@@ -886,6 +909,13 @@ final class Array<T extends NativeType> extends _Compound {
       int dimension5]) = _ArraySize<T>;
 
   const factory Array.multi(List<int> dimensions) = _ArraySize<T>.multi;
+
+  @Since('3.6')
+  const factory Array.variable() = _ArraySize<T>.variable;
+
+  @Since('3.6')
+  const factory Array.variableMulti(List<int> dimensions) =
+      _ArraySize<T>.variableMulti;
 }
 
 final class _ArraySize<T extends NativeType> implements Array<T> {
@@ -897,16 +927,44 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
 
   final List<int>? dimensions;
 
-  const _ArraySize(this.dimension1,
-      [this.dimension2, this.dimension3, this.dimension4, this.dimension5])
-      : dimensions = null;
+  final bool variableLength;
+
+  const _ArraySize(
+    this.dimension1, [
+    this.dimension2,
+    this.dimension3,
+    this.dimension4,
+    this.dimension5,
+  ])  : dimensions = null,
+        variableLength = false;
 
   const _ArraySize.multi(this.dimensions)
       : dimension1 = null,
         dimension2 = null,
         dimension3 = null,
         dimension4 = null,
-        dimension5 = null;
+        dimension5 = null,
+        variableLength = false;
+
+  static const variableLengthLength = 0;
+
+  const _ArraySize.variable([
+    this.dimension2,
+    this.dimension3,
+    this.dimension4,
+    this.dimension5,
+  ])  : dimension1 = variableLengthLength,
+        dimensions = null,
+        variableLength = true;
+
+  const _ArraySize.variableMulti(List<int> nestedDimensions)
+      : dimensions = nestedDimensions,
+        dimension1 = null,
+        dimension2 = null,
+        dimension3 = null,
+        dimension4 = null,
+        dimension5 = null,
+        variableLength = true;
 }
 
 extension StructPointer<T extends Struct> on Pointer<T> {
@@ -1001,6 +1059,15 @@ abstract interface class Finalizable {
 
 @Since('3.0')
 abstract final class VarArgs<T extends Record> implements NativeType {}
+
+@Since('3.5')
+extension Int8ListAddress on Int8List {
+  external Pointer<Int8> get address;
+}
+
+extension ArrayAddress<T extends NativeType> on Array<T> {
+  external Pointer<T> get address;
+}
 ''',
   )
 ]);
@@ -1272,6 +1339,10 @@ library dart.io;
 import 'dart:convert';
 
 Never exit(int code) => throw code;
+
+int get exitCode => 0;
+
+void set exitCode(int code) {}
 
 abstract class Directory implements FileSystemEntity {
   factory Directory(String path) {

@@ -47,7 +47,8 @@ BinaryExpression
         SimpleStringLiteral
           literal: 'a'
       rightParenthesis: )
-    element: self::@extension::E
+    element: <testLibraryFragment>::@extension::E
+    element2: <testLibraryFragment>::@extension::E#element
     extendedType: String
     staticType: null
   operator: +
@@ -56,6 +57,7 @@ BinaryExpression
     parameter: <null>
     staticType: int
   staticElement: <null>
+  element: <null>
   staticInvokeType: null
   staticType: InvalidType
 ''');

@@ -51,6 +51,8 @@ class Elf : public ZoneAllocated {
 
   Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf = nullptr);
 
+  static void AssertConsistency(Elf* snapshot, Elf* debug_info);
+
   static constexpr intptr_t kPageSize = kElfPageSize;
 
   bool IsStripped() const { return dwarf_ == nullptr; }

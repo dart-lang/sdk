@@ -272,6 +272,22 @@ static void InvalidForwarding(ObjectPtr before,
   FATAL("become: %s", message);
 }
 
+struct PtrIntTrait {
+  typedef ObjectPtr Key;
+  typedef intptr_t Value;
+  typedef struct {
+    ObjectPtr key;
+    intptr_t value;
+  } Pair;
+
+  static Key KeyOf(Pair kv) { return kv.key; }
+  static Value ValueOf(Pair kv) { return kv.value; }
+  static uword Hash(Key key) {
+    return (static_cast<uword>(key) * 92821) ^ (static_cast<uword>(key) >> 8);
+  }
+  static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
+};
+
 void Become::Forward() {
   if (pointers_.length() == 0) {
     return;
@@ -353,9 +369,8 @@ void Become::FollowForwardingPointers(Thread* thread) {
 #ifndef PRODUCT
   isolate_group->ForEachIsolate(
       [&](Isolate* isolate) {
-        ObjectIdRing* ring = isolate->object_id_ring();
-        if (ring != nullptr) {
-          ring->VisitPointers(&pointer_visitor);
+        for (intptr_t i = 0; i < isolate->NumServiceIdZones(); ++i) {
+          isolate->GetServiceIdZone(i)->VisitPointers(pointer_visitor);
         }
       },
       /*at_safepoint=*/true);

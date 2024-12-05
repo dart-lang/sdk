@@ -14,7 +14,8 @@ import 'package:dart_style/dart_style.dart';
 import 'generate_all.dart';
 import 'meta_model.dart';
 
-final formatter = DartFormatter();
+final formatter =
+    DartFormatter(languageVersion: DartFormatter.latestLanguageVersion);
 
 final _canParseFunctions = SplayTreeMap<String, String>();
 Map<String, Interface> _interfaces = {};
@@ -572,6 +573,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, LspEnum namespace) {
   var typeOfValues = namespace.typeOfValues;
   var allowsAnyValue = enumClassAllowsAnyValue(namespaceName);
   var constructorName = allowsAnyValue ? '' : '._';
+  var dartType = typeOfValues.dartTypeWithTypeArgs;
 
   buffer
     ..writeln('class $namespaceName implements ToJsonable {')
@@ -579,7 +581,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, LspEnum namespace) {
     ..writeIndentedln('const $namespaceName$constructorName(this._value);')
     ..writeIndentedln('const $namespaceName.fromJson(this._value);')
     ..writeln()
-    ..writeIndentedln('final ${typeOfValues.dartTypeWithTypeArgs} _value;')
+    ..writeIndentedln('final $dartType _value;')
     ..writeln()
     ..writeIndented(
         'static bool canParse(Object? obj, LspJsonReporter reporter) ');
@@ -619,7 +621,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, LspEnum namespace) {
   });
   buffer
     ..writeln()
-    ..writeIndentedln('@override Object toJson() => _value;')
+    ..writeIndentedln('@override $dartType toJson() => _value;')
     ..writeln()
     ..writeIndentedln('@override String toString() => _value.toString();')
     ..writeln()

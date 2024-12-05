@@ -6,6 +6,9 @@ library _foreign_helper;
 
 import 'dart:_js_shared_embedded_names' show JsGetName, JsBuiltin;
 import 'dart:_rti' show Rti;
+import 'dart:_js_helper' show throwUnsupportedOperation;
+
+export 'dart:_array_flags';
 
 /// Emits a JavaScript code fragment parametrized by arguments.
 ///
@@ -300,3 +303,61 @@ external T createJsSentinel<T>();
 /// Returns `true` if [value] is the sentinel JavaScript value created through
 /// [createJsSentinel].
 external bool isJsSentinel(dynamic value);
+
+/// Reads the permission flags from a JSArray, typed data array or typed data
+/// ByteData.
+///
+/// Corresponds to the SSA instruction with the same name.
+external int HArrayFlagsGet(Object array);
+
+/// Checks the 'array flags' of [array] for permission to modify or grow the
+/// array or typed data. Throws if the [arrayFlags] do not permit the
+/// operation(s) specified by [checkFlags].  Returns `array`, possibly with a
+/// different type that reflects the checked flags.
+///
+/// Corresponds to the SSA instruction with the same name.
+///
+/// The following is a typical use to check modifiability for `a[i] = 0`. The
+/// array flags are checked to see if they prohibit modification.
+///
+///     a = ...
+///     f = HArrayFlagsGet(a);
+///     a2 = HArrayFlagsCheck(a, f, ArrayFlags.unmodifiableCheck, "[]=")
+///     a2[i] = 0;
+///
+/// It is critical that the modifying operation uses the value returned by
+/// HArrayFlagsCheck and not the argument. This data dependency is how we
+/// prevent the optimizer from moving the modifying operation before the check.
+///
+/// Code should be written with a HArrayFlagsGet / HArrayFlagsCheck pair
+/// immediately before each modifying operation. The optimizer will remove
+/// unnecessary instructions, but to do so correctly, it requires the Get/Check
+/// to be initially in a position where there can be no way for there to be an
+/// intervening HArrayFlagsSet that might invalidate the check.
+@pragma('dart2js:as:trust')
+T HArrayFlagsCheck<T>(
+    Object array, int arrayFlags, int checkFlags, String operation,
+    [String verb = 'modify']) {
+  // This body is unused but serves as a model for global for impacts and
+  // analysis.
+  if (arrayFlags & checkFlags != 0) {
+    if (operation == '[]=') throwUnsupportedOperation(array);
+    if (operation == 'setUint32') throwUnsupportedOperation(array, 1);
+    if (verb == 'remove from') throwUnsupportedOperation(array, operation, 1);
+    throwUnsupportedOperation(array, operation, verb);
+  }
+  return array as T;
+}
+
+/// Sets the permission flags on a JSArray or typed data object. Returns
+/// `array`, possibly with a different type that reflects the changed flags.
+///
+/// Corresponds to the SSA instruction with the same name.
+///
+/// Care must be taken when combining HArrayFlagsSet with HArrayFlagsGet and
+/// HArrayFlagsCheck. In order to ensure that the most recent version of the
+/// flags is used, code must be written in a 'linear' style where the input to
+/// HArrayFlagsSet is not used afterwards, only the result. One coding style
+/// that ensures a linear pattern is to return the HArrayFlagsSet of something
+/// that is allocated within the function and not otherwise stored.
+external T HArrayFlagsSet<T>(Object array, int flags);

@@ -639,6 +639,7 @@ class TypeSystemImpl implements TypeSystem {
     AstNode? errorNode,
     required TypeSystemOperations typeSystemOperations,
     required bool genericMetadataIsEnabled,
+    required bool inferenceUsingBoundsIsEnabled,
     required bool strictInference,
     required bool strictCasts,
     required TypeConstraintGenerationDataForTesting? dataForTesting,
@@ -657,6 +658,7 @@ class TypeSystemImpl implements TypeSystem {
         errorReporter: errorReporter,
         errorEntity: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
+        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
         strictInference: strictInference,
         typeSystemOperations: typeSystemOperations,
         dataForTesting: dataForTesting);
@@ -1449,11 +1451,13 @@ class TypeSystemImpl implements TypeSystem {
     List<DartType> destTypes, {
     required TypeSystemOperations typeSystemOperations,
     required bool genericMetadataIsEnabled,
+    required bool inferenceUsingBoundsIsEnabled,
     required bool strictInference,
     required bool strictCasts,
   }) {
     var inferrer = GenericInferrer(this, typeParameters,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
+        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
         strictInference: strictInference,
         typeSystemOperations: typeSystemOperations,
         dataForTesting: null);
@@ -1702,6 +1706,7 @@ class TypeSystemImpl implements TypeSystem {
     ErrorReporter? errorReporter,
     SyntacticEntity? errorEntity,
     required bool genericMetadataIsEnabled,
+    required bool inferenceUsingBoundsIsEnabled,
     bool isConst = false,
     required bool strictInference,
     required bool strictCasts,
@@ -1717,6 +1722,7 @@ class TypeSystemImpl implements TypeSystem {
         errorReporter: errorReporter,
         errorEntity: errorEntity,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
+        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
         strictInference: strictInference,
         typeSystemOperations: typeSystemOperations,
         dataForTesting: dataForTesting);
@@ -1879,8 +1885,8 @@ class TypeSystemImpl implements TypeSystem {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
     // SDK, and the numeric methods we refine are all instance methods.
-    if (methodElement.enclosingElement is ExtensionElement ||
-        methodElement.enclosingElement is ExtensionTypeElement) {
+    if (methodElement.enclosingElement3 is ExtensionElement ||
+        methodElement.enclosingElement3 is ExtensionTypeElement) {
       return currentType;
     }
 
@@ -1981,8 +1987,8 @@ class TypeSystemImpl implements TypeSystem {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
     // SDK, and the numeric methods we refine are all instance methods.
-    if (methodElement.enclosingElement is ExtensionElement ||
-        methodElement.enclosingElement is ExtensionTypeElement) {
+    if (methodElement.enclosingElement3 is ExtensionElement ||
+        methodElement.enclosingElement3 is ExtensionTypeElement) {
       return currentType;
     }
 

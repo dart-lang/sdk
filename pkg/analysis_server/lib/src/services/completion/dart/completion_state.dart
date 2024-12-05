@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
+import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -41,6 +43,13 @@ class CompletionState {
     return selection.coveringNode.thisOrAncestorOfType<ClassMember>();
   }
 
+  /// Indicates if types should be specified whenever possible.
+  bool get includeTypes =>
+      request.fileState.analysisOptions.codeStyleOptions.specifyTypes;
+
+  /// The indentation for the completion text.
+  String get indent => getRequestLineIndent(request);
+
   /// Whether the completion location is inside an instance member, and hence
   /// whether there is a binding for `this`.
   bool get inInstanceScope {
@@ -50,6 +59,10 @@ class CompletionState {
 
   /// The element of the library containing the completion location.
   LibraryElement get libraryElement => request.libraryElement;
+
+  /// The type of quotes preferred for [String]s as specified in [CodeStyleOptions].
+  String get preferredQuoteForStrings => request
+      .fileState.analysisOptions.codeStyleOptions.preferredQuoteForStrings;
 
   /// The type of `this` at the completion location, or `null` if the completion
   /// location doesn't allow `this` to be used.

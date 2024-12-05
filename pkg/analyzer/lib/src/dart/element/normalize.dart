@@ -29,7 +29,7 @@ class NormalizeHelper {
     return _normalize(T);
   }
 
-  /// NORM(R Function<X extends B>(S)) = R1 Function(X extends B1>(S1)
+  /// `NORM(R Function<X extends B>(S)) = R1 Function(X extends B1>(S1)`
   ///   * where R1 = NORM(R)
   ///   * and B1 = NORM(B)
   ///   * and S1 = NORM(S)
@@ -57,7 +57,7 @@ class NormalizeHelper {
     );
   }
 
-  /// NORM(FutureOr<T>)
+  /// `NORM(FutureOr<T>)`
   DartType _futureOr(InterfaceType T) {
     // * let S be NORM(T)
     var S = _normalize(T.typeArguments[0]);

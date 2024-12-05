@@ -33,7 +33,8 @@ class ConvertPartOfToUri extends ResolvedCorrectionProducer {
     }
 
     var pathContext = resourceProvider.pathContext;
-    var libraryPath = unitResult.libraryElement.source.fullName;
+    var libraryFragment = unitResult.libraryElement2.firstFragment;
+    var libraryPath = libraryFragment.source.fullName;
     var partPath = unitResult.path;
     var relativePath =
         pathContext.relative(libraryPath, from: pathContext.dirname(partPath));

@@ -23,5 +23,5 @@ void main() {
     result_collector_test.main();
     result_converter_test.main();
     result_merger_test.main();
-  });
+  }, name: 'plugin');
 }

@@ -20,13 +20,6 @@ library;
 //   set foo.x() : initializer = true { }
 //   ^^^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_set.crash_dart:5:7: Error: 'Foo.x' is already declared in this scope.
-//   set foo.x() : initializer = true { }
-//       ^^^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_set.crash_dart:3:7: Context: Previous declaration of 'Foo.x'.
-//   set foo.x() { }
-//       ^^^^^
-//
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_set.crash_dart:7:7: Error: The name of a constructor must match the name of the enclosing class.
 //   set foo() : initializer = true { }
 //       ^^^
@@ -35,6 +28,13 @@ library;
 // Try removing 'set'.
 //   set foo() : initializer = true { }
 //   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_set.crash_dart:5:7: Error: 'Foo.x' is already declared in this scope.
+//   set foo.x() : initializer = true { }
+//       ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_set.crash_dart:3:7: Context: Previous declaration of 'Foo.x'.
+//   set foo.x() { }
+//       ^^^^^
 //
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_set.crash_dart:5:17: Error: 'initializer' isn't an instance field of this class.
 //   set foo.x() : initializer = true { }

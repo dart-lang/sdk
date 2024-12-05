@@ -9,7 +9,7 @@ import 'package:pool/pool.dart';
 
 final pool = Pool(Platform.numberOfProcessors);
 
-main(List<String> args) async {
+void main(List<String> args) async {
   final sdkRoot = Platform.script.resolve('../').toFilePath();
   Directory.current = Directory(sdkRoot);
 

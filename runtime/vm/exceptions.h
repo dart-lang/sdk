@@ -41,6 +41,11 @@ class Exceptions : AllStatic {
   // Propagate an error to the entry frame, skipping over Dart frames.
   DART_NORETURN static void PropagateToEntry(const Error& error);
 
+  // Sets `Error._stackTrace` if possible.
+  static void TrySetStackTrace(Zone* zone,
+                               const Instance& exception,
+                               const Instance& stacktrace);
+
   // Helpers to create and throw errors.
   static StackTracePtr CurrentStackTrace();
   static ScriptPtr GetCallerScript(DartFrameIterator* iterator);
@@ -68,6 +73,7 @@ class Exceptions : AllStatic {
     kType,
     kAbstractClassInstantiation,
     kCompileTimeError,
+    kLateFieldAlreadyInitialized,
     kLateFieldAssignedDuringInitialization,
     kLateFieldNotInitialized,
   };
@@ -86,6 +92,8 @@ class Exceptions : AllStatic {
                                             intptr_t expected_to);
   DART_NORETURN static void ThrowUnsupportedError(const char* msg);
   DART_NORETURN static void ThrowCompileTimeError(const LanguageError& error);
+  DART_NORETURN static void ThrowLateFieldAlreadyInitialized(
+      const String& name);
   DART_NORETURN static void ThrowLateFieldAssignedDuringInitialization(
       const String& name);
   DART_NORETURN static void ThrowLateFieldNotInitialized(const String& name);

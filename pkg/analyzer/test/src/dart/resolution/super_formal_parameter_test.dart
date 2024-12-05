@@ -78,6 +78,7 @@ SuperFormalParameter
   type: NamedType
     name: T
     element: T@62
+    element2: <not-implemented>
     type: T
   superKeyword: super
   period: .
@@ -94,13 +95,14 @@ SuperFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
       name: b
-      declaredElement: self::@class::B::@constructor::new::@parameter::a::@parameter::b
+      declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a::@parameter::b
         type: int
     rightParenthesis: )
-  declaredElement: self::@class::B::@constructor::new::@parameter::a
+  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
     type: T Function<T>(int)
 ''');
   }
@@ -118,7 +120,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: self::@function::f::@parameter::a
+  declaredElement: <testLibraryFragment>::@function::f::@parameter::a
     type: dynamic
 ''');
   }
@@ -140,7 +142,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: self::@class::B::@constructor::new::@parameter::a
+  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
     type: int?
 ''');
   }
@@ -162,7 +164,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: self::@class::B::@constructor::new::@parameter::a
+  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
     type: int?
 ''');
   }
@@ -185,7 +187,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: self::@class::B::@constructor::new::@parameter::a
+  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
     type: int
 ''');
   }
@@ -207,7 +209,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: self::@class::B::@constructor::new::@parameter::a
+  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
     type: int
 ''');
   }
@@ -230,7 +232,8 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: self::@class::A::@getter::a
+  staticElement: <testLibraryFragment>::@class::A::@getter::a
+  element: <testLibraryFragment>::@class::A::@getter::a#element
   staticType: int
 ''');
   }
@@ -251,7 +254,8 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: self::@class::B::@constructor::new::@parameter::a
+  staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
+  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
   staticType: int
 ''');
   }

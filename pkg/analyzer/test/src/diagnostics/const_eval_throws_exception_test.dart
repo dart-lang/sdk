@@ -382,11 +382,11 @@ main() {
   var c = const C();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 37, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1),
     ]);
     var otherFileResult = await resolveFile(other);
     assertErrorsInList(otherFileResult.errors, [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 97, 7),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 97, 7),
     ]);
   }
 

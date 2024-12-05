@@ -101,13 +101,13 @@ config("compiler") {
     cflags_objcc += common_flags
 
     # Linker warnings.
-    if (current_cpu != "arm" && !is_mac) {
+    if (current_cpu != "arm" && !is_mac && !is_ios) {
       # TODO(jochen): Enable this on ChromeOS on arm. http://crbug.com/356580
       ldflags += [ "-Wl,--fatal-warnings" ]
     }
 
     # Enable mitigations for Cortex-A53 Erratum #843419 bug.
-    if (current_cpu == "arm64" && is_clang && !is_mac) {
+    if (current_cpu == "arm64" && is_clang && !is_mac && !is_ios) {
       ldflags += [ "-Wl,--fix-cortex-a53-843419" ]
     }
 
@@ -166,7 +166,7 @@ config("compiler") {
 
   # Mac-specific compiler flags setup.
   # ----------------------------------
-  if (is_mac) {
+  if (is_mac || is_ios) {
     # These flags are shared between the C compiler and linker.
     common_mac_flags = []
 
@@ -249,7 +249,7 @@ config("compiler") {
     ]
   }
 
-  if (is_android || is_linux || is_mac || is_fuchsia) {
+  if (is_android || is_linux || is_mac || is_ios || is_fuchsia) {
     if (use_flutter_cxx) {
       # shared_library_config isn't transitive, so we don't automatically get
       # another versions of libcxx with and without -fPIC. Properly setting this
@@ -391,17 +391,17 @@ config("compiler") {
   # changes since artifacts from an older version of the toolchain may or may
   # not be compatible with newer ones. To achieve this, we insert a synthetic
   # define into the compile line.
-  if (is_clang && (is_linux || is_mac) && dart_sysroot != "alpine") {
+  if (is_clang && (is_linux || is_mac || is_ios) && dart_sysroot != "alpine") {
     if (is_linux && host_cpu == "arm64") {
       toolchain_stamp_file =
           "//buildtools/linux-arm64/clang/.versions/clang.cipd_version"
     } else if (is_linux) {
       toolchain_stamp_file =
           "//buildtools/linux-x64/clang/.versions/clang.cipd_version"
-    } else if (is_mac && host_cpu == "arm64") {
+    } else if ((is_mac || is_ios) && host_cpu == "arm64") {
       toolchain_stamp_file =
           "//buildtools/mac-arm64/clang/.versions/clang.cipd_version"
-    } else if (is_mac) {
+    } else if (is_mac || is_ios) {
       toolchain_stamp_file =
           "//buildtools/mac-x64/clang/.versions/clang.cipd_version"
     }
@@ -649,7 +649,7 @@ if (is_win) {
     ]
   }
 
-  if (is_mac) {
+  if (is_mac || is_ios) {
     # TODO(abarth): Re-enable once https://github.com/domokit/mojo/issues/728
     #               is fixed.
     # default_warning_flags += [ "-Wnewline-eof" ]
@@ -825,7 +825,7 @@ if (is_win) {
     ]
   }
 
-  if (is_mac) {
+  if (is_mac || is_ios) {
     # Mac dead code stripping requires symbols.
     common_optimize_on_ldflags += [ "-Wl,-dead_strip" ]
   } else {

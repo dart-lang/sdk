@@ -60,7 +60,7 @@ class SplitVariableDeclaration extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       if (variableList.type == null) {
-        var type = variable.declaredElement!.type;
+        var type = variable.declaredElement2!.type;
         if (type is! DynamicType && keyword != null) {
           if (!builder.canWriteType(type)) {
             return;

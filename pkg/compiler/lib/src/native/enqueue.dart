@@ -102,6 +102,7 @@ abstract class NativeEnqueuer {
             type,
             _elementEnvironment
                 .getRawType(_commonElements.jsLegacyJavaScriptObjectClass))) {
+          registerInstantiation(type);
           matchingClasses.add(type.element);
         }
         // TODO(johnniwinther): Improve spec string precision to handle type

@@ -10,6 +10,7 @@ import 'package:kernel/src/unaliasing.dart';
 import '../base/loader.dart';
 import '../base/messages.dart';
 import '../base/modifier.dart';
+import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem, unexpected, unhandled;
 import '../base/scope.dart';
 import '../base/uris.dart';

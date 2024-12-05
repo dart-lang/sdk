@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UseNamedConstantsTest extends LintRuleTest {
   @override
-  String get lintRule => 'use_named_constants';
+  String get lintRule => LintNames.use_named_constants;
 
   /// https://github.com/dart-lang/linter/issues/4201
   test_constantPattern_ifCase() async {

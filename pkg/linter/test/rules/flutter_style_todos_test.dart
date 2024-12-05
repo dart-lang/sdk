@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class FlutterStyleTodosTest extends LintRuleTest {
   @override
-  String get lintRule => 'flutter_style_todos';
+  String get lintRule => LintNames.flutter_style_todos;
 
   // TODO(srawlins): This test is called, "bad patterns", contains 10 TODO-like
   // comment lines, but then only expects 9 lints. Why?

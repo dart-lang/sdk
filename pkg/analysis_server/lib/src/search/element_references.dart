@@ -97,6 +97,6 @@ class ElementReferencesComputer {
     if (element is ConstructorElement) {
       return false;
     }
-    return element.enclosingElement is InterfaceElement;
+    return element.enclosingElement3 is InterfaceElement;
   }
 }

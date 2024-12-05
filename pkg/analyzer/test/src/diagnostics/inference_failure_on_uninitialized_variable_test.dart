@@ -22,10 +22,7 @@ class InferenceFailureOnUninitializedVariableTest
   void setUp() {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: experiments,
-        strictInference: true,
-      ),
+      analysisOptionsContent(experiments: experiments, strictInference: true),
     );
   }
 
@@ -82,7 +79,7 @@ void f() {
   var a;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
       error(WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 17, 1),
     ]);
   }
@@ -93,7 +90,7 @@ void f() {
   var a = 7;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
     ]);
   }
 
@@ -106,10 +103,10 @@ void f() {
   Null d;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 34, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 67, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 67, 1),
     ]);
   }
 

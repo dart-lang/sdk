@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnsafeHtmlTest extends LintRuleTest {
   @override
-  String get lintRule => 'unsafe_html';
+  String get lintRule => LintNames.unsafe_html;
 
   test_anchorHref_cascade() async {
     await assertDiagnostics(r'''

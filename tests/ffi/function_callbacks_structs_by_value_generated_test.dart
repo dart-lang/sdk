@@ -378,6 +378,21 @@ final testCases = [
           passInt64x7Struct12BytesHomogeneousInt32, 0),
       passInt64x7Struct12BytesHomogeneousInt32AfterCallback),
   CallbackTest.withCheck(
+      "PassPointerStruct12BytesHomogeneousInt32",
+      Pointer.fromFunction<PassPointerStruct12BytesHomogeneousInt32Type>(
+          passPointerStruct12BytesHomogeneousInt32, 0),
+      noChecks),
+  CallbackTest.withCheck(
+      "PassPointerStructInlineArrayVariable",
+      Pointer.fromFunction<PassPointerStructInlineArrayVariableType>(
+          passPointerStructInlineArrayVariable, 0),
+      noChecks),
+  CallbackTest.withCheck(
+      "PassPointerStructInlineArrayVariableAlign",
+      Pointer.fromFunction<PassPointerStructInlineArrayVariableAlignType>(
+          passPointerStructInlineArrayVariableAlign, 0),
+      noChecks),
+  CallbackTest.withCheck(
       "ReturnStruct1ByteInt",
       Pointer.fromFunction<ReturnStruct1ByteIntType>(returnStruct1ByteInt),
       returnStruct1ByteIntAfterCallback),
@@ -7920,6 +7935,152 @@ void passInt64x7Struct12BytesHomogeneousInt32AfterCallback() {
   print("after callback result = $result");
 
   Expect.equals(5, result);
+}
+
+typedef PassPointerStruct12BytesHomogeneousInt32Type = Int64 Function(
+    Pointer<Struct12BytesHomogeneousInt32>);
+
+// Global variables to be able to test inputs after callback returned.
+Pointer<Struct12BytesHomogeneousInt32>
+    passPointerStruct12BytesHomogeneousInt32_a0 = nullptr;
+
+// Result variable also global, so we can delete it after the callback.
+int passPointerStruct12BytesHomogeneousInt32Result = 0;
+
+int passPointerStruct12BytesHomogeneousInt32CalculateResult() {
+  int result = 0;
+
+  result += passPointerStruct12BytesHomogeneousInt32_a0.ref.a0;
+  result += passPointerStruct12BytesHomogeneousInt32_a0.ref.a1;
+  result += passPointerStruct12BytesHomogeneousInt32_a0.ref.a2;
+
+  passPointerStruct12BytesHomogeneousInt32Result = result;
+
+  return result;
+}
+
+/// Passing a pointer to a struct
+int passPointerStruct12BytesHomogeneousInt32(
+    Pointer<Struct12BytesHomogeneousInt32> a0) {
+  print("passPointerStruct12BytesHomogeneousInt32(${a0})");
+
+  // Possibly throw.
+  if (a0.ref.a0 == 42 || a0.ref.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassPointerStruct12BytesHomogeneousInt32 throwing on purpose!");
+  }
+
+  passPointerStruct12BytesHomogeneousInt32_a0 = a0;
+
+  final result = passPointerStruct12BytesHomogeneousInt32CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+typedef PassPointerStructInlineArrayVariableType = Int64 Function(
+    Pointer<StructInlineArrayVariable>);
+
+// Global variables to be able to test inputs after callback returned.
+Pointer<StructInlineArrayVariable> passPointerStructInlineArrayVariable_a0 =
+    nullptr;
+
+// Result variable also global, so we can delete it after the callback.
+int passPointerStructInlineArrayVariableResult = 0;
+
+int passPointerStructInlineArrayVariableCalculateResult() {
+  int result = 0;
+
+  result += passPointerStructInlineArrayVariable_a0.ref.a0;
+  result += passPointerStructInlineArrayVariable_a0.ref.a1[0];
+  result += passPointerStructInlineArrayVariable_a0.ref.a1[1];
+  result += passPointerStructInlineArrayVariable_a0.ref.a1[2];
+  result += passPointerStructInlineArrayVariable_a0.ref.a1[3];
+  result += passPointerStructInlineArrayVariable_a0.ref.a1[4];
+  result += passPointerStructInlineArrayVariable_a0.ref.a1[5];
+  result += passPointerStructInlineArrayVariable_a0.ref.a1[6];
+  result += passPointerStructInlineArrayVariable_a0.ref.a1[7];
+  result += passPointerStructInlineArrayVariable_a0.ref.a1[8];
+  result += passPointerStructInlineArrayVariable_a0.ref.a1[9];
+
+  passPointerStructInlineArrayVariableResult = result;
+
+  return result;
+}
+
+/// Variable length array
+int passPointerStructInlineArrayVariable(
+    Pointer<StructInlineArrayVariable> a0) {
+  print("passPointerStructInlineArrayVariable(${a0})");
+
+  // Possibly throw.
+  if (a0.ref.a0 == 42 || a0.ref.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassPointerStructInlineArrayVariable throwing on purpose!");
+  }
+
+  passPointerStructInlineArrayVariable_a0 = a0;
+
+  final result = passPointerStructInlineArrayVariableCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+typedef PassPointerStructInlineArrayVariableAlignType = Int64 Function(
+    Pointer<StructInlineArrayVariableAlign>);
+
+// Global variables to be able to test inputs after callback returned.
+Pointer<StructInlineArrayVariableAlign>
+    passPointerStructInlineArrayVariableAlign_a0 = nullptr;
+
+// Result variable also global, so we can delete it after the callback.
+int passPointerStructInlineArrayVariableAlignResult = 0;
+
+int passPointerStructInlineArrayVariableAlignCalculateResult() {
+  int result = 0;
+
+  result += passPointerStructInlineArrayVariableAlign_a0.ref.a0;
+  result += passPointerStructInlineArrayVariableAlign_a0.ref.a1[0];
+  result += passPointerStructInlineArrayVariableAlign_a0.ref.a1[1];
+  result += passPointerStructInlineArrayVariableAlign_a0.ref.a1[2];
+  result += passPointerStructInlineArrayVariableAlign_a0.ref.a1[3];
+  result += passPointerStructInlineArrayVariableAlign_a0.ref.a1[4];
+  result += passPointerStructInlineArrayVariableAlign_a0.ref.a1[5];
+  result += passPointerStructInlineArrayVariableAlign_a0.ref.a1[6];
+  result += passPointerStructInlineArrayVariableAlign_a0.ref.a1[7];
+  result += passPointerStructInlineArrayVariableAlign_a0.ref.a1[8];
+  result += passPointerStructInlineArrayVariableAlign_a0.ref.a1[9];
+
+  passPointerStructInlineArrayVariableAlignResult = result;
+
+  return result;
+}
+
+/// Variable length array with variable length element having more alignment than
+/// the rest of the struct.
+int passPointerStructInlineArrayVariableAlign(
+    Pointer<StructInlineArrayVariableAlign> a0) {
+  print("passPointerStructInlineArrayVariableAlign(${a0})");
+
+  // Possibly throw.
+  if (a0.ref.a0 == 42 || a0.ref.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassPointerStructInlineArrayVariableAlign throwing on purpose!");
+  }
+
+  passPointerStructInlineArrayVariableAlign_a0 = a0;
+
+  final result = passPointerStructInlineArrayVariableAlignCalculateResult();
+
+  print("result = $result");
+
+  return result;
 }
 
 typedef ReturnStruct1ByteIntType = Struct1ByteInt Function(Int8);

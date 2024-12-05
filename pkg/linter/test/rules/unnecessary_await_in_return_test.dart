@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryAwaitInReturnTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_await_in_return';
+  String get lintRule => LintNames.unnecessary_await_in_return;
 
   test_asyncArrow_awaited() async {
     await assertDiagnostics(r'''

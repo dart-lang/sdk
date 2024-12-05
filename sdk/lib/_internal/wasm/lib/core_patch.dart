@@ -15,8 +15,6 @@ import "dart:_internal"
         jsonEncode,
         ListIterator,
         Lists,
-        makeFixedListUnmodifiable,
-        makeListFixedLength,
         mix64,
         patch,
         POWERS_OF_TEN,
@@ -64,7 +62,6 @@ import 'dart:_string_helper';
 
 import 'dart:_wasm';
 
-part "bool.dart";
 part "closure.dart";
 part "double_patch.dart";
 part "errors_patch.dart";

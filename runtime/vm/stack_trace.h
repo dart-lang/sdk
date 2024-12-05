@@ -26,6 +26,9 @@ class StackTraceUtils : public AllStatic {
     // Code object corresponding to this frame.
     const Code& code;
 
+    // Bytecode object corresponding to this frame.
+    const Bytecode& bytecode;
+
     // Offset into the code object corresponding to this frame.
     //
     // Will be set to |kFutureListenerPcOffset| if this frame corresponds to

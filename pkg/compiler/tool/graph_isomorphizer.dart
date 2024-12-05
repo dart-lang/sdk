@@ -458,7 +458,9 @@ class GraphIsomorphizer {
     var file = File(this.outDirectory + '/' + filename);
     file.createSync(recursive: true);
     var sink = file.openWrite();
-    sink.write(DartFormatter().format(contents.toString()));
+    sink.write(
+        DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+            .format(contents.toString()));
     sink.close();
   }
 

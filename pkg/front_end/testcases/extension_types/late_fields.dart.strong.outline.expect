@@ -7,13 +7,6 @@ library;
 //   late int id = 0;
 //            ^^
 //
-// pkg/front_end/testcases/extension_types/late_fields.dart:6:12: Error: 'id' is already declared in this scope.
-//   late int id = 0;
-//            ^^
-// pkg/front_end/testcases/extension_types/late_fields.dart:5:24: Context: Previous declaration of 'id'.
-// extension type ET1(int id) {
-//                        ^^
-//
 // pkg/front_end/testcases/extension_types/late_fields.dart:10:12: Error: Extension types can't declare instance fields
 // Try removing the field declaration or making it a static field
 //   late int x = 0;
@@ -28,6 +21,13 @@ library;
 // Try removing the field declaration or making it a static field
 //   late final int x;
 //                  ^
+//
+// pkg/front_end/testcases/extension_types/late_fields.dart:6:12: Error: 'id' is already declared in this scope.
+//   late int id = 0;
+//            ^^
+// pkg/front_end/testcases/extension_types/late_fields.dart:5:24: Context: Previous declaration of 'id'.
+// extension type ET1(int id) {
+//                        ^^
 //
 import self as self;
 import "dart:core" as core;

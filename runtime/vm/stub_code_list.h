@@ -71,6 +71,8 @@ namespace dart {
   V(CloneContext)                                                              \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \
+  V(InterpretCall)                                                             \
+  V(ResumeInterpreter)                                                         \
   V(CallBootstrapNative)                                                       \
   V(CallNoScopeNative)                                                         \
   V(CallAutoScopeNative)                                                       \
@@ -78,6 +80,7 @@ namespace dart {
   V(CallStaticFunction)                                                        \
   V(OptimizeFunction)                                                          \
   V(InvokeDartCode)                                                            \
+  V(InvokeDartCodeFromBytecode)                                                \
   V(DebugStepCheck)                                                            \
   V(SwitchableCallMiss)                                                        \
   V(MonomorphicSmiableCheck)                                                   \
@@ -152,7 +155,6 @@ namespace dart {
   V(InitSharedLateFinalStaticField)                                            \
   V(Throw)                                                                     \
   V(ReThrow)                                                                   \
-  V(AssertBoolean)                                                             \
   V(InstanceOf)                                                                \
   V(InstantiateType)                                                           \
   V(InstantiateTypeNonNullableClassTypeParameter)                              \

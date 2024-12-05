@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
@@ -57,6 +58,7 @@ class AstResolver {
     featureSet: _featureSet,
     analysisOptions: analysisOptions,
     flowAnalysisHelper: _flowAnalysis,
+    libraryFragment: _unitElement,
   );
 
   AstResolver(
@@ -110,7 +112,7 @@ class AstResolver {
     node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
     _flowAnalysis.topLevelDeclaration_enter(node.parent!, null);
-    _resolverVisitor.analyzeExpression(node, contextType);
+    _resolverVisitor.analyzeExpression(node, SharedTypeSchemaView(contextType));
     _resolverVisitor.popRewrite();
     _resolverVisitor.checkIdle();
     _flowAnalysis.topLevelDeclaration_exit();

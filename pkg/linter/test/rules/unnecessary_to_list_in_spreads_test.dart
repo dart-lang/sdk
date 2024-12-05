@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryToListInSpreadsTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_to_list_in_spreads';
+  String get lintRule => LintNames.unnecessary_to_list_in_spreads;
 
   test_iterableToList() async {
     await assertDiagnostics(r'''

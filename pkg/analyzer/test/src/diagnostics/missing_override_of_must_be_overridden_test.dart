@@ -369,6 +369,41 @@ class B extends A {}
 ''');
   }
 
+  test_method_overriddenWithMethod_wildcardParams() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class C {
+  @mustBeOverridden
+  void m(int x) {}
+}
+
+class A extends C {
+  @override
+  void m(int _) {}
+}
+''');
+  }
+
+  test_method_overriddenWithMethod_wildcardParams_preWildcards() async {
+    await assertNoErrorsInCode('''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+import 'package:meta/meta.dart';
+
+class C {
+  @mustBeOverridden
+  void m(int x) {}
+}
+
+class A extends C {
+  @override
+  void m(int _) {}
+}
+''');
+  }
+
   test_method_sealedClassIsImplicitlyAbstract() async {
     await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';

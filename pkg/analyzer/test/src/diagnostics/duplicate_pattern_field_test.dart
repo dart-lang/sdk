@@ -54,7 +54,7 @@ void f(x) {
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD, 45, 1,
           contextMessages: [message(testFile, 37, 3)]),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 3),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 3),
     ]);
   }
 
@@ -67,7 +67,7 @@ void f(x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 42, 3),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 42, 3),
       error(CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD, 47, 3,
           contextMessages: [message(testFile, 37, 1)]),
     ]);

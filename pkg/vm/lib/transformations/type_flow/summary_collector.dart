@@ -1254,14 +1254,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     }
   }
 
-  TypeCheck _typeCheck(TypeExpr value, DartType type, TreeNode node,
-      [SubtypeTestKind kind = SubtypeTestKind.Subtype]) {
+  TypeCheck _typeCheck(TypeExpr value, DartType type, TreeNode node) {
     final TypeExpr runtimeType = _translator.translate(type);
-    final bool canBeNull = (kind == SubtypeTestKind.IsTest)
-        ? _canBeNullAfterSuccessfulIsCheck(type)
-        : true;
-    final typeCheck = new TypeCheck(value, runtimeType, node,
-        _typesBuilder.fromStaticType(type, canBeNull), kind);
+    final typeCheck = new TypeCheck(
+        value, runtimeType, node, _typesBuilder.fromStaticType(type, true));
     typeCheck.condition = _currentCondition;
     _summary.add(typeCheck);
     return typeCheck;
@@ -1329,22 +1325,6 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     narrow.condition = _currentCondition;
     _summary.add(narrow);
     return narrow;
-  }
-
-  bool _canBeNullAfterSuccessfulIsCheck(DartType type) {
-    // 'x is type' can succeed for null if type is
-    //  - a top type (dynamic, void, Object? or Object*)
-    //  - nullable (including Null)
-    //  - a type parameter (it can be instantiated with Null)
-    //  - legacy Never
-    //  - a FutureOr of the above
-    final nullability = type.nullability;
-    return _environment.isTop(type) ||
-        nullability == Nullability.nullable ||
-        type is TypeParameterType ||
-        (type is NeverType && nullability == Nullability.legacy) ||
-        (type is FutureOrType &&
-            _canBeNullAfterSuccessfulIsCheck(type.typeArgument));
   }
 
   TypeExpr _makeNarrowNotNull(TreeNode node, TypeExpr arg) {
@@ -1631,8 +1611,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     } else if (node is IsExpression && node.operand is VariableGet) {
       // Handle 'x is T', where x is a variable.
       final operand = node.operand as VariableGet;
-      final TypeCheck typeCheck =
-          _typeCheck(_visit(operand), node.type, node, SubtypeTestKind.IsTest);
+      final TypeCheck typeCheck = _typeCheck(_visit(operand), node.type, node);
       isTests[node] = typeCheck;
       final int varIndex = _variablesInfo.varIndex[operand.variable]!;
       if (!_aggregateVariable[varIndex]) {
@@ -1785,8 +1764,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr visitIsExpression(IsExpression node) {
     final operandNode = node.operand;
     final TypeExpr operand = _visit(operandNode);
-    final TypeCheck typeCheck =
-        _typeCheck(operand, node.type, node, SubtypeTestKind.IsTest);
+    final TypeCheck typeCheck = _typeCheck(operand, node.type, node);
     isTests[node] = typeCheck;
     return _boolType;
   }

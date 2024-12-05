@@ -112,7 +112,10 @@ class _Visitor extends UnifyingAstVisitor<void> {
     if (element == null) {
       return;
     }
-    if (element.enclosingElement is! CompilationUnitElement) {
+    if (element is PrefixElement) {
+      return;
+    }
+    if (element.enclosingElement3 is! CompilationUnitElement) {
       return;
     }
 

@@ -59,6 +59,14 @@ class ExperimentalFlag {
           experimentEnabledVersion: const Version(2, 18),
           experimentReleasedVersion: const Version(2, 18));
 
+  static const ExperimentalFlag augmentations = const ExperimentalFlag(
+      name: 'augmentations',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
+
   static const ExperimentalFlag classModifiers = const ExperimentalFlag(
       name: 'class-modifiers',
       isEnabledByDefault: true,
@@ -99,6 +107,14 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 0),
       experimentReleasedVersion: const Version(2, 0));
 
+  static const ExperimentalFlag digitSeparators = const ExperimentalFlag(
+      name: 'digit-separators',
+      isEnabledByDefault: true,
+      isExpired: false,
+      enabledVersion: const Version(3, 6),
+      experimentEnabledVersion: const Version(3, 6),
+      experimentReleasedVersion: const Version(3, 6));
+
   static const ExperimentalFlag enhancedEnums = const ExperimentalFlag(
       name: 'enhanced-enums',
       isEnabledByDefault: true,
@@ -106,6 +122,14 @@ class ExperimentalFlag {
       enabledVersion: const Version(2, 17),
       experimentEnabledVersion: const Version(2, 17),
       experimentReleasedVersion: const Version(2, 17));
+
+  static const ExperimentalFlag enhancedParts = const ExperimentalFlag(
+      name: 'enhanced-parts',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag extensionMethods = const ExperimentalFlag(
       name: 'extension-methods',
@@ -146,6 +170,22 @@ class ExperimentalFlag {
       enabledVersion: const Version(3, 4),
       experimentEnabledVersion: const Version(3, 4),
       experimentReleasedVersion: const Version(3, 4));
+
+  static const ExperimentalFlag inferenceUpdate4 = const ExperimentalFlag(
+      name: 'inference-update-4',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
+
+  static const ExperimentalFlag inferenceUsingBounds = const ExperimentalFlag(
+      name: 'inference-using-bounds',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag inlineClass = const ExperimentalFlag(
       name: 'inline-class',
@@ -211,6 +251,14 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));
 
+  static const ExperimentalFlag recordUse = const ExperimentalFlag(
+      name: 'record-use',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
+
   static const ExperimentalFlag records = const ExperimentalFlag(
       name: 'records',
       isEnabledByDefault: true,
@@ -218,14 +266,6 @@ class ExperimentalFlag {
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));
-
-  static const ExperimentalFlag resourceIdentifiers = const ExperimentalFlag(
-      name: 'resource-identifiers',
-      isEnabledByDefault: false,
-      isExpired: false,
-      enabledVersion: defaultLanguageVersion,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag sealedClass = const ExperimentalFlag(
       name: 'sealed-class',
@@ -282,6 +322,14 @@ class ExperimentalFlag {
       enabledVersion: const Version(2, 19),
       experimentEnabledVersion: const Version(2, 19),
       experimentReleasedVersion: const Version(2, 19));
+
+  static const ExperimentalFlag unquotedImports = const ExperimentalFlag(
+      name: 'unquoted-imports',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag variance = const ExperimentalFlag(
       name: 'variance',
@@ -350,6 +398,10 @@ class GlobalFeatures {
       _alternativeInvalidationStrategy ??= _computeGlobalFeature(
           ExperimentalFlag.alternativeInvalidationStrategy);
 
+  GlobalFeature? _augmentations;
+  GlobalFeature get augmentations =>
+      _augmentations ??= _computeGlobalFeature(ExperimentalFlag.augmentations);
+
   GlobalFeature? _classModifiers;
   GlobalFeature get classModifiers => _classModifiers ??=
       _computeGlobalFeature(ExperimentalFlag.classModifiers);
@@ -370,9 +422,17 @@ class GlobalFeatures {
   GlobalFeature get controlFlowCollections => _controlFlowCollections ??=
       _computeGlobalFeature(ExperimentalFlag.controlFlowCollections);
 
+  GlobalFeature? _digitSeparators;
+  GlobalFeature get digitSeparators => _digitSeparators ??=
+      _computeGlobalFeature(ExperimentalFlag.digitSeparators);
+
   GlobalFeature? _enhancedEnums;
   GlobalFeature get enhancedEnums =>
       _enhancedEnums ??= _computeGlobalFeature(ExperimentalFlag.enhancedEnums);
+
+  GlobalFeature? _enhancedParts;
+  GlobalFeature get enhancedParts =>
+      _enhancedParts ??= _computeGlobalFeature(ExperimentalFlag.enhancedParts);
 
   GlobalFeature? _extensionMethods;
   GlobalFeature get extensionMethods => _extensionMethods ??=
@@ -393,6 +453,14 @@ class GlobalFeatures {
   GlobalFeature? _inferenceUpdate3;
   GlobalFeature get inferenceUpdate3 => _inferenceUpdate3 ??=
       _computeGlobalFeature(ExperimentalFlag.inferenceUpdate3);
+
+  GlobalFeature? _inferenceUpdate4;
+  GlobalFeature get inferenceUpdate4 => _inferenceUpdate4 ??=
+      _computeGlobalFeature(ExperimentalFlag.inferenceUpdate4);
+
+  GlobalFeature? _inferenceUsingBounds;
+  GlobalFeature get inferenceUsingBounds => _inferenceUsingBounds ??=
+      _computeGlobalFeature(ExperimentalFlag.inferenceUsingBounds);
 
   GlobalFeature? _inlineClass;
   GlobalFeature get inlineClass =>
@@ -426,13 +494,13 @@ class GlobalFeatures {
   GlobalFeature get patterns =>
       _patterns ??= _computeGlobalFeature(ExperimentalFlag.patterns);
 
+  GlobalFeature? _recordUse;
+  GlobalFeature get recordUse =>
+      _recordUse ??= _computeGlobalFeature(ExperimentalFlag.recordUse);
+
   GlobalFeature? _records;
   GlobalFeature get records =>
       _records ??= _computeGlobalFeature(ExperimentalFlag.records);
-
-  GlobalFeature? _resourceIdentifiers;
-  GlobalFeature get resourceIdentifiers => _resourceIdentifiers ??=
-      _computeGlobalFeature(ExperimentalFlag.resourceIdentifiers);
 
   GlobalFeature? _sealedClass;
   GlobalFeature get sealedClass =>
@@ -462,6 +530,10 @@ class GlobalFeatures {
   GlobalFeature get unnamedLibraries => _unnamedLibraries ??=
       _computeGlobalFeature(ExperimentalFlag.unnamedLibraries);
 
+  GlobalFeature? _unquotedImports;
+  GlobalFeature get unquotedImports => _unquotedImports ??=
+      _computeGlobalFeature(ExperimentalFlag.unquotedImports);
+
   GlobalFeature? _variance;
   GlobalFeature get variance =>
       _variance ??= _computeGlobalFeature(ExperimentalFlag.variance);
@@ -487,6 +559,11 @@ class LibraryFeatures {
               ExperimentalFlag.alternativeInvalidationStrategy,
               canonicalUri,
               libraryVersion);
+
+  LibraryFeature? _augmentations;
+  LibraryFeature get augmentations =>
+      _augmentations ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.augmentations, canonicalUri, libraryVersion);
 
   LibraryFeature? _classModifiers;
   LibraryFeature get classModifiers =>
@@ -515,10 +592,20 @@ class LibraryFeatures {
           canonicalUri,
           libraryVersion);
 
+  LibraryFeature? _digitSeparators;
+  LibraryFeature get digitSeparators =>
+      _digitSeparators ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.digitSeparators, canonicalUri, libraryVersion);
+
   LibraryFeature? _enhancedEnums;
   LibraryFeature get enhancedEnums =>
       _enhancedEnums ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.enhancedEnums, canonicalUri, libraryVersion);
+
+  LibraryFeature? _enhancedParts;
+  LibraryFeature get enhancedParts =>
+      _enhancedParts ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.enhancedParts, canonicalUri, libraryVersion);
 
   LibraryFeature? _extensionMethods;
   LibraryFeature get extensionMethods =>
@@ -544,6 +631,16 @@ class LibraryFeatures {
   LibraryFeature get inferenceUpdate3 =>
       _inferenceUpdate3 ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.inferenceUpdate3, canonicalUri, libraryVersion);
+
+  LibraryFeature? _inferenceUpdate4;
+  LibraryFeature get inferenceUpdate4 =>
+      _inferenceUpdate4 ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.inferenceUpdate4, canonicalUri, libraryVersion);
+
+  LibraryFeature? _inferenceUsingBounds;
+  LibraryFeature get inferenceUsingBounds =>
+      _inferenceUsingBounds ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.inferenceUsingBounds, canonicalUri, libraryVersion);
 
   LibraryFeature? _inlineClass;
   LibraryFeature get inlineClass =>
@@ -589,15 +686,15 @@ class LibraryFeatures {
       _patterns ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.patterns, canonicalUri, libraryVersion);
 
+  LibraryFeature? _recordUse;
+  LibraryFeature get recordUse =>
+      _recordUse ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.recordUse, canonicalUri, libraryVersion);
+
   LibraryFeature? _records;
   LibraryFeature get records =>
       _records ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.records, canonicalUri, libraryVersion);
-
-  LibraryFeature? _resourceIdentifiers;
-  LibraryFeature get resourceIdentifiers =>
-      _resourceIdentifiers ??= globalFeatures._computeLibraryFeature(
-          ExperimentalFlag.resourceIdentifiers, canonicalUri, libraryVersion);
 
   LibraryFeature? _sealedClass;
   LibraryFeature get sealedClass =>
@@ -634,6 +731,11 @@ class LibraryFeatures {
       _unnamedLibraries ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.unnamedLibraries, canonicalUri, libraryVersion);
 
+  LibraryFeature? _unquotedImports;
+  LibraryFeature get unquotedImports =>
+      _unquotedImports ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.unquotedImports, canonicalUri, libraryVersion);
+
   LibraryFeature? _variance;
   LibraryFeature get variance =>
       _variance ??= globalFeatures._computeLibraryFeature(
@@ -648,6 +750,8 @@ class LibraryFeatures {
   LibraryFeature fromSharedExperimentalFlags(
       shared.ExperimentalFlag experimentalFlag) {
     switch (experimentalFlag) {
+      case shared.ExperimentalFlag.augmentations:
+        return augmentations;
       case shared.ExperimentalFlag.classModifiers:
         return classModifiers;
       case shared.ExperimentalFlag.constFunctions:
@@ -658,8 +762,12 @@ class LibraryFeatures {
         return constructorTearoffs;
       case shared.ExperimentalFlag.controlFlowCollections:
         return controlFlowCollections;
+      case shared.ExperimentalFlag.digitSeparators:
+        return digitSeparators;
       case shared.ExperimentalFlag.enhancedEnums:
         return enhancedEnums;
+      case shared.ExperimentalFlag.enhancedParts:
+        return enhancedParts;
       case shared.ExperimentalFlag.extensionMethods:
         return extensionMethods;
       case shared.ExperimentalFlag.genericMetadata:
@@ -670,6 +778,10 @@ class LibraryFeatures {
         return inferenceUpdate2;
       case shared.ExperimentalFlag.inferenceUpdate3:
         return inferenceUpdate3;
+      case shared.ExperimentalFlag.inferenceUpdate4:
+        return inferenceUpdate4;
+      case shared.ExperimentalFlag.inferenceUsingBounds:
+        return inferenceUsingBounds;
       case shared.ExperimentalFlag.inlineClass:
         return inlineClass;
       case shared.ExperimentalFlag.macros:
@@ -686,10 +798,10 @@ class LibraryFeatures {
         return nullAwareElements;
       case shared.ExperimentalFlag.patterns:
         return patterns;
+      case shared.ExperimentalFlag.recordUse:
+        return recordUse;
       case shared.ExperimentalFlag.records:
         return records;
-      case shared.ExperimentalFlag.resourceIdentifiers:
-        return resourceIdentifiers;
       case shared.ExperimentalFlag.sealedClass:
         return sealedClass;
       case shared.ExperimentalFlag.setLiterals:
@@ -704,6 +816,8 @@ class LibraryFeatures {
         return tripleShift;
       case shared.ExperimentalFlag.unnamedLibraries:
         return unnamedLibraries;
+      case shared.ExperimentalFlag.unquotedImports:
+        return unquotedImports;
       case shared.ExperimentalFlag.variance:
         return variance;
       case shared.ExperimentalFlag.wildcardVariables:
@@ -716,6 +830,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
   switch (flag) {
     case "alternative-invalidation-strategy":
       return ExperimentalFlag.alternativeInvalidationStrategy;
+    case "augmentations":
+      return ExperimentalFlag.augmentations;
     case "class-modifiers":
       return ExperimentalFlag.classModifiers;
     case "const-functions":
@@ -726,8 +842,12 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.constructorTearoffs;
     case "control-flow-collections":
       return ExperimentalFlag.controlFlowCollections;
+    case "digit-separators":
+      return ExperimentalFlag.digitSeparators;
     case "enhanced-enums":
       return ExperimentalFlag.enhancedEnums;
+    case "enhanced-parts":
+      return ExperimentalFlag.enhancedParts;
     case "extension-methods":
       return ExperimentalFlag.extensionMethods;
     case "generic-metadata":
@@ -738,6 +858,10 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.inferenceUpdate2;
     case "inference-update-3":
       return ExperimentalFlag.inferenceUpdate3;
+    case "inference-update-4":
+      return ExperimentalFlag.inferenceUpdate4;
+    case "inference-using-bounds":
+      return ExperimentalFlag.inferenceUsingBounds;
     case "inline-class":
       return ExperimentalFlag.inlineClass;
     case "macros":
@@ -754,10 +878,10 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.nullAwareElements;
     case "patterns":
       return ExperimentalFlag.patterns;
+    case "record-use":
+      return ExperimentalFlag.recordUse;
     case "records":
       return ExperimentalFlag.records;
-    case "resource-identifiers":
-      return ExperimentalFlag.resourceIdentifiers;
     case "sealed-class":
       return ExperimentalFlag.sealedClass;
     case "set-literals":
@@ -772,6 +896,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.tripleShift;
     case "unnamed-libraries":
       return ExperimentalFlag.unnamedLibraries;
+    case "unquoted-imports":
+      return ExperimentalFlag.unquotedImports;
     case "variance":
       return ExperimentalFlag.variance;
     case "wildcard-variables":
@@ -783,6 +909,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
 final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.alternativeInvalidationStrategy:
       ExperimentalFlag.alternativeInvalidationStrategy.isEnabledByDefault,
+  ExperimentalFlag.augmentations:
+      ExperimentalFlag.augmentations.isEnabledByDefault,
   ExperimentalFlag.classModifiers:
       ExperimentalFlag.classModifiers.isEnabledByDefault,
   ExperimentalFlag.constFunctions:
@@ -793,8 +921,12 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.constructorTearoffs.isEnabledByDefault,
   ExperimentalFlag.controlFlowCollections:
       ExperimentalFlag.controlFlowCollections.isEnabledByDefault,
+  ExperimentalFlag.digitSeparators:
+      ExperimentalFlag.digitSeparators.isEnabledByDefault,
   ExperimentalFlag.enhancedEnums:
       ExperimentalFlag.enhancedEnums.isEnabledByDefault,
+  ExperimentalFlag.enhancedParts:
+      ExperimentalFlag.enhancedParts.isEnabledByDefault,
   ExperimentalFlag.extensionMethods:
       ExperimentalFlag.extensionMethods.isEnabledByDefault,
   ExperimentalFlag.genericMetadata:
@@ -805,6 +937,10 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.inferenceUpdate2.isEnabledByDefault,
   ExperimentalFlag.inferenceUpdate3:
       ExperimentalFlag.inferenceUpdate3.isEnabledByDefault,
+  ExperimentalFlag.inferenceUpdate4:
+      ExperimentalFlag.inferenceUpdate4.isEnabledByDefault,
+  ExperimentalFlag.inferenceUsingBounds:
+      ExperimentalFlag.inferenceUsingBounds.isEnabledByDefault,
   ExperimentalFlag.inlineClass: ExperimentalFlag.inlineClass.isEnabledByDefault,
   ExperimentalFlag.macros: ExperimentalFlag.macros.isEnabledByDefault,
   ExperimentalFlag.namedArgumentsAnywhere:
@@ -817,9 +953,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.nullAwareElements:
       ExperimentalFlag.nullAwareElements.isEnabledByDefault,
   ExperimentalFlag.patterns: ExperimentalFlag.patterns.isEnabledByDefault,
+  ExperimentalFlag.recordUse: ExperimentalFlag.recordUse.isEnabledByDefault,
   ExperimentalFlag.records: ExperimentalFlag.records.isEnabledByDefault,
-  ExperimentalFlag.resourceIdentifiers:
-      ExperimentalFlag.resourceIdentifiers.isEnabledByDefault,
   ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass.isEnabledByDefault,
   ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals.isEnabledByDefault,
   ExperimentalFlag.spreadCollections:
@@ -831,6 +966,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.tripleShift: ExperimentalFlag.tripleShift.isEnabledByDefault,
   ExperimentalFlag.unnamedLibraries:
       ExperimentalFlag.unnamedLibraries.isEnabledByDefault,
+  ExperimentalFlag.unquotedImports:
+      ExperimentalFlag.unquotedImports.isEnabledByDefault,
   ExperimentalFlag.variance: ExperimentalFlag.variance.isEnabledByDefault,
   ExperimentalFlag.wildcardVariables:
       ExperimentalFlag.wildcardVariables.isEnabledByDefault,
@@ -841,10 +978,12 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
         sdkLibraryExperiments: {},
         packageExperiments: {
       "json": {
+        ExperimentalFlag.enhancedParts,
         ExperimentalFlag.macros,
       },
     });
 const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
+  shared.ExperimentalFlag.augmentations: ExperimentalFlag.augmentations,
   shared.ExperimentalFlag.classModifiers: ExperimentalFlag.classModifiers,
   shared.ExperimentalFlag.constFunctions: ExperimentalFlag.constFunctions,
   shared.ExperimentalFlag.constantUpdate2018:
@@ -853,12 +992,17 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
       ExperimentalFlag.constructorTearoffs,
   shared.ExperimentalFlag.controlFlowCollections:
       ExperimentalFlag.controlFlowCollections,
+  shared.ExperimentalFlag.digitSeparators: ExperimentalFlag.digitSeparators,
   shared.ExperimentalFlag.enhancedEnums: ExperimentalFlag.enhancedEnums,
+  shared.ExperimentalFlag.enhancedParts: ExperimentalFlag.enhancedParts,
   shared.ExperimentalFlag.extensionMethods: ExperimentalFlag.extensionMethods,
   shared.ExperimentalFlag.genericMetadata: ExperimentalFlag.genericMetadata,
   shared.ExperimentalFlag.inferenceUpdate1: ExperimentalFlag.inferenceUpdate1,
   shared.ExperimentalFlag.inferenceUpdate2: ExperimentalFlag.inferenceUpdate2,
   shared.ExperimentalFlag.inferenceUpdate3: ExperimentalFlag.inferenceUpdate3,
+  shared.ExperimentalFlag.inferenceUpdate4: ExperimentalFlag.inferenceUpdate4,
+  shared.ExperimentalFlag.inferenceUsingBounds:
+      ExperimentalFlag.inferenceUsingBounds,
   shared.ExperimentalFlag.inlineClass: ExperimentalFlag.inlineClass,
   shared.ExperimentalFlag.macros: ExperimentalFlag.macros,
   shared.ExperimentalFlag.namedArgumentsAnywhere:
@@ -869,9 +1013,8 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
       ExperimentalFlag.nonfunctionTypeAliases,
   shared.ExperimentalFlag.nullAwareElements: ExperimentalFlag.nullAwareElements,
   shared.ExperimentalFlag.patterns: ExperimentalFlag.patterns,
+  shared.ExperimentalFlag.recordUse: ExperimentalFlag.recordUse,
   shared.ExperimentalFlag.records: ExperimentalFlag.records,
-  shared.ExperimentalFlag.resourceIdentifiers:
-      ExperimentalFlag.resourceIdentifiers,
   shared.ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass,
   shared.ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals,
   shared.ExperimentalFlag.spreadCollections: ExperimentalFlag.spreadCollections,
@@ -879,6 +1022,7 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.testExperiment: ExperimentalFlag.testExperiment,
   shared.ExperimentalFlag.tripleShift: ExperimentalFlag.tripleShift,
   shared.ExperimentalFlag.unnamedLibraries: ExperimentalFlag.unnamedLibraries,
+  shared.ExperimentalFlag.unquotedImports: ExperimentalFlag.unquotedImports,
   shared.ExperimentalFlag.variance: ExperimentalFlag.variance,
   shared.ExperimentalFlag.wildcardVariables: ExperimentalFlag.wildcardVariables,
 };

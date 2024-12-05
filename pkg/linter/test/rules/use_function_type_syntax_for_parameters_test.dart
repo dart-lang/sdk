@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UseFunctionTypeSyntaxForParametersTest extends LintRuleTest {
   @override
-  String get lintRule => 'use_function_type_syntax_for_parameters';
+  String get lintRule => LintNames.use_function_type_syntax_for_parameters;
 
   test_classicSyntax() async {
     await assertDiagnostics(r'''

@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object /*hasConstConstructor*/  {
+  final field core::int field1;
+  const constructor •(core::int field1) → self::Super
+    : self::Super::field1 = field1, super core::Object::•()
+    ;
+}
+class Class extends self::Super /*hasConstConstructor*/  {
+  final field core::int field2;
+  const constructor •(core::int field1, core::int field2) → self::Class
+    : self::Class::field2 = field2, super self::Super::•(field1)
+    ;
+}

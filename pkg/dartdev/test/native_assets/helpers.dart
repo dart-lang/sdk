@@ -62,11 +62,10 @@ Future<run_process.RunProcessResult> runProcess({
       throwOnUnexpectedExitCode: throwOnUnexpectedExitCode,
     );
 
-Future<void> copyTestProjects(Uri copyTargetUri, Logger logger) async {
-  final pkgNativeAssetsBuilderUri = Platform.script.resolve(
-      '../../../../third_party/pkg/native/pkgs/native_assets_builder/');
+Future<void> copyTestProjects(
+    Uri copyTargetUri, Logger logger, Uri packageLocation) async {
   // Reuse the test projects from `pkg:native`.
-  final testProjectsUri = pkgNativeAssetsBuilderUri.resolve('test_data/');
+  final testProjectsUri = packageLocation.resolve('test_data/');
   final manifestUri = testProjectsUri.resolve('manifest.yaml');
   final manifestFile = File.fromUri(manifestUri);
   final manifestString = await manifestFile.readAsString();
@@ -100,7 +99,7 @@ Future<void> copyTestProjects(Uri copyTargetUri, Logger logger) async {
     final sourceString = await sourceFile.readAsString();
     final modifiedString = sourceString.replaceAll(
       'path: ../../',
-      'path: ${pkgNativeAssetsBuilderUri.toFilePath().replaceAll('\\', '/')}',
+      'path: ${packageLocation.toFilePath().replaceAll('\\', '/')}',
     );
     await File.fromUri(targetUri).writeAsString(modifiedString);
   }
@@ -156,18 +155,52 @@ final dartExecutable = Uri.file(Platform.resolvedExecutable);
 
 Future<void> nativeAssetsTest(
   String packageUnderTest,
+  Future<void> Function(Uri) fun, {
+  bool skipPubGet = false,
+}) async =>
+    await runPackageTest(
+      packageUnderTest,
+      skipPubGet,
+      fun,
+      const [
+        'add_asset_link',
+        'dart_app',
+        'drop_dylib_link',
+        'native_add_duplicate',
+        'native_add',
+        'treeshaking_native_libs',
+      ],
+      Platform.script.resolve(
+          '../../../../third_party/pkg/native/pkgs/native_assets_builder/'),
+    );
+
+Future<void> recordUseTest(
+  String packageUnderTest,
+  Future<void> Function(Uri) fun, {
+  bool skipPubGet = false,
+}) async =>
+    await runPackageTest(
+      packageUnderTest,
+      skipPubGet,
+      fun,
+      const ['drop_dylib_recording'],
+      Platform.script.resolve('../../../record_use/'),
+    );
+
+Future<void> runPackageTest(
+  String packageUnderTest,
+  bool skipPubGet,
   Future<void> Function(Uri) fun,
+  List<String> validPackages,
+  Uri packageLocation,
 ) async {
-  assert(const [
-    'dart_app',
-    'native_add',
-    'drop_dylib_link',
-    'add_asset_link',
-  ].contains(packageUnderTest));
+  assert(validPackages.contains(packageUnderTest));
   return await inTempDir((tempUri) async {
-    await copyTestProjects(tempUri, logger);
+    await copyTestProjects(tempUri, logger, packageLocation);
     final packageUri = tempUri.resolve('$packageUnderTest/');
-    await runPubGet(workingDirectory: packageUri, logger: logger);
+    if (!skipPubGet) {
+      await runPubGet(workingDirectory: packageUri, logger: logger);
+    }
     return await fun(packageUri);
   });
 }

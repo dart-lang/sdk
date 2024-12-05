@@ -39,9 +39,12 @@ export '../api_prototype/terminal_color_support.dart'
 export '../base/compiler_context.dart' show CompilerContext;
 export '../base/hybrid_file_system.dart' show HybridFileSystem;
 export '../base/incremental_compiler.dart' show IncrementalCompiler;
+export '../base/incremental_serializer.dart' show IncrementalSerializer;
 export '../base/nnbd_mode.dart' show NnbdMode;
 export '../base/processed_options.dart' show ProcessedOptions;
 export '../base/ticker.dart' show Ticker;
+export '../compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 export '../kernel/constructor_tearoff_lowering.dart' show isTearOffLowering;
 export '../type_inference/type_schema_environment.dart'
     show TypeSchemaEnvironment;

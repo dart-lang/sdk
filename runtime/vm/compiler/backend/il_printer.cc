@@ -181,7 +181,7 @@ class IlTestPrinter : public AllStatic {
 #define DECLARE_VISIT_INSTRUCTION(ShortName, Attrs)                            \
   WriteDescriptor<ShortName##Instr>(#ShortName);
 
-      FOR_EACH_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
+      FOR_EACH_CONCRETE_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
 
 #undef DECLARE_VISIT_INSTRUCTION
     }
@@ -189,7 +189,7 @@ class IlTestPrinter : public AllStatic {
 #define DECLARE_VISIT_INSTRUCTION(ShortName, Attrs)                            \
   virtual void Visit##ShortName(ShortName##Instr* instr) { Write(instr); }
 
-    FOR_EACH_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
+    FOR_EACH_CONCRETE_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
 
 #undef DECLARE_VISIT_INSTRUCTION
 
@@ -252,7 +252,7 @@ class IlTestPrinter : public AllStatic {
       } else if (obj->IsBool()) {
         writer_->PrintValueBool(Bool::Cast(*obj).value());
       } else if (obj->IsInteger()) {
-        auto value = Integer::Cast(*obj).AsInt64Value();
+        auto value = Integer::Cast(*obj).Value();
         // PrintValue64 and PrintValue will check if integer is representable
         // as a JS number, which is too strict. We don't actually need
         // such checks because we only load resulting JSON in Dart.
@@ -797,10 +797,6 @@ void AssertSubtypeInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->AddString(")");
 }
 
-void AssertBooleanInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  value()->PrintTo(f);
-}
-
 void ClosureCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   if (FLAG_precompiled_mode) {
     f->AddString(" closure=");
@@ -998,6 +994,11 @@ void InstanceOfInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 
 void RelationalOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf("%s, ", Token::Str(kind()));
+  if (SpeculativeModeOfInputs() == kGuardInputs) {
+    f->AddString("[guard-inputs], ");
+  } else {
+    f->AddString("[non-speculative], ");
+  }
   left()->PrintTo(f);
   f->AddString(", ");
   right()->PrintTo(f);

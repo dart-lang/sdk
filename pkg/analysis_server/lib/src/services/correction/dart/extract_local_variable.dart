@@ -8,7 +8,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -64,7 +64,7 @@ class ExtractLocalVariable extends ResolvedCorrectionProducer {
       await _rewriteProperty(
         builder: builder,
         target: target,
-        targetProperty: target.staticElement,
+        targetProperty: target.element,
       );
     }
 
@@ -72,7 +72,7 @@ class ExtractLocalVariable extends ResolvedCorrectionProducer {
       await _rewriteProperty(
         builder: builder,
         target: target,
-        targetProperty: target.propertyName.staticElement,
+        targetProperty: target.propertyName.element,
       );
     }
 
@@ -80,7 +80,7 @@ class ExtractLocalVariable extends ResolvedCorrectionProducer {
       await _rewriteProperty(
         builder: builder,
         target: target,
-        targetProperty: target.staticElement,
+        targetProperty: target.element,
       );
     }
   }
@@ -88,10 +88,9 @@ class ExtractLocalVariable extends ResolvedCorrectionProducer {
   Future<void> _rewriteProperty({
     required ChangeBuilder builder,
     required Expression target,
-    required Element? targetProperty,
+    required Element2? targetProperty,
   }) async {
-    if (targetProperty is PropertyAccessorElement &&
-        targetProperty.isGetter &&
+    if (targetProperty is GetterElement &&
         typeSystem.isPotentiallyNullable(targetProperty.returnType)) {
       AstNode? enclosingNode = target;
       while (true) {
@@ -143,16 +142,16 @@ class ExtractLocalVariable extends ResolvedCorrectionProducer {
 }
 
 class _ExpressionEncoder {
-  final Map<Element, int> _elementIds = {};
+  final Map<Element2, int> _elementIds = {};
 
   String encode(Expression node) {
     var tokens = node.tokens;
 
-    var tokenToElementMap = Map<Token, Element>.identity();
+    var tokenToElementMap = Map<Token, Element2>.identity();
     node.accept(
       _FunctionAstVisitor(
         simpleIdentifier: (node) {
-          var element = node.staticElement;
+          var element = node.element;
           if (element != null) {
             tokenToElementMap[node.token] = element;
           }

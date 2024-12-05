@@ -10,41 +10,20 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Use a setter for operations that conceptually change a property.';
 
-const _details = r'''
-**DO** use a setter for operations that conceptually change a property.
-
-**BAD:**
-```dart
-rectangle.setWidth(3);
-button.setVisible(false);
-```
-
-**GOOD:**
-```dart
-rectangle.width = 3;
-button.visible = false;
-```
-
-''';
-
 class UseSettersToChangeProperties extends LintRule {
-  static const LintCode code = LintCode('use_setters_to_change_properties',
-      'The method is used to change a property.',
-      correctionMessage: 'Try converting the method to a setter.');
-
   UseSettersToChangeProperties()
       : super(
-            name: 'use_setters_to_change_properties',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.use_setters_to_change_properties,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_setters_to_change_properties;
 
   @override
   void registerNodeProcessors(

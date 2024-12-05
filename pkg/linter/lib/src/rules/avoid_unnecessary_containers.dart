@@ -6,64 +6,20 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'Avoid unnecessary containers.';
 
-const _details = r'''
-**AVOID** wrapping widgets in unnecessary containers.
-
-Wrapping a widget in `Container` with no other parameters set has no effect 
-and makes code needlessly more complex.
-
-**BAD:**
-```dart
-Widget buildRow() {
-  return Container(
-      child: Row(
-        children: <Widget>[
-          const MyLogo(),
-          const Expanded(
-            child: Text('...'),
-          ),
-        ],
-      )
-  );
-}
-```
-
-**GOOD:**
-```dart
-Widget buildRow() {
-  return Row(
-    children: <Widget>[
-      const MyLogo(),
-      const Expanded(
-        child: Text('...'),
-      ),
-    ],
-  );
-}
-```
-''';
-
 class AvoidUnnecessaryContainers extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_unnecessary_containers', "Unnecessary instance of 'Container'.",
-      correctionMessage:
-          "Try removing the 'Container' (but not its children) from the "
-          'widget tree.',
-      hasPublishedDocs: true);
-
   AvoidUnnecessaryContainers()
       : super(
-            name: 'avoid_unnecessary_containers',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.avoid_unnecessary_containers,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_unnecessary_containers;
 
   @override
   void registerNodeProcessors(
@@ -74,7 +30,7 @@ class AvoidUnnecessaryContainers extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);

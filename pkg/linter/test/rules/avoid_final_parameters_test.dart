@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidFinalParametersTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_final_parameters';
+  String get lintRule => LintNames.avoid_final_parameters;
 
   // TODO(srawlins): Test function-typed parameter like `void f(final p())`.
 
@@ -160,6 +160,16 @@ void f(final int p) {}
     await assertNoDiagnostics(r'''
 void f(int p) {}
 ''');
+  }
+
+  test_requiredPositional_wildcard() async {
+    // Wildcards are treated just like any param.
+    // https://github.com/dart-lang/linter/issues/5045
+    await assertDiagnostics(r'''
+void f(final int _) {}
+''', [
+      lint(7, 11),
+    ]);
   }
 
   test_setter_final() async {

@@ -19,9 +19,9 @@ class DuplicateIgnoreTest extends PubPackageResolutionTest {
   void setUp() {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
+      analysisOptionsContent(
         experiments: experiments,
-        lints: ['avoid_types_as_parameter_names'],
+        rules: ['avoid_types_as_parameter_names'],
       ),
     );
   }

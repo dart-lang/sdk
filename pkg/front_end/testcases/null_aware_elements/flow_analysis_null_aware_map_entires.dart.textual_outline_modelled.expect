@@ -1,0 +1,21 @@
+extension E<X> on X {
+  void expectStaticType<Y extends Exactly<X>>() {}
+}
+
+main() {}
+
+test1(String a, num x) {}
+
+test2(String? a, num x) {}
+
+test3(String a, bool b, num x) {}
+
+test4(String? a, bool b, num x) {}
+
+test5(String? a) {}
+
+test6(String? a) {}
+
+typedef Exactly<X> = X Function(X);
+
+void expectThrows(void Function() f) {}

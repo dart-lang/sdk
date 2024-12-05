@@ -50,7 +50,7 @@ class _AssertionError extends Error implements AssertionError {
       int assertionStart, int assertionEnd, Object? message);
 
   @pragma("vm:entry-point", "call")
-  static _evaluateAssertion(condition) {
+  static bool _evaluateAssertion(condition) {
     if (identical(condition, true) || identical(condition, false)) {
       return condition;
     }

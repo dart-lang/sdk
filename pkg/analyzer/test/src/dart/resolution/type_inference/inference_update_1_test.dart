@@ -65,16 +65,16 @@ example(List<int> list) {
 ''';
     if (_isEnabled) {
       await assertErrorsInCode(code, [
-        error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
       ]);
       assertType(findElement.localVar('a').type, 'int');
       assertType(findElement.parameter('x').type, 'int');
       assertType(findElement.parameter('y').type, 'int');
-      expect(
-          findNode.binary('x + y').staticElement!.enclosingElement.name, 'num');
+      expect(findNode.binary('x + y').staticElement!.enclosingElement3.name,
+          'num');
     } else {
       await assertErrorsInCode(code, [
-        error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
         error(
             CompileTimeErrorCode
                 .UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
@@ -94,7 +94,7 @@ test() {
   var a = f(() => 0, (h) => [h()]);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 60, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 60, 1),
       if (!_isEnabled)
         error(
             CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 83, 1),
@@ -125,7 +125,7 @@ test(List<int> list) {
   var a = list.fold(0, (x, int y) => x + y);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
       if (!_isEnabled)
         error(
             CompileTimeErrorCode
@@ -137,7 +137,7 @@ test(List<int> list) {
         findElement.localVar('a').type, _isEnabled ? 'int' : 'InvalidType');
     assertType(findElement.parameter('x').type, _isEnabled ? 'int' : 'Object?');
     assertType(findElement.parameter('y').type, 'int');
-    expect(findNode.binary('+ y').staticElement?.enclosingElement.name,
+    expect(findNode.binary('+ y').staticElement?.enclosingElement3.name,
         _isEnabled ? 'num' : null);
   }
 
@@ -148,7 +148,7 @@ test() {
   var a = f((x) => [x], () => 0);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 71, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 71, 1),
     ]);
     assertType(findNode.methodInvocation('f(').typeArgumentTypes![0], 'int');
     assertType(findNode.methodInvocation('f(').typeArgumentTypes![1],
@@ -171,7 +171,7 @@ test() {
   var a = f(() => 0, (x) => [x]);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 71, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 71, 1),
     ]);
     assertType(findNode.methodInvocation('f(').typeArgumentTypes![0], 'int');
     assertType(findNode.methodInvocation('f(').typeArgumentTypes![1],
@@ -194,7 +194,7 @@ test() {
   var a = f(0, (x) => [x]);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 60, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 60, 1),
     ]);
     assertType(findNode.methodInvocation('f(').typeArgumentTypes![0], 'int');
     assertType(findNode.methodInvocation('f(').typeArgumentTypes![1],
@@ -296,12 +296,12 @@ test(List<int> list) {
   var a = list.fold(null, (int? x, y) => (x ?? 0) + y);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
     ]);
     assertType(findElement.localVar('a').type, 'int?');
     assertType(findElement.parameter('x').type, 'int?');
     assertType(findElement.parameter('y').type, 'int');
-    expect(findNode.binary('+ y').staticElement!.enclosingElement.name, 'num');
+    expect(findNode.binary('+ y').staticElement!.enclosingElement3.name, 'num');
   }
 
   test_horizontal_inference_unnecessary_due_to_explicit_parameter_type_named() async {
@@ -313,12 +313,12 @@ test() {
   var a = f(null, ({int? x, required y}) => (x ?? 0) + y);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 86, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 86, 1),
     ]);
     assertType(findElement.localVar('a').type, 'int?');
     assertType(findElement.parameter('x').type, 'int?');
     assertType(findElement.parameter('y').type, 'int');
-    expect(findNode.binary('+ y').staticElement!.enclosingElement.name, 'num');
+    expect(findNode.binary('+ y').staticElement!.enclosingElement3.name, 'num');
   }
 
   test_horizontal_inference_unnecessary_due_to_no_dependency() async {

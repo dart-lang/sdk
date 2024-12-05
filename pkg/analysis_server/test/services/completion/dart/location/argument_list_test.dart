@@ -51,6 +51,33 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterComma_beforeIndexExpression() async {
+    await computeSuggestions('''
+void f(List<int> l0) {
+  g(0, ^l0[1]);
+}
+void g(int i, int j) {}
+''');
+
+    assertResponse(r'''
+replacement
+  right: 2
+suggestions
+  l0
+    kind: parameter
+  true
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  const
+    kind: keyword
+  switch
+    kind: keyword
+''');
+  }
+
   Future<void> test_afterComma_beforeMethodInvocation() async {
     allowedIdentifiers = {'random'};
     await computeSuggestions('''

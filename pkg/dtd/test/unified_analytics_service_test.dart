@@ -44,7 +44,7 @@ void main() {
     });
 
     test('shouldShowMessage', () async {
-      var response = await client.analyticsShouldShowConsentMessage(tool);
+      final response = await client.analyticsShouldShowConsentMessage(tool);
       // Since `clientShowedMessage` has already been called on the
       // FakeAnalytics instance when we create it in package:dtd_impl, this will
       // return false.

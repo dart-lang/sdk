@@ -1,0 +1,20 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/usage_void_error_test.dart:16:15: Error: Couldn't find constructor 'T'.
+//   C() : v12 = T(); // Error
+//               ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef T = void;
+abstract class C extends core::Object {
+  final field void v12;
+  constructor •() → self::C
+    : self::C::v12 = invalid-expression "pkg/front_end/testcases/coverage/usage_void_error_test.dart:16:15: Error: Couldn't find constructor 'T'.
+  C() : v12 = T(); // Error
+              ^", super core::Object::•()
+    ;
+}

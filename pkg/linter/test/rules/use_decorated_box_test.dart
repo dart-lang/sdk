@@ -18,7 +18,7 @@ class UseDecoratedBoxTest extends LintRuleTest {
   bool get addFlutterPackageDep => true;
 
   @override
-  String get lintRule => 'use_decorated_box';
+  String get lintRule => LintNames.use_decorated_box;
 
   test_containerWithAnotherArgument() async {
     await assertNoDiagnostics(r'''

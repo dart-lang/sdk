@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show Severity, severityTexts;
 import 'package:kernel/ast.dart' show FileUriNode, TreeNode;
 
-import 'compiler_context.dart' show CompilerContext;
+import 'command_line_reporting.dart' as command_line_reporting;
 import 'messages.dart'
     show
         LocatedMessage,
@@ -49,13 +49,13 @@ class DebugAbort {
 /// Before printing the message, the string `"Internal error: "` is prepended.
 Never internalProblem(Message message, int charOffset, Uri? uri) {
   if (uri != null) {
-    throw CompilerContext.current
-        .format(message.withLocation(uri, charOffset, noLength),
+    throw command_line_reporting
+        .formatNoSourceLine(message.withLocation(uri, charOffset, noLength),
             Severity.internalProblem)
         .plain;
   } else {
-    throw CompilerContext.current
-        .format(message.withoutLocation(), Severity.internalProblem)
+    throw command_line_reporting
+        .formatNoSourceLine(message.withoutLocation(), Severity.internalProblem)
         .plain;
   }
 }

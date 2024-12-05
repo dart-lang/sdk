@@ -1,0 +1,32 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/super_initializing_parameters_in_redirecting_generative_constructors.dart:12:13: Error: Super parameters can only be used in non-redirecting generative constructors.
+//   C.r(super._) : this(0); // Error.
+//             ^
+//
+// pkg/front_end/testcases/general/super_initializing_parameters_in_redirecting_generative_constructors.dart:13:27: Error: The constructor function type 'C Function(int)' isn't a subtype of 'C Function(dynamic)'.
+//  - 'C' is from 'pkg/front_end/testcases/general/super_initializing_parameters_in_redirecting_generative_constructors.dart'.
+//   factory C.r2(super._) = C; // Error.
+//                           ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int x;
+  constructor •(core::int x) → self::A
+    ;
+}
+class C extends self::A {
+  constructor •(core::int _) → self::C
+    ;
+  constructor r(core::int _) → self::C
+    ;
+  static factory r2(dynamic _) → self::C
+    return invalid-expression "pkg/front_end/testcases/general/super_initializing_parameters_in_redirecting_generative_constructors.dart:13:27: Error: The constructor function type 'C Function(int)' isn't a subtype of 'C Function(dynamic)'.
+ - 'C' is from 'pkg/front_end/testcases/general/super_initializing_parameters_in_redirecting_generative_constructors.dart'.
+  factory C.r2(super._) = C; // Error.
+                          ^";
+}

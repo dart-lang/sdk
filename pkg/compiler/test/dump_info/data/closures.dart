@@ -1,4 +1,67 @@
-/*library: 
+/*spec.library: 
+ constant=[
+  {
+  "id": "constant/B.C_JS_CONST = function getTagFallback(o) {\n  var s = Object.prototype.toString.call(o);\n  return s.substring(8, s.length - 1);\n};\n",
+  "kind": "constant",
+  "name": "",
+  "size": 131,
+  "outputUnit": "outputUnit/main",
+  "code": "B.C_JS_CONST = function getTagFallback(o) {\n  var s = Object.prototype.toString.call(o);\n  return s.substring(8, s.length - 1);\n};\n"
+},
+  {
+  "id": "constant/B.Interceptor_methods = J.Interceptor.prototype;\n",
+  "kind": "constant",
+  "name": "",
+  "size": 49,
+  "outputUnit": "outputUnit/main",
+  "code": "B.Interceptor_methods = J.Interceptor.prototype;\n"
+},
+  {
+  "id": "constant/B.JSArray_methods = J.JSArray.prototype;\n",
+  "kind": "constant",
+  "name": "",
+  "size": 41,
+  "outputUnit": "outputUnit/main",
+  "code": "B.JSArray_methods = J.JSArray.prototype;\n"
+},
+  {
+  "id": "constant/B.JavaScriptObject_methods = J.JavaScriptObject.prototype;\n",
+  "kind": "constant",
+  "name": "",
+  "size": 59,
+  "outputUnit": "outputUnit/main",
+  "code": "B.JavaScriptObject_methods = J.JavaScriptObject.prototype;\n"
+}],
+ deferredFiles=[{}],
+ dependencies=[{}],
+ library=[{
+  "id": "library/memory:sdk/tests/web/native/main.dart::",
+  "kind": "library",
+  "name": "<unnamed>",
+  "size": 12352,
+  "children": [
+    "class/memory:sdk/tests/web/native/main.dart::Class1",
+    "function/memory:sdk/tests/web/native/main.dart::main",
+    "function/memory:sdk/tests/web/native/main.dart::nested",
+    "function/memory:sdk/tests/web/native/main.dart::nested2",
+    "function/memory:sdk/tests/web/native/main.dart::siblings",
+    "function/memory:sdk/tests/web/native/main.dart::topLevelMethod1",
+    "function/memory:sdk/tests/web/native/main.dart::topLevelMethod2",
+    "function/memory:sdk/tests/web/native/main.dart::topLevelMethod3",
+    "function/memory:sdk/tests/web/native/main.dart::topLevelMethod4",
+    "function/memory:sdk/tests/web/native/main.dart::twoLocals"
+  ],
+  "canonicalUri": "memory:sdk/tests/web/native/main.dart"
+}],
+ outputUnits=[{
+  "id": "outputUnit/main",
+  "kind": "outputUnit",
+  "name": "main",
+  "filename": "out",
+  "imports": []
+}]
+*/
+/*kernel.library: 
  constant=[
   {
   "id": "constant/B.C_JS_CONST = function getTagFallback(o) {\n  var s = Object.prototype.toString.call(o);\n  return s.substring(8, s.length - 1);\n};\n",
@@ -1864,7 +1927,139 @@ dynamic nested() {
   x();
 }
 
-/*member: nested2:
+/*spec.member: nested2:
+ closure=[
+  {
+  "id": "closure/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1",
+  "kind": "closure",
+  "name": "nested2_local1",
+  "size": 195,
+  "outputUnit": "outputUnit/main",
+  "parent": "function/memory:sdk/tests/web/native/main.dart::nested2",
+  "function": "function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1.call"
+},
+  {
+  "id": "closure/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1__closure",
+  "kind": "closure",
+  "name": "nested2_local1__closure",
+  "size": 193,
+  "outputUnit": "outputUnit/main",
+  "parent": "function/memory:sdk/tests/web/native/main.dart::nested2",
+  "function": "function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1__closure.call"
+},
+  {
+  "id": "closure/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1_closure",
+  "kind": "closure",
+  "name": "nested2_local1_closure",
+  "size": 232,
+  "outputUnit": "outputUnit/main",
+  "parent": "function/memory:sdk/tests/web/native/main.dart::nested2",
+  "function": "function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1_closure.call"
+}],
+ function=[
+  {
+  "id": "function/memory:sdk/tests/web/native/main.dart::nested2",
+  "kind": "function",
+  "name": "nested2",
+  "size": 685,
+  "outputUnit": "outputUnit/main",
+  "parent": "library/memory:sdk/tests/web/native/main.dart::",
+  "children": [
+    "closure/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1",
+    "closure/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1__closure",
+    "closure/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1_closure"
+  ],
+  "modifiers": {
+    "static": false,
+    "const": false,
+    "factory": false,
+    "external": false
+  },
+  "returnType": "dynamic",
+  "inferredReturnType": "[null]",
+  "parameters": [],
+  "sideEffects": "SideEffects(reads anything; writes anything)",
+  "inlinedCount": 0,
+  "code": "nested2() {\n      A.print(new A.nested2_local1().call$0());\n    }",
+  "type": "dynamic Function()",
+  "functionKind": 0
+},
+  {
+  "id": "function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1.call",
+  "kind": "function",
+  "name": "call",
+  "size": 70,
+  "outputUnit": "outputUnit/main",
+  "parent": "closure/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1",
+  "children": [],
+  "modifiers": {
+    "static": false,
+    "const": false,
+    "factory": false,
+    "external": false
+  },
+  "returnType": "int",
+  "inferredReturnType": "[subclass=JSInt]",
+  "parameters": [],
+  "sideEffects": "SideEffects(reads anything; writes anything)",
+  "inlinedCount": 0,
+  "code": "call$0() {\n      return new A.nested2_local1_closure().call$0();\n    }",
+  "type": "int Function()",
+  "functionKind": 2
+},
+  {
+  "id": "function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1__closure.call",
+  "kind": "function",
+  "name": "call",
+  "size": 32,
+  "outputUnit": "outputUnit/main",
+  "parent": "closure/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1__closure",
+  "children": [],
+  "modifiers": {
+    "static": false,
+    "const": false,
+    "factory": false,
+    "external": false
+  },
+  "returnType": "int",
+  "inferredReturnType": "[exact=JSUInt31]",
+  "parameters": [],
+  "sideEffects": "SideEffects(reads nothing; writes nothing)",
+  "inlinedCount": 0,
+  "code": "call$0() {\n      return 2;\n    }",
+  "type": "int Function()",
+  "functionKind": 2
+},
+  {
+  "id": "function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1_closure.call",
+  "kind": "function",
+  "name": "call",
+  "size": 75,
+  "outputUnit": "outputUnit/main",
+  "parent": "closure/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1_closure",
+  "children": [],
+  "modifiers": {
+    "static": false,
+    "const": false,
+    "factory": false,
+    "external": false
+  },
+  "returnType": "int",
+  "inferredReturnType": "[subclass=JSInt]",
+  "parameters": [],
+  "sideEffects": "SideEffects(reads anything; writes anything)",
+  "inlinedCount": 0,
+  "code": "call$0() {\n      return 1 + new A.nested2_local1__closure().call$0();\n    }",
+  "type": "int Function()",
+  "functionKind": 2
+}],
+ holding=[
+  {"id":"function/dart:_rti::_setArrayType"},
+  {"id":"function/dart:core::print"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1.call"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1.call"}]
+*/
+/*kernel.member: nested2:
  closure=[
   {
   "id": "closure/memory:sdk/tests/web/native/main.dart::nested2.nested2_local1",

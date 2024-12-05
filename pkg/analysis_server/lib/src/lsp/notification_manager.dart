@@ -20,15 +20,17 @@ class LspNotificationManager extends AbstractNotificationManager {
   @override
   void sendAnalysisErrors(
       String filePath, List<protocol.AnalysisError> errors) {
+    // Currently these diagnostics are always sent to the editor client, so
+    // use those client capabilities.
+    var clientCapabilities = server.editorClientCapabilities;
     var diagnostics = errors
         .map((error) => pluginToDiagnostic(
               server.uriConverter,
               (path) => server.getLineInfo(path),
               error,
-              supportedTags: server.lspClientCapabilities?.diagnosticTags,
+              supportedTags: clientCapabilities?.diagnosticTags,
               clientSupportsCodeDescription:
-                  server.lspClientCapabilities?.diagnosticCodeDescription ??
-                      false,
+                  clientCapabilities?.diagnosticCodeDescription ?? false,
             ))
         .toList();
 

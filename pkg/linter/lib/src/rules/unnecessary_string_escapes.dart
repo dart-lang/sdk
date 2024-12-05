@@ -7,43 +7,22 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Remove unnecessary backslashes in strings.';
 
-const _details = r'''
-Remove unnecessary backslashes in strings.
-
-**BAD:**
-```dart
-'this string contains 2 \"double quotes\" ';
-"this string contains 2 \'single quotes\' ";
-```
-
-**GOOD:**
-```dart
-'this string contains 2 "double quotes" ';
-"this string contains 2 'single quotes' ";
-```
-
-''';
-
 class UnnecessaryStringEscapes extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_string_escapes', 'Unnecessary escape in string literal.',
-      correctionMessage: "Remove the '\\' escape.", hasPublishedDocs: true);
-
   UnnecessaryStringEscapes()
       : super(
-            name: 'unnecessary_string_escapes',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.unnecessary_string_escapes,
+          description: _desc,
+        );
 
   @override
   bool get canUseParsedResult => true;
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_string_escapes;
 
   @override
   void registerNodeProcessors(

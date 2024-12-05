@@ -38,7 +38,8 @@ ExtensionOverride
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -49,7 +50,8 @@ ExtensionOverride
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  element: self::@extension::E
+  element: <testLibraryFragment>::@extension::E
+  element2: <testLibraryFragment>::@extension::E#element
   extendedType: int
   staticType: null
 ''');
@@ -78,7 +80,8 @@ ExtensionOverride
     arguments
       NamedType
         name: bool
-        element: dart:core::@class::bool
+        element: dart:core::<fragment>::@class::bool
+        element2: dart:core::<fragment>::@class::bool#element
         type: bool
     rightBracket: >
   argumentList: ArgumentList
@@ -89,7 +92,8 @@ ExtensionOverride
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  element: self::@extension::E
+  element: <testLibraryFragment>::@extension::E
+  element2: <testLibraryFragment>::@extension::E#element
   extendedType: int
   staticType: null
   typeArgumentTypes
@@ -121,11 +125,13 @@ ExtensionOverride
     arguments
       NamedType
         name: bool
-        element: dart:core::@class::bool
+        element: dart:core::<fragment>::@class::bool
+        element2: dart:core::<fragment>::@class::bool#element
         type: bool
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -136,7 +142,8 @@ ExtensionOverride
         parameter: <null>
         staticType: int
     rightParenthesis: )
-  element: self::@extension::E
+  element: <testLibraryFragment>::@extension::E
+  element2: <testLibraryFragment>::@extension::E#element
   extendedType: int
   staticType: null
   typeArgumentTypes

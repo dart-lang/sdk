@@ -22,10 +22,6 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
   /// (happens internally in Blaze or when we have cached summaries).
   bool get keepLinkingLibraries;
 
-  void addSource(String path, String contents) {
-    newFile(path, contents);
-  }
-
   Future<LibraryElementImpl> buildFileLibrary(File file) async {
     var analysisContext = contextFor(file);
     var analysisSession = analysisContext.currentSession;

@@ -259,22 +259,53 @@ class DescriptorInfoBase {
   DISALLOW_COPY_AND_ASSIGN(DescriptorInfoBase);
 };
 
+#if !defined(DART_HOST_OS_WINDOWS)
+// On POSIX systems we use tokens to balance work between isolates listening to
+// the same socket.
+template <intptr_t kInitialAmount>
+class TokenCounter {
+ public:
+  void Return(intptr_t amount) {
+    ASSERT(amount >= 0);
+    tokens_ += amount;
+    ASSERT(tokens_ <= kInitialAmount);
+  }
+
+  void TakeOne() { tokens_--; }
+
+  bool IsEmpty() const { return tokens_ <= 0; }
+
+ private:
+  intptr_t tokens_ = kInitialAmount;
+};
+#else
+// On Windows we don't use this mechanism.
+template <intptr_t kInitialAmount>
+class TokenCounter {
+ public:
+  void Return(intptr_t amount) {
+    // Do nothing.
+  }
+
+  void TakeOne() {
+    // Do nothing.
+  }
+
+  bool IsEmpty() const { return false; }
+};
+
+#endif
+
 // Describes a OS descriptor (e.g. file descriptor on linux or HANDLE on
 // windows) which is connected to a single Dart_Port.
 //
 // Subclasses of this class can be e.g. connected tcp sockets.
 template <typename DI>
 class DescriptorInfoSingleMixin : public DI {
- private:
-  static constexpr int kTokenCount = 16;
-
  public:
-  DescriptorInfoSingleMixin(intptr_t fd, bool disable_tokens)
-      : DI(fd),
-        port_(0),
-        tokens_(kTokenCount),
-        mask_(0),
-        disable_tokens_(disable_tokens) {}
+  template <typename... Args>
+  DescriptorInfoSingleMixin(intptr_t fd, Args... args)
+      : DI(fd, args...), port_(0), mask_(0) {}
 
   virtual ~DescriptorInfoSingleMixin() {}
 
@@ -302,9 +333,7 @@ class DescriptorInfoSingleMixin : public DI {
   virtual Dart_Port NextNotifyDartPort(intptr_t events_ready) {
     ASSERT(IS_IO_EVENT(events_ready) ||
            IS_EVENT(events_ready, kDestroyedEvent));
-    if (!disable_tokens_) {
-      tokens_--;
-    }
+    tokens_.TakeOne();
     return port_;
   }
 
@@ -317,21 +346,16 @@ class DescriptorInfoSingleMixin : public DI {
     if (port_ != 0) {
       DartUtils::PostInt32(port_, events);
     }
-    if (!disable_tokens_) {
-      tokens_--;
-    }
+    tokens_.TakeOne();
   }
 
   virtual void ReturnTokens(Dart_Port port, int count) {
     ASSERT(port_ == port);
-    if (!disable_tokens_) {
-      tokens_ += count;
-    }
-    ASSERT(tokens_ <= kTokenCount);
+    tokens_.Return(count);
   }
 
   virtual intptr_t Mask() {
-    if (tokens_ <= 0) {
+    if (tokens_.IsEmpty()) {
       return 0;
     }
     return mask_;
@@ -341,9 +365,8 @@ class DescriptorInfoSingleMixin : public DI {
 
  private:
   Dart_Port port_;
-  int tokens_;
+  TokenCounter</*kInitialAmount=*/16> tokens_;
   intptr_t mask_;
-  bool disable_tokens_;
 
   DISALLOW_COPY_AND_ASSIGN(DescriptorInfoSingleMixin);
 };
@@ -356,8 +379,6 @@ class DescriptorInfoSingleMixin : public DI {
 template <typename DI>
 class DescriptorInfoMultipleMixin : public DI {
  private:
-  static constexpr int kTokenCount = 4;
-
   static bool SamePortValue(void* key1, void* key2) {
     return reinterpret_cast<Dart_Port>(key1) ==
            reinterpret_cast<Dart_Port>(key2);
@@ -383,16 +404,15 @@ class DescriptorInfoMultipleMixin : public DI {
   struct PortEntry {
     Dart_Port dart_port;
     intptr_t is_reading;
-    intptr_t token_count;
+    TokenCounter</*kInitialAmount=*/4> tokens;
 
-    bool IsReady() { return token_count > 0 && is_reading != 0; }
+    bool IsReady() { return !tokens.IsEmpty() && is_reading != 0; }
   };
 
  public:
-  DescriptorInfoMultipleMixin(intptr_t fd, bool disable_tokens)
-      : DI(fd),
-        tokens_map_(&SamePortValue, kTokenCount),
-        disable_tokens_(disable_tokens) {}
+  template <typename... Args>
+  DescriptorInfoMultipleMixin(intptr_t fd, Args... args)
+      : DI(fd, args...), tokens_map_(&SamePortValue, 4) {}
 
   virtual ~DescriptorInfoMultipleMixin() { RemoveAllPorts(); }
 
@@ -405,7 +425,6 @@ class DescriptorInfoMultipleMixin : public DI {
     if (entry->value == nullptr) {
       pentry = new PortEntry();
       pentry->dart_port = port;
-      pentry->token_count = kTokenCount;
       pentry->is_reading = IsReadingMask(mask);
       entry->value = reinterpret_cast<void*>(pentry);
 
@@ -498,10 +517,8 @@ class DescriptorInfoMultipleMixin : public DI {
       PortEntry* pentry = reinterpret_cast<PortEntry*>(active_readers_.head());
 
       // Update token count.
-      if (!disable_tokens_) {
-        pentry->token_count--;
-      }
-      if (pentry->token_count <= 0) {
+      pentry->tokens.TakeOne();
+      if (pentry->tokens.IsEmpty()) {
         active_readers_.RemoveHead();
       } else {
         active_readers_.Rotate();
@@ -525,11 +542,8 @@ class DescriptorInfoMultipleMixin : public DI {
 
       // Update token count.
       bool was_ready = pentry->IsReady();
-      if (!disable_tokens_) {
-        pentry->token_count--;
-      }
-
-      if (was_ready && (pentry->token_count <= 0)) {
+      pentry->tokens.TakeOne();
+      if (was_ready && pentry->tokens.IsEmpty()) {
         active_readers_.Remove(pentry);
       }
     }
@@ -542,10 +556,7 @@ class DescriptorInfoMultipleMixin : public DI {
 
     PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
     bool was_ready = pentry->IsReady();
-    if (!disable_tokens_) {
-      pentry->token_count += count;
-    }
-    ASSERT(pentry->token_count <= kTokenCount);
+    pentry->tokens.Return(count);
     bool is_ready = pentry->IsReady();
     if (!was_ready && is_ready) {
       active_readers_.Add(pentry);
@@ -573,10 +584,8 @@ class DescriptorInfoMultipleMixin : public DI {
   CircularLinkedList<PortEntry*> active_readers_;
 
   // A convenience mapping:
-  //   Dart_Port -> struct PortEntry { dart_port, mask, token_count }
+  //   Dart_Port -> struct PortEntry { dart_port, mask, tokens }
   SimpleHashMap tokens_map_;
-
-  bool disable_tokens_;
 
   DISALLOW_COPY_AND_ASSIGN(DescriptorInfoMultipleMixin);
 };

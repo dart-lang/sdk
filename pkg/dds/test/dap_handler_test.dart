@@ -15,6 +15,19 @@ import 'package:vm_service/vm_service_io.dart';
 
 import 'common/test_helper.dart';
 
+Future<Isolate> waitForFirstRunnableIsolate(VmService service) async {
+  VM vm;
+  do {
+    vm = await service.getVM();
+  } while (vm.isolates!.isEmpty);
+  final isolateId = vm.isolates!.first.id!;
+  Isolate isolate;
+  do {
+    isolate = await service.getIsolate(isolateId);
+  } while (!isolate.runnable!);
+  return isolate;
+}
+
 void main() {
   Process? process;
   DartDevelopmentService? dds;
@@ -116,18 +129,10 @@ void main() {
     );
     service = await vmServiceConnectUri(dds!.wsUri!.toString());
 
-    final isolateRef = (await service.getVM()).isolates!.first;
-    final isolateId = isolateRef.id!;
-
     // Wait for the isolate to become runnable as `evaluateInFrame` requires
     // the isolate to be runnable.
-    Isolate? isolate;
-    do {
-      if (isolate != null) {
-        await Future.delayed(const Duration(milliseconds: 50));
-      }
-      isolate = await service.getIsolate(isolateId);
-    } while (!isolate.runnable!);
+    final isolate = await waitForFirstRunnableIsolate(service);
+    final isolateId = isolate.id!;
 
     // Get the variable for 'myInstance'.
     final originalInstanceRef = (await service.evaluateInFrame(
@@ -173,7 +178,8 @@ void main() {
     service = await vmServiceConnectUri(dds!.wsUri!.toString());
 
     // Get the expected isolateId.
-    final isolateId = (await service.getVM()).isolates!.first.id!;
+    final isolate = await waitForFirstRunnableIsolate(service);
+    final isolateId = isolate.id!;
 
     // Ask DAP for all threads.
     final threadsResult = await sendDapRequest(Command.threads);

@@ -9,6 +9,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:_internal'; // ignore: import_internal_library, unused_import
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
@@ -32,19 +33,19 @@ main() async {
     }, onError: (e) {
       Expect.fail("Socket error $e");
     });
-    isolate.kill();
 
-    // Cause a GC to collect the [socket] from [connectorIsolate].
-    for (int i = 0; i < 100000; ++i) {
-      produceGarbage();
-    }
+    final port = ReceivePort();
+    port.listen((_) {
+      print("Isolate exited - triggering GC");
+      // Cause a GC to collect the [socket] from [connectorIsolate].
+      VMInternalsForTesting.collectAllGarbage(); // ignore: undefined_identifier
+      port.close();
+    });
+    isolate.addOnExitListener(port.sendPort);
+
+    isolate.kill();
   });
   await completer.future;
   await server.close();
   asyncEnd();
 }
-
-@pragma('vm:never-inline')
-produceGarbage() => all.add(List.filled(1024, null));
-
-final all = [];

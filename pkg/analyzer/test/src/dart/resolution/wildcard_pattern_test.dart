@@ -45,7 +45,8 @@ ParenthesizedPattern
   pattern: WildcardPattern
     type: NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<fragment>::@class::int
+      element2: dart:core::<fragment>::@class::int#element
       type: int
     name: _
     matchedValueType: int
@@ -83,7 +84,8 @@ void f(x) {
 WildcardPattern
   type: NamedType
     name: int
-    element: dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
+    element2: dart:core::<fragment>::@class::int#element
     type: int
   name: _
   matchedValueType: dynamic
@@ -102,7 +104,8 @@ WildcardPattern
   keyword: final
   type: NamedType
     name: int
-    element: dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
+    element2: dart:core::<fragment>::@class::int#element
     type: int
   name: _
   matchedValueType: dynamic

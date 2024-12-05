@@ -19,7 +19,7 @@ main() {
 @reflectiveTest
 class CollectionMethodsUnrelatedTypeIterableTest extends LintRuleTest {
   @override
-  String get lintRule => 'collection_methods_unrelated_type';
+  String get lintRule => LintNames.collection_methods_unrelated_type;
 
   test_contains_related_dynamic() async {
     await assertNoDiagnostics('''var x = <num>[].contains('1' as dynamic);''');
@@ -150,7 +150,7 @@ abstract class C implements List<num> {
 @reflectiveTest
 class CollectionMethodsUnrelatedTypeListTest extends LintRuleTest {
   @override
-  String get lintRule => 'collection_methods_unrelated_type';
+  String get lintRule => LintNames.collection_methods_unrelated_type;
 
   test_remove_related_subtype() async {
     await assertNoDiagnostics('var x = <num>[].remove(1);');
@@ -167,7 +167,7 @@ class CollectionMethodsUnrelatedTypeListTest extends LintRuleTest {
 @reflectiveTest
 class CollectionMethodsUnrelatedTypeMapTest extends LintRuleTest {
   @override
-  String get lintRule => 'collection_methods_unrelated_type';
+  String get lintRule => LintNames.collection_methods_unrelated_type;
 
   test_containsKey_related_subtype() async {
     await assertNoDiagnostics('var x = <num, String>{}.containsKey(1);');
@@ -217,7 +217,7 @@ class CollectionMethodsUnrelatedTypeMapTest extends LintRuleTest {
 @reflectiveTest
 class CollectionMethodsUnrelatedTypeQueueTest extends LintRuleTest {
   @override
-  String get lintRule => 'collection_methods_unrelated_type';
+  String get lintRule => LintNames.collection_methods_unrelated_type;
 
   test_remove_related_subtype() async {
     await assertNoDiagnostics('''
@@ -241,7 +241,7 @@ void f(Queue<num> queue) {
 @reflectiveTest
 class CollectionMethodsUnrelatedTypeSetTest extends LintRuleTest {
   @override
-  String get lintRule => 'collection_methods_unrelated_type';
+  String get lintRule => LintNames.collection_methods_unrelated_type;
 
   test_lookup_related_subtype() async {
     await assertNoDiagnostics('var x = <num>{}.lookup(1);');

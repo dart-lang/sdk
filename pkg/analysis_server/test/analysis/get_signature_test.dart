@@ -427,6 +427,25 @@ void f() {
             ParameterInfo(ParameterKind.REQUIRED_POSITIONAL, 'length', 'int')));
   }
 
+  Future<void> test_function_wildcardParams() async {
+    newFile(testFilePath, '''
+void g(int _, [String _]) {}
+void f() {
+  g(/*^*/);
+}
+''');
+    var result = await prepareSignature('/*^*/');
+    expect(result.name, equals('g'));
+    expect(result.parameters, hasLength(2));
+    // Ensure wildcard params have their types.
+    expect(result.parameters[0],
+        equals(ParameterInfo(ParameterKind.REQUIRED_POSITIONAL, '_', 'int')));
+    expect(
+        result.parameters[1],
+        equals(
+            ParameterInfo(ParameterKind.OPTIONAL_POSITIONAL, '_', 'String')));
+  }
+
   Future<void> test_function_zero_arguments() async {
     newFile(testFilePath, '''
 /// one doc

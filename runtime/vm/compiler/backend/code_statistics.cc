@@ -19,7 +19,7 @@ CombinedCodeStatistics::CombinedCodeStatistics() {
   entries_[i].bytes = 0;                                                       \
   entries_[i++].count = 0;
 
-  FOR_EACH_INSTRUCTION(DO)
+  FOR_EACH_CONCRETE_INSTRUCTION(DO)
 
 #undef DO
 
@@ -28,7 +28,7 @@ CombinedCodeStatistics::CombinedCodeStatistics() {
   entries_[i].bytes = 0;                                                       \
   entries_[i++].count = 0;
 
-  FOR_EACH_INSTRUCTION(DO)
+  FOR_EACH_CONCRETE_INSTRUCTION(DO)
 
 #undef DO
 

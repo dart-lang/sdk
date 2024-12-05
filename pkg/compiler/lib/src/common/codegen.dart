@@ -42,8 +42,8 @@ class CodegenImpact extends WorldImpact {
     throw UnsupportedError('CodegenImpact.writeToDataSink');
   }
 
-  Iterable<Pair<DartType, DartType>> get typeVariableBoundsSubtypeChecks {
-    return const <Pair<DartType, DartType>>[];
+  Iterable<(DartType, DartType)> get typeVariableBoundsSubtypeChecks {
+    return const <(DartType, DartType)>[];
   }
 
   Iterable<String> get constSymbols => const <String>[];
@@ -71,11 +71,11 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
   @override
   final MemberEntity member;
-  Set<Pair<DartType, DartType>>? _typeVariableBoundsSubtypeChecks;
+  Set<(DartType, DartType)>? _typeVariableBoundsSubtypeChecks;
   Set<String>? _constSymbols;
   List<Set<ClassEntity>>? _specializedGetInterceptors;
   bool _usesInterceptor = false;
-  EnumSet<AsyncMarker>? _asyncMarkers;
+  EnumSet<AsyncMarker> _asyncMarkers = EnumSet.empty();
   Set<GenericInstantiation>? _genericInstantiations;
   List<NativeBehavior>? _nativeBehaviors;
   Set<FunctionEntity>? _nativeMethods;
@@ -116,17 +116,15 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
         .readListOrNull(() => ConstantUse.readFromDataSource(source))
         ?.toSet();
     final typeVariableBoundsSubtypeChecks = source.readListOrNull(() {
-      return Pair(source.readDartType(), source.readDartType());
+      return (source.readDartType(), source.readDartType());
     })?.toSet();
     final constSymbols = source.readStringsOrNull()?.toSet();
     final specializedGetInterceptors = source.readListOrNull(() {
       return source.readClasses().toSet();
     });
     bool usesInterceptor = source.readBool();
-    final asyncMarkersValue = source.readIntOrNull();
-    final asyncMarkers = asyncMarkersValue != null
-        ? EnumSet<AsyncMarker>.fromValue(asyncMarkersValue)
-        : null;
+    final asyncMarkersValue = source.readInt();
+    final asyncMarkers = EnumSet<AsyncMarker>(asyncMarkersValue);
     final genericInstantiations = source
         .readListOrNull(() => GenericInstantiation.readFromDataSource(source))
         ?.toSet();
@@ -163,15 +161,15 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     sink.writeList(typeUses, (TypeUse use) => use.writeToDataSink(sink));
     sink.writeList(
         constantUses, (ConstantUse use) => use.writeToDataSink(sink));
-    sink.writeListOrNull<Pair<DartType, DartType>>(
-        _typeVariableBoundsSubtypeChecks, (pair) {
-      sink.writeDartType(pair.a);
-      sink.writeDartType(pair.b);
+    sink.writeListOrNull<(DartType, DartType)>(_typeVariableBoundsSubtypeChecks,
+        (pair) {
+      sink.writeDartType(pair.$1);
+      sink.writeDartType(pair.$2);
     });
     sink.writeStringsOrNull(_constSymbols);
     sink.writeListOrNull(_specializedGetInterceptors, sink.writeClasses);
     sink.writeBool(_usesInterceptor);
-    sink.writeIntOrNull(_asyncMarkers?.value);
+    sink.writeInt(_asyncMarkers.mask);
     sink.writeListOrNull(
         _genericInstantiations,
         (GenericInstantiation instantiation) =>
@@ -186,12 +184,11 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
   void registerTypeVariableBoundsSubtypeCheck(
       DartType subtype, DartType supertype) {
-    (_typeVariableBoundsSubtypeChecks ??= {})
-        .add(Pair<DartType, DartType>(subtype, supertype));
+    (_typeVariableBoundsSubtypeChecks ??= {}).add((subtype, supertype));
   }
 
   @override
-  Iterable<Pair<DartType, DartType>> get typeVariableBoundsSubtypeChecks {
+  Iterable<(DartType, DartType)> get typeVariableBoundsSubtypeChecks {
     return _typeVariableBoundsSubtypeChecks ?? const {};
   }
 
@@ -221,14 +218,14 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   bool get usesInterceptor => _usesInterceptor;
 
   void registerAsyncMarker(AsyncMarker asyncMarker) {
-    (_asyncMarkers ??= EnumSet()).add(asyncMarker);
+    _asyncMarkers += asyncMarker;
   }
 
   @override
   Iterable<AsyncMarker> get asyncMarkers {
-    return _asyncMarkers == null
+    return _asyncMarkers.isEmpty
         ? const []
-        : _asyncMarkers!.iterable(AsyncMarker.values);
+        : _asyncMarkers.iterable(AsyncMarker.values);
   }
 
   void registerGenericInstantiation(GenericInstantiation instantiation) {

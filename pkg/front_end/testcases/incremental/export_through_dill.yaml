@@ -1,0 +1,35 @@
+# Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import 'lib1.dart';
+        void method(Typedef t, Enum e, Mixin m, NamedMixinApplication a) {}
+      lib1.dart: |
+        export 'lib2.dart';
+      lib2.dart: |
+        typedef Typedef = int;
+        enum Enum { a, b }
+        mixin Mixin {}
+        class NamedMixinApplication = Object with Mixin;
+    expectedLibraryCount: 3
+
+  - entry: main.dart
+    expectInitializeFromDill: false
+    worldType: updated
+    invalidate: [main.dart, lib2.dart]
+    sources:
+      main.dart: |
+        import 'lib1.dart';
+        void method(Typedef t, Enum e, Mixin m, NamedMixinApplication a) {}
+      lib2.dart: |
+        typedef Typedef = int;
+        enum Enum { a, b }
+        mixin Mixin {}
+        class NamedMixinApplication = Object with Mixin;
+    expectedLibraryCount: 3
+    advancedInvalidation: bodiesOnly

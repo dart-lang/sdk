@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Simple script that shows the inferred types of a function.
-library compiler.tool.show_inferred_types;
+library;
 
 import 'dart:io';
 

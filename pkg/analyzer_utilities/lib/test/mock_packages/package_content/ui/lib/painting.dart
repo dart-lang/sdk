@@ -56,7 +56,7 @@ part of dart.ui;
 enum BlendMode {
   // This list comes from Skia's SkXfermode.h and the values (order) should be
   // kept in sync.
-  // See: https://skia.org/user/api/skpaint#SkXfermode
+  // See: https://skia.org/docs/user/api/skpaint_overview/#SkXfermode
 
   /// Drop both the source and destination images, leaving nothing.
   ///
@@ -212,6 +212,12 @@ enum BlendMode {
   /// pixel in that image was darker.
   ///
   /// This corresponds to the "Source plus Destination" Porter-Duff operator.
+  ///
+  /// This is the right blend mode for cross-fading between two images. Consider
+  /// two images A and B, and an interpolation time variable _t_ (from 0.0 to
+  /// 1.0). To cross fade between them, A should be drawn with opacity 1.0 - _t_
+  /// into a new layer using [BlendMode.srcOver], and B should be drawn on top
+  /// of it, at opacity _t_, into the same layer, using [BlendMode.plus].
   ///
   /// ![](https://flutter.github.io/assets-for-api-docs/assets/dart-ui/blend_mode_plus.png)
   plus,
@@ -430,7 +436,7 @@ enum BlendMode {
   /// [srcOver]. Regions that are entirely transparent in the source image take
   /// their saturation from the destination.
   ///
-  /// ![](https://flutter.github.io/assets-for-api-docs/assets/dart-ui/blend_mode_hue.png)
+  /// ![](https://flutter.github.io/assets-for-api-docs/assets/dart-ui/blend_mode_saturation.png)
   ///
   /// See also:
   ///
@@ -485,10 +491,10 @@ enum BlendMode {
 /// Here are some ways it could be constructed:
 ///
 /// ```dart
-/// Color c = const Color(0xFF42A5F5);
-/// Color c = const Color.fromARGB(0xFF, 0x42, 0xA5, 0xF5);
-/// Color c = const Color.fromARGB(255, 66, 165, 245);
-/// Color c = const Color.fromRGBO(66, 165, 245, 1.0);
+/// Color c1 = const Color(0xFF42A5F5);
+/// Color c2 = const Color.fromARGB(0xFF, 0x42, 0xA5, 0xF5);
+/// Color c3 = const Color.fromARGB(255, 66, 165, 245);
+/// Color c4 = const Color.fromRGBO(66, 165, 245, 1.0);
 /// ```
 ///
 /// If you are having a problem with `Color` wherein it seems your color is just
@@ -503,20 +509,28 @@ enum BlendMode {
 ///
 /// See also:
 ///
-///  * [Colors](https://docs.flutter.io/flutter/material/Colors-class.html), which
+///  * [Colors](https://api.flutter.dev/flutter/material/Colors-class.html), which
 ///    defines the colors found in the Material Design specification.
 class Color {
-  /// A 32 bit value representing this color.
+  /// The alpha channel of this color.
   ///
-  /// The bits are assigned as follows:
-  ///
-  /// * Bits 24-31 are the alpha value.
-  /// * Bits 16-23 are the red value.
-  /// * Bits 8-15 are the green value.
-  /// * Bits 0-7 are the blue value.
-  final int value;
+  /// A value of 0.0 means this color is fully transparent. A value of 1.0 means
+  /// this color is fully opaque.
+  final double a;
 
-  /// Construct a color from the lower 32 bits of an [int].
+  /// The red channel of this color.
+  final double r;
+
+  /// The green channel of this color.
+  final double g;
+
+  /// The blue channel of this color.
+  final double b;
+
+  /// The color space of this color.
+  final ColorSpace colorSpace;
+
+  /// Construct an sRGB color from the lower 32 bits of an [int].
   ///
   /// The bits are interpreted as follows:
   ///
@@ -532,10 +546,27 @@ class Color {
   /// For example, to get a fully opaque orange, you would use `const
   /// Color(0xFFFF9000)` (`FF` for the alpha, `FF` for the red, `90` for the
   /// green, and `00` for the blue).
-  @pragma('vm:entry-point')
-  const Color(int value) : value = value & 0xFFFFFFFF;
+  const Color(int value)
+      : this._fromARGBC(
+            value >> 24, value >> 16, value >> 8, value, ColorSpace.sRGB);
 
-  /// Construct a color from the lower 8 bits of four integers.
+  /// Construct a color with normalized color components.
+  ///
+  /// Normalized color components allows arbitrary bit depths for color
+  /// components to be be supported. The values will be normalized relative to
+  /// the [ColorSpace] argument.
+  const Color.from(
+      {required double alpha,
+      required double red,
+      required double green,
+      required double blue,
+      this.colorSpace = ColorSpace.sRGB})
+      : a = alpha,
+        r = red,
+        g = green,
+        b = blue;
+
+  /// Construct an sRGB color from the lower 8 bits of four integers.
   ///
   /// * `a` is the alpha value, with 0 being transparent and 255 being fully
   ///   opaque.
@@ -548,13 +579,10 @@ class Color {
   /// See also [fromRGBO], which takes the alpha value as a floating point
   /// value.
   const Color.fromARGB(int a, int r, int g, int b)
-      : value = (((a & 0xff) << 24) |
-                ((r & 0xff) << 16) |
-                ((g & 0xff) << 8) |
-                ((b & 0xff) << 0)) &
-            0xFFFFFFFF;
+      : this._fromARGBC(a, r, g, b, ColorSpace.sRGB);
 
-  /// Create a color from red, green, blue, and opacity, similar to `rgba()` in CSS.
+  /// Create an sRGB color from red, green, blue, and opacity, similar to
+  /// `rgba()` in CSS.
   ///
   /// * `r` is [red], from 0 to 255.
   /// * `g` is [green], from 0 to 255.
@@ -566,46 +594,82 @@ class Color {
   ///
   /// See also [fromARGB], which takes the opacity as an integer value.
   const Color.fromRGBO(int r, int g, int b, double opacity)
-      : value = ((((opacity * 0xff ~/ 1) & 0xff) << 24) |
-                ((r & 0xff) << 16) |
-                ((g & 0xff) << 8) |
-                ((b & 0xff) << 0)) &
-            0xFFFFFFFF;
+      : this._fromRGBOC(r, g, b, opacity, ColorSpace.sRGB);
+
+  const Color._fromARGBC(
+      int alpha, int red, int green, int blue, ColorSpace colorSpace)
+      : this._fromRGBOC(red, green, blue, (alpha & 0xff) / 255, colorSpace);
+
+  const Color._fromRGBOC(int r, int g, int b, double opacity, this.colorSpace)
+      : a = opacity,
+        r = (r & 0xff) / 255,
+        g = (g & 0xff) / 255,
+        b = (b & 0xff) / 255;
 
   /// The alpha channel of this color in an 8 bit value.
   ///
   /// A value of 0 means this color is fully transparent. A value of 255 means
   /// this color is fully opaque.
+  @Deprecated('Use .a.')
   int get alpha => (0xff000000 & value) >> 24;
 
   /// The blue channel of this color in an 8 bit value.
+  @Deprecated('Use .b.')
   int get blue => (0x000000ff & value) >> 0;
 
   /// The green channel of this color in an 8 bit value.
+  @Deprecated('Use .g.')
   int get green => (0x0000ff00 & value) >> 8;
 
   @override
-  int get hashCode => value.hashCode;
+  int get hashCode => Object.hash(a, r, g, b, colorSpace);
 
   /// The alpha channel of this color as a double.
   ///
   /// A value of 0.0 means this color is fully transparent. A value of 1.0 means
   /// this color is fully opaque.
+  @Deprecated('Use .a.')
   double get opacity => alpha / 0xFF;
 
   /// The red channel of this color in an 8 bit value.
+  @Deprecated('Use .r.')
   int get red => (0x00ff0000 & value) >> 16;
 
-  @override
-  bool operator ==(dynamic other) {
-    if (identical(this, other)) return true;
-    if (other.runtimeType != runtimeType) return false;
-    final Color typedOther = other;
-    return value == typedOther.value;
+  /// A 32 bit value representing this color.
+  ///
+  /// The bits are assigned as follows:
+  ///
+  /// * Bits 24-31 are the alpha value.
+  /// * Bits 16-23 are the red value.
+  /// * Bits 8-15 are the green value.
+  /// * Bits 0-7 are the blue value.
+  @Deprecated('Use component accessors like .r or .g.')
+  int get value {
+    return _floatToInt8(a) << 24 |
+        _floatToInt8(r) << 16 |
+        _floatToInt8(g) << 8 |
+        _floatToInt8(b) << 0;
   }
 
   @override
-  String toString() => 'Color(0x${value.toRadixString(16).padLeft(8, '0')})';
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+    return other is Color &&
+        other.a == a &&
+        other.r == r &&
+        other.g == g &&
+        other.b == b &&
+        other.colorSpace == colorSpace;
+  }
+
+  @override
+  String toString() =>
+      'Color(alpha: ${a.toStringAsFixed(4)}, red: ${r.toStringAsFixed(4)}, green: ${g.toStringAsFixed(4)}, blue: ${b.toStringAsFixed(4)}, colorSpace: $colorSpace)';
 
   /// Returns a new color that matches this color with the alpha channel
   /// replaced with `a` (which ranges from 0 to 255).
@@ -635,6 +699,7 @@ class Color {
   /// replaced with the given `opacity` (which ranges from 0.0 to 1.0).
   ///
   /// Out of range values will have unexpected effects.
+  @Deprecated('Use .withValues() to avoid precision loss.')
   Color withOpacity(double opacity) {
     assert(opacity >= 0.0 && opacity <= 1.0);
     return withAlpha((255.0 * opacity).round());
@@ -646,5 +711,38 @@ class Color {
   /// Out of range values will have unexpected effects.
   Color withRed(int r) {
     return Color.fromARGB(alpha, r, green, blue);
+  }
+
+  /// Returns a new color that matches this color with the passed in components
+  /// changed.
+  ///
+  /// Changes to color components will be applied before applying changes to the
+  /// color space.
+  Color withValues(
+      {double? alpha,
+      double? red,
+      double? green,
+      double? blue,
+      ColorSpace? colorSpace}) {
+    Color? updatedComponents;
+    if (alpha != null || red != null || green != null || blue != null) {
+      updatedComponents = Color.from(
+          alpha: alpha ?? a,
+          red: red ?? r,
+          green: green ?? g,
+          blue: blue ?? b,
+          colorSpace: this.colorSpace);
+    }
+    if (colorSpace != null && colorSpace != this.colorSpace) {
+      final _ColorTransform transform =
+          _getColorTransform(this.colorSpace, colorSpace);
+      return transform.transform(updatedComponents ?? this, colorSpace);
+    } else {
+      return updatedComponents ?? this;
+    }
+  }
+
+  static int _floatToInt8(double x) {
+    return (x * 255.0).round() & 0xff;
   }
 }

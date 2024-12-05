@@ -321,7 +321,7 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
   if (start_loc.IsConstant()) {
     const auto& constant = start_loc.constant();
     ASSERT(constant.IsInteger());
-    const int64_t start_value = Integer::Cast(constant).AsInt64Value();
+    const int64_t start_value = Integer::Cast(constant).Value();
     const intptr_t add_value = Utils::AddWithWrapAround(
         Utils::MulWithWrapAround<intptr_t>(start_value, element_size_), offset);
     __ leaq(payload_reg, compiler::Address(array_reg, add_value));
@@ -648,7 +648,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
   ASSERT(pair_index == 0);  // No pair representation needed on 64-bit.
   if (destination.IsRegister()) {
     if (RepresentationUtils::IsUnboxedInteger(representation())) {
-      const int64_t value = Integer::Cast(value_).AsInt64Value();
+      const int64_t value = Integer::Cast(value_).Value();
       if (value == 0) {
         __ xorl(destination.reg(), destination.reg());
       } else {
@@ -702,7 +702,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
   } else {
     ASSERT(destination.IsStackSlot());
     if (RepresentationUtils::IsUnboxedInteger(representation())) {
-      const int64_t value = Integer::Cast(value_).AsInt64Value();
+      const int64_t value = Integer::Cast(value_).Value();
       __ movq(LocationToStackSlotAddress(destination),
               compiler::Immediate(value));
     } else if (representation() == kUnboxedFloat) {
@@ -817,24 +817,6 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   }
 
   return summary;
-}
-
-void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(locs()->always_calls());
-
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& assert_boolean_stub =
-      Code::ZoneHandle(compiler->zone(), object_store->assert_boolean_stub());
-
-  compiler::Label done;
-  __ testq(
-      AssertBooleanABI::kObjectReg,
-      compiler::Immediate(compiler::target::ObjectAlignment::kBoolVsNullMask));
-  __ j(NOT_ZERO, &done, compiler::Assembler::kNearJump);
-  compiler->GenerateStubCall(source(), assert_boolean_stub,
-                             /*kind=*/UntaggedPcDescriptors::kOther, locs(),
-                             deopt_id(), env());
-  __ Bind(&done);
 }
 
 static Condition TokenKindToIntCondition(Token::Kind kind) {
@@ -2075,9 +2057,11 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
       RepresentationUtils::RepresentationOfArrayElement(class_id());
   if (RepresentationUtils::IsUnboxedInteger(rep)) {
     if (rep == kUnboxedUint8 || rep == kUnboxedInt8) {
-      // TODO(fschneider): Add location constraint for byte registers (RAX,
-      // RBX, RCX, RDX) instead of using a fixed register.
-      locs->set_in(2, LocationFixedRegisterOrSmiConstant(value(), RAX));
+      if (IsClampedTypedDataBaseClassId(class_id())) {
+        locs->set_in(2, LocationWritableRegisterOrSmiConstant(value()));
+      } else {
+        locs->set_in(2, LocationRegisterOrSmiConstant(value()));
+      }
     } else {
       locs->set_in(2, Location::RequiresRegister());
     }
@@ -2146,18 +2130,18 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       __ movb(element_address, compiler::Immediate(static_cast<int8_t>(value)));
     } else {
-      const Register storedValueReg = locs()->in(2).reg();
+      const Register value = locs()->in(2).reg();
       compiler::Label store_value, store_0xff;
-      __ CompareImmediate(storedValueReg, compiler::Immediate(0xFF));
+      __ CompareImmediate(value, compiler::Immediate(0xFF));
       __ j(BELOW_EQUAL, &store_value, compiler::Assembler::kNearJump);
       // Clamp to 0x0 or 0xFF respectively.
       __ j(GREATER, &store_0xff);
-      __ xorq(storedValueReg, storedValueReg);
+      __ xorq(value, value);
       __ jmp(&store_value, compiler::Assembler::kNearJump);
       __ Bind(&store_0xff);
-      __ LoadImmediate(storedValueReg, compiler::Immediate(0xFF));
+      __ LoadImmediate(value, compiler::Immediate(0xFF));
       __ Bind(&store_value);
-      __ movb(element_address, ByteRegisterOf(storedValueReg));
+      __ movb(element_address, ByteRegisterOf(value));
     }
   } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
     if (rep == kUnboxedUint8 || rep == kUnboxedInt8) {
@@ -3806,6 +3790,11 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
     case kUnboxedDouble: {
       const FpuRegister result = locs()->out(0).fpu_reg();
       __ SmiUntag(box);
+      // cvtsi2sd only writes to the lower part of the register and leaves upper
+      // bits intact. This creates false dependency and causes performance
+      // problems for subsequent uses of the XMM register. To break the
+      // dependency XORPS is recommended.
+      __ xorps(result, result);
       __ OBJ(cvtsi2sd)(result, box);
       break;
     }
@@ -4101,7 +4090,9 @@ LocationSummary* BinaryDoubleOpInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_in(1, Location::RequiresFpuRegister());
-  summary->set_out(0, Location::SameAsFirstInput());
+  summary->set_out(0, Token::IsCommutativeOp(op_kind())
+                          ? Location::SameAsFirstOrSecondInput()
+                          : Location::SameAsFirstInput());
   return summary;
 }
 
@@ -4811,6 +4802,11 @@ LocationSummary* Int32ToDoubleInstr::MakeLocationSummary(Zone* zone,
 void Int32ToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   FpuRegister result = locs()->out(0).fpu_reg();
+  // cvtsi2sd only writes to the lower part of the register and leaves upper
+  // bits intact. This creates false dependency and causes performance
+  // problems for subsequent uses of the XMM register. To break the
+  // dependency XORPS is recommended.
+  __ xorps(result, result);
   __ cvtsi2sdl(result, value);
 }
 
@@ -4829,10 +4825,20 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   FpuRegister result = locs()->out(0).fpu_reg();
   __ SmiUntag(value);
+  // cvtsi2sd only writes to the lower part of the register and leaves upper
+  // bits intact. This creates false dependency and causes performance
+  // problems for subsequent uses of the XMM register. To break the
+  // dependency XORPS is recommended.
+  __ xorps(result, result);
   __ OBJ(cvtsi2sd)(result, value);
 }
 
 DEFINE_BACKEND(Int64ToDouble, (FpuRegister result, Register value)) {
+  // cvtsi2sd only writes to the lower part of the register and leaves upper
+  // bits intact. This creates false dependency and causes performance
+  // problems for subsequent uses of the XMM register. To break the
+  // dependency XORPS is recommended.
+  __ xorps(result, result);
   __ cvtsi2sdq(result, value);
 }
 
@@ -5367,6 +5373,11 @@ void HashDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler::Label hash_double;
 
+  // cvtsi2sd only writes to the lower part of the register and leaves upper
+  // bits intact. This creates false dependency and causes performance
+  // problems for subsequent uses of the XMM register. To break the
+  // dependency XORPS is recommended.
+  __ xorps(temp_fpu_reg, temp_fpu_reg);
   __ cvttsd2siq(RAX, value);
   __ cvtsi2sdq(temp_fpu_reg, RAX);
   __ comisd(value, temp_fpu_reg);
@@ -5752,7 +5763,7 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
   // to implement the exception.
   if (auto c = instruction->right()->definition()->AsConstant()) {
     if (c->value().IsInteger()) {
-      const int64_t divisor = Integer::Cast(c->value()).AsInt64Value();
+      const int64_t divisor = Integer::Cast(c->value()).Value();
       if (divisor <= -2 || divisor >= 2) {
         // For x DIV c or x MOD c: use magic operations.
         compiler::Label pos;
@@ -5925,7 +5936,9 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
           zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
       summary->set_in(0, Location::RequiresRegister());
       summary->set_in(1, LocationRegisterOrConstant(right()));
-      summary->set_out(0, Location::SameAsFirstInput());
+      summary->set_out(0, Token::IsCommutativeOp(op_kind())
+                              ? Location::SameAsFirstOrSecondInput()
+                              : Location::SameAsFirstInput());
       return summary;
     }
   }
@@ -5986,7 +5999,7 @@ static void EmitShiftInt64ByConstant(FlowGraphCompiler* compiler,
                                      Token::Kind op_kind,
                                      Register left,
                                      const Object& right) {
-  const int64_t shift = Integer::Cast(right).AsInt64Value();
+  const int64_t shift = Integer::Cast(right).Value();
   ASSERT(shift >= 0);
   switch (op_kind) {
     case Token::kSHR:
@@ -6032,7 +6045,7 @@ static void EmitShiftUint32ByConstant(FlowGraphCompiler* compiler,
                                       Token::Kind op_kind,
                                       Register left,
                                       const Object& right) {
-  const int64_t shift = Integer::Cast(right).AsInt64Value();
+  const int64_t shift = Integer::Cast(right).Value();
   ASSERT(shift >= 0);
   if (shift >= 32) {
     __ xorl(left, left);
@@ -6332,7 +6345,9 @@ LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RequiresRegister());
-  summary->set_out(0, Location::SameAsFirstInput());
+  summary->set_out(0, Token::IsCommutativeOp(op_kind())
+                          ? Location::SameAsFirstOrSecondInput()
+                          : Location::SameAsFirstInput());
   return summary;
 }
 
@@ -6478,14 +6493,6 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* StopInstr::MakeLocationSummary(Zone* zone, bool opt) const {
-  return new (zone) LocationSummary(zone, 0, 0, LocationSummary::kNoCall);
-}
-
-void StopInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ Stop(message());
-}
-
 void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   BlockEntryInstr* entry = normal_entry();
   if (entry != nullptr) {
@@ -6623,6 +6630,12 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // RAX: Closure with cached entry point.
     __ movq(RCX, compiler::FieldAddress(
                      RAX, compiler::target::Closure::entry_point_offset()));
+#if defined(DART_DYNAMIC_MODULES)
+    ASSERT(FUNCTION_REG != RCX);
+    __ LoadCompressed(FUNCTION_REG,
+                      compiler::FieldAddress(
+                          RAX, compiler::target::Closure::function_offset()));
+#endif
   } else {
     ASSERT(locs()->in(0).reg() == FUNCTION_REG);
     // FUNCTION_REG: Function.

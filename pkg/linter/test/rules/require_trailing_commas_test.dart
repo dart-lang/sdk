@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class RequireTrailingCommasTest extends LintRuleTest {
   @override
-  String get lintRule => 'require_trailing_commas';
+  String get lintRule => LintNames.require_trailing_commas;
 
   test_function_parameters_multiLine() async {
     await assertDiagnostics(r'''

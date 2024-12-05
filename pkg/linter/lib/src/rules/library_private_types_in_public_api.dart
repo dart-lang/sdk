@@ -9,55 +9,19 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid using private types in public APIs.';
 
-const _details = r'''
-**AVOID** using library private types in public APIs.
-
-For the purposes of this lint, a public API is considered to be any top-level or
-member declaration unless the declaration is library private or contained in a
-declaration that's library private. The following uses of types are checked:
-
-- the return type of a function or method,
-- the type of any parameter of a function or method,
-- the bound of a type parameter to any function, method, class, mixin,
-  extension's extended type, or type alias,
-- the type of any top level variable or field,
-- any type used in the declaration of a type alias (for example
-  `typedef F = _Private Function();`), or
-- any type used in the `on` clause of an extension or a mixin
-
-**BAD:**
-```dart
-f(_Private p) { ... }
-class _Private {}
-```
-
-**GOOD:**
-```dart
-f(String s) { ... }
-```
-
-''';
-
 class LibraryPrivateTypesInPublicApi extends LintRule {
-  static const LintCode code = LintCode('library_private_types_in_public_api',
-      'Invalid use of a private type in a public API.',
-      correctionMessage:
-          'Try making the private type public, or making the API that uses the '
-          'private type also be private.',
-      hasPublishedDocs: true);
-
   LibraryPrivateTypesInPublicApi()
       : super(
-            name: 'library_private_types_in_public_api',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.library_private_types_in_public_api,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.library_private_types_in_public_api;
 
   @override
   void registerNodeProcessors(
@@ -318,7 +282,7 @@ class Validator extends SimpleAstVisitor<void> {
       name != null && Identifier.isPrivateName(name);
 }
 
-class Visitor extends SimpleAstVisitor {
+class Visitor extends SimpleAstVisitor<void> {
   LintRule rule;
 
   Visitor(this.rule);

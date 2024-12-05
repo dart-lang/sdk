@@ -41,7 +41,7 @@ class PluginWatcher implements DriverWatcher {
     var contextRoot = driver.analysisContext!.contextRoot;
     _driverInfo[driver] = _DriverInfo(
         contextRoot, <String>[contextRoot.root.path, _getSdkPath(driver)]);
-    var enabledPlugins = driver.enabledPluginNames;
+    var enabledPlugins = driver.enabledLegacyPluginNames;
     for (var hostPackageName in enabledPlugins) {
       //
       // Determine whether the package exists and defines a plugin.

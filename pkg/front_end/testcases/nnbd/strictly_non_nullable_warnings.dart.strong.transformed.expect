@@ -1,7 +1,7 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 class A extends core::Object {
   synthetic constructor •() → self::A
@@ -43,13 +43,13 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
       #t5.{core::List::addAll}{Invariant}(#t6{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
   }
   core::Set<core::String> a = block {
-    final core::Set<core::String> #t7 = new col::_Set::•<core::String>();
+    final core::Set<core::String> #t7 = new _co::_Set::•<core::String>();
     final core::Iterable<core::String>? #t8 = l;
     if(!(#t8 == null))
       #t7.{core::Set::addAll}{Invariant}(#t8{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
   } =>#t7;
   {
-    final core::Set<core::String> #t9 = new col::_Set::•<core::String>();
+    final core::Set<core::String> #t9 = new _co::_Set::•<core::String>();
     final core::Iterable<core::String>? #t10 = l;
     if(!(#t10 == null))
       #t9.{core::Set::addAll}{Invariant}(#t10{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};

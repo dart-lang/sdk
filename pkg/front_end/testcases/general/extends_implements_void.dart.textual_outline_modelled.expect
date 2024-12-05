@@ -1,0 +1,15 @@
+class A extends void {}
+
+class B implements void {}
+
+class C with void {}
+
+enum G with void { g }
+
+enum H implements void { h }
+
+extension type D(Object o) implements void {}
+
+mixin E implements void {}
+
+mixin F on void {}

@@ -10,38 +10,9 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use string buffers to compose strings.';
-
-const _details = r'''
-**DO** use string buffers to compose strings.
-
-In most cases, using a string buffer is preferred for composing strings due to
-its improved performance.
-
-**BAD:**
-```dart
-String foo() {
-  final buffer = '';
-  for (int i = 0; i < 10; i++) {
-    buffer += 'a'; // LINT
-  }
-  return buffer;
-}
-```
-
-**GOOD:**
-```dart
-String foo() {
-  final buffer = StringBuffer();
-  for (int i = 0; i < 10; i++) {
-    buffer.write('a');
-  }
-  return buffer.toString();
-}
-```
-
-''';
 
 bool _isEmptyInterpolationString(AstNode node) =>
     node is InterpolationString && node.value == '';
@@ -53,20 +24,14 @@ bool _isEmptyInterpolationString(AstNode node) =>
 /// computed, in otherwise using a StringBuffer the order is reduced to O(~N)
 /// so the bad case is N times slower than the good case.
 class UseStringBuffers extends LintRule {
-  static const LintCode code = LintCode('use_string_buffers',
-      "Use a string buffer rather than '+' to compose strings.",
-      correctionMessage:
-          'Try writing the parts of a string to a string buffer.');
-
   UseStringBuffers()
       : super(
-            name: 'use_string_buffers',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.use_string_buffers,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_string_buffers;
 
   @override
   void registerNodeProcessors(
@@ -78,7 +43,7 @@ class UseStringBuffers extends LintRule {
   }
 }
 
-class _IdentifierIsPrefixVisitor extends SimpleAstVisitor {
+class _IdentifierIsPrefixVisitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   SimpleIdentifier identifier;
 
@@ -117,7 +82,7 @@ class _IdentifierIsPrefixVisitor extends SimpleAstVisitor {
   }
 }
 
-class _UseStringBufferVisitor extends SimpleAstVisitor {
+class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final localElements = <Element?>{};
 
@@ -126,7 +91,9 @@ class _UseStringBufferVisitor extends SimpleAstVisitor {
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     if (node.operator.type != TokenType.PLUS_EQ &&
-        node.operator.type != TokenType.EQ) return;
+        node.operator.type != TokenType.EQ) {
+      return;
+    }
 
     var left = node.leftHandSide;
     var writeType = node.writeType;

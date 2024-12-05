@@ -15,11 +15,11 @@ main() {
 @reflectiveTest
 class AvoidClassesWithOnlyStaticMembers extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_classes_with_only_static_members';
+  String get lintRule => LintNames.avoid_classes_with_only_static_members;
 
   test_augmentationClass_nonStaticField() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {
   static int f = 1;
@@ -28,9 +28,9 @@ class A {
 
     // The added field should prevent a lint above.
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
-augment class A { 
+augment class A {
   int a = 1;
 }
 ''');
@@ -44,22 +44,22 @@ augment class A {
 
   test_augmentationClass_staticField() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
-augment class A { 
+augment class A {
   static int f = 1;
 }
 ''');
 
     result = await resolveFile(a.path);
     await assertDiagnosticsIn(errors, [
-      lint(26, 10),
+      lint(16, 10),
     ]);
 
     result = await resolveFile(b.path);
@@ -68,22 +68,22 @@ augment class A {
 
   test_augmentationClass_staticMethod() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
-augment class A { 
+augment class A {
   static void m() {}
 }
 ''');
 
     result = await resolveFile(a.path);
     await assertDiagnosticsIn(errors, [
-      lint(26, 10),
+      lint(16, 10),
     ]);
 
     result = await resolveFile(b.path);
@@ -108,13 +108,13 @@ class C {}
 
   test_class_empty_augmentation_empty() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {}
 ''');

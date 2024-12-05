@@ -42,6 +42,7 @@ declare_args() {
 # ......utils/gen_snapshot or utils/gen_snapshot.exe (if not on ia32)
 # ......snapshots/
 # ........analysis_server.dart.snapshot
+# ........dart2bytecode.snapshot (if dart_dynamic_modules)
 # ........dart2js.dart.snapshot
 # ........dart2wasm_product.snapshot (if not on ia32)
 # ........dartdev.dart.snapshot (app-jit snapshot or kernel dill file)
@@ -80,6 +81,7 @@ declare_args() {
 # ........js_shared/
 # ......async/
 # ......collection/
+# ......concurrent/
 # ......convert/
 # ......core/
 # ......dev_compiler/
@@ -142,6 +144,12 @@ if (dart_snapshot_kind == "app-jit") {
         "../utils/kernel-service:kernel-service_snapshot",
       ] ]
 }
+if (dart_dynamic_modules) {
+  _platform_sdk_snapshots += [ [
+        "dart2bytecode",
+        "../utils/dart2bytecode:dart2bytecode",
+      ] ]
+}
 
 _full_sdk_snapshots = _platform_sdk_snapshots + [
                         [
@@ -164,6 +172,7 @@ _full_sdk_libraries = [
   "async",
   "cli",
   "collection",
+  "concurrent",
   "convert",
   "core",
   "developer",
@@ -246,7 +255,7 @@ foreach(library, _full_sdk_libraries) {
     ]
     source = "lib/$library"
     dest = "$root_out_dir/$dart_sdk_output/lib/$library"
-    exclude = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore"
+    exclude = "*.svn,doc,*.py,*.gypi,*.sh,.git*,*.gn,*.gni"
   }
 }
 

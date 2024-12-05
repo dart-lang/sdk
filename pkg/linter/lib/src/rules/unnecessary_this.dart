@@ -8,61 +8,20 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../linter_lint_codes.dart';
 import '../util/scope.dart';
 
 const _desc = r"Don't access members with `this` unless avoiding shadowing.";
 
-const _details = r'''
-From [Effective Dart](https://dart.dev/effective-dart/usage#dont-use-this-when-not-needed-to-avoid-shadowing):
-
-**DON'T** use `this` when not needed to avoid shadowing.
-
-**BAD:**
-```dart
-class Box {
-  int value;
-  void update(int newValue) {
-    this.value = newValue;
-  }
-}
-```
-
-**GOOD:**
-```dart
-class Box {
-  int value;
-  void update(int newValue) {
-    value = newValue;
-  }
-}
-```
-
-**GOOD:**
-```dart
-class Box {
-  int value;
-  void update(int value) {
-    this.value = value;
-  }
-}
-```
-
-''';
-
 class UnnecessaryThis extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_this', "Unnecessary 'this.' qualifier.",
-      correctionMessage: "Try removing 'this.'.", hasPublishedDocs: true);
-
   UnnecessaryThis()
       : super(
-            name: 'unnecessary_this',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.unnecessary_this,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_this;
 
   @override
   void registerNodeProcessors(
@@ -132,7 +91,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     //  - prevents us from going up to the library scope;
     //  - the requested element must be inherited, or from an extension.
     if (result.isDifferentName) {
-      var enclosing = result.element?.enclosingElement;
+      var enclosing = result.element?.enclosingElement3;
       return enclosing is ClassElement;
     }
 

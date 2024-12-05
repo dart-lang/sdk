@@ -8,11 +8,9 @@
 
 void main() {
   void _() {}
-  //   ^
-  // [analyzer] unspecified
 
   /*indent*/ _();
   //         ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
+  // [cfe] Method not found: '_'.
 }

@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/analysis/context_locator.dart';
 /// folders and a list of excluded files and folders.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use AnalysisContextCollection instead')
 abstract class ContextLocator {
   /// Initialize a newly created context locator. If a [resourceProvider] is
   /// supplied, it will be used to access the file system. Otherwise the default

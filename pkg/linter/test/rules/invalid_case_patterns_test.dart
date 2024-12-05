@@ -16,7 +16,7 @@ main() {
 class InvalidCasePatternsTestLanguage219 extends LintRuleTest
     with LanguageVersion219Mixin {
   @override
-  String get lintRule => 'invalid_case_patterns';
+  String get lintRule => LintNames.invalid_case_patterns;
 
   test_binaryExpression_logicalAnd() async {
     await assertDiagnostics(r'''

@@ -8,7 +8,7 @@ import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -35,14 +35,14 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     Token? nameToken;
-    Element? element;
+    Element2? element;
     var node = this.node;
     if (node is SimpleFormalParameter) {
       nameToken = node.name;
-      element = node.declaredElement;
+      element = node.declaredFragment?.element;
     } else if (node is VariableDeclaration) {
       nameToken = node.name;
-      element = node.declaredElement;
+      element = node.declaredElement2 ?? node.declaredFragment?.element;
     } else if (node is RecordTypeAnnotationField) {
       // RecordTypeAnnotationFields do not have Elements.
       nameToken = node.name;
@@ -72,13 +72,13 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
     }
 
     // Find references to the identifier.
-    List<SimpleIdentifier>? references;
-    if (element is LocalVariableElement) {
+    List<AstNode>? references;
+    if (element is LocalVariableElement2) {
       var root = node.thisOrAncestorOfType<Block>();
       if (root != null) {
-        references = findLocalElementReferences(root, element);
+        references = findLocalElementReferences3(root, element);
       }
-    } else if (element is ParameterElement) {
+    } else if (element is FormalParameterElement) {
       if (!element.isNamed) {
         var root = node
             .thisOrAncestorMatching((node) =>
@@ -86,7 +86,7 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
                 node.parent is MethodDeclaration)
             ?.parent;
         if (root != null) {
-          references = findLocalElementReferences(root, element);
+          references = findLocalElementReferences3(root, element);
         }
       }
     }

@@ -216,8 +216,9 @@ void ObjectStore::InitKnownObjects() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Class& cls = Class::Handle(zone);
-  const Library& collection_lib = Library::Handle(zone, collection_library());
-  cls = collection_lib.LookupClassAllowPrivate(Symbols::_Set());
+  const Library& compact_hash_lib =
+      Library::Handle(zone, _compact_hash_library());
+  cls = compact_hash_lib.LookupClassAllowPrivate(Symbols::_Set());
   ASSERT(!cls.IsNull());
   set_set_impl_class(cls);
 
@@ -254,6 +255,11 @@ void ObjectStore::InitKnownObjects() {
 
   field = cls.LookupFieldAllowPrivate(Symbols::asyncStarBody());
   ASSERT(!field.IsNull());
+  // Force the state of guarded cid to be nullable closure so that
+  // AllocateSuspendState could write to the field directly without
+  // updating the guard state.
+  field.set_guarded_cid(kClosureCid);
+  field.set_is_nullable(true);
   set_async_star_stream_controller_async_star_body(field);
 
 #if !defined(PRODUCT)
@@ -334,6 +340,11 @@ void ObjectStore::InitKnownObjects() {
 
   field = cls.LookupFieldAllowPrivate(Symbols::_state());
   ASSERT(!field.IsNull());
+  // Force the state of guarded cid to be nullable SuspendState so that
+  // AllocateSuspendState could write to the field directly without
+  // updating the guard state.
+  field.set_guarded_cid(kSuspendStateCid);
+  field.set_is_nullable(true);
   set_sync_star_iterator_state(field);
 
   field = cls.LookupFieldAllowPrivate(Symbols::_yieldStarIterable());

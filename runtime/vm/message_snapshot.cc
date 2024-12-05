@@ -490,7 +490,7 @@ ObjectPtr MessageDeserializationCluster::PostLoadLinkedHash(
   Array& maps = Array::Handle(d->zone(), d->refs());
   maps = maps.Slice(start_index_, stop_index_ - start_index_,
                     /*with_type_argument=*/false);
-  return DartLibraryCalls::RehashObjectsInDartCollection(d->thread(), maps);
+  return DartLibraryCalls::RehashObjectsInDartCompactHash(d->thread(), maps);
 }
 
 class ClassMessageSerializationCluster : public MessageSerializationCluster {
@@ -890,7 +890,7 @@ class MintMessageSerializationCluster : public MessageSerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       Mint* mint = static_cast<Mint*>(objects_[i]);
       s->AssignRef(mint);
-      s->Write<int64_t>(mint->value());
+      s->Write<int64_t>(mint->Value());
     }
   }
 
@@ -3452,8 +3452,8 @@ ObjectPtr ReadObjectGraphCopyMessage(Thread* thread, PersistentHandle* handle) {
   if (msg_array.At(1) != Object::null()) {
     const auto& objects_to_rehash = Object::Handle(zone, msg_array.At(1));
     auto& result = Object::Handle(zone);
-    result = DartLibraryCalls::RehashObjectsInDartCollection(thread,
-                                                             objects_to_rehash);
+    result = DartLibraryCalls::RehashObjectsInDartCompactHash(
+        thread, objects_to_rehash);
     if (result.ptr() != Object::null()) {
       msg_obj = result.ptr();
     }

@@ -207,7 +207,7 @@ library;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 import "org-dartlang-testcase:///potentially_constant_type_lib1.dart";
 
@@ -232,7 +232,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstCo
   final field dynamic field16;
   const constructor •(dynamic o) → self::Class<self::Class::T%>
     : self::Class::field1 = self::Class::T%, self::Class::field2 = self::Class<self::Class::T%>, self::Class::field3 = #C1<self::Class::T%>, self::Class::field4 = #C1<self::Class::T%>, self::Class::field5 = core::_GrowableList::•<invalid-type>(0), self::Class::field6 = block {
-      final core::Set<invalid-type> #t1 = new col::_Set::•<invalid-type>();
+      final core::Set<invalid-type> #t1 = new _co::_Set::•<invalid-type>();
     } =>#t1, self::Class::field7 = <invalid-type, invalid-type>{}, self::Class::field8 = o is self::Class::T%, self::Class::field9 = o is self::Class<self::Class::T%>, self::Class::field10 = o as self::Class::T%, self::Class::field11 = o{self::Class::T%} as self::Class<self::Class::T%>, self::Class::field12 = #C2<self::Class::T%>, self::Class::field13 = #C2<self::Class::T%>, self::Class::field14 = #C1<self::Class<self::Class::T%>>, self::Class::field15 = core::_GrowableList::•<self::Class<invalid-type>>(0), self::Class::field16 = #C3, super core::Object::•()
     ;
   method method() → void {
@@ -432,7 +432,7 @@ library;
 //
 import self as self2;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
   final field dynamic field1;
@@ -446,7 +446,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstCo
   final field dynamic field15;
   const constructor •(dynamic o) → self2::Class<self2::Class::T%>
     : self2::Class::field1 = #C4, self2::Class::field5 = core::_GrowableList::•<invalid-type>(0), self2::Class::field6 = block {
-      final core::Set<invalid-type> #t2 = new col::_Set::•<invalid-type>();
+      final core::Set<invalid-type> #t2 = new _co::_Set::•<invalid-type>();
     } =>#t2, self2::Class::field7 = <invalid-type, invalid-type>{}, self2::Class::field8 = o is self2::Class::T%, self2::Class::field9 = o is self2::Class<self2::Class::T%>, self2::Class::field10 = o as self2::Class::T%, self2::Class::field11 = o{self2::Class::T%} as self2::Class<self2::Class::T%>, self2::Class::field15 = core::_GrowableList::•<self2::Class<invalid-type>>(0), super core::Object::•()
     ;
   method method() → void {

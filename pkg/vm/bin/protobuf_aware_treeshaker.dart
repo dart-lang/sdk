@@ -182,7 +182,8 @@ bool isLibEmpty(Library lib) {
   return lib.classes.isEmpty &&
       lib.procedures.isEmpty &&
       lib.fields.isEmpty &&
-      lib.typedefs.isEmpty;
+      lib.typedefs.isEmpty &&
+      lib.annotations.isEmpty;
 }
 
 bool isCoreLibrary(Library library) {

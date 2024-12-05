@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -33,7 +33,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
       if (expressionType is! InterfaceType) {
         return;
       }
-      var classElement = expressionType.element;
+      var classElement = expressionType.element3;
       var className = classElement.name;
       var caseNames = _caseNames(node);
       var missingNames = _constantNames(classElement)
@@ -81,8 +81,8 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
       if (member is SwitchCase) {
         var expression = member.expression;
         if (expression is Identifier) {
-          var element = expression.staticElement;
-          if (element is PropertyAccessorElement) {
+          var element = expression.element;
+          if (element is GetterElement) {
             caseNames.add(element.name);
           }
         } else if (expression is PropertyAccess) {
@@ -94,10 +94,10 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
   }
 
   /// Return the names of the constants defined in [classElement].
-  List<String> _constantNames(InterfaceElement classElement) {
+  List<String> _constantNames(InterfaceElement2 classElement) {
     var type = classElement.thisType;
     var constantNames = <String>[];
-    for (var field in classElement.fields) {
+    for (var field in classElement.fields2) {
       // Ensure static const.
       if (field.isSynthetic || !field.isConst || !field.isStatic) {
         continue;

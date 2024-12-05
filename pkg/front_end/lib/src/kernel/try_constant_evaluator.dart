@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../base/problems.dart';
 import '../codes/cfe_codes.dart';
 import 'constant_evaluator.dart';
 
@@ -101,6 +102,16 @@ class _ErrorReporter implements ErrorReporter {
   late bool requiresConstant;
 
   _ErrorReporter(this._reportError);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get supportsTrackingReportedErrors => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasSeenError {
+    return unsupported("_ErrorReporter.hasSeenError", -1, null);
+  }
 
   @override
   void report(LocatedMessage message, [List<LocatedMessage>? context]) {

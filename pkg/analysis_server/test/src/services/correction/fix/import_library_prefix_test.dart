@@ -78,6 +78,28 @@ void f() {
 ''');
   }
 
+  Future<void> test_withExtensionType() async {
+    newFile('$testPackageLibPath/a.dart', '''
+extension type ET(int it) {}
+''');
+    await resolveTestCode('''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.ET(7);
+  ET(7);
+}
+''');
+    await assertHasFix('''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.ET(7);
+  prefix.ET(7);
+}
+''');
+  }
+
   Future<void> test_withTopLevelVariable() async {
     await resolveTestCode('''
 import 'dart:math' as prefix;
@@ -93,6 +115,28 @@ import 'dart:math' as prefix;
 void f() {
   prefix.e;
   prefix.pi;
+}
+''');
+  }
+
+  Future<void> test_withTypedef() async {
+    newFile('$testPackageLibPath/a.dart', '''
+typedef T = int;
+''');
+    await resolveTestCode('''
+import 'a.dart' as prefix;
+
+void f(num n) {
+  n is prefix.T;
+  n is T;
+}
+''');
+    await assertHasFix('''
+import 'a.dart' as prefix;
+
+void f(num n) {
+  n is prefix.T;
+  n is prefix.T;
 }
 ''');
   }

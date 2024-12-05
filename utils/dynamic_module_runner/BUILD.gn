@@ -1,0 +1,19 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../aot_snapshot.gni")
+
+_dart_root = get_path_info("../..", "abspath")
+
+group("dynamic_module_runner") {
+  public_deps = [ ":dynamic_module_runner_snapshot" ]
+}
+
+aot_snapshot("dynamic_module_runner_snapshot") {
+  main_dart = "../../pkg/dynamic_modules/bin/dynamic_module_runner.dart"
+  name = "dynamic_module_runner"
+  gen_kernel_args =
+      [ "--dynamic-interface=" + rebase_path(
+            "$_dart_root/utils/dynamic_module_runner/dynamic_interface.yaml") ]
+}

@@ -18,7 +18,7 @@ class AvoidUnnecessaryContainersTest extends LintRuleTest {
   bool get addFlutterPackageDep => true;
 
   @override
-  String get lintRule => 'avoid_unnecessary_containers';
+  String get lintRule => LintNames.avoid_unnecessary_containers;
 
   test_childOnly() async {
     await assertDiagnostics(r'''

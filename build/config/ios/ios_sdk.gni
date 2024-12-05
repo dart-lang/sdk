@@ -1,0 +1,66 @@
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/toolchain/rbe.gni")
+
+declare_args() {
+  # SDK path to use. When empty this will use the default SDK based on the
+  # value of use_ios_simulator.
+  ios_sdk_path = ""
+
+  # Set to true when targeting a simulator build on iOS. False means that the
+  # target is for running on the device. The default value is to use the
+  # Simulator except when targeting GYP's Xcode builds (for compat with the
+  # existing GYP build).
+  use_ios_simulator = false
+
+  # Minimum supported version of the iOS SDK.
+  ios_sdk_min = "12.0"
+
+  # The path to the iOS device SDK.
+  ios_device_sdk_path = ""
+
+  # The path to the iOS simulator SDK.
+  ios_simulator_sdk_path = ""
+
+  ios_enable_relative_sdk_path = use_rbe
+}
+
+if (ios_sdk_path == "") {
+  _find_sdk_args = [
+    "--print_sdk_path",
+    ios_sdk_min,
+  ]
+
+  if (use_rbe) {
+    _find_sdk_args += [
+      "--create_symlink_at",
+
+      # $root_build_dir starts with "//", which is removed by rebase_path().
+      rebase_path("$root_build_dir/sdk/xcode_links", "//"),
+    ]
+  }
+
+  if (use_ios_simulator && ios_simulator_sdk_path == "") {
+    _find_sdk_args += [ "--platform=iphone_simulator" ]
+    _find_sdk_result =
+        exec_script("//build/mac/find_sdk.py", _find_sdk_args, "list lines")
+    ios_simulator_sdk_path = _find_sdk_result[0]
+  }
+
+  if (!use_ios_simulator && ios_device_sdk_path == "") {
+    _find_sdk_args += [ "--platform=iphone" ]
+    _find_sdk_result =
+        exec_script("//build/mac/find_sdk.py", _find_sdk_args, "list lines")
+    ios_device_sdk_path = _find_sdk_result[0]
+  }
+
+  if (use_ios_simulator) {
+    assert(ios_simulator_sdk_path != "")
+    ios_sdk_path = ios_simulator_sdk_path
+  } else {
+    assert(ios_device_sdk_path != "")
+    ios_sdk_path = ios_device_sdk_path
+  }
+}

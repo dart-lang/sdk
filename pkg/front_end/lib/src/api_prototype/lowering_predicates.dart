@@ -12,6 +12,7 @@ export '../kernel/constructor_tearoff_lowering.dart'
         isConstructorTearOffLowering,
         isTearOffLowering,
         isTypedefTearOffLowering;
+export '../kernel/wildcard_lowering.dart';
 
 // Coverage-ignore(suite): Not run.
 /// Returns `true` if [node] is the field holding the value of a lowered late
@@ -675,9 +676,7 @@ String extractLocalNameFromLateLoweredSetter(String name) {
 ///
 /// where '#this' is the synthetic "extension this" parameter.
 bool isExtensionThis(VariableDeclaration node) {
-  assert(
-      node.isLowered || node.name == null || !isExtensionThisName(node.name),
-      // Coverage-ignore(suite): Not run.
+  assert(node.isLowered || node.name == null || !isExtensionThisName(node.name),
       "$node has name ${node.name} and node.isLowered = ${node.isLowered}");
   return node.isLowered && isExtensionThisName(node.name);
 }

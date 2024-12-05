@@ -157,7 +157,7 @@ int parseHexByte(String source, int index) {
 /// This future will be removed again if we can ever do so.
 /// Do not use it for anything other than preserving timing
 /// during the null safety migration.
-final Future<Null> nullFuture = Zone.root.run(() => Future<Null>.value(null));
+final Future<void> nullFuture = Zone.root.run(() => Future<void>.value(null));
 
 /// A default hash function used by the platform in various places.
 ///
@@ -1053,4 +1053,23 @@ bool isToStringVisiting(Object object) {
     if (identical(object, toStringVisiting[i])) return true;
   }
   return false;
+}
+
+/// Load a dynamic module and execute its entry point method.
+///
+/// Only one of the two arguments must be provided, depending on the delivery
+/// mechanism and the underlying platform.
+///
+/// Entry point method is a no-argument method annotated with
+/// `@pragma('dyn-module:entry-point')`.
+///
+/// Returns a future containing the result of the entry point method.
+external Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes});
+
+/// Helper class to create `bool Function(Object?)` functions which
+/// perform an `v is T` type test.
+///
+/// Intended use: `TypeTest<T>().test`.
+class TypeTest<T> {
+  bool test(Object? v) => v is T;
 }

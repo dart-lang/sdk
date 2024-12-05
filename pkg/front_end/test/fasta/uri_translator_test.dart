@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart';
+import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/base/uri_translator.dart';
 import 'package:package_config/package_config.dart';
 import 'package:test/test.dart';
@@ -17,6 +18,7 @@ void main() {
 @reflectiveTest
 class UriTranslatorImplTest {
   UriTranslator translator = new UriTranslator(
+      new ProcessedOptions(),
       new TargetLibrariesSpecification('vm', {
         'core': new LibraryInfo('core',
             Uri.parse('org-dartlang-test:///sdk/core/core.dart'), const []),

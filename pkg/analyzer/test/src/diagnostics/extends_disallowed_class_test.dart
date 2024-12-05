@@ -110,18 +110,18 @@ class A extends String {}
 
   test_class_String_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 augment class A extends String {}
 ''');
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 50, 6),
+      error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 42, 6),
     ]);
   }
 

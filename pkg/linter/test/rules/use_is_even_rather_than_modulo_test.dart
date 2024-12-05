@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UseIsEvenRatherThanModuloTest extends LintRuleTest {
   @override
-  String get lintRule => 'use_is_even_rather_than_modulo';
+  String get lintRule => LintNames.use_is_even_rather_than_modulo;
 
   test_isEven() async {
     await assertNoDiagnostics(r'''

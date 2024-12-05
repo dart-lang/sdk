@@ -75,6 +75,10 @@ class TypedLiteralResolver {
   bool get _genericMetadataIsEnabled =>
       _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
 
+  bool get _inferenceUsingBoundsIsEnabled =>
+      _resolver.definingLibrary.featureSet
+          .isEnabled(Feature.inference_using_bounds);
+
   void resolveListLiteral(ListLiteralImpl node,
       {required DartType contextType}) {
     DartType? elementType;
@@ -176,54 +180,56 @@ class TypedLiteralResolver {
         contextType: contextType);
   }
 
-  DartType _computeElementType(CollectionElement element) {
-    if (element is Expression) {
-      return element.typeOrThrow;
-    } else if (element is ForElement) {
-      return _computeElementType(element.body);
-    } else if (element is IfElement) {
-      var thenElement = element.thenElement;
-      var elseElement = element.elseElement;
+  DartType _computeElementType(CollectionElementImpl element) {
+    switch (element) {
+      case ExpressionImpl():
+        return element.typeOrThrow;
+      case ForElementImpl():
+        return _computeElementType(element.body);
+      case IfElementImpl():
+        var thenElement = element.thenElement;
+        var elseElement = element.elseElement;
 
-      var thenType = _computeElementType(thenElement);
-      if (elseElement == null) {
-        return thenType;
-      }
+        var thenType = _computeElementType(thenElement);
+        if (elseElement == null) {
+          return thenType;
+        }
 
-      var elseType = _computeElementType(elseElement);
-      return _typeSystem.leastUpperBound(thenType, elseType);
-    } else if (element is MapLiteralEntry) {
-      // This error will be reported elsewhere.
-      return _typeProvider.dynamicType;
-    } else if (element is SpreadElement) {
-      var expressionType = element.expression.typeOrThrow;
-
-      var iterableType = expressionType.asInstanceOf(
-        _typeProvider.iterableElement,
-      );
-      if (iterableType != null) {
-        return iterableType.typeArguments[0];
-      }
-
-      if (expressionType is DynamicType) {
+        var elseType = _computeElementType(elseElement);
+        return _typeSystem.leastUpperBound(thenType, elseType);
+      case MapLiteralEntryImpl():
+        // This error will be reported elsewhere.
         return _typeProvider.dynamicType;
-      }
+      case SpreadElementImpl():
+        var expressionType = element.expression.typeOrThrow;
 
-      if (_typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
-        return NeverTypeImpl.instance;
-      }
+        var iterableType = expressionType.asInstanceOf(
+          _typeProvider.iterableElement,
+        );
+        if (iterableType != null) {
+          return iterableType.typeArguments[0];
+        }
 
-      if (_typeSystem.isSubtypeOf(expressionType, _typeSystem.nullNone)) {
-        if (element.isNullAware) {
+        if (expressionType is DynamicType) {
+          return _typeProvider.dynamicType;
+        }
+
+        if (_typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
           return NeverTypeImpl.instance;
         }
-        return _typeProvider.dynamicType;
-      }
 
-      // TODO(brianwilkerson): Report this as an error.
-      return _typeProvider.dynamicType;
+        if (_typeSystem.isSubtypeOf(expressionType, _typeSystem.nullNone)) {
+          if (element.isNullAware) {
+            return NeverTypeImpl.instance;
+          }
+          return _typeProvider.dynamicType;
+        }
+
+        // TODO(brianwilkerson): Report this as an error.
+        return _typeProvider.dynamicType;
+      case NullAwareElementImpl():
+        return _typeSystem.promoteToNonNull(element.value.typeOrThrow);
     }
-    throw StateError('Unhandled element type ${element.runtimeType}');
   }
 
   /// Compute the context type for the given set or map [literal].
@@ -336,79 +342,90 @@ class TypedLiteralResolver {
   }
 
   _InferredCollectionElementTypeInformation _inferCollectionElementType(
-      CollectionElement? element) {
-    if (element is Expression) {
-      return _InferredCollectionElementTypeInformation(
-        elementType: element.typeOrThrow,
-      );
-    } else if (element is ForElement) {
-      return _inferCollectionElementType(element.body);
-    } else if (element is IfElement) {
-      _InferredCollectionElementTypeInformation thenType =
-          _inferCollectionElementType(element.thenElement);
-      if (element.elseElement == null) {
-        return thenType;
-      }
-      _InferredCollectionElementTypeInformation elseType =
-          _inferCollectionElementType(element.elseElement);
-      return _InferredCollectionElementTypeInformation.forIfElement(
-          _typeSystem, thenType, elseType);
-    } else if (element is MapLiteralEntry) {
-      return _InferredCollectionElementTypeInformation(
-        keyType: element.key.staticType,
-        valueType: element.value.staticType,
-      );
-    } else if (element is SpreadElement) {
-      var expressionType = element.expression.typeOrThrow;
-
-      var iterableType = expressionType.asInstanceOf(
-        _typeProvider.iterableElement,
-      );
-      if (iterableType != null) {
+      CollectionElementImpl element) {
+    switch (element) {
+      case ExpressionImpl():
         return _InferredCollectionElementTypeInformation(
-          elementType: iterableType.typeArguments[0],
+          elementType: element.typeOrThrow,
         );
-      }
-
-      var mapType = expressionType.asInstanceOf(
-        _typeProvider.mapElement,
-      );
-      if (mapType != null) {
+      case ForElementImpl():
+        return _inferCollectionElementType(element.body);
+      case IfElementImpl():
+        _InferredCollectionElementTypeInformation thenType =
+            _inferCollectionElementType(element.thenElement);
+        if (element.elseElement == null) {
+          return thenType;
+        }
+        _InferredCollectionElementTypeInformation elseType =
+            _inferCollectionElementType(element.elseElement!);
+        return _InferredCollectionElementTypeInformation.forIfElement(
+            _typeSystem, thenType, elseType);
+      case MapLiteralEntryImpl():
+        var keyType = element.key.staticType;
+        if (keyType != null && element.keyQuestion != null) {
+          keyType = _typeSystem.promoteToNonNull(keyType);
+        }
+        var valueType = element.value.staticType;
+        if (valueType != null && element.valueQuestion != null) {
+          valueType = _typeSystem.promoteToNonNull(valueType);
+        }
         return _InferredCollectionElementTypeInformation(
-          keyType: mapType.typeArguments[0],
-          valueType: mapType.typeArguments[1],
+          keyType: keyType,
+          valueType: valueType,
         );
-      }
+      case SpreadElementImpl():
+        var expressionType = element.expression.typeOrThrow;
 
-      if (expressionType is DynamicType) {
-        return _InferredCollectionElementTypeInformation(
-          elementType: expressionType,
-          keyType: expressionType,
-          valueType: expressionType,
+        var iterableType = expressionType.asInstanceOf(
+          _typeProvider.iterableElement,
         );
-      }
+        if (iterableType != null) {
+          return _InferredCollectionElementTypeInformation(
+            elementType: iterableType.typeArguments[0],
+          );
+        }
 
-      if (_typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
-        return _InferredCollectionElementTypeInformation(
-          elementType: NeverTypeImpl.instance,
-          keyType: NeverTypeImpl.instance,
-          valueType: NeverTypeImpl.instance,
+        var mapType = expressionType.asInstanceOf(
+          _typeProvider.mapElement,
         );
-      }
+        if (mapType != null) {
+          return _InferredCollectionElementTypeInformation(
+            keyType: mapType.typeArguments[0],
+            valueType: mapType.typeArguments[1],
+          );
+        }
 
-      if (_typeSystem.isSubtypeOf(expressionType, _typeSystem.nullNone)) {
-        if (element.isNullAware) {
+        if (expressionType is DynamicType) {
+          return _InferredCollectionElementTypeInformation(
+            elementType: expressionType,
+            keyType: expressionType,
+            valueType: expressionType,
+          );
+        }
+
+        if (_typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
           return _InferredCollectionElementTypeInformation(
             elementType: NeverTypeImpl.instance,
             keyType: NeverTypeImpl.instance,
             valueType: NeverTypeImpl.instance,
           );
         }
-      }
 
-      return _InferredCollectionElementTypeInformation();
-    } else {
-      throw StateError('Unknown element type ${element.runtimeType}');
+        if (_typeSystem.isSubtypeOf(expressionType, _typeSystem.nullNone)) {
+          if (element.isNullAware) {
+            return _InferredCollectionElementTypeInformation(
+              elementType: NeverTypeImpl.instance,
+              keyType: NeverTypeImpl.instance,
+              valueType: NeverTypeImpl.instance,
+            );
+          }
+        }
+
+        return _InferredCollectionElementTypeInformation();
+      case NullAwareElementImpl():
+        return _InferredCollectionElementTypeInformation(
+            elementType:
+                _typeSystem.promoteToNonNull(element.value.typeOrThrow));
     }
   }
 
@@ -426,6 +443,7 @@ class TypedLiteralResolver {
       errorReporter: _errorReporter,
       errorEntity: node,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
+      inferenceUsingBoundsIsEnabled: _inferenceUsingBoundsIsEnabled,
       strictInference: _resolver.analysisOptions.strictInference,
       strictCasts: _resolver.analysisOptions.strictCasts,
       typeSystemOperations: _resolver.flowAnalysis.typeOperations,
@@ -435,7 +453,7 @@ class TypedLiteralResolver {
   }
 
   InterfaceType? _inferListTypeUpwards(
-      GenericInferrer inferrer, ListLiteral node,
+      GenericInferrer inferrer, ListLiteralImpl node,
       {required DartType contextType}) {
     var element = _typeProvider.listElement;
     var typeParameters = element.typeParameters;
@@ -485,6 +503,7 @@ class TypedLiteralResolver {
       contextReturnType: contextType,
       isConst: node.isConst,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
+      inferenceUsingBoundsIsEnabled: _inferenceUsingBoundsIsEnabled,
       strictInference: _resolver.analysisOptions.strictInference,
       strictCasts: _resolver.analysisOptions.strictCasts,
       typeSystemOperations: _resolver.flowAnalysis.typeOperations,
@@ -501,13 +520,13 @@ class TypedLiteralResolver {
     var literalImpl = literal as SetOrMapLiteralImpl;
     var contextType = literalImpl.contextType;
     literalImpl.contextType = null; // Not needed anymore.
-    List<CollectionElement> elements = literal.elements;
+    List<CollectionElementImpl> elements = literal.elements;
     List<_InferredCollectionElementTypeInformation> inferredTypes = [];
     bool canBeAMap = true;
     bool mustBeAMap = false;
     bool canBeASet = true;
     bool mustBeASet = false;
-    for (CollectionElement element in elements) {
+    for (CollectionElementImpl element in elements) {
       _InferredCollectionElementTypeInformation inferredType =
           _inferCollectionElementType(element);
       inferredTypes.add(inferredType);
@@ -589,6 +608,7 @@ class TypedLiteralResolver {
       contextReturnType: contextType,
       isConst: node.isConst,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
+      inferenceUsingBoundsIsEnabled: _inferenceUsingBoundsIsEnabled,
       strictInference: _resolver.analysisOptions.strictInference,
       strictCasts: _resolver.analysisOptions.strictCasts,
       typeSystemOperations: _resolver.flowAnalysis.typeOperations,

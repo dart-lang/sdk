@@ -175,7 +175,7 @@ class Foo {
 
   Future<void> test_constructorCall_to_augmentation() async {
     var code = TestCode.parse('''
-import augment 'other.dart';
+part 'other.dart';
 
 class Foo {}
 
@@ -185,7 +185,7 @@ void f() {
 ''');
 
     var otherCode = TestCode.parse('''
-augment library 'test.dart';
+part of 'test.dart';
 augment class Foo {
   [!Foo.named(){}!]
 }
@@ -489,7 +489,7 @@ class Foo {
 
   Future<void> test_methodCall_to_augmentation() async {
     var code = TestCode.parse('''
-import augment 'other.dart';
+part 'other.dart';
 
 class Foo {}
 
@@ -499,7 +499,7 @@ void f() {
 ''');
 
     var otherCode = TestCode.parse('''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class Foo {
   [!void myMethod() {}!]
@@ -691,6 +691,52 @@ void f() {
 
   Future<void> test_whitespace() async {
     await expectNoTarget(TestCode.parse(' ^  void f() {}'));
+  }
+
+  Future<void> test_wildcardVariable() async {
+    var code = TestCode.parse('''
+f() {
+  [!^_() {}!]
+}
+''');
+
+    var target = await findTarget(code);
+    expect(
+      target,
+      _isItem(
+        CallHierarchyKind.function,
+        '_',
+        testFile.path,
+        containerName: 'f',
+        nameRange: SourceRange(8, 1),
+        codeRange: code.range.sourceRange,
+      ),
+    );
+  }
+
+  Future<void> test_wildcardVariable_preWildcards() async {
+    var code = TestCode.parse('''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+f() {
+  [!_() {}!]
+  ^_();
+}
+''');
+
+    var target = await findTarget(code);
+    expect(
+      target,
+      _isItem(
+        CallHierarchyKind.function,
+        '_',
+        testFile.path,
+        containerName: 'f',
+        nameRange: SourceRange(52, 1),
+        codeRange: code.range.sourceRange,
+      ),
+    );
   }
 }
 
@@ -1081,7 +1127,7 @@ import 'test.dart';
 
   Future<void> test_method_from_augmentation() async {
     var code = TestCode.parse('''
-import augment 'other.dart';
+part 'other.dart';
 
 class Foo {
   void myMet^hod() {}
@@ -1089,7 +1135,7 @@ class Foo {
 ''');
 
     var otherCode = TestCode.parse('''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class Foo {
   [!void f() {
@@ -1308,7 +1354,7 @@ class A {
 
   Future<void> test_constructor_from_augmentation() async {
     var code = TestCode.parse('''
-import augment 'other.dart';
+part 'other.dart';
 
 class Foo {}
 
@@ -1318,7 +1364,7 @@ void ba^r() {
 ''');
 
     var otherCode = TestCode.parse('''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class Foo {
   [!Foo.named() {
@@ -1561,7 +1607,7 @@ class Foo {
 
   Future<void> test_method_from_augmentation() async {
     var code = TestCode.parse('''
-import augment 'other.dart';
+part 'other.dart';
 
 class Foo {}
 
@@ -1571,7 +1617,7 @@ void ba^r() {
 ''');
 
     var otherCode = TestCode.parse('''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class Foo {
   [!void myMethod() {

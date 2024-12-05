@@ -36,6 +36,8 @@ import 'dart:_foreign_helper'
     show
         DART_CLOSURE_TO_JS,
         getInterceptor,
+        ArrayFlags,
+        HArrayFlagsGet,
         JS,
         JS_BUILTIN,
         JS_CONST,
@@ -76,8 +78,6 @@ import 'dart:_rti' as newRti
         pairwiseIsTest,
         throwTypeError,
         Rti;
-
-import 'dart:_load_library_priority';
 
 import 'dart:_invocation_mirror_constants' as mirrors;
 
@@ -675,11 +675,13 @@ class Primitives {
     return '';
   }
 
-  static int getTimeZoneOffsetInMinutes(DateTime receiver) {
-    // Note that JS and Dart disagree on the sign of the offset.
-    // Subtract to avoid -0.0
-    return 0 - JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver))
-        as int;
+  static int getTimeZoneOffsetInSeconds(DateTime receiver) {
+    // Note that JavaScript's Date and and Dart's DateTime disagree on the sign
+    // of the offset. Subtract to avoid -0.0. The offset in minutes could
+    // contain 'seconds' as fractional minutes.
+    num offsetInMinutes =
+        JS('num', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
+    return (0 - offsetInMinutes * 60).toInt();
   }
 
   static int? valueFromDecomposedDate(
@@ -1094,6 +1096,15 @@ class Primitives {
     if (jsError == null) return null;
     return getTraceFromException(jsError);
   }
+
+  static void trySetStackTrace(Error error, StackTrace stackTrace) {
+    var jsError = JS('', r'#.$thrownJsError', error);
+    if (jsError == null) {
+      jsError = wrapException(error);
+      JS('', r'#.$thrownJsError = #', error, jsError);
+      JS('void', '#.stack = #', jsError, stackTrace.toString());
+    }
+  }
 }
 
 /// Called by generated code to throw an illegal-argument exception,
@@ -1189,7 +1200,7 @@ String checkString(value) {
   return value;
 }
 
-/// Wrap the given Dart object and record a stack trace.
+/// Wrap the given Dart object as a JS `Error` that can carry a stack trace.
 ///
 /// The code in [unwrapException] deals with getting the original Dart
 /// object out of the wrapper again.
@@ -1245,6 +1256,80 @@ Never throwExpressionWithWrapper(ex, wrapper) {
 
 throwUnsupportedError(message) {
   throw UnsupportedError(message);
+}
+
+/// Called from code generated for the HArrayFlagsCheck instruction.
+///
+/// The operation can be a string, or for more compact generated code, an index
+/// into a small table of operation names.  A missing `operation` or `verb`
+/// argument defaults to index 0.
+@pragma('dart2js:assumeDynamic')
+Never throwUnsupportedOperation(Object o, [Object? operation, Object? verb]) {
+  // Missing argument is defaulted manually.  The calling convention for
+  // top-level methods is that the call site provides the default values. Since
+  // the generated code omits the second or thrid argument, `undefined` is
+  // passed, which presents as Dart `null`.
+  operation ??= 0;
+  verb ??= 0;
+  final wrapper = JS('', 'Error()');
+  throwExpressionWithWrapper(
+      _diagnoseUnsupportedOperation(o, operation, verb), wrapper);
+}
+
+@pragma('dart2js:never-inline')
+Error _diagnoseUnsupportedOperation(
+    Object o, Object encodedOperation, Object encodedVerb) {
+  String operation;
+  String verb;
+
+  if (encodedOperation is String) {
+    operation = encodedOperation;
+  } else {
+    final table = JS<JSArray>('', '#.split(";")', ArrayFlags.operationNames);
+    int tableLength = JS('JSUInt31', '#.length', table);
+    int index = JS('JSUInt31', '#', encodedOperation);
+    if (index > tableLength) {
+      // Verb is also encoded with the operation.
+      // Do math in JavaScript, we know there are no edge cases.
+      // Truncating divide:
+      encodedVerb = JS<int>('', '(# / #) | 0', index, tableLength);
+      index = JS<int>('', '# % #', index, tableLength);
+    }
+    // The index should be valid by construction.
+    operation = JS<String>('', '#[#]', table, index);
+  }
+
+  if (encodedVerb is String) {
+    verb = encodedVerb;
+  } else {
+    final table = JS<JSArray>('', '#.split(";")', ArrayFlags.verbs);
+    // The index should be valid by construction.
+    verb = JS<String>('', '#[#]', table, encodedVerb);
+  }
+
+  String adjective = '';
+  String article = 'a ';
+  String object;
+  if (o is List) {
+    object = 'list';
+  } else {
+    object = 'ByteData';
+  }
+
+  final flags = HArrayFlagsGet(o);
+  if (flags & ArrayFlags.constantCheck != 0) {
+    article = 'a ';
+    adjective = 'constant ';
+  } else if (flags & ArrayFlags.unmodifiableCheck != 0) {
+    article = 'an ';
+    adjective = 'unmodifiable ';
+  } else if (flags & ArrayFlags.fixedLengthCheck != 0) {
+    article = 'a ';
+    adjective = 'fixed-length ';
+  }
+
+  final prefix = "'$operation': ";
+  return UnsupportedError('${prefix}Cannot $verb $article$adjective$object');
 }
 
 // This is used in open coded for-in loops on arrays.
@@ -2871,19 +2956,10 @@ String _getEventLog() {
 }
 
 /// Loads a deferred library. The compiler generates a call to this method to
-/// implement `import.loadLibrary()`. The [priority] argument is the index of
-/// one of the [LoadLibraryPriority] enum's members.
-///
-///   - `0` for `LoadLibraryPriority.normal`
-///   - `1` for `LoadLibraryPriority.high`
+/// implement `import.loadLibrary()`. The [priority] argument is the argument
+/// to the 'dart2js:priority' pragma on the import or the `loadLibrary` call.
 @pragma('dart2js:resource-identifier')
-Future<Null> loadDeferredLibrary(String loadId, int priority) {
-  // Validate the priority using the index to allow the actual enum to get
-  // tree-shaken.
-  if (priority < 0 || priority >= LoadLibraryPriority.values.length) {
-    throw DeferredLoadException('Invalid library priority: $priority');
-  }
-
+Future<Null> loadDeferredLibrary(String loadId, String priority) {
   // For each loadId there is a list of parts to load. The parts are represented
   // by an index. There are two arrays, one that maps the index into a Uri and
   // another that maps the index to a hash.
@@ -3128,9 +3204,8 @@ Object _buildTrustedScriptUriWithRetry(String hunkName, int retryCount) {
 }
 
 Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
-    String loadId, int priority, int retryCount) {
+    String loadId, String priority, int retryCount) {
   const int maxRetries = 3;
-  var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
   var isHunkLoaded = JS_EMBEDDED_GLOBAL('', IS_HUNK_LOADED);
 
   _addEvent(part: hunkNames.join(';'), event: 'startLoad', loadId: loadId);
@@ -3181,7 +3256,7 @@ Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
       for (var i = 0; i < hunksToRetry.length; i++) {
         _loadingLibraries[hunksToRetry[i]] = null;
       }
-      _loadAllHunks(loader, hunksToRetry!, hashesToRetry!, loadId, priority,
+      _loadAllHunks(loader, hunksToRetry, hashesToRetry!, loadId, priority,
               retryCount + 1)
           .then((_) => completer.complete(null),
               onError: completer.completeError);
@@ -3246,10 +3321,9 @@ Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
   return Future.wait([...pendingLoads, completer.future]);
 }
 
-Future<Null> _loadHunk(
-    String hunkName, String loadId, int priority, String hash, int retryCount) {
+Future<Null> _loadHunk(String hunkName, String loadId, String priority,
+    String hash, int retryCount) {
   const int maxRetries = 3;
-  var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
 
   var completer = _loadingLibraries[hunkName];
   _addEvent(part: hunkName, event: 'startLoad', loadId: loadId);
@@ -3353,9 +3427,6 @@ Future<Null> _loadHunk(
     }
     if (_crossOrigin != null && _crossOrigin != '') {
       JS('', '#.crossOrigin = #', script, _crossOrigin);
-    }
-    if (priority == LoadLibraryPriority.high.index) {
-      JS('', '#.fetchPriority = "high"', script);
     }
     JS('', '#.addEventListener("load", #, false)', script, jsSuccess);
     JS('', '#.addEventListener("error", #, false)', script, jsFailure);

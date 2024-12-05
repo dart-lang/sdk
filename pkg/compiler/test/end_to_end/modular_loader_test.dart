@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:compiler/src/elements/names.dart';
 
 import 'package:compiler/src/util/memory_compiler.dart';
@@ -16,7 +18,6 @@ import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/api_unstable/dart2js.dart';
-import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
@@ -78,7 +79,7 @@ main() {
 }
 
 /// Generate a component for a modular compilation unit.
-Future<List<int>> compileUnit(List<String> inputs, Map<String, dynamic> sources,
+Future<Uint8List> compileUnit(List<String> inputs, Map<String, dynamic> sources,
     {List<String> deps = const []}) async {
   var fs = MemoryFileSystem(_defaultDir);
   sources.forEach((name, data) {

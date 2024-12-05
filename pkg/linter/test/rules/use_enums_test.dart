@@ -15,17 +15,17 @@ main() {
 @reflectiveTest
 class UseEnumsTest extends LintRuleTest {
   @override
-  String get lintRule => 'use_enums';
+  String get lintRule => LintNames.use_enums;
 
   test_augmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class C {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class C {
   static const a = C._(1);
@@ -144,7 +144,7 @@ class _E {
       error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 76, 2),
       // We are reversing the deprecation: This code will remain a `HintCode`.
       // ignore: deprecated_member_use
-      error(HintCode.UNUSED_ELEMENT_PARAMETER, 83, 1),
+      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 83, 1),
     ]);
   }
 

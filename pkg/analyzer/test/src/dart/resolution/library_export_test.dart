@@ -16,252 +16,6 @@ main() {
 
 @reflectiveTest
 class ExportDirectiveResolutionTest extends PubPackageResolutionTest {
-  test_inAugmentation_library() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
-export 'c.dart';
-''');
-
-    newFile('$testPackageLibPath/c.dart', '');
-
-    await resolveFile2(b);
-    assertNoErrorsInResult();
-
-    var node = findNode.export('c.dart');
-    assertResolvedNodeText(node, r'''
-ExportDirective
-  exportKeyword: export
-  uri: SimpleStringLiteral
-    literal: 'c.dart'
-  semicolon: ;
-  element: LibraryExportElement
-    uri: DirectiveUriWithLibrary
-      uri: package:test/c.dart
-''');
-  }
-
-  test_inAugmentation_library_fileDoesNotExist() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
-export 'c.dart';
-''');
-
-    await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 33, 8),
-    ]);
-
-    var node = findNode.export('c.dart');
-    assertResolvedNodeText(node, r'''
-ExportDirective
-  exportKeyword: export
-  uri: SimpleStringLiteral
-    literal: 'c.dart'
-  semicolon: ;
-  element: LibraryExportElement
-    uri: DirectiveUriWithLibrary
-      uri: package:test/c.dart
-''');
-  }
-
-  test_inAugmentation_noRelativeUri() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
-export ':net';
-''');
-
-    await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.INVALID_URI, 33, 6),
-    ]);
-
-    var node = findNode.export('export');
-    assertResolvedNodeText(node, r'''
-ExportDirective
-  exportKeyword: export
-  uri: SimpleStringLiteral
-    literal: ':net'
-  semicolon: ;
-  element: LibraryExportElement
-    uri: DirectiveUriWithRelativeUriString
-      relativeUriString: :net
-''');
-  }
-
-  test_inAugmentation_noRelativeUriStr() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
-export '${'foo'}.dart';
-''');
-
-    await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 33, 15),
-    ]);
-
-    var node = findNode.export('export');
-    assertResolvedNodeText(node, r'''
-ExportDirective
-  exportKeyword: export
-  uri: StringInterpolation
-    elements
-      InterpolationString
-        contents: '
-      InterpolationExpression
-        leftBracket: ${
-        expression: SimpleStringLiteral
-          literal: 'foo'
-        rightBracket: }
-      InterpolationString
-        contents: .dart'
-    staticType: String
-    stringValue: null
-  semicolon: ;
-  element: LibraryExportElement
-    uri: DirectiveUri
-''');
-  }
-
-  test_inAugmentation_noSource() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
-export 'foo:bar';
-''');
-
-    await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 33, 9),
-    ]);
-
-    var node = findNode.export('export');
-    assertResolvedNodeText(node, r'''
-ExportDirective
-  exportKeyword: export
-  uri: SimpleStringLiteral
-    literal: 'foo:bar'
-  semicolon: ;
-  element: LibraryExportElement
-    uri: DirectiveUriWithRelativeUri
-      relativeUri: foo:bar
-''');
-  }
-
-  test_inAugmentation_notLibrary_augmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
-export 'c.dart';
-''');
-
-    newFile('$testPackageLibPath/c.dart', r'''
-augment library 'b.dart';
-''');
-
-    await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 33, 8),
-    ]);
-
-    var node = findNode.export('c.dart');
-    assertResolvedNodeText(node, r'''
-ExportDirective
-  exportKeyword: export
-  uri: SimpleStringLiteral
-    literal: 'c.dart'
-  semicolon: ;
-  element: LibraryExportElement
-    uri: DirectiveUriWithSource
-      source: package:test/c.dart
-''');
-  }
-
-  test_inAugmentation_notLibrary_partOfName() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
-export 'c.dart';
-''');
-
-    newFile('$testPackageLibPath/c.dart', r'''
-part of my.lib;
-''');
-
-    await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 33, 8),
-    ]);
-
-    var node = findNode.export('c.dart');
-    assertResolvedNodeText(node, r'''
-ExportDirective
-  exportKeyword: export
-  uri: SimpleStringLiteral
-    literal: 'c.dart'
-  semicolon: ;
-  element: LibraryExportElement
-    uri: DirectiveUriWithSource
-      source: package:test/c.dart
-''');
-  }
-
-  test_inAugmentation_notLibrary_partOfUri() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
-export 'c.dart';
-''');
-
-    newFile('$testPackageLibPath/c.dart', r'''
-part of 'b.dart';
-''');
-
-    await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 33, 8),
-    ]);
-
-    var node = findNode.export('c.dart');
-    assertResolvedNodeText(node, r'''
-ExportDirective
-  exportKeyword: export
-  uri: SimpleStringLiteral
-    literal: 'c.dart'
-  semicolon: ;
-  element: LibraryExportElement
-    uri: DirectiveUriWithSource
-      source: package:test/c.dart
-''');
-  }
-
   test_inLibrary_combinators_hide() async {
     await assertNoErrorsInCode(r'''
 export 'dart:math' hide Random;
@@ -279,7 +33,8 @@ ExportDirective
       hiddenNames
         SimpleIdentifier
           token: Random
-          staticElement: dart:math::@class::Random
+          staticElement: dart:math::<fragment>::@class::Random
+          element: dart:math::<fragment>::@class::Random#element
           staticType: null
   semicolon: ;
   element: LibraryExportElement
@@ -308,6 +63,7 @@ ExportDirective
         SimpleIdentifier
           token: Unresolved
           staticElement: <null>
+          element: <null>
           staticType: null
   semicolon: ;
   element: LibraryExportElement
@@ -333,7 +89,8 @@ ExportDirective
       shownNames
         SimpleIdentifier
           token: Random
-          staticElement: dart:math::@class::Random
+          staticElement: dart:math::<fragment>::@class::Random
+          element: dart:math::<fragment>::@class::Random#element
           staticType: null
   semicolon: ;
   element: LibraryExportElement
@@ -362,6 +119,7 @@ ExportDirective
         SimpleIdentifier
           token: Unresolved
           staticElement: <null>
+          element: <null>
           staticType: null
   semicolon: ;
   element: LibraryExportElement
@@ -401,14 +159,17 @@ ExportDirective
           SimpleIdentifier
             token: dart
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: library
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: html
             staticElement: <null>
+            element: <null>
             staticType: null
       rightParenthesis: )
       uri: SimpleStringLiteral
@@ -423,14 +184,17 @@ ExportDirective
           SimpleIdentifier
             token: dart
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: library
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: io
             staticElement: <null>
+            element: <null>
             staticType: null
       rightParenthesis: )
       uri: SimpleStringLiteral
@@ -475,14 +239,17 @@ ExportDirective
           SimpleIdentifier
             token: dart
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: library
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: html
             staticElement: <null>
+            element: <null>
             staticType: null
       rightParenthesis: )
       uri: SimpleStringLiteral
@@ -497,14 +264,17 @@ ExportDirective
           SimpleIdentifier
             token: dart
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: library
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: io
             staticElement: <null>
+            element: <null>
             staticType: null
       rightParenthesis: )
       uri: SimpleStringLiteral
@@ -549,14 +319,17 @@ ExportDirective
           SimpleIdentifier
             token: dart
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: library
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: html
             staticElement: <null>
+            element: <null>
             staticType: null
       rightParenthesis: )
       uri: SimpleStringLiteral
@@ -571,14 +344,17 @@ ExportDirective
           SimpleIdentifier
             token: dart
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: library
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: io
             staticElement: <null>
+            element: <null>
             staticType: null
       rightParenthesis: )
       uri: SimpleStringLiteral
@@ -741,30 +517,6 @@ ExportDirective
 ''');
   }
 
-  test_inLibrary_notLibrary_augmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-''');
-
-    await assertErrorsInCode(r'''
-export 'a.dart';
-''', [
-      error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 7, 8),
-    ]);
-
-    var node = findNode.export('a.dart');
-    assertResolvedNodeText(node, r'''
-ExportDirective
-  exportKeyword: export
-  uri: SimpleStringLiteral
-    literal: 'a.dart'
-  semicolon: ;
-  element: LibraryExportElement
-    uri: DirectiveUriWithSource
-      source: package:test/a.dart
-''');
-  }
-
   test_inLibrary_notLibrary_partOfName() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of my.lib;
@@ -838,6 +590,220 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithSource
       source: package:foo/foo2.dart
+''');
+  }
+
+  test_inPart_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+export 'c.dart';
+''');
+
+    newFile('$testPackageLibPath/c.dart', '');
+
+    await resolveFile2(b);
+    assertNoErrorsInResult();
+
+    var node = findNode.export('c.dart');
+    assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: SimpleStringLiteral
+    literal: 'c.dart'
+  semicolon: ;
+  element: LibraryExportElement
+    uri: DirectiveUriWithLibrary
+      uri: package:test/c.dart
+''');
+  }
+
+  test_inPart_library_fileDoesNotExist() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+export 'c.dart';
+''');
+
+    await resolveFile2(b);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 25, 8),
+    ]);
+
+    var node = findNode.export('c.dart');
+    assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: SimpleStringLiteral
+    literal: 'c.dart'
+  semicolon: ;
+  element: LibraryExportElement
+    uri: DirectiveUriWithLibrary
+      uri: package:test/c.dart
+''');
+  }
+
+  test_inPart_noRelativeUri() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+export ':net';
+''');
+
+    await resolveFile2(b);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.INVALID_URI, 25, 6),
+    ]);
+
+    var node = findNode.export('export');
+    assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: SimpleStringLiteral
+    literal: ':net'
+  semicolon: ;
+  element: LibraryExportElement
+    uri: DirectiveUriWithRelativeUriString
+      relativeUriString: :net
+''');
+  }
+
+  test_inPart_noRelativeUriStr() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+export '${'foo'}.dart';
+''');
+
+    await resolveFile2(b);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 25, 15),
+    ]);
+
+    var node = findNode.export('export');
+    assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: StringInterpolation
+    elements
+      InterpolationString
+        contents: '
+      InterpolationExpression
+        leftBracket: ${
+        expression: SimpleStringLiteral
+          literal: 'foo'
+        rightBracket: }
+      InterpolationString
+        contents: .dart'
+    staticType: String
+    stringValue: null
+  semicolon: ;
+  element: LibraryExportElement
+    uri: DirectiveUri
+''');
+  }
+
+  test_inPart_noSource() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+export 'foo:bar';
+''');
+
+    await resolveFile2(b);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 25, 9),
+    ]);
+
+    var node = findNode.export('export');
+    assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: SimpleStringLiteral
+    literal: 'foo:bar'
+  semicolon: ;
+  element: LibraryExportElement
+    uri: DirectiveUriWithRelativeUri
+      relativeUri: foo:bar
+''');
+  }
+
+  test_inPart_notLibrary_partOfName() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+export 'c.dart';
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+part of my.lib;
+''');
+
+    await resolveFile2(b);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 25, 8),
+    ]);
+
+    var node = findNode.export('c.dart');
+    assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: SimpleStringLiteral
+    literal: 'c.dart'
+  semicolon: ;
+  element: LibraryExportElement
+    uri: DirectiveUriWithSource
+      source: package:test/c.dart
+''');
+  }
+
+  test_inPart_notLibrary_partOfUri() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+export 'c.dart';
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+part of 'b.dart';
+''');
+
+    await resolveFile2(b);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 25, 8),
+    ]);
+
+    var node = findNode.export('c.dart');
+    assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: SimpleStringLiteral
+    literal: 'c.dart'
+  semicolon: ;
+  element: LibraryExportElement
+    uri: DirectiveUriWithSource
+      source: package:test/c.dart
 ''');
   }
 }

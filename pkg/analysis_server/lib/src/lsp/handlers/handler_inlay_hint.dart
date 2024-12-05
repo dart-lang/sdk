@@ -8,13 +8,13 @@ import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 
 typedef StaticOptions
     = Either3<bool, InlayHintOptions, InlayHintRegistrationOptions>;
 
 class InlayHintHandler
-    extends LspMessageHandler<InlayHintParams, List<InlayHint>> {
+    extends LspMessageHandler<InlayHintParams, List<InlayHint>>
+    with LspHandlerHelperMixin {
   InlayHintHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_inlayHint;
@@ -26,34 +26,38 @@ class InlayHintHandler
   @override
   Future<ErrorOr<List<InlayHint>>> handle(InlayHintParams params,
       MessageInfo message, CancellationToken token) async {
-    if (!isDartDocument(params.textDocument)) {
+    var textDocument = params.textDocument;
+    if (!isDartDocument(textDocument)) {
       return success([]);
     }
 
-    var path = pathOfDoc(params.textDocument);
+    var path = pathOfDoc(textDocument);
+    return path.mapResult((path) async {
+      // Capture the document version so we can verify it hasn't changed after
+      // we've got a resolved unit (which is async and may wait for context
+      // rebuilds).
+      var docIdentifier = extractDocumentVersion(textDocument, path);
 
-    // It's particularly important to provide results consistent with the
-    // document in the client in this handler to avoid inlay hints "jumping
-    // around" while the user types, so ensure no other requests (content
-    // updates) are processed while we do async work to get the resolved unit.
-    late ErrorOr<ResolvedUnitResult> result;
-    await server.lockRequestsWhile(() async {
-      result = await path.mapResult(requireResolvedUnit);
-    });
+      var result = await requireResolvedUnit(path);
 
-    if (token.isCancellationRequested) {
-      return cancelled();
-    }
-
-    return result.mapResult((result) async {
-      if (!result.exists) {
-        return success([]);
+      if (fileHasBeenModified(path, docIdentifier.version)) {
+        return fileModifiedError;
       }
 
-      var computer = DartInlayHintComputer(pathContext, result);
-      var hints = computer.compute();
+      if (token.isCancellationRequested) {
+        return cancelled();
+      }
 
-      return success(hints);
+      return result.mapResult((result) async {
+        if (!result.exists) {
+          return success([]);
+        }
+
+        var computer = DartInlayHintComputer(pathContext, result);
+        var hints = computer.compute();
+
+        return success(hints);
+      });
     });
   }
 }

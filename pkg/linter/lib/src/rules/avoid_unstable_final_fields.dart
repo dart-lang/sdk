@@ -3,24 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid overriding a final field to return '
     'different values if called multiple times.';
 
-const _details = r'''
-This rule has been removed.
-''';
-
 class AvoidUnstableFinalFields extends LintRule {
   AvoidUnstableFinalFields()
       : super(
-            name: 'avoid_unstable_final_fields',
+            name: LintNames.avoid_unstable_final_fields,
             description: _desc,
-            details: _details,
-            categories: {Category.errors},
             state: State.removed());
 
   @override
-  void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {}
+  LintCode get lintCode => LinterLintCode.removed_lint;
 }

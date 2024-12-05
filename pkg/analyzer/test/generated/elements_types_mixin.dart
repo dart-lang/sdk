@@ -136,7 +136,7 @@ mixin ElementsTypesMixin {
     element.isAbstract = isAbstract;
     element.isAugmentation = isAugmentation;
     element.isSealed = isSealed;
-    element.enclosingElement = testLibrary.definingCompilationUnit;
+    element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.supertype = superType ?? typeProvider.objectType;
     element.interfaces = interfaces;
@@ -168,7 +168,7 @@ mixin ElementsTypesMixin {
     required List<ConstFieldElementImpl> constants,
   }) {
     var element = EnumElementImpl(name, 0);
-    element.enclosingElement = testLibrary.definingCompilationUnit;
+    element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.fields = constants;
     return element;
   }
@@ -189,7 +189,7 @@ mixin ElementsTypesMixin {
     var element = ExtensionElementImpl(name, 0);
     element.augmented.extendedType = extendedType;
     element.isAugmentation = isAugmentation;
-    element.enclosingElement = testLibrary.definingCompilationUnit;
+    element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.methods = methods;
     return element;
@@ -203,7 +203,7 @@ mixin ElementsTypesMixin {
     List<InterfaceType> interfaces = const [],
   }) {
     var element = ExtensionTypeElementImpl(name, -1);
-    element.enclosingElement = testLibrary.definingCompilationUnit;
+    element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.interfaces = interfaces;
 
@@ -340,12 +340,6 @@ mixin ElementsTypesMixin {
     var uri = Uri.parse(uriStr);
     var source = _MockSource(uri);
 
-    var definingUnit = CompilationUnitElementImpl(
-      source: source,
-      librarySource: source,
-      lineInfo: LineInfo([0]),
-    );
-
     var library = LibraryElementImpl(
       analysisContext,
       analysisSession,
@@ -354,6 +348,13 @@ mixin ElementsTypesMixin {
       0,
       FeatureSet.latestLanguageVersion(),
     );
+
+    var definingUnit = CompilationUnitElementImpl(
+      library: library,
+      source: source,
+      lineInfo: LineInfo([0]),
+    );
+
     library.definingCompilationUnit = definingUnit;
     library.typeProvider = typeSystem.typeProvider;
     library.typeSystem = typeSystem;
@@ -412,7 +413,7 @@ mixin ElementsTypesMixin {
   }) {
     var element = MixinElementImpl(name, 0);
     element.isAugmentation = isAugmentation;
-    element.enclosingElement = testLibrary.definingCompilationUnit;
+    element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.superclassConstraints = constraints ?? [typeProvider.objectType];
     element.interfaces = interfaces;
@@ -565,7 +566,7 @@ mixin ElementsTypesMixin {
     required DartType aliasedType,
   }) {
     var element = TypeAliasElementImpl(name, 0);
-    element.enclosingElement = testLibrary.definingCompilationUnit;
+    element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.aliasedType = aliasedType;
     return element;

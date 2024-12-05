@@ -9,62 +9,20 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'No default cases.';
 
-const _details = r'''
-Switches on enums and enum-like classes should not use a `default` clause.
-
-Enum-like classes are defined as concrete (non-abstract) classes that have:
-  * only private non-factory constructors
-  * two or more static const fields whose type is the enclosing class and
-  * no subclasses of the class in the defining library
-
-**DO** define default behavior outside switch statements.
-
-**BAD:**
-```dart
-  switch (testEnum) {
-    case TestEnum.A:
-      return '123';
-    case TestEnum.B:
-      return 'abc';
-    default:
-      return null;
-  }
-```
-
-**GOOD:**
-```dart
-  switch (testEnum) {
-    case TestEnum.A:
-      return '123';
-    case TestEnum.B:
-      return 'abc';
-  }
-  // Default here.
-  return null;
-```
-
-''';
-
 class NoDefaultCases extends LintRule {
-  static const LintCode code = LintCode(
-      'no_default_cases', "Invalid use of 'default' member in a switch.",
-      correctionMessage:
-          'Try enumerating all the possible values of the switch expression.');
-
   NoDefaultCases()
       : super(
-          name: 'no_default_cases',
+          name: LintNames.no_default_cases,
           description: _desc,
-          details: _details,
-          categories: {Category.style},
           state: State.experimental(),
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.no_default_cases;
 
   @override
   void registerNodeProcessors(
@@ -74,7 +32,7 @@ class NoDefaultCases extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);

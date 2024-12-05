@@ -19,7 +19,7 @@ class PreferSpreadCollectionsTest extends LintRuleTest {
   // specifically rely on them.
 
   @override
-  String get lintRule => 'prefer_spread_collections';
+  String get lintRule => LintNames.prefer_spread_collections;
 
   test_constInitializedWithNonConstantValue() async {
     await assertDiagnostics(r'''

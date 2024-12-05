@@ -4,11 +4,11 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -82,7 +82,7 @@ class AddNullCheck extends ResolvedCorrectionProducer {
       if (coveringNode.operator.type != TokenType.QUESTION_QUESTION) {
         target = coveringNode.leftOperand;
       } else {
-        var expectedType = coveringNode.staticParameterElement?.type;
+        var expectedType = coveringNode.correspondingParameter?.type;
         if (expectedType == null) return;
 
         var leftType = coveringNode.leftOperand.staticType;
@@ -121,41 +121,41 @@ class AddNullCheck extends ResolvedCorrectionProducer {
       toType = parent.writeType;
     } else if (parent is AsExpression) {
       toType = parent.staticType;
-    } else if (parent is VariableDeclaration && target == parent.initializer) {
-      toType = parent.declaredElement?.type;
+    } else if (parent is VariableDeclarationImpl &&
+        target == parent.initializer) {
+      toType = parent.type;
     } else if (parent is ArgumentList) {
-      toType = target.staticParameterElement?.type;
+      toType = target.correspondingParameter?.type;
     } else if (parent is IndexExpression) {
       toType = parent.realTarget.typeOrThrow;
     } else if (parent is ForEachPartsWithDeclaration) {
       toType =
-          typeProvider.iterableType(parent.loopVariable.declaredElement!.type);
+          typeProvider.iterableType(parent.loopVariable.declaredElement2!.type);
     } else if (parent is ForEachPartsWithIdentifier) {
       toType = typeProvider.iterableType(parent.identifier.typeOrThrow);
     } else if (parent is SpreadElement) {
       var literal = parent.thisOrAncestorOfType<TypedLiteral>();
       if (literal is ListLiteral) {
-        toType = literal.typeOrThrow.asInstanceOf(typeProvider.iterableElement);
+        toType =
+            literal.typeOrThrow.asInstanceOf2(typeProvider.iterableElement2);
       } else if (literal is SetOrMapLiteral) {
         toType = literal.typeOrThrow.isDartCoreSet
-            ? literal.typeOrThrow.asInstanceOf(typeProvider.iterableElement)
-            : literal.typeOrThrow.asInstanceOf(typeProvider.mapElement);
+            ? literal.typeOrThrow.asInstanceOf2(typeProvider.iterableElement2)
+            : literal.typeOrThrow.asInstanceOf2(typeProvider.mapElement2);
       }
     } else if (parent is YieldStatement) {
       var enclosingExecutable =
           parent.thisOrAncestorOfType<FunctionBody>()?.parent;
-      if (enclosingExecutable is FunctionDeclaration) {
+      if (enclosingExecutable is MethodDeclaration) {
         toType = enclosingExecutable.returnType?.type;
-      } else if (enclosingExecutable is MethodDeclaration) {
-        toType = enclosingExecutable.returnType?.type;
-      } else if (enclosingExecutable is FunctionExpression) {
-        toType = enclosingExecutable.declaredElement!.returnType;
+      } else if (enclosingExecutable is FunctionExpressionImpl) {
+        toType = enclosingExecutable.returnType;
       }
     } else if (parent is BinaryExpression) {
       if (typeSystem.isNonNullable(fromType)) {
         return;
       }
-      var expectedType = parent.staticParameterElement?.type;
+      var expectedType = parent.correspondingParameter?.type;
       if (expectedType != null &&
           !typeSystem.isAssignableTo(
               typeSystem.promoteToNonNull(fromType), expectedType,

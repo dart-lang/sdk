@@ -69,117 +69,16 @@ bool _serveObservatory = false;
 bool _printDtd = false;
 
 // HTTP server.
-Server? server;
-Future<Server>? serverFuture;
-_DebuggingSession? ddsInstance;
-
-Server _lazyServerBoot() {
-  var localServer = server;
-  if (localServer != null) {
-    return localServer;
-  }
-  // Lazily create service.
-  final service = VMService();
-  // Lazily create server.
-  localServer = Server(service, _ip, _port, _originCheckDisabled,
-      _authCodesDisabled, _serviceInfoFilename, _enableServicePortFallback);
-  server = localServer;
-  return localServer;
-}
-
-/// Responsible for launching a DevTools instance when the service is started
-/// via SIGQUIT.
-class _DebuggingSession {
-  Future<bool> start(
-    String host,
-    String port,
-    bool disableServiceAuthCodes,
-    bool enableDevTools,
-  ) async {
-    final dartDir = File(Platform.resolvedExecutable).parent.path;
-    final executable = [
-      dartDir,
-      'dart${Platform.isWindows ? '.exe' : ''}',
-    ].join(Platform.pathSeparator);
-    _process = await Process.start(
-      executable,
-      [
-        'development-service',
-        '--vm-service-uri=${server!.serverAddress!}',
-        '--bind-address=$host',
-        '--bind-port=$port',
-        if (disableServiceAuthCodes) '--disable-service-auth-codes',
-        if (enableDevTools) '--serve-devtools',
-        if (_enableServicePortFallback) '--enable-service-port-fallback',
-      ],
-      mode: ProcessStartMode.detachedWithStdio,
-    );
-
-    // DDS will close stderr once it's finished launching.
-    final launchResult = await _process!.stderr.transform(utf8.decoder).join();
-
-    void printError(String details) => stderr.writeln(
-          'Could not start the VM service:\n$details',
-        );
-
-    try {
-      final result = json.decode(launchResult) as Map<String, dynamic>;
-      if (result
-          case {
-            'state': 'started',
-          }) {
-        if (result case {'devToolsUri': String devToolsUri}) {
-          // NOTE: update pkg/dartdev/lib/src/commands/run.dart if this message
-          // is changed to ensure consistency.
-          const devToolsMessagePrefix =
-              'The Dart DevTools debugger and profiler is available at:';
-          print('$devToolsMessagePrefix $devToolsUri');
-        }
-        if (result
-            case {
-              'dtd': {
-                'uri': String dtdUri,
-              }
-            } when _printDtd) {
-          print('The Dart Tooling Daemon (DTD) is available at: $dtdUri');
-        }
-      } else {
-        printError(result['error'] ?? result);
-        return false;
-      }
-    } catch (_) {
-      // Malformed JSON was likely encountered, so output the entirety of
-      // stderr in the error message.
-      printError(launchResult);
-      return false;
-    }
-    return true;
-  }
-
-  void shutdown() => _process!.kill();
-
-  Process? _process;
-}
+late final Server server;
 
 Future<void> cleanupCallback() async {
   // Cancel the sigquit subscription.
-  final signalSubscription = _signalSubscription;
-  if (signalSubscription != null) {
-    await signalSubscription.cancel();
-    _signalSubscription = null;
-  }
-  final localServer = server;
-  if (localServer != null) {
-    try {
-      await localServer.cleanup(true);
-    } catch (e, st) {
-      print('Error in vm-service shutdown: $e\n$st\n');
-    }
-  }
-  final timer = _registerSignalHandlerTimer;
-  if (timer != null) {
-    timer.cancel();
-    _registerSignalHandlerTimer = null;
+  await _signalSubscription?.cancel();
+  _signalSubscription = null;
+  try {
+    await server.shutdown(true);
+  } catch (e, st) {
+    print('Error in vm-service shutdown: $e\n$st\n');
   }
   // Call out to embedder's shutdown callback.
   _shutdown();
@@ -190,12 +89,12 @@ Future<void> ddsConnectedCallback() async {
   _notifyServerState(serviceAddress);
   onServerAddressChange(serviceAddress);
   if (_waitForDdsToAdvertiseService) {
-    await server!.outputConnectionInformation();
+    await server.outputConnectionInformation();
   }
 }
 
 Future<void> ddsDisconnectedCallback() async {
-  final serviceAddress = server!.serverAddress.toString();
+  final serviceAddress = server.serverAddress.toString();
   _notifyServerState(serviceAddress);
   onServerAddressChange(serviceAddress);
 }
@@ -306,58 +205,31 @@ Future<List<Map<String, dynamic>>> listFilesCallback(Uri dirPath) async {
   return result;
 }
 
-Uri? serverInformationCallback() => _lazyServerBoot().serverAddress;
+Uri? serverInformationCallback() => server.serverAddress;
+
+Future<void> _toggleWebServer() async {
+  // Toggle HTTP server.
+  if (server.running) {
+    await server.shutdown(true);
+    await VMService().clearState();
+  } else {
+    await server.startup();
+  }
+}
 
 Future<Uri?> webServerControlCallback(bool enable, bool? silenceOutput) async {
   if (silenceOutput != null) {
     silentObservatory = silenceOutput;
   }
-  final _server = _lazyServerBoot();
-  if (_server.running != enable) {
-    if (enable) {
-      await _server.startup();
-      // TODO: if dds is enabled a dds instance needs to be started.
-    } else {
-      await _server.shutdown(true);
-    }
+  if (server.running != enable) {
+    await _toggleWebServer();
   }
-  return _server.serverAddress;
+  return server.serverAddress;
 }
 
 void webServerAcceptNewWebSocketConnections(bool enable) {
-  final _server = _lazyServerBoot();
-  _server.acceptNewWebSocketConnections = enable;
+  server.acceptNewWebSocketConnections = enable;
 }
-
-_onSignal(ProcessSignal signal) async {
-  if (serverFuture != null) {
-    // Still waiting.
-    return;
-  }
-  final _server = _lazyServerBoot();
-  // Toggle HTTP server.
-  if (_server.running) {
-    _server.shutdown(true).then((_) async {
-      ddsInstance?.shutdown();
-      await VMService().clearState();
-      serverFuture = null;
-    });
-  } else {
-    _server.startup().then((_) {
-      if (_waitForDdsToAdvertiseService) {
-        ddsInstance = _DebuggingSession()
-          ..start(
-            _ddsIP,
-            _ddsPort.toString(),
-            _authCodesDisabled,
-            _serveDevtools,
-          );
-      }
-    });
-  }
-}
-
-Timer? _registerSignalHandlerTimer;
 
 void _registerSignalHandler() {
   if (VMService().isExiting) {
@@ -366,7 +238,6 @@ void _registerSignalHandler() {
     // isolate.
     return;
   }
-  _registerSignalHandlerTimer = null;
   final signalWatch = _signalWatch;
   if (signalWatch == null) {
     // Cannot register for signals.
@@ -376,11 +247,13 @@ void _registerSignalHandler() {
     // Cannot register for signals on Windows or Fuchsia.
     return;
   }
-  _signalSubscription = signalWatch(ProcessSignal.sigquit).listen(_onSignal);
+  _signalSubscription = signalWatch(ProcessSignal.sigquit).listen(
+    (_) => _toggleWebServer(),
+  );
 }
 
 @pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
-main() {
+void main() {
   // Set embedder hooks.
   VMServiceEmbedderHooks.cleanup = cleanupCallback;
   VMServiceEmbedderHooks.createTempDir = createTempDirCallback;
@@ -396,30 +269,23 @@ main() {
   VMServiceEmbedderHooks.acceptNewWebSocketConnections =
       webServerAcceptNewWebSocketConnections;
   VMServiceEmbedderHooks.serveObservatory = serveObservatoryCallback;
-  // Always instantiate the vmservice object so that the exit message
-  // can be delivered and waiting loaders can be cancelled.
-  VMService();
+  server = Server(
+    // Always instantiate the vmservice object so that the exit message
+    // can be delivered and waiting loaders can be cancelled.
+    VMService(),
+    _ip,
+    _port,
+    _originCheckDisabled,
+    _authCodesDisabled,
+    _serviceInfoFilename,
+    _enableServicePortFallback,
+  );
+
   if (_autoStart) {
-    final _server = _lazyServerBoot();
-    _server.startup().then((_) {
-      if (_waitForDdsToAdvertiseService) {
-        ddsInstance = _DebuggingSession()
-          ..start(
-            _ddsIP,
-            _ddsPort.toString(),
-            _authCodesDisabled,
-            _serveDevtools,
-          );
-      }
-    });
-    // It's just here to push an event on the event loop so that we invoke the
-    // scheduled microtasks.
-    Timer.run(() {});
+    _toggleWebServer();
   }
-  // Register signal handler after a small delay to avoid stalling main
-  // isolate startup.
-  _registerSignalHandlerTimer = Timer(shortDelay, _registerSignalHandler);
+  _registerSignalHandler();
 }
 
 @pragma("vm:external-name", "VMServiceIO_Shutdown")
-external _shutdown();
+external void _shutdown();

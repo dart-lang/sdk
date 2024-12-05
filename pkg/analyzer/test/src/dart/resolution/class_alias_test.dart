@@ -41,24 +41,27 @@ ClassTypeAlias
   equals: =
   superclass: NamedType
     name: A
-    element: self::@class::A
+    element: <testLibraryFragment>::@class::A
+    element2: <testLibraryFragment>::@class::A#element
     type: A
   withClause: WithClause
     withKeyword: with
     mixinTypes
       NamedType
         name: B
-        element: self::@class::B
+        element: <testLibraryFragment>::@class::B
+        element2: <testLibraryFragment>::@class::B#element
         type: B
   implementsClause: ImplementsClause
     implementsKeyword: implements
     interfaces
       NamedType
         name: C
-        element: self::@class::C
+        element: <testLibraryFragment>::@class::C
+        element2: <testLibraryFragment>::@class::C#element
         type: C
   semicolon: ;
-  declaredElement: self::@class::X
+  declaredElement: <testLibraryFragment>::@class::X
 ''');
   }
 

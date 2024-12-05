@@ -221,3 +221,31 @@ config("relative_paths") {
     "-no-canonical-prefixes",
   ]
 }
+
+if (is_clang) {
+  build_timestamp =
+      exec_script("//tools/make_coff_timestamp.py", [], "trim string")
+}
+
+config("deterministic_builds") {
+  if (is_clang) {
+    # /Brepro lets the compiler not write the mtime field in the .obj output.
+    # link.exe /incremental relies on this field to work correctly, but lld
+    # never looks at this timestamp, so it's safe to pass this flag with
+    # lld and get more deterministic compiler output in return.
+    # In LTO builds, the compiler doesn't write .obj files containing mtimes,
+    # so /Brepro is ignored there.
+    cflags = [ "/Brepro" ]
+
+    # lld defaults to writing the current time in the pe/coff header.
+    # For build reproducibility, pass an explicit timestamp. See
+    # build/compute_build_timestamp.py for how the timestamp is chosen.
+    # (link.exe also writes the current time, but it doesn't have a flag to
+    # override that behavior.)
+    ldflags = [ "/TIMESTAMP:" + build_timestamp ]
+
+    # Use a fake fixed base directory for paths in the pdb to make the pdb
+    # output fully deterministic and independent of the build directory.
+    ldflags += [ "/PDBSourcePath:o:\fake\prefix" ]
+  }
+}

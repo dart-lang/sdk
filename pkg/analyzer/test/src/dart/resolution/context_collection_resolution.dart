@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -28,7 +27,9 @@ import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
+import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -41,48 +42,83 @@ import 'resolution.dart';
 
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 
-class AnalysisOptionsFileConfig {
-  final List<String> experiments;
-  final List<String> lints;
-  final bool strictCasts;
-  final bool strictInference;
-  final bool strictRawTypes;
-  final List<String> unignorableNames;
+// TODO(srawlins): This is duplicate with pkg/linter/test/rule_test_support.dart
+// and pkg/analysis_server/test/analysis_server_base.dart.
+// Keep them as consistent with each other as they are today. Ultimately combine
+// them in a shared analyzer test utilities package (e.g. the analyzer_utilities
+// package).
+String analysisOptionsContent({
+  List<String> experiments = const [],
+  List<String> plugins = const [],
+  List<String> rules = const [],
+  bool strictCasts = false,
+  bool strictInference = false,
+  bool strictRawTypes = false,
+  List<String> unignorableNames = const [],
+}) {
+  var buffer = StringBuffer();
 
-  AnalysisOptionsFileConfig({
-    this.experiments = const [],
-    this.lints = const [],
-    this.strictCasts = false,
-    this.strictInference = false,
-    this.strictRawTypes = false,
-    this.unignorableNames = const [],
-  });
-
-  String toContent() {
-    var buffer = StringBuffer();
-
-    buffer.writeln('analyzer:');
+  buffer.writeln('analyzer:');
+  if (experiments.isNotEmpty) {
     buffer.writeln('  enable-experiment:');
     for (var experiment in experiments) {
       buffer.writeln('    - $experiment');
     }
-    buffer.writeln('  language:');
-    buffer.writeln('    strict-casts: $strictCasts');
-    buffer.writeln('    strict-inference: $strictInference');
-    buffer.writeln('    strict-raw-types: $strictRawTypes');
-    buffer.writeln('  cannot-ignore:');
-    for (var name in unignorableNames) {
-      buffer.writeln('    - $name');
-    }
-
-    buffer.writeln('linter:');
-    buffer.writeln('  rules:');
-    for (var lint in lints) {
-      buffer.writeln('    - $lint');
-    }
-
-    return buffer.toString();
   }
+
+  buffer.writeln('  language:');
+  buffer.writeln('    strict-casts: $strictCasts');
+  buffer.writeln('    strict-inference: $strictInference');
+  buffer.writeln('    strict-raw-types: $strictRawTypes');
+  buffer.writeln('  cannot-ignore:');
+  for (var name in unignorableNames) {
+    buffer.writeln('    - $name');
+  }
+
+  if (plugins.isNotEmpty) {
+    buffer.writeln('  plugins:');
+    for (var plugin in plugins) {
+      buffer.writeln('    - $plugin');
+    }
+  }
+
+  buffer.writeln('linter:');
+  buffer.writeln('  rules:');
+  for (var rule in rules) {
+    buffer.writeln('    - $rule');
+  }
+
+  return buffer.toString();
+}
+
+// TODO(scheglov): This is duplicate with
+// pkg/linter/test/rule_test_support.dart. Keep them as consistent with each
+// other as they are today. Ultimately combine them in a shared analyzer test
+// utilities package.
+String pubspecYamlContent({
+  String? name,
+  String? sdkVersion,
+  List<PubspecYamlFileDependency> dependencies = const [],
+}) {
+  var buffer = StringBuffer();
+
+  if (name != null) {
+    buffer.writeln('name: $name');
+  }
+
+  if (sdkVersion != null) {
+    buffer.writeln('environment:');
+    buffer.writeln("  sdk: '$sdkVersion'");
+  }
+
+  if (dependencies.isNotEmpty) {
+    buffer.writeln('dependencies:');
+    for (var dependency in dependencies) {
+      buffer.writeln('  ${dependency.name}: ${dependency.version}');
+    }
+  }
+
+  return buffer.toString();
 }
 
 class BlazeWorkspaceResolutionTest extends ContextResolutionTest {
@@ -221,7 +257,10 @@ abstract class ContextResolutionTest
       libraryContext: analysisDriver.libraryContext,
       configuration: analyzerStatePrinterConfiguration,
       resourceProvider: resourceProvider,
-      sink: buffer,
+      sink: TreeStringSink(
+        sink: buffer,
+        indent: '',
+      ),
       withKeysGetPut: false,
     ).writeAnalysisDriver(analysisDriver.testView!);
     var actual = buffer.toString();
@@ -335,12 +374,7 @@ class PubPackageResolutionTest extends ContextResolutionTest
   @override
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
-  List<String> get experiments {
-    return [
-      Feature.macros.enableString,
-      Feature.wildcard_variables.enableString,
-    ];
-  }
+  List<String> get experiments => experimentsForTests;
 
   @override
   String get packagesRootPath => '/packages';
@@ -433,9 +467,7 @@ class PubPackageResolutionTest extends ContextResolutionTest
   void setUp() {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: experiments,
-      ),
+      analysisOptionsContent(experiments: experiments),
     );
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
@@ -462,11 +494,8 @@ class PubPackageResolutionTest extends ContextResolutionTest
     return file;
   }
 
-  void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      config.toContent(),
-    );
+  void writeTestPackageAnalysisOptionsFile(String content) {
+    newAnalysisOptionsYamlFile(testPackageRootPath, content);
   }
 
   void writeTestPackageConfig(
@@ -526,42 +555,8 @@ class PubPackageResolutionTest extends ContextResolutionTest
     writeTestPackageConfig(PackageConfigFileBuilder(), meta: true);
   }
 
-  void writeTestPackagePubspecYamlFile(PubspecYamlFileConfig config) {
-    newPubspecYamlFile(testPackageRootPath, config.toContent());
-  }
-}
-
-class PubspecYamlFileConfig {
-  final String? name;
-  final String? sdkVersion;
-  final List<PubspecYamlFileDependency> dependencies;
-
-  PubspecYamlFileConfig({
-    this.name,
-    this.sdkVersion,
-    this.dependencies = const [],
-  });
-
-  String toContent() {
-    var buffer = StringBuffer();
-
-    if (name != null) {
-      buffer.writeln('name: $name');
-    }
-
-    if (sdkVersion != null) {
-      buffer.writeln('environment:');
-      buffer.writeln("  sdk: '$sdkVersion'");
-    }
-
-    if (dependencies.isNotEmpty) {
-      buffer.writeln('dependencies:');
-      for (var dependency in dependencies) {
-        buffer.writeln('  ${dependency.name}: ${dependency.version}');
-      }
-    }
-
-    return buffer.toString();
+  void writeTestPackagePubspecYamlFile(String content) {
+    newPubspecYamlFile(testPackageRootPath, content);
   }
 }
 
@@ -604,10 +599,7 @@ mixin WithStrictCastsMixin on PubPackageResolutionTest {
     await disposeAnalysisContextCollection();
 
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: experiments,
-        strictCasts: true,
-      ),
+      analysisOptionsContent(experiments: experiments, strictCasts: true),
     );
 
     await resolveTestFile();

@@ -1,0 +1,285 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/type_variable_nullability.dart:136:16: Error: Can't use a typedef denoting a type variable as a constructor, nor for a static member access.
+//     implements Typedef3<ExtensionType2<Z>> {} // Error
+//                ^
+// pkg/front_end/testcases/general/type_variable_nullability.dart:44:18: Context: This is the type variable ultimately denoted.
+// typedef Typedef3<Z> = Z;
+//                  ^
+//
+// pkg/front_end/testcases/general/type_variable_nullability.dart:146:16: Error: Can't use a typedef denoting a type variable as a constructor, nor for a static member access.
+//     implements Typedef3<ExtensionType6<Z>> {} // Error
+//                ^
+// pkg/front_end/testcases/general/type_variable_nullability.dart:44:18: Context: This is the type variable ultimately denoted.
+// typedef Typedef3<Z> = Z;
+//                  ^
+//
+// pkg/front_end/testcases/general/type_variable_nullability.dart:155:24: Error: Type 'Y' is a bound of itself via 'X'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// method17a<X extends Y, Y extends X>() {} // Error
+//                        ^
+//
+// pkg/front_end/testcases/general/type_variable_nullability.dart:156:25: Error: Type 'Y' is a bound of itself via 'X'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// method17b<X extends Y?, Y extends X>() {} // Error
+//                         ^
+//
+// pkg/front_end/testcases/general/type_variable_nullability.dart:157:24: Error: Type 'Y' is a bound of itself via 'X'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// method17c<X extends Y, Y extends X?>() {} // Error
+//                        ^
+//
+// pkg/front_end/testcases/general/type_variable_nullability.dart:158:25: Error: Type 'Y' is a bound of itself via 'X'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// method17d<X extends Y?, Y extends X?>() {} // Error
+//                         ^
+//
+// pkg/front_end/testcases/general/type_variable_nullability.dart:160:11: Error: Type 'X' is a bound of itself via 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// method18a<X extends Typedef3<Y>, Y extends Typedef3<X>>() {} // Error
+//           ^
+//
+// pkg/front_end/testcases/general/type_variable_nullability.dart:161:11: Error: Type 'X' is a bound of itself via 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// method18b<X extends Typedef3<Y>?, Y extends Typedef3<X>>() {} // Error
+//           ^
+//
+// pkg/front_end/testcases/general/type_variable_nullability.dart:162:11: Error: Type 'X' is a bound of itself via 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// method18c<X extends Typedef3<Y>, Y extends Typedef3<X>?>() {} // Error
+//           ^
+//
+// pkg/front_end/testcases/general/type_variable_nullability.dart:163:11: Error: Type 'X' is a bound of itself via 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// method18d<X extends Typedef3<Y>?, Y extends Typedef3<X>?>() {} // Error
+//           ^
+//
+// pkg/front_end/testcases/general/type_variable_nullability.dart:164:11: Error: Type 'X' is a bound of itself via 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// method18e<X extends Typedef3<Y?>, Y extends Typedef3<X>>() {} // Error
+//           ^
+//
+// pkg/front_end/testcases/general/type_variable_nullability.dart:165:11: Error: Type 'X' is a bound of itself via 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// method18f<X extends Typedef3<Y>, Y extends Typedef3<X?>>() {} // Error
+//           ^
+//
+// pkg/front_end/testcases/general/type_variable_nullability.dart:166:11: Error: Type 'X' is a bound of itself via 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// method18g<X extends Typedef3<Y?>, Y extends Typedef3<X?>>() {} // Error
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+typedef Typedef1<Z extends core::Object? = dynamic> = core::List<Z%>;
+typedef Typedef2<Z extends core::Object? = dynamic> = core::List<Z%>?;
+typedef Typedef3<Z extends core::Object? = dynamic> = Z%;
+typedef Typedef4<Z extends core::Object? = dynamic> = Z?;
+extension type ExtensionType1<Z extends core::Object? = dynamic>(Z% o) {
+  abstract extension-type-member representation-field get o() → Z%;
+  constructor • = self::ExtensionType1|constructor#;
+  constructor tearoff • = self::ExtensionType1|constructor#_#new#tearOff;
+}
+extension type ExtensionType2<Z extends core::Object? = dynamic>(Z% o) implements self::ExtensionType1<Z%>% /* erasure=Z%, declared=! */ {
+  abstract extension-type-member representation-field get o() → Z%;
+  constructor • = self::ExtensionType2|constructor#;
+  constructor tearoff • = self::ExtensionType2|constructor#_#new#tearOff;
+}
+extension type ExtensionType3<Z extends core::Object>(Z o) {
+  abstract extension-type-member representation-field get o() → Z;
+  constructor • = self::ExtensionType3|constructor#;
+  constructor tearoff • = self::ExtensionType3|constructor#_#new#tearOff;
+}
+extension type ExtensionType4<Z extends core::Object>(Z o) implements self::ExtensionType3<Z>% /* erasure=Z, declared=! */ {
+  abstract extension-type-member representation-field get o() → Z;
+  constructor • = self::ExtensionType4|constructor#;
+  constructor tearoff • = self::ExtensionType4|constructor#_#new#tearOff;
+}
+extension type ExtensionType5<Z extends core::Object>(Z o) implements core::Object {
+  abstract extension-type-member representation-field get o() → Z;
+  constructor • = self::ExtensionType5|constructor#;
+  constructor tearoff • = self::ExtensionType5|constructor#_#new#tearOff;
+}
+extension type ExtensionType6<Z extends core::Object>(Z o) implements self::ExtensionType5<Z> /* erasure=Z */ {
+  abstract extension-type-member representation-field get o() → Z;
+  constructor • = self::ExtensionType6|constructor#;
+  constructor tearoff • = self::ExtensionType6|constructor#_#new#tearOff;
+}
+extension type ExtensionType7<Z extends core::Object>(Z o) implements self::ExtensionType2<Z>% /* erasure=Z, declared=! */ {
+  abstract extension-type-member representation-field get o() → Z;
+  constructor • = self::ExtensionType7|constructor#;
+  constructor tearoff • = self::ExtensionType7|constructor#_#new#tearOff;
+}
+extension type ExtensionType8<Z extends core::Object>(Z o) implements self::ExtensionType6<Z> /* erasure=Z */ {
+  abstract extension-type-member representation-field get o() → Z;
+  constructor • = self::ExtensionType8|constructor#;
+  constructor tearoff • = self::ExtensionType8|constructor#_#new#tearOff;
+}
+static method method1a<X extends self::method1a::Y% = dynamic, Y extends core::Object? = dynamic>() → dynamic {}
+static method method1b<X extends core::Object? = dynamic, Y extends self::method1b::X% = dynamic>() → dynamic {}
+static method method1c<X extends self::method1c::Y? = dynamic, Y extends core::Object? = dynamic>() → dynamic {}
+static method method1d<X extends core::Object? = dynamic, Y extends self::method1d::X? = dynamic>() → dynamic {}
+static method method2a<X extends self::method2a::Y = core::Object, Y extends core::Object>() → dynamic {}
+static method method2b<X extends core::Object, Y extends self::method2b::X = core::Object>() → dynamic {}
+static method method2c<X extends self::method2c::Y? = core::Object?, Y extends core::Object>() → dynamic {}
+static method method2d<X extends core::Object, Y extends self::method2d::X? = core::Object?>() → dynamic {}
+static method method2e<X extends self::method2e::Y? = core::Object?, Y extends core::Object?>() → dynamic {}
+static method method2f<X extends core::Object?, Y extends self::method2f::X? = core::Object?>() → dynamic {}
+static method method3a<X extends self::method3a::Y = dynamic, Y extends core::List<self::method3a::X> = core::List<dynamic>>() → dynamic {}
+static method method3b<X extends core::List<self::method3b::Y> = core::List<dynamic>, Y extends self::method3b::X = dynamic>() → dynamic {}
+static method method3c<X extends self::method3c::Y? = dynamic, Y extends core::List<self::method3c::X%> = core::List<dynamic>>() → dynamic {}
+static method method3d<X extends core::List<self::method3d::Y%> = core::List<dynamic>, Y extends self::method3d::X? = dynamic>() → dynamic {}
+static method method3e<X extends self::method3e::Y? = dynamic, Y extends core::List<self::method3e::X%>? = core::List<dynamic>?>() → dynamic {}
+static method method3f<X extends core::List<self::method3f::Y%>? = core::List<dynamic>?, Y extends self::method3f::X? = dynamic>() → dynamic {}
+static method method4a<X extends self::method4a::Y = dynamic, Y extends core::List<self::method4a::X> = core::List<dynamic>>() → dynamic {}
+static method method4b<X extends core::List<self::method4b::Y> = core::List<dynamic>, Y extends self::method4b::X = dynamic>() → dynamic {}
+static method method4c<X extends self::method4c::Y? = dynamic, Y extends core::List<self::method4c::X%> = core::List<dynamic>>() → dynamic {}
+static method method4d<X extends core::List<self::method4d::Y%> = core::List<dynamic>, Y extends self::method4d::X? = dynamic>() → dynamic {}
+static method method4e<X extends self::method4e::Y? = dynamic, Y extends core::List<self::method4e::X%>? = core::List<dynamic>?>() → dynamic {}
+static method method4f<X extends core::List<self::method4f::Y%>? = core::List<dynamic>?, Y extends self::method4f::X? = dynamic>() → dynamic {}
+static method method5a<X extends self::method5a::Y% = dynamic, Y extends core::List<self::method5a::X%>? = core::List<dynamic>?>() → dynamic {}
+static method method5b<X extends core::List<self::method5b::Y%>? = core::List<dynamic>?, Y extends self::method5b::X% = dynamic>() → dynamic {}
+static method method5c<X extends self::method5c::Y? = dynamic, Y extends core::List<self::method5c::X%>? = core::List<dynamic>?>() → dynamic {}
+static method method5d<X extends core::List<self::method5d::Y%>? = core::List<dynamic>?, Y extends self::method5d::X? = dynamic>() → dynamic {}
+static method method5e<X extends self::method5e::Y? = dynamic, Y extends core::List<self::method5e::X%>? = core::List<dynamic>?>() → dynamic {}
+static method method5f<X extends core::List<self::method5f::Y%>? = core::List<dynamic>?, Y extends self::method5f::X? = dynamic>() → dynamic {}
+static method method6a<X extends self::method6a::Y = dynamic, Y extends core::List<self::method6a::X> = core::List<dynamic>>() → dynamic {}
+static method method6b<X extends core::List<self::method6b::Y> = core::List<dynamic>, Y extends self::method6b::X = dynamic>() → dynamic {}
+static method method6c<X extends self::method6c::Y? = dynamic, Y extends core::List<self::method6c::X%> = core::List<dynamic>>() → dynamic {}
+static method method6d<X extends core::List<self::method6d::Y%> = core::List<dynamic>, Y extends self::method6d::X? = dynamic>() → dynamic {}
+static method method6e<X extends self::method6e::Y? = dynamic, Y extends core::List<self::method6e::X%>? = core::List<dynamic>?>() → dynamic {}
+static method method6f<X extends core::List<self::method6f::Y%>? = core::List<dynamic>?, Y extends self::method6f::X? = dynamic>() → dynamic {}
+static method method6g<X extends self::method6g::Y% = dynamic, Y extends core::List<self::method6g::X%>? = core::List<dynamic>?>() → dynamic {}
+static method method6h<X extends core::List<self::method6h::Y%>? = core::List<dynamic>?, Y extends self::method6h::X% = dynamic>() → dynamic {}
+static method method7a<X extends self::method7a::Y% = dynamic, Y extends core::List<self::method7a::X%>? = core::List<dynamic>?>() → dynamic {}
+static method method7b<X extends core::List<self::method7b::Y%>? = core::List<dynamic>?, Y extends self::method7b::X% = dynamic>() → dynamic {}
+static method method7c<X extends self::method7c::Y? = dynamic, Y extends core::List<self::method7c::X%>? = core::List<dynamic>?>() → dynamic {}
+static method method7d<X extends core::List<self::method7d::Y%>? = core::List<dynamic>?, Y extends self::method7d::X? = dynamic>() → dynamic {}
+static method method7e<X extends self::method7e::Y? = dynamic, Y extends core::List<self::method7e::X%>? = core::List<dynamic>?>() → dynamic {}
+static method method7f<X extends core::List<self::method7f::Y%>? = core::List<dynamic>?, Y extends self::method7f::X? = dynamic>() → dynamic {}
+static method method7g<X extends self::method7g::Y% = dynamic, Y extends core::List<self::method7g::X%>? = core::List<dynamic>?>() → dynamic {}
+static method method7h<X extends core::List<self::method7h::Y%>? = core::List<dynamic>?, Y extends self::method7h::X% = dynamic>() → dynamic {}
+static method method8a<X extends self::method8a::Y% = dynamic, Y extends FutureOr<self::method8a::X%> = FutureOr<dynamic>>() → dynamic {}
+static method method8b<X extends FutureOr<self::method8b::Y%> = FutureOr<dynamic>, Y extends self::method8b::X% = dynamic>() → dynamic {}
+static method method8c<X extends self::method8c::Y? = dynamic, Y extends FutureOr<self::method8c::X%> = FutureOr<dynamic>>() → dynamic {}
+static method method8d<X extends FutureOr<self::method8d::Y%> = FutureOr<dynamic>, Y extends self::method8d::X? = dynamic>() → dynamic {}
+static method method8e<X extends self::method8e::Y? = dynamic, Y extends FutureOr<self::method8e::X%>? = FutureOr<dynamic>?>() → dynamic {}
+static method method8f<X extends FutureOr<self::method8f::Y%>? = FutureOr<dynamic>?, Y extends self::method8f::X? = dynamic>() → dynamic {}
+static method method8g<X extends self::method8g::Y% = dynamic, Y extends FutureOr<self::method8g::X?> = FutureOr<dynamic>>() → dynamic {}
+static method method8h<X extends FutureOr<self::method8h::Y?> = FutureOr<dynamic>, Y extends self::method8h::X% = dynamic>() → dynamic {}
+static extension-type-member method ExtensionType1|constructor#<Z extends core::Object? = dynamic>(self::ExtensionType1|constructor#::Z% o) → self::ExtensionType1<self::ExtensionType1|constructor#::Z%>% /* erasure=self::ExtensionType1|constructor#::Z%, declared=! */ {
+  lowered final self::ExtensionType1<self::ExtensionType1|constructor#::Z%>% /* erasure=self::ExtensionType1|constructor#::Z%, declared=! */ #this = o;
+  return #this;
+}
+static extension-type-member method ExtensionType1|constructor#_#new#tearOff<Z extends core::Object? = dynamic>(self::ExtensionType1|constructor#_#new#tearOff::Z% o) → self::ExtensionType1<self::ExtensionType1|constructor#_#new#tearOff::Z%>% /* erasure=self::ExtensionType1|constructor#_#new#tearOff::Z%, declared=! */
+  return self::ExtensionType1|constructor#<self::ExtensionType1|constructor#_#new#tearOff::Z%>(o);
+static method method9a<X extends self::method9a::Y% = dynamic, Y extends self::ExtensionType1<core::List<self::method9a::X%>>% /* erasure=core::List<self::method9a::X%>, declared=! */ = self::ExtensionType1<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */>() → dynamic {}
+static method method9b<X extends self::ExtensionType1<core::List<self::method9b::Y%>>% /* erasure=core::List<self::method9b::Y%>, declared=! */ = self::ExtensionType1<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */, Y extends self::method9b::X% = dynamic>() → dynamic {}
+static method method9c<X extends self::method9c::Y? = dynamic, Y extends self::ExtensionType1<core::List<self::method9c::X%>>% /* erasure=core::List<self::method9c::X%>, declared=! */ = self::ExtensionType1<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */>() → dynamic {}
+static method method9d<X extends self::ExtensionType1<core::List<self::method9d::Y%>>% /* erasure=core::List<self::method9d::Y%>, declared=! */ = self::ExtensionType1<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */, Y extends self::method9d::X? = dynamic>() → dynamic {}
+static method method9e<X extends self::method9e::Y? = dynamic, Y extends self::ExtensionType1<core::List<self::method9e::X%>>? /* erasure=core::List<self::method9e::X%>? */ = self::ExtensionType1<core::List<dynamic>>? /* erasure=core::List<dynamic>? */>() → dynamic {}
+static method method9f<X extends self::ExtensionType1<core::List<self::method9f::Y%>>? /* erasure=core::List<self::method9f::Y%>? */ = self::ExtensionType1<core::List<dynamic>>? /* erasure=core::List<dynamic>? */, Y extends self::method9f::X? = dynamic>() → dynamic {}
+static method method9g<X extends self::method9g::Y% = dynamic, Y extends self::ExtensionType1<core::List<self::method9g::X%>?>% /* erasure=core::List<self::method9g::X%>?, declared=! */ = self::ExtensionType1<core::List<dynamic>?>% /* erasure=core::List<dynamic>?, declared=! */>() → dynamic {}
+static method method9h<X extends self::ExtensionType1<core::List<self::method9h::Y%>?>% /* erasure=core::List<self::method9h::Y%>?, declared=! */ = self::ExtensionType1<core::List<dynamic>?>% /* erasure=core::List<dynamic>?, declared=! */, Y extends self::method9h::X% = dynamic>() → dynamic {}
+static extension-type-member method ExtensionType2|constructor#<Z extends core::Object? = dynamic>(self::ExtensionType2|constructor#::Z% o) → self::ExtensionType2<self::ExtensionType2|constructor#::Z%>% /* erasure=self::ExtensionType2|constructor#::Z%, declared=! */ {
+  lowered final self::ExtensionType2<self::ExtensionType2|constructor#::Z%>% /* erasure=self::ExtensionType2|constructor#::Z%, declared=! */ #this = o;
+  return #this;
+}
+static extension-type-member method ExtensionType2|constructor#_#new#tearOff<Z extends core::Object? = dynamic>(self::ExtensionType2|constructor#_#new#tearOff::Z% o) → self::ExtensionType2<self::ExtensionType2|constructor#_#new#tearOff::Z%>% /* erasure=self::ExtensionType2|constructor#_#new#tearOff::Z%, declared=! */
+  return self::ExtensionType2|constructor#<self::ExtensionType2|constructor#_#new#tearOff::Z%>(o);
+static method method10a<X extends self::method10a::Y% = dynamic, Y extends self::ExtensionType2<core::List<self::method10a::X%>>% /* erasure=core::List<self::method10a::X%>, declared=! */ = self::ExtensionType2<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */>() → dynamic {}
+static method method10b<X extends self::ExtensionType2<core::List<self::method10b::Y%>>% /* erasure=core::List<self::method10b::Y%>, declared=! */ = self::ExtensionType2<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */, Y extends self::method10b::X% = dynamic>() → dynamic {}
+static method method10c<X extends self::method10c::Y? = dynamic, Y extends self::ExtensionType2<core::List<self::method10c::X%>>% /* erasure=core::List<self::method10c::X%>, declared=! */ = self::ExtensionType2<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */>() → dynamic {}
+static method method10d<X extends self::ExtensionType2<core::List<self::method10d::Y%>>% /* erasure=core::List<self::method10d::Y%>, declared=! */ = self::ExtensionType2<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */, Y extends self::method10d::X? = dynamic>() → dynamic {}
+static method method10e<X extends self::method10e::Y? = dynamic, Y extends self::ExtensionType2<core::List<self::method10e::X%>>? /* erasure=core::List<self::method10e::X%>? */ = self::ExtensionType2<core::List<dynamic>>? /* erasure=core::List<dynamic>? */>() → dynamic {}
+static method method10f<X extends self::ExtensionType2<core::List<self::method10f::Y%>>? /* erasure=core::List<self::method10f::Y%>? */ = self::ExtensionType2<core::List<dynamic>>? /* erasure=core::List<dynamic>? */, Y extends self::method10f::X? = dynamic>() → dynamic {}
+static method method10g<X extends self::method10g::Y% = dynamic, Y extends self::ExtensionType2<core::List<self::method10g::X%>?>% /* erasure=core::List<self::method10g::X%>?, declared=! */ = self::ExtensionType2<core::List<dynamic>?>% /* erasure=core::List<dynamic>?, declared=! */>() → dynamic {}
+static method method10h<X extends self::ExtensionType2<core::List<self::method10h::Y%>?>% /* erasure=core::List<self::method10h::Y%>?, declared=! */ = self::ExtensionType2<core::List<dynamic>?>% /* erasure=core::List<dynamic>?, declared=! */, Y extends self::method10h::X% = dynamic>() → dynamic {}
+static extension-type-member method ExtensionType3|constructor#<Z extends core::Object>(self::ExtensionType3|constructor#::Z o) → self::ExtensionType3<self::ExtensionType3|constructor#::Z>% /* erasure=self::ExtensionType3|constructor#::Z, declared=! */ {
+  lowered final self::ExtensionType3<self::ExtensionType3|constructor#::Z>% /* erasure=self::ExtensionType3|constructor#::Z, declared=! */ #this = o;
+  return #this;
+}
+static extension-type-member method ExtensionType3|constructor#_#new#tearOff<Z extends core::Object>(self::ExtensionType3|constructor#_#new#tearOff::Z o) → self::ExtensionType3<self::ExtensionType3|constructor#_#new#tearOff::Z>% /* erasure=self::ExtensionType3|constructor#_#new#tearOff::Z, declared=! */
+  return self::ExtensionType3|constructor#<self::ExtensionType3|constructor#_#new#tearOff::Z>(o);
+static method method11a<X extends self::method11a::Y% = dynamic, Y extends self::ExtensionType3<core::List<self::method11a::X%>>% /* erasure=core::List<self::method11a::X%>, declared=! */ = self::ExtensionType3<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */>() → dynamic {}
+static method method11b<X extends self::ExtensionType3<core::List<self::method11b::Y%>>% /* erasure=core::List<self::method11b::Y%>, declared=! */ = self::ExtensionType3<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */, Y extends self::method11b::X% = dynamic>() → dynamic {}
+static method method11c<X extends self::method11c::Y? = dynamic, Y extends self::ExtensionType3<core::List<self::method11c::X%>>% /* erasure=core::List<self::method11c::X%>, declared=! */ = self::ExtensionType3<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */>() → dynamic {}
+static method method11d<X extends self::ExtensionType2<core::List<self::method11d::Y%>>% /* erasure=core::List<self::method11d::Y%>, declared=! */ = self::ExtensionType2<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */, Y extends self::method11d::X? = dynamic>() → dynamic {}
+static method method11e<X extends self::method11e::Y? = dynamic, Y extends self::ExtensionType3<core::List<self::method11e::X%>>? /* erasure=core::List<self::method11e::X%>? */ = self::ExtensionType3<core::List<dynamic>>? /* erasure=core::List<dynamic>? */>() → dynamic {}
+static method method11f<X extends self::ExtensionType3<core::List<self::method11f::Y%>>? /* erasure=core::List<self::method11f::Y%>? */ = self::ExtensionType3<core::List<dynamic>>? /* erasure=core::List<dynamic>? */, Y extends self::method11f::X? = dynamic>() → dynamic {}
+static extension-type-member method ExtensionType4|constructor#<Z extends core::Object>(self::ExtensionType4|constructor#::Z o) → self::ExtensionType4<self::ExtensionType4|constructor#::Z>% /* erasure=self::ExtensionType4|constructor#::Z, declared=! */ {
+  lowered final self::ExtensionType4<self::ExtensionType4|constructor#::Z>% /* erasure=self::ExtensionType4|constructor#::Z, declared=! */ #this = o;
+  return #this;
+}
+static extension-type-member method ExtensionType4|constructor#_#new#tearOff<Z extends core::Object>(self::ExtensionType4|constructor#_#new#tearOff::Z o) → self::ExtensionType4<self::ExtensionType4|constructor#_#new#tearOff::Z>% /* erasure=self::ExtensionType4|constructor#_#new#tearOff::Z, declared=! */
+  return self::ExtensionType4|constructor#<self::ExtensionType4|constructor#_#new#tearOff::Z>(o);
+static method method12a<X extends self::method12a::Y% = dynamic, Y extends self::ExtensionType4<core::List<self::method12a::X%>>% /* erasure=core::List<self::method12a::X%>, declared=! */ = self::ExtensionType4<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */>() → dynamic {}
+static method method12b<X extends self::ExtensionType4<core::List<self::method12b::Y%>>% /* erasure=core::List<self::method12b::Y%>, declared=! */ = self::ExtensionType4<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */, Y extends self::method12b::X% = dynamic>() → dynamic {}
+static method method12c<X extends self::method12c::Y? = dynamic, Y extends self::ExtensionType4<core::List<self::method12c::X%>>% /* erasure=core::List<self::method12c::X%>, declared=! */ = self::ExtensionType4<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */>() → dynamic {}
+static method method12d<X extends self::ExtensionType4<core::List<self::method12d::Y%>>% /* erasure=core::List<self::method12d::Y%>, declared=! */ = self::ExtensionType4<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */, Y extends self::method12d::X? = dynamic>() → dynamic {}
+static method method12e<X extends self::method12e::Y? = dynamic, Y extends self::ExtensionType4<core::List<self::method12e::X%>>? /* erasure=core::List<self::method12e::X%>? */ = self::ExtensionType4<core::List<dynamic>>? /* erasure=core::List<dynamic>? */>() → dynamic {}
+static method method12f<X extends self::ExtensionType4<core::List<self::method12f::Y%>>? /* erasure=core::List<self::method12f::Y%>? */ = self::ExtensionType4<core::List<dynamic>>? /* erasure=core::List<dynamic>? */, Y extends self::method12f::X? = dynamic>() → dynamic {}
+static extension-type-member method ExtensionType5|constructor#<Z extends core::Object>(self::ExtensionType5|constructor#::Z o) → self::ExtensionType5<self::ExtensionType5|constructor#::Z> /* erasure=self::ExtensionType5|constructor#::Z */ {
+  lowered final self::ExtensionType5<self::ExtensionType5|constructor#::Z> /* erasure=self::ExtensionType5|constructor#::Z */ #this = o;
+  return #this;
+}
+static extension-type-member method ExtensionType5|constructor#_#new#tearOff<Z extends core::Object>(self::ExtensionType5|constructor#_#new#tearOff::Z o) → self::ExtensionType5<self::ExtensionType5|constructor#_#new#tearOff::Z> /* erasure=self::ExtensionType5|constructor#_#new#tearOff::Z */
+  return self::ExtensionType5|constructor#<self::ExtensionType5|constructor#_#new#tearOff::Z>(o);
+static method method13a<X extends self::method13a::Y = dynamic, Y extends self::ExtensionType5<core::List<self::method13a::X>> /* erasure=core::List<self::method13a::X> */ = self::ExtensionType5<core::List<dynamic>> /* erasure=core::List<dynamic> */>() → dynamic {}
+static method method13b<X extends self::ExtensionType5<core::List<self::method13b::Y>> /* erasure=core::List<self::method13b::Y> */ = self::ExtensionType5<core::List<dynamic>> /* erasure=core::List<dynamic> */, Y extends self::method13b::X = dynamic>() → dynamic {}
+static method method13c<X extends self::method13c::Y? = dynamic, Y extends self::ExtensionType5<core::List<self::method13c::X%>> /* erasure=core::List<self::method13c::X%> */ = self::ExtensionType5<core::List<dynamic>> /* erasure=core::List<dynamic> */>() → dynamic {}
+static method method13d<X extends self::ExtensionType5<core::List<self::method13d::Y%>> /* erasure=core::List<self::method13d::Y%> */ = self::ExtensionType5<core::List<dynamic>> /* erasure=core::List<dynamic> */, Y extends self::method13d::X? = dynamic>() → dynamic {}
+static method method13e<X extends self::method13e::Y? = dynamic, Y extends self::ExtensionType5<core::List<self::method13e::X%>>? /* erasure=core::List<self::method13e::X%>? */ = self::ExtensionType5<core::List<dynamic>>? /* erasure=core::List<dynamic>? */>() → dynamic {}
+static method method13f<X extends self::ExtensionType5<core::List<self::method13f::Y%>>? /* erasure=core::List<self::method13f::Y%>? */ = self::ExtensionType5<core::List<dynamic>>? /* erasure=core::List<dynamic>? */, Y extends self::method13f::X? = dynamic>() → dynamic {}
+static extension-type-member method ExtensionType6|constructor#<Z extends core::Object>(self::ExtensionType6|constructor#::Z o) → self::ExtensionType6<self::ExtensionType6|constructor#::Z> /* erasure=self::ExtensionType6|constructor#::Z */ {
+  lowered final self::ExtensionType6<self::ExtensionType6|constructor#::Z> /* erasure=self::ExtensionType6|constructor#::Z */ #this = o;
+  return #this;
+}
+static extension-type-member method ExtensionType6|constructor#_#new#tearOff<Z extends core::Object>(self::ExtensionType6|constructor#_#new#tearOff::Z o) → self::ExtensionType6<self::ExtensionType6|constructor#_#new#tearOff::Z> /* erasure=self::ExtensionType6|constructor#_#new#tearOff::Z */
+  return self::ExtensionType6|constructor#<self::ExtensionType6|constructor#_#new#tearOff::Z>(o);
+static method method14a<X extends self::method14a::Y = dynamic, Y extends self::ExtensionType6<core::List<self::method14a::X>> /* erasure=core::List<self::method14a::X> */ = self::ExtensionType6<core::List<dynamic>> /* erasure=core::List<dynamic> */>() → dynamic {}
+static method method14b<X extends self::ExtensionType6<core::List<self::method14b::Y>> /* erasure=core::List<self::method14b::Y> */ = self::ExtensionType6<core::List<dynamic>> /* erasure=core::List<dynamic> */, Y extends self::method14b::X = dynamic>() → dynamic {}
+static method method14c<X extends self::method14c::Y? = dynamic, Y extends self::ExtensionType6<core::List<self::method14c::X%>> /* erasure=core::List<self::method14c::X%> */ = self::ExtensionType6<core::List<dynamic>> /* erasure=core::List<dynamic> */>() → dynamic {}
+static method method14d<X extends self::ExtensionType6<core::List<self::method14d::Y%>> /* erasure=core::List<self::method14d::Y%> */ = self::ExtensionType6<core::List<dynamic>> /* erasure=core::List<dynamic> */, Y extends self::method14d::X? = dynamic>() → dynamic {}
+static method method14e<X extends self::method14e::Y? = dynamic, Y extends self::ExtensionType6<core::List<self::method14e::X%>>? /* erasure=core::List<self::method14e::X%>? */ = self::ExtensionType6<core::List<dynamic>>? /* erasure=core::List<dynamic>? */>() → dynamic {}
+static method method14f<X extends self::ExtensionType6<core::List<self::method14f::Y%>>? /* erasure=core::List<self::method14f::Y%>? */ = self::ExtensionType6<core::List<dynamic>>? /* erasure=core::List<dynamic>? */, Y extends self::method14f::X? = dynamic>() → dynamic {}
+static extension-type-member method ExtensionType7|constructor#<Z extends core::Object>(self::ExtensionType7|constructor#::Z o) → self::ExtensionType7<self::ExtensionType7|constructor#::Z>% /* erasure=self::ExtensionType7|constructor#::Z, declared=! */ {
+  lowered final self::ExtensionType7<self::ExtensionType7|constructor#::Z>% /* erasure=self::ExtensionType7|constructor#::Z, declared=! */ #this = o;
+  return #this;
+}
+static extension-type-member method ExtensionType7|constructor#_#new#tearOff<Z extends core::Object>(self::ExtensionType7|constructor#_#new#tearOff::Z o) → self::ExtensionType7<self::ExtensionType7|constructor#_#new#tearOff::Z>% /* erasure=self::ExtensionType7|constructor#_#new#tearOff::Z, declared=! */
+  return self::ExtensionType7|constructor#<self::ExtensionType7|constructor#_#new#tearOff::Z>(o);
+static method method15a<X extends self::method15a::Y% = dynamic, Y extends self::ExtensionType7<core::List<self::method15a::X%>>% /* erasure=core::List<self::method15a::X%>, declared=! */ = self::ExtensionType7<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */>() → dynamic {}
+static method method15b<X extends self::ExtensionType7<core::List<self::method15b::Y%>>% /* erasure=core::List<self::method15b::Y%>, declared=! */ = self::ExtensionType7<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */, Y extends self::method15b::X% = dynamic>() → dynamic {}
+static method method15c<X extends self::method15c::Y? = dynamic, Y extends self::ExtensionType7<core::List<self::method15c::X%>>% /* erasure=core::List<self::method15c::X%>, declared=! */ = self::ExtensionType7<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */>() → dynamic {}
+static method method15d<X extends self::ExtensionType6<core::List<self::method15d::Y%>> /* erasure=core::List<self::method15d::Y%> */ = self::ExtensionType6<core::List<dynamic>> /* erasure=core::List<dynamic> */, Y extends self::method15d::X? = dynamic>() → dynamic {}
+static method method15e<X extends self::method15e::Y? = dynamic, Y extends self::ExtensionType7<core::List<self::method15e::X%>>? /* erasure=core::List<self::method15e::X%>? */ = self::ExtensionType7<core::List<dynamic>>? /* erasure=core::List<dynamic>? */>() → dynamic {}
+static method method15f<X extends self::ExtensionType7<core::List<self::method15f::Y%>>? /* erasure=core::List<self::method15f::Y%>? */ = self::ExtensionType7<core::List<dynamic>>? /* erasure=core::List<dynamic>? */, Y extends self::method15f::X? = dynamic>() → dynamic {}
+static extension-type-member method ExtensionType8|constructor#<Z extends core::Object>(self::ExtensionType8|constructor#::Z o) → self::ExtensionType8<self::ExtensionType8|constructor#::Z> /* erasure=self::ExtensionType8|constructor#::Z */ {
+  lowered final self::ExtensionType8<self::ExtensionType8|constructor#::Z> /* erasure=self::ExtensionType8|constructor#::Z */ #this = o;
+  return #this;
+}
+static extension-type-member method ExtensionType8|constructor#_#new#tearOff<Z extends core::Object>(self::ExtensionType8|constructor#_#new#tearOff::Z o) → self::ExtensionType8<self::ExtensionType8|constructor#_#new#tearOff::Z> /* erasure=self::ExtensionType8|constructor#_#new#tearOff::Z */
+  return self::ExtensionType8|constructor#<self::ExtensionType8|constructor#_#new#tearOff::Z>(o);
+static method method16a<X extends self::method16a::Y = dynamic, Y extends self::ExtensionType8<core::List<self::method16a::X>> /* erasure=core::List<self::method16a::X> */ = self::ExtensionType8<core::List<dynamic>> /* erasure=core::List<dynamic> */>() → dynamic {}
+static method method16b<X extends self::ExtensionType8<core::List<self::method16b::Y>> /* erasure=core::List<self::method16b::Y> */ = self::ExtensionType8<core::List<dynamic>> /* erasure=core::List<dynamic> */, Y extends self::method16b::X = dynamic>() → dynamic {}
+static method method16c<X extends self::method16c::Y? = dynamic, Y extends self::ExtensionType8<core::List<self::method16c::X%>> /* erasure=core::List<self::method16c::X%> */ = self::ExtensionType8<core::List<dynamic>> /* erasure=core::List<dynamic> */>() → dynamic {}
+static method method16d<X extends self::ExtensionType6<core::List<self::method16d::Y%>> /* erasure=core::List<self::method16d::Y%> */ = self::ExtensionType6<core::List<dynamic>> /* erasure=core::List<dynamic> */, Y extends self::method16d::X? = dynamic>() → dynamic {}
+static method method16e<X extends self::method16e::Y? = dynamic, Y extends self::ExtensionType8<core::List<self::method16e::X%>>? /* erasure=core::List<self::method16e::X%>? */ = self::ExtensionType8<core::List<dynamic>>? /* erasure=core::List<dynamic>? */>() → dynamic {}
+static method method16f<X extends self::ExtensionType8<core::List<self::method16f::Y%>>? /* erasure=core::List<self::method16f::Y%>? */ = self::ExtensionType8<core::List<dynamic>>? /* erasure=core::List<dynamic>? */, Y extends self::method16f::X? = dynamic>() → dynamic {}
+static method method17a<X extends self::method17a::Y% = dynamic, Y extends invalid-type = dynamic>() → dynamic {}
+static method method17b<X extends self::method17b::Y? = dynamic, Y extends invalid-type = dynamic>() → dynamic {}
+static method method17c<X extends self::method17c::Y% = dynamic, Y extends invalid-type = dynamic>() → dynamic {}
+static method method17d<X extends self::method17d::Y? = dynamic, Y extends invalid-type = dynamic>() → dynamic {}
+static method method18a<X extends invalid-type = dynamic, Y extends self::method18a::X% = dynamic>() → dynamic {}
+static method method18b<X extends invalid-type = dynamic, Y extends self::method18b::X% = dynamic>() → dynamic {}
+static method method18c<X extends invalid-type = dynamic, Y extends self::method18c::X? = dynamic>() → dynamic {}
+static method method18d<X extends invalid-type = dynamic, Y extends self::method18d::X? = dynamic>() → dynamic {}
+static method method18e<X extends invalid-type = dynamic, Y extends self::method18e::X% = dynamic>() → dynamic {}
+static method method18f<X extends invalid-type = dynamic, Y extends self::method18f::X? = dynamic>() → dynamic {}
+static method method18g<X extends invalid-type = dynamic, Y extends self::method18g::X? = dynamic>() → dynamic {}

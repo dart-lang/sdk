@@ -6,14 +6,19 @@ import 'dart:_wasm';
 
 part 'timer_patch.dart';
 
+// Modular kernel transformer will make calls to this method be re-directed to
+// call dart:core:Error._trySetStackTrace instead.
+@patch
+external void _trySetStackTrace(Object error, StackTrace stackTrace);
+
 typedef _AsyncResumeFun = WasmFunction<
     void Function(
         _AsyncSuspendState,
         // Value of the last `await`
         Object?,
-        // If the last `await` throwed an error, the error value
+        // If the last `await` threw an error, the error value
         Object?,
-        // If the last `await` throwed an error, the stack trace
+        // If the last `await` threw an error, the stack trace
         StackTrace?)>;
 
 @pragma("wasm:entry-point")

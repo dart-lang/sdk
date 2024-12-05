@@ -6,6 +6,7 @@ library dart2js.compiler_base;
 
 import 'dart:async' show Future;
 import 'dart:convert' show jsonEncode;
+import 'dart:typed_data';
 
 import 'package:compiler/src/universe/use.dart' show StaticUse;
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
@@ -836,7 +837,7 @@ class Compiler {
     }
   }
 
-  Future<api.Input<List<int>>> callUserProvider(
+  Future<api.Input<Uint8List>> callUserProvider(
       Uri uri, api.InputKind inputKind) {
     try {
       return userProviderTask

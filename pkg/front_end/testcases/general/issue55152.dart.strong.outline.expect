@@ -11,8 +11,8 @@ class A<X extends core::Object? = dynamic> extends core::Object /*hasConstConstr
     return new self::A::•<self::A::redir::X%>();
 }
 class E extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E> values = const <self::E>[self::E::element];
   final field self::A<core::String> a;
+  static const field core::List<self::E> values = const <self::E>[self::E::element];
   enum-element static const field self::E element = const self::E::•(0, "element", const self::A::•<core::String>());
   const constructor •(core::int #index, core::String #name, self::A<core::String> a) → self::E
     : self::E::a = a, super core::_Enum::•(#index, #name)

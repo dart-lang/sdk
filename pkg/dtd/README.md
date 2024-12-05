@@ -4,7 +4,7 @@ A package for communicating with the Dart Tooling Daemon.
 
 ## What is the Dart Tooling Daemon?
 
-The Dart Tooling Daemon is a long running process meant to facilitate
+The Dart Tooling Daemon is a long-running process meant to facilitate
 communication between Dart tools and minimal file system access for a Dart
 development workspace.
 
@@ -20,7 +20,7 @@ run process.
 ## Quick Start
 
 ```dart
-import "package:dtd"
+import 'package:dtd/dtd.dart';
 
 /// Since the Dart Tooling Daemon exists within the context of a development
 /// environment, any tool using DTD can expect a development environment to
@@ -52,7 +52,7 @@ final client = await DartToolingDaemon.connect(dtdUri);
 
 `client` can then be used to interact with the Dart Tooling Daemon.
 
-See the [Examples](#examples) for details on the built in interactions.
+See the [Examples](#examples) for details on the built-in interactions.
 
 ## Examples
 

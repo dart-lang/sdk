@@ -40,7 +40,7 @@ void main() {
   cPartial1.uriToSource[uri1] =
       new Source([42, 2 * 42], utf8.encode("source #1"), uri1, uri1);
   cPartial1.uriToSource[uri2] =
-      new Source([43, 3 * 43], const <int>[], uri1, uri1);
+      new Source.emptySource([43, 3 * 43], uri1, uri1);
   List<int> partial1Serialized = serialize(cPartial1);
   expectSource(partial1Serialized, true, false);
 
@@ -48,7 +48,7 @@ void main() {
     ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Strong)
     ..libraries.add(library2);
   cPartial2.uriToSource[uri1] =
-      new Source([42, 2 * 42], const <int>[], uri1, uri1);
+      new Source.emptySource([42, 2 * 42], uri1, uri1);
   cPartial2.uriToSource[uri2] =
       new Source([43, 3 * 43], utf8.encode("source #2"), uri1, uri1);
   List<int> partial2Serialized = serialize(cPartial2);

@@ -24,7 +24,7 @@ class AlwaysPutRequiredNamedParametersFirstTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  String get lintRule => 'always_put_required_named_parameters_first';
+  String get lintRule => LintNames.always_put_required_named_parameters_first;
 
   test_constructor_requiredAfterOptional() async {
     await assertDiagnostics(r'''

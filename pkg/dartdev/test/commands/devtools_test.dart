@@ -220,7 +220,7 @@ Future<void> main() async {
     }) async {
       targetProjectInstance = await targetProject.start(
         [
-          '--disable-dart-dev',
+          '--no-dds',
           '--observe=0',
           if (disableServiceAuthCodes) '--disable-service-auth-codes',
           targetProject.relativeFilePath,

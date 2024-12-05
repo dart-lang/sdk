@@ -420,11 +420,10 @@ part '1111/22/new_name.dart';
     var pathA = convertPath('/home/test/000/1111/a.dart');
     testFilePath = convertPath('/home/test/000/1111/22/test.dart');
     newFile(pathA, '''
-library lib;
 part '22/test.dart';
 ''');
     addTestSource('''
-part of lib;
+part of '../a.dart';
 ''');
     await analyzeTestPackageFiles();
     await resolveTestFile();
@@ -432,7 +431,6 @@ part of lib;
     _createRefactoring('/home/test/000/1111/22/new_name.dart');
     await _assertSuccessfulRefactoring();
     assertFileChangeResult(pathA, '''
-library lib;
 part '22/new_name.dart';
 ''');
     assertNoFileChange(testFile.path);

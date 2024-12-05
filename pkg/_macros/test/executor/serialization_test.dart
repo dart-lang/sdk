@@ -172,6 +172,7 @@ void main() {
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'foo'),
             library: Fixtures.library,
             metadata: [],
+            style: ParameterStyle.values[rand.nextInt(3)],
             type: fooType);
         final fooNamedFunctionTypeParam = FormalParameterImpl(
             id: RemoteInstance.uniqueId,
@@ -189,6 +190,7 @@ void main() {
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bar'),
             library: Fixtures.library,
             metadata: [],
+            style: ParameterStyle.values[rand.nextInt(3)],
             type: barType);
         final barPositionalFunctionTypeParam = FormalParameterImpl(
             id: RemoteInstance.uniqueId,
@@ -294,6 +296,7 @@ void main() {
             returnType: fooType,
             typeParameters: [zapTypeParam],
             definingType: fooType.identifier,
+            isConst: rand.nextBool(),
             isFactory: rand.nextBool(),
           );
           expectSerializationEquality<DeclarationImpl>(
@@ -765,7 +768,7 @@ void expectSerializationEquality<T extends Serializable>(T serializable,
 
 /// Deserializes [serialized] in its own remote instance cache and sends it
 /// back.
-Object? roundTrip<Declaration>(Object? serialized, int zoneId) {
+Object? roundTrip(Object? serialized, int zoneId) {
   return withRemoteInstanceZone(zoneId, () {
     var deserializer = deserializerFactory(serialized);
     var instance = RemoteInstance.deserialize(deserializer) as Serializable;

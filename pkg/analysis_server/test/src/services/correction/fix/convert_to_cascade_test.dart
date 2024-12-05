@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -45,6 +45,27 @@ class A {
 void f(A a) {
   a..x = 1
   ..x = 2
+  ..m();
+}
+''');
+  }
+
+  Future<void> test_declaration_method() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+}
+void f() {
+  final a = A();
+  a.m();
+}
+''');
+    await assertHasFix('''
+class A {
+  void m() {}
+}
+void f() {
+  final a = A()
   ..m();
 }
 ''');
@@ -94,6 +115,32 @@ void f(A a) {
   ..x = 1;
 }
 ''');
+  }
+
+  Future<void> test_multipleDeclaration_first_method() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+}
+void f() {
+  final a = A(), a2 = A();
+  a.m();
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_multipleDeclaration_last_method() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+}
+void f() {
+  final a = A(), a2 = A();
+  a2.m();
+}
+''');
+    await assertNoFix();
   }
 
   Future<void> test_property_cascade() async {

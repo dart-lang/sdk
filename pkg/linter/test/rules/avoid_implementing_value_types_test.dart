@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidImplementingValueTypesTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_implementing_value_types';
+  String get lintRule => LintNames.avoid_implementing_value_types;
 
   test_classMixinInMixinWithEqualEqual() async {
     await assertNoDiagnostics(r'''

@@ -17,6 +17,16 @@ main() {
 @reflectiveTest
 class DeadCodeTest extends PubPackageResolutionTest
     with DeadCodeTestCases_Language212 {
+  test_deadOperandLHS_or_recordPropertyAccess() async {
+    await assertErrorsInCode(r'''
+void f(({bool b, }) r) {
+  if (true || r.b) {}
+}
+''', [
+      error(WarningCode.DEAD_CODE, 36, 6),
+    ]);
+  }
+
   test_deadPattern_ifCase_logicalOrPattern_leftAlwaysMatches() async {
     await assertErrorsInCode(r'''
 void f(int x) {
@@ -178,7 +188,17 @@ void f(Object x) {
 
 @reflectiveTest
 class DeadCodeTest_Language219 extends PubPackageResolutionTest
-    with WithLanguage219Mixin, DeadCodeTestCases_Language212 {}
+    with WithLanguage219Mixin, DeadCodeTestCases_Language212 {
+  @override
+  test_lateWildCardVariable_initializer() async {
+    await assertNoErrorsInCode(r'''
+f() {
+  // Not a wildcard variable.
+  late var _ = 0;
+}
+''');
+  }
+}
 
 mixin DeadCodeTestCases_Language212 on PubPackageResolutionTest {
   @override
@@ -255,7 +275,7 @@ void f(Object waldo) {
   assert(waldo != null, "Where's Waldo?");
 }
 ''', [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 38, 7),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 38, 7),
     ]);
   }
 
@@ -703,7 +723,7 @@ f() {
   bool b = DEBUG || true;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 38, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 38, 1),
     ]);
   }
 
@@ -1190,6 +1210,24 @@ void g(Never f) {
       error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
       error(WarningCode.DEAD_CODE, 21, 16),
     ]);
+  }
+
+  test_lateWildCardVariable_initializer() async {
+    await assertErrorsInCode(r'''
+f() {
+  late var _ = 0;
+}
+''', [
+      error(WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER, 21, 1),
+    ]);
+  }
+
+  test_lateWildCardVariable_noInitializer() async {
+    await assertNoErrorsInCode(r'''
+f() {
+  late var _;
+}
+''');
   }
 
   test_notUnassigned_propertyAccess() async {

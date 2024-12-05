@@ -29,7 +29,8 @@ WithClause
   mixinTypes
     NamedType
       name: M
-      element: self::@mixin::M
+      element: <testLibraryFragment>::@mixin::M
+      element2: <testLibraryFragment>::@mixin::M#element
       type: M
 ''');
   }
@@ -47,7 +48,8 @@ WithClause
   mixinTypes
     NamedType
       name: M
-      element: self::@mixin::M
+      element: <testLibraryFragment>::@mixin::M
+      element2: <testLibraryFragment>::@mixin::M#element
       type: M
 ''');
   }
@@ -140,11 +142,12 @@ FieldDeclaration
     type: NamedType
       name: T
       element: T@8
+      element2: <not-implemented>
       type: T
     variables
       VariableDeclaration
         name: f
-        declaredElement: self::@mixin::M::@field::f
+        declaredElement: <testLibraryFragment>::@mixin::M::@field::f
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -162,7 +165,8 @@ mixin M {
 MethodDeclaration
   returnType: NamedType
     name: int
-    element: dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
+    element2: dart:core::<fragment>::@class::int#element
     type: int
   propertyKeyword: get
   name: foo
@@ -172,7 +176,7 @@ MethodDeclaration
       literal: 0
       staticType: int
     semicolon: ;
-  declaredElement: self::@mixin::M::@getter::foo
+  declaredElement: <testLibraryFragment>::@mixin::M::@getter::foo
     type: int Function()
 ''');
   }
@@ -192,11 +196,13 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
     NamedType
       name: B
-      element: self::@class::B
+      element: <testLibraryFragment>::@class::B
+      element2: <testLibraryFragment>::@class::B#element
       type: B
 ''');
   }
@@ -268,6 +274,7 @@ MethodDeclaration
   returnType: NamedType
     name: void
     element: <null>
+    element2: <null>
     type: void
   name: foo
   parameters: FormalParameterList
@@ -277,7 +284,7 @@ MethodDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: self::@mixin::M::@method::foo
+  declaredElement: <testLibraryFragment>::@mixin::M::@method::foo
     type: void Function()
 ''');
   }
@@ -292,7 +299,7 @@ class C<T> {}
 
 mixin M<T> on C<T> {}
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 1),
     ]);
 
     var node = findNode.functionExpressionInvocation('f()');
@@ -300,12 +307,14 @@ mixin M<T> on C<T> {}
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: f
-    staticElement: self::@function::g::@parameter::f
+    staticElement: <testLibraryFragment>::@function::g::@parameter::f
+    element: <testLibraryFragment>::@function::g::@parameter::f#element
     staticType: M<T> Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
+  element: <null>
   staticInvokeType: M<int> Function()
   staticType: M<int>
   typeArgumentTypes
@@ -328,11 +337,13 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
     NamedType
       name: B
-      element: self::@class::B
+      element: <testLibraryFragment>::@class::B
+      element2: <testLibraryFragment>::@class::B#element
       type: B
 ''');
   }
@@ -350,6 +361,7 @@ MethodDeclaration
   returnType: NamedType
     name: void
     element: <null>
+    element2: <null>
     type: void
   propertyKeyword: set
   name: foo
@@ -358,17 +370,18 @@ MethodDeclaration
     parameter: SimpleFormalParameter
       type: NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
       name: _
-      declaredElement: self::@mixin::M::@setter::foo::@parameter::_
+      declaredElement: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::_
         type: int
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: self::@mixin::M::@setter::foo
+  declaredElement: <testLibraryFragment>::@mixin::M::@setter::foo
     type: void Function(int)
 ''');
   }
@@ -417,14 +430,15 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
+    element: <testLibraryFragment>::@class::A::@method::foo#element
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
-        parameter: self::@class::A::@method::foo::@parameter::x
+        parameter: <testLibraryFragment>::@class::A::@method::foo::@parameter::x
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -458,18 +472,22 @@ AssignmentExpression
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: self::@class::A::@setter::foo::@parameter::_
+    parameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
-  writeElement: self::@class::A::@setter::foo
+  writeElement: <testLibraryFragment>::@class::A::@setter::foo
+  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }

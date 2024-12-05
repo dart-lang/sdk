@@ -19,7 +19,7 @@ class DeclarationNamedAugmentedInsideAugmentationTest
     extends PubPackageResolutionTest {
   test_insideClassMethodAugmentation_localVariable_noInitializer() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   void f() {}
@@ -27,7 +27,7 @@ class A {
 ''');
 
     await assertErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment void f() {
@@ -35,126 +35,126 @@ augment class A {
   }
 }
 ''', [
-      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 74,
+      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 66,
           9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 74, 9),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 9),
     ]);
   }
 
   test_insideFunctionAugmentation_declaredVariablePattern_assignment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 void f() {}
 ''');
 
     await assertErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment void f() {
   var (augmented,) = (0,);
 }
 ''', [
-      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 53,
+      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 45,
           9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 53, 9),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 9),
     ]);
   }
 
   test_insideFunctionAugmentation_declaredVariablePattern_match() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 void f() {}
 ''');
 
     await assertErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment void f() {
   if ((0,) case (var augmented,)) {}
 }
 ''', [
-      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 67,
+      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 59,
           9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 67, 9),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 59, 9),
     ]);
   }
 
   test_insideFunctionAugmentation_formalParameter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 void f(int a) {}
 ''');
 
     await assertErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment void f(int augmented) {}
 ''', [
-      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 46,
+      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 38,
           9),
     ]);
   }
 
   test_insideFunctionAugmentation_localFunction() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 void f() {}
 ''');
 
     await assertErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment void f() {
   void augmented() {}
 }
 ''', [
-      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 53,
+      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 45,
           9),
-      error(WarningCode.UNUSED_ELEMENT, 53, 9),
+      error(WarningCode.UNUSED_ELEMENT, 45, 9),
     ]);
   }
 
   test_insideFunctionAugmentation_localVariable_noInitializer() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 void f() {}
 ''');
 
     await assertErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment void f() {
   int augmented;
 }
 ''', [
-      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 52,
+      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 44,
           9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 9),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 9),
     ]);
   }
 
   test_insideFunctionAugmentation_localVariable_withInitializer() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 void f() {}
 ''');
 
     await assertErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment void f() {
   var augmented = 0;
 }
 ''', [
-      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 52,
+      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 44,
           9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 9),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 9),
     ]);
   }
 }

@@ -1,0 +1,35 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class Interface extends core::Object {
+  synthetic constructor •() → self::Interface
+    : super core::Object::•()
+    ;
+}
+abstract class Mixin0<X extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class Mixin1<X extends self::Interface> extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class Mixin2<X extends self::Interface> extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class _C&Object&Mixin0<X extends core::Object? = dynamic, Y extends core::Object? = dynamic, Z extends self::Interface> = core::Object with self::Mixin0<self::_C&Object&Mixin0::Y%> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C&Object&Mixin0<self::_C&Object&Mixin0::X%, self::_C&Object&Mixin0::Y%, self::_C&Object&Mixin0::Z>
+    : super core::Object::•()
+    ;
+}
+abstract class _C&Object&Mixin0&Mixin1<X extends core::Object? = dynamic, Y extends core::Object? = dynamic, Z extends self::Interface> = self::_C&Object&Mixin0<self::_C&Object&Mixin0&Mixin1::X%, self::_C&Object&Mixin0&Mixin1::Y%, self::_C&Object&Mixin0&Mixin1::Z> with self::Mixin1<self::Interface> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C&Object&Mixin0&Mixin1<self::_C&Object&Mixin0&Mixin1::X%, self::_C&Object&Mixin0&Mixin1::Y%, self::_C&Object&Mixin0&Mixin1::Z>
+    : super self::_C&Object&Mixin0::•()
+    ;
+}
+abstract class _C&Object&Mixin0&Mixin1&Mixin2<X extends core::Object? = dynamic, Y extends core::Object? = dynamic, Z extends self::Interface> = self::_C&Object&Mixin0&Mixin1<self::_C&Object&Mixin0&Mixin1&Mixin2::X%, self::_C&Object&Mixin0&Mixin1&Mixin2::Y%, self::_C&Object&Mixin0&Mixin1&Mixin2::Z> with self::Mixin2<self::_C&Object&Mixin0&Mixin1&Mixin2::Z> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C&Object&Mixin0&Mixin1&Mixin2<self::_C&Object&Mixin0&Mixin1&Mixin2::X%, self::_C&Object&Mixin0&Mixin1&Mixin2::Y%, self::_C&Object&Mixin0&Mixin1&Mixin2::Z>
+    : super self::_C&Object&Mixin0&Mixin1::•()
+    ;
+}
+abstract class C<X extends core::Object? = dynamic, Y extends core::Object? = dynamic, Z extends self::Interface> extends self::_C&Object&Mixin0&Mixin1&Mixin2<self::C::X%, self::C::Y%, self::C::Z> {
+  synthetic constructor •() → self::C<self::C::X%, self::C::Y%, self::C::Z>
+    : super self::_C&Object&Mixin0&Mixin1&Mixin2::•()
+    ;
+}

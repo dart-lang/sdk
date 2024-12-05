@@ -16,12 +16,14 @@ import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart' as p;
 import 'package:analyzer/src/string_source.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// Return a formatted string if successful, throws a [FormatterException] if
-/// unable to format. Takes a string as input.
-String format(String content) {
+/// unable to format. Takes a string as input and an optional [languageVersion].
+String format(String content, {Version? languageVersion}) {
   var code = SourceCode(content);
-  var formatter = DartFormatter();
+  var formatter = DartFormatter(
+      languageVersion: languageVersion ?? DartFormatter.latestLanguageVersion);
   SourceCode formattedResult;
   formattedResult = formatter.formatSource(code);
   return formattedResult.text;

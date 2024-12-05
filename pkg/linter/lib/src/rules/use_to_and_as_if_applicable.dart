@@ -8,47 +8,10 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Start the name of the method with to/_to or as/_as if applicable.';
-
-const _details = r'''
-From [Effective Dart](https://dart.dev/effective-dart/design#prefer-naming-a-method-to___-if-it-copies-the-objects-state-to-a-new-object):
-
-**PREFER** naming a method `to___()` if it copies the object's state to a new
-object.
-
-**PREFER** naming a method `as___()` if it returns a different representation
-backed by the original object.
-
-**BAD:**
-```dart
-class Bar {
-  Foo myMethod() {
-    return Foo.from(this);
-  }
-}
-```
-
-**GOOD:**
-```dart
-class Bar {
-  Foo toFoo() {
-    return Foo.from(this);
-  }
-}
-```
-
-**GOOD:**
-```dart
-class Bar {
-  Foo asFoo() {
-    return Foo.from(this);
-  }
-}
-```
-
-''';
 
 bool _beginsWithAsOrTo(String name) {
   var regExp = RegExp(r'(to|as|_to|_as)[A-Z]');
@@ -59,19 +22,14 @@ bool _isVoid(TypeAnnotation? returnType) =>
     returnType is NamedType && returnType.type is VoidType;
 
 class UseToAndAsIfApplicable extends LintRule {
-  static const LintCode code = LintCode('use_to_and_as_if_applicable',
-      "Start the name of the method with 'to' or 'as'.",
-      correctionMessage: "Try renaming the method to use either 'to' or 'as'.");
-
   UseToAndAsIfApplicable()
       : super(
-            name: 'use_to_and_as_if_applicable',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.use_to_and_as_if_applicable,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_to_and_as_if_applicable;
 
   @override
   void registerNodeProcessors(

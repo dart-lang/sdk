@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnawaitedFuturesTest extends LintRuleTest {
   @override
-  String get lintRule => 'unawaited_futures';
+  String get lintRule => LintNames.unawaited_futures;
 
   test_undefinedIdentifier() async {
     await assertDiagnostics(r'''

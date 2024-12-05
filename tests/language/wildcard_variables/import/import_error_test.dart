@@ -14,12 +14,12 @@ main() {
 
   _.topLevel;
 //^
-// [analyzer] unspecified
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [cfe] Undefined name '_'.
 
   _.C(value);
 //^
-// [analyzer] unspecified
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [cfe] Undefined name '_'.
 
   // Private extensions can't be used.

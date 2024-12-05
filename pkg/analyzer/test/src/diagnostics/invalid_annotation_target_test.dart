@@ -707,6 +707,19 @@ class C {}
 ''');
   }
 
+  void test_extension_type_parameter() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.parameter})
+class A {
+  const A();
+}
+
+extension type const E(@A() int x) {}
+''');
+  }
+
   void test_field_field() async {
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';

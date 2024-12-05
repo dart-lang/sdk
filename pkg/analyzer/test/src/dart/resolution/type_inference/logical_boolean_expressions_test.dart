@@ -31,7 +31,8 @@ BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: a
-      staticElement: self::@function::a
+      staticElement: <testLibraryFragment>::@function::a
+      element: <testLibraryFragment>::@function::a#element
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -44,15 +45,18 @@ BinaryExpression
   rightOperand: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: b
-      staticElement: self::@function::f::@parameter::b
+      staticElement: <testLibraryFragment>::@function::f::@parameter::b
+      element: <testLibraryFragment>::@function::f::@parameter::b#element
       staticType: dynamic
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
     staticElement: <null>
+    element: <null>
     staticInvokeType: dynamic
     staticType: dynamic
   staticElement: <null>
+  element: <null>
   staticInvokeType: null
   staticType: bool
 ''');
@@ -71,15 +75,18 @@ void f(bool a, bool b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: bool
   operator: &&
   rightOperand: SimpleIdentifier
     token: b
     parameter: <null>
-    staticElement: self::@function::f::@parameter::b
+    staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <testLibraryFragment>::@function::f::@parameter::b#element
     staticType: bool
   staticElement: <null>
+  element: <null>
   staticInvokeType: null
   staticType: bool
 ''');
@@ -104,7 +111,8 @@ BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: a
-      staticElement: self::@function::a
+      staticElement: <testLibraryFragment>::@function::a
+      element: <testLibraryFragment>::@function::a#element
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -117,15 +125,18 @@ BinaryExpression
   rightOperand: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: b
-      staticElement: self::@function::f::@parameter::b
+      staticElement: <testLibraryFragment>::@function::f::@parameter::b
+      element: <testLibraryFragment>::@function::f::@parameter::b#element
       staticType: dynamic
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
     staticElement: <null>
+    element: <null>
     staticInvokeType: dynamic
     staticType: dynamic
   staticElement: <null>
+  element: <null>
   staticInvokeType: null
   staticType: bool
 ''');
@@ -144,15 +155,18 @@ void f(bool a, bool b) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: bool
   operator: ||
   rightOperand: SimpleIdentifier
     token: b
     parameter: <null>
-    staticElement: self::@function::f::@parameter::b
+    staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <testLibraryFragment>::@function::f::@parameter::b#element
     staticType: bool
   staticElement: <null>
+  element: <null>
   staticInvokeType: null
   staticType: bool
 ''');

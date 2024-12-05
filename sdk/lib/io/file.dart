@@ -173,6 +173,13 @@ class FileLock {
 /// In addition to length, the [exists], [lastModified], [stat], and
 /// other methods, are asynchronous.
 ///
+/// ## Special 'nul' file
+///
+/// On Linux and Mac '/dev/null' and on Windows '\\?\NUL' refer to a special file,
+/// such that all writes to it get consumed and disappear, and all reads produce empty
+/// output. Note that on Windows 'nul'(without '\\?\'-prefix) refers to a regular file
+/// named  'nul' in current directory.
+///
 /// ## Other resources
 ///
 /// * The [Files and directories](https://dart.dev/guides/libraries/library-tour#files-and-directories)
@@ -921,6 +928,13 @@ abstract interface class RandomAccessFile {
   /// On Windows the regions used for lock and unlock needs to match. If that
   /// is not the case unlocking will result in the OS error "The segment is
   /// already unlocked".
+  ///
+  /// On Windows, locking a file associates the lock with the specific file
+  /// handle used to acquire the lock. If the same file is opened again with a
+  /// different handle (even within the same process), attempts to write to the
+  /// locked region using the new handle will fail. To ensure successful writes
+  /// after locking, use the same [RandomAccessFile] object that acquired the
+  /// lock for subsequent write operations.
   Future<RandomAccessFile> lock(
       [FileLock mode = FileLock.exclusive, int start = 0, int end = -1]);
 
@@ -958,6 +972,12 @@ abstract interface class RandomAccessFile {
   /// is not the case unlocking will result in the OS error "The segment is
   /// already unlocked".
   ///
+  /// On Windows, locking a file associates the lock with the specific file
+  /// handle used to acquire the lock. If the same file is opened again with a
+  /// different handle (even within the same process), attempts to write to the
+  /// locked region using the new handle will fail. To ensure successful writes
+  /// after locking, use the same [RandomAccessFile] object that acquired the
+  /// lock for subsequent write operations.
   void lockSync(
       [FileLock mode = FileLock.exclusive, int start = 0, int end = -1]);
 
@@ -1050,6 +1070,7 @@ class FileSystemException implements IOException {
         case _errorFileNotFound:
         case _errorPathNotFound:
         case _errorInvalidDrive:
+        case _errorInvalidName:
         case _errorNoMoreFiles:
         case _errorBadNetpath:
         case _errorBadNetName:

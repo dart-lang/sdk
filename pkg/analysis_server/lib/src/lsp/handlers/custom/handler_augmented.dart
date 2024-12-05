@@ -14,6 +14,9 @@ class AugmentedHandler extends AbstractGoToHandler {
   Method get handlesMessage => CustomMethods.augmented;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Element? findRelatedElement(Element element) {
     return switch (element) {
       ExecutableElement element => element.augmentationTarget,

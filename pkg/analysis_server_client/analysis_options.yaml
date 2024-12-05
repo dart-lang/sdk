@@ -4,6 +4,8 @@ analyzer:
   errors:
     constant_identifier_names: ignore
     non_constant_identifier_names: ignore
+    # Existing violations (109)
+    unintended_html_in_doc_comment: ignore
 
 linter:
   rules:

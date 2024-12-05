@@ -8,55 +8,19 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use `forEach` to only apply a function to all the elements.';
 
-const _details = r'''
-**DO** use `forEach` if you are only going to apply a function or a method
-to all the elements of an iterable.
-
-Using `forEach` when you are only going to apply a function or method to all
-elements of an iterable is a good practice because it makes your code more
-terse.
-
-**BAD:**
-```dart
-for (final key in map.keys.toList()) {
-  map.remove(key);
-}
-```
-
-**GOOD:**
-```dart
-map.keys.toList().forEach(map.remove);
-```
-
-**NOTE:** Replacing a for each statement with a forEach call may change the
-behavior in the case where there are side-effects on the iterable itself.
-```dart
-for (final v in myList) {
-  foo().f(v); // This code invokes foo() many times.
-}
-
-myList.forEach(foo().f); // But this one invokes foo() just once.
-```
-
-''';
-
 class PreferForeach extends LintRule {
-  static const LintCode code = LintCode('prefer_foreach',
-      "Use 'forEach' rather than a 'for' loop to apply a function to every element.",
-      correctionMessage: "Try using 'forEach' rather than a 'for' loop.");
-
   PreferForeach()
       : super(
-            name: 'prefer_foreach',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.prefer_foreach,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_foreach;
 
   @override
   void registerNodeProcessors(
@@ -66,7 +30,7 @@ class PreferForeach extends LintRule {
   }
 }
 
-class _PreferForEachVisitor extends SimpleAstVisitor {
+class _PreferForEachVisitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   LocalVariableElement? element;
   ForStatement? forEachStatement;
@@ -123,7 +87,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor {
   }
 }
 
-class _ReferenceFinder extends UnifyingAstVisitor {
+class _ReferenceFinder extends UnifyingAstVisitor<void> {
   bool found = false;
   final LocalVariableElement? element;
   _ReferenceFinder(this.element);
@@ -146,7 +110,7 @@ class _ReferenceFinder extends UnifyingAstVisitor {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   _Visitor(this.rule);
 

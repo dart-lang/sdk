@@ -6,8 +6,8 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:path/path.dart' as p;
 
 import '../js_ast/js_ast.dart';
+import '../kernel/compiler.dart';
 import 'js_names.dart';
-import 'shared_compiler.dart';
 
 /// The module format to emit.
 enum ModuleFormat {
@@ -22,6 +22,10 @@ enum ModuleFormat {
 
   /// Dart Dev Compiler's own format.
   ddc,
+
+  // New version of ddc module system that will support hot reload.
+  // TODO(nshahan) Eventually replace the existing `ddc` with this format.
+  ddcLibraryBundle,
 }
 
 /// Parses a string into a [ModuleFormat].
@@ -87,8 +91,9 @@ Program transformModuleFormat(ModuleFormat format, Program module) {
       return CommonJSModuleBuilder().build(module);
     case ModuleFormat.amd:
       return AmdModuleBuilder().build(module);
+    case ModuleFormat.ddcLibraryBundle:
+      return DdcLibraryBundleBuilder().build(module);
     case ModuleFormat.es6:
-    default:
       return module;
   }
 }
@@ -294,7 +299,7 @@ class DdcModuleBuilder extends _ModuleBuilder {
       js.commentExpression(
           'Imports', ArrayInitializer(importNames, multiline: true)),
       resultModule,
-      SharedCompiler.metricsLocationID
+      ProgramCompiler.metricsLocationID
     ]);
     return Program(<ModuleItem>[...module.header, moduleDef]);
   }
@@ -458,6 +463,75 @@ class AmdModuleBuilder extends _ModuleBuilder {
         'define(#, #);', [ArrayInitializer(dependencies), resultModule]);
 
     return Program([...module.header, block]);
+  }
+}
+
+/// Generates DDC bundles of libraries with our `ddc_module_loader.js` loading
+/// mechanism. This format is compatible with hot reload.
+class DdcLibraryBundleBuilder extends _ModuleBuilder {
+  /// Build library variable definitions for all libraries from [import].
+  static List<Statement> buildImports(
+      Identifier? moduleVar, ImportDeclaration import) {
+    var items = <Statement>[];
+
+    var fromName = import.from;
+    for (var importName in import.namedImports!) {
+      // import * is not emitted by the compiler, so we don't handle it here.
+      assert(!importName.isStar);
+
+      var asName = importName.asName ?? importName.name;
+      if (import.from.valueWithoutQuotes != dartSdkModule) {
+        // Load non-SDK modules on demand (i.e., deferred).
+        items.add(js.statement(
+            'let # = dartDevEmbedder.importLibrary(#, function (lib) { '
+            '# = lib; });',
+            [asName, fromName, asName]));
+      } else {
+        items.add(js.statement(
+            'const # = dartDevEmbedder.importLibrary(#)', [asName, fromName]));
+      }
+    }
+    return items;
+  }
+
+  Program build(Program module) {
+    if (module is! LibraryBundle) {
+      // TODO(nshahan): Delete and update the argument type when this is the
+      // only supported module format.
+      throw ArgumentError.value(
+          module,
+          '`DdcLibraryBundleBuilder` requires `LibraryBundle`s as input to '
+          '`.build()`.');
+    }
+    var body = <ModuleItem>[];
+    // Collect imports/exports/statements.
+    for (var library in module.libraries) {
+      // Handle each library separately.
+      imports.clear();
+      statements.clear();
+
+      visitProgram(library);
+      var moduleImports = _collectModuleImports(imports);
+      var importStatements = <Statement>[];
+      for (var p in moduleImports) {
+        var moduleVar = p.key;
+        var import = p.value;
+        importStatements.addAll(buildImports(moduleVar, import));
+      }
+      // Prepend import statements.
+      statements.insertAll(0, importStatements);
+      // Package the library into an initialization function.
+      var initFunction = NamedFunction(
+          loadFunctionIdentifier(library.name!),
+          js.fun("function(#) { 'use strict'; #; return #; }",
+              [library.librarySelfVar!, statements, library.librarySelfVar!]),
+          true);
+      var resultModule = js.statement('dartDevEmbedder.defineLibrary(#, #)',
+          [js.string(library.name!), initFunction]);
+      body.add(resultModule);
+    }
+    // Append all library definitions into a single file.
+    return Program([...module.header, ...body]);
   }
 }
 

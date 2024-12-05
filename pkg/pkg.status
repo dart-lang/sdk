@@ -148,6 +148,9 @@ vm_service/test/get_source_report_with_mixin_test: SkipByDesign # Debugger is di
 vm_service/test/get_stack_limit_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_stack_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_stack_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/id_zone_deletion_on_client_disconnect_with_dds_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/id_zone_deletion_on_client_disconnect_without_dds_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/id_zones_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/implicit_getter_setter_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/invoke_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/isolate_lifecycle_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -199,6 +202,7 @@ vm_service/test/valid_source_locations_test: SkipByDesign # Debugger is disabled
 vm_service/test/validate_timer_port_behavior_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/vm_timeline_flags_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/weak_properties_test: SkipByDesign # Uses 'dart:mirrors' library
+vm_service/test/wildcard_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/yield_positions_with_finally_test: SkipByDesign # Debugger is disabled in AOT mode.
 
 [ $mode == debug ]
@@ -241,6 +245,7 @@ vm/test/*: SkipByDesign # Only meant to run on vm
 vm_snapshot_analysis/test/*: SkipByDesign # Only meant to run on vm
 
 [ $system == windows ]
+_macros/test/executor/executor_test: Skip # dartbug.com/56002
 front_end/test/fasta/bootstrap_test: Skip # Issue 31902
 front_end/test/incremental_dart2js_load_from_dill_test: Pass, Slow
 vm_service/test/private_rpcs/dev_fs_http_put_test: Skip # Windows disallows "?" in paths

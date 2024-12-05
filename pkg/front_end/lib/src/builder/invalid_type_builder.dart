@@ -5,7 +5,8 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
-import '../source/source_library_builder.dart';
+import '../kernel/type_algorithms.dart';
+import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
@@ -48,15 +49,6 @@ class InvalidTypeBuilderImpl extends InvalidTypeBuilder {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  TypeBuilder clone(
-      List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
-      TypeParameterScopeBuilder contextDeclaration) {
-    return this;
-  }
-
-  @override
   String get debugName => 'InvalidTypeBuilder';
 
   @override
@@ -84,4 +76,39 @@ class InvalidTypeBuilderImpl extends InvalidTypeBuilder {
   TypeBuilder withNullabilityBuilder(NullabilityBuilder nullabilityBuilder) {
     return this;
   }
+
+  @override
+  Nullability computeNullability(
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    // TODO(johnniwinther,cstefantsova): Consider implementing
+    // invalidNullability.
+    return Nullability.nullable;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void collectReferencesFrom(Map<TypeVariableBuilder, int> variableIndices,
+      List<List<int>> edges, int index) {}
+
+  @override
+  TypeBuilder? substituteRange(
+      Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
+      Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
+      List<StructuralVariableBuilder> unboundTypeVariables,
+      {Variance variance = Variance.covariant}) {
+    return null;
+  }
+
+  @override
+  TypeBuilder? unaliasAndErase() => this;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool usesTypeVariables(Set<String> typeVariableNames) => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<TypeWithInBoundReferences> findRawTypesWithInboundReferences() =>
+      const [];
 }

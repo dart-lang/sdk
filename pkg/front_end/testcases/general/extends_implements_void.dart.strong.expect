@@ -1,0 +1,163 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/extends_implements_void.dart:5:17: Error: Type 'void' can't be used here.
+// Try removing 'void' keyword or replace it with 'var', 'final', or a type.
+// class A extends void {}
+//                 ^^^^
+//
+// pkg/front_end/testcases/general/extends_implements_void.dart:7:20: Error: Type 'void' can't be used here.
+// Try removing 'void' keyword or replace it with 'var', 'final', or a type.
+// class B implements void {}
+//                    ^^^^
+//
+// pkg/front_end/testcases/general/extends_implements_void.dart:9:7: Error: Can't mix 'void' in because it's nullable.
+// Try removing the question mark.
+// class C with void {}
+//       ^
+//
+// pkg/front_end/testcases/general/extends_implements_void.dart:11:39: Error: Type 'void' can't be used here.
+// Try removing 'void' keyword or replace it with 'var', 'final', or a type.
+// extension type D(Object o) implements void {}
+//                                       ^^^^
+//
+// pkg/front_end/testcases/general/extends_implements_void.dart:13:20: Error: Type 'void' can't be used here.
+// Try removing 'void' keyword or replace it with 'var', 'final', or a type.
+// mixin E implements void {}
+//                    ^^^^
+//
+// pkg/front_end/testcases/general/extends_implements_void.dart:15:12: Error: Type 'void' can't be used here.
+// Try removing 'void' keyword or replace it with 'var', 'final', or a type.
+// mixin F on void {}
+//            ^^^^
+//
+// pkg/front_end/testcases/general/extends_implements_void.dart:19:19: Error: Type 'void' can't be used here.
+// Try removing 'void' keyword or replace it with 'var', 'final', or a type.
+// enum H implements void { h }
+//                   ^^^^
+//
+// pkg/front_end/testcases/general/extends_implements_void.dart:5:17: Error: Type 'void' not found.
+// class A extends void {}
+//                 ^^^^
+//
+// pkg/front_end/testcases/general/extends_implements_void.dart:7:20: Error: Type 'void' not found.
+// class B implements void {}
+//                    ^^^^
+//
+// pkg/front_end/testcases/general/extends_implements_void.dart:11:39: Error: Type 'void' not found.
+// extension type D(Object o) implements void {}
+//                                       ^^^^
+//
+// pkg/front_end/testcases/general/extends_implements_void.dart:13:20: Error: Type 'void' not found.
+// mixin E implements void {}
+//                    ^^^^
+//
+// pkg/front_end/testcases/general/extends_implements_void.dart:15:12: Error: Type 'void' not found.
+// mixin F on void {}
+//            ^^^^
+//
+// pkg/front_end/testcases/general/extends_implements_void.dart:19:19: Error: Type 'void' not found.
+// enum H implements void { h }
+//                   ^^^^
+//
+// pkg/front_end/testcases/general/extends_implements_void.dart:9:7: Error: The type 'void' can't be mixed in.
+// class C with void {}
+//       ^
+//
+// pkg/front_end/testcases/general/extends_implements_void.dart:17:6: Error: The type 'void' can't be mixed in.
+// enum G with void { g }
+//      ^
+//
+// pkg/front_end/testcases/general/extends_implements_void.dart:9:14: Error: The type 'void' can't be used as supertype.
+// class C with void {}
+//              ^
+//
+// pkg/front_end/testcases/general/extends_implements_void.dart:11:39: Error: The type 'void' can't be implemented by an extension type.
+// extension type D(Object o) implements void {}
+//                                       ^
+//
+// pkg/front_end/testcases/general/extends_implements_void.dart:17:13: Error: The type 'void' can't be used as supertype.
+// enum G with void { g }
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+abstract class _C&Object&void extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C&Object&void
+    : super core::Object::•()
+    ;
+}
+class C extends self::_C&Object&void {
+  synthetic constructor •() → self::C
+    : super self::_C&Object&void::•()
+    ;
+}
+abstract class E extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class F extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class _G&_Enum&void extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_G&_Enum&void
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class G extends self::_G&_Enum&void /*isEnum*/  {
+  static const field core::List<self::G> values = #C4;
+  enum-element static const field self::G g = #C3;
+  const synthetic constructor •(core::int #index, core::String #name) → self::G
+    : super self::_G&_Enum&void::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "G.${this.{core::_Enum::_name}{core::String}}";
+}
+class H extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::H> values = #C7;
+  enum-element static const field self::H h = #C6;
+  const synthetic constructor •(core::int #index, core::String #name) → self::H
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "H.${this.{core::_Enum::_name}{core::String}}";
+}
+extension type D(core::Object o) {
+  abstract extension-type-member representation-field get o() → core::Object;
+  constructor • = self::D|constructor#;
+  constructor tearoff • = self::D|constructor#_#new#tearOff;
+}
+static extension-type-member method D|constructor#(core::Object o) → self::D% /* erasure=core::Object, declared=! */ {
+  lowered final self::D% /* erasure=core::Object, declared=! */ #this = o;
+  return #this;
+}
+static extension-type-member method D|constructor#_#new#tearOff(core::Object o) → self::D% /* erasure=core::Object, declared=! */
+  return self::D|constructor#(o);
+
+constants  {
+  #C1 = 0
+  #C2 = "g"
+  #C3 = self::G {index:#C1, _name:#C2}
+  #C4 = <self::G>[#C3]
+  #C5 = "h"
+  #C6 = self::H {index:#C1, _name:#C5}
+  #C7 = <self::H>[#C6]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///extends_implements_void.dart:
+- G. (from org-dartlang-testcase:///extends_implements_void.dart:17:6)
+- _G&_Enum&void. (from org-dartlang-testcase:///extends_implements_void.dart:17:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- H. (from org-dartlang-testcase:///extends_implements_void.dart:19:6)

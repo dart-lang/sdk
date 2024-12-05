@@ -6,7 +6,6 @@
 
 import 'dart:async';
 
-import 'package:devtools_shared/devtools_server.dart';
 import 'package:json_rpc_2/src/peer.dart' as json_rpc;
 import 'package:meta/meta.dart';
 import 'package:sse/src/server/sse_handler.dart';
@@ -212,18 +211,6 @@ class DevToolsClient {
       _initialized = true;
       _currentPage = parameters['id'].asString;
       _embedded = parameters['embedded'].asBool;
-    });
-
-    _devToolsPeer.registerMethod('getPreferenceValue', (parameters) {
-      final key = parameters['key'].asString;
-      final value = ServerApi.devToolsPreferences.properties[key];
-      return value;
-    });
-
-    _devToolsPeer.registerMethod('setPreferenceValue', (parameters) {
-      final key = parameters['key'].asString;
-      final value = parameters['value'].value;
-      ServerApi.devToolsPreferences.properties[key] = value;
     });
 
     _devToolsPeer.registerMethod('pingResponse', (parameters) {

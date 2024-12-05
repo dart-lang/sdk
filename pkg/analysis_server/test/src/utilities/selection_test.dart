@@ -67,16 +67,6 @@ nodesInRange
 ''');
   }
 
-  @FailingTest(reason: 'Augmentation libraries appear to not be supported.')
-  Future<void> test_augmentationImportDirective_metadata() async {
-    newFile('$testPackageLibPath/a.dart', '''
-augmentation library 'test.dart';
-''');
-    await assertMetadata(postfix: '''
-import augment 'a.dart';
-''');
-  }
-
   /// B01: between 0 and 1, no touch
   Future<void> test_block_statements_B01_B01() async {
     var selection = await _computeSelection('''
@@ -814,13 +804,6 @@ void f() {
 nodesInRange
   LabelImpl: b:
   LabelImpl: c:
-''');
-  }
-
-  @FailingTest(reason: 'The parser fails')
-  Future<void> test_libraryAugmentationDirective_metadata() async {
-    await assertMetadata(postfix: '''
-augment library '';
 ''');
   }
 

@@ -1,0 +1,53 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class HasSomeField extends core::Object /*isMixinDeclaration*/  {
+  abstract get someField() → core::String;
+}
+abstract class _SomeEnum&_Enum&HasSomeField extends core::_Enum implements self::HasSomeField /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_SomeEnum&_Enum&HasSomeField
+    : super core::_Enum::•(index, _name)
+    ;
+  abstract get someField() → core::String;
+}
+class SomeEnum extends self::_SomeEnum&_Enum&HasSomeField /*isEnum*/  {
+  static const field core::List<self::SomeEnum> values = #C4;
+  enum-element static const field self::SomeEnum value = #C3;
+  const synthetic constructor •(core::int #index, core::String #name) → self::SomeEnum
+    : super self::_SomeEnum&_Enum&HasSomeField::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "SomeEnum.${this.{core::_Enum::_name}{core::String}}";
+  @#C5
+  get someField() → core::String
+    return "field";
+}
+class NormalEnum extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::NormalEnum> values = #C7;
+  enum-element static const field self::NormalEnum value = #C6;
+  const synthetic constructor •(core::int #index, core::String #name) → self::NormalEnum
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "NormalEnum.${this.{core::_Enum::_name}{core::String}}";
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "value"
+  #C3 = self::SomeEnum {index:#C1, _name:#C2}
+  #C4 = <self::SomeEnum>[#C3]
+  #C5 = core::_Override {}
+  #C6 = self::NormalEnum {index:#C1, _name:#C2}
+  #C7 = <self::NormalEnum>[#C6]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///enum_with_mixin.dart:
+- SomeEnum. (from org-dartlang-testcase:///enum_with_mixin.dart:9:6)
+- _SomeEnum&_Enum&HasSomeField. (from org-dartlang-testcase:///enum_with_mixin.dart:9:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- NormalEnum. (from org-dartlang-testcase:///enum_with_mixin.dart:16:6)

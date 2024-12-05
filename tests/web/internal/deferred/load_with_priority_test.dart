@@ -8,61 +8,46 @@ import 'dart:async';
 
 import 'dart:_foreign_helper' show JS;
 
-@pragma('dart2js:load-priority:high')
-import 'load_with_priority_lib.dart' deferred as highLib;
-@pragma('dart2js:load-priority:normal')
-import 'load_with_priority_lib.dart' deferred as normalExplicitLib;
-import 'load_with_priority_lib.dart' deferred as normalImplicitLib;
-import 'load_with_priority_lib.dart' deferred as highLocalLib;
-import 'load_with_priority_lib.dart' deferred as normalLocalLib;
-import 'load_with_priority_lib.dart' deferred as highMemberLib;
-import 'load_with_priority_lib.dart' deferred as normalMemberLib;
+@pragma('dart2js:load-priority', 'someArg1')
+import 'load_with_priority_lib.dart' deferred as lib1;
+@pragma('dart2js:load-priority', 'someArg2')
+import 'load_with_priority_lib.dart' deferred as lib2;
+@pragma('dart2js:load-priority', 'ignored1')
+import 'load_with_priority_lib.dart' deferred as lib3;
+@pragma('dart2js:load-priority', 'ignored2')
+import 'load_with_priority_lib.dart' deferred as lib4;
 
 main() {
   asyncStart();
   runTest().then((_) => asyncEnd());
 }
 
-@pragma('dart2js:load-priority:normal')
-Future<void> testNormalLoad() async {
-  await normalMemberLib.loadLibrary();
-  Expect.equals(6, normalMemberLib.f);
-}
-
-@pragma('dart2js:load-priority:high')
-Future<void> testHighLoad() async {
-  await highMemberLib.loadLibrary();
-  Expect.equals(7, highMemberLib.g);
+@pragma('dart2js:load-priority', 'someArg4')
+Future<void> testLoadOverride() async {
+  await lib4.loadLibrary();
+  Expect.equals(4, lib4.d);
 }
 
 runTest() async {
   setup();
-  await highLib.loadLibrary();
-  Expect.equals(1, highLib.a);
+  await lib1.loadLibrary();
+  Expect.equals(1, lib1.a);
 
-  await normalExplicitLib.loadLibrary();
-  Expect.equals(2, normalExplicitLib.b);
+  await lib2.loadLibrary();
+  Expect.equals(2, lib2.b);
 
-  await normalImplicitLib.loadLibrary();
-  Expect.equals(3, normalImplicitLib.c);
+  @pragma('dart2js:load-priority', 'someArg3')
+  final unused1 = await lib3.loadLibrary();
+  Expect.equals(3, lib3.c);
 
-  @pragma('dart2js:load-priority:high')
-  final unused1 = await highLocalLib.loadLibrary();
-  Expect.equals(4, highLocalLib.d);
-
-  @pragma('dart2js:load-priority:normal')
-  final unused2 = await normalLocalLib.loadLibrary();
-  Expect.equals(5, normalLocalLib.e);
-
-  await testNormalLoad();
-  await testHighLoad();
+  await testLoadOverride();
   tearDown();
 }
 
 void tearDown() {
   // `wasCalled` will be false for DDC since there is no deferred load hook.
   if (JS('bool', 'self.wasCalled')) {
-    Expect.equals(7, JS('', 'self.index'));
+    Expect.equals(4, JS('', 'self.index'));
   }
 }
 
@@ -75,7 +60,7 @@ void setup() {
 self.isD8 = !!self.dartDeferredLibraryLoader;
 self.index = 0;
 self.wasCalled = false;
-self.expectedPriorities = [1, 0, 0, 1, 0, 0, 1];
+self.expectedPriorities = ['someArg1', 'someArg2', 'someArg3', 'someArg4'];
 
 // Download uri via an XHR
 self.download = function(uri, success) {

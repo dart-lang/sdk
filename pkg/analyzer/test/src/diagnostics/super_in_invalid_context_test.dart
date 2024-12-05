@@ -278,6 +278,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: m
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
@@ -309,6 +310,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: a
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');
@@ -346,8 +348,8 @@ class B extends A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 92, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 92, 1),
     ]);
   }
 }

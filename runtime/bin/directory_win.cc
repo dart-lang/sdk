@@ -379,7 +379,7 @@ Directory::ExistsResult Directory::Exists(const wchar_t* dir_name) {
 
 Directory::ExistsResult Directory::Exists(Namespace* namespc,
                                           const char* dir_name) {
-  const auto path = ToWinAPIDirectoryPath(dir_name);
+  const auto path = ToWinAPIPath(dir_name);
   return Exists(path.get());
 }
 
@@ -400,7 +400,7 @@ char* Directory::CurrentNoScope() {
 }
 
 bool Directory::Create(Namespace* namespc, const char* dir_name) {
-  const auto path = ToWinAPIDirectoryPath(dir_name);
+  const auto path = ToWinAPIPath(dir_name);
   int create_status = CreateDirectoryW(path.get(), nullptr);
   // If the directory already existed, treat it as a success.
   if ((create_status == 0) && (GetLastError() == ERROR_ALREADY_EXISTS) &&
@@ -506,8 +506,7 @@ const char* Directory::CreateTemp(Namespace* namespc, const char* prefix) {
 bool Directory::Delete(Namespace* namespc,
                        const char* dir_name,
                        bool recursive) {
-  const auto path =
-      ToWinAPIDirectoryPath(dir_name, /*force_long_prefix=*/recursive);
+  const auto path = ToWinAPIPath(dir_name);
   bool result = false;
   if (!recursive) {
     if (File::GetType(path.get(), /*follow_links=*/true) ==
@@ -526,13 +525,13 @@ bool Directory::Delete(Namespace* namespc,
 bool Directory::Rename(Namespace* namespc,
                        const char* old_name,
                        const char* new_name) {
-  const auto old_path = ToWinAPIDirectoryPath(old_name);
+  const auto old_path = ToWinAPIPath(old_name);
   ExistsResult exists = Exists(old_path.get());
   if (exists != EXISTS) {
     SetLastError(ERROR_FILE_NOT_FOUND);
     return false;
   }
-  const auto new_path = ToWinAPIDirectoryPath(new_name);
+  const auto new_path = ToWinAPIPath(new_name);
   DWORD flags = MOVEFILE_WRITE_THROUGH;
   int move_status = MoveFileExW(old_path.get(), new_path.get(), flags);
   return (move_status != 0);

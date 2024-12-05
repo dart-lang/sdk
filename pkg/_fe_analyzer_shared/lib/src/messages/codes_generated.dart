@@ -3377,65 +3377,30 @@ Message _withArgumentsDuplicatedExport(String name, Uri uri_, Uri uri2_) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, Uri uri_, Uri uri2_)>
-    templateDuplicatedExportInType =
+    templateDuplicatedImport =
     const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
-  "DuplicatedExportInType",
-  problemMessageTemplate:
-      r"""'#name' is exported from both '#uri' and '#uri2'.""",
-  withArguments: _withArgumentsDuplicatedExportInType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, Uri uri_, Uri uri2_)>
-    codeDuplicatedExportInType =
-    const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
-  "DuplicatedExportInType",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedExportInType(String name, Uri uri_, Uri uri2_) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  String? uri = relativizeUri(uri_);
-  String? uri2 = relativizeUri(uri2_);
-  return new Message(
-    codeDuplicatedExportInType,
-    problemMessage:
-        """'${name}' is exported from both '${uri}' and '${uri2}'.""",
-    arguments: {
-      'name': name,
-      'uri': uri_,
-      'uri2': uri2_,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_, Uri uri2_)>
-    templateDuplicatedImportInType =
-    const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
-  "DuplicatedImportInType",
+  "DuplicatedImport",
   problemMessageTemplate:
       r"""'#name' is imported from both '#uri' and '#uri2'.""",
-  withArguments: _withArgumentsDuplicatedImportInType,
+  withArguments: _withArgumentsDuplicatedImport,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name, Uri uri_, Uri uri2_)>
-    codeDuplicatedImportInType =
+    codeDuplicatedImport =
     const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
-  "DuplicatedImportInType",
+  "DuplicatedImport",
   analyzerCodes: <String>["AMBIGUOUS_IMPORT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedImportInType(String name, Uri uri_, Uri uri2_) {
+Message _withArgumentsDuplicatedImport(String name, Uri uri_, Uri uri2_) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   String? uri = relativizeUri(uri_);
   String? uri2 = relativizeUri(uri2_);
   return new Message(
-    codeDuplicatedImportInType,
+    codeDuplicatedImport,
     problemMessage:
         """'${name}' is imported from both '${uri}' and '${uri2}'.""",
     arguments: {
@@ -6655,6 +6620,19 @@ Message _withArgumentsFfiStructGeneric(String string, String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiVariableLengthArrayNotLast =
+    messageFfiVariableLengthArrayNotLast;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiVariableLengthArrayNotLast = const MessageCode(
+  "FfiVariableLengthArrayNotLast",
+  problemMessage:
+      r"""Variable length 'Array's must only occur as the last field of Structs.""",
+  correctionMessage:
+      r"""Try adjusting the arguments in the 'Array' annotation.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateFieldAlreadyInitializedAtDeclaration =
     const Template<Message Function(String name)>(
@@ -8034,6 +8012,42 @@ const MessageCode messageImplicitSuperCallOfNonMethod = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateImplicitSuperInitializerMissingArguments =
+    const Template<Message Function(String name)>(
+  "ImplicitSuperInitializerMissingArguments",
+  problemMessageTemplate:
+      r"""The implicitly called unnamed constructor from '#name' has required parameters.""",
+  correctionMessageTemplate:
+      r"""Try adding an explicit super initializer with the required arguments.""",
+  withArguments: _withArgumentsImplicitSuperInitializerMissingArguments,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeImplicitSuperInitializerMissingArguments =
+    const Code<Message Function(String name)>(
+  "ImplicitSuperInitializerMissingArguments",
+  analyzerCodes: <String>["IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS"],
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImplicitSuperInitializerMissingArguments(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeImplicitSuperInitializerMissingArguments,
+    problemMessage:
+        """The implicitly called unnamed constructor from '${name}' has required parameters.""",
+    correctionMessage:
+        """Try adding an explicit super initializer with the required arguments.""",
+    arguments: {
+      'name': name,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeImportAfterPart = messageImportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9102,41 +9116,6 @@ Message _withArgumentsInternalProblemUnexpected(String string, String string2) {
     arguments: {
       'string': string,
       'string2': string2,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_)>
-    templateInternalProblemUnfinishedTypeVariable =
-    const Template<Message Function(String name, Uri uri_)>(
-  "InternalProblemUnfinishedTypeVariable",
-  problemMessageTemplate:
-      r"""Unfinished type variable '#name' found in non-source library '#uri'.""",
-  withArguments: _withArgumentsInternalProblemUnfinishedTypeVariable,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, Uri uri_)>
-    codeInternalProblemUnfinishedTypeVariable =
-    const Code<Message Function(String name, Uri uri_)>(
-  "InternalProblemUnfinishedTypeVariable",
-  severity: Severity.internalProblem,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemUnfinishedTypeVariable(
-    String name, Uri uri_) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  String? uri = relativizeUri(uri_);
-  return new Message(
-    codeInternalProblemUnfinishedTypeVariable,
-    problemMessage:
-        """Unfinished type variable '${name}' found in non-source library '${uri}'.""",
-    arguments: {
-      'name': name,
-      'uri': uri_,
     },
   );
 }
@@ -12082,6 +12061,19 @@ const MessageCode messageMissingMethodParameters = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingNamedSuperConstructorParameter =
+    messageMissingNamedSuperConstructorParameter;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingNamedSuperConstructorParameter =
+    const MessageCode(
+  "MissingNamedSuperConstructorParameter",
+  analyzerCodes: <String>["SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED"],
+  problemMessage:
+      r"""The super constructor has no corresponding named parameter.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingOperatorKeyword = messageMissingOperatorKeyword;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12121,6 +12113,21 @@ Message _withArgumentsMissingPartOf(Uri uri_) {
     },
   );
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingPositionalSuperConstructorParameter =
+    messageMissingPositionalSuperConstructorParameter;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingPositionalSuperConstructorParameter =
+    const MessageCode(
+  "MissingPositionalSuperConstructorParameter",
+  analyzerCodes: <String>[
+    "SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL"
+  ],
+  problemMessage:
+      r"""The super constructor has no corresponding positional parameter.""",
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingPrefixInDeferredImport =
@@ -14998,6 +15005,17 @@ const MessageCode messageRecordTypeZeroFieldsButTrailingComma =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRecordUseCannotBePlacedHere =
+    messageRecordUseCannotBePlacedHere;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRecordUseCannotBePlacedHere = const MessageCode(
+  "RecordUseCannotBePlacedHere",
+  problemMessage:
+      r"""`RecordUse` annotation cannot be placed on this element.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRecordUsedAsCallable = messageRecordUsedAsCallable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15181,28 +15199,6 @@ const MessageCode messageRequiredParameterWithDefault = const MessageCode(
   problemMessage: r"""Non-optional parameters can't have a default value.""",
   correctionMessage:
       r"""Try removing the default value or making the parameter optional.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeResourceIdentifiersMultiple =
-    messageResourceIdentifiersMultiple;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageResourceIdentifiersMultiple = const MessageCode(
-  "ResourceIdentifiersMultiple",
-  problemMessage:
-      r"""Only one resource identifier pragma can be used at a time.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeResourceIdentifiersNotStatic =
-    messageResourceIdentifiersNotStatic;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageResourceIdentifiersNotStatic = const MessageCode(
-  "ResourceIdentifiersNotStatic",
-  problemMessage:
-      r"""Resource identifier pragma can be used on a static method only.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16243,7 +16239,6 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)> codeThisAccessInFieldInitializer =
     const Code<Message Function(String name)>(
   "ThisAccessInFieldInitializer",
-  analyzerCodes: <String>["THIS_ACCESS_FROM_FIELD_INITIALIZER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16802,6 +16797,32 @@ Message _withArgumentsUnexpectedModifierInNonNnbd(Token token) {
     },
   );
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnexpectedSeparatorInNumber =
+    messageUnexpectedSeparatorInNumber;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnexpectedSeparatorInNumber = const MessageCode(
+  "UnexpectedSeparatorInNumber",
+  analyzerCodes: <String>["UNEXPECTED_SEPARATOR_IN_NUMBER"],
+  problemMessage:
+      r"""Digit separators ('_') in a number literal can only be placed between two digits.""",
+  correctionMessage: r"""Try removing the '_'.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnexpectedSuperParametersInGenerativeConstructors =
+    messageUnexpectedSuperParametersInGenerativeConstructors;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnexpectedSuperParametersInGenerativeConstructors =
+    const MessageCode(
+  "UnexpectedSuperParametersInGenerativeConstructors",
+  analyzerCodes: <String>["INVALID_SUPER_FORMAL_PARAMETER_LOCATION"],
+  problemMessage:
+      r"""Super parameters can only be used in non-redirecting generative constructors.""",
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateUnexpectedToken =

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/computer/computer_hover.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -37,10 +38,15 @@ class CompletionResolveHandler
     MessageInfo message,
     CancellationToken token,
   ) async {
+    var capabilities = message.clientCapabilities;
+    if (capabilities == null) {
+      return serverNotInitializedError;
+    }
+
     var resolutionInfo = params.data;
 
     if (resolutionInfo is DartCompletionResolutionInfo) {
-      return resolveDartCompletion(params, resolutionInfo, token);
+      return resolveDartCompletion(capabilities, params, resolutionInfo, token);
     } else if (resolutionInfo is PubPackageCompletionItemResolutionInfo) {
       return resolvePubPackageCompletion(params, resolutionInfo, token);
     } else {
@@ -49,17 +55,11 @@ class CompletionResolveHandler
   }
 
   Future<ErrorOr<CompletionItem>> resolveDartCompletion(
+    LspClientCapabilities clientCapabilities,
     CompletionItem item,
     DartCompletionResolutionInfo data,
     CancellationToken token,
   ) async {
-    var clientCapabilities = server.lspClientCapabilities;
-    if (clientCapabilities == null) {
-      // This should not happen unless a client misbehaves.
-      return error(ErrorCodes.ServerNotInitialized,
-          'Requests not before server is initialized');
-    }
-
     var file = data.file;
     var importUris = data.importUris.map(Uri.parse).toList();
     var elementLocationReference = data.ref;
@@ -111,8 +111,8 @@ class CompletionResolveHandler
         // a command that the client will call to apply those edits later.
         Command? command;
         if (otherFilesChanges.isNotEmpty) {
-          var workspaceEdit =
-              createPlainWorkspaceEdit(server, otherFilesChanges);
+          var workspaceEdit = createPlainWorkspaceEdit(
+              server, clientCapabilities, otherFilesChanges);
           command = Command(
               title: 'Add import',
               command: Commands.sendWorkspaceEdit,

@@ -1,7 +1,7 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 class Element extends core::Object {
   synthetic constructor •() → self::Element
@@ -16,7 +16,7 @@ class Class<E extends self::Element?> extends core::Object {
   method setElement(covariant-by-class self::Class::E? element) → void {
     if(!(this.{self::Class::element}{self::Class::E?} =={core::Object::==}{(core::Object) → core::bool} element)) {
       this.{self::Class::element} = element;
-      core::Set<self::Element> elements = new col::_Set::•<self::Element>();
+      core::Set<self::Element> elements = new _co::_Set::•<self::Element>();
       if(!(element == null)) {
         elements.{core::Set::add}(element{self::Class::E% & self::Element /* '%' & '!' = '!' */}){(self::Element) → core::bool};
       }

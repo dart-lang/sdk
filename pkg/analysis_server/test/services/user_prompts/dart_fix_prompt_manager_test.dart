@@ -42,7 +42,7 @@ class DartFixPromptTest
   }) {
     setApplyEditSupport(applyEditSupport);
     setChangeAnnotationSupport(changeAnnotationSupport);
-    server.lspClientCapabilities = LspClientCapabilities(ClientCapabilities(
+    server.editorClientCapabilities = LspClientCapabilities(ClientCapabilities(
       workspace: workspaceCapabilities,
       textDocument: textDocumentCapabilities,
       window: windowCapabilities,
@@ -234,6 +234,15 @@ class DartFixPromptTest
     expect(promptManager.promptsShown, 0);
   }
 
+  Future<void> test_prompt_recordsDoNotShowAgain() async {
+    server.respondToPromptWithAction =
+        DartFixPromptManager.doNotShowAgainActionText;
+    promptManager.triggerCheck();
+    await pumpEventQueue(times: 5000);
+    expect(promptManager.promptsShown, 1);
+    expect(promptManager.preferences.showDartFixPrompts, false);
+  }
+
   Future<void> test_promptKind_external_noApplyEdit() async {
     configureInEditorPromptSupport(
       applyEditSupport: false,
@@ -322,11 +331,13 @@ class TestDartFixPromptManager extends DartFixPromptManager {
 
   @override
   Future<void> showPrompt({
+    required LspClientCapabilities clientCapabilities,
     required UserPromptSender userPromptSender,
     required OpenUriNotificationSender openUriNotificationSender,
   }) {
     promptsShown++;
     return super.showPrompt(
+      clientCapabilities: clientCapabilities,
       userPromptSender: userPromptSender,
       openUriNotificationSender: openUriNotificationSender,
     );
@@ -369,7 +380,7 @@ class TestServer implements LspAnalysisServer {
   List<String>? lastPromptActions;
 
   @override
-  LspClientCapabilities lspClientCapabilities =
+  LspClientCapabilities editorClientCapabilities =
       LspClientCapabilities(ClientCapabilities());
 
   @override

@@ -1,0 +1,11 @@
+class A {}
+
+typedef AAlias = A;
+
+typedef Func1 = void Function(int);
+
+typedef int TestFunction();
+
+void foo() {}
+
+void testMe() {}

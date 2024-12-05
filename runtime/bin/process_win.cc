@@ -774,7 +774,15 @@ class OverlappedHandle {
  private:
   void ClearOverlapped() {
     memset(&overlapped_, 0, sizeof(overlapped_));
-    overlapped_.hEvent = event_;
+    // |FileHandle| constructor eagerly associates the given handle with
+    // |EventHandler|'s completion port. However we don't want to notify
+    // that completion port when |ReadFile| operation completes because
+    // we are manually draining the pipe here instead of using |EventHandler|.
+    // Setting LSB of |hEvent| to 1 prevents completion packets from being
+    // enqueued. See documentation for |GetQueuedCompletionStatus| (specifically
+    // notes for |lpOverlapped| argument).
+    overlapped_.hEvent =
+        reinterpret_cast<HANDLE>(reinterpret_cast<uintptr_t>(event_) | 0x1);
   }
 
   OVERLAPPED overlapped_;
@@ -797,11 +805,11 @@ bool Process::Wait(intptr_t pid,
 
   // All pipes created to the sub-process support overlapped IO.
   FileHandle* stdout_handle = reinterpret_cast<FileHandle*>(out);
-  ASSERT(stdout_handle->SupportsOverlappedIO());
+  ASSERT(stdout_handle->supports_overlapped_io());
   FileHandle* stderr_handle = reinterpret_cast<FileHandle*>(err);
-  ASSERT(stderr_handle->SupportsOverlappedIO());
+  ASSERT(stderr_handle->supports_overlapped_io());
   FileHandle* exit_handle = reinterpret_cast<FileHandle*>(exit_event);
-  ASSERT(exit_handle->SupportsOverlappedIO());
+  ASSERT(exit_handle->supports_overlapped_io());
 
   // Create three events for overlapped IO. These are created as already
   // signalled to ensure they have read called at least once.
@@ -866,6 +874,7 @@ bool Process::Wait(intptr_t pid,
     exit_code = -exit_code;
   }
   result->set_exit_code(exit_code);
+
   return true;
 }
 
@@ -984,16 +993,12 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
   }
   MutexLocker lock(signal_mutex);
   FileHandle* write_handle = new FileHandle(fds[kWriteHandle]);
-  write_handle->EnsureInitialized(EventHandler::delegate());
   intptr_t write_fd = reinterpret_cast<intptr_t>(write_handle);
   if (signal_handlers == nullptr) {
     if (SetConsoleCtrlHandler(SignalHandler, true) == 0) {
       int error_code = GetLastError();
-      // Since SetConsoleCtrlHandler failed, the IO completion port will
-      // never receive an event for this handle, and will therefore never
-      // release the reference Retained by EnsureInitialized(). So, we
-      // have to do a second Release() here.
-      write_handle->Release();
+      // Since SetConsoleCtrlHandler failed, there will be no subsequent IO
+      // operation on this handle. Release() it.
       write_handle->Release();
       CloseProcessPipe(fds);
       SetLastError(error_code);
@@ -1020,8 +1025,6 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
           signal_handlers = handler->next();
         }
         handler->Unlink();
-        FileHandle* file_handle = reinterpret_cast<FileHandle*>(handler->fd());
-        file_handle->Release();
         remove = true;
       }
     }

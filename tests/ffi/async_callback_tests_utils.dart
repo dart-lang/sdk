@@ -35,3 +35,5 @@ class AsyncCallbackTest {
 }
 
 void noChecks() {}
+
+Future<void> noChecksAsync() async {}

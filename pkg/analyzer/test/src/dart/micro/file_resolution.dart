@@ -20,6 +20,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:crypto/crypto.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
@@ -75,7 +76,10 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       libraryContext: libraryContext,
       configuration: analyzerStatePrinterConfiguration,
       resourceProvider: resourceProvider,
-      sink: buffer,
+      sink: TreeStringSink(
+        sink: buffer,
+        indent: '',
+      ),
       withKeysGetPut: true,
     ).writeFileResolver(testData);
     var actual = buffer.toString();

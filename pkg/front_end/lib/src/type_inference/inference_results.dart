@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:kernel/ast.dart';
 
@@ -361,9 +362,7 @@ class ExpressionInferenceResult {
 
   ExpressionInferenceResult(this.inferredType, this.expression,
       {this.postCoercionType = null})
-      : assert(
-            isKnown(inferredType), // Coverage-ignore(suite): Not run.
-            "$inferredType is not known.");
+      : assert(isKnown(inferredType), "$inferredType is not known.");
 
   /// The guards used for null-aware access if the expression is part of a
   /// null-shorting.
@@ -397,14 +396,15 @@ class NullAwareGuard {
     // Ensure the initializer of [_nullAwareVariable] is promoted to
     // non-nullable.
     _inferrer.flowAnalysis.nullAwareAccess_rightBegin(
-        _nullAwareVariable.initializer, _nullAwareVariable.type);
+        _nullAwareVariable.initializer,
+        new SharedTypeView(_nullAwareVariable.type));
     // Ensure [_nullAwareVariable] is promoted to non-nullable.
     // TODO(johnniwinther): Avoid creating a [VariableGet] to promote the
     // variable.
     VariableGet read = new VariableGet(_nullAwareVariable);
     _inferrer.flowAnalysis.variableRead(read, _nullAwareVariable);
-    _inferrer.flowAnalysis
-        .nullAwareAccess_rightBegin(read, _nullAwareVariable.type);
+    _inferrer.flowAnalysis.nullAwareAccess_rightBegin(
+        read, new SharedTypeView(_nullAwareVariable.type));
   }
 
   /// Creates the null-guarded application of [nullAwareAction] with the

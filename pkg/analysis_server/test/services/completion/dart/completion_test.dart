@@ -9556,7 +9556,7 @@ class Functions {
 }
 bar(p) {}
 void f(p) {
-  foo( Functions.^; );
+  foo( Functions.^ );
 }
 ''');
     assertResponse(r'''
@@ -9577,7 +9577,7 @@ class Functions {
 }
 bar(p) {}
 void f(p) {
-  foo( (int p) => Functions.^; );
+  foo( (int p) => Functions.^ );
 }
 ''');
     assertResponse(r'''

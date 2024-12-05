@@ -21,27 +21,19 @@ extension type Counter(JSObject _) implements JSObject {
   external JSFunction get forEachBound;
 }
 
-extension on JSArray {
-  external int get length;
-  external set length(int val);
-  external int operator [](int i);
-  external void operator []=(int i, int value);
+extension JSArrayExtension<T extends JSAny?> on JSArray<T> {
   external int at(int i);
-  external JSArray concat([JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]);
+  external JSArray<T> concat(
+      [JSArray<T> arg1, JSArray<T> arg2, JSArray<T> arg3, JSArray<T> arg4]);
   external void forEach(JSFunction callback, [JSObject thisObj]);
   external int indexOf(JSAny? element, [int? fromIndex]);
   external bool includes(JSAny? element, [int? fromIndex]);
   external String join([String? delimiter]);
   external int pop();
-  external int push([JSAny? arg1, JSAny? arg2, JSAny? arg3]);
-  external JSArray slice([int? start, int? end]);
-  external JSArray splice(
-      [int? start,
-      int? deleteCount,
-      JSAny? arg1,
-      JSAny? arg2,
-      JSAny? arg3,
-      JSAny? arg4]);
+  external int push([T arg1, T arg2, T arg3]);
+  external JSArray<T> slice([int? start, int? end]);
+  external JSArray<T> splice(
+      [int? start, int? deleteCount, T arg1, T arg2, T arg3, T arg4]);
 }
 
 void main() {
@@ -57,12 +49,12 @@ void main() {
   numList.length = 5;
   expect(numProxy.length, numList.length);
   for (var i = 0; i < numProxy.length; i++) {
-    expect(numProxy[i], numProxy.length - i - 1);
+    expect(numProxy[i]!.toDartInt, numProxy.length - i - 1);
     expect(numProxy.at(i), numProxy.length - i - 1);
 
-    numProxy[i] = i;
+    numProxy[i] = i.toJS;
 
-    expect(numProxy[i], i);
+    expect(numProxy[i]!.toDartInt, i);
     expect(numProxy.at(i), i);
     // Test negative indexing.
     expect(numProxy.at(i - numProxy.length), i);
@@ -129,10 +121,10 @@ void main() {
   expect(counter.numElements, numList.length);
 
   // `slice`, `splice`, and `concat`
-  void testEquals(JSArray arr, List<int> list) {
+  void testEquals(JSArray<JSNumber?> arr, List<int> list) {
     final len = list.length;
     for (var i = 0; i < len; i++) {
-      expect(arr[i], list[i]);
+      expect(arr[i]!.toDartInt, list[i]);
     }
   }
 

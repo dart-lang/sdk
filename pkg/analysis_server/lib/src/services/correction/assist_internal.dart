@@ -5,6 +5,7 @@
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
+import 'package:analysis_server/src/services/correction/dart/add_digit_separators.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/assign_to_local_variable.dart';
@@ -57,10 +58,12 @@ import 'package:analysis_server/src/services/correction/dart/flutter_wrap_generi
 import 'package:analysis_server/src/services/correction/dart/flutter_wrap_stream_builder.dart';
 import 'package:analysis_server/src/services/correction/dart/import_add_show.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
+import 'package:analysis_server/src/services/correction/dart/invert_conditional_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/invert_if_statement.dart';
 import 'package:analysis_server/src/services/correction/dart/join_if_with_inner.dart';
 import 'package:analysis_server/src/services/correction/dart/join_if_with_outer.dart';
 import 'package:analysis_server/src/services/correction/dart/join_variable_declaration.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_digit_separators.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_conditional_with_if_else.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_if_else_with_conditional.dart';
@@ -71,8 +74,9 @@ import 'package:analysis_server/src/services/correction/dart/split_and_condition
 import 'package:analysis_server/src/services/correction/dart/split_variable_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/surround_with.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
-import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/util/file_paths.dart';
@@ -86,6 +90,8 @@ class AssistProcessor {
   /// A list of the generators used to produce assists.
   static const List<ProducerGenerator> _generators = [
     AddDiagnosticPropertyReference.new,
+    AddDigitSeparatorEveryThreeDigits.new,
+    AddDigitSeparatorEveryTwoDigits.new,
     AddReturnType.new,
     AddTypeAnnotation.bulkFixable,
     AssignToLocalVariable.new,
@@ -139,10 +145,12 @@ class AssistProcessor {
     FlutterWrapStreamBuilder.new,
     ImportAddShow.new,
     InlineInvocation.new,
+    InvertConditionalExpression.new,
     InvertIfStatement.new,
     JoinIfWithInner.new,
     JoinIfWithOuter.new,
     JoinVariableDeclaration.new,
+    RemoveDigitSeparators.new,
     RemoveTypeAnnotation.other,
     ReplaceConditionalWithIfElse.new,
     ReplaceIfElseWithConditional.new,
@@ -213,7 +221,8 @@ class AssistProcessor {
     for (var generator in _generators) {
       if (!_generatorAppliesToAnyLintRule(
         generator,
-        _assistContext.producerGeneratorsForLintRules[generator] ?? {},
+        _assistContext.producerGeneratorsForLintRules[generator] ??
+            <LintCode>{},
       )) {
         var producer = generator(context: context);
         await compute(producer);
@@ -231,7 +240,7 @@ class AssistProcessor {
   /// [errorCodes].
   bool _generatorAppliesToAnyLintRule(
     ProducerGenerator generator,
-    Set<String> errorCodes,
+    Set<LintCode> errorCodes,
   ) {
     var selectionEnd =
         _assistContext.selectionOffset + _assistContext.selectionLength;
@@ -247,7 +256,7 @@ class AssistProcessor {
       if (_assistContext.resolveResult.path == errorSource.fullName) {
         if (fileOffset >= error.offset &&
             fileOffset <= error.offset + error.length) {
-          if (errorCodes.contains(error.errorCode.name)) {
+          if (errorCodes.contains(error.errorCode)) {
             return true;
           }
         }
@@ -256,11 +265,11 @@ class AssistProcessor {
     return false;
   }
 
-  static Map<ProducerGenerator, Set<String>> computeLintRuleMap() => {
+  static Map<ProducerGenerator, Set<LintCode>> computeLintRuleMap() => {
         for (var generator in _generators)
           generator: {
             for (var MapEntry(key: lintName, value: generators)
-                in FixProcessor.lintProducerMap.entries)
+                in registeredFixGenerators.lintProducers.entries)
               if (generators.contains(generator)) lintName,
           },
       };

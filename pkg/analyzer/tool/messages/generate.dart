@@ -130,16 +130,16 @@ class _AnalyzerErrorGenerator {
 
         out.writeln();
         out.write(errorCodeInfo.toAnalyzerComments(indent: '  '));
+        var deprecatedMessage = errorCodeInfo.deprecatedMessage;
+        if (deprecatedMessage != null) {
+          out.writeln('  @Deprecated("$deprecatedMessage")');
+        }
         if (errorCodeInfo is AliasErrorCodeInfo) {
           out.writeln(
               '  static const ${errorCodeInfo.aliasForClass} $errorName =');
           out.writeln('${errorCodeInfo.aliasFor};');
         } else {
           generatedCodes.add('${errorClass.name}.$errorName');
-          var deprecatedMessage = errorCodeInfo.deprecatedMessage;
-          if (deprecatedMessage != null) {
-            out.writeln('  @Deprecated("$deprecatedMessage")');
-          }
           out.writeln('  static const ${errorClass.name} $errorName =');
           out.writeln(errorCodeInfo.toAnalyzerCode(errorClass.name, errorName));
         }

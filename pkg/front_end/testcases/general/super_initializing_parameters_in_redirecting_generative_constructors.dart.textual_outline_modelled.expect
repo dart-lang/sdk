@@ -1,0 +1,10 @@
+class A {
+  A(this.x);
+  int x;
+}
+
+class C extends A {
+  C(super._);
+  C.r(super._) : this(0);
+  factory C.r2(super._) = C;
+}

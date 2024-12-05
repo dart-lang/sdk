@@ -19,13 +19,30 @@ class ConvertToDoubleQuotedStringTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING;
 
+  Future<void> test_one_backslash() async {
+    await resolveTestCode(r'''
+void f() {
+  print('a\'b\'c');
+}
+''');
+    await assertHasAssistAt("'a", r'''
+void f() {
+  print("a'b'c");
+}
+''');
+  }
+
   Future<void> test_one_embeddedTarget() async {
     await resolveTestCode('''
 void f() {
   print('a"b"c');
 }
 ''');
-    await assertNoAssistAt("'a");
+    await assertHasAssistAt("'a", r'''
+void f() {
+  print("a\"b\"c");
+}
+''');
   }
 
   Future<void> test_one_enclosingTarget() async {
@@ -106,7 +123,11 @@ void f() {
   print('''a""\"c''');
 }
 """);
-    await assertNoAssistAt("'a");
+    await assertHasAssistAt("'a", r'''
+void f() {
+  print("""a\"\"\"c""");
+}
+''');
   }
 
   Future<void> test_three_enclosingTarget() async {

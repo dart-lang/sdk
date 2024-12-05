@@ -596,6 +596,10 @@ Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,
   Dart_Handle cli_lib = Builtin::LoadAndCheckLibrary(Builtin::kCLILibrary);
   RETURN_IF_ERROR(cli_lib);
   Builtin::SetNativeResolver(Builtin::kCLILibrary);
+  Dart_Handle concurrent_lib =
+      Builtin::LoadAndCheckLibrary(Builtin::kConcurrentLibrary);
+  RETURN_IF_ERROR(concurrent_lib);
+  Builtin::SetNativeResolver(Builtin::kConcurrentLibrary);
 
   // We need to ensure that all the scripts loaded so far are finalized
   // as we are about to invoke some Dart code below to setup closures.
@@ -611,6 +615,7 @@ Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,
   RETURN_IF_ERROR(PrepareIsolateLibrary(isolate_lib));
   RETURN_IF_ERROR(PrepareIOLibrary(io_lib));
   RETURN_IF_ERROR(PrepareCLILibrary(cli_lib));
+  RETURN_IF_ERROR(PrepareCLILibrary(concurrent_lib));
   return result;
 }
 

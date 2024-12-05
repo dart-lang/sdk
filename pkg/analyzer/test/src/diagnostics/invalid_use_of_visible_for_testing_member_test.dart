@@ -284,6 +284,26 @@ class B {
     ]);
   }
 
+  test_method_fromOverride_visibleForOverriding() async {
+    var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
+import 'package:meta/meta.dart';
+class A {
+  @visibleForOverriding
+  @visibleForTesting
+  void a(){ }
+}
+''');
+    var lib2 = newFile('$testPackageRootPath/lib2.dart', r'''
+import 'lib1.dart';
+class B extends A {
+  void a() => super.a();
+}
+''');
+
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(lib2, []);
+  }
+
   test_methodInExtensionType() async {
     var lib1 = newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryLambdasTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_lambdas';
+  String get lintRule => LintNames.unnecessary_lambdas;
 
   test_asyncLambda() async {
     await assertNoDiagnostics(r'''

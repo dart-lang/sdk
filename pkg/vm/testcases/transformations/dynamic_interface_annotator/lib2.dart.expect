@@ -38,9 +38,11 @@ abstract class A extends core::Object {
 class B extends self::A {
   field core::Object? ifield5 = null;
   field core::Object? _ifield6 = null;
+  @#C7
   constructor •() → self::B
     : super self::A::•()
     ;
+  @#C7
   method imethod2() → void {}
   @#C5
   method imethod5() → void {}
@@ -61,20 +63,91 @@ class D extends core::Object {
   synthetic constructor •() → self::D
     : super core::Object::•()
     ;
-  @#C7
+  @#C9
   method build() → void {}
+}
+@#C7
+class _E1 extends core::Object /*hasConstConstructor*/  {
+  @#C7
+  final field core::int _x;
+  const constructor •(core::int _x) → self::_E1
+    : self::_E1::_x = _x, super core::Object::•()
+    ;
+}
+@#C7
+class _E2 extends self::_E1 /*hasConstConstructor*/  {
+  @#C7
+  final field core::int _y;
+  const constructor •(core::int _x, core::int _y) → self::_E2
+    : self::_E2::_y = _y, super self::_E1::•(_x)
+    ;
+}
+@#C3
+abstract class H extends core::Object /*isMixinDeclaration*/  {
+  method foo() → void {
+    this.{self::H::_foo}(){() → void};
+  }
+  @#C7
+  method _foo() → void {
+    self::H::_smethod12();
+  }
+  @#C7
+  static method _smethod12() → void {
+    self::_smethod13();
+  }
+}
+@#C7
+class _I1<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::_I1<self::_I1::T%>
+    : super core::Object::•()
+    ;
+}
+@#C7
+class _I2 extends core::Object {
+  synthetic constructor •() → self::_I2
+    : super core::Object::•()
+    ;
+}
+@#C7
+class _I3 extends core::Object {
+  synthetic constructor •() → self::_I3
+    : super core::Object::•()
+    ;
+}
+@#C3
+@#C7
+mixin class J extends core::Object implements self::_I1<self::_I2> {
+  static const field core::Map<core::String, self::_E2> _const14 = #C14;
+  field core::Map<core::String, self::_E2> _ifield16 = #C14;
+  field core::int _ifield17 = self::J::_smethod15();
+  field self::_I3? _ifield18 = null;
+  synthetic constructor •() → self::J
+    : super core::Object::•()
+    ;
+  @#C7
+  static method _smethod15() → core::int
+    return 42;
 }
 @#C5
 static field core::Object? sfield9;
 static field core::Object? _sfield10;
 static method smethod10() → void {}
 static method _smethod11() → void {}
+@#C7
+static method _smethod13() → void {}
 constants  {
   #C1 = "dyn-module:extendable"
   #C2 = null
   #C3 = core::pragma {name:#C1, options:#C2}
   #C4 = "dyn-module:callable"
   #C5 = core::pragma {name:#C4, options:#C2}
-  #C6 = "dyn-module:can-be-overridden"
+  #C6 = "dyn-module:implicitly-callable"
   #C7 = core::pragma {name:#C6, options:#C2}
+  #C8 = "dyn-module:can-be-overridden"
+  #C9 = core::pragma {name:#C8, options:#C2}
+  #C10 = "key"
+  #C11 = 4
+  #C12 = 3
+  #C13 = self::_E2 {_y:#C11, _x:#C12}
+  #C14 = <core::String, self::_E2>{#C10:#C13}
 }

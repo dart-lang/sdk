@@ -18,7 +18,7 @@ class PackageNamesTest extends LintRuleTest {
   bool get dumpAstOnFailures => false;
 
   @override
-  String get lintRule => 'package_names';
+  String get lintRule => LintNames.package_names;
 
   test_lowerCamelCase() async {
     await assertPubspecDiagnostics(r'''

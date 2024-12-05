@@ -391,7 +391,7 @@ class InstanceMemberInferrer {
       }
     }
 
-    var classElement = constructor.enclosingElement;
+    var classElement = constructor.enclosingElement3;
     if (classElement is ClassElementImpl && classElement.isMixinApplication) {
       _inferMixinApplicationConstructor(classElement, constructor);
     }
@@ -439,7 +439,7 @@ class InstanceMemberInferrer {
           var conflict = conflicts.single;
           if (conflict is CandidatesConflict) {
             conflictExplanation = conflict.candidates.map((candidate) {
-              var className = candidate.enclosingElement.name;
+              var className = candidate.enclosingElement3.name;
               var typeStr = candidate.type.getDisplayString();
               return '$className.${name.name} ($typeStr)';
             }).join(', ');
@@ -596,7 +596,7 @@ class InstanceMemberInferrer {
       overridden = overridden.declaration;
 
       // Skip Object itself.
-      var enclosingElement = overridden.enclosingElement;
+      var enclosingElement = overridden.enclosingElement3;
       if (enclosingElement is ClassElement &&
           enclosingElement.isDartCoreObject) {
         continue;

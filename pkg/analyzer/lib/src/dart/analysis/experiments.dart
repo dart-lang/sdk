@@ -173,16 +173,14 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
 
   /// Encode into the format suitable for [ExperimentStatus.fromStorage].
   Uint8List toStorage() {
-    var result = Uint8List(16);
+    var flagsByteCount = (_flags.length + 7) ~/ 8;
+    var result = Uint8List(2 + 1 + 3 * flagsByteCount);
     var resultIndex = 0;
 
     void addByte(int value) {
       assert(value >= 0 && value < 256);
       result[resultIndex++] = value;
     }
-
-    addByte(_sdkLanguageVersion.major);
-    addByte(_sdkLanguageVersion.minor);
 
     void addBoolList(List<bool> values) {
       var byteValue = 0;
@@ -202,6 +200,9 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
         addByte(byteValue);
       }
     }
+
+    addByte(_sdkLanguageVersion.major);
+    addByte(_sdkLanguageVersion.minor);
 
     addByte(_flags.length);
     addBoolList(_explicitEnabledFlags);

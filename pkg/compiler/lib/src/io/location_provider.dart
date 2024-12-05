@@ -40,7 +40,7 @@ class LocationCollector extends CodeOutputListener implements LocationProvider {
   @override
   Location getLocation(int offset) {
     RangeError.checkValueInInterval(offset, 0, length, 'offset');
-    return Source(lineStarts, const <int>[], null, null)
+    return Source.emptySource(lineStarts, null, null)
         .getLocation(_dummyFile, offset);
   }
 

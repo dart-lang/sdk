@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field () → void f;
+  constructor •(() →? void f) → self::C
+    ;
+}

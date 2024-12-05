@@ -195,7 +195,7 @@ class Symbol implements SymbolTableElement {
 
   /// Unique Id, shared with JS representation (if any).
   ///
-  /// '<scope id>|<js name>'
+  /// `'<scope id>|<js name>'`
   ///
   /// Where scope refers to a Library, Class, Function, or Scope.
   String get id => scopeId == null ? localId : '$scopeId|$localId';
@@ -433,7 +433,8 @@ class FunctionSymbol extends ScopeSymbol {
   /// Unique Id, shared with JS representation (if any).
   ///
   /// Format:
-  ///   '<scope id>|<js name>'
+  ///
+  ///     '<scope id>|<js name>'
   ///
   /// Where scope refers to a Library, Class, Function, or Scope.
   /// String id;

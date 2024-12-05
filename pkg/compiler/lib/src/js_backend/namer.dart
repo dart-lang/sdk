@@ -2192,6 +2192,8 @@ class FixedNames {
 
   String get recordShapeRecipe => r'$recipe';
   String get recordShapeTag => r'$shape';
+
+  String get arrayFlagsPropertyName => r'$flags';
 }
 
 /// Minified version of the fixed names usage by the namer.

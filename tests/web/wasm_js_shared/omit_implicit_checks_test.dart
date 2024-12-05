@@ -19,6 +19,8 @@ void main() {
   testCovariantMethodCheck();
   testDynamicCall();
   testCovariantKeyword();
+
+  testImplicitTypeCheckInsertedByCFE();
 }
 
 void testExplicitAsCheck() {
@@ -56,4 +58,19 @@ class B extends A {
   String foo(covariant String arg) => 'B.foo($arg)';
 
   String toString() => 'B';
+}
+
+void testImplicitTypeCheckInsertedByCFE() {
+  final intBox = Box<int>(1);
+  final dynamic nonIntValue = int.parse('1') == 1 ? 'foo' : 1;
+
+  // This would normally result in this error:
+  //    Type 'String' is not a subtype of type 'int' in type cast
+  // but if --omit-implicit-checks is on we will not perform the check.
+  intBox.value = nonIntValue;
+}
+
+class Box<T> {
+  T value;
+  Box(this.value);
 }

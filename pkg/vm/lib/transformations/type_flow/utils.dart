@@ -378,7 +378,6 @@ class UnionFind {
 }
 
 const nullabilitySuffix = {
-  Nullability.legacy: '*',
   Nullability.nullable: '?',
   Nullability.undetermined: '',
   Nullability.nonNullable: '',

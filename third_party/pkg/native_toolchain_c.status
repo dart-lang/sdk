@@ -5,6 +5,7 @@
 test/cbuilder/cbuilder_cross_android_test: SkipByDesign # Cross compilation is not tested on the Dart CI.
 test/cbuilder/cbuilder_cross_linux_host_test: SkipByDesign # Cross compilation is not tested on the Dart CI.
 test/cbuilder/cbuilder_cross_windows_host_test: SkipByDesign # Cross compilation is not tested on the Dart CI.
+test/clinker/treeshake_cross_test: SkipByDesign # Cross compilation is not tested on the Dart CI.
 test/native_toolchain/gcc_test: SkipByDesign # Cross compilation is not tested on the Dart CI.
 test/native_toolchain/ndk_test: SkipByDesign # Cross compilation is not tested on the Dart CI.
 

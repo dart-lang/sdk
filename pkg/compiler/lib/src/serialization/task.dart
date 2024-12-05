@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' as ir;
@@ -130,7 +131,7 @@ class SerializationTask extends CompilerTask {
     return await measureIoSubtask('deserialize closed world', () async {
       final uri = _options.dataUriForStage(CompilerStage.closedWorld);
       _reporter.log('Reading data from $uri');
-      api.Input<List<int>> dataInput =
+      api.Input<Uint8List> dataInput =
           await _provider.readFromUri(uri, inputKind: api.InputKind.binary);
       DataSourceReader source = DataSourceReader(
           BinaryDataSource(dataInput.data, stringInterner: _stringInterner),
@@ -167,7 +168,7 @@ class SerializationTask extends CompilerTask {
     return await measureIoSubtask('deserialize data', () async {
       final uri = _options.dataUriForStage(CompilerStage.globalInference);
       _reporter.log('Reading data from $uri');
-      api.Input<List<int>> dataInput =
+      api.Input<Uint8List> dataInput =
           await _provider.readFromUri(uri, inputKind: api.InputKind.binary);
       DataSourceReader source = DataSourceReader(
           BinaryDataSource(dataInput.data, stringInterner: _stringInterner),
@@ -234,7 +235,7 @@ class SerializationTask extends CompilerTask {
           '${_options.dataUriForStage(CompilerStage.codegenSharded)}$shard');
       await measureIoSubtask('deserialize codegen', () async {
         _reporter.log('Reading data from ${uri}');
-        api.Input<List<int>> dataInput =
+        api.Input<Uint8List> dataInput =
             await _provider.readFromUri(uri, inputKind: api.InputKind.binary);
         // TODO(36983): This code is extracted because there appeared to be a
         // memory leak for large buffer held by `source`.
@@ -251,7 +252,7 @@ class SerializationTask extends CompilerTask {
       JsBackendStrategy backendStrategy,
       JClosedWorld closedWorld,
       Uri uri,
-      api.Input<List<int>> dataInput,
+      api.Input<Uint8List> dataInput,
       Map<MemberEntity, Deferrable<CodegenResult>> results,
       bool useDeferredSourceReads,
       SourceLookup sourceLookup,

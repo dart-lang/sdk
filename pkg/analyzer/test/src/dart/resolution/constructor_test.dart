@@ -34,15 +34,45 @@ B<int> b = B(0);
 ConstructorName
   type: NamedType
     name: B
-    element: self::@class::B
+    element: <testLibraryFragment>::@class::B
+    element2: <testLibraryFragment>::@class::B#element
     type: B<int>
   staticElement: ConstructorMember
-    base: self::@class::B::@constructor::new
+    base: <testLibraryFragment>::@class::B::@constructor::new
     substitution: {U: int}
     redirectedConstructor: ConstructorMember
-      base: self::@class::A::@constructor::new
+      base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: int}
       redirectedConstructor: <null>
+  element: <testLibraryFragment>::@class::B::@constructor::new#element
+''');
+  }
+
+  test_fieldShadowingWildcardParameter() async {
+    await assertErrorsInCode(r'''
+class A {
+  var v;
+  var _;
+  A(var _) : v = _;
+}
+''', [
+      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 45, 1),
+    ]);
+
+    var node = findNode.constructorFieldInitializer('v = _');
+    assertResolvedNodeText(node, r'''
+ConstructorFieldInitializer
+  fieldName: SimpleIdentifier
+    token: v
+    staticElement: <testLibraryFragment>::@class::A::@field::v
+    element: <testLibraryFragment>::@class::A::@field::v#element
+    staticType: null
+  equals: =
+  expression: SimpleIdentifier
+    token: _
+    staticElement: <testLibraryFragment>::@class::A::@getter::_
+    element: <testLibraryFragment>::@class::A::@getter::_#element
+    staticType: dynamic
 ''');
   }
 
@@ -62,17 +92,19 @@ class B {
 ConstructorDeclaration
   returnType: SimpleIdentifier
     token: B
-    staticElement: self::@class::B
+    staticElement: <testLibraryFragment>::@class::B
+    element: <testLibraryFragment>::@class::B#element
     staticType: null
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
         name: a
-        element: self::@class::a
+        element: <testLibraryFragment>::@class::a
+        element2: <testLibraryFragment>::@class::a#element
         type: a
       name: a
-      declaredElement: self::@class::B::@constructor::new::@parameter::a
+      declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
         type: a
     rightParenthesis: )
   body: BlockFunctionBody
@@ -82,11 +114,12 @@ ConstructorDeclaration
         ExpressionStatement
           expression: SimpleIdentifier
             token: a
-            staticElement: self::@class::B::@constructor::new::@parameter::a
+            staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
+            element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
             staticType: a
           semicolon: ;
       rightBracket: }
-  declaredElement: self::@class::B::@constructor::new
+  declaredElement: <testLibraryFragment>::@class::B::@constructor::new
     type: B Function(a)
 ''');
   }
@@ -108,7 +141,8 @@ ConstructorDeclaration
   factoryKeyword: factory
   returnType: SimpleIdentifier
     token: B
-    staticElement: self::@class::B
+    staticElement: <testLibraryFragment>::@class::B
+    element: <testLibraryFragment>::@class::B#element
     staticType: null
   parameters: FormalParameterList
     leftParenthesis: (
@@ -117,17 +151,20 @@ ConstructorDeclaration
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
     period: .
     name: SimpleIdentifier
       token: named
-      staticElement: self::@class::A::@constructor::named
+      staticElement: <testLibraryFragment>::@class::A::@constructor::named
+      element: <testLibraryFragment>::@class::A::@constructor::named#element
       staticType: null
-    staticElement: self::@class::A::@constructor::named
+    staticElement: <testLibraryFragment>::@class::A::@constructor::named
+    element: <testLibraryFragment>::@class::A::@constructor::named#element
   body: EmptyFunctionBody
     semicolon: ;
-  declaredElement: self::@class::B::@constructor::new
+  declaredElement: <testLibraryFragment>::@class::B::@constructor::new
     type: B Function()
 ''');
   }
@@ -149,7 +186,8 @@ ConstructorDeclaration
   factoryKeyword: factory
   returnType: SimpleIdentifier
     token: B
-    staticElement: self::@class::B
+    staticElement: <testLibraryFragment>::@class::B
+    element: <testLibraryFragment>::@class::B#element
     staticType: null
   parameters: FormalParameterList
     leftParenthesis: (
@@ -164,23 +202,27 @@ ConstructorDeclaration
           NamedType
             name: U
             element: U@53
+            element2: <not-implemented>
             type: U
         rightBracket: >
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A<U>
     period: .
     name: SimpleIdentifier
       token: named
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::named
+        base: <testLibraryFragment>::@class::A::@constructor::named
         substitution: {T: U}
+      element: <testLibraryFragment>::@class::A::@constructor::named#element
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::named
+      base: <testLibraryFragment>::@class::A::@constructor::named
       substitution: {T: U}
+    element: <testLibraryFragment>::@class::A::@constructor::named#element
   body: EmptyFunctionBody
     semicolon: ;
-  declaredElement: self::@class::B::@constructor::new
+  declaredElement: <testLibraryFragment>::@class::B::@constructor::new
     type: B<U> Function()
 ''');
   }
@@ -204,7 +246,8 @@ ConstructorDeclaration
   factoryKeyword: factory
   returnType: SimpleIdentifier
     token: B
-    staticElement: self::@class::B
+    staticElement: <testLibraryFragment>::@class::B
+    element: <testLibraryFragment>::@class::B#element
     staticType: null
   parameters: FormalParameterList
     leftParenthesis: (
@@ -213,17 +256,20 @@ ConstructorDeclaration
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
     period: .
     name: SimpleIdentifier
       token: named
       staticElement: <null>
+      element: <null>
       staticType: null
     staticElement: <null>
+    element: <null>
   body: EmptyFunctionBody
     semicolon: ;
-  declaredElement: self::@class::B::@constructor::new
+  declaredElement: <testLibraryFragment>::@class::B::@constructor::new
     type: B Function()
 ''');
   }
@@ -245,7 +291,8 @@ ConstructorDeclaration
   factoryKeyword: factory
   returnType: SimpleIdentifier
     token: B
-    staticElement: self::@class::B
+    staticElement: <testLibraryFragment>::@class::B
+    element: <testLibraryFragment>::@class::B#element
     staticType: null
   period: .
   name: named
@@ -256,12 +303,14 @@ ConstructorDeclaration
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
-    staticElement: self::@class::A::@constructor::new
+    staticElement: <testLibraryFragment>::@class::A::@constructor::new
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   body: EmptyFunctionBody
     semicolon: ;
-  declaredElement: self::@class::B::@constructor::named
+  declaredElement: <testLibraryFragment>::@class::B::@constructor::named
     type: B Function()
 ''');
   }
@@ -283,7 +332,8 @@ ConstructorDeclaration
   factoryKeyword: factory
   returnType: SimpleIdentifier
     token: B
-    staticElement: self::@class::B
+    staticElement: <testLibraryFragment>::@class::B
+    element: <testLibraryFragment>::@class::B#element
     staticType: null
   period: .
   name: named
@@ -300,16 +350,19 @@ ConstructorDeclaration
           NamedType
             name: U
             element: U@47
+            element2: <not-implemented>
             type: U
         rightBracket: >
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A<U>
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::new
+      base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: U}
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   body: EmptyFunctionBody
     semicolon: ;
-  declaredElement: self::@class::B::@constructor::named
+  declaredElement: <testLibraryFragment>::@class::B::@constructor::named
     type: B<U> Function()
 ''');
   }
@@ -333,7 +386,8 @@ ConstructorDeclaration
   factoryKeyword: factory
   returnType: SimpleIdentifier
     token: B
-    staticElement: self::@class::B
+    staticElement: <testLibraryFragment>::@class::B
+    element: <testLibraryFragment>::@class::B#element
     staticType: null
   period: .
   name: named
@@ -344,12 +398,14 @@ ConstructorDeclaration
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
     staticElement: <null>
+    element: <null>
   body: EmptyFunctionBody
     semicolon: ;
-  declaredElement: self::@class::B::@constructor::named
+  declaredElement: <testLibraryFragment>::@class::B::@constructor::named
     type: B Function()
 ''');
   }

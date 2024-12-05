@@ -56,7 +56,8 @@ class DartUnitHoverComputer {
         node is VariableDeclaration ||
         node is VariablePattern ||
         node is PatternFieldName ||
-        node is DartPattern) {
+        node is DartPattern ||
+        (node is LibraryDirective && node.name2 == null)) {
       var range = _hoverRange(node, locationEntity);
       var hover = HoverInformation(range.offset, range.length);
       // element
@@ -73,7 +74,7 @@ class DartUnitHoverComputer {
         hover.elementKind = element.kind.displayName;
         hover.isDeprecated = element.hasDeprecated;
         // not local element
-        if (element.enclosingElement is! ExecutableElement) {
+        if (element.enclosingElement3 is! ExecutableElement) {
           // containing class
           hover.containingClassDescription = _containingClass(element);
           // containing library
@@ -196,6 +197,7 @@ class DartUnitHoverComputer {
       VariablePattern() => node.name,
       PatternFieldName() => node.name,
       WildcardPattern() => node.name,
+      LibraryDirective() => node.libraryKeyword,
       _ => null,
     };
   }
@@ -265,7 +267,7 @@ class DartUnitHoverComputer {
   /// incorrect types to be shown and so we stick with the synthetic getter.
   bool _useNonSyntheticElement(Element element) {
     return element is PropertyAccessorElement &&
-        !(element.enclosingElement is EnumElement &&
+        !(element.enclosingElement3 is EnumElement &&
             element.name == 'values' &&
             element.isSynthetic);
   }
@@ -280,7 +282,7 @@ class DartUnitHoverComputer {
       element = element.field;
     }
     if (element is ParameterElement) {
-      element = element.enclosingElement;
+      element = element.enclosingElement3;
     }
     if (element == null) {
       // This can happen when the code is invalid, such as having a field formal
@@ -293,11 +295,14 @@ class DartUnitHoverComputer {
 
     // Look for documentation comments of overridden members
     var overridden = findOverriddenElements(element);
-    for (var candidate in [
+    var candidates = [
       element,
       ...overridden.superElements,
-      ...overridden.interfaceElements
-    ]) {
+      ...overridden.interfaceElements,
+      if (element case PropertyAccessorElement(variable2: var variable?))
+        variable
+    ];
+    for (var candidate in candidates) {
       if (candidate.documentationComment != null) {
         documentedElement = candidate;
         break;
@@ -325,9 +330,9 @@ class DartUnitHoverComputer {
     var result =
         dartdocInfo.processDartdoc(rawDoc, includeSummary: includeSummary);
 
-    var documentedElementClass = documentedElement.enclosingElement;
+    var documentedElementClass = documentedElement.enclosingElement3;
     if (documentedElementClass != null &&
-        documentedElementClass != element.enclosingElement) {
+        documentedElementClass != element.enclosingElement3) {
       var documentedClass = documentedElementClass.displayName;
       result.full = '${result.full}\n\nCopied from `$documentedClass`.';
     }

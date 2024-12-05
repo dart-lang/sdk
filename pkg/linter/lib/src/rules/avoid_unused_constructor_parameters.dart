@@ -4,48 +4,24 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 import '../util/ascii_utils.dart';
 
 const _desc = r'Avoid defining unused parameters in constructors.';
 
-const _details = r'''
-**AVOID** defining unused parameters in constructors.
-
-**BAD:**
-```dart
-class BadOne {
-  BadOne(int unusedParameter, [String unusedPositional]);
-}
-
-class BadTwo {
-  int c;
-
-  BadTwo(int a, int b, int x) {
-    c = a + b;
-  }
-}
-```
-
-''';
-
 class AvoidUnusedConstructorParameters extends LintRule {
-  static const LintCode code = LintCode('avoid_unused_constructor_parameters',
-      "The parameter '{0}' is not used in the constructor.",
-      correctionMessage: 'Try using the parameter or removing it.');
-
   AvoidUnusedConstructorParameters()
       : super(
-            name: 'avoid_unused_constructor_parameters',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.avoid_unused_constructor_parameters,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_unused_constructor_parameters;
 
   @override
   void registerNodeProcessors(
@@ -55,16 +31,16 @@ class AvoidUnusedConstructorParameters extends LintRule {
   }
 }
 
-class _ConstructorVisitor extends RecursiveAstVisitor {
+class _ConstructorVisitor extends RecursiveAstVisitor<void> {
   final ConstructorDeclaration element;
   final Set<FormalParameter> unusedParameters;
 
   _ConstructorVisitor(this.element)
       : unusedParameters = element.parameters.parameters.where((p) {
-          var element = p.declaredElement;
+          var element = p.declaredFragment?.element;
           return element != null &&
-              element is! FieldFormalParameterElement &&
-              element is! SuperFormalParameterElement &&
+              element is! FieldFormalParameterElement2 &&
+              element is! SuperFormalParameterElement2 &&
               !element.hasDeprecated &&
               !element.name.isJustUnderscores;
         }).toSet();
@@ -72,7 +48,7 @@ class _ConstructorVisitor extends RecursiveAstVisitor {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     unusedParameters
-        .removeWhere((p) => node.staticElement == p.declaredElement);
+        .removeWhere((p) => node.element == p.declaredFragment?.element);
   }
 }
 

@@ -523,7 +523,7 @@ main() {
   D d = Alias<A>();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 94, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 94, 1),
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 104, 1),
     ]);
   }

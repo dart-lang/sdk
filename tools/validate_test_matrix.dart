@@ -9,7 +9,7 @@ import 'dart:io' show File, Platform;
 
 import 'package:smith/smith.dart' show TestMatrix;
 
-main() {
+void main() {
   var path = Platform.script.resolve("bots/test_matrix.json").toFilePath();
   Map<String, dynamic> json;
   try {

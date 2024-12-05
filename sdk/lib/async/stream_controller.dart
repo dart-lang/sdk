@@ -608,15 +608,8 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
 
   /// Send or enqueue an error event.
   void addError(Object error, [StackTrace? stackTrace]) {
-    checkNotNullable(error, "error");
     if (!_mayAddEvent) throw _badEventState();
-    AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
-    if (replacement != null) {
-      error = replacement.error;
-      stackTrace = replacement.stackTrace;
-    } else {
-      stackTrace ??= AsyncError.defaultStackTrace(error);
-    }
+    AsyncError(:error, :stackTrace) = _interceptUserError(error, stackTrace);
     _addError(error, stackTrace);
   }
 

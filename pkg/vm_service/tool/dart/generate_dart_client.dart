@@ -72,7 +72,7 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
     _disposed = true;
     await _streamSub.cancel();
     _outstandingRequests.forEach((id, request) {
-      request._completer.completeError(RPCError(
+      request.completeError(RPCError(
         request.method,
         RPCErrorKind.kServerError.code,
         'Service connection disposed',
@@ -265,6 +265,11 @@ enum RPCErrorKind {
   /// Application specific error code.
   kServerError(code: -32000, message: 'Application error'),
 
+  /// Service connection disposed.
+  ///
+  /// This may indicate the connection was closed while a request was in-flight.
+  kConnectionDisposed(code: -32010, message: 'Service connection disposed'),
+
   /// The JSON sent is not a valid Request object.
   kInvalidRequest(code: -32600, message: 'Invalid request object'),
 
@@ -374,16 +379,11 @@ class RPCError implements Exception {
 
   /// Return a map representation of this error suitable for conversion to
   /// json.
-  Map<String, dynamic> toMap() {
-    final map = <String, dynamic>{
+  Map<String, dynamic> toMap() => <String, Object?>{
       'code': code,
       'message': message,
+      if (data != null) 'data': data,
     };
-    if (data != null) {
-      map['data'] = data;
-    }
-    return map;
-  }
 
   @override
   String toString() {
@@ -505,11 +505,6 @@ dynamic _createSpecificObject(
     // Handle simple types.
     return json;
   }
-}
-
-void _setIfNotNull(Map<String, dynamic> json, String key, Object? value) {
-  if (value == null) return;
-  json[key] = value;
 }
 
 Future<T> extensionCallHelper<T>(VmService service, String method, Map<String, dynamic> args) {

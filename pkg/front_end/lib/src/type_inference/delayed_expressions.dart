@@ -1005,7 +1005,6 @@ class DelayedRecordNameGet extends AbstractDelayedExpression {
                     .where((element) => element.name == _name)
                     .length ==
                 1,
-            // Coverage-ignore(suite): Not run.
             "Invalid record type $_recordType for named access of '$_name'.");
 
   @override

@@ -23,8 +23,11 @@ abstract class AnalysisOptions {
   /// The set of features that are globally enabled for this context.
   FeatureSet get contextFeatures;
 
-  /// Return a list of the names of the packages for which, if they define a
-  /// plugin, the plugin should be enabled.
+  /// A list of the names of the packages for which, if they define a
+  /// legacy plugin, the legacy plugin should be enabled.
+  List<String> get enabledLegacyPluginNames;
+
+  @Deprecated("Use 'enabledLegacyPluginNames' instead")
   List<String> get enabledPluginNames;
 
   /// Return a list of error processors that are to be used when reporting

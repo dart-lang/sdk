@@ -6,75 +6,75 @@ part of "internal_patch.dart";
 
 @pragma("wasm:entry-point")
 class ClassID {
-  external static int getID(Object? value);
+  external static WasmI32 getID(Object? value);
 
   @pragma("wasm:class-id", "dart.typed_data#_ExternalUint8Array")
-  external static int get cidExternalUint8Array;
+  external static WasmI32 get cidExternalUint8Array;
   @pragma("wasm:class-id", "dart.typed_data#_Uint8List")
-  external static int get cidUint8Array;
+  external static WasmI32 get cidUint8Array;
   @pragma("wasm:class-id", "dart.typed_data#_Uint8ArrayView")
-  external static int get cidUint8ArrayView;
+  external static WasmI32 get cidUint8ArrayView;
   @pragma("wasm:class-id", "dart.typed_data#Uint8ClampedList")
-  external static int get cidUint8ClampedList;
+  external static WasmI32 get cidUint8ClampedList;
   @pragma("wasm:class-id", "dart.typed_data#_Uint8ClampedList")
-  external static int get cid_Uint8ClampedList;
+  external static WasmI32 get cid_Uint8ClampedList;
   @pragma("wasm:class-id", "dart.typed_data#_Uint8ClampedArrayView")
-  external static int get cidUint8ClampedArrayView;
+  external static WasmI32 get cidUint8ClampedArrayView;
   @pragma("wasm:class-id", "dart.typed_data#Int8List")
-  external static int get cidInt8List;
+  external static WasmI32 get cidInt8List;
   @pragma("wasm:class-id", "dart.typed_data#_Int8List")
-  external static int get cid_Int8List;
+  external static WasmI32 get cid_Int8List;
   @pragma("wasm:class-id", "dart.typed_data#_Int8ArrayView")
-  external static int get cidInt8ArrayView;
+  external static WasmI32 get cidInt8ArrayView;
   @pragma("wasm:class-id", "dart.async#Future")
-  external static int get cidFuture;
+  external static WasmI32 get cidFuture;
   @pragma("wasm:class-id", "dart.core#Function")
-  external static int get cidFunction;
+  external static WasmI32 get cidFunction;
   @pragma("wasm:class-id", "dart.core#_Closure")
-  external static int get cid_Closure;
+  external static WasmI32 get cid_Closure;
   @pragma("wasm:class-id", "dart.core#List")
-  external static int get cidList;
+  external static WasmI32 get cidList;
   @pragma("wasm:class-id", "dart._list#ModifiableFixedLengthList")
-  external static int get cidFixedLengthList;
+  external static WasmI32 get cidFixedLengthList;
   @pragma("wasm:class-id", "dart._list#WasmListBase")
-  external static int get cidListBase;
+  external static WasmI32 get cidListBase;
   @pragma("wasm:class-id", "dart._list#GrowableList")
-  external static int get cidGrowableList;
+  external static WasmI32 get cidGrowableList;
   @pragma("wasm:class-id", "dart._list#ImmutableList")
-  external static int get cidImmutableList;
+  external static WasmI32 get cidImmutableList;
   @pragma("wasm:class-id", "dart.core#Record")
-  external static int get cidRecord;
+  external static WasmI32 get cidRecord;
   @pragma("wasm:class-id", "dart.core#Symbol")
-  external static int get cidSymbol;
+  external static WasmI32 get cidSymbol;
 
   // Class IDs for RTI Types.
   @pragma("wasm:class-id", "dart.core#_BottomType")
-  external static int get cidBottomType;
+  external static WasmI32 get cidBottomType;
   @pragma("wasm:class-id", "dart.core#_TopType")
-  external static int get cidTopType;
+  external static WasmI32 get cidTopType;
   @pragma("wasm:class-id", "dart.core#_FutureOrType")
-  external static int get cidFutureOrType;
+  external static WasmI32 get cidFutureOrType;
   @pragma("wasm:class-id", "dart.core#_InterfaceType")
-  external static int get cidInterfaceType;
+  external static WasmI32 get cidInterfaceType;
   @pragma("wasm:class-id", "dart.core#_AbstractFunctionType")
-  external static int get cidAbstractFunctionType;
+  external static WasmI32 get cidAbstractFunctionType;
   @pragma("wasm:class-id", "dart.core#_FunctionType")
-  external static int get cidFunctionType;
+  external static WasmI32 get cidFunctionType;
   @pragma("wasm:class-id", "dart.core#_FunctionTypeParameterType")
-  external static int get cidFunctionTypeParameterType;
+  external static WasmI32 get cidFunctionTypeParameterType;
   @pragma("wasm:class-id", "dart.core#_InterfaceTypeParameterType")
-  external static int get cidInterfaceTypeParameterType;
+  external static WasmI32 get cidInterfaceTypeParameterType;
   @pragma("wasm:class-id", "dart.core#_AbstractRecordType")
-  external static int get cidAbstractRecordType;
+  external static WasmI32 get cidAbstractRecordType;
   @pragma("wasm:class-id", "dart.core#_RecordType")
-  external static int get cidRecordType;
+  external static WasmI32 get cidRecordType;
   @pragma("wasm:class-id", "dart.core#_NamedParameter")
-  external static int get cidNamedParameter;
+  external static WasmI32 get cidNamedParameter;
 
   // From this class id onwards, all concrete classes are interface classes and
   // do not need to be masqueraded.
-  external static int get firstNonMasqueradedInterfaceClassCid;
+  external static WasmI32 get firstNonMasqueradedInterfaceClassCid;
 
   // Dummy, only used by VM-specific hash table code.
-  static final int numPredefinedCids = 1;
+  static final WasmI32 numPredefinedCids = 1.toWasmI32();
 }

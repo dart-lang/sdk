@@ -15,15 +15,25 @@ main() {
 
 @reflectiveTest
 class InvalidTypeArgumentInConstSetTest extends PubPackageResolutionTest {
-  test_type_parameter() async {
+  test_nonConst() async {
+    await assertNoErrorsInCode(r'''
+class A<E> {
+  void m() {
+    <E>{};
+  }
+}
+''');
+  }
+
+  test_typeParameter() async {
     await assertErrorsInCode(r'''
 class A<E> {
-  m() {
-    return const <E>{};
+  void m() {
+    const <E>{};
   }
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET, 39, 1,
+      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET, 37, 1,
           messageContains: ["'E'"]),
     ]);
   }

@@ -573,7 +573,7 @@ DART_EXPORT Dart_Handle Dart_SetCurrentUserTag(Dart_Handle user_tag);
  * \return The UserTag's label. NULL if the user_tag is invalid. The caller is
  *   responsible for freeing the returned label.
  */
-DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_GetUserTagLabel(
+DART_EXPORT DART_API_WARN_UNUSED_RESULT char* Dart_GetUserTagLabel(
     Dart_Handle user_tag);
 
 /*

@@ -52,7 +52,7 @@ f() {
   const int x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
       error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 18, 1),
     ]);
   }

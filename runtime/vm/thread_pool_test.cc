@@ -74,7 +74,7 @@ THREAD_POOL_UNIT_TEST_CASE(ThreadPool_RunOne) {
 
   // Do a sanity test on the worker stats.
   EXPECT_EQ(1U, thread_pool.workers_started());
-  EXPECT_EQ(0U, thread_pool.workers_stopped());
+  EXPECT(!thread_pool.has_pending_dead_worker());
 }
 
 THREAD_POOL_UNIT_TEST_CASE(ThreadPool_RunMany) {
@@ -175,14 +175,15 @@ THREAD_POOL_UNIT_TEST_CASE(ThreadPool_WorkerTimeout) {
   {
     ThreadPool thread_pool;
     EXPECT_EQ(0U, thread_pool.workers_started());
-    EXPECT_EQ(0U, thread_pool.workers_stopped());
+    EXPECT(!thread_pool.has_pending_dead_worker());
 
     // Run a worker.
     Monitor sync;
     bool done = true;
     thread_pool.Run<TestTask>(&sync, &done);
     EXPECT_EQ(1U, thread_pool.workers_started());
-    EXPECT_EQ(0U, thread_pool.workers_stopped());
+    EXPECT(!thread_pool.has_pending_dead_worker());
+
     {
       MonitorLocker ml(&sync);
       done = false;
@@ -196,11 +197,11 @@ THREAD_POOL_UNIT_TEST_CASE(ThreadPool_WorkerTimeout) {
     // Wait up to 5 seconds to see if a worker times out.
     const int kMaxWait = 5000;
     int waited = 0;
-    while (thread_pool.workers_stopped() == 0 && waited < kMaxWait) {
+    while (!thread_pool.has_pending_dead_worker() && waited < kMaxWait) {
       OS::Sleep(1);
       waited += 1;
     }
-    EXPECT_EQ(1U, thread_pool.workers_stopped());
+    EXPECT(thread_pool.has_pending_dead_worker());
   }
 
   FLAG_worker_timeout_millis = saved_timeout;

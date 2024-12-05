@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class DuplicateShownNameTest extends PubPackageResolutionTest {
-  test_hidden() async {
+  test_library_shown() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 class A {}
 class B {}
@@ -24,6 +24,23 @@ class B {}
 export 'lib1.dart' show A, B, A;
 ''', [
       error(WarningCode.DUPLICATE_SHOWN_NAME, 30, 1),
+    ]);
+  }
+
+  test_part_shown() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+export 'dart:math' show pi, Random, pi;
+''');
+
+    await assertErrorsInFile2(a, []);
+
+    await assertErrorsInFile2(b, [
+      error(WarningCode.DUPLICATE_SHOWN_NAME, 54, 2),
     ]);
   }
 }

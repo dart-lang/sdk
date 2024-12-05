@@ -71,14 +71,13 @@ class ScannerResult {
 ScannerResult scan(Uint8List bytes,
     {ScannerConfiguration? configuration,
     bool includeComments = false,
-    LanguageVersionChanged? languageVersionChanged}) {
-  if (bytes.last != 0) {
-    throw new ArgumentError("[bytes]: the last byte must be 0.");
-  }
+    LanguageVersionChanged? languageVersionChanged,
+    bool allowLazyStrings = true}) {
   Scanner scanner = new Utf8BytesScanner(bytes,
       configuration: configuration,
       includeComments: includeComments,
-      languageVersionChanged: languageVersionChanged);
+      languageVersionChanged: languageVersionChanged,
+      allowLazyStrings: allowLazyStrings);
   return _tokenizeAndRecover(scanner, bytes: bytes);
 }
 

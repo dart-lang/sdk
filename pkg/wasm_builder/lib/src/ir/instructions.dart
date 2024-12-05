@@ -40,7 +40,7 @@ class Instructions implements Serializable {
         instructionIdx < instructions.length;
         instructionIdx += 1) {
       final i = instructions[instructionIdx];
-      if (_stackTraces != null) s.debugTrace(_stackTraces![i]!);
+      if (_stackTraces != null) s.debugTrace(_stackTraces[i]!);
 
       if (sourceMappings != null) {
         // Skip to the mapping that covers the current instruction.

@@ -13,9 +13,7 @@ class SdkConstraintVerifierTest extends PubPackageResolutionTest {
   Future<void> verifyVersion(String constraints, String source,
       {List<ExpectedError> expectedErrors = const []}) async {
     writeTestPackagePubspecYamlFile(
-      PubspecYamlFileConfig(
-        sdkVersion: constraints,
-      ),
+      pubspecYamlContent(sdkVersion: constraints),
     );
 
     await assertErrorsInCode(source, expectedErrors);

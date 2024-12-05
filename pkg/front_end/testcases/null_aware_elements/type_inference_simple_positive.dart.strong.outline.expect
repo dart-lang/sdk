@@ -1,0 +1,23 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Exactly<invariant X extends core::Object? = dynamic> = (X%) → X%;
+extension E<X extends core::Object? = dynamic> on X% {
+  method expectStaticType = self::E|expectStaticType;
+  method tearoff expectStaticType = self::E|get#expectStaticType;
+}
+static method acceptsMap<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(core::Map<self::acceptsMap::X%, self::acceptsMap::Y%> m) → dynamic
+  ;
+static method acceptsSet<X extends core::Object? = dynamic>(core::Set<self::acceptsSet::X%> m) → dynamic
+  ;
+static method foo() → core::String?
+  ;
+static method main() → dynamic
+  ;
+static method contextType<X extends core::Object? = dynamic>(core::Object? value) → self::contextType::X%
+  ;
+static extension-member method E|expectStaticType<X extends core::Object? = dynamic, Y extends (self::E|expectStaticType::X%) → self::E|expectStaticType::X% = (dynamic) → dynamic>(lowered final self::E|expectStaticType::X% #this) → void
+  ;
+static extension-member method E|get#expectStaticType<X extends core::Object? = dynamic>(lowered final self::E|get#expectStaticType::X% #this) → <Y extends (self::E|get#expectStaticType::X%) → self::E|get#expectStaticType::X% = (dynamic) → dynamic>() → void
+  return <Y extends (self::E|get#expectStaticType::X%) → self::E|get#expectStaticType::X% = (dynamic) → dynamic>() → void => self::E|expectStaticType<self::E|get#expectStaticType::X%, Y>(#this);

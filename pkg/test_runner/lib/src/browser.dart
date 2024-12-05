@@ -8,9 +8,13 @@ import 'package:smith/configuration.dart' show NnbdMode;
 import 'configuration.dart' show Compiler;
 import 'utils.dart';
 
+// The native JavaScript Object prototype is sealed before loading the Dart
+// SDK module to guard against prototype pollution.
+final _sealNativeObjectScript =
+    '/root_dart/sdk/lib/_internal/js_runtime/lib/preambles/'
+    'seal_native_object.js';
+
 String dart2jsHtml(String title, String scriptPath) {
-  // The native JavaScript Object prototype is sealed before loading the Dart
-  // program to guard against prototype pollution.
   return """
 <!DOCTYPE html>
 <html>
@@ -25,10 +29,7 @@ String dart2jsHtml(String title, String scriptPath) {
      .unittest-fail { background: #d55;}
      .unittest-error { background: #a11;}
   </style>
-  <script>
-  delete Object.prototype.__proto__;
-  Object.seal(Object.prototype);
-  </script>
+  <script type="text/javascript" src="$_sealNativeObjectScript"></script>
 </head>
 <body>
   <h1> Running $title </h1>
@@ -59,24 +60,26 @@ String pathToJSIdentifier(String path) {
       .replaceAll('-', '_'));
 }
 
+final _digitPattern = RegExp(r'\d');
+
 /// Escape [name] to make it into a valid identifier.
 String _toJSIdentifier(String name) {
   if (name.isEmpty) return r'$';
 
   // Escape any invalid characters
-  var result = name.replaceAllMapped(_invalidCharInIdentifier,
-      (match) => '\$${match.group(0)!.codeUnits.join("")}');
+  var result = name.replaceAllMapped(
+      _invalidCharInIdentifier, (match) => '\$${match[0]!.codeUnits.join("")}');
 
   // Ensure the identifier first character is not numeric and that the whole
   // identifier is not a keyword.
-  if (result.startsWith(RegExp('[0-9]')) || _invalidVariableName(result)) {
+  if (result.startsWith(_digitPattern) || _invalidVariableName(result)) {
     return '\$$result';
   }
   return result;
 }
 
 // Invalid characters for identifiers, which would need to be escaped.
-final _invalidCharInIdentifier = RegExp(r'[^A-Za-z_0-9]');
+final _invalidCharInIdentifier = RegExp(r'[^A-Za-z_\d]');
 
 bool _invalidVariableName(String keyword, {bool strictMode = true}) {
   switch (keyword) {
@@ -144,7 +147,11 @@ bool _invalidVariableName(String keyword, {bool strictMode = true}) {
 /// ddc-generated JS file is stored. [nonNullAsserts] enables non-null
 /// assertions for non-nullable method parameters when running with weak null
 /// safety. [weakNullSafetyErrors] enables null safety type violations to throw
-/// when running in weak mode.
+/// when running in weak mode. [ddcModuleFormat] determines whether to emit a
+/// template that works with the DDC module format or one that works with the
+/// AMD module format. [canaryMode] is whether DDC is running in canary mode. If
+/// this flag and [ddcModuleFormat] is enabled, a template that works with the
+/// DDC hot reload format will be emitted.
 String ddcHtml(
     String testName,
     String testNameAlias,
@@ -155,15 +162,165 @@ String ddcHtml(
     bool nonNullAsserts,
     bool nativeNonNullAsserts,
     bool jsInteropNonNullAsserts,
-    bool weakNullSafetyErrors) {
+    bool weakNullSafetyErrors,
+    {bool ddcModuleFormat = false,
+    bool canaryMode = false}) {
   var testId = pathToJSIdentifier(testName);
   var testIdAlias = pathToJSIdentifier(testNameAlias);
   var soundNullSafety = mode == NnbdMode.strong;
   var ddcGenDir = '/root_build/$genDir';
-  var packagePaths =
-      testPackages.map((p) => '    "$p": "$ddcGenDir/pkg/amd/$p",').join("\n");
-  // The native JavaScript Object prototype is sealed before loading the Dart
-  // SDK module to guard against prototype pollution.
+  var hotReloadFormat = ddcModuleFormat && canaryMode;
+
+  var sdkAndAsyncHelperSetup = """
+_isolate_helper.startRootIsolate(function() {}, []);
+_debugger.registerDevtoolsFormatter();
+
+testErrorToStackTrace = function(error) {
+  var stackTrace = runtime.stackTrace(error).toString();
+
+  var lines = stackTrace.split("\\n");
+
+  // Remove the first line, which is just "Error".
+  lines = lines.slice(1);
+
+  // Strip off all of the lines for the bowels of the test runner.
+  for (var i = 0; i < lines.length; i++) {
+    if (lines[i].indexOf("dartMainRunner") != -1) {
+      lines = lines.slice(0, i);
+      break;
+    }
+  }
+
+  // TODO(rnystrom): It would be nice to shorten the URLs of the remaining
+  // lines too.
+  return lines.join("\\n");
+};
+
+runtime.addAsyncCallback = function() {
+  async_helper.async_helper.asyncStart();
+};
+
+runtime.removeAsyncCallback = function() {
+  // removeAsyncCallback() is called *before* the async operation is
+  // performed, but we don't want to report the test as being done until
+  // after that operation completes, so wait for that callback to run.
+  setTimeout(() => {
+    async_helper.async_helper.asyncEnd();
+  }, 0);
+};
+""";
+
+  var sdkFlagSetup = """
+runtime.weakNullSafetyWarnings(!($weakNullSafetyErrors || $soundNullSafety));
+runtime.weakNullSafetyErrors($weakNullSafetyErrors);
+runtime.nonNullAsserts($nonNullAsserts);
+runtime.nativeNonNullAsserts($nativeNonNullAsserts);
+runtime.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
+""";
+
+  String script;
+  if (ddcModuleFormat) {
+    var appName = '/root_dart/$testJSDir';
+    // Used in the DDC module system for multi-app workflows, and are simply
+    // placeholder values here.
+    var uuid = '00000000-0000-0000-0000-000000000000';
+    var loadPackagesScript = [
+      for (var p in testPackages)
+        """<script defer type="text/javascript"
+                src="$ddcGenDir/pkg/ddc/$p.js"></script>"""
+    ].join('\n');
+    String libraryImports;
+    String startCode;
+    if (hotReloadFormat) {
+      var import = 'dartDevEmbedder.importLibrary';
+      libraryImports = """
+        let runtime = $import("dart:_runtime");
+        let async_helper = $import("package:async_helper/async_helper.dart");
+        let _isolate_helper = $import("dart:_isolate_helper");
+        let _debugger = $import("dart:_debugger");
+      """;
+      sdkFlagSetup = """
+        let sdkOptions = {
+          weakNullSafetyWarnings: !($weakNullSafetyErrors || $soundNullSafety),
+          weakNullSafetyErrors: $weakNullSafetyErrors,
+          nonNullAsserts: $nonNullAsserts,
+          nativeNonNullAsserts: $nativeNonNullAsserts,
+          jsInteropNonNullAsserts: $jsInteropNonNullAsserts,
+        };
+      """;
+      startCode =
+          """dartDevEmbedder.runMain("org-dartlang-app:/$testNameAlias.dart",
+          sdkOptions);""";
+    } else {
+      libraryImports = """
+        let sdk = dart_library.import("dart_sdk", "$appName");
+        let runtime = sdk.dart;
+        let async_helper = dart_library.import("async_helper", "$appName");
+        let _isolate_helper = sdk._isolate_helper;
+        let _debugger = sdk._debugger;
+      """;
+      startCode = """dart_library.start("$appName", "$uuid", "$testName",
+          "$testIdAlias", false)""";
+    }
+    script = """
+<script defer type="text/javascript"
+src="/root_dart/pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js"></script>
+<script defer type="text/javascript" src="$ddcGenDir/sdk/ddc/dart_sdk.js"></script>
+$loadPackagesScript
+<script defer type="text/javascript" src="$appName/$testName.js"></script>
+<script type="text/javascript">"""
+// DDC module format doesn't defer the execution until the document is finished
+// parsing. We can defer scripts, but only if they are in separate files and not
+// inline JS like below. In order to make sure everything is loaded and be
+// consistent with the AMD module format, we should wait until a
+// `DOMContentLoaded` event is fired. Other options are using `type = "module"`
+// or putting this in a separate JS file, but this is the simplest solution.
+        """
+document.addEventListener("DOMContentLoaded", (e) => {
+  $libraryImports
+  $sdkAndAsyncHelperSetup
+  $sdkFlagSetup
+
+  dartMainRunner(function () {
+    return $startCode;
+  });
+});
+</script>
+    """;
+  } else {
+    var packagePaths = [
+      for (var p in testPackages) '    "$p": "$ddcGenDir/pkg/amd/$p",'
+    ].join("\n");
+    script = """
+<script>
+var require = {
+  baseUrl: "/root_dart/$testJSDir",
+  paths: {
+    "dart_sdk": "$ddcGenDir/sdk/amd/dart_sdk",
+$packagePaths
+  },
+  waitSeconds: 45,
+};
+</script>
+<script type="text/javascript"
+        src="/root_dart/third_party/requirejs/require.js"></script>
+<script type="text/javascript">
+requirejs(["$testName", "dart_sdk", "async_helper"],
+    function($testId, sdk, async_helper) {
+  let runtime = sdk.dart;
+  let _isolate_helper = sdk._isolate_helper;
+  let _debugger = sdk._debugger;
+
+  $sdkAndAsyncHelperSetup
+  $sdkFlagSetup
+
+  dartMainRunner(function testMainWrapper() {
+    return $testId.$testIdAlias.main();
+  });
+});
+</script>
+    """;
+  }
   return """
 <!DOCTYPE html>
 <html>
@@ -178,90 +335,14 @@ String ddcHtml(
      .unittest-fail { background: #d55;}
      .unittest-error { background: #a11;}
   </style>
-  <script>
-  delete Object.prototype.__proto__;
-  Object.seal(Object.prototype);
-  </script>
+  <script type="text/javascript" src="$_sealNativeObjectScript"></script>
 </head>
 <body>
 <h1>Running $testName</h1>
 <script type="text/javascript"
         src="/root_dart/pkg/test_runner/lib/src/test_controller.js">
 </script>
-<script>
-var require = {
-  baseUrl: "/root_dart/$testJSDir",
-  paths: {
-    "dart_sdk": "$ddcGenDir/sdk/amd/dart_sdk",
-$packagePaths
-  },
-  waitSeconds: 45,
-};
-
-</script>
-<script type="text/javascript"
-        src="/root_dart/third_party/requirejs/require.js"></script>
-<script type="text/javascript">
-requirejs(["$testName", "dart_sdk", "async_helper"],
-    function($testId, sdk, async_helper) {
-  sdk._isolate_helper.startRootIsolate(function() {}, []);
-  sdk._debugger.registerDevtoolsFormatter();
-
-  testErrorToStackTrace = function(error) {
-    var stackTrace = sdk.dart.stackTrace(error).toString();
-
-    var lines = stackTrace.split("\\n");
-
-    // Remove the first line, which is just "Error".
-    lines = lines.slice(1);
-
-    // Strip off all of the lines for the bowels of the test runner.
-    for (var i = 0; i < lines.length; i++) {
-      if (lines[i].indexOf("dartMainRunner") != -1) {
-        lines = lines.slice(0, i);
-        break;
-      }
-    }
-
-    // TODO(rnystrom): It would be nice to shorten the URLs of the remaining
-    // lines too.
-    return lines.join("\\n");
-  };
-
-  sdk.dart.addAsyncCallback = function() {
-    async_helper.async_helper.asyncStart();
-  };
-
-  sdk.dart.removeAsyncCallback = function() {
-    // removeAsyncCallback() is called *before* the async operation is
-    // performed, but we don't want to report the test as being done until
-    // after that operation completes, so wait for that callback to run.
-    setTimeout(() => {
-      async_helper.async_helper.asyncEnd();
-    }, 0);
-  };
-
-  sdk.dart.weakNullSafetyWarnings(!($weakNullSafetyErrors || $soundNullSafety));
-  sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
-  sdk.dart.nonNullAsserts($nonNullAsserts);
-  sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
-  sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
-
-  dartMainRunner(function testMainWrapper() {
-    // Some callbacks are not scheduled with timers/microtasks, so they don't
-    // go through our async tracking (e.g. DOM events). For those tests, check
-    // if the result of calling `main()` is a Future, and if so, wait for it.
-    let result = $testId.$testIdAlias.main();
-    // TODO(46377) DDC should control this code and expose a mechanism to run
-    // the main method that properly waits for completion.
-    if (result?.constructor?.name == '_Future') {
-      sdk.dart.addAsyncCallback();
-      result.whenComplete(sdk.dart.removeAsyncCallback);
-    }
-    return result;
-  });
-});
-</script>
+$script
 </body>
 </html>
 """;
@@ -290,15 +371,26 @@ String dart2wasmHtml(String title, String wasmPath, String mjsPath) {
           src="/root_dart/pkg/test_runner/lib/src/test_controller.js">
   </script>
   <script type="module">
-  const dartModulePromise = WebAssembly.compileStreaming(fetch('$wasmPath'));
-  const imports = {};
-  let dart2wasm_runtime = await import('$mjsPath');
-  let moduleInstance =
-      await dart2wasm_runtime.instantiate(dartModulePromise, imports);
+  async function loadAndRun(mjsPath, wasmPath) {
+    const mjs = await import(mjsPath);
+    const compiledApp = await mjs.compileStreaming(fetch(wasmPath));
+    window.loadData = async (relativeToWasmFileUri) => {
+      const path = '$wasmPath'.slice(0, wasmPath.lastIndexOf('/'));
+      const response = await fetch(`\${path}/\${relativeToWasmFileUri}`);
+      return response.arrayBuffer();
+    };
+    const appInstance = await compiledApp.instantiate({}, {
+      loadDeferredWasm: (moduleName) => {
+        const moduleFile = '$wasmPath'.replace('.wasm', `_\${moduleName}.wasm`);
+        return fetch(moduleFile);
+      }
+    });
+    dartMainRunner(() => {
+      appInstance.invokeMain();
+    });
+  }
 
-  dartMainRunner(() => {
-    dart2wasm_runtime.invoke(moduleInstance);
-  });
+  loadAndRun('$mjsPath', '$wasmPath');
   </script>
 </body>
 </html>""";

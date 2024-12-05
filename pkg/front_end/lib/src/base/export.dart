@@ -9,10 +9,11 @@ import 'package:kernel/ast.dart';
 import '../builder/builder.dart';
 import '../builder/library_builder.dart';
 import 'combinator.dart' show CombinatorBuilder;
+import 'uri_offset.dart';
 
 class Export {
-  /// The library that is exporting [exported];
-  final LibraryBuilder exporter;
+  /// The compilation unit that is exporting [exported];
+  final CompilationUnit exporter;
 
   /// The library being exported.
   CompilationUnit exportedCompilationUnit;
@@ -38,9 +39,12 @@ class Export {
         if (combinator.isShow && !combinator.names.contains(name)) return false;
         if (combinator.isHide &&
             // Coverage-ignore(suite): Not run.
-            combinator.names.contains(name)) return false;
+            combinator.names.contains(name)) {
+          return false;
+        }
       }
     }
-    return exporter.addToExportScope(name, member, charOffset);
+    return exporter.libraryBuilder.addToExportScope(name, member,
+        uriOffset: new UriOffset(exporter.fileUri, charOffset));
   }
 }

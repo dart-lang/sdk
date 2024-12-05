@@ -757,7 +757,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_LoadThread) {
 
   // Ensure we can successfully invoke the function.
   invoke_result ^= Invoke(root_library, "myFunction");
-  intptr_t result_int = Integer::Cast(invoke_result).AsInt64Value();
+  intptr_t result_int = Integer::Cast(invoke_result).Value();
   EXPECT_EQ(reinterpret_cast<intptr_t>(thread), result_int);
 }
 
@@ -1532,6 +1532,224 @@ ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_FinalFieldForwarding) {
                             /*expected_to_forward=*/false);
 }
 
+void TestBoxIntegerUnboxedConstantCanonicalization(Thread* thread,
+                                                   int64_t value,
+                                                   Representation constant_rep,
+                                                   Representation from_rep,
+                                                   bool should_canonicalize) {
+  using compiler::BlockBuilder;
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
+  FlowGraphBuilderHelper H;
+
+  auto b1 = H.flow_graph()->graph_entry()->normal_entry();
+
+  auto* const unboxed_constant = H.IntConstant(value, constant_rep);
+  auto* const boxed_constant = H.IntConstant(value);
+
+  BoxInstr* box;
+  DartReturnInstr* ret;
+
+  {
+    BlockBuilder builder(H.flow_graph(), b1);
+    box = builder.AddDefinition(
+        BoxInstr::Create(from_rep, new Value(unboxed_constant)));
+
+    ret = builder.AddReturn(new Value(box));
+  }
+  H.FinishGraph();
+  H.flow_graph()->Canonicalize();
+
+  if (should_canonicalize) {
+    EXPECT_PROPERTY(ret->value()->definition(), &it == boxed_constant);
+    EXPECT_PROPERTY(box, !it.HasUses());
+  } else {
+    EXPECT_PROPERTY(ret->value()->definition(), &it == box);
+  }
+}
+
+// Check that canonicalize can replace BoxInteger<from>(UnboxedConstant<to>(v))
+// with v if v is representable in from, and does not if it is not.
+ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_BoxIntegerUnboxedConstant) {
+  // kUnboxedInt8
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, 0, kUnboxedInt8,
+                                                kUnboxedInt8,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, 1, kUnboxedInt8,
+                                                kUnboxedInt8,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, -1, kUnboxedInt8,
+                                                kUnboxedInt8,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMinInt8, kUnboxedInt8,
+                                                kUnboxedInt8,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxInt8, kUnboxedInt8,
+                                                kUnboxedInt8,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxUint8,
+                                                kUnboxedUint8, kUnboxedInt8,
+                                                /*should_canonicalize=*/false);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMinInt32,
+                                                kUnboxedInt32, kUnboxedInt8,
+                                                /*should_canonicalize=*/false);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxInt32,
+                                                kUnboxedInt32, kUnboxedInt8,
+                                                /*should_canonicalize=*/false);
+  TestBoxIntegerUnboxedConstantCanonicalization(
+      thread, static_cast<int64_t>(kMaxInt32) + 1, kUnboxedUint32, kUnboxedInt8,
+      /*should_canonicalize=*/false);
+  TestBoxIntegerUnboxedConstantCanonicalization(
+      thread, static_cast<int64_t>(kMinInt32) - 1, kUnboxedInt32, kUnboxedInt8,
+      /*should_canonicalize=*/false);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxUint32,
+                                                kUnboxedUint32, kUnboxedInt8,
+                                                /*should_canonicalize=*/false);
+
+  // kUnboxedUint8
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, 0, kUnboxedInt8,
+                                                kUnboxedUint8,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, 1, kUnboxedInt8,
+                                                kUnboxedUint8,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, -1, kUnboxedInt8,
+                                                kUnboxedUint8,
+                                                /*should_canonicalize=*/false);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMinInt8, kUnboxedInt8,
+                                                kUnboxedUint8,
+                                                /*should_canonicalize=*/false);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxInt8, kUnboxedInt8,
+                                                kUnboxedUint8,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxUint8,
+                                                kUnboxedUint8, kUnboxedUint8,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMinInt32,
+                                                kUnboxedInt32, kUnboxedUint8,
+                                                /*should_canonicalize=*/false);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxInt32,
+                                                kUnboxedInt32, kUnboxedUint8,
+                                                /*should_canonicalize=*/false);
+  TestBoxIntegerUnboxedConstantCanonicalization(
+      thread, static_cast<int64_t>(kMaxInt32) + 1, kUnboxedUint32,
+      kUnboxedUint8,
+      /*should_canonicalize=*/false);
+  TestBoxIntegerUnboxedConstantCanonicalization(
+      thread, static_cast<int64_t>(kMinInt32) - 1, kUnboxedInt32, kUnboxedUint8,
+      /*should_canonicalize=*/false);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxUint32,
+                                                kUnboxedUint32, kUnboxedUint8,
+                                                /*should_canonicalize=*/false);
+
+  // kUnboxedInt32
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, 0, kUnboxedInt8,
+                                                kUnboxedInt32,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, 1, kUnboxedInt8,
+                                                kUnboxedInt32,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, -1, kUnboxedInt8,
+                                                kUnboxedInt32,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMinInt8, kUnboxedInt8,
+                                                kUnboxedInt32,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxInt8, kUnboxedInt8,
+                                                kUnboxedInt32,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxUint8,
+                                                kUnboxedUint8, kUnboxedInt32,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMinInt32,
+                                                kUnboxedInt32, kUnboxedInt32,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxInt32,
+                                                kUnboxedInt32, kUnboxedInt32,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(
+      thread, static_cast<int64_t>(kMaxInt32) + 1, kUnboxedUint32,
+      kUnboxedInt32,
+      /*should_canonicalize=*/false);
+  TestBoxIntegerUnboxedConstantCanonicalization(
+      thread, static_cast<int64_t>(kMinInt32) - 1, kUnboxedInt32, kUnboxedInt32,
+      /*should_canonicalize=*/false);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxUint32,
+                                                kUnboxedUint32, kUnboxedInt32,
+                                                /*should_canonicalize=*/false);
+
+  // kUnboxedUint32
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, 0, kUnboxedInt8,
+                                                kUnboxedUint32,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, 1, kUnboxedInt8,
+                                                kUnboxedUint32,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, -1, kUnboxedInt8,
+                                                kUnboxedUint32,
+                                                /*should_canonicalize=*/false);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMinInt8, kUnboxedInt8,
+                                                kUnboxedUint32,
+                                                /*should_canonicalize=*/false);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxInt8, kUnboxedInt8,
+                                                kUnboxedUint32,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxUint8,
+                                                kUnboxedUint8, kUnboxedUint32,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMinInt32,
+                                                kUnboxedInt32, kUnboxedUint32,
+                                                /*should_canonicalize=*/false);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxInt32,
+                                                kUnboxedInt32, kUnboxedUint32,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(
+      thread, static_cast<int64_t>(kMaxInt32) + 1, kUnboxedInt32,
+      kUnboxedUint32,
+      /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(
+      thread, static_cast<int64_t>(kMinInt32) - 1, kUnboxedInt32,
+      kUnboxedUint32,
+      /*should_canonicalize=*/false);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxUint32,
+                                                kUnboxedUint32, kUnboxedUint32,
+                                                /*should_canonicalize=*/true);
+
+  // kUnboxedInt64
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, 0, kUnboxedInt8,
+                                                kUnboxedInt64,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, 1, kUnboxedInt8,
+                                                kUnboxedInt64,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, -1, kUnboxedInt8,
+                                                kUnboxedInt64,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMinInt8, kUnboxedInt8,
+                                                kUnboxedInt64,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxInt8, kUnboxedInt8,
+                                                kUnboxedInt64,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxUint8,
+                                                kUnboxedUint8, kUnboxedInt64,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMinInt32,
+                                                kUnboxedInt32, kUnboxedInt64,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxInt32,
+                                                kUnboxedInt32, kUnboxedInt64,
+                                                /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(
+      thread, static_cast<int64_t>(kMaxInt32) + 1, kUnboxedInt32, kUnboxedInt64,
+      /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(
+      thread, static_cast<int64_t>(kMinInt32) - 1, kUnboxedInt32, kUnboxedInt64,
+      /*should_canonicalize=*/true);
+  TestBoxIntegerUnboxedConstantCanonicalization(thread, kMaxUint32,
+                                                kUnboxedUint32, kUnboxedInt64,
+                                                /*should_canonicalize=*/true);
+}
+
 template <typename... Args>
 static ObjectPtr InvokeFunction(const Function& function, Args&... args) {
   const Array& args_array = Array::Handle(Array::New(sizeof...(Args)));
@@ -1755,6 +1973,59 @@ ISOLATE_UNIT_TEST_CASE(IL_RecordCoverageSurvivesOptimizations) {
 
   // RecordCoverage instruction should remain in the graph.
   EXPECT(flow_graph->graph_entry()->normal_entry()->next()->IsRecordCoverage());
+}
+
+// This test verifies that the ASSERT in Assembler::ElementAddressForIntIndex
+// appropriately accounts for the heap object tag to check the displacement.
+// Regression test for https://github.com/dart-lang/sdk/issues/56588.
+ISOLATE_UNIT_TEST_CASE(IRTest_Regress_56588) {
+  TestPipeline pipeline(CompilerPass::kAOT, [&]() {
+    FlowGraphBuilderHelper H(1);
+
+    const classid_t cid = kTypedDataUint8ClampedArrayCid;
+    // Must not be a view or an external cid, so that the untagged address
+    // isn't extracted first.
+    EXPECT(IsTypedDataClassId(cid));
+    const intptr_t index_scale = 1;
+    // Set the constant index such that the displacement is not a signed 32-bit
+    // integer unless the displacement also takes into account that the
+    // base address is tagged.
+    const int64_t constant_index =
+        static_cast<int64_t>(kMaxInt32) + kHeapObjectTag -
+        compiler::target::Instance::DataOffsetFor(cid);
+
+    // Double-check that we chose such an index correctly.
+    const int64_t disp = constant_index * index_scale +
+                         compiler::target::Instance::DataOffsetFor(cid);
+    EXPECT(!Utils::IsInt(32, disp));
+    EXPECT(Utils::IsInt(32, disp - kHeapObjectTag));
+
+    const auto& cls =
+        Class::Handle(IsolateGroup::Current()->class_table()->At(cid));
+    ASSERT(!cls.IsNull());
+    auto& type =
+        AbstractType::ZoneHandle(Type::New(cls, Object::null_type_arguments()));
+    type = ClassFinalizer::FinalizeType(type);
+
+    H.AddVariable("arg", type);
+
+    auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
+
+    {
+      compiler::BlockBuilder builder(H.flow_graph(), normal_entry);
+      Definition* const array = builder.AddParameter(0);
+      auto* const index = H.IntConstant(constant_index, kUnboxedInt64);
+      auto* const deref = builder.AddDefinition(new LoadIndexedInstr(
+          new Value(array), new Value(index),
+          index->representation() != kTagged, index_scale, cid, kAlignedAccess,
+          CompilerState::Current().GetNextDeoptId(), InstructionSource()));
+      builder.AddReturn(new Value(deref));
+    }
+    H.FinishGraph();
+    return H.flow_graph();
+  });
+  pipeline.RunPasses({});
+  pipeline.CompileGraphAndAttachFunction();
 }
 
 }  // namespace dart

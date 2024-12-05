@@ -32,12 +32,14 @@ void f(C c) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: _field
-    staticElement: self::@class::C::@getter::_field
+    staticElement: <testLibraryFragment>::@class::C::@getter::_field
+    element: <testLibraryFragment>::@class::C::@getter::_field#element
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
+  element: <null>
   staticInvokeType: int Function()
   staticType: int
 ''');
@@ -61,13 +63,15 @@ MethodInvocation
     operator: ..
     propertyName: SimpleIdentifier
       token: _field
-      staticElement: self::@class::C::@getter::_field
+      staticElement: <testLibraryFragment>::@class::C::@getter::_field
+      element: <testLibraryFragment>::@class::C::@getter::_field#element
       staticType: int
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: toString
-    staticElement: dart:core::@class::int::@method::toString
+    staticElement: dart:core::<fragment>::@class::int::@method::toString
+    element: dart:core::<fragment>::@class::int::@method::toString#element
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -94,7 +98,8 @@ PropertyAccess
   operator: ..
   propertyName: SimpleIdentifier
     token: _field
-    staticElement: self::@class::C::@getter::_field
+    staticElement: <testLibraryFragment>::@class::C::@getter::_field
+    element: <testLibraryFragment>::@class::C::@getter::_field#element
     staticType: Object
   staticType: Object
 ''');
@@ -104,12 +109,14 @@ PropertyAccess
 PropertyAccess
   target: SimpleIdentifier
     token: c
-    staticElement: self::@function::f::@parameter::c
+    staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C?
   operator: ?.
   propertyName: SimpleIdentifier
     token: _field
-    staticElement: self::@class::C::@getter::_field
+    staticElement: <testLibraryFragment>::@class::C::@getter::_field
+    element: <testLibraryFragment>::@class::C::@getter::_field#element
     staticType: Object?
   staticType: Object?
 ''');
@@ -146,14 +153,17 @@ void g(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    staticElement: self::@function::g::@parameter::c
+    staticElement: <testLibraryFragment>::@function::g::@parameter::c
+    element: <testLibraryFragment>::@function::g::@parameter::c#element
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: _foo
-    staticElement: self::@class::C::@getter::_foo
+    staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+    element: <testLibraryFragment>::@class::C::@getter::_foo#element
     staticType: int?
-  staticElement: self::@class::C::@getter::_foo
+  staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+  element: <testLibraryFragment>::@class::C::@getter::_foo#element
   staticType: int?
 ''');
   }
@@ -177,18 +187,21 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      staticElement: self::@function::f::@parameter::c
+      staticElement: <testLibraryFragment>::@function::f::@parameter::c
+      element: <testLibraryFragment>::@function::f::@parameter::c#element
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
       token: _foo
-      staticElement: self::@class::C::@getter::_foo
+      staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+      element: <testLibraryFragment>::@class::C::@getter::_foo#element
       staticType: void Function()
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
+  element: <null>
   staticInvokeType: void Function()
   staticType: void
 ''');
@@ -213,18 +226,21 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      staticElement: self::@function::f::@parameter::c
+      staticElement: <testLibraryFragment>::@function::f::@parameter::c
+      element: <testLibraryFragment>::@function::f::@parameter::c#element
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
       token: _foo
-      staticElement: self::@class::C::@getter::_foo
+      staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+      element: <testLibraryFragment>::@class::C::@getter::_foo#element
       staticType: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
+  element: <null>
   staticInvokeType: int Function()
   staticType: int
 ''');
@@ -251,20 +267,23 @@ FunctionExpressionInvocation
       leftParenthesis: (
       expression: SimpleIdentifier
         token: c
-        staticElement: self::@function::f::@parameter::c
+        staticElement: <testLibraryFragment>::@function::f::@parameter::c
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: C
       rightParenthesis: )
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
       token: _foo
-      staticElement: self::@class::C::@getter::_foo
+      staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+      element: <testLibraryFragment>::@class::C::@getter::_foo#element
       staticType: void Function()
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
+  element: <null>
   staticInvokeType: void Function()
   staticType: void
 ''');
@@ -291,20 +310,23 @@ FunctionExpressionInvocation
       leftParenthesis: (
       expression: SimpleIdentifier
         token: c
-        staticElement: self::@function::f::@parameter::c
+        staticElement: <testLibraryFragment>::@function::f::@parameter::c
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: C
       rightParenthesis: )
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
       token: _foo
-      staticElement: self::@class::C::@getter::_foo
+      staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+      element: <testLibraryFragment>::@class::C::@getter::_foo#element
       staticType: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
+  element: <null>
   staticInvokeType: int Function()
   staticType: int
 ''');
@@ -332,12 +354,14 @@ class D extends C {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: _foo
-    staticElement: self::@class::C::@getter::_foo
+    staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+    element: <testLibraryFragment>::@class::C::@getter::_foo#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
+  element: <null>
   staticInvokeType: void Function()
   staticType: void
 ''');
@@ -365,12 +389,14 @@ class D extends C {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: _foo
-    staticElement: self::@class::C::@getter::_foo
+    staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+    element: <testLibraryFragment>::@class::C::@getter::_foo#element
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
+  element: <null>
   staticInvokeType: int Function()
   staticType: int
 ''');
@@ -403,13 +429,15 @@ FunctionExpressionInvocation
     operator: .
     propertyName: SimpleIdentifier
       token: _foo
-      staticElement: self::@class::C::@getter::_foo
+      staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+      element: <testLibraryFragment>::@class::C::@getter::_foo#element
       staticType: void Function()
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
+  element: <null>
   staticInvokeType: void Function()
   staticType: void
 ''');
@@ -442,13 +470,15 @@ FunctionExpressionInvocation
     operator: .
     propertyName: SimpleIdentifier
       token: _foo
-      staticElement: self::@class::C::@getter::_foo
+      staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+      element: <testLibraryFragment>::@class::C::@getter::_foo#element
       staticType: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
+  element: <null>
   staticInvokeType: int Function()
   staticType: int
 ''');
@@ -472,14 +502,17 @@ void f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    staticElement: self::@function::f::@parameter::c
+    staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: _foo
-    staticElement: self::@class::C::@getter::_foo
+    staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+    element: <testLibraryFragment>::@class::C::@getter::_foo#element
     staticType: int?
-  staticElement: self::@class::C::@getter::_foo
+  staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+  element: <testLibraryFragment>::@class::C::@getter::_foo#element
   staticType: int?
 ''');
   }
@@ -502,14 +535,17 @@ void f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    staticElement: self::@function::f::@parameter::c
+    staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: self::@class::C::@getter::foo
+    staticElement: <testLibraryFragment>::@class::C::@getter::foo
+    element: <testLibraryFragment>::@class::C::@getter::foo#element
     staticType: int?
-  staticElement: self::@class::C::@getter::foo
+  staticElement: <testLibraryFragment>::@class::C::@getter::foo
+  element: <testLibraryFragment>::@class::C::@getter::foo#element
   staticType: int?
 ''');
   }
@@ -532,14 +568,17 @@ void f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    staticElement: self::@function::f::@parameter::c
+    staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: _foo
-    staticElement: self::@class::C::@getter::_foo
+    staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+    element: <testLibraryFragment>::@class::C::@getter::_foo#element
     staticType: int
-  staticElement: self::@class::C::@getter::_foo
+  staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+  element: <testLibraryFragment>::@class::C::@getter::_foo#element
   staticType: int
 ''');
   }
@@ -564,14 +603,16 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: c
-      staticElement: self::@function::f::@parameter::c
+      staticElement: <testLibraryFragment>::@function::f::@parameter::c
+      element: <testLibraryFragment>::@function::f::@parameter::c#element
       staticType: C
     rightParenthesis: )
     staticType: C
   operator: .
   propertyName: SimpleIdentifier
     token: _foo
-    staticElement: self::@class::C::@getter::_foo
+    staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+    element: <testLibraryFragment>::@class::C::@getter::_foo#element
     staticType: int
   staticType: int
 ''');
@@ -603,7 +644,8 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: _foo
-    staticElement: self::@class::C::@getter::_foo
+    staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+    element: <testLibraryFragment>::@class::C::@getter::_foo#element
     staticType: int
   staticType: int
 ''');
@@ -626,7 +668,8 @@ class C {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _foo
-  staticElement: self::@class::C::@getter::_foo
+  staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+  element: <testLibraryFragment>::@class::C::@getter::_foo#element
   staticType: int
 ''');
   }
@@ -648,14 +691,17 @@ void f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    staticElement: self::@function::f::@parameter::c
+    staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: _foo
-    staticElement: self::@class::C::@getter::_foo
+    staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+    element: <testLibraryFragment>::@class::C::@getter::_foo#element
     staticType: int
-  staticElement: self::@class::C::@getter::_foo
+  staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+  element: <testLibraryFragment>::@class::C::@getter::_foo#element
   staticType: int
 ''');
   }
@@ -700,14 +746,17 @@ void f(E e) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: e
-    staticElement: self::@function::f::@parameter::e
+    staticElement: <testLibraryFragment>::@function::f::@parameter::e
+    element: <testLibraryFragment>::@function::f::@parameter::e#element
     staticType: E
   period: .
   identifier: SimpleIdentifier
     token: _foo
-    staticElement: self::@enum::E::@getter::_foo
+    staticElement: <testLibraryFragment>::@enum::E::@getter::_foo
+    element: <testLibraryFragment>::@enum::E::@getter::_foo#element
     staticType: int
-  staticElement: self::@enum::E::@getter::_foo
+  staticElement: <testLibraryFragment>::@enum::E::@getter::_foo
+  element: <testLibraryFragment>::@enum::E::@getter::_foo#element
   staticType: int
 ''');
   }
@@ -727,14 +776,17 @@ void f(A a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   period: .
   identifier: SimpleIdentifier
     token: _it
-    staticElement: self::@extensionType::A::@getter::_it
+    staticElement: <testLibraryFragment>::@extensionType::A::@getter::_it
+    element: <testLibraryFragment>::@extensionType::A::@getter::_it#element
     staticType: int
-  staticElement: self::@extensionType::A::@getter::_it
+  staticElement: <testLibraryFragment>::@extensionType::A::@getter::_it
+  element: <testLibraryFragment>::@extensionType::A::@getter::_it#element
   staticType: int
 ''');
   }
@@ -755,14 +807,17 @@ void f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    staticElement: self::@function::f::@parameter::c
+    staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: _field
-    staticElement: self::@class::C::@getter::_field
+    staticElement: <testLibraryFragment>::@class::C::@getter::_field
+    element: <testLibraryFragment>::@class::C::@getter::_field#element
     staticType: int?
-  staticElement: self::@class::C::@getter::_field
+  staticElement: <testLibraryFragment>::@class::C::@getter::_field
+  element: <testLibraryFragment>::@class::C::@getter::_field#element
   staticType: int?
 ''');
   }
@@ -805,14 +860,17 @@ void f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    staticElement: self::@function::f::@parameter::c
+    staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: _foo
-    staticElement: self::@class::C::@getter::_foo
+    staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+    element: <testLibraryFragment>::@class::C::@getter::_foo#element
     staticType: int
-  staticElement: self::@class::C::@getter::_foo
+  staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+  element: <testLibraryFragment>::@class::C::@getter::_foo#element
   staticType: int
 ''');
   }
@@ -854,14 +912,17 @@ void f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    staticElement: self::@function::f::@parameter::c
+    staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: _foo
-    staticElement: self::@class::C::@getter::_foo
+    staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+    element: <testLibraryFragment>::@class::C::@getter::_foo#element
     staticType: int?
-  staticElement: self::@class::C::@getter::_foo
+  staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+  element: <testLibraryFragment>::@class::C::@getter::_foo#element
   staticType: int?
 ''');
   }
@@ -887,14 +948,16 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: c
-      staticElement: self::@function::f::@parameter::c
+      staticElement: <testLibraryFragment>::@function::f::@parameter::c
+      element: <testLibraryFragment>::@function::f::@parameter::c#element
       staticType: C
     rightParenthesis: )
     staticType: C
   operator: .
   propertyName: SimpleIdentifier
     token: _foo
-    staticElement: self::@class::C::@getter::_foo
+    staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+    element: <testLibraryFragment>::@class::C::@getter::_foo#element
     staticType: int?
   staticType: int?
 ''');
@@ -927,14 +990,17 @@ void f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    staticElement: self::@function::f::@parameter::c
+    staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: _foo
-    staticElement: self::@class::C::@getter::_foo
+    staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+    element: <testLibraryFragment>::@class::C::@getter::_foo#element
     staticType: int?
-  staticElement: self::@class::C::@getter::_foo
+  staticElement: <testLibraryFragment>::@class::C::@getter::_foo
+  element: <testLibraryFragment>::@class::C::@getter::_foo#element
   staticType: int?
 ''');
   }
@@ -969,7 +1035,8 @@ Block
     ExpressionStatement
       expression: SimpleIdentifier
         token: _i
-        staticElement: self::@class::C::@getter::_i
+        staticElement: <testLibraryFragment>::@class::C::@getter::_i
+        element: <testLibraryFragment>::@class::C::@getter::_i#element
         staticType: int
       semicolon: ;
     ExpressionStatement
@@ -980,7 +1047,8 @@ Block
         operator: .
         propertyName: SimpleIdentifier
           token: _i
-          staticElement: self::@class::B::@getter::_i
+          staticElement: <testLibraryFragment>::@class::B::@getter::_i
+          element: <testLibraryFragment>::@class::B::@getter::_i#element
           staticType: int?
         staticType: int?
       semicolon: ;
@@ -994,7 +1062,8 @@ Block
     ExpressionStatement
       expression: SimpleIdentifier
         token: _i
-        staticElement: self::@class::C::@getter::_i
+        staticElement: <testLibraryFragment>::@class::C::@getter::_i
+        element: <testLibraryFragment>::@class::C::@getter::_i#element
         staticType: int?
       semicolon: ;
     ExpressionStatement
@@ -1005,7 +1074,8 @@ Block
         operator: .
         propertyName: SimpleIdentifier
           token: _i
-          staticElement: self::@class::B::@getter::_i
+          staticElement: <testLibraryFragment>::@class::B::@getter::_i
+          element: <testLibraryFragment>::@class::B::@getter::_i#element
           staticType: int
         staticType: int
       semicolon: ;
@@ -1043,7 +1113,8 @@ Block
     ExpressionStatement
       expression: SimpleIdentifier
         token: _t
-        staticElement: self::@class::C::@getter::_t
+        staticElement: <testLibraryFragment>::@class::C::@getter::_t
+        element: <testLibraryFragment>::@class::C::@getter::_t#element
         staticType: T
       semicolon: ;
     ExpressionStatement
@@ -1054,9 +1125,10 @@ Block
         operator: .
         propertyName: SimpleIdentifier
           token: _t
-          staticElement: PropertyAccessorMember
-            base: self::@class::B::@getter::_t
+          staticElement: GetterMember
+            base: <testLibraryFragment>::@class::B::@getter::_t
             substitution: {T: T}
+          element: <testLibraryFragment>::@class::B::@getter::_t#element
           staticType: T?
         staticType: T?
       semicolon: ;
@@ -1070,7 +1142,8 @@ Block
     ExpressionStatement
       expression: SimpleIdentifier
         token: _t
-        staticElement: self::@class::C::@getter::_t
+        staticElement: <testLibraryFragment>::@class::C::@getter::_t
+        element: <testLibraryFragment>::@class::C::@getter::_t#element
         staticType: T?
       semicolon: ;
     ExpressionStatement
@@ -1081,9 +1154,10 @@ Block
         operator: .
         propertyName: SimpleIdentifier
           token: _t
-          staticElement: PropertyAccessorMember
-            base: self::@class::B::@getter::_t
+          staticElement: GetterMember
+            base: <testLibraryFragment>::@class::B::@getter::_t
             substitution: {T: T}
+          element: <testLibraryFragment>::@class::B::@getter::_t#element
           staticType: T
         staticType: T
       semicolon: ;
@@ -1122,12 +1196,14 @@ Block
       expression: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: _f
-          staticElement: self::@class::C::@getter::_f
+          staticElement: <testLibraryFragment>::@class::C::@getter::_f
+          element: <testLibraryFragment>::@class::C::@getter::_f#element
           staticType: int Function()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
         staticElement: <null>
+        element: <null>
         staticInvokeType: int Function()
         staticType: int
       semicolon: ;
@@ -1140,13 +1216,15 @@ Block
           operator: .
           propertyName: SimpleIdentifier
             token: _f
-            staticElement: self::@class::B::@getter::_f
+            staticElement: <testLibraryFragment>::@class::B::@getter::_f
+            element: <testLibraryFragment>::@class::B::@getter::_f#element
             staticType: int? Function()
           staticType: int? Function()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
         staticElement: <null>
+        element: <null>
         staticInvokeType: int? Function()
         staticType: int?
       semicolon: ;
@@ -1161,12 +1239,14 @@ Block
       expression: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: _f
-          staticElement: self::@class::C::@getter::_f
+          staticElement: <testLibraryFragment>::@class::C::@getter::_f
+          element: <testLibraryFragment>::@class::C::@getter::_f#element
           staticType: int? Function()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
         staticElement: <null>
+        element: <null>
         staticInvokeType: int? Function()
         staticType: int?
       semicolon: ;
@@ -1179,13 +1259,15 @@ Block
           operator: .
           propertyName: SimpleIdentifier
             token: _f
-            staticElement: self::@class::B::@getter::_f
+            staticElement: <testLibraryFragment>::@class::B::@getter::_f
+            element: <testLibraryFragment>::@class::B::@getter::_f#element
             staticType: int Function()
           staticType: int Function()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
         staticElement: <null>
+        element: <null>
         staticInvokeType: int Function()
         staticType: int
       semicolon: ;
@@ -1224,12 +1306,14 @@ Block
       expression: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: _f
-          staticElement: self::@class::C::@getter::_f
+          staticElement: <testLibraryFragment>::@class::C::@getter::_f
+          element: <testLibraryFragment>::@class::C::@getter::_f#element
           staticType: T Function()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
         staticElement: <null>
+        element: <null>
         staticInvokeType: T Function()
         staticType: T
       semicolon: ;
@@ -1242,15 +1326,17 @@ Block
           operator: .
           propertyName: SimpleIdentifier
             token: _f
-            staticElement: PropertyAccessorMember
-              base: self::@class::B::@getter::_f
+            staticElement: GetterMember
+              base: <testLibraryFragment>::@class::B::@getter::_f
               substitution: {T: T}
+            element: <testLibraryFragment>::@class::B::@getter::_f#element
             staticType: T? Function()
           staticType: T? Function()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
         staticElement: <null>
+        element: <null>
         staticInvokeType: T? Function()
         staticType: T?
       semicolon: ;
@@ -1265,12 +1351,14 @@ Block
       expression: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: _f
-          staticElement: self::@class::C::@getter::_f
+          staticElement: <testLibraryFragment>::@class::C::@getter::_f
+          element: <testLibraryFragment>::@class::C::@getter::_f#element
           staticType: T? Function()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
         staticElement: <null>
+        element: <null>
         staticInvokeType: T? Function()
         staticType: T?
       semicolon: ;
@@ -1283,15 +1371,17 @@ Block
           operator: .
           propertyName: SimpleIdentifier
             token: _f
-            staticElement: PropertyAccessorMember
-              base: self::@class::B::@getter::_f
+            staticElement: GetterMember
+              base: <testLibraryFragment>::@class::B::@getter::_f
               substitution: {T: T}
+            element: <testLibraryFragment>::@class::B::@getter::_f#element
             staticType: T Function()
           staticType: T Function()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
         staticElement: <null>
+        element: <null>
         staticInvokeType: T Function()
         staticType: T
       semicolon: ;

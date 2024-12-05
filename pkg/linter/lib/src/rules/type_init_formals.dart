@@ -7,79 +7,19 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = "Don't type annotate initializing formals.";
 
-const _details = r'''
-From [Effective Dart](https://dart.dev/effective-dart/design#dont-type-annotate-initializing-formals):
-
-**DON'T** type annotate initializing formals.
-
-If a constructor parameter is using `this.x` to initialize a field, then the
-type of the parameter is understood to be the same type as the field. If a 
-a constructor parameter is using `super.x` to forward to a super constructor,
-then the type of the parameter is understood to be the same as the super
-constructor parameter.
-
-Type annotating an initializing formal with a different type than that of the
-field is OK.
-
-**BAD:**
-```dart
-class Point {
-  int x, y;
-  Point(int this.x, int this.y);
-}
-```
-
-**GOOD:**
-```dart
-class Point {
-  int x, y;
-  Point(this.x, this.y);
-}
-```
-
-**BAD:**
-```dart
-class A {
-  int a;
-  A(this.a);
-}
-
-class B extends A {
-  B(int super.a);
-}
-```
-
-**GOOD:**
-```dart
-class A {
-  int a;
-  A(this.a);
-}
-
-class B extends A {
-  B(super.a);
-}
-```
-
-''';
-
 class TypeInitFormals extends LintRule {
-  static const LintCode code = LintCode('type_init_formals',
-      "Don't needlessly type annotate initializing formals.",
-      correctionMessage: 'Try removing the type.', hasPublishedDocs: true);
-
   TypeInitFormals()
       : super(
-            name: 'type_init_formals',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.type_init_formals,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.type_init_formals;
 
   @override
   void registerNodeProcessors(

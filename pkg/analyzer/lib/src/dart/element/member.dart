@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
@@ -13,13 +14,14 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// A constructor element defined in a parameterized type where the values of
 /// the type parameters are known.
 class ConstructorMember extends ExecutableMember
     with ConstructorElementMixin
-    implements ConstructorElement {
+    implements ConstructorElement, ConstructorElement2 {
   /// Initialize a newly created element to represent a constructor, based on
   /// the [declaration], and applied [substitution].
   ConstructorMember({
@@ -40,13 +42,23 @@ class ConstructorMember extends ExecutableMember
   }
 
   @override
+  ConstructorElement2 get baseElement => _element2;
+
+  @override
   ConstructorElement get declaration => super.declaration as ConstructorElement;
 
   @override
   String get displayName => declaration.displayName;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
   InterfaceElement get enclosingElement => declaration.enclosingElement;
+
+  @override
+  InterfaceElement get enclosingElement3 => declaration.enclosingElement3;
+
+  @override
+  ConstructorFragment? get firstFragment => _element2.firstFragment;
 
   @override
   bool get isConst => declaration.isConst;
@@ -73,6 +85,10 @@ class ConstructorMember extends ExecutableMember
   }
 
   @override
+  ConstructorElement2? get redirectedConstructor2 =>
+      redirectedConstructor.asElement2 as ConstructorElement2;
+
+  @override
   InterfaceType get returnType => type.returnType as InterfaceType;
 
   @override
@@ -83,6 +99,14 @@ class ConstructorMember extends ExecutableMember
     var element = declaration.superConstructor;
     return _from2(element);
   }
+
+  @override
+  ConstructorElement2? get superConstructor2 =>
+      superConstructor.asElement2 as ConstructorElement2;
+
+  @override
+  ConstructorElement2 get _element2 =>
+      declaration.asElement2 as ConstructorElement2;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
@@ -148,7 +172,8 @@ class ConstructorMember extends ExecutableMember
 
 /// An executable element defined in a parameterized type where the values of
 /// the type parameters are known.
-abstract class ExecutableMember extends Member implements ExecutableElement {
+abstract class ExecutableMember extends Member
+    implements ExecutableElement, ExecutableElement2 {
   @override
   final List<TypeParameterElement> typeParameters;
 
@@ -172,10 +197,23 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   List<Element> get children => parameters;
 
   @override
+  List<Element2> get children2 =>
+      children.map((fragment) => fragment.asElement2).nonNulls.toList();
+
+  @override
   ExecutableElement get declaration => super.declaration as ExecutableElement;
 
   @override
   String get displayName => declaration.displayName;
+
+  @override
+  Element2? get enclosingElement2 => _element2.enclosingElement2;
+
+  @override
+  List<FormalParameterElement> get formalParameters => parameters
+      .map((fragment) => fragment.asElement2 as FormalParameterElement?)
+      .nonNulls
+      .toList();
 
   @override
   bool get hasImplicitReturnType => declaration.hasImplicitReturnType;
@@ -214,7 +252,16 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   LibraryElement get library => _declaration.library!;
 
   @override
+  LibraryElement2? get library2 => _element2.library2;
+
+  @override
   Source get librarySource => _declaration.librarySource!;
+
+  @override
+  int get nameOffset => declaration.nameOffset;
+
+  @override
+  Element2 get nonSynthetic2 => _element2;
 
   @override
   List<ParameterElement> get parameters {
@@ -248,9 +295,38 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   }
 
   @override
+  List<TypeParameterElement2> get typeParameters2 => typeParameters
+      .map((fragment) => fragment.asElement2 as TypeParameterElement2?)
+      .nonNulls
+      .toList();
+
+  ExecutableElement2 get _element2 =>
+      declaration.asElement2 as ExecutableElement2;
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExecutableElement(this, displayName);
   }
+
+  @override
+  String displayString2(
+      {bool multiline = false, bool preferTypeAlias = false}) {
+    return _element2.displayString2(
+        multiline: multiline, preferTypeAlias: preferTypeAlias);
+  }
+
+  @override
+  bool isAccessibleIn2(LibraryElement2 library) =>
+      _element2.isAccessibleIn2(library);
+
+  @override
+  E? thisOrAncestorMatching2<E extends Element2>(
+          bool Function(Element2 p1) predicate) =>
+      _element2.thisOrAncestorMatching2(predicate);
+
+  @override
+  E? thisOrAncestorOfType2<E extends Element2>() =>
+      _element2.thisOrAncestorOfType2();
 
   static ExecutableElement from2(
     ExecutableElement element,
@@ -369,7 +445,8 @@ class FieldFormalParameterMember extends ParameterMember
 
 /// A field element defined in a parameterized type where the values of the type
 /// parameters are known.
-class FieldMember extends VariableMember implements FieldElement {
+class FieldMember extends VariableMember
+    implements FieldElement, FieldElement2 {
   /// Initialize a newly created element to represent a field, based on the
   /// [declaration], with applied [substitution].
   FieldMember(
@@ -389,13 +466,30 @@ class FieldMember extends VariableMember implements FieldElement {
   }
 
   @override
+  FieldElement2 get baseElement => _element2;
+
+  @override
+  List<Element2> get children2 =>
+      children.map((fragment) => fragment.asElement2).nonNulls.toList();
+
+  @override
   FieldElement get declaration => super.declaration as FieldElement;
 
   @override
   String get displayName => declaration.displayName;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
   Element get enclosingElement => declaration.enclosingElement;
+
+  @override
+  Element2? get enclosingElement2 => _element2.enclosingElement2;
+
+  @override
+  Element get enclosingElement3 => declaration.enclosingElement3;
+
+  @override
+  FieldFragment? get firstFragment => _element2.firstFragment;
 
   @override
   PropertyAccessorElement? get getter {
@@ -405,6 +499,16 @@ class FieldMember extends VariableMember implements FieldElement {
     }
     return PropertyAccessorMember(
         baseGetter, augmentationSubstitution, _substitution);
+  }
+
+  @override
+  GetterElement? get getter2 {
+    var baseGetter = declaration.getter;
+    if (baseGetter == null) {
+      return null;
+    }
+    return GetterMember._(baseGetter, augmentationSubstitution, _substitution,
+        baseGetter.typeParameters);
   }
 
   @override
@@ -432,7 +536,13 @@ class FieldMember extends VariableMember implements FieldElement {
   LibraryElement get library => _declaration.library!;
 
   @override
+  LibraryElement2? get library2 => _element2.library2;
+
+  @override
   String get name => declaration.name;
+
+  @override
+  Element2 get nonSynthetic2 => _element2.nonSynthetic2;
 
   @override
   PropertyAccessorElement? get setter {
@@ -445,10 +555,45 @@ class FieldMember extends VariableMember implements FieldElement {
   }
 
   @override
+  SetterElement? get setter2 {
+    var baseSetter = declaration.setter;
+    if (baseSetter == null) {
+      return null;
+    }
+    return SetterMember._(baseSetter, augmentationSubstitution, _substitution,
+        baseSetter.typeParameters);
+  }
+
+  @override
   Source? get source => _declaration.source;
+
+  FieldElement2 get _element2 => declaration.asElement2 as FieldElement2;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
+
+  @override
+  String displayString2(
+      {bool multiline = false, bool preferTypeAlias = false}) {
+    return _element2.displayString2(
+        multiline: multiline, preferTypeAlias: preferTypeAlias);
+  }
+
+  @override
+  bool isAccessibleIn2(LibraryElement2 library) {
+    return _element2.isAccessibleIn2(library);
+  }
+
+  @override
+  E? thisOrAncestorMatching2<E extends Element2>(
+      bool Function(Element2 e) predicate) {
+    return _element2.thisOrAncestorMatching2(predicate);
+  }
+
+  @override
+  E? thisOrAncestorOfType2<E extends Element2>() {
+    return _element2.thisOrAncestorOfType2<E>();
+  }
 
   /// If the given [field]'s type is different when any type parameters from the
   /// defining type's declaration are replaced with the actual type arguments
@@ -495,6 +640,7 @@ class FieldMember extends VariableMember implements FieldElement {
   }
 }
 
+@Deprecated('There is no way to create an instance of this class')
 class FunctionMember extends ExecutableMember implements FunctionElement {
   FunctionMember(FunctionElement declaration)
       : super(
@@ -515,10 +661,17 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
   }
 
   @override
-  FunctionElement get declaration => super.declaration as FunctionElement;
+  ExecutableElement2 get baseElement => throw UnimplementedError();
 
   @override
+  FunctionElement get declaration => super.declaration as FunctionElement;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
   Element get enclosingElement => declaration.enclosingElement;
+
+  @override
+  Element get enclosingElement3 => declaration.enclosingElement3;
 
   @override
   bool get isDartCoreIdentical => declaration.isDartCoreIdentical;
@@ -536,6 +689,39 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
   T? accept<T>(ElementVisitor<T> visitor) {
     return visitor.visitFunctionElement(this);
   }
+}
+
+/// A getter element defined in a parameterized type where the values of the
+/// type parameters are known.
+class GetterMember extends PropertyAccessorMember implements GetterElement {
+  GetterMember._(
+    super.declaration,
+    super.augmentationSubstitution,
+    super.substitution,
+    super.typeParameters,
+  ) : super._();
+
+  @override
+  GetterElement get baseElement => _element2;
+
+  @override
+  SetterElement? get correspondingSetter2 {
+    var setter = correspondingSetter;
+    if (setter is SetterMember) {
+      return setter;
+    }
+    return setter.asElement2 as SetterElement?;
+  }
+
+  @override
+  GetterFragment? get firstFragment => _element2.firstFragment;
+
+  @override
+  PropertyInducingElement2? get variable3 =>
+      variable2.asElement2 as PropertyInducingElement2?;
+
+  @override
+  GetterElement get _element2 => declaration.asElement2 as GetterElement;
 }
 
 /// An element defined in a parameterized type where the values of the type
@@ -573,8 +759,12 @@ abstract class Member implements Element {
   @override
   String? get documentationComment => _declaration.documentationComment;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
   Element? get enclosingElement => _declaration.enclosingElement;
+
+  @override
+  Element? get enclosingElement3 => _declaration.enclosingElement3;
 
   @override
   bool get hasAlwaysThrows => _declaration.hasAlwaysThrows;
@@ -739,8 +929,19 @@ abstract class Member implements Element {
   }
 
   @override
+  E? thisOrAncestorMatching3<E extends Element>(
+    bool Function(Element) predicate,
+  ) {
+    return declaration.thisOrAncestorMatching3(predicate);
+  }
+
+  @override
   E? thisOrAncestorOfType<E extends Element>() =>
       declaration.thisOrAncestorOfType<E>();
+
+  @override
+  E? thisOrAncestorOfType3<E extends Element>() =>
+      declaration.thisOrAncestorOfType3<E>();
 
   @override
   String toString() {
@@ -759,7 +960,8 @@ abstract class Member implements Element {
 
 /// A method element defined in a parameterized type where the values of the
 /// type parameters are known.
-class MethodMember extends ExecutableMember implements MethodElement {
+class MethodMember extends ExecutableMember
+    implements MethodElement, MethodElement2 {
   factory MethodMember(
     MethodElement declaration,
     MapSubstitution augmentationSubstitution,
@@ -796,16 +998,29 @@ class MethodMember extends ExecutableMember implements MethodElement {
   }
 
   @override
-  MethodElement get declaration => super.declaration as MethodElement;
+  MethodElement2 get baseElement => _element2;
 
   @override
+  MethodElement get declaration => super.declaration as MethodElement;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
   Element get enclosingElement => declaration.enclosingElement;
+
+  @override
+  Element get enclosingElement3 => declaration.enclosingElement3;
+
+  @override
+  MethodFragment? get firstFragment => _element2.firstFragment;
 
   @override
   String get name => declaration.name;
 
   @override
   Source get source => _declaration.source!;
+
+  @override
+  MethodElement2 get _element2 => declaration.asElement2 as MethodElement2;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
@@ -891,7 +1106,15 @@ class ParameterMember extends VariableMember
   String? get defaultValueCode => declaration.defaultValueCode;
 
   @override
+  // TODO(scheglov): we lose types
+  FormalParameterElement get element => declaration.element;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
   Element? get enclosingElement => declaration.enclosingElement;
+
+  @override
+  Element? get enclosingElement3 => declaration.enclosingElement3;
 
   @override
   bool get hasDefaultValue => declaration.hasDefaultValue;
@@ -966,7 +1189,7 @@ class ParameterMember extends VariableMember
 
 /// A property accessor element defined in a parameterized type where the values
 /// of the type parameters are known.
-class PropertyAccessorMember extends ExecutableMember
+abstract class PropertyAccessorMember extends ExecutableMember
     implements PropertyAccessorElement {
   factory PropertyAccessorMember(
     PropertyAccessorElement declaration,
@@ -977,12 +1200,21 @@ class PropertyAccessorMember extends ExecutableMember
       declaration.typeParameters,
       substitution,
     );
-    return PropertyAccessorMember._(
-      declaration,
-      augmentationSubstitution,
-      freshTypeParameters.substitution,
-      freshTypeParameters.elements,
-    );
+    if (declaration.isGetter) {
+      return GetterMember._(
+        declaration,
+        augmentationSubstitution,
+        freshTypeParameters.substitution,
+        freshTypeParameters.elements,
+      );
+    } else {
+      return SetterMember._(
+        declaration,
+        augmentationSubstitution,
+        freshTypeParameters.substitution,
+        freshTypeParameters.elements,
+      );
+    }
   }
 
   PropertyAccessorMember._(
@@ -1026,8 +1258,12 @@ class PropertyAccessorMember extends ExecutableMember
   PropertyAccessorElement get declaration =>
       super.declaration as PropertyAccessorElement;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
   Element get enclosingElement => declaration.enclosingElement;
+
+  @override
+  Element get enclosingElement3 => declaration.enclosingElement3;
 
   @override
   bool get isGetter => declaration.isGetter;
@@ -1090,6 +1326,39 @@ class PropertyAccessorMember extends ExecutableMember
       Substitution.fromInterfaceType(definingType),
     );
   }
+}
+
+/// A setter element defined in a parameterized type where the values of the
+/// type parameters are known.
+class SetterMember extends PropertyAccessorMember implements SetterElement {
+  SetterMember._(
+    super.declaration,
+    super.augmentationSubstitution,
+    super.substitution,
+    super.typeParameters,
+  ) : super._();
+
+  @override
+  SetterElement get baseElement => _element2;
+
+  @override
+  GetterElement? get correspondingGetter2 {
+    var getter = correspondingGetter;
+    if (getter is GetterMember) {
+      return getter;
+    }
+    return getter.asElement2 as GetterElement?;
+  }
+
+  @override
+  SetterFragment? get firstFragment => _element2.firstFragment;
+
+  @override
+  PropertyInducingElement2? get variable3 =>
+      variable2.asElement2 as PropertyInducingElement2?;
+
+  @override
+  SetterElement get _element2 => declaration.asElement2 as SetterElement;
 }
 
 class SuperFormalParameterMember extends ParameterMember

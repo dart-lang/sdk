@@ -35,7 +35,8 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: self::@class::A::@method::==
+  element: <testLibraryFragment>::@class::A::@method::==
+  element2: <testLibraryFragment>::@class::A::@method::==#element
   matchedValueType: A
 ''');
   }
@@ -58,7 +59,8 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: dart:core::@class::Object::@method::==
+  element: dart:core::<fragment>::@class::Object::@method::==
+  element2: dart:core::<fragment>::@class::Object::@method::==#element
   matchedValueType: A
 ''');
   }
@@ -83,7 +85,8 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: self::@class::A::@method::>
+  element: <testLibraryFragment>::@class::A::@method::>
+  element2: <testLibraryFragment>::@class::A::@method::>#element
   matchedValueType: A
 ''');
   }
@@ -110,7 +113,8 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: self::@extension::E::@method::>
+  element: <testLibraryFragment>::@extension::E::@method::>
+  element2: <testLibraryFragment>::@extension::E::@method::>#element
   matchedValueType: A
 ''');
   }
@@ -136,6 +140,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: <null>
+  element2: <null>
   matchedValueType: A
 ''');
   }
@@ -160,7 +165,8 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: self::@class::A::@method::>=
+  element: <testLibraryFragment>::@class::A::@method::>=
+  element2: <testLibraryFragment>::@class::A::@method::>=#element
   matchedValueType: A
 ''');
   }
@@ -187,7 +193,8 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: self::@extension::E::@method::>=
+  element: <testLibraryFragment>::@extension::E::@method::>=
+  element2: <testLibraryFragment>::@extension::E::@method::>=#element
   matchedValueType: A
 ''');
   }
@@ -213,6 +220,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: <null>
+  element2: <null>
   matchedValueType: A
 ''');
   }
@@ -234,7 +242,8 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: self::@class::A::@method::==
+  element: <testLibraryFragment>::@class::A::@method::==
+  element2: <testLibraryFragment>::@class::A::@method::==#element
   matchedValueType: A
 ''');
   }
@@ -259,7 +268,8 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: self::@class::A::@method::<
+  element: <testLibraryFragment>::@class::A::@method::<
+  element2: <testLibraryFragment>::@class::A::@method::<#element
   matchedValueType: A
 ''');
   }
@@ -286,7 +296,8 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: self::@extension::E::@method::<
+  element: <testLibraryFragment>::@extension::E::@method::<
+  element2: <testLibraryFragment>::@extension::E::@method::<#element
   matchedValueType: A
 ''');
   }
@@ -312,6 +323,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: <null>
+  element2: <null>
   matchedValueType: A
 ''');
   }
@@ -336,7 +348,8 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: self::@class::A::@method::<=
+  element: <testLibraryFragment>::@class::A::@method::<=
+  element2: <testLibraryFragment>::@class::A::@method::<=#element
   matchedValueType: A
 ''');
   }
@@ -363,7 +376,8 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: self::@extension::E::@method::<=
+  element: <testLibraryFragment>::@extension::E::@method::<=
+  element2: <testLibraryFragment>::@extension::E::@method::<=#element
   matchedValueType: A
 ''');
   }
@@ -389,6 +403,7 @@ RelationalPattern
     literal: 0
     staticType: int
   element: <null>
+  element2: <null>
   matchedValueType: A
 ''');
   }
@@ -413,7 +428,8 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: self::@class::A::@method::==
+  element: <testLibraryFragment>::@class::A::@method::==
+  element2: <testLibraryFragment>::@class::A::@method::==#element
   matchedValueType: A
 ''');
   }
@@ -436,7 +452,8 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: dart:core::@class::Object::@method::==
+  element: dart:core::<fragment>::@class::Object::@method::==
+  element2: dart:core::<fragment>::@class::Object::@method::==#element
   matchedValueType: A
 ''');
   }
@@ -460,15 +477,18 @@ RelationalPattern
   operand: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
     staticElement: <null>
+    element: <null>
     staticInvokeType: int Function()
     staticType: int
-  element: dart:core::@class::Object::@method::==
+  element: dart:core::<fragment>::@class::Object::@method::==
+  element2: dart:core::<fragment>::@class::Object::@method::==#element
   matchedValueType: dynamic
 ''');
   }
@@ -493,7 +513,8 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: self::@class::A::@method::==
+  element: <testLibraryFragment>::@class::A::@method::==
+  element2: <testLibraryFragment>::@class::A::@method::==#element
   matchedValueType: A
 ''');
   }

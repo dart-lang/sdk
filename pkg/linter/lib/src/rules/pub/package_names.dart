@@ -3,45 +3,26 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../analyzer.dart';
+import '../../linter_lint_codes.dart';
 import '../../utils.dart';
 
 const _desc = r'Use `lowercase_with_underscores` for package names.';
 
-const _details = r'''
-From the [Pubspec format description](https://dart.dev/tools/pub/pubspec):
-
-**DO** use `lowercase_with_underscores` for package names.
-
-Package names should be all lowercase, with underscores to separate words,
-`just_like_this`.  Use only basic Latin letters and Arabic digits: \[a-z0-9\_\].
-Also, make sure the name is a valid Dart identifier -- that it doesn't start
-with digits and isn't a reserved word.
-
-''';
-
 class PackageNames extends LintRule {
-  static const LintCode code = LintCode('package_names',
-      "The package name '{0}' isn't a lower_case_with_underscores identifier.",
-      correctionMessage:
-          'Try changing the name to follow the lower_case_with_underscores '
-          'style.',
-      hasPublishedDocs: true);
-
   PackageNames()
       : super(
-            name: 'package_names',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.package_names,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.package_names;
 
   @override
-  PubspecVisitor getPubspecVisitor() => Visitor(this);
+  PubspecVisitor<void> getPubspecVisitor() => Visitor(this);
 }
 
-class Visitor extends PubspecVisitor {
+class Visitor extends PubspecVisitor<void> {
   final LintRule rule;
 
   Visitor(this.rule);

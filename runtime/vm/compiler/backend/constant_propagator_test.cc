@@ -214,7 +214,7 @@ static void ConstantPropagatorUnboxedOpTest(
       EXPECT_PROPERTY(ret_val,
                       it.IsConstant() && it.representation() == kTagged);
       EXPECT_EQ(expected.result,
-                Integer::Cast(ret_val->AsConstant()->value()).AsInt64Value());
+                Integer::Cast(ret_val->AsConstant()->value()).Value());
     } else {
       EXPECT_PROPERTY(ret_val,
                       it.IsBoxInteger() && it.RequiredInputRepresentation(0) ==

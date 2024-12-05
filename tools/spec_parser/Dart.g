@@ -4,6 +4,23 @@
 
 // CHANGES:
 //
+// v0.51 Support a `switchExpression` with no cases.
+//
+// v0.50 Add support for digit separators in numeric literals.
+//
+// v0.49 Add support for static and top-level members with no implementation.
+//
+// v0.48 Add support for enhanced parts.
+//
+// v0.47 Make `augment` a built-in identifier (this happened in the feature
+// specification v1.10, but wasn't done here at the time).
+//
+// v0.46 Rename `libraryDefinition` to `libraryDeclaration`, as in the
+// language specification. Add support for libraries with imports.
+//
+// v0.45 Update rule about augmenting extension type declaration to omit
+// the primary constructor.
+//
 // v0.44 Support null-aware elements.
 //
 // v0.43 Change rule structure such that the association of metadata
@@ -256,11 +273,11 @@ import java.util.Stack;
 // ---------------------------------------- Grammar rules.
 
 startSymbol
-    :    libraryDefinition
+    :    libraryDeclaration
     |    partDeclaration
     ;
 
-libraryDefinition
+libraryDeclaration
     :    FEFF? SCRIPT_TAG?
          libraryName?
          importOrExport*
@@ -276,14 +293,14 @@ topLevelDefinition
     |    extensionDeclaration
     |    enumType
     |    typeAlias
-    |    EXTERNAL functionSignature ';'
-    |    EXTERNAL getterSignature ';'
-    |    EXTERNAL setterSignature ';'
-    |    EXTERNAL finalVarOrType identifierList ';'
-    |    AUGMENT? getterSignature functionBody
-    |    AUGMENT? setterSignature functionBody
-    |    AUGMENT? functionSignature functionBody
-    |    AUGMENT? (FINAL | CONST) type? staticFinalDeclarationList ';'
+    |    AUGMENT? EXTERNAL functionSignature ';'
+    |    AUGMENT? EXTERNAL getterSignature ';'
+    |    AUGMENT? EXTERNAL setterSignature ';'
+    |    AUGMENT? EXTERNAL finalVarOrType identifierList ';'
+    |    AUGMENT? getterSignature (functionBody | ';')
+    |    AUGMENT? setterSignature (functionBody | ';')
+    |    AUGMENT? functionSignature (functionBody | ';')
+    |    AUGMENT? (FINAL | CONST) type? initializedIdentifierList ';'
     |    AUGMENT? LATE FINAL type? initializedIdentifierList ';'
     |    AUGMENT? LATE? varOrType initializedIdentifierList ';'
     ;
@@ -434,7 +451,7 @@ interfaces
 
 classMemberDeclaration
     :    AUGMENT? methodSignature functionBody
-    |    declaration ';'
+    |    AUGMENT? declaration ';'
     ;
 
 mixinApplicationClass
@@ -453,8 +470,10 @@ mixinMemberDeclaration
     ;
 
 extensionTypeDeclaration
-    :    AUGMENT? EXTENSION TYPE CONST? typeWithParameters
+    :    EXTENSION TYPE CONST? typeWithParameters
          representationDeclaration interfaces?
+         LBRACE (metadata extensionTypeMemberDeclaration)* RBRACE
+    |    AUGMENT EXTENSION TYPE typeWithParameters interfaces?
          LBRACE (metadata extensionTypeMemberDeclaration)* RBRACE
     ;
 
@@ -493,32 +512,24 @@ methodSignature
     ;
 
 declaration
-    :    EXTERNAL factoryConstructorSignature
+    :    EXTERNAL? factoryConstructorSignature
     |    EXTERNAL constantConstructorSignature
     |    EXTERNAL constructorSignature
-    |    (EXTERNAL STATIC?)? getterSignature
-    |    (EXTERNAL STATIC?)? setterSignature
-    |    (EXTERNAL STATIC?)? functionSignature
+    |    EXTERNAL? STATIC? getterSignature
+    |    EXTERNAL? STATIC? setterSignature
+    |    EXTERNAL? STATIC? functionSignature
     |    EXTERNAL (STATIC? finalVarOrType | COVARIANT varOrType) identifierList
     |    EXTERNAL? operatorSignature
     |    ABSTRACT (finalVarOrType | COVARIANT varOrType) identifierList
-    |    AUGMENT? STATIC (FINAL | CONST) type? staticFinalDeclarationList
-    |    AUGMENT? STATIC LATE FINAL type? initializedIdentifierList
-    |    AUGMENT? STATIC LATE? varOrType initializedIdentifierList
-    |    AUGMENT? COVARIANT LATE FINAL type? identifierList
-    |    AUGMENT? COVARIANT LATE? varOrType initializedIdentifierList
-    |    AUGMENT? LATE? (FINAL type? | varOrType) initializedIdentifierList
-    |    AUGMENT? redirectingFactoryConstructorSignature
-    |    AUGMENT? constantConstructorSignature (redirection | initializers)?
-    |    AUGMENT? constructorSignature (redirection | initializers)?
-    ;
-
-staticFinalDeclarationList
-    :    staticFinalDeclaration (',' staticFinalDeclaration)*
-    ;
-
-staticFinalDeclaration
-    :    identifier '=' expression
+    |    STATIC (FINAL | CONST) type? initializedIdentifierList
+    |    STATIC LATE FINAL type? initializedIdentifierList
+    |    STATIC LATE? varOrType initializedIdentifierList
+    |    COVARIANT LATE FINAL type? identifierList
+    |    COVARIANT LATE? varOrType initializedIdentifierList
+    |    LATE? (FINAL type? | varOrType) initializedIdentifierList
+    |    redirectingFactoryConstructorSignature
+    |    constantConstructorSignature (redirection | initializers)?
+    |    constructorSignature (redirection | initializers)?
     ;
 
 operatorSignature
@@ -607,7 +618,7 @@ mixinApplication
     ;
 
 enumType
-    :    AUGMENT? ENUM typeWithParameters? mixins? interfaces? LBRACE
+    :    AUGMENT? ENUM typeWithParameters mixins? interfaces? LBRACE
          enumEntry (',' enumEntry)* (',')?
          (';' (metadata classMemberDeclaration)*)?
          RBRACE
@@ -778,7 +789,7 @@ constructorTearoff
 
 switchExpression
     :    SWITCH '(' expression ')'
-         LBRACE switchExpressionCase (',' switchExpressionCase)* ','? RBRACE
+         LBRACE (switchExpressionCase (',' switchExpressionCase)* ','?)? RBRACE
     ;
 
 switchExpressionCase
@@ -1439,15 +1450,19 @@ libraryExport
     ;
 
 partDirective
-    :    metadata PART uri ';'
+    :    metadata PART configurableUri ';'
     ;
 
 partHeader
-    :    metadata PART OF (dottedIdentifierList | uri)';'
+    :    metadata PART OF uri ';'
     ;
 
 partDeclaration
-    :    FEFF? partHeader (metadata topLevelDefinition)* EOF
+    :    FEFF? partHeader
+         importOrExport*
+         partDirective*
+         (metadata topLevelDefinition)*
+         EOF
     ;
 
 uri
@@ -1532,7 +1547,7 @@ typeNotVoidNotFunctionList
     ;
 
 typeAlias
-    :    AUGMENT? TYPEDEF typeIdentifier typeParameters? '=' type ';'
+    :    AUGMENT? TYPEDEF typeWithParameters '=' type ';'
     |    AUGMENT? TYPEDEF functionTypeAlias
     ;
 
@@ -1667,6 +1682,7 @@ reservedWord
 builtInIdentifier
     :    ABSTRACT
     |    AS
+    |    AUGMENT
     |    COVARIANT
     |    DEFERRED
     |    DYNAMIC
@@ -1692,7 +1708,6 @@ builtInIdentifier
 
 otherIdentifierNotType
     :    ASYNC
-    |    AUGMENT
     |    BASE
     |    HIDE
     |    OF
@@ -1723,7 +1738,12 @@ DIGIT
 
 fragment
 EXPONENT
-    :    ('e' | 'E') ('+' | '-')? DIGIT+
+    :    ('e' | 'E') ('+' | '-')? DIGITS
+    ;
+
+fragment
+DIGITS
+    :    DIGIT ('_'* DIGIT)*
     ;
 
 fragment
@@ -1731,6 +1751,11 @@ HEX_DIGIT
     :    ('a' | 'b' | 'c' | 'd' | 'e' | 'f')
     |    ('A' | 'B' | 'C' | 'D' | 'E' | 'F')
     |    DIGIT
+    ;
+
+fragment
+HEX_DIGITS
+    :    HEX_DIGIT ('_'* HEX_DIGIT)*
     ;
 
 // Reserved words (if updated, update `reservedWord` as well).
@@ -1877,6 +1902,10 @@ AS
     :    'as'
     ;
 
+AUGMENT
+    :    'augment'
+    ;
+
 COVARIANT
     :    'covariant'
     ;
@@ -1977,10 +2006,6 @@ ASYNC
     :    'async'
     ;
 
-AUGMENT
-    :    'augment'
-    ;
-
 BASE
     :    'base'
     ;
@@ -2020,14 +2045,13 @@ WHEN
 // Lexical tokens that are not words.
 
 NUMBER
-    :    DIGIT+ '.' DIGIT+ EXPONENT?
-    |    DIGIT+ EXPONENT?
-    |    '.' DIGIT+ EXPONENT?
+    :    DIGITS ('.' DIGITS)? EXPONENT?
+    |    '.' DIGITS EXPONENT?
     ;
 
 HEX_NUMBER
-    :    '0x' HEX_DIGIT+
-    |    '0X' HEX_DIGIT+
+    :    '0x' HEX_DIGITS
+    |    '0X' HEX_DIGITS
     ;
 
 RAW_SINGLE_LINE_STRING

@@ -43,6 +43,12 @@ void testCopySync() {
   Expect.throws(() => file1.copySync(dir.path));
   Expect.equals(FILE_CONTENT2, file1.readAsStringSync());
 
+  Directory('${tmp.path}/abc').createSync();
+  // Copy to new file works.
+  var file3 = file1.copySync('${tmp.path}/abc/../file3');
+  Expect.equals(FILE_CONTENT2, file1.readAsStringSync());
+  Expect.equals(FILE_CONTENT2, file3.readAsStringSync());
+
   tmp.deleteSync(recursive: true);
 }
 

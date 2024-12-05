@@ -15,6 +15,9 @@ class AugmentationHandler extends AbstractGoToHandler {
   Method get handlesMessage => CustomMethods.augmentation;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Element? findRelatedElement(Element element) {
     return element.augmentation;
   }

@@ -6,82 +6,19 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use spread collections when possible.';
 
-const _details = r'''
-Use spread collections when possible.
-
-Collection literals are excellent when you want to create a new collection out 
-of individual items. But, when existing items are already stored in another 
-collection, spread collection syntax leads to simpler code.
-
-**BAD:**
-
-```dart
-Widget build(BuildContext context) {
-  return CupertinoPageScaffold(
-    child: ListView(
-      children: [
-        Tab2Header(),
-      ]..addAll(buildTab2Conversation()),
-    ),
-  );
-}
-```
-
-```dart
-var ints = [1, 2, 3];
-print(['a']..addAll(ints.map((i) => i.toString()))..addAll(['c']));
-```
-
-```dart
-var things;
-var l = ['a']..addAll(things ?? const []);
-```
-
-
-**GOOD:**
-
-```dart
-Widget build(BuildContext context) {
-  return CupertinoPageScaffold(
-    child: ListView(
-      children: [
-        Tab2Header(),
-        ...buildTab2Conversation(),
-      ],
-    ),
-  );
-}
-```
-
-```dart
-var ints = [1, 2, 3];
-print(['a', ...ints.map((i) => i.toString()), 'c');
-```
-
-```dart
-var things;
-var l = ['a', ...?things];
-```
-''';
-
 class PreferSpreadCollections extends LintRule {
-  static const LintCode code = LintCode('prefer_spread_collections',
-      'The addition of multiple elements could be inlined.',
-      correctionMessage:
-          "Try using the spread operator ('...') to inline the addition.");
-
   PreferSpreadCollections()
       : super(
-            name: 'prefer_spread_collections',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.prefer_spread_collections,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_spread_collections;
 
   @override
   void registerNodeProcessors(

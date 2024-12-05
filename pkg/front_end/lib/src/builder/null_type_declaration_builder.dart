@@ -47,4 +47,12 @@ class NullTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
       {required bool hasExplicitTypeArguments}) {
     return type;
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    return Nullability.nullable;
+  }
 }

@@ -5,8 +5,9 @@
 library front_end.standard_file_system;
 
 import 'dart:io' as io;
+import 'dart:typed_data';
 
-import '../base/compiler_context.dart' show CompilerContext;
+import '../base/file_system_dependency_tracker.dart';
 import 'file_system.dart';
 
 /// Concrete implementation of [FileSystem] handling standard URI schemes.
@@ -16,19 +17,28 @@ import 'file_system.dart';
 ///
 /// Not intended to be implemented or extended by clients.
 class StandardFileSystem implements FileSystem {
-  static final StandardFileSystem instance = new StandardFileSystem._();
+  /// This instance is without file tracking. If file tracking is wanted use
+  /// [instanceWithTracking] instead.
+  static final StandardFileSystem instance = new StandardFileSystem._(null);
 
-  StandardFileSystem._();
+  // Coverage-ignore(suite): Not run.
+  static StandardFileSystem instanceWithTracking(
+          FileSystemDependencyTracker tracker) =>
+      new StandardFileSystem._(tracker);
+
+  final FileSystemDependencyTracker? tracker;
+
+  StandardFileSystem._(this.tracker);
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
     if (uri.isScheme('file')) {
-      return new _IoFileSystemEntity(uri);
+      return new _IoFileSystemEntity(tracker, uri);
     }
     // Coverage-ignore(suite): Not run.
     else if (!uri.hasScheme) {
       // TODO(askesc): Empty schemes should have been handled elsewhere.
-      return new _IoFileSystemEntity(Uri.base.resolveUri(uri));
+      return new _IoFileSystemEntity(tracker, Uri.base.resolveUri(uri));
     } else if (uri.isScheme('data')) {
       return new DataFileSystemEntity(Uri.base.resolveUri(uri));
     } else {
@@ -40,10 +50,12 @@ class StandardFileSystem implements FileSystem {
 
 /// Concrete implementation of [FileSystemEntity] for file: URIs.
 class _IoFileSystemEntity implements FileSystemEntity {
+  FileSystemDependencyTracker? tracker;
+
   @override
   final Uri uri;
 
-  _IoFileSystemEntity(this.uri);
+  _IoFileSystemEntity(this.tracker, this.uri);
 
   @override
   int get hashCode => uri.hashCode;
@@ -79,9 +91,9 @@ class _IoFileSystemEntity implements FileSystemEntity {
   }
 
   @override
-  Future<List<int>> readAsBytes() {
+  Future<Uint8List> readAsBytes() {
     try {
-      CompilerContext.recordDependency(uri);
+      FileSystemDependencyTracker.recordDependency(tracker, uri);
       return new Future.value(new io.File.fromUri(uri).readAsBytesSync());
     } on io.FileSystemException catch (exception) {
       return new Future.error(
@@ -93,7 +105,7 @@ class _IoFileSystemEntity implements FileSystemEntity {
   // Coverage-ignore(suite): Not run.
   Future<List<int>> readAsBytesAsyncIfPossible() async {
     try {
-      CompilerContext.recordDependency(uri);
+      FileSystemDependencyTracker.recordDependency(tracker, uri);
       return await new io.File.fromUri(uri).readAsBytes();
     } on io.FileSystemException catch (exception) {
       throw _toFileSystemException(exception);
@@ -103,7 +115,7 @@ class _IoFileSystemEntity implements FileSystemEntity {
   @override
   Future<String> readAsString() async {
     try {
-      CompilerContext.recordDependency(uri);
+      FileSystemDependencyTracker.recordDependency(tracker, uri);
       return await new io.File.fromUri(uri).readAsString();
     }
     // Coverage-ignore(suite): Not run.
@@ -148,7 +160,7 @@ class DataFileSystemEntity implements FileSystemEntity {
   }
 
   @override
-  Future<List<int>> readAsBytes() {
+  Future<Uint8List> readAsBytes() {
     return new Future.value(uri.data!.contentAsBytes());
   }
 

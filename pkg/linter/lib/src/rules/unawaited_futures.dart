@@ -8,55 +8,20 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'`Future` results in `async` function bodies must be '
     '`await`ed or marked `unawaited` using `dart:async`.';
 
-const _details = r'''
-**DO** await functions that return a `Future` inside of an async function body.
-
-It's easy to forget await in async methods as naming conventions usually don't
-tell us if a method is sync or async (except for some in `dart:io`).
-
-When you really _do_ want to start a fire-and-forget `Future`, the recommended
-way is to use `unawaited` from `dart:async`. The `// ignore` and
-`// ignore_for_file` comments also work.
-
-**BAD:**
-```dart
-void main() async {
-  doSomething(); // Likely a bug.
-}
-```
-
-**GOOD:**
-```dart
-Future doSomething() => ...;
-
-void main() async {
-  await doSomething();
-
-  unawaited(doSomething()); // Explicitly-ignored fire-and-forget.
-}
-```
-
-''';
-
 class UnawaitedFutures extends LintRule {
-  static const LintCode code = LintCode('unawaited_futures',
-      "Missing an 'await' for the 'Future' computed by this expression.",
-      correctionMessage:
-          "Try adding an 'await' or wrapping the expression with 'unawaited'.");
-
   UnawaitedFutures()
       : super(
-            name: 'unawaited_futures',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.unawaited_futures,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unawaited_futures;
 
   @override
   void registerNodeProcessors(
@@ -130,7 +95,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _isMapPutIfAbsentInvocation(Expression expr) =>
       expr is MethodInvocation &&
       expr.methodName.name == 'putIfAbsent' &&
-      _isMapClass(expr.methodName.staticElement?.enclosingElement);
+      _isMapClass(expr.methodName.staticElement?.enclosingElement3);
 
   void _visit(Expression expr) {
     if ((expr.staticType?.isDartAsyncFuture ?? false) &&

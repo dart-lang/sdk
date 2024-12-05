@@ -8,58 +8,20 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid defining a class that contains only static members.';
 
-const _details = r'''
-From [Effective Dart](https://dart.dev/effective-dart/design#avoid-defining-a-class-that-contains-only-static-members):
-
-**AVOID** defining a class that contains only static members.
-
-Creating classes with the sole purpose of providing utility or otherwise static
-methods is discouraged.  Dart allows functions to exist outside of classes for
-this very reason.
-
-**BAD:**
-```dart
-class DateUtils {
-  static DateTime mostRecent(List<DateTime> dates) {
-    return dates.reduce((a, b) => a.isAfter(b) ? a : b);
-  }
-}
-
-class _Favorites {
-  static const mammal = 'weasel';
-}
-```
-
-**GOOD:**
-```dart
-DateTime mostRecent(List<DateTime> dates) {
-  return dates.reduce((a, b) => a.isAfter(b) ? a : b);
-}
-
-const _favoriteMammal = 'weasel';
-```
-
-''';
-
 class AvoidClassesWithOnlyStaticMembers extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_classes_with_only_static_members',
-      'Classes should define instance members.',
-      correctionMessage:
-          'Try adding instance behavior or moving the members out of the class.');
-
   AvoidClassesWithOnlyStaticMembers()
       : super(
-            name: 'avoid_classes_with_only_static_members',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.avoid_classes_with_only_static_members,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.avoid_classes_with_only_static_members;
 
   @override
   void registerNodeProcessors(
@@ -85,7 +47,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var interface = context.inheritanceManager.getInterface(element);
     var map = interface.map;
     for (var member in map.values) {
-      var enclosingElement = member.enclosingElement;
+      var enclosingElement = member.enclosingElement3;
       if (enclosingElement is ClassElement &&
           !enclosingElement.isDartCoreObject) {
         return;

@@ -49,7 +49,7 @@ void f(Foo o) {}
 import '$importUri';
 
 void f(Bar o) {}
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 }
 

@@ -33,6 +33,7 @@ class ObjectPointerVisitor;
   V(BooleanExpression, "boolean expression")                                   \
   V(BoundsCheckForPartialInstantiation, "_boundsCheckForPartialInstantiation") \
   V(ByteData, "ByteData")                                                      \
+  V(Bytecode, "Bytecode")                                                      \
   V(Capability, "Capability")                                                  \
   V(CheckLoaded, "_checkLoaded")                                               \
   V(Class, "Class")                                                            \
@@ -43,6 +44,7 @@ class ObjectPointerVisitor;
   V(CodeSourceMap, "CodeSourceMap")                                            \
   V(ColonMatcher, ":matcher")                                                  \
   V(_Completer, "_Completer")                                                  \
+  V(ConditionVariable, "ConditionVariable")                                    \
   V(_AsyncCompleter, "_AsyncCompleter")                                        \
   V(_SyncCompleter, "_SyncCompleter")                                          \
   V(Compound, "_Compound")                                                     \
@@ -53,6 +55,8 @@ class ObjectPointerVisitor;
   V(CurrentContextVar, ":current_context_var")                                 \
   V(DartAsync, "dart:async")                                                   \
   V(DartCollection, "dart:collection")                                         \
+  V(DartCompactHash, "dart:_compact_hash")                                     \
+  V(DartConcurrent, "dart:concurrent")                                         \
   V(DartCore, "dart:core")                                                     \
   V(DartDeveloper, "dart:developer")                                           \
   V(DartDeveloperTimeline, "dart.developer.timeline")                          \
@@ -76,6 +80,7 @@ class ObjectPointerVisitor;
   V(DefaultLabel, ":L")                                                        \
   V(DotCreate, "._create")                                                     \
   V(DotFieldADI, ".fieldADI")                                                  \
+  V(DotFieldAI, ".fieldAI")                                                    \
   V(DotFieldNI, ".fieldNI")                                                    \
   V(DotRange, ".range")                                                        \
   V(DotUnder, "._")                                                            \
@@ -201,6 +206,7 @@ class ObjectPointerVisitor;
   V(MegamorphicCache, "MegamorphicCache")                                      \
   V(MonomorphicSmiableCall, "MonomorphicSmiableCall")                          \
   V(MoveNext, "moveNext")                                                      \
+  V(Mutex, "Mutex")                                                            \
   V(Namespace, "Namespace")                                                    \
   V(Never, "Never")                                                            \
   V(NoSuchMethod, "noSuchMethod")                                              \
@@ -515,6 +521,7 @@ class ObjectPointerVisitor;
     ":dynamic_assert_assignable_stc_check")                                    \
   V(dyn_module_callable, "dyn-module:callable")                                \
   V(dyn_module_extendable, "dyn-module:extendable")                            \
+  V(dyn_module_implicitly_callable, "dyn-module:implicitly-callable")          \
   V(end, "end")                                                                \
   V(executable, "executable")                                                  \
   V(from, "from")                                                              \

@@ -32,6 +32,9 @@ class DocumentColorHandler
       DocumentColorParams.jsonHandler;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<List<ColorInformation>>> handle(DocumentColorParams params,
       MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {

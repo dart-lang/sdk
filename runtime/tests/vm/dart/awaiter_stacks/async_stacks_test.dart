@@ -16,6 +16,10 @@ import 'harness.dart' as harness;
 
 // Test functions:
 
+Future<void> neverCompletes() {
+  return Completer<void>().future;
+}
+
 Future<void> throwSync() {
   throw 'throw from throwSync';
 }
@@ -167,6 +171,16 @@ Future awaitTimeout() async {
   await (throwAsync().timeout(Duration(seconds: 1)));
 }
 
+Future awaitTimeoutHappens() async {
+  await neverCompletes().timeout(Duration(milliseconds: 1));
+}
+
+Future awaitTimeoutHappensThrowFromOnTimeout() async {
+  await neverCompletes().timeout(Duration(milliseconds: 1), onTimeout: () {
+    throw 'timeout';
+  });
+}
+
 // ----
 // Scenario: Future.wait:
 // ----
@@ -242,6 +256,8 @@ Future<void> main(List<String> args) async {
     listenAsyncStarThrowAsync,
     customErrorZone,
     awaitTimeout,
+    awaitTimeoutHappens,
+    awaitTimeoutHappensThrowFromOnTimeout,
     awaitWait,
     futureSyncWhenComplete,
     futureThen,
@@ -625,6 +641,82 @@ final currentExpectations = [
 #4    runTest (harness.dart)
 <asynchronous suspension>
 #5    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    Future.timeout.<anonymous closure> (future_impl.dart)
+<asynchronous suspension>
+#1    awaitTimeoutHappens (%test%)
+<asynchronous suspension>
+#2    doTestAwait (%test%)
+<asynchronous suspension>
+#3    runTest (harness.dart)
+<asynchronous suspension>
+#4    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    Future.timeout.<anonymous closure> (future_impl.dart)
+<asynchronous suspension>
+#1    awaitTimeoutHappens (%test%)
+<asynchronous suspension>
+#2    doTestAwaitThen.<anonymous closure> (%test%)
+<asynchronous suspension>
+#3    doTestAwaitThen (%test%)
+<asynchronous suspension>
+#4    runTest (harness.dart)
+<asynchronous suspension>
+#5    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    Future.timeout.<anonymous closure> (future_impl.dart)
+<asynchronous suspension>
+#1    awaitTimeoutHappens (%test%)
+<asynchronous suspension>
+#2    doTestAwaitCatchError (%test%)
+<asynchronous suspension>
+#3    runTest (harness.dart)
+<asynchronous suspension>
+#4    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    awaitTimeoutHappensThrowFromOnTimeout.<anonymous closure> (%test%)
+#1    _RootZone.run (zone.dart)
+#2    Future.timeout.<anonymous closure> (future_impl.dart)
+<asynchronous suspension>
+#3    awaitTimeoutHappensThrowFromOnTimeout (%test%)
+<asynchronous suspension>
+#4    doTestAwait (%test%)
+<asynchronous suspension>
+#5    runTest (harness.dart)
+<asynchronous suspension>
+#6    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    awaitTimeoutHappensThrowFromOnTimeout.<anonymous closure> (%test%)
+#1    _RootZone.run (zone.dart)
+#2    Future.timeout.<anonymous closure> (future_impl.dart)
+<asynchronous suspension>
+#3    awaitTimeoutHappensThrowFromOnTimeout (%test%)
+<asynchronous suspension>
+#4    doTestAwaitThen.<anonymous closure> (%test%)
+<asynchronous suspension>
+#5    doTestAwaitThen (%test%)
+<asynchronous suspension>
+#6    runTest (harness.dart)
+<asynchronous suspension>
+#7    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    awaitTimeoutHappensThrowFromOnTimeout.<anonymous closure> (%test%)
+#1    _RootZone.run (zone.dart)
+#2    Future.timeout.<anonymous closure> (future_impl.dart)
+<asynchronous suspension>
+#3    awaitTimeoutHappensThrowFromOnTimeout (%test%)
+<asynchronous suspension>
+#4    doTestAwaitCatchError (%test%)
+<asynchronous suspension>
+#5    runTest (harness.dart)
+<asynchronous suspension>
+#6    main (%test%)
 <asynchronous suspension>""",
   """
 #0    throwAsync (%test%)

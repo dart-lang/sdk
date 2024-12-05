@@ -256,6 +256,11 @@ class ElementDisplayStringBuilder {
     _write(element.displayName);
   }
 
+  void writePrefixElement2(PrefixElementImpl2 element) {
+    _write('as ');
+    _write(element.displayName);
+  }
+
   void writeRecordType(RecordType type) {
     if (_maybeWriteTypeAlias(type)) {
       return;

@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class VariableDeclaration extends core::Object {
+  field core::String? _name;
+  field core::int flags = 0;
+  constructor •(core::String? _name, {core::int flags = #C1}) → self::VariableDeclaration
+    : self::VariableDeclaration::_name = _name, super core::Object::•() {
+    if(!(flags =={core::num::==}{(core::Object) → core::bool} 1.{core::int::unary-}(){() → core::int})) {
+      this.{self::VariableDeclaration::flags} = flags;
+    }
+  }
+  static method _#new#tearOff(core::String? _name, {core::int flags = #C1}) → self::VariableDeclaration
+    return new self::VariableDeclaration::•(_name, flags: flags);
+  get name() → core::String?
+    return this.{self::VariableDeclaration::_name}{core::String?};
+}
+
+constants  {
+  #C1 = -1.0
+}
+
+Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///cloning.dart:13:18 -> DoubleConstant(-1.0)
+Extra constant evaluation: evaluated: 13, effectively constant: 1

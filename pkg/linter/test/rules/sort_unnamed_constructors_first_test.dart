@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class SortUnnamedConstructorsFirstTest extends LintRuleTest {
   @override
-  String get lintRule => 'sort_unnamed_constructors_first';
+  String get lintRule => LintNames.sort_unnamed_constructors_first;
 
   test_class_sorted() async {
     await assertNoDiagnostics(r'''

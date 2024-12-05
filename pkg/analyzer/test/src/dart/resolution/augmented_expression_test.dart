@@ -17,7 +17,7 @@ main() {
 class AugmentedExpressionResolutionTest extends PubPackageResolutionTest {
   test_class_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   num foo = 0;
@@ -25,7 +25,7 @@ class A {
 ''');
 
     await assertNoErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment num foo = augmented;
@@ -36,14 +36,15 @@ augment class A {
     assertResolvedNodeText(node, r'''
 AugmentedExpression
   augmentedKeyword: augmented
-  element: self::@class::A::@field::foo
+  element: package:test/a.dart::<fragment>::@class::A::@field::foo
+  element2: package:test/a.dart::<fragment>::@class::A::@field::foo#element
   staticType: int
 ''');
   }
 
   test_class_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   int get foo => 0;
@@ -51,7 +52,7 @@ class A {
 ''');
 
     await assertNoErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment int get foo {
@@ -66,7 +67,8 @@ ReturnStatement
   returnKeyword: return
   expression: AugmentedExpression
     augmentedKeyword: augmented
-    element: self::@class::A::@getter::foo
+    element: package:test/a.dart::<fragment>::@class::A::@getter::foo
+    element2: package:test/a.dart::<fragment>::@class::A::@getter::foo#element
     staticType: int
   semicolon: ;
 ''');
@@ -74,7 +76,7 @@ ReturnStatement
 
   test_class_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   set foo(int _) {}
@@ -82,7 +84,7 @@ class A {
 ''');
 
     await assertNoErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment set foo(int _) {
@@ -100,18 +102,22 @@ Block
       expression: AssignmentExpression
         leftHandSide: AugmentedExpression
           augmentedKeyword: augmented
-          element: self::@class::A::@setter::foo
+          element: package:test/a.dart::<fragment>::@class::A::@setter::foo
+          element2: package:test/a.dart::<fragment>::@class::A::@setter::foo#element
           staticType: null
         operator: =
         rightHandSide: IntegerLiteral
           literal: 0
-          parameter: self::@class::A::@setter::foo::@parameter::_
+          parameter: package:test/a.dart::<fragment>::@class::A::@setter::foo::@parameter::_
           staticType: int
         readElement: <null>
+        readElement2: <null>
         readType: null
-        writeElement: self::@class::A::@setter::foo
+        writeElement: package:test/a.dart::<fragment>::@class::A::@setter::foo
+        writeElement2: package:test/a.dart::<fragment>::@class::A::@setter::foo#element
         writeType: int
         staticElement: <null>
+        element: <null>
         staticType: int
       semicolon: ;
   rightBracket: }
@@ -120,7 +126,7 @@ Block
 
   test_class_setter_inGetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   int foo = 0;
@@ -128,7 +134,7 @@ class A {
 ''');
 
     await assertErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment int get foo {
@@ -137,7 +143,7 @@ augment class A {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER, 73, 9),
+      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER, 65, 9),
     ]);
 
     var node = findNode.singleAssignmentExpression;
@@ -146,6 +152,7 @@ AssignmentExpression
   leftHandSide: AugmentedExpression
     augmentedKeyword: augmented
     element: <null>
+    element2: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -153,17 +160,20 @@ AssignmentExpression
     parameter: <null>
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <null>
+  writeElement2: <null>
   writeType: InvalidType
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
 
   test_class_setter_inMethod() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   void foo() {}
@@ -171,7 +181,7 @@ class A {
 ''');
 
     await assertErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment void foo() {
@@ -179,7 +189,7 @@ augment class A {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER, 72, 9),
+      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER, 64, 9),
     ]);
 
     var node = findNode.singleAssignmentExpression;
@@ -188,6 +198,7 @@ AssignmentExpression
   leftHandSide: AugmentedExpression
     augmentedKeyword: augmented
     element: <null>
+    element2: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -195,23 +206,26 @@ AssignmentExpression
     parameter: <null>
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <null>
+  writeElement2: <null>
   writeType: InvalidType
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
 
   test_topLevel_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 int get foo => 0;
 ''');
 
     await assertNoErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment int get foo {
   return augmented;
@@ -224,7 +238,8 @@ ReturnStatement
   returnKeyword: return
   expression: AugmentedExpression
     augmentedKeyword: augmented
-    element: self::@getter::foo
+    element: package:test/a.dart::<fragment>::@getter::foo
+    element2: package:test/a.dart::<fragment>::@getter::foo#element
     staticType: int
   semicolon: ;
 ''');
@@ -232,13 +247,13 @@ ReturnStatement
 
   test_topLevel_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 set foo(int _) {}
 ''');
 
     await assertNoErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment set foo(int _) {
   augmented = 0;
@@ -254,18 +269,22 @@ Block
       expression: AssignmentExpression
         leftHandSide: AugmentedExpression
           augmentedKeyword: augmented
-          element: self::@setter::foo
+          element: package:test/a.dart::<fragment>::@setter::foo
+          element2: package:test/a.dart::<fragment>::@setter::foo#element
           staticType: null
         operator: =
         rightHandSide: IntegerLiteral
           literal: 0
-          parameter: self::@setter::foo::@parameter::_
+          parameter: package:test/a.dart::<fragment>::@setter::foo::@parameter::_
           staticType: int
         readElement: <null>
+        readElement2: <null>
         readType: null
-        writeElement: self::@setter::foo
+        writeElement: package:test/a.dart::<fragment>::@setter::foo
+        writeElement2: package:test/a.dart::<fragment>::@setter::foo#element
         writeType: int
         staticElement: <null>
+        element: <null>
         staticType: int
       semicolon: ;
   rightBracket: }
@@ -274,13 +293,13 @@ Block
 
   test_topLevel_variable() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 num foo = 0;
 ''');
 
     await assertNoErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment num foo = augmented;
 ''');
@@ -289,7 +308,8 @@ augment num foo = augmented;
     assertResolvedNodeText(node, r'''
 AugmentedExpression
   augmentedKeyword: augmented
-  element: self::@variable::foo
+  element: package:test/a.dart::<fragment>::@topLevelVariable::foo
+  element2: package:test/a.dart::<fragment>::@topLevelVariable::foo#element
   staticType: int
 ''');
   }

@@ -4,82 +4,27 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/element/extensions.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Prefer final for parameter declarations if they are not reassigned.';
 
-const _details = r'''
-**DO** prefer declaring parameters as final if they are not reassigned in
-the function body.
-
-Declaring parameters as final when possible is a good practice because it helps
-avoid accidental reassignments.
-
-**BAD:**
-```dart
-void badParameter(String label) { // LINT
-  print(label);
-}
-```
-
-**GOOD:**
-```dart
-void goodParameter(final String label) { // OK
-  print(label);
-}
-```
-
-**BAD:**
-```dart
-void badExpression(int value) => print(value); // LINT
-```
-
-**GOOD:**
-```dart
-void goodExpression(final int value) => print(value); // OK
-```
-
-**BAD:**
-```dart
-[1, 4, 6, 8].forEach((value) => print(value + 2)); // LINT
-```
-
-**GOOD:**
-```dart
-[1, 4, 6, 8].forEach((final value) => print(value + 2)); // OK
-```
-
-**GOOD:**
-```dart
-void mutableParameter(String label) { // OK
-  print(label);
-  label = 'Hello Linter!';
-  print(label);
-}
-```
-
-''';
-
 class PreferFinalParameters extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_final_parameters', "The parameter '{0}' should be final.",
-      correctionMessage: 'Try making the parameter final.');
-
   PreferFinalParameters()
       : super(
-            name: 'prefer_final_parameters',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.prefer_final_parameters,
+          description: _desc,
+        );
 
   @override
   List<String> get incompatibleRules =>
-      const ['unnecessary_final', 'avoid_final_parameters'];
+      const [LintNames.unnecessary_final, LintNames.avoid_final_parameters];
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_final_parameters;
 
   @override
   void registerNodeProcessors(
@@ -130,6 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var declaredElement = param.declaredElement;
         if (declaredElement != null &&
             !declaredElement.isInitializingFormal &&
+            !declaredElement.isWildcardVariable &&
             !body.isPotentiallyMutatedInScope(declaredElement)) {
           rule.reportLint(param, arguments: [param.name!.lexeme]);
         }

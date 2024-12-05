@@ -13,7 +13,7 @@ typedef _ = Type;
 
 _ function<_ extends _>([_ _ = _]) => _;
 
-void main<_ extends _>() {
+void main() {
   _ _ = _;
   final _ _ = _;
   const _ _ = _;

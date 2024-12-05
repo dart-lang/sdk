@@ -6,69 +6,23 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'DO use curly braces for all flow control structures.';
 
-const _details = r'''
-**DO** use curly braces for all flow control structures.
-
-Doing so avoids the [dangling else](https://en.wikipedia.org/wiki/Dangling_else)
-problem.
-
-**BAD:**
-```dart
-if (overflowChars != other.overflowChars)
-  return overflowChars < other.overflowChars;
-```
-
-**GOOD:**
-```dart
-if (isWeekDay) {
-  print('Bike to work!');
-} else {
-  print('Go dancing or read a book!');
-}
-```
-
-There is one exception to this: an `if` statement with no `else` clause where
-the entire `if` statement and the then body all fit in one line. In that case,
-you may leave off the braces if you prefer:
-
-**GOOD:**
-```dart
-if (arg == null) return defaultValue;
-```
-
-If the body wraps to the next line, though, use braces:
-
-**GOOD:**
-```dart
-if (overflowChars != other.overflowChars) {
-  return overflowChars < other.overflowChars;
-}
-```
-
-''';
-
 class CurlyBracesInFlowControlStructures extends LintRule {
-  static const LintCode code = LintCode(
-      'curly_braces_in_flow_control_structures',
-      'Statements in {0} should be enclosed in a block.',
-      correctionMessage: 'Try wrapping the statement in a block.',
-      hasPublishedDocs: true);
-
   CurlyBracesInFlowControlStructures()
       : super(
-            name: 'curly_braces_in_flow_control_structures',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.curly_braces_in_flow_control_structures,
+          description: _desc,
+        );
 
   @override
   bool get canUseParsedResult => true;
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.curly_braces_in_flow_control_structures;
 
   @override
   void registerNodeProcessors(
@@ -81,7 +35,7 @@ class CurlyBracesInFlowControlStructures extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -109,7 +63,7 @@ class _Visitor extends SimpleAstVisitor {
 
       var unit = node.root as CompilationUnit;
       var lineInfo = unit.lineInfo;
-      if (lineInfo.getLocation(node.rightParenthesis.end).lineNumber !=
+      if (lineInfo.getLocation(node.ifKeyword.offset).lineNumber !=
           lineInfo.getLocation(node.thenStatement.end).lineNumber) {
         rule.reportLint(node.thenStatement, arguments: ['an if']);
       }

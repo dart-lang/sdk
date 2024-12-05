@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart'
     as shared;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -23,10 +24,9 @@ import 'type_schema.dart' show UnknownType, isKnown;
 import 'type_schema_elimination.dart' show greatestClosure, leastClosure;
 
 typedef GeneratedTypeConstraint = shared.GeneratedTypeConstraint<DartType,
-    DartType, StructuralParameter, VariableDeclaration>;
+    StructuralParameter, VariableDeclaration>;
 
 typedef MergedTypeConstraint = shared.MergedTypeConstraint<
-    DartType,
     DartType,
     StructuralParameter,
     VariableDeclaration,
@@ -34,7 +34,6 @@ typedef MergedTypeConstraint = shared.MergedTypeConstraint<
     TypeDeclaration>;
 
 typedef UnknownTypeConstraintOrigin = shared.UnknownTypeConstraintOrigin<
-    DartType,
     DartType,
     VariableDeclaration,
     StructuralParameter,
@@ -74,9 +73,15 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   List<DartType> choosePreliminaryTypes(
           TypeConstraintGatherer gatherer,
           List<StructuralParameter> typeParametersToInfer,
-          List<DartType>? previouslyInferredTypes) =>
+          List<DartType>? previouslyInferredTypes,
+          {required bool inferenceUsingBoundsIsEnabled,
+          required InferenceDataForTesting? dataForTesting,
+          required TreeNode? treeNodeForTesting}) =>
       _chooseTypes(gatherer, typeParametersToInfer, previouslyInferredTypes,
-          preliminary: true);
+          preliminary: true,
+          inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+          dataForTesting: dataForTesting,
+          treeNodeForTesting: treeNodeForTesting);
 
   DartType getContextTypeOfSpecialCasedBinaryOperator(
       DartType contextType, DartType type1, DartType type2) {
@@ -180,7 +185,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       List<StructuralParameter> typeParametersToInfer,
       List<DartType>? previouslyInferredTypes,
       {bool preliminary = false,
-      required OperationsCfe operations}) {
+      required OperationsCfe operations,
+      required bool inferenceUsingBoundsIsEnabled}) {
     List<DartType> inferredTypes =
         previouslyInferredTypes?.toList(growable: false) ??
             new List.filled(typeParametersToInfer.length, const UnknownType());
@@ -190,10 +196,51 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
       DartType typeParamBound = typeParam.bound;
       DartType? extendsConstraint;
+      Map<StructuralParameter, MergedTypeConstraint>? constraintsFromBound;
       if (!hasOmittedBound(typeParam)) {
         extendsConstraint = new FunctionTypeInstantiator.fromIterables(
                 typeParametersToInfer, inferredTypes)
             .substitute(typeParamBound);
+
+        MergedTypeConstraint? mergedTypeConstraint = constraints[typeParam];
+        if (inferenceUsingBoundsIsEnabled) {
+          // The type parameter's bound may refer to itself (or other type
+          // parameters), so we might have to create an additional constraint.
+          // Consider this example from
+          // https://github.com/dart-lang/language/issues/3009:
+          //
+          //     class A<X extends A<X>> {}
+          //     class B extends A<B> {}
+          //     class C extends B {}
+          //     void f<X extends A<X>>(X x) {}
+          //     void main() {
+          //       f(C()); // should infer f<B>(C()).
+          //     }
+          //
+          // In order for `f(C())` to be inferred as `f<B>(C())`, we need to
+          // generate the constraint `X <: B`. To do this, we first take the
+          // lower constraint we've accumulated so far (which, in this example,
+          // is `C`, due to the presence of the actual argument `C()`), and use
+          // subtype constraint generation to match it against the explicit
+          // bound (which is `A<X>`; hence we perform `C <# A<X>`). If this
+          // produces any constraints (i.e. `X <: B` in this example), then they
+          // are added to the set of constraints just before choosing the final
+          // type.
+
+          if (mergedTypeConstraint != null &&
+              mergedTypeConstraint.lower
+                  is! SharedUnknownTypeSchemaView<DartType>) {
+            TypeConstraintGatherer extendsConstraintGatherer =
+                new TypeConstraintGatherer(this, typeParametersToInfer,
+                    typeOperations: operations,
+                    inferenceResultForTesting: null);
+            extendsConstraintGatherer.tryConstrainLower(typeParamBound,
+                mergedTypeConstraint.lower.unwrapTypeSchemaView(),
+                treeNodeForTesting: null);
+            constraintsFromBound =
+                extendsConstraintGatherer.computeConstraints();
+          }
+        }
       }
 
       MergedTypeConstraint constraint = constraints[typeParam]!;
@@ -201,14 +248,22 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
         inferredTypes[i] = _inferTypeParameterFromContext(
             previouslyInferredTypes?[i], constraint, extendsConstraint,
             isLegacyCovariant: typeParam.isLegacyCovariant,
-            operations: operations);
+            operations: operations,
+            constraintsFromBound: constraintsFromBound,
+            constraints: constraints,
+            typeParameterToInfer: typeParam,
+            typeParametersToInfer: typeParametersToInfer);
       } else {
         inferredTypes[i] = _inferTypeParameterFromAll(
             previouslyInferredTypes?[i], constraint, extendsConstraint,
             isContravariant:
                 typeParam.variance == shared.Variance.contravariant,
             isLegacyCovariant: typeParam.isLegacyCovariant,
-            operations: operations);
+            operations: operations,
+            constraintsFromBound: constraintsFromBound,
+            constraints: constraints,
+            typeParameterToInfer: typeParam,
+            typeParametersToInfer: typeParametersToInfer);
       }
     }
 
@@ -341,43 +396,53 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
         bottomType == const NullType());
     if (!isContravariant) {
       // Prefer the known bound, if any.
-      if (isKnown(constraint.lower)) return constraint.lower;
-      if (isKnown(constraint.upper)) return constraint.upper;
+      if (isKnown(constraint.lower.unwrapTypeSchemaView())) {
+        return constraint.lower.unwrapTypeSchemaView();
+      }
+      if (isKnown(constraint.upper.unwrapTypeSchemaView())) {
+        return constraint.upper.unwrapTypeSchemaView();
+      }
 
       // Otherwise take whatever bound has partial information,
       // e.g. `Iterable<?>`
-      if (constraint.lower is! UnknownType) {
+      if (constraint.lower is! SharedUnknownTypeSchemaView<DartType>) {
         return grounded
-            ? leastClosure(constraint.lower, topType, bottomType)
-            : constraint.lower;
+            ? leastClosure(
+                constraint.lower.unwrapTypeSchemaView(), topType, bottomType)
+            : constraint.lower.unwrapTypeSchemaView();
       } else if (constraint.upper is! UnknownType) {
         return grounded
-            ? greatestClosure(constraint.upper, topType, bottomType)
-            : constraint.upper;
+            ? greatestClosure(
+                constraint.upper.unwrapTypeSchemaView(), topType, bottomType)
+            : constraint.upper.unwrapTypeSchemaView();
       } else {
         return const UnknownType();
       }
     } else {
       // Prefer the known bound, if any.
-      if (isKnown(constraint.upper)) {
+      if (isKnown(constraint.upper.unwrapTypeSchemaView())) {
         // Coverage-ignore-block(suite): Not run.
-        return constraint.upper;
+        return constraint.upper.unwrapTypeSchemaView();
       }
-      if (isKnown(constraint.lower)) return constraint.lower;
+      if (isKnown(constraint.lower.unwrapTypeSchemaView())) {
+        return constraint.lower.unwrapTypeSchemaView();
+      }
 
       // Otherwise take whatever bound has partial information,
       // e.g. `Iterable<?>`
       if (constraint.upper is! UnknownType) {
         // Coverage-ignore-block(suite): Not run.
         return grounded
-            ? greatestClosure(constraint.upper, topType, bottomType)
-            : constraint.upper;
+            ? greatestClosure(
+                constraint.upper.unwrapTypeSchemaView(), topType, bottomType)
+            : constraint.upper.unwrapTypeSchemaView();
       } else if (constraint.lower is! UnknownType) {
         return grounded
-            ? leastClosure(constraint.lower, topType, bottomType)
+            ? leastClosure(
+                constraint.lower.unwrapTypeSchemaView(), topType, bottomType)
             :
             // Coverage-ignore(suite): Not run.
-            constraint.lower;
+            constraint.lower.unwrapTypeSchemaView();
       } else {
         return const UnknownType();
       }
@@ -387,9 +452,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   // Coverage-ignore(suite): Not run.
   /// Determine if the given [type] satisfies the given type [constraint].
   bool typeSatisfiesConstraint(DartType type, MergedTypeConstraint constraint) {
-    return isSubtypeOf(
-            constraint.lower, type, SubtypeCheckMode.withNullabilities) &&
-        isSubtypeOf(type, constraint.upper, SubtypeCheckMode.withNullabilities);
+    return isSubtypeOf(constraint.lower.unwrapTypeSchemaView(), type,
+            SubtypeCheckMode.withNullabilities) &&
+        isSubtypeOf(type, constraint.upper.unwrapTypeSchemaView(),
+            SubtypeCheckMode.withNullabilities);
   }
 
   /// Performs upwards inference, producing a final set of inferred types that
@@ -397,9 +463,15 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   List<DartType> chooseFinalTypes(
           TypeConstraintGatherer gatherer,
           List<StructuralParameter> typeParametersToInfer,
-          List<DartType>? previouslyInferredTypes) =>
+          List<DartType>? previouslyInferredTypes,
+          {required bool inferenceUsingBoundsIsEnabled,
+          required InferenceDataForTesting? dataForTesting,
+          required TreeNode? treeNodeForTesting}) =>
       _chooseTypes(gatherer, typeParametersToInfer, previouslyInferredTypes,
-          preliminary: false);
+          preliminary: false,
+          inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+          dataForTesting: dataForTesting,
+          treeNodeForTesting: treeNodeForTesting);
 
   /// Computes (or recomputes) a set of [inferredTypes] based on the constraints
   /// that have been recorded so far.
@@ -407,13 +479,17 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       TypeConstraintGatherer gatherer,
       List<StructuralParameter> typeParametersToInfer,
       List<DartType>? previouslyInferredTypes,
-      {required bool preliminary}) {
+      {required bool preliminary,
+      required bool inferenceUsingBoundsIsEnabled,
+      required InferenceDataForTesting? dataForTesting,
+      required TreeNode? treeNodeForTesting}) {
     List<DartType> inferredTypes = inferTypeFromConstraints(
         gatherer.computeConstraints(),
         typeParametersToInfer,
         previouslyInferredTypes,
         preliminary: preliminary,
-        operations: gatherer.typeOperations);
+        operations: gatherer.typeOperations,
+        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
 
     for (int i = 0; i < inferredTypes.length; i++) {
       inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i]);
@@ -425,7 +501,12 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       MergedTypeConstraint constraint, DartType? extendsConstraint,
       {bool isContravariant = false,
       bool isLegacyCovariant = true,
-      required OperationsCfe operations}) {
+      required OperationsCfe operations,
+      required Map<StructuralParameter, MergedTypeConstraint>?
+          constraintsFromBound,
+      required Map<StructuralParameter, MergedTypeConstraint> constraints,
+      required StructuralParameter typeParameterToInfer,
+      required List<StructuralParameter> typeParametersToInfer}) {
     // See if we already fixed this type in a previous inference step.
     // If so, then we aren't allowed to change it unless [isLegacyCovariant] is
     // false.
@@ -435,9 +516,19 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       return typeFromPreviousInference;
     }
 
+    if (constraintsFromBound != null) {
+      _mergeInConstraintsFromBound(
+          constraints: constraints,
+          constraintsFromBound: constraintsFromBound,
+          typeParametersToInfer: typeParametersToInfer,
+          operations: operations);
+      constraint = constraints[typeParameterToInfer]!;
+    }
+
     if (extendsConstraint != null) {
       constraint = constraint.clone();
-      constraint.mergeInTypeSchemaUpper(extendsConstraint, operations);
+      constraint.mergeInTypeSchemaUpper(
+          new SharedTypeSchemaView(extendsConstraint), operations);
     }
 
     return solveTypeConstraint(constraint, coreTypes.objectNullableRawType,
@@ -445,9 +536,33 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
         grounded: true, isContravariant: isContravariant);
   }
 
+  void _mergeInConstraintsFromBound(
+      {required Map<StructuralParameter, MergedTypeConstraint>
+          constraintsFromBound,
+      required List<StructuralParameter> typeParametersToInfer,
+      required Map<StructuralParameter, MergedTypeConstraint> constraints,
+      required OperationsCfe operations}) {
+    for (StructuralParameter typeParamToUpdate in typeParametersToInfer) {
+      MergedTypeConstraint? constraintFromBoundForTypeParam =
+          constraintsFromBound[typeParamToUpdate];
+      if (constraintFromBoundForTypeParam != null) {
+        constraints[typeParamToUpdate]?.mergeInTypeSchemaUpper(
+            constraintFromBoundForTypeParam.upper, operations);
+        constraints[typeParamToUpdate]?.mergeInTypeSchemaLower(
+            constraintFromBoundForTypeParam.lower, operations);
+      }
+    }
+  }
+
   DartType _inferTypeParameterFromContext(DartType? typeFromPreviousInference,
       MergedTypeConstraint constraint, DartType? extendsConstraint,
-      {bool isLegacyCovariant = true, required OperationsCfe operations}) {
+      {bool isLegacyCovariant = true,
+      required OperationsCfe operations,
+      required Map<StructuralParameter, MergedTypeConstraint>?
+          constraintsFromBound,
+      required Map<StructuralParameter, MergedTypeConstraint> constraints,
+      required List<StructuralParameter> typeParametersToInfer,
+      required StructuralParameter typeParameterToInfer}) {
     // See if we already fixed this type in a previous inference step.
     // If so, then we aren't allowed to change it unless [isLegacyCovariant] is
     // false.
@@ -470,12 +585,25 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     //     Object obj = math.min/*<infer Object, error>*/(1, 2);
     //
     // If we consider the `T extends num` we conclude `<num>`, which works.
+
+    if (constraintsFromBound != null) {
+      // Coverage-ignore-block(suite): Not run.
+      _mergeInConstraintsFromBound(
+          constraintsFromBound: constraintsFromBound,
+          typeParametersToInfer: typeParametersToInfer,
+          constraints: constraints,
+          operations: operations);
+      constraint = constraints[typeParameterToInfer]!;
+    }
+
     if (extendsConstraint != null) {
       constraint = constraint.clone();
-      constraint.mergeInTypeSchemaUpper(extendsConstraint, operations);
+      constraint.mergeInTypeSchemaUpper(
+          new SharedTypeSchemaView(extendsConstraint), operations);
       return solveTypeConstraint(constraint, coreTypes.objectNullableRawType,
           const NeverType.nonNullable());
     }
+
     return t;
   }
 }

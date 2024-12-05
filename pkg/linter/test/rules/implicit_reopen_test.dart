@@ -19,7 +19,7 @@ class ImplicitReopenInducedModifierTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  String get lintRule => 'implicit_reopen';
+  String get lintRule => LintNames.implicit_reopen;
 
   test_inducedFinal() async {
     await assertDiagnostics(r'''
@@ -149,7 +149,7 @@ class ImplicitReopenTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  String get lintRule => 'implicit_reopen';
+  String get lintRule => LintNames.implicit_reopen;
 
   test_class_classFinal_ok() async {
     await assertDiagnostics(r'''

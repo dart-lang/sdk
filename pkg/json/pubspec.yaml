@@ -7,7 +7,7 @@ description: >
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/json
 version: 0.20.2
 environment:
-  sdk: ^3.5.0-154
+  sdk: ^3.6.0-edge
 dependencies:
   macros: ^0.1.0-main.5
 dev_dependencies:

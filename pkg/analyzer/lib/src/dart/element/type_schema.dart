@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart' show Keyword;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -18,7 +19,8 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 /// parameters that we do not know yet. Notationally it is written `_`, for
 /// example `List<_>`. This is distinct from `List<dynamic>`. These types will
 /// never appear in the final resolved AST.
-class UnknownInferredType extends TypeImpl implements SharedUnknownType {
+class UnknownInferredType extends TypeImpl
+    implements SharedUnknownTypeStructure<DartType> {
   static const UnknownInferredType instance = UnknownInferredType._();
 
   const UnknownInferredType._();
@@ -29,6 +31,9 @@ class UnknownInferredType extends TypeImpl implements SharedUnknownType {
   @Deprecated('Use element instead')
   @override
   Element? get element2 => element;
+
+  @override
+  Element2? get element3 => null;
 
   @override
   int get hashCode => 1;

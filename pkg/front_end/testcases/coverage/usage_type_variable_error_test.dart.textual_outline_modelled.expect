@@ -1,0 +1,12 @@
+class A {
+  A();
+  A.named();
+  static void staticMethod<X>() {}
+}
+
+class C {
+  C() : v12 = T();
+  final T v12;
+}
+
+typedef T<X extends A> = X;

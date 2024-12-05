@@ -800,7 +800,7 @@ class LibraryInfo {
                 expect(definitionResult.libraryAugmentations, isEmpty);
               });
 
-              test('on constructors', () async {
+              test('on regular constructors', () async {
                 var definitionResult = await executor.executeDefinitionsPhase(
                     simpleMacroInstanceId,
                     Fixtures.myConstructor,
@@ -816,6 +816,46 @@ class LibraryInfo {
                         .debugString()
                         .toString(),
                     constructorDefinitionMatcher);
+                expect(definitionResult.libraryAugmentations, isEmpty);
+              });
+
+              test('on factory constructors', () async {
+                var definitionResult = await executor.executeDefinitionsPhase(
+                    simpleMacroInstanceId,
+                    Fixtures.myFactoryConstructor,
+                    Fixtures.testDefinitionPhaseIntrospector);
+                expect(definitionResult.enumValueAugmentations, isEmpty);
+                expect(definitionResult.interfaceAugmentations, isEmpty);
+                expect(definitionResult.mixinAugmentations, isEmpty);
+                expect(definitionResult.typeAugmentations, hasLength(1));
+                expect(
+                    definitionResult
+                        .typeAugmentations[
+                            Fixtures.myFactoryConstructor.definingType]!
+                        .first
+                        .debugString()
+                        .toString(),
+                    factoryConstructorDefinitionMatcher);
+                expect(definitionResult.libraryAugmentations, isEmpty);
+              });
+
+              test('on const constructors', () async {
+                var definitionResult = await executor.executeDefinitionsPhase(
+                    simpleMacroInstanceId,
+                    Fixtures.myConstConstructor,
+                    Fixtures.testDefinitionPhaseIntrospector);
+                expect(definitionResult.enumValueAugmentations, isEmpty);
+                expect(definitionResult.interfaceAugmentations, isEmpty);
+                expect(definitionResult.mixinAugmentations, isEmpty);
+                expect(definitionResult.typeAugmentations, hasLength(1));
+                expect(
+                    definitionResult
+                        .typeAugmentations[
+                            Fixtures.myConstConstructor.definingType]!
+                        .first
+                        .debugString()
+                        .toString(),
+                    constConstructorDefinitionMatcher);
                 expect(definitionResult.libraryAugmentations, isEmpty);
               });
 
@@ -928,6 +968,8 @@ class LibraryInfo {
                     unorderedEquals([
                       ...methodDefinitionMatchers,
                       constructorDefinitionMatcher,
+                      constConstructorDefinitionMatcher,
+                      factoryConstructorDefinitionMatcher,
                       ...fieldDefinitionMatchers,
                     ]));
               });
@@ -954,8 +996,9 @@ class LibraryInfo {
                     typeAugmentationStrings,
                     unorderedEquals([
                       equalsIgnoringWhitespace('''
-                        augment MyEnum.myEnumConstructor(String myField, ) {
+                        augment MyEnum.myEnumConstructor(String this.myField, ) {
                           print('definingClass: MyEnum');
+                          print('isConst: false');
                           print('isFactory: false');
                           print('isExternal: false');
                           print('isGetter: false');
@@ -1123,9 +1166,36 @@ augment final LibraryInfo library = LibraryInfo(Uri.parse('package:foo/bar.dart'
 }
 
 final constructorDefinitionMatcher = equalsIgnoringWhitespace('''
-augment MyClass.myConstructor(/*inferred*/String myField, ) {
+augment MyClass.myConstructor(/*inferred*/String super.myField, ) {
   print('definingClass: MyClass');
+  print('isConst: false');
   print('isFactory: false');
+  print('isExternal: false');
+  print('isGetter: false');
+  print('isSetter: false');
+  print('returnType: MyClass');
+  print('positionalParam: String (inferred) myField');
+  return augmented();
+}''');
+
+final constConstructorDefinitionMatcher = equalsIgnoringWhitespace('''
+augment const MyClass.myConstConstructor(/*inferred*/String this.myField, ) {
+  print('definingClass: MyClass');
+  print('isConst: true');
+  print('isFactory: false');
+  print('isExternal: false');
+  print('isGetter: false');
+  print('isSetter: false');
+  print('returnType: MyClass');
+  print('positionalParam: String (inferred) myField');
+  return augmented();
+}''');
+
+final factoryConstructorDefinitionMatcher = equalsIgnoringWhitespace('''
+augment factory MyClass.myFactoryConstructor(/*inferred*/String myField, ) {
+  print('definingClass: MyClass');
+  print('isConst: false');
+  print('isFactory: true');
   print('isExternal: false');
   print('isGetter: false');
   print('isSetter: false');
@@ -1179,6 +1249,8 @@ final methodDefinitionMatchers = [
       print('field: myField');
       print('method: myMethod');
       print('constructor: myConstructor');
+      print('constructor: myConstConstructor');
+      print('constructor: myFactoryConstructor');
       return augmented();
     }'''),
 ];

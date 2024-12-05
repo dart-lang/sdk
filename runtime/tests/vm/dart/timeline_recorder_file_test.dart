@@ -17,11 +17,11 @@ main(List<String> args) async {
     return;
   }
 
-  final timelineEvents =
-      await runAndCollectTimeline('VM,Isolate,GC,Compiler', ['--child']);
+  final timelineEvents = await runAndCollectTimeline('Dart', ['--child']);
 
   bool foundExampleStart = false;
   bool foundExampleFinish = false;
+  bool foundExampleThreadName = false;
   for (final event in timelineEvents) {
     if (event.name == "TestEvent" && event.ph == "B") {
       foundExampleStart = true;
@@ -29,8 +29,12 @@ main(List<String> args) async {
     if (event.name == "TestEvent" && event.ph == "E") {
       foundExampleFinish = true;
     }
+    if (event.name == "thread_name" && event.ph == "M") {
+      foundExampleThreadName = true;
+    }
   }
 
-  if (foundExampleStart) throw "Missing test start event";
-  if (foundExampleFinish) throw "Missing test finish event";
+  if (!foundExampleStart) throw "Missing test start event";
+  if (!foundExampleFinish) throw "Missing test finish event";
+  if (!foundExampleThreadName) throw "Missing thread name metadata event";
 }

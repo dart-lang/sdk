@@ -29,8 +29,38 @@ class SinceSdkVersionComputer {
     }
 
     var specified = _specifiedVersion(element);
-    var enclosing = element.enclosingElement?.sinceSdkVersion;
-    return specified.maxWith(enclosing);
+    if (element.enclosingElement3 case var enclosingElement?) {
+      var enclosing = enclosingElement.sinceSdkVersion;
+      return specified.maxWith(enclosing);
+    } else if (element.library case var libraryElement?) {
+      var enclosing = libraryElement.sinceSdkVersion;
+      return specified.maxWith(enclosing);
+    } else {
+      return specified;
+    }
+  }
+
+  /// Returns the maximal specified `@Since()` version from the [annotations].
+  ///
+  /// Returns `null` if none of the annotations is a `@Since` annotation.
+  static Version? fromAnnotations(List<ElementAnnotationImpl> annotations) {
+    // TODO(brianwilkerson): Replace the body of `_specifiedVersion` with this
+    //  method.
+    Version? result;
+    for (var annotation in annotations) {
+      if (annotation.isDartInternalSince) {
+        var arguments = annotation.annotationAst.arguments?.arguments;
+        var versionNode = arguments?.singleOrNull;
+        if (versionNode is SimpleStringLiteralImpl) {
+          var versionStr = versionNode.value;
+          var version = _parseVersion(versionStr);
+          if (version != null) {
+            result = result.maxWith(version);
+          }
+        }
+      }
+    }
+    return null;
   }
 
   /// Returns the parsed [Version], or `null` if wrong format.

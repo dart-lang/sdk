@@ -1,0 +1,43 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class HasSomeField extends core::Object /*isMixinDeclaration*/  {
+  abstract get someField() → core::String;
+}
+abstract class _SomeEnum&_Enum&HasSomeField = core::_Enum with self::HasSomeField /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_SomeEnum&_Enum&HasSomeField
+    : super core::_Enum::•(index, _name)
+    ;
+  abstract mixin-stub get someField() → core::String; -> self::HasSomeField::someField
+}
+class SomeEnum extends self::_SomeEnum&_Enum&HasSomeField /*isEnum*/  {
+  static const field core::List<self::SomeEnum> values = const <self::SomeEnum>[self::SomeEnum::value];
+  enum-element static const field self::SomeEnum value = const self::SomeEnum::•(0, "value");
+  const synthetic constructor •(core::int #index, core::String #name) → self::SomeEnum
+    : super self::_SomeEnum&_Enum&HasSomeField::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "SomeEnum.${this.{core::_Enum::_name}{core::String}}";
+  @core::override
+  get someField() → core::String
+    ;
+}
+class NormalEnum extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::NormalEnum> values = const <self::NormalEnum>[self::NormalEnum::value];
+  enum-element static const field self::NormalEnum value = const self::NormalEnum::•(0, "value");
+  const synthetic constructor •(core::int #index, core::String #name) → self::NormalEnum
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "NormalEnum.${this.{core::_Enum::_name}{core::String}}";
+}
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///enum_with_mixin.dart:12:4 -> InstanceConstant(const _Override{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_with_mixin.dart:9:6 -> ListConstant(const <SomeEnum>[const SomeEnum{_Enum.index: 0, _Enum._name: "value"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_with_mixin.dart:10:3 -> InstanceConstant(const SomeEnum{_Enum.index: 0, _Enum._name: "value"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_with_mixin.dart:16:6 -> ListConstant(const <NormalEnum>[const NormalEnum{_Enum.index: 0, _Enum._name: "value"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_with_mixin.dart:17:3 -> InstanceConstant(const NormalEnum{_Enum.index: 0, _Enum._name: "value"})
+Extra constant evaluation: evaluated: 17, effectively constant: 5

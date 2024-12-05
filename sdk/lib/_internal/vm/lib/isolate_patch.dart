@@ -455,6 +455,7 @@ final class Isolate {
 
     final RawReceivePort readyPort =
         new RawReceivePort(null, 'Isolate.spawnUri ready');
+    final enableAsserts = checked;
     try {
       _spawnUri(
           readyPort.sendPort,
@@ -465,7 +466,7 @@ final class Isolate {
           onExit,
           onError,
           errorsAreFatal,
-          checked,
+          enableAsserts,
           null,
           /* environment */
           packageConfigString,
@@ -526,7 +527,7 @@ final class Isolate {
       SendPort? onExit,
       SendPort? onError,
       bool errorsAreFatal,
-      bool? checked,
+      bool? enableAsserts,
       List? environment,
       String? packageConfig,
       String? debugName);

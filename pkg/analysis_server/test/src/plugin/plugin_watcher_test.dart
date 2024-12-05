@@ -47,7 +47,9 @@ class PluginWatcherTest extends AbstractContextTest {
 
     var driver = driverFor(testFile);
     // TODO(pq): stop modifying options objects (https://github.com/dart-lang/sdk/issues/54045)
-    driver.getAnalysisOptionsForFile(testFile).enabledPluginNames = ['foo'];
+    driver.getAnalysisOptionsForFile(testFile).enabledLegacyPluginNames = [
+      'foo',
+    ];
 
     expect(manager.addedContextRoots, isEmpty);
     watcher.addedDriver(driver);
@@ -71,8 +73,8 @@ class PluginWatcherTest extends AbstractContextTest {
   Future<void> test_addedDriver_missingPackage() async {
     var driver = driverFor(testFile);
     // TODO(pq): stop modifying options objects (https://github.com/dart-lang/sdk/issues/54045)
-    driver.getAnalysisOptionsForFile(testFile).enabledPluginNames = [
-      'noSuchPackage'
+    driver.getAnalysisOptionsForFile(testFile).enabledLegacyPluginNames = [
+      'noSuchPackage',
     ];
 
     watcher.addedDriver(driver);

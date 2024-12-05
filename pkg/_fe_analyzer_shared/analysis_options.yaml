@@ -19,3 +19,4 @@ linter:
     - lines_longer_than_80_chars
     # - always_specify_types
     - use_super_parameters
+    - comment_references

@@ -248,7 +248,7 @@ ISOLATE_UNIT_TEST_CASE(EvalExpressionWithLazyCompile) {
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());
   EXPECT(val.IsInteger());
-  EXPECT_EQ(7, Integer::Cast(val).AsInt64Value());
+  EXPECT_EQ(7, Integer::Cast(val).Value());
 }
 
 ISOLATE_UNIT_TEST_CASE(EvalExpressionExhaustCIDs) {
@@ -267,7 +267,7 @@ ISOLATE_UNIT_TEST_CASE(EvalExpressionExhaustCIDs) {
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());
   EXPECT(val.IsInteger());
-  EXPECT_EQ(7, Integer::Cast(val).AsInt64Value());
+  EXPECT_EQ(7, Integer::Cast(val).Value());
 
   auto class_table = IsolateGroup::Current()->class_table();
 
@@ -280,7 +280,7 @@ ISOLATE_UNIT_TEST_CASE(EvalExpressionExhaustCIDs) {
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());
   EXPECT(val.IsInteger());
-  EXPECT_EQ(7, Integer::Cast(val).AsInt64Value());
+  EXPECT_EQ(7, Integer::Cast(val).Value());
 
   intptr_t final_class_table_size = class_table->NumCids();
   // Eval should not eat into this non-renewable resource.

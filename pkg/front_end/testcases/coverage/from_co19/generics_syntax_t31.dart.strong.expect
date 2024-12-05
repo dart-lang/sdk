@@ -1,0 +1,55 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/from_co19/generics_syntax_t31.dart:15:3: Error: Expected 0 type arguments.
+//   A<int>(); // Error
+//   ^
+// pkg/front_end/testcases/coverage/from_co19/generics_syntax_t31.dart:7:7: Context: The class 'A' has a constructor that takes no arguments.
+// class A {}
+//       ^
+//
+// pkg/front_end/testcases/coverage/from_co19/generics_syntax_t31.dart:16:3: Error: Expected 0 type arguments.
+//   testMe<int>(); // Error
+//   ^
+// pkg/front_end/testcases/coverage/from_co19/generics_syntax_t31.dart:8:6: Context: Found this candidate, but the arguments don't match.
+// void testMe() {}
+//      ^^^^^^
+//
+// pkg/front_end/testcases/coverage/from_co19/generics_syntax_t31.dart:17:3: Error: Expected 0 type arguments.
+//   AAlias<int>(); // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/from_co19/generics_syntax_t31.dart:19:3: Error: Expected 0 type arguments.
+//   TestFunction<int> testFunction = () => 42; // Error
+//   ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/from_co19/generics_syntax_t31.dart:21:3: Error: Expected 0 type arguments.
+//   Func1<int> f1 = (int i) {}; // Error
+//   ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef AAlias = self::A;
+typedef TestFunction = () → core::int;
+typedef Func1 = (core::int) → void;
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+static method testMe() → void {}
+static method foo() → void {
+  invalid-expression "pkg/front_end/testcases/coverage/from_co19/generics_syntax_t31.dart:15:3: Error: Expected 0 type arguments.
+  A<int>(); // Error
+  ^";
+  invalid-expression "pkg/front_end/testcases/coverage/from_co19/generics_syntax_t31.dart:16:3: Error: Expected 0 type arguments.
+  testMe<int>(); // Error
+  ^";
+  invalid-expression "pkg/front_end/testcases/coverage/from_co19/generics_syntax_t31.dart:17:3: Error: Expected 0 type arguments.
+  AAlias<int>(); // Error
+  ^";
+  invalid-type testFunction = () → core::int => 42;
+  invalid-type f1 = (core::int i) → Null {};
+}

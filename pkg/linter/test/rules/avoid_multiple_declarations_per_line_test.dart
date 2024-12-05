@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidMultipleDeclarationsPerLineTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_multiple_declarations_per_line';
+  String get lintRule => LintNames.avoid_multiple_declarations_per_line;
 
   test_extensionField_multiple() async {
     await assertDiagnostics(r'''

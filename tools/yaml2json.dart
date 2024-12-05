@@ -8,7 +8,7 @@ import 'dart:isolate' show RawReceivePort;
 
 import 'package:yaml/yaml.dart' show loadYaml;
 
-main(List<String> rawArguments) {
+void main(List<String> rawArguments) {
   var port = RawReceivePort();
   bool check = false;
   String? relative;

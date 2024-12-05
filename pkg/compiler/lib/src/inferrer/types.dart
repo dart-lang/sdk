@@ -367,7 +367,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
     AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
 
     // Bailout for closure calls. We're not tracking types of closures.
-    if (selector.isClosureCall) {
+    if (selector.isMaybeClosureCall) {
       // But if the receiver is not callable, the call will fail.
       if (abstractValueDomain.isEmpty(receiver).isDefinitelyTrue ||
           abstractValueDomain.isNull(receiver).isDefinitelyTrue) {

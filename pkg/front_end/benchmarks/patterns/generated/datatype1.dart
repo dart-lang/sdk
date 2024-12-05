@@ -1,4 +1,4 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -28,6 +28,10 @@ class Sub0 extends Base1 {
     counter.inc();
   }
 
+  void patternDispatch0(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor1<R, A> visitor, A arg) {
     return visitor.visitSub0(this, arg);
@@ -54,6 +58,13 @@ const Visitor1<void, Counter> visitor = CounterVisitor1();
 
 void incByVisitorDispatch1(Base1 base, Counter counter) {
   base.accept(visitor, counter);
+}
+
+void incByPatternDispatch1(Base1 base, Counter counter) {
+  switch (base) {
+    case Sub0():
+      base.patternDispatch0(counter);
+  }
 }
 
 abstract class Visitor1<R, A> {

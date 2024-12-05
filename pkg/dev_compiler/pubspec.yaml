@@ -17,7 +17,6 @@ dependencies:
   front_end: any
   js_shared: any
   kernel: any
-  meta: any
   path: any
   source_maps: any
   source_span: any

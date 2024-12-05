@@ -37,7 +37,7 @@ class MoveDocCommentToLibraryDirective extends ResolvedCorrectionProducer {
     var firstDirective = compilationUnit.directives.firstOrNull;
     if (firstDirective is LibraryDirective) {
       await _moveToExistingLibraryDirective(builder, comment, firstDirective);
-    } else if (libraryElement.featureSet.isEnabled(Feature.unnamedLibraries)) {
+    } else if (libraryElement2.featureSet.isEnabled(Feature.unnamedLibraries)) {
       await _moveToNewLibraryDirective(builder, comment, compilationUnit);
     }
 

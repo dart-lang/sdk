@@ -1,3 +1,29 @@
+## 6.10.0-dev
+* Deprecated `LibraryElement.accessibleExtensions`, use
+  `CompilationUnitElement.accessibleExtensions` instead.
+* Deprecated `LibraryElement.exportedLibraries`.
+* Deprecated `LibraryElement.importedLibraries`.
+* Deprecated `LibraryElement.isBrowserApplication`.
+* Deprecated `LibraryElement.libraryExports`,
+  use `CompilationUnitElement.libraryExports` instead.
+* Deprecated `LibraryElement.libraryImports`,
+  use `CompilationUnitElement.libraryImports` instead.
+* Deprecated `LibraryElement.prefixes`,
+  use `CompilationUnitElement.libraryImportPrefixes` instead.
+* Deprecated `LibraryElement.parts`,
+  use `CompilationUnitElement.parts` instead.
+* Deprecated `LibraryElement.scope`,
+  use `CompilationUnitElement.scope` instead.
+
+## 6.9.0
+* `NormalFormalParameter` now implements `AnnotatedNode`.
+* Deprecated `Element.enclosingElement`, use `enclosingElement3`.
+
+## 6.8.0
+* Add `AnalysisContextCollection.dispose()`. It must be invoked at the end.
+* Deprecated `ContextLocator` and `ContextBuilder`.
+  Use `AnalysisContextCollection` instead.
+
 ## 6.7.0
 * Deprecated `File.createSource()`, it violates levels of abstraction.
   You can get `Source` instances from `AnalysisResult`s.

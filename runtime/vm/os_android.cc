@@ -7,17 +7,18 @@
 
 #include "vm/os.h"
 
-#include <android/log.h>   // NOLINT
-#include <dlfcn.h>         // NOLINT
-#include <elf.h>           // NOLINT
-#include <errno.h>         // NOLINT
-#include <limits.h>        // NOLINT
-#include <malloc.h>        // NOLINT
-#include <sys/resource.h>  // NOLINT
-#include <sys/time.h>      // NOLINT
-#include <sys/types.h>     // NOLINT
-#include <time.h>          // NOLINT
-#include <unistd.h>        // NOLINT
+#include <android/api-level.h>  // NOLINT
+#include <android/log.h>        // NOLINT
+#include <dlfcn.h>              // NOLINT
+#include <elf.h>                // NOLINT
+#include <errno.h>              // NOLINT
+#include <limits.h>             // NOLINT
+#include <malloc.h>             // NOLINT
+#include <sys/resource.h>       // NOLINT
+#include <sys/time.h>           // NOLINT
+#include <sys/types.h>          // NOLINT
+#include <time.h>               // NOLINT
+#include <unistd.h>             // NOLINT
 
 #include "platform/utils.h"
 #include "vm/code_observers.h"
@@ -330,7 +331,15 @@ void OS::PrintErr(const char* format, ...) {
   va_end(args);
 }
 
-void OS::Init() {}
+void OS::Init() {
+  // Calling tzset() is only necessary in Android API version 25 or earlier.
+  if (android_get_device_api_level() < 26) {
+    // In API version 25, calling tzset() results in a ~0.5% increase in
+    // Flutter startup latency. In API version 31, calling tzset() results in
+    // a >25% increase in startup latency.
+    tzset();
+  }
+}
 
 void OS::Cleanup() {}
 

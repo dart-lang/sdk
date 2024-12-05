@@ -47,7 +47,7 @@ class CodeActionHandler
         return success(const []);
       }
 
-      var capabilities = server.lspClientCapabilities;
+      var capabilities = message.clientCapabilities;
       if (capabilities == null) {
         // This should not happen unless a client misbehaves.
         return serverNotInitializedError;

@@ -17,6 +17,7 @@ import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/unlinked_token_type.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
 /// Deserializer of ASTs.
@@ -124,6 +125,8 @@ class AstBinaryReader {
         return _readMethodInvocation();
       case Tag.NamedExpression:
         return _readNamedExpression();
+      case Tag.NullAwareElement:
+        return _readNullAwareElement();
       case Tag.NullLiteral:
         return _readNullLiteral();
       case Tag.InstanceCreationExpression:
@@ -193,6 +196,7 @@ class AstBinaryReader {
 
   IntegerLiteral _createIntegerLiteral(String lexeme, int value) {
     var node = IntegerLiteralImpl(
+      // TODO(srawlins): TokenType.INT_WITH_SEPARATORS?
       literal: TokenFactory.tokenFromTypeAndString(TokenType.INT, lexeme),
       value: value,
     );
@@ -796,6 +800,7 @@ class AstBinaryReader {
   IntegerLiteral _readIntegerLiteralNull() {
     var lexeme = _readStringReference();
     var node = IntegerLiteralImpl(
+      // TODO(srawlins): TokenType.INT_WITH_SEPARATORS?
       literal: TokenFactory.tokenFromTypeAndString(TokenType.INT, lexeme),
       value: null,
     );
@@ -874,11 +879,17 @@ class AstBinaryReader {
   }
 
   MapLiteralEntry _readMapLiteralEntry() {
+    var keyFlags = _readByte();
     var key = readNode() as ExpressionImpl;
+    var valueFlags = _readByte();
     var value = readNode() as ExpressionImpl;
     return MapLiteralEntryImpl(
+      keyQuestion:
+          AstBinaryFlags.hasQuestion(keyFlags) ? Tokens.question() : null,
       key: key,
       separator: Tokens.colon(),
+      valueQuestion:
+          AstBinaryFlags.hasQuestion(valueFlags) ? Tokens.question() : null,
       value: value,
     );
   }
@@ -941,7 +952,7 @@ class AstBinaryReader {
       typeArguments: typeArguments,
       question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
     );
-    node.element = _reader.readElement();
+    node.element2 = _reader.readElement().asElement2;
     node.type = _reader.readType();
     return node;
   }
@@ -949,6 +960,11 @@ class AstBinaryReader {
   List<T> _readNodeList<T>() {
     var length = _reader.readUInt30();
     return List.generate(length, (_) => readNode() as T);
+  }
+
+  NullAwareElement _readNullAwareElement() {
+    var value = readNode() as ExpressionImpl;
+    return NullAwareElementImpl(question: Tokens.question(), value: value);
   }
 
   NullLiteral _readNullLiteral() {

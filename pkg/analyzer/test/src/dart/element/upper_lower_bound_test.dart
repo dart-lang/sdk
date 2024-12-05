@@ -2635,8 +2635,8 @@ class UpperBoundTest extends _BoundsTestBase {
     );
   }
 
-  /// UP(Future<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
-  /// UP(FutureOr<T1>, Future<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+  /// `UP(Future<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)`
+  /// `UP(FutureOr<T1>, Future<T2>) = FutureOr<T3> where T3 = UP(T1, T2)`
   test_futureOr_future() {
     void check(DartType T1, DartType T2, DartType expected) {
       _checkLeastUpperBound(
@@ -2650,7 +2650,7 @@ class UpperBoundTest extends _BoundsTestBase {
     check(intNone, stringNone, objectNone);
   }
 
-  /// UP(FutureOr<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+  /// `UP(FutureOr<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)`
   test_futureOr_futureOr() {
     void check(DartType T1, DartType T2, DartType expected) {
       _checkLeastUpperBound(
@@ -2664,8 +2664,8 @@ class UpperBoundTest extends _BoundsTestBase {
     check(intNone, stringNone, objectNone);
   }
 
-  /// UP(T1, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
-  /// UP(FutureOr<T1>, T2) = FutureOr<T3> where T3 = UP(T1, T2)
+  /// `UP(T1, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)`
+  /// `UP(FutureOr<T1>, T2) = FutureOr<T3> where T3 = UP(T1, T2)`
   test_futureOr_other() {
     void check(DartType T1, DartType T2, DartType expected) {
       _checkLeastUpperBound(

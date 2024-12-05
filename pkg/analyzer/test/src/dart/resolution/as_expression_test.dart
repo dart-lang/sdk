@@ -29,12 +29,14 @@ const int b = a as int;
 AsExpression
   expression: SimpleIdentifier
     token: a
-    staticElement: self::@getter::a
+    staticElement: <testLibraryFragment>::@getter::a
+    element: <testLibraryFragment>::@getter::a#element
     staticType: num
   asOperator: as
   type: NamedType
     name: int
-    element: dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
+    element2: dart:core::<fragment>::@class::int#element
     type: int
   staticType: int
 ''');
@@ -54,11 +56,13 @@ AsExpression
   expression: SimpleIdentifier
     token: v
     staticElement: v@17
+    element: v@17
     staticType: num
   asOperator: as
   type: NamedType
     name: int
-    element: dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
+    element2: dart:core::<fragment>::@class::int#element
     type: int
   staticType: int
 ''');
@@ -85,6 +89,7 @@ AsExpression
   type: NamedType
     name: T
     element: T@8
+    element2: <not-implemented>
     type: T
   staticType: T
 ''');
@@ -107,7 +112,8 @@ AsExpression
     leftParenthesis: (
     expression: SimpleIdentifier
       token: x
-      staticElement: self::@function::f::@parameter::x
+      staticElement: <testLibraryFragment>::@function::f::@parameter::x
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -126,7 +132,8 @@ AsExpression
   asOperator: as
   type: NamedType
     name: double
-    element: dart:core::@class::double
+    element: dart:core::<fragment>::@class::double
+    element2: dart:core::<fragment>::@class::double#element
     type: double
   staticType: double
 ''');

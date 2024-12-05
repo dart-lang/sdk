@@ -17,7 +17,7 @@ import 'package:front_end/src/base/processed_options.dart'
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
-import 'package:front_end/src/kernel/verifier.dart' show verifyComponent;
+import 'package:front_end/src/kernel/cfe_verifier.dart' show verifyComponent;
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/verifier.dart' show VerificationStage;
@@ -88,8 +88,8 @@ Future<void> test() async {
 
   List<Object> errors = await CompilerContext.runWithOptions(
       new ProcessedOptions(options: options, inputs: inputs),
-      (_) => new Future<List<Object>>.value(verifyComponent(options.target!,
-          VerificationStage.afterModularTransformations, component,
+      (CompilerContext c) => new Future<List<Object>>.value(verifyComponent(
+          c, VerificationStage.afterModularTransformations, component,
           skipPlatform: true)));
 
   serializeComponent(component);

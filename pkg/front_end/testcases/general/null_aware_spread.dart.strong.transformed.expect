@@ -1,7 +1,7 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 static method nullAwareListSpread(core::List<core::String>? list) → dynamic {
   list = block {
@@ -13,7 +13,7 @@ static method nullAwareListSpread(core::List<core::String>? list) → dynamic {
 }
 static method nullAwareSetSpread(core::Set<core::String>? set) → dynamic {
   set = block {
-    final core::Set<core::String> #t3 = new col::_Set::•<core::String>();
+    final core::Set<core::String> #t3 = new _co::_Set::•<core::String>();
     #t3.{core::Set::add}{Invariant}("foo"){(core::String) → core::bool};
     final core::Iterable<core::String>? #t4 = set;
     if(!(#t4 == null))

@@ -9,8 +9,7 @@ import 'dart:core' hide Type;
 
 import 'package:front_end/src/api_prototype/static_weak_references.dart'
     show StaticWeakReferences;
-import 'package:front_end/src/kernel/resource_identifier.dart'
-    as ResourceIdentifiers;
+import 'package:front_end/src/api_prototype/record_use.dart' as RecordUse;
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement;
 import 'package:kernel/class_hierarchy.dart'
@@ -279,7 +278,8 @@ class CleanupAnnotations extends RecursiveVisitor {
   /// We do not want to eliminate
   /// * `pragma`s
   /// * Protobuf annotations
-  /// * `ResourceIdentifier` annotations
+  /// * Annotations needed for tree shaking of non-Dart assets via
+  ///   package:record_use
   ///
   /// as we need these later in the pipeline.
   bool _keepAnnotation(Expression annotation) {
@@ -289,11 +289,9 @@ class CleanupAnnotations extends RecursiveVisitor {
         final cls = constant.classNode;
         final usesProtobufAnnotation =
             protobufHandler?.usesAnnotationClass(cls) ?? false;
-        bool usesResourceIdentifier =
-            ResourceIdentifiers.isResourceIdentifier(cls);
         return cls == pragmaClass ||
             usesProtobufAnnotation ||
-            usesResourceIdentifier;
+            RecordUse.isBeingRecorded(cls);
       }
     }
     return false;
@@ -852,6 +850,8 @@ class TreeShaker {
   }
 
   bool isLibraryUsed(Library l) => _usedLibraries.contains(l);
+  bool isLibraryReferencedFromNativeCode(Library l) =>
+      typeFlowAnalysis.nativeCodeOracle.isLibraryReferencedFromNativeCode(l);
   bool isClassReferencedFromNativeCode(Class c) =>
       typeFlowAnalysis.nativeCodeOracle.isClassReferencedFromNativeCode(c);
   bool isClassUsed(Class c) => _usedClasses.contains(c);
@@ -1910,7 +1910,9 @@ class _TreeShakerPass2 extends RemovingTransformer {
 
   @override
   TreeNode visitLibrary(Library node, TreeNode? removalSentinel) {
-    if (!shaker.isLibraryUsed(node) && node.importUri.scheme != 'dart') {
+    if (!shaker.isLibraryUsed(node) &&
+        !shaker.isLibraryReferencedFromNativeCode(node) &&
+        node.importUri.scheme != 'dart') {
       return removalSentinel!;
     }
     _additionalDeps.clear();

@@ -1526,7 +1526,8 @@ abstract class AbstractParserAstListener implements Listener {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {
+      Token name,
+      String? enclosingDeclarationName) {
     MethodBegin data = new MethodBegin(ParserAstType.BEGIN,
         declarationKind: declarationKind,
         augmentToken: augmentToken,
@@ -1535,7 +1536,8 @@ abstract class AbstractParserAstListener implements Listener {
         covariantToken: covariantToken,
         varFinalOrConst: varFinalOrConst,
         getOrSet: getOrSet,
-        name: name);
+        name: name,
+        enclosingDeclarationName: enclosingDeclarationName);
     seen(data);
   }
 
@@ -1674,12 +1676,13 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endOptionalFormalParameters(
-      int count, Token beginToken, Token endToken) {
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     OptionalFormalParametersEnd data = new OptionalFormalParametersEnd(
         ParserAstType.END,
         count: count,
         beginToken: beginToken,
-        endToken: endToken);
+        endToken: endToken,
+        kind: kind);
     seen(data);
   }
 
@@ -2588,9 +2591,24 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleLiteralDoubleWithSeparators(Token token) {
+    LiteralDoubleWithSeparatorsHandle data =
+        new LiteralDoubleWithSeparatorsHandle(ParserAstType.HANDLE,
+            token: token);
+    seen(data);
+  }
+
+  @override
   void handleLiteralInt(Token token) {
     LiteralIntHandle data =
         new LiteralIntHandle(ParserAstType.HANDLE, token: token);
+    seen(data);
+  }
+
+  @override
+  void handleLiteralIntWithSeparators(Token token) {
+    LiteralIntWithSeparatorsHandle data =
+        new LiteralIntWithSeparatorsHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
@@ -6400,6 +6418,7 @@ class MethodBegin extends ParserAstNode {
   final Token? varFinalOrConst;
   final Token? getOrSet;
   final Token name;
+  final String? enclosingDeclarationName;
 
   MethodBegin(ParserAstType type,
       {required this.declarationKind,
@@ -6409,7 +6428,8 @@ class MethodBegin extends ParserAstNode {
       this.covariantToken,
       this.varFinalOrConst,
       this.getOrSet,
-      required this.name})
+      required this.name,
+      this.enclosingDeclarationName})
       : super("Method", type);
 
   @override
@@ -6422,6 +6442,7 @@ class MethodBegin extends ParserAstNode {
         "varFinalOrConst": varFinalOrConst,
         "getOrSet": getOrSet,
         "name": name,
+        "enclosingDeclarationName": enclosingDeclarationName,
       };
 
   @override
@@ -6768,9 +6789,13 @@ class OptionalFormalParametersEnd extends ParserAstNode
   final Token beginToken;
   @override
   final Token endToken;
+  final MemberKind kind;
 
   OptionalFormalParametersEnd(ParserAstType type,
-      {required this.count, required this.beginToken, required this.endToken})
+      {required this.count,
+      required this.beginToken,
+      required this.endToken,
+      required this.kind})
       : super("OptionalFormalParameters", type);
 
   @override
@@ -6778,6 +6803,7 @@ class OptionalFormalParametersEnd extends ParserAstNode
         "count": count,
         "beginToken": beginToken,
         "endToken": endToken,
+        "kind": kind,
       };
 
   @override
@@ -8790,6 +8816,22 @@ class LiteralDoubleHandle extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitLiteralDoubleHandle(this);
 }
 
+class LiteralDoubleWithSeparatorsHandle extends ParserAstNode {
+  final Token token;
+
+  LiteralDoubleWithSeparatorsHandle(ParserAstType type, {required this.token})
+      : super("LiteralDoubleWithSeparators", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitLiteralDoubleWithSeparatorsHandle(this);
+}
+
 class LiteralIntHandle extends ParserAstNode {
   final Token token;
 
@@ -8803,6 +8845,22 @@ class LiteralIntHandle extends ParserAstNode {
 
   @override
   R accept<R>(ParserAstVisitor<R> v) => v.visitLiteralIntHandle(this);
+}
+
+class LiteralIntWithSeparatorsHandle extends ParserAstNode {
+  final Token token;
+
+  LiteralIntWithSeparatorsHandle(ParserAstType type, {required this.token})
+      : super("LiteralIntWithSeparators", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitLiteralIntWithSeparatorsHandle(this);
 }
 
 class LiteralListHandle extends ParserAstNode {
@@ -10332,7 +10390,10 @@ abstract class ParserAstVisitor<R> {
   R visitAssertBegin(AssertBegin node);
   R visitAssertEnd(AssertEnd node);
   R visitLiteralDoubleHandle(LiteralDoubleHandle node);
+  R visitLiteralDoubleWithSeparatorsHandle(
+      LiteralDoubleWithSeparatorsHandle node);
   R visitLiteralIntHandle(LiteralIntHandle node);
+  R visitLiteralIntWithSeparatorsHandle(LiteralIntWithSeparatorsHandle node);
   R visitLiteralListHandle(LiteralListHandle node);
   R visitListPatternHandle(ListPatternHandle node);
   R visitLiteralSetOrMapHandle(LiteralSetOrMapHandle node);
@@ -11540,7 +11601,17 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
       node.visitChildren(this);
 
   @override
+  void visitLiteralDoubleWithSeparatorsHandle(
+          LiteralDoubleWithSeparatorsHandle node) =>
+      node.visitChildren(this);
+
+  @override
   void visitLiteralIntHandle(LiteralIntHandle node) => node.visitChildren(this);
+
+  @override
+  void visitLiteralIntWithSeparatorsHandle(
+          LiteralIntWithSeparatorsHandle node) =>
+      node.visitChildren(this);
 
   @override
   void visitLiteralListHandle(LiteralListHandle node) =>

@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -233,7 +233,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
 
   bool _deleteReferences() {
     var element = _localVariableElement();
-    if (element is! LocalVariableElement) {
+    if (element is! LocalVariableElement2) {
       return false;
     }
 
@@ -243,7 +243,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
       return false;
     }
 
-    var references = findLocalElementReferences(functionBody, element);
+    var references = findLocalElementReferences3(functionBody, element);
 
     var deletedRanges = <SourceRange>[];
 
@@ -289,13 +289,13 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
     }
   }
 
-  Element? _localVariableElement() {
+  LocalVariableElement2? _localVariableElement() {
     var node = this.node;
     if (node is DeclaredVariablePattern) {
-      return node.declaredElement;
+      return node.declaredElement2;
     } else if (node is VariableDeclaration) {
       if (node.name == token) {
-        return node.declaredElement;
+        return node.declaredElement2;
       }
     }
     return null;

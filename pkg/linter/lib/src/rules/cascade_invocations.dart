@@ -9,48 +9,9 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Cascade consecutive method invocations on the same reference.';
-
-const _details = r'''
-**DO** Use the cascading style when successively invoking methods on the same
-reference.
-
-**BAD:**
-```dart
-SomeClass someReference = SomeClass();
-someReference.firstMethod();
-someReference.secondMethod();
-```
-
-**BAD:**
-```dart
-SomeClass someReference = SomeClass();
-...
-someReference.firstMethod();
-someReference.aProperty = value;
-someReference.secondMethod();
-```
-
-**GOOD:**
-```dart
-SomeClass someReference = SomeClass()
-    ..firstMethod()
-    ..aProperty = value
-    ..secondMethod();
-```
-
-**GOOD:**
-```dart
-SomeClass someReference = SomeClass();
-...
-someReference
-    ..firstMethod()
-    ..aProperty = value
-    ..secondMethod();
-```
-
-''';
 
 Element? _getElementFromVariableDeclarationStatement(
     VariableDeclarationStatement statement) {
@@ -105,20 +66,15 @@ bool _isInvokedWithoutNullAwareOperator(Token? token) =>
 /// Rule to lint consecutive invocations of methods or getters on the same
 /// reference that could be done with the cascade operator.
 class CascadeInvocations extends LintRule {
-  static const LintCode code = LintCode(
-      'cascade_invocations', 'Unnecessary duplication of receiver.',
-      correctionMessage: 'Try using a cascade to avoid the duplication.');
-
   /// Default constructor.
   CascadeInvocations()
       : super(
-            name: 'cascade_invocations',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.cascade_invocations,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.cascade_invocations;
 
   @override
   void registerNodeProcessors(
@@ -286,7 +242,7 @@ class _CascadableExpression {
   }
 }
 
-class _NodeVisitor extends UnifyingAstVisitor {
+class _NodeVisitor extends UnifyingAstVisitor<void> {
   final _CascadableExpression expressionBox;
 
   bool foundCriticalNode = false;

@@ -48,4 +48,17 @@ class FutureOrTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
       {required bool hasExplicitTypeArguments}) {
     return new FutureOrType(arguments.single, nullability);
   }
+
+  @override
+  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    if (typeArguments != null && typeArguments.length == 1) {
+      return typeArguments.single.computeNullability(
+          typeVariablesTraversalState: typeVariablesTraversalState);
+    } else {
+      // This is `FutureOr<dynamic>`.
+      return Nullability.nullable;
+    }
+  }
 }

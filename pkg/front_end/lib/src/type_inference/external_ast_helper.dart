@@ -137,9 +137,7 @@ Expression createVariableSet(VariableDeclaration variable, Expression value,
         arguments: createArguments([value], fileOffset: fileOffset),
         fileOffset: fileOffset);
   } else {
-    assert(
-        allowFinalAssignment || variable.isAssignable,
-        // Coverage-ignore(suite): Not run.
+    assert(allowFinalAssignment || variable.isAssignable,
         "Cannot assign to variable $variable");
     return new VariableSet(variable, value)..fileOffset = fileOffset;
   }

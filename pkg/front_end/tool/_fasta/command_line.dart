@@ -21,6 +21,7 @@ import 'package:front_end/src/api_prototype/standard_file_system.dart'
 import 'package:front_end/src/api_prototype/terminal_color_support.dart';
 import 'package:front_end/src/base/command_line_options.dart';
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/file_system_dependency_tracker.dart';
 import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:front_end/src/base/problems.dart' show DebugAbort;
 import 'package:front_end/src/base/processed_options.dart'
@@ -86,8 +87,11 @@ void throwCommandLineProblem(String message) {
   throw new CommandLineProblem.deprecated(message);
 }
 
-ProcessedOptions analyzeCommandLine(String programName,
-    ParsedOptions parsedOptions, bool areRestArgumentsInputs) {
+ProcessedOptions analyzeCommandLine(
+    FileSystemDependencyTracker? tracker,
+    String programName,
+    ParsedOptions parsedOptions,
+    bool areRestArgumentsInputs) {
   final List<String> arguments = parsedOptions.arguments;
 
   final bool help = Options.help.read(parsedOptions);
@@ -197,7 +201,12 @@ ProcessedOptions analyzeCommandLine(String programName,
         "'${Flags.nnbdWeakMode}'.");
   }
 
-  FileSystem fileSystem = StandardFileSystem.instance;
+  FileSystem fileSystem;
+  if (tracker != null) {
+    fileSystem = StandardFileSystem.instanceWithTracking(tracker);
+  } else {
+    fileSystem = StandardFileSystem.instance;
+  }
   if (singleRootScheme != null) {
     fileSystem = new SchemeBasedFileSystem({
       'file': fileSystem,
@@ -313,14 +322,15 @@ Future<T> withGlobalOptions<T>(
     String programName,
     List<String> arguments,
     bool areRestArgumentsInputs,
-    Future<T> f(CompilerContext context, List<String> restArguments)) {
+    Future<T> f(CompilerContext context, List<String> restArguments),
+    {FileSystemDependencyTracker? tracker}) {
   ParsedOptions? parsedOptions;
   ProcessedOptions options;
   CommandLineProblem? problem;
   try {
     parsedOptions = ParsedOptions.parse(arguments, optionSpecification);
-    options =
-        analyzeCommandLine(programName, parsedOptions, areRestArgumentsInputs);
+    options = analyzeCommandLine(
+        tracker, programName, parsedOptions, areRestArgumentsInputs);
   } on CommandLineProblem catch (e) {
     options = new ProcessedOptions();
     problem = e;
@@ -385,10 +395,6 @@ Message computeUsage(String programName, bool verbose) {
 
 Future<T> runProtectedFromAbort<T>(Future<T> Function() action,
     [T? failingValue]) async {
-  if (CompilerContext.isActive) {
-    throw "runProtectedFromAbort should be called from 'main',"
-        " that is, outside a compiler context.";
-  }
   try {
     return await action();
   } on DebugAbort catch (e) {

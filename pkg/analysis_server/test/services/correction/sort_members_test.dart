@@ -1317,6 +1317,33 @@ mixin M { // mixinM
 ''');
   }
 
+  Future<void> test_partFile() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part 'test.dart';
+''');
+
+    await _parseTestUnit(r'''
+part of 'part.dart';
+
+import 'dart:io';
+import 'dart:async';
+
+void f() {}
+
+Future? a;
+''');
+    _assertSort(r'''
+part of 'part.dart';
+
+import 'dart:async';
+import 'dart:io';
+
+Future? a;
+
+void f() {}
+''');
+  }
+
   Future<void> test_unit_class() async {
     await _parseTestUnit(r'''
 class C {}
@@ -1710,6 +1737,33 @@ class A {} // A
 class B {} // B
 // C
 class C {} // C
+''');
+  }
+
+  Future<void> test_withParts() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+''');
+
+    await _parseTestUnit(r'''
+import 'dart:io';
+import 'dart:async';
+
+part 'part.dart';
+
+void f() {}
+
+Future? a;
+''');
+    _assertSort(r'''
+import 'dart:async';
+import 'dart:io';
+
+part 'part.dart';
+
+Future? a;
+
+void f() {}
 ''');
   }
 

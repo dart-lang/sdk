@@ -36,7 +36,7 @@ class LintCode extends ErrorCode {
   ErrorType get type => ErrorType.LINT;
 
   @override
-  String get url => super.url ?? 'https://dart.dev/lints/$name';
+  String? get url => null;
 
   @override
   bool operator ==(Object other) =>

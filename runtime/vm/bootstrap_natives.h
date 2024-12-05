@@ -140,6 +140,7 @@ namespace dart {
   V(AssertionError_throwNew, 3)                                                \
   V(AssertionError_throwNewSource, 5)                                          \
   V(Error_throwWithStackTrace, 2)                                              \
+  V(Error_trySetStackTrace, 2)                                                 \
   V(StackTrace_current, 0)                                                     \
   V(TypeError_throwNew, 4)                                                     \
   V(Stopwatch_now, 0)                                                          \
@@ -268,6 +269,7 @@ namespace dart {
   V(Internal_extractTypeArguments, 2)                                          \
   V(Internal_prependTypeArguments, 4)                                          \
   V(Internal_boundsCheckForPartialInstantiation, 2)                            \
+  V(Internal_loadDynamicModule, 1)                                             \
   V(Internal_allocateOneByteString, 1)                                         \
   V(Internal_allocateTwoByteString, 1)                                         \
   V(Internal_writeIntoOneByteString, 3)                                        \
@@ -366,7 +368,13 @@ namespace dart {
   V(VariableMirror_type, 2)
 
 #define BOOTSTRAP_FFI_NATIVE_LIST(V)                                           \
+  V(ConditionVariable_Initialize, void, (Dart_Handle))                         \
+  V(ConditionVariable_Notify, void, (Dart_Handle))                             \
+  V(ConditionVariable_Wait, void, (Dart_Handle, Dart_Handle))                  \
   V(FinalizerEntry_SetExternalSize, void, (Dart_Handle, intptr_t))             \
+  V(Mutex_Initialize, void, (Dart_Handle))                                     \
+  V(Mutex_Lock, void, (Dart_Handle))                                           \
+  V(Mutex_Unlock, void, (Dart_Handle))                                         \
   V(Pointer_asTypedListFinalizerAllocateData, void*, ())                       \
   V(Pointer_asTypedListFinalizerCallbackPointer, void*, ())
 

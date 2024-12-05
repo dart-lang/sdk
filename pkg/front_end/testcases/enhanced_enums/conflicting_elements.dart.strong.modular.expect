@@ -73,8 +73,8 @@ import self as self;
 import "dart:core" as core;
 
 class E1 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E1> values = #C1;
   final field core::int element = 42;
+  static const field core::List<self::E1> values = #C1;
   const synthetic constructor •(core::int #index, core::String #name) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
@@ -109,8 +109,8 @@ class E4 extends core::_Enum /*isEnum*/  {
   static method element() → void {}
 }
 class E5 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E5> values = #C8;
   static field core::int element = 42;
+  static const field core::List<self::E5> values = #C8;
   const synthetic constructor •(core::int #index, core::String #name) → self::E5
     : super core::_Enum::•(#index, #name)
     ;

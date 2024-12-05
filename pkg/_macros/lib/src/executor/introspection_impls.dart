@@ -414,6 +414,9 @@ class FormalParameterDeclarationImpl extends DeclarationImpl
   final bool isRequired;
 
   @override
+  final ParameterStyle style;
+
+  @override
   RemoteInstanceKind get kind => RemoteInstanceKind.formalParameterDeclaration;
 
   @override
@@ -426,6 +429,7 @@ class FormalParameterDeclarationImpl extends DeclarationImpl
     required super.metadata,
     required this.isNamed,
     required this.isRequired,
+    required this.style,
     required this.type,
   });
 
@@ -435,6 +439,7 @@ class FormalParameterDeclarationImpl extends DeclarationImpl
     required super.library,
     required super.metadata,
     required BitMask<ParameterIntrospectionBit> bitMask,
+    required this.style,
     required this.type,
   })  : isNamed = bitMask.has(ParameterIntrospectionBit.isNamed),
         isRequired = bitMask.has(ParameterIntrospectionBit.isRequired);
@@ -451,14 +456,18 @@ class FormalParameterDeclarationImpl extends DeclarationImpl
     if (isRequired) bitMask.add(ParameterIntrospectionBit.isRequired);
     bitMask.freeze();
     serializer.addInt(bitMask._mask);
+    serializer.addInt(style.index);
     type.serialize(serializer);
   }
 
   @override
-  ParameterCode get code =>
-      ParameterCode(name: identifier.name, type: type.code, keywords: [
-        if (isNamed && isRequired) 'required',
-      ]);
+  ParameterCode get code => ParameterCode(
+          name: identifier.name,
+          style: style,
+          type: type.code,
+          keywords: [
+            if (isNamed && isRequired) 'required',
+          ]);
 }
 
 class FormalParameterImpl extends RemoteInstance implements FormalParameter {
@@ -476,6 +485,9 @@ class FormalParameterImpl extends RemoteInstance implements FormalParameter {
 
   @override
   final TypeAnnotationImpl type;
+
+  @override
+  ParameterStyle get style => ParameterStyle.normal;
 
   @override
   RemoteInstanceKind get kind => RemoteInstanceKind.formalParameter;
@@ -764,6 +776,9 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
 class ConstructorDeclarationImpl extends MethodDeclarationImpl
     implements ConstructorDeclaration {
   @override
+  final bool isConst;
+
+  @override
   final bool isFactory;
 
   @override
@@ -785,6 +800,7 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
     // Method fields.
     required super.definingType,
     // Constructor fields.
+    required this.isConst,
     required this.isFactory,
   }) : super(
           isGetter: false,
@@ -807,7 +823,8 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
     required super.typeParameters,
     // Method fields.
     required super.definingType,
-  })  : isFactory = bitMask.has(FunctionIntrospectionBit.isFactory),
+  })  : isConst = bitMask.has(FunctionIntrospectionBit.isConst),
+        isFactory = bitMask.has(FunctionIntrospectionBit.isFactory),
         super.fromBitMask();
 
   /// If subclasses have their own values to add to [bitMask], they must do so
@@ -816,6 +833,7 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
   void serializeUncached(Serializer serializer,
       {BitMask<FunctionIntrospectionBit>? bitMask}) {
     bitMask ??= BitMask();
+    if (isConst) bitMask.add(FunctionIntrospectionBit.isConst);
     if (isFactory) bitMask.add(FunctionIntrospectionBit.isFactory);
     super.serializeUncached(serializer, bitMask: bitMask);
   }
@@ -1383,6 +1401,7 @@ enum FunctionIntrospectionBit {
   hasBody,
   hasExternal,
   hasStatic,
+  isConst,
   isFactory,
   isGetter,
   isOperator,
@@ -1391,8 +1410,10 @@ enum FunctionIntrospectionBit {
 
 /// Defines the bits for the bit mask for all boolean parameter fields.
 enum ParameterIntrospectionBit {
+  isField,
   isNamed,
   isRequired,
+  isSuper,
 }
 
 /// Defines the bits for the bit mask for all boolean variable fields.

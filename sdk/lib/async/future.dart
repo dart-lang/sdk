@@ -227,12 +227,12 @@ abstract class FutureOr<T> {
 @pragma("wasm:entry-point")
 @vmIsolateUnsendable
 abstract interface class Future<T> {
-  /// A `Future<Null>` completed with `null`.
+  /// A `Future<void>` completed with `null`.
   ///
   /// Currently shared with `dart:internal`.
   /// If that future can be removed, then change this back to
-  /// `_Future<Null>.zoneValue(null, _rootZone);`
-  static final _Future<Null> _nullFuture = nullFuture as _Future<Null>;
+  /// `_Future<void>.zoneValue(null, _rootZone);`
+  static final _Future<void> _nullFuture = nullFuture as _Future<void>;
 
   /// A `Future<bool>` completed with `false`.
   static final _Future<bool> _falseFuture =
@@ -313,12 +313,7 @@ abstract interface class Future<T> {
       result = computation();
     } catch (error, stackTrace) {
       var future = new _Future<T>();
-      AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
-      if (replacement != null) {
-        future._asyncCompleteError(replacement.error, replacement.stackTrace);
-      } else {
-        future._asyncCompleteError(error, stackTrace);
-      }
+      _asyncCompleteWithErrorCallback(future, error, stackTrace);
       return future;
     }
     return result is Future<T> ? result : _Future<T>.value(result);
@@ -373,16 +368,7 @@ abstract interface class Future<T> {
   /// final error = await getFuture(); // Throws.
   /// ```
   factory Future.error(Object error, [StackTrace? stackTrace]) {
-    // TODO(40614): Remove once non-nullability is sound.
-    checkNotNullable(error, "error");
-    if (!identical(Zone.current, _rootZone)) {
-      AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
-      if (replacement != null) {
-        error = replacement.error;
-        stackTrace = replacement.stackTrace;
-      }
-    }
-    stackTrace ??= AsyncError.defaultStackTrace(error);
+    AsyncError(:error, :stackTrace) = _interceptUserError(error, stackTrace);
     return new _Future<T>.immediateError(error, stackTrace);
   }
 
@@ -1335,27 +1321,26 @@ abstract interface class Completer<T> {
 
 // Helper function completing a _Future with error, but checking the zone
 // for error replacement and missing stack trace first.
+// Only used for errors that are *caught*.
+// A user provided error object should use `_interceptUserError` which
+// also sets `Error.stackTrace`.
 void _completeWithErrorCallback(
-    _Future result, Object error, StackTrace? stackTrace) {
-  AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
+    _Future result, Object error, StackTrace stackTrace) {
+  var replacement = _interceptError(error, stackTrace);
   if (replacement != null) {
     error = replacement.error;
     stackTrace = replacement.stackTrace;
-  } else {
-    stackTrace ??= AsyncError.defaultStackTrace(error);
   }
   result._completeError(error, stackTrace);
 }
 
 // Like [_completeWithErrorCallback] but completes asynchronously.
 void _asyncCompleteWithErrorCallback(
-    _Future result, Object error, StackTrace? stackTrace) {
-  AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
+    _Future result, Object error, StackTrace stackTrace) {
+  var replacement = _interceptError(error, stackTrace);
   if (replacement != null) {
     error = replacement.error;
     stackTrace = replacement.stackTrace;
-  } else {
-    stackTrace ??= AsyncError.defaultStackTrace(error);
   }
   result._asyncCompleteError(error, stackTrace);
 }

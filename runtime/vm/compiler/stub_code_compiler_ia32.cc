@@ -1161,6 +1161,137 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ ret();
 }
 
+// Called when invoking compiled Dart code from interpreted Dart code.
+// Input parameters:
+//   ESP : points to return address.
+//   ESP + 4 : code object of the dart function to call.
+//   ESP + 8 : arguments descriptor array.
+//   ESP + 12: address of first argument.
+//   ESP + 16 : current thread.
+void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub() {
+#if defined(DART_DYNAMIC_MODULES)
+  const intptr_t kTargetCodeOffset = 2 * target::kWordSize;
+  const intptr_t kArgumentsDescOffset = 3 * target::kWordSize;
+  const intptr_t kArgumentsOffset = 4 * target::kWordSize;
+  const intptr_t kThreadOffset = 5 * target::kWordSize;
+  __ EnterFrame(0);
+
+  // Push code object to PC marker slot.
+  __ movl(EAX, Address(EBP, kThreadOffset));
+  __ pushl(Address(EAX, target::Thread::invoke_dart_code_stub_offset()));
+
+  // Save C++ ABI callee-saved registers.
+  __ pushl(EBX);
+  __ pushl(ESI);
+  __ pushl(EDI);
+
+  // Set up THR, which caches the current thread in Dart code.
+  __ movl(THR, EAX);
+
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
+  // Save the current VMTag on the stack.
+  __ movl(ECX, Assembler::VMTagAddress());
+  __ pushl(ECX);
+
+  // Save top resource and top exit frame info. Use EDX as a temporary register.
+  // StackFrameIterator reads the top exit frame info saved in this frame.
+  __ movl(EDX, Address(THR, target::Thread::top_resource_offset()));
+  __ pushl(EDX);
+  __ movl(Address(THR, target::Thread::top_resource_offset()), Immediate(0));
+  __ movl(EAX, Address(THR, target::Thread::exit_through_ffi_offset()));
+  __ pushl(EAX);
+  __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(0));
+  // The constant target::frame_layout.exit_link_slot_from_entry_fp must be
+  // kept in sync with the code below.
+  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -8);
+  __ movl(EDX, Address(THR, target::Thread::top_exit_frame_info_offset()));
+  __ pushl(EDX);
+  __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
+          Immediate(0));
+
+  // In debug mode, verify that we've pushed the top exit frame info at the
+  // correct offset from FP.
+  __ EmitEntryFrameVerification();
+
+  // Mark that the thread is executing Dart code. Do this after initializing the
+  // exit link for the profiler.
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+
+  // Load arguments descriptor array into EDX.
+  __ movl(EDX, Address(EBP, kArgumentsDescOffset));
+
+  // Load number of arguments into EBX and adjust count for type arguments.
+  __ movl(EBX, FieldAddress(EDX, target::ArgumentsDescriptor::count_offset()));
+  __ cmpl(
+      FieldAddress(EDX, target::ArgumentsDescriptor::type_args_len_offset()),
+      Immediate(0));
+  Label args_count_ok;
+  __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
+  __ addl(EBX, Immediate(target::ToRawSmi(1)));  // Include the type arguments.
+  __ Bind(&args_count_ok);
+  // Save number of arguments as Smi on stack, replacing ArgumentsDesc.
+  __ movl(Address(EBP, kArgumentsDescOffset), EBX);
+  __ SmiUntag(EBX);
+
+  // Set up arguments for the dart call.
+  Label push_arguments;
+  Label done_push_arguments;
+  __ testl(EBX, EBX);  // check if there are arguments.
+  __ j(ZERO, &done_push_arguments, Assembler::kNearJump);
+  __ movl(EAX, Immediate(0));
+
+  // Compute address of 'arguments array' data area into EDI.
+  __ movl(EDI, Address(EBP, kArgumentsOffset));
+
+  __ Bind(&push_arguments);
+  __ movl(ECX, Address(EDI, EAX, TIMES_4, 0));
+  __ pushl(ECX);
+  __ incl(EAX);
+  __ cmpl(EAX, EBX);
+  __ j(LESS, &push_arguments, Assembler::kNearJump);
+  __ Bind(&done_push_arguments);
+
+  // Call the dart code entrypoint.
+  __ movl(EAX, Address(EBP, kTargetCodeOffset));
+  __ call(FieldAddress(EAX, target::Code::entry_point_offset()));
+
+  // Read the saved number of passed arguments as Smi.
+  __ movl(EDX, Address(EBP, kArgumentsDescOffset));
+  // Get rid of arguments pushed on the stack.
+  __ leal(ESP, Address(ESP, EDX, TIMES_2, 0));  // EDX is a Smi.
+
+  // Restore the saved top exit frame info and top resource back into the
+  // Isolate structure.
+  __ popl(Address(THR, target::Thread::top_exit_frame_info_offset()));
+  __ popl(Address(THR, target::Thread::exit_through_ffi_offset()));
+  __ popl(Address(THR, target::Thread::top_resource_offset()));
+
+  // Restore the current VMTag from the stack.
+  __ popl(Assembler::VMTagAddress());
+
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
+  // Restore C++ ABI callee-saved registers.
+  __ popl(EDI);
+  __ popl(ESI);
+  __ popl(EBX);
+
+  // Restore the frame pointer.
+  __ LeaveFrame();
+
+  __ ret();
+
+#else
+  __ Stop("Not using Dart dynamic modules");
+#endif  // defined(DART_DYNAMIC_MODULES)
+}
+
 // Helper to generate space allocation of context stub.
 // This does not initialise the fields of the context.
 // Input:
@@ -2363,6 +2494,86 @@ void StubCodeCompiler::GenerateLazyCompileStub() {
   __ LeaveFrame();
 
   __ jmp(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
+}
+
+// Stub for interpreting a function call.
+// EDX: Arguments descriptor.
+// EAX: Function.
+void StubCodeCompiler::GenerateInterpretCallStub() {
+#if defined(DART_DYNAMIC_MODULES)
+
+  __ EnterStubFrame();
+
+#if defined(DEBUG)
+  {
+    Label ok;
+    // Check that we are always entering from Dart code.
+    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Adjust arguments count for type arguments vector.
+  __ movl(ECX, FieldAddress(EDX, target::ArgumentsDescriptor::count_offset()));
+  __ SmiUntag(ECX);
+  __ cmpl(
+      FieldAddress(EDX, target::ArgumentsDescriptor::type_args_len_offset()),
+      Immediate(0));
+  Label args_count_ok;
+  __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
+  __ incl(ECX);
+  __ Bind(&args_count_ok);
+
+  // Compute argv.
+  __ leal(EBX,
+          Address(EBP, ECX, TIMES_4,
+                  target::frame_layout.param_end_from_fp * target::kWordSize));
+
+  // Indicate decreasing memory addresses of arguments with negative argc.
+  __ negl(ECX);
+
+  __ pushl(THR);  // Arg 4: Thread.
+  __ pushl(EBX);  // Arg 3: Argv.
+  __ pushl(ECX);  // Arg 2: Negative argc.
+  __ pushl(EDX);  // Arg 1: Arguments descriptor
+  __ pushl(EAX);  // Arg 0: Function
+
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to Dart VM C++ code.
+  __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()), EBP);
+
+  // Mark that the thread exited generated code through a runtime call.
+  __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(target::Thread::exit_through_runtime_call()));
+
+  // Mark that the thread is executing VM code.
+  __ movl(EAX,
+          Address(THR, target::Thread::interpret_call_entry_point_offset()));
+  __ movl(Assembler::VMTagAddress(), EAX);
+
+  __ call(EAX);
+
+  __ Drop(5);
+
+  // Mark that the thread is executing Dart code.
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+
+  // Mark that the thread has not exited generated Dart code.
+  __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(0));
+
+  // Reset exit frame information in Isolate's mutator thread structure.
+  __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
+          Immediate(0));
+
+  __ LeaveFrame();
+  __ ret();
+
+#else
+  __ Stop("Not using Dart dynamic modules");
+#endif  // defined(DART_DYNAMIC_MODULES)
 }
 
 // ECX: Contains an ICData.

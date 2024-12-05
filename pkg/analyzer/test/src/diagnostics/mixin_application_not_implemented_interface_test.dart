@@ -274,13 +274,13 @@ enum E with M {
 
   test_enum_noSuperclassConstraint_augmented() async {
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 mixin M {}
 enum E {v}
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum E with M {}
 ''');
 

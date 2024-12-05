@@ -32,7 +32,7 @@ int? sound(S s) => switch (s) {
       Y() as B => 1,
       _ => null,
       //^^
-      // [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
     };
 
 main() {

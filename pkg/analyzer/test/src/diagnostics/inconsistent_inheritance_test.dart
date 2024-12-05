@@ -17,8 +17,8 @@ main() {
 class InconsistentInheritanceTest extends PubPackageResolutionTest {
   test_class_augmentWithInterface_augmentWithMixin() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-import augment 'c.dart';
+part 'b.dart';
+part 'c.dart';
 
 mixin A {
   void foo(int _);
@@ -32,19 +32,19 @@ abstract class C extends Object {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment abstract class C implements B {}
 ''');
 
     var c = newFile('$testPackageLibPath/c.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment abstract class C with A {}
 ''');
 
     await assertErrorsInFile2(a, [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 142, 1),
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 122, 1),
     ]);
     await assertErrorsInFile2(b, []);
     await assertErrorsInFile2(c, []);
@@ -52,8 +52,8 @@ augment abstract class C with A {}
 
   test_class_augmentWithMixin_augmentWithInterface() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-import augment 'c.dart';
+part 'b.dart';
+part 'c.dart';
 
 mixin A {
   void foo(int _);
@@ -67,19 +67,19 @@ abstract class C extends Object {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment abstract class C with A {}
 ''');
 
     var c = newFile('$testPackageLibPath/c.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment abstract class C implements B {}
 ''');
 
     await assertErrorsInFile2(a, [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 142, 1),
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 122, 1),
     ]);
     await assertErrorsInFile2(b, []);
     await assertErrorsInFile2(c, []);

@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_THREAD_POOL_H_
 #define RUNTIME_VM_THREAD_POOL_H_
 
+#include <functional>
 #include <memory>
 #include <utility>
 
@@ -15,7 +16,7 @@
 
 namespace dart {
 
-class MonitorLocker;
+class MutexLocker;
 
 class ThreadPool {
  public:
@@ -45,6 +46,7 @@ class ThreadPool {
   bool Run(Args&&... args) {
     return RunImpl(std::unique_ptr<Task>(new T(std::forward<Args>(args)...)));
   }
+  bool Run(Task* task) { return RunImpl(std::unique_ptr<Task>(task)); }
 
   // Returns `true` if the current thread is running on the [this] thread pool.
   bool CurrentThreadIsWorker();
@@ -58,15 +60,27 @@ class ThreadPool {
   // to continue executing.
   void MarkCurrentWorkerAsUnBlocked();
 
-  // Triggers shutdown, prevents scheduling of new tasks.
+  // Triggers shutdown, prevents scheduling of new tasks and waits for all
+  // worker threads to exit.
+  //
+  // Existing tasks are executed to completion.
   void Shutdown();
+
+  // Prevent scheduling of new tasks on |pool| and request it to shutdown
+  // after all currently running tasks finish. |shutdown_complete| will be
+  // invoked when shutdown is complete. This might happen synchronously
+  // if all workers are already stopped or on one of the worker threads.
+  //
+  // It is safe to delete |pool| from |shutdown_complete|.
+  static void RequestShutdown(ThreadPool* pool,
+                              std::function<void(void)>&& shutdown_complete);
 
   // Exposed for unit test in thread_pool_test.cc
   uint64_t workers_started() const { return count_idle_ + count_running_; }
   // Exposed for unit test in thread_pool_test.cc
-  uint64_t workers_stopped() const { return count_dead_; }
+  bool has_pending_dead_worker() const { return last_dead_worker_ != nullptr; }
 
- private:
+ protected:
   class Worker : public IntrusiveDListEntry<Worker> {
    public:
     explicit Worker(ThreadPool* pool);
@@ -75,8 +89,14 @@ class ThreadPool {
     // after a task has been set by the initial call to SetTask().
     void StartThread();
 
+    ConditionVariable::WaitResult Sleep(int64_t timeout_micros) {
+      return wakeup_cv_.WaitMicros(&pool_->pool_mutex_, timeout_micros);
+    }
+
    private:
     friend class ThreadPool;
+
+    void Wakeup() { wakeup_cv_.Notify(); }
 
     // The main entry point for new worker threads.
     static void Main(uword args);
@@ -87,16 +107,16 @@ class ThreadPool {
     ThreadJoinId join_id_;
     OSThread* os_thread_ = nullptr;
     bool is_blocked_ = false;
+    ConditionVariable wakeup_cv_;
 
     DISALLOW_COPY_AND_ASSIGN(Worker);
   };
 
- protected:
   // Called when the thread pool turns idle.
   //
   // Subclasses can override this to perform some action.
   // NOTE: While this function is running the thread pool will be locked.
-  virtual void OnEnterIdleLocked(MonitorLocker* ml) {}
+  virtual void OnEnterIdleLocked(MutexLocker* ml, Worker* worker) {}
 
   // Whether a shutdown was requested.
   bool ShuttingDownLocked() { return shutting_down_; }
@@ -105,33 +125,48 @@ class ThreadPool {
   bool TasksWaitingToRunLocked() { return !tasks_.IsEmpty(); }
 
  private:
+  static void WorkerThreadExit(ThreadPool* pool, ThreadPool::Worker* worker);
+
   using TaskList = IntrusiveDList<Task>;
   using WorkerList = IntrusiveDList<Worker>;
 
   bool RunImpl(std::unique_ptr<Task> task);
   void WorkerLoop(Worker* worker);
 
-  Worker* ScheduleTaskLocked(MonitorLocker* ml, std::unique_ptr<Task> task);
+  Worker* ScheduleTaskLocked(std::unique_ptr<Task> task);
+
+  std::unique_ptr<Task> TakeNextAvailableTaskLocked();
 
   void IdleToRunningLocked(Worker* worker);
   void RunningToIdleLocked(Worker* worker);
-  void IdleToDeadLocked(Worker* worker);
-  void ObtainDeadWorkersLocked(WorkerList* dead_workers_to_join);
-  void JoinDeadWorkersLocked(WorkerList* dead_workers_to_join);
+  DART_WARN_UNUSED_RESULT Worker* IdleToDeadLocked(Worker* worker);
+  void JoinDeadWorker(Worker* worker);
 
-  Monitor pool_monitor_;
+  Worker* TakeLastDeadWorker();
+
+  void RequestWorkersToShutdown();
+
+  void DeleteLastDeadWorker();
+
+  Mutex pool_mutex_;
   bool shutting_down_ = false;
   uint64_t count_running_ = 0;
   uint64_t count_idle_ = 0;
   uint64_t count_dead_ = 0;
   WorkerList running_workers_;
   WorkerList idle_workers_;
-  WorkerList dead_workers_;
+
+  Worker* last_dead_worker_ = nullptr;
+
   uint64_t pending_tasks_ = 0;
   TaskList tasks_;
 
   Monitor exit_monitor_;
   std::atomic<bool> all_workers_dead_;
+
+  // If asynchronous shutdown is requested then this callback will be
+  // invoked by the last exiting worker.
+  std::function<void(void)> shutdown_complete_callback_;
 
   uintptr_t max_pool_size_ = 0;
 

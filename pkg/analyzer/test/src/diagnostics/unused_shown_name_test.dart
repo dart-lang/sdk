@@ -15,6 +15,12 @@ main() {
 
 @reflectiveTest
 class UnusedShownNameTest extends PubPackageResolutionTest {
+  test_dartCore_unused() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:core' as core show int;
+''');
+  }
+
   test_extension_instance_method_unused() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 extension E on String {

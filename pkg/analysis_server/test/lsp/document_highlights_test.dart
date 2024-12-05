@@ -20,6 +20,14 @@ void main() {
 
 @reflectiveTest
 class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
+  Future<void> test_bound_topLevelVariable_wildcard() => _testMarkedContent('''
+var /*[0*/^_/*0]*/ = 1;
+void f() {
+  var _ = 2;
+  print(/*[1*/_/*1]*/);
+}
+''');
+
   Future<void> test_forInLoop() => _testMarkedContent('''
 void f() {
   for (final /*[0*/x^/*0]*/ in []) {
@@ -96,6 +104,14 @@ class A {}
     expect(highlights[1].range.start, functionCallOffsetPosition);
   }
 
+  Future<void> test_method_underscore() => _testMarkedContent('''
+class C {
+  /*[0*/_/*0]*/() {
+    /*[1*/^_/*1]*/();
+  }
+}
+''');
+
   Future<void> test_nonDartFile() async {
     await initialize();
     await openFile(pubspecFileUri, simplePubspecContent);
@@ -115,6 +131,12 @@ void f() {
   Future<void> test_onlySelf() => _testMarkedContent('''
 void f() {
   /*[0*/prin^t/*0]*/('');
+}
+''');
+
+  Future<void> test_onlySelf_wildcard() => _testMarkedContent('''
+void f() {
+  var /*[0*/^_/*0]*/ = '';
 }
 ''');
 
@@ -157,6 +179,14 @@ void f() {
 }
 ''');
 
+  Future<void> test_topLevelVariable_underscore() => _testMarkedContent('''
+String /*[0*/_/*0]*/ = 'bar';
+void f() {
+  print(/*[1*/_/*1]*/);
+  /*[2*/^_/*2]*/ = '';
+}
+''');
+
   /// Tests highlights in a Dart file using the provided content.
   ///
   /// The content should be marked up using the [TestCode] format.
@@ -173,7 +203,10 @@ void f() {
     var highlights = await getDocumentHighlights(mainFileUri, pos);
 
     if (code.ranges.isEmpty) {
-      expect(highlights, isNull);
+      // When there are no ranges, we expect an empty result (not null) because
+      // a null may cause an editor to fall back to a text search (VS Code
+      // does) which can lead to confusing results.
+      expect(highlights, isEmpty);
     } else {
       var highlightRanges = highlights!.map((h) => h.range).toList();
       expect(highlightRanges, equals(code.ranges.map((r) => r.range)));

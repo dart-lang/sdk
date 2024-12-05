@@ -16,5 +16,4 @@ dependencies:
 dev_dependencies:
   args: any
   expect: any
-  front_end: any
   test: any

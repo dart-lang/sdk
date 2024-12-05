@@ -8,14 +8,22 @@ bar1(int? x) => <int>[?x];
 
 bar2(int? x, bool b) => <int>{ if (b) ?x };
 
-bar3(int? x) => <int>{ for (var _ in []) ?x };
+bar3(int? x, List<String> y) => <int>{ for (var _ in y) ?x };
 
 bar4(String x, bool? y) => <String, bool>{x: ?y};
 
 bar5(int? x, num y) => <int, num>{?x: y};
 
-bar6(double? x, Symbol? y) => <double, Symbol>{?x: ?y};
+bar6(Symbol? x, String? y) => <Symbol, String>{?x: ?y};
 
-bar7(num? x, double? y, bool b) => <num, double>{ if (b) ?x: ?y };
+bar7(int? x, double? y, bool b) => <int, double>{ if (b) ?x: ?y };
 
-bar8(num? x, double? y) => <num, double>{ for (var _ in []) ?x: ?y };
+bar8(bool? x, Symbol? y, List<num> z) => <bool, Symbol>{ for (var _ in z) ?x: ?y };
+
+main() {}
+
+void expectShallowEqualLists(List x, List y) {}
+
+void expectShallowEqualSets(Set x, Set y) {}
+
+void expectShallowEqualMaps(Map x, Map y) {}

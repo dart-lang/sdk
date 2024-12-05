@@ -556,8 +556,7 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
     }
 
     MemberEntity element = staticUse.element as MemberEntity;
-    EnumSet<MemberUse> useSet = EnumSet();
-    MemberUsage usage = _getMemberUsage(element, useSet);
+    var (usage, useSet) = _getMemberUsage(element);
 
     if ((element.isStatic || element.isTopLevel) && element is FieldEntity) {
       _allReferencedStaticFields.add(staticUse.element as FieldEntity);
@@ -578,57 +577,57 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
         // Already handled above.
         break;
       case StaticUseKind.SUPER_TEAR_OFF:
-        useSet.addAll(usage.read(Accesses.superAccess));
+        useSet = useSet.union(usage.read(Accesses.superAccess));
         _methodsNeedingSuperGetter.add(staticUse.element as FunctionEntity);
         break;
       case StaticUseKind.SUPER_FIELD_SET:
         _fieldSetters.add(staticUse.element as FieldEntity);
-        useSet.addAll(usage.write(Accesses.superAccess));
+        useSet = useSet.union(usage.write(Accesses.superAccess));
         break;
       case StaticUseKind.SUPER_GET:
-        useSet.addAll(usage.read(Accesses.superAccess));
+        useSet = useSet.union(usage.read(Accesses.superAccess));
         break;
       case StaticUseKind.STATIC_GET:
-        useSet.addAll(usage.read(Accesses.staticAccess));
+        useSet = useSet.union(usage.read(Accesses.staticAccess));
         break;
       case StaticUseKind.STATIC_TEAR_OFF:
-        useSet.addAll(usage.read(Accesses.staticAccess));
+        useSet = useSet.union(usage.read(Accesses.staticAccess));
         break;
       case StaticUseKind.WEAK_STATIC_TEAR_OFF:
         if (usage.hasUse) {
-          useSet.addAll(usage.read(Accesses.staticAccess));
+          useSet = useSet.union(usage.read(Accesses.staticAccess));
         } else {
           _pendingWeakTearOffs.add(element);
         }
         break;
       case StaticUseKind.SUPER_SETTER_SET:
-        useSet.addAll(usage.write(Accesses.superAccess));
+        useSet = useSet.union(usage.write(Accesses.superAccess));
         break;
       case StaticUseKind.STATIC_SET:
-        useSet.addAll(usage.write(Accesses.staticAccess));
+        useSet = useSet.union(usage.write(Accesses.staticAccess));
         break;
       case StaticUseKind.FIELD_INIT:
-        useSet.addAll(usage.init());
+        useSet = useSet.union(usage.init());
         break;
       case StaticUseKind.FIELD_CONSTANT_INIT:
-        useSet.addAll(usage.constantInit(staticUse.constant!));
+        useSet = useSet.union(usage.constantInit(staticUse.constant!));
         break;
       case StaticUseKind.SUPER_INVOKE:
         registerStaticInvocation(staticUse);
-        useSet.addAll(
+        useSet = useSet.union(
             usage.invoke(Accesses.superAccess, staticUse.callStructure!));
         break;
       case StaticUseKind.STATIC_INVOKE:
         registerStaticInvocation(staticUse);
-        useSet.addAll(
+        useSet = useSet.union(
             usage.invoke(Accesses.staticAccess, staticUse.callStructure!));
         if (_pendingWeakTearOffs.remove(element)) {
-          useSet.addAll(usage.read(Accesses.staticAccess));
+          useSet = useSet.union(usage.read(Accesses.staticAccess));
         }
         break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-        useSet.addAll(
+        useSet = useSet.union(
             usage.invoke(Accesses.staticAccess, staticUse.callStructure!));
         break;
       case StaticUseKind.DIRECT_INVOKE:
@@ -721,8 +720,9 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
     map[memberName]!.addAll(remaining);
   }
 
-  MemberUsage _getMemberUsage(MemberEntity member, EnumSet<MemberUse> useSet,
+  (MemberUsage, EnumSet<MemberUse>) _getMemberUsage(MemberEntity member,
       {bool checkEnqueuerConsistency = false}) {
+    EnumSet<MemberUse> useSet = EnumSet.empty();
     MemberUsage? usage = _memberUsage[member];
     if (usage == null) {
       if (member.isInstanceMember) {
@@ -740,7 +740,7 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
         bool isNative = _nativeBasicData.isNativeClass(cls);
         usage = MemberUsage(member);
         if (member is FieldEntity && !isNative) {
-          useSet.addAll(usage.init());
+          useSet = useSet.union(usage.init());
         }
         if (!checkEnqueuerConsistency) {
           if (member is FieldEntity && isNative) {
@@ -755,20 +755,21 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
         }
 
         if (usage.hasPendingDynamicRead && _hasInvokedGetter(member)) {
-          useSet.addAll(usage.read(Accesses.dynamicAccess));
+          useSet = useSet.union(usage.read(Accesses.dynamicAccess));
         }
         if (usage.hasPendingDynamicInvoke) {
           Iterable<CallStructure> callStructures =
               _getInvocationCallStructures(member);
           for (CallStructure callStructure in callStructures) {
-            useSet.addAll(usage.invoke(Accesses.dynamicAccess, callStructure));
+            useSet = useSet
+                .union(usage.invoke(Accesses.dynamicAccess, callStructure));
             if (!usage.hasPendingDynamicInvoke) {
               break;
             }
           }
         }
         if (usage.hasPendingDynamicWrite && _hasInvokedSetter(member)) {
-          useSet.addAll(usage.write(Accesses.dynamicAccess));
+          useSet = useSet.union(usage.write(Accesses.dynamicAccess));
         }
 
         if (!checkEnqueuerConsistency) {
@@ -791,14 +792,14 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
       } else {
         usage = MemberUsage(member);
         if (member is FieldEntity) {
-          useSet.addAll(usage.init());
+          useSet = useSet.union(usage.init());
         }
       }
       if (!checkEnqueuerConsistency) {
         _memberUsage[member] = usage;
       }
     }
-    return usage;
+    return (usage, useSet);
   }
 
   /// Determines whether [member] is potentially used and calls the [memberUsed]
@@ -815,9 +816,9 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
 
     MemberUsage? usage = _memberUsage[member];
     if (usage == null) {
-      EnumSet<MemberUse> useSet = EnumSet();
-      usage = _getMemberUsage(member, useSet,
+      final (memberUsage, useSet) = _getMemberUsage(member,
           checkEnqueuerConsistency: checkEnqueuerConsistency);
+      usage = memberUsage;
       if (useSet.isNotEmpty) {
         if (checkEnqueuerConsistency) {
           throw SpannableAssertionFailure(member,
@@ -832,22 +833,23 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
         usage = usage.clone();
       }
       if (usage.hasPendingDynamicUse) {
-        EnumSet<MemberUse> useSet = EnumSet();
+        EnumSet<MemberUse> useSet = EnumSet.empty();
         if (usage.hasPendingDynamicRead && _hasInvokedGetter(member)) {
-          useSet.addAll(usage.read(Accesses.dynamicAccess));
+          useSet = useSet.union(usage.read(Accesses.dynamicAccess));
         }
         if (usage.hasPendingDynamicInvoke) {
           Iterable<CallStructure> callStructures =
               _getInvocationCallStructures(member);
           for (CallStructure callStructure in callStructures) {
-            useSet.addAll(usage.invoke(Accesses.dynamicAccess, callStructure));
+            useSet = useSet
+                .union(usage.invoke(Accesses.dynamicAccess, callStructure));
             if (!usage.hasPendingDynamicInvoke) {
               break;
             }
           }
         }
         if (usage.hasPendingDynamicWrite && _hasInvokedSetter(member)) {
-          useSet.addAll(usage.write(Accesses.dynamicAccess));
+          useSet = useSet.union(usage.write(Accesses.dynamicAccess));
         }
         if (!checkEnqueuerConsistency) {
           if (!usage.hasPendingDynamicRead) {

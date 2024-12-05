@@ -7,51 +7,20 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'Use `ColoredBox`.';
 
-const _details = r'''
-**DO** use `ColoredBox` when `Container` has only a `Color`.
-
-A `Container` is a heavier Widget than a `ColoredBox`, and as bonus,
-`ColoredBox` has a `const` constructor.
-
-**BAD:**
-```dart
-Widget buildArea() {
-  return Container(
-    color: Colors.blue,
-    child: const Text('hello'),
-  );
-}
-```
-
-**GOOD:**
-```dart
-Widget buildArea() {
-  return const ColoredBox(
-    color: Colors.blue,
-    child: Text('hello'),
-  );
-}
-```
-''';
-
 class UseColoredBox extends LintRule {
-  static const LintCode code = LintCode('use_colored_box',
-      "Use a 'ColoredBox' rather than a 'Container' with only a 'Color'.",
-      correctionMessage: "Try replacing the 'Container' with a 'ColoredBox'.");
-
   UseColoredBox()
       : super(
-            name: 'use_colored_box',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.use_colored_box,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_colored_box;
 
   @override
   void registerNodeProcessors(
@@ -62,7 +31,7 @@ class UseColoredBox extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);

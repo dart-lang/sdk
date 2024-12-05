@@ -9,85 +9,19 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Define case clauses for all constants in enum-like classes.';
 
-const _details = r'''
-Switching on instances of enum-like classes should be exhaustive.
-
-Enum-like classes are defined as concrete (non-abstract) classes that have:
-  * only private non-factory constructors
-  * two or more static const fields whose type is the enclosing class and
-  * no subclasses of the class in the defining library
-
-**DO** define case clauses for all constants in enum-like classes.
-
-**BAD:**
-```dart
-class EnumLike {
-  final int i;
-  const EnumLike._(this.i);
-
-  static const e = EnumLike._(1);
-  static const f = EnumLike._(2);
-  static const g = EnumLike._(3);
-}
-
-void bad(EnumLike e) {
-  // Missing case.
-  switch(e) { // LINT
-    case EnumLike.e :
-      print('e');
-      break;
-    case EnumLike.f :
-      print('f');
-      break;
-  }
-}
-```
-
-**GOOD:**
-```dart
-class EnumLike {
-  final int i;
-  const EnumLike._(this.i);
-
-  static const e = EnumLike._(1);
-  static const f = EnumLike._(2);
-  static const g = EnumLike._(3);
-}
-
-void ok(EnumLike e) {
-  // All cases covered.
-  switch(e) { // OK
-    case EnumLike.e :
-      print('e');
-      break;
-    case EnumLike.f :
-      print('f');
-      break;
-    case EnumLike.g :
-      print('g');
-      break;
-  }
-}
-```
-''';
-
 class ExhaustiveCases extends LintRule {
-  static const LintCode code = LintCode(
-      'exhaustive_cases', "Missing case clauses for some constants in '{0}'.",
-      correctionMessage: 'Try adding case clauses for the missing constants.');
-
   ExhaustiveCases()
       : super(
-            name: 'exhaustive_cases',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.exhaustive_cases,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.exhaustive_cases;
 
   @override
   void registerNodeProcessors(
@@ -97,7 +31,7 @@ class ExhaustiveCases extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);

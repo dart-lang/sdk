@@ -682,14 +682,15 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     // emit an assignment, because the intTypeCheck just returns its
     // argument.
     bool needsAssignment = true;
-    if (instruction is HCheck) {
+    if (instruction is HOutputConstrainedToAnInput) {
       if (instruction is HPrimitiveCheck ||
           instruction is HAsCheck ||
           instruction is HAsCheckSimple ||
           instruction is HBoolConversion ||
           instruction is HNullCheck ||
-          instruction is HLateReadCheck) {
-        String? inputName = variableNames.getName(instruction.checkedInput);
+          instruction is HLateReadCheck ||
+          instruction is HArrayFlagsSet) {
+        String? inputName = variableNames.getName(instruction.constrainedInput);
         if (variableNames.getName(instruction) == inputName) {
           needsAssignment = false;
         }
@@ -715,9 +716,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     }
   }
 
-  HInstruction skipGenerateAtUseCheckInputs(HCheck check) {
-    HInstruction input = check.checkedInput;
-    if (input is HCheck && isGenerateAtUseSite(input)) {
+  HInstruction skipGenerateAtUseCheckInputs(HOutputConstrainedToAnInput check) {
+    HInstruction input = check.constrainedInput;
+    if (input is HOutputConstrainedToAnInput && isGenerateAtUseSite(input)) {
       return skipGenerateAtUseCheckInputs(input);
     }
     return input;
@@ -726,7 +727,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   void use(HInstruction argument) {
     if (isGenerateAtUseSite(argument)) {
       visitExpression(argument);
-    } else if (argument is HCheck && !variableNames.hasName(argument)) {
+    } else if (argument is HOutputConstrainedToAnInput &&
+        !variableNames.hasName(argument)) {
       // We have a check that is not generate-at-use and has no name, yet is a
       // subexpression (we are in 'use'). This happens when we have a chain of
       // checks on an available unnamed value (e.g. a constant). The checks are
@@ -737,11 +739,10 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       // instruction has a name or is generate-at-use". This would require
       // naming the input or output of the chain-of-checks.
 
-      HCheck check = argument;
       // This can only happen if the checked node also does not have a name.
-      assert(!variableNames.hasName(check.checkedInput));
+      assert(!variableNames.hasName(argument.constrainedInput));
 
-      use(skipGenerateAtUseCheckInputs(check));
+      use(skipGenerateAtUseCheckInputs(argument));
     } else {
       assert(variableNames.hasName(argument));
       push(js.VariableUse(variableNames.getName(argument)!));
@@ -3440,5 +3441,73 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   void visitIsLateSentinel(HIsLateSentinel node) {
     _metrics.countHIsLateSentinel++;
     _emitIsLateSentinel(node.inputs.single, node.sourceInformation);
+  }
+
+  @override
+  void visitArrayFlagsGet(HArrayFlagsGet node) {
+    use(node.inputs.single);
+    js.Expression array = pop();
+    js.Expression flags =
+        js.js(r'#.#', [array, _namer.fixedNames.arrayFlagsPropertyName]);
+    if (isGenerateAtUseSite(node) && node.usedBy.single is HArrayFlagsCheck) {
+      // The enclosing expression will be an immediate `& mask`.
+      push(flags);
+    } else {
+      // The flags are reused, possibly hoisted, so force an `undefined` to be a
+      // small integer once rather than at each check.
+      push(js.js(r'# | 0', flags));
+    }
+  }
+
+  @override
+  void visitArrayFlagsSet(HArrayFlagsSet node) {
+    use(node.inputs[0]);
+    js.Expression array = pop();
+    use(node.inputs[1]);
+    js.Expression arrayFlags = pop();
+    pushStatement(js.js.statement(r'#.# = #;', [
+      array,
+      _namer.fixedNames.arrayFlagsPropertyName,
+      arrayFlags
+    ]).withSourceInformation(node.sourceInformation));
+  }
+
+  @override
+  void visitArrayFlagsCheck(HArrayFlagsCheck node) {
+    use(node.array);
+    js.Expression array = pop();
+
+    js.Expression? test;
+    if (!node.alwaysThrows()) {
+      use(node.arrayFlags);
+      js.Expression arrayFlags = pop();
+      use(node.checkFlags);
+      js.Expression checkFlags = pop();
+      test = js.js('# & #', [arrayFlags, checkFlags]);
+    }
+
+    List<js.Expression> arguments = [array];
+
+    if (node.hasOperation) {
+      use(node.operation);
+      arguments.add(pop());
+    }
+
+    if (node.hasVerb) {
+      use(node.verb);
+      arguments.add(pop());
+    }
+
+    _pushCallStatic(_commonElements.throwUnsupportedOperation, arguments,
+        node.sourceInformation);
+
+    js.Statement check;
+    if (test == null) {
+      check = js.js.statement('#;', pop());
+    } else {
+      check = js.js.statement('# && #;', [test, pop()]);
+    }
+
+    pushStatement(check.withSourceInformation(node.sourceInformation));
   }
 }

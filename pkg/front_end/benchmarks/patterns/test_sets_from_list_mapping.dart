@@ -13,32 +13,35 @@ class InputOutputData<T, U> {
   const InputOutputData(this.input, this.output);
 }
 
-const Strategy simpleAddStrategy = Strategy('simple-add', '''
+const Strategy simpleAddStrategy =
+    Strategy('simpleAddStrategy', 'simple-add', '''
 Add entries to a list one at a time.''');
 
-const Strategy mapToSetStrategy = Strategy('mapToSet', '''
+const Strategy mapToSetStrategy = Strategy('mapToSetStrategy', 'mapToSet', '''
 Create the set via new Set.from([...].map([...]).''');
 
 const Strategy listGenerateGrowableStrategy =
-    Strategy('list-generate-growable', '''
+    Strategy('listGenerateGrowableStrategy', 'list-generate-growable', '''
 Create list via List.generate with growable = true.''');
 
-const Strategy listGenerateNotGrowableStrategy =
-    Strategy('list-generate-not-growable', '''
+const Strategy listGenerateNotGrowableStrategy = Strategy(
+    'listGenerateNotGrowableStrategy', 'list-generate-not-growable', '''
 Create list via List.generate with growable = false.''');
 
-const Strategy listFilledGrowableStrategy = Strategy('list-filled-growable', '''
+const Strategy listFilledGrowableStrategy =
+    Strategy('listFilledGrowableStrategy', 'list-filled-growable', '''
 Create list via List.generate with growable = true.''');
 
 const Strategy listFilledNotGrowableStrategy =
-    Strategy('list-filled-not-growable', '''
+    Strategy('listFilledNotGrowableStrategy', 'list-filled-not-growable', '''
 Create list via List.generate with growable = false.''');
 
-const Scenario emptyScenario = Scenario('empty', '''
+const Scenario emptyScenario = Scenario('emptyScenario', 'empty', '''
 The input and output is empty.''');
-const Scenario oneEntryScenario = Scenario('one', '''
+const Scenario oneEntryScenario = Scenario('oneEntryScenario', 'one', '''
 The input is one entry.''');
-const Scenario severalEntriesScenario = Scenario('several', '''
+const Scenario severalEntriesScenario =
+    Scenario('severalEntriesScenario', 'several', '''
 The input has several entries.''');
 
 class Input {
@@ -184,7 +187,7 @@ void main() {
   SeriesSet seriesSet = registry.generateSeriesSet();
   print('== Raw data ==');
   for (Scenario scenario in scenarios.keys) {
-    print(seriesSet.getFullSpreadByScenario(scenario));
+    print(seriesSet.getFullSpreadByScenarioTable(scenario));
   }
   print('== Reduced averages ==');
   SeriesSet reducedSeriesSet = seriesSet.filter((list) => removeMax(list, 3));

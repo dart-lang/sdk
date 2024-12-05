@@ -15,11 +15,12 @@ Matcher isLiteralOf(Matcher typeMatcher, String value) =>
 Matcher isMapOf(Matcher indexMatcher, Matcher valueMatcher) =>
     MapTypeMatcher(wrapMatcher(indexMatcher), wrapMatcher(valueMatcher));
 
-Matcher isResponseError(ErrorCodes code, {String? message}) {
+Matcher isResponseError(ErrorCodes code, {Object? message}) {
+  assert(message is String? || message is Matcher);
   var matcher = const TypeMatcher<ResponseError>()
       .having((e) => e.code, 'code', equals(code));
   return message != null
-      ? matcher.having((e) => e.message, 'message', equals(message))
+      ? matcher.having((e) => e.message, 'message', message)
       : matcher;
 }
 

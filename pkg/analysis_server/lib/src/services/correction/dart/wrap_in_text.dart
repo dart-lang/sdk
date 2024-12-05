@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -57,8 +57,8 @@ class WrapInText extends ResolvedCorrectionProducer {
       var parent = node.parent;
       if (parent is NamedExpression) {
         if (node.typeOrThrow.isDartCoreString) {
-          var parameterElement = parent.name.label.staticElement;
-          if (parameterElement is ParameterElement) {
+          var parameterElement = parent.name.label.element;
+          if (parameterElement is FormalParameterElement) {
             return _Context(
               stringExpression: node,
               parameterElement: parameterElement,
@@ -74,7 +74,7 @@ class WrapInText extends ResolvedCorrectionProducer {
 
 class _Context {
   final Expression stringExpression;
-  final ParameterElement parameterElement;
+  final FormalParameterElement parameterElement;
 
   _Context({
     required this.stringExpression,

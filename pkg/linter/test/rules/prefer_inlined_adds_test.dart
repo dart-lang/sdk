@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferInlinedAddsTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_inlined_adds';
+  String get lintRule => LintNames.prefer_inlined_adds;
 
   test_listLiteral_addAll_nonListLiteral() async {
     await assertNoDiagnostics(r'''

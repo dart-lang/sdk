@@ -52,6 +52,33 @@ class B extends A {
 }''');
   }
 
+  test_class_extends_wildcardParams() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void foo(int x) {}
+}
+
+class B extends A {
+  @override
+  void foo(int _) {}
+}''');
+  }
+
+  test_class_extends_wildcardParams_preWildCards() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class A {
+  void foo(int x) {}
+}
+
+class B extends A {
+  @override
+  void foo(int _) {}
+}''');
+  }
+
   test_class_implements() async {
     await assertNoErrorsInCode(r'''
 class A {

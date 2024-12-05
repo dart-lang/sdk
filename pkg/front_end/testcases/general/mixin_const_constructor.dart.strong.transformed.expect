@@ -1,0 +1,16 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/mixin_const_constructor.dart:6:9: Error: Mixins can't declare constructors.
+//   const M();
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class M extends core::Object /*isMixinDeclaration,hasConstConstructor*/  {
+  const constructor •() → self::M
+    : super core::Object::•()
+    ;
+}

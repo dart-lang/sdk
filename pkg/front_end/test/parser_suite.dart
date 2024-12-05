@@ -153,7 +153,7 @@ class ParserAstStep extends Step<TestDescription, TestDescription, Context> {
       TestDescription description, Context context) {
     Uri uri = description.uri;
     File f = new File.fromUri(uri);
-    List<int> rawBytes = f.readAsBytesSync();
+    Uint8List rawBytes = f.readAsBytesSync();
     ParserAstNode ast = getAST(rawBytes);
     if (ast.what != "CompilationUnit") {
       throw "Expected a single element for 'CompilationUnit' "
@@ -181,7 +181,7 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
     Token firstToken = scanUri(uri, shortName, lineStarts: lineStarts);
 
     File f = new File.fromUri(uri);
-    List<int> rawBytes = f.readAsBytesSync();
+    Uint8List rawBytes = f.readAsBytesSync();
     Source source = new Source(lineStarts, rawBytes, uri, uri);
     String shortNameId = "${suiteName}/${shortName}";
     ParserTestListenerWithMessageFormatting parserTestListener =
@@ -240,7 +240,7 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
         scanUri(description.uri, description.shortName, lineStarts: lineStarts);
 
     File f = new File.fromUri(description.uri);
-    List<int> rawBytes = f.readAsBytesSync();
+    Uint8List rawBytes = f.readAsBytesSync();
     Source source =
         new Source(lineStarts, rawBytes, description.uri, description.uri);
 
@@ -416,7 +416,7 @@ Token scanUri(Uri uri, String shortName, {List<int>? lineStarts}) {
   }
 
   File f = new File.fromUri(uri);
-  List<int> rawBytes = f.readAsBytesSync();
+  Uint8List rawBytes = f.readAsBytesSync();
 
   return scanRawBytes(rawBytes, config, lineStarts);
 }
@@ -427,12 +427,9 @@ bool shouldAllowPatterns(String shortName) {
 }
 
 Token scanRawBytes(
-    List<int> rawBytes, ScannerConfiguration config, List<int>? lineStarts) {
-  Uint8List bytes = new Uint8List(rawBytes.length + 1);
-  bytes.setRange(0, rawBytes.length, rawBytes);
-
-  Utf8BytesScanner scanner =
-      new Utf8BytesScanner(bytes, includeComments: true, configuration: config);
+    Uint8List rawBytes, ScannerConfiguration config, List<int>? lineStarts) {
+  Utf8BytesScanner scanner = new Utf8BytesScanner(rawBytes,
+      includeComments: true, configuration: config);
   Token firstToken = scanner.tokenize();
   if (lineStarts != null) {
     lineStarts.addAll(scanner.lineStarts);

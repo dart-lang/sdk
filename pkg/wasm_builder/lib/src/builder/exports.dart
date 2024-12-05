@@ -9,7 +9,7 @@ import 'builder.dart';
 class ExportsBuilder with Builder<ir.Exports> {
   final _exports = <ir.Export>[];
 
-  /// Exports the provided [Exportable] under the provided name which must be
+  /// Exports the provided [ir.Exportable] under the provided name which must be
   /// unique.
   void export(String name, ir.Exportable exportable) {
     assert(!_exports.any((e) => e.name == name), name);

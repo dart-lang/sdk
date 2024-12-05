@@ -11,8 +11,8 @@ import self as self;
 import "dart:core" as core;
 
 class E1 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E1> values = const <self::E1>[self::E1::one, self::E1::two];
   final field core::int foo;
+  static const field core::List<self::E1> values = const <self::E1>[self::E1::one, self::E1::two];
   enum-element static const field self::E1 one = const self::E1::•(0, "one", 1);
   enum-element static const field self::E1 two = const self::E1::named(1, "two", 2);
   const constructor •(core::int #index, core::String #name, core::int foo) → self::E1
@@ -25,8 +25,8 @@ class E1 extends core::_Enum /*isEnum*/  {
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 class E2 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E2> values = const <self::E2>[self::E2::one, self::E2::two];
   final field core::int foo;
+  static const field core::List<self::E2> values = const <self::E2>[self::E2::one, self::E2::two];
   enum-element static const field self::E2 one = const self::E2::•(0, "one", 1);
   enum-element static const field self::E2 two = const self::E2::named(1, "two", 2);
   const constructor •(core::int #index, core::String #name, core::int foo) → self::E2

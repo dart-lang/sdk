@@ -442,3 +442,15 @@ class FinalizerEntry {
 
 @pragma("vm:external-name", "StringBase_intern")
 external String intern(String str);
+
+@patch
+Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) {
+  try {
+    return Future.value(_loadDynamicModule(bytes!));
+  } catch (e, st) {
+    return Future.error(e, st);
+  }
+}
+
+@pragma("vm:external-name", "Internal_loadDynamicModule")
+external Object? _loadDynamicModule(Uint8List bytes);

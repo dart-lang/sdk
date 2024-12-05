@@ -2,11 +2,11 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef F = <_ extends core::Object? = dynamic, _ extends core::int = dynamic, _ extends core::Object? = dynamic>() → void;
-static method fn(<_ extends core::Object? = dynamic, _ extends core::Object? = dynamic>() → void x) → void {}
-static method fn1<_ extends core::Object? = dynamic, _ extends core::int>(<_ extends core::Object? = dynamic, _ extends core::Object? = dynamic>() → void x) → void {}
+typedef F = <_#wc0#type extends core::Object? = dynamic, _#wc1#type extends core::int = dynamic, _#wc2#type extends core::Object? = dynamic>() → void;
+static method fn(<_#wc3#type extends core::Object? = dynamic, _#wc4#type extends core::Object? = dynamic>() → void x) → void {}
+static method fn1<_#wc5#type extends core::Object? = dynamic, _#wc6#type extends core::int>(<_#wc7#type extends core::Object? = dynamic, _#wc8#type extends core::Object? = dynamic>() → void x) → void {}
 static method test() → dynamic {
-  function foo1(<_ extends core::Object? = dynamic, _ extends core::int>() → void x) → void {}
-  function foo2<_ extends core::Object? = dynamic, _ extends core::int>() → void {}
-  function foo3(<_ extends core::Object? = dynamic, _ extends core::int = dynamic, _ extends core::Object? = dynamic>() → void x) → void {}
+  function foo1(<_#wc0#type extends core::Object? = dynamic, _#wc1#type extends core::int>() → void x) → void {}
+  function foo2<_#wc2#type extends core::Object? = dynamic, _#wc3#type extends core::int>() → void {}
+  function foo3(<_#wc0#type extends core::Object? = dynamic, _#wc1#type extends core::int = dynamic, _#wc2#type extends core::Object? = dynamic>() → void x) → void {}
 }

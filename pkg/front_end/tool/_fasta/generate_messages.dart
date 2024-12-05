@@ -28,5 +28,8 @@ void main(List<String> arguments) {
 
 Messages generateMessagesFiles(Uri repoDir) {
   return generateMessagesFilesRaw(
-      repoDir, (s) => new DartFormatter().format(s));
+      repoDir,
+      (s) => new DartFormatter(
+              languageVersion: DartFormatter.latestLanguageVersion)
+          .format(s));
 }

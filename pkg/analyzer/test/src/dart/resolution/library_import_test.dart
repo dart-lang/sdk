@@ -15,254 +15,6 @@ main() {
 
 @reflectiveTest
 class ImportDirectiveResolutionTest extends PubPackageResolutionTest {
-  test_inAugmentation_library() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
-import 'c.dart';
-''');
-
-    newFile('$testPackageLibPath/c.dart', '');
-
-    await resolveFile2(b);
-    assertErrorsInResult([
-      error(WarningCode.UNUSED_IMPORT, 33, 8),
-    ]);
-
-    var node = findNode.import('c.dart');
-    assertResolvedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
-  uri: SimpleStringLiteral
-    literal: 'c.dart'
-  semicolon: ;
-  element: LibraryImportElement
-    uri: DirectiveUriWithLibrary
-      uri: package:test/c.dart
-''');
-  }
-
-  test_inAugmentation_library_fileDoesNotExist() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
-import 'c.dart';
-''');
-
-    await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 33, 8),
-    ]);
-
-    var node = findNode.import('c.dart');
-    assertResolvedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
-  uri: SimpleStringLiteral
-    literal: 'c.dart'
-  semicolon: ;
-  element: LibraryImportElement
-    uri: DirectiveUriWithLibrary
-      uri: package:test/c.dart
-''');
-  }
-
-  test_inAugmentation_noRelativeUri() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
-import ':net';
-''');
-
-    await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.INVALID_URI, 33, 6),
-    ]);
-
-    var node = findNode.import('import');
-    assertResolvedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
-  uri: SimpleStringLiteral
-    literal: ':net'
-  semicolon: ;
-  element: LibraryImportElement
-    uri: DirectiveUriWithRelativeUriString
-      relativeUriString: :net
-''');
-  }
-
-  test_inAugmentation_noRelativeUriStr() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
-import '${'foo'}.dart';
-''');
-
-    await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 33, 15),
-    ]);
-
-    var node = findNode.import('import');
-    assertResolvedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
-  uri: StringInterpolation
-    elements
-      InterpolationString
-        contents: '
-      InterpolationExpression
-        leftBracket: ${
-        expression: SimpleStringLiteral
-          literal: 'foo'
-        rightBracket: }
-      InterpolationString
-        contents: .dart'
-    staticType: String
-    stringValue: null
-  semicolon: ;
-  element: LibraryImportElement
-    uri: DirectiveUri
-''');
-  }
-
-  test_inAugmentation_noSource() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
-import 'foo:bar';
-''');
-
-    await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 33, 9),
-    ]);
-
-    var node = findNode.import('import');
-    assertResolvedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
-  uri: SimpleStringLiteral
-    literal: 'foo:bar'
-  semicolon: ;
-  element: LibraryImportElement
-    uri: DirectiveUriWithRelativeUri
-      relativeUri: foo:bar
-''');
-  }
-
-  test_inAugmentation_notLibrary_augmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
-import 'c.dart';
-''');
-
-    newFile('$testPackageLibPath/c.dart', r'''
-augment library 'b.dart';
-''');
-
-    await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 33, 8),
-    ]);
-
-    var node = findNode.import('c.dart');
-    assertResolvedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
-  uri: SimpleStringLiteral
-    literal: 'c.dart'
-  semicolon: ;
-  element: LibraryImportElement
-    uri: DirectiveUriWithSource
-      source: package:test/c.dart
-''');
-  }
-
-  test_inAugmentation_notLibrary_partOfName() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
-import 'c.dart';
-''');
-
-    newFile('$testPackageLibPath/c.dart', r'''
-part of my.lib;
-''');
-
-    await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 33, 8),
-    ]);
-
-    var node = findNode.import('c.dart');
-    assertResolvedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
-  uri: SimpleStringLiteral
-    literal: 'c.dart'
-  semicolon: ;
-  element: LibraryImportElement
-    uri: DirectiveUriWithSource
-      source: package:test/c.dart
-''');
-  }
-
-  test_inAugmentation_notLibrary_partOfUri() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
-import 'c.dart';
-''');
-
-    newFile('$testPackageLibPath/c.dart', r'''
-part of 'b.dart';
-''');
-
-    await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 33, 8),
-    ]);
-
-    var node = findNode.import('c.dart');
-    assertResolvedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
-  uri: SimpleStringLiteral
-    literal: 'c.dart'
-  semicolon: ;
-  element: LibraryImportElement
-    uri: DirectiveUriWithSource
-      source: package:test/c.dart
-''');
-  }
-
   test_inLibrary_combinators_hide() async {
     await assertErrorsInCode(r'''
 import 'dart:math' hide Random;
@@ -282,7 +34,8 @@ ImportDirective
       hiddenNames
         SimpleIdentifier
           token: Random
-          staticElement: dart:math::@class::Random
+          staticElement: dart:math::<fragment>::@class::Random
+          element: dart:math::<fragment>::@class::Random#element
           staticType: null
   semicolon: ;
   element: LibraryImportElement
@@ -312,6 +65,7 @@ ImportDirective
         SimpleIdentifier
           token: Unresolved
           staticElement: <null>
+          element: <null>
           staticType: null
   semicolon: ;
   element: LibraryImportElement
@@ -339,7 +93,8 @@ ImportDirective
       shownNames
         SimpleIdentifier
           token: Random
-          staticElement: dart:math::@class::Random
+          staticElement: dart:math::<fragment>::@class::Random
+          element: dart:math::<fragment>::@class::Random#element
           staticType: null
   semicolon: ;
   element: LibraryImportElement
@@ -369,6 +124,7 @@ ImportDirective
         SimpleIdentifier
           token: Unresolved
           staticElement: <null>
+          element: <null>
           staticType: null
   semicolon: ;
   element: LibraryImportElement
@@ -412,14 +168,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: html
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -434,14 +193,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: io
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -464,14 +226,16 @@ CompilationUnit
               constructorName: ConstructorName
                 type: NamedType
                   name: A
-                  element: package:test/a.dart::@class::A
+                  element: package:test/a.dart::<fragment>::@class::A
+                  element2: package:test/a.dart::<fragment>::@class::A#element
                   type: A
-                staticElement: package:test/a.dart::@class::A::@constructor::new
+                staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::new
+                element: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: self::@variable::a
+            declaredElement: <testLibraryFragment>::@topLevelVariable::a
       semicolon: ;
       declaredElement: <null>
 ''');
@@ -512,14 +276,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: html
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -534,14 +301,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: io
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -564,14 +334,16 @@ CompilationUnit
               constructorName: ConstructorName
                 type: NamedType
                   name: A
-                  element: package:test/a_html.dart::@class::A
+                  element: package:test/a_html.dart::<fragment>::@class::A
+                  element2: package:test/a_html.dart::<fragment>::@class::A#element
                   type: A
-                staticElement: package:test/a_html.dart::@class::A::@constructor::new
+                staticElement: package:test/a_html.dart::<fragment>::@class::A::@constructor::new
+                element: package:test/a_html.dart::<fragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: self::@variable::a
+            declaredElement: <testLibraryFragment>::@topLevelVariable::a
       semicolon: ;
       declaredElement: <null>
 ''');
@@ -596,6 +368,7 @@ Configuration
       SimpleIdentifier
         token: x
         staticElement: <null>
+        element: <null>
         staticType: null
   rightParenthesis: )
   uri: SimpleStringLiteral
@@ -624,6 +397,7 @@ Configuration
       SimpleIdentifier
         token: x
         staticElement: <null>
+        element: <null>
         staticType: null
   rightParenthesis: )
   uri: StringInterpolation
@@ -662,6 +436,7 @@ Configuration
       SimpleIdentifier
         token: x
         staticElement: <null>
+        element: <null>
         staticType: null
   rightParenthesis: )
   uri: SimpleStringLiteral
@@ -690,6 +465,7 @@ Configuration
       SimpleIdentifier
         token: x
         staticElement: <null>
+        element: <null>
         staticType: null
   rightParenthesis: )
   uri: SimpleStringLiteral
@@ -734,14 +510,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: html
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -756,14 +535,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: io
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -786,14 +568,16 @@ CompilationUnit
               constructorName: ConstructorName
                 type: NamedType
                   name: A
-                  element: package:test/a_io.dart::@class::A
+                  element: package:test/a_io.dart::<fragment>::@class::A
+                  element2: package:test/a_io.dart::<fragment>::@class::A#element
                   type: A
-                staticElement: package:test/a_io.dart::@class::A::@constructor::new
+                staticElement: package:test/a_io.dart::<fragment>::@class::A::@constructor::new
+                element: package:test/a_io.dart::<fragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: self::@variable::a
+            declaredElement: <testLibraryFragment>::@topLevelVariable::a
       semicolon: ;
       declaredElement: <null>
 ''');
@@ -936,30 +720,6 @@ ImportDirective
 ''');
   }
 
-  test_inLibrary_notLibrary_augmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-''');
-
-    await assertErrorsInCode(r'''
-import 'a.dart';
-''', [
-      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 7, 8),
-    ]);
-
-    var node = findNode.import('a.dart');
-    assertResolvedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
-  uri: SimpleStringLiteral
-    literal: 'a.dart'
-  semicolon: ;
-  element: LibraryImportElement
-    uri: DirectiveUriWithSource
-      source: package:test/a.dart
-''');
-  }
-
   test_inLibrary_notLibrary_partOfName() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of my.lib;
@@ -1033,6 +793,223 @@ ImportDirective
   element: LibraryImportElement
     uri: DirectiveUriWithSource
       source: package:foo/foo2.dart
+''');
+  }
+
+  test_inPart_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+import 'c.dart';
+''');
+
+    newFile('$testPackageLibPath/c.dart', '');
+
+    await resolveFile2(b);
+    // TODO(scheglov): update the hint.
+    // assertErrorsInResult([
+    //   error(WarningCode.UNUSED_IMPORT, 33, 8),
+    // ]);
+
+    var node = findNode.import('c.dart');
+    assertResolvedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'c.dart'
+  semicolon: ;
+  element: LibraryImportElement
+    uri: DirectiveUriWithLibrary
+      uri: package:test/c.dart
+''');
+  }
+
+  test_inPart_library_fileDoesNotExist() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+import 'c.dart';
+''');
+
+    await resolveFile2(b);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 25, 8),
+    ]);
+
+    var node = findNode.import('c.dart');
+    assertResolvedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'c.dart'
+  semicolon: ;
+  element: LibraryImportElement
+    uri: DirectiveUriWithLibrary
+      uri: package:test/c.dart
+''');
+  }
+
+  test_inPart_noRelativeUri() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+import ':net';
+''');
+
+    await resolveFile2(b);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.INVALID_URI, 25, 6),
+    ]);
+
+    var node = findNode.import('import');
+    assertResolvedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: ':net'
+  semicolon: ;
+  element: LibraryImportElement
+    uri: DirectiveUriWithRelativeUriString
+      relativeUriString: :net
+''');
+  }
+
+  test_inPart_noRelativeUriStr() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+import '${'foo'}.dart';
+''');
+
+    await resolveFile2(b);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 25, 15),
+    ]);
+
+    var node = findNode.import('import');
+    assertResolvedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: StringInterpolation
+    elements
+      InterpolationString
+        contents: '
+      InterpolationExpression
+        leftBracket: ${
+        expression: SimpleStringLiteral
+          literal: 'foo'
+        rightBracket: }
+      InterpolationString
+        contents: .dart'
+    staticType: String
+    stringValue: null
+  semicolon: ;
+  element: LibraryImportElement
+    uri: DirectiveUri
+''');
+  }
+
+  test_inPart_noSource() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+import 'foo:bar';
+''');
+
+    await resolveFile2(b);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 25, 9),
+    ]);
+
+    var node = findNode.import('import');
+    assertResolvedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'foo:bar'
+  semicolon: ;
+  element: LibraryImportElement
+    uri: DirectiveUriWithRelativeUri
+      relativeUri: foo:bar
+''');
+  }
+
+  test_inPart_notLibrary_partOfName() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+import 'c.dart';
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+part of my.lib;
+''');
+
+    await resolveFile2(b);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 25, 8),
+    ]);
+
+    var node = findNode.import('c.dart');
+    assertResolvedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'c.dart'
+  semicolon: ;
+  element: LibraryImportElement
+    uri: DirectiveUriWithSource
+      source: package:test/c.dart
+''');
+  }
+
+  test_inPart_notLibrary_partOfUri() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+import 'c.dart';
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+part of 'b.dart';
+''');
+
+    await resolveFile2(b);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 25, 8),
+    ]);
+
+    var node = findNode.import('c.dart');
+    assertResolvedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'c.dart'
+  semicolon: ;
+  element: LibraryImportElement
+    uri: DirectiveUriWithSource
+      source: package:test/c.dart
 ''');
   }
 }

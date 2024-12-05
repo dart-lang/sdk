@@ -274,12 +274,20 @@ class Page {
  private:
   void RememberCard(uword slot) {
     ASSERT(Contains(slot));
-    if (card_table_ == nullptr) {
+    uword* card_table = card_table_.load();
+    if (card_table == nullptr) {
       size_t size_in_bits = card_table_size();
       size_t size_in_bytes =
           Utils::RoundUp(size_in_bits, kBitsPerWord) >> kBitsPerByteLog2;
-      card_table_ =
+      uword* new_card_table =
           reinterpret_cast<uword*>(calloc(size_in_bytes, sizeof(uint8_t)));
+      if (card_table_.compare_exchange_strong(card_table, new_card_table)) {
+        card_table = new_card_table;
+      } else {
+        // Lost race.
+        ASSERT(card_table != nullptr);
+        free(new_card_table);
+      }
     }
     intptr_t offset = slot - reinterpret_cast<uword>(this);
     intptr_t index = offset >> kBytesPerCardLog2;
@@ -287,7 +295,7 @@ class Page {
     intptr_t word_offset = index >> kBitsPerWordLog2;
     intptr_t bit_offset = index & (kBitsPerWord - 1);
     uword bit_mask = static_cast<uword>(1) << bit_offset;
-    reinterpret_cast<std::atomic<uword>*>(&card_table_[word_offset])
+    reinterpret_cast<std::atomic<uword>*>(&card_table[word_offset])
         ->fetch_or(bit_mask, std::memory_order_relaxed);
   }
   bool IsCardRemembered(uword slot) {
@@ -320,7 +328,7 @@ class Page {
   VirtualMemory* memory_;
   Page* next_;
   ForwardingPage* forwarding_page_;
-  uword* card_table_;  // Remembered set, not marking.
+  RelaxedAtomic<uword*> card_table_;  // Remembered set, not marking.
   RelaxedAtomic<intptr_t> progress_bar_;
 
   // The thread using this page for allocation, otherwise nullptr.

@@ -43,7 +43,7 @@ class B extends A {
 
   test_class_inSuper_getter_withAugmentation_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {
   void foo() {}
@@ -53,7 +53,7 @@ class B extends A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class B {
   int get foo => 0;
@@ -63,13 +63,13 @@ augment class B {
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 55, 3),
+      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 47, 3),
     ]);
   }
 
   test_class_inSuper_getter_withAugmentation_inDeclaration() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {
   void foo() {}
@@ -81,13 +81,13 @@ class B {
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class B extends A {}
 ''');
 
     await assertErrorsInFile2(a, [
-      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 75, 3),
+      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 65, 3),
     ]);
 
     await assertErrorsInFile2(b, []);
@@ -138,7 +138,7 @@ enum E with M {
 
   test_enum_inMixin_getter_withAugmentation_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 mixin M {
   void foo() {}
@@ -148,7 +148,7 @@ enum E with M {v}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment enum E {;
   int get foo => 0;
@@ -158,13 +158,13 @@ augment enum E {;
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 55, 3),
+      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 47, 3),
     ]);
   }
 
   test_enum_inMixin_getter_withAugmentation_inDeclaration() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 mixin M {
   void foo() {}
@@ -177,13 +177,13 @@ enum E {
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment enum E with M {}
 ''');
 
     await assertErrorsInFile2(a, [
-      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 79, 3),
+      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 69, 3),
     ]);
 
     await assertErrorsInFile2(b, []);
@@ -230,7 +230,7 @@ extension type B(int it) implements A {
 
   test_mixin_inSuper_getter_withAugmentation_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {
   void foo() {}
@@ -240,7 +240,7 @@ mixin B on A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment mixin B {
   int get foo => 0;
@@ -250,13 +250,13 @@ augment mixin B {
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 55, 3),
+      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 47, 3),
     ]);
   }
 
   test_mixin_inSuper_getter_withAugmentation_inDeclaration() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {
   void foo() {}
@@ -268,13 +268,13 @@ mixin B {
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment mixin B on A {}
 ''');
 
     await assertErrorsInFile2(a, [
-      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 75, 3),
+      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 65, 3),
     ]);
 
     await assertErrorsInFile2(b, []);

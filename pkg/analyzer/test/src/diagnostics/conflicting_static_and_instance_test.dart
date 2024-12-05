@@ -18,7 +18,32 @@ main() {
 
 @reflectiveTest
 class ConflictingStaticAndInstanceClassTest extends PubPackageResolutionTest {
-  test_inClass_getter_getter() async {
+  test_inClass_instanceMethod_staticMethod() async {
+    await assertErrorsInCode(r'''
+class C {
+  void foo() {}
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 40, 3),
+    ]);
+  }
+
+  test_inClass_instanceMethod_staticMethodInAugmentation() async {
+    await assertErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+augment class A {
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 61, 3),
+    ]);
+  }
+
+  test_inClass_staticGetter_instanceGetter() async {
     await assertErrorsInCode(r'''
 class C {
   static int get foo => 0;
@@ -29,7 +54,7 @@ class C {
     ]);
   }
 
-  test_inClass_getter_method() async {
+  test_inClass_staticGetter_instanceMethod() async {
     await assertErrorsInCode(r'''
 class C {
   static int get foo => 0;
@@ -40,7 +65,7 @@ class C {
     ]);
   }
 
-  test_inClass_getter_setter() async {
+  test_inClass_staticGetter_instanceSetter() async {
     await assertErrorsInCode(r'''
 class C {
   static int get foo => 0;
@@ -51,7 +76,7 @@ class C {
     ]);
   }
 
-  test_inClass_method_getter() async {
+  test_inClass_staticMethod_instanceGetter() async {
     await assertErrorsInCode(r'''
 class C {
   static void foo() {}
@@ -62,7 +87,7 @@ class C {
     ]);
   }
 
-  test_inClass_method_method() async {
+  test_inClass_staticMethod_instanceMethod() async {
     await assertErrorsInCode(r'''
 class C {
   static void foo() {}
@@ -73,7 +98,21 @@ class C {
     ]);
   }
 
-  test_inClass_method_setter() async {
+  test_inClass_staticMethod_instanceMethodInAugmentation() async {
+    await assertErrorsInCode(r'''
+class A {
+  static void foo() {}
+}
+
+augment class A {
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 24, 3),
+    ]);
+  }
+
+  test_inClass_staticMethod_instanceSetter() async {
     await assertErrorsInCode(r'''
 class C {
   static void foo() {}
@@ -84,7 +123,7 @@ class C {
     ]);
   }
 
-  test_inClass_setter_getter() async {
+  test_inClass_staticSetter_instanceGetter() async {
     await assertErrorsInCode(r'''
 class C {
   static set foo(_) {}
@@ -95,7 +134,7 @@ class C {
     ]);
   }
 
-  test_inClass_setter_method() async {
+  test_inClass_staticSetter_instanceMethod() async {
     await assertErrorsInCode(r'''
 class C {
   static set foo(_) {}
@@ -106,7 +145,7 @@ class C {
     ]);
   }
 
-  test_inClass_setter_setter() async {
+  test_inClass_staticSetter_instanceSetter() async {
     await assertErrorsInCode(r'''
 class C {
   static set foo(_) {}
@@ -117,7 +156,7 @@ class C {
     ]);
   }
 
-  test_inInterface_getter_getter() async {
+  test_inInterface_instanceGetter_staticGetter() async {
     await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
@@ -130,7 +169,7 @@ abstract class B implements A {
     ]);
   }
 
-  test_inInterface_getter_method() async {
+  test_inInterface_instanceGetter_staticMethod() async {
     await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
@@ -143,7 +182,33 @@ abstract class B implements A {
     ]);
   }
 
-  test_inInterface_getter_setter() async {
+  test_inInterface_instanceMethod_staticMethod() async {
+    await assertErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+abstract class B implements A {
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 74, 3),
+    ]);
+  }
+
+  test_inInterface_instanceMethod_staticSetter() async {
+    await assertErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+abstract class B implements A {
+  static set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 73, 3),
+    ]);
+  }
+
+  test_inInterface_instanceSetter_staticGetter() async {
     await assertErrorsInCode(r'''
 class A {
   set foo(_) {}
@@ -156,33 +221,7 @@ abstract class B implements A {
     ]);
   }
 
-  test_inInterface_method_getter() async {
-    await assertErrorsInCode(r'''
-class A {
-  int get foo => 0;
-}
-abstract class B implements A {
-  static void foo() {}
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 78, 3),
-    ]);
-  }
-
-  test_inInterface_method_method() async {
-    await assertErrorsInCode(r'''
-class A {
-  void foo() {}
-}
-abstract class B implements A {
-  static void foo() {}
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 74, 3),
-    ]);
-  }
-
-  test_inInterface_method_setter() async {
+  test_inInterface_instanceSetter_staticMethod() async {
     await assertErrorsInCode(r'''
 class A {
   set foo(_) {}
@@ -195,20 +234,7 @@ abstract class B implements A {
     ]);
   }
 
-  test_inInterface_setter_method() async {
-    await assertErrorsInCode(r'''
-class A {
-  void foo() {}
-}
-abstract class B implements A {
-  static set foo(_) {}
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 73, 3),
-    ]);
-  }
-
-  test_inInterface_setter_setter() async {
+  test_inInterface_instanceSetter_staticSetter() async {
     await assertErrorsInCode(r'''
 class A {
   set foo(_) {}
@@ -221,7 +247,7 @@ abstract class B implements A {
     ]);
   }
 
-  test_inMixin_getter_getter() async {
+  test_inMixin_instanceGetter_staticGetter() async {
     await assertErrorsInCode(r'''
 mixin A {
   int get foo => 0;
@@ -234,7 +260,7 @@ class B extends Object with A {
     ]);
   }
 
-  test_inMixin_getter_method() async {
+  test_inMixin_instanceGetter_staticMethod() async {
     await assertErrorsInCode(r'''
 mixin A {
   int get foo => 0;
@@ -247,7 +273,47 @@ class B extends Object with A {
     ]);
   }
 
-  test_inMixin_getter_setter() async {
+  test_inMixin_instanceMethod_staticMethod() async {
+    await assertErrorsInCode(r'''
+mixin A {
+  void foo() {}
+}
+class B extends Object with A {
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 74, 3),
+    ]);
+  }
+
+  test_inMixin_instanceMethod_staticMethodInAugmentation() async {
+    await assertErrorsInCode(r'''
+mixin A {
+  void foo() {}
+}
+
+augment mixin A {
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 61, 3),
+    ]);
+  }
+
+  test_inMixin_instanceMethod_staticSetter() async {
+    await assertErrorsInCode(r'''
+mixin A {
+  void foo() {}
+}
+class B extends Object with A {
+  static set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 73, 3),
+    ]);
+  }
+
+  test_inMixin_instanceSetter_staticGetter() async {
     await assertErrorsInCode(r'''
 mixin A {
   set foo(_) {}
@@ -260,33 +326,7 @@ class B extends Object with A {
     ]);
   }
 
-  test_inMixin_method_getter() async {
-    await assertErrorsInCode(r'''
-mixin A {
-  int get foo => 0;
-}
-class B extends Object with A {
-  static void foo() {}
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 78, 3),
-    ]);
-  }
-
-  test_inMixin_method_method() async {
-    await assertErrorsInCode(r'''
-mixin A {
-  void foo() {}
-}
-class B extends Object with A {
-  static void foo() {}
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 74, 3),
-    ]);
-  }
-
-  test_inMixin_method_setter() async {
+  test_inMixin_instanceSetter_staticMethod() async {
     await assertErrorsInCode(r'''
 mixin A {
   set foo(_) {}
@@ -299,20 +339,7 @@ class B extends Object with A {
     ]);
   }
 
-  test_inMixin_setter_method() async {
-    await assertErrorsInCode(r'''
-mixin A {
-  void foo() {}
-}
-class B extends Object with A {
-  static set foo(_) {}
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 73, 3),
-    ]);
-  }
-
-  test_inMixin_setter_setter() async {
+  test_inMixin_instanceSetter_staticSetter() async {
     await assertErrorsInCode(r'''
 mixin A {
   set foo(_) {}
@@ -325,7 +352,41 @@ class B extends Object with A {
     ]);
   }
 
-  test_inSuper_getter_getter() async {
+  test_inMixin_staticMethod_instanceMethodInAugmentation() async {
+    await assertErrorsInCode(r'''
+mixin A {
+  static void foo() {}
+}
+
+augment mixin A {
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 24, 3),
+    ]);
+  }
+
+  test_inSuper_implicitObject_staticMethod_instanceGetter() async {
+    await assertErrorsInCode(r'''
+class A {
+  static String runtimeType() => 'x';
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 26, 11),
+    ]);
+  }
+
+  test_inSuper_implicitObject_staticMethod_instanceMethod() async {
+    await assertErrorsInCode(r'''
+class A {
+  static String toString() => 'x';
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 26, 8),
+    ]);
+  }
+
+  test_inSuper_instanceGetter_staticGetter() async {
     await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
@@ -338,7 +399,7 @@ class B extends A {
     ]);
   }
 
-  test_inSuper_getter_method() async {
+  test_inSuper_instanceGetter_staticMethod() async {
     await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
@@ -351,40 +412,7 @@ class B extends A {
     ]);
   }
 
-  test_inSuper_getter_setter() async {
-    await assertErrorsInCode(r'''
-class A {
-  set foo(_) {}
-}
-class B extends A {
-  static int get foo => 0;
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 65, 3),
-    ]);
-  }
-
-  test_inSuper_implicitObject_method_getter() async {
-    await assertErrorsInCode(r'''
-class A {
-  static String runtimeType() => 'x';
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 26, 11),
-    ]);
-  }
-
-  test_inSuper_implicitObject_method_method() async {
-    await assertErrorsInCode(r'''
-class A {
-  static String toString() => 'x';
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 26, 8),
-    ]);
-  }
-
-  test_inSuper_method_getter() async {
+  test_inSuper_instanceMethod_staticGetter() async {
     await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
@@ -397,7 +425,7 @@ class B extends A {
     ]);
   }
 
-  test_inSuper_method_method() async {
+  test_inSuper_instanceMethod_staticMethod() async {
     await assertErrorsInCode(r'''
 class A {
   void foo() {}
@@ -410,20 +438,7 @@ class B extends A {
     ]);
   }
 
-  test_inSuper_method_setter() async {
-    await assertErrorsInCode(r'''
-class A {
-  set foo(_) {}
-}
-class B extends A {
-  static void foo() {}
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 62, 3),
-    ]);
-  }
-
-  test_inSuper_setter_method() async {
+  test_inSuper_instanceMethod_staticSetter() async {
     await assertErrorsInCode(r'''
 class A {
   void foo() {}
@@ -436,7 +451,33 @@ class B extends A {
     ]);
   }
 
-  test_inSuper_setter_setter() async {
+  test_inSuper_instanceSetter_staticGetter() async {
+    await assertErrorsInCode(r'''
+class A {
+  set foo(_) {}
+}
+class B extends A {
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 65, 3),
+    ]);
+  }
+
+  test_inSuper_instanceSetter_staticMethod() async {
+    await assertErrorsInCode(r'''
+class A {
+  set foo(_) {}
+}
+class B extends A {
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 62, 3),
+    ]);
+  }
+
+  test_inSuper_instanceSetter_staticSetter() async {
     await assertErrorsInCode(r'''
 class A {
   set foo(_) {}
@@ -472,6 +513,17 @@ enum E {
     ]);
   }
 
+  test_constant_instanceSetter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  foo;
+  set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 11, 3),
+    ]);
+  }
+
   test_constant_noSuchMethod() async {
     await assertErrorsInCode(r'''
 enum E {
@@ -492,11 +544,11 @@ enum E {
     ]);
   }
 
-  test_constant_this_setter() async {
+  test_constant_staticMethod() async {
     await assertErrorsInCode(r'''
 enum E {
   foo;
-  set foo(_) {}
+  void foo() {}
 }
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 11, 3),
@@ -616,18 +668,6 @@ enum E {
     ]);
   }
 
-  test_getter_this_setter() async {
-    await assertErrorsInCode(r'''
-enum E {
-  v;
-  static int get foo => 0;
-  set foo(_) {}
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 31, 3),
-    ]);
-  }
-
   test_method_dartCoreEnum() async {
     await assertErrorsInCode(r'''
 enum E {
@@ -684,18 +724,19 @@ enum E with M {
     ]);
   }
 
-  test_method_this_constant() async {
+  test_staticGetter_instanceSetter() async {
     await assertErrorsInCode(r'''
 enum E {
-  foo;
-  void foo() {}
+  v;
+  static int get foo => 0;
+  set foo(_) {}
 }
 ''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 11, 3),
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 31, 3),
     ]);
   }
 
-  test_method_this_getter() async {
+  test_staticMethod_instanceGetter() async {
     await assertErrorsInCode(r'''
 enum E {
   v;
@@ -707,7 +748,7 @@ enum E {
     ]);
   }
 
-  test_method_this_method() async {
+  test_staticMethod_instanceMethod() async {
     await assertErrorsInCode(r'''
 enum E {
   v;
@@ -719,7 +760,7 @@ enum E {
     ]);
   }
 
-  test_method_this_setter() async {
+  test_staticMethod_instanceSetter() async {
     await assertErrorsInCode(r'''
 enum E {
   v;
@@ -731,7 +772,7 @@ enum E {
     ]);
   }
 
-  test_setter_this_getter() async {
+  test_staticSetter_instanceGetter() async {
     await assertErrorsInCode(r'''
 enum E {
   v;
@@ -747,7 +788,7 @@ enum E {
 @reflectiveTest
 class ConflictingStaticAndInstanceExtensionTypeTest
     extends PubPackageResolutionTest {
-  test_inExtensionType_getter_getter() async {
+  test_inExtensionType_staticGetter_instanceGetter() async {
     await assertErrorsInCode(r'''
 extension type A(int it) {
   static int get foo => 0;
@@ -758,7 +799,7 @@ extension type A(int it) {
     ]);
   }
 
-  test_inExtensionType_getter_method() async {
+  test_inExtensionType_staticGetter_instanceMethod() async {
     await assertErrorsInCode(r'''
 extension type A(int t) {
   static int get foo => 0;
@@ -769,7 +810,7 @@ extension type A(int t) {
     ]);
   }
 
-  test_inExtensionType_getter_setter() async {
+  test_inExtensionType_staticGetter_instanceSetter() async {
     await assertErrorsInCode(r'''
 extension type A(int it) {
   static int get foo => 0;
@@ -780,7 +821,7 @@ extension type A(int it) {
     ]);
   }
 
-  test_inExtensionType_method_getter() async {
+  test_inExtensionType_staticMethod_instanceGetter() async {
     await assertErrorsInCode(r'''
 extension type A(int it) {
   static void foo() {}
@@ -791,7 +832,7 @@ extension type A(int it) {
     ]);
   }
 
-  test_inExtensionType_method_method() async {
+  test_inExtensionType_staticMethod_instanceMethod() async {
     await assertErrorsInCode(r'''
 extension type A(int it) {
   static void foo() {}
@@ -802,7 +843,7 @@ extension type A(int it) {
     ]);
   }
 
-  test_inExtensionType_method_setter() async {
+  test_inExtensionType_staticMethod_instanceSetter() async {
     await assertErrorsInCode(r'''
 extension type A(int it) {
   static void foo() {}
@@ -813,7 +854,7 @@ extension type A(int it) {
     ]);
   }
 
-  test_inExtensionType_setter_getter() async {
+  test_inExtensionType_staticSetter_instanceGetter() async {
     await assertErrorsInCode(r'''
 extension type A(int it) {
   static set foo(_) {}
@@ -824,7 +865,7 @@ extension type A(int it) {
     ]);
   }
 
-  test_inExtensionType_setter_method() async {
+  test_inExtensionType_staticSetter_instanceMethod() async {
     await assertErrorsInCode(r'''
 extension type A(int it) {
   static set foo(_) {}
@@ -835,7 +876,7 @@ extension type A(int it) {
     ]);
   }
 
-  test_inExtensionType_setter_setter() async {
+  test_inExtensionType_staticSetter_instanceSetter() async {
     await assertErrorsInCode(r'''
 extension type A(int it) {
   static set foo(_) {}
@@ -846,7 +887,7 @@ extension type A(int it) {
     ]);
   }
 
-  test_inInterface_getter_getter() async {
+  test_inInterface_instanceGetter_staticGetter() async {
     await assertErrorsInCode(r'''
 extension type A(int it) {
   int get foo => 0;
@@ -860,7 +901,7 @@ extension type B(int it) implements A {
     ]);
   }
 
-  test_inInterface_getter_method() async {
+  test_inInterface_instanceGetter_staticMethod() async {
     await assertErrorsInCode(r'''
 extension type A(int it) {
   int get foo => 0;
@@ -874,21 +915,7 @@ extension type B(int it) implements A {
     ]);
   }
 
-  test_inInterface_getter_setter() async {
-    await assertErrorsInCode(r'''
-extension type A(int it) {
-  set foo(_) {}
-}
-
-extension type B(int it) implements A {
-  static int get foo => 0;
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 103, 3),
-    ]);
-  }
-
-  test_inInterface_method_getter() async {
+  test_inInterface_instanceMethod_staticGetter() async {
     await assertErrorsInCode(r'''
 extension type A(int it) {
   int get foo => 0;
@@ -902,7 +929,7 @@ extension type B(int it) implements A {
     ]);
   }
 
-  test_inInterface_method_method() async {
+  test_inInterface_instanceMethod_staticMethod() async {
     await assertErrorsInCode(r'''
 extension type A(int it) {
   void foo() {}
@@ -916,21 +943,7 @@ extension type B(int it) implements A {
     ]);
   }
 
-  test_inInterface_method_setter() async {
-    await assertErrorsInCode(r'''
-extension type A(int it) {
-  set foo(_) {}
-}
-
-extension type B(int it) implements A {
-  static void foo() {}
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 100, 3),
-    ]);
-  }
-
-  test_inInterface_setter_method() async {
+  test_inInterface_instanceMethod_staticSetter() async {
     await assertErrorsInCode(r'''
 extension type A(int it) {
   void foo() {}
@@ -944,7 +957,35 @@ extension type B(int it) implements A {
     ]);
   }
 
-  test_inInterface_setter_setter() async {
+  test_inInterface_instanceSetter_staticGetter() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  set foo(_) {}
+}
+
+extension type B(int it) implements A {
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 103, 3),
+    ]);
+  }
+
+  test_inInterface_instanceSetter_staticMethod() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  set foo(_) {}
+}
+
+extension type B(int it) implements A {
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 100, 3),
+    ]);
+  }
+
+  test_inInterface_instanceSetter_staticSetter() async {
     await assertErrorsInCode(r'''
 extension type A(int it) {
   set foo(_) {}
@@ -1001,7 +1042,27 @@ mixin M on Enum {
     ]);
   }
 
-  test_inConstraint_getter_getter() async {
+  test_inConstraint_implicitObject_staticMethod_instanceGetter() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  static String runtimeType() => 'x';
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 26, 11),
+    ]);
+  }
+
+  test_inConstraint_implicitObject_staticMethod_instanceMethod() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  static String toString() => 'x';
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 26, 8),
+    ]);
+  }
+
+  test_inConstraint_instanceGetter_staticGetter() async {
     await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
@@ -1014,7 +1075,7 @@ mixin M on A {
     ]);
   }
 
-  test_inConstraint_getter_method() async {
+  test_inConstraint_instanceGetter_staticMethod() async {
     await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
@@ -1027,7 +1088,33 @@ mixin M on A {
     ]);
   }
 
-  test_inConstraint_getter_setter() async {
+  test_inConstraint_instanceMethod_staticMethod() async {
+    await assertErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+mixin M on A {
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 57, 3),
+    ]);
+  }
+
+  test_inConstraint_instanceMethod_staticSetter() async {
+    await assertErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+mixin M on A {
+  static set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 56, 3),
+    ]);
+  }
+
+  test_inConstraint_instanceSetter_staticGetter() async {
     await assertErrorsInCode(r'''
 class A {
   set foo(_) {}
@@ -1040,53 +1127,7 @@ mixin M on A {
     ]);
   }
 
-  test_inConstraint_implicitObject_method_getter() async {
-    await assertErrorsInCode(r'''
-mixin M {
-  static String runtimeType() => 'x';
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 26, 11),
-    ]);
-  }
-
-  test_inConstraint_implicitObject_method_method() async {
-    await assertErrorsInCode(r'''
-mixin M {
-  static String toString() => 'x';
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 26, 8),
-    ]);
-  }
-
-  test_inConstraint_method_getter() async {
-    await assertErrorsInCode(r'''
-class A {
-  int get foo => 0;
-}
-mixin M on A {
-  static void foo() {}
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 61, 3),
-    ]);
-  }
-
-  test_inConstraint_method_method() async {
-    await assertErrorsInCode(r'''
-class A {
-  void foo() {}
-}
-mixin M on A {
-  static void foo() {}
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 57, 3),
-    ]);
-  }
-
-  test_inConstraint_method_setter() async {
+  test_inConstraint_instanceSetter_staticMethod() async {
     await assertErrorsInCode(r'''
 class A {
   set foo(_) {}
@@ -1099,20 +1140,7 @@ mixin M on A {
     ]);
   }
 
-  test_inConstraint_setter_method() async {
-    await assertErrorsInCode(r'''
-class A {
-  void foo() {}
-}
-mixin M on A {
-  static set foo(_) {}
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 56, 3),
-    ]);
-  }
-
-  test_inConstraint_setter_setter() async {
+  test_inConstraint_instanceSetter_staticSetter() async {
     await assertErrorsInCode(r'''
 class A {
   set foo(_) {}
@@ -1125,7 +1153,7 @@ mixin M on A {
     ]);
   }
 
-  test_inInterface_getter_getter() async {
+  test_inInterface_instanceGetter_staticGetter() async {
     await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
@@ -1138,7 +1166,7 @@ mixin M implements A {
     ]);
   }
 
-  test_inInterface_getter_method() async {
+  test_inInterface_instanceGetter_staticMethod() async {
     await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
@@ -1151,7 +1179,46 @@ mixin M implements A {
     ]);
   }
 
-  test_inInterface_getter_setter() async {
+  test_inInterface_instanceMethod_staticGetter() async {
+    await assertErrorsInCode(r'''
+class A {
+  int get foo => 0;
+}
+mixin M implements A {
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 69, 3),
+    ]);
+  }
+
+  test_inInterface_instanceMethod_staticMethod() async {
+    await assertErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+mixin M implements A {
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 65, 3),
+    ]);
+  }
+
+  test_inInterface_instanceMethod_staticSetter() async {
+    await assertErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+mixin M implements A {
+  static set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 64, 3),
+    ]);
+  }
+
+  test_inInterface_instanceSetter_staticGetter() async {
     await assertErrorsInCode(r'''
 class A {
   set foo(_) {}
@@ -1164,33 +1231,7 @@ mixin M implements A {
     ]);
   }
 
-  test_inInterface_method_getter() async {
-    await assertErrorsInCode(r'''
-class A {
-  int get foo => 0;
-}
-mixin M implements A {
-  static void foo() {}
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 69, 3),
-    ]);
-  }
-
-  test_inInterface_method_method() async {
-    await assertErrorsInCode(r'''
-class A {
-  void foo() {}
-}
-mixin M implements A {
-  static void foo() {}
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 65, 3),
-    ]);
-  }
-
-  test_inInterface_method_setter() async {
+  test_inInterface_instanceSetter_staticMethod() async {
     await assertErrorsInCode(r'''
 class A {
   set foo(_) {}
@@ -1203,20 +1244,7 @@ mixin M implements A {
     ]);
   }
 
-  test_inInterface_setter_method() async {
-    await assertErrorsInCode(r'''
-class A {
-  void foo() {}
-}
-mixin M implements A {
-  static set foo(_) {}
-}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 64, 3),
-    ]);
-  }
-
-  test_inInterface_setter_setter() async {
+  test_inInterface_instanceSetter_staticSetter() async {
     await assertErrorsInCode(r'''
 class A {
   set foo(_) {}
@@ -1229,7 +1257,7 @@ mixin M implements A {
     ]);
   }
 
-  test_inMixin_getter_getter() async {
+  test_inMixin_staticGetter_instanceGetter() async {
     await assertErrorsInCode(r'''
 mixin M {
   static int get foo => 0;
@@ -1240,7 +1268,7 @@ mixin M {
     ]);
   }
 
-  test_inMixin_getter_method() async {
+  test_inMixin_staticGetter_instanceMethod() async {
     await assertErrorsInCode(r'''
 mixin M {
   static int get foo => 0;
@@ -1251,7 +1279,7 @@ mixin M {
     ]);
   }
 
-  test_inMixin_getter_setter() async {
+  test_inMixin_staticGetter_instanceSetter() async {
     await assertErrorsInCode(r'''
 mixin M {
   static int get foo => 0;
@@ -1262,7 +1290,7 @@ mixin M {
     ]);
   }
 
-  test_inMixin_method_getter() async {
+  test_inMixin_staticMethod_instanceGetter() async {
     await assertErrorsInCode(r'''
 mixin M {
   static void foo() {}
@@ -1273,7 +1301,7 @@ mixin M {
     ]);
   }
 
-  test_inMixin_method_method() async {
+  test_inMixin_staticMethod_instanceMethod() async {
     await assertErrorsInCode(r'''
 mixin M {
   static void foo() {}
@@ -1284,7 +1312,7 @@ mixin M {
     ]);
   }
 
-  test_inMixin_method_setter() async {
+  test_inMixin_staticMethod_instanceSetter() async {
     await assertErrorsInCode(r'''
 mixin M {
   static void foo() {}
@@ -1295,7 +1323,7 @@ mixin M {
     ]);
   }
 
-  test_inMixin_setter_getter() async {
+  test_inMixin_staticSetter_instanceGetter() async {
     await assertErrorsInCode(r'''
 mixin M {
   static set foo(_) {}
@@ -1306,7 +1334,7 @@ mixin M {
     ]);
   }
 
-  test_inMixin_setter_method() async {
+  test_inMixin_staticSetter_instanceMethod() async {
     await assertErrorsInCode(r'''
 mixin M {
   static set foo(_) {}
@@ -1317,7 +1345,7 @@ mixin M {
     ]);
   }
 
-  test_inMixin_setter_setter() async {
+  test_inMixin_staticSetter_instanceSetter() async {
     await assertErrorsInCode(r'''
 mixin M {
   static set foo(_) {}

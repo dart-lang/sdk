@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method testList(dynamic x, dynamic list) → dynamic
+  ;
+static method testSet(dynamic x, dynamic list) → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method expectThrows<Exception extends core::Object? = dynamic>(() → void f) → dynamic
+  ;

@@ -54,8 +54,6 @@ class TypeAnnotationLocationReader {
       case _LocationKind.variableType:
         var parent = read();
         return VariableTypeLocation(parent);
-      default:
-        throw UnimplementedError('kind: $kind');
     }
   }
 }

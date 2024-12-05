@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// This tool gives a breakdown of code size by deferred part in the program.
-library dart2js_info.bin.deferred_library_size;
+library;
 
 import 'dart:math';
 

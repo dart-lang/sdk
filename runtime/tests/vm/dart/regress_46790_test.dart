@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// VMOptions=--stacktrace_every=137 --deterministic
+// VMOptions=--stacktrace_every=137 --deterministic
 
 // Reduced from
 // The Dart Project Fuzz Tester (1.91).

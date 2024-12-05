@@ -17,6 +17,56 @@ String jsStringToDartString(JSStringImpl s) => s;
 
 @patch
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsUint8ArrayFromDartUint8List(Uint8List l) =>
+WasmExternRef jsUint8ArrayFromDartUint8List(Uint8List l) => throw UnsupportedError(
+    'In JS compatibility mode we only support JS typed data implementations.');
+
+@patch
+@pragma('wasm:prefer-inline')
+WasmExternRef jsInt8ArrayFromDartInt8List(Int8List l) => throw UnsupportedError(
+    'In JS compatibility mode we only support JS typed data implementations.');
+
+@patch
+@pragma('wasm:prefer-inline')
+WasmExternRef jsUint8ClampedArrayFromDartUint8ClampedList(Uint8ClampedList l) =>
+    throw UnsupportedError(
+        'In JS compatibility mode we only support JS typed data implementations.');
+
+@patch
+@pragma('wasm:prefer-inline')
+WasmExternRef jsInt16ArrayFromDartInt16List(Int16List l) => throw UnsupportedError(
+    'In JS compatibility mode we only support JS typed data implementations.');
+
+@patch
+@pragma('wasm:prefer-inline')
+WasmExternRef jsUint16ArrayFromDartUint16List(Uint16List l) =>
+    throw UnsupportedError(
+        'In JS compatibility mode we only support JS typed data implementations.');
+
+@patch
+@pragma('wasm:prefer-inline')
+WasmExternRef jsInt32ArrayFromDartInt32List(Int32List l) => throw UnsupportedError(
+    'In JS compatibility mode we only support JS typed data implementations.');
+
+@patch
+@pragma('wasm:prefer-inline')
+WasmExternRef jsUint32ArrayFromDartUint32List(Uint32List l) =>
+    throw UnsupportedError(
+        'In JS compatibility mode we only support JS typed data implementations.');
+
+@patch
+@pragma('wasm:prefer-inline')
+WasmExternRef jsFloat32ArrayFromDartFloat32List(Float32List l) =>
+    throw UnsupportedError(
+        'In JS compatibility mode we only support JS typed data implementations.');
+
+@patch
+@pragma('wasm:prefer-inline')
+WasmExternRef jsFloat64ArrayFromDartFloat64List(Float64List l) =>
+    throw UnsupportedError(
+        'In JS compatibility mode we only support JS typed data implementations.');
+
+@patch
+@pragma('wasm:prefer-inline')
+WasmExternRef jsDataViewFromDartByteData(ByteData data, int length) =>
     throw UnsupportedError(
         'In JS compatibility mode we only support JS typed data implementations.');

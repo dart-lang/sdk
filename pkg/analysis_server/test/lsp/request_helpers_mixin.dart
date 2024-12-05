@@ -140,6 +140,14 @@ mixin LspRequestHelpersMixin {
         request, _fromJsonList(CallHierarchyOutgoingCall.fromJson));
   }
 
+  Future<Null> connectToDtd(Uri uri) {
+    var request = makeRequest(
+      CustomMethods.connectToDtd,
+      ConnectToDtdParams(uri: uri),
+    );
+    return expectSuccessfulResponseTo<Null, Null>(request, (Null n) => n);
+  }
+
   /// Gets the entire range for [code].
   Range entireRange(String code) => Range(
         start: startOfDocPos,

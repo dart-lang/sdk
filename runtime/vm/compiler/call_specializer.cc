@@ -1607,6 +1607,10 @@ void TypedDataSpecializer::AppendMutableCheck(TemplateDartCall<0>* call,
 void TypedDataSpecializer::AppendBoundsCheck(TemplateDartCall<0>* call,
                                              Definition* array,
                                              Definition** index) {
+  if (flow_graph_->ShouldOmitCheckBoundsIn(call->env()->function())) {
+    return;
+  }
+
   auto length = new (Z) LoadFieldInstr(
       new (Z) Value(array), Slot::TypedDataBase_length(), call->source());
   flow_graph_->InsertBefore(call, length, call->env(), FlowGraph::kValue);
@@ -1734,8 +1738,8 @@ static bool InlineTypedDataIndexCheck(FlowGraph* flow_graph,
     cursor = flow_graph->AppendTo(cursor, null_check, call->env(),
                                   FlowGraph::kEffect);
   }
-  index = flow_graph->CreateCheckBound(length, index, call->deopt_id());
-  cursor = flow_graph->AppendTo(cursor, index, call->env(), FlowGraph::kValue);
+  cursor = flow_graph->AppendCheckBound(cursor, length, &index,
+                                        call->deopt_id(), call->env());
 
   *last = cursor;
   *result = index;
@@ -1753,9 +1757,8 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
       new (Z) Value(*array), Slot::GetLengthFieldForArrayCid(array_cid),
       call->source());
   *cursor = flow_graph->AppendTo(*cursor, length, nullptr, FlowGraph::kValue);
-  *index = flow_graph->CreateCheckBound(length, *index, call->deopt_id());
-  *cursor =
-      flow_graph->AppendTo(*cursor, *index, call->env(), FlowGraph::kValue);
+  *cursor = flow_graph->AppendCheckBound(*cursor, length, index,
+                                         call->deopt_id(), call->env());
 
   if (array_cid == kGrowableObjectArrayCid) {
     // Insert data elements load.
@@ -2071,8 +2074,8 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
     cursor = flow_graph->AppendTo(cursor, null_check, call->env(),
                                   FlowGraph::kEffect);
   }
-  index = flow_graph->CreateCheckBound(length, index, call->deopt_id());
-  cursor = flow_graph->AppendTo(cursor, index, call->env(), FlowGraph::kValue);
+  cursor = flow_graph->AppendCheckBound(cursor, length, &index,
+                                        call->deopt_id(), call->env());
 
   LoadIndexedInstr* load_indexed = new (Z) LoadIndexedInstr(
       new (Z) Value(str), new (Z) Value(index), /*index_unboxed=*/false,

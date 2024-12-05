@@ -60,6 +60,9 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       // is only reported when there is a character associated with the token.
       return _makeError(ScannerErrorCode.ILLEGAL_CHARACTER, [token.character!]);
 
+    case "UNEXPECTED_SEPARATOR_IN_NUMBER":
+      return _makeError(ScannerErrorCode.UNEXPECTED_SEPARATOR_IN_NUMBER, null);
+
     case "UNSUPPORTED_OPERATOR":
       return _makeError(ScannerErrorCode.UNSUPPORTED_OPERATOR,
           [(token as UnsupportedOperator).token.lexeme]);
@@ -158,6 +161,13 @@ class ScannerErrorCode extends ErrorCode {
           "A '\$' has special meaning inside a string, and must be followed by "
               "an identifier or an expression in curly braces ({}).",
           correctionMessage: "Try adding a backslash (\\) to escape the '\$'.");
+
+  static const ScannerErrorCode UNEXPECTED_SEPARATOR_IN_NUMBER =
+      const ScannerErrorCode(
+          'UNEXPECTED_SEPARATOR_IN_NUMBER',
+          "Digit separators ('_') in a number literal can only be placed "
+              "between two digits.",
+          correctionMessage: "Try removing the '_'.");
 
   /**
    * Parameters:

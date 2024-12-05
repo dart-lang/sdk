@@ -88,7 +88,7 @@ final class Pointer<T extends NativeType> implements SizedNativeType {
 /// A fixed-sized array of [T]s.
 @Since('2.13')
 final class Array<T extends NativeType> extends _Compound {
-  /// Const constructor to specify [Array] dimensions in [Struct]s.
+  /// Annotation to specify [Array] dimensions in [Struct]s.
   ///
   /// ```dart
   /// final class MyStruct extends Struct {
@@ -107,7 +107,7 @@ final class Array<T extends NativeType> extends _Compound {
       int dimension4,
       int dimension5]) = _ArraySize<T>;
 
-  /// Const constructor to specify [Array] dimensions in [Struct]s.
+  /// Annotation to specify [Array] dimensions in [Struct]s.
   ///
   /// ```dart
   /// final class MyStruct extends Struct {
@@ -121,6 +121,97 @@ final class Array<T extends NativeType> extends _Compound {
   ///
   /// Do not invoke in normal code.
   const factory Array.multi(List<int> dimensions) = _ArraySize<T>.multi;
+
+  /// Annotation to specify a variable length [Array] in [Struct]s.
+  ///
+  /// Can only be used on the last field of a struct. The last field of the
+  /// struct is _not_ taken into account in [sizeOf]. Using an
+  /// [AllocatorAlloc.call] will _not_ allocate any backing storage for the
+  /// variable length array. Instead use [Allocator.allocate] and calculate the
+  /// required number of bytes manually.
+  ///
+  /// ```dart
+  /// import 'dart:ffi';
+  /// import 'package:ffi/ffi.dart';
+  ///
+  /// final class MyStruct extends Struct {
+  ///   @Size()
+  ///   external int length;
+  ///
+  ///   @Array.variable()
+  ///   external Array<Uint8> inlineArray;
+  ///
+  ///   static Pointer<MyStruct> allocate(Allocator allocator, int length) {
+  ///     final lengthInBytes = sizeOf<MyStruct>() + sizeOf<Uint8>() * length;
+  ///     final result = allocator.allocate<MyStruct>(lengthInBytes);
+  ///     result.ref.length = length;
+  ///     return result;
+  ///   }
+  /// }
+  ///
+  /// void main() {
+  ///   final myStruct = MyStruct.allocate(calloc, 10);
+  /// }
+  /// ```
+  ///
+  /// The variable lenght is always the outermost dimension of the array.
+  ///
+  /// ```dart
+  /// import 'dart:ffi';
+  /// import 'package:ffi/ffi.dart';
+  ///
+  /// final class MyStruct extends Struct {
+  ///   @Size()
+  ///   external int length;
+  ///
+  ///   @Array.variable(10, 10)
+  ///   external Array<Array<Array<Uint8>>> inlineArray;
+  ///
+  ///   static Pointer<MyStruct> allocate(Allocator allocator, int length) {
+  ///     final lengthInBytes = sizeOf<MyStruct>() + sizeOf<Uint8>() * length * 100;
+  ///     final result = allocator.allocate<MyStruct>(lengthInBytes);
+  ///     result.ref.length = length;
+  ///     return result;
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// Accessing variable length inline arrays of structs passed by value in FFI
+  /// calls and callbacks is undefined behavior. Accessing variable length
+  /// inline arrays in structs passed by value is undefined behavior in C.
+  ///
+  /// For more information about variable length inline arrays in C, please
+  /// refer to: https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html.
+  ///
+  /// Do not invoke in normal code.
+  @Since('3.6')
+  const factory Array.variable([
+    int dimension2,
+    int dimension3,
+    int dimension4,
+    int dimension5,
+  ]) = _ArraySize<T>.variable;
+
+  /// Annotation to a variable length [Array] in [Struct]s.
+  ///
+  /// ```dart
+  /// final class MyStruct extends Struct {
+  ///   @Array.variableMulti([2, 2])
+  ///   external Array<Array<Array<Uint8>>> threeDimensionalInlineArray;
+  /// }
+  ///
+  /// final class MyStruct2 extends Struct {
+  ///   @Array.variableMulti([2, 2, 2, 2, 2, 2, 2])
+  ///   external Array<Array<Array<Array<Array<Array<Array<Array<Uint8>>>>>>>> eightDimensionalInlineArray;
+  /// }
+  /// ```
+  ///
+  /// The variable lenght is always the outermost dimension of the array.
+  ///
+  /// Do not invoke in normal code.
+  @Since('3.6')
+  const factory Array.variableMulti(List<int> dimensions) =
+      _ArraySize<T>.variableMulti;
 }
 
 final class _ArraySize<T extends NativeType> implements Array<T> {
@@ -132,16 +223,59 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
 
   final List<int>? dimensions;
 
-  const _ArraySize(this.dimension1,
-      [this.dimension2, this.dimension3, this.dimension4, this.dimension5])
-      : dimensions = null;
+  // When `true`, [dimension1] is [variableLengthLength], or [dimensions]
+  // should be prepended with [variableLengthLength].
+  final bool variableLength;
+
+  const _ArraySize(
+    this.dimension1, [
+    this.dimension2,
+    this.dimension3,
+    this.dimension4,
+    this.dimension5,
+  ])  : dimensions = null,
+        variableLength = false;
 
   const _ArraySize.multi(this.dimensions)
       : dimension1 = null,
         dimension2 = null,
         dimension3 = null,
         dimension4 = null,
-        dimension5 = null;
+        dimension5 = null,
+        variableLength = false;
+
+  // Inline arrays in C of length 0 are undefined.
+  //
+  // GNU uses 0 to signal variable length arrays.
+  // https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
+  //
+  // Some Windows APIs use an inline array length of 1 for variable length
+  // inline arrays.
+  // https://devblogs.microsoft.com/oldnewthing/20040826-00/?p=38043
+  // However, this is perfectly valid C code.
+  //
+  // We follow the GNU standard here. This follows the behavior of structs
+  // with variable length arrays when malloc'ed and passed by value (the
+  // variable length array is ignored).
+  static const variableLengthLength = 0;
+
+  const _ArraySize.variable([
+    this.dimension2,
+    this.dimension3,
+    this.dimension4,
+    this.dimension5,
+  ])  : dimension1 = variableLengthLength,
+        dimensions = null,
+        variableLength = true;
+
+  const _ArraySize.variableMulti(List<int> nestedDimensions)
+      : dimensions = nestedDimensions, // Should be `[0, ...nestedDimensions]`.
+        dimension1 = null,
+        dimension2 = null,
+        dimension3 = null,
+        dimension4 = null,
+        dimension5 = null,
+        variableLength = true;
 }
 
 /// Extension on [Pointer] specialized for the type argument [NativeFunction].

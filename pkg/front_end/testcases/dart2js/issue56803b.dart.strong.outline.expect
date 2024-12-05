@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Ext extends core::Object /*hasConstConstructor*/  {
+  final field core::String _;
+  const constructor •() → self::Ext
+    : assert(!(self::maybe == null), "Must not be null"), self::Ext::_ = "OK", super core::Object::•()
+    ;
+  static method _#new#tearOff() → self::Ext
+    return new self::Ext::•();
+}
+static const field core::String? maybe = const core::bool::fromEnvironment("not there") ?{core::String?} "string" : null;
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated with empty environment: Not @ org-dartlang-testcase:///issue56803b.dart:11:22 -> BoolConstant(false)
+Evaluated with empty environment: EqualsNull @ org-dartlang-testcase:///issue56803b.dart:11:22 -> BoolConstant(true)
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///issue56803b.dart:11:16 -> NullConstant(null)
+Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///issue56803b.dart:5:57 -> NullConstant(null)
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///issue56803b.dart:5:28 -> BoolConstant(false)
+Extra constant evaluation: evaluated: 6, effectively constant: 5

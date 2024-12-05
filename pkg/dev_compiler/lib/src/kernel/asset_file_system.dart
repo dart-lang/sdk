@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:async/async.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
@@ -84,7 +85,7 @@ class AssetFileSystemEntity implements FileSystemEntity {
   Future<bool> existsAsyncIfPossible() => exists();
 
   @override
-  Future<List<int>> readAsBytes() async {
+  Future<Uint8List> readAsBytes() async {
     return _runWithClient((httpClient) async {
       var response = await httpClient.getUrl(uri);
       if (response.statusCode != HttpStatus.ok) {

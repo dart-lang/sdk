@@ -2,6 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# Run
+#
+#     dart run analyzer/tool/messages/generate.dart
+#
+# to regenerate messages after having edited this file.
+
 # This file is organized as a two level map, where the outer key corresponds to
 # the name of an analyzer error class (e.g. CompileTimeErrorCode), and the inner
 # key corresponds to the name of a static variable in that class, describing a
@@ -1170,14 +1176,6 @@ CompileTimeErrorCode:
     problemMessage: The declaration being augmented doesn't exist.
     correctionMessage: Try changing the augmentation to match an existing declaration.
     hasPublishedDocs: false
-  AUGMENTATION_WITHOUT_IMPORT:
-    problemMessage: The library does not import this augmentation.
-    correctionMessage: Try updating the augmented library to import this augmentation.
-    hasPublishedDocs: false
-  AUGMENTATION_WITHOUT_LIBRARY:
-    problemMessage: The URI does not resolve to a library.
-    correctionMessage: Try updating the URI to reference the augmented library.
-    hasPublishedDocs: false
   AUGMENTED_EXPRESSION_IS_NOT_SETTER:
     problemMessage: The augmented declaration is not a setter, it can't be used to write a value.
     correctionMessage: Try assigning a value to a setter.
@@ -2342,12 +2340,12 @@ CompileTimeErrorCode:
       2: the name of the class defining the field with which the method conflicts
   CONFLICTING_TYPE_VARIABLE_AND_CLASS:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
-    problemMessage: "'{0}' can't be used to name both a type variable and the class in which the type variable is defined."
-    correctionMessage: Try renaming either the type variable or the class.
+    problemMessage: "'{0}' can't be used to name both a type parameter and the class in which the type parameter is defined."
+    correctionMessage: Try renaming either the type parameter or the class.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
     documentation: |-
       #### Description
 
@@ -2373,44 +2371,44 @@ CompileTimeErrorCode:
       ```
   CONFLICTING_TYPE_VARIABLE_AND_ENUM:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
-    problemMessage: "'{0}' can't be used to name both a type variable and the enum in which the type variable is defined."
-    correctionMessage: Try renaming either the type variable or the enum.
+    problemMessage: "'{0}' can't be used to name both a type parameter and the enum in which the type parameter is defined."
+    correctionMessage: Try renaming either the type parameter or the enum.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
   CONFLICTING_TYPE_VARIABLE_AND_EXTENSION:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
-    problemMessage: "'{0}' can't be used to name both a type variable and the extension in which the type variable is defined."
-    correctionMessage: Try renaming either the type variable or the extension.
+    problemMessage: "'{0}' can't be used to name both a type parameter and the extension in which the type parameter is defined."
+    correctionMessage: Try renaming either the type variaparameterble or the extension.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
   CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
-    problemMessage: "'{0}' can't be used to name both a type variable and the extension type in which the type variable is defined."
-    correctionMessage: Try renaming either the type variable or the extension.
+    problemMessage: "'{0}' can't be used to name both a type parameter and the extension type in which the type parameter is defined."
+    correctionMessage: Try renaming either the type parameter or the extension.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
   CONFLICTING_TYPE_VARIABLE_AND_MIXIN:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
-    problemMessage: "'{0}' can't be used to name both a type variable and the mixin in which the type variable is defined."
-    correctionMessage: Try renaming either the type variable or the mixin.
+    problemMessage: "'{0}' can't be used to name both a type parameter and the mixin in which the type parameter is defined."
+    correctionMessage: Try renaming either the type parameter or the mixin.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
-    problemMessage: "'{0}' can't be used to name both a type variable and a member in this class."
-    correctionMessage: Try renaming either the type variable or the member.
+    problemMessage: "'{0}' can't be used to name both a type parameter and a member in this class."
+    correctionMessage: Try renaming either the type parameter or the member.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
     documentation: |-
       #### Description
 
@@ -2440,36 +2438,36 @@ CompileTimeErrorCode:
       ```
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
-    problemMessage: "'{0}' can't be used to name both a type variable and a member in this mixin."
-    correctionMessage: Try renaming either the type variable or the member.
+    problemMessage: "'{0}' can't be used to name both a type parameter and a member in this mixin."
+    correctionMessage: Try renaming either the type parameter or the member.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
-    problemMessage: "'{0}' can't be used to name both a type variable and a member in this enum."
-    correctionMessage: Try renaming either the type variable or the member.
+    problemMessage: "'{0}' can't be used to name both a type parameter and a member in this enum."
+    correctionMessage: Try renaming either the type parameter or the member.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
-    problemMessage: "'{0}' can't be used to name both a type variable and a member in this extension."
-    correctionMessage: Try renaming either the type variable or the member.
+    problemMessage: "'{0}' can't be used to name both a type parameter and a member in this extension."
+    correctionMessage: Try renaming either the type parameter or the member.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
-    problemMessage: "'{0}' can't be used to name both a type variable and a member in this extension type."
-    correctionMessage: Try renaming either the type variable or the member.
+    problemMessage: "'{0}' can't be used to name both a type parameter and a member in this extension type."
+    correctionMessage: Try renaming either the type parameter or the member.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
   CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH:
     problemMessage: "In a const constructor, a value of type '{0}' can't be assigned to the field '{1}', which has type '{2}'."
     correctionMessage: "Try using a subtype, or removing the keyword 'const'."
@@ -3838,13 +3836,6 @@ CompileTimeErrorCode:
         print(i);
       }
       ```
-  DUPLICATE_AUGMENTATION_IMPORT:
-    problemMessage: "The library already contains an augmentation with the URI '{0}'."
-    correctionMessage: Try removing all except one of the duplicated augmentation directives.
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the URI of the duplicate augmentation
   DUPLICATE_CONSTRUCTOR_NAME:
     sharedName: DUPLICATE_CONSTRUCTOR
     problemMessage: "The constructor with name '{0}' is already defined."
@@ -4111,15 +4102,13 @@ CompileTimeErrorCode:
 
       ```dart
       %uri="lib/part.dart"
-      part of lib;
+      part of 'test.dart';
       ```
 
       The following code produces this diagnostic because the file `part.dart` is
       included multiple times:
 
       ```dart
-      library lib;
-
       part 'part.dart';
       part [!'part.dart'!];
       ```
@@ -4129,8 +4118,6 @@ CompileTimeErrorCode:
       Remove all except the first of the duplicated part directives:
 
       ```dart
-      library lib;
-
       part 'part.dart';
       ```
   DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE:
@@ -7431,13 +7418,6 @@ CompileTimeErrorCode:
 
       Import the library that contains the [part file][] rather than the
       [part file][] itself.
-  IMPORT_OF_NOT_AUGMENTATION:
-    problemMessage: "The imported file '{0}' isn't an augmentation of this library."
-    correctionMessage: Try adding an 'augment library' directive referencing this library to the imported file.
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the URI of the imported file
   INCONSISTENT_CASE_EXPRESSION_TYPES:
     problemMessage: "Case expressions must have the same types, '{0}' isn't a '{1}'."
     hasPublishedDocs: false
@@ -8691,7 +8671,8 @@ CompileTimeErrorCode:
         method.
 
       The concrete implementation can be invalid because of incompatibilities in
-      either the return type, the types of parameters, or the type variables.
+      either the return type, the types of the method's parameters, or the type
+      parameters.
 
       #### Example
 
@@ -9151,7 +9132,7 @@ CompileTimeErrorCode:
       ```
   INVALID_TYPE_ARGUMENT_IN_CONST_LIST:
     sharedName: INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL
-    problemMessage: "Constant list literals can't include a type parameter as a type argument, such as '{0}'."
+    problemMessage: "Constant list literals can't use a type parameter in a type argument, such as '{0}'."
     correctionMessage: Try replacing the type parameter with a different type.
     hasPublishedDocs: true
     comment: |-
@@ -9160,7 +9141,7 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a type parameter is used as a
+      The analyzer produces this diagnostic when a type parameter is used in a
       type argument in a list, map, or set literal that is prefixed by `const`.
       This isn't allowed because the value of the type parameter (the actual type
       that will be used at runtime) can't be known at compile time.
@@ -9205,7 +9186,7 @@ CompileTimeErrorCode:
       ```
   INVALID_TYPE_ARGUMENT_IN_CONST_MAP:
     sharedName: INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL
-    problemMessage: "Constant map literals can't include a type parameter as a type argument, such as '{0}'."
+    problemMessage: "Constant map literals can't use a type parameter in a type argument, such as '{0}'."
     correctionMessage: Try replacing the type parameter with a different type.
     hasPublishedDocs: true
     comment: |-
@@ -9213,7 +9194,7 @@ CompileTimeErrorCode:
       0: the name of the type parameter
   INVALID_TYPE_ARGUMENT_IN_CONST_SET:
     sharedName: INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL
-    problemMessage: "Constant set literals can't include a type parameter as a type argument, such as '{0}'."
+    problemMessage: "Constant set literals can't use a type parameter in a type argument, such as '{0}'."
     correctionMessage: Try replacing the type parameter with a different type.
     hasPublishedDocs: true
     comment: |-
@@ -11447,7 +11428,7 @@ CompileTimeErrorCode:
       ```
   NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY:
     problemMessage: "Constant values from a deferred library can't be used as a default parameter value."
-    correctionMessage: Try leaving the default as null and initializing the parameter inside the function body.
+    correctionMessage: Try leaving the default as 'null' and initializing the parameter inside the function body.
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
@@ -12733,7 +12714,7 @@ CompileTimeErrorCode:
       var m = <int, String>{...l.asMap()};
       ```
   NOT_NULL_AWARE_NULL_SPREAD:
-    problemMessage: "The Null typed expression can't be used with a non-null-aware spread."
+    problemMessage: "The Null-typed expression can't be used with a non-null-aware spread."
     hasPublishedDocs: false
     comment: No parameters.
   NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS:
@@ -13293,6 +13274,7 @@ CompileTimeErrorCode:
       code:
 
       ```dart
+      %language=3.4
       %uri="lib/part_file.dart"
       part of lib;
       ```
@@ -13302,6 +13284,7 @@ CompileTimeErrorCode:
       name to specify which library it's a part of:
 
       ```dart
+      %language=3.4
       part [!'part_file.dart'!];
       ```
 
@@ -13311,6 +13294,7 @@ CompileTimeErrorCode:
       by URI:
 
       ```dart
+      %language=3.4
       %uri="lib/part_file.dart"
       part of 'test.dart';
       ```
@@ -17924,14 +17908,6 @@ CompileTimeErrorCode:
       import [!'lib.dart'!];
       ```
 
-      If the file `lib.dart` doesn't exist, the following code produces this
-      diagnostic:
-
-      ```dart
-      /// @docImport [!'lib.dart'!];
-      library;
-      ```
-
       #### Common fixes
 
       If the URI was mistyped or invalid, then correct the URI.
@@ -20551,6 +20527,17 @@ FfiCode:
         external Array<Uint8> a0;
       }
       ```
+
+      If this is a variable length inline array, change the annotation to `Array.variable()`:
+
+      ```dart
+      import 'dart:ffi';
+
+      final class MyStruct extends Struct {
+        @Array.variable()
+        external Array<Uint8> a0;
+      }
+      ```
   NON_SIZED_TYPE_ARGUMENT:
     problemMessage: "The type '{1}' isn't a valid type argument for '{0}'. The type argument must be a native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
     correctionMessage: "Try using a native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
@@ -20672,6 +20659,66 @@ FfiCode:
       @Packed(4)
       final class C extends Struct {
         external Pointer<Uint8> notEmpty;
+      }
+      ```
+  VARIABLE_LENGTH_ARRAY_NOT_LAST:
+    problemMessage: "Variable length 'Array's must only occur as the last field of Structs."
+    correctionMessage: "Try adjusting the arguments in the 'Array' annotation."
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a variable length inline `Array`
+      is not the last member of a `Struct`.
+
+      For more information about FFI, see [C interop using dart:ffi][ffi].
+
+      #### Example
+
+      The following code produces this diagnostic because the field `a0` has a
+      type with three nested arrays, but only two dimensions are given in the
+      `Array` annotation:
+
+      ```dart
+      import 'dart:ffi';
+
+      final class C extends Struct {
+        [!@Array.variable()!]
+        external Array<Uint8> a0;
+
+        @Uint8()
+        external int a1;
+      }
+      ```
+
+      #### Common fixes
+
+      Move the variable length inline `Array` to be the last field in the struct.
+
+      ```dart
+      import 'dart:ffi';
+
+      final class C extends Struct {
+        @Uint8()
+        external int a1;
+
+        @Array.variable()
+        external Array<Uint8> a0;
+      }
+      ```
+
+      If the inline array has a fixed size, annotate it with the size:
+
+      ```dart
+      import 'dart:ffi';
+
+      final class C extends Struct {
+        @Array(10)
+        external Array<Uint8> a0;
+
+        @Uint8()
+        external int a1;
       }
       ```
   SIZE_ANNOTATION_DIMENSIONS:
@@ -20985,6 +21032,7 @@ HintCode:
       This code is deprecated in favor of the
       'deprecated_member_from_same_package' lint rule, and will be removed.
   DIVISION_OPTIMIZATION:
+    removedIn: "3.5"
     problemMessage: The operator x ~/ y is more efficient than (x / y).toInt().
     correctionMessage: "Try re-writing the expression to use the '~/' operator."
     hasPublishedDocs: true
@@ -21136,42 +21184,6 @@ HintCode:
       Reported when the macro uses `Builder.report()` with `Severity.info`.
       Parameters:
       0: the message
-  UNNECESSARY_CAST:
-    problemMessage: Unnecessary cast.
-    correctionMessage: Try removing the cast.
-    deprecatedMessage: Use 'WarningCode.UNNECESSARY_CAST' instead.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the value being cast is already
-      known to be of the type that it's being cast to.
-
-      #### Example
-
-      The following code produces this diagnostic because `n` is already known to
-      be an `int` as a result of the `is` test:
-
-      ```dart
-      void f(num n) {
-        if (n is int) {
-          ([!n as int!]).isEven;
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the unnecessary cast:
-
-      ```dart
-      void f(num n) {
-        if (n is int) {
-          n.isEven;
-        }
-      }
-      ```
   UNNECESSARY_IMPORT:
     problemMessage: "The import of '{0}' is unnecessary because all of the used elements are also provided by the import of '{1}'."
     correctionMessage: Try removing the import directive.
@@ -21223,122 +21235,6 @@ HintCode:
       If some of the names imported by this import are intended to be used but
       aren't yet, and if those names aren't imported by other imports, then add
       the missing references to those names.
-  UNREACHABLE_SWITCH_CASE:
-    problemMessage: "This case is covered by the previous cases."
-    correctionMessage: Try removing the case clause, or restructuring the preceding patterns.
-    deprecatedMessage: Use 'WarningCode.UNREACHABLE_SWITCH_CASE' instead.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a `case` clause in a `switch`
-      statement doesn't match anything because all of the matchable values are
-      matched by an earlier `case` clause.
-
-      #### Example
-
-      The following code produces this diagnostic because the value `1` was
-      matched in the preceding case:
-
-      ```dart
-      void f(int x) {
-        switch (x) {
-          case 1:
-            print('one');
-          [!case!] 1:
-            print('two');
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      Change one or both of the conflicting cases to match different values:
-
-      ```dart
-      void f(int x) {
-        switch (x) {
-          case 1:
-            print('one');
-          case 2:
-            print('two');
-        }
-      }
-      ```
-  UNUSED_ELEMENT:
-    problemMessage: "The declaration '{0}' isn't referenced."
-    correctionMessage: "Try removing the declaration of '{0}'."
-    deprecatedMessage: Use 'WarningCode.UNUSED_ELEMENT' instead.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name that is declared but not referenced
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a private declaration isn't
-      referenced in the library that contains the declaration. The following
-      kinds of declarations are analyzed:
-      - Private top-level declarations and all of their members
-      - Private members of public declarations
-      - Optional parameters of private functions for which a value is never
-        passed
-
-      Not all references to an element will mark it as "used":
-      - Assigning a value to a top-level variable (with a standard `=`
-        assignment, or a null-aware `??=` assignment) does not count as using
-        it.
-      - Referring to an element in a doc comment reference does not count as
-        using it.
-      - Referring to a class, mixin, or enum on the right side of an `is`
-        expression does not count as using it.
-
-      #### Example
-
-      Assuming that no code in the library references `_C`, the following code
-      produces this diagnostic:
-
-      ```dart
-      class [!_C!] {}
-      ```
-
-      Assuming that no code in the library passes a value for `y` in any
-      invocation of `_m`, the following code produces this diagnostic:
-
-      ```dart
-      class C {
-        void _m(int x, [int? [!y!]]) {}
-
-        void n() => _m(0);
-      }
-      ```
-
-      #### Common fixes
-
-      If the declaration isn't needed, then remove it:
-
-      ```dart
-      class C {
-        void _m(int x) {}
-
-        void n() => _m(0);
-      }
-      ```
-
-      If the declaration is intended to be used, then add the code to use it.
-  UNUSED_ELEMENT_PARAMETER:
-    sharedName: UNUSED_ELEMENT
-    problemMessage: "A value for optional parameter '{0}' isn't ever given."
-    correctionMessage: Try removing the unused parameter.
-    deprecatedMessage: Use 'WarningCode.UNUSED_ELEMENT_PARAMETER' instead.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the parameter that is declared but not used
-  UNUSED_LOCAL_VARIABLE:
-    aliasFor: WarningCode.UNUSED_LOCAL_VARIABLE
-    comment: This is the deprecated alias for [WarningCode.UNUSED_LOCAL_VARIABLE].
 ManifestWarningCode:
   CAMERA_PERMISSIONS_INCOMPATIBLE:
     problemMessage: Camera permissions make app incompatible for Chrome OS, consider adding optional features "android.hardware.camera" and "android.hardware.camera.autofocus".
@@ -21543,6 +21439,10 @@ ParserErrorCode:
   INVALID_SYNC:
     problemMessage: "The modifier 'sync' isn't allowed for an expression function body."
     correctionMessage: Try converting the body to a block.
+  INVALID_USE_OF_IDENTIFIER_AUGMENTED:
+    problemMessage: The identifier 'augmented' can only be used to reference the augmented declaration inside an augmentation.
+    correctionMessage: Try using a different identifier.
+    hasPublishedDocs: false
   LOCAL_FUNCTION_DECLARATION_MODIFIER:
     problemMessage: "Local function declarations can't specify any modifiers."
     correctionMessage: Try removing the modifier.
@@ -21652,6 +21552,9 @@ ParserErrorCode:
   NORMAL_BEFORE_OPTIONAL_PARAMETERS:
     problemMessage: Normal parameters must occur before optional parameters.
     correctionMessage: Try moving all of the normal parameters before the optional parameters.
+  PART_OF_NAME:
+    problemMessage: "The 'part of' directive can't use a name with the enhanced-parts feature."
+    correctionMessage: "Try using 'part of' with a URI instead."
   POSITIONAL_AFTER_NAMED_ARGUMENT:
     problemMessage: Positional arguments must occur before named arguments.
     correctionMessage: Try moving all of the positional arguments before the named arguments.
@@ -22774,7 +22677,7 @@ StaticWarningCode:
       not be appropriate in some cases.)
   INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT:
     sharedName: INVALID_NULL_AWARE_OPERATOR
-    problemMessage: "The receiver can't be null because of short-circuiting, so the null-aware operator '{0}' can't be used."
+    problemMessage: "The receiver can't be 'null' because of short-circuiting, so the null-aware operator '{0}' can't be used."
     correctionMessage: "Try replacing the operator '{0}' with '{1}'."
     hasPublishedDocs: true
     comment: |-
@@ -23364,6 +23267,12 @@ WarningCode:
         }
       }
       ```
+  DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER:
+    problemMessage: "Dead code: The assigned-to wildcard variable is marked late and can never be referenced so this initializer will never be evaluated."
+    correctionMessage: Try removing the code, removing the late modifier or changing the variable to a non-wildcard.
+    sharedName: DEAD_CODE
+    hasPublishedDocs: true
+    comment: No parameters.
   DEAD_CODE_ON_CATCH_SUBTYPE:
     problemMessage: "Dead code: This on-catch block won't be executed because '{0}' is a subtype of '{1}' and hence will have been caught already."
     correctionMessage: Try reordering the catch clauses so that this block can be reached, or removing the unreachable catch clause.
@@ -25571,7 +25480,7 @@ WarningCode:
       }
       ```
   NULL_ARGUMENT_TO_NON_NULL_TYPE:
-    problemMessage: "'{0}' shouldn't be called with a null argument for the non-nullable type argument '{1}'."
+    problemMessage: "'{0}' shouldn't be called with a 'null' argument for the non-nullable type argument '{1}'."
     correctionMessage: Try adding a non-null argument.
     hasPublishedDocs: true
     comment: |-
@@ -26865,8 +26774,40 @@ WarningCode:
       Parameters:
       0: the name of the non-diagnostic being ignored
   UNNECESSARY_CAST:
-    aliasFor: HintCode.UNNECESSARY_CAST
-    comment: This is the new replacement for [HintCode.UNNECESSARY_CAST].
+    problemMessage: Unnecessary cast.
+    correctionMessage: Try removing the cast.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the value being cast is already
+      known to be of the type that it's being cast to.
+
+      #### Example
+
+      The following code produces this diagnostic because `n` is already known to
+      be an `int` as a result of the `is` test:
+
+      ```dart
+      void f(num n) {
+        if (n is int) {
+          ([!n as int!]).isEven;
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary cast:
+
+      ```dart
+      void f(num n) {
+        if (n is int) {
+          n.isEven;
+        }
+      }
+      ```
   UNNECESSARY_CAST_PATTERN:
     problemMessage: Unnecessary cast pattern.
     correctionMessage: Try removing the cast pattern.
@@ -27023,9 +26964,21 @@ WarningCode:
       }
       class B extends A {}
       ```
-  UNNECESSARY_NULL_COMPARISON_FALSE:
+  UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE:
     sharedName: UNNECESSARY_NULL_COMPARISON
-    problemMessage: "The operand can't be null, so the condition is always 'false'."
+    problemMessage: "The operand must be 'null', so the condition is always 'false'."
+    correctionMessage: Remove the condition.
+    hasPublishedDocs: true
+    comment: No parameters.
+  UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE:
+    sharedName: UNNECESSARY_NULL_COMPARISON
+    problemMessage: "The operand must be 'null', so the condition is always 'true'."
+    correctionMessage: Remove the condition.
+    hasPublishedDocs: true
+    comment: No parameters.
+  UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE:
+    sharedName: UNNECESSARY_NULL_COMPARISON
+    problemMessage: "The operand can't be 'null', so the condition is always 'false'."
     correctionMessage: Try removing the condition, an enclosing condition, or the whole conditional statement.
     hasPublishedDocs: true
     comment: No parameters.
@@ -27081,9 +27034,9 @@ WarningCode:
         print(x);
       }
       ```
-  UNNECESSARY_NULL_COMPARISON_TRUE:
+  UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE:
     sharedName: UNNECESSARY_NULL_COMPARISON
-    problemMessage: "The operand can't be null, so the condition is always 'true'."
+    problemMessage: "The operand can't be 'null', so the condition is always 'true'."
     correctionMessage: Remove the condition.
     hasPublishedDocs: true
     comment: No parameters.
@@ -27206,8 +27159,94 @@ WarningCode:
     hasPublishedDocs: false
     comment: No parameters.
   UNREACHABLE_SWITCH_CASE:
-    aliasFor: HintCode.UNREACHABLE_SWITCH_CASE
-    comment: This is the new replacement for [HintCode.UNREACHABLE_SWITCH_CASE].
+    problemMessage: "This case is covered by the previous cases."
+    correctionMessage: Try removing the case clause, or restructuring the preceding patterns.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `case` clause in a `switch`
+      statement doesn't match anything because all of the matchable values are
+      matched by an earlier `case` clause.
+
+      #### Example
+
+      The following code produces this diagnostic because the value `1` was
+      matched in the preceding case:
+
+      ```dart
+      void f(int x) {
+        switch (x) {
+          case 1:
+            print('one');
+          [!case!] 1:
+            print('two');
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Change one or both of the conflicting cases to match different values:
+
+      ```dart
+      void f(int x) {
+        switch (x) {
+          case 1:
+            print('one');
+          case 2:
+            print('two');
+        }
+      }
+      ```
+  UNREACHABLE_SWITCH_DEFAULT:
+    problemMessage: "This default clause is covered by the previous cases."
+    correctionMessage: Try removing the default clause, or restructuring the preceding patterns.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `default` clause in a
+      `switch` statement doesn't match anything because all of the matchable
+      values are matched by an earlier `case` clause.
+
+      #### Example
+
+      The following code produces this diagnostic because the values `E.e1` and
+      `E.e2` were matched in the preceding cases:
+
+      ```dart
+      enum E { e1, e2 }
+
+      void f(E x) {
+        switch (x) {
+          case E.e1:
+            print('one');
+          case E.e2:
+            print('two');
+          [!default!]:
+            print('other');
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary `default` clause:
+
+      ```dart
+      enum E { e1, e2 }
+      void f(E x) {
+        switch (x) {
+          case E.e1:
+            print('one');
+          case E.e2:
+            print('two');
+        }
+      }
+      ```
   UNUSED_CATCH_CLAUSE:
     problemMessage: "The exception variable '{0}' isn't used, so the 'catch' clause can be removed."
     correctionMessage: Try removing the catch clause.
@@ -27292,11 +27331,73 @@ WarningCode:
       }
       ```
   UNUSED_ELEMENT:
-    aliasFor: HintCode.UNUSED_ELEMENT
-    comment: This is the new replacement for [HintCode.UNUSED_ELEMENT].
+    problemMessage: "The declaration '{0}' isn't referenced."
+    correctionMessage: "Try removing the declaration of '{0}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name that is declared but not referenced
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a private declaration isn't
+      referenced in the library that contains the declaration. The following
+      kinds of declarations are analyzed:
+      - Private top-level declarations and all of their members
+      - Private members of public declarations
+      - Optional parameters of private functions for which a value is never
+        passed
+
+      Not all references to an element will mark it as "used":
+      - Assigning a value to a top-level variable (with a standard `=`
+        assignment, or a null-aware `??=` assignment) does not count as using
+        it.
+      - Referring to an element in a doc comment reference does not count as
+        using it.
+      - Referring to a class, mixin, or enum on the right side of an `is`
+        expression does not count as using it.
+
+      #### Example
+
+      Assuming that no code in the library references `_C`, the following code
+      produces this diagnostic:
+
+      ```dart
+      class [!_C!] {}
+      ```
+
+      Assuming that no code in the library passes a value for `y` in any
+      invocation of `_m`, the following code produces this diagnostic:
+
+      ```dart
+      class C {
+        void _m(int x, [int? [!y!]]) {}
+
+        void n() => _m(0);
+      }
+      ```
+
+      #### Common fixes
+
+      If the declaration isn't needed, then remove it:
+
+      ```dart
+      class C {
+        void _m(int x) {}
+
+        void n() => _m(0);
+      }
+      ```
+
+      If the declaration is intended to be used, then add the code to use it.
   UNUSED_ELEMENT_PARAMETER:
-    aliasFor: HintCode.UNUSED_ELEMENT_PARAMETER
-    comment: This is the new replacement for [HintCode.UNUSED_ELEMENT_PARAMETER].
+    sharedName: UNUSED_ELEMENT
+    problemMessage: "A value for optional parameter '{0}' isn't ever given."
+    correctionMessage: Try removing the unused parameter.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the parameter that is declared but not used
   UNUSED_FIELD:
     problemMessage: "The value of the field '{0}' isn't used."
     correctionMessage: Try removing the field, or using it.
@@ -27567,12 +27668,31 @@ WarningCode:
 
       var x = min(0, 1);
       ```
-
   URI_DOES_NOT_EXIST_IN_DOC_IMPORT:
-    sharedName: URI_DOES_NOT_EXIST
     problemMessage: "Target of URI doesn't exist: '{0}'."
     correctionMessage: Try creating the file referenced by the URI, or try using a URI for a file that does exist.
     hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the URI pointing to a nonexistent file
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a doc-import is found where
+      the URI refers to a file that doesn't exist.
+
+      #### Examples
+
+      If the file `lib.dart` doesn't exist, the following code produces this
+      diagnostic:
+
+      ```dart
+      /// @docImport [!'lib.dart'!];
+      library;
+      ```
+
+      #### Common fixes
+
+      If the URI was mistyped or invalid, then correct the URI.
+
+      If the URI is correct, then create the file.

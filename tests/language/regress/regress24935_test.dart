@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'package:async_helper/async_helper.dart';
 
 S() => new Stream.fromIterable([1]);
 
 Future main() async {
+  asyncStart();
   L:
   for (var s = 0; s < 10; s++) {
     await for (var s1 in S()) {
@@ -20,4 +22,5 @@ Future main() async {
   // crash the VM. In other words, the expected test
   // outcome is an unhandled exception.
   throw "ball"; //# 01: runtime error
+  asyncEnd();
 }

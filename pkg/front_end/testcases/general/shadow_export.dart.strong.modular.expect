@@ -1,0 +1,33 @@
+library;
+import self as self;
+import "shadow_export_lib2.dart" as sha;
+import "shadow_export_lib1.dart" as sha2;
+
+import "org-dartlang-testcase:///shadow_export_lib1.dart";
+
+static method main() → dynamic {
+  sha::method();
+  sha::field = sha::field;
+  sha2::shadowedMethod();
+  sha2::shadowedField = sha2::shadowedField;
+}
+
+library;
+import self as sha2;
+import "shadow_export_lib2.dart" as sha;
+additionalExports = (sha::method,
+  sha::field,
+  sha::field)
+
+export "org-dartlang-testcase:///shadow_export_lib2.dart";
+
+static field dynamic shadowedField;
+static method shadowedMethod() → dynamic {}
+
+library;
+import self as sha;
+
+static field dynamic field;
+static field dynamic shadowedMethod;
+static method method() → dynamic {}
+static method shadowedField() → dynamic {}

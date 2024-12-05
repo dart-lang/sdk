@@ -10,8 +10,7 @@
 | `dart2js:prefer-inline` | Alias for `dart2js:tryInline` |
 | `dart2js:disable-inlining` | [Disable inlining within a method](#disabling-inlining) |
 | `dart2js:noElision` | Disables an optimization whereby unused fields or unused parameters are removed |
-| `dart2js:load-priority:normal` | [Affects deferred library loading](#load-priority) |
-| `dart2js:load-priority:high` | [Affects deferred library loading](#load-priority) |
+| `dart2js:load-priority` | [Affects deferred library loading](#load-priority) |
 | `dart2js:resource-identifier` | [Collects data references to resources](resource_identifiers.md) |
 | `weak-tearoff-reference` | [Declaring a static weak reference intrinsic method.](#declaring-a-static-weak-reference-intrinsic-method) |
 
@@ -223,15 +222,15 @@ variables, static variables, and top-level variables.
 
 
 ```dart
-@pragma('dart2js:load-priority:normal')
-@pragma('dart2js:load-priority:high')
+@pragma('dart2js:load-priority', option)
 ```
+Provides a string argument `option` forwarded to the `dartDeferredLibraryLoader`
+as the `loadPriority` argument.
 
-By default, a call to `prefix.loadLibrary()` loads the library with 'normal'
-priority.  These annotations may be placed on the import specification to change
+These annotations may be placed on the import specification to change
 the priority for all calls to `prefix.loadLibrary()`.
 
-The annotation my also be placed closer to the `loadLibrary()` call.  When
+The annotation may also be placed closer to the `loadLibrary()` call.  When
 placed on a method, the annotation affects all calls to
 `prefix.loadLibrary()` inside the method.
 
@@ -242,7 +241,7 @@ annotation on the variable called "`_`":
 
 ```dart
     await prefix1.loadLibrary();
-    @pragma('dart2js:load-priority:high')
+    @pragma('dart2js:load-priority', 'someArg')
     final _ = await prefix2.loadLibrary();
     await prefix3.loadLibrary();
 ```

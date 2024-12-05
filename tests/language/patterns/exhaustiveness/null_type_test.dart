@@ -23,7 +23,7 @@ void test(int? maybeInt) {
     null => 'null',
     Null _ => 'null',
 //         ^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
     int _ => 'int',
   };
 
@@ -32,7 +32,7 @@ void test(int? maybeInt) {
     Null _ => 'null',
     null => 'null',
 //       ^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
     int _ => 'int',
   };
 

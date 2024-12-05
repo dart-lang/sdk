@@ -107,12 +107,42 @@ void b() {
     await assertErrorsInFile2(b, []);
   }
 
-  test_exceptionParameterFromSameMethod() async {
+  test_exceptionParameterFromParentFunction() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+void a({@doNotSubmit int? a}) {
+  var c = () {
+    print(a);
+  };
+  c();
+}
+''');
+
+    await assertErrorsInFile2(a, []);
+  }
+
+  test_exceptionParameterFromSameFunction() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
 void a({@doNotSubmit int? a}) {
   print(a);
+}
+''');
+
+    await assertErrorsInFile2(a, []);
+  }
+
+  test_exceptionParameterFromSameMethod() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @doNotSubmit
+  void a({int? a}) {
+    print(a);
+  }
 }
 ''');
 
@@ -283,7 +313,7 @@ void b() {
     ]);
   }
 
-  test_parameter() async {
+  test_namedParameter() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -304,6 +334,27 @@ void b() {
     ]);
   }
 
+  test_positionalParameter() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+void a([@doNotSubmit int? a]) {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+
+void b() {
+  a(0);
+}
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, [
+      error(WarningCode.invalid_use_of_do_not_submit_member, 33, 1),
+    ]);
+  }
+
   test_sameLibrary() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
@@ -314,7 +365,9 @@ void a() {}
 void b() => a();
 ''');
 
-    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(a, [
+      error(WarningCode.invalid_use_of_do_not_submit_member, 72, 1),
+    ]);
   }
 
   test_setter() async {

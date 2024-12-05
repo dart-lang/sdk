@@ -9,9 +9,26 @@ import '../mini_types.dart';
 
 main() {
   late Harness h;
+  late InterfaceTypeName a;
+  late InterfaceTypeName b1;
+  late InterfaceTypeName b2;
 
   setUp(() {
+    TypeRegistry.init();
+    a = TypeRegistry.addInterfaceTypeName('A');
+    TypeRegistry.addInterfaceTypeName('B');
+    b1 = TypeRegistry.addInterfaceTypeName('B1');
+    b2 = TypeRegistry.addInterfaceTypeName('B2');
+    TypeRegistry.addInterfaceTypeName('C');
+    TypeRegistry.addInterfaceTypeName('C1');
+    TypeRegistry.addInterfaceTypeName('C2');
+    TypeRegistry.addInterfaceTypeName('E');
+    TypeRegistry.addInterfaceTypeName('X');
     h = Harness();
+  });
+
+  tearDown(() {
+    TypeRegistry.uninit();
   });
 
   group('Collection elements:', () {
@@ -520,16 +537,16 @@ main() {
           h.addSuperInterfaces(
               'C1',
               (args) => [
-                    PrimaryType('B1', args: args),
-                    PrimaryType('B2', args: args),
+                    PrimaryType(b1, args: args),
+                    PrimaryType(b2, args: args),
                     Type('A'),
                     Type('Object')
                   ]);
           h.addSuperInterfaces(
               'C2',
               (args) => [
-                    PrimaryType('B1', args: args),
-                    PrimaryType('B2', args: args),
+                    PrimaryType(b1, args: args),
+                    PrimaryType(b2, args: args),
                     Type('A'),
                     Type('Object')
                   ]);
@@ -1724,7 +1741,7 @@ main() {
       });
 
       test('promoted initializer', () {
-        h.addTypeVariable('T');
+        TypeRegistry.addTypeParameter('T');
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('T&int')).checkIR('match(expr(T&int), '
@@ -3144,7 +3161,7 @@ main() {
           h.addDownwardInfer(name: 'B', context: 'A<int>', result: 'B<int>');
           h.addMember('B<int>', 'foo', 'int');
           h.addSuperInterfaces(
-              'B', (args) => [PrimaryType('A', args: args), Type('Object')]);
+              'B', (args) => [PrimaryType(a, args: args), Type('Object')]);
           h.addSuperInterfaces('A', (_) => [Type('Object')]);
           h.run([
             ifCase(

@@ -24,6 +24,9 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
   bool get makeLocalsFinal => _isLintEnabled('prefer_final_locals');
 
   @override
+  bool get preferIntLiterals => _isLintEnabled('prefer_int_literals');
+
+  @override
   String get preferredQuoteForStrings => _lintQuote() ?? "'";
 
   @override
@@ -31,6 +34,10 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
 
   @override
   bool get specifyTypes => _isLintEnabled('always_specify_types');
+
+  @override
+  bool get usePackageUris =>
+      options.isLintEnabled('always_use_package_imports');
 
   @override
   bool get useRelativeUris => _isLintEnabled('prefer_relative_imports');

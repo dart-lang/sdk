@@ -8,7 +8,6 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/snippets/dart/class_declaration.dart';
 import 'package:analysis_server/src/services/snippets/dart/do_statement.dart';
 import 'package:analysis_server/src/services/snippets/dart/flutter_stateful_widget.dart';
@@ -29,6 +28,7 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:collection/collection.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -517,7 +517,24 @@ void f() {
         detail: 'String');
   }
 
-  Future<void> test_local_override_annotation() async {
+  Future<void> test_local_override_annotation_equals() async {
+    var content = '''
+class Base {
+}
+
+class Derived extends Base {
+  @over^
+}
+''';
+    await expectLabels(content,
+        label: 'override ==',
+        labelDetail: '(…) → bool',
+        labelDescription: null,
+        filterText: null,
+        detail: '(Object other) → bool');
+  }
+
+  Future<void> test_local_override_annotation_method() async {
     var content = '''
 class Base {
   String aa(String a) => '';
@@ -847,6 +864,35 @@ void f() {
     );
   }
 
+  /// Verifies a color completion with text [label] for the code [content] that
+  /// includes a prefix for [colorHex] in the description.
+  Future<void> expectColorCompletion(
+    String content,
+    String label,
+    String colorHex,
+  ) async {
+    await initialize();
+    var code = TestCode.parse(content);
+    await openFile(mainFileUri, code.code);
+    var res = await getCompletion(mainFileUri, code.position.position);
+    var completion = res.singleWhere((c) => c.label == label);
+
+    // Verify correct kind for color preview.
+    expect(completion.kind, CompletionItemKind.Color);
+
+    // Verify the docs are either entirely the hex code, or end with it.
+    // VS Code's regex only allows the hex code at the start or end to show the
+    // preview.
+    var docs = completion.documentation?.map(
+      (markup) => markup.value,
+      (string) => string,
+    );
+    expect(
+      docs,
+      anyOf(equals(colorHex), endsWith('\n\n$colorHex')),
+    );
+  }
+
   /// Expect [item] to use the default edit range, inserting the value [text].
   void expectUsesDefaultEditRange(CompletionItem item, String text) {
     expect(item.textEditText ?? item.label, text);
@@ -949,6 +995,24 @@ void g() {
       applyEditsFor: '({a, b}) =>',
       expectedContent: expectedContent,
     );
+  }
+
+  Future<void> test_color_material() async {
+    var content = '''
+import 'package:flutter/material.dart';
+var a = Colors.re^
+''';
+
+    await expectColorCompletion(content, 'red', '#FF0000');
+  }
+
+  Future<void> test_color_materialAccent() async {
+    var content = '''
+import 'package:flutter/material.dart';
+var a = Colors.redAcce^
+''';
+
+    await expectColorCompletion(content, 'redAccent', '#FFAA00');
   }
 
   Future<void> test_comment() async {
@@ -1901,7 +1965,7 @@ void f() {
   /// the correct narrowed type in the `detail` field.
   ///
   /// https://github.com/Dart-Code/Dart-Code/issues/4499
-  Future<void> test_getter_barrowedBySubclass() async {
+  Future<void> test_getter_narrowedBySubclass() async {
     var content = '''
 void f(MyItem item) {
   item.na^
@@ -3254,6 +3318,64 @@ void f() {
     expect(resolved.detail, isNot(contains('Auto import from')));
   }
 
+  /// Verify extensions can be auto-imported if not already in-scope.
+  Future<void> test_unimportedSymbols_extension() async {
+    // Define extensions in 'extensions.dart'.
+    newFile(
+      join(projectFolderPath, 'lib', 'extensions.dart'),
+      '''
+extension StringExtensions on String {
+  String get empty => '';
+}
+''',
+    );
+
+    // Also import the extensions into an unrelated file to ensure this doesn't
+    // cause extra suggestions (https://github.com/dart-lang/sdk/issues/56320).
+    newFile(
+      join(projectFolderPath, 'lib', 'other.dart'),
+      'import "extensions.dart";',
+    );
+
+    var content = '''
+void f(String a) {
+  a.empt^
+}
+''';
+
+    await initialize();
+    var code = TestCode.parse(content);
+    await openFile(mainFileUri, code.code);
+    await initialAnalysis;
+    var res = await getCompletion(mainFileUri, code.position.position);
+
+    // Expect only a single entry for the 'empty' extension member.
+    var completions = res.where((c) => c.label == 'empty');
+    expect(completions, hasLength(1));
+
+    // Expect it to auto-import from 'extensions.dart'.
+    var resolved = await resolveCompletion(completions.single);
+    expect(
+      resolved.detail,
+      startsWith("Auto import from 'package:test/extensions.dart'"),
+    );
+
+    // Verify the edits.
+    var newContent = applyTextEdits(
+      code.code,
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
+    );
+    expect(newContent, equals('''
+import 'package:test/extensions.dart';
+
+void f(String a) {
+  a.empty
+}
+'''));
+  }
+
   Future<void> test_unimportedSymbols_filtersOutAlreadyImportedSymbols() async {
     newFile(
       join(projectFolderPath, 'lib', 'source_file.dart'),
@@ -4350,7 +4472,6 @@ void f() {
 
   Future<void> test_snippets_testBlock() async {
     mainFilePath = join(projectFolderPath, 'test', 'foo_test.dart');
-    mainFileUri = pathContext.toUri(mainFilePath);
     var content = '''
 void f() {
   test^
@@ -4375,7 +4496,6 @@ void f() {
 
   Future<void> test_snippets_testGroupBlock() async {
     mainFilePath = join(projectFolderPath, 'test', 'foo_test.dart');
-    mainFileUri = pathContext.toUri(mainFilePath);
     var content = '''
 void f() {
   group^

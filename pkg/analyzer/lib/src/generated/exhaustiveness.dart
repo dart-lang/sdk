@@ -57,7 +57,7 @@ class AnalyzerDartTemplateBuffer
 
   @override
   void writeEnumValue(FieldElement value, String name) {
-    var enumElement = value.enclosingElement;
+    var enumElement = value.enclosingElement3;
     if (enumElement is! EnumElement) {
       isComplete = false;
       return;
@@ -99,7 +99,7 @@ class AnalyzerEnumOperations
 
   @override
   String getEnumElementName(FieldElement enumField) {
-    return '${enumField.enclosingElement.name}.${enumField.name}';
+    return '${enumField.enclosingElement3.name}.${enumField.name}';
   }
 
   @override
@@ -440,9 +440,13 @@ class ExhaustivenessDataForTesting {
   /// Map from switch case nodes to the space for its pattern/expression.
   Map<AstNode, Space> caseSpaces = {};
 
-  /// Map from switch statement/expression/case nodes to the error reported
-  /// on the node.
-  Map<AstNode, ExhaustivenessError> errors = {};
+  /// Map from unreachable switch case nodes to information about their
+  /// unreachability.
+  Map<AstNode, CaseUnreachability> caseUnreachabilities = {};
+
+  /// Map from switch statement nodes that are erroneous due to being
+  /// non-exhaustive, to information about their non-exhaustiveness.
+  Map<AstNode, NonExhaustiveness> nonExhaustivenesses = {};
 
   ExhaustivenessDataForTesting(this.objectFieldLookup);
 }
@@ -550,12 +554,12 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
         Element? element = field.element;
         DartType? extensionPropertyType;
         if (element is PropertyAccessorElement &&
-            (element.enclosingElement is ExtensionElement ||
-                element.enclosingElement is ExtensionTypeElement)) {
+            (element.enclosingElement3 is ExtensionElement ||
+                element.enclosingElement3 is ExtensionTypeElement)) {
           extensionPropertyType = element.returnType;
         } else if (element is ExecutableElement &&
-            (element.enclosingElement is ExtensionElement ||
-                element.enclosingElement is ExtensionTypeElement)) {
+            (element.enclosingElement3 is ExtensionElement ||
+                element.enclosingElement3 is ExtensionTypeElement)) {
           extensionPropertyType = element.type;
         }
         if (extensionPropertyType != null) {

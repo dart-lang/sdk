@@ -9,6 +9,6 @@
 
 import '../../pkg/test_runner/bin/compare_results.dart' as compare_results;
 
-main(List<String> args) {
+void main(List<String> args) {
   compare_results.main(args);
 }

@@ -19,9 +19,9 @@ abstract class DwarfContainer {
   /// not match any expected Dart architecture.
   String? get architecture;
 
-  Reader debugInfoReader(Reader containerReader);
-  Reader lineNumberInfoReader(Reader containerReader);
-  Reader abbreviationsTableReader(Reader containerReader);
+  Reader? debugInfoReader(Reader containerReader);
+  Reader? lineNumberInfoReader(Reader containerReader);
+  Reader? abbreviationsTableReader(Reader containerReader);
   DwarfContainerSymbol? staticSymbolAt(int address);
 
   int? get vmStartAddress;

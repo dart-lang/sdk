@@ -871,9 +871,10 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   }
 
   if (library.url() == Symbols::vm_ffi_native_assets().ptr()) {
-    const auto& native_assets_library =
-        Library::Handle(IG->object_store()->native_assets_library());
-    ASSERT(native_assets_library.IsNull());
+    // Hot reload replaces an old native assets library.
+    // TODO(https://github.com/dart-lang/sdk/issues/55519): If we start
+    // supporting caching of asset lookup, we should empty the caches derived
+    // from the native assets library.
     IG->object_store()->set_native_assets_library(library);
   }
 
@@ -1207,10 +1208,17 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
     if (!Api::IsFfiEnabled() &&
         target_library.url() == Symbols::DartFfi().ptr() &&
         library->url() != Symbols::DartCore().ptr() &&
+        library->url() != Symbols::DartConcurrent().ptr() &&
         library->url() != Symbols::DartInternal().ptr() &&
         library->url() != Symbols::DartFfi().ptr()) {
       H.ReportError(
           "import of dart:ffi is not supported in the current Dart runtime");
+    }
+    if (target_library.url() == Symbols::DartConcurrent().ptr() &&
+        !is_experimental_shared_data_enabled) {
+      FATAL(
+          "Encountered dart:concurrent when functionality is disabled. "
+          "Pass --experimental-shared-data");
     }
     String& prefix = H.DartSymbolPlain(dependency_helper.name_index_);
     ns = Namespace::New(target_library, show_names, hide_names, *library);
@@ -1532,7 +1540,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     // TypedData in them, without using guards because they are force
     // optimized. We immediately set the guarded_cid_ to kDynamicCid, which
     // is effectively the same as calling this method first with Pointer and
-    // subsequently with TypedData with field guards.
+    // subsequently with TypedData with field guards. We also set
+    // guarded_list_length_ to kNoFixedLength for similar reasons.
     if (klass.UserVisibleName() == Symbols::Compound().ptr() &&
         Library::Handle(Z, klass.library()).url() == Symbols::DartFfi().ptr()) {
       ASSERT_EQUAL(fields_.length(), 2);
@@ -1540,6 +1549,9 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                  .StartsWith(Symbols::_typedDataBase()));
       fields_[0]->set_guarded_cid(kDynamicCid);
       fields_[0]->set_is_nullable(true);
+      fields_[0]->set_guarded_list_length(Field::kNoFixedLength);
+      fields_[0]->set_guarded_list_length_in_object_offset(
+          Field::kUnknownLengthOffset);
     }
 
     // Check that subclasses of AbiSpecificInteger have a mapping for the
@@ -2378,67 +2390,6 @@ FunctionPtr KernelLoader::GetClosureFunction(Thread* thread,
         kernel_loader.LoadClosureFunction(parent_function, closure_owner);
   }
   return function.ptr();
-}
-
-FunctionPtr CreateFieldInitializerFunction(Thread* thread,
-                                           Zone* zone,
-                                           const Field& field) {
-  ASSERT(field.InitializerFunction() == Function::null());
-
-  String& init_name = String::Handle(zone, field.name());
-  init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
-
-  // Static field initializers are not added as members of their owning class,
-  // so they must be preemptively given a patch class to avoid the meaning of
-  // their kernel/token position changing during a reload. Compare
-  // Class::PatchFieldsAndFunctions().
-  // This might also be necessary for lazy computation of local var descriptors.
-  // Compare https://codereview.chromium.org//1317753004
-  const Script& script = Script::Handle(zone, field.Script());
-  const Class& field_owner = Class::Handle(zone, field.Owner());
-  const auto& kernel_program_info =
-      KernelProgramInfo::Handle(zone, field.KernelProgramInfo());
-  const PatchClass& initializer_owner = PatchClass::Handle(
-      zone, PatchClass::New(field_owner, kernel_program_info, script));
-  const Library& lib = Library::Handle(zone, field_owner.library());
-  initializer_owner.set_kernel_library_index(lib.kernel_library_index());
-
-  // Create a static initializer.
-  FunctionType& signature = FunctionType::Handle(zone, FunctionType::New());
-  const Function& initializer_fun = Function::Handle(
-      zone,
-      Function::New(signature, init_name, UntaggedFunction::kFieldInitializer,
-                    field.is_static(),  // is_static
-                    false,              // is_const
-                    false,              // is_abstract
-                    false,              // is_external
-                    false,              // is_native
-                    initializer_owner, TokenPosition::kNoSource));
-  if (!field.is_static()) {
-    signature.set_num_fixed_parameters(1);
-    signature.set_parameter_types(
-        Array::Handle(zone, Array::New(1, Heap::kOld)));
-    signature.SetParameterTypeAt(
-        0, AbstractType::Handle(zone, field_owner.DeclarationType()));
-    initializer_fun.CreateNameArray();
-    initializer_fun.SetParameterNameAt(0, Symbols::This());
-  }
-  signature.set_result_type(AbstractType::Handle(zone, field.type()));
-  initializer_fun.set_is_reflectable(false);
-  initializer_fun.set_is_inlinable(false);
-  initializer_fun.set_token_pos(field.token_pos());
-  initializer_fun.set_end_token_pos(field.end_token_pos());
-  initializer_fun.set_accessor_field(field);
-  initializer_fun.InheritKernelOffsetFrom(field);
-  initializer_fun.set_is_extension_member(field.is_extension_member());
-  initializer_fun.set_is_extension_type_member(
-      field.is_extension_type_member());
-
-  signature ^= ClassFinalizer::FinalizeType(signature);
-  initializer_fun.SetSignature(signature);
-
-  field.SetInitializerFunction(initializer_fun);
-  return initializer_fun.ptr();
 }
 
 }  // namespace kernel

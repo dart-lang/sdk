@@ -13,20 +13,19 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/modifier.dart';
-import '../base/scope.dart' show Scope;
+import '../base/scope.dart' show LookupScope;
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
-import '../source/constructor_declaration.dart';
 import '../source/builder_factory.dart';
+import '../source/constructor_declaration.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
+import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
-import '../util/helpers.dart' show DelayedActionPerformer;
 import 'builder.dart';
 import 'constructor_builder.dart';
 import 'declaration_builders.dart';
-import 'library_builder.dart';
 import 'modifier_builder.dart';
 import 'omitted_type_builder.dart';
 import 'type_builder.dart';
@@ -48,11 +47,6 @@ abstract class ParameterBuilder {
   bool get isRequiredNamed;
 
   String? get name;
-
-  ParameterBuilder clone(
-      List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
-      TypeParameterScopeBuilder contextDeclaration);
 }
 
 /// A builder for a formal parameter, i.e. a parameter on a method or
@@ -60,6 +54,11 @@ abstract class ParameterBuilder {
 class FormalParameterBuilder extends ModifierBuilderImpl
     implements VariableBuilder, ParameterBuilder, InferredTypeListener {
   static const String noNameSentinel = 'no name sentinel';
+
+  SourceFunctionBuilder? _parent;
+
+  @override
+  final int charOffset;
 
   @override
   final int modifiers;
@@ -100,16 +99,25 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   /// Whether this formal parameter is a wildcard variable.
   final bool isWildcard;
 
-  FormalParameterBuilder(this.kind, this.modifiers, this.type, this.name,
-      LibraryBuilder? compilationUnit, int charOffset,
-      {required Uri fileUri,
+  FormalParameterBuilder(
+      this.kind, this.modifiers, this.type, this.name, this.charOffset,
+      {required this.fileUri,
       this.isExtensionThis = false,
       required this.hasImmediatelyDeclaredInitializer,
       this.isWildcard = false})
-      : this.fileUri = fileUri,
-        this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer,
-        super(compilationUnit, charOffset) {
+      : this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer {
     type.registerInferredTypeListener(this);
+  }
+
+  @override
+  SourceFunctionBuilder get parent {
+    assert(_parent != null, "Parent has not been set for $this.");
+    return _parent!;
+  }
+
+  void set parent(SourceFunctionBuilder value) {
+    assert(_parent == null, "Parent has already been set for $this.");
+    _parent = value;
   }
 
   @override
@@ -186,22 +194,13 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     }
   }
 
-  @override
-  ParameterBuilder clone(
-      List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
-      TypeParameterScopeBuilder contextDeclaration) {
-    return new FunctionTypeParameterBuilder(
-        kind, type.clone(newTypes, contextLibrary, contextDeclaration), name);
-  }
-
   FormalParameterBuilder forPrimaryConstructor(BuilderFactory builderFactory) {
     return new FormalParameterBuilder(kind, modifiers | initializingFormalMask,
-        builderFactory.addInferableType(), name, null, charOffset,
+        builderFactory.addInferableType(), name, charOffset,
         fileUri: fileUri,
         isExtensionThis: isExtensionThis,
         hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
-      ..parent = parent
+      .._parent = _parent
       ..variable = variable;
   }
 
@@ -212,7 +211,6 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           modifiers | finalMask | initializingFormalMask,
           type,
           name,
-          null,
           charOffset,
           fileUri: fileUri,
           isExtensionThis: isExtensionThis,
@@ -225,7 +223,6 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           modifiers | finalMask | superInitializingFormalMask,
           type,
           name,
-          null,
           charOffset,
           fileUri: fileUri,
           isExtensionThis: isExtensionThis,
@@ -264,21 +261,20 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     if (parent is ConstructorBuilder) {
       return true;
     } else if (parent is SourceFactoryBuilder) {
-      return parent!.isFactory;
+      return parent.isFactory;
     } else {
-      return parent!.isClassInstanceMember;
+      return parent.isClassInstanceMember;
     }
   }
 
   /// Builds the default value from this [initializerToken] if this is a
   /// formal parameter on a const constructor or instance method.
-  void buildOutlineExpressions(SourceLibraryBuilder libraryBuilder,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+  void buildOutlineExpressions(SourceLibraryBuilder libraryBuilder) {
     if (needsDefaultValuesBuiltAsOutlineExpressions) {
       if (initializerToken != null) {
         final DeclarationBuilder declarationBuilder =
-            parent!.parent as DeclarationBuilder;
-        Scope scope = declarationBuilder.scope;
+            parent.declarationBuilder!;
+        LookupScope scope = declarationBuilder.scope;
         BodyBuilderContext bodyBuilderContext = new ParameterBodyBuilderContext(
             this,
             inOutlineBuildingPhase: true,
@@ -295,9 +291,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
             bodyBuilder, initializer, variable!.type, hasDeclaredInitializer);
         variable!.initializer = initializer..parent = variable;
         initializerWasInferred = true;
-        bodyBuilder.performBacklogComputations(
-            delayedActionPerformers: delayedActionPerformers,
-            allowFurtherDelays: false);
+        bodyBuilder.performBacklogComputations();
       } else if (kind.isOptional) {
         // As done by BodyBuilder.endFormalParameter.
         variable!.initializer = new NullLiteral()..parent = variable;
@@ -318,16 +312,6 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
   final String? name;
 
   FunctionTypeParameterBuilder(this.kind, this.type, this.name);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ParameterBuilder clone(
-      List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
-      TypeParameterScopeBuilder contextDeclaration) {
-    return new FunctionTypeParameterBuilder(
-        kind, type.clone(newTypes, contextLibrary, contextDeclaration), name);
-  }
 
   @override
   bool get isNamed => kind.isNamed;

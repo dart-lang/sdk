@@ -10,8 +10,8 @@ import self as self;
 import "dart:core" as core;
 
 static method test() → dynamic {
-  function wildcard _() → void {}
-  function wildcard _(core::int x) → core::int
+  function wildcard _#wc0#var() → void {}
+  function wildcard _#wc1#var(core::int x) → core::int
     return x;
   core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/local_function_wildcard.dart:8:9: Error: Undefined name '_'.
   print(_);

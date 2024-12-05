@@ -152,6 +152,7 @@ class _ServiceTesteeLauncher {
 
     final fullArgs = <String>[
       '--disable-dart-dev',
+      '--no-dds',
     ];
     if (pause_on_start) {
       fullArgs.add('--pause-isolates-on-start');

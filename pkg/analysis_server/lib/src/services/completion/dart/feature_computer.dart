@@ -538,9 +538,9 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       if (node.operator.type == TokenType.EQ) {
         return node.writeType;
       }
-      var method = node.staticElement;
+      var method = node.element;
       if (method != null) {
-        var parameters = method.parameters;
+        var parameters = method.formalParameters;
         if (parameters.isNotEmpty) {
           return parameters[0].type;
         }
@@ -626,9 +626,13 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       if (parent is MethodDeclarationImpl) {
         return parent.body.bodyContext?.contextType;
       } else if (parent is FunctionExpressionImpl) {
-        var grandparent = parent.parent;
-        if (grandparent is FunctionDeclaration) {
-          return parent.body.bodyContext?.contextType;
+        // If the surrounding function has a context type, use it.
+        var functionContextType = parent.body.bodyContext?.contextType;
+        if (functionContextType != null) {
+          return functionContextType;
+        } else if (parent.parent is FunctionDeclaration) {
+          // Don't walk up past the function declaration.
+          return null;
         }
         return _visitParent(parent);
       }
@@ -744,10 +748,8 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   @override
   DartType? visitIndexExpression(IndexExpression node) {
     if (range.endStart(node.leftBracket, node.rightBracket).contains(offset)) {
-      var parameters = node.staticElement?.parameters;
-      if (parameters != null && parameters.isNotEmpty) {
-        return parameters[0].type;
-      }
+      var formalParameters = node.element?.formalParameters;
+      return formalParameters?.firstOrNull?.type;
     }
     return null;
   }

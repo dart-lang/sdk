@@ -105,7 +105,7 @@ f() {
   for (int i = 0; 3;) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
       error(CompileTimeErrorCode.NON_BOOL_CONDITION, 24, 1),
     ]);
   }
@@ -117,7 +117,7 @@ f() {
   int i;
   for (i = 0; 3;) {}
 }''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
       error(CompileTimeErrorCode.NON_BOOL_CONDITION, 29, 1),
     ]);
   }

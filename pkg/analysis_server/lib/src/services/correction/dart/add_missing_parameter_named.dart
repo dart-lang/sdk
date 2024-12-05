@@ -72,10 +72,12 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
     }
 
     if (context.named.isNotEmpty) {
-      var prevNode = await context.getParameterNode(context.named.last);
+      var lastFirst = context.named.last.firstFragment!;
+      var prevNode = await context.getParameterNode2(lastFirst);
       await addParameter(prevNode?.end, ', ', '');
     } else if (context.required.isNotEmpty) {
-      var prevNode = await context.getParameterNode(context.required.last);
+      var lastFirst = context.required.last.firstFragment!;
+      var prevNode = await context.getParameterNode2(lastFirst);
       await addParameter(prevNode?.end, ', {', '}');
     } else {
       var parameterList = await context.getParameterList();

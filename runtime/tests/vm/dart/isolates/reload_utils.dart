@@ -127,7 +127,7 @@ Future<Reloader> launchOn(String file, {bool verbose = false}) async {
     if (verbose) '--trace-reload',
     if (verbose) '--trace-reload-verbose',
     '--enable-vm-service:0',
-    '--disable-dart-dev',
+    '--no-dds',
     '--disable-service-auth-codes',
     file
   ];

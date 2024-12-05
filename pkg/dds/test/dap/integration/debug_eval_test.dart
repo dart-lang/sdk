@@ -360,7 +360,7 @@ void foo() {
         final error = body['error'] as Map<String, Object?>;
         final variables = error['variables'] as Map<String, Object?>;
         expect(error['format'], '{message}');
-        expect(error['showUser'], true);
+        expect(error['showUser'], false);
         expect(variables['message'], expectedErrorMessage);
         expect(variables['stack'], isNotNull);
       });

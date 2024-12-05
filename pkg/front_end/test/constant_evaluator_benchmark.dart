@@ -15,6 +15,7 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart'
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/incremental_compiler.dart'
     show IncrementalCompiler;
+import 'package:front_end/src/base/problems.dart';
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/kernel/constant_evaluator.dart' as constants
@@ -111,6 +112,14 @@ void benchmark(Component component, List<Library> libraries) {
 }
 
 class SilentErrorReporter implements constants.ErrorReporter {
+  @override
+  bool get supportsTrackingReportedErrors => false;
+
+  @override
+  bool get hasSeenError {
+    return unsupported("SilentErrorReporter.hasSeenError", -1, null);
+  }
+
   @override
   void report(LocatedMessage message, [List<LocatedMessage>? context]) {
     // ignore

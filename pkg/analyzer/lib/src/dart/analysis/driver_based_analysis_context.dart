@@ -26,10 +26,8 @@ class DriverBasedAnalysisContext implements AnalysisContext {
   /// [driver].
   DriverBasedAnalysisContext(
     this.resourceProvider,
-    this.contextRoot, [
-    @Deprecated('AnalysisDriver will set itself, remove this')
-    AnalysisDriver? analysisDriver,
-  ]);
+    this.contextRoot,
+  );
 
   /// Get all the analysis options objects associated with this context.
   List<AnalysisOptions> get allAnalysisOptions =>

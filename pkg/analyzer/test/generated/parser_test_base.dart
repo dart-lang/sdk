@@ -396,6 +396,7 @@ class FastaParserTestCase
     fasta.Parser parser = fasta.Parser(
       astBuilder,
       allowPatterns: featureSet!.isEnabled(Feature.patterns),
+      enableFeatureEnhancedParts: featureSet!.isEnabled(Feature.enhanced_parts),
     );
     astBuilder.parser = parser;
     astBuilder.allowNativeClause = allowNativeClause;

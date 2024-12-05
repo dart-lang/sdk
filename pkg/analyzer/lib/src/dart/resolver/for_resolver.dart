@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -158,8 +159,8 @@ class ForResolver {
           : _resolver.typeProvider.iterableType(valueType);
     }
 
-    _resolver.analyzeExpression(
-        iterable, targetType ?? UnknownInferredType.instance);
+    _resolver.analyzeExpression(iterable,
+        SharedTypeSchemaView(targetType ?? UnknownInferredType.instance));
     iterable = _resolver.popRewrite()!;
 
     _resolver.nullableDereferenceVerifier.expression(
@@ -177,15 +178,16 @@ class ForResolver {
 
     if (loopVariable != null) {
       var declaredElement = loopVariable.declaredElement!;
-      _resolver.flowAnalysis.flow
-          ?.declare(declaredElement, declaredElement.type, initialized: true);
+      _resolver.flowAnalysis.flow?.declare(
+          declaredElement, SharedTypeView(declaredElement.type),
+          initialized: true);
     }
 
     _resolver.flowAnalysis.flow?.forEach_bodyBegin(node);
     if (identifierElement is PromotableElement &&
         forEachParts is ForEachPartsWithIdentifier) {
-      _resolver.flowAnalysis.flow
-          ?.write(forEachParts, identifierElement, elementType, null);
+      _resolver.flowAnalysis.flow?.write(
+          forEachParts, identifierElement, SharedTypeView(elementType), null);
     }
 
     visitBody();
@@ -208,7 +210,8 @@ class ForResolver {
 
     var condition = forParts.condition;
     if (condition != null) {
-      _resolver.analyzeExpression(condition, _resolver.typeProvider.boolType);
+      _resolver.analyzeExpression(
+          condition, SharedTypeSchemaView(_resolver.typeProvider.boolType));
       condition = _resolver.popRewrite()!;
       var whyNotPromoted =
           _resolver.flowAnalysis.flow?.whyNotPromoted(condition);

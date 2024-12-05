@@ -37,9 +37,11 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: self::@prefix::a
+        element: <testLibraryFragment>::@prefix::a
+        element2: <testLibraryFragment>::@prefix2::a
       name: A
-      element: package:test/lib1.dart::@class::A
+      element: package:test/lib1.dart::<fragment>::@class::A
+      element2: package:test/lib1.dart::<fragment>::@class::A#element
       type: A
 ''');
   }
@@ -67,11 +69,13 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: self::@prefix::a
+        element: <testLibraryFragment>::@prefix::a
+        element2: <testLibraryFragment>::@prefix2::a
       name: B
-      element: package:test/lib1.dart::@typeAlias::B
+      element: package:test/lib1.dart::<fragment>::@typeAlias::B
+      element2: package:test/lib1.dart::<fragment>::@typeAlias::B#element
       type: A
-        alias: package:test/lib1.dart::@typeAlias::B
+        alias: package:test/lib1.dart::<fragment>::@typeAlias::B
 ''');
   }
 
@@ -99,9 +103,11 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: self::@prefix::a
+        element: <testLibraryFragment>::@prefix::a
+        element2: <testLibraryFragment>::@prefix2::a
       name: A
-      element: package:test/lib1.dart::@class::A
+      element: package:test/lib1.dart::<fragment>::@class::A
+      element2: package:test/lib1.dart::<fragment>::@class::A#element
       type: A
 ''');
   }
@@ -127,9 +133,11 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: self::@prefix::a
+        element: <testLibraryFragment>::@prefix::a
+        element2: <testLibraryFragment>::@prefix2::a
       name: A
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
+      element2: package:test/a.dart::<fragment>::@class::A#element
       type: A
 ''');
   }
@@ -155,9 +163,11 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: self::@prefix::a
+        element: <testLibraryFragment>::@prefix::a
+        element2: <testLibraryFragment>::@prefix2::a
       name: A
-      element: package:test/a.dart::@extensionType::A
+      element: package:test/a.dart::<fragment>::@extensionType::A
+      element2: package:test/a.dart::<fragment>::@extensionType::A#element
       type: A
 ''');
   }
@@ -179,9 +189,11 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: math
         period: .
-        element: self::@prefix::math
+        element: <testLibraryFragment>::@prefix::math
+        element2: <testLibraryFragment>::@prefix2::math
       name: Random
-      element: dart:math::@class::Random
+      element: dart:math::<fragment>::@class::Random
+      element2: dart:math::<fragment>::@class::Random#element
       type: Random
 ''');
   }

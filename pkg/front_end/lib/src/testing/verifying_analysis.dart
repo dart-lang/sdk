@@ -138,7 +138,7 @@ class VerifyingAnalysis extends AnalysisVisitor {
             String newMessageText =
                 '${locatedMessage.messageObject.problemMessage} (allowed)';
             message = locatedMessage.withFormatting(
-                format(
+                formatWithLocationNoSdk(
                     new LocatedMessage(
                         locatedMessage.uri,
                         locatedMessage.charOffset,

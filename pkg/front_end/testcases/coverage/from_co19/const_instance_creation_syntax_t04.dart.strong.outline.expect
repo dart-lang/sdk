@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor name() → self::A
+    : super core::Object::•()
+    ;
+}
+static method foo() → void
+  ;

@@ -1,0 +1,18 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/duplicate_local_const.dart:7:9: Error: 'c07' is already declared in this scope.
+//   const c07 = 2;
+//         ^^^
+// pkg/front_end/testcases/coverage/duplicate_local_const.dart:6:9: Context: Previous declaration of 'c07'.
+//   const c07 = 1;
+//         ^^^
+//
+import self as self;
+
+static method test() → void {
+  const invalid-type c07 = invalid-expression "pkg/front_end/testcases/coverage/duplicate_local_const.dart:7:9: Error: 'c07' is already declared in this scope.
+  const c07 = 2;
+        ^^^";
+}

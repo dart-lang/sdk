@@ -4,6 +4,7 @@
 
 library dart2js.js_emitter.interceptor_stub_generator;
 
+import 'package:js_runtime/synced/array_flags.dart';
 import 'package:js_runtime/synced/embedded_names.dart' as embeddedNames;
 
 import '../common/elements.dart';
@@ -409,10 +410,14 @@ class InterceptorStubGenerator {
 
         return js.statement(r'''
           if (typeof a0 === "number")
-            if (# && !receiver.immutable$list &&
+            if (# && !(receiver.# & #) &&
                 (a0 >>> 0) === a0 && a0 < receiver.length)
               return receiver[a0] = a1;
-          ''', typeCheck);
+          ''', [
+          typeCheck,
+          _namer.fixedNames.arrayFlagsPropertyName,
+          js.number(ArrayFlags.unmodifiableCheck)
+        ]);
       }
     } else if (selector.isCall) {
       if (selector.name == 'abs' && selector.argumentCount == 0) {

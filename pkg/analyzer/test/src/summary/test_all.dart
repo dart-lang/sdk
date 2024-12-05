@@ -5,7 +5,7 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'api_signature_test.dart' as api_signature;
-import 'elements_test.dart' as elements;
+import 'elements/test_all.dart' as elements;
 import 'flat_buffers_test.dart' as flat_buffers;
 import 'macro_test.dart' as macro;
 import 'reference_test.dart' as reference;

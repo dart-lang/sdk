@@ -43,13 +43,15 @@ FunctionExpressionInvocation
           parameter: <null>
           staticType: int
       rightParenthesis: )
-    element: self::@extension::E
+    element: <testLibraryFragment>::@extension::E
+    element2: <testLibraryFragment>::@extension::E#element
     extendedType: int
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticElement: self::@extension::E::@method::call
+  staticElement: <testLibraryFragment>::@extension::E::@method::call
+  element: <testLibraryFragment>::@extension::E::@method::call#element
   staticInvokeType: void Function()
   staticType: void
 ''');
@@ -108,13 +110,15 @@ MethodInvocation
         SimpleStringLiteral
           literal: 'a'
       rightParenthesis: )
-    element: self::@extension::E
+    element: <testLibraryFragment>::@extension::E
+    element2: <testLibraryFragment>::@extension::E#element
     extendedType: String
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: empty
-    staticElement: self::@extension::E::@method::empty
+    staticElement: <testLibraryFragment>::@extension::E::@method::empty
+    element: <testLibraryFragment>::@extension::E::@method::empty#element
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (

@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class TypeExpecter<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::TypeExpecter<self::TypeExpecter::X%>
+    ;
+  method checkType<Y extends core::Object? = dynamic>(dynamic value) → self::TypeExpecter::checkType::Y%
+    ;
+}
+static method test1(core::int? x) → dynamic
+  ;
+static method test2(dynamic x) → dynamic
+  ;
+static method test3(core::String? key) → dynamic
+  ;
+static method test4(dynamic key) → dynamic
+  ;
+static method test5(core::String? value) → dynamic
+  ;
+static method test6(dynamic value) → dynamic
+  ;
+static method test7(core::int? key, core::Symbol? value) → dynamic
+  ;
+static method test8(dynamic key, dynamic value) → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method expectType<T extends core::Object? = dynamic>(dynamic x) → dynamic
+  ;
+static method expectThrows<T extends core::Object? = dynamic>(() → void f) → dynamic
+  ;

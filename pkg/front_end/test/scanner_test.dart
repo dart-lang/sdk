@@ -242,6 +242,14 @@ abstract class ScannerTestBase {
     _assertToken(TokenType.DOUBLE, "0.123e4");
   }
 
+  void test_double_both_e_separatorInExponent() {
+    _assertToken(TokenType.DOUBLE_WITH_SEPARATORS, "0.123e0_4");
+  }
+
+  void test_double_both_e_separatorInBase() {
+    _assertToken(TokenType.DOUBLE_WITH_SEPARATORS, "0.123_0e4");
+  }
+
   void test_double_fraction() {
     _assertToken(TokenType.DOUBLE, ".123");
   }
@@ -264,6 +272,14 @@ abstract class ScannerTestBase {
 
   void test_double_whole_e() {
     _assertToken(TokenType.DOUBLE, "12e4");
+  }
+
+  void test_double_whole_e_separatorInBase() {
+    _assertToken(TokenType.DOUBLE_WITH_SEPARATORS, "1_2e4");
+  }
+
+  void test_double_whole_e_separatorInExponent() {
+    _assertToken(TokenType.DOUBLE_WITH_SEPARATORS, "12e0_4");
   }
 
   void test_eq() {
@@ -302,6 +318,10 @@ abstract class ScannerTestBase {
     _assertToken(TokenType.HEXADECIMAL, "0x1A2B3C");
   }
 
+  void test_hexadecimal_separators() {
+    _assertToken(TokenType.HEXADECIMAL_WITH_SEPARATORS, "0x1A_2B_3C");
+  }
+
   void test_hexadecimal_missingDigit() {
     var token = _assertError(ScannerErrorCode.MISSING_HEX_DIGIT, 5, "a = 0x");
     expect(token.lexeme, 'a');
@@ -309,6 +329,19 @@ abstract class ScannerTestBase {
     expect(token.lexeme, '=');
     token = token.next!;
     expect(token.lexeme, '0x0');
+  }
+
+  void test_hexadecimal_unexpectedSeparator() {
+    var token = _assertError(
+        ScannerErrorCode.UNEXPECTED_SEPARATOR_IN_NUMBER,
+        // TODO(srawlins): Should be 5?
+        4,
+        "a = 0x5_");
+    expect(token.lexeme, 'a');
+    token = token.next!;
+    expect(token.lexeme, '=');
+    token = token.next!;
+    expect(token.lexeme, '0x5_');
   }
 
   void test_identifier() {
@@ -404,6 +437,14 @@ abstract class ScannerTestBase {
 
   void test_int() {
     _assertToken(TokenType.INT, "123");
+  }
+
+  void test_int_separators() {
+    _assertToken(TokenType.INT_WITH_SEPARATORS, "123_456_789");
+  }
+
+  void test_int_separators_bad() {
+    _assertToken(TokenType.INT_WITH_SEPARATORS, "123_");
   }
 
   void test_int_initialZero() {
@@ -1455,7 +1496,9 @@ abstract class ScannerTestBase {
       expect(tokenWithSpaces.lexeme, source);
       return originalToken;
     } else if (expectedType == TokenType.INT ||
-        expectedType == TokenType.DOUBLE) {
+        expectedType == TokenType.INT_WITH_SEPARATORS ||
+        expectedType == TokenType.DOUBLE ||
+        expectedType == TokenType.DOUBLE_WITH_SEPARATORS) {
       Token tokenWithLowerD = _scan("${source}d", ignoreErrors: true);
       expect(tokenWithLowerD, isNotNull);
       expect(tokenWithLowerD.type, expectedType);

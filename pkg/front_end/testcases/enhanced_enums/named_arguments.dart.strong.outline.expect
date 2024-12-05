@@ -3,9 +3,9 @@ import self as self;
 import "dart:core" as core;
 
 class E0 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E0> values = const <self::E0>[self::E0::one, self::E0::two];
   final field core::int foo;
   final field core::int bar;
+  static const field core::List<self::E0> values = const <self::E0>[self::E0::one, self::E0::two];
   enum-element static const field self::E0 one = const self::E0::•(0, "one", 1, bar: 1);
   enum-element static const field self::E0 two = const self::E0::•(1, "two", 2, bar: 2);
   const constructor •(core::int #index, core::String #name, core::int foo, {required core::int bar}) → self::E0
@@ -15,8 +15,8 @@ class E0 extends core::_Enum /*isEnum*/  {
     return "E0.${this.{core::_Enum::_name}{core::String}}";
 }
 class E1<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E1<dynamic>> values = const <self::E1<dynamic>>[self::E1::one, self::E1::two];
   final field self::E1::X% foo;
+  static const field core::List<self::E1<dynamic>> values = const <self::E1<dynamic>>[self::E1::one, self::E1::two];
   enum-element static const field self::E1<core::String> one = const self::E1::•<core::String>(0, "one", foo: "1");
   enum-element static const field self::E1<core::int> two = const self::E1::•<core::int>(1, "two", foo: 2);
   const constructor •(core::int #index, core::String #name, {required self::E1::X% foo}) → self::E1<self::E1::X%>
@@ -26,10 +26,10 @@ class E1<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 class E2<X extends core::Object? = dynamic, Y extends core::Object? = dynamic, Z extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E2<dynamic, dynamic, dynamic>> values = const <self::E2<dynamic, dynamic, dynamic>>[self::E2::one, self::E2::two, self::E2::three];
   final field self::E2::X% foo;
   final field self::E2::Y% bar;
   final field self::E2::Z? baz;
+  static const field core::List<self::E2<dynamic, dynamic, dynamic>> values = const <self::E2<dynamic, dynamic, dynamic>>[self::E2::one, self::E2::two, self::E2::three];
   enum-element static const field self::E2<core::int, core::String, core::double> one = const self::E2::•<core::int, core::String, core::double>(0, "one", 1, bar: "1", baz: 3.14);
   enum-element static const field self::E2<core::String, core::int, core::double> two = const self::E2::•<core::String, core::int, core::double>(1, "two", "2", baz: 3.14, bar: 2);
   enum-element static const field self::E2<core::double, core::bool, dynamic> three = const self::E2::•<core::double, core::bool, dynamic>(2, "three", 3.0, bar: false);

@@ -4188,7 +4188,6 @@ suggestions
 
   Future<void> test_partFile_TypeName() async {
     newFile('$testPackageLibPath/b.dart', '''
-library B;
 int T0 = 0;
 F0() {}
 class X {
@@ -4200,14 +4199,13 @@ class X {
 }
 ''');
     newFile('$testPackageLibPath/a.dart', '''
-library libA;
 import "b.dart";
 part "${resourceProvider.pathContext.basename(testFile.path)}";
 class A0 {}
 var m0 = T0;
 ''');
     await computeSuggestions('''
-part of libA;
+part of 'a.dart';
 class B {
   B.bar(int x);
 }
@@ -4224,7 +4222,6 @@ suggestions
 
   Future<void> test_partFile_TypeName2() async {
     newFile('$testPackageLibPath/b.dart', '''
-library B0;
 int T0 = 0;
 F0() {}
 class X {
@@ -4236,11 +4233,10 @@ class X {
 }
 ''');
     newFile('$testPackageLibPath/a.dart', '''
-part of libA;
+part of 'test.dart';
 class B0 {}
 ''');
     await computeSuggestions('''
-library libA;
 import "b.dart";
 part "a.dart";
 class A0 {

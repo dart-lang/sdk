@@ -253,13 +253,15 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   question: ?
-  element: self::@typeAlias::G
+  element: <testLibraryFragment>::@typeAlias::G
+  element2: <testLibraryFragment>::@typeAlias::G#element
   type: int Function(double)?
-    alias: self::@typeAlias::G
+    alias: <testLibraryFragment>::@typeAlias::G
       typeArguments
         int
 ''');

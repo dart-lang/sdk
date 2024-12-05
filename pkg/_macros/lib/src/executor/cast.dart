@@ -65,8 +65,8 @@ class MapCast<K, V> extends Cast<Map<K, V>> {
   /// and so `<Object?, Object?>` is used to avoid unnecessary casts.
   static MapCast<Object?, Object?> from(
           Cast<Object?> keyCast, Cast<Object?> valueCast) =>
-      keyCast.getAsTypedCast(<K>(keyCast) => valueCast.getAsTypedCast(
-          <V>(valueCast) => MapCast<K, V>._(keyCast, valueCast)));
+      keyCast.getAsTypedCast(<KK>(keyCast) => valueCast.getAsTypedCast(
+          <VV>(valueCast) => MapCast<KK, VV>._(keyCast, valueCast)));
 
   @override
   Map<K, V> _cast(Object? from) {

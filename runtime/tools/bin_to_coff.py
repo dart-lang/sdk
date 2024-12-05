@@ -19,6 +19,10 @@ FILE_HEADER_AR32WR = 0x100  # File is 32-bit little endian
 SECTION_HEADER_TEXT = 0x20  # Contains executable code
 SECTION_HEADER_DATA = 0x40  # Contains only initialized data
 SECTION_HEADER_BSS = 0x80  # Contains uninitialized data
+SECTION_HEADER_ALIGN32 = 0x00600000  # Align data on a 32-byte boundary
+SECTION_HEADER_EXECUTE = 0x20000000  # The section can be executed as code
+SECTION_HEADER_READ = 0x40000000  # The section can be read
+SECTION_HEADER_WRITE = 0x80000000  # The section can be written to
 
 # FILE HEADER FORMAT
 # typedef struct {
@@ -60,7 +64,7 @@ FILE_HEADER_FLAGS = FILE_HEADER_LNNO
 # } SCNHDR;
 SECTION_HEADER_FORMAT = '8sIIIIIIHHI'
 SECTION_HEADER_SIZE = calcsize(SECTION_HEADER_FORMAT)
-SECTION_NAME_RODATA = b'.rodata'
+SECTION_NAME_RDATA = b'.rdata'
 SECTION_NAME_TEXT = b'.text'
 SECTION_PADDR = 0x0
 SECTION_VADDR = 0x0
@@ -92,8 +96,10 @@ SYMBOL_TABLE_ENTRY_FORMAT_LONG = 'IIIhHBB'
 SYMBOL_TABLE_ENTRY_SIZE = calcsize(SYMBOL_TABLE_ENTRY_FORMAT_SHORT)
 SYMBOL_TABLE_ENTRY_ZEROS = 0x0
 SYMBOL_TABLE_ENTRY_SECTION = 1
+SYMBOL_TABLE_ENTRY_ABSOLUTE = -1
 SYMBOL_TABLE_ENTRY_TYPE = 0
 SYMBOL_TABLE_ENTRY_CLASS = 2  # External (public) symbol.
+SYMBOL_TABLE_ENTRY_CLASS_STATIC = 3
 SYMBOL_TABLE_ENTRY_NUM_AUX = 0  # Number of auxiliary entries.
 
 STRING_TABLE_OFFSET = 0x4  # Starting offset for the string table.
@@ -137,12 +143,16 @@ def main():
 
     # Symbols on x86 are prefixed with '_'
     symbol_prefix = b'_' if args.arch == 'x86' else b''
-    num_symbols = 2 if includes_size_name else 1
+    num_symbols = 1
     symbol_name = symbol_prefix + args.symbol_name.encode()
     size_symbol_name = None
     if (includes_size_name):
         size_symbol = args.size_name if args.size_name else args.symbol_name + "Size"
         size_symbol_name = symbol_prefix + size_symbol.encode()
+        num_symbols += 1
+    if (args.arch == 'x86'):
+        feat_symbol_name = b'@feat.00'
+        num_symbols += 1
 
     size_symbol_format = SIZE_SYMBOL_FORMAT_X64 if use_64_bit else SIZE_FORMAT
     size_symbol_size = SIZE_SYMBOL_LENGTH_X64 if use_64_bit else SIZE_LENGTH
@@ -156,6 +166,7 @@ def main():
     # in the string table.
     long_symbol_name = False
     long_size_symbol_name = False
+    long_feat_symbol_name = False
     if (len(symbol_name) > SYMBOL_TABLE_ENTRY_SHORT_LEN):
         string_table_len += len(symbol_name) + 1
         long_symbol_name = True
@@ -164,6 +175,11 @@ def main():
         (len(size_symbol_name) > SYMBOL_TABLE_ENTRY_SHORT_LEN)):
         string_table_len += len(size_symbol_name) + 1
         long_size_symbol_name = True
+
+    if (args.arch == 'x86' and
+        (len(feat_symbol_name) > SYMBOL_TABLE_ENTRY_SHORT_LEN)):
+        string_table_len += len(feat_symbol_name) + 1
+        long_feat_symbol_name = True
 
     # Create the buffer and start building.
     offset = 0
@@ -181,18 +197,18 @@ def main():
               num_symbols, FILE_HEADER_SIZE_OF_OPTIONAL, FILE_HEADER_FLAGS)
     offset += FILE_HEADER_SIZE
 
-    section_name = SECTION_NAME_RODATA
-    section_type = SECTION_HEADER_DATA
+    section_name = SECTION_NAME_RDATA
+    section_flags = SECTION_HEADER_DATA | SECTION_HEADER_ALIGN32 | SECTION_HEADER_READ
     if args.executable:
         section_name = SECTION_NAME_TEXT
-        section_type = SECTION_HEADER_TEXT
+        section_flags = SECTION_HEADER_TEXT | SECTION_HEADER_ALIGN32 | SECTION_HEADER_EXECUTE | SECTION_HEADER_READ
 
     # Populate the section header for a single section.
     pack_into(SECTION_HEADER_FORMAT, buff, offset, section_name, SECTION_PADDR,
               SECTION_VADDR, section_size + size_symbol_size,
               SECTION_RAW_DATA_PTR, SECTION_RELOCATION_PTR,
               SECTION_LINE_NUMS_PTR, SECTION_NUM_RELOCATION,
-              SECTION_NUM_LINE_NUMS, section_type)
+              SECTION_NUM_LINE_NUMS, section_flags)
     offset += SECTION_HEADER_SIZE
 
     # Copy the binary data.
@@ -235,6 +251,23 @@ def main():
                       SYMBOL_TABLE_ENTRY_NUM_AUX)
         offset += SYMBOL_TABLE_ENTRY_SIZE
 
+    if args.arch == 'x86':
+        FEATURE_SAFESEH = 0x1
+        if long_feat_symbol_name:
+            pack_into(SYMBOL_TABLE_ENTRY_FORMAT_LONG, buff, offset,
+                      SYMBOL_TABLE_ENTRY_ZEROS, string_table_offset,
+                      FEATURE_SAFESEH, SYMBOL_TABLE_ENTRY_ABSOLUTE,
+                      SYMBOL_TABLE_ENTRY_TYPE, SYMBOL_TABLE_ENTRY_CLASS_STATIC,
+                      SYMBOL_TABLE_ENTRY_NUM_AUX)
+            string_table_offset += len(feat_symbol_name) + 1
+        else:
+            pack_into(SYMBOL_TABLE_ENTRY_FORMAT_SHORT, buff, offset,
+                      feat_symbol_name, FEATURE_SAFESEH,
+                      SYMBOL_TABLE_ENTRY_ABSOLUTE, SYMBOL_TABLE_ENTRY_TYPE,
+                      SYMBOL_TABLE_ENTRY_CLASS_STATIC,
+                      SYMBOL_TABLE_ENTRY_NUM_AUX)
+            offset += SYMBOL_TABLE_ENTRY_SIZE
+
     pack_into(SIZE_FORMAT, buff, offset, string_table_len + SIZE_LENGTH)
     offset += SIZE_LENGTH
 
@@ -249,6 +282,13 @@ def main():
     if includes_size_name and long_size_symbol_name:
         symbol_len = len(size_symbol_name)
         buff[offset:offset + symbol_len] = size_symbol_name
+        offset += symbol_len
+        buff[offset] = b'\0'
+        offset += 1
+
+    if args.arch == 'x86' and long_feat_symbol_name:
+        symbol_len = len(feat_symbol_name)
+        buff[offset:offset + symbol_len] = feat_symbol_name
         offset += symbol_len
         buff[offset] = b'\0'
         offset += 1

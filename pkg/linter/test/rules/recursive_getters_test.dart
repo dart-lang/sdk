@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class RecursiveGettersTest extends LintRuleTest {
   @override
-  String get lintRule => 'recursive_getters';
+  String get lintRule => LintNames.recursive_getters;
 
   /// https://github.com/dart-lang/linter/issues/3706
   test_constList_expressionFunctionBody() async {

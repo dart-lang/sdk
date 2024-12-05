@@ -215,7 +215,8 @@ TryStatement
       onKeyword: on
       exceptionType: NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
       catchKeyword: catch
       leftParenthesis: (

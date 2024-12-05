@@ -222,7 +222,7 @@ class Linker {
     );
 
     for (var library in builders.values) {
-      if (library.inputMacroAugmentationImport == null) {
+      if (library.inputMacroPartInclude == null) {
         await library.fillMacroApplier(macroApplier);
       }
     }

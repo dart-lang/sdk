@@ -19,7 +19,7 @@ Element? declaredParameterElement(
   SimpleIdentifier node,
   Element? element,
 ) {
-  if (element == null || element.enclosingElement != null) {
+  if (element == null || element.enclosingElement3 != null) {
     return element;
   }
 
@@ -64,7 +64,7 @@ Element? declaredParameterElement(
 /// Return the [CompilationUnitElement] that should be used for [element].
 /// Throw [StateError] if the [element] is not linked into a unit.
 CompilationUnitElement getUnitElement(Element element) {
-  for (Element? e = element; e != null; e = e.enclosingElement) {
+  for (Element? e = element; e != null; e = e.enclosingElement3) {
     if (e is CompilationUnitElement) {
       return e;
     }
@@ -89,21 +89,21 @@ class ElementNameComponents {
     String? parameterName;
     if (element is ParameterElement) {
       parameterName = element.name;
-      element = element.enclosingElement!;
+      element = element.enclosingElement3!;
     }
 
     String? classMemberName;
-    if (element.enclosingElement is InterfaceElement ||
-        element.enclosingElement is ExtensionElement) {
+    if (element.enclosingElement3 is InterfaceElement ||
+        element.enclosingElement3 is ExtensionElement) {
       classMemberName = element.name;
-      element = element.enclosingElement!;
+      element = element.enclosingElement3!;
     }
 
     String? unitMemberName;
-    if (element.enclosingElement is CompilationUnitElement) {
+    if (element.enclosingElement3 is CompilationUnitElement) {
       unitMemberName = element.name;
       if (element is ExtensionElement && unitMemberName == null) {
-        var enclosingUnit = element.enclosingElement;
+        var enclosingUnit = element.enclosingElement3;
         var indexOf = enclosingUnit.extensions.indexOf(element);
         unitMemberName = 'extension-$indexOf';
       }
@@ -140,7 +140,7 @@ class IndexElementInfo {
     } else if (element.isSynthetic) {
       if (elementKind == ElementKind.CONSTRUCTOR) {
         kind = IndexSyntheticElementKind.constructor;
-        element = element.enclosingElement!;
+        element = element.enclosingElement3!;
       } else if (element is FunctionElement &&
           element.name == FunctionElement.LOAD_LIBRARY_NAME) {
         kind = IndexSyntheticElementKind.loadLibrary;
@@ -152,7 +152,7 @@ class IndexElementInfo {
       } else if (elementKind == ElementKind.GETTER ||
           elementKind == ElementKind.SETTER) {
         var accessor = element as PropertyAccessorElement;
-        Element enclosing = element.enclosingElement;
+        Element enclosing = element.enclosingElement3;
         bool isEnumGetter = enclosing is EnumElement;
         if (isEnumGetter && accessor.name == 'index') {
           kind = IndexSyntheticElementKind.enumIndex;
@@ -169,7 +169,7 @@ class IndexElementInfo {
           }
         }
       } else if (element is MethodElement) {
-        Element enclosing = element.enclosingElement;
+        Element enclosing = element.enclosingElement3;
         bool isEnumMethod = enclosing is EnumElement;
         if (isEnumMethod && element.name == 'toString') {
           kind = IndexSyntheticElementKind.enumToString;
@@ -331,7 +331,7 @@ class _IndexAssembler {
     unit.accept(_IndexContributor(this));
 
     // Sort strings and set IDs.
-    List<_StringInfo> stringInfoList = stringMap.values.toList();
+    List<_StringInfo> stringInfoList = stringMap.values.toList(growable: false);
     stringInfoList.sort((a, b) {
       return a.value.compareTo(b.value);
     });
@@ -340,7 +340,8 @@ class _IndexAssembler {
     }
 
     // Sort elements and set IDs.
-    List<_ElementInfo> elementInfoList = elementMap.values.toList();
+    List<_ElementInfo> elementInfoList =
+        elementMap.values.toList(growable: false);
     elementInfoList.sort((a, b) {
       int delta;
       delta = a.nameIdUnitMember.id - b.nameIdUnitMember.id;
@@ -371,39 +372,54 @@ class _IndexAssembler {
     });
 
     return AnalysisDriverUnitIndexBuilder(
-        strings: stringInfoList.map((s) => s.value).toList(),
+        strings: stringInfoList.map((s) => s.value).toList(growable: false),
         nullStringId: nullString.id,
-        unitLibraryUris: unitLibraryUris.map((s) => s.id).toList(),
-        unitUnitUris: unitUnitUris.map((s) => s.id).toList(),
+        unitLibraryUris:
+            unitLibraryUris.map((s) => s.id).toList(growable: false),
+        unitUnitUris: unitUnitUris.map((s) => s.id).toList(growable: false),
         elementImportPrefixes: elementInfoList
-            .map((e) => e.importPrefixes.toList().join(','))
-            .toList(),
-        elementKinds: elementInfoList.map((e) => e.kind).toList(),
-        elementUnits: elementInfoList.map((e) => e.unitId).toList(),
-        elementNameUnitMemberIds:
-            elementInfoList.map((e) => e.nameIdUnitMember.id).toList(),
-        elementNameClassMemberIds:
-            elementInfoList.map((e) => e.nameIdClassMember.id).toList(),
-        elementNameParameterIds:
-            elementInfoList.map((e) => e.nameIdParameter.id).toList(),
-        usedElements: elementRelations.map((r) => r.elementInfo.id).toList(),
-        usedElementKinds: elementRelations.map((r) => r.kind).toList(),
-        usedElementOffsets: elementRelations.map((r) => r.offset).toList(),
-        usedElementLengths: elementRelations.map((r) => r.length).toList(),
+            .map((e) => e.importPrefixes.toList(growable: false).join(','))
+            .toList(growable: false),
+        elementKinds:
+            elementInfoList.map((e) => e.kind).toList(growable: false),
+        elementUnits:
+            elementInfoList.map((e) => e.unitId).toList(growable: false),
+        elementNameUnitMemberIds: elementInfoList
+            .map((e) => e.nameIdUnitMember.id)
+            .toList(growable: false),
+        elementNameClassMemberIds: elementInfoList
+            .map((e) => e.nameIdClassMember.id)
+            .toList(growable: false),
+        elementNameParameterIds: elementInfoList
+            .map((e) => e.nameIdParameter.id)
+            .toList(growable: false),
+        usedElements: elementRelations
+            .map((r) => r.elementInfo.id)
+            .toList(growable: false),
+        usedElementKinds:
+            elementRelations.map((r) => r.kind).toList(growable: false),
+        usedElementOffsets:
+            elementRelations.map((r) => r.offset).toList(growable: false),
+        usedElementLengths:
+            elementRelations.map((r) => r.length).toList(growable: false),
         usedElementIsQualifiedFlags:
-            elementRelations.map((r) => r.isQualified).toList(),
-        usedNames: nameRelations.map((r) => r.nameInfo.id).toList(),
-        usedNameKinds: nameRelations.map((r) => r.kind).toList(),
-        usedNameOffsets: nameRelations.map((r) => r.offset).toList(),
+            elementRelations.map((r) => r.isQualified).toList(growable: false),
+        usedNames:
+            nameRelations.map((r) => r.nameInfo.id).toList(growable: false),
+        usedNameKinds: nameRelations.map((r) => r.kind).toList(growable: false),
+        usedNameOffsets:
+            nameRelations.map((r) => r.offset).toList(growable: false),
         usedNameIsQualifiedFlags:
-            nameRelations.map((r) => r.isQualified).toList(),
-        supertypes: subtypes.map((subtype) => subtype.supertype.id).toList(),
+            nameRelations.map((r) => r.isQualified).toList(growable: false),
+        supertypes: subtypes.map((subtype) => subtype.supertype.id).toList(growable: false),
         subtypes: subtypes.map((subtype) {
           return AnalysisDriverSubtypeBuilder(
             name: subtype.name.id,
-            members: subtype.members.map((member) => member.id).toList(),
+            members: subtype.members
+                .map((member) => member.id)
+                .toList(growable: false),
           );
-        }).toList());
+        }).toList(growable: false));
   }
 
   /// Return the unique [_ElementInfo] corresponding the [element].  The field
@@ -518,14 +534,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
         elementKind == ElementKind.TYPE_PARAMETER ||
         elementKind == ElementKind.FUNCTION &&
             element is FunctionElement &&
-            element.enclosingElement is ExecutableElement ||
+            element.enclosingElement3 is ExecutableElement ||
         false) {
       return;
     }
     // Ignore named parameters of synthetic functions, e.g. created for LUB.
     // These functions are not bound to a source, we cannot index them.
     if (elementKind == ElementKind.PARAMETER && element is ParameterElement) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement == null || enclosingElement.isSynthetic) {
         return;
       }
@@ -535,7 +551,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // named parameters. Ignore them.
     if (elementKind == ElementKind.PARAMETER &&
         element is ParameterElement &&
-        element.enclosingElement is GenericFunctionTypeElement) {
+        element.enclosingElement3 is GenericFunctionTypeElement) {
       return;
     }
     // Add the relation.
@@ -959,7 +975,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
     var parent = node.parent;
     if (element != null &&
-        element.enclosingElement is CompilationUnitElement &&
+        element.enclosingElement3 is CompilationUnitElement &&
         // We're only unprefixed when part of a PrefixedIdentifier if we're
         // the left side.
         (parent is! PrefixedIdentifier || parent.prefix == node)) {
@@ -1112,7 +1128,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       ConstructorElement? constructor) {
     var seenConstructors = <ConstructorElement?>{};
     while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
-      var enclosing = constructor.enclosingElement;
+      var enclosing = constructor.enclosingElement3;
       if (enclosing is ClassElement && enclosing.isMixinApplication) {
         var superInvocation = constructor.constantInitializers
             .whereType<SuperConstructorInvocation>()

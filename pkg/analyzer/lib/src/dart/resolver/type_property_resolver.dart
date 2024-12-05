@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -156,8 +157,8 @@ class TypePropertyResolver {
         } else {
           var thisType = _resolver.thisType;
           if (thisType != null) {
-            messages = _resolver.computeWhyNotPromotedMessages(
-                nameErrorEntity, flow.whyNotPromotedImplicitThis(thisType)());
+            messages = _resolver.computeWhyNotPromotedMessages(nameErrorEntity,
+                flow.whyNotPromotedImplicitThis(SharedTypeView(thisType))());
           }
         }
       }

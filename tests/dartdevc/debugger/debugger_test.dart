@@ -9,6 +9,7 @@
 library debugger_test;
 
 import 'dart:html';
+import 'package:async_helper/async_helper.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart' as js_util;
 
@@ -124,6 +125,7 @@ List<FormattedObject> extractNestedFormattedObjects(json) {
 }
 
 main() async {
+  asyncStart();
   if (devtoolsFormatters == null) {
     print("Warning: no devtools custom formatters specified. Skipping tests.");
     return;
@@ -361,5 +363,6 @@ window.ExampleJSClass = function ExampleJSClass(x) {
       });
     }
     expect(actualStr == golden, isTrue);
+    asyncEnd();
   });
 }

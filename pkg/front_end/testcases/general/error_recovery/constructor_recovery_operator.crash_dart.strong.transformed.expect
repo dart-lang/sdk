@@ -28,13 +28,6 @@ library;
 //   Foo()./ : super() {}
 //        ^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:3: Error: 'Foo' is already declared in this scope.
-//   Foo()./ : super() {}
-//   ^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:3:3: Context: Previous declaration of 'Foo'.
-//   Foo() / : super() {}
-//   ^^^
-//
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:8: Error: Expected a class member, but got '.'.
 //   Foo()./ : super() {}
 //        ^
@@ -56,13 +49,6 @@ library;
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:9: Error: Operator '/' should have exactly one parameter.
 //   Foo()./ : super() {}
 //         ^
-//
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:9: Error: 'Foo./' is already declared in this scope.
-//   Foo()./ : super() {}
-//         ^^^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:3:9: Context: Previous declaration of 'Foo./'.
-//   Foo() / : super() {}
-//         ^^^^^
 //
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:7:9: Error: Expected '{' before this.
 //   foo() / : super() {}
@@ -86,23 +72,9 @@ library;
 //   foo() / : super() {}
 //         ^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:7:9: Error: 'Foo./' is already declared in this scope.
-//   foo() / : super() {}
-//         ^^^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:9: Context: Previous declaration of 'Foo./'.
-//   Foo()./ : super() {}
-//         ^^^^^
-//
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:9:8: Error: Expected '{' before this.
 //   foo()./ : super() {}
 //        ^
-//
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:9:3: Error: 'foo' is already declared in this scope.
-//   foo()./ : super() {}
-//   ^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:7:3: Context: Previous declaration of 'foo'.
-//   foo() / : super() {}
-//   ^^^
 //
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:9:8: Error: Expected a class member, but got '.'.
 //   foo()./ : super() {}
@@ -125,6 +97,34 @@ library;
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:9:9: Error: Operator '/' should have exactly one parameter.
 //   foo()./ : super() {}
 //         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:3: Error: 'Foo' is already declared in this scope.
+//   Foo()./ : super() {}
+//   ^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:3:3: Context: Previous declaration of 'Foo'.
+//   Foo() / : super() {}
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:9: Error: 'Foo./' is already declared in this scope.
+//   Foo()./ : super() {}
+//         ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:3:9: Context: Previous declaration of 'Foo./'.
+//   Foo() / : super() {}
+//         ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:7:9: Error: 'Foo./' is already declared in this scope.
+//   foo() / : super() {}
+//         ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:9: Context: Previous declaration of 'Foo./'.
+//   Foo()./ : super() {}
+//         ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:9:3: Error: 'foo' is already declared in this scope.
+//   foo()./ : super() {}
+//   ^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:7:3: Context: Previous declaration of 'foo'.
+//   foo() / : super() {}
+//   ^^^
 //
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:9:9: Error: 'Foo./' is already declared in this scope.
 //   foo()./ : super() {}

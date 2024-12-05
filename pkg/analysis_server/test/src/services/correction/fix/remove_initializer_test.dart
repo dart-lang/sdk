@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -13,7 +13,27 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveInitializerBulkTest);
     defineReflectiveTests(RemoveInitializerTest);
+    defineReflectiveTests(RemoveDeadWildcardInitializerTest);
   });
+}
+
+@reflectiveTest
+class RemoveDeadWildcardInitializerTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_INITIALIZER;
+
+  Future<void> test_deadLateWildcardVariableInitializer() async {
+    await resolveTestCode('''
+f() {
+  late var _ = 0;
+}
+''');
+    await assertHasFix('''
+f() {
+  late var _;
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -121,6 +141,21 @@ class Test {
 ''');
     await assertHasFix('''
 class Test {
+  int? x;
+}
+''');
+  }
+
+  Future<void> test_field_late() async {
+    await resolveTestCode('''
+class Test {
+  /// field example
+  late int? x = null;
+}
+''');
+    await assertHasFix('''
+class Test {
+  /// field example
   int? x;
 }
 ''');

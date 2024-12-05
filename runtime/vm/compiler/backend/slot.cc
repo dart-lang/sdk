@@ -205,6 +205,19 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
   return SlotCache::Instance(Thread::Current()).GetNativeSlot(kind);
 }
 
+bool Slot::IsLengthSlot() const {
+  switch (kind()) {
+    case Slot::Kind::kArray_length:
+    case Slot::Kind::kTypedDataBase_length:
+    case Slot::Kind::kString_length:
+    case Slot::Kind::kTypeArguments_length:
+    case Slot::Kind::kGrowableObjectArray_length:
+      return true;
+    default:
+      return false;
+  }
+}
+
 bool Slot::IsImmutableLengthSlot() const {
   switch (kind()) {
     case Slot::Kind::kArray_length:
@@ -212,37 +225,9 @@ bool Slot::IsImmutableLengthSlot() const {
     case Slot::Kind::kString_length:
     case Slot::Kind::kTypeArguments_length:
       return true;
-    case Slot::Kind::kGrowableObjectArray_length:
-      return false;
-
-      // Not length loads.
-    case Slot::Kind::kArrayElement:
-    case Slot::Kind::kCapturedVariable:
-    case Slot::Kind::kDartField:
-    case Slot::Kind::kRecordField:
-    case Slot::Kind::kTypeArguments:
-    case Slot::Kind::kTypeArgumentsIndex:
-#define NOT_TAGGED_INT_NATIVE_SLOT_CASE(Class, __, Field, ___, ____)           \
-  case Slot::Kind::k##Class##_##Field:
-      NOT_INT_NATIVE_SLOTS_LIST(NOT_TAGGED_INT_NATIVE_SLOT_CASE)
-      UNBOXED_NATIVE_SLOTS_LIST(NOT_TAGGED_INT_NATIVE_SLOT_CASE)
-#undef NONTAGGED_NATIVE_DART_SLOT_CASE
-    case Slot::Kind::kLinkedHashBase_hash_mask:
-    case Slot::Kind::kLinkedHashBase_used_data:
-    case Slot::Kind::kLinkedHashBase_deleted_keys:
-    case Slot::Kind::kArgumentsDescriptor_type_args_len:
-    case Slot::Kind::kArgumentsDescriptor_positional_count:
-    case Slot::Kind::kArgumentsDescriptor_count:
-    case Slot::Kind::kArgumentsDescriptor_size:
-    case Slot::Kind::kTypeArguments_hash:
-    case Slot::Kind::kTypedDataView_offset_in_bytes:
-    case Slot::Kind::kClosure_hash:
-    case Slot::Kind::kRecord_shape:
-    case Slot::Kind::kAbstractType_hash:
+    default:
       return false;
   }
-  UNREACHABLE();
-  return false;
 }
 
 // Note: should only be called with cids of array-like classes.

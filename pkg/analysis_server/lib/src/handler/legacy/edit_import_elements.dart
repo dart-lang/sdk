@@ -34,8 +34,8 @@ class EditImportElementsHandler extends LegacyHandler {
       sendResponse(Response.importElementsInvalidFile(request));
       return;
     }
-    var libraryUnit = result.libraryElement.definingCompilationUnit;
-    if (libraryUnit != result.unit.declaredElement) {
+    var libraryUnit = result.libraryElement2.firstFragment;
+    if (libraryUnit != result.libraryFragment) {
       // The file in the request is a part of a library. We need to pass the
       // defining compilation unit to the computer, not the part.
       result = await server.getResolvedUnit(libraryUnit.source.fullName);

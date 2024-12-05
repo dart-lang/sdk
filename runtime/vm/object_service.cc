@@ -1084,6 +1084,54 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 void Code::PrintImplementationFieldsImpl(const JSONArray& jsarr_fields) const {}
 
+void Bytecode::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  // N.B. This is polymorphic with Code.
+
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Code", ref);
+  int64_t compile_timestamp = 0;
+  jsobj.AddFixedServiceId("code/%" Px64 "-%" Px "", compile_timestamp,
+                          PayloadStart());
+  const char* qualified_name = QualifiedName();
+  const char* vm_name = Name();
+  AddNameProperties(&jsobj, qualified_name, vm_name);
+
+  jsobj.AddProperty("kind", "Dart");
+  jsobj.AddProperty("_optimized", false);
+  jsobj.AddProperty("_intrinsic", false);
+  jsobj.AddProperty("_native", false);
+  if (ref) {
+    return;
+  }
+  const Function& fun = Function::Handle(function());
+  jsobj.AddProperty("function", fun);
+  jsobj.AddPropertyF("_startAddress", "%" Px "", PayloadStart());
+  jsobj.AddPropertyF("_endAddress", "%" Px "", PayloadStart() + Size());
+  jsobj.AddProperty("_alive", true);
+  const ObjectPool& obj_pool = ObjectPool::Handle(object_pool());
+  jsobj.AddProperty("_objectPool", obj_pool);
+  {
+    JSONArray jsarr(&jsobj, "_disassembly");
+    DisassembleToJSONStream formatter(jsarr);
+    Disassemble(&formatter);
+  }
+  const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
+  if (!descriptors.IsNull()) {
+    JSONObject desc(&jsobj, "_descriptors");
+    descriptors.PrintToJSONObject(&desc, false);
+  }
+
+  {
+    JSONArray inlined_functions(&jsobj, "_inlinedFunctions");
+  }
+  {
+    JSONArray inline_intervals(&jsobj, "_inlinedIntervals");
+  }
+}
+
+void Bytecode::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
 void Context::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   // TODO(turnidge): Should the user level type for Context be Context

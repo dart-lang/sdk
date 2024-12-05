@@ -7,6 +7,7 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
@@ -38,33 +39,53 @@ class DartUnitSignatureComputer {
       return null;
     }
     String? name;
-    ExecutableElement? execElement;
+    Element? element;
+    List<ParameterElement>? parameters;
     var parent = argumentList.parent;
     if (parent is MethodInvocation) {
       name = parent.methodName.name;
-      var element = ElementLocator.locate(parent);
-      execElement = element is ExecutableElement ? element : null;
+      element = ElementLocator.locate(parent);
+      parameters = element is FunctionTypedElement ? element.parameters : null;
     } else if (parent is InstanceCreationExpression) {
       name = parent.constructorName.type.qualifiedName;
       var constructorName = parent.constructorName.name;
       if (constructorName != null) {
         name += '.${constructorName.name}';
       }
-      execElement = ElementLocator.locate(parent) as ExecutableElement?;
+      element = ElementLocator.locate(parent);
+      parameters = element is FunctionTypedElement ? element.parameters : null;
+    } else if (parent
+        case FunctionExpressionInvocation(function: Identifier function)) {
+      name = function.name;
+
+      if (function.staticType case FunctionType functionType) {
+        // Standard function expression.
+        element = function.staticElement;
+        parameters = functionType.parameters;
+      } else if (parent.staticElement case ExecutableElement staticElement) {
+        // Callable class instance (where we'll look at the `call` method).
+        element = staticElement;
+        parameters = staticElement.parameters;
+      }
     }
 
-    if (name == null || execElement == null) {
+    if (name == null || element == null || parameters == null) {
       return null;
     }
 
     _argumentList = argumentList;
+    var convertedParameters = parameters.map((p) => _convertParam(p)).toList();
+    var dartdoc = DartUnitHoverComputer.computePreferredDocumentation(
+      _dartdocInfo,
+      element,
+      documentationPreference,
+    );
 
-    var parameters =
-        execElement.parameters.map((p) => _convertParam(p)).toList();
-
-    return AnalysisGetSignatureResult(name, parameters,
-        dartdoc: DartUnitHoverComputer.computePreferredDocumentation(
-            _dartdocInfo, execElement, documentationPreference));
+    return AnalysisGetSignatureResult(
+      name,
+      convertedParameters,
+      dartdoc: dartdoc,
+    );
   }
 
   ParameterInfo _convertParam(ParameterElement param) {

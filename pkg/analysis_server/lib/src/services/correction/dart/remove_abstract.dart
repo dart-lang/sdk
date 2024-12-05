@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -37,10 +37,11 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
     var parent = node.parent;
     var classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
     if (node is VariableDeclaration) {
-      await _compute(classDeclaration, node.declaredElement, builder);
+      var fieldElement = node.declaredFragment?.element;
+      await _compute(classDeclaration, fieldElement, builder);
     } else if (node is SimpleIdentifier &&
         parent is ConstructorFieldInitializer) {
-      await _compute(classDeclaration, node.staticElement, builder);
+      await _compute(classDeclaration, node.element, builder);
     } else if (node is CompilationUnitMember) {
       await _computeAbstractClassMember(builder);
     }
@@ -48,7 +49,7 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
 
   Future<void> _compute(
     ClassDeclaration? classDeclaration,
-    Element? fieldElement,
+    Element2? fieldElement,
     ChangeBuilder builder,
   ) async {
     if (classDeclaration == null) return;
@@ -63,7 +64,7 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
           continue;
         }
         for (var variable in variables) {
-          if (variable.declaredElement == fieldElement) {
+          if (variable.declaredFragment?.element == fieldElement) {
             var abstractKeyword = member.abstractKeyword;
             if (abstractKeyword != null) {
               await builder.addDartFileEdit(file, (builder) {

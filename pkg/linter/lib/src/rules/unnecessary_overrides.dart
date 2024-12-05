@@ -8,64 +8,22 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc =
     r"Don't override a method to do a super method invocation with the same"
     r' parameters.';
 
-const _details = r'''
-**DON'T** override a method to do a super method invocation with same parameters.
-
-**BAD:**
-```dart
-class A extends B {
-  @override
-  void foo() {
-    super.foo();
-  }
-}
-```
-
-**GOOD:**
-```dart
-class A extends B {
-  @override
-  void foo() {
-    doSomethingElse();
-  }
-}
-```
-
-It's valid to override a member in the following cases:
-
-* if a type (return type or a parameter type) is not the exactly the same as the
-  super member,
-* if the `covariant` keyword is added to one of the parameters,
-* if documentation comments are present on the member,
-* if the member has annotations other than `@override`,
-* if the member is not annotated with `@protected`, and the super member is.
-
-`noSuchMethod` is a special method and is not checked by this rule.
-
-''';
-
 class UnnecessaryOverrides extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_overrides', 'Unnecessary override.',
-      correctionMessage:
-          'Try adding behavior in the overriding member or removing the override.',
-      hasPublishedDocs: true);
-
   UnnecessaryOverrides()
       : super(
-            name: 'unnecessary_overrides',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.unnecessary_overrides,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_overrides;
 
   @override
   void registerNodeProcessors(
@@ -75,7 +33,8 @@ class UnnecessaryOverrides extends LintRule {
   }
 }
 
-abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
+abstract class _AbstractUnnecessaryOverrideVisitor
+    extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   /// If [declaration] is an inherited member of interest, then this is set in
@@ -225,7 +184,7 @@ class _UnnecessaryGetterOverrideVisitor
   ExecutableElement? getInheritedElement(MethodDeclaration node) {
     var element = node.declaredElement;
     if (element == null) return null;
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement is! InterfaceElement) return null;
     return enclosingElement.thisType.lookUpGetter2(
       element.name,
@@ -252,7 +211,7 @@ class _UnnecessaryMethodOverrideVisitor
     var element = node.declaredElement;
     if (element == null) return null;
 
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement is! InterfaceElement) return null;
 
     var augmented = enclosingElement.augmented;
@@ -284,7 +243,7 @@ class _UnnecessaryOperatorOverrideVisitor
   ExecutableElement? getInheritedElement(node) {
     var element = node.declaredElement;
     if (element == null) return null;
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement is! InterfaceElement) return null;
     return enclosingElement.thisType.lookUpMethod2(
       element.name,
@@ -331,7 +290,7 @@ class _UnnecessarySetterOverrideVisitor
   ExecutableElement? getInheritedElement(node) {
     var element = node.declaredElement;
     if (element == null) return null;
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement is! InterfaceElement) return null;
     return enclosingElement.thisType.lookUpSetter2(
       node.name.lexeme,

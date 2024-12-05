@@ -98,14 +98,14 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_FlattenNestedStringInterp) {
   // StoreIndexed(tmp_array, 0, s)
   EXPECT(store1->index()->BindsToConstant());
   EXPECT(store1->index()->BoundConstant().IsInteger());
-  EXPECT(Integer::Cast(store1->index()->BoundConstant()).AsInt64Value() == 0);
+  EXPECT(Integer::Cast(store1->index()->BoundConstant()).Value() == 0);
 
   EXPECT(!store1->value()->BindsToConstant());
 
   // StoreIndexed(tmp_array, 1, "de")
   EXPECT(store2->index()->BindsToConstant());
   EXPECT(store2->index()->BoundConstant().IsInteger());
-  EXPECT(Integer::Cast(store2->index()->BoundConstant()).AsInt64Value() == 1);
+  EXPECT(Integer::Cast(store2->index()->BoundConstant()).Value() == 1);
 
   EXPECT(store2->value()->BindsToConstant());
   EXPECT(store2->value()->BoundConstant().IsString());
@@ -158,7 +158,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_DropEmptyStringInterp) {
   // StoreIndexed(tmp_array, 0, "ab")
   EXPECT(store1->index()->BindsToConstant());
   EXPECT(store1->index()->BoundConstant().IsInteger());
-  EXPECT(Integer::Cast(store1->index()->BoundConstant()).AsInt64Value() == 0);
+  EXPECT(Integer::Cast(store1->index()->BoundConstant()).Value() == 0);
 
   EXPECT(store1->value()->BindsToConstant());
   EXPECT(store1->value()->BoundConstant().IsString());
@@ -167,14 +167,14 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_DropEmptyStringInterp) {
   // StoreIndexed(tmp_array, 1, s)
   EXPECT(store2->index()->BindsToConstant());
   EXPECT(store2->index()->BoundConstant().IsInteger());
-  EXPECT(Integer::Cast(store2->index()->BoundConstant()).AsInt64Value() == 1);
+  EXPECT(Integer::Cast(store2->index()->BoundConstant()).Value() == 1);
 
   EXPECT(!store2->value()->BindsToConstant());
 
   // StoreIndexed(tmp_array, 2, "b")
   EXPECT(store3->index()->BindsToConstant());
   EXPECT(store3->index()->BoundConstant().IsInteger());
-  EXPECT(Integer::Cast(store3->index()->BoundConstant()).AsInt64Value() == 2);
+  EXPECT(Integer::Cast(store3->index()->BoundConstant()).Value() == 2);
 
   EXPECT(store3->value()->BindsToConstant());
   EXPECT(store3->value()->BoundConstant().IsString());
@@ -227,7 +227,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_ConcatStringLits) {
   // StoreIndexed(tmp_array, 0, "ab")
   EXPECT(store1->index()->BindsToConstant());
   EXPECT(store1->index()->BoundConstant().IsInteger());
-  EXPECT(Integer::Cast(store1->index()->BoundConstant()).AsInt64Value() == 0);
+  EXPECT(Integer::Cast(store1->index()->BoundConstant()).Value() == 0);
 
   EXPECT(store1->value()->BindsToConstant());
   EXPECT(store1->value()->BoundConstant().IsString());
@@ -236,14 +236,14 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_ConcatStringLits) {
   // StoreIndexed(tmp_array, 1, s)
   EXPECT(store2->index()->BindsToConstant());
   EXPECT(store2->index()->BoundConstant().IsInteger());
-  EXPECT(Integer::Cast(store2->index()->BoundConstant()).AsInt64Value() == 1);
+  EXPECT(Integer::Cast(store2->index()->BoundConstant()).Value() == 1);
 
   EXPECT(!store2->value()->BindsToConstant());
 
   // StoreIndexed(tmp_array, 2, "cd")
   EXPECT(store3->index()->BindsToConstant());
   EXPECT(store3->index()->BoundConstant().IsInteger());
-  EXPECT(Integer::Cast(store3->index()->BoundConstant()).AsInt64Value() == 2);
+  EXPECT(Integer::Cast(store3->index()->BoundConstant()).Value() == 2);
 
   EXPECT(store3->value()->BindsToConstant());
   EXPECT(store3->value()->BoundConstant().IsString());
@@ -387,7 +387,7 @@ ISOLATE_UNIT_TEST_CASE(
       return_instr->value()->definition()->AsConstant();
   EXPECT(const_value != nullptr);
   EXPECT(const_value->value().IsInteger());
-  EXPECT_EQ(0xFEEDFEED, Integer::Cast(const_value->value()).AsInt64Value());
+  EXPECT_EQ(0xFEEDFEED, Integer::Cast(const_value->value()).Value());
 }
 
 }  // namespace dart

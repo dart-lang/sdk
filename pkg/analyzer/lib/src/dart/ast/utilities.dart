@@ -165,17 +165,6 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
-  bool visitAugmentationImportDirective(AugmentationImportDirective node) {
-    var other = _other as AugmentationImportDirective;
-    return isEqualNodes(
-            node.documentationComment, other.documentationComment) &&
-        _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.importKeyword, other.importKeyword) &&
-        isEqualNodes(node.uri, other.uri) &&
-        isEqualTokens(node.semicolon, other.semicolon);
-  }
-
-  @override
   bool visitAugmentedExpression(AugmentedExpression node) {
     var other = _other as AugmentedExpression;
     return isEqualTokens(node.augmentedKeyword, other.augmentedKeyword);
@@ -937,18 +926,6 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
-  bool? visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    var other = _other as LibraryAugmentationDirective;
-    return isEqualNodes(
-            node.documentationComment, other.documentationComment) &&
-        _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.libraryKeyword, other.libraryKeyword) &&
-        isEqualTokens(node.augmentKeyword, other.augmentKeyword) &&
-        isEqualNodes(node.uri, other.uri) &&
-        isEqualTokens(node.semicolon, other.semicolon);
-  }
-
-  @override
   bool visitLibraryDirective(LibraryDirective node) {
     LibraryDirective other = _other as LibraryDirective;
     return isEqualNodes(
@@ -1115,6 +1092,13 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitNullAwareElement(NullAwareElement node) {
+    NullAwareElement other = _other as NullAwareElement;
+    return isEqualTokens(node.question, other.question) &&
+        isEqualNodes(node.value, other.value);
+  }
+
+  @override
   bool visitNullCheckPattern(NullCheckPattern node) {
     var other = _other as NullCheckPattern;
     return isEqualNodes(node.pattern, other.pattern) &&
@@ -1166,6 +1150,7 @@ class AstComparator implements AstVisitor<bool> {
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.partKeyword, other.partKeyword) &&
         isEqualNodes(node.uri, other.uri) &&
+        _isEqualNodeLists(node.configurations, other.configurations) &&
         isEqualTokens(node.semicolon, other.semicolon);
   }
 
@@ -2133,13 +2118,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
-  bool visitAugmentationImportDirective(
-    covariant AugmentationImportDirectiveImpl node,
-  ) {
-    return visitUriBasedDirective(node);
-  }
-
-  @override
   bool visitAwaitExpression(covariant AwaitExpressionImpl node) {
     if (identical(node.expression, _oldNode)) {
       node.expression = _newNode as ExpressionImpl;
@@ -2921,13 +2899,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
-  bool? visitLibraryAugmentationDirective(
-    covariant LibraryAugmentationDirectiveImpl node,
-  ) {
-    return visitUriBasedDirective(node);
-  }
-
-  @override
   bool visitLibraryDirective(covariant LibraryDirectiveImpl node) {
     if (identical(node.name2, _oldNode)) {
       node.name = _newNode as LibraryIdentifierImpl;
@@ -3036,6 +3007,15 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       node.documentationComment = _newNode as CommentImpl;
       return true;
     } else if (_replaceInList(node.metadata)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitNullAwareElement(NullAwareElement node) {
+    if (identical(node.value, _oldNode)) {
+      (node as NullAwareElementImpl).value = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);

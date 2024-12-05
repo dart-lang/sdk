@@ -30,7 +30,6 @@ import '../universe/member_hierarchy.dart';
 import '../universe/record_shape.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
-import '../util/util.dart';
 import 'engine.dart';
 import 'locals_handler.dart';
 import 'type_graph_nodes.dart';
@@ -704,14 +703,14 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   @override
   TypeInformation visitMapLiteral(ir.MapLiteral node) {
     return createMapTypeInformation(
-        node, node.entries.map((e) => Pair(visit(e.key)!, visit(e.value)!)),
+        node, node.entries.map((e) => (visit(e.key)!, visit(e.value)!)),
         isConst: node.isConst,
         keyStaticType: _elementMap.getDartType(node.keyType),
         valueStaticType: _elementMap.getDartType(node.valueType));
   }
 
-  TypeInformation createMapTypeInformation(ir.TreeNode node,
-      Iterable<Pair<TypeInformation, TypeInformation>> entryTypes,
+  TypeInformation createMapTypeInformation(
+      ir.TreeNode node, Iterable<(TypeInformation, TypeInformation)> entryTypes,
       {required bool isConst,
       required DartType keyStaticType,
       required DartType valueStaticType}) {
@@ -719,9 +718,9 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
       List<TypeInformation> keyTypes = [];
       List<TypeInformation> valueTypes = [];
 
-      for (Pair<TypeInformation, TypeInformation> entryType in entryTypes) {
-        keyTypes.add(entryType.a);
-        valueTypes.add(entryType.b);
+      for ((TypeInformation, TypeInformation) entryType in entryTypes) {
+        keyTypes.add(entryType.$1);
+        valueTypes.add(entryType.$2);
       }
 
       final type = isConst ? _types.constMapType : _types.mapType;
@@ -2297,10 +2296,8 @@ class TypeInformationConstantVisitor
 
   @override
   TypeInformation visitMapConstant(ir.MapConstant node) {
-    return builder.createMapTypeInformation(
-        ConstantReference(expression, node),
-        node.entries
-            .map((e) => Pair(visitConstant(e.key), visitConstant(e.value))),
+    return builder.createMapTypeInformation(ConstantReference(expression, node),
+        node.entries.map((e) => (visitConstant(e.key), visitConstant(e.value))),
         isConst: true,
         keyStaticType: builder._elementMap.getDartType(node.keyType),
         valueStaticType: builder._elementMap.getDartType(node.valueType));

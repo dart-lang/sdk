@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -32,20 +32,26 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (!libraryElement.featureSet.isEnabled(Feature.super_parameters)) {
+    if (!libraryElement2.featureSet.isEnabled(Feature.super_parameters)) {
       return;
     }
+
     var constructorDeclaration = node.parent;
     if (constructorDeclaration is! ConstructorDeclaration) return;
+
     var classDeclaration = constructorDeclaration.parent;
     if (classDeclaration is! ClassDeclaration) return;
-    var superUnnamedConstructor =
-        classDeclaration.declaredElement?.supertype?.element.unnamedConstructor;
+
+    var classElement = classDeclaration.declaredFragment!.element;
+    var superType = classElement.supertype;
+    var superElement = superType?.element3;
+    var superUnnamedConstructor = superElement?.unnamedConstructor2;
     if (superUnnamedConstructor == null) return;
-    var superParameters = superUnnamedConstructor.parameters;
+
+    var superParameters = superUnnamedConstructor.formalParameters;
     var parameters = constructorDeclaration.parameters.parameters;
-    var missingNamedParameters = <ParameterElement>[];
-    var superPositionalParameters = <ParameterElement>[];
+    var missingNamedParameters = <FormalParameterElement>[];
+    var superPositionalParameters = <FormalParameterElement>[];
     for (var superParameter in superParameters) {
       if (superParameter.isRequired) {
         var name = superParameter.name;
@@ -74,7 +80,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
       }
     }
 
-    var missingPositionalParameters = <ParameterElement>[];
+    var missingPositionalParameters = <FormalParameterElement>[];
     if (arePositionalOrdered) {
       var index = lastPositionalParameter == null
           ? 0
@@ -148,7 +154,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
 
   void _writeNamed(
     DartEditBuilder builder,
-    List<ParameterElement> parameters, {
+    List<FormalParameterElement> parameters, {
     FormalParameter? lastNamedParameter,
     required bool needsInitialComma,
   }) {
@@ -176,7 +182,10 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
     }
   }
 
-  void _writeParameter(DartEditBuilder builder, ParameterElement parameter) {
+  void _writeParameter(
+    DartEditBuilder builder,
+    FormalParameterElement parameter,
+  ) {
     var parameterName = parameter.displayName;
 
     if (parameter.isRequiredNamed) {
@@ -189,7 +198,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
 
   void _writePositional(
     DartEditBuilder builder,
-    List<ParameterElement> parameters, {
+    List<FormalParameterElement> parameters, {
     required bool needsInitialComma,
   }) {
     var firstParameter = true;

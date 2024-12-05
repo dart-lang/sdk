@@ -402,11 +402,9 @@ struct InstrAttrs {
   };
 };
 
-#define FOR_EACH_INSTRUCTION(M)                                                \
+#define FOR_EACH_LEAF_INSTRUCTION(M)                                           \
   M(GraphEntry, kNoGC)                                                         \
-  M(JoinEntry, kNoGC)                                                          \
   M(TargetEntry, kNoGC)                                                        \
-  M(FunctionEntry, kNoGC)                                                      \
   M(NativeEntry, kNoGC)                                                        \
   M(OsrEntry, kNoGC)                                                           \
   M(IndirectEntry, kNoGC)                                                      \
@@ -432,7 +430,6 @@ struct InstrAttrs {
   M(Branch, kNoGC)                                                             \
   M(AssertAssignable, _)                                                       \
   M(AssertSubtype, _)                                                          \
-  M(AssertBoolean, _)                                                          \
   M(ClosureCall, _)                                                            \
   M(FfiCall, _)                                                                \
   M(LeafRuntimeCall, kNoGC)                                                    \
@@ -496,14 +493,11 @@ struct InstrAttrs {
   M(CheckSmi, kNoGC)                                                           \
   M(CheckNull, kNoGC)                                                          \
   M(CheckCondition, kNoGC)                                                     \
-  M(Constant, kNoGC)                                                           \
   M(UnboxedConstant, kNoGC)                                                    \
   M(CheckEitherNonSmi, kNoGC)                                                  \
   M(BinaryDoubleOp, kNoGC)                                                     \
   M(DoubleTestOp, kNoGC)                                                       \
   M(MathMinMax, kNoGC)                                                         \
-  M(Box, _)                                                                    \
-  M(Unbox, kNoGC)                                                              \
   M(BoxInt64, _)                                                               \
   M(UnboxInt64, kNoGC)                                                         \
   M(CaseInsensitiveCompare, kNoGC)                                             \
@@ -550,6 +544,17 @@ struct InstrAttrs {
   M(SimdOp, kNoGC)                                                             \
   M(Suspend, _)
 
+#define FOR_EACH_STEM_INSTRUCTION(M)                                           \
+  M(FunctionEntry, kNoGC)                                                      \
+  M(JoinEntry, kNoGC)                                                          \
+  M(Constant, kNoGC)                                                           \
+  M(Box, _)                                                                    \
+  M(Unbox, kNoGC)
+
+#define FOR_EACH_CONCRETE_INSTRUCTION(M)                                       \
+  FOR_EACH_STEM_INSTRUCTION(M)                                                 \
+  FOR_EACH_LEAF_INSTRUCTION(M)
+
 #define FOR_EACH_ABSTRACT_INSTRUCTION(M)                                       \
   M(Allocation, _)                                                             \
   M(ArrayAllocation, _)                                                        \
@@ -565,7 +570,7 @@ struct InstrAttrs {
   M(UnboxInteger, _)
 
 #define FORWARD_DECLARATION(type, attrs) class type##Instr;
-FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
+FOR_EACH_CONCRETE_INSTRUCTION(FORWARD_DECLARATION)
 FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
 
@@ -962,7 +967,7 @@ class ValueListIterable {
 class Instruction : public ZoneAllocated {
  public:
 #define DECLARE_TAG(type, attrs) k##type,
-  enum Tag { FOR_EACH_INSTRUCTION(DECLARE_TAG) kNumInstructions };
+  enum Tag { FOR_EACH_CONCRETE_INSTRUCTION(DECLARE_TAG) kNumInstructions };
 #undef DECLARE_TAG
 
   static const intptr_t kInstructionAttrs[kNumInstructions];
@@ -1171,8 +1176,26 @@ class Instruction : public ZoneAllocated {
   DECLARE_INSTRUCTION_TYPE_CHECK(Definition, Definition)
   DECLARE_INSTRUCTION_TYPE_CHECK(BlockEntryWithInitialDefs,
                                  BlockEntryWithInitialDefs)
-  FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
+  FOR_EACH_STEM_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
+
+#undef DECLARE_INSTRUCTION_TYPE_CHECK
+#undef INSTRUCTION_TYPE_CHECK
+
+#define DECLARE_INSTRUCTION_TYPE_CHECK(Name, Type)                             \
+  bool Is##Name() const { return (As##Name() != nullptr); }                    \
+  Type* As##Name() {                                                           \
+    auto const_this = static_cast<const Instruction*>(this);                   \
+    return const_cast<Type*>(const_this->As##Name());                          \
+  }                                                                            \
+  const Type* As##Name() const {                                               \
+    if (tag() == k##Name) return reinterpret_cast<const Type*>(this);          \
+    return nullptr;                                                            \
+  }
+#define INSTRUCTION_TYPE_CHECK(Name, Attrs)                                    \
+  DECLARE_INSTRUCTION_TYPE_CHECK(Name, Name##Instr)
+
+  FOR_EACH_LEAF_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 
 #undef INSTRUCTION_TYPE_CHECK
 #undef DECLARE_INSTRUCTION_TYPE_CHECK
@@ -1734,6 +1757,7 @@ class BlockEntryInstr : public TemplateInstruction<0, NoThrow> {
   bool InsideTryBlock() const { return try_index_ != kInvalidTryIndex; }
 
   // Loop related methods.
+  bool IsInsideLoop() { return loop_info_ != nullptr; }
   LoopInfo* loop_info() const { return loop_info_; }
   void set_loop_info(LoopInfo* loop_info) { loop_info_ = loop_info; }
   bool IsLoopHeader() const;
@@ -2677,8 +2701,9 @@ class Definition : public Instruction {
   // boxing/unboxing and constraint instructions.
   Definition* OriginalDefinitionIgnoreBoxingAndConstraints();
 
-  // Helper method to determine if definition denotes an array length.
-  static bool IsArrayLength(Definition* def);
+  // Helper method to determine if definition denotes a load of
+  // length of array/growable array/string/typed data/type arguments vector.
+  static bool IsLengthLoad(Definition* def);
 
   virtual Definition* AsDefinition() { return this; }
   virtual const Definition* AsDefinition() const { return this; }
@@ -4029,6 +4054,10 @@ class BranchInstr : public Instruction {
     return comparison()->RequiredInputRepresentation(i);
   }
 
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return comparison()->SpeculativeModeOfInput(index);
+  }
+
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   void set_constant_target(TargetEntryInstr* target) {
@@ -4172,7 +4201,10 @@ class ReachabilityFenceInstr : public TemplateInstruction<1, NoThrow> {
 
 class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  ConstraintInstr(Value* value, Range* constraint) : constraint_(constraint) {
+  ConstraintInstr(Value* value,
+                  Range* constraint,
+                  Representation representation)
+      : constraint_(constraint), representation_(representation) {
     SetInputAt(0, value);
   }
 
@@ -4192,6 +4224,11 @@ class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
   Value* value() const { return inputs_[0]; }
   Range* constraint() const { return constraint_; }
 
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    return representation_;
+  }
+  virtual Representation representation() const { return representation_; }
+
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   // Constraints for branches have their target block stored in order
@@ -4202,7 +4239,9 @@ class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(Range*, constraint_)
+#define FIELD_LIST(F)                                                          \
+  F(Range*, constraint_)                                                       \
+  F(const Representation, representation_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ConstraintInstr,
                                           TemplateDefinition,
@@ -4234,12 +4273,16 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
   bool HasZeroRepresentation() const {
     switch (representation()) {
       case kTagged:
+      case kUntagged:
+      case kUnboxedInt8:
       case kUnboxedUint8:
+      case kUnboxedInt16:
       case kUnboxedUint16:
-      case kUnboxedUint32:
       case kUnboxedInt32:
+      case kUnboxedUint32:
       case kUnboxedInt64:
         return IsSmi() && compiler::target::SmiValue(value()) == 0;
+      case kUnboxedFloat:
       case kUnboxedDouble:
         return compiler::target::IsDouble(value()) &&
                bit_cast<uint64_t>(compiler::target::DoubleValue(value())) == 0;
@@ -4473,48 +4516,6 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(AssertAssignableInstr);
-};
-
-class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
- public:
-  AssertBooleanInstr(const InstructionSource& source,
-                     Value* value,
-                     intptr_t deopt_id)
-      : TemplateDefinition(source, deopt_id), token_pos_(source.token_pos) {
-    SetInputAt(0, value);
-  }
-
-  DECLARE_INSTRUCTION(AssertBoolean)
-  virtual CompileType ComputeType() const;
-
-  virtual TokenPosition token_pos() const { return token_pos_; }
-  Value* value() const { return inputs_[0]; }
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool ComputeCanDeoptimizeAfterCall() const {
-    return !CompilerState::Current().is_aot();
-  }
-  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
-    return InputCount();
-  }
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  virtual bool AttributesEqual(const Instruction& other) const { return true; }
-
-  virtual Value* RedefinedValue() const;
-
-  PRINT_OPERANDS_TO_SUPPORT
-
-#define FIELD_LIST(F) F(const TokenPosition, token_pos_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AssertBooleanInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(AssertBooleanInstr);
 };
 
 struct ArgumentsInfo {
@@ -5389,6 +5390,7 @@ class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
       : TemplateComparison(source, kind, deopt_id),
         speculative_mode_(speculative_mode) {
     ASSERT(Token::IsRelationalOperator(kind));
+    ASSERT((cid == kSmiCid) || (cid == kMintCid) || (cid == kDoubleCid));
     SetInputAt(0, left);
     SetInputAt(1, right);
     set_operation_cid(cid);
@@ -5474,6 +5476,10 @@ class IfThenElseInstr : public Definition {
 
   virtual Representation RequiredInputRepresentation(intptr_t i) const {
     return comparison()->RequiredInputRepresentation(i);
+  }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return comparison()->SpeculativeModeOfInput(index);
   }
 
   virtual CompileType ComputeType() const;
@@ -6213,6 +6219,10 @@ class LeafRuntimeCallInstr : public VariadicDefinition {
     }
     ASSERT_EQUAL(idx, TargetAddressIndex());
     return kUntagged;
+  }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kNotSpeculative;
   }
 
   virtual bool MayCreateUnsafeUntaggedPointer() const {
@@ -10798,6 +10808,8 @@ class CheckBoundBaseInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
   DECLARE_ABSTRACT_INSTRUCTION(CheckBoundBase);
 
   virtual Value* RedefinedValue() const;
@@ -11672,20 +11684,20 @@ class Environment : public ZoneAllocated {
   }
 
   bool LazyDeoptToBeforeDeoptId() const {
-    return LazyDeoptToBeforeDeoptId::decode(bitfield_);
+    return LazyDeoptToBeforeDeoptIdBit::decode(bitfield_);
   }
 
   void MarkAsLazyDeoptToBeforeDeoptId() {
-    bitfield_ = LazyDeoptToBeforeDeoptId::update(true, bitfield_);
+    bitfield_ = LazyDeoptToBeforeDeoptIdBit::update(true, bitfield_);
     // As eager and lazy deopts will target the before environment, we do not
     // want to prune inputs on lazy deopts.
     bitfield_ = LazyDeoptPruningBits::update(0, bitfield_);
   }
 
   // This environment belongs to an optimistically hoisted instruction.
-  bool IsHoisted() const { return Hoisted::decode(bitfield_); }
+  bool IsHoisted() const { return HoistedBit::decode(bitfield_); }
 
-  void MarkAsHoisted() { bitfield_ = Hoisted::update(true, bitfield_); }
+  void MarkAsHoisted() { bitfield_ = HoistedBit::update(true, bitfield_); }
 
   Environment* GetLazyDeoptEnv(Zone* zone) {
     if (LazyDeoptToBeforeDeoptId()) {
@@ -11769,19 +11781,6 @@ class Environment : public ZoneAllocated {
   friend class ShallowIterator;
   friend class compiler::BlockBuilder;  // For Environment constructor.
 
-  class LazyDeoptPruningBits : public BitField<uintptr_t, uintptr_t, 0, 8> {};
-  class LazyDeoptToBeforeDeoptId
-      : public BitField<uintptr_t, bool, LazyDeoptPruningBits::kNextBit, 1> {};
-  class Hoisted : public BitField<uintptr_t,
-                                  bool,
-                                  LazyDeoptToBeforeDeoptId::kNextBit,
-                                  1> {};
-  class DeoptIdBits : public BitField<uintptr_t,
-                                      intptr_t,
-                                      Hoisted::kNextBit,
-                                      kBitsPerWord - Hoisted::kNextBit,
-                                      /*sign_extend=*/true> {};
-
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,
               intptr_t lazy_deopt_pruning_count,
@@ -11790,7 +11789,7 @@ class Environment : public ZoneAllocated {
       : values_(length),
         fixed_parameter_count_(fixed_parameter_count),
         bitfield_(DeoptIdBits::encode(DeoptId::kNone) |
-                  LazyDeoptToBeforeDeoptId::encode(false) |
+                  LazyDeoptToBeforeDeoptIdBit::encode(false) |
                   LazyDeoptPruningBits::encode(lazy_deopt_pruning_count)),
         function_(function),
         outer_(outer) {}
@@ -11802,7 +11801,7 @@ class Environment : public ZoneAllocated {
     bitfield_ = LazyDeoptPruningBits::update(value, bitfield_);
   }
   void SetLazyDeoptToBeforeDeoptId(bool value) {
-    bitfield_ = LazyDeoptToBeforeDeoptId::update(value, bitfield_);
+    bitfield_ = LazyDeoptToBeforeDeoptIdBit::update(value, bitfield_);
   }
 
   GrowableArray<Value*> values_;
@@ -11813,6 +11812,15 @@ class Environment : public ZoneAllocated {
   uintptr_t bitfield_;
   const Function& function_;
   Environment* outer_;
+
+  using LazyDeoptPruningBits = BitField<decltype(bitfield_), uintptr_t, 0, 8>;
+  using LazyDeoptToBeforeDeoptIdBit =
+      BitField<decltype(bitfield_), bool, LazyDeoptPruningBits::kNextBit>;
+  using HoistedBit = BitField<decltype(bitfield_),
+                              bool,
+                              LazyDeoptToBeforeDeoptIdBit::kNextBit>;
+  using DeoptIdBits =
+      SignedBitField<decltype(bitfield_), intptr_t, HoistedBit::kNextBit>;
 
   DISALLOW_COPY_AND_ASSIGN(Environment);
 };
@@ -11827,7 +11835,7 @@ class InstructionVisitor : public ValueObject {
 #define DECLARE_VISIT_INSTRUCTION(ShortName, Attrs)                            \
   virtual void Visit##ShortName(ShortName##Instr* instr) {}
 
-  FOR_EACH_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
+  FOR_EACH_CONCRETE_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
 
 #undef DECLARE_VISIT_INSTRUCTION
 

@@ -6,63 +6,20 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../rules/control_flow_in_finally.dart';
 
 const _desc = r'Avoid `throw` in `finally` block.';
 
-const _details = r'''
-**AVOID** throwing exceptions in `finally` blocks.
-
-Throwing exceptions in `finally` blocks will inevitably cause unexpected
-behavior that is hard to debug.
-
-**BAD:**
-```dart
-class BadThrow {
-  double nonCompliantMethod() {
-    try {
-      print('hello world! ${1 / 0}');
-    } catch (e) {
-      print(e);
-    } finally {
-      throw 'Find the hidden error :P'; // LINT
-    }
-  }
-}
-```
-
-**GOOD:**
-```dart
-class Ok {
-  double compliantMethod() {
-    var i = 5;
-    try {
-      i = 1 / 0;
-    } catch (e) {
-      print(e); // OK
-    }
-    return i;
-  }
-}
-```
-
-''';
-
 class ThrowInFinally extends LintRule {
-  static const LintCode code = LintCode(
-      'throw_in_finally', "Use of '{0}' in 'finally' block.",
-      correctionMessage: "Try moving the '{0}' outside the 'finally' block.",
-      hasPublishedDocs: true);
-
   ThrowInFinally()
       : super(
-            name: 'throw_in_finally',
-            description: _desc,
-            details: _details,
-            categories: {Category.errors});
+          name: LintNames.throw_in_finally,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.throw_in_finally;
 
   @override
   void registerNodeProcessors(

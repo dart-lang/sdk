@@ -40,10 +40,11 @@ class ExhaustivenessResult {
   final StaticType scrutineeType;
   final List<Space> caseSpaces;
   final List<int> caseOffsets;
-  final List<ExhaustivenessError> errors;
+  final Set<int> unreachableCases;
+  final NonExhaustiveness? nonExhaustiveness;
 
-  ExhaustivenessResult(
-      this.scrutineeType, this.caseSpaces, this.caseOffsets, this.errors);
+  ExhaustivenessResult(this.scrutineeType, this.caseSpaces, this.caseOffsets,
+      this.unreachableCases, this.nonExhaustiveness);
 }
 
 class CfeTypeOperations implements TypeOperations<DartType> {

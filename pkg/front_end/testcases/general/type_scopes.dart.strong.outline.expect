@@ -1,0 +1,164 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Typedef1<contravariant T1 extends dynamic> = <T2 extends dynamic>(T1%, T2%) → void;
+typedef Typedef2<contravariant T20 extends dynamic> = (T20%) → void;
+typedef B1 = dynamic;
+typedef B2 = dynamic;
+typedef B3 = dynamic;
+typedef B4 = dynamic;
+typedef B5 = dynamic;
+typedef B6 = dynamic;
+typedef B7 = dynamic;
+typedef B8 = dynamic;
+typedef B9 = dynamic;
+typedef B10 = dynamic;
+typedef B11 = dynamic;
+typedef B12 = dynamic;
+typedef B13 = dynamic;
+typedef B14 = dynamic;
+typedef B15 = dynamic;
+typedef B16 = dynamic;
+typedef B17 = dynamic;
+typedef B18 = dynamic;
+typedef B19 = dynamic;
+typedef B20 = dynamic;
+typedef C1 = dynamic;
+typedef C2 = dynamic;
+typedef C3 = dynamic;
+typedef C4 = dynamic;
+typedef C5 = dynamic;
+typedef C6 = dynamic;
+typedef C7 = dynamic;
+typedef C8 = dynamic;
+abstract class _Class&S&M<T3 extends dynamic> = self::S<self::_Class&S&M::T3%> with self::M<self::_Class&S&M::T3%> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class&S&M<self::_Class&S&M::T3%>
+    : super self::S::•()
+    ;
+}
+class Class<T3 extends dynamic> extends self::_Class&S&M<self::Class::T3%> implements self::I<self::Class::T3%> {
+  field dynamic instanceField;
+  static field dynamic staticField;
+  constructor •(self::Class::T3% t3) → self::Class<self::Class::T3%>
+    ;
+  static factory fact<T3 extends dynamic>(self::Class::fact::T3% t3) → self::Class<self::Class::fact::T3%> /* redirection-target: self::Class::•<self::Class::fact::T3%>*/
+    return new self::Class::•<self::Class::fact::T3%>(t3);
+  method instanceMethod<T4 extends dynamic>(covariant-by-class self::Class::T3% t3, self::Class::instanceMethod::T4% t4) → void
+    ;
+  static method staticMethod<T5 extends dynamic>(self::Class::staticMethod::T5% t5) → void
+    ;
+}
+abstract class Mixin<T6 extends dynamic> extends self::S<self::Mixin::T6%> implements self::I<self::Mixin::T6%> /*isMixinDeclaration*/  {
+  field dynamic instanceField;
+  static field dynamic staticField;
+  method instanceMethod<T7 extends dynamic>(covariant-by-class self::Mixin::T6% t6, self::Mixin::instanceMethod::T7% t7) → void
+    ;
+  static method staticMethod<T8 extends dynamic>(self::Mixin::staticMethod::T8% t8) → void
+    ;
+}
+class NamedMixinApplication<T9 extends dynamic> = self::Class<self::NamedMixinApplication::T9%> with self::Mixin<self::NamedMixinApplication::T9%> {
+  synthetic constructor •(self::NamedMixinApplication::T9% t3) → self::NamedMixinApplication<self::NamedMixinApplication::T9%>
+    : super self::Class::•(t3)
+    ;
+  mixin-super-stub get instanceField() → dynamic
+    return super.{self::Mixin::instanceField};
+  mixin-super-stub set instanceField(dynamic value) → void
+    return super.{self::Mixin::instanceField} = value;
+  mixin-super-stub method instanceMethod<T7 extends dynamic>(covariant-by-class self::NamedMixinApplication::T9% t6, self::NamedMixinApplication::instanceMethod::T7% t7) → void
+    return super.{self::Mixin::instanceMethod}<self::NamedMixinApplication::instanceMethod::T7%>(t6, t7);
+}
+abstract class _Enum&_Enum&M<T10 extends dynamic> = core::_Enum with self::M<self::_Enum&_Enum&M::T10%> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_Enum&_Enum&M<self::_Enum&_Enum&M::T10%>
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class Enum<T10 extends dynamic> extends self::_Enum&_Enum&M<self::Enum::T10%> implements self::I<self::Enum::T10%> /*isEnum*/  {
+  static field dynamic staticField;
+  static const field core::List<self::Enum<dynamic>> values = const <self::Enum<dynamic>>[self::Enum::a];
+  enum-element static const field self::Enum<core::int> a = const self::Enum::•<core::int>(0, "a", 0);
+  const constructor •(core::int #index, core::String #name, self::Enum::T10% T10) → self::Enum<self::Enum::T10%>
+    : super self::_Enum&_Enum&M::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "Enum.${this.{core::_Enum::_name}{core::String}}";
+  static factory fact<T10 extends dynamic>(self::Enum::fact::T10% T10) → self::Enum<self::Enum::fact::T10%>
+    ;
+  method instanceMethod<T11 extends dynamic>(covariant-by-class self::Enum::T10% T10, self::Enum::instanceMethod::T11% t11) → void
+    ;
+  static method staticMethod<T12 extends dynamic>(self::Enum::staticMethod::T12% t12) → void
+    ;
+}
+class S<X1 extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::S<self::S::X1%>
+    ;
+}
+abstract class M<X2 extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+}
+class I<X3 extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::X3%>
+    ;
+}
+extension Extension<T13 extends dynamic> on self::Class<T13%> {
+  method instanceMethod = self::Extension|instanceMethod;
+  method tearoff instanceMethod = self::Extension|get#instanceMethod;
+  static field staticField = self::Extension|staticField;
+  static method staticMethod = self::Extension|staticMethod;
+}
+extension type ExtensionType<T16 extends dynamic>(T16% t16) implements self::ET<T16%>% /* erasure=T16%, declared=! */ {
+  abstract extension-type-member representation-field get t16() → T16%;
+  method instanceMethod = self::ExtensionType|instanceMethod;
+  method tearoff instanceMethod = self::ExtensionType|get#instanceMethod;
+  static field staticField = self::ExtensionType|staticField;
+  static method staticMethod = self::ExtensionType|staticMethod;
+  constructor • = self::ExtensionType|constructor#;
+  constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
+  constructor cons = self::ExtensionType|constructor#cons;
+  constructor tearoff cons = self::ExtensionType|constructor#_#cons#tearOff;
+  static redirecting-factory fact = self::ExtensionType|constructor#fact;
+  static redirecting-factory tearoff fact = self::ExtensionType|constructor#_#fact#tearOff;
+}
+extension type ET<X4 extends dynamic>(X4% x4) {
+  abstract extension-type-member representation-field get x4() → X4%;
+  constructor • = self::ET|constructor#;
+  constructor tearoff • = self::ET|constructor#_#new#tearOff;
+}
+static field dynamic topLevelField;
+static field dynamic Extension|staticField;
+static field dynamic ExtensionType|staticField;
+static extension-member method Extension|instanceMethod<T13 extends dynamic, T14 extends dynamic>(lowered final self::Class<self::Extension|instanceMethod::T13%> #this, self::Extension|instanceMethod::T13% t13, self::Extension|instanceMethod::T14% t14) → void
+  ;
+static extension-member method Extension|get#instanceMethod<T13 extends dynamic>(lowered final self::Class<self::Extension|get#instanceMethod::T13%> #this) → <T14 extends dynamic>(self::Extension|get#instanceMethod::T13%, T14%) → void
+  return <T14 extends dynamic>(self::Extension|get#instanceMethod::T13% t13, T14% t14) → void => self::Extension|instanceMethod<self::Extension|get#instanceMethod::T13%, T14%>(#this, t13, t14);
+static extension-member method Extension|staticMethod<T15 extends dynamic>(self::Extension|staticMethod::T15% t15) → void
+  ;
+static extension-type-member method ExtensionType|constructor#<T16 extends dynamic>(self::ExtensionType|constructor#::T16% t16) → self::ExtensionType<self::ExtensionType|constructor#::T16%>% /* erasure=self::ExtensionType|constructor#::T16%, declared=! */
+  ;
+static extension-type-member method ExtensionType|constructor#_#new#tearOff<T16 extends dynamic>(self::ExtensionType|constructor#_#new#tearOff::T16% t16) → self::ExtensionType<self::ExtensionType|constructor#_#new#tearOff::T16%>% /* erasure=self::ExtensionType|constructor#_#new#tearOff::T16%, declared=! */
+  return self::ExtensionType|constructor#<self::ExtensionType|constructor#_#new#tearOff::T16%>(t16);
+static extension-type-member method ExtensionType|constructor#cons<T16 extends dynamic>(self::ExtensionType|constructor#cons::T16% t16) → self::ExtensionType<self::ExtensionType|constructor#cons::T16%>% /* erasure=self::ExtensionType|constructor#cons::T16%, declared=! */
+  ;
+static extension-type-member method ExtensionType|constructor#_#cons#tearOff<T16 extends dynamic>(self::ExtensionType|constructor#_#cons#tearOff::T16% t16) → self::ExtensionType<self::ExtensionType|constructor#_#cons#tearOff::T16%>% /* erasure=self::ExtensionType|constructor#_#cons#tearOff::T16%, declared=! */
+  return self::ExtensionType|constructor#cons<self::ExtensionType|constructor#_#cons#tearOff::T16%>(t16);
+static extension-type-member method ExtensionType|constructor#fact<T16 extends dynamic>(self::ExtensionType|constructor#fact::T16% t16) → self::ExtensionType<self::ExtensionType|constructor#fact::T16%>% /* erasure=self::ExtensionType|constructor#fact::T16%, declared=! */ /* redirection-target: self::ExtensionType|constructor#<self::ExtensionType|constructor#fact::T16%>*/
+  return self::ExtensionType|constructor#<self::ExtensionType|constructor#fact::T16%>(t16);
+static extension-type-member method ExtensionType|constructor#_#fact#tearOff<T16 extends dynamic>(self::ExtensionType|constructor#_#fact#tearOff::T16% t16) → self::ExtensionType<self::ExtensionType|constructor#_#fact#tearOff::T16%>% /* erasure=self::ExtensionType|constructor#_#fact#tearOff::T16%, declared=! */
+  return self::ExtensionType|constructor#<self::ExtensionType|constructor#_#fact#tearOff::T16%>(t16);
+static extension-type-member method ExtensionType|instanceMethod<T16 extends dynamic, T17 extends dynamic>(lowered final self::ExtensionType<self::ExtensionType|instanceMethod::T16%>% /* erasure=self::ExtensionType|instanceMethod::T16%, declared=! */ #this, self::ExtensionType|instanceMethod::T16% t16, self::ExtensionType|instanceMethod::T17% t17) → void
+  ;
+static extension-type-member method ExtensionType|get#instanceMethod<T16 extends dynamic>(lowered final self::ExtensionType<self::ExtensionType|get#instanceMethod::T16%>% /* erasure=self::ExtensionType|get#instanceMethod::T16%, declared=! */ #this) → <T17 extends dynamic>(self::ExtensionType|get#instanceMethod::T16%, T17%) → void
+  return <T17 extends dynamic>(self::ExtensionType|get#instanceMethod::T16% t16, T17% t17) → void => self::ExtensionType|instanceMethod<self::ExtensionType|get#instanceMethod::T16%, T17%>(#this, t16, t17);
+static extension-type-member method ExtensionType|staticMethod<T18 extends dynamic>(self::ExtensionType|staticMethod::T18% t18) → void
+  ;
+static method topLevelMethod<T19 extends dynamic>(self::topLevelMethod::T19% t19) → void
+  ;
+static extension-type-member method ET|constructor#<X4 extends dynamic>(self::ET|constructor#::X4% x4) → self::ET<self::ET|constructor#::X4%>% /* erasure=self::ET|constructor#::X4%, declared=! */
+  ;
+static extension-type-member method ET|constructor#_#new#tearOff<X4 extends dynamic>(self::ET|constructor#_#new#tearOff::X4% x4) → self::ET<self::ET|constructor#_#new#tearOff::X4%>% /* erasure=self::ET|constructor#_#new#tearOff::X4%, declared=! */
+  return self::ET|constructor#<self::ET|constructor#_#new#tearOff::X4%>(x4);
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///type_scopes.dart:27:6 -> ListConstant(const <Enum<dynamic>>[const Enum<int>{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///type_scopes.dart:28:3 -> InstanceConstant(const Enum<int>{_Enum.index: 0, _Enum._name: "a"})
+Extra constant evaluation: evaluated: 38, effectively constant: 2

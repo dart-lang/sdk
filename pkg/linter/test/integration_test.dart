@@ -8,6 +8,7 @@ import 'package:analyzer/src/lint/io.dart';
 import 'package:test/test.dart';
 
 import '../tool/checks/check_all_yaml.dart';
+import '../tool/checks/check_messages_yaml.dart';
 import 'mocks.dart';
 
 void main() {
@@ -34,5 +35,7 @@ void main() {
         }
       });
     });
+
+    test('messages.yaml', checkMessagesYaml);
   });
 }

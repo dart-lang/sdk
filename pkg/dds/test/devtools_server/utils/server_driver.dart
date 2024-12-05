@@ -18,36 +18,49 @@ class DevToolsServerDriver {
     this._stdin,
     Stream<String> _stdout,
     Stream<String> _stderr,
-  )   : stdout = _convertToMapStream(_stdout),
-        stderr = _stderr.map((line) {
+  ) : stderr = _stderr.map((line) {
           _trace('<== STDERR $line');
           return line;
-        });
+        }) {
+    // Many tests verify JSON output in stdout but some verify usage output
+    // to stdout for invalid args, so split the process stdout into two
+    // streams, one as JSON and one raw strings.
+    var stdoutRawController = StreamController<String>();
+    stdoutRaw = stdoutRawController.stream;
+    var stdoutJsonController = StreamController<Map<String, Object?>?>();
+    stdout = stdoutJsonController.stream;
+    _stdout.listen((line) {
+      _trace('<== $line');
+
+      // Send to raw stdout stream.
+      stdoutRawController.add(line);
+
+      // If the output is JSON, also send a copy to stdoutJson.
+      try {
+        var json = jsonDecode(line) as Map<String, Object?>;
+        stdoutJsonController.add(json);
+      } catch (_) {}
+    }, onError: (e, s) {
+      stdoutRawController.addError(e, s);
+      stdoutJsonController.addError(e, s);
+    }, onDone: () {
+      stdoutRawController.close();
+      stdoutJsonController.close();
+    });
+  }
 
   final Process _process;
-  final Stream<Map<String, dynamic>?> stdout;
+  late final Stream<Map<String, dynamic>?> stdout;
+  late final Stream<String> stdoutRaw;
   final Stream<String> stderr;
   final StringSink _stdin;
+
+  Future<int> get exitCode => _process.exitCode;
 
   void write(Map<String, dynamic> request) {
     final line = jsonEncode(request);
     _trace('==> $line');
     _stdin.writeln(line);
-  }
-
-  static Stream<Map<String, dynamic>?> _convertToMapStream(
-    Stream<String> stream,
-  ) {
-    return stream.map((line) {
-      _trace('<== $line');
-      return line;
-    }).map((line) {
-      try {
-        return jsonDecode(line) as Map<String, dynamic>;
-      } catch (e) {
-        return null;
-      }
-    }).where((item) => item != null);
   }
 
   static void _trace(String message) {

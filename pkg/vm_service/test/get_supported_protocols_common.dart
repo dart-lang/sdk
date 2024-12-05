@@ -7,22 +7,10 @@ import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
-/// [expectMissingProtocol] allows for a single protocol to be missing. See
-/// https://github.com/dart-lang/sdk/issues/54835 for context. This test will
-/// fail without this flag on AOT configurations when DDS is expected since DDS
-/// isn't currently setup to run with dart_precompiled_runtime. This flag is
-/// meant to cause this test to fail if
-/// https://github.com/dart-lang/sdk/issues/54841 is resolved so this test can
-/// be updated.
-VMTest expectedProtocolTest(
-  List<String> expectedProtocols, {
-  bool expectMissingProtocol = false,
-}) =>
+VMTest expectedProtocolTest(List<String> expectedProtocols) =>
     (VmService service) async {
       final protocols = (await service.getSupportedProtocols()).protocols!;
-      final expectedLength =
-          expectedProtocols.length - (expectMissingProtocol ? 1 : 0);
-      expect(protocols.length, expectedLength);
+      expect(protocols.length, expectedProtocols.length);
       for (final protocol in protocols) {
         expect(expectedProtocols.contains(protocol.protocolName), true);
         expect(protocol.minor, greaterThanOrEqualTo(0));

@@ -1,0 +1,13 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/const_equals_throw.dart:7:11: Error: Throw is not a constant expression.
+// const x = throw "x"; // Error
+//           ^^^^^
+//
+import self as self;
+
+static const field invalid-type x = invalid-expression "pkg/front_end/testcases/coverage/const_equals_throw.dart:7:11: Error: Throw is not a constant expression.
+const x = throw \"x\"; // Error
+          ^^^^^";

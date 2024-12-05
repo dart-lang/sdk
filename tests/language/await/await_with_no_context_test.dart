@@ -79,10 +79,4 @@ main() async {
   (await ((null as Future<B>?) ??
           (Future.value(C())..expectStaticType<Exactly<Future<C>>>())))
       .method();
-
-  // Target of a throw expression
-  try {
-    throw await ((null as Future<B>?) ??
-        (Future.value(C())..expectStaticType<Exactly<Future<C>>>()));
-  } on C {}
 }

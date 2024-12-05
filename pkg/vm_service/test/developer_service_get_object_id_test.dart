@@ -9,20 +9,30 @@ import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
-final abcString = 'abc';
+void testeeMain() {
+  final abcString = 'abc';
+  // ignore: unused_local_variable
+  final getObjectIdResult = Service.getObjectId(abcString)!;
+  debugger();
+}
 
 final tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
-    final isolate = await service.getIsolate(isolateId);
-    final evalResult = await service.evaluate(
+    final evalAbcStringResult = await service.evaluateInFrame(
       isolateId,
-      isolate.rootLib!.id!,
+      0,
       'abcString',
     ) as InstanceRef;
-    final getObjectIdResult = Service.getObjectId(abcString)!;
+    final getObjectIdResult = (await service.evaluateInFrame(
+      isolateId,
+      0,
+      'getObjectIdResult',
+    ) as InstanceRef)
+        .valueAsString!;
+
     final objectFromEval =
-        await service.getObject(isolateId, evalResult.id!) as Instance;
+        await service.getObject(isolateId, evalAbcStringResult.id!) as Instance;
     final objectFromGetObjectId =
         await service.getObject(isolateId, getObjectIdResult) as Instance;
     expect(
@@ -37,4 +47,5 @@ void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'developer_service_get_object_id_test.dart',
+      testeeConcurrent: testeeMain,
     );

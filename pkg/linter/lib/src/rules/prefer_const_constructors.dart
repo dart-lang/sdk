@@ -10,66 +10,19 @@ import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_import
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer `const` with constant constructors.';
 
-const _details = r'''
-**PREFER** using `const` for instantiating constant constructors.
-
-If a constructor can be invoked as const to produce a canonicalized instance,
-it's preferable to do so.
-
-**BAD:**
-```dart
-class A {
-  const A();
-}
-
-void accessA() {
-  A a = new A();
-}
-```
-
-**GOOD:**
-```dart
-class A {
-  const A();
-}
-
-void accessA() {
-  A a = const A();
-}
-```
-
-**GOOD:**
-```dart
-class A {
-  final int x;
-
-  const A(this.x);
-}
-
-A foo(int x) => new A(x);
-```
-
-''';
-
 class PreferConstConstructors extends LintRule {
-  static const LintCode code = LintCode('prefer_const_constructors',
-      "Use 'const' with the constructor to improve performance.",
-      correctionMessage:
-          "Try adding the 'const' keyword to the constructor invocation.",
-      hasPublishedDocs: true);
-
   PreferConstConstructors()
       : super(
-            name: 'prefer_const_constructors',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.prefer_const_constructors,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_const_constructors;
 
   @override
   void registerNodeProcessors(
@@ -96,7 +49,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Handled by an analyzer warning.
     if (element.hasLiteral) return;
 
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement is ClassElement && enclosingElement.isDartCoreObject) {
       // Skip lint for `new Object()`, because it can be used for ID creation.
       return;

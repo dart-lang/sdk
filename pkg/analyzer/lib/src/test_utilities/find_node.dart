@@ -36,9 +36,6 @@ class FindNode {
 
   AssignmentExpression get singleAssignmentExpression => _single();
 
-  AugmentationImportDirective get singleAugmentationImportDirective =>
-      _single();
-
   AugmentedExpression get singleAugmentedExpression => _single();
 
   AugmentedInvocation get singleAugmentedInvocation => _single();
@@ -54,6 +51,8 @@ class FindNode {
   ClassDeclaration get singleClassDeclaration => _single();
 
   ConditionalExpression get singleConditionalExpression => _single();
+
+  Configuration get singleConfiguration => _single();
 
   ConstructorDeclaration get singleConstructorDeclaration => _single();
 
@@ -121,9 +120,6 @@ class FindNode {
 
   LabeledStatement get singleLabeledStatement => _single();
 
-  LibraryAugmentationDirective get singleLibraryAugmentationDirective =>
-      _single();
-
   LibraryDirective get singleLibraryDirective => _single();
 
   ListLiteral get singleListLiteral => _single();
@@ -138,7 +134,13 @@ class FindNode {
 
   NamedType get singleNamedType => _single();
 
+  NullAwareElement get singleNullAwareElement => _single();
+
   ParenthesizedExpression get singleParenthesizedExpression => _single();
+
+  PartDirective get singlePartDirective => _single();
+
+  PartOfDirective get singlePartOfDirective => _single();
 
   PatternAssignment get singlePatternAssignment => _single();
 
@@ -231,10 +233,6 @@ class FindNode {
 
   AssignmentExpression assignment(String search) {
     return _node(search, (n) => n is AssignmentExpression);
-  }
-
-  AugmentationImportDirective augmentationImportDirective(String search) {
-    return _node(search, (n) => n is AugmentationImportDirective);
   }
 
   AwaitExpression awaitExpression(String search) {
@@ -526,6 +524,10 @@ class FindNode {
     return _node(search, (n) => n is ImportDirective);
   }
 
+  ImportPrefixReference importPrefixReference(String search) {
+    return _node(search, (n) => n is ImportPrefixReference);
+  }
+
   IndexExpression index(String search) {
     return _node(search, (n) => n is IndexExpression);
   }
@@ -560,10 +562,6 @@ class FindNode {
 
   LibraryDirective library(String search) {
     return _node(search, (n) => n is LibraryDirective);
-  }
-
-  LibraryAugmentationDirective libraryAugmentation(String search) {
-    return _node(search, (n) => n is LibraryAugmentationDirective);
   }
 
   LibraryIdentifier libraryIdentifier(String search) {

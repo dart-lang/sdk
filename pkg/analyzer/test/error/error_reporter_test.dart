@@ -184,13 +184,7 @@ main() {
     expect(error.message, contains('b.dart'));
   }
 
-  test_creation() async {
-    var source = TestSource();
-    var reporter = ErrorReporter(listener, source);
-    expect(reporter, isNotNull);
-  }
-
-  test_reportErrorForSpan() async {
+  test_atSourceSpan() async {
     var source = TestSource();
     var reporter = ErrorReporter(listener, source);
 
@@ -208,13 +202,19 @@ zap: baz
       'baz',
     );
 
-    reporter.reportErrorForSpan(
-      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,
+    reporter.atSourceSpan(
       span,
-      ['test', 'zip', 'zap'],
+      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,
+      arguments: ['test', 'zip', 'zap'],
     );
     expect(listener.errors, hasLength(1));
     expect(listener.errors.first.offset, offset);
     expect(listener.errors.first.length, length);
+  }
+
+  test_creation() async {
+    var source = TestSource();
+    var reporter = ErrorReporter(listener, source);
+    expect(reporter, isNotNull);
   }
 }

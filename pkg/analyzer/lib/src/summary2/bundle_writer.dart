@@ -127,14 +127,10 @@ class BundleWriter {
     // Write the library units.
     // This will write also resolution data, e.g. for classes.
     _writeUnitElement(libraryElement.definingCompilationUnit);
-    _writeList(libraryElement.parts, _writePartElement);
 
     // Write resolution data for the library.
     _sink.writeUInt30(_resolutionSink.offset);
     _writeLibraryOrAugmentationElement(libraryElement);
-    for (var partElement in libraryElement.parts) {
-      _resolutionSink._writeAnnotationList(partElement.metadata);
-    }
     _resolutionSink.writeMacroDiagnostics(libraryElement.macroDiagnostics);
     _resolutionSink.writeElement(libraryElement.entryPoint);
     _writeFieldNameNonPromotabilityInfo(
@@ -142,8 +138,8 @@ class BundleWriter {
 
     _writePropertyAccessorAugmentations();
 
-    var lastAugmentation = libraryElement.augmentations.lastOrNull;
-    var macroGenerated = lastAugmentation?.macroGenerated;
+    var lastUnit = libraryElement.units.lastOrNull;
+    var macroGenerated = lastUnit?.macroGenerated;
 
     _libraries.add(
       _Library(
@@ -153,23 +149,6 @@ class BundleWriter {
         macroGenerated: macroGenerated,
       ),
     );
-  }
-
-  void _writeAugmentationElement(LibraryAugmentationElementImpl augmentation) {
-    _sink.writeOptionalObject(augmentation.macroGenerated, (macroGenerated) {
-      _sink.writeStringUtf8(macroGenerated.code);
-      _sink.writeUint8List(macroGenerated.informativeBytes);
-    });
-    _writeUnitElement(augmentation.definingCompilationUnit);
-    // The offset where resolution for the augmentation starts.
-    // We need it to skip resolution information from the unit.
-    _sink.writeUInt30(_resolutionSink.offset);
-    _writeLibraryOrAugmentationElement(augmentation);
-  }
-
-  void _writeAugmentationImportElement(AugmentationImportElementImpl element) {
-    _resolutionSink._writeAnnotationList(element.metadata);
-    _writeDirectiveUri(element.uri);
   }
 
   void _writeClassElement(ClassElementImpl element) {
@@ -250,11 +229,7 @@ class BundleWriter {
       _sink._writeStringReference('${element.source.uri}');
     }
 
-    if (element is DirectiveUriWithAugmentationImpl) {
-      _sink.writeByte(DirectiveUriKind.withAugmentation.index);
-      writeWithSource(element);
-      _writeAugmentationElement(element.augmentation);
-    } else if (element is DirectiveUriWithLibrary) {
+    if (element is DirectiveUriWithLibrary) {
       _sink.writeByte(DirectiveUriKind.withLibrary.index);
       writeWithSource(element);
     } else if (element is DirectiveUriWithUnitImpl) {
@@ -339,7 +314,7 @@ class BundleWriter {
   }
 
   void _writeExportLocation(ExportLocation location) {
-    _sink.writeUInt30(location.containerIndex);
+    _sink.writeUInt30(location.fragmentIndex);
     _sink.writeUInt30(location.exportIndex);
   }
 
@@ -480,6 +455,7 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
     _writeImportElementPrefix(element.prefix);
+    _writeLibraryImportPrefixFragment(element.prefix2);
     _writeDirectiveUri(element.uri);
     LibraryImportElementFlags.write(_sink, element);
   }
@@ -510,16 +486,17 @@ class BundleWriter {
     }
   }
 
+  void _writeLibraryImportPrefixFragment(PrefixFragmentImpl? fragment) {
+    _sink.writeOptionalObject(fragment, (fragment) {
+      _sink._writeStringReference(fragment.name);
+      _sink.writeBool(fragment.isDeferred);
+    });
+  }
+
   void _writeLibraryOrAugmentationElement(
     LibraryOrAugmentationElementImpl container,
   ) {
     _resolutionSink._writeAnnotationList(container.metadata);
-    _writeList(container.libraryImports, _writeImportElement);
-    _writeList(container.libraryExports, _writeExportElement);
-    _writeList(
-      container.augmentationImports,
-      _writeAugmentationImportElement,
-    );
   }
 
   void _writeList<T>(List<T> elements, void Function(T) writeElement) {
@@ -587,18 +564,17 @@ class BundleWriter {
   }
 
   void _writeNamespaceCombinator(NamespaceCombinator combinator) {
-    if (combinator is HideElementCombinator) {
-      _sink.writeByte(Tag.HideCombinator);
-      _sink.writeList<String>(combinator.hiddenNames, (name) {
-        _sink._writeStringReference(name);
-      });
-    } else if (combinator is ShowElementCombinator) {
-      _sink.writeByte(Tag.ShowCombinator);
-      _sink.writeList<String>(combinator.shownNames, (name) {
-        _sink._writeStringReference(name);
-      });
-    } else {
-      throw UnimplementedError('${combinator.runtimeType}');
+    switch (combinator) {
+      case HideElementCombinator():
+        _sink.writeByte(Tag.HideCombinator);
+        _sink.writeList<String>(combinator.hiddenNames, (name) {
+          _sink._writeStringReference(name);
+        });
+      case ShowElementCombinator():
+        _sink.writeByte(Tag.ShowCombinator);
+        _sink.writeList<String>(combinator.shownNames, (name) {
+          _sink._writeStringReference(name);
+        });
     }
   }
 
@@ -640,6 +616,16 @@ class BundleWriter {
     _writeDirectiveUri(element.uri);
   }
 
+  /// We write metadata here, to keep it inside [unitElement] resolution
+  /// data, because [_writePartElement] recursively writes included unit
+  /// elements. But the bundle reader wants all metadata for `parts`
+  /// sequentially.
+  void _writePartElementsMetadata(CompilationUnitElementImpl unitElement) {
+    for (var element in unitElement.parts) {
+      _resolutionSink._writeAnnotationList(element.metadata);
+    }
+  }
+
   /// Write information to update `getter` and `setter` properties of
   /// augmented variables to use the corresponding augmentations.
   void _writePropertyAccessorAugmentations() {
@@ -657,6 +643,11 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeType(element.returnType);
     _writeList(element.parameters, _writeParameterElement);
+
+    // Write the reference for the variable, the reader will use it.
+    if (!element.isAugmentation) {
+      _writeReference(element.variable2!);
+    }
 
     _resolutionSink.writeElement(element.augmentationTargetAny);
     if (element.isAugmentation) {
@@ -736,6 +727,13 @@ class BundleWriter {
 
     _sink._writeOptionalStringReference(unitElement.uri);
     _sink.writeBool(unitElement.isSynthetic);
+
+    _writeList(unitElement.libraryImports, _writeImportElement);
+    _writeList(unitElement.libraryExports, _writeExportElement);
+
+    _writePartElementsMetadata(unitElement);
+    _writeList(unitElement.parts, _writePartElement);
+
     _writeList(unitElement.classes, _writeClassElement);
     _writeList(unitElement.enums, _writeEnumElement);
     _writeList(unitElement.extensions, _writeExtensionElement);
@@ -754,6 +752,11 @@ class BundleWriter {
       unitElement.accessors.where((e) => !e.isSynthetic).toList(),
       _writePropertyAccessorElement,
     );
+
+    _sink.writeOptionalObject(unitElement.macroGenerated, (macroGenerated) {
+      _sink.writeStringUtf8(macroGenerated.code);
+      _sink.writeUint8List(macroGenerated.informativeBytes);
+    });
   }
 
   static TypeParameterVarianceTag _encodeVariance(
@@ -1137,7 +1140,7 @@ class ResolutionSink extends _SummaryDataWriter {
       return const [];
     }
 
-    var enclosing = declaration.enclosingElement;
+    var enclosing = declaration.enclosingElement3;
     if (enclosing is InstanceElement) {
       var typeParameters = enclosing.typeParameters;
       if (typeParameters.isEmpty) {
@@ -1297,8 +1300,8 @@ class _Library {
   final int offset;
   final List<int> classMembersOffsets;
 
-  /// The only (if any) macro generated augmentation.
-  final MacroGeneratedAugmentationLibrary? macroGenerated;
+  /// The only (if any) macro generated fragment.
+  final MacroGeneratedLibraryFragment? macroGenerated;
 
   _Library({
     required this.uriStr,

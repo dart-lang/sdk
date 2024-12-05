@@ -7,7 +7,9 @@ library fasta.qualified_name;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart' show Expression;
 
+import '../builder/builder.dart';
 import '../builder/type_builder.dart';
+import '../kernel/expression_generator.dart';
 import 'operator.dart';
 import 'problems.dart' show unhandled, unsupported;
 
@@ -31,16 +33,14 @@ abstract class Identifier {
 
   Operator? get operator;
 
-  QualifiedName withQualifier(Object qualifier);
-
   TypeName get typeName;
 }
 
-class SimpleIdentifier implements Identifier {
+abstract class IdentifierImpl implements Identifier {
   @override
   final Token token;
 
-  SimpleIdentifier(this.token);
+  IdentifierImpl(this.token);
 
   @override
   String get name => token.lexeme;
@@ -63,12 +63,26 @@ class SimpleIdentifier implements Identifier {
   Operator? get operator => null;
 
   @override
-  QualifiedName withQualifier(Object qualifier) {
-    return new QualifiedName(qualifier, token);
-  }
+  TypeName get typeName => new IdentifierTypeName(name, nameOffset);
 
   @override
-  TypeName get typeName => new IdentifierTypeName(name, nameOffset);
+  String toString() => "IdentifierImpl($name)";
+}
+
+class SimpleIdentifier extends IdentifierImpl {
+  SimpleIdentifier(super.token);
+
+  QualifiedNameIdentifier withIdentifierQualifier(Identifier qualifier) {
+    return new QualifiedNameIdentifier(qualifier, token);
+  }
+
+  QualifiedNameGenerator withGeneratorQualifier(Generator qualifier) {
+    return new QualifiedNameGenerator(qualifier, token);
+  }
+
+  QualifiedNameBuilder withBuilderQualifier(Builder qualifier) {
+    return new QualifiedNameBuilder(qualifier, token);
+  }
 
   @override
   String toString() => "SimpleIdentifier($name)";
@@ -106,12 +120,6 @@ class OperatorIdentifier implements Identifier {
 
   @override
   // Coverage-ignore(suite): Not run.
-  QualifiedName withQualifier(Object qualifier) {
-    return unsupported("withQualifier", charOffset, null);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
   TypeName get typeName {
     return unsupported("typeName", charOffset, null);
   }
@@ -129,12 +137,6 @@ class InitializedIdentifier extends SimpleIdentifier {
 
   @override
   // Coverage-ignore(suite): Not run.
-  QualifiedName withQualifier(Object qualifier) {
-    return unsupported("withQualifier", charOffset, null);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
   TypeName get typeName {
     return unsupported("typeName", charOffset, null);
   }
@@ -143,66 +145,91 @@ class InitializedIdentifier extends SimpleIdentifier {
   String toString() => "initialized-identifier($name, $initializer)";
 }
 
-class QualifiedName extends SimpleIdentifier {
-  // TODO(johnniwinther): Type this field.
-  final Object qualifier;
+sealed class QualifiedName extends IdentifierImpl {
+  QualifiedName(Token suffix) : super(suffix);
+}
 
-  QualifiedName(this.qualifier, Token suffix) : super(suffix);
+class QualifiedNameIdentifier extends QualifiedName {
+  final Identifier qualifier;
 
+  QualifiedNameIdentifier(this.qualifier, Token suffix) : super(suffix);
+
+  // Coverage-ignore(suite): Not run.
   Token get suffix => token;
 
   @override
-  int get firstOffset => (qualifier as Identifier).firstOffset;
+  int get firstOffset => qualifier.firstOffset;
 
   @override
-  int get qualifierOffset => (qualifier as Identifier).nameOffset;
+  int get qualifierOffset => qualifier.nameOffset;
 
   @override
   int get nameOffset => token.charOffset;
 
   @override
+  TypeName get typeName =>
+      new QualifiedTypeName(qualifier.name, qualifierOffset, name, nameOffset);
+
+  @override
+  String toString() => "qualified-name-identifier($qualifier, $name)";
+}
+
+class QualifiedNameGenerator extends QualifiedName {
+  final Generator qualifier;
+
+  QualifiedNameGenerator(this.qualifier, Token suffix) : super(suffix);
+
+  Token get suffix => token;
+
+  @override
   // Coverage-ignore(suite): Not run.
-  QualifiedName withQualifier(Object qualifier) {
-    return unsupported("withQualifier", charOffset, null);
-  }
+  int get firstOffset => qualifier.fileOffset;
 
   @override
-  TypeName get typeName => new QualifiedTypeName(
-      (qualifier as Identifier).name, qualifierOffset, name, nameOffset);
+  String toString() => "qualified-name-generator($qualifier, $name)";
+}
+
+class QualifiedNameBuilder extends QualifiedName {
+  final Builder qualifier;
+
+  QualifiedNameBuilder(this.qualifier, Token suffix) : super(suffix);
+
+  Token get suffix => token;
 
   @override
-  String toString() => "qualified-name($qualifier, $name)";
+  // Coverage-ignore(suite): Not run.
+  int get firstOffset => qualifier.charOffset;
+
+  @override
+  String toString() => "qualified-name-builder($qualifier, $name)";
 }
 
 void flattenQualifiedNameOn(
     QualifiedName name, StringBuffer buffer, int charOffset, Uri? fileUri) {
-  final Object qualifier = name.qualifier;
-  if (qualifier is QualifiedName) {
-    flattenQualifiedNameOn(qualifier, buffer, charOffset, fileUri);
-  } else if (qualifier is Identifier) {
-    buffer.write(qualifier.name);
-  }
-  // Coverage-ignore(suite): Not run.
-  else if (qualifier is String) {
-    buffer.write(qualifier);
-  } else {
-    unhandled("${qualifier.runtimeType}", "flattenQualifiedNameOn", charOffset,
-        fileUri);
+  switch (name) {
+    case QualifiedNameIdentifier():
+      Identifier qualifier = name.qualifier;
+      if (qualifier is QualifiedName) {
+        flattenQualifiedNameOn(qualifier, buffer, charOffset, fileUri);
+      } else {
+        buffer.write(qualifier.name);
+      }
+    // Coverage-ignore(suite): Not run.
+    case QualifiedNameGenerator():
+    case QualifiedNameBuilder():
+      unhandled(
+          "${name.runtimeType}", "flattenQualifiedNameOn", charOffset, fileUri);
   }
   buffer.write(".");
   buffer.write(name.name);
 }
 
-String flattenName(Object name, int charOffset, Uri? fileUri) {
-  if (name is String) {
-    return name;
-  } else if (name is QualifiedName) {
+String flattenName(Identifier name, int charOffset, Uri? fileUri) {
+  if (name is QualifiedName) {
     StringBuffer buffer = new StringBuffer();
     flattenQualifiedNameOn(name, buffer, charOffset, fileUri);
     return "$buffer";
-  } else if (name is Identifier) {
-    return name.name;
   } else {
-    return unhandled("${name.runtimeType}", "flattenName", charOffset, fileUri);
+    return name.name;
   }
 }

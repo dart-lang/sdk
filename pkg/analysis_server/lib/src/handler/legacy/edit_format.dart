@@ -48,7 +48,12 @@ class EditFormatHandler extends LegacyHandler {
       selectionStart: start,
       selectionLength: length,
     );
-    var formatter = DartFormatter(pageWidth: params.lineLength);
+
+    var driver = server.getAnalysisDriver(file);
+    var library = await driver?.getResolvedLibrary(file);
+    var formatter = DartFormatter(
+        pageWidth: params.lineLength,
+        languageVersion: library.effectiveLanguageVersion);
     SourceCode formattedResult;
     try {
       formattedResult = formatter.formatSource(code);

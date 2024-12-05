@@ -20,8 +20,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 /// List.generate(n, y, growable: false) => _List.generate(n, y)
 /// ```
 class ListFactorySpecializer {
-  final Map<Member, TreeNode Function(StaticInvocation node)> _transformers =
-      {};
+  final Map<Member, StaticInvocation Function(StaticInvocation node)>
+      _transformers = {};
 
   final Procedure _fixedListEmptyFactory;
   final Procedure _fixedListFactory;
@@ -63,7 +63,7 @@ class ListFactorySpecializer {
     _transformers[_listGenerateFactory] = _transformListGenerateFactory;
   }
 
-  TreeNode transformStaticInvocation(StaticInvocation invocation) {
+  StaticInvocation transformStaticInvocation(StaticInvocation invocation) {
     final target = invocation.target;
     final transformer = _transformers[target];
     if (transformer != null) {
@@ -76,7 +76,7 @@ class ListFactorySpecializer {
   // List.filled(n, x, growable: true) => _GrowableList.filled(n, x)
   // List.filled(n, null) => _List(n)
   // List.filled(n, x) => _List.filled(n, x)
-  TreeNode _transformListFilledFactory(StaticInvocation node) {
+  StaticInvocation _transformListFilledFactory(StaticInvocation node) {
     final args = node.arguments;
     assert(args.positional.length == 2);
     final length = args.positional[0];
@@ -122,7 +122,7 @@ class ListFactorySpecializer {
   // List.empty() => _List.empty()
   // List.empty(growable: false) => _List.empty()
   // List.empty(growable: true) => _GrowableList.empty()
-  TreeNode _transformListEmptyFactory(StaticInvocation node) {
+  StaticInvocation _transformListEmptyFactory(StaticInvocation node) {
     final args = node.arguments;
     assert(args.positional.isEmpty);
     final bool? growable =
@@ -146,7 +146,7 @@ class ListFactorySpecializer {
 
   // List.generate(n, y) => _GrowableList.generate(n, y)
   // List.generate(n, y, growable: false) => _List.generate(n, y)
-  TreeNode _transformListGenerateFactory(StaticInvocation node) {
+  StaticInvocation _transformListGenerateFactory(StaticInvocation node) {
     final args = node.arguments;
     assert(args.positional.length == 2);
     final length = args.positional[0];

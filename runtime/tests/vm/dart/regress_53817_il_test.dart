@@ -41,6 +41,8 @@ void matchIL$createAndIterate(FlowGraph graph) {
             [
               'i' << match.Phi('i+1', match.any),
               match.CheckStackOverflow(),
+              if (is32BitConfiguration)
+                'i_ext' << match.IntConverter('i', from: 'int32', to: 'int64'),
               match.Branch(match.RelationalOp(match.any, match.any, kind: '>='),
                   ifTrue: 'loop_exit', ifFalse: 'loop_body'),
             ].withoutWildcards),
@@ -55,7 +57,10 @@ void matchIL$createAndIterate(FlowGraph graph) {
             // related code was entirely eliminated - thus no wildcards
             // when matching.
             [
-              'i+1' << match.BinaryInt64Op('i', match.any),
+              if (is32BitConfiguration)
+                'i+1' << match.BinaryInt32Op('i', match.any)
+              else
+                'i+1' << match.BinaryInt64Op('i', match.any),
               match.Goto('loop'),
             ].withoutWildcards),
   ]);

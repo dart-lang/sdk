@@ -26,10 +26,31 @@ class ConstantInfo {
   ConstantInfo(this.constant, this.global, this.function);
 
   bool get isLazy => function != null;
+
+  void _readGlobal(Translator translator, w.InstructionsBuilder b) {
+    translator.globals.readGlobal(b, global, importNameSuffix: 'constant');
+  }
+
+  w.ValueType readConstant(Translator translator, w.InstructionsBuilder b) {
+    final initFunction = function;
+    if (initFunction != null) {
+      // Lazily initialized constant.
+      w.ValueType type = global.type.type.withNullability(false);
+      w.Label done = b.block(const [], [type]);
+      _readGlobal(translator, b);
+      b.br_on_non_null(done);
+
+      translator.callFunction(initFunction, b);
+      b.end();
+      return type;
+    } else {
+      _readGlobal(translator, b);
+      return global.type.type;
+    }
+  }
 }
 
-typedef ConstantCodeGenerator = void Function(
-    w.FunctionBuilder?, w.InstructionsBuilder);
+typedef ConstantCodeGenerator = void Function(w.InstructionsBuilder);
 
 /// Handles the creation of Dart constants.
 ///
@@ -83,7 +104,7 @@ class Constants {
 
   Constants(this.translator);
 
-  w.ModuleBuilder get m => translator.m;
+  // All constant constructs should go in the main module.
   Types get types => translator.types;
   CoreTypes get coreTypes => translator.coreTypes;
 
@@ -130,10 +151,10 @@ class Constants {
   }
 
   /// Emit code to push a constant onto the stack.
-  void instantiateConstant(w.BaseFunction? function, w.InstructionsBuilder b,
-      Constant constant, w.ValueType expectedType) {
+  void instantiateConstant(
+      w.InstructionsBuilder b, Constant constant, w.ValueType expectedType) {
     if (expectedType == translator.voidMarker) return;
-    ConstantInstantiator(this, function, b, expectedType).instantiate(constant);
+    ConstantInstantiator(this, b, expectedType).instantiate(constant);
   }
 
   InstanceConstant _lowerTypeConstant(DartType type) {
@@ -293,15 +314,12 @@ class Constants {
 class ConstantInstantiator extends ConstantVisitor<w.ValueType>
     with ConstantVisitorDefaultMixin<w.ValueType> {
   final Constants constants;
-  final w.BaseFunction? function;
   final w.InstructionsBuilder b;
   final w.ValueType expectedType;
 
-  ConstantInstantiator(
-      this.constants, this.function, this.b, this.expectedType);
+  ConstantInstantiator(this.constants, this.b, this.expectedType);
 
   Translator get translator => constants.translator;
-  w.ModuleBuilder get m => translator.m;
 
   void instantiate(Constant constant) {
     w.ValueType resultType = constant.accept(this);
@@ -322,20 +340,7 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
   @override
   w.ValueType defaultConstant(Constant constant) {
     ConstantInfo info = ConstantCreator(constants).ensureConstant(constant)!;
-    if (info.isLazy) {
-      // Lazily initialized constant.
-      w.ValueType type = info.global.type.type.withNullability(false);
-      w.Label done = b.block(const [], [type]);
-      b.global_get(info.global);
-      b.br_on_non_null(done);
-      b.call(info.function!);
-      b.end();
-      return type;
-    } else {
-      // Constant initialized eagerly in a global initializer.
-      b.global_get(info.global);
-      return info.global.type.type;
-    }
+    return info.readConstant(translator, b);
   }
 
   @override
@@ -345,7 +350,9 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
       w.ValueType sentinelType = expectedType.withNullability(false);
       assert(sentinelType is w.RefType,
           "Default value sentinel for unboxed parameter");
-      translator.globals.instantiateDummyValue(b, sentinelType);
+      translator
+          .getDummyValuesCollectorForModule(b.module)
+          .instantiateDummyValue(b, sentinelType);
       return sentinelType;
     }
     return super.visitUnevaluatedConstant(constant);
@@ -418,7 +425,6 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
   Translator get translator => constants.translator;
   Types get types => translator.types;
-  w.ModuleBuilder get m => constants.m;
 
   Constant get _uninitializedHashBaseIndexConstant =>
       (translator.uninitializedHashBaseIndex.initializer as ConstantExpression)
@@ -446,16 +452,19 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       Constant constant, w.RefType type, ConstantCodeGenerator generator,
       {bool lazy = false}) {
     assert(!type.nullable);
+    final mainModule = translator.mainModule;
     if (lazy) {
       // Create uninitialized global and function to initialize it.
-      final global = m.globals.define(w.GlobalType(type.withNullability(true)));
+      final global =
+          mainModule.globals.define(w.GlobalType(type.withNullability(true)));
       global.initializer.ref_null(w.HeapType.none);
       global.initializer.end();
-      w.FunctionType ftype = m.types.defineFunction(const [], [type]);
-      final function = m.functions.define(ftype, "$constant");
-      generator(function, function.body);
-      w.Local temp = function.addLocal(type);
+      w.FunctionType ftype =
+          translator.typesBuilder.defineFunction(const [], [type]);
+      final function = mainModule.functions.define(ftype, "$constant");
       final b2 = function.body;
+      generator(b2);
+      w.Local temp = b2.addLocal(type);
       b2.local_tee(temp);
       b2.global_set(global);
       b2.local_get(temp);
@@ -466,8 +475,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       // Create global with the constant in its initializer.
       assert(!constants.currentlyCreating);
       constants.currentlyCreating = true;
-      final global = m.globals.define(w.GlobalType(type, mutable: false));
-      generator(null, global.initializer);
+      final global =
+          mainModule.globals.define(w.GlobalType(type, mutable: false));
+      generator(global.initializer);
       global.initializer.end();
       constants.currentlyCreating = false;
 
@@ -481,7 +491,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   @override
   ConstantInfo? visitBoolConstant(BoolConstant constant) {
     ClassInfo info = translator.classInfo[translator.boxedBoolClass]!;
-    return createConstant(constant, info.nonNullableType, (function, b) {
+    return createConstant(constant, info.nonNullableType, (b) {
       b.i32_const(info.classId);
       b.i32_const(constant.value ? 1 : 0);
       b.struct_new(info.struct);
@@ -491,7 +501,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   @override
   ConstantInfo? visitIntConstant(IntConstant constant) {
     ClassInfo info = translator.classInfo[translator.boxedIntClass]!;
-    return createConstant(constant, info.nonNullableType, (function, b) {
+    return createConstant(constant, info.nonNullableType, (b) {
       b.i32_const(info.classId);
       b.i64_const(constant.value);
       b.struct_new(info.struct);
@@ -501,7 +511,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   @override
   ConstantInfo? visitDoubleConstant(DoubleConstant constant) {
     ClassInfo info = translator.classInfo[translator.boxedDoubleClass]!;
-    return createConstant(constant, info.nonNullableType, (function, b) {
+    return createConstant(constant, info.nonNullableType, (b) {
       b.i32_const(info.classId);
       b.f64_const(constant.value);
       b.struct_new(info.struct);
@@ -512,10 +522,11 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitStringConstant(StringConstant constant) {
     if (translator.options.jsCompatibility) {
       ClassInfo info = translator.classInfo[translator.jsStringClass]!;
-      return createConstant(constant, info.nonNullableType, (function, b) {
+      return createConstant(constant, info.nonNullableType, (b) {
         b.i32_const(info.classId);
         b.i32_const(initialIdentityHash);
-        b.global_get(translator.getInternalizedStringGlobal(constant.value));
+        translator.globals.readGlobal(b,
+            translator.getInternalizedStringGlobal(b.module, constant.value));
         b.struct_new(info.struct);
       });
     }
@@ -526,7 +537,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     translator.functions.recordClassAllocation(info.classId);
     w.RefType type = info.nonNullableType;
     bool lazy = constant.value.length > maxArrayNewFixedLength;
-    return createConstant(constant, type, lazy: lazy, (function, b) {
+    return createConstant(constant, type, lazy: lazy, (b) {
       w.ArrayType arrayType =
           (info.struct.fields[FieldIndex.stringArray].type as w.RefType)
               .heapType as w.ArrayType;
@@ -538,11 +549,13 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         w.DataSegmentBuilder segment;
         Uint8List bytes;
         if (isOneByte) {
-          segment = constants.oneByteStringSegment ??= m.dataSegments.define();
+          segment = constants.oneByteStringSegment ??=
+              translator.mainModule.dataSegments.define();
           bytes = Uint8List.fromList(constant.value.codeUnits);
         } else {
           assert(Endian.host == Endian.little);
-          segment = constants.twoByteStringSegment ??= m.dataSegments.define();
+          segment = constants.twoByteStringSegment ??=
+              translator.mainModule.dataSegments.define();
           bytes = Uint16List.fromList(constant.value.codeUnits)
               .buffer
               .asUint8List();
@@ -605,13 +618,13 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       args = supertype.typeArguments;
     }
 
-    return createConstant(constant, type, lazy: lazy, (function, b) {
+    return createConstant(constant, type, lazy: lazy, (b) {
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
       for (int i = baseFieldCount; i < fieldCount; i++) {
         Constant subConstant = subConstants[i]!;
         constants.instantiateConstant(
-            function, b, subConstant, info.struct.fields[i].type.unpacked);
+            b, subConstant, info.struct.fields[i].type.unpacked);
       }
       b.struct_new(info.struct);
     });
@@ -631,7 +644,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     }
 
     return createConstant(constant, w.RefType.def(arrayType, nullable: false),
-        lazy: lazy, (function, b) {
+        lazy: lazy, (b) {
       if (tooLargeForArrayNewFixed) {
         // We will initialize the array with one of the elements (using
         // `array.new`) and update the fields.
@@ -653,25 +666,39 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         }
 
         w.Local arrayLocal =
-            function!.addLocal(w.RefType.def(arrayType, nullable: false));
-        constants.instantiateConstant(function, b, initialElement, elementType);
+            b.addLocal(w.RefType.def(arrayType, nullable: false));
+        constants.instantiateConstant(b, initialElement, elementType);
         b.i32_const(elements.length);
         b.array_new(arrayType);
         b.local_set(arrayLocal);
-        for (int i = 0; i < elements.length; i++) {
-          final element = elements[i];
-          if (element == initialElement) {
-            continue;
+
+        for (int i = 0; i < elements.length;) {
+          // If it's the same as initial element, nothing to do.
+          final value = elements[i++];
+          if (value == initialElement) continue;
+
+          // Find out how many times the current element repeats.
+          final int startInclusive = i - 1;
+          while (i < elements.length && elements[i] == value) {
+            i++;
           }
+          final int endExclusive = i;
+          final int count = endExclusive - startInclusive;
+
           b.local_get(arrayLocal);
-          b.i32_const(i);
-          constants.instantiateConstant(function, b, element, elementType);
-          b.array_set(arrayType);
+          b.i32_const(startInclusive);
+          constants.instantiateConstant(b, value, elementType);
+          if (count > 1) {
+            b.i32_const(count);
+            b.array_fill(arrayType);
+          } else {
+            b.array_set(arrayType);
+          }
         }
         b.local_get(arrayLocal);
       } else {
         for (Constant element in elements) {
-          constants.instantiateConstant(function, b, element, elementType);
+          constants.instantiateConstant(b, element, elementType);
         }
         b.array_new_fixed(arrayType, elements.length);
       }
@@ -691,35 +718,33 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     ClassInfo info = translator.classInfo[translator.immutableListClass]!;
     translator.functions.recordClassAllocation(info.classId);
     w.RefType type = info.nonNullableType;
-    return createConstant(constant, type, lazy: lazy, (function, b) {
+    return createConstant(constant, type, lazy: lazy, (b) {
       w.ArrayType arrayType = translator.listArrayType;
       w.ValueType elementType = arrayType.elementType.type.unpacked;
       int length = constant.entries.length;
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
       constants.instantiateConstant(
-          function, b, typeArgConstant, constants.typeInfo.nullableType);
+          b, typeArgConstant, constants.typeInfo.nullableType);
       b.i64_const(length);
       if (lazy) {
         // Allocate array and set each entry to the corresponding sub-constant.
         w.Local arrayLocal =
-            function!.addLocal(w.RefType.def(arrayType, nullable: false));
+            b.addLocal(w.RefType.def(arrayType, nullable: false));
         b.i32_const(length);
         b.array_new_default(arrayType);
         b.local_set(arrayLocal);
         for (int i = 0; i < length; i++) {
           b.local_get(arrayLocal);
           b.i32_const(i);
-          constants.instantiateConstant(
-              function, b, constant.entries[i], elementType);
+          constants.instantiateConstant(b, constant.entries[i], elementType);
           b.array_set(arrayType);
         }
         b.local_get(arrayLocal);
       } else {
         // Push all sub-constants on the stack and initialize array from them.
         for (int i = 0; i < length; i++) {
-          constants.instantiateConstant(
-              function, b, constant.entries[i], elementType);
+          constants.instantiateConstant(b, constant.entries[i], elementType);
         }
         b.array_new_fixed(arrayType, length);
       }
@@ -808,18 +833,28 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     ClosureImplementation closure = translator.getTearOffClosure(member);
     w.StructType struct = closure.representation.closureStruct;
     w.RefType type = w.RefType.def(struct, nullable: false);
-    return createConstant(constant, type, (function, b) {
+
+    // The vtable for the target will be stored on a global in the target's
+    // module.
+    final isLazy = !translator
+        .isMainModule(translator.moduleForReference(constant.targetReference));
+    // The dummy struct must be declared before the constant global so that the
+    // constant's initializer can reference it.
+    final dummyStructGlobal = translator
+        .getDummyValuesCollectorForModule(translator.mainModule)
+        .dummyStructGlobal;
+    return createConstant(constant, type, (b) {
       ClassInfo info = translator.closureInfo;
       translator.functions.recordClassAllocation(info.classId);
 
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
-      b.global_get(translator.globals.dummyStructGlobal); // Dummy context
-      b.global_get(closure.vtable);
+      translator.globals.readGlobal(b, dummyStructGlobal); // Dummy context
+      translator.globals.readGlobal(b, closure.vtable);
       constants.instantiateConstant(
-          function, b, functionTypeConstant, types.nonNullableTypeType);
+          b, functionTypeConstant, types.nonNullableTypeType);
       b.struct_new(struct);
-    });
+    }, lazy: isLazy);
   }
 
   @override
@@ -854,7 +889,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     final tearOffConstantInfo = ensureConstant(tearOffConstant)!;
 
     w.BaseFunction makeDynamicCallEntry() {
-      final function = m.functions.define(
+      final function = translator.mainModule.functions.define(
           translator.dynamicCallVtableEntryFunctionType, "dynamic call entry");
 
       final b = function.body;
@@ -866,11 +901,10 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
       b.local_get(closureLocal);
       final InstanceConstant typeArgs = constants.makeTypeArray(constant.types);
-      constants.instantiateConstant(
-          function, b, typeArgs, typeArgsListLocal.type);
+      constants.instantiateConstant(b, typeArgs, typeArgsListLocal.type);
       b.local_get(posArgsListLocal);
       b.local_get(namedArgsListLocal);
-      b.call(tearOffClosure.dynamicCallEntry);
+      translator.callFunction(tearOffClosure.dynamicCallEntry, b);
       b.end();
 
       return function;
@@ -881,26 +915,44 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     // a constant while creating another one.
     final w.BaseFunction dynamicCallEntry = makeDynamicCallEntry();
 
-    return createConstant(constant, type, (function, b) {
+    final lazy = tearOffConstantInfo.isLazy;
+
+    return createConstant(constant, type, lazy: lazy, (b) {
       ClassInfo info = translator.closureInfo;
       translator.functions.recordClassAllocation(info.classId);
+
+      void declareAndAddRefFunc(w.BaseFunction function) {
+        // If the constant is lazy the body will be in a function rather than a
+        // global. In order for a function to use a ref.func, the function must
+        // be declared in a global (or via the element section).
+        if (lazy) {
+          final global = b.module.globals
+              .define(w.GlobalType(w.RefType(function.type, nullable: false)));
+          global.initializer
+            ..ref_func(function)
+            ..end();
+          b.global_get(global);
+        } else {
+          b.ref_func(function);
+        }
+      }
 
       w.BaseFunction makeTrampoline(
           w.FunctionType signature, w.BaseFunction tearOffFunction) {
         assert(tearOffFunction.type.inputs.length ==
             signature.inputs.length + types.length);
-        final function =
-            m.functions.define(signature, "instantiation constant trampoline");
-        final b = function.body;
-        b.local_get(function.locals[0]);
+        final function = b.module.functions
+            .define(signature, "instantiation constant trampoline");
+        final b2 = function.body;
+        b2.local_get(function.locals[0]);
         for (ConstantInfo typeInfo in types) {
-          b.global_get(typeInfo.global);
+          typeInfo.readConstant(translator, b2);
         }
         for (int i = 1; i < signature.inputs.length; i++) {
-          b.local_get(function.locals[i]);
+          b2.local_get(function.locals[i]);
         }
-        b.call(tearOffFunction);
-        b.end();
+        translator.callFunction(tearOffFunction, b2);
+        b2.end();
         return function;
       }
 
@@ -917,26 +969,32 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           //   - non-generic closure / non-generic tear-off definitions
           //   - non-generic callers
           // => We make a dummy entry which is unreachable.
-          function = translator.globals.getDummyFunction(signature);
+          function = translator
+              .getDummyValuesCollectorForModule(b.module)
+              .getDummyFunction(signature);
         } else {
           final int tearOffFieldIndex = tearOffRepresentation
               .fieldIndexForSignature(posArgCount, nameCombination.names);
           w.BaseFunction tearOffFunction = tearOffClosure.functions[
               tearOffFieldIndex - tearOffRepresentation.vtableBaseIndex];
-          if (translator.globals.isDummyFunction(tearOffFunction)) {
+          if (translator
+              .getDummyValuesCollectorForModule(b.module)
+              .isDummyFunction(tearOffFunction)) {
             // This name combination may not exist for the target, but got
             // clustered together with other name combinations that do exist.
             // => We make a dummy entry which is unreachable.
-            function = translator.globals.getDummyFunction(signature);
+            function = translator
+                .getDummyValuesCollectorForModule(b.module)
+                .getDummyFunction(signature);
           } else {
             function = makeTrampoline(signature, tearOffFunction);
           }
         }
-        b.ref_func(function);
+        declareAndAddRefFunc(function);
       }
 
       void makeVtable() {
-        b.ref_func(dynamicCallEntry);
+        declareAndAddRefFunc(dynamicCallEntry);
         assert(!instantiationOfTearOffRepresentation.isGeneric);
         for (int posArgCount = 0;
             posArgCount <= positionalCount;
@@ -955,15 +1013,16 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
       // Context is not used by the vtable functions, but it's needed for
       // closure equality checks to work (`_Closure._equals`).
-      b.global_get(tearOffConstantInfo.global);
+      tearOffConstantInfo.readConstant(translator, b);
+
       for (final ty in types) {
-        b.global_get(ty.global);
+        ty.readConstant(translator, b);
       }
       b.struct_new(tearOffRepresentation.instantiationContextStruct!);
 
       makeVtable();
       constants.instantiateConstant(
-          function, b, functionTypeConstant, this.types.nonNullableTypeType);
+          b, functionTypeConstant, this.types.nonNullableTypeType);
       b.struct_new(struct);
     });
   }
@@ -981,11 +1040,10 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         .classInfo[translator.coreTypes.stringClass]!.repr.nonNullableType;
     StringConstant nameConstant = StringConstant(constant.name);
     bool lazy = ensureConstant(nameConstant)?.isLazy ?? false;
-    return createConstant(constant, info.nonNullableType, lazy: lazy,
-        (function, b) {
+    return createConstant(constant, info.nonNullableType, lazy: lazy, (b) {
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
-      constants.instantiateConstant(function, b, nameConstant, stringType);
+      constants.instantiateConstant(b, nameConstant, stringType);
       b.struct_new(info.struct);
     });
   }
@@ -999,17 +1057,18 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     final List<Constant> arguments = constant.positional.toList();
     arguments.addAll(constant.named.values);
 
+    bool lazy = false;
     for (Constant argument in arguments) {
-      ensureConstant(argument);
+      lazy |= ensureConstant(argument)?.isLazy ?? false;
     }
 
-    return createConstant(constant, recordClassInfo.nonNullableType,
-        lazy: false, (function, b) {
+    return createConstant(constant, recordClassInfo.nonNullableType, lazy: lazy,
+        (b) {
       b.i32_const(recordClassInfo.classId);
       b.i32_const(initialIdentityHash);
       for (Constant argument in arguments) {
         constants.instantiateConstant(
-            function, b, argument, translator.topInfo.nullableType);
+            b, argument, translator.topInfo.nullableType);
       }
       b.struct_new(recordClassInfo.struct);
     });

@@ -308,7 +308,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
         .expand((unit) => unit.unit.declarations)
         .expand((declaration) => declaration.sealedSuperclassElements)
         // Check if any of them are in the source file.
-        .map((element) => element.enclosingElement)
+        .map((element) => element.enclosingElement3)
         .contains(unitResult.unit.declaredElement);
   }
 

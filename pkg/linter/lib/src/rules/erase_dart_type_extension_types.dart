@@ -7,33 +7,21 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 // TODO(nshahan): update description as scope increases.
 const _desc = r"Don't do 'is' checks on DartTypes.";
 
-const _details = r'''
-Experimental WIP lint to help ensure `DartType` accesses are safe in the dev_compiler.
-
-**For internal use only.**
-''';
-
 class EraseDartTypeExtensionTypes extends LintRule {
-  // TODO(nshahan): update
-  static const LintCode code = LintCode('erase_dart_type_extension_types',
-      "Unsafe use of 'DartType' in an 'is' check.",
-      correctionMessage:
-          'Ensure DartType extension types are erased by using a helper method.');
-
   EraseDartTypeExtensionTypes()
       : super(
-            name: 'erase_dart_type_extension_types',
-            description: _desc,
-            details: _details,
-            state: State.internal(),
-            categories: {Category.errors});
+          name: LintNames.erase_dart_type_extension_types,
+          description: _desc,
+          state: State.internal(),
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.erase_dart_type_extension_types;
 
   @override
   void registerNodeProcessors(
@@ -43,7 +31,7 @@ class EraseDartTypeExtensionTypes extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final LinterContext context;
 

@@ -44,8 +44,11 @@ Future<List<String>> _testGetConfigurations(String testName) async {
     queryParameters: {'filter': testName},
   );
   final response = await _get(requestUrl);
-  final object = jsonDecode(response);
-  return [for (final result in object['results']) result['configuration']];
+  final object = jsonDecode(response) as Map<String, dynamic>;
+  return [
+    for (final result in ((object['results'] as List)).cast<Map>())
+      result['configuration']
+  ];
 }
 
 Future<String> _get(Uri requestUrl) async {
@@ -100,9 +103,9 @@ Stream<Map<String, dynamic>> _configurationDocuments() async* {
       },
     );
     final response = await _get(requestUrl);
-    final object = jsonDecode(response);
+    final object = jsonDecode(response) as Map<String, dynamic>;
     yield* Stream.fromIterable(
-        object['documents'].cast<Map<String, dynamic>>());
+        (object['documents'] as List).cast<Map<String, dynamic>>());
 
     nextPageToken = object['nextPageToken'];
   } while (nextPageToken != null);

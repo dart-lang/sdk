@@ -19,8 +19,8 @@ import self as self;
 import "dart:core" as core;
 
 class E1 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E1> values = #C8;
   final field core::int foo;
+  static const field core::List<self::E1> values = #C8;
   enum-element static const field self::E1 one = #C4;
   enum-element static const field self::E1 two = #C7;
   const constructor •(core::int #index, core::String #name, core::int foo) → self::E1
@@ -33,11 +33,11 @@ class E1 extends core::_Enum /*isEnum*/  {
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 class E2 extends core::_Enum /*isEnum*/  {
+  final field core::int foo;
   static const field core::List<self::E2> values = invalid-expression "pkg/front_end/testcases/enhanced_enums/redirecting_initializers.dart:22:35: Error: Too many positional arguments: 3 allowed, but 4 found.
 Try removing the extra positional arguments.
   const E2.named(int value) : this(value, value); // Error.
                                   ^";
-  final field core::int foo;
   enum-element static const field self::E2 one = #C9;
   enum-element static const field self::E2 two = invalid-expression "pkg/front_end/testcases/enhanced_enums/redirecting_initializers.dart:22:35: Error: Too many positional arguments: 3 allowed, but 4 found.
 Try removing the extra positional arguments.

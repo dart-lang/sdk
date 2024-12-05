@@ -153,10 +153,12 @@ main() {
 
   test_annotated_partOfDeclaration() async {
     newFile('$testPackageLibPath/part.dart', '''
-@deprecated part of L;
+@deprecated
+part of 'test.dart';
 ''');
+
     await assertNoErrorsInCode('''
-library L; part "part.dart";
+part "part.dart";
 ''');
   }
 
@@ -1391,7 +1393,7 @@ void test() {
 
     var x = findNode.namedExpression('arg: true');
     var y = x.staticParameterElement!;
-    expect(y.enclosingElement, isNotNull);
+    expect(y.enclosingElement3, isNotNull);
     expect(y.declaration, findElement.parameter('arg'));
   }
 
@@ -1406,7 +1408,7 @@ void test() {
 
     var x = findNode.namedExpression('arg: true');
     var y = x.staticParameterElement!;
-    expect(y.enclosingElement, isNotNull);
+    expect(y.enclosingElement3, isNotNull);
     expect(y.declaration, findElement.parameter('arg'));
   }
 
@@ -1471,7 +1473,7 @@ test(C c) => c.method<bool>(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.staticParameterElement!;
-    expect(y.enclosingElement, isNotNull);
+    expect(y.enclosingElement3, isNotNull);
     expect(y.declaration, findElement.parameter('arg'));
   }
 
@@ -1484,7 +1486,7 @@ bool test(C c) => c.method(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.staticParameterElement!;
-    expect(y.enclosingElement, isNotNull);
+    expect(y.enclosingElement3, isNotNull);
     expect(y.declaration, findElement.parameter('arg'));
   }
 
@@ -1501,7 +1503,7 @@ void test() {
 
     var x = findNode.namedExpression('arg: true');
     var y = x.staticParameterElement!;
-    expect(y.enclosingElement, isNotNull);
+    expect(y.enclosingElement3, isNotNull);
     expect(y.declaration, findElement.parameter('arg'));
   }
 
@@ -1518,7 +1520,7 @@ void test() {
 
     var x = findNode.namedExpression('arg: true');
     var y = x.staticParameterElement!;
-    expect(y.enclosingElement, isNotNull);
+    expect(y.enclosingElement3, isNotNull);
     expect(y.declaration, findElement.parameter('arg'));
   }
 

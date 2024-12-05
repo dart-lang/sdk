@@ -11,7 +11,7 @@ import 'package:testing/testing.dart' as testing;
 
 import 'presubmit_helper.dart';
 import 'test/deps_git_test.dart' as deps_test;
-import 'test/explicit_creation_impl.dart' show runExplicitCreationTest;
+import 'test/compile_and_lint_impl.dart' show runCompileAndLintTest;
 import 'test/fasta/messages_suite.dart' as messages_suite;
 import 'test/lint_suite.dart' as lint_suite;
 import 'test/spelling_test_not_src_suite.dart' as spelling_test_not_src;
@@ -29,21 +29,55 @@ Future<void> main(List<String> args, [SendPort? sendPort]) async {
     Work work = Work.workFromJson(json.decode(rawData));
     Stopwatch stopwatch = new Stopwatch()..start();
     switch (work) {
-      case ExplicitCreationWork():
-        int explicitCreationErrorsFound = -1;
+      case CompileAndLintWork():
+        int compileAndLintErrorsFound = -1;
         try {
-          explicitCreationErrorsFound = await Isolate.run(() =>
-              runExplicitCreationTest(
+          compileAndLintErrorsFound = await Isolate.run(() =>
+              runCompileAndLintTest(
                   includedFiles: work.includedFiles,
                   includedDirectoryUris: work.includedDirectoryUris,
                   repoDir: work.repoDir));
-        } catch (e) {
+        } catch (e, st) {
           // This will make it send false.
-          explicitCreationErrorsFound = -1;
+          compileAndLintErrorsFound = -1;
+
+          StringBuffer sb = new StringBuffer();
+          sb.writeln("void main() {");
+          sb.writeln("  runCompileAndLintTest(includedFiles: {");
+          String comma = "";
+          for (Uri uri in work.includedFiles) {
+            sb.writeln("    ${comma}Uri.parse('$uri')");
+            comma = ", ";
+          }
+          sb.writeln("    }, includedDirectoryUris: {");
+          comma = "";
+          for (Uri uri in work.includedDirectoryUris) {
+            sb.writeln("    ${comma}Uri.parse('$uri')");
+            comma = ", ";
+          }
+          sb.writeln("    }, repoDir: Uri.parse('${work.repoDir}'));");
+          sb.writeln("}");
+
+          print("""
+WARNING: '${work.name}' crashed:
+============
+${e.toString().trim()}
+============
+$st
+============
+
+To reproduce open up compile_and_lint_impl.dart and insert
+
+$sb
+
+Then run that file through your debugger or similar.
+
+""");
+          print("Got error for ${work.name}: $e");
         }
-        print("Sending ok = ${explicitCreationErrorsFound == 0} "
+        print("Sending ok = ${compileAndLintErrorsFound == 0} "
             "for ${work.name} after ${stopwatch.elapsed}");
-        sendPort.send(explicitCreationErrorsFound == 0);
+        sendPort.send(compileAndLintErrorsFound == 0);
 
       case MessagesWork():
         bool ok;
@@ -225,7 +259,7 @@ class ErrorNotingLogger implements Logger {
 
   @override
   void noticeFrameworkCatchError(error, StackTrace stackTrace) {
-    print("Framework Catch Error: $error\n$StackTrace");
+    print("Framework Catch Error: $error\n$stackTrace");
     gotFailure = true;
   }
 }

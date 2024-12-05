@@ -317,6 +317,7 @@ static char* AvailableAssetsToCString(Thread* const thread) {
     while (it.MoveNext()) {
       if (!first) {
         buffer.Printf(" ,");
+        first = false;
       }
       auto entry = it.Current();
       asset_id ^= map.GetKey(entry);
@@ -335,66 +336,81 @@ static char* AvailableAssetsToCString(Thread* const thread) {
 // ['<path_type>', '<path (optional)>']
 // The |asset_location| is conform to: pkg/vm/lib/native_assets/validator.dart
 static void* FfiResolveAsset(Thread* const thread,
-                             const Array& asset_location,
+                             const String& asset,
                              const String& symbol,
                              char** error) {
-  Zone* const zone = thread->zone();
-
-  const auto& asset_type =
-      String::Cast(Object::Handle(zone, asset_location.At(0)));
-  String& path = String::Handle(zone);
-  const char* path_cstr = nullptr;
-  if (asset_type.Equals(Symbols::absolute()) ||
-      asset_type.Equals(Symbols::relative()) ||
-      asset_type.Equals(Symbols::system())) {
-    path = String::RawCast(asset_location.At(1));
-    path_cstr = path.ToCString();
-  }
-
+  void* handle = nullptr;
   NativeAssetsApi* native_assets_api =
       thread->isolate_group()->native_assets_api();
-  void* handle;
-  if (asset_type.Equals(Symbols::absolute())) {
-    if (native_assets_api->dlopen_absolute == nullptr) {
-      *error = OS::SCreate(/*use malloc*/ nullptr,
-                           "NativeAssetsApi::dlopen_absolute not set.");
+  if (native_assets_api->dlopen != nullptr) {
+    // Let embedder resolve the asset id to asset path.
+    NoActiveIsolateScope no_active_isolate_scope;
+    handle = native_assets_api->dlopen(asset.ToCString(), error);
+  }
+  if (*error == nullptr && handle == nullptr) {
+    // Fall back on VM reading ffi:native-assets from special library in kernel.
+    // Allow for both embedder and VM resolution so flutter/engine and
+    // flutter/flutter PRs can land without manual roll.
+    Zone* const zone = thread->zone();
+    const auto& asset_location =
+        Array::Handle(zone, GetAssetLocation(thread, asset));
+    if (asset_location.IsNull()) {
       return nullptr;
     }
-    NoActiveIsolateScope no_active_isolate_scope;
-    handle = native_assets_api->dlopen_absolute(path_cstr, error);
-  } else if (asset_type.Equals(Symbols::relative())) {
-    if (native_assets_api->dlopen_relative == nullptr) {
-      *error = OS::SCreate(/*use malloc*/ nullptr,
-                           "NativeAssetsApi::dlopen_relative not set.");
-      return nullptr;
+
+    const auto& asset_type =
+        String::Cast(Object::Handle(zone, asset_location.At(0)));
+    String& path = String::Handle(zone);
+    const char* path_cstr = nullptr;
+    if (asset_type.Equals(Symbols::absolute()) ||
+        asset_type.Equals(Symbols::relative()) ||
+        asset_type.Equals(Symbols::system())) {
+      path = String::RawCast(asset_location.At(1));
+      path_cstr = path.ToCString();
     }
-    NoActiveIsolateScope no_active_isolate_scope;
-    handle = native_assets_api->dlopen_relative(path_cstr, error);
-  } else if (asset_type.Equals(Symbols::system())) {
-    if (native_assets_api->dlopen_system == nullptr) {
-      *error = OS::SCreate(/*use malloc*/ nullptr,
-                           "NativeAssetsApi::dlopen_system not set.");
-      return nullptr;
+
+    if (asset_type.Equals(Symbols::absolute())) {
+      if (native_assets_api->dlopen_absolute == nullptr) {
+        *error = OS::SCreate(/*use malloc*/ nullptr,
+                             "NativeAssetsApi::dlopen_absolute not set.");
+        return nullptr;
+      }
+      NoActiveIsolateScope no_active_isolate_scope;
+      handle = native_assets_api->dlopen_absolute(path_cstr, error);
+    } else if (asset_type.Equals(Symbols::relative())) {
+      if (native_assets_api->dlopen_relative == nullptr) {
+        *error = OS::SCreate(/*use malloc*/ nullptr,
+                             "NativeAssetsApi::dlopen_relative not set.");
+        return nullptr;
+      }
+      NoActiveIsolateScope no_active_isolate_scope;
+      handle = native_assets_api->dlopen_relative(path_cstr, error);
+    } else if (asset_type.Equals(Symbols::system())) {
+      if (native_assets_api->dlopen_system == nullptr) {
+        *error = OS::SCreate(/*use malloc*/ nullptr,
+                             "NativeAssetsApi::dlopen_system not set.");
+        return nullptr;
+      }
+      NoActiveIsolateScope no_active_isolate_scope;
+      handle = native_assets_api->dlopen_system(path_cstr, error);
+    } else if (asset_type.Equals(Symbols::executable())) {
+      if (native_assets_api->dlopen_executable == nullptr) {
+        *error = OS::SCreate(/*use malloc*/ nullptr,
+                             "NativeAssetsApi::dlopen_executable not set.");
+        return nullptr;
+      }
+      NoActiveIsolateScope no_active_isolate_scope;
+      handle = native_assets_api->dlopen_executable(error);
+    } else {
+      RELEASE_ASSERT(asset_type.Equals(Symbols::process()));
+      if (native_assets_api->dlopen_process == nullptr) {
+        *error = OS::SCreate(/*use malloc*/ nullptr,
+                             "NativeAssetsApi::dlopen_process not set.");
+        return nullptr;
+      }
+      NoActiveIsolateScope no_active_isolate_scope;
+      handle = native_assets_api->dlopen_process(error);
     }
-    NoActiveIsolateScope no_active_isolate_scope;
-    handle = native_assets_api->dlopen_system(path_cstr, error);
-  } else if (asset_type.Equals(Symbols::executable())) {
-    if (native_assets_api->dlopen_executable == nullptr) {
-      *error = OS::SCreate(/*use malloc*/ nullptr,
-                           "NativeAssetsApi::dlopen_executable not set.");
-      return nullptr;
-    }
-    NoActiveIsolateScope no_active_isolate_scope;
-    handle = native_assets_api->dlopen_executable(error);
-  } else {
-    RELEASE_ASSERT(asset_type.Equals(Symbols::process()));
-    if (native_assets_api->dlopen_process == nullptr) {
-      *error = OS::SCreate(/*use malloc*/ nullptr,
-                           "NativeAssetsApi::dlopen_process not set.");
-      return nullptr;
-    }
-    NoActiveIsolateScope no_active_isolate_scope;
-    handle = native_assets_api->dlopen_process(error);
   }
 
   if (*error != nullptr) {
@@ -426,8 +442,6 @@ intptr_t FfiResolveInternal(const String& asset,
                             uintptr_t args_n,
                             char** error) {
   Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-
   // Resolver resolution.
   auto resolver = GetFfiNativeResolver(thread, asset);
   if (resolver != nullptr) {
@@ -437,10 +451,8 @@ intptr_t FfiResolveInternal(const String& asset,
   }
 
   // Native assets resolution.
-  const auto& asset_location =
-      Array::Handle(zone, GetAssetLocation(thread, asset));
-  if (!asset_location.IsNull()) {
-    void* asset_result = FfiResolveAsset(thread, asset_location, symbol, error);
+  void* asset_result = FfiResolveAsset(thread, asset, symbol, error);
+  if (asset_result != nullptr) {
     return reinterpret_cast<intptr_t>(asset_result);
   }
 
@@ -456,11 +468,23 @@ intptr_t FfiResolveInternal(const String& asset,
     // Process lookup failed, but the user might have tried to use native
     // asset lookup. So augment the error message to include native assets info.
     char* process_lookup_error = *error;
-    *error = OS::SCreate(/*use malloc*/ nullptr,
-                         "No asset with id '%s' found. %s "
-                         "Attempted to fallback to process lookup. %s",
-                         asset.ToCString(), AvailableAssetsToCString(thread),
-                         process_lookup_error);
+    NativeAssetsApi* native_assets_api =
+        thread->isolate_group()->native_assets_api();
+    const char* const format =
+        "No asset with id '%s' found. %s "
+        "Attempted to fallback to process lookup. %s";
+    if (native_assets_api->available_assets != nullptr) {
+      // Embedder is resolving asset ids to asset paths.
+      char* available_assets = native_assets_api->available_assets();
+      *error = OS::SCreate(/*use malloc*/ nullptr, format, asset.ToCString(),
+                           available_assets, process_lookup_error);
+      free(available_assets);
+    } else {
+      // VM is resolving asset ids to asset paths.
+      *error =
+          OS::SCreate(/*use malloc*/ nullptr, format, asset.ToCString(),
+                      AvailableAssetsToCString(thread), process_lookup_error);
+    }
     free(process_lookup_error);
   }
 

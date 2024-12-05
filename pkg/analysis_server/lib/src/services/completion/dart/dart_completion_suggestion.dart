@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 class DartCompletionSuggestion extends CompletionSuggestion {
   final ElementLocation? elementLocation;
   final List<Uri> requiredImports;
+  final String? colorHex;
 
   DartCompletionSuggestion(
     super.kind,
@@ -40,5 +41,6 @@ class DartCompletionSuggestion extends CompletionSuggestion {
     super.isNotImported,
     required this.elementLocation,
     this.requiredImports = const [],
+    this.colorHex,
   });
 }

@@ -70,7 +70,7 @@ dependency_overrides:
   meta:
     path: ../meta
   mime:
-    path: ../../third_party/pkg/mime
+    path: ../../third_party/pkg/tools/pkgs/mime
   package_config:
     path: ../../third_party/pkg/package_config
   path:
@@ -88,7 +88,7 @@ dependency_overrides:
   shelf_web_socket:
     path: ../../third_party/pkg/shelf/pkgs/shelf_web_socket
   source_map_stack_trace:
-    path: ../../third_party/pkg/source_map_stack_trace
+    path: ../../third_party/pkg/tools/pkgs/source_map_stack_trace
   source_maps:
     path: ../../third_party/pkg/source_maps
   source_span:

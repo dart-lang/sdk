@@ -23,7 +23,7 @@ namespace dart {
 
 #define RETURN_OR_PROPAGATE(expr)                                              \
   ObjectPtr result = expr;                                                     \
-  if (IsErrorClassId(result->GetClassIdMayBeSmi())) {                          \
+  if (IsErrorClassId(result->GetClassId())) {                                  \
     Exceptions::PropagateError(Error::Handle(Error::RawCast(result)));         \
   }                                                                            \
   return result;

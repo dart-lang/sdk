@@ -58,6 +58,7 @@ class DevCompilerTarget extends Target {
   List<String> get extraRequiredLibraries => const [
         'dart:_ddc_only',
         'dart:_runtime',
+        'dart:_async_status_codes',
         'dart:_js_shared_embedded_names',
         'dart:_recipe_syntax',
         'dart:_rti',
@@ -208,8 +209,9 @@ class DevCompilerTarget extends Target {
         jsInteropReporter,
         jsInteropChecks.exportChecker,
         jsInteropChecks.extensionIndex);
-    final jsUtilOptimizer =
-        JsUtilOptimizer(coreTypes, hierarchy, jsInteropChecks.extensionIndex);
+    final jsUtilOptimizer = JsUtilOptimizer(
+        coreTypes, hierarchy, jsInteropChecks.extensionIndex,
+        isDart2JS: false);
     for (var node in nodes) {
       _CovarianceTransformer(node).transform();
       // Shared interop transformer has static checks, so we still visit.

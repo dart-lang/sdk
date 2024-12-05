@@ -145,6 +145,19 @@ void foo(int ^bar) {
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
+  void test_canRename_prefix() async {
+    var refactor = await _compute(r'''
+import 'dart:async' as test;
+
+void f() {
+  ^test.Future f;
+}
+''');
+
+    expect(refactor!.refactoringElement.element.name, 'test');
+    expect(refactor.refactoringElement.offset, _correctionContext.offset);
+  }
+
   void test_checkName_class() async {
     var result = await _checkName(r'''
 class ^Old {}

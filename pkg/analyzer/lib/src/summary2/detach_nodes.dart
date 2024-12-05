@@ -19,12 +19,6 @@ void detachElementsFromNodes(LibraryElementImpl element) {
 
 class _Visitor extends GeneralizingElementVisitor<void> {
   @override
-  void visitAugmentationImportElement(AugmentationImportElement element) {
-    element.importedAugmentation?.accept(this);
-    super.visitAugmentationImportElement(element);
-  }
-
-  @override
   void visitClassElement(ClassElement element) {
     if (element is ClassElementImpl) {
       element.mixinInferenceCallback = null;

@@ -57,7 +57,7 @@ class ParsedOptions {
   /// arguments; anything following is treated as arguments (even if starting
   /// with, for example, a `-`).
   ///
-  /// If an option isn't found in [specification], an error is thrown.
+  /// If an option isn't found in [options], an error is thrown.
   ///
   /// Boolean options do not require an option value, but an optional value can
   /// be provided using the forms `--option=value` where `value` can be `true`

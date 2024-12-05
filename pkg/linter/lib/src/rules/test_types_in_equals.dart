@@ -6,82 +6,19 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Test type of argument in `operator ==(Object other)`.';
 
-const _details = r'''
-**DO** test type of argument in `operator ==(Object other)`.
-
-Not testing the type might result in runtime type errors which will be
-unexpected for consumers of your class.
-
-**BAD:**
-```dart
-class Field {
-}
-
-class Bad {
-  final Field someField;
-
-  Bad(this.someField);
-
-  @override
-  bool operator ==(Object other) {
-    Bad otherBad = other as Bad; // LINT
-    bool areEqual = otherBad != null && otherBad.someField == someField;
-    return areEqual;
-  }
-
-  @override
-  int get hashCode {
-    return someField.hashCode;
-  }
-}
-```
-
-**GOOD:**
-```dart
-class Field {
-}
-
-class Good {
-  final Field someField;
-
-  Good(this.someField);
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-    return other is Good &&
-        this.someField == other.someField;
-  }
-
-  @override
-  int get hashCode {
-    return someField.hashCode;
-  }
-}
-```
-
-''';
-
 class TestTypesInEquals extends LintRule {
-  static const LintCode code = LintCode(
-      'test_types_in_equals', "Missing type test for '{0}' in '=='.",
-      correctionMessage: "Try testing the type of '{0}'.",
-      hasPublishedDocs: true);
-
   TestTypesInEquals()
       : super(
-            name: 'test_types_in_equals',
-            description: _desc,
-            details: _details,
-            categories: {Category.errors});
+          name: LintNames.test_types_in_equals,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.test_types_in_equals;
 
   @override
   void registerNodeProcessors(

@@ -321,23 +321,26 @@ abstract class IdentifierContext {
   /// Ensure that the next token is an identifier (or keyword which should be
   /// treated as an identifier) and return that identifier.
   /// Report errors as necessary via [parser].
-  /// If [recovered] implementers could allow 'token' to be used as an
+  /// If [isRecovered] implementers could allow 'token' to be used as an
   /// identifier, even if it isn't a valid identifier.
   Token ensureIdentifierPotentiallyRecovered(
           Token token, Parser parser, bool isRecovered) =>
       ensureIdentifier(token, parser);
 }
 
-/// Return `true` if the given [token] should be treated like the start of
-/// an expression for the purposes of recovery.
+/// Return `true` if [next] should be treated like the start of an expression
+/// for the purposes of recovery.
 bool looksLikeExpressionStart(Token next) =>
     next.isIdentifier ||
     next.isKeyword && !looksLikeStatementStart(next) ||
     next.type == TokenType.DOUBLE ||
+    next.type == TokenType.DOUBLE_WITH_SEPARATORS ||
     next.type == TokenType.HASH ||
     next.type == TokenType.HEXADECIMAL ||
+    next.type == TokenType.HEXADECIMAL_WITH_SEPARATORS ||
     next.type == TokenType.IDENTIFIER ||
     next.type == TokenType.INT ||
+    next.type == TokenType.INT_WITH_SEPARATORS ||
     next.type == TokenType.STRING ||
     optional('{', next) ||
     optional('(', next) ||
@@ -350,18 +353,21 @@ bool looksLikeExpressionStart(Token next) =>
     optional('++', next) ||
     optional('--', next);
 
-/// Returns `true` if the given [token] should be treated like the start of a
-/// pattern for the purposes of recovery.
+/// Returns `true` if [next] should be treated like the start of a pattern for
+/// the purposes of recovery.
 ///
 /// Note: since the syntax for patterns is very similar to that for expressions,
 /// we mostly re-use [looksLikeExpressionStart].
 bool looksLikePatternStart(Token next) =>
     next.isIdentifier ||
     next.type == TokenType.DOUBLE ||
+    next.type == TokenType.DOUBLE_WITH_SEPARATORS ||
     next.type == TokenType.HASH ||
     next.type == TokenType.HEXADECIMAL ||
+    next.type == TokenType.HEXADECIMAL_WITH_SEPARATORS ||
     next.type == TokenType.IDENTIFIER ||
     next.type == TokenType.INT ||
+    next.type == TokenType.INT_WITH_SEPARATORS ||
     next.type == TokenType.STRING ||
     optional('null', next) ||
     optional('false', next) ||

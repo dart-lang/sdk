@@ -6,7 +6,8 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -59,27 +60,31 @@ class CreateMethod extends ResolvedCorrectionProducer {
       return;
     }
 
-    var classElement = classDecl.declaredElement!;
+    var classElement = classDecl.declaredFragment!.element;
     var missingEquals = memberDecl is FieldDeclaration ||
         (memberDecl as MethodDeclaration).name.lexeme == 'hashCode';
 
     await builder.addDartFileEdit(file, (fileBuilder) {
       fileBuilder.insertIntoUnitMember(classDecl, (builder) {
-        ExecutableElement? element;
+        ExecutableElement2? element;
         if (missingEquals) {
           _memberName = '==';
-          element = classElement.lookUpInheritedMethod(
-              _memberName, classElement.library);
+          element = inheritanceManager.getInherited4(
+            classElement,
+            Name.forLibrary(classElement.library2, _memberName),
+          );
         } else {
           _memberName = 'hashCode';
-          element = classElement.lookUpInheritedConcreteGetter(
-              _memberName, classElement.library);
+          element = inheritanceManager.getInherited4(
+            classElement,
+            Name.forLibrary(classElement.library2, _memberName),
+          );
         }
         if (element == null) {
           return;
         }
 
-        builder.writeOverride(element, invokeSuper: true);
+        builder.writeOverride2(element, invokeSuper: true);
       });
     });
   }
@@ -91,31 +96,30 @@ class CreateMethod extends ResolvedCorrectionProducer {
     _memberName = (node as SimpleIdentifier).name;
     var invocation = node.parent as MethodInvocation;
     // Prepare environment.
-    Element? targetElement;
+    Fragment? targetFragment;
     var staticModifier = false;
 
     CompilationUnitMember? targetNode;
     var target = invocation.realTarget;
     if (target is ExtensionOverride) {
-      targetElement = target.element;
-      if (targetElement is ExtensionElement) {
-        targetNode = await getExtensionDeclaration(targetElement);
+      targetFragment = target.element2.firstFragment;
+      if (targetFragment is ExtensionFragment) {
+        targetNode = await getExtensionDeclaration2(targetFragment);
         if (targetNode == null) {
           return;
         }
       }
-    } else if (target is Identifier &&
-        target.staticElement is ExtensionElement) {
-      targetElement = target.staticElement;
-      if (targetElement is ExtensionElement) {
-        targetNode = await getExtensionDeclaration(targetElement);
+    } else if (target is Identifier && target.element is ExtensionElement2) {
+      targetFragment = (target.element as ExtensionElement2).firstFragment;
+      if (targetFragment is ExtensionFragment) {
+        targetNode = await getExtensionDeclaration2(targetFragment);
         if (targetNode == null) {
           return;
         }
       }
       staticModifier = true;
     } else if (target == null) {
-      targetElement = unit.declaredElement;
+      targetFragment = unit.declaredFragment;
       var enclosingMember = node.thisOrAncestorOfType<ClassMember>();
       if (enclosingMember == null) {
         // If the undefined identifier isn't inside a class member, then it
@@ -128,40 +132,43 @@ class CreateMethod extends ResolvedCorrectionProducer {
         staticModifier = inStaticContext;
       }
     } else {
-      var targetClassElement = getTargetInterfaceElement(target);
+      var targetClassElement = getTargetInterfaceElement2(target);
       if (targetClassElement == null) {
         return;
       }
-      targetElement = targetClassElement;
-      if (targetClassElement.library.isInSdk) {
+      targetFragment = targetClassElement.firstFragment;
+      if (targetClassElement.library2.isInSdk) {
         return;
       }
       // Prepare target ClassDeclaration.
-      if (targetClassElement is MixinElement) {
-        targetNode = await getMixinDeclaration(targetClassElement);
-      } else if (targetClassElement is ClassElement) {
-        targetNode = await getClassDeclaration(targetClassElement);
-      } else if (targetClassElement is ExtensionTypeElement) {
-        targetNode = await getExtensionTypeDeclaration(targetClassElement);
+      if (targetClassElement is MixinElement2) {
+        var fragment = targetClassElement.firstFragment;
+        targetNode = await getMixinDeclaration2(fragment);
+      } else if (targetClassElement is ClassElement2) {
+        var fragment = targetClassElement.firstFragment;
+        targetNode = await getClassDeclaration2(fragment);
+      } else if (targetClassElement is ExtensionTypeElement2) {
+        var fragment = targetClassElement.firstFragment;
+        targetNode = await getExtensionTypeDeclaration2(fragment);
       }
       if (targetNode == null) {
         return;
       }
       // Maybe static.
       if (target is Identifier) {
-        staticModifier = target.staticElement?.kind == ElementKind.CLASS ||
-            target.staticElement?.kind == ElementKind.EXTENSION_TYPE ||
-            target.staticElement?.kind == ElementKind.MIXIN;
+        staticModifier = target.element?.kind == ElementKind.CLASS ||
+            target.element?.kind == ElementKind.EXTENSION_TYPE ||
+            target.element?.kind == ElementKind.MIXIN;
       }
       // Use different utils.
-      var targetPath = targetClassElement.source.fullName;
+      var targetPath = targetFragment.libraryFragment.source.fullName;
       var targetResolveResult =
           await unitResult.session.getResolvedUnit(targetPath);
       if (targetResolveResult is! ResolvedUnitResult) {
         return;
       }
     }
-    var targetSource = targetElement?.source;
+    var targetSource = targetFragment?.libraryFragment.source;
     if (targetSource == null) {
       return;
     }

@@ -48,7 +48,7 @@ library;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 static field core::int i = 1;
 static field core::Map<core::int, core::String>? nullableMap = <core::int, core::String>{1: "Let", 2: "it", 3: "be"};
@@ -67,7 +67,7 @@ static field core::Map<dynamic, dynamic> map1 = block {
     #t1.{core::Map::addAll}{Invariant}(self::nullableMap!){(core::Map<dynamic, dynamic>) → void};
 } =>#t1;
 static field core::Set<dynamic> set1 = block {
-  final core::Set<dynamic> #t2 = new col::_Set::•<dynamic>();
+  final core::Set<dynamic> #t2 = new _co::_Set::•<dynamic>();
   #t2.{core::Set::add}{Invariant}(0){(dynamic) → core::bool};
   if(self::i.{core::num::>}(0){(core::num) → core::bool})
     #t2.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43256.dart:23:17: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
@@ -108,7 +108,7 @@ static method testMap<X extends dynamic, Y extends core::Map<core::int, core::St
 }
 static method testIterables<X extends dynamic, Y extends core::List<core::int>?, Z extends core::List<core::int>>(self::testIterables::X% x, self::testIterables::Y% y, self::testIterables::Z z) → dynamic {
   core::Set<dynamic> set2 = block {
-    final core::Set<dynamic> #t5 = new col::_Set::•<dynamic>();
+    final core::Set<dynamic> #t5 = new _co::_Set::•<dynamic>();
     #t5.{core::Set::add}{Invariant}(0){(dynamic) → core::bool};
     if(self::i.{core::num::>}(0){(core::num) → core::bool})
       #t5.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43256.dart:48:19: Error: Unexpected type 'X' of a spread.  Expected 'dynamic' or an Iterable.

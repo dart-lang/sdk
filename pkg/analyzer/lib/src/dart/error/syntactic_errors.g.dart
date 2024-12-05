@@ -1295,6 +1295,14 @@ class ParserErrorCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const ParserErrorCode INVALID_USE_OF_IDENTIFIER_AUGMENTED =
+      ParserErrorCode(
+    'INVALID_USE_OF_IDENTIFIER_AUGMENTED',
+    "The identifier 'augmented' can only be used to reference the augmented "
+        "declaration inside an augmentation.",
+    correctionMessage: "Try using a different identifier.",
+  );
+
   ///  No parameters.
   static const ParserErrorCode LATE_PATTERN_VARIABLE_DECLARATION =
       ParserErrorCode(
@@ -1739,6 +1747,12 @@ class ParserErrorCode extends ErrorCode {
     'OUT_OF_ORDER_CLAUSES',
     "The '{0}' clause must come before the '{1}' clause.",
     correctionMessage: "Try moving the '{0}' clause before the '{1}' clause.",
+  );
+
+  static const ParserErrorCode PART_OF_NAME = ParserErrorCode(
+    'PART_OF_NAME',
+    "The 'part of' directive can't use a name with the enhanced-parts feature.",
+    correctionMessage: "Try using 'part of' with a URI instead.",
   );
 
   static const ParserErrorCode PATTERN_ASSIGNMENT_DECLARES_VARIABLE =

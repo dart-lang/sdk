@@ -65,14 +65,14 @@ extension type KernelGenerator._(_Generator _generator) {
 
   /// Generate a kernel file,
   ///
-  /// [resourcesFile] is the path to `resources.json`, where the tree-shaking
-  /// information collected during kernel compilation is stored.
+  /// [recordedUsagesFile] is the path to `recorded_usages.json`, where the
+  /// tree-shaking information collected during kernel compilation is stored.
   Future<SnapshotGenerator> generate({
-    String? resourcesFile,
+    String? recordedUsagesFile,
     List<String>? extraOptions,
   }) =>
       _generator.generateKernel(
-        resourcesFile: resourcesFile,
+        recordedUsagesFile: recordedUsagesFile,
         extraOptions: extraOptions,
       );
 }
@@ -192,7 +192,7 @@ class _Generator {
   }
 
   Future<SnapshotGenerator> generateKernel({
-    String? resourcesFile,
+    String? recordedUsagesFile,
     List<String>? extraOptions,
   }) async {
     if (_verbose) {
@@ -219,7 +219,7 @@ class _Generator {
         if (_depFile != null) '--depfile-target=$_outputPath',
         ...?extraOptions,
       ],
-      resourcesFile: resourcesFile,
+      recordedUsagesFile: recordedUsagesFile,
       aot: true,
     );
     await _forwardOutput(kernelResult);
@@ -366,7 +366,7 @@ class _Generator {
 ///
 /// [nativeAssets] is the path to `native_assets.yaml`.
 ///
-/// [resourcesFile] is the path to `resources.json`.
+/// [recordedUsagesFile] is the path to `recorded_usages.json`.
 Future<void> generateKernel({
   required String sourceFile,
   required String outputFile,
@@ -382,7 +382,7 @@ Future<void> generateKernel({
   bool product = true,
   bool verbose = false,
   String? nativeAssets,
-  String? resourcesFile,
+  String? recordedUsagesFile,
   String? depFile,
   List<String>? extraOptions,
 }) async {
@@ -407,7 +407,7 @@ Future<void> generateKernel({
       ...?extraOptions,
     ],
     nativeAssets: nativeAssets,
-    resourcesFile: resourcesFile,
+    recordedUsagesFile: recordedUsagesFile,
     product: product,
   );
   await _forwardOutput(kernelResult);

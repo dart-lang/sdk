@@ -26,16 +26,26 @@ class CodeLensHandler
   LspJsonHandler<CodeLensParams> get jsonHandler => CodeLensParams.jsonHandler;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<List<CodeLens>>> handle(
     CodeLensParams params,
     MessageInfo message,
     CancellationToken token,
   ) async {
+    var clientCapabilities = message.clientCapabilities;
+    if (clientCapabilities == null) {
+      return serverNotInitializedError;
+    }
+
     // Ask all providers to compute their CodeLenses.
     var lineInfoCache = <String, LineInfo?>{};
     var providerResults = await Future.wait(
-      codeLensProviders.where((provider) => provider.isAvailable(params)).map(
-          (provider) => provider.handle(params, message, token, lineInfoCache)),
+      codeLensProviders
+          .where((provider) => provider.isAvailable(clientCapabilities, params))
+          .map((provider) =>
+              provider.handle(params, message, token, lineInfoCache)),
     );
 
     // Merge the results, but if any errors, propogate the first error.

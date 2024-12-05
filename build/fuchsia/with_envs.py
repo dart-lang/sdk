@@ -14,7 +14,7 @@ sys.path.insert(
         os.path.join(os.path.dirname(__file__),
                      '../../third_party/fuchsia/test_scripts/test/')))
 
-from common import catch_sigterm, wait_for_sigterm
+from common import catch_sigterm
 
 
 def Main():

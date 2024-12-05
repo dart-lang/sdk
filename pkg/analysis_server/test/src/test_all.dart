@@ -12,6 +12,7 @@ import 'flutter/test_all.dart' as flutter;
 import 'g3/test_all.dart' as g3;
 import 'lsp/test_all.dart' as lsp;
 import 'plugin/test_all.dart' as plugin;
+import 'plugin2/test_all.dart' as plugin2;
 import 'server/test_all.dart' as server;
 import 'services/test_all.dart' as services;
 import 'utilities/test_all.dart' as utilities;
@@ -26,6 +27,7 @@ void main() {
     g3.main();
     lsp.main();
     plugin.main();
+    plugin2.main();
     server.main();
     services.main();
     utilities.main();

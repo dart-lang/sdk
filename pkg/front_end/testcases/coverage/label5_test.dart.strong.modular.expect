@@ -1,0 +1,17 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/label5_test.dart:10:21: Error: Can't break to 'L'.
+//     if (true) break L; // Error
+//                     ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method foo() → void {
+  core::int L = 33;
+  invalid-expression "pkg/front_end/testcases/coverage/label5_test.dart:10:21: Error: Can't break to 'L'.
+    if (true) break L; // Error
+                    ^";
+}

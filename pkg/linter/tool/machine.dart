@@ -14,7 +14,7 @@ import 'package:linter/src/utils.dart';
 import 'package:yaml/yaml.dart';
 
 import '../tool/util/path_utils.dart';
-import 'since.dart';
+import 'messages_info.dart';
 import 'util/score_utils.dart' as score_utils;
 
 /// Generates a list of lint rules in machine format suitable for consumption by
@@ -47,7 +47,7 @@ Future<String> generateRulesJson({
   registerLintRules();
   var fixStatusMap = readFixStatusMap();
   return await getMachineListing(Registry.ruleRegistry,
-      fixStatusMap: fixStatusMap, sinceInfo: sinceMap, pretty: pretty);
+      fixStatusMap: fixStatusMap, pretty: pretty);
 }
 
 Future<String> getMachineListing(
@@ -55,9 +55,9 @@ Future<String> getMachineListing(
   Map<String, String>? fixStatusMap,
   bool pretty = true,
   bool includeSetInfo = true,
-  Map<String, SinceInfo>? sinceInfo,
 }) async {
-  var rules = List<LintRule>.of(ruleRegistry, growable: false)..sort();
+  var rules = List<LintRule>.of(ruleRegistry, growable: false)
+    ..sort((a, b) => a.name.compareTo(b.name));
   var encoder = pretty ? JsonEncoder.withIndent('  ') : JsonEncoder();
   fixStatusMap ??= {};
 
@@ -68,11 +68,13 @@ Future<String> getMachineListing(
   ) = await _fetchSetRules(fetch: includeSetInfo);
 
   var json = encoder.convert([
-    for (var rule in rules.where((rule) => !rule.state.isInternal))
+    for (var (rule, info) in rules
+        .where((rule) => !rule.state.isInternal)
+        .map((rule) => (rule, messagesRuleInfo[rule.name]!)))
       {
         'name': rule.name,
         'description': rule.description,
-        'group': rule.categories,
+        'categories': info.categories.toList(growable: false),
         'state': rule.state.label,
         'incompatible': rule.incompatibleRules,
         'sets': [
@@ -80,10 +82,10 @@ Future<String> getMachineListing(
           if (recommendedRules.contains(rule.name)) 'recommended',
           if (flutterRules.contains(rule.name)) 'flutter',
         ],
-        'fixStatus': fixStatusMap[rule.name] ?? 'unregistered',
-        'details': rule.details,
-        if (sinceInfo != null)
-          'sinceDartSdk': sinceInfo[rule.name]?.sinceDartSdk ?? 'Unreleased',
+        'fixStatus':
+            fixStatusMap[rule.lintCodes.first.uniqueName] ?? 'unregistered',
+        'details': info.deprecatedDetails,
+        'sinceDartSdk': info.addedIn,
       }
   ]);
   return json;
@@ -106,15 +108,10 @@ Map<String, String> readFixStatusMap() {
   var contents = File(statusFilePath).readAsStringSync();
 
   var yaml = loadYamlNode(contents) as YamlMap;
-  var fixStatusMap = <String, String>{};
-  for (var entry in yaml.entries) {
-    var code = entry.key as String;
-    if (code.startsWith('LintCode.')) {
-      fixStatusMap[code.substring(9)] =
-          (entry.value as YamlMap)['status'] as String;
-    }
-  }
-  return fixStatusMap;
+  return <String, String>{
+    for (var MapEntry(key: String code, :YamlMap value) in yaml.entries)
+      if (code.startsWith('LintCode.')) code: value['status'] as String,
+  };
 }
 
 Future<

@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_cancel_request.dart';
@@ -32,13 +33,6 @@ Iterable<T> convert<T, E>(Iterable<E> items, T? Function(E) converter) {
   // better to put it, and/or a better name for it?
   return items.map(converter).where((item) => item != null).cast<T>();
 }
-
-/// A base class for LSP handlers that require an LSP analysis server and are
-/// not supported over the legacy protocol.
-typedef LspMessageHandler<P, R> = MessageHandler<P, R, LspAnalysisServer>;
-
-/// A base class for LSP handlers that work with any [AnalysisServer].
-typedef SharedMessageHandler<P, R> = MessageHandler<P, R, AnalysisServer>;
 
 abstract class CommandHandler<P, R> with Handler<R>, HandlerHelperMixin {
   @override
@@ -83,7 +77,8 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
   /// A [Future] that completes when both the client has finished initializing
   /// and any in-progress context rebuilds are complete.
   Future<void> get _initializedWithContexts =>
-      server.lspClientInitialized.then((_) => server.analysisContextsRebuilt);
+      Future.value(server.lspInitialized)
+          .then((_) => server.analysisContextsRebuilt);
 
   ErrorOr<T> analysisFailedError<T>(String path) => error<T>(
       ServerErrorCodes.FileAnalysisFailed, 'Analysis failed for file', path);
@@ -264,6 +259,22 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
 mixin LspHandlerHelperMixin {
   LspAnalysisServer get server;
 
+  /// Extracts the current document version from [textDocument] if available,
+  /// or uses the version that the server has via
+  /// [LspAnalysisServer.getVersionedDocumentIdentifier].
+  OptionalVersionedTextDocumentIdentifier extractDocumentVersion(
+    TextDocumentIdentifier textDocument,
+    String path,
+  ) {
+    return switch (textDocument) {
+      OptionalVersionedTextDocumentIdentifier() => textDocument,
+      VersionedTextDocumentIdentifier() =>
+        OptionalVersionedTextDocumentIdentifier(
+            uri: textDocument.uri, version: textDocument.version),
+      _ => server.getVersionedDocumentIdentifier(path),
+    };
+  }
+
   bool fileHasBeenModified(String path, int? clientVersion) {
     var serverDocumentVersion = server.getDocumentVersion(path);
     return clientVersion != null && clientVersion != serverDocumentVersion;
@@ -279,6 +290,19 @@ mixin LspHandlerHelperMixin {
       return success(lineInfo);
     }
   }
+}
+
+/// A base class for LSP handlers that require an LSP analysis server and are
+/// not supported over the legacy protocol.
+abstract class LspMessageHandler<P, R>
+    extends MessageHandler<P, R, LspAnalysisServer> {
+  LspMessageHandler(super.server);
+
+  /// All strict LSP handlers implicitly require a trusted handler because they
+  /// either modify state (eg. `textDocument/didOpen`) or otherwise require an
+  /// LSP server (and not a legacy server).
+  @override
+  bool get requiresTrustedCaller => true;
 }
 
 mixin LspPluginRequestHandlerMixin<T extends AnalysisServer>
@@ -310,6 +334,18 @@ abstract class MessageHandler<P, R, S extends AnalysisServer>
 
   /// A handler that can parse and validate JSON params.
   LspJsonHandler<P> get jsonHandler;
+
+  /// Whether or not this handler can only be called by the owner of the
+  /// analysis server process (for example the editor).
+  ///
+  /// All LSP-only handlers implicitly require a trusted caller because they
+  /// can only be called over the stdin/stdout stream. However, shared message
+  /// handlers must explicitly indicate if they can be called by untrusted
+  /// clients (such as over DTD).
+  ///
+  /// For example, the request to change the DTD connection is _not_ callable
+  /// by a DTD client and only by the editor.
+  bool get requiresTrustedCaller;
 
   FutureOr<ErrorOr<R>> handle(
       P params, MessageInfo message, CancellationToken token);
@@ -343,9 +379,28 @@ class MessageInfo {
   /// request or `null` if the client did not provide [clientRequestTime].
   final int? timeSinceRequest;
 
-  OperationPerformanceImpl performance;
+  final OperationPerformanceImpl performance;
 
-  MessageInfo({required this.performance, this.timeSinceRequest});
+  /// The capabilities for the client that sent the message/request.
+  ///
+  /// For messages from an editor these are the capabilities exchanged during
+  /// initialization, but for requests from other sources (such as DTD) they may
+  /// be a fixed set (or depend on the specific caller) so that these callers do
+  /// not receive different format responses depending on the capabilities of
+  /// the owning editor.
+  ///
+  /// May be null for messages sent prior to initialization.
+  final LspClientCapabilities? clientCapabilities;
+
+  MessageInfo({
+    required this.performance,
+    // TODO(dantup): Consider a version of this that has a non-nullable
+    //  `LspClientCapabilities` since the majority of handlers first check this
+    //  is non-null and reject the request. Only a small number of handlers need
+    //  to run without, so it would remove a bunch of boilerplate in the others.
+    required this.clientCapabilities,
+    this.timeSinceRequest,
+  });
 }
 
 mixin PositionalArgCommandHandler {
@@ -360,8 +415,8 @@ mixin PositionalArgCommandHandler {
 /// A message handler that handles all messages for a given server state.
 abstract class ServerStateMessageHandler {
   final AnalysisServer server;
-  final Map<Method, SharedMessageHandler<Object?, Object?>> _messageHandlers =
-      {};
+  final Map<Method, MessageHandler<Object?, Object?, AnalysisServer>>
+      messageHandlers = {};
   final CancelRequestHandler _cancelHandler;
   final NotCancelableToken _notCancelableToken = NotCancelableToken();
 
@@ -378,7 +433,7 @@ abstract class ServerStateMessageHandler {
     MessageInfo messageInfo, {
     CancellationToken? cancellationToken,
   }) async {
-    var handler = _messageHandlers[message.method];
+    var handler = messageHandlers[message.method];
     if (handler == null) {
       return handleUnknownMessage(message);
     }
@@ -418,7 +473,7 @@ abstract class ServerStateMessageHandler {
 
   void registerHandler(
       MessageHandler<Object?, Object?, AnalysisServer> handler) {
-    _messageHandlers[handler.handlesMessage] = handler;
+    messageHandlers[handler.handlesMessage] = handler;
   }
 
   void reject(Method method, ErrorCodes code, String message) {
@@ -433,6 +488,12 @@ abstract class ServerStateMessageHandler {
 
     // Messages that start with $/ are optional.
     var stringValue = message.method.toJson();
-    return stringValue is String && stringValue.startsWith(r'$/');
+    return stringValue.startsWith(r'$/');
   }
+}
+
+/// A base class for LSP handlers that work with any [AnalysisServer].
+abstract class SharedMessageHandler<P, R>
+    extends MessageHandler<P, R, AnalysisServer> {
+  SharedMessageHandler(super.server);
 }

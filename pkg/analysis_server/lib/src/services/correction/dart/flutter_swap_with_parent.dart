@@ -21,13 +21,25 @@ class FlutterSwapWithParent extends FlutterParentAndChild {
     if (child == null || !child.isWidgetCreation) {
       return;
     }
+    var parentHadSingleChild = true;
 
+    NamedExpression? namedExpression;
+    if (child.parent case ListLiteral listLiteral) {
+      if (listLiteral.elements case NodeList(length: var length)
+          when length != 1) {
+        return;
+      }
+      if (listLiteral.parent case NamedExpression parent) {
+        namedExpression = parent;
+        parentHadSingleChild = false;
+      }
+    }
     // NamedExpression (child:), ArgumentList, InstanceCreationExpression
-    var expr = child.parent?.parent?.parent;
+    var expr = (namedExpression ?? child.parent)?.parent?.parent;
     if (expr is! InstanceCreationExpression) {
       return;
     }
 
-    await swapParentAndChild(builder, expr, child);
+    await swapParentAndChild(builder, expr, child, parentHadSingleChild);
   }
 }

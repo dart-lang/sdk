@@ -210,11 +210,7 @@ class Api : AllStatic {
   }
 
   static intptr_t ClassId(Dart_Handle handle) {
-    ObjectPtr raw = UnwrapHandle(handle);
-    if (!raw->IsHeapObject()) {
-      return kSmiCid;
-    }
-    return raw->GetClassId();
+    return UnwrapHandle(handle)->GetClassId();
   }
 
   // Generates a handle used to designate an error return.

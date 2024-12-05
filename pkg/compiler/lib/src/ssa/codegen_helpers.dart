@@ -1041,6 +1041,20 @@ class SsaInstructionMerger extends HBaseVisitor<void> implements CodegenPhase {
     }
   }
 
+  @override
+  void visitArrayFlagsSet(HArrayFlagsSet instruction) {
+    // Cannot generate-at-use the array input, it is an alias for the value of
+    // this instruction and need to be allocated to a variable.
+    analyzeInputs(instruction, 1);
+  }
+
+  @override
+  void visitArrayFlagsCheck(HArrayFlagsCheck instruction) {
+    // Cannot generate-at-use the array input, it is an alias for the value of
+    // this instruction and need to be allocated to a variable.
+    analyzeInputs(instruction, 1);
+  }
+
   void tryGenerateAtUseSite(HInstruction instruction) {
     if (instruction.isControlFlow()) return;
     markAsGenerateAtUseSite(instruction);

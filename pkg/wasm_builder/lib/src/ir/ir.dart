@@ -17,7 +17,7 @@ export 'functions.dart'
 export 'memories.dart' show DefinedMemory, ImportedMemory, Memories, Memory;
 export 'module.dart' show Module;
 export 'tables.dart' show DefinedTable, ImportedTable, Table, Tables;
-export 'tags.dart' show Tag, Tags;
+export 'tags.dart' show DefinedTag, ImportedTag, Tag, Tags;
 export 'types.dart'
     show
         ArrayType,

@@ -205,6 +205,9 @@ class DartCompletionRequest {
   /// The library element of the file in which completion is requested.
   final LibraryElement libraryElement;
 
+  /// The library fragment of the file in which completion is requested.
+  final CompilationUnitElement libraryFragment;
+
   /// Return the offset within the source at which the completion is being
   /// requested.
   final int offset;
@@ -284,6 +287,7 @@ class DartCompletionRequest {
       dartdocDirectiveInfo: dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
       featureComputer: featureComputer,
       libraryElement: libraryElement,
+      libraryFragment: unitElement,
       offset: offset,
       opType: opType,
       fileState: fileState,
@@ -324,6 +328,7 @@ class DartCompletionRequest {
     required this.dartdocDirectiveInfo,
     required this.featureComputer,
     required this.libraryElement,
+    required this.libraryFragment,
     required this.offset,
     required this.opType,
     required this.fileState,

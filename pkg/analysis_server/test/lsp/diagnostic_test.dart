@@ -522,9 +522,11 @@ linter:
 
     // Set up a project that imports the analysis_options and violates the lint.
     var projectPackagePath = '$rootWorkspacePath/my_project';
-    writePackageConfig(projectPackagePath,
-        config: (PackageConfigFileBuilder()
-          ..add(name: 'my_lints', rootPath: lintsPackagePath)));
+    writePackageConfig(
+      projectPackagePath,
+      config: PackageConfigFileBuilder()
+        ..add(name: 'my_lints', rootPath: lintsPackagePath),
+    );
     newFile('$projectPackagePath/analysis_options.yaml', '''
 include: package:my_lints/analysis_options.yaml
 

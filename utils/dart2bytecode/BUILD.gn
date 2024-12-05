@@ -1,0 +1,24 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../../runtime/runtime_args.gni")
+import("../aot_snapshot.gni")
+
+group("dart2bytecode") {
+  public_deps = [ ":dart2bytecode_snapshot" ]
+}
+
+aot_snapshot("dart2bytecode_snapshot") {
+  main_dart = "../../pkg/dart2bytecode/bin/dart2bytecode.dart"
+  name = "dart2bytecode"
+
+  output = "$root_gen_dir/dart2bytecode.dart.snapshot"
+
+  # dartaotruntime has dart_product_config applied to it, so it is built in
+  # product mode in both release and product builds, and is only built in debug
+  # mode in debug builds. The following line ensures that the dartaotruntime and
+  # dart2bytecode.dart.snapshot in an SDK build are always compatible with
+  # each other.
+  force_product_mode = !dart_debug
+}

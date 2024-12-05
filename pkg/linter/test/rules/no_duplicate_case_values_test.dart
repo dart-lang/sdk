@@ -15,7 +15,7 @@ main() {
 
 abstract class BaseNoDuplicateCaseValuesTest extends LintRuleTest {
   @override
-  String get lintRule => 'no_duplicate_case_values';
+  String get lintRule => LintNames.no_duplicate_case_values;
 }
 
 @reflectiveTest
@@ -65,6 +65,7 @@ void switchEnum() {
 ''', [
       // No lint.
       error(WarningCode.UNREACHABLE_SWITCH_CASE, 139, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 155, 7),
     ]);
   }
 

@@ -31,10 +31,13 @@ main() {
   Expect.equals(3, 1.e+2);
   Expect.equals(3, 1.d+2);
   Expect.equals(3, 1.D+2);
+  Expect.equals(3, 1._0e+2);
 }
 
 extension on int {
   int get e => this;
   int get d => this;
   int get D => this;
+
+  int get _0e => this;
 }

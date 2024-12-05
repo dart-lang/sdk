@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// This imports 'codes/cfe_codes.dart' instead of 'api_prototype/codes.dart' to
+// avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
         messageFfiAbiSpecificIntegerInvalid,
@@ -34,6 +36,8 @@ import 'native_type_cfe.dart';
 /// Checks and elaborates the dart:ffi compounds and their fields.
 ///
 /// Input:
+///
+/// ```
 /// final class Coord extends Struct {
 ///   @Double()
 ///   double x;
@@ -43,8 +47,11 @@ import 'native_type_cfe.dart';
 ///
 ///   Pointer<Coord> next;
 /// }
+/// ```
 ///
 /// Output:
+///
+/// ```
 /// final class Coord extends Struct {
 ///   Coord.#fromTypedDataBase(Pointer<Coord> coord) : super._(coord);
 ///
@@ -59,6 +66,7 @@ import 'native_type_cfe.dart';
 ///
 ///   static int get #sizeOf => (const [24, 20, 24])[_abi()];
 /// }
+/// ```
 void transformLibraries(
   Component component,
   CoreTypes coreTypes,
@@ -440,6 +448,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     bool success = true;
     final membersWithAnnotations =
         _compoundFieldMembers(node, includeSetters: false);
+    final lastField = membersWithAnnotations.lastOrNull;
     for (final Member f in membersWithAnnotations) {
       if (f is Field) {
         if (f.initializer is! NullLiteral) {
@@ -483,7 +492,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         if (isArrayType(type)) {
           try {
             ensureNativeTypeValid(type, f, allowInlineArray: true);
-            ensureArraySizeAnnotation(f, type);
+            final isLastField = f == lastField;
+            ensureArraySizeAnnotation(f, type, isLastField);
           } on FfiStaticTypeError {
             // It's OK to swallow the exception because the diagnostics issued will
             // cause compilation to fail. By continuing, we can report more
@@ -652,7 +662,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           fileUri: node.fileUri,
           reference: reference)
         ..fileOffset = node.fileOffset;
-
+      addPragmaPreferInline(ctor);
       node.addConstructor(ctor);
     }
   }
@@ -672,7 +682,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       if (isArrayType(dartType)) {
         final sizeAnnotations = getArraySizeAnnotations(m).toList();
         if (sizeAnnotations.length == 1) {
-          final arrayDimensions = sizeAnnotations.single;
+          final arrayDimensions = sizeAnnotations.single.$1;
           if (this.arrayDimensions(dartType) == arrayDimensions.length) {
             final elementType = arraySingleElementType(dartType);
             if (elementType is! InterfaceType) {
@@ -811,6 +821,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           offsetGetter,
         );
         getter.isExternal = false;
+        addPragmaPreferInline(getter);
       }
 
       if (setter != null) {
@@ -823,6 +834,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           offsetGetter,
         );
         setter.isExternal = false;
+        addPragmaPreferInline(setter);
       }
 
       i++;
@@ -1042,6 +1054,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     )
       ..fileOffset = field.fileOffset
       ..annotations = field.annotations;
+    addPragmaPreferInline(getter);
     node.addProcedure(getter);
 
     if (!field.isFinal) {
@@ -1076,6 +1089,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         fileUri: field.fileUri,
         reference: setterReference,
       )..fileOffset = field.fileOffset;
+      addPragmaPreferInline(setter);
       node.addProcedure(setter);
     }
 

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UseToAndAsIfApplicableTest extends LintRuleTest {
   @override
-  String get lintRule => 'use_to_and_as_if_applicable';
+  String get lintRule => LintNames.use_to_and_as_if_applicable;
 
   test_asOther_argumentIsThis() async {
     await assertNoDiagnostics(r'''

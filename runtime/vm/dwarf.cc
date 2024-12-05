@@ -9,6 +9,7 @@
 #include "vm/elf.h"
 #include "vm/image_snapshot.h"
 #include "vm/object_store.h"
+#include "vm/version.h"
 
 namespace dart {
 
@@ -214,6 +215,10 @@ void Dwarf::WriteAbbreviations(DwarfWriteStream* stream) {
   stream->uleb128(DW_FORM_string);
   stream->uleb128(DW_AT_decl_file);
   stream->uleb128(DW_FORM_udata);
+  stream->uleb128(DW_AT_decl_line);
+  stream->uleb128(DW_FORM_udata);
+  stream->uleb128(DW_AT_decl_column);
+  stream->uleb128(DW_FORM_udata);
   stream->uleb128(DW_AT_inline);
   stream->uleb128(DW_FORM_udata);
   stream->uleb128(0);
@@ -273,8 +278,9 @@ void Dwarf::WriteDebugInfo(DwarfWriteStream* stream) {
         zone_, IsolateGroup::Current()->object_store()->root_library());
     const String& root_uri = String::Handle(zone_, root_library.url());
     stream->string(root_uri.ToCString());  // DW_AT_name
-    stream->string("Dart VM");             // DW_AT_producer
-    stream->string("");                    // DW_AT_comp_dir
+    const char* producer = zone_->PrintToString("Dart %s\n", Version::String());
+    stream->string(producer);  // DW_AT_producer
+    stream->string("");        // DW_AT_comp_dir
 
     // DW_AT_low_pc
     // The lowest instruction address in this object file that is part of our
@@ -324,6 +330,10 @@ void Dwarf::WriteAbstractFunctions(DwarfWriteStream* stream) {
     name = function.QualifiedUserVisibleName();
     script = function.script();
     const intptr_t file = LookupScript(script);
+    intptr_t line = 0;
+    intptr_t column = 0;
+    script.GetTokenLocation(function.token_pos(), &line, &column);
+
     auto const name_cstr =
         ImageWriter::Deobfuscate(zone_, deobfuscation_trie_, name.ToCString());
 
@@ -331,6 +341,8 @@ void Dwarf::WriteAbstractFunctions(DwarfWriteStream* stream) {
     stream->uleb128(kAbstractFunction);
     stream->string(name_cstr);        // DW_AT_name
     stream->uleb128(file);            // DW_AT_decl_file
+    stream->uleb128(line);            // DW_AT_decl_line
+    stream->uleb128(column);          // DW_AT_decl_column
     stream->uleb128(DW_INL_inlined);  // DW_AT_inline
     stream->uleb128(0);               // End of children.
   }

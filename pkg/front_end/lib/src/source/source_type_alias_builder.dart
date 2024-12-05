@@ -25,8 +25,8 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/kernel_helper.dart';
-import '../util/helpers.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
+import 'source_loader.dart';
 
 class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
@@ -45,23 +45,22 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   Map<Name, Procedure>? tearOffs;
 
   SourceTypeAliasBuilder(
-      List<MetadataBuilder>? metadata,
-      String name,
-      this._typeVariables,
-      this.type,
-      SourceLibraryBuilder parent,
-      int charOffset,
-      {Typedef? typedef,
-      Typedef? referenceFrom})
-      : typedef = typedef ??
-            (new Typedef(name, null,
-                typeParameters:
-                    NominalVariableBuilder.typeParametersFromBuilders(
-                        _typeVariables),
-                fileUri: parent.fileUri,
-                reference: referenceFrom?.reference)
-              ..fileOffset = charOffset),
-        super(metadata, name, parent, charOffset);
+      {required List<MetadataBuilder>? metadata,
+      required String name,
+      required List<NominalVariableBuilder>? typeVariables,
+      required this.type,
+      required SourceLibraryBuilder enclosingLibraryBuilder,
+      required Uri fileUri,
+      required int fileOffset,
+      required Reference? reference})
+      : typedef = new Typedef(name, null,
+            typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
+                typeVariables),
+            fileUri: fileUri,
+            reference: reference)
+          ..fileOffset = fileOffset,
+        _typeVariables = typeVariables,
+        super(metadata, name, enclosingLibraryBuilder, fileUri, fileOffset);
 
   @override
   SourceLibraryBuilder get libraryBuilder =>
@@ -76,14 +75,16 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
   int get typeVariablesCount => typeVariables?.length ?? 0;
 
-  Typedef build() {
-    buildThisType();
+  bool _hasCheckedForCyclicDependency = false;
+
+  void _breakCyclicDependency() {
+    if (_hasCheckedForCyclicDependency) return;
     if (_checkCyclicTypedefDependency(type, this, {this})) {
       typedef.type = new InvalidType();
       type = new InvalidTypeBuilderImpl(fileUri, charOffset);
     }
     if (typeVariables != null) {
-      for (TypeVariableBuilderBase typeVariable in typeVariables!) {
+      for (TypeVariableBuilder typeVariable in typeVariables!) {
         if (_checkCyclicTypedefDependency(typeVariable.bound, this, {this})) {
           // The bound is erroneous and should be set to [InvalidType].
           typeVariable.parameterBound = new InvalidType();
@@ -98,18 +99,22 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         }
       }
     }
+    _hasCheckedForCyclicDependency = true;
+  }
+
+  Typedef build() {
+    _breakCyclicDependency();
+    buildThisType();
     return typedef;
   }
 
   @override
   TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
-      List<TypeBuilder>? unboundTypes,
       List<StructuralVariableBuilder>? unboundTypeVariables}) {
-    build();
+    _breakCyclicDependency();
     return super.unalias(typeArguments,
         usedTypeAliasBuilders: usedTypeAliasBuilders,
-        unboundTypes: unboundTypes,
         unboundTypeVariables: unboundTypeVariables);
   }
 
@@ -147,7 +152,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
                 return true;
               }
               if (declaration.typeVariables != null) {
-                for (TypeVariableBuilderBase typeVariable
+                for (TypeVariableBuilder typeVariable
                     in declaration.typeVariables!) {
                   if (_checkCyclicTypedefDependency(
                       typeVariable.bound,
@@ -168,7 +173,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             }
           }
         } else if (declaration != null && declaration.typeVariablesCount > 0) {
-          List<TypeVariableBuilderBase>? typeParameters;
+          List<TypeVariableBuilder>? typeParameters;
           switch (declaration) {
             case ClassBuilder():
               typeParameters = declaration.typeVariables;
@@ -182,11 +187,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             case InvalidTypeDeclarationBuilder():
             case OmittedTypeDeclarationBuilder():
             case ExtensionBuilder():
-            case TypeVariableBuilderBase():
+            case TypeVariableBuilder():
           }
           if (typeParameters != null) {
             for (int i = 0; i < typeParameters.length; i++) {
-              TypeVariableBuilderBase typeParameter = typeParameters[i];
+              TypeVariableBuilder typeParameter = typeParameters[i];
               if (_checkCyclicTypedefDependency(typeParameter.defaultType!,
                   rootTypeAliasBuilder, seenTypeAliasBuilders)) {
                 return true;
@@ -253,7 +258,9 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     if (thisType != null) {
       if (identical(thisType, pendingTypeAliasMarker)) {
         thisType = cyclicTypeAliasMarker;
-        // Cyclic type alias. The error is reported elsewhere.
+        assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+            "SourceTypeAliasBuilder.buildThisType",
+            expectedPhase: CompilationPhaseForProblemReporting.outline));
         return const InvalidType();
       } else if (identical(thisType, cyclicTypeAliasMarker)) {
         return const InvalidType();
@@ -301,7 +308,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     }
 
     if (arguments != null && arguments.length != typeVariablesCount) {
-      // That should be caught and reported as a compile-time error earlier.
+      // Coverage-ignore-block(suite): Not run.
+      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+          "SourceTypeAliasBuilder.buildAliasedTypeArguments: "
+          "the numbers of type parameters and type arguments don't match.",
+          expectedPhase: CompilationPhaseForProblemReporting.outline));
       return unhandled(
           templateTypeArgumentMismatch
               .withArguments(typeVariablesCount)
@@ -329,9 +340,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         inConstFields: inConstFields);
   }
 
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     MetadataBuilder.buildAnnotations(
         typedef,
@@ -352,7 +361,6 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
                 inMetadata: true,
                 inConstFields: false),
             classHierarchy,
-            delayedActionPerformers,
             computeTypeParameterScope(libraryBuilder.scope));
       }
     }
@@ -363,18 +371,13 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     });
   }
 
-  Scope computeTypeParameterScope(Scope parent) {
+  LookupScope computeTypeParameterScope(LookupScope parent) {
     if (typeVariables == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
     for (NominalVariableBuilder variable in typeVariables!) {
       local[variable.name] = variable;
     }
-    return new Scope(
-        kind: ScopeKind.typeParameters,
-        local: local,
-        parent: parent,
-        debugName: "type parameter",
-        isModifiable: false);
+    return new TypeParameterScope(parent, local);
   }
 
   Map<Procedure, Member>? _tearOffDependencies;

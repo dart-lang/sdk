@@ -1277,3 +1277,43 @@ final class StructInlineArrayInt extends Struct {
 
   String toString() => "(${[for (var i0 = 0; i0 < 10; i0 += 1) a0[i0]]})";
 }
+
+final class StructInlineArrayVariable extends Struct {
+  @Uint32()
+  external int a0;
+
+  @Array.variable()
+  external Array<Uint8> a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+final class StructInlineArrayVariableNested extends Struct {
+  @Uint32()
+  external int a0;
+
+  @Array.variable(2, 2)
+  external Array<Array<Array<Uint8>>> a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+final class StructInlineArrayVariableNestedDeep extends Struct {
+  @Uint32()
+  external int a0;
+
+  @Array.variableMulti([2, 2, 2, 2, 2, 2])
+  external Array<Array<Array<Array<Array<Array<Array<Uint8>>>>>>> a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+final class StructInlineArrayVariableAlign extends Struct {
+  @Uint8()
+  external int a0;
+
+  @Array.variable()
+  external Array<Uint32> a1;
+
+  String toString() => "(${a0}, ${a1})";
+}

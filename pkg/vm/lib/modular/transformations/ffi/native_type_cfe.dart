@@ -142,8 +142,9 @@ sealed class NativeTypeCfe {
   /// the type will be loaded from that buffer, starting at [offsetInBytes].
   ///
   /// For example, loading a `Pointer` from memory (via [PointerNativeTypeCfe])
-  /// would build an expression like `ffi._loadPointer<T>
-  /// (#typedDataBase, #offsetInBytes)`, where `Pointer<T> == dartType`.
+  /// would build an expression like
+  /// `ffi._loadPointer<T>(#typedDataBase, #offsetInBytes)`, where
+  /// `Pointer<T> == dartType`.
   ///
   /// For struct fields, [generateGetterStatement] fills in values for
   /// [offsetInBytes] and [unaligned] based on the ABI of the struct. It also

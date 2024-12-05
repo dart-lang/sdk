@@ -4201,7 +4201,7 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
         final Map<int, int> mapping = <int, int>{};
         _byteOffset = mappingStart;
         for (int j = 0; j < mappingLength; j++) {
-          final int nodeOffset = readUint32();
+          final int nodeOffset = _componentStartOffset + readUint32();
           final int metadataOffset =
               binaryOffsetForMetadataPayloads + readUint32();
           mapping[nodeOffset] = metadataOffset;

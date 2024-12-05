@@ -154,24 +154,15 @@ class Immutable {
   const Immutable([this.reason = '']);
 }
 
+@experimental
+class RecordUse {
+  const RecordUse();
+}
+
 class Required {
   final String reason;
 
   const Required([this.reason = '']);
-}
-
-@experimental
-class ResourceIdentifier {
-  final Object? metadata;
-
-  const ResourceIdentifier([this.metadata])
-      : assert(
-          metadata == null ||
-              metadata is bool ||
-              metadata is num ||
-              metadata is String,
-          'Valid metadata types are bool, int, double, and String.',
-        );
 }
 
 @Target({

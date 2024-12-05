@@ -16,7 +16,6 @@ main() {
 class TypeAliasParserTest extends ParserDiagnosticsTest {
   test_legacy_augment() {
     var parseResult = parseStringWithErrors(r'''
-augment library 'a.dart';
 augment typedef void A();
 ''');
     parseResult.assertNoErrors();
@@ -38,7 +37,6 @@ FunctionTypeAlias
 
   test_modern_augment() {
     var parseResult = parseStringWithErrors(r'''
-augment library 'a.dart';
 augment typedef A = int;
 ''');
     parseResult.assertNoErrors();

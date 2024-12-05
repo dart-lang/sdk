@@ -8,13 +8,14 @@ import 'builder.dart';
 // TODO(joshualitt): Get rid of cycles in the builder graph.
 /// A Wasm module builder.
 class ModuleBuilder with Builder<ir.Module> {
+  final String moduleName;
   final Uri? sourceMapUrl;
   final List<int> watchPoints;
-  final types = TypesBuilder();
+  late final TypesBuilder types;
   late final functions = FunctionsBuilder(this);
-  final tables = TablesBuilder();
-  final memories = MemoriesBuilder();
-  final tags = TagsBuilder();
+  late final tables = TablesBuilder(this);
+  late final memories = MemoriesBuilder(this);
+  late final tags = TagsBuilder(this);
   final dataSegments = DataSegmentsBuilder();
   late final globals = GlobalsBuilder(this);
   final exports = ExportsBuilder();
@@ -25,7 +26,10 @@ class ModuleBuilder with Builder<ir.Module> {
   /// bytes to watch. When the module is serialized, the stack traces leading
   /// to the production of all watched bytes are printed. This can be used to
   /// debug runtime errors happening at specific offsets within the module.
-  ModuleBuilder(this.sourceMapUrl, {this.watchPoints = const []});
+  ModuleBuilder(this.moduleName, this.sourceMapUrl,
+      {ModuleBuilder? parent, this.watchPoints = const []}) {
+    types = TypesBuilder(this, parent: parent?.types);
+  }
 
   @override
   ir.Module forceBuild() {
@@ -33,11 +37,13 @@ class ModuleBuilder with Builder<ir.Module> {
     final finalTables = tables.build();
     final finalMemories = memories.build();
     final finalGlobals = globals.build();
+    final finalTags = tags.build();
     return ir.Module(
+        moduleName,
         sourceMapUrl,
         finalFunctions,
         finalTables,
-        tags.build(),
+        finalTags,
         finalMemories,
         exports.build(),
         finalGlobals,
@@ -47,7 +53,8 @@ class ModuleBuilder with Builder<ir.Module> {
           ...finalFunctions.imported,
           ...finalTables.imported,
           ...finalMemories.imported,
-          ...finalGlobals.imported
+          ...finalGlobals.imported,
+          ...finalTags.imported,
         ],
         watchPoints);
   }

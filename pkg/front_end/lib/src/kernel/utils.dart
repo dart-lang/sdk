@@ -3,19 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show File, IOSink;
-
 import 'dart:typed_data' show BytesBuilder, Uint8List;
 
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show SyntheticToken, TokenType;
-
 import 'package:kernel/ast.dart';
-import 'package:kernel/clone.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
+import 'package:kernel/clone.dart';
 import 'package:kernel/text/ast_to_text.dart';
 
+import '../base/combinator.dart';
+import '../base/configuration.dart';
+import '../base/identifiers.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -23,10 +24,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../base/combinator.dart';
-import '../base/configuration.dart';
-import '../base/identifiers.dart';
-import '../source/source_library_builder.dart';
+import '../source/builder_factory.dart';
 import 'body_builder.dart';
 
 /// The name for the synthesized field used to store information of
@@ -253,15 +251,17 @@ final TypeBuilder dummyTypeBuilder =
     new FixedTypeBuilderImpl(dummyDartType, dummyUri, -1);
 final FormalParameterBuilder dummyFormalParameterBuilder =
     new FormalParameterBuilder(FormalParameterKind.requiredPositional, 0,
-        const ImplicitTypeBuilder(), '', null, -1,
+        const ImplicitTypeBuilder(), '', -1,
         fileUri: dummyUri, hasImmediatelyDeclaredInitializer: false);
+final FunctionTypeParameterBuilder dummyFunctionTypeParameterBuilder =
+    new FunctionTypeParameterBuilder(FormalParameterKind.requiredPositional,
+        const ImplicitTypeBuilder(), '');
 final NominalVariableBuilder dummyNominalVariableBuilder =
-    new NominalVariableBuilder(
-        NominalVariableBuilder.noNameSentinel, null, -1, null,
+    new NominalVariableBuilder(NominalVariableBuilder.noNameSentinel, -1, null,
         kind: TypeVariableKind.function);
 final StructuralVariableBuilder dummyStructuralVariableBuilder =
     new StructuralVariableBuilder(
-        StructuralVariableBuilder.noNameSentinel, null, -1, null);
+        StructuralVariableBuilder.noNameSentinel, -1, null);
 final Label dummyLabel = new Label('', -1);
 final RecordTypeFieldBuilder dummyRecordTypeFieldBuilder =
     new RecordTypeFieldBuilder(null, dummyTypeBuilder, null, -1);

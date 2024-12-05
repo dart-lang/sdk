@@ -24,7 +24,7 @@ abstract class TokenStreamRewriter {
   }
 
   /// Insert a synthetic open and close parenthesis and return the new synthetic
-  /// open parenthesis. If [insertIdentifier] is true, then a synthetic
+  /// open parenthesis. If [includeIdentifier] is true, then a synthetic
   /// identifier is included between the open and close parenthesis.
   Token insertParens(Token token, bool includeIdentifier) {
     // Throw if the token is eof, though allow an eof-token if the offset

@@ -1113,10 +1113,7 @@ ISOLATE_UNIT_TEST_CASE(SafepointRwLockExclusiveNestedWriter_Regress44000) {
 
       // Start a thread, it will try to acquire read lock but it will have to
       // wait until we have exited both writer scopes.
-      if (OSThread::Start("DartWorker", &Helper,
-                          reinterpret_cast<uword>(&state)) != 0) {
-        FATAL("Could not start worker thread");
-      }
+      OSThread::Start("DartWorker", &Helper, reinterpret_cast<uword>(&state));
       // Wait for the thread to start.
       {
         MonitorLocker ml(state.monitor);

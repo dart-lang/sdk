@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class ParameterAssignmentsTest extends LintRuleTest {
   @override
-  String get lintRule => 'parameter_assignments';
+  String get lintRule => LintNames.parameter_assignments;
 
   test_assignment_nullableParameter() async {
     await assertDiagnostics(r'''
@@ -36,6 +36,17 @@ void f({int? p}) {
 }
 ''', [
       lint(32, 6),
+    ]);
+  }
+
+  test_assignment_wildcard() async {
+    await assertDiagnostics(r'''
+void f([int? _]) {
+  _ = 8;
+}
+''', [
+      // No lint.
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 21, 1),
     ]);
   }
 

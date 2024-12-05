@@ -68,7 +68,7 @@ Future<VersionAndPackageUri> languageVersionForUri(
     int? major;
     int? minor;
     if (fileUri != null) {
-      List<int>? rawBytes;
+      Uint8List? rawBytes;
       try {
         FileSystem fileSystem = context.options.fileSystem;
         rawBytes = await fileSystem.entityForUri(fileUri).readAsBytes();
@@ -76,10 +76,7 @@ Future<VersionAndPackageUri> languageVersionForUri(
         rawBytes = null;
       }
       if (rawBytes != null) {
-        Uint8List zeroTerminatedBytes = new Uint8List(rawBytes.length + 1);
-        zeroTerminatedBytes.setRange(0, rawBytes.length, rawBytes);
-
-        scan(zeroTerminatedBytes,
+        scan(rawBytes,
             includeComments: false,
             configuration: new ScannerConfiguration(), languageVersionChanged:
                 (Scanner scanner, LanguageVersionToken version) {

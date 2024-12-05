@@ -302,12 +302,9 @@ void f() {
   }
 
   Future<void> test_doubleQuotes() async {
-    var config = AnalysisOptionsFileConfig(
-      lints: ['prefer_double_quotes'],
-    );
     newAnalysisOptionsYamlFile(
       testPackageRootPath,
-      config.toContent(),
+      analysisOptionsContent(rules: ['prefer_double_quotes']),
     );
 
     await resolveTestCode('''

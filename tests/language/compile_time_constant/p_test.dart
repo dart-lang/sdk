@@ -18,7 +18,7 @@ class B extends A {
   const B();
   //    ^
   // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS
-  // [cfe] The superclass, 'A', has no unnamed constructor that takes no arguments.
+  // [cfe] The implicitly called unnamed constructor from 'A' has required parameters.
 }
 
 var b = const B();

@@ -171,11 +171,7 @@ function lazyFinal(holder, name, getterName, initializer) {
 //
 // The runtime ensures that const-lists cannot be modified.
 function makeConstList(list) {
-  // By assigning a function to the properties they become part of the
-  // hidden class. The actual values of the fields don't matter, since we
-  // only check if they exist.
-  list.immutable\$list = Array;
-  list.fixed\$length = Array;
+  list.#arrayFlagsProperty = ${ArrayFlags.constant};
   return list;
 }
 
@@ -675,6 +671,7 @@ class FragmentEmitter {
       'directAccessTestExpression': js.js(_directAccessTestExpression),
       'throwLateFieldADI': _emitter
           .staticFunctionAccess(_closedWorld.commonElements.throwLateFieldADI),
+      'arrayFlagsProperty': js.string(_namer.fixedNames.arrayFlagsPropertyName),
       'operatorIsPrefix': js.string(_namer.fixedNames.operatorIsPrefix),
       'tearOffCode': js.Block(
           buildTearOffCode(_options, _emitter, _closedWorld.commonElements)),

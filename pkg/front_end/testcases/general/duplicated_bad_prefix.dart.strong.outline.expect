@@ -9,7 +9,7 @@ library;
 // class Dupe {}
 //       ^^^^
 //
-// pkg/front_end/testcases/general/duplicated_bad_prefix.dart:13:3: Error: Type 'Dupe.a' not found.
+// pkg/front_end/testcases/general/duplicated_bad_prefix.dart:13:3: Error: 'Dupe.a' can't be used as a type because 'Dupe' doesn't refer to an import prefix.
 //   Dupe.a b;
 //   ^^^^^^
 //

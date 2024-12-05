@@ -6,14 +6,13 @@ import 'dart:async';
 import 'dart:convert' show jsonEncode;
 import 'dart:io';
 
-import 'package:dev_compiler/src/compiler/shared_command.dart';
-import 'package:dev_compiler/src/kernel/command.dart'
+import 'package:dev_compiler/src/command/command.dart'
     show addGeneratedVariables, getSdkPath;
+import 'package:dev_compiler/src/command/options.dart';
 import 'package:dev_compiler/src/kernel/js_typerep.dart';
 import 'package:dev_compiler/src/kernel/nullable_inference.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
-import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
@@ -658,7 +657,7 @@ class _TestRecursiveVisitor extends RecursiveVisitor {
   int _functionNesting = 0;
   late TypeEnvironment _typeEnvironment;
   late StatefulStaticTypeContext _staticTypeContext;
-  late SharedCompilerOptions _options;
+  late Options _options;
 
   _TestRecursiveVisitor(this.librariesFromDill);
 
@@ -672,7 +671,7 @@ class _TestRecursiveVisitor extends RecursiveVisitor {
     );
     _typeEnvironment = jsTypeRep.types;
     _staticTypeContext = StatefulStaticTypeContext.stacked(_typeEnvironment);
-    _options = SharedCompilerOptions(moduleName: 'module_for_test');
+    _options = Options(moduleName: 'module_for_test');
     inference ??=
         NullableInference(jsTypeRep, _staticTypeContext, options: _options);
 
@@ -776,7 +775,7 @@ Future<CompileResult> kernelCompile(String code) async {
   var sdkUri = Uri.file('/memory/ddc_outline.dill');
   var sdkFile = _fileSystem.entityForUri(sdkUri);
   if (!await sdkFile.exists()) {
-    var buildRoot = computePlatformBinariesLocation(forceBuildDir: true);
+    var buildRoot = fe.computePlatformBinariesLocation(forceBuildDir: true);
     var outlineDill = buildRoot.resolve('ddc_outline.dill').toFilePath();
     sdkFile.writeAsBytesSync(File(outlineDill).readAsBytesSync());
   }

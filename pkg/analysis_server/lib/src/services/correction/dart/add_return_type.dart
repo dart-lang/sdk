@@ -103,18 +103,18 @@ class AddReturnType extends ResolvedCorrectionProducer {
     var isGenerator = body.isGenerator;
     if (isAsynchronous) {
       if (isGenerator) {
-        return typeProvider.streamElement.instantiate(
+        return typeProvider.streamElement2.instantiate(
           typeArguments: [baseType],
           nullabilitySuffix: baseType.nullabilitySuffix,
         );
       } else {
-        return typeProvider.futureElement.instantiate(
+        return typeProvider.futureElement2.instantiate(
           typeArguments: [baseType],
           nullabilitySuffix: baseType.nullabilitySuffix,
         );
       }
     } else if (isGenerator) {
-      return typeProvider.iterableElement.instantiate(
+      return typeProvider.iterableElement2.instantiate(
         typeArguments: [baseType],
         nullabilitySuffix: baseType.nullabilitySuffix,
       );

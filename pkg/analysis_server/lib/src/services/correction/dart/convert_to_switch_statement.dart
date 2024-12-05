@@ -28,7 +28,7 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (!libraryElement.featureSet.isEnabled(Feature.patterns)) {
+    if (!libraryElement2.featureSet.isEnabled(Feature.patterns)) {
       return;
     }
 
@@ -56,24 +56,20 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
         var expressionCode = firstThen.expressionCode;
         builder.writeln('switch ($expressionCode) {');
 
-        for (var case_ in cases) {
+        for (var (index, case_) in cases.indexed) {
           switch (case_) {
             case _IfCaseThen():
               var patternCode = case_.patternCode;
               builder.writeln('${caseIndent}case $patternCode:');
-              _writeStatement(
-                builder: builder,
-                statement: case_.statement,
-                ifStatementIndent: indent,
-              );
             case _IfCaseElse():
               builder.writeln('${caseIndent}default:');
-              _writeStatement(
-                builder: builder,
-                statement: case_.statement,
-                ifStatementIndent: indent,
-              );
           }
+          _writeStatement(
+            builder: builder,
+            statement: case_.statement,
+            ifStatementIndent: indent,
+            isLastBranch: index == cases.length - 1,
+          );
         }
 
         builder.write('$indent}');
@@ -183,6 +179,7 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
     required DartEditBuilder builder,
     required Statement statement,
     required String ifStatementIndent,
+    required bool isLastBranch,
   }) {
     var statements = statement.selfOrBlockStatements;
     var range = utils.getLinesRangeStatements(statements);
@@ -194,6 +191,13 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
     //     statement
     var singleIndent = utils.oneIndent;
     var newIndent = '$ifStatementIndent$singleIndent';
+
+    if (statements.isEmpty && !isLastBranch) {
+      builder.write(newIndent);
+      builder.write(singleIndent);
+      builder.writeln('break;');
+      return;
+    }
 
     var code = utils.replaceSourceRangeIndent(
       range,

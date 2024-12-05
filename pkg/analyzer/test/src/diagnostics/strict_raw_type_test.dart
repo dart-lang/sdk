@@ -19,10 +19,7 @@ class StrictRawTypeTest extends PubPackageResolutionTest {
   void setUp() {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: experiments,
-        strictRawTypes: true,
-      ),
+      analysisOptionsContent(experiments: experiments, strictRawTypes: true),
     );
   }
 
@@ -140,7 +137,7 @@ void f() {
   var a = <List>[];
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
       error(WarningCode.STRICT_RAW_TYPE, 22, 4),
     ]);
   }
@@ -151,7 +148,7 @@ void f() {
   var a = <List<int>>[];
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
     ]);
   }
 
@@ -205,7 +202,7 @@ void f() {
 }
 ''', [
       error(WarningCode.STRICT_RAW_TYPE, 13, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
     ]);
   }
 

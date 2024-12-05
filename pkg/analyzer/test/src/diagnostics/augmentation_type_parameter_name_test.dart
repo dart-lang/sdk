@@ -17,81 +17,81 @@ main() {
 class AugmentationTypeParameterNameTest extends PubPackageResolutionTest {
   test_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A<T> {}
 ''');
 
     await assertErrorsInCode(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A<U> {}
 ''', [
-      error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 43, 1),
+      error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 35, 1),
     ]);
   }
 
   test_enum() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 enum A<T> {v}
 ''');
 
     await assertErrorsInCode(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment enum A<U> {}
 ''', [
-      error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 42, 1),
+      error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 34, 1),
     ]);
   }
 
   test_extension() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 extension A<T> on int {}
 ''');
 
     await assertErrorsInCode(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment extension A<U> {}
 ''', [
-      error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 47, 1),
+      error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 39, 1),
     ]);
   }
 
   test_extensionType() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 extension type A<T>(int it) {}
 ''');
 
     await assertErrorsInCode(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment extension type A<U>(int it) {}
 ''', [
-      error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 52, 1),
+      error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 44, 1),
     ]);
   }
 
   test_mixin() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 mixin A<T> {}
 ''');
 
     await assertErrorsInCode(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment mixin A<U> {}
 ''', [
-      error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 43, 1),
+      error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 35, 1),
     ]);
   }
 }

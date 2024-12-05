@@ -6,75 +6,18 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
-const _details = r'''
-Use `SizedBox.shrink(...)` and `SizedBox.expand(...)` constructors
-appropriately.
-
-Either the `SizedBox.shrink(...)` or `SizedBox.expand(...)` constructor should
-be used instead of the more general `SizedBox(...)` constructor when one of the
-named constructors capture the intent of the code more succinctly.
-
-**Examples**
-
-**BAD:**
-```dart
-Widget buildLogo() {
-  return SizedBox(
-    height: 0,
-    width: 0,
-    child: const MyLogo(),
-  );
-}
-```
-
-```dart
-Widget buildLogo() {
-  return SizedBox(
-    height: double.infinity,
-    width: double.infinity,
-    child: const MyLogo(),
-  );
-}
-```
-
-**GOOD:**
-```dart
-Widget buildLogo() {
-  return SizedBox.shrink(
-    child: const MyLogo(),
-  );
-}
-```
-
-```dart
-Widget buildLogo() {
-  return SizedBox.expand(
-    child: const MyLogo(),
-  );
-}
-```
-''';
-
 class SizedBoxShrinkExpand extends LintRule {
-  static const LintCode code = LintCode(
-      'sized_box_shrink_expand',
-      "Use 'SizedBox.{0}' to avoid needing to specify the 'height' and "
-          "'width'.",
-      correctionMessage:
-          "Try using 'SizedBox.{0}' and removing the 'height' and 'width' "
-          'arguments.');
-
   SizedBoxShrinkExpand()
       : super(
-            name: 'sized_box_shrink_expand',
-            description: 'Use SizedBox shrink and expand named constructors.',
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.sized_box_shrink_expand,
+          description: 'Use SizedBox shrink and expand named constructors.',
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.sized_box_shrink_expand;
 
   @override
   void registerNodeProcessors(
@@ -85,7 +28,7 @@ class SizedBoxShrinkExpand extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final SizedBoxShrinkExpand rule;
 
   _Visitor(this.rule);

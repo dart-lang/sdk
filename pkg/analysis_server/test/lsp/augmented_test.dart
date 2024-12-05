@@ -239,12 +239,12 @@ augment class A {
   Future<void> verifyGoToAugmented(String content) async {
     // Build an augmentation library for mainFileUri.
     var code = TestCode.parse('''
-augment library '$mainFileUri';
+part of '$mainFileUri';
 
 $content
 ''');
 
-    newFile(mainFilePath, "import augment 'main_augmentation.dart';");
+    newFile(mainFilePath, "part 'main_augmentation.dart';");
     newFile(mainFileAugmentationPath, code.code);
     await initialize();
     var res = await getAugmented(
@@ -261,12 +261,12 @@ $content
   Future<void> verifyNoAugmented(String content) async {
     // Build an augmentation library for mainFileUri.
     var code = TestCode.parse('''
-augment library '$mainFileUri';
+part of '$mainFileUri';
 
 $content
 ''');
 
-    newFile(mainFilePath, "import augment 'main_augmentation.dart';");
+    newFile(mainFilePath, "part 'main_augmentation.dart';");
     newFile(mainFileAugmentationPath, code.code);
     await initialize();
     var res = await getAugmented(

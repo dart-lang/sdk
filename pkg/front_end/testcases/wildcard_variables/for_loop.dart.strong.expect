@@ -19,19 +19,19 @@ import "dart:core" as core;
 import "dart:async" as asy;
 
 static method test() → dynamic async /* emittedValueType= dynamic */ {
-  for (wildcard core::int _ = 0, wildcard core::int _ = 2; ; ) {
+  for (wildcard core::int _#wc0#var = 0, wildcard core::int _#wc1#var = 2; ; ) {
     core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/for_loop.dart:8:11: Error: Undefined name '_'.
     print(_);
           ^");
   }
   core::List<dynamic> list = <dynamic>[];
-  for (wildcard dynamic _ in list) {
+  for (wildcard dynamic _#wc2#var in list) {
     core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/for_loop.dart:13:11: Error: Undefined name '_'.
     print(_);
           ^");
   }
   asy::Stream<dynamic> stream = new asy::_EmptyStream::•<dynamic>();
-  await for (wildcard dynamic _ in stream) {
+  await for (wildcard dynamic _#wc3#var in stream) {
     core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/for_loop.dart:18:11: Error: Undefined name '_'.
     print(_);
           ^");

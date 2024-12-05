@@ -211,9 +211,7 @@ DuplicatedDeclarationUse/script2: Fail # Wrong error.
 DuplicatedDefinition/analyzerCode: Fail
 DuplicatedDefinition/example: Fail
 DuplicatedExport/part_wrapped_script: Fail # Exporting file in the (now) part.
-DuplicatedExportInType/analyzerCode: Fail
-DuplicatedExportInType/example: Fail
-DuplicatedImportInType/part_wrapped_script: Fail # Importing file in the (now) part.
+DuplicatedImport/part_wrapped_script: Fail # Importing file in the (now) part.
 DuplicatedLibraryExport/part_wrapped_script: Fail # Exporting file in the (now) part.
 DuplicatedLibraryImport/part_wrapped_script: Fail # Importing file in the (now) part.
 DuplicatedModifier/part_wrapped_script1: Fail
@@ -422,6 +420,7 @@ FfiStructAnnotation/analyzerCode: Fail
 FfiStructGeneric/analyzerCode: Fail
 FfiTypeInvalid/analyzerCode: Fail
 FfiTypeMismatch/analyzerCode: Fail
+FfiVariableLengthArrayNotLast/analyzerCode: Fail
 FieldInitializedOutsideDeclaringClass/part_wrapped_script1: Fail
 FieldInitializedOutsideDeclaringClass/script1: Fail
 FieldInitializerOutsideConstructor/part_wrapped_script1: Fail
@@ -646,8 +645,8 @@ JsInteropFunctionToJSTypeParameters/analyzerCode: Fail # Web compiler specific
 JsInteropFunctionToJSTypeParameters/example: Fail # Web compiler specific
 JsInteropInvalidStaticClassMemberName/analyzerCode: Fail
 JsInteropInvalidStaticClassMemberName/example: Fail
-JsInteropIsAInvalidType/analyzerCode: Fail # Web compiler specific
-JsInteropIsAInvalidType/example: Fail # Web compiler specific
+JsInteropIsAInvalidTypeVariable/analyzerCode: Fail # Web compiler specific
+JsInteropIsAInvalidTypeVariable/example: Fail # Web compiler specific
 JsInteropIsAObjectLiteralType/analyzerCode: Fail # Web compiler specific
 JsInteropIsAObjectLiteralType/example: Fail # Web compiler specific
 JsInteropIsAPrimitiveExtensionType/analyzerCode: Fail # Web compiler specific
@@ -728,16 +727,12 @@ MacroDefinitionApplicationSameLibraryCycle/analyzerCode: Fail
 MacroDefinitionApplicationSameLibraryCycle/example: Fail
 MainNotFunctionDeclaration/analyzerCode: Fail
 MainNotFunctionDeclarationExported/analyzerCode: Fail
-MainNotFunctionDeclarationExported/part_wrapped_script: Fail
 MainRequiredNamedParameters/analyzerCode: Fail
 MainRequiredNamedParametersExported/analyzerCode: Fail
-MainRequiredNamedParametersExported/part_wrapped_script: Fail
 MainTooManyRequiredParameters/analyzerCode: Fail
 MainTooManyRequiredParametersExported/analyzerCode: Fail
-MainTooManyRequiredParametersExported/part_wrapped_script: Fail
 MainWrongParameterType/analyzerCode: Fail
 MainWrongParameterTypeExported/analyzerCode: Fail
-MainWrongParameterTypeExported/part_wrapped_script: Fail
 MapLiteralTypeArgumentMismatch/example: Fail
 MemberNotFound/example: Fail
 MetadataTypeArguments/example: Fail
@@ -957,10 +952,8 @@ RequiredNamedParameterHasDefaultValueError/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueError/example: Fail
 RequiredNamedParameterHasDefaultValueWarning/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueWarning/example: Fail
-ResourceIdentifiersMultiple/analyzerCode: Fail
-ResourceIdentifiersMultiple/example: Fail
-ResourceIdentifiersNotStatic/analyzerCode: Fail
-ResourceIdentifiersNotStatic/example: Fail
+RecordUseCannotBePlacedHere/analyzerCode: Fail
+RecordUseCannotBePlacedHere/example: Fail
 RestPatternInMapPattern/analyzerCode: Fail
 RestPatternMoreThanOne/analyzerCode: Fail
 RethrowNotCatch/example: Fail
@@ -1021,6 +1014,7 @@ SwitchExpressionNotSubtype/analyzerCode: Fail
 SwitchExpressionUserDefinedEquals/analyzerCode: Fail
 SwitchExpressionUserDefinedEquals/example: Fail
 SyntheticToken/example: Fail # Can't be tested, used to recover from other errors.
+ThisAccessInFieldInitializer/analyzerCode: Fail
 ThisAccessInFieldInitializer/example: Fail
 ThisAsIdentifier/example: Fail
 ThisInNullAwareReceiver/analyzerCode: Fail

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferNullAwareMethodCallsTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_null_aware_method_calls';
+  String get lintRule => LintNames.prefer_null_aware_method_calls;
 
   test_conditional_differentTargets() async {
     await assertNoDiagnostics(r'''

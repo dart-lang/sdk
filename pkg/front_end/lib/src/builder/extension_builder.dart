@@ -34,9 +34,8 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
     with DeclarationBuilderMixin
     implements ExtensionBuilder {
   ExtensionBuilderImpl(List<MetadataBuilder>? metadata, int modifiers,
-      String name, LibraryBuilder parent, int charOffset, Scope scope)
-      : super(metadata, modifiers, name, parent, charOffset, scope,
-            new ConstructorScope(name, const {}));
+      String name, LibraryBuilder parent, Uri fileUri, int fileOffset)
+      : super(metadata, modifiers, name, parent, fileUri, fileOffset);
 
   @override
   DartType buildAliasedTypeWithBuiltArguments(
@@ -56,4 +55,11 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
 
   @override
   String get debugName => "ExtensionBuilder";
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
+          {required Map<TypeVariableBuilder, TraversalState>
+              typeVariablesTraversalState}) =>
+      Nullability.nonNullable;
 }

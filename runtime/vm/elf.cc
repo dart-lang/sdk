@@ -99,6 +99,7 @@ FOR_EACH_SECTION_TYPE(DECLARE_SECTION_TYPE_CLASS)
 
 class BitsContainer;
 class Segment;
+class StringTable;
 
 // Align note sections and segments to 4 byte boundaries.
 static constexpr intptr_t kNoteAlignment = 4;
@@ -124,6 +125,8 @@ class Section : public ZoneAllocated {
   }
 
   virtual ~Section() {}
+
+  const char* ToCString(const StringTable& string_table);
 
   // Linker view.
 
@@ -179,8 +182,6 @@ class Section : public ZoneAllocated {
   }
   bool IsWritable() const { return (flags & elf::SHF_WRITE) == elf::SHF_WRITE; }
 
-  bool HasBits() const { return type != elf::SectionHeaderType::SHT_NOBITS; }
-
   // Returns whether the size of a section can change.
   bool HasBeenFinalized() const {
     // Sections can grow or shrink up until Elf::ComputeOffsets has been run,
@@ -232,6 +233,8 @@ class Section : public ZoneAllocated {
     stream->WriteXWord(entry_size);
 #endif
   }
+
+  virtual bool IsExcludedFromDebugInfo() const { return false; }
 
  private:
   static intptr_t EncodeFlags(bool allocate, bool executable, bool writable) {
@@ -765,8 +768,10 @@ class BitsContainer : public Section {
                 bool allocate,
                 bool executable,
                 bool writable,
-                int alignment = 1)
-      : Section(type, allocate, executable, writable, alignment) {}
+                int alignment = 1,
+                bool is_excluded_from_debug_info = false)
+      : Section(type, allocate, executable, writable, alignment),
+        is_excluded_from_debug_info_(is_excluded_from_debug_info) {}
 
   // For BitsContainers used only as unallocated sections.
   explicit BitsContainer(elf::SectionHeaderType type, intptr_t alignment = 1)
@@ -789,7 +794,8 @@ class BitsContainer : public Section {
                       /*allocate=*/true,
                       executable,
                       writable,
-                      alignment) {}
+                      alignment,
+                      /*is_excluded_from_debug_info=*/true) {}
 
   DEFINE_TYPE_CHECK_FOR(BitsContainer)
 
@@ -919,7 +925,12 @@ class BitsContainer : public Section {
   intptr_t FileSize() const { return IsNoBits() ? 0 : total_size_; }
   intptr_t MemorySize() const { return IsAllocated() ? total_size_ : 0; }
 
+  virtual bool IsExcludedFromDebugInfo() const {
+    return is_excluded_from_debug_info_;
+  }
+
  private:
+  const bool is_excluded_from_debug_info_;
   GrowableArray<Portion> portions_;
   intptr_t total_size_ = 0;
 };
@@ -1069,6 +1080,8 @@ class SectionTable : public PseudoSection {
   intptr_t SectionCount() const { return sections_.length(); }
   intptr_t StringTableIndex() const { return shstrtab_.index; }
 
+  const StringTable& shstrtab() const { return shstrtab_; }
+
   bool HasSectionNamed(const char* name) {
     return shstrtab_.Lookup(name) != StringTable::kNotIndexed;
   }
@@ -1110,6 +1123,13 @@ class SectionTable : public PseudoSection {
       }
     }
     return result;
+  }
+
+  TextSection* FindTextSection() {
+    if (auto section = Find(Elf::kTextName)) {
+      return section->AsTextSection();
+    }
+    return nullptr;
   }
 
   intptr_t FileSize() const {
@@ -1406,12 +1426,7 @@ void Elf::FinalizeEhFrame() {
   const intptr_t DWARF_FP = FP;
 #endif
 
-  // No text section added means no .eh_frame.
-  TextSection* text_section = nullptr;
-  if (auto* const section = section_table_->Find(kTextName)) {
-    text_section = section->AsTextSection();
-    ASSERT(text_section != nullptr);
-  }
+  auto text_section = section_table_->FindTextSection();
   // No text section added means no .eh_frame.
   if (text_section == nullptr) return;
 
@@ -1580,7 +1595,7 @@ ProgramTable* SectionTable::CreateProgramTable(SymbolTable* symtab) {
     if (section->IsAllocated()) {
       ASSERT(current_segment != nullptr);
       if (!current_segment->Add(section)) {
-        // The current segment is incompatible for the current sectioni, so
+        // The current segment is incompatible for the current section, so
         // create a new one.
         current_segment = new (zone_)
             Segment(zone_, section, elf::ProgramHeaderType::PT_LOAD);
@@ -1635,18 +1650,48 @@ ProgramTable* SectionTable::CreateProgramTable(SymbolTable* symtab) {
 
   auto add_sections_matching =
       [&](const std::function<bool(Section*)>& should_add) {
-        // We order the sections in a segment so all non-NOBITS sections come
-        // before NOBITS sections, since the former sections correspond to the
-        // file contents for the segment.
+        // We emit section in the following order:
+        //
+        //   * all non-NOBITS and non-PROGBITS sections;
+        //   * all PROGBITS sections which don't get excluded from debug info;
+        //   * all sections which get excluded from debug info (these are all
+        //     either PROGBITS or NOBITS depending on the snapshot type);
+        //   * all NOBITS sections which don't get excluded from debug info;
+        //
+        // This order guarantees that NOBITS sections are all grouped together
+        // at the end of the segment and the order of sections is the same
+        // for both snapshot ELF and debug info ELF (in other words it does not
+        // change when a section switches its type from PROGBITS to NOBITS).
+        //
+        // Consistent order is important because different sections have
+        // different alignment requirements, which means order might
+        // affect memory offset of section. This might cascade down to the
+        // text section and create inconsistency between snapshot and debug
+        // info.
+        //
+        // See also Elf::AssertConsistency.
         for (auto* const section : sections_) {
-          if (!section->HasBits()) continue;
-          if (should_add(section)) {
+          if (section->type != elf::SectionHeaderType::SHT_NOBITS &&
+              section->type != elf::SectionHeaderType::SHT_PROGBITS) {
+            if (should_add(section)) {
+              add_to_reordered_sections(section);
+            }
+          }
+        }
+        for (auto* const section : sections_) {
+          if (section->type == elf::SectionHeaderType::SHT_PROGBITS &&
+              !section->IsExcludedFromDebugInfo() && should_add(section)) {
             add_to_reordered_sections(section);
           }
         }
         for (auto* const section : sections_) {
-          if (section->HasBits()) continue;
-          if (should_add(section)) {
+          if (section->IsExcludedFromDebugInfo() && should_add(section)) {
+            add_to_reordered_sections(section);
+          }
+        }
+        for (auto* const section : sections_) {
+          if (section->type == elf::SectionHeaderType::SHT_NOBITS &&
+              !section->IsExcludedFromDebugInfo() && should_add(section)) {
             add_to_reordered_sections(section);
           }
         }
@@ -1804,6 +1849,80 @@ void Elf::Finalize() {
   }
   // Finally, write the section table.
   write_section(section_table_);
+}
+
+void Elf::AssertConsistency(Elf* snapshot, Elf* debug_info) {
+  // We do not care about consistency if there is no .text section.
+  if (snapshot->section_table_->FindTextSection() == nullptr &&
+      debug_info->section_table_->FindTextSection() == nullptr) {
+    return;
+  }
+
+  // Sections emitted before .text must go in the same order and end up
+  // at the same memory offsets. The reason for this rigid check is to
+  // guarantee that text section ends up at the same memory offset in
+  // both snapshot and debug info ELF files. If we allow sections to be
+  // reordered that might influence memory offset because sections have
+  // different alignment requirements and thus they might pack more
+  // tight in some orderings.
+  //
+  // See reordering algorithm in SectionTable::CreateProgramTable (specifically
+  // add_sections_matching helper).
+  const auto& snapshot_sections = snapshot->section_table_->sections();
+  const auto& debug_info_sections = debug_info->section_table_->sections();
+  const auto& snapshot_shstrtab = snapshot->section_table_->shstrtab();
+  const auto& debug_info_shstrtab = debug_info->section_table_->shstrtab();
+
+  bool failed = false;
+  for (intptr_t i = 0; i < snapshot_sections.length(); i++) {
+    if (i >= debug_info_sections.length()) {
+      OS::PrintErr(
+          "mismatch snapshot and debug-info ELF section tables: "
+          "not enough sections in debug info\n");
+      failed = true;
+      break;
+    }
+
+    auto snapshot_section = snapshot_sections.At(i);
+    auto debug_info_section = debug_info_sections.At(i);
+
+    auto snapshot_section_name = snapshot_shstrtab.At(snapshot_section->name());
+    if (!(snapshot_section->type == debug_info_section->type ||
+          (snapshot_section->type == elf::SectionHeaderType::SHT_PROGBITS &&
+           debug_info_section->type == elf::SectionHeaderType::SHT_NOBITS)) ||
+        snapshot_section->memory_offset() !=
+            debug_info_section->memory_offset() ||
+        strcmp(snapshot_section_name,
+               debug_info_shstrtab.At(debug_info_section->name())) != 0) {
+      OS::PrintErr("mismatch in section table at index %" Pd
+                   ": snapshot has %s, debug info has %s\n",
+                   i, snapshot_section->ToCString(snapshot_shstrtab),
+                   debug_info_section->ToCString(debug_info_shstrtab));
+      failed = true;
+      break;
+    }
+
+    if (strcmp(snapshot_section_name, Elf::kTextName) == 0) {
+      break;
+    }
+  }
+
+  if (!failed) {
+    return;
+  }
+
+  const auto dump_sections = [](const GrowableArray<Section*>& sections,
+                                const StringTable& shstrtab) {
+    for (intptr_t i = 0; i < sections.length(); i++) {
+      OS::PrintErr("[% 2" Pd "] %s\n", i, sections[i]->ToCString(shstrtab));
+    }
+  };
+
+  OS::PrintErr("Snapshot ELF sections:\n");
+  dump_sections(snapshot_sections, snapshot_shstrtab);
+  OS::PrintErr("Debug info ELF sections:\n");
+  dump_sections(debug_info_sections, debug_info_shstrtab);
+  FATAL("Mismatch between snapshot and debug info ELF was detected");
 }
 
 // For the build ID, we generate a 128-bit hash, where each 32 bits is a hash of
@@ -2065,6 +2184,41 @@ void SectionTable::Write(ElfWriteStream* stream) const {
     const intptr_t end = stream->Position();
     ASSERT_EQUAL(end - start, entry_size);
   }
+}
+
+static const char* SectionHeaderTypeToString(elf::SectionHeaderType type) {
+  switch (type) {
+    case elf::SectionHeaderType::SHT_NULL:
+      return "SHT_NULL";
+    case elf::SectionHeaderType::SHT_PROGBITS:
+      return "SHT_PROGBITS";
+    case elf::SectionHeaderType::SHT_SYMTAB:
+      return "SHT_SYMTAB";
+    case elf::SectionHeaderType::SHT_STRTAB:
+      return "SHT_STRTAB";
+    case elf::SectionHeaderType::SHT_HASH:
+      return "SHT_HASH";
+    case elf::SectionHeaderType::SHT_NOTE:
+      return "SHT_NOTE";
+    case elf::SectionHeaderType::SHT_NOBITS:
+      return "SHT_NOBITS";
+    case elf::SectionHeaderType::SHT_DYNAMIC:
+      return "SHT_DYNAMIC";
+    case elf::SectionHeaderType::SHT_DYNSYM:
+      return "SHT_DYNSYM";
+    default:
+      return "Unknown";
+  }
+}
+
+const char* Section::ToCString(const StringTable& string_table) {
+  return Thread::Current()->zone()->PrintToString(
+      "Section [%s]{type=%s, align=%" Pd ", flags=%s%s%s, fsz=%" Px ", msz=%" Px
+      ", foffs=%" Px ", moffs=%" Px "}",
+      string_table.At(name()), SectionHeaderTypeToString(type), alignment,
+      IsAllocated() ? "A" : "", IsWritable() ? "W" : "",
+      IsExecutable() ? "X" : "", IsAllocated() ? FileSize() : -1,
+      IsAllocated() ? MemorySize() : -1, file_offset_, memory_offset_);
 }
 
 #endif  // DART_PRECOMPILER

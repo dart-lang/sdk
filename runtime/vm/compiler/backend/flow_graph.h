@@ -242,9 +242,13 @@ class FlowGraph : public ZoneAllocated {
                                 intptr_t deopt_id,
                                 const InstructionSource& source);
 
-  Definition* CreateCheckBound(Definition* length,
-                               Definition* index,
-                               intptr_t deopt_id);
+  bool ShouldOmitCheckBoundsIn(const Function& caller);
+
+  Instruction* AppendCheckBound(Instruction* cursor,
+                                Definition* length,
+                                Definition** index,
+                                intptr_t deopt_id,
+                                Environment* env);
 
   void AddExactnessGuard(InstanceCallInstr* call, intptr_t receiver_cid);
 
@@ -515,9 +519,7 @@ class FlowGraph : public ZoneAllocated {
 
   bool should_reorder_blocks() const { return should_reorder_blocks_; }
 
-  bool should_remove_all_bounds_checks() const {
-    return should_remove_all_bounds_checks_;
-  }
+  bool should_omit_check_bounds() const { return should_omit_check_bounds_; }
 
   //
   // High-level utilities.
@@ -745,7 +747,7 @@ class FlowGraph : public ZoneAllocated {
 
   intptr_t inlining_id_;
   bool should_print_;
-  const bool should_remove_all_bounds_checks_;
+  const bool should_omit_check_bounds_;
   uint8_t* compiler_pass_filters_ = nullptr;
 
   intptr_t max_argument_slot_count_ = -1;

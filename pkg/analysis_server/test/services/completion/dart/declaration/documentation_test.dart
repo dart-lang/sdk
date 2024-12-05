@@ -25,6 +25,7 @@ mixin DocumentationTestCases on AbstractCompletionDriverTest {
 
   @override
   Future<void> setUp() async {
+    useEmptyByteStore();
     await super.setUp();
     printerConfiguration.withDocumentation = true;
   }

@@ -22,7 +22,6 @@ mixin LocalLibraryTestCases on AbstractCompletionDriverTest {
 
   Future<void> test_partFile_Constructor() async {
     newFile('$testPackageLibPath/b.dart', '''
-library B;
 int T0 = 0;
 F0() {}
 class X {
@@ -35,14 +34,13 @@ void f() {
 }
 ''');
     newFile('$testPackageLibPath/a.dart', '''
-library libA;
 import "b.dart";
 part "test.dart";
 class A0 {}
 var m0 = T0;
 ''');
     await computeSuggestions('''
-part of libA;
+part of 'a.dart';
 class B {
   B.bar(int x);
 }
@@ -59,7 +57,6 @@ suggestions
 
   Future<void> test_partFile_Constructor2() async {
     newFile('$testPackageLibPath/b.dart', '''
-library B0;
 int T0 = 0;
 F0() {}
 class X {
@@ -72,11 +69,10 @@ void f() {
 }
 ''');
     newFile('$testPackageLibPath/a.dart', '''
-part of libA;
+part of 'test.dart';
 class B0 {}
 ''');
     await computeSuggestions('''
-library libA;
 import "b.dart";
 part "a.dart";
 class A0 {
@@ -98,11 +94,10 @@ suggestions
 
   Future<void> test_partFile_extension() async {
     newFile('$testPackageLibPath/a.dart', '''
-part of libA;
+part of 'test.dart';
 extension E0 on int {}
 ''');
     await computeSuggestions('''
-library libA;
 part "a.dart";
 void f() {
   ^
@@ -117,11 +112,10 @@ suggestions
 
   Future<void> test_partFile_extension_unnamed() async {
     newFile('$testPackageLibPath/a.dart', '''
-part of libA;
+part of 'test.dart';
 extension on int {}
 ''');
     await computeSuggestions('''
-library libA;
 part "a.dart";
 void f() {
   ^
@@ -135,7 +129,6 @@ suggestions
   Future<void>
       test_partFile_InstanceCreationExpression_assignment_filter() async {
     newFile('$testPackageLibPath/b.dart', '''
-library B0;
 int T0 = 0;
 F0() {}
 class X {
@@ -148,14 +141,13 @@ void f() {
 }
 ''');
     newFile('$testPackageLibPath/a.dart', '''
-part of libA;
+part of 'test.dart';
 class A0 {}
 class B0 extends A0 {}
 class C0 implements A0 {}
 class D0 {}
 ''');
     await computeSuggestions('''
-library libA;
 import "b.dart";
 part "a.dart";
 class L0 {}
@@ -184,7 +176,6 @@ suggestions
   Future<void>
       test_partFile_InstanceCreationExpression_variable_declaration_filter() async {
     newFile('$testPackageLibPath/b.dart', '''
-library B0;
 int T0 = 0;
 F0() {}
 class X {
@@ -197,14 +188,13 @@ void f() {
 }
 ''');
     newFile('$testPackageLibPath/a.dart', '''
-part of libA;
+part of 'test.dart';
 class A0 {}
 class B0 extends A0 {}
 class C0 implements A0 {}
 class D0 {}
 ''');
     await computeSuggestions('''
-library libA;
 import "b.dart";
 part "a.dart";
 class L0 {}
@@ -230,7 +220,6 @@ suggestions
 
   Future<void> test_partFile_TypeName() async {
     newFile('$testPackageLibPath/b.dart', '''
-library B;
 int T0 = 0;
 F0() {}
 class X {
@@ -243,7 +232,6 @@ void f() {
 }
 ''');
     newFile('$testPackageLibPath/a.dart', '''
-library libA;
 import "b.dart";
 part "test.dart";
 class A0 {
@@ -259,7 +247,7 @@ int a0() {
 }
 ''');
     await computeSuggestions('''
-part of libA;
+part of 'a.dart';
 class B {
   B.bar(int x);
 }
@@ -292,7 +280,6 @@ suggestions
 
   Future<void> test_partFile_TypeName2() async {
     newFile('$testPackageLibPath/b.dart', '''
-library B0;
 int T0 = 0;
 F0() {}
 class X {
@@ -305,7 +292,7 @@ void f() {
 }
 ''');
     newFile('$testPackageLibPath/a.dart', '''
-part of libA;
+part of 'test.dart';
 class B0 {
   var b1;
   b2(){}
@@ -315,7 +302,6 @@ typedef t0(int blue);
 var n0;
 ''');
     await computeSuggestions('''
-library libA;
 import "b.dart";
 part "a.dart";
 class A0 {

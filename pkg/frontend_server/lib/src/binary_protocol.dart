@@ -14,8 +14,7 @@ import 'package:_fe_analyzer_shared/src/macros/compiler/request_channel.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart' as fe;
 import 'package:front_end/src/api_prototype/file_system.dart' as fe;
 import 'package:front_end/src/api_prototype/kernel_generator.dart' as fe;
-import 'package:front_end/src/base/nnbd_mode.dart' as fe;
-import 'package:front_end/src/kernel/utils.dart' as fe;
+import 'package:front_end/src/api_unstable/frontend_server.dart' as fe;
 import 'package:kernel/ast.dart' as fe;
 import 'package:kernel/target/targets.dart' as fe;
 import 'package:vm/kernel_front_end.dart' as vm;
@@ -190,7 +189,7 @@ class _FileSystemEntity implements fe.FileSystemEntity {
   Future<bool> existsAsyncIfPossible() => exists();
 
   @override
-  Future<List<int>> readAsBytes() async {
+  Future<Uint8List> readAsBytes() async {
     final Uint8List? storedBytes = _fileSystem._dills[uri];
     if (storedBytes != null) {
       return storedBytes;

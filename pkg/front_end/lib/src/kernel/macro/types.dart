@@ -26,6 +26,10 @@ final IdentifierImpl omittedTypeIdentifier =
     new OmittedTypeIdentifier(id: macro.RemoteInstance.uniqueId);
 
 // Coverage-ignore(suite): Not run.
+final IdentifierImpl voidTypeIdentifier =
+    new VoidTypeIdentifier(id: macro.RemoteInstance.uniqueId);
+
+// Coverage-ignore(suite): Not run.
 class MacroTypes {
   final MacroIntrospection _introspection;
   final SourceLoader _sourceLoader;
@@ -139,6 +143,7 @@ class MacroTypes {
     UriOffset? uriOffset = typeBuilder?.fileUri != null
         ? new UriOffset(typeBuilder!.fileUri!, typeBuilder.charOffset!)
         : null;
+    // TODO(johnniwinther): Implement this directly on [TypeBuilder].
     switch (typeBuilder) {
       case NamedTypeBuilder():
         List<macro.TypeAnnotationImpl> typeArguments =
@@ -203,8 +208,16 @@ class MacroTypes {
             identifier: omittedTypeIdentifier,
             isNullable: false,
             typeArguments: const []);
+      case FixedTypeBuilder(:bool isVoidType):
+        if (isVoidType) {
+          return new macro.NamedTypeAnnotationImpl(
+              id: macro.RemoteInstance.uniqueId,
+              identifier: voidTypeIdentifier,
+              isNullable: false,
+              typeArguments: const []);
+        }
+        throw new UnsupportedError("Unexpected type builder $typeBuilder");
       case InvalidTypeBuilder():
-      case FixedTypeBuilder():
         throw new UnsupportedError("Unexpected type builder $typeBuilder");
     }
     if (uriOffset != null) {

@@ -261,21 +261,13 @@ class FinalizablePersistentHandle {
   static FinalizablePersistentHandle* Cast(Dart_FinalizableHandle handle);
 
  private:
-  enum {
-    kExternalNewSpaceBit = 0,
-    kExternalSizeBits = 1,
-    kExternalSizeBitsSize = (kBitsPerWord - 1),
-  };
-
-  // This part of external_data_ is the number of externally allocated bytes.
-  class ExternalSizeInWordsBits : public BitField<uword,
-                                                  intptr_t,
-                                                  kExternalSizeBits,
-                                                  kExternalSizeBitsSize> {};
   // This bit of external_data_ is true if the referent was created in new
   // space and UpdateRelocated has not yet detected any promotion.
-  class ExternalNewSpaceBit
-      : public BitField<uword, bool, kExternalNewSpaceBit, 1> {};
+  using ExternalNewSpaceBit = BitField<uword, bool>;
+
+  // This part of external_data_ is the number of externally allocated bytes.
+  using ExternalSizeInWordsBits =
+      BitField<uword, intptr_t, ExternalNewSpaceBit::kNextBit>;
 
   friend class FinalizablePersistentHandles;
 

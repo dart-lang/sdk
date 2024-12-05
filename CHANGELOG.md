@@ -1,8 +1,121 @@
-## 3.5.4 - 2024-10-17
+## 3.6.0
 
-- Fixes record runtime type's hash code in dart2wasm (issue [#56817]).
+### Language
 
-[#56817]: https://github.com/dart-lang/sdk/issues/56817
+Dart 3.6 adds [digit separators] to the language. To use them, set your
+package's [SDK constraint][language version] lower bound to 3.6 or greater
+(`sdk: '^3.6.0'`).
+
+#### Digit separators
+
+[digit separators]: https://github.com/dart-lang/language/issues/2
+
+Digits in number literals (decimal integer literals, double literals,
+scientific notation literals, and hexadecimal literals) can now include
+underscores between digits, as "digit separators." The separators do not change
+the value of a literal, but can serve to make the number more readable.
+
+```dart
+100__000_000__000_000__000_000  // one hundred million million millions!
+0x4000_0000_0000_0000
+0.000_000_000_01
+0x00_14_22_01_23_45  // MAC address
+```
+
+Separators are not allowed at the start of a number (this would be parsed as an
+identifier), at the end of a number, or adjacent to another character in a
+number, like `.`, `x`, or the `e` in scientific notation.
+
+- **Breaking Change** [#56065][]: The context used by the compiler and analyzer
+  to perform type inference on the operand of a `throw` expression has been
+  changed from the "unknown type" to `Object`. This makes the type system more
+  self-consistent, because it reflects the fact that it's not legal to throw
+  `null`. This change is not expected to make any difference in practice.
+
+[#56065]: https://github.com/dart-lang/sdk/issues/56065
+
+### Libraries
+
+#### `dart:io`
+
+- **Breaking Change** [#52444][]: Removed the `Platform()` constructor, which
+  has been deprecated since Dart 3.1.
+
+- **Breaking Change** [#53618][]: `HttpClient` now responds to a redirect
+  that is missing a "Location" header by throwing `RedirectException`, instead
+  of `StateError`.
+
+[#52444]: https://github.com/dart-lang/sdk/issues/52444
+[#53618]: https://github.com/dart-lang/sdk/issues/53618
+
+#### `dart:js_interop`
+
+- Added constructors for `JSArrayBuffer`, `JSDataView`, and concrete typed array
+  types e.g. `JSInt8Array`.
+- Added `length` and `[]`/`[]=` operators to `JSArray`.
+- Added `toJSCaptureThis` so `this` is passed in from JavaScript to the
+  callback as the first parameter.
+- Added a static `from` method on `JSArray` to create a `JSArray` from a given
+  JavaScript iterable or array-like object.
+
+### Tools
+
+#### CFE
+
+- **Breaking Change** [#56466][]: The implementation of the UP and
+  DOWN algorithms in the CFE are changed to match the specification
+  and the corresponding implementations in the Analyzer. The upper and
+  lower closures of type schemas are now computed just before they are
+  passed into the subtype testing procedure instead of at the very
+  beginning of the UP and DOWN algorithms.
+
+[#56466]: https://github.com/dart-lang/sdk/issues/56466
+
+#### Dart format
+
+- Preserve type parameters on old-style function-typed formals that also use
+  `this.` or `super.`.
+- Correctly format imports with both `as` and `if` clauses.
+
+#### Wasm compiler (dart2wasm)
+
+- The condition `dart.library.js` is now false on conditional imports in
+  dart2wasm. Note that it was already a static error to import `dart:js`
+  directly (see [#55266][]).
+
+[#55266]: https://github.com/dart-lang/sdk/issues/55266
+
+#### Pub
+
+- Support for workspaces. This allows you to develop and resolve multiple
+  packages from the same repo together. See https://dart.dev/go/pub-workspaces
+  for more info.
+- New command `dart pub bump`. Increments the version number of the current
+  package.
+
+  For example: `dart pub bump minor` will change the version from `1.2.3` to
+  `1.3.0`.
+- New validation: `dart pub publish` will warn if your `git status` is not
+  clean.
+- New flag `dart pub upgrade --unlock-transitive`.
+
+- `dart pub upgrade --unlock-transitive pkg`, will unlock and upgrade all the
+  dependencies of `pkg` instead of just `pkg`.
+
+#### Analyzer
+
+- Add the [`use_truncating_division`][] lint rule.
+- Add the experimental [`omit_obvious_local_variable_types`][] lint rule.
+- Add the experimental [`specify_nonobvious_local_variable_types`][] lint rule.
+- Add the experimental [`avoid_futureor_void`][] lint rule.
+- Add quick fixes for more than 14 diagnostics.
+- Add new assists: "add digit separators", "remove digit separators", and
+  "invert conditional expression".
+
+[`use_truncating_division`]: https://dart.dev/lints/use_truncating_division
+[`omit_obvious_local_variable_types`]: https://dart.dev/lints/omit_obvious_local_variable_types
+[`specify_nonobvious_local_variable_types`]: https://dart.dev/lints/specify_nonobvious_local_variable_types
+[`avoid_futureor_void`]: https://dart.dev/lints/avoid_futureor_void
 
 ## 3.5.3 - 2024-09-11
 
@@ -55,7 +168,7 @@ embedded in IntelliJ and Android Studio (issue[#56607][]).
 [#56440]: https://github.com/dart-lang/sdk/issues/56440
 [#56457]: https://github.com/dart-lang/sdk/issues/56457
 
-## 3.5.0
+## 3.5.0 - 2024-08-06
 
 ### Language
 
@@ -107,7 +220,7 @@ embedded in IntelliJ and Android Studio (issue[#56607][]).
 
 #### `dart:typed_data`
 
-- **BREAKING CHANGE** [#53785][]: The unmodifiable view classes for typed data
+- **Breaking Change** [#53785][]: The unmodifiable view classes for typed data
   have been removed. These classes were deprecated in Dart 3.4.
 
   To create an unmodifiable view of a typed-data object, use the
@@ -124,21 +237,24 @@ embedded in IntelliJ and Android Studio (issue[#56607][]).
 
 - **Breaking Change** [#55508][]: `importModule` now accepts a `JSAny` instead
   of a `String` to support other JS values as well, like `TrustedScriptURL`s.
+
 - **Breaking Change** [#55267][]: `isTruthy` and `not` now return `JSBoolean`
   instead of `bool` to be consistent with the other operators.
+
 - **Breaking Change** `ExternalDartReference` no longer implements `Object`.
   `ExternalDartReference` now accepts a type parameter `T` with a bound of
   `Object?` to capture the type of the Dart object that is externalized.
   `ExternalDartReferenceToObject.toDartObject` now returns a `T`.
-  0`ExternalDartReferenceToObject` and `ObjectToExternalDartReference` are now
+  `ExternalDartReferenceToObject` and `ObjectToExternalDartReference` are now
   extensions on `T` and `ExternalDartReference<T>`, respectively, where `T
   extends Object?`. See [#55342][] and [#55536][] for more details.
-- Fixes some consistency issues with `Function.toJS` across all compilers.
+
+- Fixed some consistency issues with `Function.toJS` across all compilers.
   Specifically, calling `Function.toJS` on the same function gives you a new JS
-  function (see issue [#55515][]), the max number of args that are passed to the
-  JS function is determined by the static type of the Dart function, and extra
-  args are dropped when passed to the JS function in all compilers (see
-  [#48186][]).
+  function (see issue [#55515][]), the maximum number of arguments that are
+  passed to the JS function is determined by the static type of the Dart
+  function, and extra arguments are dropped when passed to the JS function in
+  all compilers (see [#48186][]).
 
 [#55508]: https://github.com/dart-lang/sdk/issues/55508
 [#55267]: https://github.com/dart-lang/sdk/issues/55267
@@ -149,11 +265,16 @@ embedded in IntelliJ and Android Studio (issue[#56607][]).
 
 ### Tools
 
-#### Linter
+#### Analyzer
 
-- Added the [`unintended_html_in_doc_comment`][] lint.
-- Added the [`invalid_runtime_check_with_js_interop_types`][] lint.
-- Added the [`document_ignores`][] lint.
+- Add the [`unintended_html_in_doc_comment`][] lint rule.
+- Add the [`invalid_runtime_check_with_js_interop_types`][] lint rule.
+- Add the [`document_ignores`][] lint rule.
+- Add quick fixes for more than 70 diagnostics.
+- The "Add missing switch cases" quick fix now adds multiple cases, such that
+  the switch becomes exhaustive.
+- The "Remove const" quick fix now adds `const` keywords to child nodes, where
+  appropriate.
 
 [`unintended_html_in_doc_comment`]: https://dart.dev/lints/unintended_html_in_doc_comment
 [`invalid_runtime_check_with_js_interop_types`]: https://dart.dev/lints/invalid_runtime_check_with_js_interop_types
@@ -2129,7 +2250,7 @@ This is a patch release that:
   spawned via `Isolate.spawnUri`. See [`SendPort.send`] documentation for
   the full list of restrictions.
 
-[`SendPort.send`]: https://api.dart.dev/stable/dart-isolate/SendPort/send.html
+[`SendPort.send`]: https://api.dart.dev/dart-isolate/SendPort/send.html
 
 #### `dart:mirrors`
 
@@ -2138,8 +2259,8 @@ This is a patch release that:
   previously used internally in dart2js. Both are no longer functional.
 
 [#34233]: https://github.com/dart-lang/sdk/issues/34233
-[`MirrorsUsed`]: https://api.dart.dev/stable/dart-mirrors/MirrorsUsed-class.html
-[`Comment`]: https://api.dart.dev/stable/dart-mirrors/Comment-class.html
+[`MirrorsUsed`]: https://api.dart.dev/dart-mirrors/MirrorsUsed-class.html
+[`Comment`]: https://api.dart.dev/dart-mirrors/Comment-class.html
 
 ### Other libraries
 
@@ -5228,7 +5349,7 @@ Thanks to **Vincenzo di Cicco** for finding and reporting this issue.
 This release also improves compatibility with ARMv8 processors (issue [40001][])
 and dart:io stability (issue [40589][]).
 
-[nodevalidator]: https://api.dart.dev/stable/dart-html/NodeValidator-class.html
+[nodevalidator]: https://api.dart.dev/dart-html/NodeValidator-class.html
 [cve-2020-8923]:
   https://github.com/dart-lang/sdk/security/advisories/GHSA-hfq3-v9pv-p627
 [40001]: https://github.com/dart-lang/sdk/issues/40001

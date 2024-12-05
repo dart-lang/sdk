@@ -92,17 +92,26 @@ class InformativeDataApplier {
     var unitReader = SummaryDataReader(unitInfoBytes);
     var unitInfo = _InfoUnit(_infoDeclarationStore, unitReader);
 
-    var enclosing = unitElement.enclosingElement;
-    if (enclosing is LibraryElementImpl) {
-      if (identical(enclosing.definingCompilationUnit, unitElement)) {
-        _applyToLibrary(enclosing, unitInfo);
-      }
-    } else if (enclosing is LibraryAugmentationElementImpl) {
-      _applyToAugmentation(enclosing, unitInfo);
+    var libraryElement = unitElement.library;
+    if (identical(libraryElement.definingCompilationUnit, unitElement)) {
+      _applyToLibrary(libraryElement, unitInfo);
     }
 
     unitElement.setCodeRange(unitInfo.codeOffset, unitInfo.codeLength);
     unitElement.lineInfo = LineInfo(unitInfo.lineStarts);
+
+    _applyToImports(unitElement.libraryImports_unresolved, unitInfo);
+    _applyToExports(unitElement.libraryExports_unresolved, unitInfo);
+
+    var applyOffsets = ApplyConstantOffsets(
+      unitInfo.libraryConstantOffsets,
+      (applier) {
+        applier.applyToMetadata(unitElement);
+        applier.applyToImports(unitElement.libraryImports);
+        applier.applyToExports(unitElement.libraryExports);
+        applier.applyToParts(unitElement.parts);
+      },
+    );
 
     _applyToAccessors(unitElement.accessors, unitInfo.accessors);
 
@@ -157,6 +166,13 @@ class InformativeDataApplier {
       unitInfo.genericTypeAliases,
       _applyToGenericTypeAlias,
     );
+
+    var linkedData = unitElement.linkedData;
+    if (linkedData is CompilationUnitElementLinkedData) {
+      linkedData.applyConstantOffsets = applyOffsets;
+    } else {
+      applyOffsets.perform();
+    }
   }
 
   void _applyToAccessors(
@@ -193,35 +209,6 @@ class InformativeDataApplier {
         }
       },
     );
-  }
-
-  void _applyToAugmentation(
-    LibraryAugmentationElementImpl element,
-    _InfoUnit info,
-  ) {
-    if (info.docComment.isNotEmpty) {
-      element.documentationComment = info.docComment;
-    }
-
-    _applyToImports(element, info);
-    _applyToExports(element, info);
-
-    var applyOffsets = ApplyConstantOffsets(
-      info.libraryConstantOffsets,
-      (applier) {
-        applier.applyToMetadata(element);
-        applier.applyToImports(element.libraryImports);
-        applier.applyToExports(element.libraryExports);
-        applier.applyToAugmentationImports(element.augmentationImports);
-      },
-    );
-
-    var linkedData = element.linkedData;
-    if (linkedData is LibraryAugmentationElementLinkedData) {
-      linkedData.applyConstantOffsets = applyOffsets;
-    } else {
-      applyOffsets.perform();
-    }
   }
 
   void _applyToClassDeclaration(
@@ -385,11 +372,11 @@ class InformativeDataApplier {
   }
 
   void _applyToExports(
-    LibraryOrAugmentationElementImpl element,
+    List<LibraryExportElementImpl> exports,
     _InfoUnit info,
   ) {
     forCorrespondingPairs<LibraryExportElement, _InfoExport>(
-      element.exports_unresolved,
+      exports,
       info.exports,
       (element, info) {
         element as LibraryExportElementImpl;
@@ -637,11 +624,11 @@ class InformativeDataApplier {
   }
 
   void _applyToImports(
-    LibraryOrAugmentationElementImpl element,
+    List<LibraryImportElementImpl> imports,
     _InfoUnit info,
   ) {
     forCorrespondingPairs<LibraryImportElement, _InfoImport>(
-      element.imports_unresolved,
+      imports,
       info.imports,
       (element, info) {
         element as LibraryImportElementImpl;
@@ -649,9 +636,12 @@ class InformativeDataApplier {
 
         var prefixElement = element.prefix?.element;
         if (prefixElement is PrefixElementImpl) {
-          prefixElement.nameOffset = info.prefixOffset;
+          if (prefixElement.nameOffset == -1) {
+            prefixElement.nameOffset = info.prefixOffset;
+          }
         }
 
+        element.prefix2?.nameOffset = info.prefixOffset;
         _applyToCombinators(element.combinators, info.combinators);
       },
     );
@@ -665,25 +655,10 @@ class InformativeDataApplier {
       element.documentationComment = info.docComment;
     }
 
-    _applyToImports(element, info);
-    _applyToExports(element, info);
-
-    forCorrespondingPairs<PartElement, _InfoPart>(
-      element.parts,
-      info.parts,
-      (element, info) {
-        element as PartElementImpl;
-      },
-    );
-
     var applyOffsets = ApplyConstantOffsets(
       info.libraryConstantOffsets,
       (applier) {
         applier.applyToMetadata(element);
-        applier.applyToImports(element.libraryImports);
-        applier.applyToExports(element.libraryExports);
-        applier.applyToAugmentationImports(element.augmentationImports);
-        applier.applyToPartDirectives(element.parts);
       },
     );
 
@@ -808,15 +783,14 @@ class InformativeDataApplier {
     );
   }
 
-  Uint8List? _getInfoUnitBytes(CompilationUnitElement element) {
+  Uint8List? _getInfoUnitBytes(CompilationUnitElementImpl element) {
     var uri = element.source.uri;
     if (_unitsInformativeBytes2[uri] case var bytes?) {
       return bytes;
     }
 
-    switch (element.enclosingElement) {
-      case LibraryAugmentationElementImpl(:var macroGenerated?):
-        return macroGenerated.informativeBytes;
+    if (element.macroGenerated case var macroGenerated?) {
+      return macroGenerated.informativeBytes;
     }
 
     return null;
@@ -1755,8 +1729,6 @@ class _InformativeDataWriter {
       metadata: firstDirective?.metadata,
       importDirectives: unit.directives.whereType<ImportDirective>(),
       exportDirectives: unit.directives.whereType<ExportDirective>(),
-      augmentationImportDirectives:
-          unit.directives.whereType<AugmentationImportDirective>(),
       partDirectives: unit.directives.whereType<PartDirective>(),
     );
   }
@@ -1787,7 +1759,6 @@ class _InformativeDataWriter {
     NodeList<Annotation>? metadata,
     Iterable<ImportDirective>? importDirectives,
     Iterable<ExportDirective>? exportDirectives,
-    Iterable<AugmentationImportDirective>? augmentationImportDirectives,
     Iterable<PartDirective>? partDirectives,
     TypeParameterList? typeParameters,
     FormalParameterList? formalParameters,
@@ -1834,7 +1805,6 @@ class _InformativeDataWriter {
     metadata?.accept(collector);
     addDirectives(importDirectives);
     addDirectives(exportDirectives);
-    addDirectives(augmentationImportDirectives);
     addDirectives(partDirectives);
     addTypeParameters(typeParameters);
     addFormalParameters(formalParameters);
@@ -2076,12 +2046,6 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
 
   _OffsetsApplier(this._iterator);
 
-  void applyToAugmentationImports(List<AugmentationImportElement> elements) {
-    for (var element in elements) {
-      applyToMetadata(element);
-    }
-  }
-
   void applyToConstantInitializer(Element element) {
     if (element is ConstFieldElementImpl && element.isEnumConstant) {
       _applyToEnumConstantInitializer(element);
@@ -2130,6 +2094,12 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   }
 
   void applyToPartDirectives(List<PartElement> elements) {
+    for (var element in elements) {
+      applyToMetadata(element);
+    }
+  }
+
+  void applyToParts(List<PartElementImpl> elements) {
     for (var element in elements) {
       applyToMetadata(element);
     }

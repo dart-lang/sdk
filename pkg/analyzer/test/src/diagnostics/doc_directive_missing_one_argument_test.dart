@@ -45,12 +45,12 @@ class C {}
 ''');
   }
 
-  test_example_hasNoArguments() async {
+  test_macro_hasNoArguments() async {
     await assertErrorsInCode('''
-/// {@example}
+/// {@macro}
 class C {}
 ''', [
-      error(WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT, 4, 11),
+      error(WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT, 4, 9),
     ]);
   }
 

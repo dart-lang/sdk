@@ -369,15 +369,20 @@ class TestIncrementalCompiler extends IncrementalCompiler {
       bool includeComments,
       DillTarget dillTarget,
       UriTranslator uriTranslator) {
-    return new TestIncrementalKernelTarget(
-        fileSystem, /* includeComments = */ true, dillTarget, uriTranslator);
+    return new TestIncrementalKernelTarget(context, fileSystem,
+        /* includeComments = */ true, dillTarget, uriTranslator);
   }
 }
 
 class TestIncrementalKernelTarget extends IncrementalKernelTarget {
-  TestIncrementalKernelTarget(api.FileSystem fileSystem, bool includeComments,
-      DillTarget dillTarget, UriTranslator uriTranslator)
-      : super(fileSystem, includeComments, dillTarget, uriTranslator);
+  TestIncrementalKernelTarget(
+      CompilerContext compilerContext,
+      api.FileSystem fileSystem,
+      bool includeComments,
+      DillTarget dillTarget,
+      UriTranslator uriTranslator)
+      : super(compilerContext, fileSystem, includeComments, dillTarget,
+            uriTranslator);
 
   @override
   SourceLoader createLoader() =>
@@ -396,9 +401,11 @@ class TestSourceLoader extends SourceLoader {
 
   @override
   Future<Token> tokenize(SourceCompilationUnit sourceCompilationUnit,
-      {bool suppressLexicalErrors = false}) async {
+      {bool suppressLexicalErrors = false,
+      bool allowLazyStrings = true}) async {
     Token result = await super.tokenize(sourceCompilationUnit,
-        suppressLexicalErrors: suppressLexicalErrors);
+        suppressLexicalErrors: suppressLexicalErrors,
+        allowLazyStrings: allowLazyStrings);
     cache[sourceCompilationUnit.fileUri] = result;
     return result;
   }

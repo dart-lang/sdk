@@ -390,7 +390,8 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
         type != 'application/dart' &&
         type != 'application/dart-snapshot' &&
         type != 'application/kernel-ir' &&
-        type != 'application/kernel-ir-fully-linked') {
+        type != 'application/kernel-ir-fully-linked' &&
+        type != 'application/dart-bytecode') {
       throw "Dart VM cannot run files of type '$type'.";
     }
     if (isCrashExpected) {
@@ -427,7 +428,9 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
       bool isCrashExpected) {
     var script = artifact?.filename;
     var type = artifact?.mimeType;
-    if (script != null && type != 'application/dart-precompiled') {
+    if (script != null &&
+        type != 'application/dart-precompiled' &&
+        type != 'application/dart-bytecode') {
       throw "dart_precompiled cannot run files of type '$type'.";
     }
 
@@ -533,15 +536,15 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
             argument.replaceAll(Directory.current.path, "pkg/data"))
         .toList();
 
-    var command = FuchsiaEmulator.instance().getTestCommand(
-        _configuration.buildDirectory,
-        _configuration.mode.name,
-        _configuration.architecture.name,
-        arguments);
-    command.arguments
-        .insert(command.arguments.length - 1, '--disable-dart-dev');
-    command.environmentOverrides.addAll(environmentOverrides);
-    return [command];
+    arguments.insert(arguments.length - 1, '--disable-dart-dev');
+    return [
+      FuchsiaEmulator.instance().getTestCommand(
+          _configuration.buildDirectory,
+          _configuration.mode.name,
+          _configuration.architecture.name,
+          arguments,
+          environmentOverrides)
+    ];
   }
 }
 

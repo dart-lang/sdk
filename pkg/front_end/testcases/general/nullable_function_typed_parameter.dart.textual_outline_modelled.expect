@@ -1,0 +1,4 @@
+class C {
+  C(void f()?) : f = (f ?? () {});
+  void Function() f;
+}

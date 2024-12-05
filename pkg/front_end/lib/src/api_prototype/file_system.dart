@@ -4,6 +4,8 @@
 
 library front_end.file_system;
 
+import 'dart:typed_data' show Uint8List;
+
 /// Abstract interface to file system operations.
 ///
 /// All front end interaction with the file system goes through this interface;
@@ -66,7 +68,7 @@ abstract class FileSystemEntity {
   /// If an error occurs while attempting to read the file (e.g. because no such
   /// file exists, or the entity is a directory), the future is completed with
   /// [FileSystemException].
-  Future<List<int>> readAsBytes();
+  Future<Uint8List> readAsBytes();
 
   /// Attempts to access this file system entity as a file and read its contents
   /// as raw bytes.

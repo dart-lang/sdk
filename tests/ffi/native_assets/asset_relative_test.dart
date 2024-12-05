@@ -51,6 +51,7 @@ Future<void> selfInvokes() async {
     relativePath: RelativePath.same,
     arguments: [runTestsArg],
     useSymlink: true,
+    protobufAwareTreeshaking: true,
   );
   await invokeSelf(
     selfSourceUri: selfSourceUri,
@@ -58,6 +59,7 @@ Future<void> selfInvokes() async {
     relativePath: RelativePath.down,
     arguments: [runTestsArg],
     useSymlink: true,
+    protobufAwareTreeshaking: false,
   );
   await invokeSelf(
     selfSourceUri: selfSourceUri,
@@ -69,6 +71,7 @@ Future<void> selfInvokes() async {
     relativePath: RelativePath.up,
     arguments: [runTestsArg],
     useSymlink: true,
+    protobufAwareTreeshaking: true,
   );
 }
 
@@ -87,6 +90,7 @@ Future<void> invokeSelf({
   AotCompile aotCompile = AotCompile.elf,
   RelativePath relativePath = RelativePath.same,
   bool useSymlink = false,
+  required bool protobufAwareTreeshaking,
 }) async {
   await withTempDir((Uri tempUri) async {
     final nestedUri = tempUri.resolve('nested/');
@@ -123,6 +127,7 @@ Future<void> invokeSelf({
       nativeAssetsYaml: nativeAssetsYaml,
       runtime: runtime,
       kernelCombine: kernelCombine,
+      protobufAwareTreeshaking: protobufAwareTreeshaking,
       aotCompile: aotCompile,
       runArguments: arguments,
       useSymlink: useSymlink,

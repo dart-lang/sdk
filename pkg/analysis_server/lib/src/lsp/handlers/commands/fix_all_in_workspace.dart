@@ -30,14 +30,21 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
     ProgressReporter progress,
     CancellationToken cancellationToken,
   ) async {
-    if (!(server.lspClientCapabilities?.applyEdit ?? false)) {
+    // Use the editor capabilities, since we're building edits to send to the
+    // editor regardless of who called us.
+    var clientCapabilities = server.editorClientCapabilities;
+    if (clientCapabilities == null) {
+      return serverNotInitializedError;
+    }
+
+    if (!clientCapabilities.applyEdit) {
       return error(
         ServerErrorCodes.FeatureDisabled,
         '"$commandName" is only available for clients that support workspace/applyEdit',
       );
     }
 
-    if (!(server.lspClientCapabilities?.changeAnnotations ?? false)) {
+    if (!clientCapabilities.changeAnnotations) {
       return error(
         ServerErrorCodes.FeatureDisabled,
         '"$commandName" is only available for clients that support change annotations',
@@ -64,6 +71,7 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
 
     var edit = createWorkspaceEdit(
       server,
+      clientCapabilities,
       change,
       annotateChanges: requireConfirmation
           ? ChangeAnnotations.requireConfirmation

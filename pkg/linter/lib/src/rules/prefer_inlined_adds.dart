@@ -6,47 +6,22 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Inline list item declarations where possible.';
 
-const _details = r'''
-Declare elements in list literals inline, rather than using `add` and 
-`addAll` methods where possible.
-
-
-**BAD:**
-```dart
-var l = ['a']..add('b')..add('c');
-var l2 = ['a']..addAll(['b', 'c']);
-```
-
-**GOOD:**
-```dart
-var l = ['a', 'b', 'c'];
-var l2 = ['a', 'b', 'c'];
-```
-''';
-
 class PreferInlinedAdds extends LintRule {
-  static const LintCode single = LintCode(
-      'prefer_inlined_adds', 'The addition of a list item could be inlined.',
-      correctionMessage: 'Try adding the item to the list literal directly.',
-      hasPublishedDocs: true);
-
-  static const LintCode multiple = LintCode('prefer_inlined_adds',
-      'The addition of multiple list items could be inlined.',
-      correctionMessage: 'Try adding the items to the list literal directly.',
-      hasPublishedDocs: true);
-
   PreferInlinedAdds()
       : super(
-            name: 'prefer_inlined_adds',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.prefer_inlined_adds,
+          description: _desc,
+        );
 
   @override
-  List<LintCode> get lintCodes => [multiple, single];
+  List<LintCode> get lintCodes => [
+        LinterLintCode.prefer_inlined_adds_multiple,
+        LinterLintCode.prefer_inlined_adds_single
+      ];
 
   @override
   void registerNodeProcessors(
@@ -56,7 +31,7 @@ class PreferInlinedAdds extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -85,7 +60,8 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     rule.reportLint(invocation.methodName,
-        errorCode:
-            addAll ? PreferInlinedAdds.multiple : PreferInlinedAdds.single);
+        errorCode: addAll
+            ? LinterLintCode.prefer_inlined_adds_multiple
+            : LinterLintCode.prefer_inlined_adds_single);
   }
 }

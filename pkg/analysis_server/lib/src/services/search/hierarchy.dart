@@ -114,7 +114,7 @@ Future<(Set<ClassMemberElement>, Set<ParameterElement>)>
   Set<ClassMemberElement> members = HashSet<ClassMemberElement>();
   Set<ParameterElement> parameters = HashSet<ParameterElement>();
   // extension member
-  var enclosingElement = member.enclosingElement;
+  var enclosingElement = member.enclosingElement3;
   if (enclosingElement is ExtensionElement) {
     members.add(member);
     return (members, parameters);
@@ -185,7 +185,7 @@ Future<(Set<ClassMemberElement>, Set<ParameterElement>)>
 Future<List<ParameterElement>> getHierarchyNamedParameters(
     SearchEngine searchEngine, ParameterElement element) async {
   if (element.isNamed) {
-    var method = element.enclosingElement;
+    var method = element.enclosingElement3;
     if (method is MethodElement) {
       var hierarchyParameters = <ParameterElement>[];
       var hierarchyMembers = await getHierarchyMembers(searchEngine, method);

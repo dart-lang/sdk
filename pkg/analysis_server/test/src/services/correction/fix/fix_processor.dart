@@ -3,20 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
-import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server_plugin/edit/dart/dart_fix_kind_priority.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
+import 'package:analysis_server_plugin/src/correction/fix_in_file_processor.dart';
+import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
@@ -89,9 +90,9 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   late BulkFixProcessor processor;
 
   @override
-  List<String> get experiments => const [];
+  List<String> get experiments => experimentsForTests;
 
-  /// Return the lint code being tested.
+  /// The name of the lint code being tested.
   String? get lintCode => null;
 
   /// The workspace in which fixes contributor operates.
@@ -108,10 +109,9 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     var processor =
         BulkFixProcessor(TestInstrumentationService(), await workspace);
     var fixes = (await processor.fixPubspec([analysisContext])).edits;
-    var edits = <SourceEdit>[];
-    for (var fix in fixes) {
-      edits.addAll(fix.edits);
-    }
+    var edits = [
+      for (var fix in fixes) ...fix.edits,
+    ];
     var result = SourceEdit.applySequence(original, edits);
     expect(result, expected);
   }
@@ -589,5 +589,5 @@ extension FixExtension on Fix {
 
 extension FixKindExtension on FixKind {
   // TODO(pq): temporary
-  bool canBeAppliedTogether() => priority == DartFixKindPriority.IN_FILE;
+  bool canBeAppliedTogether() => priority == DartFixKindPriority.inFile;
 }

@@ -33,7 +33,7 @@ class FlutterConvertToChildren extends ResolvedCorrectionProducer {
           parent is Label &&
           parent2 is NamedExpression &&
           node.name == 'child' &&
-          node.staticElement != null &&
+          node.element != null &&
           parent2.expression.isWidgetExpression) {
         namedExp = parent2;
       } else {

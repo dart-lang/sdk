@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
@@ -36,7 +37,7 @@ Future<CompiledOutput> compileWithSerialization(
         options: options);
     Expect.isTrue(result.isSuccess);
     outputProvider.binaryOutputMap.forEach((fileName, binarySink) {
-      memorySourceFiles[fileName.path] = binarySink.list;
+      memorySourceFiles[fileName.path] = Uint8List.fromList(binarySink.list);
     });
     return outputProvider.clear();
   }

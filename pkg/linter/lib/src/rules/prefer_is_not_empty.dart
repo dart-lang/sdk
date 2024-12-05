@@ -9,46 +9,19 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use `isNotEmpty` for `Iterable`s and `Map`s.';
 
-const _details = r'''
-**PREFER** `x.isNotEmpty` to `!x.isEmpty` for `Iterable` and `Map` instances.
-
-When testing whether an iterable or map is empty, prefer `isNotEmpty` over
-`!isEmpty` to improve code readability.
-
-**BAD:**
-```dart
-if (!sources.isEmpty) {
-  process(sources);
-}
-```
-
-**GOOD:**
-```dart
-if (todo.isNotEmpty) {
-  sendResults(request, todo.isEmpty);
-}
-```
-
-''';
-
 class PreferIsNotEmpty extends LintRule {
-  static const LintCode code = LintCode('prefer_is_not_empty',
-      "Use 'isNotEmpty' rather than negating the result of 'isEmpty'.",
-      correctionMessage: "Try rewriting the expression to use 'isNotEmpty'.",
-      hasPublishedDocs: true);
-
   PreferIsNotEmpty()
       : super(
-            name: 'prefer_is_not_empty',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.prefer_is_not_empty,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_is_not_empty;
 
   @override
   void registerNodeProcessors(
@@ -91,7 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // Element should also support "isNotEmpty".
-    var propertyTarget = propertyElement.enclosingElement;
+    var propertyTarget = propertyElement.enclosingElement3;
     if (propertyTarget == null ||
         getChildren(propertyTarget, 'isNotEmpty').isEmpty) {
       return;

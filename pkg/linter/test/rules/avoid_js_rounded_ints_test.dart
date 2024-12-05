@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidJsRoundedIntsTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_js_rounded_ints';
+  String get lintRule => LintNames.avoid_js_rounded_ints;
 
   test_maxSafeInteger() async {
     await assertNoDiagnostics(r'''

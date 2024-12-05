@@ -13,7 +13,7 @@ import 'response_types.dart';
 ///
 /// This library lives under src/ and is intentionally not exported from lib/.
 /// First party Dash products that use this service should import this library
-/// from src/ and add an analyzer ignore to supress the warning.
+/// from src/ and add an analyzer ignore to suppress the warning.
 extension UnifiedAnalyticsExtension on DartToolingDaemon {
   /// Gets the Dart and Flutter unified analytics consent message to prompt
   /// users with on first run or when the message has been updated.

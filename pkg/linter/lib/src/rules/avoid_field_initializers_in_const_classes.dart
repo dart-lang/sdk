@@ -8,51 +8,20 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid field initializers in const classes.';
 
-const _details = r'''
-**AVOID** field initializers in const classes.
-
-Instead of `final x = const expr;`, you should write `get x => const expr;` and
-not allocate a useless field. As of April 2018 this is true for the VM, but not
-for code that will be compiled to JS.
-
-**BAD:**
-```dart
-class A {
-  final a = const [];
-  const A();
-}
-```
-
-**GOOD:**
-```dart
-class A {
-  get a => const [];
-  const A();
-}
-```
-
-''';
-
 class AvoidFieldInitializersInConstClasses extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_field_initializers_in_const_classes',
-      "Fields in 'const' classes should not have initializers.",
-      correctionMessage:
-          'Try converting the field to a getter or initialize the field in the '
-          'constructors.');
-
   AvoidFieldInitializersInConstClasses()
       : super(
-            name: 'avoid_field_initializers_in_const_classes',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.avoid_field_initializers_in_const_classes,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.avoid_field_initializers_in_const_classes;
 
   @override
   void registerNodeProcessors(
@@ -63,7 +32,7 @@ class AvoidFieldInitializersInConstClasses extends LintRule {
   }
 }
 
-class HasParameterReferenceVisitor extends RecursiveAstVisitor {
+class HasParameterReferenceVisitor extends RecursiveAstVisitor<void> {
   Iterable<ParameterElement?> parameters;
 
   bool useParameter = false;

@@ -90,34 +90,6 @@ class MacroClass {
   }
 }
 
-class UnlinkedAugmentationImportDirective {
-  final int augmentKeywordOffset;
-  final int importKeywordOffset;
-  final String? uri;
-
-  UnlinkedAugmentationImportDirective({
-    required this.augmentKeywordOffset,
-    required this.importKeywordOffset,
-    required this.uri,
-  });
-
-  factory UnlinkedAugmentationImportDirective.read(
-    SummaryDataReader reader,
-  ) {
-    return UnlinkedAugmentationImportDirective(
-      augmentKeywordOffset: reader.readUInt30(),
-      importKeywordOffset: reader.readUInt30(),
-      uri: reader.readOptionalStringUtf8(),
-    );
-  }
-
-  void write(BufferedSink sink) {
-    sink.writeUInt30(augmentKeywordOffset);
-    sink.writeUInt30(importKeywordOffset);
-    sink.writeOptionalStringUtf8(uri);
-  }
-}
-
 class UnlinkedCombinator {
   final int keywordOffset;
   final int endOffset;
@@ -148,40 +120,18 @@ class UnlinkedCombinator {
   }
 }
 
-class UnlinkedLibraryAugmentationDirective {
-  final int augmentKeywordOffset;
-  final int libraryKeywordOffset;
+abstract class UnlinkedConfigurableUriDirective {
+  final List<UnlinkedNamespaceDirectiveConfiguration> configurations;
   final String? uri;
-  final UnlinkedSourceRange uriRange;
 
-  UnlinkedLibraryAugmentationDirective({
-    required this.augmentKeywordOffset,
-    required this.libraryKeywordOffset,
+  UnlinkedConfigurableUriDirective({
+    required this.configurations,
     required this.uri,
-    required this.uriRange,
   });
-
-  factory UnlinkedLibraryAugmentationDirective.read(
-    SummaryDataReader reader,
-  ) {
-    return UnlinkedLibraryAugmentationDirective(
-      augmentKeywordOffset: reader.readUInt30(),
-      libraryKeywordOffset: reader.readUInt30(),
-      uri: reader.readOptionalStringUtf8(),
-      uriRange: UnlinkedSourceRange.read(reader),
-    );
-  }
-
-  void write(BufferedSink sink) {
-    sink.writeUInt30(augmentKeywordOffset);
-    sink.writeUInt30(libraryKeywordOffset);
-    sink.writeOptionalStringUtf8(uri);
-    uriRange.write(sink);
-  }
 }
 
 class UnlinkedLibraryDirective {
-  /// `@docImport` directives in a library doc comment.
+  /// `@docImport` directives in the doc comment.
   final List<UnlinkedLibraryImportDirective> docImports;
 
   final String? name;
@@ -203,7 +153,7 @@ class UnlinkedLibraryDirective {
   }
 
   void write(BufferedSink sink) {
-    sink.writeList<UnlinkedLibraryImportDirective>(docImports, (docImport) {
+    sink.writeList(docImports, (docImport) {
       docImport.write(sink);
     });
     sink.writeOptionalStringUtf8(name);
@@ -253,6 +203,7 @@ class UnlinkedLibraryExportDirective extends UnlinkedNamespaceDirective {
 /// Unlinked information about an 'import' directive.
 class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
   final int importKeywordOffset;
+  final bool isDocImport;
   final bool isSyntheticDartCore;
   final UnlinkedLibraryImportPrefix? prefix;
 
@@ -260,6 +211,7 @@ class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
     required super.combinators,
     required super.configurations,
     required this.importKeywordOffset,
+    required this.isDocImport,
     this.isSyntheticDartCore = false,
     required this.prefix,
     required super.uri,
@@ -274,6 +226,7 @@ class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
         () => UnlinkedNamespaceDirectiveConfiguration.read(reader),
       ),
       importKeywordOffset: reader.readUInt30() - 1,
+      isDocImport: reader.readBool(),
       isSyntheticDartCore: reader.readBool(),
       prefix: reader.readOptionalObject(
         UnlinkedLibraryImportPrefix.read,
@@ -294,6 +247,7 @@ class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
       },
     );
     sink.writeUInt30(1 + importKeywordOffset);
+    sink.writeBool(isDocImport);
     sink.writeBool(isSyntheticDartCore);
     sink.writeOptionalObject<UnlinkedLibraryImportPrefix>(
       prefix,
@@ -333,15 +287,14 @@ class UnlinkedLibraryImportPrefix {
   }
 }
 
-abstract class UnlinkedNamespaceDirective {
+abstract class UnlinkedNamespaceDirective
+    extends UnlinkedConfigurableUriDirective {
   final List<UnlinkedCombinator> combinators;
-  final List<UnlinkedNamespaceDirectiveConfiguration> configurations;
-  final String? uri;
 
   UnlinkedNamespaceDirective({
     required this.combinators,
-    required this.configurations,
-    required this.uri,
+    required super.configurations,
+    required super.uri,
   });
 }
 
@@ -388,31 +341,41 @@ class UnlinkedNamespaceDirectiveConfiguration {
   }
 }
 
-class UnlinkedPartDirective {
-  final String? uri;
-
+class UnlinkedPartDirective extends UnlinkedConfigurableUriDirective {
   UnlinkedPartDirective({
-    required this.uri,
+    required super.configurations,
+    required super.uri,
   });
 
-  factory UnlinkedPartDirective.read(
-    SummaryDataReader reader,
-  ) {
+  factory UnlinkedPartDirective.read(SummaryDataReader reader) {
     return UnlinkedPartDirective(
+      configurations: reader.readTypedList(
+        () => UnlinkedNamespaceDirectiveConfiguration.read(reader),
+      ),
       uri: reader.readOptionalStringUtf8(),
     );
   }
 
   void write(BufferedSink sink) {
+    sink.writeList<UnlinkedNamespaceDirectiveConfiguration>(
+      configurations,
+      (x) {
+        x.write(sink);
+      },
+    );
     sink.writeOptionalStringUtf8(uri);
   }
 }
 
 class UnlinkedPartOfNameDirective {
+  /// `@docImport` directives in the doc comment.
+  final List<UnlinkedLibraryImportDirective> docImports;
+
   final String name;
   final UnlinkedSourceRange nameRange;
 
   UnlinkedPartOfNameDirective({
+    required this.docImports,
     required this.name,
     required this.nameRange,
   });
@@ -421,22 +384,32 @@ class UnlinkedPartOfNameDirective {
     SummaryDataReader reader,
   ) {
     return UnlinkedPartOfNameDirective(
+      docImports: reader.readTypedList(
+        () => UnlinkedLibraryImportDirective.read(reader),
+      ),
       name: reader.readStringUtf8(),
       nameRange: UnlinkedSourceRange.read(reader),
     );
   }
 
   void write(BufferedSink sink) {
+    sink.writeList(docImports, (docImport) {
+      docImport.write(sink);
+    });
     sink.writeStringUtf8(name);
     nameRange.write(sink);
   }
 }
 
 class UnlinkedPartOfUriDirective {
+  /// `@docImport` directives in the doc comment.
+  final List<UnlinkedLibraryImportDirective> docImports;
+
   final String? uri;
   final UnlinkedSourceRange uriRange;
 
   UnlinkedPartOfUriDirective({
+    required this.docImports,
     required this.uri,
     required this.uriRange,
   });
@@ -445,12 +418,18 @@ class UnlinkedPartOfUriDirective {
     SummaryDataReader reader,
   ) {
     return UnlinkedPartOfUriDirective(
+      docImports: reader.readTypedList(
+        () => UnlinkedLibraryImportDirective.read(reader),
+      ),
       uri: reader.readOptionalStringUtf8(),
       uriRange: UnlinkedSourceRange.read(reader),
     );
   }
 
   void write(BufferedSink sink) {
+    sink.writeList(docImports, (docImport) {
+      docImport.write(sink);
+    });
     sink.writeOptionalStringUtf8(uri);
     uriRange.write(sink);
   }
@@ -490,11 +469,11 @@ class UnlinkedUnit {
   // TODO(scheglov): Do we need it?
   final Uint8List apiSignature;
 
-  /// `import augmentation` directives.
-  final List<UnlinkedAugmentationImportDirective> augmentations;
-
   /// `export` directives.
   final List<UnlinkedLibraryExportDirective> exports;
+
+  /// Whether this file has explicit `dart:core` import.
+  final bool hasDartCoreImport;
 
   /// `import` directives.
   final List<UnlinkedLibraryImportDirective> imports;
@@ -502,8 +481,8 @@ class UnlinkedUnit {
   /// Encoded informative data.
   final Uint8List informativeBytes;
 
-  /// The `augment library 'uri';` directive.
-  final UnlinkedLibraryAugmentationDirective? libraryAugmentationDirective;
+  /// Whether this file is `dart:core` library.
+  final bool isDartCore;
 
   /// The `library name;` directive.
   final UnlinkedLibraryDirective? libraryDirective;
@@ -528,11 +507,11 @@ class UnlinkedUnit {
 
   UnlinkedUnit({
     required this.apiSignature,
-    required this.augmentations,
     required this.exports,
+    required this.hasDartCoreImport,
     required this.imports,
     required this.informativeBytes,
-    required this.libraryAugmentationDirective,
+    required this.isDartCore,
     required this.libraryDirective,
     required this.lineStarts,
     required this.macroClasses,
@@ -545,19 +524,15 @@ class UnlinkedUnit {
   factory UnlinkedUnit.read(SummaryDataReader reader) {
     return UnlinkedUnit(
       apiSignature: reader.readUint8List(),
-      augmentations: reader.readTypedList(
-        () => UnlinkedAugmentationImportDirective.read(reader),
-      ),
       exports: reader.readTypedList(
         () => UnlinkedLibraryExportDirective.read(reader),
       ),
+      hasDartCoreImport: reader.readBool(),
       imports: reader.readTypedList(
         () => UnlinkedLibraryImportDirective.read(reader),
       ),
       informativeBytes: reader.readUint8List(),
-      libraryAugmentationDirective: reader.readOptionalObject(
-        UnlinkedLibraryAugmentationDirective.read,
-      ),
+      isDartCore: reader.readBool(),
       libraryDirective: reader.readOptionalObject(
         UnlinkedLibraryDirective.read,
       ),
@@ -580,20 +555,15 @@ class UnlinkedUnit {
 
   void write(BufferedSink sink) {
     sink.writeUint8List(apiSignature);
-    sink.writeList<UnlinkedAugmentationImportDirective>(augmentations, (x) {
-      x.write(sink);
-    });
     sink.writeList<UnlinkedLibraryExportDirective>(exports, (x) {
       x.write(sink);
     });
+    sink.writeBool(hasDartCoreImport);
     sink.writeList<UnlinkedLibraryImportDirective>(imports, (x) {
       x.write(sink);
     });
     sink.writeUint8List(informativeBytes);
-    sink.writeOptionalObject<UnlinkedLibraryAugmentationDirective>(
-      libraryAugmentationDirective,
-      (x) => x.write(sink),
-    );
+    sink.writeBool(isDartCore);
     sink.writeOptionalObject<UnlinkedLibraryDirective>(
       libraryDirective,
       (x) => x.write(sink),

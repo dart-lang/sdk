@@ -17,6 +17,9 @@ class SuperHandler extends AbstractGoToHandler {
   Method get handlesMessage => CustomMethods.super_;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Element? findRelatedElement(Element element) {
     return _SuperComputer().computeSuper(element);
   }

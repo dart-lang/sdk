@@ -24,16 +24,11 @@ void main() {
   }).then((_) {
     Expect.equals(2, hotRestartGeneration);
   });
-  Future.delayed(Duration(seconds: 5), () {
-    throw Exception('Future from main.2.dart before hot restart. '
-        'This should never run.');
-  });
-
   hotRestart();
 }
 /** DIFF **/
 /*
-@@ -7,25 +7,25 @@
+@@ -7,27 +7,22 @@
  import 'package:expect/expect.dart';
  import 'package:reload_test/reload_test_utils.dart';
  
@@ -61,10 +56,11 @@ void main() {
 -    Expect.equals(1, hotRestartGeneration);
 +    Expect.equals(2, hotRestartGeneration);
    });
-   Future.delayed(Duration(seconds: 5), () {
+-  Future.delayed(Duration(seconds: 5), () {
 -    throw Exception('Future from main.1.dart before hot restart. '
-+    throw Exception('Future from main.2.dart before hot restart. '
-         'This should never run.');
-   });
- 
+-        'This should never run.');
+-  });
+-
+   hotRestart();
+ }
 */

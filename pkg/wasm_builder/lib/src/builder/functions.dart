@@ -29,9 +29,19 @@ class FunctionsBuilder with Builder<ir.Functions> {
     }
   }
 
+  void collectUsedTypes(Set<ir.DefType> usedTypes) {
+    for (final f in _functionBuilders) {
+      usedTypes.add(f.type);
+      f.body.collectUsedTypes(usedTypes);
+    }
+    for (final f in _importedFunctions) {
+      usedTypes.add(f.type);
+    }
+  }
+
   /// Defines a new function in this module with the given function type.
   ///
-  /// The [DefinedFunction.body] must be completed (including the terminating
+  /// The [ir.DefinedFunction.body] must be completed (including the terminating
   /// `end`) before the module can be serialized.
   FunctionBuilder define(ir.FunctionType type, [String? name]) {
     final function =
@@ -45,7 +55,7 @@ class FunctionsBuilder with Builder<ir.Functions> {
   ir.ImportedFunction import(String module, String name, ir.FunctionType type,
       [String? functionName]) {
     final function = ir.ImportedFunction(
-        module, name, ir.FinalizableIndex(), type, functionName);
+        _module, module, name, ir.FinalizableIndex(), type, functionName);
     _importedFunctions.add(function);
     _addName(functionName, function);
     return function;

@@ -47,6 +47,9 @@ final standaloneExtensionExe = (Platform.isWindows ? '.exe' : '');
 final genKernelUri =
     sdkUriAbsolute.resolve('pkg/vm/tool/gen_kernel$standaloneExtension');
 
+final protobufAwareTreeshakerUri =
+    sdkUriAbsolute.resolve('pkg/vm/bin/protobuf_aware_treeshaker.dart');
+
 final genSnapshotUri =
     buildUriAbsolute.resolve('gen_snapshot$standaloneExtensionExe');
 
@@ -80,6 +83,8 @@ Future<void> withTempDir(
     if (!Platform.environment.containsKey(keepTempKey) ||
         Platform.environment[keepTempKey]!.isEmpty) {
       await tempDirResolved.delete(recursive: true);
+    } else {
+      print('Keeping $tempDirResolved');
     }
   }
 }
@@ -161,12 +166,15 @@ Future<void> createDillFile({
   required Uri nativeAssetsUri,
   required Runtime runtime,
   required KernelCombine kernelCombine,
+  required bool protobufAwareTreeshaking,
 }) async {
+  final preTreeshakenDill = tempUri.resolve('pre_treeshaken.dill');
+
   switch (kernelCombine) {
     case KernelCombine.source:
       await runGenKernel(
         runtime: runtime,
-        outputUri: outputUri,
+        outputUri: protobufAwareTreeshaking ? preTreeshakenDill : outputUri,
         inputUri: dartProgramUri,
         nativeAssetsUri: nativeAssetsUri,
       );
@@ -189,13 +197,26 @@ Future<void> createDillFile({
           await File.fromUri(programDillUri).readAsBytes();
       final nativeAssetKernelBytes =
           await File.fromUri(nativeAssetsDillUri).readAsBytes();
-      await File.fromUri(outputUri).writeAsBytes(
+      await File.fromUri(
+        protobufAwareTreeshaking ? preTreeshakenDill : outputUri,
+      ).writeAsBytes(
         [
           ...programKernelBytes,
           ...nativeAssetKernelBytes,
         ],
         flush: true,
       );
+  }
+
+  if (protobufAwareTreeshaking) {
+    await runDart(
+      scriptUri: protobufAwareTreeshakerUri,
+      arguments: [
+        if (runtime == Runtime.aot) '--aot',
+        /*<input.dill>*/ preTreeshakenDill.toFilePath(),
+        /*<output.dill>*/ outputUri.toFilePath(),
+      ],
+    );
   }
 }
 
@@ -335,6 +356,7 @@ Future<void> compileAndRun({
   required String nativeAssetsYaml,
   required Runtime runtime,
   required KernelCombine kernelCombine,
+  required bool protobufAwareTreeshaking,
   AotCompile aotCompile = AotCompile.elf,
   required List<String> runArguments,
   bool useSymlink = false,
@@ -350,6 +372,7 @@ Future<void> compileAndRun({
     nativeAssetsUri: nativeAssetsUri,
     runtime: runtime,
     kernelCombine: kernelCombine,
+    protobufAwareTreeshaking: protobufAwareTreeshaking,
   );
 
   switch (runtime) {
@@ -452,6 +475,7 @@ Future<void> invokeSelf({
   Runtime runtime = Runtime.jit,
   KernelCombine kernelCombine = KernelCombine.source,
   AotCompile aotCompile = AotCompile.elf,
+  bool protobufAwareTreeshaking = false,
 }) async {
   await withTempDir((Uri tempUri) async {
     await compileAndRun(
@@ -460,6 +484,7 @@ Future<void> invokeSelf({
       nativeAssetsYaml: nativeAssetsYaml,
       runtime: runtime,
       kernelCombine: kernelCombine,
+      protobufAwareTreeshaking: protobufAwareTreeshaking,
       aotCompile: aotCompile,
       runArguments: arguments,
     );

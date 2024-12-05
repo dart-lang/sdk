@@ -506,14 +506,14 @@ class MachO extends DwarfContainer {
   String? get architecture => CpuType.fromCode(_header.cputype)?.dartName;
 
   @override
-  Reader abbreviationsTableReader(Reader containerReader) =>
-      _dwarfSegment!.sections['__debug_abbrev']!.shrink(containerReader);
+  Reader? abbreviationsTableReader(Reader containerReader) =>
+      _dwarfSegment?.sections['__debug_abbrev']?.shrink(containerReader);
   @override
-  Reader lineNumberInfoReader(Reader containerReader) =>
-      _dwarfSegment!.sections['__debug_line']!.shrink(containerReader);
+  Reader? lineNumberInfoReader(Reader containerReader) =>
+      _dwarfSegment?.sections['__debug_line']?.shrink(containerReader);
   @override
-  Reader debugInfoReader(Reader containerReader) =>
-      _dwarfSegment!.sections['__debug_info']!.shrink(containerReader);
+  Reader? debugInfoReader(Reader containerReader) =>
+      _dwarfSegment?.sections['__debug_info']?.shrink(containerReader);
 
   @override
   int? get vmStartAddress => _symbolTable[constants.vmSymbolName]?.value;

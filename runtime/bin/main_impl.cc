@@ -21,6 +21,7 @@
 #include "bin/exe_utils.h"
 #include "bin/file.h"
 #include "bin/gzip.h"
+#include "bin/icu.h"
 #include "bin/isolate_data.h"
 #include "bin/loader.h"
 #include "bin/main_options.h"
@@ -556,11 +557,8 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   result = Dart_SetDeferredLoadHandler(Loader::DeferredLoadHandler);
   CHECK_RESULT(result);
 
-  // We do not spawn the external dds process in the following scenarios:
-  // - The DartDev CLI is disabled and VM service is enabled.
-  // - DDS is disabled.
-  bool wait_for_dds_to_advertise_service =
-      !(Options::disable_dart_dev() || Options::disable_dds());
+  // We do not spawn the external dds process if DDS is explicitly disabled.
+  bool wait_for_dds_to_advertise_service = !Options::disable_dds();
   bool serve_devtools =
       Options::enable_devtools() || !Options::disable_devtools();
   // Load embedder specific bits and return.
@@ -1170,6 +1168,8 @@ void main(int argc, char** argv) {
 
   // Save the console state so we can restore it at shutdown.
   Console::SaveConfig();
+
+  SetupICU();
 
   // On Windows, the argv strings are code page encoded and not
   // utf8. We need to convert them to utf8.

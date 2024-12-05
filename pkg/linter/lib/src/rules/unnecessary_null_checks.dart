@@ -8,32 +8,9 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Unnecessary `null` checks.';
-
-const _details = r'''
-**DON'T** apply a `null` check where a nullable value is accepted.
-
-**BAD:**
-```dart
-f(int? i) {}
-m() {
-  int? j;
-  f(j!);
-}
-
-```
-
-**GOOD:**
-```dart
-f(int? i) {}
-m() {
-  int? j;
-  f(j);
-}
-```
-
-''';
 
 DartType? getExpectedType(PostfixExpression node) {
   var realNode =
@@ -156,20 +133,15 @@ DartType? getExpectedType(PostfixExpression node) {
 }
 
 class UnnecessaryNullChecks extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_null_checks', "Unnecessary use of a null check ('!').",
-      correctionMessage: 'Try removing the null check.');
-
   UnnecessaryNullChecks()
       : super(
-            name: 'unnecessary_null_checks',
-            description: _desc,
-            details: _details,
-            state: State.experimental(),
-            categories: {Category.style});
+          name: LintNames.unnecessary_null_checks,
+          description: _desc,
+          state: State.experimental(),
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_null_checks;
 
   @override
   void registerNodeProcessors(

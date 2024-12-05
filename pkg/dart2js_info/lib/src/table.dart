@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js_info.src.table;
-
 import 'dart:math' show max;
 
 /// Helper class to present data on the command-line in a table form.

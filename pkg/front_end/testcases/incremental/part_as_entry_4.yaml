@@ -1,0 +1,38 @@
+# Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# A part is used as entry; the file is not reused.
+
+type: newworld
+worlds:
+  - entry:
+      - part.dart
+      - usage.dart
+    checkEntries: false
+    sources:
+      part.dart: |
+        part of "lib.dart";
+        class Foo {}
+      lib.dart: |
+        import 'usage.dart';
+        part 'part.dart';
+        void hmm() {
+          Foo f = new Foo();
+          foo(f);
+        }
+      usage.dart: |
+        import "lib.dart";
+        void foo(Foo foo) {}
+    expectedLibraryCount: 2
+
+  - entry:
+      - part.dart
+      - usage.dart
+    checkEntries: false
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - part.dart
+    expectedLibraryCount: 2
+    advancedInvalidation: bodiesOnly

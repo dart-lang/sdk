@@ -92,8 +92,8 @@ main() {
   Future<int> h = f();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 218, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 241, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 218, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 241, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 245, 3),
     ]);
 
@@ -116,8 +116,8 @@ main() {
   Future<int> h = f();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 169, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 192, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 169, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 192, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 196, 3),
     ]);
 
@@ -140,8 +140,8 @@ main() {
   Future<int> h = f();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 192, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 215, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 192, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 215, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 219, 3),
     ]);
 
@@ -166,8 +166,8 @@ main() {
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           77,
           1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 99, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 122, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 99, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 122, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 126, 3),
     ]);
 
@@ -188,7 +188,7 @@ test1() {
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           35,
           1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 81, 1),
     ]);
   }
 
@@ -201,7 +201,7 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 25, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 37, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 62, 1),
     ]);
 
@@ -229,10 +229,10 @@ main() async {
   String s = await f();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 87, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 87, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 91, 3),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 105, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 105, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 109, 9),
     ]);
 
@@ -249,10 +249,10 @@ main() async {
   String s = await f().first;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 87, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 87, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 91, 3),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 105, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 105, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 109, 15),
     ]);
 
@@ -275,7 +275,7 @@ main() {
   foo((x) { throw "not implemented"; });
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 101, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 101, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 105, 5),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 126, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 155, 4),
@@ -294,10 +294,10 @@ main() {
   String s = f().first;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 56, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 84, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 84, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 88, 3),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 102, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 102, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 106, 9),
     ]);
 
@@ -326,8 +326,8 @@ test2() {
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           67,
           1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 210, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 233, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 210, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 233, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 237, 1),
     ]);
   }
@@ -341,7 +341,7 @@ main() {
   };
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
     var f = findElement.localVar('f');
@@ -361,7 +361,7 @@ test1() {
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           35,
           1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 67, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 67, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 71, 1),
     ]);
 
@@ -380,8 +380,8 @@ main() {
   Iterable<int> h = f();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 85, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 110, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 85, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 110, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 114, 3),
     ]);
 
@@ -497,7 +497,7 @@ void main() {
   Foo<B> foo = new Foo();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 3),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 81, 3),
     ]);
   }
 
@@ -524,16 +524,16 @@ main() {
   x.t = 'hello';
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 85, 5),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 85, 5),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           99,
           1),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 99, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 194, 5),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 223, 6),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 309, 9),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 194, 5),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 223, 6),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 309, 9),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 349, 7),
     ]);
 
@@ -554,7 +554,7 @@ main() {
   var x = const C(42);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 63, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 63, 1),
     ]);
 
     var x = findElement.localVar('x');
@@ -577,8 +577,8 @@ void f() {
   const D<int> d = const D();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 143, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 166, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 143, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 166, 1),
     ]);
   }
 
@@ -595,9 +595,9 @@ main() {
   var b = new C<Object>([123]);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 75, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 89, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 151, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 75, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 89, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 151, 1),
     ]);
   }
 
@@ -766,7 +766,7 @@ main() {
   var a = new A(42);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 39, 2),
     ]);
 
@@ -791,8 +791,8 @@ foo() {
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 69, 1,
           contextMessages: [message(testFile, 22, 1)]),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 97, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 118, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 97, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 118, 1),
     ]);
   }
 
@@ -830,7 +830,7 @@ test() {
   x = "hi";
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
     ]);
   }
 
@@ -842,7 +842,7 @@ test() {
   x = 3;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
   }
 
@@ -866,7 +866,7 @@ void main() {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 266, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 266, 1),
     ]);
   }
 
@@ -912,7 +912,7 @@ void main() {
   l = (l = [1]);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 1),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 36, 7),
     ]);
   }
@@ -925,8 +925,8 @@ Future test() async {
   List<int> l1 = await new Future.value([d]);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 75, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 75, 2),
     ]);
   }
 
@@ -941,8 +941,8 @@ Future main() async {
   await for(int x in new MyStream()) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 115, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 150, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 115, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 150, 1),
     ]);
   }
 
@@ -1109,40 +1109,40 @@ void main () {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 79, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 79, 2),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 95, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 128, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 180, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 128, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 180, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 185, 21),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 235, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 235, 2),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 251, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 281, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 281, 2),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 302, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 342, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 342, 2),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 354, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 387, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 435, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 387, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 435, 2),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 447, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 477, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 477, 2),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 494, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 526, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 526, 2),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 543, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 589, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 589, 2),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 605, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 644, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 704, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 644, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 704, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 709, 23),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 767, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 767, 2),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 784, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 821, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 821, 2),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 843, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 881, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 920, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 964, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 881, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 920, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 964, 2),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 976, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1006, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1006, 2),
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 1020, 9),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1064, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1064, 2),
     ]);
   }
 
@@ -1167,13 +1167,13 @@ void main () {
 }
 ''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 38, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 2),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 115, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 179, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 212, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 253, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 288, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 318, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 179, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 212, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 253, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 288, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 318, 1),
     ]);
   }
 
@@ -1265,9 +1265,9 @@ void main() {
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 666, 7),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 750, 7),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 781, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 819, 3),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 846, 3),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 879, 3),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 819, 3),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 846, 3),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 879, 3),
     ]);
   }
 
@@ -1317,19 +1317,19 @@ void main () {
 }
 ''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 45, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 59, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 59, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 88, 4),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 133, 24),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 181, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 211, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 250, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 264, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 264, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 289, 4),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 340, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 366, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 394, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 439, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 453, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 453, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 482, 4),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 529, 26),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 580, 1),
@@ -1337,11 +1337,11 @@ void main () {
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 655, 4),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 696, 4),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 743, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 757, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 822, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 757, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 822, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 856, 1),
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 879, 9),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 901, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 901, 1),
     ]);
   }
 
@@ -1451,69 +1451,69 @@ void main() {
           548, 1),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
           553, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 612, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 655, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 704, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 760, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 822, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 612, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 655, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 704, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 760, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 822, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 827, 31),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 879, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 879, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 884, 41),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 954, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 954, 2),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 965, 7),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 974, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 997, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 997, 2),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1014, 7),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1023, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1054, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1097, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1146, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1202, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1264, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1054, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1097, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1146, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1202, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1264, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1269, 34),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1324, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1324, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1329, 41),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1399, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1399, 2),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1410, 1),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1413, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1442, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1442, 2),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1459, 1),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1462, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1496, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1527, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1564, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1600, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1642, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1496, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1527, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1564, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1600, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1642, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1647, 17),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1682, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1682, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1687, 23),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1736, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1736, 2),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1747, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1773, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1773, 2),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1790, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1827, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1867, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1913, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1966, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 2028, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1827, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1867, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1913, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1966, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2028, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 2033, 28),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 2082, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2082, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 2087, 38),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 2154, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2154, 2),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2165, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 2188, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2188, 2),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2205, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 2239, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 2325, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 2406, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2239, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2325, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2406, 2),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 2441, 7),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 2463, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 2487, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 2548, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 2597, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2487, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2548, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2597, 2),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2626, 7),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2635, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 2658, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2658, 2),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2687, 7),
     ]);
   }
@@ -1558,37 +1558,37 @@ void main() {
 }
 ''', [
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 79, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 122, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 145, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 169, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 122, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 145, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 169, 2),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 175, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 199, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 199, 2),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 205, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 244, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 271, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 299, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 333, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 374, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 244, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 271, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 299, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 333, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 374, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 379, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 402, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 402, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 407, 8),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 431, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 431, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 436, 14),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 442, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 466, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 466, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 471, 17),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 477, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 516, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 543, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 571, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 516, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 543, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 571, 2),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 577, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 605, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 605, 2),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 611, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 652, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 687, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 723, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 652, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 687, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 723, 2),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 735, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 765, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 765, 2),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 777, 7),
     ]);
   }
@@ -1763,47 +1763,47 @@ void main() {
 }
 ''', [
       error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 173, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 241, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 271, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 311, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 241, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 271, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 311, 2),
       error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 324, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 369, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 369, 2),
       error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 385, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 415, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 415, 2),
       error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 446, 7),
       error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 455, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 498, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 533, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 578, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 629, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 668, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 731, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 765, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 809, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 859, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 498, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 533, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 578, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 629, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 668, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 731, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 765, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 809, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 859, 2),
       error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 868, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 897, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 897, 2),
       error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 937, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 976, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1007, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1048, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 976, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1007, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1048, 2),
       error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 1061, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1107, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1142, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1107, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1142, 2),
       error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 1172, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1219, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1219, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1224, 16),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1263, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1263, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1268, 26),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1317, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1317, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1322, 20),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1379, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1421, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1473, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1379, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1421, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1473, 2),
       error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 1492, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1543, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1543, 2),
       error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 1565, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 1601, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1601, 2),
       error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 1637, 7),
       error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 1646, 1),
     ]);
@@ -1845,13 +1845,13 @@ main() {
   var b = f.then(add2);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 1),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           70,
           1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 89, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 89, 1),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
@@ -2172,7 +2172,7 @@ main() {
   b = f.then((x) => []);
 }
   ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
@@ -2206,14 +2206,14 @@ m2() {
           34,
           1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 67, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 92, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 92, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 96, 1),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           135,
           1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 185, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 185, 1),
     ]);
   }
 
@@ -2251,9 +2251,9 @@ $declared foo() => new $declared<int>.value(1);
             contextMessages: [message(dartAsyncFile, 589, 4)]),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
-        error(HintCode.UNUSED_LOCAL_VARIABLE, 309, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 309, 2),
         error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 314, 1),
-        error(HintCode.UNUSED_LOCAL_VARIABLE, 475, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 475, 2),
       ],
     );
     await disposeAnalysisContextCollection();
@@ -2265,9 +2265,9 @@ $declared foo() => new $declared<int>.value(1);
             contextMessages: [message(dartAsyncFile, 589, 4)]),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
-        error(HintCode.UNUSED_LOCAL_VARIABLE, 311, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 311, 2),
         error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 316, 1),
-        error(HintCode.UNUSED_LOCAL_VARIABLE, 479, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 479, 2),
         error(WarningCode.UNNECESSARY_CAST, 484, 49),
       ],
     );
@@ -2280,9 +2280,9 @@ $declared foo() => new $declared<int>.value(1);
             contextMessages: [message(dartAsyncFile, 589, 4)]),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
-        error(HintCode.UNUSED_LOCAL_VARIABLE, 309, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 309, 2),
         error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 314, 1),
-        error(HintCode.UNUSED_LOCAL_VARIABLE, 475, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 475, 2),
         error(WarningCode.UNNECESSARY_CAST, 480, 47),
       ],
     );
@@ -2310,7 +2310,7 @@ main() {
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           84,
           4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 125, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 125, 1),
     ]);
   }
 
@@ -2473,7 +2473,7 @@ class A {}
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 37, 4),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 66, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 88, 6),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 88, 6),
     ]);
   }
 
@@ -2487,7 +2487,7 @@ main() async {
   String s = await id(f);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 64, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 64, 1),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
@@ -2513,7 +2513,7 @@ class A {}
 class B extends A {}
 class C extends A {}
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 207, 4),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 207, 4),
     ]);
   }
 
@@ -2530,7 +2530,7 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 70, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 130, 8),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 130, 8),
     ]);
   }
 
@@ -2543,8 +2543,8 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 18, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 42, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 42, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
     ]);
   }
 
@@ -2615,8 +2615,8 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 21, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 69, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 69, 1),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 76, 2),
     ]);
   }
@@ -2639,7 +2639,7 @@ void functionExpressionInvocation() {
   y = z;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
@@ -2650,7 +2650,7 @@ void functionExpressionInvocation() {
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           77,
           1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 175, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 175, 1),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
@@ -2694,7 +2694,7 @@ main() {
   Iterable<String> x = y.map((String z) => 1.0);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
@@ -2785,11 +2785,11 @@ main() {
     => list.fold<String>('', (x, y) => x + y.toString()));
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 183, 8),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 183, 8),
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 257, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 293, 8),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 293, 8),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 355, 33),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 410, 8),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 410, 8),
     ]);
   }
 
@@ -2810,7 +2810,7 @@ main() {
   }).fold(0, math.max);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 153, 7),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 153, 7),
     ]);
   }
 
@@ -2826,7 +2826,7 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 96, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 118, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 118, 1),
     ]);
 
     var v = findElement.localVar('v');
@@ -3102,7 +3102,7 @@ foo() {
   i = m1;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
     ]);
   }
 
@@ -3133,8 +3133,8 @@ foo() {
 ''', [
       error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
           82, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 112, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 121, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 112, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 121, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 148, 9),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 182, 9),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 234, 9),
@@ -3221,8 +3221,8 @@ foo() {
   int z = new B().x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 78, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 99, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 78, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 99, 1),
     ]);
   }
 
@@ -3241,8 +3241,8 @@ foo() {
   int z = new B().x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 89, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 110, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 89, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 110, 1),
     ]);
   }
 
@@ -3334,7 +3334,7 @@ main() {
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 34, 1),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 39, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 46, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 68, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 68, 1),
     ]);
 
     var y = findElement.localVar('y');
@@ -3353,7 +3353,7 @@ main() {
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
           29, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 36, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 59, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 59, 1),
     ]);
 
     var y = findElement.localVar('y');
@@ -3374,7 +3374,7 @@ main() {
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
           39, 1),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 46, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 69, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 69, 1),
     ]);
 
     var y = findElement.localVar('y');
@@ -3390,7 +3390,7 @@ main() {
   var y = new C().m(42);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
     ]);
 
     var y = findElement.localVar('y');
@@ -3426,13 +3426,13 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 88, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 161, 3),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 161, 3),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 204, 25),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 245, 25),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 313, 4),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 313, 4),
       error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 357, 25),
       error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 400, 25),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 467, 3),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 467, 3),
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 501, 25),
     ]);
   }
@@ -3568,7 +3568,7 @@ main() {
   var f = () {};
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
     var f = findElement.localVar('f');
@@ -3634,7 +3634,7 @@ main() {
   var x = c[0];
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 72, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 72, 1),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
@@ -3658,7 +3658,7 @@ main() {
   var x = c[0];
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 105, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 105, 1),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
@@ -3970,7 +3970,7 @@ foo() {
   i = y2;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 73, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 73, 1),
     ]);
   }
 
@@ -4036,9 +4036,9 @@ foo() {
   int z = new B().x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 80, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 80, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 84, 9),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 101, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 101, 1),
     ]);
   }
 
@@ -4057,9 +4057,9 @@ foo() {
   int z = new B().x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 89, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 89, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 93, 9),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 110, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 110, 1),
     ]);
   }
 
@@ -4071,7 +4071,7 @@ test1() {
   x = "hi";
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 4),
     ]);
   }
@@ -4083,7 +4083,7 @@ test2() {
   x = "hi";
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 4),
     ]);
   }
@@ -4109,11 +4109,11 @@ class A {
   final z = 42; // should infer `int`
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 59, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 84, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 84, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 99, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 124, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 124, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 139, 4),
       error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
           167, 1),
@@ -4139,11 +4139,11 @@ test1() {
 int y = 0; // field def after use
 final z = 42; // should infer `int`
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 28, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 28, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 41, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 75, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 96, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 96, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 109, 4),
     ]);
   }
@@ -4169,8 +4169,8 @@ foo() {
 }
 ''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 48, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 100, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 124, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 100, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 124, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 128, 9),
     ]);
   }
@@ -4195,9 +4195,9 @@ foo() {
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 27, 4),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 47, 4),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 109, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 138, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 138, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 142, 9),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 159, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 159, 1),
     ]);
   }
 
@@ -4221,9 +4221,9 @@ foo() {
           17, 1),
       error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
           53, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 87, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 87, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 91, 17),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 119, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 119, 1),
     ]);
   }
 
@@ -4255,10 +4255,10 @@ foo () {
 }
 ''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 284, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 310, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 310, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 314, 21),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 330, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 346, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 346, 1),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 366, 4),
     ]);
   }
@@ -4281,8 +4281,8 @@ foo() {
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 27, 4),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 78, 1,
           contextMessages: [message(testFile, 23, 1)]),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 106, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 127, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 106, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 127, 1),
     ]);
   }
 
@@ -4322,10 +4322,10 @@ foo () {
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 88, 4),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 264, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 264, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 268, 35),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 292, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 314, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 314, 1),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 342, 4),
     ]);
   }
@@ -4395,22 +4395,22 @@ test() {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 122, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 122, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 126, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 244, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 244, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 248, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 259, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 345, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 259, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 345, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 349, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 396, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 396, 1),
       error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 427, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 446, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 497, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 565, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 634, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 446, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 497, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 565, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 634, 1),
       error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 728, 3),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 746, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 897, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 746, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 897, 1),
     ]);
   }
 
@@ -4422,7 +4422,7 @@ test() {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
     ]);
   }
 
@@ -4475,9 +4475,9 @@ test2() {
 ''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 39, 4),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 54, 3),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 84, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 84, 1),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 134, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 167, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 167, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 171, 1),
     ]);
   }
@@ -4500,9 +4500,9 @@ test2() {
 ''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 39, 4),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 55, 3),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 86, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 86, 1),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 137, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 171, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 171, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 175, 2),
     ]);
   }
@@ -4554,11 +4554,11 @@ test2() {
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 58, 4),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 75, 3),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 96, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 119, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 119, 1),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 209, 4),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 247, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 265, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 302, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 302, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 306, 1),
     ]);
   }
@@ -4588,11 +4588,11 @@ test2() {
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 59, 4),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 77, 3),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 99, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 122, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 122, 1),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 214, 4),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 254, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 272, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 310, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 310, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 314, 2),
     ]);
   }
@@ -4684,7 +4684,7 @@ test1() {
   x = null;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 4),
     ]);
   }
@@ -4704,7 +4704,7 @@ main() {
           34,
           1),
       error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 39, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 55, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
     ]);
   }
 
@@ -4716,7 +4716,7 @@ main() {
   List<num> y = x ?? [];
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
@@ -4752,7 +4752,7 @@ main() {
   foo((x) => throw "not implemented");
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 92, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 92, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 96, 5),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 117, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 214, 4),
@@ -4772,7 +4772,7 @@ test() {
   print(a.x + 2); // ok to use in bigger expression
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1),
     ]);
   }
 
@@ -4789,7 +4789,7 @@ test() {
   print((a.x) + 2);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
     ]);
   }
 
@@ -4864,10 +4864,10 @@ class C<T extends num> {
 ''', [
       error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
           29, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 89, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 112, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 135, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 89, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 112, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 135, 2),
     ]);
   }
 
@@ -4891,11 +4891,11 @@ class C<T extends num> {
 ''', [
       error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
           29, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 63, 5),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 76, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 81, 5),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 94, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 94, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 99, 5),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 141, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 153, 1),
@@ -4923,11 +4923,11 @@ class C<T extends num> {
 ''', [
       error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
           29, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 56, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 61, 5),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 74, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 74, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 79, 5),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 92, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 92, 2),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 97, 5),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 137, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 149, 1),
@@ -4955,7 +4955,7 @@ main() {
   var v = ((x) => 1.0)(() { return 1; });
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
     var v = findElement.localVar('v');
@@ -4999,7 +4999,7 @@ main() {
     });
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 42, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 42, 1),
     ]);
 
     var v = findElement.localVar('v');
@@ -5095,7 +5095,7 @@ main() {
 }
 List<T> f<T>(T g()) => <T>[g()];
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
     var v = findElement.localVar('v');
@@ -5112,7 +5112,7 @@ main() {
 }
 List<T> f<T>(T g()) => <T>[g()];
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
     var v = findElement.localVar('v');
@@ -5126,7 +5126,7 @@ main() {
 }
 double f(x) => 1.0;
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
     var v = findElement.localVar('v');
@@ -5140,7 +5140,7 @@ main() {
 }
 double f(x) => 1.0;
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
     var v = findElement.localVar('v');
@@ -5153,7 +5153,7 @@ main() {
   var v = <dynamic>[() { return 1; }];
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
     var v = findElement.localVar('v');
@@ -5167,7 +5167,7 @@ main() {
   var v = <F>[() { return 1; }];
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
     ]);
 
     var v = findElement.localVar('v');
@@ -5183,7 +5183,7 @@ main() {
     }];
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
     var v = findElement.localVar('v');
@@ -5196,7 +5196,7 @@ main() {
   var v = <int, dynamic>{1: () { return 1; }};
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
     var v = findElement.localVar('v');
@@ -5210,7 +5210,7 @@ main() {
   var v = <int, F>{1: () { return 1; }};
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
     ]);
 
     var v = findElement.localVar('v');
@@ -5226,7 +5226,7 @@ main() {
     }};
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
     var v = findElement.localVar('v');
@@ -5242,7 +5242,7 @@ main() {
   var v = new C().f<dynamic>(() { return 1; });
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
     ]);
 
     var v = findElement.localVar('v');
@@ -5258,7 +5258,7 @@ main() {
   var v = new C().f<int>(() { return 1; });
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
     ]);
 
     var v = findElement.localVar('v');
@@ -5277,7 +5277,7 @@ main() {
     });
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
     ]);
 
     var v = findElement.localVar('v');
@@ -5320,8 +5320,8 @@ main() {
   y = 'hi';
 }
   ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 259, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 297, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 259, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 297, 1),
     ]);
 
     var x = _resultUnitElement.topLevelVariables[0];
@@ -5335,7 +5335,7 @@ main() {
     await resolveTestCode(code);
     assertErrorsInList(
       result.errors.where((e) {
-        return e.errorCode != HintCode.UNUSED_LOCAL_VARIABLE &&
+        return e.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE &&
             e.errorCode is! TodoCode;
       }).toList(),
       expectedErrors,

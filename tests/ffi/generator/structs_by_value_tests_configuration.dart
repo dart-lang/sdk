@@ -450,6 +450,28 @@ Returning a wchar."""),
       int64,
       """
 Struct stradles last argument register"""),
+  FunctionType(
+      [
+        PointerType(struct12bytesInt),
+      ],
+      int64,
+      """
+Passing a pointer to a struct"""),
+  FunctionType(
+      [
+        PointerType(structVariableLengthArray),
+      ],
+      int64,
+      """
+Variable length array"""),
+  FunctionType(
+      [
+        PointerType(structVariableLengthArray4),
+      ],
+      int64,
+      """
+Variable length array with variable length element having more alignment than
+the rest of the struct."""),
 ];
 
 /// Functions that return a struct by value.
@@ -704,6 +726,10 @@ final compounds = [
   union16bytesFloat,
   union16bytesFloat2,
   structArrayWChar,
+  structVariableLengthArray,
+  structVariableLengthArray2,
+  structVariableLengthArray3,
+  structVariableLengthArray4,
 ];
 
 /// Function signatures for variadic argument tests.
@@ -1054,3 +1080,35 @@ final union16bytesFloat2 =
 
 /// This struct contains an AbiSpecificInt type.
 final structArrayWChar = StructType([FixedLengthArrayType(wchar, 10)]);
+
+final structVariableLengthArray = StructType.override(
+  [
+    uint32,
+    VariableLengthArrayType(uint8),
+  ],
+  "InlineArrayVariable",
+);
+
+final structVariableLengthArray2 = StructType.override(
+  [
+    uint32,
+    VariableLengthArrayType.multi(uint8, [2, 2]),
+  ],
+  "InlineArrayVariableNested",
+);
+
+final structVariableLengthArray3 = StructType.override(
+  [
+    uint32,
+    VariableLengthArrayType.multi(uint8, [2, 2, 2, 2, 2, 2]),
+  ],
+  "InlineArrayVariableNestedDeep",
+);
+
+final structVariableLengthArray4 = StructType.override(
+  [
+    uint8,
+    VariableLengthArrayType(uint32),
+  ],
+  "InlineArrayVariableAlign",
+);

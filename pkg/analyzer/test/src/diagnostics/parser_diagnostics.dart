@@ -7,12 +7,12 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
 import '../../generated/test_support.dart';
 import '../../util/element_printer.dart';
 import '../../util/feature_sets.dart';
-import '../../util/tree_string_sink.dart';
 import '../dart/resolution/node_text_expectations.dart';
 import '../summary/resolved_ast_printer.dart';
 
@@ -23,11 +23,13 @@ class ParserDiagnosticsTest {
     String expected, {
     bool withCheckingLinking = false,
     bool withOffsets = false,
+    bool withTokenPreviousNext = false,
   }) {
     var actual = _parsedNodeText(
       node,
       withCheckingLinking: withCheckingLinking,
       withOffsets: withOffsets,
+      withTokenPreviousNext: withTokenPreviousNext,
     );
     if (actual != expected) {
       print(actual);
@@ -68,6 +70,7 @@ class ParserDiagnosticsTest {
     AstNode node, {
     required bool withCheckingLinking,
     required bool withOffsets,
+    required bool withTokenPreviousNext,
   }) {
     var buffer = StringBuffer();
     var sink = TreeStringSink(
@@ -77,14 +80,14 @@ class ParserDiagnosticsTest {
     var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
-      selfUriStr: null,
     );
     node.accept(
       ResolvedAstPrinter(
         sink: sink,
         elementPrinter: elementPrinter,
         configuration: ResolvedNodeTextConfiguration()
-          ..withCheckingLinking = withCheckingLinking,
+          ..withCheckingLinking = withCheckingLinking
+          ..withTokenPreviousNext = withTokenPreviousNext,
         withResolution: false,
         withOffsets: withOffsets,
       ),

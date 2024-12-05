@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/src/server/performance.dart';
+import 'package:collection/collection.dart';
 
 String escape(String? text) => text == null ? '' : htmlEscape.convert(text);
 
@@ -179,6 +180,11 @@ mixin PerformanceChartMixin on Page {
   }
 }
 
+abstract interface class PostablePage {
+  /// Handles a HTTP POST and returns a destination path to redirect to.
+  Future<String> handlePost(Map<String, String> queryParameters);
+}
+
 /// Contains a collection of Pages.
 abstract class Site {
   final String title;
@@ -193,44 +199,48 @@ abstract class Site {
   Page createUnknownPage(String unknownPath);
 
   Future<void> handleGetRequest(HttpRequest request) async {
-    try {
-      var path = request.uri.path;
+    var path = request.uri.path;
+    if (path == '/') {
+      unawaited(respondRedirect(request, pages.first.path));
+      return;
+    }
 
-      if (path == '/') {
-        unawaited(respondRedirect(request, pages.first.path));
+    await _tryHandleRequest(request, (response, queryParameters) async {
+      var page = _getPage(path);
+      if (page == null) {
+        await respond(request, createUnknownPage(path), HttpStatus.notFound);
         return;
       }
 
-      for (var page in pages) {
-        if (page.path == path) {
-          var response = request.response;
-          var queryParameters = request.uri.queryParameters;
-          response.headers.contentType = page.contentType(queryParameters);
-          var contentDispositionString =
-              page.contentDispositionString(queryParameters);
-          if (contentDispositionString != null) {
-            response.headers
-                .add('Content-Disposition', contentDispositionString);
-          }
-          response.write(await page.generate(queryParameters));
-          unawaited(response.close());
-          return;
-        }
+      response.headers.contentType = page.contentType(queryParameters);
+      var contentDispositionString =
+          page.contentDispositionString(queryParameters);
+      if (contentDispositionString != null) {
+        response.headers.add('Content-Disposition', contentDispositionString);
       }
+      response.write(await page.generate(queryParameters));
+    });
+  }
 
-      await respond(request, createUnknownPage(path), HttpStatus.notFound);
-    } catch (e, st) {
-      try {
-        await respond(request, createExceptionPage('$e', st),
-            HttpStatus.internalServerError);
-      } catch (e, st) {
-        var response = request.response;
-        response.statusCode = HttpStatus.internalServerError;
-        response.headers.contentType = ContentType.text;
-        response.write('$e\n\n$st');
-        unawaited(response.close());
+  Future<void> handlePostRequest(HttpRequest request) async {
+    var path = request.uri.path;
+
+    await _tryHandleRequest(request, (response, queryParameters) async {
+      var page = _getPage(path);
+      if (page == null) {
+        await respond(request, createUnknownPage(path), HttpStatus.notFound);
+        return;
+      } else if (page is PostablePage) {
+        // For simplicitly we only support POSTs that redirect back to a GET at
+        // the end and we use query parameters on the URL and don't process
+        // encoded request bodies.
+        var destinationPath =
+            await (page as PostablePage).handlePost(queryParameters);
+        await respondRedirect(request, destinationPath);
+      } else {
+        throw 'Method not supported';
       }
-    }
+    });
   }
 
   Future<void> respond(
@@ -274,5 +284,37 @@ abstract class Site {
     var response = request.response;
     response.statusCode = HttpStatus.movedTemporarily;
     await response.redirect(request.uri.resolve(pathFragment));
+  }
+
+  /// Finds the [Page] that should handle requests to [path].
+  Page? _getPage(String path) {
+    return pages.firstWhereOrNull((page) => page.path == path);
+  }
+
+  /// Calls the request handler [handler] and catches unhandled errors to return
+  /// an exception page.
+  Future<void> _tryHandleRequest(
+    HttpRequest request,
+    Future<void> Function(HttpResponse, Map<String, String>) handler,
+  ) async {
+    var response = request.response;
+    var queryParameters = request.uri.queryParameters;
+
+    try {
+      await handler(response, queryParameters);
+      unawaited(response.close());
+      return;
+    } catch (e, st) {
+      try {
+        await respond(request, createExceptionPage('$e', st),
+            HttpStatus.internalServerError);
+      } catch (e, st) {
+        var response = request.response;
+        response.statusCode = HttpStatus.internalServerError;
+        response.headers.contentType = ContentType.text;
+        response.write('$e\n\n$st');
+        unawaited(response.close());
+      }
+    }
   }
 }

@@ -60,7 +60,7 @@ testWriteWithLargeList(dir) {
     return;
   }
   if (Platform.isWindows) {
-    File('NUL').writeAsBytesSync(bytes);
+    File('\\\\?\\NUL').writeAsBytesSync(bytes);
   } else {
     File('/dev/null').writeAsBytesSync(bytes);
   }

@@ -8,7 +8,6 @@ import 'adjacent_strings_test.dart' as adjacent_strings;
 import 'as_expression_test.dart' as as_expression;
 import 'assignment_test.dart' as assignment;
 import 'ast_rewrite_test.dart' as ast_rewrite;
-import 'augmentation_import_test.dart' as augmentation_import;
 import 'augmented_expression_test.dart' as augmented_expression;
 import 'augmented_invocation_test.dart' as augmented_invocation;
 import 'await_expression_test.dart' as await_expression;
@@ -56,7 +55,6 @@ import 'instance_member_inference_mixin_test.dart'
     as instance_member_inference_mixin;
 import 'interpolation_string_test.dart' as interpolation_string;
 import 'is_expression_test.dart' as is_expression;
-import 'library_augmentation_test.dart' as library_augmentation;
 import 'library_directive_test.dart' as library_directive;
 import 'library_element_test.dart' as library_element;
 import 'library_export_test.dart' as library_export;
@@ -125,7 +123,6 @@ main() {
     as_expression.main();
     assignment.main();
     ast_rewrite.main();
-    augmentation_import.main();
     augmented_expression.main();
     augmented_invocation.main();
     await_expression.main();
@@ -167,7 +164,6 @@ main() {
     instance_member_inference_mixin.main();
     interpolation_string.main();
     is_expression.main();
-    library_augmentation.main();
     library_directive.main();
     library_element.main();
     library_export.main();

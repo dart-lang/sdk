@@ -82,14 +82,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitAugmentationImportDirective(AugmentationImportDirective node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    sink.write('import augment ');
-    _visitNode(node.uri);
-    sink.write(';');
-  }
-
-  @override
   void visitAugmentedExpression(AugmentedExpression node) {
     sink.write('augmented');
   }
@@ -824,15 +816,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    sink.write('augment ');
-    sink.write('library ');
-    _visitNode(node.uri);
-    sink.write(';');
-  }
-
-  @override
   void visitLibraryDirective(LibraryDirective node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write('library ');
@@ -985,6 +968,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitNullAwareElement(NullAwareElement node) {
+    sink.write(node.question.lexeme);
+    _visitNode(node.value);
+  }
+
+  @override
   void visitNullCheckPattern(NullCheckPattern node) {
     _visitNode(node.pattern);
     sink.write(node.operator.lexeme);
@@ -1029,6 +1018,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write('part ');
     _visitNode(node.uri);
+    _visitNodeList(node.configurations, prefix: ' ', separator: ' ');
     sink.write(';');
   }
 

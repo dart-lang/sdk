@@ -7,42 +7,19 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Unnecessary string interpolation.';
 
-const _details = r'''
-**DON'T** use string interpolation if there's only a string expression in it.
-
-**BAD:**
-```dart
-String message;
-String o = '$message';
-```
-
-**GOOD:**
-```dart
-String message;
-String o = message;
-```
-
-''';
-
 class UnnecessaryStringInterpolations extends LintRule {
-  static const LintCode code = LintCode('unnecessary_string_interpolations',
-      'Unnecessary use of string interpolation.',
-      correctionMessage:
-          'Try replacing the string literal with the variable name.',
-      hasPublishedDocs: true);
-
   UnnecessaryStringInterpolations()
       : super(
-            name: 'unnecessary_string_interpolations',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.unnecessary_string_interpolations,
+          description: _desc,
+        );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_string_interpolations;
 
   @override
   void registerNodeProcessors(

@@ -25,13 +25,11 @@ Future<Set<Class>> getAllTokens() async {
 /// Compiles either a File or a Directory and finds all subtypes of (including)
 /// the specified [className] in a file containing [classFilename].
 Future<Set<Class>> findIn(
-    FileSystemEntity where, String className, String classFilename) async {
+    Directory where, String className, String classFilename) async {
   List<Uri> files = [];
-  if (where is File) {
-    files.add(where.uri);
-  } else if (where is Directory) {
-    for (FileSystemEntity subEntity in where.listSync(recursive: true)) {
-      if (subEntity is File) {
+  for (FileSystemEntity subEntity in where.listSync(recursive: true)) {
+    if (subEntity is File) {
+      if (subEntity.path.toLowerCase().endsWith(".dart")) {
         files.add(subEntity.uri);
       }
     }

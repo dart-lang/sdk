@@ -18,7 +18,7 @@ class DependOnReferencedPackagesTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  String get lintRule => 'depend_on_referenced_packages';
+  String get lintRule => LintNames.depend_on_referenced_packages;
 
   String get sourceReferencingMeta => r'''
 import 'package:meta/meta.dart';
@@ -38,6 +38,49 @@ dev_dependencies:
     var binFile =
         newFile('$testPackageRootPath/bin/bin.dart', sourceReferencingMeta);
     result = await resolveFile(binFile.path);
+    await assertDiagnosticsIn(result.errors, [
+      lint(7, 24),
+    ]);
+  }
+
+  void test_referencedInBuildHook_listedInDeps() async {
+    newFile(testPackagePubspecPath, r'''
+name: fancy
+version: 1.1.1
+
+dependencies:
+  meta: any
+''');
+    var hookFile =
+        newFile('$testPackageRootPath/hook/build.dart', sourceReferencingMeta);
+    result = await resolveFile(hookFile.path);
+    await assertNoDiagnosticsIn(result.errors);
+  }
+
+  void test_referencedInBuildHook_listedInDevDeps() async {
+    newFile(testPackagePubspecPath, r'''
+name: fancy
+version: 1.1.1
+
+dev_dependencies:
+  meta: any
+''');
+    var hookFile =
+        newFile('$testPackageRootPath/hook/build.dart', sourceReferencingMeta);
+    result = await resolveFile(hookFile.path);
+    await assertDiagnosticsIn(result.errors, [
+      lint(7, 24),
+    ]);
+  }
+
+  void test_referencedInBuildHook_missingFromPubspec() async {
+    newFile(testPackagePubspecPath, r'''
+name: fancy
+version: 1.1.1
+''');
+    var hookFile =
+        newFile('$testPackageRootPath/hook/build.dart', sourceReferencingMeta);
+    result = await resolveFile(hookFile.path);
     await assertDiagnosticsIn(result.errors, [
       lint(7, 24),
     ]);
@@ -107,6 +150,22 @@ import 'package:test/lib.dart';
 
 var y = x;
 ''');
+  }
+
+  void test_referencedInLinkHook_listedInDevDeps() async {
+    newFile(testPackagePubspecPath, r'''
+name: fancy
+version: 1.1.1
+
+dev_dependencies:
+  meta: any
+''');
+    var hookFile =
+        newFile('$testPackageRootPath/hook/link.dart', sourceReferencingMeta);
+    result = await resolveFile(hookFile.path);
+    await assertDiagnosticsIn(result.errors, [
+      lint(7, 24),
+    ]);
   }
 
   test_referencedInTest_listedInDevDeps() async {

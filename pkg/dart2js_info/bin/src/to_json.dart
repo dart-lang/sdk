@@ -24,10 +24,7 @@ class ToJsonCommand extends Command<void> with PrintUsageException {
     argParser.addFlag('compat-mode',
         negatable: false,
         help: 'Whether to generate an older version of the JSON format.\n\n'
-            'By default files are converted to the latest JSON format, but\n'
-            'passing `--compat-mode` will produce a JSON file that may still\n'
-            'work in the visualizer tool at:\n'
-            'https://dart-lang.github.io/dump-info-visualizer/.\n\n'
+            'By default files are converted to the latest JSON format.\n'
             'This option enables `--inject-text` as well, but note that\n'
             'files produced in this mode do not contain all the data\n'
             'available in the input file.');

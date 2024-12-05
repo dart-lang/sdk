@@ -254,7 +254,7 @@ Notifies the client that the server would like to open a given URI. This event i
 
 This notification (and functionality that relies on it) will only be sent if the client passes `allowOpenUri: true` in `initializationOptions`.
 
-### dart/textDocumentContent Method  (Experimental)
+### dart/textDocumentContent Method (Experimental)
 
 Direction: Client -> Server
 Params: `{ uri: Uri }`
@@ -268,6 +268,14 @@ Direction: Server -> Client
 Params: `{ uri: Uri }`
 
 Notifies the client that the content in the virtual file with `uri` may have changed (for example because a macro executed and regenerated its content).
+
+### dart/connectToDtd Method (Experimental)
+
+Direction: Client -> Server
+Params: `{ uri: Uri }`
+Returns: `null`
+
+Provides the URI of a Dart Tooling Daemon server to allow the LSP server to connect and provide access to a subset of LSP functionality to DTD clients. This support is still a work in progress and should not be used outside of development (yet).
 
 ## Client Commands
 

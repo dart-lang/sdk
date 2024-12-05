@@ -117,6 +117,22 @@ void f() {
     );
   }
 
+  Future<void> test_class_field_underscore() async {
+    await assertOccurrences(
+      kind: ElementKind.FIELD,
+      '''
+class C {
+  int /*[0*/_/*0]*/ = 0;
+}
+
+void f(int _) {
+  int _ = 1;
+  C()./*[1*/_/*1]*/;
+}
+''',
+    );
+  }
+
   Future<void> test_enum() async {
     await assertOccurrences(
       kind: ElementKind.ENUM,
@@ -427,6 +443,16 @@ void g() {
     );
   }
 
+  Future<void> test_parameter_wildcard() async {
+    // Ensure no crash.
+    await assertOccurrences(
+      kind: ElementKind.PARAMETER,
+      '''
+void f(int /*[0*/_/*0]*/) {}
+''',
+    );
+  }
+
   Future<void> test_pattern_assignment() async {
     await assertOccurrences(
       kind: ElementKind.PARAMETER,
@@ -646,6 +672,16 @@ String f(int char) {
     );
   }
 
+  Future<void> test_prefix_wildcard() async {
+    // Ensure no crash.
+    await assertOccurrences(
+      kind: ElementKind.PREFIX,
+      '''
+import 'dart:io' as /*[0*/_/*0]*/;
+''',
+    );
+  }
+
   Future<void> test_recordType_typeName() async {
     await assertOccurrences(
       kind: ElementKind.CLASS,
@@ -684,6 +720,20 @@ void f() {
   print(/*[2*/VVV/*2]*/);
 }
       ''',
+    );
+  }
+
+  Future<void> test_topLevelVariable_underscore() async {
+    await assertOccurrences(
+      kind: ElementKind.TOP_LEVEL_VARIABLE,
+      '''
+int /*[0*/_/*0]*/ = 0;
+
+void f(int _) {
+  int _ = 1;
+  /*[1*/_/*1]*/;
+}
+''',
     );
   }
 

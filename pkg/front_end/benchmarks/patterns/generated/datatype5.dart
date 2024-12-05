@@ -1,4 +1,4 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -28,6 +28,10 @@ class Sub0 extends Base5 {
     counter.inc();
   }
 
+  void patternDispatch0(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor5<R, A> visitor, A arg) {
     return visitor.visitSub0(this, arg);
@@ -45,6 +49,10 @@ class Sub1 extends Base5 {
   }
 
   void visitorDispatch1(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch1(Counter counter) {
     counter.inc();
   }
 
@@ -68,6 +76,10 @@ class Sub2 extends Base5 {
     counter.inc();
   }
 
+  void patternDispatch2(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor5<R, A> visitor, A arg) {
     return visitor.visitSub2(this, arg);
@@ -88,6 +100,10 @@ class Sub3 extends Base5 {
     counter.inc();
   }
 
+  void patternDispatch3(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor5<R, A> visitor, A arg) {
     return visitor.visitSub3(this, arg);
@@ -105,6 +121,10 @@ class Sub4 extends Base5 {
   }
 
   void visitorDispatch4(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch4(Counter counter) {
     counter.inc();
   }
 
@@ -146,6 +166,25 @@ const Visitor5<void, Counter> visitor = CounterVisitor5();
 
 void incByVisitorDispatch5(Base5 base, Counter counter) {
   base.accept(visitor, counter);
+}
+
+void incByPatternDispatch5(Base5 base, Counter counter) {
+  switch (base) {
+    case Sub0():
+      base.patternDispatch0(counter);
+
+    case Sub1():
+      base.patternDispatch1(counter);
+
+    case Sub2():
+      base.patternDispatch2(counter);
+
+    case Sub3():
+      base.patternDispatch3(counter);
+
+    case Sub4():
+      base.patternDispatch4(counter);
+  }
 }
 
 abstract class Visitor5<R, A> {

@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -53,9 +53,13 @@ void f() {
   ((42));
 }
 ''');
-    await assertNoFix(
-      errorFilter: (e) => e.offset == testCode.indexOf('(42'),
-    );
+    await assertHasFix('''
+void f() {
+  (42);
+}
+''',
+        errorFilter: (e) => e.offset == testCode.indexOf('(42'),
+        allowFixAllFixes: true);
   }
 
   Future<void> test_double_atOuter() async {
@@ -64,13 +68,9 @@ void f() {
   ((42));
 }
 ''');
-    await assertHasFix('''
-void f() {
-  (42);
-}
-''',
-        errorFilter: (e) => e.offset == testCode.indexOf('((42'),
-        allowFixAllFixes: true);
+    await assertNoFix(
+      errorFilter: (e) => e.offset == testCode.indexOf('((42'),
+    );
   }
 
   Future<void> test_previous_notKeyword() async {

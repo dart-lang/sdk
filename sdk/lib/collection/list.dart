@@ -349,7 +349,7 @@ abstract mixin class ListBase<E> implements List<E> {
     end ??= listLength;
 
     RangeError.checkValidRange(start, end, listLength);
-    return List.from(getRange(start, end));
+    return List.of(getRange(start, end));
   }
 
   Iterable<E> getRange(int start, int end) {

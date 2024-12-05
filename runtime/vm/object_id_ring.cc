@@ -18,9 +18,17 @@ ObjectIdRing::~ObjectIdRing() {
   table_ = nullptr;
 }
 
+void ObjectIdRing::Invalidate() {
+  serial_num_ = 0;
+  wrapped_ = false;
+  for (int32_t i = 0; i < capacity_; i++) {
+    table_[i] = Object::null();
+  }
+}
+
 int32_t ObjectIdRing::GetIdForObject(ObjectPtr object, IdPolicy policy) {
-  // We do not allow inserting null because null is how we detect as entry was
-  // reclaimed by the GC.
+  // We do not allow inserting |Object::null()| because we use it as a
+  // placeholder for unpopulated slots in |table_|.
   ASSERT(object != Object::null());
   if (policy == kAllocateId) {
     return AllocateNewId(object);
@@ -51,16 +59,15 @@ ObjectPtr ObjectIdRing::GetObjectForId(int32_t id, LookupResult* kind) {
   }
   ASSERT(index >= 0);
   ASSERT(index < capacity_);
-  if (table_[index] == Object::null()) {
-    *kind = kCollected;
-    return Object::null();
-  }
+  // The `index == kInvalidId` check above should make it impossible for
+  // `table_[index]` to be |Object::null()|.
+  ASSERT(table_[index] != Object::null());
   *kind = kValid;
   ASSERT(IdOfIndex(index) == id);
   return table_[index];
 }
 
-void ObjectIdRing::VisitPointers(ObjectPointerVisitor* visitor) {
+void ObjectIdRing::VisitPointers(ObjectPointerVisitor* visitor) const {
   ASSERT(table_ != nullptr);
   visitor->VisitPointers(table_, capacity_);
 }
@@ -86,11 +93,11 @@ void ObjectIdRing::PrintJSON(JSONStream* js) {
   }
 }
 
-ObjectIdRing::ObjectIdRing() {
+ObjectIdRing::ObjectIdRing(int32_t capacity) {
   serial_num_ = 0;
   wrapped_ = false;
   table_ = nullptr;
-  SetCapacityAndMaxSerial(kDefaultCapacity, kMaxId);
+  SetCapacityAndMaxSerial(capacity, kMaxId);
 }
 
 void ObjectIdRing::SetCapacityAndMaxSerial(int32_t capacity,
@@ -179,7 +186,7 @@ int32_t ObjectIdRing::IdOfIndex(int32_t index) {
   return id;
 }
 
-bool ObjectIdRing::IsValidContiguous(int32_t id) {
+bool ObjectIdRing::IsValidContiguous(int32_t id) const {
   ASSERT(id != kInvalidId);
   ASSERT((id >= 0) && (id < max_serial_));
   if (id >= serial_num_) {

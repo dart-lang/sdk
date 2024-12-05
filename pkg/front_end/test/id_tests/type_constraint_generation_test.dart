@@ -91,11 +91,11 @@ class _InferredTypeArgumentsDataInterpreter
         }
         if (actualData[i].isUpper) {
           sb.write("${actualData[i].typeParameter.name} <: ");
-          sb.write(typeToText(actualData[i].constraint,
+          sb.write(typeToText(actualData[i].constraint.unwrapTypeSchemaView(),
               TypeRepresentation.analyzerNonNullableByDefault));
         } else {
           sb.write("${actualData[i].typeParameter.name} :> ");
-          sb.write(typeToText(actualData[i].constraint,
+          sb.write(typeToText(actualData[i].constraint.unwrapTypeSchemaView(),
               TypeRepresentation.analyzerNonNullableByDefault));
         }
       }

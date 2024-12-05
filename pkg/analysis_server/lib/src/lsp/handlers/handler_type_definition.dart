@@ -36,6 +36,9 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
       TypeDefinitionParams.jsonHandler;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   // The private type in the return type is dictated by the signature of the
   // super-method and the class's super-class.
   Future<ErrorOr<TextDocumentTypeDefinitionResult>> handle(
@@ -46,7 +49,7 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
       return success(_emptyResult);
     }
 
-    var clientCapabilities = server.lspClientCapabilities;
+    var clientCapabilities = message.clientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
@@ -74,7 +77,7 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
           return success(_emptyResult);
         }
 
-        SyntacticEntity originEntity;
+        SyntacticEntity? originEntity;
         DartType? type;
         if (node is NamedType) {
           originEntity = node.name2;
@@ -85,10 +88,17 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
         } else if (node is VariableDeclaration) {
           originEntity = node.name;
           type = node.declaredElement?.type;
+        } else if (node is DeclaredIdentifier) {
+          originEntity = node.name;
+          type = node.declaredElement?.type;
         } else if (node is Expression) {
           originEntity = node;
           type = _getType(node);
-        } else {
+        } else if (node is FormalParameter) {
+          originEntity = node.name;
+          type = node.declaredElement?.type;
+        }
+        if (originEntity == null) {
           return success(_emptyResult);
         }
 

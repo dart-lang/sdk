@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -176,7 +177,7 @@ class PostfixExpressionResolver {
         var element = operand.staticElement;
         if (element is PromotableElement) {
           _resolver.flowAnalysis.flow
-              ?.write(node, element, operatorReturnType, null);
+              ?.write(node, element, SharedTypeView(operatorReturnType), null);
         }
       }
       node.recordStaticType(receiverType, resolver: _resolver);
@@ -199,7 +200,8 @@ class PostfixExpressionResolver {
       return;
     }
 
-    _resolver.analyzeExpression(operand, _typeSystem.makeNullable(contextType));
+    _resolver.analyzeExpression(
+        operand, SharedTypeSchemaView(_typeSystem.makeNullable(contextType)));
     operand = _resolver.popRewrite()!;
 
     var operandType = operand.typeOrThrow;

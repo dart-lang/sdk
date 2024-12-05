@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class CurlyBracesInFlowControlStructuresTest extends LintRuleTest {
   @override
-  String get lintRule => 'curly_braces_in_flow_control_structures';
+  String get lintRule => LintNames.curly_braces_in_flow_control_structures;
 
   test_doWhile_block_sameLineAsDo() async {
     await assertNoDiagnostics(r'''
@@ -163,6 +163,17 @@ void f() {
   if (1 == 2) return;
 }
 ''');
+  }
+
+  test_ifStatement_singleStatement_sameLine_multiLineCondition() async {
+    await assertDiagnostics(r'''
+void f() {
+  if (1 ==
+      2) return;
+}
+''', [
+      lint(31, 7),
+    ]);
   }
 
   test_ifStatementElse_block_sameLine() async {

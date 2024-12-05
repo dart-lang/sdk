@@ -79,6 +79,7 @@ class TokensContext {
         return Keyword.DO;
       case UnlinkedTokenType.DOUBLE:
         return TokenType.DOUBLE;
+      // TODO(srawlins): TokenType.DOUBLE_WITH_SEPARATORS?
       case UnlinkedTokenType.DYNAMIC:
         return Keyword.DYNAMIC;
       case UnlinkedTokenType.ELSE:
@@ -131,6 +132,7 @@ class TokensContext {
         return TokenType.HASH;
       case UnlinkedTokenType.HEXADECIMAL:
         return TokenType.HEXADECIMAL;
+      // TODO(srawlins): TokenType.HEXADECIMAL_WITH_SEPARATORS?
       case UnlinkedTokenType.HIDE:
         return Keyword.HIDE;
       case UnlinkedTokenType.IDENTIFIER:
@@ -151,6 +153,7 @@ class TokensContext {
         return Keyword.INOUT;
       case UnlinkedTokenType.INT:
         return TokenType.INT;
+      // TODO(srawlins): TokenType.INT_WITH_SEPARATORS?
       case UnlinkedTokenType.INTERFACE:
         return Keyword.INTERFACE;
       case UnlinkedTokenType.IS:

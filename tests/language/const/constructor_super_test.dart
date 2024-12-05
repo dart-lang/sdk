@@ -33,7 +33,7 @@ class C extends A {
   // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER
   //    ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS
-  // [cfe] The superclass, 'A', has no unnamed constructor that takes no arguments.
+  // [cfe] The implicitly called unnamed constructor from 'A' has required parameters.
 }
 
 main() {

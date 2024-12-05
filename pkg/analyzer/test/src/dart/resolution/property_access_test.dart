@@ -39,16 +39,19 @@ PropertyAccess
         SimpleIdentifier
           token: a
           parameter: <null>
-          staticElement: self::@function::f::@parameter::a
+          staticElement: <testLibraryFragment>::@function::f::@parameter::a
+          element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: A
       rightParenthesis: )
-    element: self::@extension::E
+    element: <testLibraryFragment>::@extension::E
+    element2: <testLibraryFragment>::@extension::E#element
     extendedType: A
     staticType: null
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@extension::E::@getter::foo
+    staticElement: <testLibraryFragment>::@extension::E::@getter::foo
+    element: <testLibraryFragment>::@extension::E::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -80,28 +83,34 @@ AssignmentExpression
           SimpleIdentifier
             token: a
             parameter: <null>
-            staticElement: self::@function::f::@parameter::a
+            staticElement: <testLibraryFragment>::@function::f::@parameter::a
+            element: <testLibraryFragment>::@function::f::@parameter::a#element
             staticType: A
         rightParenthesis: )
-      element: self::@extension::E
+      element: <testLibraryFragment>::@extension::E
+      element2: <testLibraryFragment>::@extension::E#element
       extendedType: A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 1
-    parameter: dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
-  readElement: self::@extension::E::@getter::foo
+  readElement: <testLibraryFragment>::@extension::E::@getter::foo
+  readElement2: <testLibraryFragment>::@extension::E::@getter::foo#element
   readType: int
-  writeElement: self::@extension::E::@setter::foo
+  writeElement: <testLibraryFragment>::@extension::E::@setter::foo
+  writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
   writeType: num
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
+  element: dart:core::<fragment>::@class::num::@method::+#element
   staticType: int
 ''');
   }
@@ -131,28 +140,34 @@ AssignmentExpression
           SimpleIdentifier
             token: a
             parameter: <null>
-            staticElement: self::@function::f::@parameter::a
+            staticElement: <testLibraryFragment>::@function::f::@parameter::a
+            element: <testLibraryFragment>::@function::f::@parameter::a#element
             staticType: A
         rightParenthesis: )
-      element: self::@extension::E
+      element: <testLibraryFragment>::@extension::E
+      element2: <testLibraryFragment>::@extension::E#element
       extendedType: A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    parameter: self::@extension::E::@setter::foo::@parameter::_
+    parameter: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
-  writeElement: self::@extension::E::@setter::foo
+  writeElement: <testLibraryFragment>::@extension::E::@setter::foo
+  writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -171,7 +186,8 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: int Function(String)
     rightParenthesis: )
     staticType: int Function(String)
@@ -179,6 +195,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: call
     staticElement: <null>
+    element: <null>
     staticType: int Function(String)
   staticType: int Function(String)
 ''');
@@ -208,14 +225,14 @@ int Function() foo() {
 
   test_inClass_explicitThis_inDeclaration_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   augment int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   int get foo => 0;
@@ -235,7 +252,8 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+    element: <testLibraryFragment>::@class::A::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -243,14 +261,14 @@ PropertyAccess
 
   test_inClass_explicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 int get foo => 0;
 
@@ -270,7 +288,8 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
+    element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -278,14 +297,14 @@ PropertyAccess
 
   test_inClass_explicitThis_inDeclaration_augmentationDeclares_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   void foo() {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 int get foo => 0;
 
@@ -305,7 +324,8 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::foo
+    element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::foo#element
     staticType: void Function()
   staticType: void Function()
 ''');
@@ -334,6 +354,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');
@@ -363,7 +384,8 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@getter::foo
+    staticElement: <testLibraryFragment>::@class::A::@getter::foo
+    element: <testLibraryFragment>::@class::A::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -393,7 +415,8 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
+    element: <testLibraryFragment>::@class::A::@method::foo#element
     staticType: void Function(int)
   staticType: void Function(int)
 ''');
@@ -426,6 +449,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');
@@ -451,7 +475,8 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@getter::foo
+    staticElement: <testLibraryFragment>::@class::A::@getter::foo
+    element: <testLibraryFragment>::@class::A::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -477,7 +502,8 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
+    element: <testLibraryFragment>::@class::A::@method::foo#element
     staticType: void Function(int)
   staticType: void Function(int)
 ''');
@@ -503,7 +529,8 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@extensionType::A::@getter::foo
+    staticElement: <testLibraryFragment>::@extensionType::A::@getter::foo
+    element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -533,7 +560,8 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@getter::foo
+    staticElement: <testLibraryFragment>::@class::A::@getter::foo
+    element: <testLibraryFragment>::@class::A::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -557,9 +585,11 @@ PropertyAccess
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element: self::@class::A
+        element: <testLibraryFragment>::@class::A
+        element2: <testLibraryFragment>::@class::A#element
         type: A
-      staticElement: self::@class::A::@constructor::new
+      staticElement: <testLibraryFragment>::@class::A::@constructor::new
+      element: <testLibraryFragment>::@class::A::@constructor::new#element
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -567,7 +597,8 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@getter::foo
+    staticElement: <testLibraryFragment>::@class::A::@getter::foo
+    element: <testLibraryFragment>::@class::A::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -592,9 +623,11 @@ AssignmentExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element: self::@class::A
+          element: <testLibraryFragment>::@class::A
+          element2: <testLibraryFragment>::@class::A#element
           type: A
-        staticElement: self::@class::A::@constructor::new
+        staticElement: <testLibraryFragment>::@class::A::@constructor::new
+        element: <testLibraryFragment>::@class::A::@constructor::new#element
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -603,18 +636,22 @@ AssignmentExpression
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 1
-    parameter: dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
-  readElement: self::@class::A::@getter::foo
+  readElement: <testLibraryFragment>::@class::A::@getter::foo
+  readElement2: <testLibraryFragment>::@class::A::@getter::foo#element
   readType: int
-  writeElement: self::@class::A::@setter::foo
+  writeElement: <testLibraryFragment>::@class::A::@setter::foo
+  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
   writeType: int
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
+  element: dart:core::<fragment>::@class::num::@method::+#element
   staticType: int
 ''');
   }
@@ -638,9 +675,11 @@ AssignmentExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element: self::@class::A
+          element: <testLibraryFragment>::@class::A
+          element2: <testLibraryFragment>::@class::A#element
           type: A
-        staticElement: self::@class::A::@constructor::new
+        staticElement: <testLibraryFragment>::@class::A::@constructor::new
+        element: <testLibraryFragment>::@class::A::@constructor::new#element
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -649,18 +688,22 @@ AssignmentExpression
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    parameter: self::@class::A::@setter::foo::@parameter::_foo
+    parameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
-  writeElement: self::@class::A::@setter::foo
+  writeElement: <testLibraryFragment>::@class::A::@setter::foo
+  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -676,11 +719,13 @@ PropertyAccess
   target: SimpleIdentifier
     token: b
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   operator: ?.
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');
@@ -697,11 +742,13 @@ PropertyAccess
   target: SimpleIdentifier
     token: b
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   operator: ?.
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');
@@ -717,13 +764,14 @@ void f({a = b?..foo}) {}
 DefaultFormalParameter
   parameter: SimpleFormalParameter
     name: a
-    declaredElement: self::@function::f::@parameter::a
+    declaredElement: <testLibraryFragment>::@function::f::@parameter::a
       type: dynamic
   separator: =
   defaultValue: CascadeExpression
     target: SimpleIdentifier
       token: b
       staticElement: <null>
+      element: <null>
       staticType: InvalidType
     cascadeSections
       PropertyAccess
@@ -731,10 +779,11 @@ DefaultFormalParameter
         propertyName: SimpleIdentifier
           token: foo
           staticElement: <null>
+          element: <null>
           staticType: InvalidType
         staticType: InvalidType
     staticType: InvalidType
-  declaredElement: self::@function::f::@parameter::a
+  declaredElement: <testLibraryFragment>::@function::f::@parameter::a
     type: dynamic
 ''');
   }
@@ -756,21 +805,24 @@ void f(A? a) {
 CascadeExpression
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   cascadeSections
     PropertyAccess
       operator: ?..
       propertyName: SimpleIdentifier
         token: foo
-        staticElement: self::@class::A::@getter::foo
+        staticElement: <testLibraryFragment>::@class::A::@getter::foo
+        element: <testLibraryFragment>::@class::A::@getter::foo#element
         staticType: int
       staticType: int
     PropertyAccess
       operator: ..
       propertyName: SimpleIdentifier
         token: bar
-        staticElement: self::@class::A::@getter::bar
+        staticElement: <testLibraryFragment>::@class::A::@getter::bar
+        element: <testLibraryFragment>::@class::A::@getter::bar#element
         staticType: int
       staticType: int
   staticType: A?
@@ -796,9 +848,11 @@ CascadeExpression
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element: self::@class::A
+        element: <testLibraryFragment>::@class::A
+        element2: <testLibraryFragment>::@class::A#element
         type: A
-      staticElement: self::@class::A::@constructor::new
+      staticElement: <testLibraryFragment>::@class::A::@constructor::new
+      element: <testLibraryFragment>::@class::A::@constructor::new#element
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -809,13 +863,15 @@ CascadeExpression
         operator: ..
         propertyName: SimpleIdentifier
           token: foo
-          staticElement: self::@class::A::@getter::foo
+          staticElement: <testLibraryFragment>::@class::A::@getter::foo
+          element: <testLibraryFragment>::@class::A::@getter::foo#element
           staticType: int?
         staticType: int?
       operator: ?.
       propertyName: SimpleIdentifier
         token: isEven
-        staticElement: dart:core::@class::int::@getter::isEven
+        staticElement: dart:core::<fragment>::@class::int::@getter::isEven
+        element: dart:core::<fragment>::@class::int::@getter::isEven#element
         staticType: bool
       staticType: bool
   staticType: A
@@ -843,9 +899,11 @@ CascadeExpression
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element: self::@class::A
+        element: <testLibraryFragment>::@class::A
+        element2: <testLibraryFragment>::@class::A#element
         type: A
-      staticElement: self::@class::A::@constructor::new
+      staticElement: <testLibraryFragment>::@class::A::@constructor::new
+      element: <testLibraryFragment>::@class::A::@constructor::new#element
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -857,19 +915,22 @@ CascadeExpression
           operator: ..
           propertyName: SimpleIdentifier
             token: foo
-            staticElement: self::@class::A::@getter::foo
+            staticElement: <testLibraryFragment>::@class::A::@getter::foo
+            element: <testLibraryFragment>::@class::A::@getter::foo#element
             staticType: A?
           staticType: A?
         operator: ?.
         propertyName: SimpleIdentifier
           token: bar
-          staticElement: self::@class::A::@getter::bar
+          staticElement: <testLibraryFragment>::@class::A::@getter::bar
+          element: <testLibraryFragment>::@class::A::@getter::bar#element
           staticType: A?
         staticType: A?
       operator: ?.
       propertyName: SimpleIdentifier
         token: baz
-        staticElement: self::@class::A::@getter::baz
+        staticElement: <testLibraryFragment>::@class::A::@getter::baz
+        element: <testLibraryFragment>::@class::A::@getter::baz#element
         staticType: A?
       staticType: A?
   staticType: A
@@ -897,12 +958,14 @@ CascadeExpression
   target: PropertyAccess
     target: SimpleIdentifier
       token: foo
-      staticElement: self::@getter::foo
+      staticElement: <testLibraryFragment>::@getter::foo
+      element: <testLibraryFragment>::@getter::foo#element
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
       token: bar
-      staticElement: self::@class::A::@getter::bar
+      staticElement: <testLibraryFragment>::@class::A::@getter::bar
+      element: <testLibraryFragment>::@class::A::@getter::bar#element
       staticType: A
     staticType: A?
   cascadeSections
@@ -911,13 +974,15 @@ CascadeExpression
         operator: ?..
         propertyName: SimpleIdentifier
           token: baz
-          staticElement: self::@class::A::@getter::baz
+          staticElement: <testLibraryFragment>::@class::A::@getter::baz
+          element: <testLibraryFragment>::@class::A::@getter::baz#element
           staticType: A?
         staticType: A?
       operator: ?.
       propertyName: SimpleIdentifier
         token: baq
-        staticElement: self::@class::A::@getter::baq
+        staticElement: <testLibraryFragment>::@class::A::@getter::baq
+        element: <testLibraryFragment>::@class::A::@getter::baq#element
         staticType: A
       staticType: A
   staticType: A?
@@ -926,14 +991,14 @@ CascadeExpression
 
   test_ofClass_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   augment int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   int get foo => 0;
@@ -951,14 +1016,16 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+    element: <testLibraryFragment>::@class::A::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -966,14 +1033,14 @@ PropertyAccess
 
   test_ofClass_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 
@@ -989,14 +1056,16 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
+    element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -1016,7 +1085,8 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: dynamic
     rightParenthesis: )
     staticType: dynamic
@@ -1024,6 +1094,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: hash
     staticElement: <null>
+    element: <null>
     staticType: dynamic
   staticType: dynamic
 ''');
@@ -1043,14 +1114,16 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: dynamic
     rightParenthesis: )
     staticType: dynamic
   operator: .
   propertyName: SimpleIdentifier
     token: hashCode
-    staticElement: dart:core::@class::Object::@getter::hashCode
+    staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
+    element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
     staticType: int
   staticType: int
 ''');
@@ -1070,14 +1143,16 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: dynamic
     rightParenthesis: )
     staticType: dynamic
   operator: .
   propertyName: SimpleIdentifier
     token: runtimeType
-    staticElement: dart:core::@class::Object::@getter::runtimeType
+    staticElement: dart:core::<fragment>::@class::Object::@getter::runtimeType
+    element: dart:core::<fragment>::@class::Object::@getter::runtimeType#element
     staticType: Type
   staticType: Type
 ''');
@@ -1097,14 +1172,16 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: dynamic
     rightParenthesis: )
     staticType: dynamic
   operator: .
   propertyName: SimpleIdentifier
     token: toString
-    staticElement: dart:core::@class::Object::@method::toString
+    staticElement: dart:core::<fragment>::@class::Object::@method::toString
+    element: dart:core::<fragment>::@class::Object::@method::toString#element
     staticType: String Function()
   staticType: String Function()
 ''');
@@ -1129,14 +1206,16 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: e
-      staticElement: self::@function::f::@parameter::e
+      staticElement: <testLibraryFragment>::@function::f::@parameter::e
+      element: <testLibraryFragment>::@function::f::@parameter::e#element
       staticType: E
     rightParenthesis: )
     staticType: E
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@enum::E::@getter::foo
+    staticElement: <testLibraryFragment>::@enum::E::@getter::foo
+    element: <testLibraryFragment>::@enum::E::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -1164,14 +1243,16 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: e
-      staticElement: self::@function::f::@parameter::e
+      staticElement: <testLibraryFragment>::@function::f::@parameter::e
+      element: <testLibraryFragment>::@function::f::@parameter::e#element
       staticType: E
     rightParenthesis: )
     staticType: E
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@mixin::M::@getter::foo
+    staticElement: <testLibraryFragment>::@mixin::M::@getter::foo
+    element: <testLibraryFragment>::@mixin::M::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -1197,7 +1278,8 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: e
-        staticElement: self::@function::f::@parameter::e
+        staticElement: <testLibraryFragment>::@function::f::@parameter::e
+        element: <testLibraryFragment>::@function::f::@parameter::e#element
         staticType: E
       rightParenthesis: )
       staticType: E
@@ -1205,25 +1287,29 @@ AssignmentExpression
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    parameter: self::@enum::E::@setter::foo::@parameter::_
+    parameter: <testLibraryFragment>::@enum::E::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
-  writeElement: self::@enum::E::@setter::foo
+  writeElement: <testLibraryFragment>::@enum::E::@setter::foo
+  writeElement2: <testLibraryFragment>::@enum::E::@setter::foo#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
 
   test_ofExtension_augmentation_read() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment extension E {
   int get foo => 0;
@@ -1231,7 +1317,7 @@ augment extension E {
 ''');
 
     await assertNoErrorsInCode('''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 
@@ -1249,14 +1335,16 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@extensionAugmentation::E::@getter::foo
+    staticElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@getter::foo
+    element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -1264,7 +1352,7 @@ PropertyAccess
 
   test_ofExtension_augmentation_write() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment extension E {
   set foo(int _) {}
@@ -1272,7 +1360,7 @@ augment extension E {
 ''');
 
     await assertNoErrorsInCode('''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 
@@ -1291,7 +1379,8 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: a
-        staticElement: self::@function::f::@parameter::a
+        staticElement: <testLibraryFragment>::@function::f::@parameter::a
+        element: <testLibraryFragment>::@function::f::@parameter::a#element
         staticType: A
       rightParenthesis: )
       staticType: A
@@ -1299,25 +1388,29 @@ AssignmentExpression
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: self::@augmentation::package:test/a.dart::@extensionAugmentation::E::@setter::foo::@parameter::_
+    parameter: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
-  writeElement: self::@augmentation::package:test/a.dart::@extensionAugmentation::E::@setter::foo
+  writeElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@setter::foo
+  writeElement2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@setter::foo#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
 
   test_ofExtension_augmentationGeneric_read() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment extension E<U2> {
   U2 get foo => throw 0;
@@ -1325,7 +1418,7 @@ augment extension E<U2> {
 ''');
 
     await assertNoErrorsInCode('''
-import augment 'a.dart';
+part 'a.dart';
 
 class A<T> {}
 
@@ -1343,17 +1436,19 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A<int>
     rightParenthesis: )
     staticType: A<int>
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: PropertyAccessorMember
-      base: self::@augmentation::package:test/a.dart::@extensionAugmentation::E::@getter::foo
+    staticElement: GetterMember
+      base: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@getter::foo
       augmentationSubstitution: {U2: U1}
       substitution: {U1: int}
+    element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -1375,12 +1470,14 @@ void f((int, String) r) {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <testLibraryFragment>::@function::f::@parameter::r
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@extension::IntStringRecordExtension::@getter::foo
+    staticElement: <testLibraryFragment>::@extension::IntStringRecordExtension::@getter::foo
+    element: <testLibraryFragment>::@extension::IntStringRecordExtension::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -1402,14 +1499,16 @@ void f((int, String) r) {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <testLibraryFragment>::@function::f::@parameter::r
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: PropertyAccessorMember
-      base: self::@extension::BiRecordExtension::@getter::foo
+    staticElement: GetterMember
+      base: <testLibraryFragment>::@extension::BiRecordExtension::@getter::foo
       substitution: {T: int, U: String}
+    element: <testLibraryFragment>::@extension::BiRecordExtension::@getter::foo#element
     staticType: Map<int, String>
   staticType: Map<int, String>
 ''');
@@ -1435,9 +1534,11 @@ PropertyAccess
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element: self::@class::A
+        element: <testLibraryFragment>::@class::A
+        element2: <testLibraryFragment>::@class::A#element
         type: A
-      staticElement: self::@class::A::@constructor::new
+      staticElement: <testLibraryFragment>::@class::A::@constructor::new
+      element: <testLibraryFragment>::@class::A::@constructor::new#element
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -1445,7 +1546,8 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@extension::E::@getter::foo
+    staticElement: <testLibraryFragment>::@extension::E::@getter::foo
+    element: <testLibraryFragment>::@extension::E::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -1473,9 +1575,11 @@ AssignmentExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element: self::@class::A
+          element: <testLibraryFragment>::@class::A
+          element2: <testLibraryFragment>::@class::A#element
           type: A
-        staticElement: self::@class::A::@constructor::new
+        staticElement: <testLibraryFragment>::@class::A::@constructor::new
+        element: <testLibraryFragment>::@class::A::@constructor::new#element
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -1484,18 +1588,22 @@ AssignmentExpression
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 1
-    parameter: dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
-  readElement: self::@extension::E::@getter::foo
+  readElement: <testLibraryFragment>::@extension::E::@getter::foo
+  readElement2: <testLibraryFragment>::@extension::E::@getter::foo#element
   readType: int
-  writeElement: self::@extension::E::@setter::foo
+  writeElement: <testLibraryFragment>::@extension::E::@setter::foo
+  writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
   writeType: num
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
+  element: dart:core::<fragment>::@class::num::@method::+#element
   staticType: int
 ''');
   }
@@ -1521,9 +1629,11 @@ AssignmentExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element: self::@class::A
+          element: <testLibraryFragment>::@class::A
+          element2: <testLibraryFragment>::@class::A#element
           type: A
-        staticElement: self::@class::A::@constructor::new
+        staticElement: <testLibraryFragment>::@class::A::@constructor::new
+        element: <testLibraryFragment>::@class::A::@constructor::new#element
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -1532,18 +1642,22 @@ AssignmentExpression
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    parameter: self::@extension::E::@setter::foo::@parameter::_
+    parameter: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
-  writeElement: self::@extension::E::@setter::foo
+  writeElement: <testLibraryFragment>::@extension::E::@setter::foo
+  writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -1566,14 +1680,16 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@extensionType::A::@getter::foo
+    staticElement: <testLibraryFragment>::@extensionType::A::@getter::foo
+    element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -1595,14 +1711,16 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
   propertyName: SimpleIdentifier
     token: hashCode
-    staticElement: dart:core::@class::Object::@getter::hashCode
+    staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
+    element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
     staticType: int
   staticType: int
 ''');
@@ -1624,14 +1742,16 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
   propertyName: SimpleIdentifier
     token: hashCode
-    staticElement: dart:core::@class::Object::@getter::hashCode
+    staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
+    element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
     staticType: int
   staticType: int
 ''');
@@ -1655,7 +1775,8 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
@@ -1663,6 +1784,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');
@@ -1687,7 +1809,8 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: a
-        staticElement: self::@function::f::@parameter::a
+        staticElement: <testLibraryFragment>::@function::f::@parameter::a
+        element: <testLibraryFragment>::@function::f::@parameter::a#element
         staticType: A
       rightParenthesis: )
       staticType: A
@@ -1695,32 +1818,36 @@ AssignmentExpression
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: self::@extensionType::A::@setter::foo::@parameter::_
+    parameter: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
-  writeElement: self::@extensionType::A::@setter::foo
+  writeElement: <testLibraryFragment>::@extensionType::A::@setter::foo
+  writeElement2: <testLibraryFragment>::@extensionType::A::@setter::foo#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
 
   test_ofMixin_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment mixin A {
   augment int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 mixin A {
   int get foo => 0;
@@ -1738,14 +1865,16 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+    staticElement: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+    element: <testLibraryFragment>::@mixin::A::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -1753,14 +1882,14 @@ PropertyAccess
 
   test_ofMixin_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment mixin A {
   int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 mixin A {}
 
@@ -1776,14 +1905,16 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo
+    staticElement: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo
+    element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -1801,12 +1932,14 @@ void f(({int foo}) r) {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <testLibraryFragment>::@function::f::@parameter::r
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: ({int foo})
   operator: .
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: int
   staticType: int
 ''');
@@ -1828,12 +1961,14 @@ void f(({int foo}) r) {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <testLibraryFragment>::@function::f::@parameter::r
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: ({int foo})
   operator: .
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: int
   staticType: int
 ''');
@@ -1857,12 +1992,14 @@ void f() {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: package:test/a.dart::@getter::r
+    staticElement: package:test/a.dart::<fragment>::@getter::r
+    element: package:test/a.dart::<fragment>::@getter::r#element
     staticType: ({int foo})
   operator: .
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: int
   staticType: int
 ''');
@@ -1880,12 +2017,14 @@ void f(({int foo})? r) {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <testLibraryFragment>::@function::f::@parameter::r
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: ({int foo})?
   operator: ?.
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: int
   staticType: int?
 ''');
@@ -1903,12 +2042,14 @@ void f<T extends ({int foo})>(T r) {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <testLibraryFragment>::@function::f::@parameter::r
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: T
   operator: .
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: int
   staticType: int
 ''');
@@ -1926,12 +2067,14 @@ void f(({int foo}) r) {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <testLibraryFragment>::@function::f::@parameter::r
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: ({int foo})
   operator: .
   propertyName: SimpleIdentifier
     token: hashCode
-    staticElement: dart:core::@class::Object::@getter::hashCode
+    staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
+    element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
     staticType: int
   staticType: int
 ''');
@@ -1949,12 +2092,14 @@ void f((int, String) r) {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <testLibraryFragment>::@function::f::@parameter::r
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
     token: $1
     staticElement: <null>
+    element: <null>
     staticType: int
   staticType: int
 ''');
@@ -1976,12 +2121,14 @@ void f((int, String) r) {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <testLibraryFragment>::@function::f::@parameter::r
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
     token: $1
     staticElement: <null>
+    element: <null>
     staticType: int
   staticType: int
 ''');
@@ -1999,12 +2146,14 @@ void f((int, String) r) {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <testLibraryFragment>::@function::f::@parameter::r
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
     token: $2
     staticElement: <null>
+    element: <null>
     staticType: String
   staticType: String
 ''');
@@ -2026,12 +2175,14 @@ void f((int, String) r) {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <testLibraryFragment>::@function::f::@parameter::r
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
     token: $3
-    staticElement: self::@extension::0::@getter::$3
+    staticElement: <testLibraryFragment>::@extension::0::@getter::$3
+    element: <testLibraryFragment>::@extension::0::@getter::$3#element
     staticType: bool
   staticType: bool
 ''');
@@ -2051,12 +2202,14 @@ void f((int, String) r) {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <testLibraryFragment>::@function::f::@parameter::r
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
     token: $3
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');
@@ -2076,12 +2229,14 @@ void f((int, String) r) {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <testLibraryFragment>::@function::f::@parameter::r
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
     token: $0a
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');
@@ -2101,12 +2256,14 @@ void f((int, String) r) {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <testLibraryFragment>::@function::f::@parameter::r
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
     token: $zero
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');
@@ -2130,12 +2287,14 @@ void f() {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: package:test/a.dart::@getter::r
+    staticElement: package:test/a.dart::<fragment>::@getter::r
+    element: package:test/a.dart::<fragment>::@getter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
     token: $1
     staticElement: <null>
+    element: <null>
     staticType: int
   staticType: int
 ''');
@@ -2155,12 +2314,14 @@ void f((int, String) r) {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <testLibraryFragment>::@function::f::@parameter::r
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
     token: a$0
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');
@@ -2178,12 +2339,14 @@ void f<T extends (int, String)>(T r) {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <testLibraryFragment>::@function::f::@parameter::r
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: T
   operator: .
   propertyName: SimpleIdentifier
     token: $1
     staticElement: <null>
+    element: <null>
     staticType: int
   staticType: int
 ''');
@@ -2203,12 +2366,14 @@ void f(({int foo}) r) {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <testLibraryFragment>::@function::f::@parameter::r
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: ({int foo})
   operator: .
   propertyName: SimpleIdentifier
     token: bar
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');
@@ -2230,12 +2395,14 @@ void f((int foo, String) r) {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <testLibraryFragment>::@function::f::@parameter::r
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');
@@ -2258,7 +2425,8 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: x
-      staticElement: self::@function::f::@parameter::x
+      staticElement: <testLibraryFragment>::@function::f::@parameter::x
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -2277,7 +2445,8 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: isEven
-    staticElement: dart:core::@class::int::@getter::isEven
+    staticElement: dart:core::<fragment>::@class::int::@getter::isEven
+    element: dart:core::<fragment>::@class::int::@getter::isEven#element
     staticType: bool
   staticType: bool
 ''');
@@ -2305,7 +2474,8 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@getter::foo
+    staticElement: <testLibraryFragment>::@class::A::@getter::foo
+    element: <testLibraryFragment>::@class::A::@getter::foo#element
     staticType: int
   staticType: int
 ''');
@@ -2335,18 +2505,22 @@ AssignmentExpression
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 1
-    parameter: dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
-  readElement: self::@class::A::@getter::foo
+  readElement: <testLibraryFragment>::@class::A::@getter::foo
+  readElement2: <testLibraryFragment>::@class::A::@getter::foo#element
   readType: int
-  writeElement: self::@class::A::@setter::foo
+  writeElement: <testLibraryFragment>::@class::A::@setter::foo
+  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
   writeType: int
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
+  element: dart:core::<fragment>::@class::num::@method::+#element
   staticType: int
 ''');
   }
@@ -2375,18 +2549,22 @@ AssignmentExpression
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    parameter: self::@class::A::@setter::foo::@parameter::_foo
+    parameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
-  writeElement: self::@class::A::@setter::foo
+  writeElement: <testLibraryFragment>::@class::A::@setter::foo
+  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -2407,7 +2585,8 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: t
-      staticElement: self::@class::A::@method::f::@parameter::t
+      staticElement: <testLibraryFragment>::@class::A::@method::f::@parameter::t
+      element: <testLibraryFragment>::@class::A::@method::f::@parameter::t#element
       staticType: T
     rightParenthesis: )
     staticType: T
@@ -2415,6 +2594,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: dynamic
   staticType: dynamic
 ''');
@@ -2439,7 +2619,8 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: t
-      staticElement: self::@class::C::@method::f::@parameter::t
+      staticElement: <testLibraryFragment>::@class::C::@method::f::@parameter::t
+      element: <testLibraryFragment>::@class::C::@method::f::@parameter::t#element
       staticType: T
     rightParenthesis: )
     staticType: T
@@ -2447,6 +2628,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');
@@ -2485,6 +2667,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: a
       staticElement: <null>
+      element: <null>
       staticType: InvalidType
     rightParenthesis: )
     staticType: InvalidType
@@ -2492,6 +2675,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');

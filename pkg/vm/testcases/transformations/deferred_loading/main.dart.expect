@@ -18,6 +18,8 @@ LoadingUnit(id=1, parent=0,
   dart:ffi
   dart:developer
   dart:convert
+  dart:concurrent
+  dart:_compact_hash
   dart:collection
   dart:async
   #pkg/vm/testcases/transformations/deferred_loading/c.dart

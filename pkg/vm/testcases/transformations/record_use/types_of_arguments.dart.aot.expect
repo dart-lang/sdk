@@ -1,0 +1,36 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+abstract class SomeClass extends core::Object {
+
+  [@vm.inferred-return-type.metadata=!]
+  @#C1
+  static method someStaticMethod(core::Object? a) → core::String
+    return [@vm.direct-call.metadata=dart.core::_AbstractType.toString] [@vm.inferred-type.metadata=! (skip check)] [@vm.inferred-type.metadata=!] a.{core::Object::runtimeType}{<object>}.{core::Type}.{core::Type::toString}(){() → core::String};
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(42));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(null));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod("s"));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(true));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(#C10));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod([@vm.direct-call.metadata=dart.core::_GrowableList.first] [@vm.inferred-type.metadata=dart.core::bool] [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::bool>] core::_GrowableList::_literal2<core::bool>(true, false).{core::Iterable::first}{core::bool}));
+}
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = "a"
+  #C3 = "a1"
+  #C4 = "a2"
+  #C5 = <core::String>[#C3, #C4]
+  #C6 = "b"
+  #C7 = "b1"
+  #C8 = "b2"
+  #C9 = <core::String>[#C7, #C8]
+  #C10 = <core::String, core::List<core::String>>{#C2:#C5, #C6:#C9}
+}

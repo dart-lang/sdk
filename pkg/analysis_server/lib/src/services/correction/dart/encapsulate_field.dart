@@ -5,9 +5,11 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class EncapsulateField extends ResolvedCorrectionProducer {
@@ -48,7 +50,8 @@ class EncapsulateField extends ResolvedCorrectionProducer {
     }
     var field = fields.first;
     var nameToken = field.name;
-    var fieldElement = field.declaredElement as FieldElement;
+    var fieldFragment = field.declaredFragment as FieldFragment;
+    var fieldElement = fieldFragment.element;
     // should have a public name
     var name = nameToken.lexeme;
     if (Identifier.isPrivateName(name)) {
@@ -61,56 +64,44 @@ class EncapsulateField extends ResolvedCorrectionProducer {
 
     // Should be in a class or mixin.
     List<ClassMember> classMembers;
+    InterfaceElement2 parentElement;
     var parent = fieldDeclaration.parent;
-    if (parent is ClassDeclaration) {
-      classMembers = parent.members;
-    } else if (parent is MixinDeclaration) {
-      classMembers = parent.members;
-    } else {
-      return;
+    switch (parent) {
+      case ClassDeclaration():
+        classMembers = parent.members;
+        parentElement = parent.declaredFragment!.element;
+      case MixinDeclaration():
+        classMembers = parent.members;
+        parentElement = parent.declaredFragment!.element;
+      default:
+        return;
     }
 
     await builder.addDartFileEdit(file, (builder) {
+      // Remove all annotations from the field.
+      var metadata = fieldDeclaration.metadata;
+      if (metadata.isNotEmpty) {
+        var nodeRange = range.startEnd(metadata.first, metadata.last);
+        var linesRange = utils.getLinesRange(nodeRange);
+        builder.addDeletion(linesRange);
+      }
       // rename field
       builder.addSimpleReplacement(range.token(nameToken), '_$name');
-      // update references in constructors
-      for (var constructor in classMembers) {
-        if (constructor is ConstructorDeclaration) {
-          for (var parameter in constructor.parameters.parameters) {
-            var identifier = parameter.name;
-            var parameterElement = parameter.declaredElement;
-            if (identifier != null &&
-                parameterElement is FieldFormalParameterElement &&
-                parameterElement.field == fieldElement) {
-              if (parameter.isNamed && parameter is DefaultFormalParameter) {
-                var normalParam = parameter.parameter;
-                if (normalParam is FieldFormalParameter) {
-                  var start = normalParam.thisKeyword;
-                  var type = parameterElement.type.getDisplayString();
-                  builder.addSimpleReplacement(
-                      range.startEnd(start, normalParam.period), '$type ');
 
-                  var previous =
-                      constructor.separator ?? constructor.parameters;
-                  var replacement = constructor.initializers.isEmpty
-                      ? ' : _$name = $name'
-                      : ' _$name = $name,';
-                  builder.addSimpleInsertion(previous.end, replacement);
-                  break;
-                }
-              }
-              builder.addSimpleReplacement(range.token(identifier), '_$name');
-            }
-          }
-          for (var initializer in constructor.initializers) {
-            if (initializer is ConstructorFieldInitializer &&
-                initializer.fieldName.staticElement == fieldElement) {
-              builder.addSimpleReplacement(
-                  range.node(initializer.fieldName), '_$name');
-            }
-          }
-        }
+      String fieldTypeCode;
+      var type = fieldDeclaration.fields.type;
+      if (type == null) {
+        fieldTypeCode = '';
+      } else {
+        fieldTypeCode = utils.getNodeText(type);
       }
+      _updateReferencesInConstructors(
+        builder,
+        classMembers,
+        fieldElement,
+        name,
+        fieldTypeCode,
+      );
 
       // Write getter and setter.
       builder.addInsertion(fieldDeclaration.end, (builder) {
@@ -126,26 +117,108 @@ class EncapsulateField extends ResolvedCorrectionProducer {
           typeCode = '${utils.getNodeText(typeAnnotation)} ';
         }
 
-        // Write getter.
-        builder.writeln();
-        builder.writeln();
-        if (docCode != null) {
-          builder.write('  ');
-          builder.writeln(docCode);
+        void writeHeader(bool preserveOverride) {
+          builder.writeln();
+          builder.writeln();
+          if (docCode != null) {
+            builder.write('  ');
+            builder.writeln(docCode);
+          }
+
+          for (var annotation in metadata) {
+            var elementAnnotation = annotation.elementAnnotation;
+            if (elementAnnotation == null ||
+                !elementAnnotation.isOverride ||
+                preserveOverride) {
+              var nodeRange = range.node(annotation);
+              var rangeText = utils.getRangeText(nodeRange);
+              builder.writeln('  $rangeText');
+            }
+          }
         }
+
+        // Write getter.
+        var overriddenGetters = inheritanceManager.getOverridden4(
+          parentElement,
+          Name(null, name),
+        );
+        writeHeader(overriddenGetters != null);
         builder.write('  ${typeCode}get $name => _$name;');
 
         // Write setter.
-        builder.writeln();
-        builder.writeln();
-        if (docCode != null) {
-          builder.write('  ');
-          builder.writeln(docCode);
-        }
+        var overriddenSetters = inheritanceManager.getOverridden4(
+          parentElement,
+          Name(null, '$name='),
+        );
+        writeHeader(overriddenSetters != null);
         builder.writeln('  set $name(${typeCode}value) {');
         builder.writeln('    _$name = value;');
         builder.write('  }');
       });
     });
+  }
+
+  void _updateReferencesInConstructor(
+    DartFileEditBuilder builder,
+    ConstructorDeclaration constructor,
+    FieldElement2 fieldElement,
+    String name,
+    String fieldTypeCode,
+  ) {
+    for (var parameter in constructor.parameters.parameters) {
+      var identifier = parameter.name;
+      var parameterElement = parameter.declaredFragment?.element;
+      if (identifier != null &&
+          parameterElement is FieldFormalParameterElement2 &&
+          parameterElement.field2 == fieldElement) {
+        if (parameter.isNamed && parameter is DefaultFormalParameter) {
+          var normalParam = parameter.parameter;
+          if (normalParam is FieldFormalParameter) {
+            var start = normalParam.thisKeyword;
+            builder.addSimpleReplacement(
+              range.startEnd(start, normalParam.period),
+              fieldTypeCode.isNotEmpty ? '$fieldTypeCode ' : '',
+            );
+
+            var previous = constructor.separator ?? constructor.parameters;
+            var replacement = constructor.initializers.isEmpty
+                ? ' : _$name = $name'
+                : ' _$name = $name,';
+            builder.addSimpleInsertion(previous.end, replacement);
+            break;
+          }
+        }
+        builder.addSimpleReplacement(range.token(identifier), '_$name');
+      }
+    }
+    for (var initializer in constructor.initializers) {
+      if (initializer is ConstructorFieldInitializer &&
+          initializer.fieldName.element == fieldElement) {
+        builder.addSimpleReplacement(
+          range.node(initializer.fieldName),
+          '_$name',
+        );
+      }
+    }
+  }
+
+  void _updateReferencesInConstructors(
+    DartFileEditBuilder builder,
+    List<ClassMember> classMembers,
+    FieldElement2 fieldElement,
+    String name,
+    String fieldTypeCode,
+  ) {
+    for (var constructor in classMembers) {
+      if (constructor is ConstructorDeclaration) {
+        _updateReferencesInConstructor(
+          builder,
+          constructor,
+          fieldElement,
+          name,
+          fieldTypeCode,
+        );
+      }
+    }
   }
 }

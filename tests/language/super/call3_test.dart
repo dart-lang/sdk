@@ -25,11 +25,11 @@ class B2 extends A {
   B2();
 //^^
 // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS
-// [cfe] The superclass, 'A', has no unnamed constructor that takes no arguments.
+// [cfe] The implicitly called unnamed constructor from 'A' has required parameters.
   B2.named() : this.x = 499;
 //^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS
-// [cfe] The superclass, 'A', has no unnamed constructor that takes no arguments.
+// [cfe] The implicitly called unnamed constructor from 'A' has required parameters.
   var x;
 }
 

@@ -140,7 +140,7 @@ ClassBuilder? lookupClassBuilder(
   LibraryBuilder libraryBuilder = lookupLibraryBuilder(
       compilerResult, cls.enclosingLibrary,
       required: required)!;
-  ClassBuilder? clsBuilder = libraryBuilder.scope
+  ClassBuilder? clsBuilder = libraryBuilder.libraryNameSpace
       .lookupLocalMember(cls.name, setter: false) as ClassBuilder?;
   if (clsBuilder == null && required) {
     throw new ArgumentError("ClassBuilder for $cls not found.");
@@ -155,7 +155,8 @@ ExtensionBuilder? lookupExtensionBuilder(
       compilerResult, extension.enclosingLibrary,
       required: required)!;
   ExtensionBuilder? extensionBuilder;
-  libraryBuilder.scope.forEachLocalExtension((ExtensionBuilder builder) {
+  libraryBuilder.libraryNameSpace
+      .forEachLocalExtension((ExtensionBuilder builder) {
     if (builder.extension == extension) {
       extensionBuilder = builder;
     }
@@ -176,10 +177,9 @@ MemberBuilder? lookupClassMemberBuilder(InternalCompilerResult compilerResult,
   MemberBuilder? memberBuilder;
   if (classBuilder != null) {
     if (member is Constructor || member is Procedure && member.isFactory) {
-      memberBuilder =
-          classBuilder.constructorScope.lookupLocalMember(memberName);
+      memberBuilder = classBuilder.nameSpace.lookupConstructor(memberName);
     } else {
-      memberBuilder = classBuilder.scope.lookupLocalMember(memberName,
+      memberBuilder = classBuilder.nameSpace.lookupLocalMember(memberName,
           setter: member is Procedure && member.isSetter) as MemberBuilder?;
     }
   }
@@ -218,7 +218,8 @@ MemberBuilder? lookupMemberBuilder(
     LibraryBuilder libraryBuilder = lookupLibraryBuilder(
         compilerResult, member.enclosingLibrary,
         required: required)!;
-    memberBuilder = libraryBuilder.scope.lookupLocalMember(member.name.text,
+    memberBuilder = libraryBuilder.libraryNameSpace.lookupLocalMember(
+        member.name.text,
         setter: member is Procedure && member.isSetter) as MemberBuilder?;
   }
   if (memberBuilder == null && required) {
@@ -240,7 +241,7 @@ MemberBuilder? lookupExtensionMemberBuilder(
       lookupExtensionBuilder(compilerResult, extension, required: required);
   MemberBuilder? memberBuilder;
   if (extensionBuilder != null) {
-    memberBuilder = extensionBuilder.scope
+    memberBuilder = extensionBuilder.nameSpace
         .lookupLocalMember(memberName, setter: isSetter) as MemberBuilder?;
   }
   if (memberBuilder == null && required) {
@@ -754,31 +755,8 @@ String typeParameterToText(TypeParameter typeParameter) {
 /// Returns a textual representation of the [type] to be used in testing.
 String typeBuilderToText(TypeBuilder type) {
   StringBuffer sb = new StringBuffer();
-  _typeBuilderToText(type, sb);
+  type.printOn(sb);
   return sb.toString();
-}
-
-void _typeBuilderToText(TypeBuilder type, StringBuffer sb) {
-  if (type is NamedTypeBuilder) {
-    TypeName typeName = type.typeName;
-    sb.write(typeName.name);
-    if (type.typeArguments != null && type.typeArguments!.isNotEmpty) {
-      sb.write('<');
-      _typeBuildersToText(type.typeArguments!, sb);
-      sb.write('>');
-    }
-  } else {
-    throw 'Unhandled type builder $type (${type.runtimeType})';
-  }
-}
-
-void _typeBuildersToText(Iterable<TypeBuilder> types, StringBuffer sb) {
-  String comma = '';
-  for (TypeBuilder type in types) {
-    sb.write(comma);
-    _typeBuilderToText(type, sb);
-    comma = ',';
-  }
 }
 
 /// Returns a textual representation of the [typeVariable] to be used in

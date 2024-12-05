@@ -82,7 +82,8 @@ class CreateMixin extends ResolvedCorrectionProducer {
       filePath = file;
       prefix = '$eol$eol';
     } else {
-      for (var import in libraryElement.libraryImports) {
+      for (var import
+          in libraryElement.definingCompilationUnit.libraryImports) {
         if (prefixElement is PrefixElement &&
             import.prefix?.element == prefixElement) {
           var library = import.importedLibrary;

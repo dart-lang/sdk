@@ -7,7 +7,14 @@ import '../scanner/token.dart';
 import 'parser_impl.dart';
 
 class DirectiveContext {
+  /// Whether the `enhanced-parts` feature is enabled.
+  final bool enableFeatureEnhancedParts;
+
   DirectiveState state = DirectiveState.Unknown;
+
+  DirectiveContext({
+    required this.enableFeatureEnhancedParts,
+  });
 
   void checkScriptTag(Parser parser, Token token) {
     if (state == DirectiveState.Unknown) {
@@ -26,32 +33,42 @@ class DirectiveContext {
   }
 
   void checkExport(Parser parser, Token token) {
-    if (state.index <= DirectiveState.ImportAndExport.index) {
-      state = DirectiveState.ImportAndExport;
-      return;
-    }
-    // Recovery
-    if (state == DirectiveState.Part) {
-      parser.reportRecoverableError(token, messageExportAfterPart);
-    } else if (state == DirectiveState.PartOf) {
-      parser.reportRecoverableError(token, messageNonPartOfDirectiveInPart);
-    } else {
-      parser.reportRecoverableError(token, messageDirectiveAfterDeclaration);
+    switch (state) {
+      case DirectiveState.Unknown:
+      case DirectiveState.Script:
+      case DirectiveState.Library:
+      case DirectiveState.ImportAndExport:
+        state = DirectiveState.ImportAndExport;
+      case DirectiveState.Part:
+        parser.reportRecoverableError(token, messageExportAfterPart);
+      case DirectiveState.PartOf:
+        if (enableFeatureEnhancedParts) {
+          state = DirectiveState.ImportAndExport;
+        } else {
+          parser.reportRecoverableError(token, messageNonPartOfDirectiveInPart);
+        }
+      case DirectiveState.Declarations:
+        parser.reportRecoverableError(token, messageDirectiveAfterDeclaration);
     }
   }
 
   void checkImport(Parser parser, Token token) {
-    if (state.index <= DirectiveState.ImportAndExport.index) {
-      state = DirectiveState.ImportAndExport;
-      return;
-    }
-    // Recovery
-    if (state == DirectiveState.Part) {
-      parser.reportRecoverableError(token, messageImportAfterPart);
-    } else if (state == DirectiveState.PartOf) {
-      parser.reportRecoverableError(token, messageNonPartOfDirectiveInPart);
-    } else {
-      parser.reportRecoverableError(token, messageDirectiveAfterDeclaration);
+    switch (state) {
+      case DirectiveState.Unknown:
+      case DirectiveState.Script:
+      case DirectiveState.Library:
+      case DirectiveState.ImportAndExport:
+        state = DirectiveState.ImportAndExport;
+      case DirectiveState.Part:
+        parser.reportRecoverableError(token, messageImportAfterPart);
+      case DirectiveState.PartOf:
+        if (enableFeatureEnhancedParts) {
+          state = DirectiveState.ImportAndExport;
+        } else {
+          parser.reportRecoverableError(token, messageNonPartOfDirectiveInPart);
+        }
+      case DirectiveState.Declarations:
+        parser.reportRecoverableError(token, messageDirectiveAfterDeclaration);
     }
   }
 
@@ -71,15 +88,21 @@ class DirectiveContext {
   }
 
   void checkPart(Parser parser, Token token) {
-    if (state.index <= DirectiveState.Part.index) {
-      state = DirectiveState.Part;
-      return;
-    }
-    // Recovery
-    if (state == DirectiveState.PartOf) {
-      parser.reportRecoverableError(token, messageNonPartOfDirectiveInPart);
-    } else {
-      parser.reportRecoverableError(token, messageDirectiveAfterDeclaration);
+    switch (state) {
+      case DirectiveState.Unknown:
+      case DirectiveState.Script:
+      case DirectiveState.Library:
+      case DirectiveState.ImportAndExport:
+      case DirectiveState.Part:
+        state = DirectiveState.Part;
+      case DirectiveState.PartOf:
+        if (enableFeatureEnhancedParts) {
+          state = DirectiveState.ImportAndExport;
+        } else {
+          parser.reportRecoverableError(token, messageNonPartOfDirectiveInPart);
+        }
+      case DirectiveState.Declarations:
+        parser.reportRecoverableError(token, messageDirectiveAfterDeclaration);
     }
   }
 

@@ -54,8 +54,8 @@ class A {
 
   test_class_augmentation_augmentsConstructor2_2of2() async {
     newFile(testFile.path, r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 
 class A {
   final int f1;
@@ -65,7 +65,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   augment A() : f1 = 0;
@@ -73,7 +73,7 @@ augment class A {
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   augment A() : f2 = 0;
@@ -92,7 +92,7 @@ augment class A {
 
   test_class_augmentation_augmentsConstructor_1of1() async {
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   final int f;
@@ -101,7 +101,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   augment A() : f = 0;
@@ -117,7 +117,7 @@ augment class A {
 
   test_class_augmentation_augmentsConstructor_1of2() async {
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   final int f1;
@@ -127,7 +127,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   augment A() : f1 = 0;
@@ -138,7 +138,7 @@ augment class A {
     assertErrorsInResult([
       error(
         CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
-        70,
+        60,
         1,
         messageContains: ['f2'],
       ),
@@ -150,7 +150,7 @@ augment class A {
 
   test_class_augmentation_augmentsConstructor_noInitializers() async {
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   final int f;
@@ -159,7 +159,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   augment A();
@@ -175,7 +175,7 @@ augment class A {
 
   test_class_augmentation_declaresConstructor_noInitializers() async {
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   final int f;
@@ -183,7 +183,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   A();
@@ -195,7 +195,7 @@ augment class A {
 
     await resolveFile2(a);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 50, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 42, 1),
     ]);
   }
 

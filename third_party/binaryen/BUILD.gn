@@ -40,6 +40,15 @@ config("binaryen_flags") {
     }
   }
 
+  if (is_clang && is_win) {
+    # Temporary workaround binaryen issue, see
+    # https://github.com/WebAssembly/binaryen/pull/6796#issuecomment-2285530122
+    #
+    # We forcefully `#include <intrin.h>` thereby ensuring the `_castu32_f32`
+    # function is available
+    cflags += [ "/FIintrin.h" ]
+  }
+
   if (is_win) {
     libs = [ "shell32.lib" ]
   }
@@ -102,6 +111,7 @@ source_set("binaryen_sources") {
 
   include_dirs = [
     "src/src",
+    "src/third_party/FP16/include",
     "src/third_party/llvm-project/include",
   ]
 
@@ -128,7 +138,10 @@ template("wasm_tool") {
                               target_name,
                               ".cpp",
                             ]) ]
-    include_dirs = [ "src/src" ]
+    include_dirs = [
+      "src/src",
+      "src/third_party/FP16/include",
+    ]
     deps = [ ":binaryen_sources" ]
     forward_variables_from(invoker, "*")
 

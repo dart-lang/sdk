@@ -8,10 +8,10 @@ library;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 static field core::Set<core::int> a = block {
-  final core::Set<core::int> #t1 = new col::_Set::•<core::int>();
+  final core::Set<core::int> #t1 = new _co::_Set::•<core::int>();
   #t1.{core::Set::add}{Invariant}(0){(core::int) → core::bool};
 } =>#t1;
 static field core::Map<core::int, core::int> b = <core::int, core::int>{0: 1};

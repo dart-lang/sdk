@@ -111,12 +111,18 @@ class IncrementalCompiler {
     }
 
     // TODO(vegorov) this needs to merge metadata repositories from deltas.
-    return new IncrementalCompilerResult(
+    final result = new IncrementalCompilerResult(
         new Component(
             libraries: combined.values.toList(), uriToSource: uriToSource)
           ..setMainMethodAndMode(mainMethod?.reference, true, compilationMode),
         classHierarchy: classHierarchy,
         coreTypes: coreTypes);
+    if (_pendingDeltas.length == 1) {
+      // With only one delta to "merge" we can copy over the metadata.
+      result.component.metadata
+          .addAll(_pendingDeltas.single.component.metadata);
+    }
+    return result;
   }
 
   /// This lets incremental compiler know that results of last [compile] call

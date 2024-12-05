@@ -9,7 +9,7 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase, ClassHierarchyMembers;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart' show equalsName;
-import 'package:kernel/reference_from_index.dart' show IndexedContainer;
+import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/types.dart' show Types;
 import 'package:kernel/type_algebra.dart'
@@ -21,6 +21,7 @@ import 'package:kernel/type_algebra.dart'
         updateBoundNullabilities;
 import 'package:kernel/type_environment.dart';
 
+import '../base/name_space.dart';
 import '../base/problems.dart' show unexpected, unhandled, unimplemented;
 import '../base/scope.dart';
 import '../builder/augmentation_iterator.dart';
@@ -35,34 +36,33 @@ import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/void_type_declaration_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
-import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
 import '../kernel/utils.dart' show compareProcedures;
-import '../util/helpers.dart';
 import 'class_declaration.dart';
+import 'name_scheme.dart';
 import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
+import 'source_loader.dart';
 import 'source_member_builder.dart';
+import 'type_parameter_scope_builder.dart';
 
 Class initializeClass(
-    Class? cls,
     List<NominalVariableBuilder>? typeVariables,
     String name,
-    SourceLibraryBuilder parent,
+    Uri fileUri,
     int startCharOffset,
     int charOffset,
     int charEndOffset,
-    IndexedContainer? referencesFrom,
+    IndexedClass? indexedClass,
     {required bool isAugmentation}) {
-  cls ??= new Class(
+  Class cls = new Class(
       name: name,
       typeParameters:
           NominalVariableBuilder.typeParametersFromBuilders(typeVariables),
@@ -70,8 +70,8 @@ Class initializeClass(
       // from index even when available.
       // TODO(johnniwinther): Avoid creating [Class] so early in the builder
       // that we end up creating unneeded nodes.
-      reference: isAugmentation ? null : referencesFrom?.reference,
-      fileUri: parent.fileUri);
+      reference: isAugmentation ? null : indexedClass?.reference,
+      fileUri: fileUri);
   if (cls.startFileOffset == TreeNode.noOffset) {
     cls.startFileOffset = startCharOffset;
   }
@@ -87,11 +87,25 @@ Class initializeClass(
 
 class SourceClassBuilder extends ClassBuilderImpl
     with ClassDeclarationMixin, SourceTypedDeclarationBuilderMixin
-    implements Comparable<SourceClassBuilder>, ClassDeclaration {
+    implements
+        Comparable<SourceClassBuilder>,
+        ClassDeclaration,
+        SourceDeclarationBuilder {
   final Class actualCls;
+
+  final DeclarationNameSpaceBuilder nameSpaceBuilder;
+
+  late final LookupScope _scope;
+
+  late final DeclarationNameSpace _nameSpace;
+
+  late final ConstructorScope _constructorScope;
 
   @override
   List<NominalVariableBuilder>? typeVariables;
+
+  /// The scope in which the [typeParameters] are declared.
+  final LookupScope typeParameterScope;
 
   @override
   TypeBuilder? supertypeBuilder;
@@ -108,7 +122,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   TypeBuilder? mixedInTypeBuilder;
 
-  final IndexedContainer? indexedContainer;
+  final IndexedClass? indexedClass;
 
   @override
   final bool isMacro;
@@ -143,9 +157,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void set isConflictingAugmentationMember(bool value) {
-    assert(
-        _isConflictingAugmentationMember == null,
-        // Coverage-ignore(suite): Not run.
+    assert(_isConflictingAugmentationMember == null,
         '$this.isConflictingAugmentationMember has already been fixed.');
     _isConflictingAugmentationMember = value;
   }
@@ -162,16 +174,16 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.supertypeBuilder,
       this.interfaceBuilders,
       this.onTypes,
-      Scope scope,
-      ConstructorScope constructors,
+      this.typeParameterScope,
+      this.nameSpaceBuilder,
       SourceLibraryBuilder parent,
       this.constructorReferences,
+      Uri fileUri,
       int startCharOffset,
       int nameOffset,
       int charEndOffset,
-      this.indexedContainer,
-      {Class? cls,
-      this.mixedInTypeBuilder,
+      this.indexedClass,
+      {this.mixedInTypeBuilder,
       this.isMixinDeclaration = false,
       this.isMacro = false,
       this.isSealed = false,
@@ -180,13 +192,39 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.isFinal = false,
       bool isAugmentation = false,
       this.isMixinClass = false})
-      : actualCls = initializeClass(cls, typeVariables, name, parent,
-            startCharOffset, nameOffset, charEndOffset, indexedContainer,
+      : actualCls = initializeClass(typeVariables, name, fileUri,
+            startCharOffset, nameOffset, charEndOffset, indexedClass,
             isAugmentation: isAugmentation),
         isAugmentation = isAugmentation,
-        super(metadata, modifiers, name, scope, constructors, parent,
-            nameOffset) {
+        super(metadata, modifiers, name, parent, fileUri, nameOffset) {
     actualCls.hasConstConstructor = declaresConstConstructor;
+  }
+
+  @override
+  LookupScope get scope => _scope;
+
+  @override
+  DeclarationNameSpace get nameSpace => _nameSpace;
+
+  @override
+  ConstructorScope get constructorScope => _constructorScope;
+
+  @override
+  void buildScopes(LibraryBuilder coreLibrary) {
+    _nameSpace = nameSpaceBuilder.buildNameSpace(
+        loader: libraryBuilder.loader,
+        problemReporting: libraryBuilder,
+        enclosingLibraryBuilder: libraryBuilder,
+        declarationBuilder: this,
+        indexedLibrary: libraryBuilder.indexedLibrary,
+        indexedContainer: indexedClass,
+        containerType: ContainerType.Class,
+        containerName: new ClassName(name));
+    _scope = new NameSpaceLookupScope(
+        _nameSpace, ScopeKind.declaration, "class $name",
+        parent: typeParameterScope);
+    _constructorScope =
+        new DeclarationNameSpaceConstructorScope(name, _nameSpace);
   }
 
   MergedClassMemberScope get mergedScope => _mergedScope ??= isAugmenting
@@ -211,7 +249,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       super.libraryBuilder as SourceLibraryBuilder;
 
   Class build(LibraryBuilder coreLibrary) {
-    SourceLibraryBuilder.checkMemberConflicts(libraryBuilder, scope,
+    SourceLibraryBuilder.checkMemberConflicts(libraryBuilder, nameSpace,
         // These checks are performed as part of the class hierarchy
         // computation.
         checkForInstanceVsStaticConflict: false,
@@ -249,8 +287,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    scope.unfilteredIterator.forEach(buildBuilders);
-    constructorScope.unfilteredIterator.forEach(buildBuilders);
+    nameSpace.unfilteredIterator.forEach(buildBuilders);
+    nameSpace.unfilteredConstructorIterator.forEach(buildBuilders);
     if (supertypeBuilder != null) {
       supertypeBuilder = _checkSupertype(supertypeBuilder!);
     }
@@ -293,9 +331,6 @@ class SourceClassBuilder extends ClassBuilderImpl
       mixedInTypeBuilder = null;
       actualCls.isAnonymousMixin = false;
       isMixinDeclaration = false;
-    }
-    if (mixedInType == null && mixedInTypeBuilder is! NamedTypeBuilder) {
-      mixedInTypeBuilder = null;
     }
     actualCls.isMixinDeclaration = isMixinDeclaration;
     actualCls.mixedInType = mixedInType;
@@ -353,14 +388,12 @@ class SourceClassBuilder extends ClassBuilderImpl
         inConstFields: inConstFields);
   }
 
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     void build(Builder declaration) {
       SourceMemberBuilder member = declaration as SourceMemberBuilder;
       member.buildOutlineExpressions(
-          classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
+          classHierarchy, delayedDefaultValueCloners);
     }
 
     MetadataBuilder.buildAnnotations(
@@ -383,16 +416,15 @@ class SourceClassBuilder extends ClassBuilderImpl
                 inMetadata: true,
                 inConstFields: false),
             classHierarchy,
-            delayedActionPerformers,
-            scope.parent!);
+            typeParameterScope);
       }
     }
 
-    constructorScope
-        .filteredIterator(
+    nameSpace
+        .filteredConstructorIterator(
             parent: this, includeDuplicates: false, includeAugmentations: true)
         .forEach(build);
-    scope
+    nameSpace
         .filteredIterator(
             parent: this, includeDuplicates: false, includeAugmentations: true)
         .forEach(build);
@@ -442,7 +474,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       name = new Name("", name.library);
     }
 
-    Builder? builder = constructorScope.lookupLocalMember(name.text);
+    Builder? builder = nameSpace.lookupConstructor(name.text);
     if (builder is SourceConstructorBuilder) {
       return builder;
     }
@@ -493,7 +525,11 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     if (arguments != null && arguments.length != typeVariablesCount) {
-      // That should be caught and reported as a compile-time error earlier.
+      // Coverage-ignore-block(suite): Not run.
+      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+          "SourceClassBuilder.buildAliasedTypeArguments: "
+          "the numbers of type parameters and type arguments don't match.",
+          expectedPhase: CompilationPhaseForProblemReporting.outline));
       return unhandled(
           templateTypeArgumentMismatch
               .withArguments(typeVariablesCount)
@@ -648,14 +684,14 @@ class SourceClassBuilder extends ClassBuilderImpl
               hierarchyBuilder.getNodeFromClass(interfaceClass);
           for (String restrictedMemberName in restrictedNames) {
             // TODO(johnniwinther): Handle injected members.
-            Builder? member = superclassHierarchyNode.classBuilder.scope
+            Builder? member = superclassHierarchyNode.classBuilder.nameSpace
                 .lookupLocalMember(restrictedMemberName, setter: false);
             if (member is MemberBuilder && !member.isAbstract) {
               restrictedMembersInSuperclasses[restrictedMemberName] ??=
                   superclassHierarchyNode.classBuilder;
             }
           }
-          Builder? member = superclassHierarchyNode.classBuilder.scope
+          Builder? member = superclassHierarchyNode.classBuilder.nameSpace
               .lookupLocalMember("values", setter: false);
           if (member is MemberBuilder && !member.isAbstract) {
             superclassDeclaringConcreteValues ??= member.classBuilder;
@@ -676,7 +712,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (hasEnumSuperinterface && cls != underscoreEnumClass) {
         // Instance members named `values` are restricted.
         Builder? customValuesDeclaration =
-            scope.lookupLocalMember("values", setter: false);
+            nameSpace.lookupLocalMember("values", setter: false);
         if (customValuesDeclaration != null &&
             !customValuesDeclaration.isStatic) {
           // Retrieve the earliest declaration for error reporting.
@@ -692,7 +728,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               fileUri);
         }
         customValuesDeclaration =
-            scope.lookupLocalMember("values", setter: true);
+            nameSpace.lookupLocalMember("values", setter: true);
         if (customValuesDeclaration != null &&
             !customValuesDeclaration.isStatic) {
           // Retrieve the earliest declaration for error reporting.
@@ -720,7 +756,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         // operator == are restricted.
         for (String restrictedMemberName in restrictedNames) {
           Builder? member =
-              scope.lookupLocalMember(restrictedMemberName, setter: false);
+              nameSpace.lookupLocalMember(restrictedMemberName, setter: false);
           if (member is MemberBuilder && !member.isAbstract) {
             libraryBuilder.addProblem(
                 templateEnumImplementerContainsRestrictedInstanceDeclaration
@@ -767,11 +803,11 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    void fail(NamedTypeBuilder target, Message message,
-        TypeAliasBuilder? aliasBuilder) {
-      int nameOffset = target.typeName.nameOffset;
-      int nameLength = target.typeName.nameLength;
-      if (aliasBuilder != null) {
+    void fail(TypeBuilder target, Message message,
+        TypeDeclarationBuilder? aliasBuilder) {
+      int nameOffset = target.typeName!.nameOffset;
+      int nameLength = target.typeName!.nameLength;
+      if (aliasBuilder is TypeAliasBuilder) {
         // Coverage-ignore-block(suite): Not run.
         addProblem(message, nameOffset, nameLength, context: [
           messageTypedefCause.withLocation(
@@ -785,25 +821,16 @@ class SourceClassBuilder extends ClassBuilderImpl
     // Extract and check superclass (if it exists).
     ClassBuilder? superClass;
     TypeBuilder? superClassType = supertypeBuilder;
-    if (superClassType is NamedTypeBuilder) {
-      TypeDeclarationBuilder? decl = superClassType.declaration;
-      TypeAliasBuilder? aliasBuilder; // Non-null if a type alias is use.
-      if (decl is TypeAliasBuilder) {
-        aliasBuilder = decl;
-        decl = aliasBuilder.unaliasDeclaration(superClassType.typeArguments,
-            isUsedAsClass: true,
-            usedAsClassCharOffset: superClassType.charOffset,
-            usedAsClassFileUri: superClassType.fileUri);
-      }
+    if (superClassType != null) {
+      TypeDeclarationBuilder? superDeclaration = superClassType.declaration;
+      TypeDeclarationBuilder? unaliasedSuperDeclaration =
+          superClassType.computeUnaliasedDeclaration(isUsedAsClass: true);
       // TODO(eernst): Should gather 'restricted supertype' checks in one place,
       // e.g., dynamic/int/String/Null and more are checked elsewhere.
-      if (decl is VoidTypeDeclarationBuilder) {
-        // Coverage-ignore-block(suite): Not run.
-        fail(superClassType, messageExtendsVoid, aliasBuilder);
-      } else if (decl is NeverTypeDeclarationBuilder) {
-        fail(superClassType, messageExtendsNever, aliasBuilder);
-      } else if (decl is ClassBuilder) {
-        superClass = decl;
+      if (unaliasedSuperDeclaration is NeverTypeDeclarationBuilder) {
+        fail(superClassType, messageExtendsNever, superDeclaration);
+      } else if (unaliasedSuperDeclaration is ClassBuilder) {
+        superClass = unaliasedSuperDeclaration;
       }
     }
     if (cls.isMixinClass) {
@@ -838,9 +865,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
     if (classHierarchyNode.isMixinApplication) {
-      assert(
-          mixedInTypeBuilder != null,
-          // Coverage-ignore(suite): Not run.
+      assert(mixedInTypeBuilder != null,
           "No mixed in type builder for mixin application $this.");
       ClassHierarchyNode mixedInNode = classHierarchyNode.mixedInNode!;
       ClassHierarchyNode? mixinSuperClassNode =
@@ -863,53 +888,36 @@ class SourceClassBuilder extends ClassBuilderImpl
     Map<ClassBuilder, int>? problemsOffsets;
     Set<ClassBuilder> implemented = new Set<ClassBuilder>();
     for (TypeBuilder type in interfaceBuilders!) {
-      if (type is NamedTypeBuilder) {
-        int? charOffset = type.charOffset;
-        TypeDeclarationBuilder? typeDeclaration = type.declaration;
-        TypeDeclarationBuilder? decl;
-        TypeAliasBuilder? aliasBuilder; // Non-null if a type alias is used.
-        if (typeDeclaration is TypeAliasBuilder) {
-          aliasBuilder = typeDeclaration;
-          decl = aliasBuilder.unaliasDeclaration(type.typeArguments,
-              isUsedAsClass: true,
-              usedAsClassCharOffset: type.charOffset,
-              usedAsClassFileUri: type.fileUri);
+      TypeDeclarationBuilder? typeDeclaration = type.declaration;
+      TypeDeclarationBuilder? unaliasedDeclaration =
+          type.computeUnaliasedDeclaration(isUsedAsClass: true);
+      if (unaliasedDeclaration is ClassBuilder) {
+        ClassBuilder interface = unaliasedDeclaration;
+        if (superClass == interface) {
+          addProblem(templateImplementsSuperClass.withArguments(interface.name),
+              this.charOffset, noLength);
+        } else if (interface.cls.name == "FutureOr" &&
+            // Coverage-ignore(suite): Not run.
+            interface.cls.enclosingLibrary.importUri.isScheme("dart") &&
+            // Coverage-ignore(suite): Not run.
+            interface.cls.enclosingLibrary.importUri.path == "async") {
+          // Coverage-ignore-block(suite): Not run.
+          addProblem(messageImplementsFutureOr, this.charOffset, noLength);
+        } else if (implemented.contains(interface)) {
+          // Aggregate repetitions.
+          problems ??= <ClassBuilder, int>{};
+          problems[interface] ??= 0;
+          problems[interface] = problems[interface]! + 1;
+          problemsOffsets ??= <ClassBuilder, int>{};
+          problemsOffsets[interface] ??= type.charOffset ?? TreeNode.noOffset;
         } else {
-          decl = typeDeclaration;
+          implemented.add(interface);
         }
-        if (decl is ClassBuilder) {
-          ClassBuilder interface = decl;
-          if (superClass == interface) {
-            addProblem(
-                templateImplementsSuperClass.withArguments(interface.name),
-                this.charOffset,
-                noLength);
-          } else if (interface.cls.name == "FutureOr" &&
-              // Coverage-ignore(suite): Not run.
-              interface.cls.enclosingLibrary.importUri.isScheme("dart") &&
-              // Coverage-ignore(suite): Not run.
-              interface.cls.enclosingLibrary.importUri.path == "async") {
-            // Coverage-ignore-block(suite): Not run.
-            addProblem(messageImplementsFutureOr, this.charOffset, noLength);
-          } else if (implemented.contains(interface)) {
-            // Aggregate repetitions.
-            problems ??= <ClassBuilder, int>{};
-            problems[interface] ??= 0;
-            problems[interface] = problems[interface]! + 1;
-            problemsOffsets ??= <ClassBuilder, int>{};
-            problemsOffsets[interface] ??= charOffset ?? TreeNode.noOffset;
-          } else {
-            implemented.add(interface);
-          }
-        }
-        if (decl != superClass) {
-          // TODO(eernst): Have all 'restricted supertype' checks in one place.
-          if (decl is VoidTypeDeclarationBuilder) {
-            // Coverage-ignore-block(suite): Not run.
-            fail(type, messageImplementsVoid, aliasBuilder);
-          } else if (decl is NeverTypeDeclarationBuilder) {
-            fail(type, messageImplementsNever, aliasBuilder);
-          }
+      }
+      if (unaliasedDeclaration != superClass) {
+        // TODO(eernst): Have all 'restricted supertype' checks in one place.
+        if (unaliasedDeclaration is NeverTypeDeclarationBuilder) {
+          fail(type, messageImplementsNever, typeDeclaration);
         }
       }
     }
@@ -950,8 +958,9 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
-    Iterator<SourceFactoryBuilder> iterator = constructorScope.filteredIterator(
-        parent: this, includeDuplicates: true, includeAugmentations: true);
+    Iterator<SourceFactoryBuilder> iterator =
+        nameSpace.filteredConstructorIterator(
+            parent: this, includeDuplicates: true, includeAugmentations: true);
     while (iterator.moveNext()) {
       iterator.current.checkRedirectingFactories(typeEnvironment);
     }
@@ -981,9 +990,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     Message? message;
     for (int i = 0; i < typeVariables!.length; ++i) {
       NominalVariableBuilder typeVariableBuilder = typeVariables![i];
-      Variance variance =
-          computeTypeVariableBuilderVariance(typeVariableBuilder, supertype)
-              .variance!;
+      Variance variance = supertype
+          .computeTypeVariableBuilderVariance(typeVariableBuilder,
+              sourceLoader: libraryBuilder.loader)
+          .variance!;
       if (!variance.greaterThanOrEqual(typeVariables![i].variance)) {
         if (typeVariables![i].parameter.isLegacyCovariant) {
           message = templateInvalidTypeVariableInSupertype.withArguments(
@@ -1125,8 +1135,8 @@ class SourceClassBuilder extends ClassBuilderImpl
   void addSyntheticConstructor(
       SyntheticSourceConstructorBuilder constructorBuilder) {
     String name = constructorBuilder.name;
-    constructorBuilder.next = constructorScope.lookupLocalMember(name);
-    constructorScope.addLocalMember(name, constructorBuilder);
+    constructorBuilder.next = nameSpace.lookupConstructor(name);
+    nameSpace.addConstructor(name, constructorBuilder);
     // Synthetic constructors are created after the component has been built
     // so we need to add the constructor to the class.
     cls.addConstructor(constructorBuilder.invokeTarget);
@@ -1161,12 +1171,12 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    scope
+    nameSpace
         .filteredIterator(
             parent: this, includeDuplicates: true, includeAugmentations: true)
         .forEach(buildMembers);
-    constructorScope
-        .filteredIterator(
+    nameSpace
+        .filteredConstructorIterator(
             parent: this, includeDuplicates: true, includeAugmentations: true)
         .forEach(buildMembers);
     return count;
@@ -1213,19 +1223,11 @@ class SourceClassBuilder extends ClassBuilderImpl
     final Map<TypeDeclarationBuilder?, TypeAliasBuilder?> result = {};
     final TypeBuilder? supertype = this.supertypeBuilder;
     if (supertype != null) {
-      TypeDeclarationBuilder? declarationBuilder = supertype.declaration;
-      if (declarationBuilder is TypeAliasBuilder) {
-        TypeAliasBuilder aliasBuilder = declarationBuilder;
-        NamedTypeBuilder namedBuilder = supertype as NamedTypeBuilder;
-        declarationBuilder = aliasBuilder.unaliasDeclaration(
-            namedBuilder.typeArguments,
-            isUsedAsClass: true,
-            usedAsClassCharOffset: namedBuilder.charOffset,
-            usedAsClassFileUri: namedBuilder.fileUri);
-        result[declarationBuilder] = aliasBuilder;
-      } else {
-        result[declarationBuilder] = null;
-      }
+      TypeDeclarationBuilder? declaration = supertype.declaration;
+      TypeDeclarationBuilder? unaliasedDeclaration =
+          supertype.computeUnaliasedDeclaration(isUsedAsClass: true);
+      result[unaliasedDeclaration] =
+          declaration is TypeAliasBuilder ? declaration : null;
     } else if (objectClass != this) {
       result[objectClass] = null;
     }
@@ -1233,37 +1235,20 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (interfaces != null) {
       for (int i = 0; i < interfaces.length; i++) {
         TypeBuilder interface = interfaces[i];
-        TypeDeclarationBuilder? declarationBuilder = interface.declaration;
-        if (declarationBuilder is TypeAliasBuilder) {
-          TypeAliasBuilder aliasBuilder = declarationBuilder;
-          NamedTypeBuilder namedBuilder = interface as NamedTypeBuilder;
-          declarationBuilder = aliasBuilder.unaliasDeclaration(
-              namedBuilder.typeArguments,
-              isUsedAsClass: true,
-              usedAsClassCharOffset: namedBuilder.charOffset,
-              usedAsClassFileUri: namedBuilder.fileUri);
-          result[declarationBuilder] = aliasBuilder;
-        } else {
-          result[declarationBuilder] = null;
-        }
+        TypeDeclarationBuilder? declaration = interface.declaration;
+        TypeDeclarationBuilder? unaliasedDeclaration =
+            interface.computeUnaliasedDeclaration(isUsedAsClass: true);
+        result[unaliasedDeclaration] =
+            declaration is TypeAliasBuilder ? declaration : null;
       }
     }
     final TypeBuilder? mixedInTypeBuilder = this.mixedInTypeBuilder;
     if (mixedInTypeBuilder != null) {
-      TypeDeclarationBuilder? declarationBuilder =
-          mixedInTypeBuilder.declaration;
-      if (declarationBuilder is TypeAliasBuilder) {
-        TypeAliasBuilder aliasBuilder = declarationBuilder;
-        NamedTypeBuilder namedBuilder = mixedInTypeBuilder as NamedTypeBuilder;
-        declarationBuilder = aliasBuilder.unaliasDeclaration(
-            namedBuilder.typeArguments,
-            isUsedAsClass: true,
-            usedAsClassCharOffset: namedBuilder.charOffset,
-            usedAsClassFileUri: namedBuilder.fileUri);
-        result[declarationBuilder] = aliasBuilder;
-      } else {
-        result[declarationBuilder] = null;
-      }
+      TypeDeclarationBuilder? declaration = mixedInTypeBuilder.declaration;
+      TypeDeclarationBuilder? unaliasedDeclaration =
+          mixedInTypeBuilder.computeUnaliasedDeclaration(isUsedAsClass: true);
+      result[unaliasedDeclaration] =
+          declaration is TypeAliasBuilder ? declaration : null;
     }
     return result;
   }
@@ -1410,9 +1395,6 @@ class SourceClassBuilder extends ClassBuilderImpl
                     interfaceMemberOrigin.fileOffset, noLength)
           ]);
     } else if (declaredFunction?.typeParameters != null) {
-      Map<TypeParameter, DartType> substitutionMap =
-          <TypeParameter, DartType>{};
-
       // Since the bound of `interfaceFunction!.parameter[i]` may have changed
       // during substitution, it can affect the nullabilities of the types in
       // the substitution map. The first parameter to
@@ -1431,12 +1413,25 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
         updateBoundNullabilities(interfaceTypeParameters);
       }
-      for (int i = 0; i < declaredFunction!.typeParameters.length; ++i) {
-        substitutionMap[interfaceFunction.typeParameters[i]] =
-            new TypeParameterType.forAlphaRenaming(
-                interfaceTypeParameters[i], declaredFunction.typeParameters[i]);
+
+      Substitution substitution;
+      if (declaredFunction!.typeParameters.isEmpty) {
+        substitution = Substitution.empty;
+      } else if (declaredFunction.typeParameters.length == 1) {
+        substitution = Substitution.fromSingleton(
+            interfaceFunction.typeParameters[0],
+            new TypeParameterType.forAlphaRenaming(interfaceTypeParameters[0],
+                declaredFunction.typeParameters[0]));
+      } else {
+        Map<TypeParameter, DartType> substitutionMap =
+            <TypeParameter, DartType>{};
+        for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
+          substitutionMap[interfaceFunction.typeParameters[i]] =
+              new TypeParameterType.forAlphaRenaming(interfaceTypeParameters[i],
+                  declaredFunction.typeParameters[i]);
+        }
+        substitution = Substitution.fromMap(substitutionMap);
       }
-      Substitution substitution = Substitution.fromMap(substitutionMap);
       for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
         TypeParameter declaredParameter = declaredFunction.typeParameters[i];
         TypeParameter interfaceParameter = interfaceFunction.typeParameters[i];

@@ -771,6 +771,24 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
     expect(package?.workspace, equals(workspace));
   }
 
+  test_isInTestDirectory() {
+    _setUpPackage();
+
+    expect(
+      package!.isInTestDirectory(
+        getFile('/ws/some/code/lib/a.dart'),
+      ),
+      isFalse,
+    );
+
+    expect(
+      package!.isInTestDirectory(
+        getFile('/ws/some/code/test/a.dart'),
+      ),
+      isTrue,
+    );
+  }
+
   void test_packagesAvailableTo() {
     _setUpPackage();
     var path = convertPath('/ws/some/code/lib/code.dart');

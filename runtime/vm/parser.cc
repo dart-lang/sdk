@@ -198,10 +198,10 @@ void ParsedFunction::AllocateVariables() {
       tmp = Symbols::FromConcat(T, Symbols::OriginalParam(), variable->name());
 
       RELEASE_ASSERT(scope->LocalLookupVariable(
-                         tmp, variable->kernel_offset()) == nullptr);
+                         tmp, LocalVariable::kNoKernelOffset) == nullptr);
       raw_parameter = new LocalVariable(
           variable->declaration_token_pos(), variable->token_pos(), tmp,
-          variable->static_type(), variable->kernel_offset(),
+          variable->static_type(), LocalVariable::kNoKernelOffset,
           variable->inferred_type(), variable->inferred_arg_type(),
           variable->inferred_arg_value());
       raw_parameter->set_annotations_offset(variable->annotations_offset());
@@ -248,13 +248,13 @@ void ParsedFunction::AllocateVariables() {
       tmp = Symbols::FromConcat(T, Symbols::OriginalParam(),
                                 function_type_arguments_->name());
 
-      ASSERT(scope->LocalLookupVariable(
-                 tmp, function_type_arguments_->kernel_offset()) == nullptr);
+      ASSERT(scope->LocalLookupVariable(tmp, LocalVariable::kNoKernelOffset) ==
+             nullptr);
       raw_type_args_parameter =
           new LocalVariable(function_type_arguments_->declaration_token_pos(),
                             function_type_arguments_->token_pos(), tmp,
                             function_type_arguments_->static_type(),
-                            function_type_arguments_->kernel_offset());
+                            LocalVariable::kNoKernelOffset);
       bool ok = scope->AddVariable(raw_type_args_parameter);
       ASSERT(ok);
     }

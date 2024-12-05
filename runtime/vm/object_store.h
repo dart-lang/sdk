@@ -19,6 +19,7 @@ class ObjectPointerVisitor;
 #define FOR_EACH_BOOTSTRAP_LIBRARY(M)                                          \
   M(Core, core)                                                                \
   M(Async, async)                                                              \
+  M(CompactHash, _compact_hash)                                                \
   M(Collection, collection)                                                    \
   M(Convert, convert)                                                          \
   M(Developer, developer)                                                      \
@@ -28,7 +29,8 @@ class ObjectPointerVisitor;
   M(Math, math)                                                                \
   M(Mirrors, mirrors)                                                          \
   M(TypedData, typed_data)                                                     \
-  M(VMService, _vmservice)
+  M(VMService, _vmservice)                                                     \
+  M(Concurrent, concurrent)
 
 // R_ - needs getter only
 // RW - needs getter and setter
@@ -130,6 +132,8 @@ class ObjectPointerVisitor;
   RW(Class, finalizer_class)                                                   \
   RW(Class, finalizer_entry_class)                                             \
   RW(Class, native_finalizer_class)                                            \
+  RW(Class, dart_condition_variable_class)                                     \
+  RW(Class, dart_mutex_class)                                                  \
   ARW_AR(WeakArray, symbol_table)                                              \
   ARW_AR(WeakArray, regexp_table)                                              \
   RW(Array, canonical_types)                                                   \
@@ -139,7 +143,9 @@ class ObjectPointerVisitor;
   RW(Array, canonical_type_arguments)                                          \
   RW(Library, async_library)                                                   \
   RW(Library, core_library)                                                    \
+  RW(Library, _compact_hash_library)                                           \
   RW(Library, collection_library)                                              \
+  RW(Library, concurrent_library)                                              \
   RW(Library, convert_library)                                                 \
   RW(Library, developer_library)                                               \
   RW(Library, ffi_library)                                                     \
@@ -251,7 +257,6 @@ class ObjectPointerVisitor;
   RW(Code, array_write_barrier_stub)                                           \
   RW(Code, throw_stub)                                                         \
   RW(Code, re_throw_stub)                                                      \
-  RW(Code, assert_boolean_stub)                                                \
   RW(Code, instance_of_stub)                                                   \
   RW(Code, init_static_field_stub)                                             \
   RW(Code, init_late_static_field_stub)                                        \
@@ -269,6 +274,7 @@ class ObjectPointerVisitor;
   RW(Code, type_parameter_tts_stub)                                            \
   RW(Code, unreachable_tts_stub)                                               \
   RW(Array, ffi_callback_functions)                                            \
+  RW(Code, resume_stub)                                                        \
   RW(Code, slow_tts_stub)                                                      \
   /* Roots for JIT/AOT snapshots are up until here (see to_snapshot() below)*/ \
   RW(Code, await_stub)                                                         \
@@ -276,7 +282,6 @@ class ObjectPointerVisitor;
   RW(Code, clone_suspend_state_stub)                                           \
   RW(Code, ffi_async_callback_send_stub)                                       \
   RW(Code, init_async_stub)                                                    \
-  RW(Code, resume_stub)                                                        \
   RW(Code, return_async_stub)                                                  \
   RW(Code, return_async_not_future_stub)                                       \
   RW(Code, init_async_star_stub)                                               \
@@ -363,7 +368,6 @@ class ObjectPointerVisitor;
   DO(array_write_barrier_stub, ArrayWriteBarrier)                              \
   DO(throw_stub, Throw)                                                        \
   DO(re_throw_stub, ReThrow)                                                   \
-  DO(assert_boolean_stub, AssertBoolean)                                       \
   DO(init_static_field_stub, InitStaticField)                                  \
   DO(init_late_static_field_stub, InitLateStaticField)                         \
   DO(init_late_final_static_field_stub, InitLateFinalStaticField)              \

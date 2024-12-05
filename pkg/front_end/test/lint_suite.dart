@@ -65,7 +65,7 @@ class LintTestDescription extends TestDescription {
 }
 
 class LintTestCache {
-  List<int>? rawBytes;
+  Uint8List? rawBytes;
   late List<int> lineStarts;
   Source? source;
   Token? firstToken;
@@ -133,12 +133,7 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
       LintTestDescription description, Context context) async {
     if (description.cache.rawBytes == null) {
       File f = new File.fromUri(description.uri);
-      description.cache.rawBytes = f.readAsBytesSync();
-
-      Uint8List bytes = new Uint8List(description.cache.rawBytes!.length + 1);
-      bytes.setRange(
-          0, description.cache.rawBytes!.length, description.cache.rawBytes!);
-
+      Uint8List bytes = description.cache.rawBytes = f.readAsBytesSync();
       Utf8BytesScanner scanner = new Utf8BytesScanner(
         bytes,
         configuration: const ScannerConfiguration(

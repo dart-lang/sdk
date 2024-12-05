@@ -72,9 +72,62 @@ class D extends core::Object {
   @#C5
   method build() → void {}
 }
+@#C9
+class _E1 extends core::Object /*hasConstConstructor*/  {
+  @#C9
+  final field core::int _x;
+  const constructor •(core::int _x) → self::_E1
+    : self::_E1::_x = _x, super core::Object::•()
+    ;
+}
+@#C9
+class _E2 extends self::_E1 /*hasConstConstructor*/  {
+  @#C9
+  final field core::int _y;
+  const constructor •(core::int _x, core::int _y) → self::_E2
+    : self::_E2::_y = _y, super self::_E1::•(_x)
+    ;
+}
+class _F extends core::Object {
+  constructor •() → self::_F
+    : super core::Object::•()
+    ;
+  @#C9
+  static factory _foo() → self::_F /* redirection-target: self::_G::_bar */
+    return new self::_G::_bar();
+}
+class _G extends self::_F {
+  @#C9
+  constructor _bar() → self::_G
+    : super self::_F::•()
+    ;
+}
+@#C5
+abstract class K extends core::Object {
+  @#C5
+  synthetic constructor •() → self::K
+    : super core::Object::•()
+    ;
+  @#C5
+  abstract method foo() → void;
+}
+class _L extends core::Object {
+  synthetic constructor •() → self::_L
+    : super core::Object::•()
+    ;
+  @#C9
+  method foo() → void {}
+}
+class _M extends self::_L implements self::K {
+  synthetic constructor •() → self::_M
+    : super self::_L::•()
+    ;
+}
 @#C5
 static field core::Object? sfield9;
 static field core::Object? _sfield10;
+@#C5
+static const field core::List<core::Object> const11 = #C14;
 @#C5
 static method smethod10() → void {}
 static method _smethod11() → void {}
@@ -86,4 +139,11 @@ constants  {
   #C5 = core::pragma {name:#C4, options:#C2}
   #C6 = "dyn-module:can-be-overridden"
   #C7 = core::pragma {name:#C6, options:#C2}
+  #C8 = "dyn-module:implicitly-callable"
+  #C9 = core::pragma {name:#C8, options:#C2}
+  #C10 = 2
+  #C11 = 1
+  #C12 = self::_E2 {_y:#C10, _x:#C11}
+  #C13 = redirecting-factory-tearoff self::_F::_foo
+  #C14 = <core::Object>[#C12, #C13]
 }

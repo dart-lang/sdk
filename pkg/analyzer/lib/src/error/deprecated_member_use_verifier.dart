@@ -279,7 +279,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
   /// Return `true` if [element] is a [ParameterElement] declared in [node].
   static bool _isLocalParameter(Element? element, AstNode? node) {
     if (element is ParameterElement) {
-      var definingFunction = element.enclosingElement as ExecutableElement;
+      var definingFunction = element.enclosingElement3 as ExecutableElement;
 
       for (; node != null; node = node.parent) {
         if (node is ConstructorDeclaration) {

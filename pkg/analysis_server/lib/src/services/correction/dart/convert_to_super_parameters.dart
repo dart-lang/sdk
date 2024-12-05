@@ -10,7 +10,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -36,7 +36,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (!libraryElement.featureSet.isEnabled(Feature.super_parameters)) {
+    if (!libraryElement2.featureSet.isEnabled(Feature.super_parameters)) {
       // If the library doesn't support super_parameters then the change isn't
       // appropriate.
       return;
@@ -54,7 +54,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
       // constructors because factory constructors can't have initializers.
       return;
     }
-    var superConstructor = superInvocation.staticElement;
+    var superConstructor = superInvocation.element;
     if (superConstructor == null) {
       // If the super constructor wasn't resolved then we can't apply the
       // change.
@@ -84,7 +84,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
           var data = _dataForParameter(
             parameter,
             argumentIndex,
-            argument.staticParameterElement,
+            argument.correspondingParameter,
           );
           if (data != null) {
             named.add(data);
@@ -100,7 +100,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
           var data = _dataForParameter(
             parameter,
             argumentIndex,
-            argument.staticParameterElement,
+            argument.correspondingParameter,
           );
           if (data == null) {
             positional = null;
@@ -229,7 +229,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
   /// If the [parameter] can be converted into a super initializing formal
   /// parameter then return the data needed to do so.
   _ParameterData? _dataForParameter(_Parameter parameter, int argumentIndex,
-      ParameterElement? superParameter) {
+      FormalParameterElement? superParameter) {
     if (superParameter == null) {
       return null;
     }
@@ -265,8 +265,11 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
   /// Return the range of the default value associated with the [parameter], or
   /// `null` if the parameter doesn't have a default value or if the default
   /// value is not the same as the default value in the super constructor.
-  SourceRange? _defaultValueRange(FormalParameter parameter,
-      ParameterElement superParameter, ParameterElement thisParameter) {
+  SourceRange? _defaultValueRange(
+    FormalParameter parameter,
+    FormalParameterElement superParameter,
+    FormalParameterElement thisParameter,
+  ) {
     if (parameter is DefaultFormalParameter) {
       var defaultValue = parameter.defaultValue;
       if (defaultValue != null) {
@@ -335,7 +338,9 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
   /// Return `true` if the parameter has no default value
   /// and the parameter in the super constructor has a default one
   bool _nullInitializer(
-      FormalParameter parameter, ParameterElement superParameter) {
+    FormalParameter parameter,
+    FormalParameterElement superParameter,
+  ) {
     return parameter is DefaultFormalParameter &&
         !parameter.isRequired &&
         parameter.defaultValue == null &&
@@ -346,9 +351,10 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
   /// expression isn't a simple reference to one of the normal parameters in the
   /// constructor being converted.
   _Parameter? _parameterFor(
-      Map<ParameterElement, _Parameter> parameterMap, Expression expression) {
+      Map<FormalParameterElement, _Parameter> parameterMap,
+      Expression expression) {
     if (expression is SimpleIdentifier) {
-      var element = expression.staticElement;
+      var element = expression.element;
       return parameterMap[element];
     }
     return null;
@@ -356,7 +362,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
 
   /// Return a map from parameter elements to the parameters that define those
   /// elements.
-  Map<ParameterElement, _Parameter> _parameterMap(
+  Map<FormalParameterElement, _Parameter> _parameterMap(
       FormalParameterList parameterList) {
     bool validParameter(FormalParameter parameter) {
       parameter = parameter.notDefault;
@@ -364,12 +370,12 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
           parameter is FunctionTypedFormalParameter;
     }
 
-    var map = <ParameterElement, _Parameter>{};
+    var map = <FormalParameterElement, _Parameter>{};
     var parameters = parameterList.parameters;
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
       if (validParameter(parameter)) {
-        var element = parameter.declaredElement;
+        var element = parameter.declaredFragment?.element;
         if (element != null) {
           map[element] = _Parameter(parameter, element, i);
         }
@@ -380,7 +386,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
 
   /// Return a set containing the elements of all of the parameters that are
   /// referenced in the body of the [constructor].
-  Set<ParameterElement> _referencedParameters(
+  Set<FormalParameterElement> _referencedParameters(
       ConstructorDeclaration constructor) {
     var collector = _ReferencedParameterCollector();
     constructor.body.accept(collector);
@@ -430,7 +436,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
 class _Parameter {
   final FormalParameter parameter;
 
-  final ParameterElement element;
+  final FormalParameterElement element;
 
   final int index;
 
@@ -481,12 +487,12 @@ class _ParameterData {
 }
 
 class _ReferencedParameterCollector extends RecursiveAstVisitor<void> {
-  final Set<ParameterElement> foundParameters = {};
+  final Set<FormalParameterElement> foundParameters = {};
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.staticElement;
-    if (element is ParameterElement) {
+    var element = node.element;
+    if (element is FormalParameterElement) {
       foundParameters.add(element);
     }
   }

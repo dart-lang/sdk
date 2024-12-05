@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/error/error.dart';
 
 import 'parse_utils.dart';
@@ -14,12 +14,14 @@ Future<void> main() async {
 
   print('diagnostics w/ correction producers:\n');
 
-  var hintEntries = FixProcessor.nonLintProducerMap.entries.where((e) =>
-      e.key.type == ErrorType.HINT || e.key.type == ErrorType.STATIC_WARNING);
+  var hintEntries = registeredFixGenerators.nonLintProducers.entries.where(
+      (e) =>
+          e.key.type == ErrorType.HINT ||
+          e.key.type == ErrorType.STATIC_WARNING);
 
   var diagnostics = [
     ...hintEntries,
-    ...FixProcessor.lintProducerMap.entries,
+    ...registeredFixGenerators.lintProducers.entries,
   ];
   for (var diagnostic in diagnostics) {
     var canBeAppliedInBulk = false;

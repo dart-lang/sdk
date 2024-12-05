@@ -223,6 +223,7 @@ BENCHMARK(KernelServiceCompileAll) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
+  bin::Builtin::SetNativeResolver(bin::Builtin::kConcurrentLibrary);
   char* dill_path = ComputeKernelServicePath(Benchmark::Executable());
   File* file = File::Open(nullptr, dill_path, File::kRead);
   EXPECT(file != nullptr);

@@ -9,8 +9,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dev_compiler/dev_compiler.dart';
+import 'package:dev_compiler/src/command/command.dart';
 import 'package:dev_compiler/src/js_ast/nodes.dart';
-import 'package:dev_compiler/src/kernel/command.dart';
 import 'package:front_end/src/api_unstable/vm.dart' show FileSystem;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -164,7 +164,7 @@ class IncrementalJavaScriptBundler {
   }
 
   /// Compile each component into a single JavaScript module.
-  Future<Map<String, ProgramCompiler>> compile(
+  Future<Map<String, Compiler>> compile(
     ClassHierarchy classHierarchy,
     CoreTypes coreTypes,
     PackageConfig packageConfig,
@@ -180,7 +180,7 @@ class IncrementalJavaScriptBundler {
     int symbolsOffset = 0;
     final Map<String, Map<String, List<int>>> manifest = {};
     final Set<Uri> visited = {};
-    final Map<String, ProgramCompiler> kernel2JsCompilers = {};
+    final Map<String, Compiler> kernel2JsCompilers = {};
 
     for (Library library in _currentComponent.libraries) {
       if (_loadedLibraries.contains(library) ||
@@ -200,23 +200,33 @@ class IncrementalJavaScriptBundler {
       // use full path for tracking if module uri is not a package uri.
       final String moduleUrl = urlForComponentUri(moduleUri, packageConfig);
       final String moduleName = makeModuleName(moduleUrl);
-
-      ProgramCompiler compiler = new ProgramCompiler(
-        _currentComponent,
-        classHierarchy,
-        new SharedCompilerOptions(
-          sourceMap: true,
-          summarizeApi: false,
-          emitDebugMetadata: emitDebugMetadata,
-          emitDebugSymbols: emitDebugSymbols,
-          moduleName: moduleName,
-          soundNullSafety: true,
-          canaryFeatures: canaryFeatures,
-        ),
-        _importToSummary,
-        _summaryToModule,
-        coreTypes: coreTypes,
+      final Options ddcOptions = new Options(
+        sourceMap: true,
+        summarizeApi: false,
+        emitDebugMetadata: emitDebugMetadata,
+        emitDebugSymbols: emitDebugSymbols,
+        moduleName: moduleName,
+        soundNullSafety: true,
+        canaryFeatures: canaryFeatures,
+        moduleFormats: [_moduleFormat],
       );
+      Compiler compiler = ddcOptions.emitLibraryBundle
+          ? new LibraryBundleCompiler(
+              _currentComponent,
+              classHierarchy,
+              ddcOptions,
+              _importToSummary,
+              _summaryToModule,
+              coreTypes: coreTypes,
+            )
+          : new ProgramCompiler(
+              _currentComponent,
+              classHierarchy,
+              ddcOptions,
+              _importToSummary,
+              _summaryToModule,
+              coreTypes: coreTypes,
+            );
 
       final Program jsModule = compiler.emitModule(summaryComponent);
 
@@ -233,7 +243,9 @@ class IncrementalJavaScriptBundler {
 
       final JSCode code = jsProgramToCode(
         jsModule,
-        _moduleFormat,
+        ddcOptions.emitLibraryBundle
+            ? ModuleFormat.ddcLibraryBundle
+            : _moduleFormat,
         inlineSourceMap: true,
         buildSourceMap: true,
         emitDebugMetadata: emitDebugMetadata,

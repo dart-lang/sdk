@@ -22,7 +22,7 @@ main(List<String> args) async {
           'type_constraint_generation/data'));
   return runTests<
           List<
-              GeneratedTypeConstraint<DartType, DartType, TypeParameterElement,
+              GeneratedTypeConstraint<DartType, TypeParameterElement,
                   PromotableElement>>>(dataDir,
       args: args,
       createUriForFileName: createUriForFileName,
@@ -33,14 +33,14 @@ main(List<String> args) async {
 
 class _TypeConstraintGenerationDataComputer extends DataComputer<
     List<
-        GeneratedTypeConstraint<DartType, DartType, TypeParameterElement,
+        GeneratedTypeConstraint<DartType, TypeParameterElement,
             PromotableElement>>> {
   const _TypeConstraintGenerationDataComputer();
 
   @override
   DataInterpreter<
       List<
-          GeneratedTypeConstraint<DartType, DartType, TypeParameterElement,
+          GeneratedTypeConstraint<DartType, TypeParameterElement,
               PromotableElement>>> get dataValidator =>
       const _TypeConstraintGenerationDataInterpreter();
 
@@ -55,8 +55,8 @@ class _TypeConstraintGenerationDataComputer extends DataComputer<
               Id,
               ActualData<
                   List<
-                      GeneratedTypeConstraint<DartType, DartType,
-                          TypeParameterElement, PromotableElement>>>>
+                      GeneratedTypeConstraint<DartType, TypeParameterElement,
+                          PromotableElement>>>>
           actualMap) {
     _TypeConstraintGenerationDataExtractor(
             testingData.uriToTypeConstraintGenerationData[
@@ -69,7 +69,7 @@ class _TypeConstraintGenerationDataComputer extends DataComputer<
 
 class _TypeConstraintGenerationDataExtractor extends AstDataExtractor<
     List<
-        GeneratedTypeConstraint<DartType, DartType, TypeParameterElement,
+        GeneratedTypeConstraint<DartType, TypeParameterElement,
             PromotableElement>>> {
   final TypeConstraintGenerationDataForTesting dataForTesting;
 
@@ -78,7 +78,7 @@ class _TypeConstraintGenerationDataExtractor extends AstDataExtractor<
 
   @override
   List<
-      GeneratedTypeConstraint<DartType, DartType, TypeParameterElement,
+      GeneratedTypeConstraint<DartType, TypeParameterElement,
           PromotableElement>>? computeNodeValue(Id id, AstNode node) {
     return dataForTesting.generatedTypeConstraints[node];
   }
@@ -88,14 +88,14 @@ class _TypeConstraintGenerationDataInterpreter
     implements
         DataInterpreter<
             List<
-                GeneratedTypeConstraint<DartType, DartType,
-                    TypeParameterElement, PromotableElement>>> {
+                GeneratedTypeConstraint<DartType, TypeParameterElement,
+                    PromotableElement>>> {
   const _TypeConstraintGenerationDataInterpreter();
 
   @override
   String getText(
       List<
-              GeneratedTypeConstraint<DartType, DartType, TypeParameterElement,
+              GeneratedTypeConstraint<DartType, TypeParameterElement,
                   PromotableElement>>
           actualData,
       [String? indentation]) {
@@ -120,7 +120,7 @@ class _TypeConstraintGenerationDataInterpreter
   @override
   String? isAsExpected(
       List<
-              GeneratedTypeConstraint<DartType, DartType, TypeParameterElement,
+              GeneratedTypeConstraint<DartType, TypeParameterElement,
                   PromotableElement>>
           actualData,
       String? expectedData) {
@@ -135,8 +135,8 @@ class _TypeConstraintGenerationDataInterpreter
   @override
   bool isEmpty(
           List<
-                  GeneratedTypeConstraint<DartType, DartType,
-                      TypeParameterElement, PromotableElement>>?
+                  GeneratedTypeConstraint<DartType, TypeParameterElement,
+                      PromotableElement>>?
               actualData) =>
       actualData == null || actualData.isEmpty;
 }

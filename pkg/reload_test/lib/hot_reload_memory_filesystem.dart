@@ -9,6 +9,8 @@ import 'dart:typed_data';
 import 'package:dev_compiler/dev_compiler.dart' as ddc_names
     show libraryUriToJsIdentifier;
 
+import 'package:reload_test/ddc_helpers.dart' show FileDataPerGeneration;
+
 /// A pseudo in-memory filesystem with helpers to aid the hot reload runner.
 ///
 /// The Frontend Server outputs web sources and sourcemaps as concatenated
@@ -55,9 +57,11 @@ class HotReloadMemoryFilesystem {
   /// Returns a map of generation number to modified files' paths.
   ///
   /// Used to determine which JS files should be loaded per generation.
-  Map<String, List<String>> get generationsToModifiedFilePaths => {
+  FileDataPerGeneration get generationsToModifiedFilePaths => {
         for (var e in generationChanges.entries)
-          e.key: e.value.map((info) => info.jsSourcePath).toList()
+          e.key: e.value
+              .map((info) => [info.libraryName, info.jsSourcePath])
+              .toList()
       };
 
   /// Returns all scripts in the filesystem in a form that can be ingested by
@@ -69,7 +73,7 @@ class HotReloadMemoryFilesystem {
     final scriptsJson = <Map<String, String?>>[];
     for (var library in firstGenerationLibraries) {
       final scriptDescriptor = <String, String?>{
-        'id': library.dartSourcePath,
+        'id': library.libraryName,
         'src': library.jsSourcePath,
       };
       scriptsJson.add(scriptDescriptor);
@@ -120,7 +124,7 @@ class HotReloadMemoryFilesystem {
       final fileName =
           filePath.startsWith('/') ? filePath.substring(1) : filePath;
       files[fileName] = byteView;
-      final libraryName = ddc_names.libraryUriToJsIdentifier(fileUri);
+      final moduleName = ddc_names.libraryUriToJsIdentifier(fileUri);
       // TODO(markzipan): This is an overly simple heuristic to resolve the
       // original Dart file. Replace this if it no longer holds.
       var dartFileName = fileName;
@@ -130,10 +134,17 @@ class HotReloadMemoryFilesystem {
       }
       final fullyResolvedFileUri =
           jsRootUri.resolve('generation$generation/$fileName');
-      // TODO(markzipan): Update this if module and library names are no
-      // longer the same.
+      // This is a simple hack to resolve kernel library URIs from JS files.
+      // This should be safe for hot reload tests but won't generalize.
+      var libraryName = dartFileName;
+      if (libraryName.startsWith('packages/')) {
+        libraryName =
+            'package:${libraryName.substring('packages/'.length, libraryName.length)}';
+      } else {
+        libraryName = 'hot-reload-test:///$libraryName';
+      }
       final libraryInfo = LibraryInfo(
-          moduleName: libraryName,
+          moduleName: moduleName,
           libraryName: libraryName,
           dartSourcePath: dartFileName,
           jsSourcePath: fullyResolvedFileUri.toFilePath());

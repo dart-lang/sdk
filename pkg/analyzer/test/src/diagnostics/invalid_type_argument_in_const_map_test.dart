@@ -15,38 +15,76 @@ main() {
 
 @reflectiveTest
 class InvalidTypeArgumentInConstMapTest extends PubPackageResolutionTest {
-  test_key() async {
+  test_asDefaultValue() async {
     await assertErrorsInCode(r'''
 class A<E> {
-  m() {
-    return const <E, String>{};
-  }
+  final Map<String, List<E Function()>> x;
+  const A([this.x = const <String, List<E Function()>>{}]);
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP, 39, 1,
+      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP, 96, 1,
           messageContains: ["'E'"]),
     ]);
   }
 
-  test_valid() async {
+  test_nonConst() async {
     await assertNoErrorsInCode(r'''
 class A<E> {
-  m() {
-    return <String, E>{};
+  void m() {
+    <String, E>{};
   }
 }
 ''');
   }
 
-  test_value() async {
+  test_typeParameter_inKey() async {
     await assertErrorsInCode(r'''
 class A<E> {
-  m() {
-    return const <String, E>{};
+  void m() {
+    const <E, String>{};
   }
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP, 47, 1,
+      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP, 37, 1,
+          messageContains: ["'E'"]),
+    ]);
+  }
+
+  test_typeParameter_inKey_deepInside() async {
+    await assertErrorsInCode(r'''
+class A<E> {
+  void m() {
+    const <void Function(List<E>), String>{};
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP, 56, 1,
+          messageContains: ["'E'"]),
+    ]);
+  }
+
+  test_typeParameter_inValue() async {
+    await assertErrorsInCode(r'''
+class A<E> {
+  void m() {
+    const <String, E>{};
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP, 45, 1,
+          messageContains: ["'E'"]),
+    ]);
+  }
+
+  test_typeParameter_inValue_deepInside() async {
+    await assertErrorsInCode(r'''
+class A<E> {
+  void m() {
+    const <String, List<E Function()>>{};
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP, 50, 1,
           messageContains: ["'E'"]),
     ]);
   }

@@ -109,7 +109,8 @@ String computeLocation() {
     stackLine = callStack[2];
     assert(
         stackLine.contains('type_inference_test.dart') ||
-            stackLine.contains('flow_analysis_test.dart'),
+            stackLine.contains('flow_analysis_test.dart') ||
+            stackLine.contains('type_constraint_gatherer_test.dart'),
         'Unexpected file: $stackLine');
   }
 
@@ -155,7 +156,7 @@ ConstExpression expr(String typeStr) =>
 
 /// Creates a conventional `for` statement.  Optional boolean [forCollection]
 /// indicates that this `for` statement is actually a collection element, so
-/// `null` should be passed to [for_bodyBegin].
+/// `null` should be passed to [FlowAnalysis.for_bodyBegin].
 Statement for_(ProtoStatement? initializer, ProtoExpression? condition,
     ProtoExpression? updater, List<ProtoStatement> body,
     {bool forCollection = false}) {
@@ -298,11 +299,12 @@ Expression localFunction(List<ProtoStatement> body) {
 }
 
 /// Creates a map entry containing the given [key] and [value] subexpressions.
-CollectionElement mapEntry(ProtoExpression key, ProtoExpression value) {
+CollectionElement mapEntry(ProtoExpression key, ProtoExpression value,
+    {bool isKeyNullAware = false}) {
   var location = computeLocation();
   return MapEntry._(key.asExpression(location: location),
       value.asExpression(location: location),
-      location: location);
+      isKeyNullAware: isKeyNullAware, location: location);
 }
 
 /// Creates a map literal containing the given [elements].
@@ -428,7 +430,7 @@ Pattern relationalPattern(String operator, ProtoExpression operand,
   return result;
 }
 
-/// Creates a "rest" pattern with optional [subPatern], for use in a list
+/// Creates a "rest" pattern with optional [subPattern], for use in a list
 /// pattern.
 ///
 /// Although using a rest pattern inside a map pattern is an error, it's allowed
@@ -529,7 +531,7 @@ Pattern wildcard({String? type, String? expectInferredType}) {
 }
 
 typedef SharedMatchContext
-    = shared.MatchContext<Node, Expression, Pattern, Type, Var>;
+    = shared.MatchContext<Node, Expression, Pattern, SharedTypeView<Type>, Var>;
 
 typedef SharedRecordPatternField = shared.RecordPatternField<Node, Pattern>;
 
@@ -548,7 +550,8 @@ class As extends Expression {
   String toString() => '$target as $type';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     return h.typeAnalyzer.analyzeTypeCast(this, target, type);
   }
 }
@@ -618,10 +621,11 @@ class BooleanLiteral extends Expression {
   String toString() => '$value';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     var type = h.typeAnalyzer.analyzeBoolLiteral(this, value);
     h.irBuilder.atom('$value', Kind.expression, location: location);
-    return new SimpleTypeAnalysisResult<Type>(type: type);
+    return new SimpleTypeAnalysisResult<Type>(type: SharedTypeView(type));
   }
 }
 
@@ -710,7 +714,8 @@ class Cascade extends Expression {
   }
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     // Form the IR for evaluating the LHS
     var targetType =
         h.typeAnalyzer.dispatchExpression(target, schema).resolveShorting();
@@ -721,7 +726,8 @@ class Cascade extends Expression {
         h.typeAnalyzer._currentCascadeTargetIR = h.irBuilder.allocateTmp();
     h.typeAnalyzer._currentCascadeTargetType = h.flow
         .cascadeExpression_afterTarget(target, targetType,
-            isNullAware: isNullAware);
+            isNullAware: isNullAware)
+        .unwrapTypeView();
     if (isNullAware) {
       h.flow.nullAwareAccess_rightBegin(target, targetType);
       // Push `targetTmp == null` and `targetTmp` on the IR builder stack,
@@ -785,11 +791,12 @@ class CascadePlaceholder extends Expression {
   }
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     h.irBuilder
         .readTmp(h.typeAnalyzer._currentCascadeTargetIR!, location: location);
     return SimpleTypeAnalysisResult(
-        type: h.typeAnalyzer._currentCascadeTargetType!);
+        type: SharedTypeView(h.typeAnalyzer._currentCascadeTargetType!));
   }
 }
 
@@ -801,7 +808,7 @@ class CastPattern extends Pattern {
   CastPattern(this.inner, this.type, {required super.location}) : super._();
 
   @override
-  TypeSchema computeSchema(Harness h) =>
+  SharedTypeSchemaView<Type> computeSchema(Harness h) =>
       h.typeAnalyzer.analyzeCastPatternSchema();
 
   @override
@@ -816,9 +823,9 @@ class CastPattern extends Pattern {
       context: context,
       pattern: this,
       innerPattern: inner,
-      requiredType: type,
+      requiredType: SharedTypeView(type),
     );
-    var matchedType = analysisResult.matchedValueType;
+    var matchedType = analysisResult.matchedValueType.unwrapTypeView();
     h.irBuilder.atom(type.type, Kind.type, location: location);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -834,7 +841,7 @@ class CastPattern extends Pattern {
 }
 
 /// Representation of a single catch clause in a try/catch statement.  Use
-/// [catch_] to create instances of this class.
+/// [TryBuilder.catch_] to create instances of this class.
 class CatchClause {
   final Statement body;
   final Var? exception;
@@ -877,11 +884,13 @@ class CheckAssigned extends Expression {
   }
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     expect(h.flow.isAssigned(variable), expectedAssignedState,
         reason: 'at $location');
     h.irBuilder.atom('null', Kind.expression, location: location);
-    return SimpleTypeAnalysisResult(type: h.typeAnalyzer.nullType);
+    return SimpleTypeAnalysisResult(
+        type: SharedTypeView(h.typeAnalyzer.nullType));
   }
 }
 
@@ -924,7 +933,8 @@ class CheckExpressionIR extends Expression {
   String toString() => '$inner (should produce IR $expectedIR)';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     var result =
         h.typeAnalyzer.analyzeParenthesizedExpression(this, inner, schema);
     h.irBuilder.check(expectedIR, Kind.expression, location: location);
@@ -949,8 +959,9 @@ class CheckExpressionSchema extends Expression {
   String toString() => '$inner (should be in schema $expectedSchema)';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
-    expect(schema.typeString, expectedSchema);
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
+    expect(schema.unwrapTypeSchemaView().type, expectedSchema);
     var result =
         h.typeAnalyzer.analyzeParenthesizedExpression(this, inner, schema);
     return result;
@@ -973,10 +984,12 @@ class CheckExpressionType extends Expression {
   String toString() => '$target (expected type: $expectedType)';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     var result =
         h.typeAnalyzer.analyzeParenthesizedExpression(this, target, schema);
-    expect(result.type.type, expectedType, reason: 'at $location');
+    expect(result.type.unwrapTypeView().type, expectedType,
+        reason: 'at $location');
     return result;
   }
 }
@@ -1002,10 +1015,11 @@ class CheckPromoted extends Expression {
   }
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     var promotedType = promotable._getPromotedType(h);
     expect(promotedType?.type, expectedTypeStr, reason: 'at $location');
-    return SimpleTypeAnalysisResult(type: NullType.instance);
+    return SimpleTypeAnalysisResult(type: SharedTypeView(NullType.instance));
   }
 }
 
@@ -1021,10 +1035,12 @@ class CheckReachable extends Expression {
   String toString() => 'check reachable';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     expect(h.flow.isReachable, expectedReachable, reason: 'at $location');
     h.irBuilder.atom('null', Kind.expression, location: location);
-    return new SimpleTypeAnalysisResult(type: NullType.instance);
+    return new SimpleTypeAnalysisResult(
+        type: SharedTypeView(NullType.instance));
   }
 }
 
@@ -1067,11 +1083,13 @@ class CheckUnassigned extends Expression {
   }
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     expect(h.flow.isUnassigned(variable), expectedUnassignedState,
         reason: 'at $location');
     h.irBuilder.atom('null', Kind.expression, location: location);
-    return SimpleTypeAnalysisResult(type: h.typeAnalyzer.nullType);
+    return SimpleTypeAnalysisResult(
+        type: SharedTypeView(h.typeAnalyzer.nullType));
   }
 }
 
@@ -1107,7 +1125,7 @@ class CollectionElementContextMapEntry extends CollectionElementContext {
 }
 
 class CollectionElementContextType extends CollectionElementContext {
-  final TypeSchema elementTypeSchema;
+  final SharedTypeSchemaView<Type> elementTypeSchema;
 
   CollectionElementContextType._(this.elementTypeSchema);
 }
@@ -1133,7 +1151,8 @@ class Conditional extends Expression {
   String toString() => '$condition ? $ifTrue : $ifFalse';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     var result = h.typeAnalyzer
         .analyzeConditionalExpression(this, condition, ifTrue, ifFalse);
     h.irBuilder.apply('if', [Kind.expression, Kind.expression, Kind.expression],
@@ -1149,7 +1168,7 @@ class ConstantPattern extends Pattern {
   ConstantPattern(this.constant, {required super.location}) : super._();
 
   @override
-  TypeSchema computeSchema(Harness h) =>
+  SharedTypeSchemaView<Type> computeSchema(Harness h) =>
       h.typeAnalyzer.analyzeConstantPatternSchema();
 
   @override
@@ -1162,7 +1181,7 @@ class ConstantPattern extends Pattern {
   PatternResult<Type> visit(Harness h, SharedMatchContext context) {
     var analysisResult =
         h.typeAnalyzer.analyzeConstantPattern(context, this, constant);
-    var matchedType = analysisResult.matchedValueType;
+    var matchedType = analysisResult.matchedValueType.unwrapTypeView();
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply('const', [Kind.expression, Kind.type], Kind.pattern,
         names: ['matchedType'], location: location);
@@ -1256,24 +1275,28 @@ class Declare extends Statement {
       if (initializer == null) {
         // Use the shared logic for analyzing uninitialized variable
         // declarations.
-        staticType = h.typeAnalyzer.analyzeUninitializedVariableDeclaration(
-            this, pattern.variable, pattern.declaredType,
-            isFinal: isFinal);
+        staticType = h.typeAnalyzer
+            .analyzeUninitializedVariableDeclaration(
+                this, pattern.variable, declaredType?.wrapSharedTypeView(),
+                isFinal: isFinal)
+            .unwrapTypeView();
         irName = 'declare';
         argKinds = [Kind.variable];
       } else {
         // There's no shared logic for analyzing initialized late variable
         // declarations, so analyze the declaration directly.
         h.flow.lateInitializer_begin(this);
-        var initializerType = h.typeAnalyzer.analyzeExpression(
-            initializer,
-            declaredType == null
-                ? h.operations.unknownType
-                : h.operations.typeToSchema(declaredType));
+        var initializerType = h.typeAnalyzer
+            .analyzeExpression(
+                initializer,
+                declaredType?.wrapSharedTypeSchemaView() ??
+                    h.operations.unknownType)
+            .unwrapTypeView();
         h.flow.lateInitializer_end();
         staticType = variable.type = declaredType ?? initializerType;
-        h.flow.declare(variable, staticType, initialized: true);
-        h.flow.initialize(variable, initializerType, initializer,
+        h.flow.declare(variable, SharedTypeView(staticType), initialized: true);
+        h.flow.initialize(
+            variable, SharedTypeView(initializerType), initializer,
             isFinal: isFinal,
             isLate: true,
             isImplicitlyTyped: declaredType == null);
@@ -1291,9 +1314,12 @@ class Declare extends Statement {
       }
     } else if (initializer == null) {
       var pattern = this.pattern as VariablePattern;
-      var staticType = h.typeAnalyzer.analyzeUninitializedVariableDeclaration(
-          this, pattern.variable, pattern.declaredType,
-          isFinal: isFinal);
+      var declaredType = pattern.declaredType;
+      var staticType = h.typeAnalyzer
+          .analyzeUninitializedVariableDeclaration(
+              this, pattern.variable, declaredType?.wrapSharedTypeView(),
+              isFinal: isFinal)
+          .unwrapTypeView();
       h.typeAnalyzer.handleDeclaredVariablePattern(pattern,
           matchedType: staticType, staticType: staticType);
       irName = 'declare';
@@ -1356,7 +1382,8 @@ class Equal extends Expression {
   String toString() => '$lhs ${isInverted ? '!=' : '=='} $rhs';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     var operatorName = isInverted ? '!=' : '==';
     var result =
         h.typeAnalyzer.analyzeBinaryExpression(this, lhs, operatorName, rhs);
@@ -1382,11 +1409,13 @@ abstract class Expression extends Node
 
   void preVisit(PreVisitor visitor);
 
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema);
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema);
 }
 
 /// Representation of a single case clause in a switch expression.  Use
-/// [caseExpr] to create instances of this class.
+/// [PossiblyGuardedPattern.thenExpr] or [SwitchHead.thenExpr] to create
+/// instances of this class.
 class ExpressionCase extends Node {
   final GuardedPattern? guardedPattern;
   final Expression expression;
@@ -1430,9 +1459,10 @@ class ExpressionCollectionElement extends CollectionElement {
 
   @override
   void visit(Harness h, CollectionElementContext context) {
-    TypeSchema typeSchema = context is CollectionElementContextType
-        ? context.elementTypeSchema
-        : h.operations.unknownType;
+    SharedTypeSchemaView<Type> typeSchema =
+        context is CollectionElementContextType
+            ? context.elementTypeSchema
+            : h.operations.unknownType;
     h.typeAnalyzer.dispatchExpression(expression, typeSchema);
     h.irBuilder.apply('celt', [Kind.expression], Kind.collectionElement,
         location: location);
@@ -1442,7 +1472,7 @@ class ExpressionCollectionElement extends CollectionElement {
 class ExpressionInTypeSchema extends Statement {
   final Expression expr;
 
-  final TypeSchema typeSchema;
+  final SharedTypeSchemaView<Type> typeSchema;
 
   ExpressionInTypeSchema._(this.expr, this.typeSchema,
       {required super.location});
@@ -1594,12 +1624,13 @@ class ForEach extends Statement {
 
   @override
   void visit(Harness h) {
-    var iteratedType = h._getIteratedType(
-        h.typeAnalyzer.analyzeExpression(iterable, h.operations.unknownType));
+    var iteratedType = h._getIteratedType(h.typeAnalyzer
+        .analyzeExpression(iterable, h.operations.unknownType)
+        .unwrapTypeView());
     h.flow.forEach_bodyBegin(this);
     var variable = this.variable;
     if (variable != null && !declaresVariable) {
-      h.flow.write(this, variable, iteratedType, null);
+      h.flow.write(this, variable, SharedTypeView(iteratedType), null);
     }
     h.typeAnalyzer._visitLoopBody(this, body);
     h.flow.forEach_end();
@@ -1638,7 +1669,8 @@ class Harness {
 
   bool _started = false;
 
-  late final FlowAnalysis<Node, Statement, Expression, Var, Type> flow;
+  late final FlowAnalysis<Node, Statement, Expression, Var,
+      SharedTypeView<Type>> flow;
 
   bool? _inferenceUpdate3Enabled;
 
@@ -1680,7 +1712,8 @@ class Harness {
     _thisType = Type(type);
   }
 
-  /// Updates the harness with a new result for [downwardInfer].
+  /// Updates the harness with a new result for
+  /// [MiniAstOperations.downwardInfer].
   void addDownwardInfer({
     required String name,
     required String context,
@@ -1693,8 +1726,9 @@ class Harness {
     );
   }
 
-  /// Updates the harness so that when an [isAlwaysExhaustiveType] query is
-  /// invoked on type [type], [isExhaustive] will be returned.
+  /// Updates the harness so that when an
+  /// [TypeAnalyzerOperations.isAlwaysExhaustiveType] query is invoked on type
+  /// [type], [isExhaustive] will be returned.
   void addExhaustiveness(String type, bool isExhaustive) {
     operations.addExhaustiveness(type, isExhaustive);
   }
@@ -1741,10 +1775,6 @@ class Harness {
   void addSuperInterfaces(
       String className, List<Type> Function(List<Type>) template) {
     operations.addSuperInterfaces(className, template);
-  }
-
-  void addTypeVariable(String name, {String? bound}) {
-    operations.addTypeVariable(name, bound: bound);
   }
 
   void disableFieldPromotion() {
@@ -1811,8 +1841,8 @@ class Harness {
           kind: operator == '=='
               ? RelationalOperatorKind.equals
               : RelationalOperatorKind.notEquals,
-          parameterType: Type('Object'),
-          returnType: Type('bool'));
+          parameterType: SharedTypeView(Type('Object')),
+          returnType: SharedTypeView(Type('bool')));
     }
     var member = getMember(matchedValueType, operator);
     if (member == null) return null;
@@ -1828,8 +1858,8 @@ class Harness {
     }
     return RelationalOperatorResolution(
         kind: RelationalOperatorKind.other,
-        parameterType: memberType.positionalParameters[0],
-        returnType: memberType.returnType);
+        parameterType: SharedTypeView(memberType.positionalParameters[0]),
+        returnType: SharedTypeView(memberType.returnType));
   }
 
   /// Runs the given [statements] through flow analysis, checking any assertions
@@ -1845,10 +1875,11 @@ class Harness {
       var b = Block._(statements, location: computeLocation());
       b.preVisit(visitor);
       flow = operations.legacy
-          ? FlowAnalysis<Node, Statement, Expression, Var, Type>.legacy(
+          ? FlowAnalysis<Node, Statement, Expression, Var,
+                  SharedTypeView<Type>>.legacy(
               operations, visitor._assignedVariables)
-          : FlowAnalysis<Node, Statement, Expression, Var, Type>(
-              operations, visitor._assignedVariables,
+          : FlowAnalysis<Node, Statement, Expression, Var,
+                  SharedTypeView<Type>>(operations, visitor._assignedVariables,
               respectImplicitlyTypedVarInitializers:
                   _respectImplicitlyTypedVarInitializers,
               fieldPromotionEnabled: _fieldPromotionEnabled);
@@ -2103,7 +2134,8 @@ class IfNull extends Expression {
   String toString() => '$lhs ?? $rhs';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     var result = h.typeAnalyzer.analyzeIfNullExpression(this, lhs, rhs);
     h.irBuilder.apply(
         'ifNull', [Kind.expression, Kind.expression], Kind.expression,
@@ -2130,7 +2162,8 @@ class IntLiteral extends ConstExpression {
   String toString() => '$value';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     var result = h.typeAnalyzer.analyzeIntLiteral(schema);
     if (expectConversionToDouble != null) {
       expect(result.convertedToDouble, expectConversionToDouble);
@@ -2171,7 +2204,8 @@ class InvokeMethod extends Expression {
       '$target.$methodName(${[for (var arg in arguments) arg].join(', ')})';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     return h.typeAnalyzer.analyzeMethodInvocation(this,
         target is CascadePlaceholder ? null : target, methodName, arguments);
   }
@@ -2193,7 +2227,8 @@ class Is extends Expression {
   String toString() => '$target is${isInverted ? '!' : ''} $type';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     return h.typeAnalyzer
         .analyzeTypeTest(this, target, type, isInverted: isInverted);
   }
@@ -2250,15 +2285,17 @@ class ListLiteral extends Expression {
   }
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     for (var element in elements) {
       element.visit(
-          h, CollectionElementContextType._(TypeSchema.fromType(elementType)));
+          h, CollectionElementContextType._(SharedTypeSchemaView(elementType)));
     }
     h.irBuilder.apply('list', [for (var _ in elements) Kind.collectionElement],
         Kind.expression,
         location: location);
-    return SimpleTypeAnalysisResult(type: h.operations.listType(elementType));
+    return SimpleTypeAnalysisResult(
+        type: h.operations.listType(SharedTypeView(elementType)));
   }
 }
 
@@ -2280,8 +2317,9 @@ class ListPattern extends Pattern {
       : super._();
 
   @override
-  TypeSchema computeSchema(Harness h) => h.typeAnalyzer
-      .analyzeListPatternSchema(elementType: elementType, elements: elements);
+  SharedTypeSchemaView<Type> computeSchema(Harness h) =>
+      h.typeAnalyzer.analyzeListPatternSchema(
+          elementType: elementType?.wrapSharedTypeView(), elements: elements);
 
   @override
   void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
@@ -2294,9 +2332,9 @@ class ListPattern extends Pattern {
   @override
   PatternResult<Type> visit(Harness h, SharedMatchContext context) {
     var listPatternResult = h.typeAnalyzer.analyzeListPattern(context, this,
-        elementType: elementType, elements: elements);
-    var matchedType = listPatternResult.matchedValueType;
-    var requiredType = listPatternResult.requiredType;
+        elementType: elementType?.wrapSharedTypeView(), elements: elements);
+    var matchedType = listPatternResult.matchedValueType.unwrapTypeView();
+    var requiredType = listPatternResult.requiredType.unwrapTypeView();
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -2339,13 +2377,14 @@ class LocalFunction extends Expression {
   String toString() => '() $body';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     h.flow.functionExpression_begin(this);
     h.typeAnalyzer.dispatchStatement(body);
     h.flow.functionExpression_end();
     h.irBuilder.apply('localFunction', [Kind.statement], Kind.expression,
         location: location);
-    return SimpleTypeAnalysisResult(type: type);
+    return SimpleTypeAnalysisResult(type: SharedTypeView(type));
   }
 }
 
@@ -2368,7 +2407,8 @@ class Logical extends Expression {
   String toString() => '$lhs ${isAnd ? '&&' : '||'} $rhs';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     var operatorName = isAnd ? '&&' : '||';
     var result =
         h.typeAnalyzer.analyzeBinaryExpression(this, lhs, operatorName, rhs);
@@ -2388,7 +2428,7 @@ class LogicalAndPattern extends Pattern {
       : super._();
 
   @override
-  TypeSchema computeSchema(Harness h) =>
+  SharedTypeSchemaView<Type> computeSchema(Harness h) =>
       h.typeAnalyzer.analyzeLogicalAndPatternSchema(lhs, rhs);
 
   @override
@@ -2402,7 +2442,7 @@ class LogicalAndPattern extends Pattern {
   PatternResult<Type> visit(Harness h, SharedMatchContext context) {
     var analysisResult =
         h.typeAnalyzer.analyzeLogicalAndPattern(context, this, lhs, rhs);
-    var matchedType = analysisResult.matchedValueType;
+    var matchedType = analysisResult.matchedValueType.unwrapTypeView();
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply('logicalAndPattern',
         [Kind.pattern, Kind.pattern, Kind.type], Kind.pattern,
@@ -2426,7 +2466,7 @@ class LogicalOrPattern extends Pattern {
   LogicalOrPattern(this.lhs, this.rhs, {required super.location}) : super._();
 
   @override
-  TypeSchema computeSchema(Harness h) =>
+  SharedTypeSchemaView<Type> computeSchema(Harness h) =>
       h.typeAnalyzer.analyzeLogicalOrPatternSchema(lhs, rhs);
 
   @override
@@ -2443,7 +2483,7 @@ class LogicalOrPattern extends Pattern {
   PatternResult<Type> visit(Harness h, SharedMatchContext context) {
     var analysisResult =
         h.typeAnalyzer.analyzeLogicalOrPattern(context, this, lhs, rhs);
-    var matchedType = analysisResult.matchedValueType;
+    var matchedType = analysisResult.matchedValueType.unwrapTypeView();
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply('logicalOrPattern',
         [Kind.pattern, Kind.pattern, Kind.type], Kind.pattern,
@@ -2484,8 +2524,10 @@ abstract class LValue extends Expression {
 class MapEntry extends CollectionElement {
   final Expression key;
   final Expression value;
+  final bool isKeyNullAware;
 
-  MapEntry._(this.key, this.value, {required super.location});
+  MapEntry._(this.key, this.value,
+      {required this.isKeyNullAware, required super.location});
 
   @override
   void preVisit(PreVisitor visitor) {
@@ -2494,21 +2536,24 @@ class MapEntry extends CollectionElement {
   }
 
   @override
-  String toString() => '$key: $value';
+  String toString() => '${isKeyNullAware ? '?' : ''}$key: $value';
 
   @override
   void visit(Harness h, CollectionElementContext context) {
-    TypeSchema keySchema;
-    TypeSchema valueSchema;
+    SharedTypeSchemaView<Type> keySchema;
+    SharedTypeSchemaView<Type> valueSchema;
     switch (context) {
       case CollectionElementContextMapEntry(:var keyType, :var valueType):
-        keySchema = TypeSchema.fromType(keyType);
-        valueSchema = TypeSchema.fromType(valueType);
+        keySchema = SharedTypeSchemaView(keyType);
+        valueSchema = SharedTypeSchemaView(valueType);
       default:
         keySchema = valueSchema = h.operations.unknownType;
     }
-    h.typeAnalyzer.analyzeExpression(key, keySchema);
+    var keyType = h.typeAnalyzer.analyzeExpression(key, keySchema);
+    h.flow.nullAwareMapEntry_valueBegin(key, keyType,
+        isKeyNullAware: isKeyNullAware);
     h.typeAnalyzer.analyzeExpression(value, valueSchema);
+    h.flow.nullAwareMapEntry_end(isKeyNullAware: isKeyNullAware);
     h.irBuilder.apply(
         'mapEntry', [Kind.expression, Kind.expression], Kind.collectionElement,
         location: location);
@@ -2533,7 +2578,8 @@ class MapLiteral extends Expression {
   }
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     var context = CollectionElementContextMapEntry._(keyType, valueType);
     for (var element in elements) {
       element.visit(h, context);
@@ -2542,7 +2588,9 @@ class MapLiteral extends Expression {
         Kind.expression,
         location: location);
     return SimpleTypeAnalysisResult(
-        type: h.operations.mapType(keyType: keyType, valueType: valueType));
+        type: h.operations.mapType(
+            keyType: SharedTypeView(keyType),
+            valueType: SharedTypeView(valueType)));
   }
 }
 
@@ -2555,8 +2603,10 @@ class MapPattern extends Pattern {
       : super._();
 
   @override
-  TypeSchema computeSchema(Harness h) => h.typeAnalyzer.analyzeMapPatternSchema(
-      typeArguments: typeArguments, elements: elements);
+  SharedTypeSchemaView<Type> computeSchema(Harness h) =>
+      h.typeAnalyzer.analyzeMapPatternSchema(
+          typeArguments: typeArguments?.wrapSharedTypeMapEntryView(),
+          elements: elements);
 
   @override
   void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
@@ -2569,9 +2619,10 @@ class MapPattern extends Pattern {
   @override
   PatternResult<Type> visit(Harness h, SharedMatchContext context) {
     var mapPatternResult = h.typeAnalyzer.analyzeMapPattern(context, this,
-        typeArguments: typeArguments, elements: elements);
-    var matchedType = mapPatternResult.matchedValueType;
-    var requiredType = mapPatternResult.requiredType;
+        typeArguments: typeArguments?.wrapSharedTypeMapEntryView(),
+        elements: elements);
+    var matchedType = mapPatternResult.matchedValueType.unwrapTypeView();
+    var requiredType = mapPatternResult.requiredType.unwrapTypeView();
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -2620,9 +2671,8 @@ class MapPatternEntry extends Node implements MapPatternElement {
 }
 
 class MiniAstOperations
-    implements
-        TypeAnalyzerOperations<Var, Type, TypeSchema, PromotedTypeVariableType,
-            Type, String> {
+    with TypeAnalyzerOperationsMixin<Type, Var, TypeParameter, Type, String>
+    implements TypeAnalyzerOperations<Type, Var, TypeParameter, Type, String> {
   static const Map<String, bool> _coreExhaustiveness = const {
     '()': true,
     '(int, int?)': false,
@@ -2693,19 +2743,21 @@ class MiniAstOperations
   };
 
   @override
-  late final Type objectQuestionType = Type('Object?');
+  late final SharedTypeView<Type> objectQuestionType =
+      SharedTypeView(Type('Object?'));
 
   @override
-  late final Type objectType = Type('Object');
+  late final SharedTypeView<Type> objectType = SharedTypeView(Type('Object'));
 
   @override
-  late final TypeSchema unknownType = TypeSchema('_');
+  late final SharedTypeSchemaView<Type> unknownType =
+      SharedTypeSchemaView(Type('_'));
 
   @override
-  late final Type intType = Type('int');
+  late final SharedTypeView<Type> intType = SharedTypeView(Type('int'));
 
   @override
-  late final Type doubleType = Type('double');
+  late final SharedTypeView<Type> doubleType = SharedTypeView(Type('double'));
 
   bool? _legacy;
 
@@ -2726,14 +2778,16 @@ class MiniAstOperations
 
   final TypeSystem _typeSystem = TypeSystem();
 
-  @override
-  final Type boolType = Type('bool');
+  final _variance = <String, List<Variance>>{};
 
   @override
-  Type get dynamicType => DynamicType.instance;
+  final SharedTypeView<Type> boolType = SharedTypeView(Type('bool'));
 
   @override
-  Type get errorType => InvalidType.instance;
+  SharedTypeView<Type> get dynamicType => SharedTypeView(DynamicType.instance);
+
+  @override
+  SharedTypeView<Type> get errorType => SharedTypeView(InvalidType.instance);
 
   bool get legacy => _legacy ?? false;
 
@@ -2742,10 +2796,10 @@ class MiniAstOperations
   }
 
   @override
-  Type get neverType => NeverType.instance;
+  SharedTypeView<Type> get neverType => SharedTypeView(NeverType.instance);
 
   @override
-  Type get nullType => NullType.instance;
+  SharedTypeView<Type> get nullType => SharedTypeView(NullType.instance);
 
   /// Updates the harness with a new result for [downwardInfer].
   void addDownwardInfer({
@@ -2757,8 +2811,8 @@ class MiniAstOperations
     _downwardInferenceResults[query] = Type(result);
   }
 
-  /// Updates the harness so that when an [isExhaustiveType] query is invoked on
-  /// type [type], [isExhaustive] will be returned.
+  /// Updates the harness so that when an [isAlwaysExhaustiveType] query is
+  /// invoked on type [type], [isExhaustive] will be returned.
   void addExhaustiveness(String type, bool isExhaustive) {
     _exhaustiveness[type] = isExhaustive;
   }
@@ -2782,15 +2836,15 @@ class MiniAstOperations
     _typeSystem.addSuperInterfaces(className, template);
   }
 
-  void addTypeVariable(String name, {String? bound}) {
-    _typeSystem.addTypeVariable(name, bound: bound);
+  void addVariance(String typeName, List<Variance> varianceByArgument) {
+    _variance[typeName] = varianceByArgument;
   }
 
   @override
-  TypeClassification classifyType(Type type) {
-    if (isSubtypeOf(type, Type('Object'))) {
+  TypeClassification classifyType(SharedTypeView<Type> type) {
+    if (isSubtypeOfInternal(type.unwrapTypeView(), Type('Object'))) {
       return TypeClassification.nonNullable;
-    } else if (isSubtypeOf(type, NullType.instance)) {
+    } else if (isSubtypeOfInternal(type.unwrapTypeView(), NullType.instance)) {
       return TypeClassification.nullOrEquivalent;
     } else {
       return TypeClassification.potentiallyNullable;
@@ -2806,26 +2860,29 @@ class MiniAstOperations
   }
 
   @override
-  Type extensionTypeErasure(Type type) {
-    var query = '$type';
-    return _extensionTypeErasure[query] ?? type;
+  SharedTypeView<Type> extensionTypeErasure(SharedTypeView<Type> type) {
+    var query = '${type.unwrapTypeView()}';
+    return SharedTypeView(
+        _extensionTypeErasure[query] ?? type.unwrapTypeView());
   }
 
   @override
-  Type factor(Type from, Type what) {
-    return _typeSystem.factor(from, what);
+  SharedTypeView<Type> factor(
+      SharedTypeView<Type> from, SharedTypeView<Type> what) {
+    return SharedTypeView(
+        _typeSystem.factor(from.unwrapTypeView(), what.unwrapTypeView()));
   }
 
   @override
-  Type futureType(Type argumentType) {
-    return PrimaryType('Future', args: [argumentType]);
+  Type futureTypeInternal(Type argumentType) {
+    return PrimaryType(TypeRegistry.future, args: [argumentType]);
   }
 
   @override
-  TypeDeclarationKind? getTypeDeclarationKind(Type type) {
-    if (isInterfaceType(type)) {
+  TypeDeclarationKind? getTypeDeclarationKindInternal(Type type) {
+    if (isInterfaceType(SharedTypeView(type))) {
       return TypeDeclarationKind.interfaceDeclaration;
-    } else if (isExtensionType(type)) {
+    } else if (isExtensionType(SharedTypeView(type))) {
       return TypeDeclarationKind.extensionTypeDeclaration;
     } else {
       return null;
@@ -2835,17 +2892,11 @@ class MiniAstOperations
   @override
   Variance getTypeParameterVariance(
       String typeDeclaration, int parameterIndex) {
-    // TODO(cstefantsova): Support variance of type parameters in Mini AST.
-    return Variance.covariant;
+    return _variance[typeDeclaration]?[parameterIndex] ?? Variance.covariant;
   }
 
   @override
-  TypeDeclarationKind? getTypeSchemaDeclarationKind(TypeSchema typeSchema) {
-    return getTypeDeclarationKind(typeSchema.toType());
-  }
-
-  @override
-  Type glb(Type type1, Type type2) {
+  Type glbInternal(Type type1, Type type2) {
     if (type1.type == type2.type) return type1;
     var typeNames = [type1.type, type2.type];
     typeNames.sort();
@@ -2854,83 +2905,101 @@ class MiniAstOperations
   }
 
   @override
-  Type greatestClosure(TypeSchema schema) {
-    var type = schema.toType();
-    return type.closureWithRespectToUnknown(covariant: true) ?? type;
+  SharedTypeView<Type> greatestClosure(SharedTypeSchemaView<Type> schema) {
+    return SharedTypeView(schema
+            .unwrapTypeSchemaView()
+            .closureWithRespectToUnknown(covariant: true) ??
+        schema.unwrapTypeSchemaView());
   }
 
   @override
-  bool isAlwaysExhaustiveType(Type type) {
-    var query = type.type;
+  bool isAlwaysExhaustiveType(SharedTypeView<Type> type) {
+    var query = type.unwrapTypeView().type;
     return _exhaustiveness[query] ??
         fail('Unknown exhaustiveness query: $query');
   }
 
   @override
-  bool isAssignableTo(Type fromType, Type toType) {
-    if (legacy && isSubtypeOf(toType, fromType)) return true;
+  bool isAssignableTo(
+      SharedTypeView<Type> fromType, SharedTypeView<Type> toType) {
+    if (legacy &&
+        isSubtypeOfInternal(
+            toType.unwrapTypeView(), fromType.unwrapTypeView())) {
+      return true;
+    }
     if (fromType is DynamicType) return true;
     if (fromType is InvalidType) return true;
-    return isSubtypeOf(fromType, toType);
+    return isSubtypeOfInternal(
+        fromType.unwrapTypeView(), toType.unwrapTypeView());
   }
 
   @override
-  bool isDartCoreFunction(Type type) {
-    return type is PrimaryType &&
-        type.nullabilitySuffix == NullabilitySuffix.none &&
-        type.name == 'Function' &&
-        type.args.isEmpty;
+  bool isDartCoreFunction(SharedTypeView<Type> type) {
+    Type unwrappedType = type.unwrapTypeView();
+    return unwrappedType is PrimaryType &&
+        unwrappedType.nullabilitySuffix == NullabilitySuffix.none &&
+        unwrappedType.name == 'Function' &&
+        unwrappedType.args.isEmpty;
   }
 
   @override
-  bool isExtensionType(Type type) {
+  bool isExtensionType(SharedTypeView<Type> type) {
     // TODO(cstefantsova): Add the support for extension types in the mini ast
     // testing framework.
     return false;
   }
 
   @override
-  bool isFunctionType(Type type) => type is FunctionType;
+  bool isInterfaceType(SharedTypeView<Type> type) {
+    Type unwrappedType = type.unwrapTypeView();
+    return unwrappedType is PrimaryType && unwrappedType.isInterfaceType;
+  }
 
   @override
-  bool isInterfaceType(Type type) =>
-      type is PrimaryType && type.isInterfaceType;
+  bool isNever(SharedTypeView<Type> type) {
+    Type unwrappedType = type.unwrapTypeView();
+    return unwrappedType is NeverType &&
+        unwrappedType.nullabilitySuffix == NullabilitySuffix.none;
+  }
 
   @override
-  bool isNever(Type type) =>
-      type is NeverType && type.nullabilitySuffix == NullabilitySuffix.none;
-
-  @override
-  bool isNonNullable(TypeSchema typeSchema) {
-    Type type = typeSchema.toType();
-    if (type is DynamicType ||
-        typeSchema is SharedUnknownType ||
-        type is VoidType ||
-        type is NullType) {
+  bool isNonNullable(SharedTypeSchemaView<Type> type) {
+    Type unwrappedType = type.unwrapTypeSchemaView();
+    if (unwrappedType is DynamicType ||
+        unwrappedType is SharedUnknownTypeStructure ||
+        unwrappedType is VoidType ||
+        unwrappedType is NullType) {
       return false;
-    } else if (type is PromotedTypeVariableType &&
-        type.nullabilitySuffix == NullabilitySuffix.none) {
-      return isNonNullable(typeToSchema(type.promotion));
+    } else if (unwrappedType
+        case TypeParameterType(
+          :var promotion,
+          nullabilitySuffix: NullabilitySuffix.none
+        )) {
+      return promotion != null &&
+          isNonNullable(SharedTypeSchemaView(promotion));
     } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
       return false;
-    } else if (matchFutureOr(type) case Type typeArgument?) {
-      return isNonNullable(typeToSchema(typeArgument));
+    } else if (matchFutureOrInternal(unwrappedType) case Type typeArgument?) {
+      return isNonNullable(SharedTypeSchemaView(typeArgument));
     }
     // TODO(cstefantsova): Update to a fast-pass implementation when the
     // mini-ast testing framework supports looking up superinterfaces of
     // extension types or looking up bounds of type parameters.
-    return _typeSystem.isSubtype(NullType.instance, type);
+    return _typeSystem.isSubtype(NullType.instance, unwrappedType);
   }
 
   @override
-  bool isNull(Type type) => type is NullType;
+  bool isNull(SharedTypeView<Type> type) {
+    return type.unwrapTypeView() is NullType;
+  }
 
   @override
-  bool isObject(Type type) {
-    return type is PrimaryType &&
-        type.nullabilitySuffix == NullabilitySuffix.none &&
-        type.name == 'Object' &&
-        type.args.isEmpty;
+  bool isObject(SharedTypeView<Type> type) {
+    Type unwrappedType = type.unwrapTypeView();
+    return unwrappedType is PrimaryType &&
+        unwrappedType.nullabilitySuffix == NullabilitySuffix.none &&
+        unwrappedType.name == 'Object' &&
+        unwrappedType.args.isEmpty;
   }
 
   @override
@@ -2938,22 +3007,24 @@ class MiniAstOperations
       property.isPromotable;
 
   @override
-  bool isRecordType(Type type) => type is RecordType;
-
-  @override
-  bool isSubtypeOf(Type leftType, Type rightType) {
+  bool isSubtypeOfInternal(Type leftType, Type rightType) {
     return _typeSystem.isSubtype(leftType, rightType);
   }
 
   @override
-  bool isTypeParameterType(Type type) =>
-      type is PromotedTypeVariableType &&
-      type.nullabilitySuffix == NullabilitySuffix.none;
+  bool isTypeParameterType(SharedTypeView<Type> type) {
+    Type unwrappedType = type.unwrapTypeView();
+    return unwrappedType is TypeParameterType &&
+        unwrappedType.nullabilitySuffix == NullabilitySuffix.none;
+  }
 
   @override
   bool isTypeSchemaSatisfied(
-          {required TypeSchema typeSchema, required Type type}) =>
-      isSubtypeOf(type, typeSchema.toType());
+      {required SharedTypeSchemaView<Type> typeSchema,
+      required SharedTypeView<Type> type}) {
+    return isSubtypeOfInternal(
+        type.unwrapTypeView(), typeSchema.unwrapTypeSchemaView());
+  }
 
   @override
   bool isVariableFinal(Var node) {
@@ -2961,31 +3032,33 @@ class MiniAstOperations
   }
 
   @override
-  TypeSchema iterableTypeSchema(TypeSchema elementTypeSchema) {
-    return TypeSchema.fromType(
-        PrimaryType('Iterable', args: [elementTypeSchema.toType()]));
+  SharedTypeSchemaView<Type> iterableTypeSchema(
+      SharedTypeSchemaView<Type> elementTypeSchema) {
+    return SharedTypeSchemaView(PrimaryType(TypeRegistry.iterable,
+        args: [elementTypeSchema.unwrapTypeSchemaView()]));
   }
 
   @override
-  Type listType(Type elementType) => PrimaryType('List', args: [elementType]);
+  Type listTypeInternal(Type elementType) {
+    return PrimaryType(TypeRegistry.list, args: [elementType]);
+  }
 
   @override
-  TypeSchema listTypeSchema(TypeSchema elementTypeSchema) =>
-      TypeSchema.fromType(
-          PrimaryType('List', args: [elementTypeSchema.toType()]));
-
-  @override
-  Type lub(Type type1, Type type2) {
+  Type lubInternal(Type type1, Type type2) {
     if (type1 == type2) {
       return type1;
-    } else if (promoteToNonNull(type1) == type2) {
+    } else if (promoteToNonNull(SharedTypeView(type1)) ==
+        SharedTypeView(type2)) {
       return type1;
-    } else if (promoteToNonNull(type2) == type1) {
+    } else if (promoteToNonNull(SharedTypeView(type2)) ==
+        SharedTypeView(type1)) {
       return type2;
-    } else if (type1 is NullType && promoteToNonNull(type2) != type2) {
+    } else if (type1 is NullType &&
+        promoteToNonNull(SharedTypeView(type2)) != SharedTypeView(type2)) {
       // type2 is already nullable
       return type2;
-    } else if (type2 is NullType && promoteToNonNull(type1) != type1) {
+    } else if (type2 is NullType &&
+        promoteToNonNull(SharedTypeView(type1)) != SharedTypeView(type1)) {
       // type1 is already nullable
       return type1;
     } else if (type1 is NeverType &&
@@ -3003,30 +3076,18 @@ class MiniAstOperations
   }
 
   @override
-  Type makeNullable(Type type) => lub(type, NullType.instance);
+  Type makeNullableInternal(Type type) => lubInternal(type, NullType.instance);
 
   @override
-  TypeSchema makeTypeSchemaNullable(TypeSchema typeSchema) =>
-      TypeSchema.fromType(lub(typeSchema.toType(), NullType.instance));
-
-  @override
-  Type mapType({
+  Type mapTypeInternal({
     required Type keyType,
     required Type valueType,
   }) {
-    return PrimaryType('Map', args: [keyType, valueType]);
+    return PrimaryType(TypeRegistry.map, args: [keyType, valueType]);
   }
 
   @override
-  TypeSchema mapTypeSchema(
-      {required TypeSchema keyTypeSchema,
-      required TypeSchema valueTypeSchema}) {
-    return TypeSchema.fromType(PrimaryType('Map',
-        args: [keyTypeSchema.toType(), valueTypeSchema.toType()]));
-  }
-
-  @override
-  Type? matchFutureOr(Type type) {
+  Type? matchFutureOrInternal(Type type) {
     if (type is FutureOrType) {
       return type.typeArgument;
     }
@@ -3034,13 +3095,20 @@ class MiniAstOperations
   }
 
   @override
-  PromotedTypeVariableType? matchInferableParameter(Type type) {
-    // TODO(cstefantsova): Add support for type parameter objects in Mini AST.
-    return null;
+  TypeParameter? matchInferableParameter(SharedTypeView<Type> type) {
+    if (type.unwrapTypeView()
+        case TypeParameterType(
+          :var typeParameter,
+          nullabilitySuffix: NullabilitySuffix.none
+        )) {
+      return typeParameter;
+    } else {
+      return null;
+    }
   }
 
   @override
-  Type? matchIterableType(Type type) {
+  Type? matchIterableTypeInternal(Type type) {
     if (type is PrimaryType &&
         type.nullabilitySuffix == NullabilitySuffix.none &&
         type.args.length == 1) {
@@ -3052,120 +3120,113 @@ class MiniAstOperations
   }
 
   @override
-  TypeSchema? matchIterableTypeSchema(TypeSchema typeSchema) =>
-      switch (matchIterableType(typeSchema.toType())) {
-        null => null,
-        var t => TypeSchema.fromType(t)
-      };
-
-  @override
-  Type? matchListType(Type type) {
-    if (type is PrimaryType &&
-        type.nullabilitySuffix == NullabilitySuffix.none &&
-        type.name == 'List' &&
-        type.args.length == 1) {
-      return type.args[0];
+  SharedTypeView<Type>? matchListType(SharedTypeView<Type> type) {
+    Type unwrappedType = type.unwrapTypeView();
+    if (unwrappedType is PrimaryType &&
+        unwrappedType.nullabilitySuffix == NullabilitySuffix.none &&
+        unwrappedType.name == 'List' &&
+        unwrappedType.args.length == 1) {
+      return SharedTypeView(unwrappedType.args[0]);
     }
     return null;
   }
 
   @override
-  ({Type keyType, Type valueType})? matchMapType(Type type) {
-    if (type is PrimaryType &&
-        type.nullabilitySuffix == NullabilitySuffix.none &&
-        type.name == 'Map' &&
-        type.args.length == 2) {
+  ({SharedTypeView<Type> keyType, SharedTypeView<Type> valueType})?
+      matchMapType(SharedTypeView<Type> type) {
+    Type unwrappedType = type.unwrapTypeView();
+    if (unwrappedType is PrimaryType &&
+        unwrappedType.nullabilitySuffix == NullabilitySuffix.none &&
+        unwrappedType.name == 'Map' &&
+        unwrappedType.args.length == 2) {
       return (
-        keyType: type.args[0],
-        valueType: type.args[1],
+        keyType: SharedTypeView(unwrappedType.args[0]),
+        valueType: SharedTypeView(unwrappedType.args[1]),
       );
     }
     return null;
   }
 
   @override
-  Type? matchStreamType(Type type) {
-    if (type is PrimaryType &&
-        type.nullabilitySuffix == NullabilitySuffix.none &&
-        type.args.length == 1) {
-      if (type.name == 'Stream') {
-        return type.args[0];
+  SharedTypeView<Type>? matchStreamType(SharedTypeView<Type> type) {
+    Type unwrappedType = type.unwrapTypeView();
+    if (unwrappedType is PrimaryType &&
+        unwrappedType.nullabilitySuffix == NullabilitySuffix.none &&
+        unwrappedType.args.length == 1) {
+      if (unwrappedType.name == 'Stream') {
+        return SharedTypeView(unwrappedType.args[0]);
       }
     }
     return null;
   }
 
   @override
-  TypeDeclarationMatchResult? matchTypeDeclarationType(Type type) {
-    if (type is! PrimaryType) return null;
-    if (type.isInterfaceType) {
-      return new TypeDeclarationMatchResult(
-          typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
-          typeDeclaration: type.type,
-          typeDeclarationType: type,
-          typeArguments: type.args);
+  TypeDeclarationMatchResult<Type, String, Type>? matchTypeDeclarationType(
+      SharedTypeView<Type> type) {
+    Type unwrappedType = type.unwrapTypeView();
+    if (unwrappedType is! PrimaryType) return null;
+    TypeDeclarationKind typeDeclarationKind;
+    if (unwrappedType.isInterfaceType) {
+      typeDeclarationKind = TypeDeclarationKind.interfaceDeclaration;
     } else if (isExtensionType(type)) {
-      return new TypeDeclarationMatchResult(
-          typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
-          typeDeclaration: type.type,
-          typeDeclarationType: type,
-          typeArguments: type.args);
+      typeDeclarationKind = TypeDeclarationKind.extensionTypeDeclaration;
     } else {
       return null;
     }
+    return new TypeDeclarationMatchResult(
+        typeDeclarationKind: typeDeclarationKind,
+        typeDeclaration: unwrappedType.name,
+        typeDeclarationType: unwrappedType,
+        typeArguments: unwrappedType.args);
   }
 
   @override
-  Type normalize(Type type) {
-    var query = '$type';
-    return _normalizeResults[query] ?? fail('Unknown query: $query');
+  SharedTypeView<Type> normalize(SharedTypeView<Type> type) {
+    var query = '${type.unwrapTypeView()}';
+    return SharedTypeView(
+        _normalizeResults[query] ?? fail('Unknown query: $query'));
   }
 
   @override
-  Type promoteToNonNull(Type type) {
-    if (type.nullabilitySuffix == NullabilitySuffix.question) {
-      return type.withNullability(NullabilitySuffix.none);
-    } else if (type is NullType) {
-      return NeverType.instance;
+  SharedTypeView<Type> promoteToNonNull(SharedTypeView<Type> type) {
+    Type unwrappedType = type.unwrapTypeView();
+    if (unwrappedType.nullabilitySuffix == NullabilitySuffix.question) {
+      return SharedTypeView(
+          unwrappedType.withNullability(NullabilitySuffix.none));
+    } else if (unwrappedType is NullType) {
+      return SharedTypeView(NeverType.instance);
     } else {
       return type;
     }
   }
 
   @override
-  RecordType recordType(
+  RecordType recordTypeInternal(
       {required List<Type> positional, required List<(String, Type)> named}) {
     return RecordType(
       positionalTypes: positional,
       namedTypes: [
         for (var (name, type) in named) NamedType(name: name, type: type)
-      ],
+      ]..sort((a, b) => a.name.compareTo(b.name)),
     );
   }
 
   @override
-  TypeSchema recordTypeSchema(
-          {required List<TypeSchema> positional,
-          required List<(String, TypeSchema)> named}) =>
-      TypeSchema.fromType(recordType(positional: [
-        for (var t in positional) t.toType()
-      ], named: [
-        for (var (name, typeSchema) in named) (name, typeSchema.toType())
-      ]));
-
-  @override
-  TypeSchema streamTypeSchema(TypeSchema elementTypeSchema) {
-    return TypeSchema.fromType(
-        PrimaryType('Stream', args: [elementTypeSchema.toType()]));
+  SharedTypeSchemaView<Type> streamTypeSchema(
+      SharedTypeSchemaView<Type> elementTypeSchema) {
+    return SharedTypeSchemaView(PrimaryType(TypeRegistry.stream,
+        args: [elementTypeSchema.unwrapTypeSchemaView()]));
   }
 
   @override
-  Type? tryPromoteToType(Type to, Type from) {
-    var exception = (_promotionExceptions[from.type] ?? {})[to.type];
+  SharedTypeView<Type>? tryPromoteToType(
+      SharedTypeView<Type> to, SharedTypeView<Type> from) {
+    var exception = (_promotionExceptions[from.unwrapTypeView().type] ??
+        {})[to.unwrapTypeView().type];
     if (exception != null) {
-      return Type(exception);
+      return SharedTypeView(Type(exception));
     }
-    if (isSubtypeOf(to, from)) {
+    if (isSubtypeOfInternal(to.unwrapTypeView(), from.unwrapTypeView())) {
       return to;
     } else {
       return null;
@@ -3173,41 +3234,12 @@ class MiniAstOperations
   }
 
   @override
-  bool typeIsSubtypeOfTypeSchema(Type leftType, TypeSchema rightSchema) {
-    return isSubtypeOf(leftType, rightSchema.toType());
-  }
+  SharedTypeSchemaView<Type> typeToSchema(SharedTypeView<Type> type) =>
+      SharedTypeSchemaView(type.unwrapTypeView());
 
   @override
-  TypeSchema typeSchemaGlb(TypeSchema typeSchema1, TypeSchema typeSchema2) =>
-      TypeSchema.fromType(glb(typeSchema1.toType(), typeSchema2.toType()));
-
-  @override
-  bool typeSchemaIsDynamic(TypeSchema typeSchema) {
-    var type = typeSchema.toType();
-    return type is DynamicType;
-  }
-
-  @override
-  bool typeSchemaIsSubtypeOfType(TypeSchema leftSchema, Type rightType) {
-    return isSubtypeOf(leftSchema.toType(), rightType);
-  }
-
-  @override
-  bool typeSchemaIsSubtypeOfTypeSchema(
-      TypeSchema leftSchema, TypeSchema rightSchema) {
-    return isSubtypeOf(leftSchema.toType(), rightSchema.toType());
-  }
-
-  @override
-  TypeSchema typeSchemaLub(TypeSchema typeSchema1, TypeSchema typeSchema2) =>
-      TypeSchema.fromType(lub(typeSchema1.toType(), typeSchema2.toType()));
-
-  @override
-  TypeSchema typeToSchema(Type type) => TypeSchema.fromType(type);
-
-  @override
-  Type variableType(Var variable) {
-    return variable.type;
+  SharedTypeView<Type> variableType(Var variable) {
+    return SharedTypeView(variable.type);
   }
 
   @override
@@ -3216,8 +3248,10 @@ class MiniAstOperations
       property.whyNotPromotable;
 
   @override
-  Type withNullabilitySuffix(Type type, NullabilitySuffix modifier) =>
-      type.withNullability(modifier);
+  SharedTypeView<Type> withNullabilitySuffix(
+      SharedTypeView<Type> type, NullabilitySuffix modifier) {
+    return SharedTypeView(type.unwrapTypeView().withNullability(modifier));
+  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language
@@ -3235,6 +3269,8 @@ class Node {
   final String location;
 
   String? _errorId;
+
+  factory Node.placeholder() => Node._(location: computeLocation());
 
   Node._({required this.location}) : id = _nextId++;
 
@@ -3271,7 +3307,8 @@ class NonNullAssert extends Expression {
   String toString() => '$operand!';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     return h.typeAnalyzer.analyzeNonNullAssert(this, operand);
   }
 }
@@ -3290,7 +3327,8 @@ class Not extends Expression {
   String toString() => '!$operand';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     return h.typeAnalyzer.analyzeLogicalNot(this, operand);
   }
 }
@@ -3315,14 +3353,15 @@ class NullAwareAccess extends Expression {
   String toString() => '$lhs?.${isCascaded ? '.' : ''}($rhs)';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     var lhsType =
         h.typeAnalyzer.analyzeExpression(lhs, h.operations.unknownType);
     h.flow.nullAwareAccess_rightBegin(isCascaded ? null : lhs, lhsType);
     var rhsType =
         h.typeAnalyzer.analyzeExpression(rhs, h.operations.unknownType);
     h.flow.nullAwareAccess_end();
-    var type = h.operations.lub(rhsType, NullType.instance);
+    var type = h.operations.lub(rhsType, SharedTypeView(NullType.instance));
     h.irBuilder.apply(
         _fakeMethodName, [Kind.expression, Kind.expression], Kind.expression,
         location: location);
@@ -3340,7 +3379,7 @@ class NullCheckOrAssertPattern extends Pattern {
       : super._();
 
   @override
-  TypeSchema computeSchema(Harness h) => h.typeAnalyzer
+  SharedTypeSchemaView<Type> computeSchema(Harness h) => h.typeAnalyzer
       .analyzeNullCheckOrAssertPatternSchema(inner, isAssert: isAssert);
 
   @override
@@ -3354,7 +3393,7 @@ class NullCheckOrAssertPattern extends Pattern {
     var analysisResult = h.typeAnalyzer.analyzeNullCheckOrAssertPattern(
         context, this, inner,
         isAssert: isAssert);
-    var matchedType = analysisResult.matchedValueType;
+    var matchedType = analysisResult.matchedValueType.unwrapTypeView();
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply(isAssert ? 'nullAssertPattern' : 'nullCheckPattern',
         [Kind.pattern, Kind.type], Kind.pattern,
@@ -3377,7 +3416,8 @@ class NullLiteral extends ConstExpression {
   String toString() => 'null';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     var result = h.typeAnalyzer.analyzeNullLiteral(this);
     h.irBuilder.atom('null', Kind.expression, location: location);
     return result;
@@ -3395,8 +3435,9 @@ class ObjectPattern extends Pattern {
   }) : super._();
 
   @override
-  TypeSchema computeSchema(Harness h) {
-    return h.typeAnalyzer.analyzeObjectPatternSchema(requiredType);
+  SharedTypeSchemaView<Type> computeSchema(Harness h) {
+    return h.typeAnalyzer
+        .analyzeObjectPatternSchema(SharedTypeView(requiredType));
   }
 
   @override
@@ -3412,8 +3453,8 @@ class ObjectPattern extends Pattern {
   PatternResult<Type> visit(Harness h, SharedMatchContext context) {
     var objectPatternResult =
         h.typeAnalyzer.analyzeObjectPattern(context, this, fields: fields);
-    var matchedType = objectPatternResult.matchedValueType;
-    var requiredType = objectPatternResult.requiredType;
+    var matchedType = objectPatternResult.matchedValueType.unwrapTypeView();
+    var requiredType = objectPatternResult.requiredType.unwrapTypeView();
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -3451,7 +3492,8 @@ class ParenthesizedExpression extends Expression {
   String toString() => '($expr)';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     return h.typeAnalyzer.analyzeParenthesizedExpression(this, expr, schema);
   }
 }
@@ -3462,7 +3504,7 @@ class ParenthesizedPattern extends Pattern {
   ParenthesizedPattern._(this.inner, {required super.location}) : super._();
 
   @override
-  TypeSchema computeSchema(Harness h) => inner.computeSchema(h);
+  SharedTypeSchemaView<Type> computeSchema(Harness h) => inner.computeSchema(h);
 
   @override
   void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
@@ -3515,7 +3557,7 @@ abstract class Pattern extends Node
         location: location);
   }
 
-  TypeSchema computeSchema(Harness h);
+  SharedTypeSchemaView<Type> computeSchema(Harness h);
 
   Pattern or(Pattern other) =>
       LogicalOrPattern(this, other, location: computeLocation());
@@ -3559,7 +3601,8 @@ class PatternAssignment extends Expression {
   }
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     var result = h.typeAnalyzer.analyzePatternAssignment(this, lhs, rhs);
     h.irBuilder.apply(
         'patternAssignment', [Kind.expression, Kind.pattern], Kind.expression,
@@ -3741,10 +3784,11 @@ class PlaceholderExpression extends ConstExpression {
   String toString() => '(expr with type $type)';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     h.irBuilder.atom(type.type, Kind.type, location: location);
     h.irBuilder.apply('expr', [Kind.type], Kind.expression, location: location);
-    return new SimpleTypeAnalysisResult<Type>(type: type);
+    return new SimpleTypeAnalysisResult<Type>(type: SharedTypeView(type));
   }
 }
 
@@ -3828,18 +3872,22 @@ class Property extends PromotableLValue {
   String toString() => '$target.$propertyName';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     return h.typeAnalyzer.analyzePropertyGet(
         this, target is CascadePlaceholder ? null : target, propertyName);
   }
 
   @override
   Type? _getPromotedType(Harness h) {
-    var receiverType =
-        h.typeAnalyzer.analyzeExpression(target, h.operations.unknownType);
+    var receiverType = h.typeAnalyzer
+        .analyzeExpression(target, h.operations.unknownType)
+        .unwrapTypeView();
     var member = h.typeAnalyzer._lookupMember(receiverType, propertyName);
-    return h.flow.promotedPropertyType(
-        ExpressionPropertyTarget(target), propertyName, member, member!._type);
+    return h.flow
+        .promotedPropertyType(ExpressionPropertyTarget(target), propertyName,
+            member, SharedTypeView(member!._type))
+        ?.unwrapTypeView();
   }
 
   @override
@@ -4023,8 +4071,8 @@ mixin ProtoExpression
   /// a type schema of [typeSchema].
   Statement inTypeSchema(String typeSchema) {
     var location = computeLocation();
-    return ExpressionInTypeSchema._(
-        asExpression(location: location), TypeSchema(typeSchema),
+    return ExpressionInTypeSchema._(asExpression(location: location),
+        SharedTypeSchemaView(Type(typeSchema)),
         location: location);
   }
 
@@ -4119,7 +4167,7 @@ mixin ProtoStatement<Self extends ProtoStatement<dynamic>> {
   /// expression statement.
   ///
   /// In general, tests shouldn't need to call this method directly; instead
-  /// they should simply be able to use either a [Statement] or an [Expressions]
+  /// they should simply be able to use either a [Statement] or an [Expression]
   /// in a context where a statement is expected, and the test infrastructure
   /// will call this getter as needed.
   Statement asStatement({required String location});
@@ -4150,7 +4198,7 @@ class RecordPattern extends Pattern {
   RecordPattern._(this.fields, {required super.location}) : super._();
 
   @override
-  TypeSchema computeSchema(Harness h) {
+  SharedTypeSchemaView<Type> computeSchema(Harness h) {
     return h.typeAnalyzer.analyzeRecordPatternSchema(
       fields: fields,
     );
@@ -4169,8 +4217,8 @@ class RecordPattern extends Pattern {
   PatternResult<Type> visit(Harness h, SharedMatchContext context) {
     var recordPatternResult =
         h.typeAnalyzer.analyzeRecordPattern(context, this, fields: fields);
-    var matchedType = recordPatternResult.matchedValueType;
-    var requiredType = recordPatternResult.requiredType;
+    var matchedType = recordPatternResult.matchedValueType.unwrapTypeView();
+    var requiredType = recordPatternResult.requiredType.unwrapTypeView();
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -4219,7 +4267,7 @@ class RelationalPattern extends Pattern {
       : super._();
 
   @override
-  TypeSchema computeSchema(Harness h) =>
+  SharedTypeSchemaView<Type> computeSchema(Harness h) =>
       h.typeAnalyzer.analyzeRelationalPatternSchema();
 
   @override
@@ -4232,7 +4280,7 @@ class RelationalPattern extends Pattern {
   PatternResult<Type> visit(Harness h, SharedMatchContext context) {
     var analysisResult =
         h.typeAnalyzer.analyzeRelationalPattern(context, this, operand);
-    var matchedType = analysisResult.matchedValueType;
+    var matchedType = analysisResult.matchedValueType.unwrapTypeView();
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply(operator, [Kind.expression, Kind.type], Kind.pattern,
         names: ['matchedType'], location: location);
@@ -4302,7 +4350,8 @@ class Second extends Expression {
   String toString() => 'second($first, $second)';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     h.typeAnalyzer.analyzeExpression(first, h.operations.unknownType);
     var type = h.typeAnalyzer.analyzeExpression(second, schema);
     h.irBuilder.apply(
@@ -4360,7 +4409,8 @@ class SwitchExpression extends Expression {
   }
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     var result = h.typeAnalyzer
         .analyzeSwitchExpression(this, scrutinee, cases.length, schema);
     h.irBuilder.apply(
@@ -4477,7 +4527,8 @@ class SwitchStatement extends Statement {
         expectLastCaseTerminates ?? anything);
     expect(analysisResult.requiresExhaustivenessValidation,
         expectRequiresExhaustivenessValidation ?? anything);
-    expect(analysisResult.scrutineeType.type, expectScrutineeType ?? anything);
+    expect(analysisResult.scrutineeType.unwrapTypeView().type,
+        expectScrutineeType ?? anything);
     h.irBuilder.apply(
       'switch',
       [
@@ -4492,8 +4543,9 @@ class SwitchStatement extends Statement {
   }
 }
 
-/// Representation of a single case clause in a switch statement.  Use [case_]
-/// to create instances of this class.
+/// Representation of a single case clause in a switch statement.  Use
+/// [PossiblyGuardedPattern.then] or [SwitchHead.then] to create instances of
+/// this class.
 class SwitchStatementMember extends Node {
   final bool hasLabels;
   final List<SwitchHead> elements;
@@ -4546,7 +4598,8 @@ class This extends Expression {
   String toString() => 'this';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     var result = h.typeAnalyzer.analyzeThis(this);
     h.irBuilder.atom('this', Kind.expression, location: location);
     return result;
@@ -4566,7 +4619,8 @@ class ThisOrSuperProperty extends PromotableLValue {
       {_LValueDisposition disposition = _LValueDisposition.read}) {}
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     var result = h.typeAnalyzer.analyzeThisOrSuperPropertyGet(
         this, propertyName,
         isSuperAccess: isSuperAccess);
@@ -4582,13 +4636,15 @@ class ThisOrSuperProperty extends PromotableLValue {
     h.irBuilder.atom('$thisOrSuper.$propertyName', Kind.expression,
         location: location);
     var member = h.typeAnalyzer._lookupMember(h._thisType!, propertyName);
-    return h.flow.promotedPropertyType(
-        isSuperAccess
-            ? SuperPropertyTarget.singleton
-            : ThisPropertyTarget.singleton,
-        propertyName,
-        member,
-        member!._type);
+    return h.flow
+        .promotedPropertyType(
+            isSuperAccess
+                ? SuperPropertyTarget.singleton
+                : ThisPropertyTarget.singleton,
+            propertyName,
+            member,
+            SharedTypeView(member!._type))
+        ?.unwrapTypeView();
   }
 
   @override
@@ -4612,7 +4668,8 @@ class Throw extends Expression {
   String toString() => 'throw ...';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     return h.typeAnalyzer.analyzeThrow(this, operand);
   }
 }
@@ -4792,7 +4849,7 @@ class Var extends Node
   @override
   Type? _getPromotedType(Harness h) {
     h.irBuilder.atom(name, Kind.expression, location: location);
-    return h.flow.promotedType(this);
+    return h.flow.promotedType(this)?.unwrapTypeView();
   }
 }
 
@@ -4810,11 +4867,12 @@ class VariablePattern extends Pattern {
       : super._();
 
   @override
-  TypeSchema computeSchema(Harness h) {
+  SharedTypeSchemaView<Type> computeSchema(Harness h) {
     if (isAssignedVariable) {
       return h.typeAnalyzer.analyzeAssignedVariablePatternSchema(variable);
     } else {
-      return h.typeAnalyzer.analyzeDeclaredVariablePatternSchema(declaredType);
+      return h.typeAnalyzer.analyzeDeclaredVariablePatternSchema(
+          declaredType?.wrapSharedTypeView());
     }
   }
 
@@ -4841,10 +4899,12 @@ class VariablePattern extends Pattern {
       return analysisResult;
     } else {
       var declaredVariablePatternResult = h.typeAnalyzer
-          .analyzeDeclaredVariablePattern(
-              context, this, variable, variable.name, declaredType);
-      var matchedType = declaredVariablePatternResult.matchedValueType;
-      var staticType = declaredVariablePatternResult.staticType;
+          .analyzeDeclaredVariablePattern(context, this, variable,
+              variable.name, declaredType?.wrapSharedTypeView());
+      var matchedType =
+          declaredVariablePatternResult.matchedValueType.unwrapTypeView();
+      var staticType =
+          declaredVariablePatternResult.staticType.unwrapTypeView();
       h.typeAnalyzer.handleDeclaredVariablePattern(this,
           matchedType: matchedType, staticType: staticType);
       return declaredVariablePatternResult;
@@ -4885,7 +4945,8 @@ class VariableReference extends LValue {
   String toString() => variable.name;
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     var result = h.typeAnalyzer.analyzeVariableGet(this, variable, callback);
     h.irBuilder.atom(variable.name, Kind.expression, location: location);
     return result;
@@ -4894,7 +4955,8 @@ class VariableReference extends LValue {
   @override
   void _visitWrite(Harness h, Expression assignmentExpression, Type writtenType,
       Expression? rhs) {
-    h.flow.write(assignmentExpression, variable, writtenType, rhs);
+    h.flow.write(
+        assignmentExpression, variable, SharedTypeView(writtenType), rhs);
   }
 }
 
@@ -4936,9 +4998,9 @@ class WildcardPattern extends Pattern {
       : super._();
 
   @override
-  TypeSchema computeSchema(Harness h) {
+  SharedTypeSchemaView<Type> computeSchema(Harness h) {
     return h.typeAnalyzer.analyzeWildcardPatternSchema(
-      declaredType: declaredType,
+      declaredType: declaredType?.wrapSharedTypeView(),
     );
   }
 
@@ -4951,9 +5013,9 @@ class WildcardPattern extends Pattern {
     var analysisResult = h.typeAnalyzer.analyzeWildcardPattern(
       context: context,
       node: this,
-      declaredType: declaredType,
+      declaredType: declaredType?.wrapSharedTypeView(),
     );
-    var matchedType = analysisResult.matchedValueType;
+    var matchedType = analysisResult.matchedValueType.unwrapTypeView();
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply('wildcardPattern', [Kind.type], Kind.pattern,
         names: ['matchedType'], location: location);
@@ -5002,7 +5064,8 @@ class WrappedExpression extends Expression {
   }
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     late MiniIRTmp beforeTmp;
     if (before != null) {
       h.typeAnalyzer.dispatchStatement(before!);
@@ -5048,19 +5111,24 @@ class Write extends Expression {
   String toString() => '$lhs = $rhs';
 
   @override
-  ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
     var rhs = this.rhs;
     Type type;
     if (rhs == null) {
       // We are simulating an increment/decrement operation.
       // TODO(paulberry): Make a separate node type for this.
-      type = h.typeAnalyzer.analyzeExpression(lhs, h.operations.unknownType);
+      type = h.typeAnalyzer
+          .analyzeExpression(lhs, h.operations.unknownType)
+          .unwrapTypeView();
     } else {
-      type = h.typeAnalyzer.analyzeExpression(rhs, h.operations.unknownType);
+      type = h.typeAnalyzer
+          .analyzeExpression(rhs, h.operations.unknownType)
+          .unwrapTypeView();
     }
     lhs._visitWrite(h, this, type, rhs);
     // TODO(paulberry): null shorting
-    return new SimpleTypeAnalysisResult<Type>(type: type);
+    return new SimpleTypeAnalysisResult<Type>(type: SharedTypeView(type));
   }
 }
 
@@ -5082,8 +5150,8 @@ enum _LValueDisposition {
 
 class _MiniAstErrors
     implements
-        TypeAnalyzerErrors<Node, Statement, Expression, Var, Type, Pattern,
-            void>,
+        TypeAnalyzerErrors<Node, Statement, Expression, Var,
+            SharedTypeView<Type>, Pattern, void>,
         VariableBinderErrors<Node, Var> {
   final Set<String> _accumulatedErrors = {};
 
@@ -5104,8 +5172,8 @@ class _MiniAstErrors
   void caseExpressionTypeMismatch(
       {required Expression scrutinee,
       required Expression caseExpression,
-      required Type scrutineeType,
-      required Type caseExpressionType,
+      required SharedTypeView<Type> scrutineeType,
+      required SharedTypeView<Type> caseExpressionType,
       required bool nullSafetyEnabled}) {
     _recordError('caseExpressionTypeMismatch', {
       'scrutinee': scrutinee,
@@ -5208,7 +5276,7 @@ class _MiniAstErrors
   @override
   void matchedTypeIsStrictlyNonNullable({
     required Pattern pattern,
-    required Type matchedType,
+    required SharedTypeView<Type> matchedType,
   }) {
     _recordError('matchedTypeIsStrictlyNonNullable', {
       'pattern': pattern,
@@ -5219,8 +5287,8 @@ class _MiniAstErrors
   @override
   void matchedTypeIsSubtypeOfRequired({
     required Pattern pattern,
-    required Type matchedType,
-    required Type requiredType,
+    required SharedTypeView<Type> matchedType,
+    required SharedTypeView<Type> requiredType,
   }) {
     _recordError('matchedTypeIsSubtypeOfRequired', {
       'pattern': pattern,
@@ -5238,7 +5306,7 @@ class _MiniAstErrors
   void patternForInExpressionIsNotIterable({
     required Node node,
     required Expression expression,
-    required Type expressionType,
+    required SharedTypeView<Type> expressionType,
   }) {
     _recordError('patternForInExpressionIsNotIterable', {
       'node': node,
@@ -5251,8 +5319,8 @@ class _MiniAstErrors
   void patternTypeMismatchInIrrefutableContext(
       {required Node pattern,
       required Node context,
-      required Type matchedType,
-      required Type requiredType}) {
+      required SharedTypeView<Type> matchedType,
+      required SharedTypeView<Type> requiredType}) {
     _recordError('patternTypeMismatchInIrrefutableContext', {
       'pattern': pattern,
       'context': context,
@@ -5271,8 +5339,8 @@ class _MiniAstErrors
   @override
   void relationalPatternOperandTypeNotAssignable({
     required Pattern pattern,
-    required Type operandType,
-    required Type parameterType,
+    required SharedTypeView<Type> operandType,
+    required SharedTypeView<Type> parameterType,
   }) {
     _recordError('relationalPatternOperandTypeNotAssignable', {
       'pattern': pattern,
@@ -5284,7 +5352,7 @@ class _MiniAstErrors
   @override
   void relationalPatternOperatorReturnTypeNotAssignableToBool({
     required Pattern pattern,
-    required Type returnType,
+    required SharedTypeView<Type> returnType,
   }) {
     _recordError('relationalPatternOperatorReturnTypeNotAssignableToBool', {
       'pattern': pattern,
@@ -5347,8 +5415,8 @@ class _MiniAstErrors
 
 class _MiniAstTypeAnalyzer
     with
-        TypeAnalyzer<Node, Statement, Expression, Var, Type, Pattern, void,
-            TypeSchema, PromotedTypeVariableType, Type, String> {
+        TypeAnalyzer<Type, Node, Statement, Expression, Var, Pattern, void,
+            TypeParameter, Type, String> {
   final Harness _harness;
 
   @override
@@ -5376,8 +5444,8 @@ class _MiniAstTypeAnalyzer
   _MiniAstTypeAnalyzer(this._harness, this.options);
 
   @override
-  FlowAnalysis<Node, Statement, Expression, Var, Type> get flow =>
-      _harness.flow;
+  FlowAnalysis<Node, Statement, Expression, Var, SharedTypeView<Type>>
+      get flow => _harness.flow;
 
   Type get nullType => NullType.instance;
 
@@ -5433,7 +5501,7 @@ class _MiniAstTypeAnalyzer
       flow.logicalBinaryOp_begin();
     }
     var leftType = analyzeExpression(lhs, operations.unknownType);
-    ExpressionInfo<Type>? leftInfo;
+    ExpressionInfo<SharedTypeView<Type>>? leftInfo;
     if (isEquals) {
       leftInfo = flow.equalityOperand_end(lhs, leftType);
     } else if (isLogical) {
@@ -5458,7 +5526,7 @@ class _MiniAstTypeAnalyzer
 
   Type analyzeBoolLiteral(Expression node, bool value) {
     flow.booleanLiteral(node, value);
-    return operations.boolType;
+    return operations.boolType.unwrapTypeView();
   }
 
   void analyzeBreakStatement(Statement? target) {
@@ -5533,6 +5601,15 @@ class _MiniAstTypeAnalyzer
     var methodType = _handlePropertyTargetAndMemberLookup(
         null, target, methodName,
         location: node.location);
+    if (methodType is FunctionType) {
+      if (methodType.namedParameters.isNotEmpty) {
+        throw UnimplementedError('Named parameters are not supported yet');
+      } else if (methodType.requiredPositionalParameterCount !=
+          methodType.positionalParameters.length) {
+        throw UnimplementedError(
+            'Optional positional parameters are not supported yet');
+      }
+    }
     // Recursively analyze each argument.
     var inputKinds = [Kind.expression];
     for (var i = 0; i < arguments.length; i++) {
@@ -5541,14 +5618,15 @@ class _MiniAstTypeAnalyzer
           arguments[i],
           methodType is FunctionType &&
                   methodType.nullabilitySuffix == NullabilitySuffix.none
-              ? operations.typeToSchema(methodType.positionalParameters[i])
+              ? operations.typeToSchema(
+                  SharedTypeView(methodType.positionalParameters[i]))
               : operations.unknownType);
     }
     // Form the IR for the member invocation.
     _harness.irBuilder.apply(methodName, inputKinds, Kind.expression,
         location: node.location);
     // TODO(paulberry): handle null shorting
-    return new SimpleTypeAnalysisResult<Type>(type: methodType);
+    return new SimpleTypeAnalysisResult<Type>(type: SharedTypeView(methodType));
   }
 
   SimpleTypeAnalysisResult<Type> analyzeNonNullAssert(
@@ -5560,12 +5638,12 @@ class _MiniAstTypeAnalyzer
   }
 
   SimpleTypeAnalysisResult<Type> analyzeNullLiteral(Expression node) {
-    flow.nullLiteral(node, nullType);
-    return new SimpleTypeAnalysisResult<Type>(type: nullType);
+    flow.nullLiteral(node, SharedTypeView(nullType));
+    return new SimpleTypeAnalysisResult<Type>(type: SharedTypeView(nullType));
   }
 
-  SimpleTypeAnalysisResult<Type> analyzeParenthesizedExpression(
-      Expression node, Expression expression, TypeSchema schema) {
+  SimpleTypeAnalysisResult<Type> analyzeParenthesizedExpression(Expression node,
+      Expression expression, SharedTypeSchemaView<Type> schema) {
     var type = analyzeExpression(expression, schema);
     flow.parenthesizedExpression(node, expression);
     return new SimpleTypeAnalysisResult<Type>(type: type);
@@ -5587,7 +5665,8 @@ class _MiniAstTypeAnalyzer
     // Build the property get IR.
     _harness.irBuilder.propertyGet(propertyName, location: node.location);
     // TODO(paulberry): handle null shorting
-    return new SimpleTypeAnalysisResult<Type>(type: propertyType);
+    return new SimpleTypeAnalysisResult<Type>(
+        type: SharedTypeView(propertyType));
   }
 
   void analyzeReturnStatement() {
@@ -5596,24 +5675,27 @@ class _MiniAstTypeAnalyzer
 
   SimpleTypeAnalysisResult<Type> analyzeThis(Expression node) {
     var thisType = this.thisType;
-    flow.thisOrSuper(node, thisType, isSuper: false);
-    return new SimpleTypeAnalysisResult<Type>(type: thisType);
+    flow.thisOrSuper(node, SharedTypeView(thisType), isSuper: false);
+    return new SimpleTypeAnalysisResult<Type>(type: SharedTypeView(thisType));
   }
 
   SimpleTypeAnalysisResult<Type> analyzeThisOrSuperPropertyGet(
       Expression node, String propertyName,
       {required bool isSuperAccess}) {
     var member = _lookupMember(thisType, propertyName);
-    var memberType = member?._type ?? operations.dynamicType;
-    var promotedType = flow.propertyGet(
-        node,
-        isSuperAccess
-            ? SuperPropertyTarget.singleton
-            : ThisPropertyTarget.singleton,
-        propertyName,
-        member,
-        memberType);
-    return new SimpleTypeAnalysisResult<Type>(type: promotedType ?? memberType);
+    var memberType = member?._type ?? operations.dynamicType.unwrapTypeView();
+    var promotedType = flow
+        .propertyGet(
+            node,
+            isSuperAccess
+                ? SuperPropertyTarget.singleton
+                : ThisPropertyTarget.singleton,
+            propertyName,
+            member,
+            SharedTypeView(memberType))
+        ?.unwrapTypeView();
+    return new SimpleTypeAnalysisResult<Type>(
+        type: SharedTypeView(promotedType ?? memberType));
   }
 
   SimpleTypeAnalysisResult<Type> analyzeThrow(
@@ -5654,24 +5736,24 @@ class _MiniAstTypeAnalyzer
   SimpleTypeAnalysisResult<Type> analyzeTypeCast(
       Expression node, Expression expression, Type type) {
     analyzeExpression(expression, operations.unknownType);
-    flow.asExpression_end(expression, type);
-    return new SimpleTypeAnalysisResult<Type>(type: type);
+    flow.asExpression_end(expression, SharedTypeView(type));
+    return new SimpleTypeAnalysisResult<Type>(type: SharedTypeView(type));
   }
 
   SimpleTypeAnalysisResult<Type> analyzeTypeTest(
       Expression node, Expression expression, Type type,
       {bool isInverted = false}) {
     analyzeExpression(expression, operations.unknownType);
-    flow.isExpression_end(node, expression, isInverted, type);
+    flow.isExpression_end(node, expression, isInverted, SharedTypeView(type));
     return new SimpleTypeAnalysisResult<Type>(type: operations.boolType);
   }
 
   SimpleTypeAnalysisResult<Type> analyzeVariableGet(
       Expression node, Var variable, void Function(Type?)? callback) {
     var promotedType = flow.variableRead(node, variable);
-    callback?.call(promotedType);
+    callback?.call(promotedType?.unwrapTypeView());
     return new SimpleTypeAnalysisResult<Type>(
-        type: promotedType ?? variable.type);
+        type: promotedType ?? SharedTypeView(variable.type));
   }
 
   void analyzeWhileLoop(Statement node, Expression condition, Statement body) {
@@ -5692,7 +5774,7 @@ class _MiniAstTypeAnalyzer
 
   @override
   ExpressionTypeAnalysisResult<Type> dispatchExpression(
-          Expression expression, TypeSchema schema) =>
+          Expression expression, SharedTypeSchemaView<Type> schema) =>
       _irBuilder.guard(expression, () => expression.visit(_harness, schema));
 
   @override
@@ -5702,7 +5784,7 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  TypeSchema dispatchPatternSchema(covariant Pattern node) {
+  SharedTypeSchemaView<Type> dispatchPatternSchema(covariant Pattern node) {
     return node.computeSchema(_harness);
   }
 
@@ -5711,15 +5793,16 @@ class _MiniAstTypeAnalyzer
       _irBuilder.guard(statement, () => statement.visit(_harness));
 
   @override
-  Type downwardInferObjectPatternRequiredType({
-    required Type matchedType,
+  SharedTypeView<Type> downwardInferObjectPatternRequiredType({
+    required SharedTypeView<Type> matchedType,
     required covariant ObjectPattern pattern,
   }) {
     var requiredType = pattern.requiredType;
     if (requiredType.args.isNotEmpty) {
-      return requiredType;
+      return SharedTypeView(requiredType);
     } else {
-      return operations.downwardInfer(requiredType.name, matchedType);
+      return SharedTypeView(operations.downwardInfer(
+          requiredType.name, matchedType.unwrapTypeView()));
     }
   }
 
@@ -5740,10 +5823,10 @@ class _MiniAstTypeAnalyzer
     required JoinedPatternVariableLocation location,
     required JoinedPatternVariableInconsistency inconsistency,
     required bool isFinal,
-    required Type type,
+    required SharedTypeView<Type> type,
   }) {
     variable.isFinal = isFinal;
-    variable.type = type;
+    variable.type = type.unwrapTypeView();
     variable.inconsistency = variable.inconsistency.maxWith(inconsistency);
   }
 
@@ -5898,7 +5981,7 @@ class _MiniAstTypeAnalyzer
 
   @override
   void handleMapPatternEntry(
-      Pattern container, Node entryElement, Type keyType) {
+      Pattern container, Node entryElement, SharedTypeView<Type> keyType) {
     _irBuilder.apply('mapPatternEntry', [Kind.expression, Kind.pattern],
         Kind.mapPatternElement,
         location: entryElement.location);
@@ -5970,11 +6053,11 @@ class _MiniAstTypeAnalyzer
   }) {}
 
   @override
-  void handleSwitchScrutinee(Type type) {}
+  void handleSwitchScrutinee(SharedTypeView<Type> type) {}
 
   @override
   bool isLegacySwitchExhaustive(
-      covariant SwitchStatement node, Type expressionType) {
+      covariant SwitchStatement node, SharedTypeView<Type> expressionType) {
     return node.isLegacyExhaustive!;
   }
 
@@ -5992,32 +6075,38 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  (_PropertyElement?, Type) resolveObjectPatternPropertyGet({
+  (_PropertyElement?, SharedTypeView<Type>) resolveObjectPatternPropertyGet({
     required Pattern objectPattern,
-    required Type receiverType,
+    required SharedTypeView<Type> receiverType,
     required shared.RecordPatternField<Node, Pattern> field,
   }) {
-    var propertyMember = _harness.getMember(receiverType, field.name!);
-    return (propertyMember, propertyMember?._type ?? operations.dynamicType);
+    var propertyMember =
+        _harness.getMember(receiverType.unwrapTypeView(), field.name!);
+    return (
+      propertyMember,
+      SharedTypeView(
+          propertyMember?._type ?? operations.dynamicType.unwrapTypeView())
+    );
   }
 
   @override
   RelationalOperatorResolution<Type>? resolveRelationalPatternOperator(
-      covariant RelationalPattern node, Type matchedValueType) {
+      covariant RelationalPattern node, SharedTypeView<Type> matchedValueType) {
     return _harness.resolveRelationalPatternOperator(
-        matchedValueType, node.operator);
+        matchedValueType.unwrapTypeView(), node.operator);
   }
 
   @override
-  void setVariableType(Var variable, Type type) {
-    variable.type = type;
+  void setVariableType(Var variable, SharedTypeView<Type> type) {
+    variable.type = type.unwrapTypeView();
   }
 
   @override
   String toString() => _irBuilder.toString();
 
   @override
-  Type variableTypeFromInitializerType(Type type) {
+  SharedTypeView<Type> variableTypeFromInitializerType(
+      SharedTypeView<Type> type) {
     // Variables whose initializer has type `Null` receive the inferred type
     // `dynamic`.
     if (_harness.operations.classifyType(type) ==
@@ -6029,7 +6118,9 @@ class _MiniAstTypeAnalyzer
     // (e.g. `T&int` is demoted to `T`).
     // TODO(paulberry): add language tests to verify that the behavior of
     // `type.recursivelyDemote` matches what the analyzer and CFE do.
-    return type.recursivelyDemote(covariant: true) ?? type;
+    return SharedTypeView(
+        type.unwrapTypeView().recursivelyDemote(covariant: true) ??
+            type.unwrapTypeView());
   }
 
   /// Analyzes the target of a property get or method invocation, looks up the
@@ -6056,13 +6147,16 @@ class _MiniAstTypeAnalyzer
       targetType = _currentCascadeTargetType!;
     } else {
       propertyTarget = ExpressionPropertyTarget(target);
-      targetType = analyzeExpression(target, operations.unknownType);
+      targetType =
+          analyzeExpression(target, operations.unknownType).unwrapTypeView();
     }
     // Look up the type of the member, applying type promotion if necessary.
     var member = _lookupMember(targetType, propertyName);
-    var memberType = member?._type ?? operations.dynamicType;
-    return flow.propertyGet(propertyGetNode, propertyTarget, propertyName,
-            member, memberType) ??
+    var memberType = member?._type ?? operations.dynamicType.unwrapTypeView();
+    return flow
+            .propertyGet(propertyGetNode, propertyTarget, propertyName, member,
+                SharedTypeView(memberType))
+            ?.unwrapTypeView() ??
         memberType;
   }
 

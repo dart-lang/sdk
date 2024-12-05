@@ -239,7 +239,8 @@ abstract class _PositionalInvocationSpecializer extends _InvocationSpecializer {
                 _util.jsifyTarget(expr.getStaticType(_staticTypeContext)),
                 Arguments([expr])))
             .toList()));
-    return _util.castInvocationForReturn(staticInvocation, function.returnType);
+    return _util.castInvocationForReturn(
+        staticInvocation, invocation.getStaticType(_staticTypeContext));
   }
 }
 

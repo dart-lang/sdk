@@ -150,8 +150,14 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(bool is_final) {
   if (!FLAG_precompiled_mode) {
     __ LoadCompressedFieldFromOffset(CODE_REG, FUNCTION_REG,
                                      target::Function::code_offset());
+#if defined(DART_DYNAMIC_MODULES)
+    // InterpretCall stub needs arguments descriptor for all function calls.
+    __ LoadObject(ARGS_DESC_REG, ArgumentsDescriptorBoxed(/*type_args_len=*/0,
+                                                          /*num_arguments=*/1));
+#else
     // Load a GC-safe value for the arguments descriptor (unused but tagged).
     __ LoadImmediate(ARGS_DESC_REG, 0);
+#endif  // defined(DART_DYNAMIC_MODULES)
   }
   __ Call(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
   __ Drop(1);  // Drop argument.
@@ -226,14 +232,6 @@ void StubCodeCompiler::GenerateReThrowStub() {
       {ReThrowABI::kExceptionReg, ReThrowABI::kStackTraceReg});
   __ PushImmediate(Smi::RawValue(0));  // Do not bypass debugger.
   __ CallRuntime(kReThrowRuntimeEntry, /*argument_count=*/3);
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateAssertBooleanStub() {
-  __ EnterStubFrame();
-  __ PushObject(NullObject());  // Make room for (unused) result.
-  __ PushRegister(AssertBooleanABI::kObjectReg);
-  __ CallRuntime(kNonBoolTypeErrorRuntimeEntry, /*argument_count=*/1);
   __ Breakpoint();
 }
 
@@ -1700,9 +1698,9 @@ EMIT_BOX_ALLOCATION(Int32x4)
 static void GenerateBoxFpuValueStub(Assembler* assembler,
                                     const dart::Class& cls,
                                     const RuntimeEntry& runtime_entry,
-                                    void (Assembler::* store_value)(FpuRegister,
-                                                                    Register,
-                                                                    int32_t)) {
+                                    void (Assembler::*store_value)(FpuRegister,
+                                                                   Register,
+                                                                   int32_t)) {
   Label call_runtime;
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     __ TryAllocate(cls, &call_runtime, compiler::Assembler::kFarJump,
@@ -2356,6 +2354,16 @@ void StubCodeCompiler::GenerateResumeStub() {
   static_assert((kStackTrace != CODE_REG) && (kStackTrace != PP),
                 "should not interfere");
 
+#if defined(DART_DYNAMIC_MODULES)
+  Label resume_interpreter;
+  __ CompareWithMemoryValue(
+      kResumePc,
+      compiler::Address(THR,
+                        compiler::target::Thread::
+                            resume_interpreter_adjusted_entry_point_offset()));
+  __ BranchIf(EQUAL, &resume_interpreter);
+#endif  // defined(DART_DYNAMIC_MODULES)
+
   // Set return address as if suspended Dart function called
   // stub with kResumePc as a return address.
   __ SetReturnAddress(kResumePc);
@@ -2380,6 +2388,25 @@ void StubCodeCompiler::GenerateResumeStub() {
     // Lazy deoptimize.
     __ Ret();
   }
+
+#if defined(DART_DYNAMIC_MODULES)
+  __ Comment("Resume interpreter with exception");
+  __ Bind(&resume_interpreter);
+
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  // This case is used when Dart frame is still on the stack.
+  SPILLS_LR_TO_FRAME({});
+#endif
+
+  __ PushObject(NullObject());  // Make room for result.
+  __ PushObject(NullObject());  // Return value.
+  __ PushRegistersInOrder({kException, kStackTrace});
+  __ CallRuntime(kResumeInterpreterRuntimeEntry, /*argument_count=*/3);
+  __ Drop(3);                                      // Drop arguments.
+  __ PopRegister(CallingConventions::kReturnReg);  // Get result.
+  __ LeaveDartFrame();
+  __ Ret();
+#endif  // defined(DART_DYNAMIC_MODULES)
 }
 
 void StubCodeCompiler::GenerateReturnStub(
@@ -2577,6 +2604,31 @@ void StubCodeCompiler::GenerateCloneSuspendStateStub() {
   __ Drop(1);                                      // Drop argument
   __ PopRegister(CallingConventions::kReturnReg);  // Get result.
   __ LeaveStubFrame();
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateResumeInterpreterStub() {
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
+  // On X64/IA32 execution is resumed at PC + kResumePcDistance.
+  const intptr_t start = __ CodeSize();
+  for (intptr_t i = 0; i < SuspendStubABI::kResumePcDistance; ++i) {
+    __ nop();
+  }
+  RELEASE_ASSERT(__ CodeSize() - start == SuspendStubABI::kResumePcDistance);
+#endif
+
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  SPILLS_LR_TO_FRAME({});  // Simulate entering the caller (Dart) frame.
+#endif
+
+  __ PushObject(NullObject());                      // Make room for result.
+  __ PushRegister(CallingConventions::kReturnReg);  // Return value.
+  __ PushObject(NullObject());                      // Exception.
+  __ PushObject(NullObject());                      // Stack trace.
+  __ CallRuntime(kResumeInterpreterRuntimeEntry, /*argument_count=*/3);
+  __ Drop(3);                                      // Drop arguments.
+  __ PopRegister(CallingConventions::kReturnReg);  // Get result.
+  __ LeaveDartFrame();
   __ Ret();
 }
 

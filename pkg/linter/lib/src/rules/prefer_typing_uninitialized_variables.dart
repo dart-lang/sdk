@@ -7,74 +7,22 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer typing uninitialized variables and fields.';
 
-const _details = r'''
-**PREFER** specifying a type annotation for uninitialized variables and fields.
-
-Forgoing type annotations for uninitialized variables is a bad practice because
-you may accidentally assign them to a type that you didn't originally intend to.
-
-**BAD:**
-```dart
-class BadClass {
-  static var bar; // LINT
-  var foo; // LINT
-
-  void method() {
-    var bar; // LINT
-    bar = 5;
-    print(bar);
-  }
-}
-```
-
-**BAD:**
-```dart
-void aFunction() {
-  var bar; // LINT
-  bar = 5;
-  ...
-}
-```
-
-**GOOD:**
-```dart
-class GoodClass {
-  static var bar = 7;
-  var foo = 42;
-  int baz; // OK
-
-  void method() {
-    int baz;
-    var bar = 5;
-    ...
-  }
-}
-```
-
-''';
-
 class PreferTypingUninitializedVariables extends LintRule {
-  static const LintCode forField = LintCode(
-      'prefer_typing_uninitialized_variables',
-      'An uninitialized field should have an explicit type annotation.',
-      correctionMessage: 'Try adding a type annotation.',
-      hasPublishedDocs: true);
-
-  static const LintCode forVariable = LintCode(
-      'prefer_typing_uninitialized_variables',
-      'An uninitialized variable should have an explicit type annotation.',
-      correctionMessage: 'Try adding a type annotation.',
-      hasPublishedDocs: true);
-
   PreferTypingUninitializedVariables()
       : super(
-            name: 'prefer_typing_uninitialized_variables',
-            description: _desc,
-            details: _details,
-            categories: {Category.style});
+          name: LintNames.prefer_typing_uninitialized_variables,
+          description: _desc,
+        );
+
+  @override
+  List<LintCode> get lintCodes => [
+        LinterLintCode.prefer_typing_uninitialized_variables_for_field,
+        LinterLintCode.prefer_typing_uninitialized_variables_for_local_variable
+      ];
 
   @override
   void registerNodeProcessors(
@@ -96,8 +44,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var v in node.variables) {
       if (v.initializer == null && !v.isAugmentation) {
         var code = node.parent is FieldDeclaration
-            ? PreferTypingUninitializedVariables.forField
-            : PreferTypingUninitializedVariables.forVariable;
+            ? LinterLintCode.prefer_typing_uninitialized_variables_for_field
+            : LinterLintCode
+                .prefer_typing_uninitialized_variables_for_local_variable;
         rule.reportLint(v, errorCode: code);
       }
     }

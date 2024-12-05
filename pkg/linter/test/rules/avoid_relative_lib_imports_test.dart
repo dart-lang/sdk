@@ -18,7 +18,7 @@ class AvoidRelativeLibImportsTest extends LintRuleTest {
   bool get addJsPackageDep => true;
 
   @override
-  String get lintRule => 'avoid_relative_lib_imports';
+  String get lintRule => LintNames.avoid_relative_lib_imports;
 
   test_externalPackage() async {
     await assertNoDiagnostics(r'''
@@ -38,6 +38,27 @@ import '../lib/lib.dart';
     var lib2Result = await resolveFile(test.path);
     await assertDiagnosticsIn(lib2Result.errors, [
       lint(30, 17),
+    ]);
+  }
+
+  test_samePackage_relativeUri_inPart() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+class C {}
+''');
+
+    newFile('$testPackageRootPath/test/a.dart', r'''
+part 'test.dart';
+''');
+
+    var test = newFile('$testPackageRootPath/test/test.dart', r'''
+part of 'a.dart';
+
+/// This provides [C].
+import '../lib/lib.dart';
+''');
+    var lib2Result = await resolveFile(test.path);
+    await assertDiagnosticsIn(lib2Result.errors, [
+      lint(49, 17),
     ]);
   }
 }

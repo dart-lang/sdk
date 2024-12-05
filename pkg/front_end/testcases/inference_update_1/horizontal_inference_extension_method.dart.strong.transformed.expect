@@ -1,7 +1,7 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 extension /* unnamed */ _extension#0 on core::int {
   method _laterUnnamedParameter = self::_extension#0|_laterUnnamedParameter;
@@ -91,13 +91,13 @@ static method testPropagateToLaterClosure(core::int i) → dynamic {
 }
 static method testLongDependencyChain(core::int i) → dynamic {
   self::_extension#0|_longDependencyChain<core::List<core::int>, core::int, core::Set<core::int>>(i, () → core::List<core::int> => core::_GrowableList::_literal1<core::int>(0), (core::List<core::int> x) → core::int => x.{core::Iterable::single}{core::int}, (core::int y) → core::Set<core::int> => block {
-    final core::Set<core::int> #t1 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t1 = new _co::_Set::•<core::int>();
     #t1.{core::Set::add}{Invariant}(y){(core::int) → core::bool};
   } =>#t1);
 }
 static method testDependencyCycle(core::int i) → dynamic {
   self::_extension#0|_dependencyCycle<core::List<core::Object?>, core::Set<core::Object?>>(i, (core::Object? x) → core::List<core::Object?> => core::_GrowableList::_literal1<core::Object?>(x), (core::Object? y) → core::Set<core::Object?> => block {
-    final core::Set<core::Object?> #t2 = new col::_Set::•<core::Object?>();
+    final core::Set<core::Object?> #t2 = new _co::_Set::•<core::Object?>();
     #t2.{core::Set::add}{Invariant}(y){(core::Object?) → core::bool};
   } =>#t2);
 }

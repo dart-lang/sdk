@@ -125,9 +125,10 @@ constexpr bool FLAG_support_il_printer = false;
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
   R(log_marker_tasks, false, bool, false,                                      \
     "Log debugging information for old gen GC marking tasks.")                 \
-  P(scavenger_tasks, int, 2,                                                   \
+  P(scavenger_tasks, int, -1,                                                  \
     "The number of tasks to spawn during scavenging and incremental "          \
-    "compaction (0 means perform all work on the main thread).")               \
+    "compaction (0 means perform all work on the main thread, -1 means "       \
+    "select an amount based on the number of active isolates).")               \
   P(mark_when_idle, bool, false,                                               \
     "The Dart thread will assist in concurrent marking during idle time and "  \
     "is counted as one marker task")                                           \
@@ -159,6 +160,9 @@ constexpr bool FLAG_support_il_printer = false;
   P(polymorphic_with_deopt, bool, true,                                        \
     "Polymorphic calls with deoptimization / megamorphic call")                \
   P(precompiled_mode, bool, false, "Precompilation compiler mode")             \
+  D(print_scopes, bool, false,                                                 \
+    "Print scopes after scope building. Filtered by "                          \
+    "--print-flow-graph-filter.")                                              \
   P(print_snapshot_sizes, bool, false, "Print sizes of generated snapshots.")  \
   P(print_snapshot_sizes_verbose, bool, false,                                 \
     "Print cluster sizes of generated snapshots.")                             \

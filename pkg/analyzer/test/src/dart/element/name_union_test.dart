@@ -48,16 +48,21 @@ class _ElementVisitor extends GeneralizingElementVisitor<void> {
 
   @override
   void visitElement(Element element) {
-    var enclosing = element.enclosingElement;
+    var enclosing = element.enclosingElement3;
     if (enclosing is CompilationUnitElement ||
         element is FieldElement ||
         element is MethodElement ||
         element is PropertyAccessorElement) {
       var name = element.name;
       if (name != null) {
-        expect(union.contains(name), isTrue, reason: name);
-        // Might fail, but probably we don't have such names.
-        expect(union.contains('Z$name'), isFalse, reason: name);
+        expect(union.contains(name), isTrue, reason: 'Expected to find $name');
+        // This might fail, but the probability is low. If this does fail, try
+        // adding another `z` to the prefix.
+        expect(
+          union.contains('zz$name'),
+          isFalse,
+          reason: 'Expected to not find $name',
+        );
       }
     }
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -83,7 +84,8 @@ class PrefixExpressionResolver {
       } else {
         innerContextType = UnknownInferredType.instance;
       }
-      _resolver.analyzeExpression(operand, innerContextType);
+      _resolver.analyzeExpression(
+          operand, SharedTypeSchemaView(innerContextType));
       _resolver.popRewrite();
     }
 
@@ -234,7 +236,8 @@ class PrefixExpressionResolver {
         if (operand is SimpleIdentifier) {
           var element = operand.staticElement;
           if (element is PromotableElement) {
-            _resolver.flowAnalysis.flow?.write(node, element, staticType, null);
+            _resolver.flowAnalysis.flow
+                ?.write(node, element, SharedTypeView(staticType), null);
           }
         }
       }
@@ -297,7 +300,8 @@ class PrefixExpressionResolver {
   void _resolveNegation(PrefixExpressionImpl node) {
     var operand = node.operand;
 
-    _resolver.analyzeExpression(operand, _typeProvider.boolType);
+    _resolver.analyzeExpression(
+        operand, SharedTypeSchemaView(_typeProvider.boolType));
     operand = _resolver.popRewrite()!;
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(operand);
 

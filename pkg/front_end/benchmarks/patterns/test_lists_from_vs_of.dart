@@ -13,17 +13,18 @@ class InputOutputData<T> {
   const InputOutputData(this.input, this.output);
 }
 
-const Strategy fromStrategy = Strategy('from', '''
+const Strategy fromStrategy = Strategy('fromStrategy', 'from', '''
 Using List.from.''');
 
-const Strategy ofStrategy = Strategy('of', '''
+const Strategy ofStrategy = Strategy('ofStrategy', 'of', '''
 Using List.of.''');
 
-const Scenario emptyScenario = Scenario('empty', '''
+const Scenario emptyScenario = Scenario('emptyScenario', 'empty', '''
 The input and output is empty.''');
-const Scenario oneEntryScenario = Scenario('one', '''
+const Scenario oneEntryScenario = Scenario('oneEntryScenario', 'one', '''
 The input is one entry.''');
-const Scenario severalEntriesScenario = Scenario('several', '''
+const Scenario severalEntriesScenario =
+    Scenario('severalEntriesScenario', 'several', '''
 The input has several entries.''');
 
 Map<Scenario, InputOutputData<String>> scenarios = {
@@ -128,7 +129,7 @@ void main() {
   SeriesSet seriesSet = registry.generateSeriesSet();
   print('== Raw data ==');
   for (Scenario scenario in scenarios.keys) {
-    print(seriesSet.getFullSpreadByScenario(scenario));
+    print(seriesSet.getFullSpreadByScenarioTable(scenario));
   }
   print('== Reduced averages ==');
   SeriesSet reducedSeriesSet = seriesSet.filter((list) => removeMax(list, 3));

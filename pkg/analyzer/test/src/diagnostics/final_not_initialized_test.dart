@@ -94,7 +94,7 @@ abstract class A {
 
   test_class_field_unnamedConstructor_augmentationDeclares_constructorInitializer() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class C {
   C() : f = 2;
@@ -102,7 +102,7 @@ augment class C {
 ''');
 
     await assertNoErrorsInCode('''
-import augment 'a.dart';
+part 'a.dart';
 
 class C {
   final int f;
@@ -228,7 +228,7 @@ final F;
 f() {
   final int x;
 }''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
     ]);
   }
 
@@ -238,7 +238,7 @@ f() {
   late final x = 1;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
     ]);
   }
 
@@ -248,7 +248,7 @@ f() {
   late final x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
     ]);
   }
 

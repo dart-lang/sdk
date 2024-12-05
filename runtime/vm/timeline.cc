@@ -2017,13 +2017,8 @@ TimelineEventFileRecorderBase::~TimelineEventFileRecorderBase() {
   OSThread::Join(thread_id_);
   thread_id_ = OSThread::kInvalidThreadJoinId;
 
-  TimelineEvent* event = head_;
-  while (event != nullptr) {
-    TimelineEvent* next = event->next();
-    delete event;
-    event = next;
-  }
-  head_ = tail_ = nullptr;
+  ASSERT(head_ == nullptr);
+  ASSERT(tail_ == nullptr);
 
   Dart_FileCloseCallback file_close = Dart::file_close_callback();
   (*file_close)(file_);
@@ -2033,10 +2028,13 @@ TimelineEventFileRecorderBase::~TimelineEventFileRecorderBase() {
 void TimelineEventFileRecorderBase::Drain() {
   MonitorLocker ml(&monitor_);
   thread_id_ = OSThread::GetCurrentThreadJoinId(OSThread::Current());
-  while (!shutting_down_) {
+  for (;;) {
     if (head_ == nullptr) {
+      if (shutting_down_) {
+        break;
+      }
       ml.Wait();
-      continue;  // Recheck empty and shutting down.
+      continue;  // Recheck empty.
     }
     TimelineEvent* event = head_;
     TimelineEvent* next = event->next();
@@ -2110,6 +2108,17 @@ TimelineEventFileRecorder::TimelineEventFileRecorder(const char* path)
 TimelineEventFileRecorder::~TimelineEventFileRecorder() {
   ShutDown();
   Write("]\n");
+}
+
+void TimelineEventFileRecorder::AddTrackMetadataBasedOnThread(
+    const intptr_t process_id,
+    const intptr_t trace_id,
+    const char* thread_name) {
+  TimelineEvent* event = new TimelineEvent();
+  event->Metadata("thread_name");
+  event->SetNumArguments(1);
+  event->CopyArgument(0, "name", thread_name);
+  CompleteEvent(event);
 }
 
 void TimelineEventFileRecorder::DrainImpl(const TimelineEvent& event) {

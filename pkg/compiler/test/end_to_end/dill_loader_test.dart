@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:compiler/src/elements/names.dart';
 
 import 'package:compiler/src/util/memory_compiler.dart';
@@ -13,7 +15,6 @@ import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:compiler/src/phase/load_kernel.dart' as load_kernel;
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_unstable/dart2js.dart';
-import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
 /// Test that the compiler can successfully read in .dill kernel files rather
@@ -35,7 +36,7 @@ main() {
       ..setExitCodeOnProblem = true
       ..verify = true;
 
-    List<int> kernelBinary =
+    Uint8List kernelBinary =
         serializeComponent((await kernelForProgram(uri, options))!.component!);
     var compiler = compilerFor(
         entryPoint: uri,

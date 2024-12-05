@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/completion/dart/not_imported_comple
 import 'package:analysis_server/src/services/completion/dart/override_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_helper.dart';
+import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/completion_request.dart';
@@ -368,12 +369,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         for (var parameter in availableNamedParameters) {
           var matcherScore = state.matcher.score(parameter.displayName);
           if (matcherScore != -1) {
+            var isWidget = isFlutterWidgetParameter(parameter);
             collector.addSuggestion(NamedArgumentSuggestion(
               parameter: parameter,
               appendColon: true,
               appendComma: appendComma,
               replacementLength: replacementLength,
               matcherScore: matcherScore,
+              preferredQuoteForStrings: state.preferredQuoteForStrings,
+              isWidget: isWidget,
             ));
           }
         }
@@ -1671,6 +1675,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
+    var beginToken = node.beginToken;
+    if (offset <= beginToken.end && beginToken.isKeywordOrIdentifier) {
+      // The user is completing at the beginning of the expression, so let the
+      // parent node determine the right set of suggestions.
+      node.parent?.accept(this);
+      return;
+    }
     if (offset >= node.leftBracket.end && offset <= node.rightBracket.offset) {
       collector.completionLocation = 'IndexExpression_index';
       _forExpression(node, mustBeNonVoid: true);
@@ -1876,7 +1887,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var target = node.realTarget;
       var type = target?.staticType;
       if (type != null) {
-        _forMemberAccess(node, node.parent, type);
+        _forMemberAccess(node, type);
       }
       if ((type == null || type is InvalidType || type.isDartCoreType) &&
           target is Identifier &&
@@ -1965,11 +1976,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
                 if (!usedNames.contains(parameter.name)) {
                   var matcherScore = state.matcher.score(parameter.displayName);
                   if (matcherScore != -1) {
+                    var isWidget = isFlutterWidgetParameter(parameter);
                     collector.addSuggestion(NamedArgumentSuggestion(
                         parameter: parameter,
                         matcherScore: matcherScore,
                         appendColon: appendColon,
-                        appendComma: false));
+                        appendComma: false,
+                        isWidget: isWidget,
+                        preferredQuoteForStrings:
+                            state.preferredQuoteForStrings));
                   }
                 }
               }
@@ -2177,7 +2192,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var target = node.prefix;
       var type = target.staticType;
       if (type != null) {
-        _forMemberAccess(node, node.parent, type);
+        _forMemberAccess(node, type, onlySuper: target is SuperExpression);
       } else {
         var element = target.staticElement;
         if (element != null) {
@@ -2229,8 +2244,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       var type = target.staticType;
       if (type != null) {
-        _forMemberAccess(node, parent, type,
-            onlySuper: target is SuperExpression);
+        _forMemberAccess(node, type, onlySuper: target is SuperExpression);
       }
       if ((type == null || type is InvalidType || type.isDartCoreType) &&
           target is Identifier &&
@@ -3115,15 +3129,22 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// Adds a suggestion for a closure.
   void _addClosureSuggestion(
       FunctionType parameterType, bool includeTrailingComma) {
-    // TODO(keertip): compute the completion string to find the score.
-    var matcherScore = 0.0;
-    if (matcherScore != -1) {
-      collector.addSuggestion(ClosureSuggestion(
-        functionType: parameterType,
-        includeTrailingComma: includeTrailingComma,
-        matcherScore: matcherScore,
-      ));
-    }
+    var includeTypes = state.includeTypes;
+    collector.addSuggestion(ClosureSuggestion(
+      functionType: parameterType,
+      includeTrailingComma: includeTrailingComma,
+      matcherScore: 0.0,
+      includeTypes: includeTypes,
+      indent: state.indent,
+    ));
+    collector.addSuggestion(ClosureSuggestion(
+      functionType: parameterType,
+      includeTrailingComma: includeTrailingComma,
+      matcherScore: 0.0,
+      useBlockStatement: false,
+      includeTypes: includeTypes,
+      indent: state.indent,
+    ));
   }
 
   /// Returns the context type in which [node] is analyzed.
@@ -3141,6 +3162,19 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     }
     return null;
+  }
+
+  bool _computeMustBeAssignable(Expression node) {
+    var request = state.request;
+    var lineInfo = request.fileState.lineInfo;
+    if (node.parent case AssignmentExpression assignment) {
+      if (assignment.leftHandSide == node) {
+        var requestLoc = lineInfo.getLocation(request.offset);
+        var opLoc = lineInfo.getLocation(assignment.operator.offset);
+        return requestLoc.lineNumber == opLoc.lineNumber;
+      }
+    }
+    return false;
   }
 
   /// Adds the suggestions that are appropriate at the beginning of an
@@ -3385,19 +3419,24 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     return false;
   }
 
-  /// Adds the suggestions that are appropriate when the [expression] is
-  /// referencing a member of the given [type]. The [parent] is the parent of
-  /// the [node].
-  void _forMemberAccess(Expression node, AstNode? parent, DartType type,
-      {bool onlySuper = false}) {
+  /// Adds the suggestions that are appropriate when the [node] is
+  /// referencing a member of the given [type].
+  void _forMemberAccess(
+    Expression node,
+    DartType type, {
+    bool onlySuper = false,
+  }) {
+    var parent = node.parent;
     // TODO(brianwilkerson): Handle the case of static member accesses.
-    var mustBeAssignable =
-        parent is AssignmentExpression && node == parent.leftHandSide;
+    var mustBeAssignable = _computeMustBeAssignable(node);
     declarationHelper(
-            mustBeAssignable: mustBeAssignable,
-            mustBeConstant: node.inConstantContext,
-            mustBeNonVoid: parent is ArgumentList)
-        .addInstanceMembersOfType(type, onlySuper: onlySuper);
+      mustBeAssignable: mustBeAssignable,
+      mustBeConstant: node.inConstantContext,
+      mustBeNonVoid: parent is ArgumentList,
+    ).addInstanceMembersOfType(
+      type,
+      onlySuper: onlySuper,
+    );
   }
 
   /// Adds the suggestions that are appropriate when the selection is at the
@@ -3926,7 +3965,6 @@ extension on AstNode {
     return switch (this) {
       AdjacentStrings(:var strings) => strings.contains(child),
       ArgumentList(:var arguments) => arguments.contains(child),
-      AugmentationImportDirective(:var metadata) => metadata.contains(child),
       Block(:var statements) => statements.contains(child),
       CascadeExpression(:var cascadeSections) =>
         cascadeSections.contains(child),
@@ -3968,7 +4006,6 @@ extension on AstNode {
             configurations.contains(child) ||
             metadata.contains(child),
       LabeledStatement(:var labels) => labels.contains(child),
-      LibraryAugmentationDirective(:var metadata) => metadata.contains(child),
       LibraryDirective(:var metadata) => metadata.contains(child),
       LibraryIdentifier(:var components) => components.contains(child),
       ListLiteral(:var elements) => elements.contains(child),

@@ -15,7 +15,7 @@ main() {
 
 abstract class BasePreferMixinTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_mixin';
+  String get lintRule => LintNames.prefer_mixin;
 
   test_legacyCoreClasses() async {
     await assertNoDiagnostics(r'''

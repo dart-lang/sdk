@@ -58,9 +58,9 @@ DEFINE_NATIVE_ENTRY(Developer_log, 0, 8) {
   GET_NATIVE_ARGUMENT(Instance, dart_zone, arguments->NativeArgAt(5));
   GET_NATIVE_ARGUMENT(Instance, error, arguments->NativeArgAt(6));
   GET_NATIVE_ARGUMENT(Instance, stack_trace, arguments->NativeArgAt(7));
-  Service::SendLogEvent(isolate, sequence.AsInt64Value(),
-                        timestamp.AsInt64Value(), level.Value(), name, message,
-                        dart_zone, error, stack_trace);
+  Service::SendLogEvent(isolate, sequence.Value(), timestamp.Value(),
+                        level.Value(), name, message, dart_zone, error,
+                        stack_trace);
   return Object::null();
 #endif  // PRODUCT
 }
@@ -168,15 +168,14 @@ DEFINE_NATIVE_ENTRY(Developer_getIsolateIdFromSendPort, 0, 1) {
 #endif
 }
 
+// TODO(derekxu16): Make this function accept an idZoneId.
 DEFINE_NATIVE_ENTRY(Developer_getObjectId, 0, 1) {
 #if defined(PRODUCT)
   return Object::null();
 #else
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
-  JSONStream js;
-  RingServiceIdZone& ring_service_id_zone =
-      *reinterpret_cast<RingServiceIdZone*>(js.id_zone());
-  return String::New(ring_service_id_zone.GetServiceId(instance));
+  return String::New(
+      isolate->EnsureDefaultServiceIdZone().GetServiceId(instance));
 #endif
 }
 

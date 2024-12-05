@@ -254,7 +254,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     );
   }
 
-  /// NORM(FutureOr<T>)
+  /// `NORM(FutureOr<T>)`
   /// * let S be NORM(T)
   test_futureOr() {
     void check(DartType T, DartType expected) {
