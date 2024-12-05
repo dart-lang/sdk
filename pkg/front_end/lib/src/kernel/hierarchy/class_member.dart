@@ -326,6 +326,10 @@ abstract class ClassMember {
   ClassMember get interfaceMember;
 
   void inferType(ClassMembersBuilder membersBuilder);
+
+  /// Registers that this class member overrides [overriddenMembers].
+  ///
+  /// This is used to infer types from the [overriddenMembers].
   void registerOverrideDependency(Set<ClassMember> overriddenMembers);
 
   /// Returns `true` if this has the same underlying declaration as [other].

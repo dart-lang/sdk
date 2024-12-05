@@ -393,7 +393,13 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   void _ensureType(ClassMembersBuilder membersBuilder) {
     if (_typeEnsured) return;
     if (_overrideDependencies != null) {
-      membersBuilder.inferFieldType(this, _overrideDependencies!);
+      membersBuilder.inferFieldType(declarationBuilder as SourceClassBuilder,
+          type, _overrideDependencies!,
+          name: fullNameForErrors,
+          fileUri: fileUri,
+          fileOffset: nameOffset,
+          nameLength: fullNameForErrors.length,
+          isAssignable: isAssignable);
       _overrideDependencies = null;
     } else {
       type.build(libraryBuilder, TypeUse.fieldType,

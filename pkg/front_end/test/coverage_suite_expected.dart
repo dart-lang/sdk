@@ -560,7 +560,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/body_builder.dart": (
-    hitCount: 7197,
+    hitCount: 7192,
     missCount: 0,
   ),
   // 100.0%.
@@ -660,17 +660,17 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/hierarchy/hierarchy_node.dart": (
-    hitCount: 403,
+    hitCount: 400,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/kernel/hierarchy/members_builder.dart": (
-    hitCount: 133,
+    hitCount: 129,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/kernel/hierarchy/members_node.dart": (
-    hitCount: 1142,
+    hitCount: 1106,
     missCount: 0,
   ),
   // 100.0%.
@@ -900,7 +900,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_constructor_builder.dart": (
-    hitCount: 897,
+    hitCount: 895,
     missCount: 0,
   ),
   // 100.0%.
@@ -921,12 +921,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_factory_builder.dart": (
-    hitCount: 595,
+    hitCount: 594,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_field_builder.dart": (
-    hitCount: 1261,
+    hitCount: 1269,
     missCount: 0,
   ),
   // 100.0%.
@@ -951,7 +951,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_procedure_builder.dart": (
-    hitCount: 561,
+    hitCount: 584,
     missCount: 0,
   ),
   // 100.0%.
@@ -1001,7 +1001,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/type_inference/inference_visitor.dart": (
-    hitCount: 8256,
+    hitCount: 8254,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/type_inference/inference_visitor_base.dart": (
+    hitCount: 2454,
     missCount: 0,
   ),
   // 100.0%.
