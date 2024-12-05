@@ -6929,7 +6929,7 @@ class Parser {
       // Constructor forwarding.
       listener.handleNoTypeArguments(next);
       token = parseArguments(token);
-      listener.handleSend(thisToken, token.next!);
+      listener.handleSend(thisToken, token);
     }
     return token;
   }
@@ -6943,7 +6943,7 @@ class Parser {
       // Super constructor.
       listener.handleNoTypeArguments(next);
       token = parseArguments(token);
-      listener.handleSend(superToken, token.next!);
+      listener.handleSend(superToken, token);
     } else if (next.isA(TokenType.QUESTION_PERIOD)) {
       reportRecoverableError(next, codes.messageSuperNullAware);
     }
@@ -6960,7 +6960,7 @@ class Parser {
     if (next.isA(TokenType.OPEN_PAREN)) {
       listener.handleNoTypeArguments(next);
       token = parseArguments(token);
-      listener.handleSend(augmentToken, token.next!);
+      listener.handleSend(augmentToken, token);
     }
     return token;
   }
@@ -7796,7 +7796,7 @@ class Parser {
       constantPatternContext = ConstantPatternContext.none;
     }
     token = parseArgumentsOpt(token);
-    listener.handleSend(beginToken, token.next!);
+    listener.handleSend(beginToken, token);
     return token;
   }
 
