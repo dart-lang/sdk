@@ -724,11 +724,6 @@ class Translator with KernelNodes {
   ClosureImplementation getClosure(FunctionNode functionNode,
       w.BaseFunction target, ParameterInfo paramInfo, String name) {
     final targetModule = target.enclosingModule;
-    // The target function takes an extra initial parameter if it's a function
-    // expression / local function (which takes a context) or a tear-off of an
-    // instance method (which takes a receiver).
-    bool takesContextOrReceiver =
-        paramInfo.member == null || paramInfo.member!.isInstanceMember;
 
     // Look up the closure representation for the signature.
     int typeCount = functionNode.typeParameters.length;
@@ -741,7 +736,7 @@ class Translator with KernelNodes {
     assert(positionalCount <= paramInfo.positional.length);
     assert(names.length <= paramInfo.named.length);
     assert(target.type.inputs.length ==
-        (takesContextOrReceiver ? 1 : 0) +
+        (paramInfo.takesContextOrReceiver ? 1 : 0) +
             paramInfo.typeParamCount +
             paramInfo.positional.length +
             paramInfo.named.length);
@@ -805,7 +800,7 @@ class Translator with KernelNodes {
       compilationQueue.add(CompilationTask(
           trampoline,
           _ClosureTrampolineGenerator(this, trampoline, target, typeCount,
-              posArgCount, argNames, paramInfo, takesContextOrReceiver)));
+              posArgCount, argNames, paramInfo)));
       return trampoline;
     }
 
@@ -1394,17 +1389,9 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
   final int posArgCount;
   final List<String> argNames;
   final ParameterInfo paramInfo;
-  final bool takesContextOrReceiver;
 
-  _ClosureTrampolineGenerator(
-      this.translator,
-      this.trampoline,
-      this.target,
-      this.typeCount,
-      this.posArgCount,
-      this.argNames,
-      this.paramInfo,
-      this.takesContextOrReceiver);
+  _ClosureTrampolineGenerator(this.translator, this.trampoline, this.target,
+      this.typeCount, this.posArgCount, this.argNames, this.paramInfo);
 
   @override
   void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
@@ -1412,7 +1399,7 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
     assert(returnLabel == null);
 
     int targetIndex = 0;
-    if (takesContextOrReceiver) {
+    if (paramInfo.takesContextOrReceiver) {
       w.Local receiver = trampoline.locals[0];
       b.local_get(receiver);
       translator.convertType(
@@ -1478,9 +1465,6 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
 
     final b = function.body;
 
-    final bool takesContextOrReceiver =
-        paramInfo.member == null || paramInfo.member!.isInstanceMember;
-
     final int typeCount = functionNode.typeParameters.length;
 
     final closureLocal = function.locals[0];
@@ -1500,7 +1484,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
     int inputIdx = 0;
 
     // Push context or receiver
-    if (takesContextOrReceiver) {
+    if (paramInfo.takesContextOrReceiver) {
       final closureBaseType = w.RefType.def(
           translator.closureLayouter.closureBaseStruct,
           nullable: false);
