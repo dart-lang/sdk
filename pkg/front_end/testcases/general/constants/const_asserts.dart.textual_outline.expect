@@ -1,16 +1,14 @@
 class Foo {
   final int x;
   const Foo(this.x)
-    : assert(x > 0, "x is not positive"),
-      assert(x > 0),
-      assert(x > 0, ""),
-      assert(
-        const bool.fromEnvironment("foo") == false,
-        "foo was ${const bool.fromEnvironment("foo")}",
-      ),
-      assert(const bool.fromEnvironment("foo") == false);
+      : assert(x > 0, "x is not positive"),
+        assert(x > 0),
+        assert(x > 0, ""),
+        assert(const bool.fromEnvironment("foo") == false,
+            "foo was ${const bool.fromEnvironment("foo")}"),
+        assert(const bool.fromEnvironment("foo") == false);
   const Foo.withMessage(this.x)
-    : assert(x < 0, "btw foo was ${const bool.fromEnvironment("foo")}");
+      : assert(x < 0, "btw foo was ${const bool.fromEnvironment("foo")}");
   const Foo.withInvalidMessage(this.x) : assert(x < 0, x);
   const Foo.withInvalidCondition(this.x) : assert(x);
 }

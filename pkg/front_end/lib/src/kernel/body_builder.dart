@@ -1929,8 +1929,7 @@ class BodyBuilder extends StackListenerImpl
         }
       } else if (last is RedirectingInitializer) {
         if (_context.isEnumClass && libraryFeatures.enhancedEnums.isEnabled) {
-          ArgumentsImpl arguments =
-              last.arguments as ArgumentsImpl;
+          ArgumentsImpl arguments = last.arguments as ArgumentsImpl;
           List<Expression> enumSyntheticArguments = [
             new VariableGetImpl(function.positionalParameters[0],
                 forNullGuardedAccess: false)

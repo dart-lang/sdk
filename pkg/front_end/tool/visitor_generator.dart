@@ -71,9 +71,9 @@ String generateVisitor(AstModel astModel, VisitorStrategy strategy,
 
   String result = sb.toString();
   if (format) {
-    result =
-        new DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
-            .format(result);
+    result = new DartFormatter(
+            languageVersion: DartFormatter.latestShortStyleLanguageVersion)
+        .format(result);
   }
   return result;
 }

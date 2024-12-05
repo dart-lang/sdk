@@ -1,8 +1,8 @@
 B1<T>? contextB1Question<T>(B1<T>? x) => x;
 
 Indexable<ReadType, WriteType>? maybeIndexable<ReadType, WriteType>(
-  ReadType value,
-) => Indexable<ReadType, WriteType>(value);
+        ReadType value) =>
+    Indexable<ReadType, WriteType>(value);
 
 Iterable<T>? contextIterableQuestion<T>(Iterable<T>? x) => x;
 

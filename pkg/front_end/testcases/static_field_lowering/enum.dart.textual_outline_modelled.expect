@@ -1,3 +1,6 @@
-enum A { a, b }
+enum A {
+  a,
+  b,
+}
 
 main() {}

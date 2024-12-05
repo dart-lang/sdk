@@ -8,14 +8,13 @@ class Strength {
   final int value;
   final String name;
   const Strength(this.value, this.name);
-  Strength nextWeaker() =>
-      const <Strength>[
+  Strength nextWeaker() => const <Strength>[
         STRONG_PREFERRED,
         PREFERRED,
         STRONG_DEFAULT,
         NORMAL,
         WEAK_DEFAULT,
-        WEAKEST,
+        WEAKEST
       ][value];
   static bool stronger(Strength s1, Strength s2) {}
   static bool weaker(Strength s1, Strength s2) {}
@@ -109,12 +108,8 @@ class ScaleConstraint extends BinaryConstraint {
   final Variable scale;
   final Variable offset;
   ScaleConstraint(
-    Variable src,
-    this.scale,
-    this.offset,
-    Variable dest,
-    Strength strength,
-  ) : super(src, dest, strength);
+      Variable src, this.scale, this.offset, Variable dest, Strength strength)
+      : super(src, dest, strength);
   void addToGraph() {}
   void removeFromGraph() {}
   void markInputs(int mark) {}
@@ -124,7 +119,7 @@ class ScaleConstraint extends BinaryConstraint {
 
 class EqualityConstraint extends BinaryConstraint {
   EqualityConstraint(Variable v1, Variable v2, Strength strength)
-    : super(v1, v2, strength);
+      : super(v1, v2, strength);
   void execute() {}
 }
 

@@ -4,7 +4,9 @@ abstract class C {
 }
 
 class D {
-  D(int i) : _f1 = i, _f2 = i;
+  D(int i)
+      : _f1 = i,
+        _f2 = i;
   final int? _f1;
   final int? _f2;
 }

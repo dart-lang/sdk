@@ -1,5 +1,5 @@
-void f(x) => [for (var (a, b) = x; ;) a];
+void f(x) => [for (var (a, b) = x;;) a];
 
-void g(x) => {for (var (a, b) = x; ;) b};
+void g(x) => {for (var (a, b) = x;;) b};
 
-void h(x) => {for (var (a, b) = x; ;) a: b};
+void h(x) => {for (var (a, b) = x;;) a: b};

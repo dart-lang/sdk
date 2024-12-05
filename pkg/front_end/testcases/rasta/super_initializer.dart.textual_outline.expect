@@ -6,7 +6,13 @@ class Super {
 
 class Sub extends Super {
   var field;
-  Sub.arg0() : super.arg0(), field = 42;
-  Sub.arg1(a) : super.arg1(a), field = 42;
-  Sub.arg2(a, b) : super.arg2(a, b), field = 42;
+  Sub.arg0()
+      : super.arg0(),
+        field = 42;
+  Sub.arg1(a)
+      : super.arg1(a),
+        field = 42;
+  Sub.arg2(a, b)
+      : super.arg2(a, b),
+        field = 42;
 }
