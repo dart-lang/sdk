@@ -367,7 +367,7 @@ class ResolvedForCompletionResultImpl {
   final CompilationUnit parsedUnit;
 
   /// The full element for the unit.
-  final CompilationUnitElement unitElement;
+  final LibraryFragment unitElement;
 
   /// Nodes from [parsedUnit] that were resolved to provide enough context
   /// to perform completion. How much is enough depends on the location
@@ -396,8 +396,6 @@ class ResolvedForCompletionResultImpl {
     required this.unitElement,
     required this.resolvedNodes,
   });
-
-  LibraryElement get libraryElement => unitElement.library;
 }
 
 class ResolvedLibraryResultImpl extends AnalysisResultImpl

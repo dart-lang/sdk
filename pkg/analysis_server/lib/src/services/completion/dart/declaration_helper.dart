@@ -149,13 +149,13 @@ class DeclarationHelper {
   void addConstructorInvocations() {
     var library = request.libraryElement;
     var importData = ImportData(
-      libraryUri: library.source.uri,
+      libraryUri: library.uri,
       prefix: null,
       isNotImported: false,
     );
-    _addConstructors(library, importData);
+    _addConstructors(library.asElement, importData);
     if (!skipImports) {
-      _addImportedConstructors(library);
+      _addImportedConstructors(library.asElement);
       _recordOperation(ConstructorsOperation(declarationHelper: this));
     }
   }
@@ -343,8 +343,8 @@ class DeclarationHelper {
 
   void addImportPrefixes() {
     var library = request.libraryElement;
-    for (var element in library.definingCompilationUnit.libraryImports) {
-      var importPrefix = element.prefix;
+    for (var element in library.firstFragment.libraryImports2) {
+      var importPrefix = element.prefix2;
       if (importPrefix == null) {
         continue;
       }
@@ -357,7 +357,7 @@ class DeclarationHelper {
         continue;
       }
 
-      if (prefixElement.name.isEmpty) {
+      if (prefixElement.name3.isEmptyOrNull) {
         continue;
       }
 
@@ -365,7 +365,7 @@ class DeclarationHelper {
         continue;
       }
 
-      var importedLibrary = element.importedLibrary;
+      var importedLibrary = element.importedLibrary2;
       if (importedLibrary == null) {
         continue;
       }
@@ -373,8 +373,8 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         collector.addSuggestion(
           ImportPrefixSuggestion(
-            libraryElement: importedLibrary.asElement2,
-            prefixElement: prefixElement.asElement2,
+            libraryElement: importedLibrary,
+            prefixElement: prefixElement,
             matcherScore: matcherScore,
           ),
         );
@@ -496,10 +496,7 @@ class DeclarationHelper {
     ExtensionElement2 extension, {
     ImportData? importData,
   }) {
-    addMembersFromExtensionElement(
-      extension.asElement as ExtensionElement,
-      importData: importData,
-    );
+    addMembersFromExtensionElement(extension.asElement, importData: importData);
   }
 
   /// Adds suggestions for any constructors that are visible within the not yet
@@ -541,7 +538,7 @@ class DeclarationHelper {
     );
     for (var instantiatedExtension in applicableExtensions) {
       var extension = instantiatedExtension.extension;
-      if (extension.isVisibleIn(request.libraryElement)) {
+      if (extension.asElement2.isVisibleIn(request.libraryElement)) {
         addMembersFromExtensionElement(extension, importData: importData);
       }
     }
@@ -805,7 +802,7 @@ class DeclarationHelper {
     var libraryElement = request.libraryElement;
     var libraryFragment = request.libraryFragment;
 
-    var accessibleExtensions = libraryFragment.accessibleExtensions;
+    var accessibleExtensions = libraryFragment.accessibleExtensions2;
     var applicableExtensions = accessibleExtensions.applicableTo(
       targetLibrary: libraryElement,
       // Ignore nullability, consistent with non-extension members.
@@ -818,13 +815,13 @@ class DeclarationHelper {
     for (var instantiatedExtension in applicableExtensions) {
       var extension = instantiatedExtension.extension;
       if (includeMethods) {
-        for (var method in extension.methods) {
+        for (var method in extension.methods2) {
           if (!method.isStatic) {
-            _suggestMethod(method: method);
+            _suggestMethod(method: method.asElement);
           }
         }
       }
-      for (var accessor in extension.accessors) {
+      for (var accessor in extension.asElement.accessors) {
         if (!accessor.isSynthetic) {
           if (accessor.isGetter || includeSetters && accessor.isSetter) {
             _suggestProperty(accessor: accessor);
@@ -1498,7 +1495,7 @@ class DeclarationHelper {
     }
 
     var requestLibrary = request.libraryElement;
-    if (!element.isAccessibleIn(requestLibrary)) {
+    if (!element.asElement2.isAccessibleIn2(requestLibrary)) {
       return false;
     }
 
@@ -1517,7 +1514,7 @@ class DeclarationHelper {
         return false;
       }
 
-      if (elementInterface.library != requestLibrary) {
+      if (elementInterface.library.asElement2 != requestLibrary) {
         var contextInterface = request.target.enclosingInterfaceElement;
         if (contextInterface == null) {
           return false;
@@ -1531,7 +1528,7 @@ class DeclarationHelper {
     }
 
     if (element.isVisibleForTesting) {
-      if (element.library != requestLibrary) {
+      if (element.asElement2.library2 != requestLibrary) {
         var fileState = request.fileState;
         switch (fileState.workspacePackage) {
           case PubPackage pubPackage:
@@ -1609,12 +1606,16 @@ class DeclarationHelper {
   /// Adds a suggestion for the class represented by the [element]. The [prefix]
   /// is the prefix by which the element is imported.
   void _suggestClass(ClassElement element, ImportData? importData) {
-    if (visibilityTracker.isVisible(element: element, importData: importData)) {
+    if (visibilityTracker.isVisible(
+      element: element.asElement2,
+      importData: importData,
+    )) {
       if ((mustBeExtendable &&
-              !element.isExtendableIn(request.libraryElement)) ||
+              !element.asElement2.isExtendableIn2(request.libraryElement)) ||
           (mustBeImplementable &&
-              !element.isImplementableIn(request.libraryElement)) ||
-          (mustBeMixable && !element.isMixableIn(request.libraryElement))) {
+              !element.asElement2.isImplementableIn2(request.libraryElement)) ||
+          (mustBeMixable &&
+              !element.asElement2.isMixableIn2(request.libraryElement))) {
         return;
       }
       if (!(mustBeConstant && !objectPatternAllowed) && !excludeTypeNames) {
@@ -1657,7 +1658,7 @@ class DeclarationHelper {
     }
     if (importData?.isNotImported ?? false) {
       if (!visibilityTracker.isVisible(
-        element: element.enclosingElement3,
+        element: element.enclosingElement3.asElement2,
         importData: importData,
       )) {
         // If the constructor is on a class from a not-yet-imported library and
@@ -1673,7 +1674,7 @@ class DeclarationHelper {
       // Add the class to the visibility tracker so that we will know later that
       // any non-imported elements with the same name are not visible.
       visibilityTracker.isVisible(
-        element: element.enclosingElement3,
+        element: element.enclosingElement3.asElement2,
         importData: importData,
       );
     }
@@ -1722,7 +1723,10 @@ class DeclarationHelper {
   /// Adds a suggestion for the enum represented by the [element]. The [prefix]
   /// is the prefix by which the element is imported.
   void _suggestEnum(EnumElement element, ImportData? importData) {
-    if (visibilityTracker.isVisible(element: element, importData: importData)) {
+    if (visibilityTracker.isVisible(
+      element: element.asElement2,
+      importData: importData,
+    )) {
       if (mustBeExtendable || mustBeImplementable || mustBeMixable) {
         return;
       }
@@ -1751,7 +1755,10 @@ class DeclarationHelper {
   /// Adds a suggestion for the extension represented by the [element]. The
   /// [prefix] is the prefix by which the element is imported.
   void _suggestExtension(ExtensionElement element, ImportData? importData) {
-    if (visibilityTracker.isVisible(element: element, importData: importData)) {
+    if (visibilityTracker.isVisible(
+      element: element.asElement2,
+      importData: importData,
+    )) {
       if (mustBeExtendable || mustBeImplementable || mustBeMixable) {
         return;
       }
@@ -1777,7 +1784,10 @@ class DeclarationHelper {
     ExtensionTypeElement element,
     ImportData? importData,
   ) {
-    if (visibilityTracker.isVisible(element: element, importData: importData)) {
+    if (visibilityTracker.isVisible(
+      element: element.asElement2,
+      importData: importData,
+    )) {
       if (mustBeExtendable || mustBeImplementable || mustBeMixable) {
         return;
       }
@@ -1808,7 +1818,10 @@ class DeclarationHelper {
     required FieldElement field,
     InterfaceElement? referencingInterface,
   }) {
-    if (visibilityTracker.isVisible(element: field, importData: null)) {
+    if (visibilityTracker.isVisible(
+      element: field.asElement2,
+      importData: null,
+    )) {
       if ((mustBeAssignable && field.setter == null) ||
           (mustBeConstant && !field.isConst)) {
         return;
@@ -1836,7 +1849,10 @@ class DeclarationHelper {
   /// Adds a suggestion for the local function represented by the [element].
   void _suggestLocalFunction(ExecutableElement element) {
     if (element is FunctionElement &&
-        visibilityTracker.isVisible(element: element, importData: null)) {
+        visibilityTracker.isVisible(
+          element: element.asElement2,
+          importData: null,
+        )) {
       if (mustBeAssignable ||
           mustBeConstant ||
           (mustBeNonVoid && element.returnType is VoidType)) {
@@ -1873,7 +1889,10 @@ class DeclarationHelper {
     InterfaceElement? referencingInterface,
   }) {
     if (ignoreVisibility ||
-        visibilityTracker.isVisible(element: method, importData: importData)) {
+        visibilityTracker.isVisible(
+          element: method.asElement2,
+          importData: importData,
+        )) {
       if (mustBeAssignable ||
           mustBeConstant ||
           (mustBeNonVoid && method.returnType is VoidType)) {
@@ -1910,10 +1929,13 @@ class DeclarationHelper {
   /// Adds a suggestion for the mixin represented by the [element]. The [prefix]
   /// is the prefix by which the element is imported.
   void _suggestMixin(MixinElement element, ImportData? importData) {
-    if (visibilityTracker.isVisible(element: element, importData: importData)) {
+    if (visibilityTracker.isVisible(
+      element: element.asElement2,
+      importData: importData,
+    )) {
       if (mustBeExtendable ||
           (mustBeImplementable &&
-              !element.isImplementableIn(request.libraryElement))) {
+              !element.asElement2.isImplementableIn2(request.libraryElement))) {
         return;
       }
       var matcherScore = state.matcher.score(element.displayName);
@@ -1934,7 +1956,10 @@ class DeclarationHelper {
 
   /// Adds a suggestion for the parameter represented by the [element].
   void _suggestParameter(ParameterElement element) {
-    if (visibilityTracker.isVisible(element: element, importData: null)) {
+    if (visibilityTracker.isVisible(
+      element: element.asElement2,
+      importData: null,
+    )) {
       if (mustBeConstant || _isWildcard(element.name)) {
         return;
       }
@@ -1968,7 +1993,7 @@ class DeclarationHelper {
   }) {
     if (ignoreVisibility ||
         visibilityTracker.isVisible(
-          element: accessor,
+          element: accessor.asElement2,
           importData: importData,
         )) {
       if ((mustBeAssignable &&
@@ -2130,7 +2155,10 @@ class DeclarationHelper {
     FunctionElement element,
     ImportData? importData,
   ) {
-    if (visibilityTracker.isVisible(element: element, importData: importData)) {
+    if (visibilityTracker.isVisible(
+      element: element.asElement2,
+      importData: importData,
+    )) {
       if (mustBeAssignable ||
           mustBeConstant ||
           (mustBeNonVoid && element.returnType is VoidType) ||
@@ -2156,7 +2184,10 @@ class DeclarationHelper {
     PropertyAccessorElement element,
     ImportData? importData,
   ) {
-    if (visibilityTracker.isVisible(element: element, importData: importData)) {
+    if (visibilityTracker.isVisible(
+      element: element.asElement2,
+      importData: importData,
+    )) {
       if ((mustBeAssignable &&
               element.isGetter &&
               element.correspondingSetter == null) ||
@@ -2185,7 +2216,10 @@ class DeclarationHelper {
     TopLevelVariableElement element,
     ImportData? importData,
   ) {
-    if (visibilityTracker.isVisible(element: element, importData: importData)) {
+    if (visibilityTracker.isVisible(
+      element: element.asElement2,
+      importData: importData,
+    )) {
       if ((mustBeAssignable && element.setter == null) ||
           mustBeConstant && !element.isConst ||
           mustBeType) {
@@ -2206,7 +2240,10 @@ class DeclarationHelper {
   /// Adds a suggestion for the type alias represented by the [element]. The
   /// [prefix] is the prefix by which the element is imported.
   void _suggestTypeAlias(TypeAliasElement element, ImportData? importData) {
-    if (visibilityTracker.isVisible(element: element, importData: importData)) {
+    if (visibilityTracker.isVisible(
+      element: element.asElement2,
+      importData: importData,
+    )) {
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {
         var suggestion = TypeAliasSuggestion(
@@ -2224,7 +2261,10 @@ class DeclarationHelper {
 
   /// Adds a suggestion for the type parameter represented by the [element].
   void _suggestTypeParameter(TypeParameterElement element) {
-    if (visibilityTracker.isVisible(element: element, importData: null)) {
+    if (visibilityTracker.isVisible(
+      element: element.asElement2,
+      importData: null,
+    )) {
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {
         var suggestion = TypeParameterSuggestion(
@@ -2248,7 +2288,10 @@ class DeclarationHelper {
   /// Adds a suggestion for the local variable represented by the [element].
   void _suggestVariable(LocalVariableElement element) {
     if (element.isWildcardVariable) return;
-    if (visibilityTracker.isVisible(element: element, importData: null)) {
+    if (visibilityTracker.isVisible(
+      element: element.asElement2,
+      importData: null,
+    )) {
       if (mustBeConstant && !element.isConst) {
         return;
       }
@@ -2520,11 +2563,25 @@ extension on Element {
   ///
   /// An element is visible if it's declared in the [referencingLibrary] or if
   /// the name is not private.
-  bool isVisibleIn(LibraryElement referencingLibrary) {
-    if (library == referencingLibrary) {
+  bool isVisibleIn(LibraryElement2 referencingLibrary) {
+    if (library.asElement2 == referencingLibrary) {
       return true;
     }
     var name = this.name;
+    return name != null && !Identifier.isPrivateName(name);
+  }
+}
+
+extension on Element2 {
+  /// Whether this element is visible within the [referencingLibrary].
+  ///
+  /// An element is visible if it's declared in the [referencingLibrary] or if
+  /// the name is not private.
+  bool isVisibleIn(LibraryElement2 referencingLibrary) {
+    if (library2 == referencingLibrary) {
+      return true;
+    }
+    var name = name3;
     return name != null && !Identifier.isPrivateName(name);
   }
 }

@@ -19,7 +19,6 @@ lib/src/lsp/handlers/commands/abstract_refactor.dart
 lib/src/lsp/handlers/handler_completion.dart
 lib/src/lsp/handlers/handler_completion_resolve.dart
 lib/src/lsp/handlers/handler_definition.dart
-lib/src/lsp/handlers/handler_document_color_presentation.dart
 lib/src/lsp/handlers/handler_implementation.dart
 lib/src/lsp/handlers/handler_references.dart
 lib/src/lsp/handlers/handler_rename.dart
@@ -27,15 +26,9 @@ lib/src/operation/operation_analysis.dart
 lib/src/protocol_server.dart
 lib/src/search/element_references.dart
 lib/src/search/type_hierarchy.dart
-lib/src/services/completion/dart/completion_manager.dart
 lib/src/services/completion/dart/declaration_helper.dart
-lib/src/services/completion/dart/identifier_helper.dart
-lib/src/services/completion/dart/visibility_tracker.dart
 lib/src/services/correction/namespace.dart
 lib/src/services/correction/util.dart
-lib/src/services/flutter/class_description.dart
-lib/src/services/flutter/property.dart
-lib/src/services/flutter/widget_descriptions.dart
 lib/src/services/kythe/kythe_visitors.dart
 lib/src/services/refactoring/agnostic/change_method_signature.dart
 lib/src/services/refactoring/framework/formal_parameter.dart

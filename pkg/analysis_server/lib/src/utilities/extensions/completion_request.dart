@@ -16,7 +16,7 @@ extension DartCompletionRequestExtensions on DartCompletionRequest {
   // TODO(scheglov): Validate that suggesting a tear-off instead of invocation
   // is statistically a good choice.
   bool shouldSuggestTearOff(InterfaceElement2 element) {
-    if (!libraryElement2.featureSet.isEnabled(Feature.constructor_tearoffs)) {
+    if (!libraryElement.featureSet.isEnabled(Feature.constructor_tearoffs)) {
       return false;
     }
 
@@ -28,12 +28,12 @@ extension DartCompletionRequestExtensions on DartCompletionRequest {
     var bottomInstance = element.instantiate(
       typeArguments: List.filled(
         element.typeParameters2.length,
-        libraryElement2.typeProvider.neverType,
+        libraryElement.typeProvider.neverType,
       ),
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    return libraryElement2.typeSystem.isSubtypeOf(
+    return libraryElement.typeSystem.isSubtypeOf(
       bottomInstance,
       contextType.returnType,
     );
