@@ -20,39 +20,39 @@ class UseDifferentDivisionOperator extends MultiCorrectionProducer {
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
-    var exp = node;
-    if (exp case BinaryExpression _) {
-      return switch (exp.operator.type) {
-        TokenType.SLASH => [
-          _UseDifferentDivisionOperator(
-            context: context,
-            fixKind: DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION,
-          ),
-        ],
-        TokenType.TILDE_SLASH => [
-          _UseDifferentDivisionOperator(
-            context: context,
-            fixKind: DartFixKind.USE_DIVISION,
-          ),
-        ],
-        _ => const [],
-      };
-    } else if (exp case AssignmentExpression _) {
-      return switch (exp.operator.type) {
-        TokenType.SLASH_EQ => [
-          _UseDifferentDivisionOperator(
-            context: context,
-            fixKind: DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION,
-          ),
-        ],
-        TokenType.TILDE_SLASH_EQ => [
-          _UseDifferentDivisionOperator(
-            context: context,
-            fixKind: DartFixKind.USE_DIVISION,
-          ),
-        ],
-        _ => const [],
-      };
+    switch (node) {
+      case BinaryExpression node:
+        return switch (node.operator.type) {
+          TokenType.SLASH => [
+            _UseDifferentDivisionOperator(
+              context: context,
+              fixKind: DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION,
+            ),
+          ],
+          TokenType.TILDE_SLASH => [
+            _UseDifferentDivisionOperator(
+              context: context,
+              fixKind: DartFixKind.USE_DIVISION,
+            ),
+          ],
+          _ => const [],
+        };
+      case AssignmentExpression node:
+        return switch (node.operator.type) {
+          TokenType.SLASH_EQ => [
+            _UseDifferentDivisionOperator(
+              context: context,
+              fixKind: DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION,
+            ),
+          ],
+          TokenType.TILDE_SLASH_EQ => [
+            _UseDifferentDivisionOperator(
+              context: context,
+              fixKind: DartFixKind.USE_DIVISION,
+            ),
+          ],
+          _ => const [],
+        };
     }
     return const [];
   }
@@ -75,17 +75,17 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var exp = node;
     DartType? leftType;
     Token operator;
-    if (exp case BinaryExpression _) {
-      leftType = exp.leftOperand.staticType;
-      operator = exp.operator;
-    } else if (exp case AssignmentExpression _) {
-      leftType = exp.writeType;
-      operator = exp.operator;
-    } else {
-      return;
+    switch (node) {
+      case BinaryExpression node:
+        leftType = node.leftOperand.staticType;
+        operator = node.operator;
+      case AssignmentExpression node:
+        leftType = node.writeType;
+        operator = node.operator;
+      default:
+        return;
     }
     if (leftType == null) {
       return;
@@ -131,23 +131,20 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
 
 extension on DartType {
   Set<_DivisionOperator> get divisionOperators {
-    // See operators defined for this type element.
-    if (element3 case InterfaceElement2 interfaceElement) {
-      return {
-        for (var method in interfaceElement.methods2)
-          // No need to test for eq operators, as they are not explicitly defined.
-          if (method.name3 == TokenType.SLASH.lexeme)
-            _DivisionOperator.division
-          else if (method.name3 == TokenType.TILDE_SLASH.lexeme)
-            _DivisionOperator.effectiveIntegerDivision,
-        ...interfaceElement.allSupertypes.expand(
-          (type) => type.divisionOperators,
-        ),
-      };
-    } else if (element3 case TypeParameterElement2 typeParameterElement) {
-      return typeParameterElement.bound?.divisionOperators ?? const {};
+    switch (element3) {
+      case InterfaceElement2 element:
+        return {
+          for (var method in element.methods2)
+            // No need to test for eq operators, as they are not explicitly defined.
+            if (method.name3 == TokenType.SLASH.lexeme)
+              _DivisionOperator.division
+            else if (method.name3 == TokenType.TILDE_SLASH.lexeme)
+              _DivisionOperator.effectiveIntegerDivision,
+          ...element.allSupertypes.expand((type) => type.divisionOperators),
+        };
+      case TypeParameterElement2 element:
+        return element.bound?.divisionOperators ?? const {};
     }
-
     return const {};
   }
 }
