@@ -1,0 +1,9 @@
+foo(bar) {
+Map<int, > c = {};
+}
+
+
+foo[StringToken]([BeginToken]bar[StringToken])[SimpleToken] {[BeginToken]
+Map[StringToken]<[BeginToken]int[StringToken],[SimpleToken] >[SimpleToken] c[StringToken] =[SimpleToken] {[BeginToken]}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]
