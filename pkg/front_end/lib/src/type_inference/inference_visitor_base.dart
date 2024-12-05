@@ -1641,7 +1641,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           inferenceUsingBoundsIsEnabled:
               libraryFeatures.inferenceUsingBounds.isEnabled,
           typeOperations: cfeOperations,
-          inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+          inferenceResultForTesting: dataForTesting
+              // Coverage-ignore(suite): Not run.
+              ?.typeInferenceResult,
           treeNodeForTesting: arguments);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, calleeTypeParameters, /* previouslyInferredTypes= */ null,
@@ -2036,8 +2038,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           new InstrumentationValueForTypeArgs(inferredTypes));
       arguments.types.clear();
       arguments.types.addAll(inferredTypes);
-      // Coverage-ignore-block(suite): Not run.
       if (dataForTesting != null) {
+        // Coverage-ignore-block(suite): Not run.
         assert(arguments.fileOffset != TreeNode.noOffset);
         dataForTesting!.typeInferenceResult.inferredTypeArguments[arguments] =
             inferredTypes;
@@ -2211,6 +2213,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         if (formalTypesFromContext[i] != null) {
           inferredType = computeGreatestClosure2(
               instantiator?.substitute(formalTypesFromContext[i]!) ??
+                  // Coverage-ignore(suite): Not run.
                   formalTypesFromContext[i]!);
           if (typeSchemaEnvironment.isSubtypeOf(inferredType, const NullType(),
               SubtypeCheckMode.withNullabilities)) {
@@ -2466,6 +2469,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         List<LocatedMessage>? context = getWhyNotPromotedContext(
             flowAnalysis.whyNotPromoted(receiver)(),
             staticInvocation,
+            // Coverage-ignore(suite): Not run.
             (type) => !type.isPotentiallyNullable);
         result = wrapExpressionInferenceResultInProblem(
             result,
@@ -2498,6 +2502,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         List<LocatedMessage>? context = getWhyNotPromotedContext(
             flowAnalysis.whyNotPromoted(receiver)(),
             staticInvocation,
+            // Coverage-ignore(suite): Not run.
             (type) => !type.isPotentiallyNullable);
         if (isImplicitCall) {
           // Handles cases like:
@@ -2600,6 +2605,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       List<LocatedMessage>? context = getWhyNotPromotedContext(
           flowAnalysis.whyNotPromoted(receiver)(),
           expression,
+          // Coverage-ignore(suite): Not run.
           (type) => !type.isPotentiallyNullable);
       if (isImplicitCall) {
         // Handles cases like:
@@ -2671,8 +2677,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         method = null;
       }
       for (NamedExpression argument in arguments.named) {
-        if (!signature.namedParameters // Coverage-ignore(suite): Not run.
-            .any((declaration) => declaration.name == argument.name)) {
+        if (!signature.namedParameters.any(
+            // Coverage-ignore(suite): Not run.
+            (declaration) => declaration.name == argument.name)) {
           target = const ObjectAccessTarget.dynamic();
           method = null;
         }
@@ -2736,6 +2743,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         case ObjectAccessTargetKind.objectMember:
           kind = InstanceAccessKind.Object;
           break;
+        // Coverage-ignore(suite): Not run.
         default:
           throw new UnsupportedError('Unexpected target kind $target');
       }
@@ -2769,6 +2777,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       List<LocatedMessage>? context = getWhyNotPromotedContext(
           flowAnalysis.whyNotPromoted(receiver)(),
           expression,
+          // Coverage-ignore(suite): Not run.
           (type) => !type.isPotentiallyNullable);
       if (isImplicitCall) {
         // Handles cases like:
@@ -2829,8 +2838,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         getter = null;
       }
       for (NamedExpression argument in arguments.named) {
+        // Coverage-ignore-block(suite): Not run.
         if (!signature.namedParameters
-            // Coverage-ignore(suite): Not run.
             .any((declaration) => declaration.name == argument.name)) {
           target = const ObjectAccessTarget.dynamic();
           getter = null;
@@ -2925,6 +2934,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       List<LocatedMessage>? context = getWhyNotPromotedContext(
           flowAnalysis.whyNotPromoted(receiver)(),
           invocationResult.expression,
+          // Coverage-ignore(suite): Not run.
           (type) => !type.isPotentiallyNullable);
       invocationResult = wrapExpressionInferenceResultInProblem(
           invocationResult,
@@ -2942,15 +2952,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       if (nullAwareAction is InstanceInvocation &&
           // Coverage-ignore(suite): Not run.
           nullAwareAction.receiver == originalPropertyGet) {
-        invocationResult =
-            // Coverage-ignore(suite): Not run.
-            new ExpressionInferenceResult(
-                invocationResult.inferredType,
-                new InstanceGetterInvocation(originalPropertyGet.kind,
-                    originalReceiver, originalName, nullAwareAction.arguments,
-                    interfaceTarget: originalTarget,
-                    functionType: nullAwareAction.functionType)
-                  ..fileOffset = nullAwareAction.fileOffset);
+        // Coverage-ignore-block(suite): Not run.
+        invocationResult = new ExpressionInferenceResult(
+            invocationResult.inferredType,
+            new InstanceGetterInvocation(originalPropertyGet.kind,
+                originalReceiver, originalName, nullAwareAction.arguments,
+                interfaceTarget: originalTarget,
+                functionType: nullAwareAction.functionType)
+              ..fileOffset = nullAwareAction.fileOffset);
       } else if (nullAwareAction is DynamicInvocation &&
           nullAwareAction.receiver == originalPropertyGet) {
         invocationResult = new ExpressionInferenceResult(
@@ -3050,6 +3059,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       case ObjectAccessTargetKind.nullableInstanceMember:
         kind = InstanceAccessKind.Nullable;
         break;
+      // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.objectMember:
         kind = InstanceAccessKind.Object;
         break;
@@ -3130,6 +3140,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       List<LocatedMessage>? context = getWhyNotPromotedContext(
           whyNotPromoted!(),
           invocationResult.expression,
+          // Coverage-ignore(suite): Not run.
           (type) => !type.isPotentiallyNullable);
       invocationResult = wrapExpressionInferenceResultInProblem(
           invocationResult,
@@ -3156,14 +3167,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       } else if (nullAwareAction is DynamicInvocation &&
           // Coverage-ignore(suite): Not run.
           nullAwareAction.receiver == originalPropertyGet) {
-        invocationResult =
-            // Coverage-ignore(suite): Not run.
-            new ExpressionInferenceResult(
-                invocationResult.inferredType,
-                new InstanceGetterInvocation(originalPropertyGet.kind, receiver,
-                    originalName, nullAwareAction.arguments,
-                    interfaceTarget: originalTarget, functionType: null)
-                  ..fileOffset = nullAwareAction.fileOffset);
+        // Coverage-ignore-block(suite): Not run.
+        invocationResult = new ExpressionInferenceResult(
+            invocationResult.inferredType,
+            new InstanceGetterInvocation(originalPropertyGet.kind, receiver,
+                originalName, nullAwareAction.arguments,
+                interfaceTarget: originalTarget, functionType: null)
+              ..fileOffset = nullAwareAction.fileOffset);
       } else if (nullAwareAction is FunctionInvocation &&
           nullAwareAction.receiver == originalPropertyGet) {
         invocationResult = new ExpressionInferenceResult(
@@ -3332,6 +3342,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           List<LocatedMessage>? context = getWhyNotPromotedContext(
               flowAnalysis.whyNotPromoted(receiver)(),
               receiver,
+              // Coverage-ignore(suite): Not run.
               (type) => !type.isPotentiallyNullable);
           readResult = wrapExpressionInferenceResultInProblem(
               readResult,
@@ -3371,6 +3382,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           List<LocatedMessage>? context = getWhyNotPromotedContext(
               flowAnalysis.whyNotPromoted(receiver)(),
               receiver,
+              // Coverage-ignore(suite): Not run.
               (type) => !type.isPotentiallyNullable);
           readResult = wrapExpressionInferenceResultInProblem(
               readResult,
@@ -3392,6 +3404,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             isImplicitCall: true,
             hoistedExpressions: hoistedExpressions);
       case ObjectAccessTargetKind.extensionTypeRepresentation:
+      // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         DartType type = target.getGetterType(this);
         type = flowAnalysis
@@ -3402,6 +3415,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                     (target as ExtensionTypeRepresentationAccessTarget)
                         .representationField,
                     new SharedTypeView(type))
+                // Coverage-ignore(suite): Not run.
                 ?.unwrapTypeView() ??
             type;
         Expression read = new AsExpression(receiver, type)
@@ -3410,7 +3424,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         ExpressionInferenceResult readResult =
             new ExpressionInferenceResult(type, read);
         if (target.isNullable) {
-          // Coverage-ignore(suite): Not run.
+          // Coverage-ignore-block(suite): Not run.
           // Handles cases like:
           //
           //   extension type Foo(void Function() bar) {}
@@ -3569,9 +3583,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType? promotedType = flowAnalysis
         .propertyGet(expression, SuperPropertyTarget.singleton, name.text,
             member, new SharedTypeView(inferredType))
+        // Coverage-ignore(suite): Not run.
         ?.unwrapTypeView();
     if (promotedType != null) {
-      // Coverage-ignore(suite): Not run.
+      // Coverage-ignore-block(suite): Not run.
       expression = new AsExpression(expression, promotedType)
         ..isUnchecked = true
         ..fileOffset = expression.fileOffset;
@@ -3601,7 +3616,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 inferenceUsingBoundsIsEnabled:
                     libraryFeatures.inferenceUsingBounds.isEnabled,
                 typeOperations: cfeOperations,
-                inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+                inferenceResultForTesting: dataForTesting
+                    // Coverage-ignore(suite): Not run.
+                    ?.typeInferenceResult,
                 treeNodeForTesting: treeNodeForTesting);
         inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
             gatherer, typeParameters, inferredTypes,
@@ -3790,6 +3807,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         // futureValueTypeSchema(_) = _.
         return node;
       }
+      // Coverage-ignore-block(suite): Not run.
       throw new UnsupportedError("Unsupported type '${node.runtimeType}'.");
     }), coreTypes);
   }
@@ -3999,7 +4017,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             fileOffset,
             implicitInvocationPropertyName.text.length);
       } else {
-        // Coverage-ignore(suite): Not run.
+        // Coverage-ignore-block(suite): Not run.
         return helper.buildProblem(
             templateInvokeNonFunction
                 .withArguments(implicitInvocationPropertyName.text),
@@ -4036,8 +4054,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression read;
     ExpressionInferenceResult? readResult;
 
+    // Coverage-ignore(suite): Not run.
     readTarget ??= findInterfaceMember(receiverType, propertyName, fileOffset,
         includeExtensionMethods: true, isSetter: false);
+    // Coverage-ignore(suite): Not run.
     readType ??= readTarget.getGetterType(this);
 
     switch (readTarget.kind) {
@@ -4118,6 +4138,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           case ObjectAccessTargetKind.objectMember:
             kind = InstanceAccessKind.Object;
             break;
+          // Coverage-ignore(suite): Not run.
           default:
             throw new UnsupportedError('Unexpected target kind $readTarget');
         }
@@ -4180,6 +4201,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.extensionTypeRepresentation:
+      // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         read = new AsExpression(receiver, readType)
           ..isUnchecked = true
@@ -4204,7 +4226,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           propertyName.text.length,
           context: whyNotPromoted != null
               ? getWhyNotPromotedContext(
-                  whyNotPromoted(), read, (type) => !type.isPotentiallyNullable)
+                  whyNotPromoted(),
+                  read, // Coverage-ignore(suite): Not run.
+                  (type) => !type.isPotentiallyNullable)
               : null);
     }
     return new PropertyGetInferenceResult(readResult, readTarget.member);
@@ -4351,8 +4375,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     BigInt asInt = new BigInt.from(value).toUnsigned(64);
     BigInt asDouble = new BigInt.from(asInt.toDouble());
-    // Coverage-ignore-block(suite): Not run.
     if (asInt == asDouble) return null;
+    // Coverage-ignore-block(suite): Not run.
     String text = literal ?? value.toString();
     String nearest = text.startsWith('0x') || text.startsWith('0X')
         ? '0x${asDouble.toRadixString(16)}'
@@ -4742,6 +4766,7 @@ class _ObjectAccessDescriptor {
             functionType: functionType,
           );
         case Nullability.nullable:
+        // Coverage-ignore(suite): Not run.
         case Nullability.legacy:
           // Never? and Never* are equivalent to Null.
           return visitor.findInterfaceMember(const NullType(), name, fileOffset,
@@ -4877,6 +4902,7 @@ class _ObjectAccessDescriptor {
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
       case ObjectAccessTargetKind.nullableExtensionTypeMember:
+      // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         return false;
     }

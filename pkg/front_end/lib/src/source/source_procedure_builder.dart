@@ -216,11 +216,26 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     if (_typeEnsured) return;
     if (_overrideDependencies != null) {
       if (isGetter) {
-        membersBuilder.inferGetterType(this, _overrideDependencies!);
+        membersBuilder.inferGetterType(declarationBuilder as SourceClassBuilder,
+            returnType, _overrideDependencies!,
+            name: fullNameForErrors,
+            fileUri: fileUri,
+            fileOffset: nameOffset,
+            nameLength: fullNameForErrors.length);
       } else if (isSetter) {
-        membersBuilder.inferSetterType(this, _overrideDependencies!);
+        membersBuilder.inferSetterType(declarationBuilder as SourceClassBuilder,
+            formals, _overrideDependencies!,
+            name: fullNameForErrors,
+            fileUri: fileUri,
+            fileOffset: nameOffset,
+            nameLength: fullNameForErrors.length);
       } else {
-        membersBuilder.inferMethodType(this, _overrideDependencies!);
+        membersBuilder.inferMethodType(declarationBuilder as SourceClassBuilder,
+            function, returnType, formals, _overrideDependencies!,
+            name: fullNameForErrors,
+            fileUri: fileUri,
+            fileOffset: nameOffset,
+            nameLength: fullNameForErrors.length);
       }
       _overrideDependencies = null;
     }

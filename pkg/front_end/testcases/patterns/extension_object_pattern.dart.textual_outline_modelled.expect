@@ -3,9 +3,9 @@ extension Extension on int {
 }
 
 method1(int i) => switch (i) {
-  int(:num getter) => 0,
-};
+      int(:num getter) => 0,
+    };
 
 method2(int i) => switch (i) {
-  int(:int getter) => 0,
-};
+      int(:int getter) => 0,
+    };

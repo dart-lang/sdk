@@ -171,13 +171,21 @@ const set1 = {
   topLevel,
 };
 
-const set2 = {A()};
+const set2 = {
+  A(),
+};
 
-const set3 = {B()};
+const set3 = {
+  B(),
+};
 
-const set4 = {C()};
+const set4 = {
+  C(),
+};
 
-const set5 = {0.5};
+const set5 = {
+  0.5,
+};
 
 const map1 = {
   null: 0,
@@ -194,10 +202,18 @@ const map1 = {
   topLevel: 0,
 };
 
-const map2 = {A(): 0};
+const map2 = {
+  A(): 0,
+};
 
-const map3 = {B(): 0};
+const map3 = {
+  B(): 0,
+};
 
-const map4 = {C(): 0};
+const map4 = {
+  C(): 0,
+};
 
-const map5 = {0.5: 0};
+const map5 = {
+  0.5: 0,
+};

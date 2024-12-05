@@ -3,9 +3,9 @@ abstract class Const<X> {
 }
 
 class Class {
-  const Class.named({
-    dynamic x = (({dynamic y = const [Alias2.impl()]}) => const [Alias.impl()]),
-  });
+  const Class.named(
+      {dynamic x = (({dynamic y = const [Alias2.impl()]}) =>
+          const [Alias.impl()])});
 }
 
 class _ConstImpl<T> implements Const<T> {

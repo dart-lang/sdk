@@ -70,10 +70,16 @@ class SelectorInfo {
   int? offset;
 
   /// The selector's member's name.
-  String get name => paramInfo.member!.name.text;
+  final String name;
 
-  SelectorInfo._(this.translator, this.id, this.callCount, this.paramInfo,
-      {required this.isSetter});
+  /// Whether the selector is for `Object.noSuchMethod`. We introduce instance
+  /// invocations of `noSuchMethod` in dynamic calls, so we always add
+  /// `noSuchMethod` overrides to the dispatch table.
+  final bool isNoSuchMethod;
+
+  SelectorInfo._(
+      this.translator, this.id, this.name, this.callCount, this.paramInfo,
+      {required this.isSetter, required this.isNoSuchMethod});
 
   /// Compute the signature for the functions implementing members targeted by
   /// this selector.
@@ -285,9 +291,10 @@ class DispatchTable {
 
     final selector = _selectorInfo.putIfAbsent(
         selectorId,
-        () => SelectorInfo._(translator, selectorId,
+        () => SelectorInfo._(translator, selectorId, member.name.text,
             _selectorMetadata[selectorId].callCount, paramInfo,
-            isSetter: isSetter));
+            isSetter: isSetter,
+            isNoSuchMethod: member == translator.objectNoSuchMethod));
     assert(selector.isSetter == isSetter);
     selector.hasTearOffUses |= metadata.hasTearOffUses;
     selector.hasNonThisUses |= metadata.hasNonThisUses;
@@ -452,10 +459,7 @@ class DispatchTable {
     // Assign selector offsets
 
     bool isUsedViaDispatchTableCall(SelectorInfo selector) {
-      // Special case for `objectNoSuchMethod`: we introduce instance
-      // invocations of `objectNoSuchMethod` in dynamic calls, so keep it alive
-      // even if there was no references to it from the Dart code.
-      if (selector.paramInfo.member! == translator.objectNoSuchMethod) {
+      if (selector.isNoSuchMethod) {
         return true;
       }
       if (selector.callCount == 0) return false;

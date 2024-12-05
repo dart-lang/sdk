@@ -5,7 +5,10 @@ var x = 42;
 var y = 42;
 
 class C {
-  operator []=(x, y) {}
+  operator []=(
+    x,
+    y,
+  ) {}
 }
 
 main() {}

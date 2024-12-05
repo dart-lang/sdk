@@ -17,7 +17,22 @@ abstract class MemberBuilder implements Builder {
 
   LibraryBuilder get libraryBuilder;
 
-  /// The declared name of this member;
+  /// The declared name of this member.
+  ///
+  /// For extension and extension type members this is different from the
+  /// name of the generated members.
+  ///
+  /// For instance for
+  ///
+  ///     extension E {
+  ///       get foo => null;
+  ///     }
+  ///     extension type E(int id) {
+  ///       get foo => null;
+  ///     }
+  ///
+  /// the [memberName] is `foo` for bother getters, but the name of the
+  /// generated members is `E|foo` and `ET|foo`, respectively.
   Name get memberName;
 
   /// The [Member] to use when reading from this member builder.

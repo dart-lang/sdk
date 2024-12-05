@@ -134,6 +134,82 @@ final b = new Foo.named(); // 0
     expect(target.length, 5);
   }
 
+  Future<void> test_constructorInvocation_insideNullAwareElement_inList() async {
+    addTestFile('''
+class Foo {
+  Foo() {}
+}
+
+final foo = [?Foo()];
+''');
+    await waitForTasksFinished();
+
+    await _getNavigation(search: 'Foo()];');
+    expect(regions, hasLength(1));
+    expect(regions.first.targets, hasLength(1));
+    var target = targets[regions.first.targets.first];
+    expect(target.kind, ElementKind.CONSTRUCTOR);
+    expect(target.offset, findOffset('Foo() {'));
+    expect(target.length, 3);
+  }
+
+  Future<void> test_constructorInvocation_insideNullAwareElement_inSet() async {
+    addTestFile('''
+class Foo {
+  Foo() {}
+}
+
+final foo = {?Foo()};
+''');
+    await waitForTasksFinished();
+
+    await _getNavigation(search: 'Foo()};');
+    expect(regions, hasLength(1));
+    expect(regions.first.targets, hasLength(1));
+    var target = targets[regions.first.targets.first];
+    expect(target.kind, ElementKind.CONSTRUCTOR);
+    expect(target.offset, findOffset('Foo() {'));
+    expect(target.length, 3);
+  }
+
+  Future<void> test_constructorInvocation_insideNullAwareKey_inMap() async {
+    addTestFile('''
+class Foo {
+  Foo() {}
+}
+
+final foo = {?Foo(): "value"};
+''');
+    await waitForTasksFinished();
+
+    await _getNavigation(search: 'Foo():');
+    expect(regions, hasLength(1));
+    expect(regions.first.targets, hasLength(1));
+    var target = targets[regions.first.targets.first];
+    expect(target.kind, ElementKind.CONSTRUCTOR);
+    expect(target.offset, findOffset('Foo() {'));
+    expect(target.length, 3);
+  }
+
+  Future<void> test_constructorInvocation_insideNullAwareValue_inMap() async {
+    addTestFile('''
+class Foo {
+  Foo() {}
+}
+
+final foo = {"key": ?Foo()};
+''');
+    await waitForTasksFinished();
+
+    await _getNavigation(search: 'Foo()};');
+    expect(regions, hasLength(1));
+    expect(regions.first.targets, hasLength(1));
+    var target = targets[regions.first.targets.first];
+    expect(target.kind, ElementKind.CONSTRUCTOR);
+    expect(target.offset, findOffset('Foo() {'));
+    expect(target.length, 3);
+  }
+
   Future<void> test_field_underscore() async {
     addTestFile('''
 class C {

@@ -4,7 +4,8 @@ enum C {
   c(1, z: 3, 2),
   d.named1(1, 2, 3),
   e.named2(1, 2, 3),
-  f.named3(1, 2, 3);
+  f.named3(1, 2, 3),
+  ;
 
   final String log;
   const C(int x, int y, {int z = 42}) : this.log = "x=$x, y=$y, z=$z";

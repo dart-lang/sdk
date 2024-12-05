@@ -15,15 +15,15 @@ abstract class C {
 ifCase(o) {}
 
 switchExpression(o) => switch (o) {
-  A a => a,
-  A(:var b) => b,
-  A(b: B(:var c)) => c,
-  A(b: B(c: C(:var i))) => i,
-  A(:var b, :var i) => '$b$i',
-  A(i: 5, :var b) => b,
-  A(:var b, i: 5) => b,
-  A(:var b, i: 5) && A(b: B(:var c, i: 7)) => '$b$c',
-  _ => null,
-};
+      A a => a,
+      A(:var b) => b,
+      A(b: B(:var c)) => c,
+      A(b: B(c: C(:var i))) => i,
+      A(:var b, :var i) => '$b$i',
+      A(i: 5, :var b) => b,
+      A(:var b, i: 5) => b,
+      A(:var b, i: 5) && A(b: B(:var c, i: 7)) => '$b$c',
+      _ => null,
+    };
 
 switchStatement(o) {}

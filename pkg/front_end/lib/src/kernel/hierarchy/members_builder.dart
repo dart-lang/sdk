@@ -6,9 +6,9 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchyMembers;
 
 import '../../builder/declaration_builders.dart';
+import '../../builder/formal_parameter_builder.dart';
+import '../../builder/type_builder.dart';
 import '../../source/source_class_builder.dart';
-import '../../source/source_field_builder.dart';
-import '../../source/source_procedure_builder.dart';
 import 'class_member.dart';
 import 'delayed.dart';
 import 'extension_type_members.dart';
@@ -76,44 +76,74 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     return list;
   }
 
-  void inferFieldType(SourceFieldBuilder declaredMember,
-      Iterable<ClassMember> overriddenMembers) {
-    ClassMembersNodeBuilder.inferFieldType(
-        hierarchyBuilder,
-        this,
-        declaredMember.classBuilder as SourceClassBuilder,
-        declaredMember,
-        overriddenMembers);
+  void inferFieldType(SourceClassBuilder enclosingClassBuilder,
+      TypeBuilder declaredFieldType, Iterable<ClassMember> overriddenMembers,
+      {required String name,
+      required Uri fileUri,
+      required int fileOffset,
+      required int nameLength,
+      required bool isAssignable}) {
+    ClassMembersNodeBuilder.inferFieldType(hierarchyBuilder, this,
+        enclosingClassBuilder, declaredFieldType, overriddenMembers,
+        name: name,
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        nameLength: nameLength,
+        isAssignable: isAssignable);
   }
 
-  void inferGetterType(SourceProcedureBuilder declaredMember,
-      Iterable<ClassMember> overriddenMembers) {
-    ClassMembersNodeBuilder.inferGetterType(
-        hierarchyBuilder,
-        this,
-        declaredMember.classBuilder as SourceClassBuilder,
-        declaredMember,
-        overriddenMembers);
+  void inferGetterType(SourceClassBuilder enclosingClassBuilder,
+      TypeBuilder declaredTypeBuilder, Iterable<ClassMember> overriddenMembers,
+      {required String name,
+      required Uri fileUri,
+      required int fileOffset,
+      required int nameLength}) {
+    ClassMembersNodeBuilder.inferGetterType(hierarchyBuilder, this,
+        enclosingClassBuilder, declaredTypeBuilder, overriddenMembers,
+        name: name,
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        nameLength: nameLength);
   }
 
-  void inferSetterType(SourceProcedureBuilder declaredMember,
-      Iterable<ClassMember> overriddenMembers) {
-    ClassMembersNodeBuilder.inferSetterType(
-        hierarchyBuilder,
-        this,
-        declaredMember.classBuilder as SourceClassBuilder,
-        declaredMember,
-        overriddenMembers);
+  void inferSetterType(
+      SourceClassBuilder enclosingClassBuilder,
+      List<FormalParameterBuilder>? formals,
+      Iterable<ClassMember> overriddenMembers,
+      {required String name,
+      required Uri fileUri,
+      required int fileOffset,
+      required int nameLength}) {
+    ClassMembersNodeBuilder.inferSetterType(hierarchyBuilder, this,
+        enclosingClassBuilder, formals, overriddenMembers,
+        name: name,
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        nameLength: nameLength);
   }
 
-  void inferMethodType(SourceProcedureBuilder declaredMember,
-      Iterable<ClassMember> overriddenMembers) {
+  void inferMethodType(
+      SourceClassBuilder enclosingClassBuilder,
+      FunctionNode declaredFunction,
+      TypeBuilder declaredReturnType,
+      List<FormalParameterBuilder>? formals,
+      Iterable<ClassMember> overriddenMembers,
+      {required String name,
+      required Uri fileUri,
+      required int fileOffset,
+      required int nameLength}) {
     ClassMembersNodeBuilder.inferMethodType(
         hierarchyBuilder,
         this,
-        declaredMember.classBuilder as SourceClassBuilder,
-        declaredMember,
-        overriddenMembers);
+        enclosingClassBuilder,
+        declaredFunction,
+        declaredReturnType,
+        formals,
+        overriddenMembers,
+        name: name,
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        nameLength: nameLength);
   }
 
   ClassMembersNode getNodeFromClassBuilder(ClassBuilder classBuilder) {

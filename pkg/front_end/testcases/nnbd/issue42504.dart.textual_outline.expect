@@ -9,9 +9,7 @@ class _LiveImage {
 abstract class Foo {
   dynamic get _pendingImages;
   ImageStreamCompleter? putIfAbsent(
-    Object key,
-    ImageStreamCompleter loader(),
-  ) {}
+      Object key, ImageStreamCompleter loader()) {}
 }
 
 main() {}
