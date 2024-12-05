@@ -239,6 +239,46 @@ AAA aaa;
     assertHasRegionTarget('AAA aaa;', 'AAA {}');
   }
 
+  Future<void> test_afterAnalysis_inNullAwareElements_inList() async {
+    addTestFile('''
+class AAA {}
+final aaa = [?((AAA arg) => null)];
+''');
+    await waitForTasksFinished();
+    await prepareNavigation();
+    assertHasRegionTarget('AAA arg', 'AAA {}');
+  }
+
+  Future<void> test_afterAnalysis_inNullAwareElements_inSet() async {
+    addTestFile('''
+class AAA {}
+final aaa = {?((AAA arg) => null)};
+''');
+    await waitForTasksFinished();
+    await prepareNavigation();
+    assertHasRegionTarget('AAA arg', 'AAA {}');
+  }
+
+  Future<void> test_afterAnalysis_inNullAwareKey_inMap() async {
+    addTestFile('''
+class AAA {}
+final aaa = {?((AAA arg) => null): "value"};
+''');
+    await waitForTasksFinished();
+    await prepareNavigation();
+    assertHasRegionTarget('AAA arg', 'AAA {}');
+  }
+
+  Future<void> test_afterAnalysis_inNullAwareValue_inMap() async {
+    addTestFile('''
+class AAA {}
+final aaa = {"key": ?((AAA arg) => null)};
+''');
+    await waitForTasksFinished();
+    await prepareNavigation();
+    assertHasRegionTarget('AAA arg', 'AAA {}');
+  }
+
   Future<void> test_annotation_generic_typeArguments_class() async {
     addTestFile('''
 class A<T> {
