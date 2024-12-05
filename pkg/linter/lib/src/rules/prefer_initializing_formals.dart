@@ -39,7 +39,7 @@ Iterable<FormalParameterElement?> _getParameters(ConstructorDeclaration node) =>
     node.parameters.parameters.map((e) => e.declaredFragment?.element);
 
 Element2? _getRightElement(AssignmentExpression assignment) =>
-    assignment.rightHandSide.canonicalElement2;
+    assignment.rightHandSide.canonicalElement;
 
 class PreferInitializingFormals extends LintRule {
   PreferInitializingFormals()

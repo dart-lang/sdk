@@ -264,7 +264,7 @@ class _UnnecessaryOperatorOverrideVisitor
         parameters != null &&
         parameters.length == 1 &&
         parameters.first.declaredFragment?.element ==
-            node.rightOperand.canonicalElement2) {
+            node.rightOperand.canonicalElement) {
       var leftPart = node.leftOperand.unParenthesized;
       if (leftPart is SuperExpression) {
         visitSuperExpression(leftPart);
@@ -310,7 +310,7 @@ class _UnnecessarySetterOverrideVisitor
     if (parameters != null &&
         parameters.length == 1 &&
         parameters.first.declaredFragment?.element ==
-            node.rightHandSide.canonicalElement2) {
+            node.rightHandSide.canonicalElement) {
       var leftPart = node.leftHandSide.unParenthesized;
       if (leftPart is PropertyAccess) {
         if (node.writeElement2?.name3 == _inheritedMethod.name3) {

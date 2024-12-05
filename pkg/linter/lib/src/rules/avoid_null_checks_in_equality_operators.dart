@@ -25,7 +25,7 @@ bool _isComparingParameterWithNull(
             _isParameter(node.leftOperand, parameter)));
 
 bool _isParameter(Expression expression, Element2? parameter) =>
-    expression.canonicalElement2 == parameter;
+    expression.canonicalElement == parameter;
 
 bool _isParameterWithQuestionQuestion(
         BinaryExpression node, Element2? parameter) =>
@@ -69,7 +69,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   @override
   visitMethodInvocation(MethodInvocation node) {
     if (node.operator?.type == TokenType.QUESTION_PERIOD &&
-        node.target.canonicalElement2 == parameter) {
+        node.target.canonicalElement == parameter) {
       rule.reportLint(node);
     }
     super.visitMethodInvocation(node);
@@ -78,7 +78,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   @override
   visitPropertyAccess(PropertyAccess node) {
     if (node.operator.type == TokenType.QUESTION_PERIOD &&
-        node.target.canonicalElement2 == parameter) {
+        node.target.canonicalElement == parameter) {
       rule.reportLint(node);
     }
     super.visitPropertyAccess(node);

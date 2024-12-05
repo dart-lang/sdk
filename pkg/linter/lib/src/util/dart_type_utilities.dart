@@ -30,13 +30,13 @@ bool argumentsMatchParameters(
   }
   for (var argument in arguments) {
     if (argument is NamedExpression) {
-      var element = argument.expression.canonicalElement2;
+      var element = argument.expression.canonicalElement;
       if (element == null) {
         return false;
       }
       namedArguments[argument.name.label.name] = element;
     } else {
-      var element = argument.canonicalElement2;
+      var element = argument.canonicalElement;
       if (element == null) {
         return false;
       }
@@ -69,7 +69,7 @@ bool canonicalElementsAreEqual(Element2? element1, Element2? element2) =>
 
 /// Returns whether the canonical elements from two nodes are equal.
 ///
-/// As in, [AstNodeNullableExtension.canonicalElement2], the two nodes must be
+/// As in, [AstNodeNullableExtension.canonicalElement], the two nodes must be
 /// [Expression]s in order to be compared (otherwise `false` is returned).
 ///
 /// The two nodes must both be a [SimpleIdentifier], [PrefixedIdentifier], or
