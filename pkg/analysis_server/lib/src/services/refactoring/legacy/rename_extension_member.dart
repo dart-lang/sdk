@@ -14,14 +14,14 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 
 /// A [Refactoring] for renaming extension member [Element]s.
 class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
-  final ExtensionElement extensionElement;
+  final ExtensionElement2 extensionElement;
 
   late _ExtensionMemberValidator _validator;
 
@@ -29,15 +29,14 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
     RefactoringWorkspace workspace,
     AnalysisSessionHelper sessionHelper,
     this.extensionElement,
-    Element element,
-  ) : super(workspace, sessionHelper, element);
+    Element2 element,
+  ) : super.c2(workspace, sessionHelper, element);
 
   @override
   String get refactoringName {
-    if (element is TypeParameterElement) {
+    if (element2 is TypeParameterElement2) {
       return 'Rename Type Parameter';
-    }
-    if (element is FieldElement) {
+    } else if (element2 is FieldElement2) {
       return 'Rename Field';
     }
     return 'Rename Method';
@@ -49,7 +48,7 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
       searchEngine,
       sessionHelper,
       extensionElement,
-      element,
+      element2,
       newName,
     );
     return _validator.validate();
@@ -58,7 +57,7 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
     var result = await super.checkInitialConditions();
-    if (element is MethodElement && (element as MethodElement).isOperator) {
+    if (element2 is MethodElement2 && (element2 as MethodElement2).isOperator) {
       result.addFatalError('Cannot rename operator.');
     }
     return result;
@@ -67,10 +66,9 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   RefactoringStatus checkNewName() {
     var result = super.checkNewName();
-    if (element is FieldElement) {
+    if (element2 is FieldElement2) {
       result.addStatus(validateFieldName(newName));
-    }
-    if (element is MethodElement) {
+    } else if (element2 is MethodElement2) {
       result.addStatus(validateMethodName(newName));
     }
     return result;
@@ -81,12 +79,12 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
 
     // Update the declaration.
-    var renameElement = element;
-    if (renameElement.isSynthetic && renameElement is FieldElement) {
-      processor.addDeclarationEdit(renameElement.getter);
-      processor.addDeclarationEdit(renameElement.setter);
+    var renameElement = element2;
+    if (renameElement.isSynthetic && renameElement is FieldElement2) {
+      processor.addDeclarationEdit2(renameElement.getter2);
+      processor.addDeclarationEdit2(renameElement.setter2);
     } else {
-      processor.addDeclarationEdit(renameElement);
+      processor.addDeclarationEdit2(renameElement);
     }
 
     // Update references.
@@ -99,9 +97,9 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
 class _ExtensionMemberValidator {
   final SearchEngine searchEngine;
   final AnalysisSessionHelper sessionHelper;
-  final LibraryElement library;
-  final Element element;
-  final ExtensionElement elementExtension;
+  final LibraryElement2 library;
+  final Element2 element;
+  final ExtensionElement2 elementExtension;
   final ElementKind elementKind;
   final String name;
   final bool isRename;
@@ -116,20 +114,20 @@ class _ExtensionMemberValidator {
     this.element,
     this.name,
   ) : isRename = true,
-      library = elementExtension.library,
+      library = elementExtension.library2,
       elementKind = element.kind;
 
   Future<RefactoringStatus> validate() async {
     // Check if there is a member with "newName" in the extension.
-    for (var newNameMember in getChildren(elementExtension, name)) {
+    for (var newNameMember in getChildren2(elementExtension, name)) {
       result.addError(
         format(
           "Extension '{0}' already declares {1} with name '{2}'.",
           elementExtension.displayName,
-          getElementKindName(newNameMember),
+          getElementKindName2(newNameMember),
           name,
         ),
-        newLocation_fromElement(newNameMember),
+        newLocation_fromElement2(newNameMember),
       );
     }
 
@@ -144,7 +142,7 @@ class _ExtensionMemberValidator {
           format(
             "Usage of renamed {0} will be shadowed by {1} '{2}'.",
             elementKind.displayName,
-            getElementKindName(localElement),
+            getElementKindName2(localElement),
             localElement.displayName,
           ),
           newLocation_fromMatch(conflict.match),
@@ -156,19 +154,19 @@ class _ExtensionMemberValidator {
   }
 
   Future<_MatchShadowedByLocal?> _getShadowingLocalElement() async {
-    var localElementMap = <CompilationUnitElement, List<LocalElement>>{};
-    var visibleRangeMap = <LocalElement, SourceRange>{};
+    var localElementMap = <LibraryFragment, List<LocalElement2>>{};
+    var visibleRangeMap = <LocalElement2, SourceRange>{};
 
-    Future<List<LocalElement>> getLocalElements(Element element) async {
-      var unitElement = element.thisOrAncestorOfType<CompilationUnitElement>();
-      if (unitElement == null) {
+    Future<List<LocalElement2>> getLocalElements(Element2 element) async {
+      var unitFragment = element.firstFragment.libraryFragment;
+      if (unitFragment == null) {
         return const [];
       }
 
-      var localElements = localElementMap[unitElement];
+      var localElements = localElementMap[unitFragment];
 
       if (localElements == null) {
-        var result = await sessionHelper.getResolvedUnitByElement(element);
+        var result = await sessionHelper.getResolvedUnitByElement2(element);
         if (result == null) {
           return const [];
         }
@@ -178,9 +176,9 @@ class _ExtensionMemberValidator {
         var collector = _LocalElementsCollector(name);
         unit.accept(collector);
         localElements = collector.elements;
-        localElementMap[unitElement] = localElements;
+        localElementMap[unitFragment] = localElements;
 
-        visibleRangeMap.addAll(VisibleRangesComputer.forNode(unit));
+        visibleRangeMap.addAll(VisibleRangesComputer.forNode2(unit));
       }
 
       return localElements;
@@ -192,7 +190,7 @@ class _ExtensionMemberValidator {
         continue;
       }
       // Check local elements that might shadow the reference.
-      var localElements = await getLocalElements(match.element);
+      var localElements = await getLocalElements(match.element2);
       for (var localElement in localElements) {
         var elementRange = visibleRangeMap[localElement];
         if (elementRange != null &&
@@ -208,21 +206,21 @@ class _ExtensionMemberValidator {
   Future<void> _prepareReferences() async {
     if (!isRename) return;
 
-    references.addAll(await searchEngine.searchReferences(element));
+    references.addAll(await searchEngine.searchReferences2(element));
   }
 }
 
 class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   final String name;
-  final List<LocalElement> elements = [];
+  final List<LocalElement2> elements = [];
 
   _LocalElementsCollector(this.name);
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (node.name.lexeme == name) {
-      var element = node.declaredElement;
-      if (element is FunctionElement) {
+      var element = node.declaredFragment?.element;
+      if (element is LocalFunctionElement) {
         elements.add(element);
       }
     }
@@ -233,7 +231,7 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     if (node.name?.lexeme == name) {
-      var element = node.declaredElement;
+      var element = node.declaredFragment?.element;
       if (element != null) {
         elements.add(element);
       }
@@ -245,8 +243,8 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     if (node.name.lexeme == name) {
-      var element = node.declaredElement;
-      if (element is LocalVariableElement) {
+      var element = node.declaredFragment?.element;
+      if (element is LocalVariableElement2) {
         elements.add(element);
       }
     }
@@ -257,7 +255,7 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
 
 class _MatchShadowedByLocal {
   final SearchMatch match;
-  final LocalElement localElement;
+  final LocalElement2 localElement;
 
   _MatchShadowedByLocal(this.match, this.localElement);
 }

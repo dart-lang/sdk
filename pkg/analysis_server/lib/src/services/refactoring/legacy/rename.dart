@@ -68,6 +68,13 @@ class RenameProcessor {
         .then(addReferenceEdits);
   }
 
+  /// Update the [element] declaration and references to it.
+  Future<void> renameElement2(Element2 element) async {
+    addDeclarationEdit2(element);
+    var matches = await workspace.searchEngine.searchReferences2(element);
+    addReferenceEdits(matches);
+  }
+
   /// Add an edit that replaces the specified region with [code].
   /// Uses [referenceElement] to identify the file to update.
   void replace({
@@ -78,6 +85,22 @@ class RenameProcessor {
   }) {
     var edit = SourceEdit(offset, length, code);
     doSourceChange_addElementEdit(change, referenceElement, edit);
+  }
+
+  /// Add an edit that replaces the specified region with [code].
+  /// Uses [referenceElement] to identify the file to update.
+  void replace2({
+    required Element2 referenceElement,
+    required int offset,
+    required int length,
+    required String code,
+  }) {
+    var edit = SourceEdit(offset, length, code);
+    doSourceChange_addFragmentEdit(
+      change,
+      referenceElement.firstFragment,
+      edit,
+    );
   }
 }
 
