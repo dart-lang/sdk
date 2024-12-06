@@ -362,7 +362,8 @@ abstract class AbstractSourceConstructorBuilder
   @override
   void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
       TypeEnvironment typeEnvironment) {
-    library.checkTypesInConstructorBuilder(this, formals, typeEnvironment);
+    library.checkInitializersInFormals(formals, typeEnvironment,
+        isAbstract: isAbstract, isExternal: isExternal);
   }
 
   @override
@@ -948,13 +949,19 @@ class DeclaredSourceConstructorBuilder
   @override
   void applyAugmentation(Builder augmentation) {
     if (augmentation is DeclaredSourceConstructorBuilder) {
-      if (checkAugmentation(augmentation)) {
+      if (checkAugmentation(
+          augmentationLibraryBuilder: augmentation.libraryBuilder,
+          origin: this,
+          augmentation: augmentation)) {
         augmentation.actualOrigin = this;
         (_augmentations ??= []).add(augmentation);
       }
     } else {
       // Coverage-ignore-block(suite): Not run.
-      reportAugmentationMismatch(augmentation);
+      reportAugmentationMismatch(
+          originLibraryBuilder: libraryBuilder,
+          origin: this,
+          augmentation: augmentation);
     }
   }
 

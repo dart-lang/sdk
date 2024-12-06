@@ -46,7 +46,6 @@ import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
-import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart';
@@ -68,12 +67,10 @@ import 'outline_builder.dart';
 import 'source_builder_factory.dart';
 import 'source_builder_mixins.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
-import 'source_constructor_builder.dart';
 import 'source_extension_builder.dart';
 import 'source_extension_type_declaration_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
-import 'source_function_builder.dart';
 import 'source_loader.dart'
     show CompilationPhaseForProblemReporting, SourceLoader;
 import 'source_member_builder.dart';
@@ -887,13 +884,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           if (reason != null) {
             individualPropertyReasons[member.readTarget] = reason;
           }
-        } else if (member is SourceProcedureBuilder && member.isGetter) {
+        } else if (member.isGetter) {
           if (member.isSynthetic) continue;
           PropertyNonPromotabilityReason? reason = fieldPromotability.addGetter(
               classInfo, member, member.name,
               isAbstract: member.isAbstract);
           if (reason != null) {
-            individualPropertyReasons[member.procedure] = reason;
+            individualPropertyReasons[member.readTarget!] = reason;
           }
         }
       }
@@ -929,10 +926,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             PropertyNonPromotabilityReason.isNotPrivate;
       }
       for (Builder member in extensionType.nameSpace.localMembers) {
-        if (member is SourceProcedureBuilder &&
+        if (member is SourceMemberBuilder &&
             !member.isStatic &&
             member.isGetter) {
-          individualPropertyReasons[member.procedure] =
+          individualPropertyReasons[member.readTarget!] =
               member.memberName.isPrivate
                   ? PropertyNonPromotabilityReason.isNotField
                   : PropertyNonPromotabilityReason.isNotPrivate;
@@ -1017,68 +1014,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     factory.setRedirectingFactoryError(text);
   }
 
-  void checkGetterSetterTypes(ProcedureBuilder getterBuilder,
-      ProcedureBuilder setterBuilder, TypeEnvironment typeEnvironment) {
-    DartType getterType;
-    List<TypeParameter>? getterExtensionTypeParameters;
-    if (getterBuilder.isExtensionInstanceMember ||
-        setterBuilder.isExtensionTypeInstanceMember) {
-      // An extension instance getter
-      //
-      //     extension E<T> on A {
-      //       T get property => ...
-      //     }
-      //
-      // is encoded as a top level method
-      //
-      //   T# E#get#property<T#>(A #this) => ...
-      //
-      // Similarly for extension type instance getters.
-      //
-      Procedure procedure = getterBuilder.procedure;
-      getterType = procedure.function.returnType;
-      getterExtensionTypeParameters = procedure.function.typeParameters;
-    } else {
-      getterType = getterBuilder.procedure.getterType;
-    }
-    DartType setterType;
-    if (setterBuilder.isExtensionInstanceMember ||
-        setterBuilder.isExtensionTypeInstanceMember) {
-      // An extension instance setter
-      //
-      //     extension E<T> on A {
-      //       void set property(T value) { ... }
-      //     }
-      //
-      // is encoded as a top level method
-      //
-      //   void E#set#property<T#>(A #this, T# value) { ... }
-      //
-      // Similarly for extension type instance setters.
-      //
-      Procedure procedure = setterBuilder.procedure;
-      setterType = procedure.function.positionalParameters[1].type;
-      if (getterExtensionTypeParameters != null &&
-          getterExtensionTypeParameters.isNotEmpty) {
-        // We substitute the setter type parameters for the getter type
-        // parameters to check them below in a shared context.
-        List<TypeParameter> setterExtensionTypeParameters =
-            procedure.function.typeParameters;
-        assert(getterExtensionTypeParameters.length ==
-            setterExtensionTypeParameters.length);
-        setterType = Substitution.fromPairs(
-                setterExtensionTypeParameters,
-                new List<DartType>.generate(
-                    getterExtensionTypeParameters.length,
-                    (int index) => new TypeParameterType.forAlphaRenaming(
-                        setterExtensionTypeParameters[index],
-                        getterExtensionTypeParameters![index])))
-            .substituteType(setterType);
-      }
-    } else {
-      setterType = setterBuilder.procedure.setterType;
-    }
-
+  void checkGetterSetterTypes(TypeEnvironment typeEnvironment,
+      {required DartType getterType,
+      required String getterName,
+      required Uri getterFileUri,
+      required int getterFileOffset,
+      required int getterNameLength,
+      required DartType setterType,
+      required String setterName,
+      required Uri setterFileUri,
+      required int setterFileOffset,
+      required int setterNameLength}) {
     if (libraryFeatures.getterSetterError.isEnabled ||
         getterType is InvalidType ||
         setterType is InvalidType) {
@@ -1089,19 +1035,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       bool isValid = typeEnvironment.isSubtypeOf(
           getterType, setterType, SubtypeCheckMode.withNullabilities);
       if (!isValid) {
-        String getterMemberName = getterBuilder.fullNameForErrors;
-        String setterMemberName = setterBuilder.fullNameForErrors;
         addProblem(
             templateInvalidGetterSetterType.withArguments(
-                getterType, getterMemberName, setterType, setterMemberName),
-            getterBuilder.fileOffset,
-            getterBuilder.name.length,
-            getterBuilder.fileUri,
+                getterType, getterName, setterType, setterName),
+            getterFileOffset,
+            getterNameLength,
+            getterFileUri,
             context: [
               templateInvalidGetterSetterTypeSetterContext
-                  .withArguments(setterMemberName)
-                  .withLocation(setterBuilder.fileUri!,
-                      setterBuilder.fileOffset, setterBuilder.name.length)
+                  .withArguments(setterName)
+                  .withLocation(
+                      setterFileUri, setterFileOffset, setterNameLength)
             ]);
       }
     }
@@ -1734,48 +1678,28 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
+  /// Checks that non-nullable optional parameters have a default value.
   void checkInitializersInFormals(
-      List<FormalParameterBuilder> formals, TypeEnvironment typeEnvironment) {
-    for (FormalParameterBuilder formal in formals) {
-      bool isOptionalPositional =
-          formal.isOptionalPositional && formal.isPositional;
-      bool isOptionalNamed = !formal.isRequiredNamed && formal.isNamed;
-      bool isOptional = isOptionalPositional || isOptionalNamed;
-      if (isOptional &&
-          formal.variable!.type.isPotentiallyNonNullable &&
-          !formal.hasDeclaredInitializer) {
-        addProblem(
-            templateOptionalNonNullableWithoutInitializerError.withArguments(
-                formal.name, formal.variable!.type),
-            formal.fileOffset,
-            formal.name.length,
-            formal.fileUri);
+      List<FormalParameterBuilder>? formals, TypeEnvironment typeEnvironment,
+      {required bool isAbstract, required bool isExternal}) {
+    if (formals != null && !(isAbstract || isExternal)) {
+      for (FormalParameterBuilder formal in formals) {
+        bool isOptionalPositional =
+            formal.isOptionalPositional && formal.isPositional;
+        bool isOptionalNamed = !formal.isRequiredNamed && formal.isNamed;
+        bool isOptional = isOptionalPositional || isOptionalNamed;
+        if (isOptional &&
+            formal.variable!.type.isPotentiallyNonNullable &&
+            !formal.hasDeclaredInitializer) {
+          addProblem(
+              templateOptionalNonNullableWithoutInitializerError.withArguments(
+                  formal.name, formal.variable!.type),
+              formal.fileOffset,
+              formal.name.length,
+              formal.fileUri);
+        }
       }
     }
-  }
-
-  void checkTypesInFunctionBuilder(
-      SourceFunctionBuilder procedureBuilder, TypeEnvironment typeEnvironment) {
-    if (procedureBuilder.formals != null &&
-        !(procedureBuilder.isAbstract || procedureBuilder.isExternal)) {
-      checkInitializersInFormals(procedureBuilder.formals!, typeEnvironment);
-    }
-  }
-
-  void checkTypesInConstructorBuilder(
-      SourceConstructorBuilder constructorBuilder,
-      List<FormalParameterBuilder>? formals,
-      TypeEnvironment typeEnvironment) {
-    if (!constructorBuilder.isExternal && formals != null) {
-      checkInitializersInFormals(formals, typeEnvironment);
-    }
-  }
-
-  void checkTypesInRedirectingFactoryBuilder(
-      RedirectingFactoryBuilder redirectingFactoryBuilder,
-      TypeEnvironment typeEnvironment) {
-    // Default values are not required on redirecting factory constructors so
-    // we don't call [checkInitializersInFormals].
   }
 
   void checkBoundsInType(
@@ -2288,8 +2212,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
 /// This class examines all the [Class]es in a library and determines which
 /// fields are promotable within that library.
-class _FieldPromotability extends FieldPromotability<Class, SourceFieldBuilder,
-    SourceProcedureBuilder> {
+class _FieldPromotability
+    extends FieldPromotability<Class, SourceFieldBuilder, SourceMemberBuilder> {
   @override
   Iterable<Class> getSuperclasses(Class class_,
       {required bool ignoreImplements}) {
@@ -2330,7 +2254,7 @@ class FieldNonPromotabilityInfo {
   final Map<
       String,
       FieldNameNonPromotabilityInfo<Class, SourceFieldBuilder,
-          SourceProcedureBuilder>> fieldNameInfo;
+          SourceMemberBuilder>> fieldNameInfo;
 
   /// Map whose keys are the members that a property get might resolve to, and
   /// whose values are the reasons why the given property couldn't be promoted.
