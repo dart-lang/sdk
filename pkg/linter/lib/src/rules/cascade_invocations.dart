@@ -33,7 +33,7 @@ Element2? _getElementFromVariableDeclarationStatement(
 ExecutableElement2? _getExecutableElementFromMethodInvocation(
     MethodInvocation node) {
   if (_isInvokedWithoutNullAwareOperator(node.operator)) {
-    var executableElement = node.methodName.canonicalElement2;
+    var executableElement = node.methodName.canonicalElement;
     if (executableElement is ExecutableElement2) {
       return executableElement;
     }
@@ -44,20 +44,20 @@ ExecutableElement2? _getExecutableElementFromMethodInvocation(
 Element2? _getPrefixElementFromExpression(Expression rawExpression) {
   var expression = rawExpression.unParenthesized;
   if (expression is PrefixedIdentifier) {
-    return expression.prefix.canonicalElement2;
+    return expression.prefix.canonicalElement;
   } else if (expression is PropertyAccess &&
       _isInvokedWithoutNullAwareOperator(expression.operator) &&
       expression.target is SimpleIdentifier) {
-    return expression.target.canonicalElement2;
+    return expression.target.canonicalElement;
   }
   return null;
 }
 
 Element2? _getTargetElementFromCascadeExpression(CascadeExpression node) =>
-    node.target.canonicalElement2;
+    node.target.canonicalElement;
 
 Element2? _getTargetElementFromMethodInvocation(MethodInvocation node) =>
-    node.target.canonicalElement2;
+    node.target.canonicalElement;
 
 bool _isInvokedWithoutNullAwareOperator(Token? token) =>
     token?.type == TokenType.PERIOD;
@@ -201,12 +201,12 @@ class _CascadableExpression {
 
   factory _CascadableExpression._fromPrefixedIdentifier(
           PrefixedIdentifier node) =>
-      _CascadableExpression._internal(node.prefix.canonicalElement2, [],
+      _CascadableExpression._internal(node.prefix.canonicalElement, [],
           canJoin: true, canReceive: true, canBeCascaded: true);
 
   factory _CascadableExpression._fromPropertyAccess(PropertyAccess node) {
     var targetIsSimple = node.target is SimpleIdentifier;
-    return _CascadableExpression._internal(node.target.canonicalElement2, [],
+    return _CascadableExpression._internal(node.target.canonicalElement, [],
         canJoin: targetIsSimple,
         canReceive: targetIsSimple,
         canBeCascaded: true);
@@ -248,7 +248,7 @@ class _NodeVisitor extends UnifyingAstVisitor<void> {
   _NodeVisitor(this.expressionBox);
 
   bool isCriticalNode(AstNode node) =>
-      node.canonicalElement2 == expressionBox.element;
+      node.canonicalElement == expressionBox.element;
 
   bool isOrHasCriticalNode(AstNode node) {
     node.accept(this);

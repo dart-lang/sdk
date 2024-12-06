@@ -54,8 +54,8 @@ extension AstNodeExtension on AstNode {
       MethodDeclaration() => self.augmentKeyword != null,
       MixinDeclaration() => self.augmentKeyword != null,
       TopLevelVariableDeclaration() => self.augmentKeyword != null,
-      VariableDeclaration(declaredElement: var element) =>
-        element is PropertyInducingElement && element.isAugmentation,
+      VariableDeclaration(declaredFragment: var fragment?) =>
+        fragment is PropertyInducingFragment && fragment.isAugmentation,
       _ => false
     };
   }
@@ -64,7 +64,7 @@ extension AstNodeExtension on AstNode {
     var node = this;
     if (node.isInternal) return true;
     if (node is ClassDeclaration) {
-      var classElement = node.declaredElement;
+      var classElement = node.declaredFragment?.element;
       if (classElement != null) {
         if (classElement.isSealed) return true;
         if (classElement.isAbstract) {
@@ -80,27 +80,15 @@ extension AstNodeExtension on AstNode {
     var parent = thisOrAncestorOfType<CompilationUnitMember>();
     if (parent == null) return false;
 
-    var element = parent.declaredElement;
-    return element != null && element.hasInternal;
+    return switch (parent.declaredFragment?.element) {
+      Annotatable(:var metadata2) => metadata2.hasInternal,
+      _ => false,
+    };
   }
 }
 
 extension AstNodeNullableExtension on AstNode? {
-  Element? get canonicalElement {
-    var self = this;
-    if (self is Expression) {
-      var node = self.unParenthesized;
-      if (node is Identifier) {
-        return node.staticElement?.canonicalElement;
-      } else if (node is PropertyAccess) {
-        return node.propertyName.staticElement?.canonicalElement;
-      }
-    }
-    return null;
-  }
-
-  Element2? get canonicalElement2 {
-    // TODO(pq): can this be replaced w/ a use of an `ElementLocator2`?
+  Element2? get canonicalElement {
     var self = this;
     if (self is Expression) {
       var node = self.unParenthesized;
@@ -276,7 +264,7 @@ extension DartTypeExtension on DartType? {
   bool extendsClass(String? className, String library) {
     var self = this;
     if (self is InterfaceType) {
-      return _extendsClass(self, <InterfaceElement>{}, className, library);
+      return _extendsClass(self, <InterfaceElement2>{}, className, library);
     }
     return false;
   }
@@ -291,8 +279,8 @@ extension DartTypeExtension on DartType? {
     }
     if (typeToCheck is InterfaceType) {
       return isAnyInterface(typeToCheck) ||
-          !typeToCheck.element.isSynthetic &&
-              typeToCheck.element.allSupertypes.any(isAnyInterface);
+          !typeToCheck.element3.isSynthetic &&
+              typeToCheck.element3.allSupertypes.any(isAnyInterface);
     } else {
       return false;
     }
@@ -304,7 +292,7 @@ extension DartTypeExtension on DartType? {
       return false;
     }
     bool predicate(InterfaceType i) => i.isSameAs(interface, library);
-    var element = self.element;
+    var element = self.element3;
     return predicate(self) ||
         !element.isSynthetic && element.allSupertypes.any(predicate);
   }
@@ -314,17 +302,17 @@ extension DartTypeExtension on DartType? {
   bool isSameAs(String? interface, String? library) {
     var self = this;
     return self is InterfaceType &&
-        self.element.name == interface &&
-        self.element.library.name == library;
+        self.element3.name3 == interface &&
+        self.element3.library2.name3 == library;
   }
 
   static bool _extendsClass(
           InterfaceType? type,
-          Set<InterfaceElement> seenElements,
+          Set<InterfaceElement2> seenElements,
           String? className,
           String? library) =>
       type != null &&
-      seenElements.add(type.element) &&
+      seenElements.add(type.element3) &&
       (type.isSameAs(className, library) ||
           _extendsClass(type.superclass, seenElements, className, library));
 }
@@ -399,15 +387,15 @@ extension ExpressionExtension on Expression? {
       case ArgumentList():
         // Allow `function(LinkedHashSet())` for `function(LinkedHashSet mySet)`
         // and `function(LinkedHashMap())` for `function(LinkedHashMap myMap)`.
-        return self.staticParameterElement?.type ?? InvalidTypeImpl.instance;
+        return self.correspondingParameter?.type ?? InvalidTypeImpl.instance;
       case AssignmentExpression():
         // Allow `x = LinkedHashMap()`.
         return ancestor.staticType;
       case ConditionalExpression():
         return ancestor.staticType;
       case ConstructorFieldInitializer():
-        var fieldElement = ancestor.fieldName.staticElement;
-        return (fieldElement is VariableElement) ? fieldElement.type : null;
+        var fieldElement = ancestor.fieldName.element;
+        return (fieldElement is VariableElement2) ? fieldElement.type : null;
       case ExpressionFunctionBody(parent: var function)
           when function is FunctionExpression:
         // Allow `<int, LinkedHashSet>{}.putIfAbsent(3, () => LinkedHashSet())`
@@ -426,7 +414,7 @@ extension ExpressionExtension on Expression? {
         return function.returnType?.type;
       case NamedExpression():
         // Allow `void f({required LinkedHashSet<Foo> s})`.
-        return ancestor.staticParameterElement?.type ??
+        return ancestor.correspondingParameter?.type ??
             InvalidTypeImpl.instance;
       case ReturnStatement():
         return ancestor.thisOrAncestorOfType<FunctionBody>().expectedReturnType;
@@ -460,7 +448,7 @@ extension FunctionBodyExtension on FunctionBody? {
     if (parent is FunctionExpression) {
       var grandparent = parent.parent;
       if (grandparent is FunctionDeclaration) {
-        var returnType = grandparent.declaredElement?.returnType;
+        var returnType = grandparent.declaredFragment?.element.returnType;
         return self._expectedReturnableOrYieldableType(returnType);
       }
       var functionType = parent.approximateContextType;
@@ -469,7 +457,7 @@ extension FunctionBodyExtension on FunctionBody? {
       return self._expectedReturnableOrYieldableType(returnType);
     }
     if (parent is MethodDeclaration) {
-      var returnType = parent.declaredElement?.returnType;
+      var returnType = parent.declaredFragment?.element.returnType;
       return self._expectedReturnableOrYieldableType(returnType);
     }
     return null;
@@ -546,9 +534,9 @@ extension InterfaceTypeExtension on InterfaceType {
   Iterable<InterfaceType> get implementedInterfaces {
     void searchSupertypes(
         InterfaceType? type,
-        Set<InterfaceElement> alreadyVisited,
+        Set<InterfaceElement2> alreadyVisited,
         List<InterfaceType> interfaceTypes) {
-      if (type == null || !alreadyVisited.add(type.element)) {
+      if (type == null || !alreadyVisited.add(type.element3)) {
         return;
       }
       interfaceTypes.add(type);

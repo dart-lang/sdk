@@ -61,7 +61,7 @@ class LibraryElementSuggestionBuilder
   @override
   void visitClassElement(ClassElement2 element) {
     AstNode node = request.target.containingNode;
-    var libraryElement = request.libraryElement2;
+    var libraryElement = request.libraryElement;
     if (node is ExtendsClause && !element.isExtendableIn2(libraryElement)) {
       return;
     } else if (node is ImplementsClause &&
@@ -130,7 +130,7 @@ class LibraryElementSuggestionBuilder
   visitMixinElement(MixinElement2 element) {
     AstNode node = request.target.containingNode;
     if (node is ImplementsClause &&
-        !element.isImplementableIn2(request.libraryElement2)) {
+        !element.isImplementableIn2(request.libraryElement)) {
       return;
     }
     _visitInterfaceElement(element);
@@ -219,13 +219,13 @@ class LibraryElementSuggestionBuilder
       }
     }
     if (opType.includeReturnValueSuggestions) {
-      var typeSystem = request.libraryElement2.typeSystem;
+      var typeSystem = request.libraryElement.typeSystem;
       var contextType = request.contextType;
       if (contextType is InterfaceType) {
         // TODO(scheglov): This looks not ideal - we should suggest getters.
         for (var field in element.fields2) {
           if (field.isStatic &&
-              field.isAccessibleIn2(request.libraryElement2) &&
+              field.isAccessibleIn2(request.libraryElement) &&
               typeSystem.isSubtypeOf(field.type, contextType)) {
             if (field.isSynthetic) {
               var getter = field.getter2;

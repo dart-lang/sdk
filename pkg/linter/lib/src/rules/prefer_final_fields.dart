@@ -155,7 +155,7 @@ extension on VariableElement2 {
   /// Whether `this` is initialized in [initializer].
   bool isSetInInitializer(ConstructorInitializer initializer) =>
       initializer is ConstructorFieldInitializer &&
-      initializer.fieldName.canonicalElement2 == this;
+      initializer.fieldName.canonicalElement == this;
 
   /// Whether `this` is initialized with [parameter].
   bool isSetInParameter(FormalParameter parameter) {

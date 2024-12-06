@@ -184,7 +184,11 @@ main() {
         ]);
         expect(
           File(outputDepfile()).readAsStringSync(),
-          stringContainsInOrder('$sdkDir/$packageConfigFile'.split('/')),
+          stringContainsInOrder(
+            // Don't check for any path separators to avoid having to deal with
+            // different slashes and back-slash escaping.
+            '$sdkDir/$packageConfigFile'.replaceAll(r'\', '/').split('/'),
+          ),
         );
       },
       timeout: Timeout.none,

@@ -7401,10 +7401,11 @@ LintCode:
     correctionMessage: "Try adding a documentation comment."
     state:
       stable: "2.0"
+      removed: "3.7"
     categories: [effectiveDart, publicInterface]
     hasPublishedDocs: false
     deprecatedDetails: |-
-      **NOTE:** This lint is deprecated because it is has not
+      **NOTE:** This lint has been removed because it is has not
       been fully functional since at least Dart 2.0.
       Remove all inclusions of this lint from your analysis options.
 

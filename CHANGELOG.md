@@ -59,10 +59,11 @@ main() {
   and with a `Flexible` widget.
 - Offer an assist to "inline" an else-block's inner if-statement with the
   else-block to read `else if`.
-  (Thanks [@FMorschel](https://github.com/FMorschel) for the above enhacements!
+  (Thanks [@FMorschel](https://github.com/FMorschel) for the above enhancements!
 - Add the experimental `specify_nonobvious_property_types` lint rule.
 - Add the experimental `omit_obvious_property_types` lint rule.
-- Deprecate the `package_api_docs` lint rule.
+- Remove the `package_api_docs` lint rule.
+- Remove the `unsafe_html` lint rule.
 
 #### Dart format
 

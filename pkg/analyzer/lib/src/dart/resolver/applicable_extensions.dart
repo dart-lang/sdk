@@ -451,7 +451,7 @@ extension NotInstantiatedExtensionsExtensions2<R>
     var instantiated = <R>[];
 
     for (var notInstantiated in this) {
-      var extension = notInstantiated.extension.asElement as ExtensionElement;
+      var extension = notInstantiated.extension.asElement;
 
       var freshTypes = getFreshTypeParameters(extension.typeParameters);
       var freshTypeParameters = freshTypes.freshTypeParameters;

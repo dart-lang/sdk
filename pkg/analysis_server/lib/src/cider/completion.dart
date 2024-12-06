@@ -7,8 +7,8 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/fuzzy_filter_sort.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analyzer/dart/element/element.dart'
-    show CompilationUnitElement, LibraryElement;
+import 'package:analyzer/dart/element/element.dart' show LibraryElement;
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
@@ -84,7 +84,7 @@ class CiderCompletionComputer {
         fileState: resolvedUnit.fileState,
         filePath: resolvedUnit.path,
         fileContent: resolvedUnit.content,
-        unitElement: resolvedUnit.unitElement,
+        libraryFragment: resolvedUnit.unitElement,
         enclosingNode: enclosingNode,
         offset: offset,
         unit: resolvedUnit.parsedUnit,
@@ -167,19 +167,19 @@ class CiderCompletionComputer {
   // TODO(scheglov): Implement show / hide combinators.
   // TODO(scheglov): Implement prefixes.
   List<CompletionSuggestionBuilder> _importedLibrariesSuggestions({
-    required CompilationUnitElement target,
+    required LibraryFragment target,
     required OperationPerformanceImpl performance,
   }) {
     var suggestionBuilders = <CompletionSuggestionBuilder>[];
     var importedLibraries =
-        target.withEnclosing
-            .expand((fragment) => fragment.libraryImports)
-            .map((import) => import.importedLibrary)
+        target.withEnclosing2
+            .expand((fragment) => fragment.libraryImports2)
+            .map((import) => import.importedLibrary2)
             .nonNulls
             .toSet();
     for (var importedLibrary in importedLibraries) {
       var importedSuggestions = _importedLibrarySuggestions(
-        element: importedLibrary,
+        element: importedLibrary.asElement,
         performance: performance,
       );
       suggestionBuilders.addAll(importedSuggestions);
