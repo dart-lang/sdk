@@ -1639,7 +1639,7 @@ class _InvalidAccessVerifier {
   void verifyImport(ImportDirective node) {
     var element = node.element?.importedLibrary;
     if (element != null &&
-        element.isInternal &&
+        element.asElement2.isInternal &&
         !_isLibraryInWorkspacePackage(element.library)) {
       // The only way for an import directive's URI to have a `null`
       // `stringValue` is if its string contains an interpolation, in which case
@@ -1691,7 +1691,8 @@ class _InvalidAccessVerifier {
       return;
     }
 
-    if (element.isInternal && !_isLibraryInWorkspacePackage(element.library)) {
+    if (element.asElement2!.isInternal &&
+        !_isLibraryInWorkspacePackage(element.library)) {
       var fieldName = node.name;
       if (fieldName == null) {
         return;
@@ -1715,7 +1716,7 @@ class _InvalidAccessVerifier {
     }
     var element = node.staticElement;
     if (element != null &&
-        element.isInternal &&
+        element.asElement2.isInternal &&
         !_isLibraryInWorkspacePackage(element.library)) {
       _errorReporter.atNode(
         node,
@@ -1819,7 +1820,8 @@ class _InvalidAccessVerifier {
     required Token nameToken,
     required Element element,
   }) {
-    if (element.isInternal && !_isLibraryInWorkspacePackage(element.library)) {
+    if (element.asElement2!.isInternal &&
+        !_isLibraryInWorkspacePackage(element.library)) {
       String name;
       SyntacticEntity node;
 
@@ -1842,7 +1844,7 @@ class _InvalidAccessVerifier {
   }
 
   void _checkForOtherInvalidAccess(AstNode node, Element element) {
-    var hasProtected = element.isProtected;
+    var hasProtected = element.asElement2!.isProtected;
     if (hasProtected) {
       var definingClass = element.enclosingElement3 as InterfaceElement;
       if (_hasTypeOrSuperType(_enclosingClass, definingClass)) {
@@ -1857,7 +1859,7 @@ class _InvalidAccessVerifier {
       }
     }
 
-    var hasVisibleForTesting = element.isVisibleForTesting;
+    var hasVisibleForTesting = element.asElement2!.isVisibleForTesting;
     if (hasVisibleForTesting) {
       if (_inTestDirectory || _inExportDirective(node)) {
         return;

@@ -351,6 +351,13 @@ abstract class ExecutableMember extends Member
     }
   }
 
+  static ExecutableElement2 from(
+    ExecutableElement2 element,
+    MapSubstitution substitution,
+  ) {
+    return from2(element.asElement, substitution).asElement2;
+  }
+
   static ExecutableElement from2(
     ExecutableElement element,
     MapSubstitution substitution,

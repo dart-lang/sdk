@@ -10076,6 +10076,14 @@ class SuperFormalParameterElementImpl2 extends FormalParameterElementImpl
   FormalParameterElement? get superConstructorParameter2 {
     return firstFragment.superConstructorParameter?.asElement2;
   }
+
+  /// Return the index of this super-formal parameter among other super-formals.
+  int indexIn(ConstructorElementImpl2 enclosingElement) {
+    return enclosingElement.formalParameters
+        .whereType<SuperFormalParameterElementImpl2>()
+        .toList()
+        .indexOf(this);
+  }
 }
 
 class TopLevelFunctionElementImpl extends ExecutableElementImpl2
@@ -10513,8 +10521,13 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
   }
 
   @override
-  Element2? get aliasedElement2 =>
-      (firstFragment.aliasedElement as Fragment?)?.element;
+  Element2? get aliasedElement2 {
+    switch (firstFragment.aliasedElement) {
+      case InstanceFragment instance:
+        return instance.element;
+    }
+    return null;
+  }
 
   @override
   DartType get aliasedType => firstFragment.aliasedType;
