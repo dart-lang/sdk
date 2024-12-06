@@ -894,106 +894,6 @@ class CheckAssigned extends Expression {
   }
 }
 
-class CheckCollectionElementIR extends CollectionElement {
-  final CollectionElement inner;
-
-  final String expectedIR;
-
-  CheckCollectionElementIR._(this.inner, this.expectedIR,
-      {required super.location});
-
-  @override
-  void preVisit(PreVisitor visitor) {
-    inner.preVisit(visitor);
-  }
-
-  @override
-  String toString() => '$inner (should produce IR $expectedIR)';
-
-  @override
-  void visit(Harness h, CollectionElementContext context) {
-    h.typeAnalyzer.dispatchCollectionElement(inner, context);
-    h.irBuilder.check(expectedIR, Kind.collectionElement, location: location);
-  }
-}
-
-class CheckExpressionIR extends Expression {
-  final Expression inner;
-
-  final String expectedIR;
-
-  CheckExpressionIR._(this.inner, this.expectedIR, {required super.location});
-
-  @override
-  void preVisit(PreVisitor visitor) {
-    inner.preVisit(visitor);
-  }
-
-  @override
-  String toString() => '$inner (should produce IR $expectedIR)';
-
-  @override
-  ExpressionTypeAnalysisResult<Type> visit(
-      Harness h, SharedTypeSchemaView<Type> schema) {
-    var result =
-        h.typeAnalyzer.analyzeParenthesizedExpression(this, inner, schema);
-    h.irBuilder.check(expectedIR, Kind.expression, location: location);
-    return result;
-  }
-}
-
-class CheckExpressionSchema extends Expression {
-  final Expression inner;
-
-  final String expectedSchema;
-
-  CheckExpressionSchema._(this.inner, this.expectedSchema,
-      {required super.location});
-
-  @override
-  void preVisit(PreVisitor visitor) {
-    inner.preVisit(visitor);
-  }
-
-  @override
-  String toString() => '$inner (should be in schema $expectedSchema)';
-
-  @override
-  ExpressionTypeAnalysisResult<Type> visit(
-      Harness h, SharedTypeSchemaView<Type> schema) {
-    expect(schema.unwrapTypeSchemaView().type, expectedSchema);
-    var result =
-        h.typeAnalyzer.analyzeParenthesizedExpression(this, inner, schema);
-    return result;
-  }
-}
-
-class CheckExpressionType extends Expression {
-  final Expression target;
-  final String expectedType;
-
-  CheckExpressionType(this.target, this.expectedType,
-      {required super.location});
-
-  @override
-  void preVisit(PreVisitor visitor) {
-    target.preVisit(visitor);
-  }
-
-  @override
-  String toString() => '$target (expected type: $expectedType)';
-
-  @override
-  ExpressionTypeAnalysisResult<Type> visit(
-      Harness h, SharedTypeSchemaView<Type> schema) {
-    var result =
-        h.typeAnalyzer.analyzeParenthesizedExpression(this, target, schema);
-    expect(result.type.unwrapTypeView().type, expectedType,
-        reason: 'at $location');
-    return result;
-  }
-}
-
 class CheckPromoted extends Expression {
   final Promotable promotable;
   final String? expectedTypeStr;
@@ -1044,28 +944,6 @@ class CheckReachable extends Expression {
   }
 }
 
-class CheckStatementIR extends Statement {
-  final Statement inner;
-
-  final String expectedIR;
-
-  CheckStatementIR._(this.inner, this.expectedIR, {required super.location});
-
-  @override
-  void preVisit(PreVisitor visitor) {
-    inner.preVisit(visitor);
-  }
-
-  @override
-  String toString() => '$inner (should produce IR $expectedIR)';
-
-  @override
-  void visit(Harness h) {
-    h.typeAnalyzer.dispatchStatement(inner);
-    h.irBuilder.check(expectedIR, Kind.statement, location: location);
-  }
-}
-
 class CheckUnassigned extends Expression {
   final Var variable;
   final bool expectedUnassignedState;
@@ -1097,6 +975,10 @@ class CheckUnassigned extends Expression {
 /// type analysis testing.
 abstract class CollectionElement extends Node
     with ProtoCollectionElement<CollectionElement> {
+  /// If non-null, the expected IR that should be produced when this collection
+  /// element is analyzed.
+  String? _expectedIR;
+
   CollectionElement({required super.location}) : super._();
 
   @override
@@ -1104,10 +986,8 @@ abstract class CollectionElement extends Node
 
   @override
   CollectionElement checkIR(String expectedIR) {
-    var location = computeLocation();
-    return CheckCollectionElementIR._(
-        asCollectionElement(location: location), expectedIR,
-        location: location);
+    _expectedIR = expectedIR;
+    return this;
   }
 
   void preVisit(PreVisitor visitor);
@@ -1402,6 +1282,18 @@ abstract class Expression extends Node
         ProtoStatement<Expression>,
         ProtoCollectionElement<Expression>,
         ProtoExpression {
+  /// If non-null, the expected IR that should be produced when this expression
+  /// is analyzed.
+  String? _expectedIR;
+
+  /// If non-null, the expected schema that should be used to analyze this
+  /// expression.
+  String? _expectedSchema;
+
+  /// If non-null, the expected type that should be produced when this
+  /// expression is analyzed.
+  String? _expectedType;
+
   Expression({required super.location}) : super._();
 
   @override
@@ -2302,8 +2194,8 @@ class ListLiteral extends Expression {
   ExpressionTypeAnalysisResult<Type> visit(
       Harness h, SharedTypeSchemaView<Type> schema) {
     for (var element in elements) {
-      element.visit(
-          h, CollectionElementContextType._(SharedTypeSchemaView(elementType)));
+      h.typeAnalyzer.dispatchCollectionElement(element,
+          CollectionElementContextType._(SharedTypeSchemaView(elementType)));
     }
     h.irBuilder.apply('list', [for (var _ in elements) Kind.collectionElement],
         Kind.expression,
@@ -2599,7 +2491,7 @@ class MapLiteral extends Expression {
       Harness h, SharedTypeSchemaView<Type> schema) {
     var context = CollectionElementContextMapEntry._(keyType, valueType);
     for (var element in elements) {
-      element.visit(h, context);
+      h.typeAnalyzer.dispatchCollectionElement(element, context);
     }
     h.irBuilder.apply('map', [for (var _ in elements) Kind.collectionElement],
         Kind.expression,
@@ -4117,8 +4009,7 @@ mixin ProtoExpression
   @override
   Expression checkIR(String expectedIR) {
     var location = computeLocation();
-    return CheckExpressionIR._(asExpression(location: location), expectedIR,
-        location: location);
+    return asExpression(location: location).._expectedIR = expectedIR;
   }
 
   /// Wraps `this` in such a way that, when the test is run, it will verify that
@@ -4126,9 +4017,7 @@ mixin ProtoExpression
   /// [expectedSchema].
   Expression checkSchema(String expectedSchema) {
     var location = computeLocation();
-    return CheckExpressionSchema._(
-        asExpression(location: location), expectedSchema,
-        location: location);
+    return asExpression(location: location).._expectedSchema = expectedSchema;
   }
 
   /// Creates an [Expression] that, when analyzed, will behave the same as
@@ -4136,9 +4025,7 @@ mixin ProtoExpression
   /// was [expectedType].
   Expression checkType(String expectedType) {
     var location = computeLocation();
-    return new CheckExpressionType(
-        asExpression(location: location), expectedType,
-        location: location);
+    return asExpression(location: location).._expectedType = expectedType;
   }
 
   /// If `this` is an expression `x`, creates the expression
@@ -4465,6 +4352,10 @@ class Second extends Expression {
 /// Representation of a statement in the pseudo-Dart language used for flow
 /// analysis testing.
 abstract class Statement extends Node with ProtoStatement<Statement> {
+  /// If non-null, the expected IR that should be produced when this statement
+  /// is analyzed.
+  String? _expectedIR;
+
   Statement({required super.location}) : super._();
 
   @override
@@ -4473,8 +4364,7 @@ abstract class Statement extends Node with ProtoStatement<Statement> {
   @override
   Statement checkIR(String expectedIR) {
     var location = computeLocation();
-    return CheckStatementIR._(asStatement(location: location), expectedIR,
-        location: location);
+    return asStatement(location: location).._expectedIR = expectedIR;
   }
 
   void preVisit(PreVisitor visitor);
@@ -5897,12 +5787,30 @@ class _MiniAstTypeAnalyzer
     covariant CollectionElementContext context,
   ) {
     _irBuilder.guard(element, () => element.visit(_harness, context));
+    if (element._expectedIR case var expectedIR?) {
+      _irBuilder.check(expectedIR, Kind.collectionElement,
+          location: element.location);
+    }
   }
 
   @override
   ExpressionTypeAnalysisResult<Type> dispatchExpression(
-          Expression expression, SharedTypeSchemaView<Type> schema) =>
-      _irBuilder.guard(expression, () => expression.visit(_harness, schema));
+      Expression expression, SharedTypeSchemaView<Type> schema) {
+    if (expression._expectedSchema case var expectedSchema?) {
+      expect(schema.unwrapTypeSchemaView().type, expectedSchema);
+    }
+    var result =
+        _irBuilder.guard(expression, () => expression.visit(_harness, schema));
+    if (expression._expectedType case var expectedType?) {
+      expect(result.provisionalType.unwrapTypeView().type, expectedType,
+          reason: 'at ${expression.location}');
+    }
+    if (expression._expectedIR case var expectedIR?) {
+      _irBuilder.check(expectedIR, Kind.expression,
+          location: expression.location);
+    }
+    return result;
+  }
 
   @override
   PatternResult<Type> dispatchPattern(
@@ -5916,8 +5824,13 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void dispatchStatement(Statement statement) =>
-      _irBuilder.guard(statement, () => statement.visit(_harness));
+  void dispatchStatement(Statement statement) {
+    _irBuilder.guard(statement, () => statement.visit(_harness));
+    if (statement._expectedIR case var expectedIR?) {
+      _irBuilder.check(expectedIR, Kind.statement,
+          location: statement.location);
+    }
+  }
 
   @override
   SharedTypeView<Type> downwardInferObjectPatternRequiredType({
