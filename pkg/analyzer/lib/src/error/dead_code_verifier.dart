@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 typedef _CatchClausesVerifierReporter = void Function(
   CatchClause first,
@@ -132,7 +133,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// [library].
   void _checkCombinator(LibraryElement library, Combinator combinator) {
     Namespace namespace =
-        NamespaceBuilder().createExportNamespaceForLibrary(library);
+        NamespaceBuilder().createExportNamespaceForLibrary(library.asElement2);
     NodeList<SimpleIdentifier> names;
     ErrorCode warningCode;
     if (combinator is HideCombinator) {
