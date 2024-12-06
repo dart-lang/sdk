@@ -42,6 +42,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart'
     show Namespace, NamespaceBuilder;
+import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -52,7 +53,6 @@ import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';

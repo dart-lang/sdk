@@ -10,7 +10,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/task/inference_error.dart';
+import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/util/collection.dart';
 import 'package:collection/collection.dart';
 
