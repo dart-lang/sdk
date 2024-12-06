@@ -1,6 +1,5 @@
 lib/plugin/protocol/protocol_dart.dart
 lib/src/analysis_server.dart
-lib/src/cider/completion.dart
 lib/src/cider/fixes.dart
 lib/src/cider/rename.dart
 lib/src/computer/computer_call_hierarchy.dart
