@@ -22,10 +22,11 @@ void main(List<String> args) async {
   if (args.length == 0) {
     asyncStart();
     final results = await Process.run(
-        Platform.resolvedExecutable,
-        // Prevent Crashpad from catching the exception.
-        environment: {'DART_CRASHPAD_HANDLER': ''},
-        [...Platform.executableArguments, Platform.script.toString(), 'run']);
+      Platform.resolvedExecutable,
+      // Prevent Crashpad from catching the exception.
+      environment: {'DART_CRASHPAD_HANDLER': ''},
+      [...Platform.executableArguments, Platform.script.toString(), 'run'],
+    );
     Expect.notEquals(0, results.exitCode);
     print('exitCode: ${results.exitCode}');
     print('stdout: ${results.stdout}');
@@ -34,8 +35,9 @@ void main(List<String> args) async {
     asyncEnd();
   } else {
     final d = dlopenPlatformSpecific('ffi_test_functions');
-    final induceACrash =
-        d.lookupFunction<Void Function(), void Function()>('InduceACrash');
+    final induceACrash = d.lookupFunction<Void Function(), void Function()>(
+      'InduceACrash',
+    );
     induceACrash();
   }
 }

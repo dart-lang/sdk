@@ -40,40 +40,39 @@ final class MyFinalizable implements Finalizable {
   }
 }
 
-final calloc = dlopenPlatformSpecific("ffi_test_functions")
-    .lookup<NativeFunction<Pointer<Void> Function(Size, Size)>>('Calloc')
-    .asFunction<Pointer<Void> Function(int, int)>();
+final calloc =
+    dlopenPlatformSpecific("ffi_test_functions")
+        .lookup<NativeFunction<Pointer<Void> Function(Size, Size)>>('Calloc')
+        .asFunction<Pointer<Void> Function(int, int)>();
 
-final freeFinalizer = dlopenPlatformSpecific("ffi_test_functions")
-    .lookup<NativeFunction<Dart_HandleFinalizerFunction>>('FreeFinalizer');
+final freeFinalizer = dlopenPlatformSpecific(
+  "ffi_test_functions",
+).lookup<NativeFunction<Dart_HandleFinalizerFunction>>('FreeFinalizer');
 
 final Dart_FinalizableHandle Function(
   Object,
   Pointer<Void>,
   int,
   Dart_HandleFinalizer,
-) newFinalizableHandle = _findDartApiFunction('Dart_NewFinalizableHandle')
-    .cast<
-        NativeFunction<
+)
+newFinalizableHandle =
+    _findDartApiFunction('Dart_NewFinalizableHandle')
+        .cast<
+          NativeFunction<
             Dart_FinalizableHandle Function(
               Handle,
               Pointer<Void>,
               IntPtr,
               Dart_HandleFinalizer,
-            )>>()
-    .asFunction();
+            )
+          >
+        >()
+        .asFunction();
 
-final void Function(
-  Dart_FinalizableHandle,
-  Object,
-) deleteFinalizableHandle = _findDartApiFunction('Dart_DeleteFinalizableHandle')
-    .cast<
-        NativeFunction<
-            Void Function(
-              Dart_FinalizableHandle,
-              Handle,
-            )>>()
-    .asFunction();
+final void Function(Dart_FinalizableHandle, Object) deleteFinalizableHandle =
+    _findDartApiFunction('Dart_DeleteFinalizableHandle')
+        .cast<NativeFunction<Void Function(Dart_FinalizableHandle, Handle)>>()
+        .asFunction();
 
 Pointer<Void> _findDartApiFunction(String name) {
   final dartApi = NativeApi.initializeApiDLData.cast<DartApi>();
@@ -108,10 +107,10 @@ final class DartApiEntry extends Struct {
 
 final class _Dart_FinalizableHandle extends Opaque {}
 
-typedef Dart_HandleFinalizer
-    = Pointer<NativeFunction<Dart_HandleFinalizerFunction>>;
-typedef Dart_HandleFinalizerFunction = Void Function(
-    Pointer<Void> isolate_callback_data, Pointer<Void> peer);
-typedef DartDart_HandleFinalizerFunction = void Function(
-    Pointer<Void> isolate_callback_data, Pointer<Void> peer);
+typedef Dart_HandleFinalizer =
+    Pointer<NativeFunction<Dart_HandleFinalizerFunction>>;
+typedef Dart_HandleFinalizerFunction =
+    Void Function(Pointer<Void> isolate_callback_data, Pointer<Void> peer);
+typedef DartDart_HandleFinalizerFunction =
+    void Function(Pointer<Void> isolate_callback_data, Pointer<Void> peer);
 typedef Dart_FinalizableHandle = Pointer<_Dart_FinalizableHandle>;

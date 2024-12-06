@@ -39,10 +39,12 @@ void testInlineArray() {
 
 void testInlineArrayNested() {
   const length = 10;
-  final lengthInBytes = sizeOf<StructInlineArrayVariableNested>() +
+  final lengthInBytes =
+      sizeOf<StructInlineArrayVariableNested>() +
       sizeOf<Uint8>() * length * 2 * 2;
-  final pointer =
-      calloc.allocate<StructInlineArrayVariableNested>(lengthInBytes);
+  final pointer = calloc.allocate<StructInlineArrayVariableNested>(
+    lengthInBytes,
+  );
   pointer.ref.a0 = length;
   final struct = pointer.ref;
   for (int i = 0; i < length; i++) {
@@ -58,10 +60,12 @@ void testInlineArrayNested() {
 
 void testInlineArrayNestedDeep() {
   const length = 10;
-  final lengthInBytes = sizeOf<StructInlineArrayVariableNestedDeep>() +
+  final lengthInBytes =
+      sizeOf<StructInlineArrayVariableNestedDeep>() +
       sizeOf<Uint8>() * length * 2 * 2 * 2 * 2 * 2 * 2;
-  final pointer =
-      calloc.allocate<StructInlineArrayVariableNestedDeep>(lengthInBytes);
+  final pointer = calloc.allocate<StructInlineArrayVariableNestedDeep>(
+    lengthInBytes,
+  );
   pointer.ref.a0 = length;
   final struct = pointer.ref;
   for (int i = 0; i < length; i++) {

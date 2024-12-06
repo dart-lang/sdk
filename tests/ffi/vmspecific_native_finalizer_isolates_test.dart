@@ -50,34 +50,28 @@ Future<void> testFinalizerRunsOnIsolateShutdown() async {
 
 Future<void> testSendAndExitFinalizable() async {
   final receivePort = ReceivePort();
-  await Isolate.spawn(
-    (SendPort sendPort) {
-      try {
-        Isolate.exit(sendPort, MyFinalizable());
-      } catch (e) {
-        print('Expected exception: $e.');
-        Isolate.exit(sendPort, e.toString());
-      }
-    },
-    receivePort.sendPort,
-  );
+  await Isolate.spawn((SendPort sendPort) {
+    try {
+      Isolate.exit(sendPort, MyFinalizable());
+    } catch (e) {
+      print('Expected exception: $e.');
+      Isolate.exit(sendPort, e.toString());
+    }
+  }, receivePort.sendPort);
   final result = await receivePort.first;
   Expect.contains("Invalid argument: is unsendable", result);
 }
 
 Future<void> testSendAndExitFinalizer() async {
   final receivePort = ReceivePort();
-  await Isolate.spawn(
-    (SendPort sendPort) {
-      try {
-        Isolate.exit(sendPort, MyFinalizable());
-      } catch (e) {
-        print('Expected exception: $e.');
-        Isolate.exit(sendPort, e.toString());
-      }
-    },
-    receivePort.sendPort,
-  );
+  await Isolate.spawn((SendPort sendPort) {
+    try {
+      Isolate.exit(sendPort, MyFinalizable());
+    } catch (e) {
+      print('Expected exception: $e.');
+      Isolate.exit(sendPort, e.toString());
+    }
+  }, receivePort.sendPort);
   final result = await receivePort.first;
   Expect.contains("Invalid argument: is unsendable", result);
 }

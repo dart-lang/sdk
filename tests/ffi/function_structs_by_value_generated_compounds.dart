@@ -1066,21 +1066,19 @@ final class StructStruct16BytesMixed3 extends Struct {
   @Array(2)
   external Array<Int16> a2;
 
-  String toString() => "(${a0}, ${[
-        for (var i0 = 0; i0 < 1; i0 += 1) a1[i0]
-      ]}, ${[for (var i0 = 0; i0 < 2; i0 += 1) a2[i0]]})";
+  String toString() =>
+      "(${a0}, ${[for (var i0 = 0; i0 < 1; i0 += 1) a1[i0]]}, ${[for (var i0 = 0; i0 < 2; i0 += 1) a2[i0]]})";
 }
 
 final class Struct8BytesInlineArrayMultiDimensionalInt extends Struct {
   @Array(2, 2, 2)
   external Array<Array<Array<Uint8>>> a0;
 
-  String toString() => "(${[
-        for (var i0 = 0; i0 < 2; i0 += 1)
-          [
-            for (var i1 = 0; i1 < 2; i1 += 1)
-              [for (var i2 = 0; i2 < 2; i2 += 1) a0[i0][i1][i2]]
-          ]
+  String toString() =>
+      "(${[
+        for (var i0 = 0; i0 < 2; i0 += 1) [
+            for (var i1 = 0; i1 < 2; i1 += 1) [for (var i2 = 0; i2 < 2; i2 += 1) a0[i0][i1][i2]],
+          ],
       ]})";
 }
 
@@ -1088,18 +1086,15 @@ final class Struct32BytesInlineArrayMultiDimensionalInt extends Struct {
   @Array(2, 2, 2, 2, 2)
   external Array<Array<Array<Array<Array<Uint8>>>>> a0;
 
-  String toString() => "(${[
-        for (var i0 = 0; i0 < 2; i0 += 1)
-          [
-            for (var i1 = 0; i1 < 2; i1 += 1)
-              [
-                for (var i2 = 0; i2 < 2; i2 += 1)
-                  [
-                    for (var i3 = 0; i3 < 2; i3 += 1)
-                      [for (var i4 = 0; i4 < 2; i4 += 1) a0[i0][i1][i2][i3][i4]]
-                  ]
-              ]
-          ]
+  String toString() =>
+      "(${[
+        for (var i0 = 0; i0 < 2; i0 += 1) [
+            for (var i1 = 0; i1 < 2; i1 += 1) [
+                for (var i2 = 0; i2 < 2; i2 += 1) [
+                    for (var i3 = 0; i3 < 2; i3 += 1) [for (var i4 = 0; i4 < 2; i4 += 1) a0[i0][i1][i2][i3][i4]],
+                  ],
+              ],
+          ],
       ]})";
 }
 
@@ -1107,24 +1102,17 @@ final class Struct64BytesInlineArrayMultiDimensionalInt extends Struct {
   @Array.multi([2, 2, 2, 2, 2, 2])
   external Array<Array<Array<Array<Array<Array<Uint8>>>>>> a0;
 
-  String toString() => "(${[
-        for (var i0 = 0; i0 < 2; i0 += 1)
-          [
-            for (var i1 = 0; i1 < 2; i1 += 1)
-              [
-                for (var i2 = 0; i2 < 2; i2 += 1)
-                  [
-                    for (var i3 = 0; i3 < 2; i3 += 1)
-                      [
-                        for (var i4 = 0; i4 < 2; i4 += 1)
-                          [
-                            for (var i5 = 0; i5 < 2; i5 += 1)
-                              a0[i0][i1][i2][i3][i4][i5]
-                          ]
-                      ]
-                  ]
-              ]
-          ]
+  String toString() =>
+      "(${[
+        for (var i0 = 0; i0 < 2; i0 += 1) [
+            for (var i1 = 0; i1 < 2; i1 += 1) [
+                for (var i2 = 0; i2 < 2; i2 += 1) [
+                    for (var i3 = 0; i3 < 2; i3 += 1) [
+                        for (var i4 = 0; i4 < 2; i4 += 1) [for (var i5 = 0; i5 < 2; i5 += 1) a0[i0][i1][i2][i3][i4][i5]],
+                      ],
+                  ],
+              ],
+          ],
       ]})";
 }
 
@@ -1132,9 +1120,9 @@ final class Struct4BytesInlineArrayMultiDimensionalInt extends Struct {
   @Array(2, 2)
   external Array<Array<Struct1ByteInt>> a0;
 
-  String toString() => "(${[
-        for (var i0 = 0; i0 < 2; i0 += 1)
-          [for (var i1 = 0; i1 < 2; i1 += 1) a0[i0][i1]]
+  String toString() =>
+      "(${[
+        for (var i0 = 0; i0 < 2; i0 += 1) [for (var i1 = 0; i1 < 2; i1 += 1) a0[i0][i1]],
       ]})";
 }
 

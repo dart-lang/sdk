@@ -99,28 +99,31 @@ void main() {
 }
 
 final passStruct1ByteIntx10 = ffiTestFunctions.lookupFunction<
-    Int64 Function(
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt),
-    int Function(
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt)>("PassStruct1ByteIntx10");
+  Int64 Function(
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+  ),
+  int Function(
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+  )
+>("PassStruct1ByteIntx10");
 
 /// Smallest struct with data.
 /// 10 struct arguments will exhaust available registers.
@@ -176,28 +179,31 @@ void testPassStruct1ByteIntx10() {
 }
 
 final passStruct3BytesHomogeneousUint8x10 = ffiTestFunctions.lookupFunction<
-    Int64 Function(
-        Struct3BytesHomogeneousUint8,
-        Struct3BytesHomogeneousUint8,
-        Struct3BytesHomogeneousUint8,
-        Struct3BytesHomogeneousUint8,
-        Struct3BytesHomogeneousUint8,
-        Struct3BytesHomogeneousUint8,
-        Struct3BytesHomogeneousUint8,
-        Struct3BytesHomogeneousUint8,
-        Struct3BytesHomogeneousUint8,
-        Struct3BytesHomogeneousUint8),
-    int Function(
-        Struct3BytesHomogeneousUint8,
-        Struct3BytesHomogeneousUint8,
-        Struct3BytesHomogeneousUint8,
-        Struct3BytesHomogeneousUint8,
-        Struct3BytesHomogeneousUint8,
-        Struct3BytesHomogeneousUint8,
-        Struct3BytesHomogeneousUint8,
-        Struct3BytesHomogeneousUint8,
-        Struct3BytesHomogeneousUint8,
-        Struct3BytesHomogeneousUint8)>("PassStruct3BytesHomogeneousUint8x10");
+  Int64 Function(
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+  ),
+  int Function(
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+  )
+>("PassStruct3BytesHomogeneousUint8x10");
 
 /// Not a multiple of word size, not a power of two.
 /// 10 struct arguments will exhaust available registers.
@@ -255,7 +261,17 @@ void testPassStruct3BytesHomogeneousUint8x10() {
   a9.a2 = 30;
 
   final result = passStruct3BytesHomogeneousUint8x10(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -274,28 +290,31 @@ void testPassStruct3BytesHomogeneousUint8x10() {
 }
 
 final passStruct3BytesInt2ByteAlignedx10 = ffiTestFunctions.lookupFunction<
-    Int64 Function(
-        Struct3BytesInt2ByteAligned,
-        Struct3BytesInt2ByteAligned,
-        Struct3BytesInt2ByteAligned,
-        Struct3BytesInt2ByteAligned,
-        Struct3BytesInt2ByteAligned,
-        Struct3BytesInt2ByteAligned,
-        Struct3BytesInt2ByteAligned,
-        Struct3BytesInt2ByteAligned,
-        Struct3BytesInt2ByteAligned,
-        Struct3BytesInt2ByteAligned),
-    int Function(
-        Struct3BytesInt2ByteAligned,
-        Struct3BytesInt2ByteAligned,
-        Struct3BytesInt2ByteAligned,
-        Struct3BytesInt2ByteAligned,
-        Struct3BytesInt2ByteAligned,
-        Struct3BytesInt2ByteAligned,
-        Struct3BytesInt2ByteAligned,
-        Struct3BytesInt2ByteAligned,
-        Struct3BytesInt2ByteAligned,
-        Struct3BytesInt2ByteAligned)>("PassStruct3BytesInt2ByteAlignedx10");
+  Int64 Function(
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+  ),
+  int Function(
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+  )
+>("PassStruct3BytesInt2ByteAlignedx10");
 
 /// Not a multiple of word size, not a power of two.
 /// With alignment rules taken into account size is 4 bytes.
@@ -344,7 +363,17 @@ void testPassStruct3BytesInt2ByteAlignedx10() {
   a9.a1 = 20;
 
   final result = passStruct3BytesInt2ByteAlignedx10(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -363,28 +392,31 @@ void testPassStruct3BytesInt2ByteAlignedx10() {
 }
 
 final passStruct4BytesHomogeneousInt16x10 = ffiTestFunctions.lookupFunction<
-    Int64 Function(
-        Struct4BytesHomogeneousInt16,
-        Struct4BytesHomogeneousInt16,
-        Struct4BytesHomogeneousInt16,
-        Struct4BytesHomogeneousInt16,
-        Struct4BytesHomogeneousInt16,
-        Struct4BytesHomogeneousInt16,
-        Struct4BytesHomogeneousInt16,
-        Struct4BytesHomogeneousInt16,
-        Struct4BytesHomogeneousInt16,
-        Struct4BytesHomogeneousInt16),
-    int Function(
-        Struct4BytesHomogeneousInt16,
-        Struct4BytesHomogeneousInt16,
-        Struct4BytesHomogeneousInt16,
-        Struct4BytesHomogeneousInt16,
-        Struct4BytesHomogeneousInt16,
-        Struct4BytesHomogeneousInt16,
-        Struct4BytesHomogeneousInt16,
-        Struct4BytesHomogeneousInt16,
-        Struct4BytesHomogeneousInt16,
-        Struct4BytesHomogeneousInt16)>("PassStruct4BytesHomogeneousInt16x10");
+  Int64 Function(
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+  ),
+  int Function(
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+  )
+>("PassStruct4BytesHomogeneousInt16x10");
 
 /// Exactly word size on 32-bit architectures.
 /// 10 struct arguments will exhaust available registers.
@@ -432,7 +464,17 @@ void testPassStruct4BytesHomogeneousInt16x10() {
   a9.a1 = 20;
 
   final result = passStruct4BytesHomogeneousInt16x10(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -451,28 +493,31 @@ void testPassStruct4BytesHomogeneousInt16x10() {
 }
 
 final passStruct7BytesHomogeneousUint8x10 = ffiTestFunctions.lookupFunction<
-    Int64 Function(
-        Struct7BytesHomogeneousUint8,
-        Struct7BytesHomogeneousUint8,
-        Struct7BytesHomogeneousUint8,
-        Struct7BytesHomogeneousUint8,
-        Struct7BytesHomogeneousUint8,
-        Struct7BytesHomogeneousUint8,
-        Struct7BytesHomogeneousUint8,
-        Struct7BytesHomogeneousUint8,
-        Struct7BytesHomogeneousUint8,
-        Struct7BytesHomogeneousUint8),
-    int Function(
-        Struct7BytesHomogeneousUint8,
-        Struct7BytesHomogeneousUint8,
-        Struct7BytesHomogeneousUint8,
-        Struct7BytesHomogeneousUint8,
-        Struct7BytesHomogeneousUint8,
-        Struct7BytesHomogeneousUint8,
-        Struct7BytesHomogeneousUint8,
-        Struct7BytesHomogeneousUint8,
-        Struct7BytesHomogeneousUint8,
-        Struct7BytesHomogeneousUint8)>("PassStruct7BytesHomogeneousUint8x10");
+  Int64 Function(
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+  ),
+  int Function(
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+  )
+>("PassStruct7BytesHomogeneousUint8x10");
 
 /// Sub word size on 64 bit architectures.
 /// 10 struct arguments will exhaust available registers.
@@ -570,7 +615,17 @@ void testPassStruct7BytesHomogeneousUint8x10() {
   a9.a6 = 70;
 
   final result = passStruct7BytesHomogeneousUint8x10(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -589,28 +644,31 @@ void testPassStruct7BytesHomogeneousUint8x10() {
 }
 
 final passStruct7BytesInt4ByteAlignedx10 = ffiTestFunctions.lookupFunction<
-    Int64 Function(
-        Struct7BytesInt4ByteAligned,
-        Struct7BytesInt4ByteAligned,
-        Struct7BytesInt4ByteAligned,
-        Struct7BytesInt4ByteAligned,
-        Struct7BytesInt4ByteAligned,
-        Struct7BytesInt4ByteAligned,
-        Struct7BytesInt4ByteAligned,
-        Struct7BytesInt4ByteAligned,
-        Struct7BytesInt4ByteAligned,
-        Struct7BytesInt4ByteAligned),
-    int Function(
-        Struct7BytesInt4ByteAligned,
-        Struct7BytesInt4ByteAligned,
-        Struct7BytesInt4ByteAligned,
-        Struct7BytesInt4ByteAligned,
-        Struct7BytesInt4ByteAligned,
-        Struct7BytesInt4ByteAligned,
-        Struct7BytesInt4ByteAligned,
-        Struct7BytesInt4ByteAligned,
-        Struct7BytesInt4ByteAligned,
-        Struct7BytesInt4ByteAligned)>("PassStruct7BytesInt4ByteAlignedx10");
+  Int64 Function(
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+  ),
+  int Function(
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+  )
+>("PassStruct7BytesInt4ByteAlignedx10");
 
 /// Sub word size on 64 bit architectures.
 /// With alignment rules taken into account size is 8 bytes.
@@ -669,7 +727,17 @@ void testPassStruct7BytesInt4ByteAlignedx10() {
   a9.a2 = 30;
 
   final result = passStruct7BytesInt4ByteAlignedx10(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -688,28 +756,31 @@ void testPassStruct7BytesInt4ByteAlignedx10() {
 }
 
 final passStruct8BytesIntx10 = ffiTestFunctions.lookupFunction<
-    Int64 Function(
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt),
-    int Function(
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt)>("PassStruct8BytesIntx10");
+  Int64 Function(
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+  ),
+  int Function(
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+  )
+>("PassStruct8BytesIntx10");
 
 /// Exactly word size struct on 64bit architectures.
 /// 10 struct arguments will exhaust available registers.
@@ -785,28 +856,31 @@ void testPassStruct8BytesIntx10() {
 }
 
 final passStruct8BytesHomogeneousFloatx10 = ffiTestFunctions.lookupFunction<
-    Float Function(
-        Struct8BytesHomogeneousFloat,
-        Struct8BytesHomogeneousFloat,
-        Struct8BytesHomogeneousFloat,
-        Struct8BytesHomogeneousFloat,
-        Struct8BytesHomogeneousFloat,
-        Struct8BytesHomogeneousFloat,
-        Struct8BytesHomogeneousFloat,
-        Struct8BytesHomogeneousFloat,
-        Struct8BytesHomogeneousFloat,
-        Struct8BytesHomogeneousFloat),
-    double Function(
-        Struct8BytesHomogeneousFloat,
-        Struct8BytesHomogeneousFloat,
-        Struct8BytesHomogeneousFloat,
-        Struct8BytesHomogeneousFloat,
-        Struct8BytesHomogeneousFloat,
-        Struct8BytesHomogeneousFloat,
-        Struct8BytesHomogeneousFloat,
-        Struct8BytesHomogeneousFloat,
-        Struct8BytesHomogeneousFloat,
-        Struct8BytesHomogeneousFloat)>("PassStruct8BytesHomogeneousFloatx10");
+  Float Function(
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+  ),
+  double Function(
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+  )
+>("PassStruct8BytesHomogeneousFloatx10");
 
 /// Arguments passed in FP registers as long as they fit.
 /// 10 struct arguments will exhaust available registers.
@@ -854,7 +928,17 @@ void testPassStruct8BytesHomogeneousFloatx10() {
   a9.a1 = 20.0;
 
   final result = passStruct8BytesHomogeneousFloatx10(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -873,28 +957,31 @@ void testPassStruct8BytesHomogeneousFloatx10() {
 }
 
 final passStruct8BytesMixedx10 = ffiTestFunctions.lookupFunction<
-    Float Function(
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed),
-    double Function(
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed)>("PassStruct8BytesMixedx10");
+  Float Function(
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+  ),
+  double Function(
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+  )
+>("PassStruct8BytesMixedx10");
 
 /// On x64, arguments go in int registers because it is not only float.
 /// 10 struct arguments will exhaust available registers.
@@ -951,8 +1038,18 @@ void testPassStruct8BytesMixedx10() {
   a9.a1 = -29;
   a9.a2 = 30;
 
-  final result =
-      passStruct8BytesMixedx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct8BytesMixedx10(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -971,28 +1068,31 @@ void testPassStruct8BytesMixedx10() {
 }
 
 final passStruct9BytesHomogeneousUint8x10 = ffiTestFunctions.lookupFunction<
-    Int64 Function(
-        Struct9BytesHomogeneousUint8,
-        Struct9BytesHomogeneousUint8,
-        Struct9BytesHomogeneousUint8,
-        Struct9BytesHomogeneousUint8,
-        Struct9BytesHomogeneousUint8,
-        Struct9BytesHomogeneousUint8,
-        Struct9BytesHomogeneousUint8,
-        Struct9BytesHomogeneousUint8,
-        Struct9BytesHomogeneousUint8,
-        Struct9BytesHomogeneousUint8),
-    int Function(
-        Struct9BytesHomogeneousUint8,
-        Struct9BytesHomogeneousUint8,
-        Struct9BytesHomogeneousUint8,
-        Struct9BytesHomogeneousUint8,
-        Struct9BytesHomogeneousUint8,
-        Struct9BytesHomogeneousUint8,
-        Struct9BytesHomogeneousUint8,
-        Struct9BytesHomogeneousUint8,
-        Struct9BytesHomogeneousUint8,
-        Struct9BytesHomogeneousUint8)>("PassStruct9BytesHomogeneousUint8x10");
+  Int64 Function(
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+  ),
+  int Function(
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+  )
+>("PassStruct9BytesHomogeneousUint8x10");
 
 /// Argument is a single byte over a multiple of word size.
 /// 10 struct arguments will exhaust available registers.
@@ -1113,7 +1213,17 @@ void testPassStruct9BytesHomogeneousUint8x10() {
   a9.a8 = 90;
 
   final result = passStruct9BytesHomogeneousUint8x10(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -1132,29 +1242,31 @@ void testPassStruct9BytesHomogeneousUint8x10() {
 }
 
 final passStruct9BytesInt4Or8ByteAlignedx10 = ffiTestFunctions.lookupFunction<
-        Int64 Function(
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned),
-        int Function(
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned)>(
-    "PassStruct9BytesInt4Or8ByteAlignedx10");
+  Int64 Function(
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+  ),
+  int Function(
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+  )
+>("PassStruct9BytesInt4Or8ByteAlignedx10");
 
 /// Argument is a single byte over a multiple of word size.
 /// With alignment rules taken into account size is 12 or 16 bytes.
@@ -1204,7 +1316,17 @@ void testPassStruct9BytesInt4Or8ByteAlignedx10() {
   a9.a1 = 20;
 
   final result = passStruct9BytesInt4Or8ByteAlignedx10(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -1223,20 +1345,23 @@ void testPassStruct9BytesInt4Or8ByteAlignedx10() {
 }
 
 final passStruct12BytesHomogeneousFloatx6 = ffiTestFunctions.lookupFunction<
-    Float Function(
-        Struct12BytesHomogeneousFloat,
-        Struct12BytesHomogeneousFloat,
-        Struct12BytesHomogeneousFloat,
-        Struct12BytesHomogeneousFloat,
-        Struct12BytesHomogeneousFloat,
-        Struct12BytesHomogeneousFloat),
-    double Function(
-        Struct12BytesHomogeneousFloat,
-        Struct12BytesHomogeneousFloat,
-        Struct12BytesHomogeneousFloat,
-        Struct12BytesHomogeneousFloat,
-        Struct12BytesHomogeneousFloat,
-        Struct12BytesHomogeneousFloat)>("PassStruct12BytesHomogeneousFloatx6");
+  Float Function(
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+  ),
+  double Function(
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+  )
+>("PassStruct12BytesHomogeneousFloatx6");
 
 /// Arguments in FPU registers on arm hardfp and arm64.
 /// Struct arguments will exhaust available registers, and leave some empty.
@@ -1289,18 +1414,21 @@ void testPassStruct12BytesHomogeneousFloatx6() {
 }
 
 final passStruct16BytesHomogeneousFloatx5 = ffiTestFunctions.lookupFunction<
-    Float Function(
-        Struct16BytesHomogeneousFloat,
-        Struct16BytesHomogeneousFloat,
-        Struct16BytesHomogeneousFloat,
-        Struct16BytesHomogeneousFloat,
-        Struct16BytesHomogeneousFloat),
-    double Function(
-        Struct16BytesHomogeneousFloat,
-        Struct16BytesHomogeneousFloat,
-        Struct16BytesHomogeneousFloat,
-        Struct16BytesHomogeneousFloat,
-        Struct16BytesHomogeneousFloat)>("PassStruct16BytesHomogeneousFloatx5");
+  Float Function(
+    Struct16BytesHomogeneousFloat,
+    Struct16BytesHomogeneousFloat,
+    Struct16BytesHomogeneousFloat,
+    Struct16BytesHomogeneousFloat,
+    Struct16BytesHomogeneousFloat,
+  ),
+  double Function(
+    Struct16BytesHomogeneousFloat,
+    Struct16BytesHomogeneousFloat,
+    Struct16BytesHomogeneousFloat,
+    Struct16BytesHomogeneousFloat,
+    Struct16BytesHomogeneousFloat,
+  )
+>("PassStruct16BytesHomogeneousFloatx5");
 
 /// On Linux x64 argument is transferred on stack because it is over 16 bytes.
 /// Arguments in FPU registers on arm hardfp and arm64.
@@ -1352,28 +1480,31 @@ void testPassStruct16BytesHomogeneousFloatx5() {
 }
 
 final passStruct16BytesMixedx10 = ffiTestFunctions.lookupFunction<
-    Double Function(
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed),
-    double Function(
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed)>("PassStruct16BytesMixedx10");
+  Double Function(
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+  ),
+  double Function(
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+  )
+>("PassStruct16BytesMixedx10");
 
 /// On x64, arguments are split over FP and int registers.
 /// On x64, it will exhaust the integer registers with the 6th argument.
@@ -1422,8 +1553,18 @@ void testPassStruct16BytesMixedx10() {
   a9.a0 = -19.0;
   a9.a1 = 20;
 
-  final result =
-      passStruct16BytesMixedx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct16BytesMixedx10(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -1442,28 +1583,31 @@ void testPassStruct16BytesMixedx10() {
 }
 
 final passStruct16BytesMixed2x10 = ffiTestFunctions.lookupFunction<
-    Float Function(
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2),
-    double Function(
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2)>("PassStruct16BytesMixed2x10");
+  Float Function(
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+  ),
+  double Function(
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+  )
+>("PassStruct16BytesMixed2x10");
 
 /// On x64, arguments are split over FP and int registers.
 /// On x64, it will exhaust the integer registers with the 6th argument.
@@ -1532,8 +1676,18 @@ void testPassStruct16BytesMixed2x10() {
   a9.a2 = -39.0;
   a9.a3 = 40;
 
-  final result =
-      passStruct16BytesMixed2x10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct16BytesMixed2x10(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -1552,28 +1706,31 @@ void testPassStruct16BytesMixed2x10() {
 }
 
 final passStruct17BytesIntx10 = ffiTestFunctions.lookupFunction<
-    Int64 Function(
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt),
-    int Function(
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt)>("PassStruct17BytesIntx10");
+  Int64 Function(
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+  ),
+  int Function(
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+  )
+>("PassStruct17BytesIntx10");
 
 /// Arguments are passed as pointer to copy on arm64.
 /// Tests that the memory allocated for copies are rounded up to word size.
@@ -1630,8 +1787,18 @@ void testPassStruct17BytesIntx10() {
   a9.a1 = -29;
   a9.a2 = 30;
 
-  final result =
-      passStruct17BytesIntx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct17BytesIntx10(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -1650,28 +1817,31 @@ void testPassStruct17BytesIntx10() {
 }
 
 final passStruct19BytesHomogeneousUint8x10 = ffiTestFunctions.lookupFunction<
-    Int64 Function(
-        Struct19BytesHomogeneousUint8,
-        Struct19BytesHomogeneousUint8,
-        Struct19BytesHomogeneousUint8,
-        Struct19BytesHomogeneousUint8,
-        Struct19BytesHomogeneousUint8,
-        Struct19BytesHomogeneousUint8,
-        Struct19BytesHomogeneousUint8,
-        Struct19BytesHomogeneousUint8,
-        Struct19BytesHomogeneousUint8,
-        Struct19BytesHomogeneousUint8),
-    int Function(
-        Struct19BytesHomogeneousUint8,
-        Struct19BytesHomogeneousUint8,
-        Struct19BytesHomogeneousUint8,
-        Struct19BytesHomogeneousUint8,
-        Struct19BytesHomogeneousUint8,
-        Struct19BytesHomogeneousUint8,
-        Struct19BytesHomogeneousUint8,
-        Struct19BytesHomogeneousUint8,
-        Struct19BytesHomogeneousUint8,
-        Struct19BytesHomogeneousUint8)>("PassStruct19BytesHomogeneousUint8x10");
+  Int64 Function(
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+  ),
+  int Function(
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+  )
+>("PassStruct19BytesHomogeneousUint8x10");
 
 /// The minimum alignment of this struct is only 1 byte based on its fields.
 /// Test that the memory backing these structs is extended to the right size.
@@ -1890,7 +2060,17 @@ void testPassStruct19BytesHomogeneousUint8x10() {
   a9.a18 = 190;
 
   final result = passStruct19BytesHomogeneousUint8x10(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -1909,28 +2089,31 @@ void testPassStruct19BytesHomogeneousUint8x10() {
 }
 
 final passStruct20BytesHomogeneousInt32x10 = ffiTestFunctions.lookupFunction<
-    Int32 Function(
-        Struct20BytesHomogeneousInt32,
-        Struct20BytesHomogeneousInt32,
-        Struct20BytesHomogeneousInt32,
-        Struct20BytesHomogeneousInt32,
-        Struct20BytesHomogeneousInt32,
-        Struct20BytesHomogeneousInt32,
-        Struct20BytesHomogeneousInt32,
-        Struct20BytesHomogeneousInt32,
-        Struct20BytesHomogeneousInt32,
-        Struct20BytesHomogeneousInt32),
-    int Function(
-        Struct20BytesHomogeneousInt32,
-        Struct20BytesHomogeneousInt32,
-        Struct20BytesHomogeneousInt32,
-        Struct20BytesHomogeneousInt32,
-        Struct20BytesHomogeneousInt32,
-        Struct20BytesHomogeneousInt32,
-        Struct20BytesHomogeneousInt32,
-        Struct20BytesHomogeneousInt32,
-        Struct20BytesHomogeneousInt32,
-        Struct20BytesHomogeneousInt32)>("PassStruct20BytesHomogeneousInt32x10");
+  Int32 Function(
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+  ),
+  int Function(
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+  )
+>("PassStruct20BytesHomogeneousInt32x10");
 
 /// Argument too big to go into integer registers on arm64.
 /// The arguments are passed as pointers to copies.
@@ -2010,7 +2193,17 @@ void testPassStruct20BytesHomogeneousInt32x10() {
   a9.a4 = 50;
 
   final result = passStruct20BytesHomogeneousInt32x10(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -2029,9 +2222,9 @@ void testPassStruct20BytesHomogeneousInt32x10() {
 }
 
 final passStruct20BytesHomogeneousFloat = ffiTestFunctions.lookupFunction<
-    Float Function(Struct20BytesHomogeneousFloat),
-    double Function(
-        Struct20BytesHomogeneousFloat)>("PassStruct20BytesHomogeneousFloat");
+  Float Function(Struct20BytesHomogeneousFloat),
+  double Function(Struct20BytesHomogeneousFloat)
+>("PassStruct20BytesHomogeneousFloat");
 
 /// Argument too big to go into FPU registers in hardfp and arm64.
 void testPassStruct20BytesHomogeneousFloat() {
@@ -2054,19 +2247,21 @@ void testPassStruct20BytesHomogeneousFloat() {
 }
 
 final passStruct32BytesHomogeneousDoublex5 = ffiTestFunctions.lookupFunction<
-        Double Function(
-            Struct32BytesHomogeneousDouble,
-            Struct32BytesHomogeneousDouble,
-            Struct32BytesHomogeneousDouble,
-            Struct32BytesHomogeneousDouble,
-            Struct32BytesHomogeneousDouble),
-        double Function(
-            Struct32BytesHomogeneousDouble,
-            Struct32BytesHomogeneousDouble,
-            Struct32BytesHomogeneousDouble,
-            Struct32BytesHomogeneousDouble,
-            Struct32BytesHomogeneousDouble)>(
-    "PassStruct32BytesHomogeneousDoublex5");
+  Double Function(
+    Struct32BytesHomogeneousDouble,
+    Struct32BytesHomogeneousDouble,
+    Struct32BytesHomogeneousDouble,
+    Struct32BytesHomogeneousDouble,
+    Struct32BytesHomogeneousDouble,
+  ),
+  double Function(
+    Struct32BytesHomogeneousDouble,
+    Struct32BytesHomogeneousDouble,
+    Struct32BytesHomogeneousDouble,
+    Struct32BytesHomogeneousDouble,
+    Struct32BytesHomogeneousDouble,
+  )
+>("PassStruct32BytesHomogeneousDoublex5");
 
 /// Arguments in FPU registers on arm64.
 /// 5 struct arguments will exhaust available registers.
@@ -2117,9 +2312,9 @@ void testPassStruct32BytesHomogeneousDoublex5() {
 }
 
 final passStruct40BytesHomogeneousDouble = ffiTestFunctions.lookupFunction<
-    Double Function(Struct40BytesHomogeneousDouble),
-    double Function(
-        Struct40BytesHomogeneousDouble)>("PassStruct40BytesHomogeneousDouble");
+  Double Function(Struct40BytesHomogeneousDouble),
+  double Function(Struct40BytesHomogeneousDouble)
+>("PassStruct40BytesHomogeneousDouble");
 
 /// Argument too big to go into FPU registers in arm64.
 void testPassStruct40BytesHomogeneousDouble() {
@@ -2142,9 +2337,9 @@ void testPassStruct40BytesHomogeneousDouble() {
 }
 
 final passStruct1024BytesHomogeneousUint64 = ffiTestFunctions.lookupFunction<
-        Uint64 Function(Struct1024BytesHomogeneousUint64),
-        int Function(Struct1024BytesHomogeneousUint64)>(
-    "PassStruct1024BytesHomogeneousUint64");
+  Uint64 Function(Struct1024BytesHomogeneousUint64),
+  int Function(Struct1024BytesHomogeneousUint64)
+>("PassStruct1024BytesHomogeneousUint64");
 
 /// Test 1kb struct.
 void testPassStruct1024BytesHomogeneousUint64() {
@@ -2289,28 +2484,31 @@ void testPassStruct1024BytesHomogeneousUint64() {
   calloc.free(a0Pointer);
 }
 
-final passFloatStruct16BytesHomogeneousFloatFloatStruct1 =
-    ffiTestFunctions.lookupFunction<
-        Float Function(
-            Float,
-            Struct16BytesHomogeneousFloat,
-            Float,
-            Struct16BytesHomogeneousFloat,
-            Float,
-            Struct16BytesHomogeneousFloat,
-            Float,
-            Struct16BytesHomogeneousFloat,
-            Float),
-        double Function(
-            double,
-            Struct16BytesHomogeneousFloat,
-            double,
-            Struct16BytesHomogeneousFloat,
-            double,
-            Struct16BytesHomogeneousFloat,
-            double,
-            Struct16BytesHomogeneousFloat,
-            double)>("PassFloatStruct16BytesHomogeneousFloatFloatStruct1");
+final passFloatStruct16BytesHomogeneousFloatFloatStruct1 = ffiTestFunctions
+    .lookupFunction<
+      Float Function(
+        Float,
+        Struct16BytesHomogeneousFloat,
+        Float,
+        Struct16BytesHomogeneousFloat,
+        Float,
+        Struct16BytesHomogeneousFloat,
+        Float,
+        Struct16BytesHomogeneousFloat,
+        Float,
+      ),
+      double Function(
+        double,
+        Struct16BytesHomogeneousFloat,
+        double,
+        Struct16BytesHomogeneousFloat,
+        double,
+        Struct16BytesHomogeneousFloat,
+        double,
+        Struct16BytesHomogeneousFloat,
+        double,
+      )
+    >("PassFloatStruct16BytesHomogeneousFloatFloatStruct1");
 
 /// Tests the alignment of structs in FPU registers and backfilling.
 void testPassFloatStruct16BytesHomogeneousFloatFloatStruct1() {
@@ -2351,7 +2549,16 @@ void testPassFloatStruct16BytesHomogeneousFloatFloatStruct1() {
   a8 = -21.0;
 
   final result = passFloatStruct16BytesHomogeneousFloatFloatStruct1(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -2363,28 +2570,31 @@ void testPassFloatStruct16BytesHomogeneousFloatFloatStruct1() {
   calloc.free(a7Pointer);
 }
 
-final passFloatStruct32BytesHomogeneousDoubleFloatStruct =
-    ffiTestFunctions.lookupFunction<
-        Double Function(
-            Float,
-            Struct32BytesHomogeneousDouble,
-            Float,
-            Struct32BytesHomogeneousDouble,
-            Float,
-            Struct32BytesHomogeneousDouble,
-            Float,
-            Struct32BytesHomogeneousDouble,
-            Float),
-        double Function(
-            double,
-            Struct32BytesHomogeneousDouble,
-            double,
-            Struct32BytesHomogeneousDouble,
-            double,
-            Struct32BytesHomogeneousDouble,
-            double,
-            Struct32BytesHomogeneousDouble,
-            double)>("PassFloatStruct32BytesHomogeneousDoubleFloatStruct");
+final passFloatStruct32BytesHomogeneousDoubleFloatStruct = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        Float,
+        Struct32BytesHomogeneousDouble,
+        Float,
+        Struct32BytesHomogeneousDouble,
+        Float,
+        Struct32BytesHomogeneousDouble,
+        Float,
+        Struct32BytesHomogeneousDouble,
+        Float,
+      ),
+      double Function(
+        double,
+        Struct32BytesHomogeneousDouble,
+        double,
+        Struct32BytesHomogeneousDouble,
+        double,
+        Struct32BytesHomogeneousDouble,
+        double,
+        Struct32BytesHomogeneousDouble,
+        double,
+      )
+    >("PassFloatStruct32BytesHomogeneousDoubleFloatStruct");
 
 /// Tests the alignment of structs in FPU registers and backfilling.
 void testPassFloatStruct32BytesHomogeneousDoubleFloatStruct() {
@@ -2425,7 +2635,16 @@ void testPassFloatStruct32BytesHomogeneousDoubleFloatStruct() {
   a8 = -21.0;
 
   final result = passFloatStruct32BytesHomogeneousDoubleFloatStruct(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -2437,20 +2656,31 @@ void testPassFloatStruct32BytesHomogeneousDoubleFloatStruct() {
   calloc.free(a7Pointer);
 }
 
-final passInt8Struct16BytesMixedInt8Struct16BytesMixedIn =
-    ffiTestFunctions.lookupFunction<
-        Double Function(Int8, Struct16BytesMixed, Int8, Struct16BytesMixed,
-            Int8, Struct16BytesMixed, Int8, Struct16BytesMixed, Int8),
-        double Function(
-            int,
-            Struct16BytesMixed,
-            int,
-            Struct16BytesMixed,
-            int,
-            Struct16BytesMixed,
-            int,
-            Struct16BytesMixed,
-            int)>("PassInt8Struct16BytesMixedInt8Struct16BytesMixedIn");
+final passInt8Struct16BytesMixedInt8Struct16BytesMixedIn = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        Int8,
+        Struct16BytesMixed,
+        Int8,
+        Struct16BytesMixed,
+        Int8,
+        Struct16BytesMixed,
+        Int8,
+        Struct16BytesMixed,
+        Int8,
+      ),
+      double Function(
+        int,
+        Struct16BytesMixed,
+        int,
+        Struct16BytesMixed,
+        int,
+        Struct16BytesMixed,
+        int,
+        Struct16BytesMixed,
+        int,
+      )
+    >("PassInt8Struct16BytesMixedInt8Struct16BytesMixedIn");
 
 /// Tests the alignment of structs in integers registers and on the stack.
 /// Arm32 aligns this struct at 8.
@@ -2487,7 +2717,16 @@ void testPassInt8Struct16BytesMixedInt8Struct16BytesMixedIn() {
   a8 = -13;
 
   final result = passInt8Struct16BytesMixedInt8Struct16BytesMixedIn(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -2500,30 +2739,33 @@ void testPassInt8Struct16BytesMixedInt8Struct16BytesMixedIn() {
 }
 
 final passDoublex6Struct16BytesMixedx4Int32 = ffiTestFunctions.lookupFunction<
-    Double Function(
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Int32),
-    double Function(
-        double,
-        double,
-        double,
-        double,
-        double,
-        double,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        int)>("PassDoublex6Struct16BytesMixedx4Int32");
+  Double Function(
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Int32,
+  ),
+  double Function(
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    int,
+  )
+>("PassDoublex6Struct16BytesMixedx4Int32");
 
 /// On Linux x64, it will exhaust xmm registers first, after 6 doubles and 2
 /// structs. The rest of the structs will go on the stack.
@@ -2562,7 +2804,18 @@ void testPassDoublex6Struct16BytesMixedx4Int32() {
   a10 = -15;
 
   final result = passDoublex6Struct16BytesMixedx4Int32(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+  );
 
   print("result = $result");
 
@@ -2575,18 +2828,29 @@ void testPassDoublex6Struct16BytesMixedx4Int32() {
 }
 
 final passInt32x4Struct16BytesMixedx4Double = ffiTestFunctions.lookupFunction<
-    Double Function(Int32, Int32, Int32, Int32, Struct16BytesMixed,
-        Struct16BytesMixed, Struct16BytesMixed, Struct16BytesMixed, Double),
-    double Function(
-        int,
-        int,
-        int,
-        int,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        double)>("PassInt32x4Struct16BytesMixedx4Double");
+  Double Function(
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Double,
+  ),
+  double Function(
+    int,
+    int,
+    int,
+    int,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    double,
+  )
+>("PassInt32x4Struct16BytesMixedx4Double");
 
 /// On Linux x64, it will exhaust int registers first.
 /// The rest of the structs will go on the stack.
@@ -2620,8 +2884,17 @@ void testPassInt32x4Struct16BytesMixedx4Double() {
   a7.a1 = 12;
   a8 = -13.0;
 
-  final result =
-      passInt32x4Struct16BytesMixedx4Double(a0, a1, a2, a3, a4, a5, a6, a7, a8);
+  final result = passInt32x4Struct16BytesMixedx4Double(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -2633,13 +2906,19 @@ void testPassInt32x4Struct16BytesMixedx4Double() {
   calloc.free(a7Pointer);
 }
 
-final passStruct40BytesHomogeneousDoubleStruct4BytesHomo =
-    ffiTestFunctions.lookupFunction<
-            Double Function(Struct40BytesHomogeneousDouble,
-                Struct4BytesHomogeneousInt16, Struct8BytesHomogeneousFloat),
-            double Function(Struct40BytesHomogeneousDouble,
-                Struct4BytesHomogeneousInt16, Struct8BytesHomogeneousFloat)>(
-        "PassStruct40BytesHomogeneousDoubleStruct4BytesHomo");
+final passStruct40BytesHomogeneousDoubleStruct4BytesHomo = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        Struct40BytesHomogeneousDouble,
+        Struct4BytesHomogeneousInt16,
+        Struct8BytesHomogeneousFloat,
+      ),
+      double Function(
+        Struct40BytesHomogeneousDouble,
+        Struct4BytesHomogeneousInt16,
+        Struct8BytesHomogeneousFloat,
+      )
+    >("PassStruct40BytesHomogeneousDoubleStruct4BytesHomo");
 
 /// On various architectures, first struct is allocated on stack.
 /// Check that the other two arguments are allocated on registers.
@@ -2672,90 +2951,93 @@ void testPassStruct40BytesHomogeneousDoubleStruct4BytesHomo() {
   calloc.free(a2Pointer);
 }
 
-final passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int =
-    ffiTestFunctions.lookupFunction<
-        Double Function(
-            Int32,
-            Int32,
-            Int32,
-            Int32,
-            Int32,
-            Int32,
-            Int32,
-            Int32,
-            Double,
-            Double,
-            Double,
-            Double,
-            Double,
-            Double,
-            Double,
-            Double,
-            Int64,
-            Int8,
-            Struct1ByteInt,
-            Int64,
-            Int8,
-            Struct4BytesHomogeneousInt16,
-            Int64,
-            Int8,
-            Struct8BytesInt,
-            Int64,
-            Int8,
-            Struct8BytesHomogeneousFloat,
-            Int64,
-            Int8,
-            Struct8BytesMixed,
-            Int64,
-            Int8,
-            StructAlignmentInt16,
-            Int64,
-            Int8,
-            StructAlignmentInt32,
-            Int64,
-            Int8,
-            StructAlignmentInt64),
-        double Function(
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            double,
-            double,
-            double,
-            double,
-            double,
-            double,
-            double,
-            double,
-            int,
-            int,
-            Struct1ByteInt,
-            int,
-            int,
-            Struct4BytesHomogeneousInt16,
-            int,
-            int,
-            Struct8BytesInt,
-            int,
-            int,
-            Struct8BytesHomogeneousFloat,
-            int,
-            int,
-            Struct8BytesMixed,
-            int,
-            int,
-            StructAlignmentInt16,
-            int,
-            int,
-            StructAlignmentInt32,
-            int,
-            int,
-            StructAlignmentInt64)>("PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int");
+final passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        Int32,
+        Int32,
+        Int32,
+        Int32,
+        Int32,
+        Int32,
+        Int32,
+        Int32,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Int64,
+        Int8,
+        Struct1ByteInt,
+        Int64,
+        Int8,
+        Struct4BytesHomogeneousInt16,
+        Int64,
+        Int8,
+        Struct8BytesInt,
+        Int64,
+        Int8,
+        Struct8BytesHomogeneousFloat,
+        Int64,
+        Int8,
+        Struct8BytesMixed,
+        Int64,
+        Int8,
+        StructAlignmentInt16,
+        Int64,
+        Int8,
+        StructAlignmentInt32,
+        Int64,
+        Int8,
+        StructAlignmentInt64,
+      ),
+      double Function(
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        int,
+        int,
+        Struct1ByteInt,
+        int,
+        int,
+        Struct4BytesHomogeneousInt16,
+        int,
+        int,
+        Struct8BytesInt,
+        int,
+        int,
+        Struct8BytesHomogeneousFloat,
+        int,
+        int,
+        Struct8BytesMixed,
+        int,
+        int,
+        StructAlignmentInt16,
+        int,
+        int,
+        StructAlignmentInt32,
+        int,
+        int,
+        StructAlignmentInt64,
+      )
+    >("PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int");
 
 /// Test alignment and padding of 16 byte int within struct.
 void testPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int() {
@@ -2862,46 +3144,47 @@ void testPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int() {
   a39.a2 = 52;
 
   final result = passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(
-      a0,
-      a1,
-      a2,
-      a3,
-      a4,
-      a5,
-      a6,
-      a7,
-      a8,
-      a9,
-      a10,
-      a11,
-      a12,
-      a13,
-      a14,
-      a15,
-      a16,
-      a17,
-      a18,
-      a19,
-      a20,
-      a21,
-      a22,
-      a23,
-      a24,
-      a25,
-      a26,
-      a27,
-      a28,
-      a29,
-      a30,
-      a31,
-      a32,
-      a33,
-      a34,
-      a35,
-      a36,
-      a37,
-      a38,
-      a39);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+    a12,
+    a13,
+    a14,
+    a15,
+    a16,
+    a17,
+    a18,
+    a19,
+    a20,
+    a21,
+    a22,
+    a23,
+    a24,
+    a25,
+    a26,
+    a27,
+    a28,
+    a29,
+    a30,
+    a31,
+    a32,
+    a33,
+    a34,
+    a35,
+    a36,
+    a37,
+    a38,
+    a39,
+  );
 
   print("result = $result");
 
@@ -2918,8 +3201,9 @@ void testPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int() {
 }
 
 final passStructAlignmentInt16 = ffiTestFunctions.lookupFunction<
-    Int64 Function(StructAlignmentInt16),
-    int Function(StructAlignmentInt16)>("PassStructAlignmentInt16");
+  Int64 Function(StructAlignmentInt16),
+  int Function(StructAlignmentInt16)
+>("PassStructAlignmentInt16");
 
 /// Test alignment and padding of 16 byte int within struct.
 void testPassStructAlignmentInt16() {
@@ -2940,8 +3224,9 @@ void testPassStructAlignmentInt16() {
 }
 
 final passStructAlignmentInt32 = ffiTestFunctions.lookupFunction<
-    Int64 Function(StructAlignmentInt32),
-    int Function(StructAlignmentInt32)>("PassStructAlignmentInt32");
+  Int64 Function(StructAlignmentInt32),
+  int Function(StructAlignmentInt32)
+>("PassStructAlignmentInt32");
 
 /// Test alignment and padding of 32 byte int within struct.
 void testPassStructAlignmentInt32() {
@@ -2962,8 +3247,9 @@ void testPassStructAlignmentInt32() {
 }
 
 final passStructAlignmentInt64 = ffiTestFunctions.lookupFunction<
-    Int64 Function(StructAlignmentInt64),
-    int Function(StructAlignmentInt64)>("PassStructAlignmentInt64");
+  Int64 Function(StructAlignmentInt64),
+  int Function(StructAlignmentInt64)
+>("PassStructAlignmentInt64");
 
 /// Test alignment and padding of 64 byte int within struct.
 void testPassStructAlignmentInt64() {
@@ -2984,28 +3270,31 @@ void testPassStructAlignmentInt64() {
 }
 
 final passStruct8BytesNestedIntx10 = ffiTestFunctions.lookupFunction<
-    Int64 Function(
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt),
-    int Function(
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt)>("PassStruct8BytesNestedIntx10");
+  Int64 Function(
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+  ),
+  int Function(
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+  )
+>("PassStruct8BytesNestedIntx10");
 
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust registers on all platforms.
@@ -3072,8 +3361,18 @@ void testPassStruct8BytesNestedIntx10() {
   a9.a1.a0 = -39;
   a9.a1.a1 = 40;
 
-  final result =
-      passStruct8BytesNestedIntx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct8BytesNestedIntx10(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -3092,28 +3391,31 @@ void testPassStruct8BytesNestedIntx10() {
 }
 
 final passStruct8BytesNestedFloatx10 = ffiTestFunctions.lookupFunction<
-    Float Function(
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat),
-    double Function(
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat)>("PassStruct8BytesNestedFloatx10");
+  Float Function(
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+  ),
+  double Function(
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+  )
+>("PassStruct8BytesNestedFloatx10");
 
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust fpu registers on all platforms.
@@ -3160,8 +3462,18 @@ void testPassStruct8BytesNestedFloatx10() {
   a9.a0.a0 = -19.0;
   a9.a1.a0 = 20.0;
 
-  final result =
-      passStruct8BytesNestedFloatx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct8BytesNestedFloatx10(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -3180,28 +3492,31 @@ void testPassStruct8BytesNestedFloatx10() {
 }
 
 final passStruct8BytesNestedFloat2x10 = ffiTestFunctions.lookupFunction<
-    Float Function(
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2),
-    double Function(
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2)>("PassStruct8BytesNestedFloat2x10");
+  Float Function(
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+  ),
+  double Function(
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+  )
+>("PassStruct8BytesNestedFloat2x10");
 
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust fpu registers on all platforms.
@@ -3250,8 +3565,18 @@ void testPassStruct8BytesNestedFloat2x10() {
   a9.a0.a0 = -19.0;
   a9.a1 = 20.0;
 
-  final result =
-      passStruct8BytesNestedFloat2x10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct8BytesNestedFloat2x10(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -3270,28 +3595,31 @@ void testPassStruct8BytesNestedFloat2x10() {
 }
 
 final passStruct8BytesNestedMixedx10 = ffiTestFunctions.lookupFunction<
-    Double Function(
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed),
-    double Function(
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed)>("PassStruct8BytesNestedMixedx10");
+  Double Function(
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+  ),
+  double Function(
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+  )
+>("PassStruct8BytesNestedMixedx10");
 
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust all registers on all platforms.
@@ -3348,8 +3676,18 @@ void testPassStruct8BytesNestedMixedx10() {
   a9.a0.a1 = -29;
   a9.a1.a0 = 30.0;
 
-  final result =
-      passStruct8BytesNestedMixedx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct8BytesNestedMixedx10(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -3368,9 +3706,9 @@ void testPassStruct8BytesNestedMixedx10() {
 }
 
 final passStruct16BytesNestedIntx2 = ffiTestFunctions.lookupFunction<
-    Int64 Function(Struct16BytesNestedInt, Struct16BytesNestedInt),
-    int Function(Struct16BytesNestedInt,
-        Struct16BytesNestedInt)>("PassStruct16BytesNestedIntx2");
+  Int64 Function(Struct16BytesNestedInt, Struct16BytesNestedInt),
+  int Function(Struct16BytesNestedInt, Struct16BytesNestedInt)
+>("PassStruct16BytesNestedIntx2");
 
 /// Deeper nested struct to test recursive member access.
 void testPassStruct16BytesNestedIntx2() {
@@ -3407,9 +3745,9 @@ void testPassStruct16BytesNestedIntx2() {
 }
 
 final passStruct32BytesNestedIntx2 = ffiTestFunctions.lookupFunction<
-    Int64 Function(Struct32BytesNestedInt, Struct32BytesNestedInt),
-    int Function(Struct32BytesNestedInt,
-        Struct32BytesNestedInt)>("PassStruct32BytesNestedIntx2");
+  Int64 Function(Struct32BytesNestedInt, Struct32BytesNestedInt),
+  int Function(Struct32BytesNestedInt, Struct32BytesNestedInt)
+>("PassStruct32BytesNestedIntx2");
 
 /// Even deeper nested struct to test recursive member access.
 void testPassStruct32BytesNestedIntx2() {
@@ -3462,9 +3800,9 @@ void testPassStruct32BytesNestedIntx2() {
 }
 
 final passStructNestedIntStructAlignmentInt16 = ffiTestFunctions.lookupFunction<
-        Int64 Function(StructNestedIntStructAlignmentInt16),
-        int Function(StructNestedIntStructAlignmentInt16)>(
-    "PassStructNestedIntStructAlignmentInt16");
+  Int64 Function(StructNestedIntStructAlignmentInt16),
+  int Function(StructNestedIntStructAlignmentInt16)
+>("PassStructNestedIntStructAlignmentInt16");
 
 /// Test alignment and padding of nested struct with 16 byte int.
 void testPassStructNestedIntStructAlignmentInt16() {
@@ -3488,9 +3826,9 @@ void testPassStructNestedIntStructAlignmentInt16() {
 }
 
 final passStructNestedIntStructAlignmentInt32 = ffiTestFunctions.lookupFunction<
-        Int64 Function(StructNestedIntStructAlignmentInt32),
-        int Function(StructNestedIntStructAlignmentInt32)>(
-    "PassStructNestedIntStructAlignmentInt32");
+  Int64 Function(StructNestedIntStructAlignmentInt32),
+  int Function(StructNestedIntStructAlignmentInt32)
+>("PassStructNestedIntStructAlignmentInt32");
 
 /// Test alignment and padding of nested struct with 32 byte int.
 void testPassStructNestedIntStructAlignmentInt32() {
@@ -3514,9 +3852,9 @@ void testPassStructNestedIntStructAlignmentInt32() {
 }
 
 final passStructNestedIntStructAlignmentInt64 = ffiTestFunctions.lookupFunction<
-        Int64 Function(StructNestedIntStructAlignmentInt64),
-        int Function(StructNestedIntStructAlignmentInt64)>(
-    "PassStructNestedIntStructAlignmentInt64");
+  Int64 Function(StructNestedIntStructAlignmentInt64),
+  int Function(StructNestedIntStructAlignmentInt64)
+>("PassStructNestedIntStructAlignmentInt64");
 
 /// Test alignment and padding of nested struct with 64 byte int.
 void testPassStructNestedIntStructAlignmentInt64() {
@@ -3540,17 +3878,19 @@ void testPassStructNestedIntStructAlignmentInt64() {
 }
 
 final passStructNestedIrregularEvenBiggerx4 = ffiTestFunctions.lookupFunction<
-        Double Function(
-            StructNestedIrregularEvenBigger,
-            StructNestedIrregularEvenBigger,
-            StructNestedIrregularEvenBigger,
-            StructNestedIrregularEvenBigger),
-        double Function(
-            StructNestedIrregularEvenBigger,
-            StructNestedIrregularEvenBigger,
-            StructNestedIrregularEvenBigger,
-            StructNestedIrregularEvenBigger)>(
-    "PassStructNestedIrregularEvenBiggerx4");
+  Double Function(
+    StructNestedIrregularEvenBigger,
+    StructNestedIrregularEvenBigger,
+    StructNestedIrregularEvenBigger,
+    StructNestedIrregularEvenBigger,
+  ),
+  double Function(
+    StructNestedIrregularEvenBigger,
+    StructNestedIrregularEvenBigger,
+    StructNestedIrregularEvenBigger,
+    StructNestedIrregularEvenBigger,
+  )
+>("PassStructNestedIrregularEvenBiggerx4");
 
 /// Return big irregular struct as smoke test.
 void testPassStructNestedIrregularEvenBiggerx4() {
@@ -3713,13 +4053,19 @@ void testPassStructNestedIrregularEvenBiggerx4() {
 }
 
 final passStruct8BytesInlineArrayIntx4 = ffiTestFunctions.lookupFunction<
-    Int32 Function(Struct8BytesInlineArrayInt, Struct8BytesInlineArrayInt,
-        Struct8BytesInlineArrayInt, Struct8BytesInlineArrayInt),
-    int Function(
-        Struct8BytesInlineArrayInt,
-        Struct8BytesInlineArrayInt,
-        Struct8BytesInlineArrayInt,
-        Struct8BytesInlineArrayInt)>("PassStruct8BytesInlineArrayIntx4");
+  Int32 Function(
+    Struct8BytesInlineArrayInt,
+    Struct8BytesInlineArrayInt,
+    Struct8BytesInlineArrayInt,
+    Struct8BytesInlineArrayInt,
+  ),
+  int Function(
+    Struct8BytesInlineArrayInt,
+    Struct8BytesInlineArrayInt,
+    Struct8BytesInlineArrayInt,
+    Struct8BytesInlineArrayInt,
+  )
+>("PassStruct8BytesInlineArrayIntx4");
 
 /// Simple struct with inline array.
 void testPassStruct8BytesInlineArrayIntx4() {
@@ -3778,13 +4124,19 @@ void testPassStruct8BytesInlineArrayIntx4() {
 }
 
 final passStructInlineArrayIrregularx4 = ffiTestFunctions.lookupFunction<
-    Int32 Function(StructInlineArrayIrregular, StructInlineArrayIrregular,
-        StructInlineArrayIrregular, StructInlineArrayIrregular),
-    int Function(
-        StructInlineArrayIrregular,
-        StructInlineArrayIrregular,
-        StructInlineArrayIrregular,
-        StructInlineArrayIrregular)>("PassStructInlineArrayIrregularx4");
+  Int32 Function(
+    StructInlineArrayIrregular,
+    StructInlineArrayIrregular,
+    StructInlineArrayIrregular,
+    StructInlineArrayIrregular,
+  ),
+  int Function(
+    StructInlineArrayIrregular,
+    StructInlineArrayIrregular,
+    StructInlineArrayIrregular,
+    StructInlineArrayIrregular,
+  )
+>("PassStructInlineArrayIrregularx4");
 
 /// Irregular struct with inline array.
 void testPassStructInlineArrayIrregularx4() {
@@ -3831,8 +4183,9 @@ void testPassStructInlineArrayIrregularx4() {
 }
 
 final passStructInlineArray100Bytes = ffiTestFunctions.lookupFunction<
-    Int32 Function(StructInlineArray100Bytes),
-    int Function(StructInlineArray100Bytes)>("PassStructInlineArray100Bytes");
+  Int32 Function(StructInlineArray100Bytes),
+  int Function(StructInlineArray100Bytes)
+>("PassStructInlineArray100Bytes");
 
 /// Regular larger struct with inline array.
 void testPassStructInlineArray100Bytes() {
@@ -3949,21 +4302,23 @@ void testPassStructInlineArray100Bytes() {
   calloc.free(a0Pointer);
 }
 
-final passStructStruct16BytesHomogeneousFloat2x5 =
-    ffiTestFunctions.lookupFunction<
-            Float Function(
-                StructStruct16BytesHomogeneousFloat2,
-                StructStruct16BytesHomogeneousFloat2,
-                StructStruct16BytesHomogeneousFloat2,
-                StructStruct16BytesHomogeneousFloat2,
-                StructStruct16BytesHomogeneousFloat2),
-            double Function(
-                StructStruct16BytesHomogeneousFloat2,
-                StructStruct16BytesHomogeneousFloat2,
-                StructStruct16BytesHomogeneousFloat2,
-                StructStruct16BytesHomogeneousFloat2,
-                StructStruct16BytesHomogeneousFloat2)>(
-        "PassStructStruct16BytesHomogeneousFloat2x5");
+final passStructStruct16BytesHomogeneousFloat2x5 = ffiTestFunctions
+    .lookupFunction<
+      Float Function(
+        StructStruct16BytesHomogeneousFloat2,
+        StructStruct16BytesHomogeneousFloat2,
+        StructStruct16BytesHomogeneousFloat2,
+        StructStruct16BytesHomogeneousFloat2,
+        StructStruct16BytesHomogeneousFloat2,
+      ),
+      double Function(
+        StructStruct16BytesHomogeneousFloat2,
+        StructStruct16BytesHomogeneousFloat2,
+        StructStruct16BytesHomogeneousFloat2,
+        StructStruct16BytesHomogeneousFloat2,
+        StructStruct16BytesHomogeneousFloat2,
+      )
+    >("PassStructStruct16BytesHomogeneousFloat2x5");
 
 /// Arguments in FPU registers on arm hardfp and arm64.
 /// 5 struct arguments will exhaust available registers.
@@ -4013,21 +4368,23 @@ void testPassStructStruct16BytesHomogeneousFloat2x5() {
   calloc.free(a4Pointer);
 }
 
-final passStructStruct32BytesHomogeneousDouble2x5 =
-    ffiTestFunctions.lookupFunction<
-            Double Function(
-                StructStruct32BytesHomogeneousDouble2,
-                StructStruct32BytesHomogeneousDouble2,
-                StructStruct32BytesHomogeneousDouble2,
-                StructStruct32BytesHomogeneousDouble2,
-                StructStruct32BytesHomogeneousDouble2),
-            double Function(
-                StructStruct32BytesHomogeneousDouble2,
-                StructStruct32BytesHomogeneousDouble2,
-                StructStruct32BytesHomogeneousDouble2,
-                StructStruct32BytesHomogeneousDouble2,
-                StructStruct32BytesHomogeneousDouble2)>(
-        "PassStructStruct32BytesHomogeneousDouble2x5");
+final passStructStruct32BytesHomogeneousDouble2x5 = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        StructStruct32BytesHomogeneousDouble2,
+        StructStruct32BytesHomogeneousDouble2,
+        StructStruct32BytesHomogeneousDouble2,
+        StructStruct32BytesHomogeneousDouble2,
+        StructStruct32BytesHomogeneousDouble2,
+      ),
+      double Function(
+        StructStruct32BytesHomogeneousDouble2,
+        StructStruct32BytesHomogeneousDouble2,
+        StructStruct32BytesHomogeneousDouble2,
+        StructStruct32BytesHomogeneousDouble2,
+        StructStruct32BytesHomogeneousDouble2,
+      )
+    >("PassStructStruct32BytesHomogeneousDouble2x5");
 
 /// Arguments in FPU registers on arm64.
 /// 5 struct arguments will exhaust available registers.
@@ -4064,8 +4421,13 @@ void testPassStructStruct32BytesHomogeneousDouble2x5() {
   a4.a1[1].a0 = -19.0;
   a4.a2 = 20.0;
 
-  final result =
-      passStructStruct32BytesHomogeneousDouble2x5(a0, a1, a2, a3, a4);
+  final result = passStructStruct32BytesHomogeneousDouble2x5(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+  );
 
   print("result = $result");
 
@@ -4079,28 +4441,31 @@ void testPassStructStruct32BytesHomogeneousDouble2x5() {
 }
 
 final passStructStruct16BytesMixed3x10 = ffiTestFunctions.lookupFunction<
-    Float Function(
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3),
-    double Function(
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3)>("PassStructStruct16BytesMixed3x10");
+  Float Function(
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+  ),
+  double Function(
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+  )
+>("PassStructStruct16BytesMixed3x10");
 
 /// On x64, arguments are split over FP and int registers.
 /// On x64, it will exhaust the integer registers with the 6th argument.
@@ -4189,8 +4554,18 @@ void testPassStructStruct16BytesMixed3x10() {
   a9.a2[0] = -59;
   a9.a2[1] = 60;
 
-  final result =
-      passStructStruct16BytesMixed3x10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStructStruct16BytesMixed3x10(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -4208,24 +4583,27 @@ void testPassStructStruct16BytesMixed3x10() {
   calloc.free(a9Pointer);
 }
 
-final passUint8Struct32BytesInlineArrayMultiDimensionalI =
-    ffiTestFunctions.lookupFunction<
-        Uint32 Function(
-            Uint8,
-            Struct32BytesInlineArrayMultiDimensionalInt,
-            Uint8,
-            Struct8BytesInlineArrayMultiDimensionalInt,
-            Uint8,
-            Struct8BytesInlineArrayMultiDimensionalInt,
-            Uint8),
-        int Function(
-            int,
-            Struct32BytesInlineArrayMultiDimensionalInt,
-            int,
-            Struct8BytesInlineArrayMultiDimensionalInt,
-            int,
-            Struct8BytesInlineArrayMultiDimensionalInt,
-            int)>("PassUint8Struct32BytesInlineArrayMultiDimensionalI");
+final passUint8Struct32BytesInlineArrayMultiDimensionalI = ffiTestFunctions
+    .lookupFunction<
+      Uint32 Function(
+        Uint8,
+        Struct32BytesInlineArrayMultiDimensionalInt,
+        Uint8,
+        Struct8BytesInlineArrayMultiDimensionalInt,
+        Uint8,
+        Struct8BytesInlineArrayMultiDimensionalInt,
+        Uint8,
+      ),
+      int Function(
+        int,
+        Struct32BytesInlineArrayMultiDimensionalInt,
+        int,
+        Struct8BytesInlineArrayMultiDimensionalInt,
+        int,
+        Struct8BytesInlineArrayMultiDimensionalInt,
+        int,
+      )
+    >("PassUint8Struct32BytesInlineArrayMultiDimensionalI");
 
 /// Test multi dimensional inline array struct as argument.
 void testPassUint8Struct32BytesInlineArrayMultiDimensionalI() {
@@ -4294,7 +4672,14 @@ void testPassUint8Struct32BytesInlineArrayMultiDimensionalI() {
   a6 = 52;
 
   final result = passUint8Struct32BytesInlineArrayMultiDimensionalI(
-      a0, a1, a2, a3, a4, a5, a6);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+  );
 
   print("result = $result");
 
@@ -4305,12 +4690,11 @@ void testPassUint8Struct32BytesInlineArrayMultiDimensionalI() {
   calloc.free(a5Pointer);
 }
 
-final passUint8Struct4BytesInlineArrayMultiDimensionalIn =
-    ffiTestFunctions.lookupFunction<
-        Uint32 Function(
-            Uint8, Struct4BytesInlineArrayMultiDimensionalInt, Uint8),
-        int Function(int, Struct4BytesInlineArrayMultiDimensionalInt,
-            int)>("PassUint8Struct4BytesInlineArrayMultiDimensionalIn");
+final passUint8Struct4BytesInlineArrayMultiDimensionalIn = ffiTestFunctions
+    .lookupFunction<
+      Uint32 Function(Uint8, Struct4BytesInlineArrayMultiDimensionalInt, Uint8),
+      int Function(int, Struct4BytesInlineArrayMultiDimensionalInt, int)
+    >("PassUint8Struct4BytesInlineArrayMultiDimensionalIn");
 
 /// Test struct in multi dimensional inline array.
 void testPassUint8Struct4BytesInlineArrayMultiDimensionalIn() {
@@ -4336,28 +4720,31 @@ void testPassUint8Struct4BytesInlineArrayMultiDimensionalIn() {
 }
 
 final passStruct3BytesPackedIntx10 = ffiTestFunctions.lookupFunction<
-    Int64 Function(
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt),
-    int Function(
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt)>("PassStruct3BytesPackedIntx10");
+  Int64 Function(
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+  ),
+  int Function(
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+  )
+>("PassStruct3BytesPackedIntx10");
 
 /// Small struct with mis-aligned member.
 void testPassStruct3BytesPackedIntx10() {
@@ -4403,8 +4790,18 @@ void testPassStruct3BytesPackedIntx10() {
   a9.a0 = -19;
   a9.a1 = 20;
 
-  final result =
-      passStruct3BytesPackedIntx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct3BytesPackedIntx10(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -4423,28 +4820,31 @@ void testPassStruct3BytesPackedIntx10() {
 }
 
 final passStruct8BytesPackedIntx10 = ffiTestFunctions.lookupFunction<
-    Int64 Function(
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt),
-    int Function(
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt)>("PassStruct8BytesPackedIntx10");
+  Int64 Function(
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+  ),
+  int Function(
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+  )
+>("PassStruct8BytesPackedIntx10");
 
 /// Struct with mis-aligned member.
 void testPassStruct8BytesPackedIntx10() {
@@ -4520,8 +4920,18 @@ void testPassStruct8BytesPackedIntx10() {
   a9.a3 = 49;
   a9.a4 = 50;
 
-  final result =
-      passStruct8BytesPackedIntx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct8BytesPackedIntx10(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -4539,36 +4949,39 @@ void testPassStruct8BytesPackedIntx10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct9BytesPackedMixedx10DoubleInt32x2 =
-    ffiTestFunctions.lookupFunction<
-        Double Function(
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Double,
-            Int32,
-            Int32),
-        double Function(
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            double,
-            int,
-            int)>("PassStruct9BytesPackedMixedx10DoubleInt32x2");
+final passStruct9BytesPackedMixedx10DoubleInt32x2 = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        Struct9BytesPackedMixed,
+        Struct9BytesPackedMixed,
+        Struct9BytesPackedMixed,
+        Struct9BytesPackedMixed,
+        Struct9BytesPackedMixed,
+        Struct9BytesPackedMixed,
+        Struct9BytesPackedMixed,
+        Struct9BytesPackedMixed,
+        Struct9BytesPackedMixed,
+        Struct9BytesPackedMixed,
+        Double,
+        Int32,
+        Int32,
+      ),
+      double Function(
+        Struct9BytesPackedMixed,
+        Struct9BytesPackedMixed,
+        Struct9BytesPackedMixed,
+        Struct9BytesPackedMixed,
+        Struct9BytesPackedMixed,
+        Struct9BytesPackedMixed,
+        Struct9BytesPackedMixed,
+        Struct9BytesPackedMixed,
+        Struct9BytesPackedMixed,
+        Struct9BytesPackedMixed,
+        double,
+        int,
+        int,
+      )
+    >("PassStruct9BytesPackedMixedx10DoubleInt32x2");
 
 /// Struct with mis-aligned member.
 /// Tests backfilling of CPU and FPU registers.
@@ -4622,7 +5035,20 @@ void testPassStruct9BytesPackedMixedx10DoubleInt32x2() {
   a12 = -23;
 
   final result = passStruct9BytesPackedMixedx10DoubleInt32x2(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+    a12,
+  );
 
   print("result = $result");
 
@@ -4641,8 +5067,9 @@ void testPassStruct9BytesPackedMixedx10DoubleInt32x2() {
 }
 
 final passStruct5BytesPackedMixed = ffiTestFunctions.lookupFunction<
-    Double Function(Struct5BytesPackedMixed),
-    double Function(Struct5BytesPackedMixed)>("PassStruct5BytesPackedMixed");
+  Double Function(Struct5BytesPackedMixed),
+  double Function(Struct5BytesPackedMixed)
+>("PassStruct5BytesPackedMixed");
 
 /// This packed struct happens to have only aligned members.
 void testPassStruct5BytesPackedMixed() {
@@ -4661,11 +5088,11 @@ void testPassStruct5BytesPackedMixed() {
   calloc.free(a0Pointer);
 }
 
-final passStructNestedAlignmentStruct5BytesPackedMixed =
-    ffiTestFunctions.lookupFunction<
-            Double Function(StructNestedAlignmentStruct5BytesPackedMixed),
-            double Function(StructNestedAlignmentStruct5BytesPackedMixed)>(
-        "PassStructNestedAlignmentStruct5BytesPackedMixed");
+final passStructNestedAlignmentStruct5BytesPackedMixed = ffiTestFunctions
+    .lookupFunction<
+      Double Function(StructNestedAlignmentStruct5BytesPackedMixed),
+      double Function(StructNestedAlignmentStruct5BytesPackedMixed)
+    >("PassStructNestedAlignmentStruct5BytesPackedMixed");
 
 /// Check alignment of packed struct in non-packed struct.
 void testPassStructNestedAlignmentStruct5BytesPackedMixed() {
@@ -4686,9 +5113,9 @@ void testPassStructNestedAlignmentStruct5BytesPackedMixed() {
 }
 
 final passStruct6BytesInlineArrayInt = ffiTestFunctions.lookupFunction<
-    Double Function(Struct6BytesInlineArrayInt),
-    double Function(
-        Struct6BytesInlineArrayInt)>("PassStruct6BytesInlineArrayInt");
+  Double Function(Struct6BytesInlineArrayInt),
+  double Function(Struct6BytesInlineArrayInt)
+>("PassStruct6BytesInlineArrayInt");
 
 /// Check alignment of packed struct array in non-packed struct.
 void testPassStruct6BytesInlineArrayInt() {
@@ -4710,9 +5137,9 @@ void testPassStruct6BytesInlineArrayInt() {
 }
 
 final passStruct15BytesInlineArrayMixed = ffiTestFunctions.lookupFunction<
-    Double Function(Struct15BytesInlineArrayMixed),
-    double Function(
-        Struct15BytesInlineArrayMixed)>("PassStruct15BytesInlineArrayMixed");
+  Double Function(Struct15BytesInlineArrayMixed),
+  double Function(Struct15BytesInlineArrayMixed)
+>("PassStruct15BytesInlineArrayMixed");
 
 /// Check alignment of packed struct array in non-packed struct.
 void testPassStruct15BytesInlineArrayMixed() {
@@ -4736,28 +5163,31 @@ void testPassStruct15BytesInlineArrayMixed() {
 }
 
 final passUnion4BytesMixedx10 = ffiTestFunctions.lookupFunction<
-    Double Function(
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed),
-    double Function(
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed)>("PassUnion4BytesMixedx10");
+  Double Function(
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+  ),
+  double Function(
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+  )
+>("PassUnion4BytesMixedx10");
 
 /// Check placement of mixed integer/float union.
 void testPassUnion4BytesMixedx10() {
@@ -4793,8 +5223,18 @@ void testPassUnion4BytesMixedx10() {
   a8.a0 = 9;
   a9.a0 = 10;
 
-  final result =
-      passUnion4BytesMixedx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passUnion4BytesMixedx10(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -4813,28 +5253,31 @@ void testPassUnion4BytesMixedx10() {
 }
 
 final passUnion8BytesNestedFloatx10 = ffiTestFunctions.lookupFunction<
-    Double Function(
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat),
-    double Function(
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat)>("PassUnion8BytesNestedFloatx10");
+  Double Function(
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+  ),
+  double Function(
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+  )
+>("PassUnion8BytesNestedFloatx10");
 
 /// Check placement of mixed floats union.
 void testPassUnion8BytesNestedFloatx10() {
@@ -4870,8 +5313,18 @@ void testPassUnion8BytesNestedFloatx10() {
   a8.a0 = -9.0;
   a9.a0 = 10.0;
 
-  final result =
-      passUnion8BytesNestedFloatx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passUnion8BytesNestedFloatx10(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -4890,28 +5343,31 @@ void testPassUnion8BytesNestedFloatx10() {
 }
 
 final passUnion9BytesNestedIntx10 = ffiTestFunctions.lookupFunction<
-    Double Function(
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt),
-    double Function(
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt)>("PassUnion9BytesNestedIntx10");
+  Double Function(
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+  ),
+  double Function(
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+  )
+>("PassUnion9BytesNestedIntx10");
 
 /// Mixed-size union argument.
 void testPassUnion9BytesNestedIntx10() {
@@ -4967,8 +5423,18 @@ void testPassUnion9BytesNestedIntx10() {
   a9.a0.a1 = -29;
   a9.a0.a2 = 30;
 
-  final result =
-      passUnion9BytesNestedIntx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passUnion9BytesNestedIntx10(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -4986,31 +5452,33 @@ void testPassUnion9BytesNestedIntx10() {
   calloc.free(a9Pointer);
 }
 
-final passUnion16BytesNestedInlineArrayFloatx10 =
-    ffiTestFunctions.lookupFunction<
-            Double Function(
-                Union16BytesNestedInlineArrayFloat,
-                Union16BytesNestedInlineArrayFloat,
-                Union16BytesNestedInlineArrayFloat,
-                Union16BytesNestedInlineArrayFloat,
-                Union16BytesNestedInlineArrayFloat,
-                Union16BytesNestedInlineArrayFloat,
-                Union16BytesNestedInlineArrayFloat,
-                Union16BytesNestedInlineArrayFloat,
-                Union16BytesNestedInlineArrayFloat,
-                Union16BytesNestedInlineArrayFloat),
-            double Function(
-                Union16BytesNestedInlineArrayFloat,
-                Union16BytesNestedInlineArrayFloat,
-                Union16BytesNestedInlineArrayFloat,
-                Union16BytesNestedInlineArrayFloat,
-                Union16BytesNestedInlineArrayFloat,
-                Union16BytesNestedInlineArrayFloat,
-                Union16BytesNestedInlineArrayFloat,
-                Union16BytesNestedInlineArrayFloat,
-                Union16BytesNestedInlineArrayFloat,
-                Union16BytesNestedInlineArrayFloat)>(
-        "PassUnion16BytesNestedInlineArrayFloatx10");
+final passUnion16BytesNestedInlineArrayFloatx10 = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        Union16BytesNestedInlineArrayFloat,
+        Union16BytesNestedInlineArrayFloat,
+        Union16BytesNestedInlineArrayFloat,
+        Union16BytesNestedInlineArrayFloat,
+        Union16BytesNestedInlineArrayFloat,
+        Union16BytesNestedInlineArrayFloat,
+        Union16BytesNestedInlineArrayFloat,
+        Union16BytesNestedInlineArrayFloat,
+        Union16BytesNestedInlineArrayFloat,
+        Union16BytesNestedInlineArrayFloat,
+      ),
+      double Function(
+        Union16BytesNestedInlineArrayFloat,
+        Union16BytesNestedInlineArrayFloat,
+        Union16BytesNestedInlineArrayFloat,
+        Union16BytesNestedInlineArrayFloat,
+        Union16BytesNestedInlineArrayFloat,
+        Union16BytesNestedInlineArrayFloat,
+        Union16BytesNestedInlineArrayFloat,
+        Union16BytesNestedInlineArrayFloat,
+        Union16BytesNestedInlineArrayFloat,
+        Union16BytesNestedInlineArrayFloat,
+      )
+    >("PassUnion16BytesNestedInlineArrayFloatx10");
 
 /// Union with homogenous floats.
 void testPassUnion16BytesNestedInlineArrayFloatx10() {
@@ -5077,7 +5545,17 @@ void testPassUnion16BytesNestedInlineArrayFloatx10() {
   a9.a0[3] = 40.0;
 
   final result = passUnion16BytesNestedInlineArrayFloatx10(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -5096,28 +5574,31 @@ void testPassUnion16BytesNestedInlineArrayFloatx10() {
 }
 
 final passUnion16BytesNestedFloatx10 = ffiTestFunctions.lookupFunction<
-    Double Function(
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat),
-    double Function(
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat)>("PassUnion16BytesNestedFloatx10");
+  Double Function(
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+  ),
+  double Function(
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+  )
+>("PassUnion16BytesNestedFloatx10");
 
 /// Union with homogenous floats.
 void testPassUnion16BytesNestedFloatx10() {
@@ -5163,8 +5644,18 @@ void testPassUnion16BytesNestedFloatx10() {
   a9.a0.a0 = -19.0;
   a9.a0.a1 = 20.0;
 
-  final result =
-      passUnion16BytesNestedFloatx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passUnion16BytesNestedFloatx10(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -5182,23 +5673,37 @@ void testPassUnion16BytesNestedFloatx10() {
   calloc.free(a9Pointer);
 }
 
-final passUint8Boolx9Struct10BytesHomogeneousBoolBool =
-    ffiTestFunctions.lookupFunction<
-        Int32 Function(Uint8, Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool,
-            Bool, Struct10BytesHomogeneousBool, Bool),
-        int Function(
-            int,
-            bool,
-            bool,
-            bool,
-            bool,
-            bool,
-            bool,
-            bool,
-            bool,
-            bool,
-            Struct10BytesHomogeneousBool,
-            bool)>("PassUint8Boolx9Struct10BytesHomogeneousBoolBool");
+final passUint8Boolx9Struct10BytesHomogeneousBoolBool = ffiTestFunctions
+    .lookupFunction<
+      Int32 Function(
+        Uint8,
+        Bool,
+        Bool,
+        Bool,
+        Bool,
+        Bool,
+        Bool,
+        Bool,
+        Bool,
+        Bool,
+        Struct10BytesHomogeneousBool,
+        Bool,
+      ),
+      int Function(
+        int,
+        bool,
+        bool,
+        bool,
+        bool,
+        bool,
+        bool,
+        bool,
+        bool,
+        bool,
+        Struct10BytesHomogeneousBool,
+        bool,
+      )
+    >("PassUint8Boolx9Struct10BytesHomogeneousBoolBool");
 
 /// Passing bools and a struct with bools.
 /// Exhausts the registers to test bools and the bool struct alignment on the
@@ -5241,7 +5746,19 @@ void testPassUint8Boolx9Struct10BytesHomogeneousBoolBool() {
   a11 = true;
 
   final result = passUint8Boolx9Struct10BytesHomogeneousBoolBool(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+  );
 
   print("result = $result");
 
@@ -5250,23 +5767,37 @@ void testPassUint8Boolx9Struct10BytesHomogeneousBoolBool() {
   calloc.free(a10Pointer);
 }
 
-final passUint8Boolx9Struct10BytesInlineArrayBoolBool =
-    ffiTestFunctions.lookupFunction<
-        Int32 Function(Uint8, Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool,
-            Bool, Struct10BytesInlineArrayBool, Bool),
-        int Function(
-            int,
-            bool,
-            bool,
-            bool,
-            bool,
-            bool,
-            bool,
-            bool,
-            bool,
-            bool,
-            Struct10BytesInlineArrayBool,
-            bool)>("PassUint8Boolx9Struct10BytesInlineArrayBoolBool");
+final passUint8Boolx9Struct10BytesInlineArrayBoolBool = ffiTestFunctions
+    .lookupFunction<
+      Int32 Function(
+        Uint8,
+        Bool,
+        Bool,
+        Bool,
+        Bool,
+        Bool,
+        Bool,
+        Bool,
+        Bool,
+        Bool,
+        Struct10BytesInlineArrayBool,
+        Bool,
+      ),
+      int Function(
+        int,
+        bool,
+        bool,
+        bool,
+        bool,
+        bool,
+        bool,
+        bool,
+        bool,
+        bool,
+        Struct10BytesInlineArrayBool,
+        bool,
+      )
+    >("PassUint8Boolx9Struct10BytesInlineArrayBoolBool");
 
 /// Passing bools and a struct with bools.
 /// Exhausts the registers to test bools and the bool struct alignment on the
@@ -5309,7 +5840,19 @@ void testPassUint8Boolx9Struct10BytesInlineArrayBoolBool() {
   a11 = true;
 
   final result = passUint8Boolx9Struct10BytesInlineArrayBoolBool(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+  );
 
   print("result = $result");
 
@@ -5319,8 +5862,9 @@ void testPassUint8Boolx9Struct10BytesInlineArrayBoolBool() {
 }
 
 final passUint8Struct1ByteBool = ffiTestFunctions.lookupFunction<
-    Bool Function(Uint8, Struct1ByteBool),
-    bool Function(int, Struct1ByteBool)>("PassUint8Struct1ByteBool");
+  Bool Function(Uint8, Struct1ByteBool),
+  bool Function(int, Struct1ByteBool)
+>("PassUint8Struct1ByteBool");
 
 /// Returning a bool.
 void testPassUint8Struct1ByteBool() {
@@ -5340,12 +5884,18 @@ void testPassUint8Struct1ByteBool() {
   calloc.free(a1Pointer);
 }
 
-final passWCharStructInlineArrayIntUintPtrx2LongUnsigned =
-    ffiTestFunctions.lookupFunction<
-        WChar Function(
-            WChar, StructInlineArrayInt, UintPtr, UintPtr, Long, UnsignedLong),
-        int Function(int, StructInlineArrayInt, int, int, int,
-            int)>("PassWCharStructInlineArrayIntUintPtrx2LongUnsigned");
+final passWCharStructInlineArrayIntUintPtrx2LongUnsigned = ffiTestFunctions
+    .lookupFunction<
+      WChar Function(
+        WChar,
+        StructInlineArrayInt,
+        UintPtr,
+        UintPtr,
+        Long,
+        UnsignedLong,
+      ),
+      int Function(int, StructInlineArrayInt, int, int, int, int)
+    >("PassWCharStructInlineArrayIntUintPtrx2LongUnsigned");
 
 /// Returning a wchar.
 void testPassWCharStructInlineArrayIntUintPtrx2LongUnsigned() {
@@ -5374,7 +5924,13 @@ void testPassWCharStructInlineArrayIntUintPtrx2LongUnsigned() {
   a5 = 15;
 
   final result = passWCharStructInlineArrayIntUintPtrx2LongUnsigned(
-      a0, a1, a2, a3, a4, a5);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+  );
 
   print("result = $result");
 
@@ -5383,13 +5939,29 @@ void testPassWCharStructInlineArrayIntUintPtrx2LongUnsigned() {
   calloc.free(a1Pointer);
 }
 
-final passInt64x7Struct12BytesHomogeneousInt32 =
-    ffiTestFunctions.lookupFunction<
-            Int64 Function(Int64, Int64, Int64, Int64, Int64, Int64, Int64,
-                Struct12BytesHomogeneousInt32),
-            int Function(int, int, int, int, int, int, int,
-                Struct12BytesHomogeneousInt32)>(
-        "PassInt64x7Struct12BytesHomogeneousInt32");
+final passInt64x7Struct12BytesHomogeneousInt32 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Struct12BytesHomogeneousInt32,
+      ),
+      int Function(
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        Struct12BytesHomogeneousInt32,
+      )
+    >("PassInt64x7Struct12BytesHomogeneousInt32");
 
 /// Struct stradles last argument register
 void testPassInt64x7Struct12BytesHomogeneousInt32() {
@@ -5414,8 +5986,16 @@ void testPassInt64x7Struct12BytesHomogeneousInt32() {
   a7.a1 = -9;
   a7.a2 = 10;
 
-  final result =
-      passInt64x7Struct12BytesHomogeneousInt32(a0, a1, a2, a3, a4, a5, a6, a7);
+  final result = passInt64x7Struct12BytesHomogeneousInt32(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+  );
 
   print("result = $result");
 
@@ -5424,16 +6004,17 @@ void testPassInt64x7Struct12BytesHomogeneousInt32() {
   calloc.free(a7Pointer);
 }
 
-final passPointerStruct12BytesHomogeneousInt32 =
-    ffiTestFunctions.lookupFunction<
-            Int64 Function(Pointer<Struct12BytesHomogeneousInt32>),
-            int Function(Pointer<Struct12BytesHomogeneousInt32>)>(
-        "PassPointerStruct12BytesHomogeneousInt32");
+final passPointerStruct12BytesHomogeneousInt32 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(Pointer<Struct12BytesHomogeneousInt32>),
+      int Function(Pointer<Struct12BytesHomogeneousInt32>)
+    >("PassPointerStruct12BytesHomogeneousInt32");
 
 /// Passing a pointer to a struct
 void testPassPointerStruct12BytesHomogeneousInt32() {
   final a0 = calloc.allocate<Struct12BytesHomogeneousInt32>(
-      sizeOf<Struct12BytesHomogeneousInt32>());
+    sizeOf<Struct12BytesHomogeneousInt32>(),
+  );
 
   a0.ref.a0 = -1;
   a0.ref.a1 = 2;
@@ -5449,14 +6030,15 @@ void testPassPointerStruct12BytesHomogeneousInt32() {
 }
 
 final passPointerStructInlineArrayVariable = ffiTestFunctions.lookupFunction<
-        Int64 Function(Pointer<StructInlineArrayVariable>),
-        int Function(Pointer<StructInlineArrayVariable>)>(
-    "PassPointerStructInlineArrayVariable");
+  Int64 Function(Pointer<StructInlineArrayVariable>),
+  int Function(Pointer<StructInlineArrayVariable>)
+>("PassPointerStructInlineArrayVariable");
 
 /// Variable length array
 void testPassPointerStructInlineArrayVariable() {
   final a0 = calloc.allocate<StructInlineArrayVariable>(
-      sizeOf<StructInlineArrayVariable>() + 10 * sizeOf<Uint8>());
+    sizeOf<StructInlineArrayVariable>() + 10 * sizeOf<Uint8>(),
+  );
 
   a0.ref.a0 = 1;
   a0.ref.a1[0] = 2;
@@ -5479,17 +6061,18 @@ void testPassPointerStructInlineArrayVariable() {
   calloc.free(a0);
 }
 
-final passPointerStructInlineArrayVariableAlign =
-    ffiTestFunctions.lookupFunction<
-            Int64 Function(Pointer<StructInlineArrayVariableAlign>),
-            int Function(Pointer<StructInlineArrayVariableAlign>)>(
-        "PassPointerStructInlineArrayVariableAlign");
+final passPointerStructInlineArrayVariableAlign = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(Pointer<StructInlineArrayVariableAlign>),
+      int Function(Pointer<StructInlineArrayVariableAlign>)
+    >("PassPointerStructInlineArrayVariableAlign");
 
 /// Variable length array with variable length element having more alignment than
 /// the rest of the struct.
 void testPassPointerStructInlineArrayVariableAlign() {
   final a0 = calloc.allocate<StructInlineArrayVariableAlign>(
-      sizeOf<StructInlineArrayVariableAlign>() + 10 * sizeOf<Uint32>());
+    sizeOf<StructInlineArrayVariableAlign>() + 10 * sizeOf<Uint32>(),
+  );
 
   a0.ref.a0 = 1;
   a0.ref.a1[0] = 2;

@@ -58,8 +58,9 @@ void main() {
 }
 
 final returnStruct1ByteIntLeaf = ffiTestFunctions.lookupFunction<
-    Struct1ByteInt Function(Int8),
-    Struct1ByteInt Function(int)>("ReturnStruct1ByteInt", isLeaf: true);
+  Struct1ByteInt Function(Int8),
+  Struct1ByteInt Function(int)
+>("ReturnStruct1ByteInt", isLeaf: true);
 
 /// Smallest struct with data.
 void testReturnStruct1ByteIntLeaf() {
@@ -75,9 +76,9 @@ void testReturnStruct1ByteIntLeaf() {
 }
 
 final returnStruct3BytesHomogeneousUint8Leaf = ffiTestFunctions.lookupFunction<
-    Struct3BytesHomogeneousUint8 Function(Uint8, Uint8, Uint8),
-    Struct3BytesHomogeneousUint8 Function(
-        int, int, int)>("ReturnStruct3BytesHomogeneousUint8", isLeaf: true);
+  Struct3BytesHomogeneousUint8 Function(Uint8, Uint8, Uint8),
+  Struct3BytesHomogeneousUint8 Function(int, int, int)
+>("ReturnStruct3BytesHomogeneousUint8", isLeaf: true);
 
 /// Smaller than word size return value on all architectures.
 void testReturnStruct3BytesHomogeneousUint8Leaf() {
@@ -99,9 +100,9 @@ void testReturnStruct3BytesHomogeneousUint8Leaf() {
 }
 
 final returnStruct3BytesInt2ByteAlignedLeaf = ffiTestFunctions.lookupFunction<
-    Struct3BytesInt2ByteAligned Function(Int16, Int8),
-    Struct3BytesInt2ByteAligned Function(
-        int, int)>("ReturnStruct3BytesInt2ByteAligned", isLeaf: true);
+  Struct3BytesInt2ByteAligned Function(Int16, Int8),
+  Struct3BytesInt2ByteAligned Function(int, int)
+>("ReturnStruct3BytesInt2ByteAligned", isLeaf: true);
 
 /// Smaller than word size return value on all architectures.
 /// With alignment rules taken into account size is 4 bytes.
@@ -121,9 +122,9 @@ void testReturnStruct3BytesInt2ByteAlignedLeaf() {
 }
 
 final returnStruct4BytesHomogeneousInt16Leaf = ffiTestFunctions.lookupFunction<
-    Struct4BytesHomogeneousInt16 Function(Int16, Int16),
-    Struct4BytesHomogeneousInt16 Function(
-        int, int)>("ReturnStruct4BytesHomogeneousInt16", isLeaf: true);
+  Struct4BytesHomogeneousInt16 Function(Int16, Int16),
+  Struct4BytesHomogeneousInt16 Function(int, int)
+>("ReturnStruct4BytesHomogeneousInt16", isLeaf: true);
 
 /// Word size return value on 32 bit architectures..
 void testReturnStruct4BytesHomogeneousInt16Leaf() {
@@ -142,10 +143,17 @@ void testReturnStruct4BytesHomogeneousInt16Leaf() {
 }
 
 final returnStruct7BytesHomogeneousUint8Leaf = ffiTestFunctions.lookupFunction<
-    Struct7BytesHomogeneousUint8 Function(
-        Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8),
-    Struct7BytesHomogeneousUint8 Function(int, int, int, int, int, int,
-        int)>("ReturnStruct7BytesHomogeneousUint8", isLeaf: true);
+  Struct7BytesHomogeneousUint8 Function(
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+  ),
+  Struct7BytesHomogeneousUint8 Function(int, int, int, int, int, int, int)
+>("ReturnStruct7BytesHomogeneousUint8", isLeaf: true);
 
 /// Non-wordsize return value.
 void testReturnStruct7BytesHomogeneousUint8Leaf() {
@@ -165,8 +173,15 @@ void testReturnStruct7BytesHomogeneousUint8Leaf() {
   a5 = 6;
   a6 = 7;
 
-  final result =
-      returnStruct7BytesHomogeneousUint8Leaf(a0, a1, a2, a3, a4, a5, a6);
+  final result = returnStruct7BytesHomogeneousUint8Leaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+  );
 
   print("result = $result");
 
@@ -180,9 +195,9 @@ void testReturnStruct7BytesHomogeneousUint8Leaf() {
 }
 
 final returnStruct7BytesInt4ByteAlignedLeaf = ffiTestFunctions.lookupFunction<
-    Struct7BytesInt4ByteAligned Function(Int32, Int16, Int8),
-    Struct7BytesInt4ByteAligned Function(
-        int, int, int)>("ReturnStruct7BytesInt4ByteAligned", isLeaf: true);
+  Struct7BytesInt4ByteAligned Function(Int32, Int16, Int8),
+  Struct7BytesInt4ByteAligned Function(int, int, int)
+>("ReturnStruct7BytesInt4ByteAligned", isLeaf: true);
 
 /// Non-wordsize return value.
 /// With alignment rules taken into account size is 8 bytes.
@@ -205,9 +220,9 @@ void testReturnStruct7BytesInt4ByteAlignedLeaf() {
 }
 
 final returnStruct8BytesIntLeaf = ffiTestFunctions.lookupFunction<
-    Struct8BytesInt Function(Int16, Int16, Int32),
-    Struct8BytesInt Function(
-        int, int, int)>("ReturnStruct8BytesInt", isLeaf: true);
+  Struct8BytesInt Function(Int16, Int16, Int32),
+  Struct8BytesInt Function(int, int, int)
+>("ReturnStruct8BytesInt", isLeaf: true);
 
 /// Return value in integer registers on many architectures.
 void testReturnStruct8BytesIntLeaf() {
@@ -229,9 +244,9 @@ void testReturnStruct8BytesIntLeaf() {
 }
 
 final returnStruct8BytesHomogeneousFloatLeaf = ffiTestFunctions.lookupFunction<
-    Struct8BytesHomogeneousFloat Function(Float, Float),
-    Struct8BytesHomogeneousFloat Function(
-        double, double)>("ReturnStruct8BytesHomogeneousFloat", isLeaf: true);
+  Struct8BytesHomogeneousFloat Function(Float, Float),
+  Struct8BytesHomogeneousFloat Function(double, double)
+>("ReturnStruct8BytesHomogeneousFloat", isLeaf: true);
 
 /// Return value in FP registers on many architectures.
 void testReturnStruct8BytesHomogeneousFloatLeaf() {
@@ -250,9 +265,9 @@ void testReturnStruct8BytesHomogeneousFloatLeaf() {
 }
 
 final returnStruct8BytesMixedLeaf = ffiTestFunctions.lookupFunction<
-    Struct8BytesMixed Function(Float, Int16, Int16),
-    Struct8BytesMixed Function(
-        double, int, int)>("ReturnStruct8BytesMixed", isLeaf: true);
+  Struct8BytesMixed Function(Float, Int16, Int16),
+  Struct8BytesMixed Function(double, int, int)
+>("ReturnStruct8BytesMixed", isLeaf: true);
 
 /// Return value split over FP and integer register in x64.
 void testReturnStruct8BytesMixedLeaf() {
@@ -274,10 +289,29 @@ void testReturnStruct8BytesMixedLeaf() {
 }
 
 final returnStruct9BytesHomogeneousUint8Leaf = ffiTestFunctions.lookupFunction<
-    Struct9BytesHomogeneousUint8 Function(
-        Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8),
-    Struct9BytesHomogeneousUint8 Function(int, int, int, int, int, int, int,
-        int, int)>("ReturnStruct9BytesHomogeneousUint8", isLeaf: true);
+  Struct9BytesHomogeneousUint8 Function(
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+  ),
+  Struct9BytesHomogeneousUint8 Function(
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+  )
+>("ReturnStruct9BytesHomogeneousUint8", isLeaf: true);
 
 /// The minimum alignment of this struct is only 1 byte based on its fields.
 /// Test that the memory backing these structs is the right size and that
@@ -304,7 +338,16 @@ void testReturnStruct9BytesHomogeneousUint8Leaf() {
   a8 = 9;
 
   final result = returnStruct9BytesHomogeneousUint8Leaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -319,11 +362,11 @@ void testReturnStruct9BytesHomogeneousUint8Leaf() {
   Expect.equals(a8, result.a8);
 }
 
-final returnStruct9BytesInt4Or8ByteAlignedLeaf =
-    ffiTestFunctions.lookupFunction<
-        Struct9BytesInt4Or8ByteAligned Function(Int64, Int8),
-        Struct9BytesInt4Or8ByteAligned Function(
-            int, int)>("ReturnStruct9BytesInt4Or8ByteAligned", isLeaf: true);
+final returnStruct9BytesInt4Or8ByteAlignedLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct9BytesInt4Or8ByteAligned Function(Int64, Int8),
+      Struct9BytesInt4Or8ByteAligned Function(int, int)
+    >("ReturnStruct9BytesInt4Or8ByteAligned", isLeaf: true);
 
 /// Return value in two integer registers on x64.
 /// With alignment rules taken into account size is 12 or 16 bytes.
@@ -343,9 +386,9 @@ void testReturnStruct9BytesInt4Or8ByteAlignedLeaf() {
 }
 
 final returnStruct12BytesHomogeneousFloatLeaf = ffiTestFunctions.lookupFunction<
-    Struct12BytesHomogeneousFloat Function(Float, Float, Float),
-    Struct12BytesHomogeneousFloat Function(double, double,
-        double)>("ReturnStruct12BytesHomogeneousFloat", isLeaf: true);
+  Struct12BytesHomogeneousFloat Function(Float, Float, Float),
+  Struct12BytesHomogeneousFloat Function(double, double, double)
+>("ReturnStruct12BytesHomogeneousFloat", isLeaf: true);
 
 /// Return value in FPU registers, but does not use all registers on arm hardfp
 /// and arm64.
@@ -368,9 +411,9 @@ void testReturnStruct12BytesHomogeneousFloatLeaf() {
 }
 
 final returnStruct16BytesHomogeneousFloatLeaf = ffiTestFunctions.lookupFunction<
-    Struct16BytesHomogeneousFloat Function(Float, Float, Float, Float),
-    Struct16BytesHomogeneousFloat Function(double, double, double,
-        double)>("ReturnStruct16BytesHomogeneousFloat", isLeaf: true);
+  Struct16BytesHomogeneousFloat Function(Float, Float, Float, Float),
+  Struct16BytesHomogeneousFloat Function(double, double, double, double)
+>("ReturnStruct16BytesHomogeneousFloat", isLeaf: true);
 
 /// Return value in FPU registers on arm hardfp and arm64.
 void testReturnStruct16BytesHomogeneousFloatLeaf() {
@@ -395,9 +438,9 @@ void testReturnStruct16BytesHomogeneousFloatLeaf() {
 }
 
 final returnStruct16BytesMixedLeaf = ffiTestFunctions.lookupFunction<
-    Struct16BytesMixed Function(Double, Int64),
-    Struct16BytesMixed Function(
-        double, int)>("ReturnStruct16BytesMixed", isLeaf: true);
+  Struct16BytesMixed Function(Double, Int64),
+  Struct16BytesMixed Function(double, int)
+>("ReturnStruct16BytesMixed", isLeaf: true);
 
 /// Return value split over FP and integer register in x64.
 void testReturnStruct16BytesMixedLeaf() {
@@ -416,9 +459,9 @@ void testReturnStruct16BytesMixedLeaf() {
 }
 
 final returnStruct16BytesMixed2Leaf = ffiTestFunctions.lookupFunction<
-    Struct16BytesMixed2 Function(Float, Float, Float, Int32),
-    Struct16BytesMixed2 Function(double, double, double,
-        int)>("ReturnStruct16BytesMixed2", isLeaf: true);
+  Struct16BytesMixed2 Function(Float, Float, Float, Int32),
+  Struct16BytesMixed2 Function(double, double, double, int)
+>("ReturnStruct16BytesMixed2", isLeaf: true);
 
 /// Return value split over FP and integer register in x64.
 /// The integer register contains half float half int.
@@ -444,9 +487,9 @@ void testReturnStruct16BytesMixed2Leaf() {
 }
 
 final returnStruct17BytesIntLeaf = ffiTestFunctions.lookupFunction<
-    Struct17BytesInt Function(Int64, Int64, Int8),
-    Struct17BytesInt Function(
-        int, int, int)>("ReturnStruct17BytesInt", isLeaf: true);
+  Struct17BytesInt Function(Int64, Int64, Int8),
+  Struct17BytesInt Function(int, int, int)
+>("ReturnStruct17BytesInt", isLeaf: true);
 
 /// Return value returned in preallocated space passed by pointer on most ABIs.
 /// Is non word size on purpose, to test that structs are rounded up to word size
@@ -470,46 +513,49 @@ void testReturnStruct17BytesIntLeaf() {
 }
 
 final returnStruct19BytesHomogeneousUint8Leaf = ffiTestFunctions.lookupFunction<
-    Struct19BytesHomogeneousUint8 Function(
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8,
-        Uint8),
-    Struct19BytesHomogeneousUint8 Function(
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int)>("ReturnStruct19BytesHomogeneousUint8", isLeaf: true);
+  Struct19BytesHomogeneousUint8 Function(
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+    Uint8,
+  ),
+  Struct19BytesHomogeneousUint8 Function(
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+  )
+>("ReturnStruct19BytesHomogeneousUint8", isLeaf: true);
 
 /// The minimum alignment of this struct is only 1 byte based on its fields.
 /// Test that the memory backing these structs is the right size and that
@@ -555,8 +601,27 @@ void testReturnStruct19BytesHomogeneousUint8Leaf() {
   a17 = 18;
   a18 = 19;
 
-  final result = returnStruct19BytesHomogeneousUint8Leaf(a0, a1, a2, a3, a4, a5,
-      a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18);
+  final result = returnStruct19BytesHomogeneousUint8Leaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+    a12,
+    a13,
+    a14,
+    a15,
+    a16,
+    a17,
+    a18,
+  );
 
   print("result = $result");
 
@@ -582,9 +647,9 @@ void testReturnStruct19BytesHomogeneousUint8Leaf() {
 }
 
 final returnStruct20BytesHomogeneousInt32Leaf = ffiTestFunctions.lookupFunction<
-    Struct20BytesHomogeneousInt32 Function(Int32, Int32, Int32, Int32, Int32),
-    Struct20BytesHomogeneousInt32 Function(int, int, int, int,
-        int)>("ReturnStruct20BytesHomogeneousInt32", isLeaf: true);
+  Struct20BytesHomogeneousInt32 Function(Int32, Int32, Int32, Int32, Int32),
+  Struct20BytesHomogeneousInt32 Function(int, int, int, int, int)
+>("ReturnStruct20BytesHomogeneousInt32", isLeaf: true);
 
 /// Return value too big to go in cpu registers on arm64.
 void testReturnStruct20BytesHomogeneousInt32Leaf() {
@@ -612,9 +677,9 @@ void testReturnStruct20BytesHomogeneousInt32Leaf() {
 }
 
 final returnStruct20BytesHomogeneousFloatLeaf = ffiTestFunctions.lookupFunction<
-    Struct20BytesHomogeneousFloat Function(Float, Float, Float, Float, Float),
-    Struct20BytesHomogeneousFloat Function(double, double, double, double,
-        double)>("ReturnStruct20BytesHomogeneousFloat", isLeaf: true);
+  Struct20BytesHomogeneousFloat Function(Float, Float, Float, Float, Float),
+  Struct20BytesHomogeneousFloat Function(double, double, double, double, double)
+>("ReturnStruct20BytesHomogeneousFloat", isLeaf: true);
 
 /// Return value too big to go in FPU registers on x64, arm hardfp and arm64.
 void testReturnStruct20BytesHomogeneousFloatLeaf() {
@@ -641,11 +706,11 @@ void testReturnStruct20BytesHomogeneousFloatLeaf() {
   Expect.approxEquals(a4, result.a4);
 }
 
-final returnStruct32BytesHomogeneousDoubleLeaf =
-    ffiTestFunctions.lookupFunction<
-        Struct32BytesHomogeneousDouble Function(Double, Double, Double, Double),
-        Struct32BytesHomogeneousDouble Function(double, double, double,
-            double)>("ReturnStruct32BytesHomogeneousDouble", isLeaf: true);
+final returnStruct32BytesHomogeneousDoubleLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct32BytesHomogeneousDouble Function(Double, Double, Double, Double),
+      Struct32BytesHomogeneousDouble Function(double, double, double, double)
+    >("ReturnStruct32BytesHomogeneousDouble", isLeaf: true);
 
 /// Return value in FPU registers on arm64.
 void testReturnStruct32BytesHomogeneousDoubleLeaf() {
@@ -669,12 +734,23 @@ void testReturnStruct32BytesHomogeneousDoubleLeaf() {
   Expect.approxEquals(a3, result.a3);
 }
 
-final returnStruct40BytesHomogeneousDoubleLeaf =
-    ffiTestFunctions.lookupFunction<
-        Struct40BytesHomogeneousDouble Function(
-            Double, Double, Double, Double, Double),
-        Struct40BytesHomogeneousDouble Function(double, double, double, double,
-            double)>("ReturnStruct40BytesHomogeneousDouble", isLeaf: true);
+final returnStruct40BytesHomogeneousDoubleLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct40BytesHomogeneousDouble Function(
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+      ),
+      Struct40BytesHomogeneousDouble Function(
+        double,
+        double,
+        double,
+        double,
+        double,
+      )
+    >("ReturnStruct40BytesHomogeneousDouble", isLeaf: true);
 
 /// Return value too big to go in FPU registers on arm64.
 void testReturnStruct40BytesHomogeneousDoubleLeaf() {
@@ -701,266 +777,269 @@ void testReturnStruct40BytesHomogeneousDoubleLeaf() {
   Expect.approxEquals(a4, result.a4);
 }
 
-final returnStruct1024BytesHomogeneousUint64Leaf =
-    ffiTestFunctions.lookupFunction<
-        Struct1024BytesHomogeneousUint64 Function(
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64,
-            Uint64),
-        Struct1024BytesHomogeneousUint64 Function(
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int)>("ReturnStruct1024BytesHomogeneousUint64", isLeaf: true);
+final returnStruct1024BytesHomogeneousUint64Leaf = ffiTestFunctions
+    .lookupFunction<
+      Struct1024BytesHomogeneousUint64 Function(
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+        Uint64,
+      ),
+      Struct1024BytesHomogeneousUint64 Function(
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+      )
+    >("ReturnStruct1024BytesHomogeneousUint64", isLeaf: true);
 
 /// Test 1kb struct.
 void testReturnStruct1024BytesHomogeneousUint64Leaf() {
@@ -1223,134 +1302,135 @@ void testReturnStruct1024BytesHomogeneousUint64Leaf() {
   a127 = 128;
 
   final result = returnStruct1024BytesHomogeneousUint64Leaf(
-      a0,
-      a1,
-      a2,
-      a3,
-      a4,
-      a5,
-      a6,
-      a7,
-      a8,
-      a9,
-      a10,
-      a11,
-      a12,
-      a13,
-      a14,
-      a15,
-      a16,
-      a17,
-      a18,
-      a19,
-      a20,
-      a21,
-      a22,
-      a23,
-      a24,
-      a25,
-      a26,
-      a27,
-      a28,
-      a29,
-      a30,
-      a31,
-      a32,
-      a33,
-      a34,
-      a35,
-      a36,
-      a37,
-      a38,
-      a39,
-      a40,
-      a41,
-      a42,
-      a43,
-      a44,
-      a45,
-      a46,
-      a47,
-      a48,
-      a49,
-      a50,
-      a51,
-      a52,
-      a53,
-      a54,
-      a55,
-      a56,
-      a57,
-      a58,
-      a59,
-      a60,
-      a61,
-      a62,
-      a63,
-      a64,
-      a65,
-      a66,
-      a67,
-      a68,
-      a69,
-      a70,
-      a71,
-      a72,
-      a73,
-      a74,
-      a75,
-      a76,
-      a77,
-      a78,
-      a79,
-      a80,
-      a81,
-      a82,
-      a83,
-      a84,
-      a85,
-      a86,
-      a87,
-      a88,
-      a89,
-      a90,
-      a91,
-      a92,
-      a93,
-      a94,
-      a95,
-      a96,
-      a97,
-      a98,
-      a99,
-      a100,
-      a101,
-      a102,
-      a103,
-      a104,
-      a105,
-      a106,
-      a107,
-      a108,
-      a109,
-      a110,
-      a111,
-      a112,
-      a113,
-      a114,
-      a115,
-      a116,
-      a117,
-      a118,
-      a119,
-      a120,
-      a121,
-      a122,
-      a123,
-      a124,
-      a125,
-      a126,
-      a127);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+    a12,
+    a13,
+    a14,
+    a15,
+    a16,
+    a17,
+    a18,
+    a19,
+    a20,
+    a21,
+    a22,
+    a23,
+    a24,
+    a25,
+    a26,
+    a27,
+    a28,
+    a29,
+    a30,
+    a31,
+    a32,
+    a33,
+    a34,
+    a35,
+    a36,
+    a37,
+    a38,
+    a39,
+    a40,
+    a41,
+    a42,
+    a43,
+    a44,
+    a45,
+    a46,
+    a47,
+    a48,
+    a49,
+    a50,
+    a51,
+    a52,
+    a53,
+    a54,
+    a55,
+    a56,
+    a57,
+    a58,
+    a59,
+    a60,
+    a61,
+    a62,
+    a63,
+    a64,
+    a65,
+    a66,
+    a67,
+    a68,
+    a69,
+    a70,
+    a71,
+    a72,
+    a73,
+    a74,
+    a75,
+    a76,
+    a77,
+    a78,
+    a79,
+    a80,
+    a81,
+    a82,
+    a83,
+    a84,
+    a85,
+    a86,
+    a87,
+    a88,
+    a89,
+    a90,
+    a91,
+    a92,
+    a93,
+    a94,
+    a95,
+    a96,
+    a97,
+    a98,
+    a99,
+    a100,
+    a101,
+    a102,
+    a103,
+    a104,
+    a105,
+    a106,
+    a107,
+    a108,
+    a109,
+    a110,
+    a111,
+    a112,
+    a113,
+    a114,
+    a115,
+    a116,
+    a117,
+    a118,
+    a119,
+    a120,
+    a121,
+    a122,
+    a123,
+    a124,
+    a125,
+    a126,
+    a127,
+  );
 
   print("result = $result");
 
@@ -1485,9 +1565,9 @@ void testReturnStruct1024BytesHomogeneousUint64Leaf() {
 }
 
 final returnStruct3BytesPackedIntLeaf = ffiTestFunctions.lookupFunction<
-    Struct3BytesPackedInt Function(Int8, Int16),
-    Struct3BytesPackedInt Function(
-        int, int)>("ReturnStruct3BytesPackedInt", isLeaf: true);
+  Struct3BytesPackedInt Function(Int8, Int16),
+  Struct3BytesPackedInt Function(int, int)
+>("ReturnStruct3BytesPackedInt", isLeaf: true);
 
 /// Small struct with mis-aligned member.
 void testReturnStruct3BytesPackedIntLeaf() {
@@ -1506,9 +1586,9 @@ void testReturnStruct3BytesPackedIntLeaf() {
 }
 
 final returnStruct8BytesPackedIntLeaf = ffiTestFunctions.lookupFunction<
-    Struct8BytesPackedInt Function(Uint8, Uint32, Uint8, Uint8, Uint8),
-    Struct8BytesPackedInt Function(
-        int, int, int, int, int)>("ReturnStruct8BytesPackedInt", isLeaf: true);
+  Struct8BytesPackedInt Function(Uint8, Uint32, Uint8, Uint8, Uint8),
+  Struct8BytesPackedInt Function(int, int, int, int, int)
+>("ReturnStruct8BytesPackedInt", isLeaf: true);
 
 /// Struct with mis-aligned member.
 void testReturnStruct8BytesPackedIntLeaf() {
@@ -1536,9 +1616,9 @@ void testReturnStruct8BytesPackedIntLeaf() {
 }
 
 final returnStruct9BytesPackedMixedLeaf = ffiTestFunctions.lookupFunction<
-    Struct9BytesPackedMixed Function(Uint8, Double),
-    Struct9BytesPackedMixed Function(
-        int, double)>("ReturnStruct9BytesPackedMixed", isLeaf: true);
+  Struct9BytesPackedMixed Function(Uint8, Double),
+  Struct9BytesPackedMixed Function(int, double)
+>("ReturnStruct9BytesPackedMixed", isLeaf: true);
 
 /// Struct with mis-aligned member.
 /// Tests backfilling of CPU and FPU registers.
@@ -1558,8 +1638,9 @@ void testReturnStruct9BytesPackedMixedLeaf() {
 }
 
 final returnUnion4BytesMixedLeaf = ffiTestFunctions.lookupFunction<
-    Union4BytesMixed Function(Uint32),
-    Union4BytesMixed Function(int)>("ReturnUnion4BytesMixed", isLeaf: true);
+  Union4BytesMixed Function(Uint32),
+  Union4BytesMixed Function(int)
+>("ReturnUnion4BytesMixed", isLeaf: true);
 
 /// Returning a mixed integer/float union.
 void testReturnUnion4BytesMixedLeaf() {
@@ -1575,9 +1656,9 @@ void testReturnUnion4BytesMixedLeaf() {
 }
 
 final returnUnion8BytesNestedFloatLeaf = ffiTestFunctions.lookupFunction<
-    Union8BytesNestedFloat Function(Double),
-    Union8BytesNestedFloat Function(
-        double)>("ReturnUnion8BytesNestedFloat", isLeaf: true);
+  Union8BytesNestedFloat Function(Double),
+  Union8BytesNestedFloat Function(double)
+>("ReturnUnion8BytesNestedFloat", isLeaf: true);
 
 /// Returning a floating point only union.
 void testReturnUnion8BytesNestedFloatLeaf() {
@@ -1593,9 +1674,9 @@ void testReturnUnion8BytesNestedFloatLeaf() {
 }
 
 final returnUnion9BytesNestedIntLeaf = ffiTestFunctions.lookupFunction<
-    Union9BytesNestedInt Function(Struct8BytesInt),
-    Union9BytesNestedInt Function(
-        Struct8BytesInt)>("ReturnUnion9BytesNestedInt", isLeaf: true);
+  Union9BytesNestedInt Function(Struct8BytesInt),
+  Union9BytesNestedInt Function(Struct8BytesInt)
+>("ReturnUnion9BytesNestedInt", isLeaf: true);
 
 /// Returning a mixed-size union.
 void testReturnUnion9BytesNestedIntLeaf() {
@@ -1618,10 +1699,9 @@ void testReturnUnion9BytesNestedIntLeaf() {
 }
 
 final returnUnion16BytesNestedFloatLeaf = ffiTestFunctions.lookupFunction<
-        Union16BytesNestedFloat Function(Struct8BytesHomogeneousFloat),
-        Union16BytesNestedFloat Function(Struct8BytesHomogeneousFloat)>(
-    "ReturnUnion16BytesNestedFloat",
-    isLeaf: true);
+  Union16BytesNestedFloat Function(Struct8BytesHomogeneousFloat),
+  Union16BytesNestedFloat Function(Struct8BytesHomogeneousFloat)
+>("ReturnUnion16BytesNestedFloat", isLeaf: true);
 
 /// Returning union with homogenous floats.
 void testReturnUnion16BytesNestedFloatLeaf() {

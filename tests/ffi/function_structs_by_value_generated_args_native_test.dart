@@ -102,28 +102,31 @@ void main() {
 }
 
 @Native<
-    Int64 Function(
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt)>(symbol: 'PassStruct1ByteIntx10')
+  Int64 Function(
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+  )
+>(symbol: 'PassStruct1ByteIntx10')
 external int passStruct1ByteIntx10Native(
-    Struct1ByteInt a0,
-    Struct1ByteInt a1,
-    Struct1ByteInt a2,
-    Struct1ByteInt a3,
-    Struct1ByteInt a4,
-    Struct1ByteInt a5,
-    Struct1ByteInt a6,
-    Struct1ByteInt a7,
-    Struct1ByteInt a8,
-    Struct1ByteInt a9);
+  Struct1ByteInt a0,
+  Struct1ByteInt a1,
+  Struct1ByteInt a2,
+  Struct1ByteInt a3,
+  Struct1ByteInt a4,
+  Struct1ByteInt a5,
+  Struct1ByteInt a6,
+  Struct1ByteInt a7,
+  Struct1ByteInt a8,
+  Struct1ByteInt a9,
+);
 
 /// Smallest struct with data.
 /// 10 struct arguments will exhaust available registers.
@@ -160,8 +163,18 @@ void testPassStruct1ByteIntx10Native() {
   a8.a0 = -9;
   a9.a0 = 10;
 
-  final result =
-      passStruct1ByteIntx10Native(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct1ByteIntx10Native(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -180,29 +193,31 @@ void testPassStruct1ByteIntx10Native() {
 }
 
 @Native<
-        Int64 Function(
-            Struct3BytesHomogeneousUint8,
-            Struct3BytesHomogeneousUint8,
-            Struct3BytesHomogeneousUint8,
-            Struct3BytesHomogeneousUint8,
-            Struct3BytesHomogeneousUint8,
-            Struct3BytesHomogeneousUint8,
-            Struct3BytesHomogeneousUint8,
-            Struct3BytesHomogeneousUint8,
-            Struct3BytesHomogeneousUint8,
-            Struct3BytesHomogeneousUint8)>(
-    symbol: 'PassStruct3BytesHomogeneousUint8x10')
+  Int64 Function(
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+  )
+>(symbol: 'PassStruct3BytesHomogeneousUint8x10')
 external int passStruct3BytesHomogeneousUint8x10Native(
-    Struct3BytesHomogeneousUint8 a0,
-    Struct3BytesHomogeneousUint8 a1,
-    Struct3BytesHomogeneousUint8 a2,
-    Struct3BytesHomogeneousUint8 a3,
-    Struct3BytesHomogeneousUint8 a4,
-    Struct3BytesHomogeneousUint8 a5,
-    Struct3BytesHomogeneousUint8 a6,
-    Struct3BytesHomogeneousUint8 a7,
-    Struct3BytesHomogeneousUint8 a8,
-    Struct3BytesHomogeneousUint8 a9);
+  Struct3BytesHomogeneousUint8 a0,
+  Struct3BytesHomogeneousUint8 a1,
+  Struct3BytesHomogeneousUint8 a2,
+  Struct3BytesHomogeneousUint8 a3,
+  Struct3BytesHomogeneousUint8 a4,
+  Struct3BytesHomogeneousUint8 a5,
+  Struct3BytesHomogeneousUint8 a6,
+  Struct3BytesHomogeneousUint8 a7,
+  Struct3BytesHomogeneousUint8 a8,
+  Struct3BytesHomogeneousUint8 a9,
+);
 
 /// Not a multiple of word size, not a power of two.
 /// 10 struct arguments will exhaust available registers.
@@ -260,7 +275,17 @@ void testPassStruct3BytesHomogeneousUint8x10Native() {
   a9.a2 = 30;
 
   final result = passStruct3BytesHomogeneousUint8x10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -279,29 +304,31 @@ void testPassStruct3BytesHomogeneousUint8x10Native() {
 }
 
 @Native<
-        Int64 Function(
-            Struct3BytesInt2ByteAligned,
-            Struct3BytesInt2ByteAligned,
-            Struct3BytesInt2ByteAligned,
-            Struct3BytesInt2ByteAligned,
-            Struct3BytesInt2ByteAligned,
-            Struct3BytesInt2ByteAligned,
-            Struct3BytesInt2ByteAligned,
-            Struct3BytesInt2ByteAligned,
-            Struct3BytesInt2ByteAligned,
-            Struct3BytesInt2ByteAligned)>(
-    symbol: 'PassStruct3BytesInt2ByteAlignedx10')
+  Int64 Function(
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+  )
+>(symbol: 'PassStruct3BytesInt2ByteAlignedx10')
 external int passStruct3BytesInt2ByteAlignedx10Native(
-    Struct3BytesInt2ByteAligned a0,
-    Struct3BytesInt2ByteAligned a1,
-    Struct3BytesInt2ByteAligned a2,
-    Struct3BytesInt2ByteAligned a3,
-    Struct3BytesInt2ByteAligned a4,
-    Struct3BytesInt2ByteAligned a5,
-    Struct3BytesInt2ByteAligned a6,
-    Struct3BytesInt2ByteAligned a7,
-    Struct3BytesInt2ByteAligned a8,
-    Struct3BytesInt2ByteAligned a9);
+  Struct3BytesInt2ByteAligned a0,
+  Struct3BytesInt2ByteAligned a1,
+  Struct3BytesInt2ByteAligned a2,
+  Struct3BytesInt2ByteAligned a3,
+  Struct3BytesInt2ByteAligned a4,
+  Struct3BytesInt2ByteAligned a5,
+  Struct3BytesInt2ByteAligned a6,
+  Struct3BytesInt2ByteAligned a7,
+  Struct3BytesInt2ByteAligned a8,
+  Struct3BytesInt2ByteAligned a9,
+);
 
 /// Not a multiple of word size, not a power of two.
 /// With alignment rules taken into account size is 4 bytes.
@@ -350,7 +377,17 @@ void testPassStruct3BytesInt2ByteAlignedx10Native() {
   a9.a1 = 20;
 
   final result = passStruct3BytesInt2ByteAlignedx10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -369,29 +406,31 @@ void testPassStruct3BytesInt2ByteAlignedx10Native() {
 }
 
 @Native<
-        Int64 Function(
-            Struct4BytesHomogeneousInt16,
-            Struct4BytesHomogeneousInt16,
-            Struct4BytesHomogeneousInt16,
-            Struct4BytesHomogeneousInt16,
-            Struct4BytesHomogeneousInt16,
-            Struct4BytesHomogeneousInt16,
-            Struct4BytesHomogeneousInt16,
-            Struct4BytesHomogeneousInt16,
-            Struct4BytesHomogeneousInt16,
-            Struct4BytesHomogeneousInt16)>(
-    symbol: 'PassStruct4BytesHomogeneousInt16x10')
+  Int64 Function(
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+  )
+>(symbol: 'PassStruct4BytesHomogeneousInt16x10')
 external int passStruct4BytesHomogeneousInt16x10Native(
-    Struct4BytesHomogeneousInt16 a0,
-    Struct4BytesHomogeneousInt16 a1,
-    Struct4BytesHomogeneousInt16 a2,
-    Struct4BytesHomogeneousInt16 a3,
-    Struct4BytesHomogeneousInt16 a4,
-    Struct4BytesHomogeneousInt16 a5,
-    Struct4BytesHomogeneousInt16 a6,
-    Struct4BytesHomogeneousInt16 a7,
-    Struct4BytesHomogeneousInt16 a8,
-    Struct4BytesHomogeneousInt16 a9);
+  Struct4BytesHomogeneousInt16 a0,
+  Struct4BytesHomogeneousInt16 a1,
+  Struct4BytesHomogeneousInt16 a2,
+  Struct4BytesHomogeneousInt16 a3,
+  Struct4BytesHomogeneousInt16 a4,
+  Struct4BytesHomogeneousInt16 a5,
+  Struct4BytesHomogeneousInt16 a6,
+  Struct4BytesHomogeneousInt16 a7,
+  Struct4BytesHomogeneousInt16 a8,
+  Struct4BytesHomogeneousInt16 a9,
+);
 
 /// Exactly word size on 32-bit architectures.
 /// 10 struct arguments will exhaust available registers.
@@ -439,7 +478,17 @@ void testPassStruct4BytesHomogeneousInt16x10Native() {
   a9.a1 = 20;
 
   final result = passStruct4BytesHomogeneousInt16x10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -458,29 +507,31 @@ void testPassStruct4BytesHomogeneousInt16x10Native() {
 }
 
 @Native<
-        Int64 Function(
-            Struct7BytesHomogeneousUint8,
-            Struct7BytesHomogeneousUint8,
-            Struct7BytesHomogeneousUint8,
-            Struct7BytesHomogeneousUint8,
-            Struct7BytesHomogeneousUint8,
-            Struct7BytesHomogeneousUint8,
-            Struct7BytesHomogeneousUint8,
-            Struct7BytesHomogeneousUint8,
-            Struct7BytesHomogeneousUint8,
-            Struct7BytesHomogeneousUint8)>(
-    symbol: 'PassStruct7BytesHomogeneousUint8x10')
+  Int64 Function(
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+  )
+>(symbol: 'PassStruct7BytesHomogeneousUint8x10')
 external int passStruct7BytesHomogeneousUint8x10Native(
-    Struct7BytesHomogeneousUint8 a0,
-    Struct7BytesHomogeneousUint8 a1,
-    Struct7BytesHomogeneousUint8 a2,
-    Struct7BytesHomogeneousUint8 a3,
-    Struct7BytesHomogeneousUint8 a4,
-    Struct7BytesHomogeneousUint8 a5,
-    Struct7BytesHomogeneousUint8 a6,
-    Struct7BytesHomogeneousUint8 a7,
-    Struct7BytesHomogeneousUint8 a8,
-    Struct7BytesHomogeneousUint8 a9);
+  Struct7BytesHomogeneousUint8 a0,
+  Struct7BytesHomogeneousUint8 a1,
+  Struct7BytesHomogeneousUint8 a2,
+  Struct7BytesHomogeneousUint8 a3,
+  Struct7BytesHomogeneousUint8 a4,
+  Struct7BytesHomogeneousUint8 a5,
+  Struct7BytesHomogeneousUint8 a6,
+  Struct7BytesHomogeneousUint8 a7,
+  Struct7BytesHomogeneousUint8 a8,
+  Struct7BytesHomogeneousUint8 a9,
+);
 
 /// Sub word size on 64 bit architectures.
 /// 10 struct arguments will exhaust available registers.
@@ -578,7 +629,17 @@ void testPassStruct7BytesHomogeneousUint8x10Native() {
   a9.a6 = 70;
 
   final result = passStruct7BytesHomogeneousUint8x10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -597,29 +658,31 @@ void testPassStruct7BytesHomogeneousUint8x10Native() {
 }
 
 @Native<
-        Int64 Function(
-            Struct7BytesInt4ByteAligned,
-            Struct7BytesInt4ByteAligned,
-            Struct7BytesInt4ByteAligned,
-            Struct7BytesInt4ByteAligned,
-            Struct7BytesInt4ByteAligned,
-            Struct7BytesInt4ByteAligned,
-            Struct7BytesInt4ByteAligned,
-            Struct7BytesInt4ByteAligned,
-            Struct7BytesInt4ByteAligned,
-            Struct7BytesInt4ByteAligned)>(
-    symbol: 'PassStruct7BytesInt4ByteAlignedx10')
+  Int64 Function(
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+  )
+>(symbol: 'PassStruct7BytesInt4ByteAlignedx10')
 external int passStruct7BytesInt4ByteAlignedx10Native(
-    Struct7BytesInt4ByteAligned a0,
-    Struct7BytesInt4ByteAligned a1,
-    Struct7BytesInt4ByteAligned a2,
-    Struct7BytesInt4ByteAligned a3,
-    Struct7BytesInt4ByteAligned a4,
-    Struct7BytesInt4ByteAligned a5,
-    Struct7BytesInt4ByteAligned a6,
-    Struct7BytesInt4ByteAligned a7,
-    Struct7BytesInt4ByteAligned a8,
-    Struct7BytesInt4ByteAligned a9);
+  Struct7BytesInt4ByteAligned a0,
+  Struct7BytesInt4ByteAligned a1,
+  Struct7BytesInt4ByteAligned a2,
+  Struct7BytesInt4ByteAligned a3,
+  Struct7BytesInt4ByteAligned a4,
+  Struct7BytesInt4ByteAligned a5,
+  Struct7BytesInt4ByteAligned a6,
+  Struct7BytesInt4ByteAligned a7,
+  Struct7BytesInt4ByteAligned a8,
+  Struct7BytesInt4ByteAligned a9,
+);
 
 /// Sub word size on 64 bit architectures.
 /// With alignment rules taken into account size is 8 bytes.
@@ -678,7 +741,17 @@ void testPassStruct7BytesInt4ByteAlignedx10Native() {
   a9.a2 = 30;
 
   final result = passStruct7BytesInt4ByteAlignedx10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -697,28 +770,31 @@ void testPassStruct7BytesInt4ByteAlignedx10Native() {
 }
 
 @Native<
-    Int64 Function(
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt)>(symbol: 'PassStruct8BytesIntx10')
+  Int64 Function(
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+  )
+>(symbol: 'PassStruct8BytesIntx10')
 external int passStruct8BytesIntx10Native(
-    Struct8BytesInt a0,
-    Struct8BytesInt a1,
-    Struct8BytesInt a2,
-    Struct8BytesInt a3,
-    Struct8BytesInt a4,
-    Struct8BytesInt a5,
-    Struct8BytesInt a6,
-    Struct8BytesInt a7,
-    Struct8BytesInt a8,
-    Struct8BytesInt a9);
+  Struct8BytesInt a0,
+  Struct8BytesInt a1,
+  Struct8BytesInt a2,
+  Struct8BytesInt a3,
+  Struct8BytesInt a4,
+  Struct8BytesInt a5,
+  Struct8BytesInt a6,
+  Struct8BytesInt a7,
+  Struct8BytesInt a8,
+  Struct8BytesInt a9,
+);
 
 /// Exactly word size struct on 64bit architectures.
 /// 10 struct arguments will exhaust available registers.
@@ -775,8 +851,18 @@ void testPassStruct8BytesIntx10Native() {
   a9.a1 = -29;
   a9.a2 = 30;
 
-  final result =
-      passStruct8BytesIntx10Native(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct8BytesIntx10Native(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -795,29 +881,31 @@ void testPassStruct8BytesIntx10Native() {
 }
 
 @Native<
-        Float Function(
-            Struct8BytesHomogeneousFloat,
-            Struct8BytesHomogeneousFloat,
-            Struct8BytesHomogeneousFloat,
-            Struct8BytesHomogeneousFloat,
-            Struct8BytesHomogeneousFloat,
-            Struct8BytesHomogeneousFloat,
-            Struct8BytesHomogeneousFloat,
-            Struct8BytesHomogeneousFloat,
-            Struct8BytesHomogeneousFloat,
-            Struct8BytesHomogeneousFloat)>(
-    symbol: 'PassStruct8BytesHomogeneousFloatx10')
+  Float Function(
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+  )
+>(symbol: 'PassStruct8BytesHomogeneousFloatx10')
 external double passStruct8BytesHomogeneousFloatx10Native(
-    Struct8BytesHomogeneousFloat a0,
-    Struct8BytesHomogeneousFloat a1,
-    Struct8BytesHomogeneousFloat a2,
-    Struct8BytesHomogeneousFloat a3,
-    Struct8BytesHomogeneousFloat a4,
-    Struct8BytesHomogeneousFloat a5,
-    Struct8BytesHomogeneousFloat a6,
-    Struct8BytesHomogeneousFloat a7,
-    Struct8BytesHomogeneousFloat a8,
-    Struct8BytesHomogeneousFloat a9);
+  Struct8BytesHomogeneousFloat a0,
+  Struct8BytesHomogeneousFloat a1,
+  Struct8BytesHomogeneousFloat a2,
+  Struct8BytesHomogeneousFloat a3,
+  Struct8BytesHomogeneousFloat a4,
+  Struct8BytesHomogeneousFloat a5,
+  Struct8BytesHomogeneousFloat a6,
+  Struct8BytesHomogeneousFloat a7,
+  Struct8BytesHomogeneousFloat a8,
+  Struct8BytesHomogeneousFloat a9,
+);
 
 /// Arguments passed in FP registers as long as they fit.
 /// 10 struct arguments will exhaust available registers.
@@ -865,7 +953,17 @@ void testPassStruct8BytesHomogeneousFloatx10Native() {
   a9.a1 = 20.0;
 
   final result = passStruct8BytesHomogeneousFloatx10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -884,28 +982,31 @@ void testPassStruct8BytesHomogeneousFloatx10Native() {
 }
 
 @Native<
-    Float Function(
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed)>(symbol: 'PassStruct8BytesMixedx10')
+  Float Function(
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+  )
+>(symbol: 'PassStruct8BytesMixedx10')
 external double passStruct8BytesMixedx10Native(
-    Struct8BytesMixed a0,
-    Struct8BytesMixed a1,
-    Struct8BytesMixed a2,
-    Struct8BytesMixed a3,
-    Struct8BytesMixed a4,
-    Struct8BytesMixed a5,
-    Struct8BytesMixed a6,
-    Struct8BytesMixed a7,
-    Struct8BytesMixed a8,
-    Struct8BytesMixed a9);
+  Struct8BytesMixed a0,
+  Struct8BytesMixed a1,
+  Struct8BytesMixed a2,
+  Struct8BytesMixed a3,
+  Struct8BytesMixed a4,
+  Struct8BytesMixed a5,
+  Struct8BytesMixed a6,
+  Struct8BytesMixed a7,
+  Struct8BytesMixed a8,
+  Struct8BytesMixed a9,
+);
 
 /// On x64, arguments go in int registers because it is not only float.
 /// 10 struct arguments will exhaust available registers.
@@ -962,8 +1063,18 @@ void testPassStruct8BytesMixedx10Native() {
   a9.a1 = -29;
   a9.a2 = 30;
 
-  final result =
-      passStruct8BytesMixedx10Native(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct8BytesMixedx10Native(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -982,29 +1093,31 @@ void testPassStruct8BytesMixedx10Native() {
 }
 
 @Native<
-        Int64 Function(
-            Struct9BytesHomogeneousUint8,
-            Struct9BytesHomogeneousUint8,
-            Struct9BytesHomogeneousUint8,
-            Struct9BytesHomogeneousUint8,
-            Struct9BytesHomogeneousUint8,
-            Struct9BytesHomogeneousUint8,
-            Struct9BytesHomogeneousUint8,
-            Struct9BytesHomogeneousUint8,
-            Struct9BytesHomogeneousUint8,
-            Struct9BytesHomogeneousUint8)>(
-    symbol: 'PassStruct9BytesHomogeneousUint8x10')
+  Int64 Function(
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+  )
+>(symbol: 'PassStruct9BytesHomogeneousUint8x10')
 external int passStruct9BytesHomogeneousUint8x10Native(
-    Struct9BytesHomogeneousUint8 a0,
-    Struct9BytesHomogeneousUint8 a1,
-    Struct9BytesHomogeneousUint8 a2,
-    Struct9BytesHomogeneousUint8 a3,
-    Struct9BytesHomogeneousUint8 a4,
-    Struct9BytesHomogeneousUint8 a5,
-    Struct9BytesHomogeneousUint8 a6,
-    Struct9BytesHomogeneousUint8 a7,
-    Struct9BytesHomogeneousUint8 a8,
-    Struct9BytesHomogeneousUint8 a9);
+  Struct9BytesHomogeneousUint8 a0,
+  Struct9BytesHomogeneousUint8 a1,
+  Struct9BytesHomogeneousUint8 a2,
+  Struct9BytesHomogeneousUint8 a3,
+  Struct9BytesHomogeneousUint8 a4,
+  Struct9BytesHomogeneousUint8 a5,
+  Struct9BytesHomogeneousUint8 a6,
+  Struct9BytesHomogeneousUint8 a7,
+  Struct9BytesHomogeneousUint8 a8,
+  Struct9BytesHomogeneousUint8 a9,
+);
 
 /// Argument is a single byte over a multiple of word size.
 /// 10 struct arguments will exhaust available registers.
@@ -1125,7 +1238,17 @@ void testPassStruct9BytesHomogeneousUint8x10Native() {
   a9.a8 = 90;
 
   final result = passStruct9BytesHomogeneousUint8x10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -1144,29 +1267,31 @@ void testPassStruct9BytesHomogeneousUint8x10Native() {
 }
 
 @Native<
-        Int64 Function(
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned)>(
-    symbol: 'PassStruct9BytesInt4Or8ByteAlignedx10')
+  Int64 Function(
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+  )
+>(symbol: 'PassStruct9BytesInt4Or8ByteAlignedx10')
 external int passStruct9BytesInt4Or8ByteAlignedx10Native(
-    Struct9BytesInt4Or8ByteAligned a0,
-    Struct9BytesInt4Or8ByteAligned a1,
-    Struct9BytesInt4Or8ByteAligned a2,
-    Struct9BytesInt4Or8ByteAligned a3,
-    Struct9BytesInt4Or8ByteAligned a4,
-    Struct9BytesInt4Or8ByteAligned a5,
-    Struct9BytesInt4Or8ByteAligned a6,
-    Struct9BytesInt4Or8ByteAligned a7,
-    Struct9BytesInt4Or8ByteAligned a8,
-    Struct9BytesInt4Or8ByteAligned a9);
+  Struct9BytesInt4Or8ByteAligned a0,
+  Struct9BytesInt4Or8ByteAligned a1,
+  Struct9BytesInt4Or8ByteAligned a2,
+  Struct9BytesInt4Or8ByteAligned a3,
+  Struct9BytesInt4Or8ByteAligned a4,
+  Struct9BytesInt4Or8ByteAligned a5,
+  Struct9BytesInt4Or8ByteAligned a6,
+  Struct9BytesInt4Or8ByteAligned a7,
+  Struct9BytesInt4Or8ByteAligned a8,
+  Struct9BytesInt4Or8ByteAligned a9,
+);
 
 /// Argument is a single byte over a multiple of word size.
 /// With alignment rules taken into account size is 12 or 16 bytes.
@@ -1216,7 +1341,17 @@ void testPassStruct9BytesInt4Or8ByteAlignedx10Native() {
   a9.a1 = 20;
 
   final result = passStruct9BytesInt4Or8ByteAlignedx10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -1235,21 +1370,23 @@ void testPassStruct9BytesInt4Or8ByteAlignedx10Native() {
 }
 
 @Native<
-        Float Function(
-            Struct12BytesHomogeneousFloat,
-            Struct12BytesHomogeneousFloat,
-            Struct12BytesHomogeneousFloat,
-            Struct12BytesHomogeneousFloat,
-            Struct12BytesHomogeneousFloat,
-            Struct12BytesHomogeneousFloat)>(
-    symbol: 'PassStruct12BytesHomogeneousFloatx6')
+  Float Function(
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+  )
+>(symbol: 'PassStruct12BytesHomogeneousFloatx6')
 external double passStruct12BytesHomogeneousFloatx6Native(
-    Struct12BytesHomogeneousFloat a0,
-    Struct12BytesHomogeneousFloat a1,
-    Struct12BytesHomogeneousFloat a2,
-    Struct12BytesHomogeneousFloat a3,
-    Struct12BytesHomogeneousFloat a4,
-    Struct12BytesHomogeneousFloat a5);
+  Struct12BytesHomogeneousFloat a0,
+  Struct12BytesHomogeneousFloat a1,
+  Struct12BytesHomogeneousFloat a2,
+  Struct12BytesHomogeneousFloat a3,
+  Struct12BytesHomogeneousFloat a4,
+  Struct12BytesHomogeneousFloat a5,
+);
 
 /// Arguments in FPU registers on arm hardfp and arm64.
 /// Struct arguments will exhaust available registers, and leave some empty.
@@ -1287,8 +1424,14 @@ void testPassStruct12BytesHomogeneousFloatx6Native() {
   a5.a1 = -17.0;
   a5.a2 = 18.0;
 
-  final result =
-      passStruct12BytesHomogeneousFloatx6Native(a0, a1, a2, a3, a4, a5);
+  final result = passStruct12BytesHomogeneousFloatx6Native(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+  );
 
   print("result = $result");
 
@@ -1303,19 +1446,21 @@ void testPassStruct12BytesHomogeneousFloatx6Native() {
 }
 
 @Native<
-        Float Function(
-            Struct16BytesHomogeneousFloat,
-            Struct16BytesHomogeneousFloat,
-            Struct16BytesHomogeneousFloat,
-            Struct16BytesHomogeneousFloat,
-            Struct16BytesHomogeneousFloat)>(
-    symbol: 'PassStruct16BytesHomogeneousFloatx5')
+  Float Function(
+    Struct16BytesHomogeneousFloat,
+    Struct16BytesHomogeneousFloat,
+    Struct16BytesHomogeneousFloat,
+    Struct16BytesHomogeneousFloat,
+    Struct16BytesHomogeneousFloat,
+  )
+>(symbol: 'PassStruct16BytesHomogeneousFloatx5')
 external double passStruct16BytesHomogeneousFloatx5Native(
-    Struct16BytesHomogeneousFloat a0,
-    Struct16BytesHomogeneousFloat a1,
-    Struct16BytesHomogeneousFloat a2,
-    Struct16BytesHomogeneousFloat a3,
-    Struct16BytesHomogeneousFloat a4);
+  Struct16BytesHomogeneousFloat a0,
+  Struct16BytesHomogeneousFloat a1,
+  Struct16BytesHomogeneousFloat a2,
+  Struct16BytesHomogeneousFloat a3,
+  Struct16BytesHomogeneousFloat a4,
+);
 
 /// On Linux x64 argument is transferred on stack because it is over 16 bytes.
 /// Arguments in FPU registers on arm hardfp and arm64.
@@ -1367,28 +1512,31 @@ void testPassStruct16BytesHomogeneousFloatx5Native() {
 }
 
 @Native<
-    Double Function(
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed)>(symbol: 'PassStruct16BytesMixedx10')
+  Double Function(
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+  )
+>(symbol: 'PassStruct16BytesMixedx10')
 external double passStruct16BytesMixedx10Native(
-    Struct16BytesMixed a0,
-    Struct16BytesMixed a1,
-    Struct16BytesMixed a2,
-    Struct16BytesMixed a3,
-    Struct16BytesMixed a4,
-    Struct16BytesMixed a5,
-    Struct16BytesMixed a6,
-    Struct16BytesMixed a7,
-    Struct16BytesMixed a8,
-    Struct16BytesMixed a9);
+  Struct16BytesMixed a0,
+  Struct16BytesMixed a1,
+  Struct16BytesMixed a2,
+  Struct16BytesMixed a3,
+  Struct16BytesMixed a4,
+  Struct16BytesMixed a5,
+  Struct16BytesMixed a6,
+  Struct16BytesMixed a7,
+  Struct16BytesMixed a8,
+  Struct16BytesMixed a9,
+);
 
 /// On x64, arguments are split over FP and int registers.
 /// On x64, it will exhaust the integer registers with the 6th argument.
@@ -1437,8 +1585,18 @@ void testPassStruct16BytesMixedx10Native() {
   a9.a0 = -19.0;
   a9.a1 = 20;
 
-  final result =
-      passStruct16BytesMixedx10Native(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct16BytesMixedx10Native(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -1457,28 +1615,31 @@ void testPassStruct16BytesMixedx10Native() {
 }
 
 @Native<
-    Float Function(
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2,
-        Struct16BytesMixed2)>(symbol: 'PassStruct16BytesMixed2x10')
+  Float Function(
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+  )
+>(symbol: 'PassStruct16BytesMixed2x10')
 external double passStruct16BytesMixed2x10Native(
-    Struct16BytesMixed2 a0,
-    Struct16BytesMixed2 a1,
-    Struct16BytesMixed2 a2,
-    Struct16BytesMixed2 a3,
-    Struct16BytesMixed2 a4,
-    Struct16BytesMixed2 a5,
-    Struct16BytesMixed2 a6,
-    Struct16BytesMixed2 a7,
-    Struct16BytesMixed2 a8,
-    Struct16BytesMixed2 a9);
+  Struct16BytesMixed2 a0,
+  Struct16BytesMixed2 a1,
+  Struct16BytesMixed2 a2,
+  Struct16BytesMixed2 a3,
+  Struct16BytesMixed2 a4,
+  Struct16BytesMixed2 a5,
+  Struct16BytesMixed2 a6,
+  Struct16BytesMixed2 a7,
+  Struct16BytesMixed2 a8,
+  Struct16BytesMixed2 a9,
+);
 
 /// On x64, arguments are split over FP and int registers.
 /// On x64, it will exhaust the integer registers with the 6th argument.
@@ -1547,8 +1708,18 @@ void testPassStruct16BytesMixed2x10Native() {
   a9.a2 = -39.0;
   a9.a3 = 40;
 
-  final result =
-      passStruct16BytesMixed2x10Native(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct16BytesMixed2x10Native(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -1567,28 +1738,31 @@ void testPassStruct16BytesMixed2x10Native() {
 }
 
 @Native<
-    Int64 Function(
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt)>(symbol: 'PassStruct17BytesIntx10')
+  Int64 Function(
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+  )
+>(symbol: 'PassStruct17BytesIntx10')
 external int passStruct17BytesIntx10Native(
-    Struct17BytesInt a0,
-    Struct17BytesInt a1,
-    Struct17BytesInt a2,
-    Struct17BytesInt a3,
-    Struct17BytesInt a4,
-    Struct17BytesInt a5,
-    Struct17BytesInt a6,
-    Struct17BytesInt a7,
-    Struct17BytesInt a8,
-    Struct17BytesInt a9);
+  Struct17BytesInt a0,
+  Struct17BytesInt a1,
+  Struct17BytesInt a2,
+  Struct17BytesInt a3,
+  Struct17BytesInt a4,
+  Struct17BytesInt a5,
+  Struct17BytesInt a6,
+  Struct17BytesInt a7,
+  Struct17BytesInt a8,
+  Struct17BytesInt a9,
+);
 
 /// Arguments are passed as pointer to copy on arm64.
 /// Tests that the memory allocated for copies are rounded up to word size.
@@ -1645,8 +1819,18 @@ void testPassStruct17BytesIntx10Native() {
   a9.a1 = -29;
   a9.a2 = 30;
 
-  final result =
-      passStruct17BytesIntx10Native(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct17BytesIntx10Native(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -1665,29 +1849,31 @@ void testPassStruct17BytesIntx10Native() {
 }
 
 @Native<
-        Int64 Function(
-            Struct19BytesHomogeneousUint8,
-            Struct19BytesHomogeneousUint8,
-            Struct19BytesHomogeneousUint8,
-            Struct19BytesHomogeneousUint8,
-            Struct19BytesHomogeneousUint8,
-            Struct19BytesHomogeneousUint8,
-            Struct19BytesHomogeneousUint8,
-            Struct19BytesHomogeneousUint8,
-            Struct19BytesHomogeneousUint8,
-            Struct19BytesHomogeneousUint8)>(
-    symbol: 'PassStruct19BytesHomogeneousUint8x10')
+  Int64 Function(
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+  )
+>(symbol: 'PassStruct19BytesHomogeneousUint8x10')
 external int passStruct19BytesHomogeneousUint8x10Native(
-    Struct19BytesHomogeneousUint8 a0,
-    Struct19BytesHomogeneousUint8 a1,
-    Struct19BytesHomogeneousUint8 a2,
-    Struct19BytesHomogeneousUint8 a3,
-    Struct19BytesHomogeneousUint8 a4,
-    Struct19BytesHomogeneousUint8 a5,
-    Struct19BytesHomogeneousUint8 a6,
-    Struct19BytesHomogeneousUint8 a7,
-    Struct19BytesHomogeneousUint8 a8,
-    Struct19BytesHomogeneousUint8 a9);
+  Struct19BytesHomogeneousUint8 a0,
+  Struct19BytesHomogeneousUint8 a1,
+  Struct19BytesHomogeneousUint8 a2,
+  Struct19BytesHomogeneousUint8 a3,
+  Struct19BytesHomogeneousUint8 a4,
+  Struct19BytesHomogeneousUint8 a5,
+  Struct19BytesHomogeneousUint8 a6,
+  Struct19BytesHomogeneousUint8 a7,
+  Struct19BytesHomogeneousUint8 a8,
+  Struct19BytesHomogeneousUint8 a9,
+);
 
 /// The minimum alignment of this struct is only 1 byte based on its fields.
 /// Test that the memory backing these structs is extended to the right size.
@@ -1906,7 +2092,17 @@ void testPassStruct19BytesHomogeneousUint8x10Native() {
   a9.a18 = 190;
 
   final result = passStruct19BytesHomogeneousUint8x10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -1925,29 +2121,31 @@ void testPassStruct19BytesHomogeneousUint8x10Native() {
 }
 
 @Native<
-        Int32 Function(
-            Struct20BytesHomogeneousInt32,
-            Struct20BytesHomogeneousInt32,
-            Struct20BytesHomogeneousInt32,
-            Struct20BytesHomogeneousInt32,
-            Struct20BytesHomogeneousInt32,
-            Struct20BytesHomogeneousInt32,
-            Struct20BytesHomogeneousInt32,
-            Struct20BytesHomogeneousInt32,
-            Struct20BytesHomogeneousInt32,
-            Struct20BytesHomogeneousInt32)>(
-    symbol: 'PassStruct20BytesHomogeneousInt32x10')
+  Int32 Function(
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+  )
+>(symbol: 'PassStruct20BytesHomogeneousInt32x10')
 external int passStruct20BytesHomogeneousInt32x10Native(
-    Struct20BytesHomogeneousInt32 a0,
-    Struct20BytesHomogeneousInt32 a1,
-    Struct20BytesHomogeneousInt32 a2,
-    Struct20BytesHomogeneousInt32 a3,
-    Struct20BytesHomogeneousInt32 a4,
-    Struct20BytesHomogeneousInt32 a5,
-    Struct20BytesHomogeneousInt32 a6,
-    Struct20BytesHomogeneousInt32 a7,
-    Struct20BytesHomogeneousInt32 a8,
-    Struct20BytesHomogeneousInt32 a9);
+  Struct20BytesHomogeneousInt32 a0,
+  Struct20BytesHomogeneousInt32 a1,
+  Struct20BytesHomogeneousInt32 a2,
+  Struct20BytesHomogeneousInt32 a3,
+  Struct20BytesHomogeneousInt32 a4,
+  Struct20BytesHomogeneousInt32 a5,
+  Struct20BytesHomogeneousInt32 a6,
+  Struct20BytesHomogeneousInt32 a7,
+  Struct20BytesHomogeneousInt32 a8,
+  Struct20BytesHomogeneousInt32 a9,
+);
 
 /// Argument too big to go into integer registers on arm64.
 /// The arguments are passed as pointers to copies.
@@ -2027,7 +2225,17 @@ void testPassStruct20BytesHomogeneousInt32x10Native() {
   a9.a4 = 50;
 
   final result = passStruct20BytesHomogeneousInt32x10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -2046,9 +2254,11 @@ void testPassStruct20BytesHomogeneousInt32x10Native() {
 }
 
 @Native<Float Function(Struct20BytesHomogeneousFloat)>(
-    symbol: 'PassStruct20BytesHomogeneousFloat')
+  symbol: 'PassStruct20BytesHomogeneousFloat',
+)
 external double passStruct20BytesHomogeneousFloatNative(
-    Struct20BytesHomogeneousFloat a0);
+  Struct20BytesHomogeneousFloat a0,
+);
 
 /// Argument too big to go into FPU registers in hardfp and arm64.
 void testPassStruct20BytesHomogeneousFloatNative() {
@@ -2071,19 +2281,21 @@ void testPassStruct20BytesHomogeneousFloatNative() {
 }
 
 @Native<
-        Double Function(
-            Struct32BytesHomogeneousDouble,
-            Struct32BytesHomogeneousDouble,
-            Struct32BytesHomogeneousDouble,
-            Struct32BytesHomogeneousDouble,
-            Struct32BytesHomogeneousDouble)>(
-    symbol: 'PassStruct32BytesHomogeneousDoublex5')
+  Double Function(
+    Struct32BytesHomogeneousDouble,
+    Struct32BytesHomogeneousDouble,
+    Struct32BytesHomogeneousDouble,
+    Struct32BytesHomogeneousDouble,
+    Struct32BytesHomogeneousDouble,
+  )
+>(symbol: 'PassStruct32BytesHomogeneousDoublex5')
 external double passStruct32BytesHomogeneousDoublex5Native(
-    Struct32BytesHomogeneousDouble a0,
-    Struct32BytesHomogeneousDouble a1,
-    Struct32BytesHomogeneousDouble a2,
-    Struct32BytesHomogeneousDouble a3,
-    Struct32BytesHomogeneousDouble a4);
+  Struct32BytesHomogeneousDouble a0,
+  Struct32BytesHomogeneousDouble a1,
+  Struct32BytesHomogeneousDouble a2,
+  Struct32BytesHomogeneousDouble a3,
+  Struct32BytesHomogeneousDouble a4,
+);
 
 /// Arguments in FPU registers on arm64.
 /// 5 struct arguments will exhaust available registers.
@@ -2134,9 +2346,11 @@ void testPassStruct32BytesHomogeneousDoublex5Native() {
 }
 
 @Native<Double Function(Struct40BytesHomogeneousDouble)>(
-    symbol: 'PassStruct40BytesHomogeneousDouble')
+  symbol: 'PassStruct40BytesHomogeneousDouble',
+)
 external double passStruct40BytesHomogeneousDoubleNative(
-    Struct40BytesHomogeneousDouble a0);
+  Struct40BytesHomogeneousDouble a0,
+);
 
 /// Argument too big to go into FPU registers in arm64.
 void testPassStruct40BytesHomogeneousDoubleNative() {
@@ -2159,9 +2373,11 @@ void testPassStruct40BytesHomogeneousDoubleNative() {
 }
 
 @Native<Uint64 Function(Struct1024BytesHomogeneousUint64)>(
-    symbol: 'PassStruct1024BytesHomogeneousUint64')
+  symbol: 'PassStruct1024BytesHomogeneousUint64',
+)
 external int passStruct1024BytesHomogeneousUint64Native(
-    Struct1024BytesHomogeneousUint64 a0);
+  Struct1024BytesHomogeneousUint64 a0,
+);
 
 /// Test 1kb struct.
 void testPassStruct1024BytesHomogeneousUint64Native() {
@@ -2307,26 +2523,29 @@ void testPassStruct1024BytesHomogeneousUint64Native() {
 }
 
 @Native<
-    Float Function(
-        Float,
-        Struct16BytesHomogeneousFloat,
-        Float,
-        Struct16BytesHomogeneousFloat,
-        Float,
-        Struct16BytesHomogeneousFloat,
-        Float,
-        Struct16BytesHomogeneousFloat,
-        Float)>(symbol: 'PassFloatStruct16BytesHomogeneousFloatFloatStruct1')
+  Float Function(
+    Float,
+    Struct16BytesHomogeneousFloat,
+    Float,
+    Struct16BytesHomogeneousFloat,
+    Float,
+    Struct16BytesHomogeneousFloat,
+    Float,
+    Struct16BytesHomogeneousFloat,
+    Float,
+  )
+>(symbol: 'PassFloatStruct16BytesHomogeneousFloatFloatStruct1')
 external double passFloatStruct16BytesHomogeneousFloatFloatStruct1Native(
-    double a0,
-    Struct16BytesHomogeneousFloat a1,
-    double a2,
-    Struct16BytesHomogeneousFloat a3,
-    double a4,
-    Struct16BytesHomogeneousFloat a5,
-    double a6,
-    Struct16BytesHomogeneousFloat a7,
-    double a8);
+  double a0,
+  Struct16BytesHomogeneousFloat a1,
+  double a2,
+  Struct16BytesHomogeneousFloat a3,
+  double a4,
+  Struct16BytesHomogeneousFloat a5,
+  double a6,
+  Struct16BytesHomogeneousFloat a7,
+  double a8,
+);
 
 /// Tests the alignment of structs in FPU registers and backfilling.
 void testPassFloatStruct16BytesHomogeneousFloatFloatStruct1Native() {
@@ -2367,7 +2586,16 @@ void testPassFloatStruct16BytesHomogeneousFloatFloatStruct1Native() {
   a8 = -21.0;
 
   final result = passFloatStruct16BytesHomogeneousFloatFloatStruct1Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -2380,26 +2608,29 @@ void testPassFloatStruct16BytesHomogeneousFloatFloatStruct1Native() {
 }
 
 @Native<
-    Double Function(
-        Float,
-        Struct32BytesHomogeneousDouble,
-        Float,
-        Struct32BytesHomogeneousDouble,
-        Float,
-        Struct32BytesHomogeneousDouble,
-        Float,
-        Struct32BytesHomogeneousDouble,
-        Float)>(symbol: 'PassFloatStruct32BytesHomogeneousDoubleFloatStruct')
+  Double Function(
+    Float,
+    Struct32BytesHomogeneousDouble,
+    Float,
+    Struct32BytesHomogeneousDouble,
+    Float,
+    Struct32BytesHomogeneousDouble,
+    Float,
+    Struct32BytesHomogeneousDouble,
+    Float,
+  )
+>(symbol: 'PassFloatStruct32BytesHomogeneousDoubleFloatStruct')
 external double passFloatStruct32BytesHomogeneousDoubleFloatStructNative(
-    double a0,
-    Struct32BytesHomogeneousDouble a1,
-    double a2,
-    Struct32BytesHomogeneousDouble a3,
-    double a4,
-    Struct32BytesHomogeneousDouble a5,
-    double a6,
-    Struct32BytesHomogeneousDouble a7,
-    double a8);
+  double a0,
+  Struct32BytesHomogeneousDouble a1,
+  double a2,
+  Struct32BytesHomogeneousDouble a3,
+  double a4,
+  Struct32BytesHomogeneousDouble a5,
+  double a6,
+  Struct32BytesHomogeneousDouble a7,
+  double a8,
+);
 
 /// Tests the alignment of structs in FPU registers and backfilling.
 void testPassFloatStruct32BytesHomogeneousDoubleFloatStructNative() {
@@ -2440,7 +2671,16 @@ void testPassFloatStruct32BytesHomogeneousDoubleFloatStructNative() {
   a8 = -21.0;
 
   final result = passFloatStruct32BytesHomogeneousDoubleFloatStructNative(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -2453,26 +2693,29 @@ void testPassFloatStruct32BytesHomogeneousDoubleFloatStructNative() {
 }
 
 @Native<
-    Double Function(
-        Int8,
-        Struct16BytesMixed,
-        Int8,
-        Struct16BytesMixed,
-        Int8,
-        Struct16BytesMixed,
-        Int8,
-        Struct16BytesMixed,
-        Int8)>(symbol: 'PassInt8Struct16BytesMixedInt8Struct16BytesMixedIn')
+  Double Function(
+    Int8,
+    Struct16BytesMixed,
+    Int8,
+    Struct16BytesMixed,
+    Int8,
+    Struct16BytesMixed,
+    Int8,
+    Struct16BytesMixed,
+    Int8,
+  )
+>(symbol: 'PassInt8Struct16BytesMixedInt8Struct16BytesMixedIn')
 external double passInt8Struct16BytesMixedInt8Struct16BytesMixedInNative(
-    int a0,
-    Struct16BytesMixed a1,
-    int a2,
-    Struct16BytesMixed a3,
-    int a4,
-    Struct16BytesMixed a5,
-    int a6,
-    Struct16BytesMixed a7,
-    int a8);
+  int a0,
+  Struct16BytesMixed a1,
+  int a2,
+  Struct16BytesMixed a3,
+  int a4,
+  Struct16BytesMixed a5,
+  int a6,
+  Struct16BytesMixed a7,
+  int a8,
+);
 
 /// Tests the alignment of structs in integers registers and on the stack.
 /// Arm32 aligns this struct at 8.
@@ -2509,7 +2752,16 @@ void testPassInt8Struct16BytesMixedInt8Struct16BytesMixedInNative() {
   a8 = -13;
 
   final result = passInt8Struct16BytesMixedInt8Struct16BytesMixedInNative(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -2522,30 +2774,33 @@ void testPassInt8Struct16BytesMixedInt8Struct16BytesMixedInNative() {
 }
 
 @Native<
-    Double Function(
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Int32)>(symbol: 'PassDoublex6Struct16BytesMixedx4Int32')
+  Double Function(
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Int32,
+  )
+>(symbol: 'PassDoublex6Struct16BytesMixedx4Int32')
 external double passDoublex6Struct16BytesMixedx4Int32Native(
-    double a0,
-    double a1,
-    double a2,
-    double a3,
-    double a4,
-    double a5,
-    Struct16BytesMixed a6,
-    Struct16BytesMixed a7,
-    Struct16BytesMixed a8,
-    Struct16BytesMixed a9,
-    int a10);
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  Struct16BytesMixed a6,
+  Struct16BytesMixed a7,
+  Struct16BytesMixed a8,
+  Struct16BytesMixed a9,
+  int a10,
+);
 
 /// On Linux x64, it will exhaust xmm registers first, after 6 doubles and 2
 /// structs. The rest of the structs will go on the stack.
@@ -2584,7 +2839,18 @@ void testPassDoublex6Struct16BytesMixedx4Int32Native() {
   a10 = -15;
 
   final result = passDoublex6Struct16BytesMixedx4Int32Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+  );
 
   print("result = $result");
 
@@ -2597,26 +2863,29 @@ void testPassDoublex6Struct16BytesMixedx4Int32Native() {
 }
 
 @Native<
-    Double Function(
-        Int32,
-        Int32,
-        Int32,
-        Int32,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Double)>(symbol: 'PassInt32x4Struct16BytesMixedx4Double')
+  Double Function(
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Double,
+  )
+>(symbol: 'PassInt32x4Struct16BytesMixedx4Double')
 external double passInt32x4Struct16BytesMixedx4DoubleNative(
-    int a0,
-    int a1,
-    int a2,
-    int a3,
-    Struct16BytesMixed a4,
-    Struct16BytesMixed a5,
-    Struct16BytesMixed a6,
-    Struct16BytesMixed a7,
-    double a8);
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  Struct16BytesMixed a4,
+  Struct16BytesMixed a5,
+  Struct16BytesMixed a6,
+  Struct16BytesMixed a7,
+  double a8,
+);
 
 /// On Linux x64, it will exhaust int registers first.
 /// The rest of the structs will go on the stack.
@@ -2651,7 +2920,16 @@ void testPassInt32x4Struct16BytesMixedx4DoubleNative() {
   a8 = -13.0;
 
   final result = passInt32x4Struct16BytesMixedx4DoubleNative(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -2664,13 +2942,17 @@ void testPassInt32x4Struct16BytesMixedx4DoubleNative() {
 }
 
 @Native<
-        Double Function(Struct40BytesHomogeneousDouble,
-            Struct4BytesHomogeneousInt16, Struct8BytesHomogeneousFloat)>(
-    symbol: 'PassStruct40BytesHomogeneousDoubleStruct4BytesHomo')
+  Double Function(
+    Struct40BytesHomogeneousDouble,
+    Struct4BytesHomogeneousInt16,
+    Struct8BytesHomogeneousFloat,
+  )
+>(symbol: 'PassStruct40BytesHomogeneousDoubleStruct4BytesHomo')
 external double passStruct40BytesHomogeneousDoubleStruct4BytesHomoNative(
-    Struct40BytesHomogeneousDouble a0,
-    Struct4BytesHomogeneousInt16 a1,
-    Struct8BytesHomogeneousFloat a2);
+  Struct40BytesHomogeneousDouble a0,
+  Struct4BytesHomogeneousInt16 a1,
+  Struct8BytesHomogeneousFloat a2,
+);
 
 /// On various architectures, first struct is allocated on stack.
 /// Check that the other two arguments are allocated on registers.
@@ -2692,8 +2974,11 @@ void testPassStruct40BytesHomogeneousDoubleStruct4BytesHomoNative() {
   a2.a0 = 8.0;
   a2.a1 = -9.0;
 
-  final result =
-      passStruct40BytesHomogeneousDoubleStruct4BytesHomoNative(a0, a1, a2);
+  final result = passStruct40BytesHomogeneousDoubleStruct4BytesHomoNative(
+    a0,
+    a1,
+    a2,
+  );
 
   print("result = $result");
 
@@ -2705,89 +2990,91 @@ void testPassStruct40BytesHomogeneousDoubleStruct4BytesHomoNative() {
 }
 
 @Native<
-        Double Function(
-            Int32,
-            Int32,
-            Int32,
-            Int32,
-            Int32,
-            Int32,
-            Int32,
-            Int32,
-            Double,
-            Double,
-            Double,
-            Double,
-            Double,
-            Double,
-            Double,
-            Double,
-            Int64,
-            Int8,
-            Struct1ByteInt,
-            Int64,
-            Int8,
-            Struct4BytesHomogeneousInt16,
-            Int64,
-            Int8,
-            Struct8BytesInt,
-            Int64,
-            Int8,
-            Struct8BytesHomogeneousFloat,
-            Int64,
-            Int8,
-            Struct8BytesMixed,
-            Int64,
-            Int8,
-            StructAlignmentInt16,
-            Int64,
-            Int8,
-            StructAlignmentInt32,
-            Int64,
-            Int8,
-            StructAlignmentInt64)>(
-    symbol: 'PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int')
+  Double Function(
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+    Int64,
+    Int8,
+    Struct1ByteInt,
+    Int64,
+    Int8,
+    Struct4BytesHomogeneousInt16,
+    Int64,
+    Int8,
+    Struct8BytesInt,
+    Int64,
+    Int8,
+    Struct8BytesHomogeneousFloat,
+    Int64,
+    Int8,
+    Struct8BytesMixed,
+    Int64,
+    Int8,
+    StructAlignmentInt16,
+    Int64,
+    Int8,
+    StructAlignmentInt32,
+    Int64,
+    Int8,
+    StructAlignmentInt64,
+  )
+>(symbol: 'PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int')
 external double passInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntNative(
-    int a0,
-    int a1,
-    int a2,
-    int a3,
-    int a4,
-    int a5,
-    int a6,
-    int a7,
-    double a8,
-    double a9,
-    double a10,
-    double a11,
-    double a12,
-    double a13,
-    double a14,
-    double a15,
-    int a16,
-    int a17,
-    Struct1ByteInt a18,
-    int a19,
-    int a20,
-    Struct4BytesHomogeneousInt16 a21,
-    int a22,
-    int a23,
-    Struct8BytesInt a24,
-    int a25,
-    int a26,
-    Struct8BytesHomogeneousFloat a27,
-    int a28,
-    int a29,
-    Struct8BytesMixed a30,
-    int a31,
-    int a32,
-    StructAlignmentInt16 a33,
-    int a34,
-    int a35,
-    StructAlignmentInt32 a36,
-    int a37,
-    int a38,
-    StructAlignmentInt64 a39);
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  int a7,
+  double a8,
+  double a9,
+  double a10,
+  double a11,
+  double a12,
+  double a13,
+  double a14,
+  double a15,
+  int a16,
+  int a17,
+  Struct1ByteInt a18,
+  int a19,
+  int a20,
+  Struct4BytesHomogeneousInt16 a21,
+  int a22,
+  int a23,
+  Struct8BytesInt a24,
+  int a25,
+  int a26,
+  Struct8BytesHomogeneousFloat a27,
+  int a28,
+  int a29,
+  Struct8BytesMixed a30,
+  int a31,
+  int a32,
+  StructAlignmentInt16 a33,
+  int a34,
+  int a35,
+  StructAlignmentInt32 a36,
+  int a37,
+  int a38,
+  StructAlignmentInt64 a39,
+);
 
 /// Test alignment and padding of 16 byte int within struct.
 void testPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntNative() {
@@ -2894,46 +3181,47 @@ void testPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntNative() {
   a39.a2 = 52;
 
   final result = passInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntNative(
-      a0,
-      a1,
-      a2,
-      a3,
-      a4,
-      a5,
-      a6,
-      a7,
-      a8,
-      a9,
-      a10,
-      a11,
-      a12,
-      a13,
-      a14,
-      a15,
-      a16,
-      a17,
-      a18,
-      a19,
-      a20,
-      a21,
-      a22,
-      a23,
-      a24,
-      a25,
-      a26,
-      a27,
-      a28,
-      a29,
-      a30,
-      a31,
-      a32,
-      a33,
-      a34,
-      a35,
-      a36,
-      a37,
-      a38,
-      a39);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+    a12,
+    a13,
+    a14,
+    a15,
+    a16,
+    a17,
+    a18,
+    a19,
+    a20,
+    a21,
+    a22,
+    a23,
+    a24,
+    a25,
+    a26,
+    a27,
+    a28,
+    a29,
+    a30,
+    a31,
+    a32,
+    a33,
+    a34,
+    a35,
+    a36,
+    a37,
+    a38,
+    a39,
+  );
 
   print("result = $result");
 
@@ -2950,7 +3238,8 @@ void testPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntNative() {
 }
 
 @Native<Int64 Function(StructAlignmentInt16)>(
-    symbol: 'PassStructAlignmentInt16')
+  symbol: 'PassStructAlignmentInt16',
+)
 external int passStructAlignmentInt16Native(StructAlignmentInt16 a0);
 
 /// Test alignment and padding of 16 byte int within struct.
@@ -2972,7 +3261,8 @@ void testPassStructAlignmentInt16Native() {
 }
 
 @Native<Int64 Function(StructAlignmentInt32)>(
-    symbol: 'PassStructAlignmentInt32')
+  symbol: 'PassStructAlignmentInt32',
+)
 external int passStructAlignmentInt32Native(StructAlignmentInt32 a0);
 
 /// Test alignment and padding of 32 byte int within struct.
@@ -2994,7 +3284,8 @@ void testPassStructAlignmentInt32Native() {
 }
 
 @Native<Int64 Function(StructAlignmentInt64)>(
-    symbol: 'PassStructAlignmentInt64')
+  symbol: 'PassStructAlignmentInt64',
+)
 external int passStructAlignmentInt64Native(StructAlignmentInt64 a0);
 
 /// Test alignment and padding of 64 byte int within struct.
@@ -3016,28 +3307,31 @@ void testPassStructAlignmentInt64Native() {
 }
 
 @Native<
-    Int64 Function(
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt,
-        Struct8BytesNestedInt)>(symbol: 'PassStruct8BytesNestedIntx10')
+  Int64 Function(
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+  )
+>(symbol: 'PassStruct8BytesNestedIntx10')
 external int passStruct8BytesNestedIntx10Native(
-    Struct8BytesNestedInt a0,
-    Struct8BytesNestedInt a1,
-    Struct8BytesNestedInt a2,
-    Struct8BytesNestedInt a3,
-    Struct8BytesNestedInt a4,
-    Struct8BytesNestedInt a5,
-    Struct8BytesNestedInt a6,
-    Struct8BytesNestedInt a7,
-    Struct8BytesNestedInt a8,
-    Struct8BytesNestedInt a9);
+  Struct8BytesNestedInt a0,
+  Struct8BytesNestedInt a1,
+  Struct8BytesNestedInt a2,
+  Struct8BytesNestedInt a3,
+  Struct8BytesNestedInt a4,
+  Struct8BytesNestedInt a5,
+  Struct8BytesNestedInt a6,
+  Struct8BytesNestedInt a7,
+  Struct8BytesNestedInt a8,
+  Struct8BytesNestedInt a9,
+);
 
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust registers on all platforms.
@@ -3105,7 +3399,17 @@ void testPassStruct8BytesNestedIntx10Native() {
   a9.a1.a1 = 40;
 
   final result = passStruct8BytesNestedIntx10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -3124,28 +3428,31 @@ void testPassStruct8BytesNestedIntx10Native() {
 }
 
 @Native<
-    Float Function(
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat,
-        Struct8BytesNestedFloat)>(symbol: 'PassStruct8BytesNestedFloatx10')
+  Float Function(
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+  )
+>(symbol: 'PassStruct8BytesNestedFloatx10')
 external double passStruct8BytesNestedFloatx10Native(
-    Struct8BytesNestedFloat a0,
-    Struct8BytesNestedFloat a1,
-    Struct8BytesNestedFloat a2,
-    Struct8BytesNestedFloat a3,
-    Struct8BytesNestedFloat a4,
-    Struct8BytesNestedFloat a5,
-    Struct8BytesNestedFloat a6,
-    Struct8BytesNestedFloat a7,
-    Struct8BytesNestedFloat a8,
-    Struct8BytesNestedFloat a9);
+  Struct8BytesNestedFloat a0,
+  Struct8BytesNestedFloat a1,
+  Struct8BytesNestedFloat a2,
+  Struct8BytesNestedFloat a3,
+  Struct8BytesNestedFloat a4,
+  Struct8BytesNestedFloat a5,
+  Struct8BytesNestedFloat a6,
+  Struct8BytesNestedFloat a7,
+  Struct8BytesNestedFloat a8,
+  Struct8BytesNestedFloat a9,
+);
 
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust fpu registers on all platforms.
@@ -3193,7 +3500,17 @@ void testPassStruct8BytesNestedFloatx10Native() {
   a9.a1.a0 = 20.0;
 
   final result = passStruct8BytesNestedFloatx10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -3212,28 +3529,31 @@ void testPassStruct8BytesNestedFloatx10Native() {
 }
 
 @Native<
-    Float Function(
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2,
-        Struct8BytesNestedFloat2)>(symbol: 'PassStruct8BytesNestedFloat2x10')
+  Float Function(
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+  )
+>(symbol: 'PassStruct8BytesNestedFloat2x10')
 external double passStruct8BytesNestedFloat2x10Native(
-    Struct8BytesNestedFloat2 a0,
-    Struct8BytesNestedFloat2 a1,
-    Struct8BytesNestedFloat2 a2,
-    Struct8BytesNestedFloat2 a3,
-    Struct8BytesNestedFloat2 a4,
-    Struct8BytesNestedFloat2 a5,
-    Struct8BytesNestedFloat2 a6,
-    Struct8BytesNestedFloat2 a7,
-    Struct8BytesNestedFloat2 a8,
-    Struct8BytesNestedFloat2 a9);
+  Struct8BytesNestedFloat2 a0,
+  Struct8BytesNestedFloat2 a1,
+  Struct8BytesNestedFloat2 a2,
+  Struct8BytesNestedFloat2 a3,
+  Struct8BytesNestedFloat2 a4,
+  Struct8BytesNestedFloat2 a5,
+  Struct8BytesNestedFloat2 a6,
+  Struct8BytesNestedFloat2 a7,
+  Struct8BytesNestedFloat2 a8,
+  Struct8BytesNestedFloat2 a9,
+);
 
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust fpu registers on all platforms.
@@ -3283,7 +3603,17 @@ void testPassStruct8BytesNestedFloat2x10Native() {
   a9.a1 = 20.0;
 
   final result = passStruct8BytesNestedFloat2x10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -3302,28 +3632,31 @@ void testPassStruct8BytesNestedFloat2x10Native() {
 }
 
 @Native<
-    Double Function(
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed,
-        Struct8BytesNestedMixed)>(symbol: 'PassStruct8BytesNestedMixedx10')
+  Double Function(
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+  )
+>(symbol: 'PassStruct8BytesNestedMixedx10')
 external double passStruct8BytesNestedMixedx10Native(
-    Struct8BytesNestedMixed a0,
-    Struct8BytesNestedMixed a1,
-    Struct8BytesNestedMixed a2,
-    Struct8BytesNestedMixed a3,
-    Struct8BytesNestedMixed a4,
-    Struct8BytesNestedMixed a5,
-    Struct8BytesNestedMixed a6,
-    Struct8BytesNestedMixed a7,
-    Struct8BytesNestedMixed a8,
-    Struct8BytesNestedMixed a9);
+  Struct8BytesNestedMixed a0,
+  Struct8BytesNestedMixed a1,
+  Struct8BytesNestedMixed a2,
+  Struct8BytesNestedMixed a3,
+  Struct8BytesNestedMixed a4,
+  Struct8BytesNestedMixed a5,
+  Struct8BytesNestedMixed a6,
+  Struct8BytesNestedMixed a7,
+  Struct8BytesNestedMixed a8,
+  Struct8BytesNestedMixed a9,
+);
 
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust all registers on all platforms.
@@ -3381,7 +3714,17 @@ void testPassStruct8BytesNestedMixedx10Native() {
   a9.a1.a0 = 30.0;
 
   final result = passStruct8BytesNestedMixedx10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -3400,9 +3743,12 @@ void testPassStruct8BytesNestedMixedx10Native() {
 }
 
 @Native<Int64 Function(Struct16BytesNestedInt, Struct16BytesNestedInt)>(
-    symbol: 'PassStruct16BytesNestedIntx2')
+  symbol: 'PassStruct16BytesNestedIntx2',
+)
 external int passStruct16BytesNestedIntx2Native(
-    Struct16BytesNestedInt a0, Struct16BytesNestedInt a1);
+  Struct16BytesNestedInt a0,
+  Struct16BytesNestedInt a1,
+);
 
 /// Deeper nested struct to test recursive member access.
 void testPassStruct16BytesNestedIntx2Native() {
@@ -3439,9 +3785,12 @@ void testPassStruct16BytesNestedIntx2Native() {
 }
 
 @Native<Int64 Function(Struct32BytesNestedInt, Struct32BytesNestedInt)>(
-    symbol: 'PassStruct32BytesNestedIntx2')
+  symbol: 'PassStruct32BytesNestedIntx2',
+)
 external int passStruct32BytesNestedIntx2Native(
-    Struct32BytesNestedInt a0, Struct32BytesNestedInt a1);
+  Struct32BytesNestedInt a0,
+  Struct32BytesNestedInt a1,
+);
 
 /// Even deeper nested struct to test recursive member access.
 void testPassStruct32BytesNestedIntx2Native() {
@@ -3494,9 +3843,11 @@ void testPassStruct32BytesNestedIntx2Native() {
 }
 
 @Native<Int64 Function(StructNestedIntStructAlignmentInt16)>(
-    symbol: 'PassStructNestedIntStructAlignmentInt16')
+  symbol: 'PassStructNestedIntStructAlignmentInt16',
+)
 external int passStructNestedIntStructAlignmentInt16Native(
-    StructNestedIntStructAlignmentInt16 a0);
+  StructNestedIntStructAlignmentInt16 a0,
+);
 
 /// Test alignment and padding of nested struct with 16 byte int.
 void testPassStructNestedIntStructAlignmentInt16Native() {
@@ -3520,9 +3871,11 @@ void testPassStructNestedIntStructAlignmentInt16Native() {
 }
 
 @Native<Int64 Function(StructNestedIntStructAlignmentInt32)>(
-    symbol: 'PassStructNestedIntStructAlignmentInt32')
+  symbol: 'PassStructNestedIntStructAlignmentInt32',
+)
 external int passStructNestedIntStructAlignmentInt32Native(
-    StructNestedIntStructAlignmentInt32 a0);
+  StructNestedIntStructAlignmentInt32 a0,
+);
 
 /// Test alignment and padding of nested struct with 32 byte int.
 void testPassStructNestedIntStructAlignmentInt32Native() {
@@ -3546,9 +3899,11 @@ void testPassStructNestedIntStructAlignmentInt32Native() {
 }
 
 @Native<Int64 Function(StructNestedIntStructAlignmentInt64)>(
-    symbol: 'PassStructNestedIntStructAlignmentInt64')
+  symbol: 'PassStructNestedIntStructAlignmentInt64',
+)
 external int passStructNestedIntStructAlignmentInt64Native(
-    StructNestedIntStructAlignmentInt64 a0);
+  StructNestedIntStructAlignmentInt64 a0,
+);
 
 /// Test alignment and padding of nested struct with 64 byte int.
 void testPassStructNestedIntStructAlignmentInt64Native() {
@@ -3572,17 +3927,19 @@ void testPassStructNestedIntStructAlignmentInt64Native() {
 }
 
 @Native<
-        Double Function(
-            StructNestedIrregularEvenBigger,
-            StructNestedIrregularEvenBigger,
-            StructNestedIrregularEvenBigger,
-            StructNestedIrregularEvenBigger)>(
-    symbol: 'PassStructNestedIrregularEvenBiggerx4')
+  Double Function(
+    StructNestedIrregularEvenBigger,
+    StructNestedIrregularEvenBigger,
+    StructNestedIrregularEvenBigger,
+    StructNestedIrregularEvenBigger,
+  )
+>(symbol: 'PassStructNestedIrregularEvenBiggerx4')
 external double passStructNestedIrregularEvenBiggerx4Native(
-    StructNestedIrregularEvenBigger a0,
-    StructNestedIrregularEvenBigger a1,
-    StructNestedIrregularEvenBigger a2,
-    StructNestedIrregularEvenBigger a3);
+  StructNestedIrregularEvenBigger a0,
+  StructNestedIrregularEvenBigger a1,
+  StructNestedIrregularEvenBigger a2,
+  StructNestedIrregularEvenBigger a3,
+);
 
 /// Return big irregular struct as smoke test.
 void testPassStructNestedIrregularEvenBiggerx4Native() {
@@ -3745,16 +4102,19 @@ void testPassStructNestedIrregularEvenBiggerx4Native() {
 }
 
 @Native<
-    Int32 Function(
-        Struct8BytesInlineArrayInt,
-        Struct8BytesInlineArrayInt,
-        Struct8BytesInlineArrayInt,
-        Struct8BytesInlineArrayInt)>(symbol: 'PassStruct8BytesInlineArrayIntx4')
+  Int32 Function(
+    Struct8BytesInlineArrayInt,
+    Struct8BytesInlineArrayInt,
+    Struct8BytesInlineArrayInt,
+    Struct8BytesInlineArrayInt,
+  )
+>(symbol: 'PassStruct8BytesInlineArrayIntx4')
 external int passStruct8BytesInlineArrayIntx4Native(
-    Struct8BytesInlineArrayInt a0,
-    Struct8BytesInlineArrayInt a1,
-    Struct8BytesInlineArrayInt a2,
-    Struct8BytesInlineArrayInt a3);
+  Struct8BytesInlineArrayInt a0,
+  Struct8BytesInlineArrayInt a1,
+  Struct8BytesInlineArrayInt a2,
+  Struct8BytesInlineArrayInt a3,
+);
 
 /// Simple struct with inline array.
 void testPassStruct8BytesInlineArrayIntx4Native() {
@@ -3813,16 +4173,19 @@ void testPassStruct8BytesInlineArrayIntx4Native() {
 }
 
 @Native<
-    Int32 Function(
-        StructInlineArrayIrregular,
-        StructInlineArrayIrregular,
-        StructInlineArrayIrregular,
-        StructInlineArrayIrregular)>(symbol: 'PassStructInlineArrayIrregularx4')
+  Int32 Function(
+    StructInlineArrayIrregular,
+    StructInlineArrayIrregular,
+    StructInlineArrayIrregular,
+    StructInlineArrayIrregular,
+  )
+>(symbol: 'PassStructInlineArrayIrregularx4')
 external int passStructInlineArrayIrregularx4Native(
-    StructInlineArrayIrregular a0,
-    StructInlineArrayIrregular a1,
-    StructInlineArrayIrregular a2,
-    StructInlineArrayIrregular a3);
+  StructInlineArrayIrregular a0,
+  StructInlineArrayIrregular a1,
+  StructInlineArrayIrregular a2,
+  StructInlineArrayIrregular a3,
+);
 
 /// Irregular struct with inline array.
 void testPassStructInlineArrayIrregularx4Native() {
@@ -3869,7 +4232,8 @@ void testPassStructInlineArrayIrregularx4Native() {
 }
 
 @Native<Int32 Function(StructInlineArray100Bytes)>(
-    symbol: 'PassStructInlineArray100Bytes')
+  symbol: 'PassStructInlineArray100Bytes',
+)
 external int passStructInlineArray100BytesNative(StructInlineArray100Bytes a0);
 
 /// Regular larger struct with inline array.
@@ -3988,19 +4352,21 @@ void testPassStructInlineArray100BytesNative() {
 }
 
 @Native<
-        Float Function(
-            StructStruct16BytesHomogeneousFloat2,
-            StructStruct16BytesHomogeneousFloat2,
-            StructStruct16BytesHomogeneousFloat2,
-            StructStruct16BytesHomogeneousFloat2,
-            StructStruct16BytesHomogeneousFloat2)>(
-    symbol: 'PassStructStruct16BytesHomogeneousFloat2x5')
+  Float Function(
+    StructStruct16BytesHomogeneousFloat2,
+    StructStruct16BytesHomogeneousFloat2,
+    StructStruct16BytesHomogeneousFloat2,
+    StructStruct16BytesHomogeneousFloat2,
+    StructStruct16BytesHomogeneousFloat2,
+  )
+>(symbol: 'PassStructStruct16BytesHomogeneousFloat2x5')
 external double passStructStruct16BytesHomogeneousFloat2x5Native(
-    StructStruct16BytesHomogeneousFloat2 a0,
-    StructStruct16BytesHomogeneousFloat2 a1,
-    StructStruct16BytesHomogeneousFloat2 a2,
-    StructStruct16BytesHomogeneousFloat2 a3,
-    StructStruct16BytesHomogeneousFloat2 a4);
+  StructStruct16BytesHomogeneousFloat2 a0,
+  StructStruct16BytesHomogeneousFloat2 a1,
+  StructStruct16BytesHomogeneousFloat2 a2,
+  StructStruct16BytesHomogeneousFloat2 a3,
+  StructStruct16BytesHomogeneousFloat2 a4,
+);
 
 /// Arguments in FPU registers on arm hardfp and arm64.
 /// 5 struct arguments will exhaust available registers.
@@ -4037,8 +4403,13 @@ void testPassStructStruct16BytesHomogeneousFloat2x5Native() {
   a4.a1[1].a0 = -19.0;
   a4.a2 = 20.0;
 
-  final result =
-      passStructStruct16BytesHomogeneousFloat2x5Native(a0, a1, a2, a3, a4);
+  final result = passStructStruct16BytesHomogeneousFloat2x5Native(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+  );
 
   print("result = $result");
 
@@ -4052,19 +4423,21 @@ void testPassStructStruct16BytesHomogeneousFloat2x5Native() {
 }
 
 @Native<
-        Double Function(
-            StructStruct32BytesHomogeneousDouble2,
-            StructStruct32BytesHomogeneousDouble2,
-            StructStruct32BytesHomogeneousDouble2,
-            StructStruct32BytesHomogeneousDouble2,
-            StructStruct32BytesHomogeneousDouble2)>(
-    symbol: 'PassStructStruct32BytesHomogeneousDouble2x5')
+  Double Function(
+    StructStruct32BytesHomogeneousDouble2,
+    StructStruct32BytesHomogeneousDouble2,
+    StructStruct32BytesHomogeneousDouble2,
+    StructStruct32BytesHomogeneousDouble2,
+    StructStruct32BytesHomogeneousDouble2,
+  )
+>(symbol: 'PassStructStruct32BytesHomogeneousDouble2x5')
 external double passStructStruct32BytesHomogeneousDouble2x5Native(
-    StructStruct32BytesHomogeneousDouble2 a0,
-    StructStruct32BytesHomogeneousDouble2 a1,
-    StructStruct32BytesHomogeneousDouble2 a2,
-    StructStruct32BytesHomogeneousDouble2 a3,
-    StructStruct32BytesHomogeneousDouble2 a4);
+  StructStruct32BytesHomogeneousDouble2 a0,
+  StructStruct32BytesHomogeneousDouble2 a1,
+  StructStruct32BytesHomogeneousDouble2 a2,
+  StructStruct32BytesHomogeneousDouble2 a3,
+  StructStruct32BytesHomogeneousDouble2 a4,
+);
 
 /// Arguments in FPU registers on arm64.
 /// 5 struct arguments will exhaust available registers.
@@ -4101,8 +4474,13 @@ void testPassStructStruct32BytesHomogeneousDouble2x5Native() {
   a4.a1[1].a0 = -19.0;
   a4.a2 = 20.0;
 
-  final result =
-      passStructStruct32BytesHomogeneousDouble2x5Native(a0, a1, a2, a3, a4);
+  final result = passStructStruct32BytesHomogeneousDouble2x5Native(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+  );
 
   print("result = $result");
 
@@ -4116,28 +4494,31 @@ void testPassStructStruct32BytesHomogeneousDouble2x5Native() {
 }
 
 @Native<
-    Float Function(
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3,
-        StructStruct16BytesMixed3)>(symbol: 'PassStructStruct16BytesMixed3x10')
+  Float Function(
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+  )
+>(symbol: 'PassStructStruct16BytesMixed3x10')
 external double passStructStruct16BytesMixed3x10Native(
-    StructStruct16BytesMixed3 a0,
-    StructStruct16BytesMixed3 a1,
-    StructStruct16BytesMixed3 a2,
-    StructStruct16BytesMixed3 a3,
-    StructStruct16BytesMixed3 a4,
-    StructStruct16BytesMixed3 a5,
-    StructStruct16BytesMixed3 a6,
-    StructStruct16BytesMixed3 a7,
-    StructStruct16BytesMixed3 a8,
-    StructStruct16BytesMixed3 a9);
+  StructStruct16BytesMixed3 a0,
+  StructStruct16BytesMixed3 a1,
+  StructStruct16BytesMixed3 a2,
+  StructStruct16BytesMixed3 a3,
+  StructStruct16BytesMixed3 a4,
+  StructStruct16BytesMixed3 a5,
+  StructStruct16BytesMixed3 a6,
+  StructStruct16BytesMixed3 a7,
+  StructStruct16BytesMixed3 a8,
+  StructStruct16BytesMixed3 a9,
+);
 
 /// On x64, arguments are split over FP and int registers.
 /// On x64, it will exhaust the integer registers with the 6th argument.
@@ -4227,7 +4608,17 @@ void testPassStructStruct16BytesMixed3x10Native() {
   a9.a2[1] = 60;
 
   final result = passStructStruct16BytesMixed3x10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -4246,22 +4637,25 @@ void testPassStructStruct16BytesMixed3x10Native() {
 }
 
 @Native<
-    Uint32 Function(
-        Uint8,
-        Struct32BytesInlineArrayMultiDimensionalInt,
-        Uint8,
-        Struct8BytesInlineArrayMultiDimensionalInt,
-        Uint8,
-        Struct8BytesInlineArrayMultiDimensionalInt,
-        Uint8)>(symbol: 'PassUint8Struct32BytesInlineArrayMultiDimensionalI')
+  Uint32 Function(
+    Uint8,
+    Struct32BytesInlineArrayMultiDimensionalInt,
+    Uint8,
+    Struct8BytesInlineArrayMultiDimensionalInt,
+    Uint8,
+    Struct8BytesInlineArrayMultiDimensionalInt,
+    Uint8,
+  )
+>(symbol: 'PassUint8Struct32BytesInlineArrayMultiDimensionalI')
 external int passUint8Struct32BytesInlineArrayMultiDimensionalINative(
-    int a0,
-    Struct32BytesInlineArrayMultiDimensionalInt a1,
-    int a2,
-    Struct8BytesInlineArrayMultiDimensionalInt a3,
-    int a4,
-    Struct8BytesInlineArrayMultiDimensionalInt a5,
-    int a6);
+  int a0,
+  Struct32BytesInlineArrayMultiDimensionalInt a1,
+  int a2,
+  Struct8BytesInlineArrayMultiDimensionalInt a3,
+  int a4,
+  Struct8BytesInlineArrayMultiDimensionalInt a5,
+  int a6,
+);
 
 /// Test multi dimensional inline array struct as argument.
 void testPassUint8Struct32BytesInlineArrayMultiDimensionalINative() {
@@ -4330,7 +4724,14 @@ void testPassUint8Struct32BytesInlineArrayMultiDimensionalINative() {
   a6 = 52;
 
   final result = passUint8Struct32BytesInlineArrayMultiDimensionalINative(
-      a0, a1, a2, a3, a4, a5, a6);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+  );
 
   print("result = $result");
 
@@ -4342,10 +4743,13 @@ void testPassUint8Struct32BytesInlineArrayMultiDimensionalINative() {
 }
 
 @Native<
-    Uint32 Function(Uint8, Struct4BytesInlineArrayMultiDimensionalInt,
-        Uint8)>(symbol: 'PassUint8Struct4BytesInlineArrayMultiDimensionalIn')
+  Uint32 Function(Uint8, Struct4BytesInlineArrayMultiDimensionalInt, Uint8)
+>(symbol: 'PassUint8Struct4BytesInlineArrayMultiDimensionalIn')
 external int passUint8Struct4BytesInlineArrayMultiDimensionalInNative(
-    int a0, Struct4BytesInlineArrayMultiDimensionalInt a1, int a2);
+  int a0,
+  Struct4BytesInlineArrayMultiDimensionalInt a1,
+  int a2,
+);
 
 /// Test struct in multi dimensional inline array.
 void testPassUint8Struct4BytesInlineArrayMultiDimensionalInNative() {
@@ -4361,8 +4765,11 @@ void testPassUint8Struct4BytesInlineArrayMultiDimensionalInNative() {
   a1.a0[1][1].a0 = -5;
   a2 = 6;
 
-  final result =
-      passUint8Struct4BytesInlineArrayMultiDimensionalInNative(a0, a1, a2);
+  final result = passUint8Struct4BytesInlineArrayMultiDimensionalInNative(
+    a0,
+    a1,
+    a2,
+  );
 
   print("result = $result");
 
@@ -4372,28 +4779,31 @@ void testPassUint8Struct4BytesInlineArrayMultiDimensionalInNative() {
 }
 
 @Native<
-    Int64 Function(
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt,
-        Struct3BytesPackedInt)>(symbol: 'PassStruct3BytesPackedIntx10')
+  Int64 Function(
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+  )
+>(symbol: 'PassStruct3BytesPackedIntx10')
 external int passStruct3BytesPackedIntx10Native(
-    Struct3BytesPackedInt a0,
-    Struct3BytesPackedInt a1,
-    Struct3BytesPackedInt a2,
-    Struct3BytesPackedInt a3,
-    Struct3BytesPackedInt a4,
-    Struct3BytesPackedInt a5,
-    Struct3BytesPackedInt a6,
-    Struct3BytesPackedInt a7,
-    Struct3BytesPackedInt a8,
-    Struct3BytesPackedInt a9);
+  Struct3BytesPackedInt a0,
+  Struct3BytesPackedInt a1,
+  Struct3BytesPackedInt a2,
+  Struct3BytesPackedInt a3,
+  Struct3BytesPackedInt a4,
+  Struct3BytesPackedInt a5,
+  Struct3BytesPackedInt a6,
+  Struct3BytesPackedInt a7,
+  Struct3BytesPackedInt a8,
+  Struct3BytesPackedInt a9,
+);
 
 /// Small struct with mis-aligned member.
 void testPassStruct3BytesPackedIntx10Native() {
@@ -4440,7 +4850,17 @@ void testPassStruct3BytesPackedIntx10Native() {
   a9.a1 = 20;
 
   final result = passStruct3BytesPackedIntx10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -4459,28 +4879,31 @@ void testPassStruct3BytesPackedIntx10Native() {
 }
 
 @Native<
-    Int64 Function(
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt,
-        Struct8BytesPackedInt)>(symbol: 'PassStruct8BytesPackedIntx10')
+  Int64 Function(
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+  )
+>(symbol: 'PassStruct8BytesPackedIntx10')
 external int passStruct8BytesPackedIntx10Native(
-    Struct8BytesPackedInt a0,
-    Struct8BytesPackedInt a1,
-    Struct8BytesPackedInt a2,
-    Struct8BytesPackedInt a3,
-    Struct8BytesPackedInt a4,
-    Struct8BytesPackedInt a5,
-    Struct8BytesPackedInt a6,
-    Struct8BytesPackedInt a7,
-    Struct8BytesPackedInt a8,
-    Struct8BytesPackedInt a9);
+  Struct8BytesPackedInt a0,
+  Struct8BytesPackedInt a1,
+  Struct8BytesPackedInt a2,
+  Struct8BytesPackedInt a3,
+  Struct8BytesPackedInt a4,
+  Struct8BytesPackedInt a5,
+  Struct8BytesPackedInt a6,
+  Struct8BytesPackedInt a7,
+  Struct8BytesPackedInt a8,
+  Struct8BytesPackedInt a9,
+);
 
 /// Struct with mis-aligned member.
 void testPassStruct8BytesPackedIntx10Native() {
@@ -4557,7 +4980,17 @@ void testPassStruct8BytesPackedIntx10Native() {
   a9.a4 = 50;
 
   final result = passStruct8BytesPackedIntx10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -4576,34 +5009,37 @@ void testPassStruct8BytesPackedIntx10Native() {
 }
 
 @Native<
-    Double Function(
-        Struct9BytesPackedMixed,
-        Struct9BytesPackedMixed,
-        Struct9BytesPackedMixed,
-        Struct9BytesPackedMixed,
-        Struct9BytesPackedMixed,
-        Struct9BytesPackedMixed,
-        Struct9BytesPackedMixed,
-        Struct9BytesPackedMixed,
-        Struct9BytesPackedMixed,
-        Struct9BytesPackedMixed,
-        Double,
-        Int32,
-        Int32)>(symbol: 'PassStruct9BytesPackedMixedx10DoubleInt32x2')
+  Double Function(
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Double,
+    Int32,
+    Int32,
+  )
+>(symbol: 'PassStruct9BytesPackedMixedx10DoubleInt32x2')
 external double passStruct9BytesPackedMixedx10DoubleInt32x2Native(
-    Struct9BytesPackedMixed a0,
-    Struct9BytesPackedMixed a1,
-    Struct9BytesPackedMixed a2,
-    Struct9BytesPackedMixed a3,
-    Struct9BytesPackedMixed a4,
-    Struct9BytesPackedMixed a5,
-    Struct9BytesPackedMixed a6,
-    Struct9BytesPackedMixed a7,
-    Struct9BytesPackedMixed a8,
-    Struct9BytesPackedMixed a9,
-    double a10,
-    int a11,
-    int a12);
+  Struct9BytesPackedMixed a0,
+  Struct9BytesPackedMixed a1,
+  Struct9BytesPackedMixed a2,
+  Struct9BytesPackedMixed a3,
+  Struct9BytesPackedMixed a4,
+  Struct9BytesPackedMixed a5,
+  Struct9BytesPackedMixed a6,
+  Struct9BytesPackedMixed a7,
+  Struct9BytesPackedMixed a8,
+  Struct9BytesPackedMixed a9,
+  double a10,
+  int a11,
+  int a12,
+);
 
 /// Struct with mis-aligned member.
 /// Tests backfilling of CPU and FPU registers.
@@ -4657,7 +5093,20 @@ void testPassStruct9BytesPackedMixedx10DoubleInt32x2Native() {
   a12 = -23;
 
   final result = passStruct9BytesPackedMixedx10DoubleInt32x2Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+    a12,
+  );
 
   print("result = $result");
 
@@ -4676,7 +5125,8 @@ void testPassStruct9BytesPackedMixedx10DoubleInt32x2Native() {
 }
 
 @Native<Double Function(Struct5BytesPackedMixed)>(
-    symbol: 'PassStruct5BytesPackedMixed')
+  symbol: 'PassStruct5BytesPackedMixed',
+)
 external double passStruct5BytesPackedMixedNative(Struct5BytesPackedMixed a0);
 
 /// This packed struct happens to have only aligned members.
@@ -4697,9 +5147,11 @@ void testPassStruct5BytesPackedMixedNative() {
 }
 
 @Native<Double Function(StructNestedAlignmentStruct5BytesPackedMixed)>(
-    symbol: 'PassStructNestedAlignmentStruct5BytesPackedMixed')
+  symbol: 'PassStructNestedAlignmentStruct5BytesPackedMixed',
+)
 external double passStructNestedAlignmentStruct5BytesPackedMixedNative(
-    StructNestedAlignmentStruct5BytesPackedMixed a0);
+  StructNestedAlignmentStruct5BytesPackedMixed a0,
+);
 
 /// Check alignment of packed struct in non-packed struct.
 void testPassStructNestedAlignmentStruct5BytesPackedMixedNative() {
@@ -4720,9 +5172,11 @@ void testPassStructNestedAlignmentStruct5BytesPackedMixedNative() {
 }
 
 @Native<Double Function(Struct6BytesInlineArrayInt)>(
-    symbol: 'PassStruct6BytesInlineArrayInt')
+  symbol: 'PassStruct6BytesInlineArrayInt',
+)
 external double passStruct6BytesInlineArrayIntNative(
-    Struct6BytesInlineArrayInt a0);
+  Struct6BytesInlineArrayInt a0,
+);
 
 /// Check alignment of packed struct array in non-packed struct.
 void testPassStruct6BytesInlineArrayIntNative() {
@@ -4744,9 +5198,11 @@ void testPassStruct6BytesInlineArrayIntNative() {
 }
 
 @Native<Double Function(Struct15BytesInlineArrayMixed)>(
-    symbol: 'PassStruct15BytesInlineArrayMixed')
+  symbol: 'PassStruct15BytesInlineArrayMixed',
+)
 external double passStruct15BytesInlineArrayMixedNative(
-    Struct15BytesInlineArrayMixed a0);
+  Struct15BytesInlineArrayMixed a0,
+);
 
 /// Check alignment of packed struct array in non-packed struct.
 void testPassStruct15BytesInlineArrayMixedNative() {
@@ -4770,28 +5226,31 @@ void testPassStruct15BytesInlineArrayMixedNative() {
 }
 
 @Native<
-    Double Function(
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed)>(symbol: 'PassUnion4BytesMixedx10')
+  Double Function(
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+  )
+>(symbol: 'PassUnion4BytesMixedx10')
 external double passUnion4BytesMixedx10Native(
-    Union4BytesMixed a0,
-    Union4BytesMixed a1,
-    Union4BytesMixed a2,
-    Union4BytesMixed a3,
-    Union4BytesMixed a4,
-    Union4BytesMixed a5,
-    Union4BytesMixed a6,
-    Union4BytesMixed a7,
-    Union4BytesMixed a8,
-    Union4BytesMixed a9);
+  Union4BytesMixed a0,
+  Union4BytesMixed a1,
+  Union4BytesMixed a2,
+  Union4BytesMixed a3,
+  Union4BytesMixed a4,
+  Union4BytesMixed a5,
+  Union4BytesMixed a6,
+  Union4BytesMixed a7,
+  Union4BytesMixed a8,
+  Union4BytesMixed a9,
+);
 
 /// Check placement of mixed integer/float union.
 void testPassUnion4BytesMixedx10Native() {
@@ -4827,8 +5286,18 @@ void testPassUnion4BytesMixedx10Native() {
   a8.a0 = 9;
   a9.a0 = 10;
 
-  final result =
-      passUnion4BytesMixedx10Native(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passUnion4BytesMixedx10Native(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -4847,28 +5316,31 @@ void testPassUnion4BytesMixedx10Native() {
 }
 
 @Native<
-    Double Function(
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat,
-        Union8BytesNestedFloat)>(symbol: 'PassUnion8BytesNestedFloatx10')
+  Double Function(
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+  )
+>(symbol: 'PassUnion8BytesNestedFloatx10')
 external double passUnion8BytesNestedFloatx10Native(
-    Union8BytesNestedFloat a0,
-    Union8BytesNestedFloat a1,
-    Union8BytesNestedFloat a2,
-    Union8BytesNestedFloat a3,
-    Union8BytesNestedFloat a4,
-    Union8BytesNestedFloat a5,
-    Union8BytesNestedFloat a6,
-    Union8BytesNestedFloat a7,
-    Union8BytesNestedFloat a8,
-    Union8BytesNestedFloat a9);
+  Union8BytesNestedFloat a0,
+  Union8BytesNestedFloat a1,
+  Union8BytesNestedFloat a2,
+  Union8BytesNestedFloat a3,
+  Union8BytesNestedFloat a4,
+  Union8BytesNestedFloat a5,
+  Union8BytesNestedFloat a6,
+  Union8BytesNestedFloat a7,
+  Union8BytesNestedFloat a8,
+  Union8BytesNestedFloat a9,
+);
 
 /// Check placement of mixed floats union.
 void testPassUnion8BytesNestedFloatx10Native() {
@@ -4905,7 +5377,17 @@ void testPassUnion8BytesNestedFloatx10Native() {
   a9.a0 = 10.0;
 
   final result = passUnion8BytesNestedFloatx10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -4924,28 +5406,31 @@ void testPassUnion8BytesNestedFloatx10Native() {
 }
 
 @Native<
-    Double Function(
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt,
-        Union9BytesNestedInt)>(symbol: 'PassUnion9BytesNestedIntx10')
+  Double Function(
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+  )
+>(symbol: 'PassUnion9BytesNestedIntx10')
 external double passUnion9BytesNestedIntx10Native(
-    Union9BytesNestedInt a0,
-    Union9BytesNestedInt a1,
-    Union9BytesNestedInt a2,
-    Union9BytesNestedInt a3,
-    Union9BytesNestedInt a4,
-    Union9BytesNestedInt a5,
-    Union9BytesNestedInt a6,
-    Union9BytesNestedInt a7,
-    Union9BytesNestedInt a8,
-    Union9BytesNestedInt a9);
+  Union9BytesNestedInt a0,
+  Union9BytesNestedInt a1,
+  Union9BytesNestedInt a2,
+  Union9BytesNestedInt a3,
+  Union9BytesNestedInt a4,
+  Union9BytesNestedInt a5,
+  Union9BytesNestedInt a6,
+  Union9BytesNestedInt a7,
+  Union9BytesNestedInt a8,
+  Union9BytesNestedInt a9,
+);
 
 /// Mixed-size union argument.
 void testPassUnion9BytesNestedIntx10Native() {
@@ -5001,8 +5486,18 @@ void testPassUnion9BytesNestedIntx10Native() {
   a9.a0.a1 = -29;
   a9.a0.a2 = 30;
 
-  final result =
-      passUnion9BytesNestedIntx10Native(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passUnion9BytesNestedIntx10Native(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -5021,29 +5516,31 @@ void testPassUnion9BytesNestedIntx10Native() {
 }
 
 @Native<
-        Double Function(
-            Union16BytesNestedInlineArrayFloat,
-            Union16BytesNestedInlineArrayFloat,
-            Union16BytesNestedInlineArrayFloat,
-            Union16BytesNestedInlineArrayFloat,
-            Union16BytesNestedInlineArrayFloat,
-            Union16BytesNestedInlineArrayFloat,
-            Union16BytesNestedInlineArrayFloat,
-            Union16BytesNestedInlineArrayFloat,
-            Union16BytesNestedInlineArrayFloat,
-            Union16BytesNestedInlineArrayFloat)>(
-    symbol: 'PassUnion16BytesNestedInlineArrayFloatx10')
+  Double Function(
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+  )
+>(symbol: 'PassUnion16BytesNestedInlineArrayFloatx10')
 external double passUnion16BytesNestedInlineArrayFloatx10Native(
-    Union16BytesNestedInlineArrayFloat a0,
-    Union16BytesNestedInlineArrayFloat a1,
-    Union16BytesNestedInlineArrayFloat a2,
-    Union16BytesNestedInlineArrayFloat a3,
-    Union16BytesNestedInlineArrayFloat a4,
-    Union16BytesNestedInlineArrayFloat a5,
-    Union16BytesNestedInlineArrayFloat a6,
-    Union16BytesNestedInlineArrayFloat a7,
-    Union16BytesNestedInlineArrayFloat a8,
-    Union16BytesNestedInlineArrayFloat a9);
+  Union16BytesNestedInlineArrayFloat a0,
+  Union16BytesNestedInlineArrayFloat a1,
+  Union16BytesNestedInlineArrayFloat a2,
+  Union16BytesNestedInlineArrayFloat a3,
+  Union16BytesNestedInlineArrayFloat a4,
+  Union16BytesNestedInlineArrayFloat a5,
+  Union16BytesNestedInlineArrayFloat a6,
+  Union16BytesNestedInlineArrayFloat a7,
+  Union16BytesNestedInlineArrayFloat a8,
+  Union16BytesNestedInlineArrayFloat a9,
+);
 
 /// Union with homogenous floats.
 void testPassUnion16BytesNestedInlineArrayFloatx10Native() {
@@ -5110,7 +5607,17 @@ void testPassUnion16BytesNestedInlineArrayFloatx10Native() {
   a9.a0[3] = 40.0;
 
   final result = passUnion16BytesNestedInlineArrayFloatx10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -5129,28 +5636,31 @@ void testPassUnion16BytesNestedInlineArrayFloatx10Native() {
 }
 
 @Native<
-    Double Function(
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat,
-        Union16BytesNestedFloat)>(symbol: 'PassUnion16BytesNestedFloatx10')
+  Double Function(
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+  )
+>(symbol: 'PassUnion16BytesNestedFloatx10')
 external double passUnion16BytesNestedFloatx10Native(
-    Union16BytesNestedFloat a0,
-    Union16BytesNestedFloat a1,
-    Union16BytesNestedFloat a2,
-    Union16BytesNestedFloat a3,
-    Union16BytesNestedFloat a4,
-    Union16BytesNestedFloat a5,
-    Union16BytesNestedFloat a6,
-    Union16BytesNestedFloat a7,
-    Union16BytesNestedFloat a8,
-    Union16BytesNestedFloat a9);
+  Union16BytesNestedFloat a0,
+  Union16BytesNestedFloat a1,
+  Union16BytesNestedFloat a2,
+  Union16BytesNestedFloat a3,
+  Union16BytesNestedFloat a4,
+  Union16BytesNestedFloat a5,
+  Union16BytesNestedFloat a6,
+  Union16BytesNestedFloat a7,
+  Union16BytesNestedFloat a8,
+  Union16BytesNestedFloat a9,
+);
 
 /// Union with homogenous floats.
 void testPassUnion16BytesNestedFloatx10Native() {
@@ -5197,7 +5707,17 @@ void testPassUnion16BytesNestedFloatx10Native() {
   a9.a0.a1 = 20.0;
 
   final result = passUnion16BytesNestedFloatx10Native(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -5216,32 +5736,35 @@ void testPassUnion16BytesNestedFloatx10Native() {
 }
 
 @Native<
-    Int32 Function(
-        Uint8,
-        Bool,
-        Bool,
-        Bool,
-        Bool,
-        Bool,
-        Bool,
-        Bool,
-        Bool,
-        Bool,
-        Struct10BytesHomogeneousBool,
-        Bool)>(symbol: 'PassUint8Boolx9Struct10BytesHomogeneousBoolBool')
+  Int32 Function(
+    Uint8,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Struct10BytesHomogeneousBool,
+    Bool,
+  )
+>(symbol: 'PassUint8Boolx9Struct10BytesHomogeneousBoolBool')
 external int passUint8Boolx9Struct10BytesHomogeneousBoolBoolNative(
-    int a0,
-    bool a1,
-    bool a2,
-    bool a3,
-    bool a4,
-    bool a5,
-    bool a6,
-    bool a7,
-    bool a8,
-    bool a9,
-    Struct10BytesHomogeneousBool a10,
-    bool a11);
+  int a0,
+  bool a1,
+  bool a2,
+  bool a3,
+  bool a4,
+  bool a5,
+  bool a6,
+  bool a7,
+  bool a8,
+  bool a9,
+  Struct10BytesHomogeneousBool a10,
+  bool a11,
+);
 
 /// Passing bools and a struct with bools.
 /// Exhausts the registers to test bools and the bool struct alignment on the
@@ -5284,7 +5807,19 @@ void testPassUint8Boolx9Struct10BytesHomogeneousBoolBoolNative() {
   a11 = true;
 
   final result = passUint8Boolx9Struct10BytesHomogeneousBoolBoolNative(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+  );
 
   print("result = $result");
 
@@ -5294,32 +5829,35 @@ void testPassUint8Boolx9Struct10BytesHomogeneousBoolBoolNative() {
 }
 
 @Native<
-    Int32 Function(
-        Uint8,
-        Bool,
-        Bool,
-        Bool,
-        Bool,
-        Bool,
-        Bool,
-        Bool,
-        Bool,
-        Bool,
-        Struct10BytesInlineArrayBool,
-        Bool)>(symbol: 'PassUint8Boolx9Struct10BytesInlineArrayBoolBool')
+  Int32 Function(
+    Uint8,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Struct10BytesInlineArrayBool,
+    Bool,
+  )
+>(symbol: 'PassUint8Boolx9Struct10BytesInlineArrayBoolBool')
 external int passUint8Boolx9Struct10BytesInlineArrayBoolBoolNative(
-    int a0,
-    bool a1,
-    bool a2,
-    bool a3,
-    bool a4,
-    bool a5,
-    bool a6,
-    bool a7,
-    bool a8,
-    bool a9,
-    Struct10BytesInlineArrayBool a10,
-    bool a11);
+  int a0,
+  bool a1,
+  bool a2,
+  bool a3,
+  bool a4,
+  bool a5,
+  bool a6,
+  bool a7,
+  bool a8,
+  bool a9,
+  Struct10BytesInlineArrayBool a10,
+  bool a11,
+);
 
 /// Passing bools and a struct with bools.
 /// Exhausts the registers to test bools and the bool struct alignment on the
@@ -5362,7 +5900,19 @@ void testPassUint8Boolx9Struct10BytesInlineArrayBoolBoolNative() {
   a11 = true;
 
   final result = passUint8Boolx9Struct10BytesInlineArrayBoolBoolNative(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+  );
 
   print("result = $result");
 
@@ -5372,7 +5922,8 @@ void testPassUint8Boolx9Struct10BytesInlineArrayBoolBoolNative() {
 }
 
 @Native<Bool Function(Uint8, Struct1ByteBool)>(
-    symbol: 'PassUint8Struct1ByteBool')
+  symbol: 'PassUint8Struct1ByteBool',
+)
 external bool passUint8Struct1ByteBoolNative(int a0, Struct1ByteBool a1);
 
 /// Returning a bool.
@@ -5394,11 +5945,23 @@ void testPassUint8Struct1ByteBoolNative() {
 }
 
 @Native<
-        WChar Function(
-            WChar, StructInlineArrayInt, UintPtr, UintPtr, Long, UnsignedLong)>(
-    symbol: 'PassWCharStructInlineArrayIntUintPtrx2LongUnsigned')
+  WChar Function(
+    WChar,
+    StructInlineArrayInt,
+    UintPtr,
+    UintPtr,
+    Long,
+    UnsignedLong,
+  )
+>(symbol: 'PassWCharStructInlineArrayIntUintPtrx2LongUnsigned')
 external int passWCharStructInlineArrayIntUintPtrx2LongUnsignedNative(
-    int a0, StructInlineArrayInt a1, int a2, int a3, int a4, int a5);
+  int a0,
+  StructInlineArrayInt a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+);
 
 /// Returning a wchar.
 void testPassWCharStructInlineArrayIntUintPtrx2LongUnsignedNative() {
@@ -5427,7 +5990,13 @@ void testPassWCharStructInlineArrayIntUintPtrx2LongUnsignedNative() {
   a5 = 15;
 
   final result = passWCharStructInlineArrayIntUintPtrx2LongUnsignedNative(
-      a0, a1, a2, a3, a4, a5);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+  );
 
   print("result = $result");
 
@@ -5437,11 +6006,27 @@ void testPassWCharStructInlineArrayIntUintPtrx2LongUnsignedNative() {
 }
 
 @Native<
-        Int64 Function(Int64, Int64, Int64, Int64, Int64, Int64, Int64,
-            Struct12BytesHomogeneousInt32)>(
-    symbol: 'PassInt64x7Struct12BytesHomogeneousInt32')
-external int passInt64x7Struct12BytesHomogeneousInt32Native(int a0, int a1,
-    int a2, int a3, int a4, int a5, int a6, Struct12BytesHomogeneousInt32 a7);
+  Int64 Function(
+    Int64,
+    Int64,
+    Int64,
+    Int64,
+    Int64,
+    Int64,
+    Int64,
+    Struct12BytesHomogeneousInt32,
+  )
+>(symbol: 'PassInt64x7Struct12BytesHomogeneousInt32')
+external int passInt64x7Struct12BytesHomogeneousInt32Native(
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  Struct12BytesHomogeneousInt32 a7,
+);
 
 /// Struct stradles last argument register
 void testPassInt64x7Struct12BytesHomogeneousInt32Native() {
@@ -5467,7 +6052,15 @@ void testPassInt64x7Struct12BytesHomogeneousInt32Native() {
   a7.a2 = 10;
 
   final result = passInt64x7Struct12BytesHomogeneousInt32Native(
-      a0, a1, a2, a3, a4, a5, a6, a7);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+  );
 
   print("result = $result");
 
@@ -5477,14 +6070,17 @@ void testPassInt64x7Struct12BytesHomogeneousInt32Native() {
 }
 
 @Native<Int64 Function(Pointer<Struct12BytesHomogeneousInt32>)>(
-    symbol: 'PassPointerStruct12BytesHomogeneousInt32')
+  symbol: 'PassPointerStruct12BytesHomogeneousInt32',
+)
 external int passPointerStruct12BytesHomogeneousInt32Native(
-    Pointer<Struct12BytesHomogeneousInt32> a0);
+  Pointer<Struct12BytesHomogeneousInt32> a0,
+);
 
 /// Passing a pointer to a struct
 void testPassPointerStruct12BytesHomogeneousInt32Native() {
   final a0 = calloc.allocate<Struct12BytesHomogeneousInt32>(
-      sizeOf<Struct12BytesHomogeneousInt32>());
+    sizeOf<Struct12BytesHomogeneousInt32>(),
+  );
 
   a0.ref.a0 = -1;
   a0.ref.a1 = 2;
@@ -5500,14 +6096,17 @@ void testPassPointerStruct12BytesHomogeneousInt32Native() {
 }
 
 @Native<Int64 Function(Pointer<StructInlineArrayVariable>)>(
-    symbol: 'PassPointerStructInlineArrayVariable')
+  symbol: 'PassPointerStructInlineArrayVariable',
+)
 external int passPointerStructInlineArrayVariableNative(
-    Pointer<StructInlineArrayVariable> a0);
+  Pointer<StructInlineArrayVariable> a0,
+);
 
 /// Variable length array
 void testPassPointerStructInlineArrayVariableNative() {
   final a0 = calloc.allocate<StructInlineArrayVariable>(
-      sizeOf<StructInlineArrayVariable>() + 10 * sizeOf<Uint8>());
+    sizeOf<StructInlineArrayVariable>() + 10 * sizeOf<Uint8>(),
+  );
 
   a0.ref.a0 = 1;
   a0.ref.a1[0] = 2;
@@ -5531,15 +6130,18 @@ void testPassPointerStructInlineArrayVariableNative() {
 }
 
 @Native<Int64 Function(Pointer<StructInlineArrayVariableAlign>)>(
-    symbol: 'PassPointerStructInlineArrayVariableAlign')
+  symbol: 'PassPointerStructInlineArrayVariableAlign',
+)
 external int passPointerStructInlineArrayVariableAlignNative(
-    Pointer<StructInlineArrayVariableAlign> a0);
+  Pointer<StructInlineArrayVariableAlign> a0,
+);
 
 /// Variable length array with variable length element having more alignment than
 /// the rest of the struct.
 void testPassPointerStructInlineArrayVariableAlignNative() {
   final a0 = calloc.allocate<StructInlineArrayVariableAlign>(
-      sizeOf<StructInlineArrayVariableAlign>() + 10 * sizeOf<Uint32>());
+    sizeOf<StructInlineArrayVariableAlign>() + 10 * sizeOf<Uint32>(),
+  );
 
   a0.ref.a0 = 1;
   a0.ref.a1[0] = 2;

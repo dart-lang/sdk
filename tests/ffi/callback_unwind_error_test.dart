@@ -17,8 +17,10 @@ int simpleAddition(int x, int y) {
 }
 
 final testcases = [
-  CallbackTest("SimpleAddition",
-      Pointer.fromFunction<SimpleAdditionType>(simpleAddition, 0)),
+  CallbackTest(
+    "SimpleAddition",
+    Pointer.fromFunction<SimpleAdditionType>(simpleAddition, 0),
+  ),
 ];
 
 void main() {

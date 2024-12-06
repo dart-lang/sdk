@@ -35,8 +35,8 @@ Try correcting the name to the name of an existing method, or defining a method 
 }
 extension type Foo(dynamic d) {
   abstract extension-type-member representation-field get d() → dynamic;
-  get foo = get self::Foo|foo;
-  set foo = set self::Foo|foo;
+  get foo = self::Foo|get#foo;
+  set foo = self::Foo|set#foo;
   method bar = self::Foo|bar;
   method tearoff bar = self::Foo|get#bar;
   constructor • = self::Foo|constructor#;
@@ -48,8 +48,8 @@ static extension-type-member method Foo|constructor#(dynamic d) → self::Foo% /
 }
 static extension-type-member method Foo|constructor#_#new#tearOff(dynamic d) → self::Foo% /* erasure=dynamic, declared=! */
   return self::Foo|constructor#(d);
-static abstract extension-type-member get Foo|foo() → invalid-type;
-static abstract extension-type-member set Foo|foo(synthesized invalid-type #externalFieldValue) → void;
+static abstract extension-type-member method Foo|get#foo(lowered dynamic #this) → invalid-type;
+static abstract extension-type-member method Foo|set#foo(lowered dynamic #this, synthesized invalid-type #externalFieldValue) → void;
 static extension-type-member method Foo|bar(lowered final self::Foo% /* erasure=dynamic, declared=! */ #this) → dynamic {
   return #this;
 }

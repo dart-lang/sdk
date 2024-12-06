@@ -12,11 +12,13 @@ import 'dylib_utils.dart';
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 final initializeApi = ffiTestFunctions.lookupFunction<
-    IntPtr Function(Pointer<Void>),
-    int Function(Pointer<Void>)>("InitDartApiDL");
-final enterBarrier =
-    ffiTestFunctions.lookupFunction<Void Function(IntPtr), void Function(int)>(
-        "WaitUntilNThreadsEnterBarrier");
+  IntPtr Function(Pointer<Void>),
+  int Function(Pointer<Void>)
+>("InitDartApiDL");
+final enterBarrier = ffiTestFunctions
+    .lookupFunction<Void Function(IntPtr), void Function(int)>(
+      "WaitUntilNThreadsEnterBarrier",
+    );
 
 main() async {
   const threadBarrierCount = 30;

@@ -163,6 +163,8 @@ void addressOf() {
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_MUST_BE_NATIVE
   // [cfe] Argument to 'Native.addressOf' must be annotated with @Native.
 
+  // dart format off
+
   Native.addressOf(_valid);
 //^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE

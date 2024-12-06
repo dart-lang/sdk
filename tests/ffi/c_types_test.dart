@@ -30,8 +30,13 @@ class CType {
   final String type;
   final String type2;
 
-  CType(this.ffiSize, this.type,
-      {this.type2 = '', this.modifier = '', this.ffiLoad});
+  CType(
+    this.ffiSize,
+    this.type, {
+    this.type2 = '',
+    this.modifier = '',
+    this.ffiLoad,
+  });
 
   String get cRepresentation => '$modifier $type $type2'.trim();
 
@@ -103,38 +108,18 @@ final uint = CType(
   modifier: 'unsigned',
   ffiLoad: (Pointer p) => p.cast<UnsignedInt>().value,
 );
-final long = CType(
-  sizeOf<Long>(),
-  'long',
-);
-final ulong = CType(
-  sizeOf<UnsignedLong>(),
-  'long',
-  modifier: 'unsigned',
-);
-final longlong = CType(
-  sizeOf<LongLong>(),
-  'long',
-  type2: 'long',
-);
+final long = CType(sizeOf<Long>(), 'long');
+final ulong = CType(sizeOf<UnsignedLong>(), 'long', modifier: 'unsigned');
+final longlong = CType(sizeOf<LongLong>(), 'long', type2: 'long');
 final ulonglong = CType(
   sizeOf<UnsignedLongLong>(),
   'long',
   type2: 'long',
   modifier: 'unsigned',
 );
-final intptr_t = CType(
-  sizeOf<IntPtr>(),
-  'intptr_t',
-);
-final uintptr_t = CType(
-  sizeOf<UintPtr>(),
-  'uintptr_t',
-);
-final size_t = CType(
-  sizeOf<Size>(),
-  'size_t',
-);
+final intptr_t = CType(sizeOf<IntPtr>(), 'intptr_t');
+final uintptr_t = CType(sizeOf<UintPtr>(), 'uintptr_t');
+final size_t = CType(sizeOf<Size>(), 'size_t');
 final wchar_t = CType(
   sizeOf<WChar>(),
   'wchar_t',

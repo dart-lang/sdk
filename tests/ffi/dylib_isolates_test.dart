@@ -22,15 +22,16 @@ void main() async {
 
   final setGlobalVar = dl
       .lookupFunction<Void Function(Int32), void Function(int)>('SetGlobalVar');
-  final getGlobalVar =
-      dl.lookupFunction<Int32 Function(), int Function()>('GetGlobalVar');
+  final getGlobalVar = dl.lookupFunction<Int32 Function(), int Function()>(
+    'GetGlobalVar',
+  );
   setGlobalVar(123);
   Expect.equals(123, getGlobalVar());
 
   final receivePort = ReceivePort();
   Isolate.spawn(secondIsolateMain, receivePort.sendPort);
   await receivePort.first;
-  if (!Platform.isIOS /* Static linking causes different behavior. */) {
+  if (!Platform.isIOS /* Static linking causes different behavior. */ ) {
     Expect.equals(42, getGlobalVar());
   }
 }
