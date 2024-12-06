@@ -91,4 +91,26 @@ void main(List<String> args) async {
       },
     );
   });
+
+  test('with native dynamic linking', timeout: longTimeout, () async {
+    await nativeAssetsTest('native_dynamic_linking', (packageUri) async {
+      final result = await runDart(
+        arguments: [
+          '--enable-experiment=native-assets',
+          'test',
+        ],
+        workingDirectory: packageUri,
+        logger: logger,
+      );
+      expect(
+        result.stdout,
+        stringContainsInOrder(
+          [
+            'invoke native function',
+            'All tests passed!',
+          ],
+        ),
+      );
+    });
+  });
 }
