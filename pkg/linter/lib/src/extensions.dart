@@ -341,7 +341,7 @@ extension ElementExtension on Element {
 
 extension ElementExtension2 on Element2? {
   Element2? get canonicalElement2 => switch (this) {
-        PropertyAccessorElement2(:var variable3) => variable3,
+        PropertyAccessorElement2(:var variable3?) => variable3,
         _ => this,
       };
 

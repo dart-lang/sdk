@@ -375,7 +375,7 @@ abstract class Element2 {
   /// If the receiver is already a non-[Member] element (or a synthetic element,
   /// such as a synthetic property accessor), this getter will return the
   /// receiver.
-  Element2? get baseElement;
+  Element2 get baseElement;
 
   /// The children of this element.
   ///

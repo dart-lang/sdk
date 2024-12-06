@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
@@ -43,28 +43,30 @@ class UseLateForPrivateFieldsAndVariables extends LintRule {
 }
 
 class _Visitor extends RecursiveAstVisitor<void> {
-  final lateables = <CompilationUnitElement, List<VariableDeclaration>>{};
+  final Map<LibraryFragment, List<VariableDeclaration>> lateables =
+      <LibraryFragment, List<VariableDeclaration>>{};
 
-  final nullableAccess = <Element>{};
+  final Set<Element2> nullableAccess = <Element2>{};
 
   final LintRule rule;
   final LinterContext context;
 
-  /// The "current" [CompilationUnitElement], which is set by
+  /// The "current" [LibraryFragment], which is set by
   /// [visitCompilationUnit].
-  late CompilationUnitElement currentUnit;
+  late LibraryFragment currentLibraryFragment;
 
   _Visitor(this.rule, this.context);
 
   void afterLibrary() {
     for (var contextUnit in context.allUnits) {
-      var unit = contextUnit.unit.declaredElement;
-      var variables = lateables[unit];
+      var libraryFragment = contextUnit.unit.declaredFragment;
+      var variables = lateables[libraryFragment];
       if (variables == null) continue;
       for (var variable in variables) {
-        if (!nullableAccess.contains(variable.declaredElement)) {
-          var contextUnit = context.allUnits
-              .firstWhereOrNull((u) => u.unit.declaredElement == unit);
+        var variableElement = variable.declaredFragment?.element;
+        if (!nullableAccess.contains(variableElement)) {
+          var contextUnit = context.allUnits.firstWhereOrNull(
+              (u) => u.unit.declaredFragment == libraryFragment);
           if (contextUnit == null) continue;
           contextUnit.errorReporter.atNode(variable, rule.lintCode);
         }
@@ -74,7 +76,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    var element = node.writeElement?.canonicalElement;
+    var element = node.writeElement2?.canonicalElement2;
     if (element != null) {
       var assignee = node.leftHandSide;
       var rhsType = node.rightHandSide.staticType;
@@ -85,7 +87,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
           context.typeSystem.isNonNullable(rhsType)) {
         // This is OK; non-null access.
       } else {
-        nullableAccess.add(element);
+        nullableAccess.add(element.baseElement);
       }
     }
     super.visitAssignmentExpression(node);
@@ -105,9 +107,9 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var declaredElement = node.declaredElement;
-    if (declaredElement == null) return;
-    currentUnit = declaredElement;
+    var declaredFragment = node.declaredFragment;
+    if (declaredFragment == null) return;
+    currentLibraryFragment = declaredFragment;
 
     super.visitCompilationUnit(node);
   }
@@ -141,21 +143,21 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    var element = node.staticElement?.canonicalElement;
+    var element = node.element?.canonicalElement2;
     _visitIdentifierOrPropertyAccess(node, element);
     super.visitPrefixedIdentifier(node);
   }
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    var element = node.propertyName.staticElement?.canonicalElement;
+    var element = node.propertyName.element?.canonicalElement2;
     _visitIdentifierOrPropertyAccess(node, element);
     super.visitPropertyAccess(node);
   }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.staticElement?.canonicalElement;
+    var element = node.element?.canonicalElement2;
     _visitIdentifierOrPropertyAccess(node, element);
     super.visitSimpleIdentifier(node);
   }
@@ -173,18 +175,18 @@ class _Visitor extends RecursiveAstVisitor<void> {
   void _visit(VariableDeclaration variable) {
     if (variable.isLate) return;
     if (variable.isSynthetic) return;
-    var declaredElement = variable.declaredElement;
+    var declaredElement = variable.declaredFragment?.element;
     if (declaredElement == null ||
         context.typeSystem.isNonNullable(declaredElement.type)) {
       return;
     }
-    lateables.putIfAbsent(currentUnit, () => []).add(variable);
+    lateables.putIfAbsent(currentLibraryFragment, () => []).add(variable);
   }
 
   /// Checks whether [expression], which must be an [Identifier] or
   /// [PropertyAccess], and its [canonicalElement], represent a nullable access.
   void _visitIdentifierOrPropertyAccess(
-      Expression expression, Element? canonicalElement) {
+      Expression expression, Element2? canonicalElement) {
     assert(expression is Identifier || expression is PropertyAccess);
     if (canonicalElement == null) return;
 
@@ -199,7 +201,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
         parent.operator.type == TokenType.BANG) {
       // This is OK; non-null access.
     } else {
-      nullableAccess.add(canonicalElement);
+      nullableAccess.add(canonicalElement.baseElement);
     }
   }
 }

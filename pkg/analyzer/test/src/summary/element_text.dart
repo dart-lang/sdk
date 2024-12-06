@@ -436,7 +436,7 @@ class _Element2Writer extends _AbstractElementWriter {
             // element, only an enclosing fragment).
           } else {
             if (expectedEnclosingElement is Member) {
-              expectedEnclosingElement = expectedEnclosingElement.baseElement!;
+              expectedEnclosingElement = expectedEnclosingElement.baseElement;
             }
             expect(element.enclosingElement2, expectedEnclosingElement);
           }
