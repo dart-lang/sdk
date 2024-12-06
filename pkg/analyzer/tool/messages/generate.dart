@@ -87,7 +87,7 @@ class _AnalyzerErrorGenerator {
 // ignore_for_file: flutter_style_todos
 
 /// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
-/// @docImport 'package:analyzer/src/task/inference_error.dart';
+/// @docImport 'package:analyzer/src/error/inference_error.dart';
 library;
 ''');
 

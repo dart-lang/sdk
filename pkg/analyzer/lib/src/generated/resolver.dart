@@ -77,6 +77,7 @@ import 'package:analyzer/src/error/base_or_final_type_verifier.dart';
 import 'package:analyzer/src/error/bool_expression_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
+import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
@@ -85,7 +86,6 @@ import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
-import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
@@ -1441,7 +1441,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         popRewrite();
       }
 
-      startNullAwareIndexExpression(node);
+      if (node.isNullAware) {
+        _startNullAwareAccess(node, node.target);
+      }
 
       var result = _propertyElementResolver.resolveIndexExpression(
         node: node,
@@ -1490,7 +1492,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
     } else if (node is PropertyAccess) {
       node.target?.accept(this);
-      startNullAwarePropertyAccess(node);
+      if (node.isNullAware) {
+        _startNullAwareAccess(node, node.target);
+      }
 
       inferenceLogWriter?.exitLValue(node);
       return _propertyElementResolver.resolvePropertyAccess(
@@ -1772,38 +1776,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         parent.operator.type.isIncrementOperator) {
       parent.writeElement = element;
       parent.writeType = writeType;
-    }
-  }
-
-  void startNullAwareIndexExpression(IndexExpression node) {
-    if (node.isNullAware) {
-      var flow = flowAnalysis.flow;
-      if (flow != null) {
-        flow.nullAwareAccess_rightBegin(
-            node.target,
-            SharedTypeView(
-                node.realTarget.staticType ?? typeProvider.dynamicType));
-        _unfinishedNullShorts.add(node.nullShortingTermination);
-      }
-    }
-  }
-
-  void startNullAwarePropertyAccess(PropertyAccess node) {
-    if (node.isNullAware) {
-      var flow = flowAnalysis.flow;
-      if (flow != null) {
-        var target = node.target;
-        if (target is SimpleIdentifier &&
-            target.staticElement is InterfaceElement) {
-          // `?.` to access static methods is equivalent to `.`, so do nothing.
-        } else {
-          flow.nullAwareAccess_rightBegin(
-              target,
-              SharedTypeView(
-                  node.realTarget.staticType ?? typeProvider.dynamicType));
-          _unfinishedNullShorts.add(node.nullShortingTermination);
-        }
-      }
     }
   }
 
@@ -3020,7 +2992,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
     var targetType = node.realTarget.staticType;
 
-    startNullAwareIndexExpression(node);
+    if (node.isNullAware) {
+      _startNullAwareAccess(node, node.target);
+    }
 
     var result = _propertyElementResolver.resolveIndexExpression(
       node: node,
@@ -3235,19 +3209,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     target = node.target;
 
     if (node.isNullAware) {
-      var flow = flowAnalysis.flow;
-      if (flow != null) {
-        if (target is SimpleIdentifierImpl &&
-            target.staticElement is InterfaceElement) {
-          // `?.` to access static methods is equivalent to `.`, so do nothing.
-        } else {
-          flow.nullAwareAccess_rightBegin(
-              target,
-              SharedTypeView(
-                  node.realTarget!.staticType ?? typeProvider.dynamicType));
-          _unfinishedNullShorts.add(node.nullShortingTermination);
-        }
-      }
+      _startNullAwareAccess(node, target);
     }
 
     node.typeArguments?.accept(this);
@@ -3495,7 +3457,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       popRewrite();
     }
 
-    startNullAwarePropertyAccess(node);
+    if (node.isNullAware) {
+      _startNullAwareAccess(node, node.target);
+    }
 
     var result = _propertyElementResolver.resolvePropertyAccess(
       node: node,
@@ -4190,17 +4154,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var function = node.function;
 
     if (function is PropertyAccess && function.isNullAware) {
-      var target = function.target;
-      if (target is SimpleIdentifier &&
-          target.staticElement is InterfaceElement) {
-        // `?.` to access static methods is equivalent to `.`, so do nothing.
-      } else {
-        flowAnalysis.flow!.nullAwareAccess_rightBegin(
-            function,
-            SharedTypeView(
-                function.realTarget.staticType ?? typeProvider.dynamicType));
-        _unfinishedNullShorts.add(node.nullShortingTermination);
-      }
+      _startNullAwareAccess(function, function.target);
     }
 
     _functionExpressionInvocationResolver.resolve(
@@ -4249,6 +4203,27 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       return true;
     }
     return false;
+  }
+
+  void _startNullAwareAccess(NullShortableExpression node, Expression? target) {
+    var flow = flowAnalysis.flow;
+    if (flow != null) {
+      switch (target) {
+        case null:
+          // This means the property access target is the target of a cascade.
+          // For this case, `node.isNullAware=true` means that the cascade is
+          // null aware, but that has already been taken care of in
+          // `visitCascadeExpression`. So there is nothing further to do.
+          break;
+        case SimpleIdentifier(staticElement: InterfaceElement()):
+          // `?.` to access static methods is equivalent to `.`, so do nothing.
+          break;
+        default:
+          flow.nullAwareAccess_rightBegin(target,
+              SharedTypeView(target.staticType ?? typeProvider.dynamicType));
+          _unfinishedNullShorts.add(node.nullShortingTermination);
+      }
+    }
   }
 
   /// Given an [argumentList] and the [parameters] related to the element that

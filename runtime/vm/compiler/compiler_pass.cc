@@ -390,8 +390,9 @@ COMPILER_PASS(ApplyICData, { state->call_specializer->ApplyICData(); });
 
 COMPILER_PASS(TryOptimizePatterns, { flow_graph->TryOptimizePatterns(); });
 
-COMPILER_PASS(SetOuterInliningId,
-              { FlowGraphInliner::SetInliningId(flow_graph, 0); });
+COMPILER_PASS(SetOuterInliningId, {
+  FlowGraphInliner::SetInliningIdAndTryIndex(flow_graph, 0, kInvalidTryIndex);
+});
 
 COMPILER_PASS(Inlining, {
   FlowGraphInliner inliner(

@@ -227,7 +227,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       if (libraryElement == null) {
         continue;
       }
-      var element = getExportedElement2(libraryElement, name);
+      var element = getExportedElement(libraryElement, name);
       if (element == null) {
         continue;
       }

@@ -2237,7 +2237,9 @@ final class CascadeExpressionImpl extends ExpressionImpl
 
   @override
   bool _extendsNullShorting(Expression descendant) {
-    return _cascadeSections.contains(descendant);
+    // Null shorting that occurs in a cascade section does not extend to the
+    // full cascade expression.
+    return false;
   }
 }
 

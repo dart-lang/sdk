@@ -7613,7 +7613,7 @@ CascadeExpression
         leftParenthesis: (
         rightParenthesis: )
       staticInvokeType: int Function()
-      staticType: int
+      staticType: int?
   staticType: A
 ''');
   }

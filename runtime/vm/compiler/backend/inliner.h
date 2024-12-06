@@ -117,7 +117,9 @@ class FlowGraphInliner : ValueObject {
                                intptr_t* instruction_count,
                                intptr_t* call_site_count);
 
-  static void SetInliningId(FlowGraph* flow_graph, intptr_t inlining_id);
+  static void SetInliningIdAndTryIndex(FlowGraph* flow_graph,
+                                       intptr_t inlining_id,
+                                       intptr_t caller_try_index);
 
   bool AlwaysInline(const Function& function);
 
