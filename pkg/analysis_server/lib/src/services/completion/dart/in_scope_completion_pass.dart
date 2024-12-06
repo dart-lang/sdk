@@ -743,7 +743,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var libraryElement = state.libraryElement;
       declarationHelper(
         mustBeConstant: constructorElement.isConst,
-      ).addPossibleRedirectionsInLibrary2(constructorElement, libraryElement);
+      ).addPossibleRedirectionsInLibrary(constructorElement, libraryElement);
     }
   }
 
@@ -787,10 +787,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (element is InterfaceElement2) {
         declarationHelper(
           preferNonInvocation: true,
-        ).addConstructorNamesForElement2(element: element);
+        ).addConstructorNamesForElement(element: element);
         declarationHelper(
           preferNonInvocation: true,
-        ).addStaticMembersOfElement2(element);
+        ).addStaticMembersOfElement(element);
       }
     } else {
       var type = node.type.type;
@@ -847,7 +847,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var enumElement = enumDeclaration.declaredFragment!.element;
     declarationHelper(
       suggestUnnamedAsNew: true,
-    ).addConstructorNamesForElement2(element: enumElement);
+    ).addConstructorNamesForElement(element: enumElement);
   }
 
   @override
@@ -1278,7 +1278,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (declaredElement is FieldFormalParameterElement2) {
         field = declaredElement.field2;
       }
-      declarationHelper().addFieldsForInitializers2(constructor, field);
+      declarationHelper().addFieldsForInitializers(constructor, field);
     }
   }
 
@@ -1678,13 +1678,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           excludeTypeNames: isInstanceCreation,
           mustBeType: !isInstanceCreation,
           mustBeNonVoid: isInstanceCreation,
-        ).addDeclarationsThroughImportPrefix2(element);
+        ).addDeclarationsThroughImportPrefix(element);
         return;
       } else if (element is VariableElement2) {
         type = element.type;
       } else {
         if (element is InterfaceElement2 || element is ExtensionElement2) {
-          declarationHelper().addStaticMembersOfElement2(element!);
+          declarationHelper().addStaticMembersOfElement(element!);
         }
         return;
       }
@@ -1931,10 +1931,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           (!node.isCascaded || offset == operator.offset + 1)) {
         var element = target.element;
         if (element is InterfaceElement2 || element is ExtensionTypeElement2) {
-          declarationHelper().addStaticMembersOfElement2(element!);
+          declarationHelper().addStaticMembersOfElement(element!);
         }
         if (element is PrefixElement2) {
-          declarationHelper().addDeclarationsThroughImportPrefix2(element);
+          declarationHelper().addDeclarationsThroughImportPrefix(element);
         }
       }
     }
@@ -2019,8 +2019,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
                     var isWidget = isFlutterWidgetParameter(parameter);
                     collector.addSuggestion(
                       NamedArgumentSuggestion(
-                        parameter:
-                            parameter,
+                        parameter: parameter,
                         matcherScore: matcherScore,
                         appendColon: appendColon,
                         appendComma: false,
@@ -2067,7 +2066,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (node.parent case VariableDeclarationList variableList) {
         if (variableList.parent case VariableDeclarationStatement statement) {
           if (statement.semicolon.isSynthetic) {
-            declarationHelper().addDeclarationsThroughImportPrefix2(
+            declarationHelper().addDeclarationsThroughImportPrefix(
               prefixElement,
             );
             return;
@@ -2255,14 +2254,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           if (element is PrefixElement2) {
             declarationHelper(
               mustBeAssignable: mustBeAssignable,
-            ).addDeclarationsThroughImportPrefix2(element);
+            ).addDeclarationsThroughImportPrefix(element);
           } else {
             declarationHelper(
               mustBeAssignable: mustBeAssignable,
               preferNonInvocation:
                   element is InterfaceElement2 &&
                   state.request.shouldSuggestTearOff2(element),
-            ).addStaticMembersOfElement2(element);
+            ).addStaticMembersOfElement(element);
           }
         }
       }
@@ -2307,14 +2306,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           (!node.isCascaded || offset == operator.offset + 1)) {
         var element = target.element;
         if (element is InterfaceElement2 || element is ExtensionTypeElement2) {
-          declarationHelper().addStaticMembersOfElement2(element!);
+          declarationHelper().addStaticMembersOfElement(element!);
         }
         if (element is PrefixElement2) {
-          declarationHelper().addDeclarationsThroughImportPrefix2(element);
+          declarationHelper().addDeclarationsThroughImportPrefix(element);
         }
       }
       if (type == null && target is ExtensionOverride) {
-        declarationHelper().addMembersFromExtensionElement2(target.element2);
+        declarationHelper().addMembersFromExtensionElement(target.element2);
       }
     }
   }
@@ -2557,7 +2556,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             if (type.name2.coversOffset(offset)) {
               declarationHelper(
                 mustBeType: true,
-              ).addDeclarationsThroughImportPrefix2(prefixElement);
+              ).addDeclarationsThroughImportPrefix(prefixElement);
             }
           }
         }
@@ -3327,7 +3326,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             .toSet();
     declarationHelper(
       preferNonInvocation: true,
-    ).addFromLibrary2(library, excludedNames);
+    ).addFromLibrary(library, excludedNames);
   }
 
   /// Adds the suggestions that are appropriate when the selection is at the
@@ -3388,7 +3387,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       field = element;
     }
     keywordHelper.addConstructorInitializerKeywords(constructor, initializer);
-    declarationHelper().addFieldsForInitializers2(constructor, field);
+    declarationHelper().addFieldsForInitializers(constructor, field);
   }
 
   /// Adds the suggestions that are appropriate when the selection is at the
@@ -3713,7 +3712,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             mustBeNonVoid: mustBeNonVoid,
             excludedNodes: excludedNodes,
             excludeTypeNames: excludeTypeNames,
-          ).addDeclarationsThroughImportPrefix2(prefixElement);
+          ).addDeclarationsThroughImportPrefix(prefixElement);
         }
         return;
       }
