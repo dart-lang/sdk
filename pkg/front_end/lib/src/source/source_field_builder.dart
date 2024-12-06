@@ -179,7 +179,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
             isAbstract: true,
             isExternal: false,
             isFinal: isFinal,
-            isCovariantByDeclaration: isCovariantByDeclaration);
+            isCovariantByDeclaration: isCovariantByDeclaration,
+            isForcedExtension: true);
       }
     } else if (isLate &&
         libraryBuilder.loader.target.backendTarget.isLateFieldLoweringEnabled(
@@ -1754,11 +1755,12 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       {required this.isAbstract,
       required this.isExternal,
       required bool isFinal,
-      required bool isCovariantByDeclaration})
-      : _isExtensionInstanceMember = isExternal &&
+      required bool isCovariantByDeclaration,
+      bool isForcedExtension = false})
+      : _isExtensionInstanceMember = (isExternal || isForcedExtension) &&
             nameScheme.isExtensionMember &&
             nameScheme.isInstanceMember,
-        _isExtensionTypeInstanceMember = isExternal &&
+        _isExtensionTypeInstanceMember = (isExternal || isForcedExtension) &&
             nameScheme.isExtensionTypeMember &&
             nameScheme.isInstanceMember {
     if (_isExtensionInstanceMember || _isExtensionTypeInstanceMember) {
