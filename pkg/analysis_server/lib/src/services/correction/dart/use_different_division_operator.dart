@@ -108,7 +108,7 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
       otherOperator.lexeme,
     );
     var hasNoExtensionWithOtherDivisionOperator =
-        await librariesWithExtensions2(otherOperator.lexeme).where((library) {
+        await librariesWithExtensions(otherOperator.lexeme).where((library) {
           return library.exportedExtensions
               .havingMemberWithBaseName(name)
               .applicableTo(
