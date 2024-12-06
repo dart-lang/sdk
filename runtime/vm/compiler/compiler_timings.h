@@ -37,7 +37,7 @@
   V(CollectGraphInfo)                                                          \
   V(PopulateWithICData)                                                        \
   V(FindCallSites)                                                             \
-  V(SetInliningId)                                                             \
+  V(SetInliningIdAndTryIndex)                                                  \
   V(MakeInliningDecision)                                                      \
   V(CheckForPragma)                                                            \
   V(InlineCall)                                                                \
