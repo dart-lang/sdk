@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A computer for a type hierarchy of an [Element].
 class TypeHierarchyComputer {
@@ -54,23 +55,23 @@ class TypeHierarchyComputer {
   ) async {
     var subElements = await getDirectSubClasses(
       _searchEngine,
-      classElement,
+      classElement.asElement2,
       searchEngineCache,
     );
     var subItemIds = <int>[];
     for (var subElement in subElements) {
       // check for recursion
-      var subItem = _elementItemMap[subElement];
+      var subItem = _elementItemMap[subElement.asElement];
       if (subItem != null) {
         var id = _items.indexOf(subItem);
         item.subclasses.add(id);
         continue;
       }
       // create a subclass item
-      var subMemberElement = helper.findMemberElement(subElement);
+      var subMemberElement = helper.findMemberElement(subElement.asElement);
       var subMemberElementDeclared = subMemberElement?.nonSynthetic;
       subItem = TypeHierarchyItem(
-        convertElement(subElement),
+        convertElement(subElement.asElement),
         memberElement:
             subMemberElementDeclared != null
                 ? convertElement(subMemberElementDeclared)
@@ -79,9 +80,9 @@ class TypeHierarchyComputer {
       );
       var subItemId = _items.length;
       // remember
-      _elementItemMap[subElement] = subItem;
+      _elementItemMap[subElement.asElement] = subItem;
       _items.add(subItem);
-      _itemClassElements.add(subElement);
+      _itemClassElements.add(subElement.asElement);
       // add to hierarchy
       item.subclasses.add(subItemId);
       subItemIds.add(subItemId);

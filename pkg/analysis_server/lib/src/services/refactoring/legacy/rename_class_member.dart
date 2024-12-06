@@ -221,7 +221,7 @@ class _BaseClassMemberValidator {
 
   void _checkClassAlreadyDeclares() {
     // check if there is a member with "newName" in the same ClassElement
-    for (var newNameMember in getChildren2(interfaceElement, name)) {
+    for (var newNameMember in getChildren(interfaceElement, name)) {
       result.addError(
         format(
           "{0} '{1}' already declares {2} with name '{3}'.",
@@ -244,7 +244,7 @@ class _BaseClassMemberValidator {
     // check shadowing in the hierarchy
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
-      var nameElement = getSyntheticAccessorVariable2(declaration.element2);
+      var nameElement = getSyntheticAccessorVariable(declaration.element2);
       var nameClass = nameElement.enclosingElement2;
       // the renamed Element shadows a member of a superclass
       if (superClasses.contains(nameClass)) {
@@ -479,7 +479,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
   Future<void> _prepareElements() async {
     var element = this.element;
     if (element is FieldElement2 || element is MethodElement2) {
-      elements = await getHierarchyMembers2(searchEngine, element);
+      elements = await getHierarchyMembers(searchEngine, element);
     } else {
       elements = {element};
     }

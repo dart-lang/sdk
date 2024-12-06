@@ -142,7 +142,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       );
     }
     // check if there are members with "newName" in the same ClassElement
-    for (var newNameMember in getChildren2(parentClass, newName)) {
+    for (var newNameMember in getChildren(parentClass, newName)) {
       var message = format(
         "{0} '{1}' already declares {2} with name '{3}'.",
         capitalize(parentClass.kind.displayName),
