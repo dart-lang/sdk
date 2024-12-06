@@ -12,9 +12,13 @@ external void myNonLeafNative(Pointer<Void> buff);
 external void myNativeWith2Param(Pointer<Void> buffer, Pointer<Int8> buffer2);
 
 @Native<Void Function(Pointer<Void>, Pointer<Int8>, Pointer<Void>)>(
-    isLeaf: true)
+  isLeaf: true,
+)
 external void myNativeWith3Param(
-    Pointer<Void> buffer, Pointer<Int8> buffer2, Pointer<Void> buffer3);
+  Pointer<Void> buffer,
+  Pointer<Int8> buffer2,
+  Pointer<Void> buffer3,
+);
 
 void testDefinedLeaf() {
   final buffer = Int8List.fromList([1]);
@@ -36,6 +40,7 @@ void testDefinedLeaf() {
   //                 ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 
+  // dart format off
   myNativeWith3Param(
       buffer.address.cast(),
       /* */ buffer.address.cast<Void>(),
@@ -107,6 +112,7 @@ void testDefinedLeaf() {
   //  ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 }
+// dart format on
 
 void testUndefinedLeaf() {
   final buffer = Int8List.fromList([1]);

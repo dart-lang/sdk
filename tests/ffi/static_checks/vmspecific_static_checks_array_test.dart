@@ -6,6 +6,8 @@
 //
 // SharedObjects=ffi_test_dynamic_library ffi_test_functions
 
+// dart format off
+
 import 'dart:ffi';
 
 void main() {}

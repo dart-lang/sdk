@@ -417,6 +417,8 @@ void testNativeCallableListenerGeneric2() {
   generic<NativeVoidFunc>();
 }
 
+// dart format off
+
 void testNativeCallableListenerWrongNativeFunctionSignature() {
   /**/ NativeCallable<NativeVoidFunc>.listener(myVoidFunc2);
   //                                           ^^^^^^^^^^^
@@ -1398,6 +1400,8 @@ final class AbiSpecificInteger1 extends AbiSpecificInteger {
 
   external int b;
 }
+
+// dart format on
 
 class AbiSpecificInteger2 implements AbiSpecificInteger {
   //  ^^^^^^^^^^^^^^^^^^^
