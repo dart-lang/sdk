@@ -11,7 +11,7 @@ import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
-import 'package:test/test.dart';
+import 'package:matcher/expect.dart';
 import 'package:watcher/watcher.dart';
 
 /// A mock [ServerCommunicationChannel] for testing [AnalysisServer].
