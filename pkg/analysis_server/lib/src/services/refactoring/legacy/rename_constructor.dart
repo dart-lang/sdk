@@ -147,7 +147,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
         "{0} '{1}' already declares {2} with name '{3}'.",
         capitalize(parentClass.kind.displayName),
         parentClass.displayName,
-        getElementKindName2(newNameMember),
+        getElementKindName(newNameMember),
         newName,
       );
       result.addError(message, newLocation_fromElement2(newNameMember));

@@ -7,7 +7,6 @@ import 'dart:math';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -33,49 +32,18 @@ Expression climbPropertyAccess(Expression node) {
 }
 
 /// Return references to the [element] inside the [root] node.
-// TODO(pq): update to `findLocalElementReferences2`.
-List<SimpleIdentifier> findLocalElementReferences(
-  AstNode root,
-  LocalElement element,
-) {
-  var collector = _ElementReferenceCollector(element);
-  root.accept(collector);
-  return collector.references;
-}
-
-/// Return references to the [element] inside the [root] node.
-/// (Unlike [findLocalElementReferences], visits list and record pattern assignments).
-// TODO(scheglov): update to `findLocalElementReferences3`.
-List<AstNode> findLocalElementReferences2(AstNode root, LocalElement element) {
-  var collector = _ElementReferenceCollector2(element);
-  root.accept(collector);
-  return collector.references;
-}
-
-/// Return references to the [element] inside the [root] node.
-/// (Unlike [findLocalElementReferences], visits list and record pattern assignments).
-List<AstNode> findLocalElementReferences3(AstNode root, Element2 element) {
-  var collector = _ElementReferenceCollector3(element);
-  root.accept(collector);
-  return collector.references;
-}
-
-/// Return references to the [element] inside the [root] node.
-List<SimpleIdentifier> findPrefixElementReferences(
-  AstNode root,
-  PrefixElement element,
-) {
-  var collector = _ElementReferenceCollector(element);
-  root.accept(collector);
-  return collector.references;
-}
-
-/// Return references to the [element] inside the [root] node.
-List<AstNode> findPrefixElementReferences2(
+List<AstNode> findImportPrefixElementReferences(
   AstNode root,
   PrefixElement2 element,
 ) {
-  var collector = _ElementReferenceCollector3(element);
+  var collector = _ElementReferenceCollector(element);
+  root.accept(collector);
+  return collector.references;
+}
+
+/// Return references to the [element] inside the [root] node.
+List<AstNode> findLocalElementReferences(AstNode root, LocalElement2 element) {
+  var collector = _ElementReferenceCollector(element);
   root.accept(collector);
   return collector.references;
 }
@@ -97,43 +65,20 @@ List<SourceRange> getCommentRanges(CompilationUnit unit) {
   return ranges;
 }
 
-/// Return all [LocalElement]s defined in the given [node].
-List<LocalElement> getDefinedLocalElements(AstNode node) {
+/// Return all [LocalElement2]s defined in the given [node].
+List<LocalElement2> getDefinedLocalElements(AstNode node) {
   var collector = _LocalElementsCollector();
   node.accept(collector);
   return collector.elements;
 }
 
-/// Return the name of the [Element] kind.
-String getElementKindName(Element element) {
-  return element.kind.displayName;
-}
-
 /// Return the name of the kind of the [element].
-String getElementKindName2(Element2 element) {
+String getElementKindName(Element2 element) {
   return element.kind.displayName;
-}
-
-/// Returns the name to display in the UI for the given [Element].
-String getElementQualifiedName(Element element) {
-  var kind = element.kind;
-  if (kind == ElementKind.FIELD || kind == ElementKind.METHOD) {
-    return '${element.enclosingElement3!.displayName}.${element.displayName}';
-  } else if (kind == ElementKind.LIBRARY) {
-    // Libraries may not have names, so use a path relative to the context root.
-    var session = element.session!;
-    var pathContext = session.resourceProvider.pathContext;
-    var rootPath = session.analysisContext.contextRoot.root.path;
-    var library = element as LibraryElement;
-
-    return pathContext.relative(library.source.fullName, from: rootPath);
-  } else {
-    return element.displayName;
-  }
 }
 
 /// Returns the name to display in the UI for the given [element].
-String getElementQualifiedName2(Element2 element) {
+String getElementQualifiedName(Element2 element) {
   var kind = element.kind;
   if (kind == ElementKind.FIELD || kind == ElementKind.METHOD) {
     return '${element.enclosingElement2!.displayName}.${element.displayName}';
@@ -142,9 +87,12 @@ String getElementQualifiedName2(Element2 element) {
     var session = element.session!;
     var pathContext = session.resourceProvider.pathContext;
     var rootPath = session.analysisContext.contextRoot.root.path;
-    var library = element as LibraryElement;
+    var library = element as LibraryElement2;
 
-    return pathContext.relative(library.source.fullName, from: rootPath);
+    return pathContext.relative(
+      library.firstFragment.source.fullName,
+      from: rootPath,
+    );
   } else {
     return element.displayName;
   }
@@ -216,12 +164,18 @@ Precedence getExpressionPrecedence(AstNode node) {
   return Precedence.none;
 }
 
-/// Returns the namespace of the given [LibraryImportElement].
-Map<String, Element> getImportNamespace(LibraryImportElement imp) {
-  return imp.namespace.definedNames;
+/// Returns the parameter's element if the [node] is a reference to a parameter.
+///
+/// Returns `null` if it isn't a reference to a parameter.
+FormalParameterElement? getFormalParameterElement(SimpleIdentifier node) {
+  var element = node.element;
+  if (element is FormalParameterElement) {
+    return element;
+  }
+  return null;
 }
 
-/// Returns the namespace of the given [LibraryImportElement].
+/// Returns the namespace of the given [LibraryImport].
 Map<String, Element2> getImportNamespace2(LibraryImport imp) {
   return imp.namespace.definedNames2;
 }
@@ -229,31 +183,21 @@ Map<String, Element2> getImportNamespace2(LibraryImport imp) {
 /// Computes the best URI to import [what] into [from].
 String getLibrarySourceUri(
   path.Context pathContext,
-  LibraryElement from,
+  LibraryElement2 from,
   Uri what,
 ) {
   if (what.isScheme('file')) {
-    var fromFolder = pathContext.dirname(from.source.fullName);
+    var fromFolder = pathContext.dirname(from.firstFragment.source.fullName);
     var relativeFile = pathContext.relative(what.path, from: fromFolder);
     return pathContext.split(relativeFile).join('/');
   }
   return what.toString();
 }
 
-/// Return the [LocalVariableElement] if given [node] is a reference to a local
-/// variable, or `null` in the other case.
-LocalVariableElement? getLocalVariableElement(SimpleIdentifier node) {
-  var element = node.staticElement;
-  if (element is LocalVariableElement) {
-    return element;
-  }
-  return null;
-}
-
 /// Return the variable's element if [node] is a reference to a local variable.
 ///
 /// Returns `null` if it isn't a reference to a local variable.
-LocalVariableElement2? getLocalVariableElement2(SimpleIdentifier node) {
+LocalVariableElement2? getLocalVariableElement(SimpleIdentifier node) {
   var element = node.element;
   if (element is LocalVariableElement2) {
     return element;
@@ -299,27 +243,6 @@ Expression? getNodeQualifier(SimpleIdentifier node) {
   }
   if (parent is PrefixedIdentifier && identical(parent.identifier, node)) {
     return parent.prefix;
-  }
-  return null;
-}
-
-/// Returns the [ParameterElement] if the given [node] is a reference to a
-/// parameter, or `null` in the other case.
-ParameterElement? getParameterElement(SimpleIdentifier node) {
-  var element = node.staticElement;
-  if (element is ParameterElement) {
-    return element;
-  }
-  return null;
-}
-
-/// Returns the parameter's element if the [node] is a reference to a parameter.
-///
-/// Returns `null` if it isn't a reference to a parameter.
-FormalParameterElement? getParameterElement2(SimpleIdentifier node) {
-  var element = node.element;
-  if (element is FormalParameterElement) {
-    return element;
   }
   return null;
 }
@@ -372,7 +295,7 @@ List<Statement> getStatements(Statement statement) {
 }
 
 /// Checks if the given [element]'s display name equals to the given [name].
-bool hasDisplayName(Element? element, String name) {
+bool hasDisplayName(Element2? element, String name) {
   return element?.displayName == name;
 }
 
@@ -462,75 +385,10 @@ class _DeclarationCollector extends RecursiveAstVisitor<void> {
 }
 
 class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
-  final Element element;
-  final List<SimpleIdentifier> references = [];
-
-  _ElementReferenceCollector(this.element);
-
-  @override
-  void visitImportPrefixReference(ImportPrefixReference node) {
-    if (node.element == element) {
-      references.add(SimpleIdentifierImpl(node.name));
-    }
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.staticElement == element) {
-      references.add(node);
-    }
-  }
-}
-
-class _ElementReferenceCollector2 extends RecursiveAstVisitor<void> {
-  final Element element;
-  final List<AstNode> references = [];
-
-  _ElementReferenceCollector2(this.element);
-
-  @override
-  void visitImportPrefixReference(ImportPrefixReference node) {
-    if (node.element == element) {
-      references.add(SimpleIdentifierImpl(node.name));
-    }
-  }
-
-  @override
-  void visitListPattern(ListPattern node) {
-    for (var item in node.elements) {
-      if (item is AssignedVariablePattern) {
-        if (item.element == element) {
-          references.add(item);
-        }
-      }
-    }
-  }
-
-  @override
-  void visitRecordPattern(RecordPattern node) {
-    for (var field in node.fields) {
-      var pattern = field.pattern.unparenthesized;
-      if (pattern is AssignedVariablePattern) {
-        if (pattern.element == element) {
-          references.add(field.pattern);
-        }
-      }
-    }
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.staticElement == element) {
-      references.add(node);
-    }
-  }
-}
-
-class _ElementReferenceCollector3 extends RecursiveAstVisitor<void> {
   final Element2 element;
   final List<AstNode> references = [];
 
-  _ElementReferenceCollector3(this.element);
+  _ElementReferenceCollector(this.element);
 
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
@@ -570,14 +428,14 @@ class _ElementReferenceCollector3 extends RecursiveAstVisitor<void> {
   }
 }
 
-/// Visitor that collects defined [LocalElement]s.
+/// Visitor that collects defined [LocalElement2]s.
 class _LocalElementsCollector extends RecursiveAstVisitor<void> {
-  final elements = <LocalElement>[];
+  final elements = <LocalElement2>[];
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var element = node.declaredElement;
-    if (element is LocalVariableElement) {
+    var element = node.declaredFragment?.element;
+    if (element is LocalVariableElement2) {
       elements.add(element);
     }
 

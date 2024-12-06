@@ -227,7 +227,7 @@ class _BaseClassMemberValidator {
           "{0} '{1}' already declares {2} with name '{3}'.",
           capitalize(interfaceElement.kind.displayName),
           interfaceElement.displayName,
-          getElementKindName2(newNameMember),
+          getElementKindName(newNameMember),
           name,
         ),
         newLocation_fromElement2(newNameMember),
@@ -254,8 +254,8 @@ class _BaseClassMemberValidator {
                 ? "Renamed {0} will shadow {1} '{2}'."
                 : "Created {0} will shadow {1} '{2}'.",
             elementKind.displayName,
-            getElementKindName2(nameElement),
-            getElementQualifiedName2(nameElement),
+            getElementKindName(nameElement),
+            getElementQualifiedName(nameElement),
           ),
           newLocation_fromElement2(nameElement),
         );
@@ -266,8 +266,8 @@ class _BaseClassMemberValidator {
           format(
             "Renamed {0} will be shadowed by {1} '{2}'.",
             elementKind.displayName,
-            getElementKindName2(nameElement),
-            getElementQualifiedName2(nameElement),
+            getElementKindName(nameElement),
+            getElementQualifiedName(nameElement),
           ),
           newLocation_fromElement2(nameElement),
         );
@@ -411,7 +411,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
           format(
             "Usage of renamed {0} will be shadowed by {1} '{2}'.",
             elementKind.displayName,
-            getElementKindName2(localElement),
+            getElementKindName(localElement),
             localElement.displayName,
           ),
           newLocation_fromMatch(conflict.match),
@@ -505,8 +505,8 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       if (refLibrary != library) {
         var message = format(
           "Renamed {0} will be invisible in '{1}'.",
-          getElementKindName2(element),
-          getElementQualifiedName2(refLibrary),
+          getElementKindName(element),
+          getElementQualifiedName(refLibrary),
         );
         result.addError(message, newLocation_fromMatch(reference));
       }

@@ -124,7 +124,7 @@ class _ExtensionMemberValidator {
         format(
           "Extension '{0}' already declares {1} with name '{2}'.",
           elementExtension.displayName,
-          getElementKindName2(newNameMember),
+          getElementKindName(newNameMember),
           name,
         ),
         newLocation_fromElement2(newNameMember),
@@ -142,7 +142,7 @@ class _ExtensionMemberValidator {
           format(
             "Usage of renamed {0} will be shadowed by {1} '{2}'.",
             elementKind.displayName,
-            getElementKindName2(localElement),
+            getElementKindName(localElement),
             localElement.displayName,
           ),
           newLocation_fromMatch(conflict.match),

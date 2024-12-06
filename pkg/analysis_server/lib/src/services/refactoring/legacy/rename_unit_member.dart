@@ -16,6 +16,7 @@ import 'package:analyzer/dart/ast/ast.dart' show Identifier;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 
 /// Checks if creating a top-level function with the given [name] in [library]
@@ -218,7 +219,7 @@ class _BaseUnitMemberValidator {
         continue;
       }
       // check imported elements
-      if (getImportNamespace(importElement).containsValue(element)) {
+      if (importElement.namespace.definedNames.containsValue(element)) {
         return true;
       }
     }
@@ -230,10 +231,10 @@ class _BaseUnitMemberValidator {
   /// top-level [Element] in the same library.
   void _validateWillConflict() {
     visitLibraryTopLevelElements(library, (element) {
-      if (hasDisplayName(element, name)) {
+      if (hasDisplayName(element.asElement2, name)) {
         var message = format(
           "Library already declares {0} with name '{1}'.",
-          getElementKindName(element),
+          getElementKindName(element.asElement2!),
           name,
         );
         result.addError(message, newLocation_fromElement(element));
@@ -269,8 +270,8 @@ class _BaseUnitMemberValidator {
               ? "Renamed {0} will shadow {1} '{2}'."
               : "Created {0} will shadow {1} '{2}'.",
           elementKind.displayName,
-          getElementKindName(member),
-          getElementQualifiedName(member),
+          getElementKindName(member.asElement2!),
+          getElementQualifiedName(member.asElement2!),
         );
         result.addError(message, newLocation_fromMatch(memberReference));
       }
@@ -325,8 +326,8 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
       if (refLibrary != library) {
         var message = format(
           "Renamed {0} will be invisible in '{1}'.",
-          getElementKindName(element),
-          getElementQualifiedName(refLibrary),
+          getElementKindName(element.asElement2!),
+          getElementQualifiedName(refLibrary.asElement2),
         );
         result.addError(message, newLocation_fromMatch(reference));
       }
@@ -340,12 +341,12 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
       var refClass = refElement.thisOrAncestorOfType<InterfaceElement>();
       if (refClass != null) {
         visitChildren(refClass, (shadow) {
-          if (hasDisplayName(shadow, name)) {
+          if (hasDisplayName(shadow.asElement2, name)) {
             var message = format(
               "Reference to renamed {0} will be shadowed by {1} '{2}'.",
-              getElementKindName(element),
-              getElementKindName(shadow),
-              getElementQualifiedName(shadow),
+              getElementKindName(element.asElement2!),
+              getElementKindName(shadow.asElement2!),
+              getElementQualifiedName(shadow.asElement2!),
             );
             result.addError(message, newLocation_fromElement(shadow));
           }

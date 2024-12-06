@@ -62,10 +62,25 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
 
     // Find references to the identifier.
     List<AstNode>? references;
-    if (element is LocalVariableElement2 || element is LocalFunctionElement) {
+    if (element is FormalParameterElement) {
+      if (!element.isNamed) {
+        var root =
+            node
+                .thisOrAncestorMatching(
+                  (node) =>
+                      node.parent is FunctionDeclaration ||
+                      node.parent is MethodDeclaration ||
+                      node.parent is ConstructorDeclaration,
+                )
+                ?.parent;
+        if (root != null) {
+          references = findLocalElementReferences(root, element);
+        }
+      }
+    } else if (element is LocalElement2) {
       var block = node.thisOrAncestorOfType<Block>();
       if (block != null) {
-        references = findLocalElementReferences3(block, element);
+        references = findLocalElementReferences(block, element);
 
         var declaration =
             block.thisOrAncestorOfType<MethodDeclaration>() ??
@@ -81,25 +96,10 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
           }
         }
       }
-    } else if (element is FormalParameterElement) {
-      if (!element.isNamed) {
-        var root =
-            node
-                .thisOrAncestorMatching(
-                  (node) =>
-                      node.parent is FunctionDeclaration ||
-                      node.parent is MethodDeclaration ||
-                      node.parent is ConstructorDeclaration,
-                )
-                ?.parent;
-        if (root != null) {
-          references = findLocalElementReferences3(root, element);
-        }
-      }
     } else if (element is PrefixElement2) {
       var root = node.thisOrAncestorOfType<CompilationUnit>();
       if (root != null) {
-        references = findPrefixElementReferences2(root, element);
+        references = findImportPrefixElementReferences(root, element);
       }
     }
     if (references == null) {
