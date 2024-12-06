@@ -7601,7 +7601,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleForInLoopParts(Token? awaitToken, Token forToken,
       Token leftParenthesis, Token? patternKeyword, Token inKeyword) {
-    debugEvent("ForIntLoopParts");
+    debugEvent("ForInLoopParts");
     assert(checkState(forToken, [
       unionOfKinds([
         ValueKinds.Expression,
@@ -7614,6 +7614,7 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
         ValueKinds.Statement, // Variable for non-pattern for-in loop.
+        ValueKinds.ParserRecovery,
       ]),
     ]));
     Object expression = pop() as Object;
@@ -7755,6 +7756,9 @@ class BodyBuilder extends StackListenerImpl
             isFinal: false);
       } else if (lvalue is AmbiguousBuilder) {
         elements.expressionProblem = toValue(lvalue);
+      } else if (lvalue is ParserRecovery) {
+        elements.expressionProblem = buildProblem(
+            cfe.messageSyntheticToken, lvalue.charOffset, noLength);
       } else {
         Message message = forest.isVariablesDeclaration(lvalue)
             ? cfe.messageForInLoopExactlyOneVariable
@@ -7805,6 +7809,7 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
         ValueKinds.Statement,
+        ValueKinds.ParserRecovery,
       ]),
     ]));
     Statement body = popStatement(endToken);
