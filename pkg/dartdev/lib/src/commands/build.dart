@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:dart2native/generate.dart';
 import 'package:dartdev/src/commands/compile.dart';
 import 'package:dartdev/src/experiments.dart';
+import 'package:dartdev/src/native_assets_bundling.dart';
 import 'package:dartdev/src/sdk.dart';
 import 'package:dartdev/src/utils.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
@@ -20,9 +21,6 @@ import 'package:vm/target_os.dart'; // For possible --target-os values.
 
 import '../core.dart';
 import '../native_assets.dart';
-
-const _libOutputDirectory = 'lib';
-const _dataOutputDirectory = 'assets';
 
 class BuildCommand extends DartdevCommand {
   static const String cmdName = 'build';
@@ -240,60 +238,34 @@ class BuildCommand extends DartdevCommand {
         return 255;
       }
 
-      final tempUri = tempDir.uri;
-      Uri? assetsDartUri;
       final allAssets = linkResult.encodedAssets;
-      final dataAssets = allAssets
-          .where((e) => e.type == DataAsset.type)
-          .map(DataAsset.fromEncoded)
-          .toList();
-      final codeAssets = allAssets
+
+      final staticAssets = allAssets
           .where((e) => e.type == CodeAsset.type)
           .map(CodeAsset.fromEncoded)
-          .toList();
-
-      final staticAssets =
-          codeAssets.where((e) => e.linkMode == StaticLinking());
+          .where((e) => e.linkMode == StaticLinking());
       if (staticAssets.isNotEmpty) {
         stderr.write(
             """'dart build' does not yet support CodeAssets with static linking.
 Use linkMode as dynamic library instead.""");
         return 255;
       }
-      if (allAssets.isNotEmpty) {
-        final kernelAssets = <KernelAsset>[];
-        final filesToCopy = <(String id, Uri, KernelAssetRelativePath)>[];
 
-        for (final asset in codeAssets) {
-          final kernelAsset = asset.targetLocation(target);
-          kernelAssets.add(kernelAsset);
-          final targetPath = kernelAsset.path;
-          if (targetPath is KernelAssetRelativePath) {
-            filesToCopy.add((asset.id, asset.file!, targetPath));
-          }
-        }
-        for (final asset in dataAssets) {
-          final kernelAsset = asset.targetLocation(target);
-          kernelAssets.add(kernelAsset);
-          final targetPath = kernelAsset.path;
-          if (targetPath is KernelAssetRelativePath) {
-            filesToCopy.add((asset.id, asset.file, targetPath));
-          }
-        }
-        assetsDartUri = await _writeAssetsYaml(
-          kernelAssets,
-          assetsDartUri,
-          tempUri,
+      Uri? nativeAssetsYamlUri;
+      if (allAssets.isNotEmpty) {
+        final kernelAssets = await bundleNativeAssets(
+          allAssets,
+          target,
+          outputUri,
+          relocatable: true,
+          verbose: true,
         );
-        if (allAssets.isNotEmpty) {
-          stdout.writeln(
-              'Copying ${filesToCopy.length} build assets: ${filesToCopy.map((e) => e.$1)}');
-          _copyAssets(filesToCopy, outputUri);
-        }
+        nativeAssetsYamlUri =
+            await writeNativeAssetsYaml(kernelAssets, tempDir.uri);
       }
 
       await snapshotGenerator.generate(
-        nativeAssets: assetsDartUri?.toFilePath(),
+        nativeAssets: nativeAssetsYamlUri?.toFilePath(),
       );
 
       // End linking here.
@@ -302,86 +274,12 @@ Use linkMode as dynamic library instead.""");
     }
     return 0;
   }
-
-  void _copyAssets(
-    List<(String id, Uri, KernelAssetRelativePath)> assetTargetLocations,
-    Uri output,
-  ) {
-    for (final (_, file, targetPath) in assetTargetLocations) {
-      file.copyTo(targetPath, output);
-    }
-  }
-
-  Future<Uri> _writeAssetsYaml(
-    List<KernelAsset> assetTargetLocations,
-    Uri? nativeAssetsDartUri,
-    Uri tempUri,
-  ) async {
-    stdout.writeln('Writing native_assets.yaml.');
-    nativeAssetsDartUri = tempUri.resolve('native_assets.yaml');
-    final assetsContent =
-        KernelAssets(assetTargetLocations).toNativeAssetsFile();
-    await Directory.fromUri(nativeAssetsDartUri.resolve('.')).create();
-    await File(nativeAssetsDartUri.toFilePath()).writeAsString(assetsContent);
-    return nativeAssetsDartUri;
-  }
 }
 
 extension on String {
   String normalizeCanonicalizePath() => path.canonicalize(path.normalize(this));
   String makeFolder() => endsWith('\\') || endsWith('/') ? this : '$this/';
   String removeDotDart() => replaceFirst(RegExp(r'\.dart$'), '');
-}
-
-extension on Uri {
-  void copyTo(KernelAssetRelativePath target, Uri outputUri) {
-    if (this != target.uri) {
-      final targetUri = outputUri.resolveUri(target.uri);
-      File.fromUri(targetUri).createSync(
-        recursive: true,
-        exclusive: true,
-      );
-      File.fromUri(this).copySync(targetUri.toFilePath());
-    }
-  }
-}
-
-extension on CodeAsset {
-  KernelAsset targetLocation(Target target) {
-    final KernelAssetPath kernelAssetPath;
-    switch (linkMode) {
-      case DynamicLoadingSystem dynamicLoading:
-        kernelAssetPath = KernelAssetSystemPath(dynamicLoading.uri);
-      case LookupInExecutable _:
-        kernelAssetPath = KernelAssetInExecutable();
-      case LookupInProcess _:
-        kernelAssetPath = KernelAssetInProcess();
-      case DynamicLoadingBundled _:
-        kernelAssetPath = KernelAssetRelativePath(
-          Uri(path: path.join(_libOutputDirectory, file!.pathSegments.last)),
-        );
-      default:
-        throw Exception(
-          'Unsupported CodeAsset linkMode ${linkMode.runtimeType} in asset $this',
-        );
-    }
-    return KernelAsset(
-      id: id,
-      target: target,
-      path: kernelAssetPath,
-    );
-  }
-}
-
-extension on DataAsset {
-  KernelAsset targetLocation(Target target) {
-    return KernelAsset(
-      id: id,
-      target: target,
-      path: KernelAssetRelativePath(
-          Uri(path: path.join(_dataOutputDirectory, file.pathSegments.last))),
-    );
-  }
 }
 
 // TODO(https://github.com/dart-lang/package_config/issues/126): Expose this

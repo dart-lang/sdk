@@ -42,7 +42,7 @@ import '../source/source_constructor_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart'
     show FieldNonPromotabilityInfo, SourceLibraryBuilder;
-import '../source/source_procedure_builder.dart';
+import '../source/source_member_builder.dart';
 import '../testing/id_extractor.dart';
 import '../testing/id_testing_utils.dart';
 import '../util/helpers.dart';
@@ -4495,7 +4495,7 @@ class _WhyNotPromotedVisitor
       return const [];
     }
     FieldNameNonPromotabilityInfo<Class, SourceFieldBuilder,
-            SourceProcedureBuilder>? fieldNameInfo =
+            SourceMemberBuilder>? fieldNameInfo =
         fieldNonPromotabilityInfo.fieldNameInfo[reason.propertyName];
     List<LocatedMessage> messages = [];
     if (fieldNameInfo != null) {
@@ -4507,13 +4507,13 @@ class _WhyNotPromotedVisitor
                 NonPromotionDocumentationLink.conflictingNonPromotableField.url)
             .withLocation(field.fileUri, field.fileOffset, noLength));
       }
-      for (SourceProcedureBuilder getter in fieldNameInfo.conflictingGetters) {
+      for (SourceMemberBuilder getter in fieldNameInfo.conflictingGetters) {
         messages.add(templateFieldNotPromotedBecauseConflictingGetter
             .withArguments(
                 reason.propertyName,
-                getter.procedure.enclosingClass!.name,
+                getter.readTarget!.enclosingClass!.name,
                 NonPromotionDocumentationLink.conflictingGetter.url)
-            .withLocation(getter.fileUri, getter.fileOffset, noLength));
+            .withLocation(getter.fileUri!, getter.fileOffset, noLength));
       }
       for (Class nsmClass in fieldNameInfo.conflictingNsmClasses) {
         messages.add(templateFieldNotPromotedBecauseConflictingNsmForwarder

@@ -220,21 +220,21 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
             returnType, _overrideDependencies!,
             name: fullNameForErrors,
             fileUri: fileUri,
-            fileOffset: nameOffset,
+            nameOffset: nameOffset,
             nameLength: fullNameForErrors.length);
       } else if (isSetter) {
         membersBuilder.inferSetterType(declarationBuilder as SourceClassBuilder,
             formals, _overrideDependencies!,
             name: fullNameForErrors,
             fileUri: fileUri,
-            fileOffset: nameOffset,
+            nameOffset: nameOffset,
             nameLength: fullNameForErrors.length);
       } else {
         membersBuilder.inferMethodType(declarationBuilder as SourceClassBuilder,
             function, returnType, formals, _overrideDependencies!,
             name: fullNameForErrors,
             fileUri: fileUri,
-            fileOffset: nameOffset,
+            nameOffset: nameOffset,
             nameLength: fullNameForErrors.length);
       }
       _overrideDependencies = null;
@@ -564,7 +564,10 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   @override
   void applyAugmentation(Builder augmentation) {
     if (augmentation is SourceProcedureBuilder) {
-      if (checkAugmentation(augmentation)) {
+      if (checkAugmentation(
+          augmentationLibraryBuilder: augmentation.libraryBuilder,
+          origin: this,
+          augmentation: augmentation)) {
         augmentation._origin = this;
         SourceProcedureBuilder augmentedBuilder =
             _augmentations == null ? this : _augmentations!.last;
@@ -575,7 +578,10 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       }
     } else {
       // Coverage-ignore-block(suite): Not run.
-      reportAugmentationMismatch(augmentation);
+      reportAugmentationMismatch(
+          originLibraryBuilder: libraryBuilder,
+          origin: this,
+          augmentation: augmentation);
     }
   }
 
@@ -694,7 +700,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     if (typeParameters != null && typeParameters.isNotEmpty) {
       libraryBuilder.checkTypeParameterDependencies(typeParameters);
     }
-    libraryBuilder.checkTypesInFunctionBuilder(this, typeEnvironment);
+    libraryBuilder.checkInitializersInFormals(formals, typeEnvironment,
+        isAbstract: isAbstract, isExternal: isExternal);
     List<SourceProcedureBuilder>? augmentations = _augmentations;
     if (augmentations != null) {
       for (SourceProcedureBuilder augmentation in augmentations) {
@@ -708,11 +715,91 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         Builder? setterDeclaration =
             nameSpace.lookupLocalMember(name, setter: true);
         if (setterDeclaration != null) {
-          libraryBuilder.checkGetterSetterTypes(
-              this, setterDeclaration as ProcedureBuilder, typeEnvironment);
+          SourceProcedureBuilder getterBuilder = this;
+          SourceProcedureBuilder setterBuilder =
+              setterDeclaration as SourceProcedureBuilder;
+
+          DartType getterType;
+          List<TypeParameter>? getterExtensionTypeParameters;
+          if (getterBuilder.isExtensionInstanceMember ||
+              setterBuilder.isExtensionTypeInstanceMember) {
+            // An extension instance getter
+            //
+            //     extension E<T> on A {
+            //       T get property => ...
+            //     }
+            //
+            // is encoded as a top level method
+            //
+            //   T# E#get#property<T#>(A #this) => ...
+            //
+            // Similarly for extension type instance getters.
+            //
+            Procedure procedure = getterBuilder.procedure;
+            getterType = procedure.function.returnType;
+            getterExtensionTypeParameters = procedure.function.typeParameters;
+          } else {
+            getterType = getterBuilder.procedure.getterType;
+          }
+          DartType setterType = getSetterType(setterBuilder,
+              getterExtensionTypeParameters: getterExtensionTypeParameters);
+
+          libraryBuilder.checkGetterSetterTypes(typeEnvironment,
+              getterType: getterType,
+              getterName: getterBuilder.name,
+              getterFileUri: getterBuilder.fileUri,
+              getterFileOffset: getterBuilder.nameOffset,
+              getterNameLength: getterBuilder.name.length,
+              setterType: setterType,
+              setterName: setterBuilder.name,
+              setterFileUri: setterBuilder.fileUri,
+              setterFileOffset: setterBuilder.nameOffset,
+              setterNameLength: setterBuilder.name.length);
         }
       }
     }
+  }
+
+  static DartType getSetterType(SourceProcedureBuilder setterBuilder,
+      {required List<TypeParameter>? getterExtensionTypeParameters}) {
+    DartType setterType;
+    if (setterBuilder.isExtensionInstanceMember ||
+        setterBuilder.isExtensionTypeInstanceMember) {
+      // An extension instance setter
+      //
+      //     extension E<T> on A {
+      //       void set property(T value) { ... }
+      //     }
+      //
+      // is encoded as a top level method
+      //
+      //   void E#set#property<T#>(A #this, T# value) { ... }
+      //
+      // Similarly for extension type instance setters.
+      //
+      Procedure procedure = setterBuilder.procedure;
+      setterType = procedure.function.positionalParameters[1].type;
+      if (getterExtensionTypeParameters != null &&
+          getterExtensionTypeParameters.isNotEmpty) {
+        // We substitute the setter type parameters for the getter type
+        // parameters to check them below in a shared context.
+        List<TypeParameter> setterExtensionTypeParameters =
+            procedure.function.typeParameters;
+        assert(getterExtensionTypeParameters.length ==
+            setterExtensionTypeParameters.length);
+        setterType = Substitution.fromPairs(
+                setterExtensionTypeParameters,
+                new List<DartType>.generate(
+                    getterExtensionTypeParameters.length,
+                    (int index) => new TypeParameterType.forAlphaRenaming(
+                        setterExtensionTypeParameters[index],
+                        getterExtensionTypeParameters[index])))
+            .substituteType(setterType);
+      }
+    } else {
+      setterType = setterBuilder.procedure.setterType;
+    }
+    return setterType;
   }
 
   @override

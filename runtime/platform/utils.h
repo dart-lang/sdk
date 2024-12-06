@@ -663,6 +663,7 @@ class Utils {
   // |error| (if provided) with an error message (caller must free this message
   // when it is no longer needed).
   static void* LoadDynamicLibrary(const char* library_path,
+                                  bool search_dll_load_dir = false,
                                   char** error = nullptr);
 
   // Resolve the given |symbol| within the library referenced by the

@@ -295,13 +295,19 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   @override
   void applyAugmentation(Builder augmentation) {
     if (augmentation is SourceFactoryBuilder) {
-      if (checkAugmentation(augmentation)) {
+      if (checkAugmentation(
+          augmentationLibraryBuilder: augmentation.libraryBuilder,
+          origin: this,
+          augmentation: augmentation)) {
         augmentation.actualOrigin = this;
         (_augmentations ??= []).add(augmentation);
       }
     } else {
       // Coverage-ignore-block(suite): Not run.
-      reportAugmentationMismatch(augmentation);
+      reportAugmentationMismatch(
+          originLibraryBuilder: libraryBuilder,
+          origin: this,
+          augmentation: augmentation);
     }
   }
 
@@ -339,7 +345,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   @override
   void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
       TypeEnvironment typeEnvironment) {
-    library.checkTypesInFunctionBuilder(this, typeEnvironment);
+    library.checkInitializersInFormals(formals, typeEnvironment,
+        isAbstract: isAbstract, isExternal: isExternal);
     List<SourceFactoryBuilder>? augmentations = _augmentations;
     if (augmentations != null) {
       for (SourceFactoryBuilder augmentation in augmentations) {
@@ -676,7 +683,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   @override
   void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
       TypeEnvironment typeEnvironment) {
-    library.checkTypesInRedirectingFactoryBuilder(this, typeEnvironment);
+    // Default values are not required on redirecting factory constructors so
+    // we don't call [checkInitializersInFormals].
   }
 
   // Computes the function type of a given redirection target. Returns [null] if

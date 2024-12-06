@@ -80,14 +80,14 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
       TypeBuilder declaredFieldType, Iterable<ClassMember> overriddenMembers,
       {required String name,
       required Uri fileUri,
-      required int fileOffset,
+      required int nameOffset,
       required int nameLength,
       required bool isAssignable}) {
     ClassMembersNodeBuilder.inferFieldType(hierarchyBuilder, this,
         enclosingClassBuilder, declaredFieldType, overriddenMembers,
         name: name,
         fileUri: fileUri,
-        fileOffset: fileOffset,
+        nameOffset: nameOffset,
         nameLength: nameLength,
         isAssignable: isAssignable);
   }
@@ -96,13 +96,13 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
       TypeBuilder declaredTypeBuilder, Iterable<ClassMember> overriddenMembers,
       {required String name,
       required Uri fileUri,
-      required int fileOffset,
+      required int nameOffset,
       required int nameLength}) {
     ClassMembersNodeBuilder.inferGetterType(hierarchyBuilder, this,
         enclosingClassBuilder, declaredTypeBuilder, overriddenMembers,
         name: name,
         fileUri: fileUri,
-        fileOffset: fileOffset,
+        nameOffset: nameOffset,
         nameLength: nameLength);
   }
 
@@ -112,13 +112,13 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
       Iterable<ClassMember> overriddenMembers,
       {required String name,
       required Uri fileUri,
-      required int fileOffset,
+      required int nameOffset,
       required int nameLength}) {
     ClassMembersNodeBuilder.inferSetterType(hierarchyBuilder, this,
         enclosingClassBuilder, formals, overriddenMembers,
         name: name,
         fileUri: fileUri,
-        fileOffset: fileOffset,
+        nameOffset: nameOffset,
         nameLength: nameLength);
   }
 
@@ -130,7 +130,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
       Iterable<ClassMember> overriddenMembers,
       {required String name,
       required Uri fileUri,
-      required int fileOffset,
+      required int nameOffset,
       required int nameLength}) {
     ClassMembersNodeBuilder.inferMethodType(
         hierarchyBuilder,
@@ -142,7 +142,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
         overriddenMembers,
         name: name,
         fileUri: fileUri,
-        fileOffset: fileOffset,
+        nameOffset: nameOffset,
         nameLength: nameLength);
   }
 

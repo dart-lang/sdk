@@ -39,6 +39,14 @@ static void ReplaceBackSlashes(char* cstr) {
     cstr[i] = cstr[i] == '\\' ? '/' : cstr[i];
   }
 }
+
+// Replaces forward slashes with back slashes in place.
+static void ReplaceForwardSlashes(char* cstr) {
+  const intptr_t length = strlen(cstr);
+  for (int i = 0; i < length; i++) {
+    cstr[i] = cstr[i] == '/' ? '\\' : cstr[i];
+  }
+}
 #endif
 
 const char* file_schema = "file://";
@@ -79,9 +87,11 @@ CStringUniquePtr CleanScriptUri(const char* script_uri) {
 // If an error occurs populates |error| (if provided) with an error message
 // (caller must free this message when it is no longer needed).
 static void* LoadDynamicLibrary(const char* library_file,
+                                bool search_dll_load_dir = false,
                                 char** error = nullptr) {
   char* utils_error = nullptr;
-  void* handle = Utils::LoadDynamicLibrary(library_file, &utils_error);
+  void* handle = Utils::LoadDynamicLibrary(library_file, search_dll_load_dir,
+                                           &utils_error);
   if (utils_error != nullptr) {
     if (error != nullptr) {
       SET_ERROR_MSG(error, "Failed to load dynamic library '%s': %s",
@@ -121,7 +131,8 @@ static void WrapErrorRelative(const char* path,
 
 void* NativeAssets::DlopenAbsolute(const char* path, char** error) {
   // If we'd want to be strict, it should not take into account include paths.
-  void* handle = LoadDynamicLibrary(path, error);
+  void* handle =
+      LoadDynamicLibrary(path, /* search_dll_load_dir= */ true, error);
   WrapError(path, error);
   return handle;
 }
@@ -142,8 +153,12 @@ void* NativeAssets::DlopenRelative(const char* path,
     SET_ERROR_MSG(error, "Failed to resolve '%s' relative to '%s'.", path_copy,
                   platform_script_cstr.get());
   } else {
-    const char* target_path = target_uri.get() + file_schema_length;
-    handle = LoadDynamicLibrary(target_path, error);
+    char* target_path = target_uri.get() + file_schema_length;
+#if defined(DART_TARGET_OS_WINDOWS)
+    ReplaceForwardSlashes(target_path);
+#endif
+    handle =
+        LoadDynamicLibrary(target_path, /* search_dll_load_dir= */ true, error);
   }
   free(path_copy);
   WrapErrorRelative(path, script_uri, error);
@@ -152,7 +167,8 @@ void* NativeAssets::DlopenRelative(const char* path,
 
 void* NativeAssets::DlopenSystem(const char* path, char** error) {
   // Should take into account LD_PATH etc.
-  void* handle = LoadDynamicLibrary(path, error);
+  void* handle =
+      LoadDynamicLibrary(path, /* search_dll_load_dir= */ false, error);
   WrapError(path, error);
   return handle;
 }
@@ -167,7 +183,7 @@ void* NativeAssets::DlopenProcess(char** error) {
 }
 
 void* NativeAssets::DlopenExecutable(char** error) {
-  return LoadDynamicLibrary(nullptr, error);
+  return LoadDynamicLibrary(nullptr, /* search_dll_load_dir= */ false, error);
 }
 
 #if defined(DART_HOST_OS_WINDOWS)

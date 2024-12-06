@@ -398,7 +398,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
           type, _overrideDependencies!,
           name: fullNameForErrors,
           fileUri: fileUri,
-          fileOffset: nameOffset,
+          nameOffset: nameOffset,
           nameLength: fullNameForErrors.length,
           isAssignable: isAssignable);
       _overrideDependencies = null;
