@@ -21,8 +21,9 @@ void _fallbackMemset(Pointer<Uint8> ptr, int byte, int size) {
 
 void main() {
   try {
-    fbMemset = DynamicLibrary.process()
-        .lookupFunction<_c_memset, _dart_memset>('memset');
+    fbMemset = DynamicLibrary.process().lookupFunction<_c_memset, _dart_memset>(
+      'memset',
+    );
   } catch (_) {
     // This works:
     // fbMemset = _fallbackMemset;

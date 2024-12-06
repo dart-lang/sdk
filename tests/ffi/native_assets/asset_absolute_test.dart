@@ -45,10 +45,7 @@ Future<void> selfInvokes() async {
   final selfSourceUri = Platform.script.resolve('asset_absolute_test.dart');
   final nativeAssetsYaml = createNativeAssetYaml(
     asset: selfSourceUri.toString(),
-    assetMapping: [
-      'absolute',
-      ffiTestFunctionsUriAbsolute.toFilePath(),
-    ],
+    assetMapping: ['absolute', ffiTestFunctionsUriAbsolute.toFilePath()],
   );
   await invokeSelf(
     selfSourceUri: selfSourceUri,
@@ -79,8 +76,9 @@ void testFfiTestfunctionsDll() {
   Expect.equals(2 + 3 + 42, result2);
 
   final viaAddressOf =
-      Native.addressOf<NativeFunction<Int32 Function(Int32, Int32)>>(SumPlus42)
-          .asFunction<int Function(int, int)>();
+      Native.addressOf<NativeFunction<Int32 Function(Int32, Int32)>>(
+        SumPlus42,
+      ).asFunction<int Function(int, int)>();
   Expect.equals(2 + 3 + 42, viaAddressOf(2, 3));
 }
 

@@ -75,14 +75,17 @@ void testFailure() {
   } on ArgumentError catch (e) {
     if (Platform.isWindows) {
       Expect.contains(
-          'None of the loaded modules contained the requested symbol',
-          e.message);
+        'None of the loaded modules contained the requested symbol',
+        e.message,
+      );
     } else if (Platform.isMacOS || Platform.isIOS) {
       Expect.contains('symbol_is_not_defined_29903211', e.message);
       Expect.contains('symbol not found', e.message);
     } else {
       Expect.contains(
-          'undefined symbol: symbol_is_not_defined_29903211', e.message);
+        'undefined symbol: symbol_is_not_defined_29903211',
+        e.message,
+      );
     }
   }
 }

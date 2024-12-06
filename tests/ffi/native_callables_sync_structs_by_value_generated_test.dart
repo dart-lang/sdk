@@ -36,630 +36,848 @@ Future<void> main() async {
 
 final testCases = [
   AsyncCallbackTest(
-      "PassStruct1ByteIntx10",
-      Pointer.fromFunction<PassStruct1ByteIntx10Type>(passStruct1ByteIntx10),
-      passStruct1ByteIntx10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct3BytesHomogeneousUint8x10",
-      Pointer.fromFunction<PassStruct3BytesHomogeneousUint8x10Type>(
-          passStruct3BytesHomogeneousUint8x10),
-      passStruct3BytesHomogeneousUint8x10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct3BytesInt2ByteAlignedx10",
-      Pointer.fromFunction<PassStruct3BytesInt2ByteAlignedx10Type>(
-          passStruct3BytesInt2ByteAlignedx10),
-      passStruct3BytesInt2ByteAlignedx10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct4BytesHomogeneousInt16x10",
-      Pointer.fromFunction<PassStruct4BytesHomogeneousInt16x10Type>(
-          passStruct4BytesHomogeneousInt16x10),
-      passStruct4BytesHomogeneousInt16x10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct7BytesHomogeneousUint8x10",
-      Pointer.fromFunction<PassStruct7BytesHomogeneousUint8x10Type>(
-          passStruct7BytesHomogeneousUint8x10),
-      passStruct7BytesHomogeneousUint8x10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct7BytesInt4ByteAlignedx10",
-      Pointer.fromFunction<PassStruct7BytesInt4ByteAlignedx10Type>(
-          passStruct7BytesInt4ByteAlignedx10),
-      passStruct7BytesInt4ByteAlignedx10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct8BytesIntx10",
-      Pointer.fromFunction<PassStruct8BytesIntx10Type>(passStruct8BytesIntx10),
-      passStruct8BytesIntx10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct8BytesHomogeneousFloatx10",
-      Pointer.fromFunction<PassStruct8BytesHomogeneousFloatx10Type>(
-          passStruct8BytesHomogeneousFloatx10),
-      passStruct8BytesHomogeneousFloatx10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct8BytesMixedx10",
-      Pointer.fromFunction<PassStruct8BytesMixedx10Type>(
-          passStruct8BytesMixedx10),
-      passStruct8BytesMixedx10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct9BytesHomogeneousUint8x10",
-      Pointer.fromFunction<PassStruct9BytesHomogeneousUint8x10Type>(
-          passStruct9BytesHomogeneousUint8x10),
-      passStruct9BytesHomogeneousUint8x10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct9BytesInt4Or8ByteAlignedx10",
-      Pointer.fromFunction<PassStruct9BytesInt4Or8ByteAlignedx10Type>(
-          passStruct9BytesInt4Or8ByteAlignedx10),
-      passStruct9BytesInt4Or8ByteAlignedx10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct12BytesHomogeneousFloatx6",
-      Pointer.fromFunction<PassStruct12BytesHomogeneousFloatx6Type>(
-          passStruct12BytesHomogeneousFloatx6),
-      passStruct12BytesHomogeneousFloatx6AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct16BytesHomogeneousFloatx5",
-      Pointer.fromFunction<PassStruct16BytesHomogeneousFloatx5Type>(
-          passStruct16BytesHomogeneousFloatx5),
-      passStruct16BytesHomogeneousFloatx5AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct16BytesMixedx10",
-      Pointer.fromFunction<PassStruct16BytesMixedx10Type>(
-          passStruct16BytesMixedx10),
-      passStruct16BytesMixedx10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct16BytesMixed2x10",
-      Pointer.fromFunction<PassStruct16BytesMixed2x10Type>(
-          passStruct16BytesMixed2x10),
-      passStruct16BytesMixed2x10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct17BytesIntx10",
-      Pointer.fromFunction<PassStruct17BytesIntx10Type>(
-          passStruct17BytesIntx10),
-      passStruct17BytesIntx10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct19BytesHomogeneousUint8x10",
-      Pointer.fromFunction<PassStruct19BytesHomogeneousUint8x10Type>(
-          passStruct19BytesHomogeneousUint8x10),
-      passStruct19BytesHomogeneousUint8x10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct20BytesHomogeneousInt32x10",
-      Pointer.fromFunction<PassStruct20BytesHomogeneousInt32x10Type>(
-          passStruct20BytesHomogeneousInt32x10),
-      passStruct20BytesHomogeneousInt32x10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct20BytesHomogeneousFloat",
-      Pointer.fromFunction<PassStruct20BytesHomogeneousFloatType>(
-          passStruct20BytesHomogeneousFloat),
-      passStruct20BytesHomogeneousFloatAfterCallback),
-  AsyncCallbackTest(
-      "PassStruct32BytesHomogeneousDoublex5",
-      Pointer.fromFunction<PassStruct32BytesHomogeneousDoublex5Type>(
-          passStruct32BytesHomogeneousDoublex5),
-      passStruct32BytesHomogeneousDoublex5AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct40BytesHomogeneousDouble",
-      Pointer.fromFunction<PassStruct40BytesHomogeneousDoubleType>(
-          passStruct40BytesHomogeneousDouble),
-      passStruct40BytesHomogeneousDoubleAfterCallback),
-  AsyncCallbackTest(
-      "PassStruct1024BytesHomogeneousUint64",
-      Pointer.fromFunction<PassStruct1024BytesHomogeneousUint64Type>(
-          passStruct1024BytesHomogeneousUint64),
-      passStruct1024BytesHomogeneousUint64AfterCallback),
-  AsyncCallbackTest(
-      "PassFloatStruct16BytesHomogeneousFloatFloatStruct1",
-      Pointer.fromFunction<
-              PassFloatStruct16BytesHomogeneousFloatFloatStruct1Type>(
-          passFloatStruct16BytesHomogeneousFloatFloatStruct1),
-      passFloatStruct16BytesHomogeneousFloatFloatStruct1AfterCallback),
-  AsyncCallbackTest(
-      "PassFloatStruct32BytesHomogeneousDoubleFloatStruct",
-      Pointer.fromFunction<
-              PassFloatStruct32BytesHomogeneousDoubleFloatStructType>(
-          passFloatStruct32BytesHomogeneousDoubleFloatStruct),
-      passFloatStruct32BytesHomogeneousDoubleFloatStructAfterCallback),
-  AsyncCallbackTest(
-      "PassInt8Struct16BytesMixedInt8Struct16BytesMixedIn",
-      Pointer.fromFunction<
-              PassInt8Struct16BytesMixedInt8Struct16BytesMixedInType>(
-          passInt8Struct16BytesMixedInt8Struct16BytesMixedIn),
-      passInt8Struct16BytesMixedInt8Struct16BytesMixedInAfterCallback),
-  AsyncCallbackTest(
-      "PassDoublex6Struct16BytesMixedx4Int32",
-      Pointer.fromFunction<PassDoublex6Struct16BytesMixedx4Int32Type>(
-          passDoublex6Struct16BytesMixedx4Int32),
-      passDoublex6Struct16BytesMixedx4Int32AfterCallback),
-  AsyncCallbackTest(
-      "PassInt32x4Struct16BytesMixedx4Double",
-      Pointer.fromFunction<PassInt32x4Struct16BytesMixedx4DoubleType>(
-          passInt32x4Struct16BytesMixedx4Double),
-      passInt32x4Struct16BytesMixedx4DoubleAfterCallback),
-  AsyncCallbackTest(
-      "PassStruct40BytesHomogeneousDoubleStruct4BytesHomo",
-      Pointer.fromFunction<
-              PassStruct40BytesHomogeneousDoubleStruct4BytesHomoType>(
-          passStruct40BytesHomogeneousDoubleStruct4BytesHomo),
-      passStruct40BytesHomogeneousDoubleStruct4BytesHomoAfterCallback),
-  AsyncCallbackTest(
-      "PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int",
-      Pointer.fromFunction<
-              PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntType>(
-          passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int),
-      passInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntAfterCallback),
-  AsyncCallbackTest(
-      "PassStructAlignmentInt16",
-      Pointer.fromFunction<PassStructAlignmentInt16Type>(
-          passStructAlignmentInt16),
-      passStructAlignmentInt16AfterCallback),
-  AsyncCallbackTest(
-      "PassStructAlignmentInt32",
-      Pointer.fromFunction<PassStructAlignmentInt32Type>(
-          passStructAlignmentInt32),
-      passStructAlignmentInt32AfterCallback),
-  AsyncCallbackTest(
-      "PassStructAlignmentInt64",
-      Pointer.fromFunction<PassStructAlignmentInt64Type>(
-          passStructAlignmentInt64),
-      passStructAlignmentInt64AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct8BytesNestedIntx10",
-      Pointer.fromFunction<PassStruct8BytesNestedIntx10Type>(
-          passStruct8BytesNestedIntx10),
-      passStruct8BytesNestedIntx10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct8BytesNestedFloatx10",
-      Pointer.fromFunction<PassStruct8BytesNestedFloatx10Type>(
-          passStruct8BytesNestedFloatx10),
-      passStruct8BytesNestedFloatx10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct8BytesNestedFloat2x10",
-      Pointer.fromFunction<PassStruct8BytesNestedFloat2x10Type>(
-          passStruct8BytesNestedFloat2x10),
-      passStruct8BytesNestedFloat2x10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct8BytesNestedMixedx10",
-      Pointer.fromFunction<PassStruct8BytesNestedMixedx10Type>(
-          passStruct8BytesNestedMixedx10),
-      passStruct8BytesNestedMixedx10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct16BytesNestedIntx2",
-      Pointer.fromFunction<PassStruct16BytesNestedIntx2Type>(
-          passStruct16BytesNestedIntx2),
-      passStruct16BytesNestedIntx2AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct32BytesNestedIntx2",
-      Pointer.fromFunction<PassStruct32BytesNestedIntx2Type>(
-          passStruct32BytesNestedIntx2),
-      passStruct32BytesNestedIntx2AfterCallback),
-  AsyncCallbackTest(
-      "PassStructNestedIntStructAlignmentInt16",
-      Pointer.fromFunction<PassStructNestedIntStructAlignmentInt16Type>(
-          passStructNestedIntStructAlignmentInt16),
-      passStructNestedIntStructAlignmentInt16AfterCallback),
-  AsyncCallbackTest(
-      "PassStructNestedIntStructAlignmentInt32",
-      Pointer.fromFunction<PassStructNestedIntStructAlignmentInt32Type>(
-          passStructNestedIntStructAlignmentInt32),
-      passStructNestedIntStructAlignmentInt32AfterCallback),
-  AsyncCallbackTest(
-      "PassStructNestedIntStructAlignmentInt64",
-      Pointer.fromFunction<PassStructNestedIntStructAlignmentInt64Type>(
-          passStructNestedIntStructAlignmentInt64),
-      passStructNestedIntStructAlignmentInt64AfterCallback),
-  AsyncCallbackTest(
-      "PassStructNestedIrregularEvenBiggerx4",
-      Pointer.fromFunction<PassStructNestedIrregularEvenBiggerx4Type>(
-          passStructNestedIrregularEvenBiggerx4),
-      passStructNestedIrregularEvenBiggerx4AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct8BytesInlineArrayIntx4",
-      Pointer.fromFunction<PassStruct8BytesInlineArrayIntx4Type>(
-          passStruct8BytesInlineArrayIntx4),
-      passStruct8BytesInlineArrayIntx4AfterCallback),
-  AsyncCallbackTest(
-      "PassStructInlineArrayIrregularx4",
-      Pointer.fromFunction<PassStructInlineArrayIrregularx4Type>(
-          passStructInlineArrayIrregularx4),
-      passStructInlineArrayIrregularx4AfterCallback),
-  AsyncCallbackTest(
-      "PassStructInlineArray100Bytes",
-      Pointer.fromFunction<PassStructInlineArray100BytesType>(
-          passStructInlineArray100Bytes),
-      passStructInlineArray100BytesAfterCallback),
-  AsyncCallbackTest(
-      "PassStructStruct16BytesHomogeneousFloat2x5",
-      Pointer.fromFunction<PassStructStruct16BytesHomogeneousFloat2x5Type>(
-          passStructStruct16BytesHomogeneousFloat2x5),
-      passStructStruct16BytesHomogeneousFloat2x5AfterCallback),
-  AsyncCallbackTest(
-      "PassStructStruct32BytesHomogeneousDouble2x5",
-      Pointer.fromFunction<PassStructStruct32BytesHomogeneousDouble2x5Type>(
-          passStructStruct32BytesHomogeneousDouble2x5),
-      passStructStruct32BytesHomogeneousDouble2x5AfterCallback),
-  AsyncCallbackTest(
-      "PassStructStruct16BytesMixed3x10",
-      Pointer.fromFunction<PassStructStruct16BytesMixed3x10Type>(
-          passStructStruct16BytesMixed3x10),
-      passStructStruct16BytesMixed3x10AfterCallback),
-  AsyncCallbackTest(
-      "PassUint8Struct32BytesInlineArrayMultiDimensionalI",
-      Pointer.fromFunction<
-              PassUint8Struct32BytesInlineArrayMultiDimensionalIType>(
-          passUint8Struct32BytesInlineArrayMultiDimensionalI),
-      passUint8Struct32BytesInlineArrayMultiDimensionalIAfterCallback),
-  AsyncCallbackTest(
-      "PassUint8Struct4BytesInlineArrayMultiDimensionalIn",
-      Pointer.fromFunction<
-              PassUint8Struct4BytesInlineArrayMultiDimensionalInType>(
-          passUint8Struct4BytesInlineArrayMultiDimensionalIn),
-      passUint8Struct4BytesInlineArrayMultiDimensionalInAfterCallback),
-  AsyncCallbackTest(
-      "PassStruct3BytesPackedIntx10",
-      Pointer.fromFunction<PassStruct3BytesPackedIntx10Type>(
-          passStruct3BytesPackedIntx10),
-      passStruct3BytesPackedIntx10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct8BytesPackedIntx10",
-      Pointer.fromFunction<PassStruct8BytesPackedIntx10Type>(
-          passStruct8BytesPackedIntx10),
-      passStruct8BytesPackedIntx10AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct9BytesPackedMixedx10DoubleInt32x2",
-      Pointer.fromFunction<PassStruct9BytesPackedMixedx10DoubleInt32x2Type>(
-          passStruct9BytesPackedMixedx10DoubleInt32x2),
-      passStruct9BytesPackedMixedx10DoubleInt32x2AfterCallback),
-  AsyncCallbackTest(
-      "PassStruct5BytesPackedMixed",
-      Pointer.fromFunction<PassStruct5BytesPackedMixedType>(
-          passStruct5BytesPackedMixed),
-      passStruct5BytesPackedMixedAfterCallback),
-  AsyncCallbackTest(
-      "PassStructNestedAlignmentStruct5BytesPackedMixed",
-      Pointer.fromFunction<
-              PassStructNestedAlignmentStruct5BytesPackedMixedType>(
-          passStructNestedAlignmentStruct5BytesPackedMixed),
-      passStructNestedAlignmentStruct5BytesPackedMixedAfterCallback),
-  AsyncCallbackTest(
-      "PassStruct6BytesInlineArrayInt",
-      Pointer.fromFunction<PassStruct6BytesInlineArrayIntType>(
-          passStruct6BytesInlineArrayInt),
-      passStruct6BytesInlineArrayIntAfterCallback),
-  AsyncCallbackTest(
-      "PassStruct15BytesInlineArrayMixed",
-      Pointer.fromFunction<PassStruct15BytesInlineArrayMixedType>(
-          passStruct15BytesInlineArrayMixed),
-      passStruct15BytesInlineArrayMixedAfterCallback),
-  AsyncCallbackTest(
-      "PassUnion4BytesMixedx10",
-      Pointer.fromFunction<PassUnion4BytesMixedx10Type>(
-          passUnion4BytesMixedx10),
-      passUnion4BytesMixedx10AfterCallback),
-  AsyncCallbackTest(
-      "PassUnion8BytesNestedFloatx10",
-      Pointer.fromFunction<PassUnion8BytesNestedFloatx10Type>(
-          passUnion8BytesNestedFloatx10),
-      passUnion8BytesNestedFloatx10AfterCallback),
-  AsyncCallbackTest(
-      "PassUnion9BytesNestedIntx10",
-      Pointer.fromFunction<PassUnion9BytesNestedIntx10Type>(
-          passUnion9BytesNestedIntx10),
-      passUnion9BytesNestedIntx10AfterCallback),
-  AsyncCallbackTest(
-      "PassUnion16BytesNestedInlineArrayFloatx10",
-      Pointer.fromFunction<PassUnion16BytesNestedInlineArrayFloatx10Type>(
-          passUnion16BytesNestedInlineArrayFloatx10),
-      passUnion16BytesNestedInlineArrayFloatx10AfterCallback),
-  AsyncCallbackTest(
-      "PassUnion16BytesNestedFloatx10",
-      Pointer.fromFunction<PassUnion16BytesNestedFloatx10Type>(
-          passUnion16BytesNestedFloatx10),
-      passUnion16BytesNestedFloatx10AfterCallback),
-  AsyncCallbackTest(
-      "PassUint8Boolx9Struct10BytesHomogeneousBoolBool",
-      Pointer.fromFunction<PassUint8Boolx9Struct10BytesHomogeneousBoolBoolType>(
-          passUint8Boolx9Struct10BytesHomogeneousBoolBool),
-      passUint8Boolx9Struct10BytesHomogeneousBoolBoolAfterCallback),
-  AsyncCallbackTest(
-      "PassUint8Boolx9Struct10BytesInlineArrayBoolBool",
-      Pointer.fromFunction<PassUint8Boolx9Struct10BytesInlineArrayBoolBoolType>(
-          passUint8Boolx9Struct10BytesInlineArrayBoolBool),
-      passUint8Boolx9Struct10BytesInlineArrayBoolBoolAfterCallback),
-  AsyncCallbackTest(
-      "PassUint8Struct1ByteBool",
-      Pointer.fromFunction<PassUint8Struct1ByteBoolType>(
-          passUint8Struct1ByteBool),
-      passUint8Struct1ByteBoolAfterCallback),
-  AsyncCallbackTest(
-      "PassWCharStructInlineArrayIntUintPtrx2LongUnsigned",
-      Pointer.fromFunction<
-              PassWCharStructInlineArrayIntUintPtrx2LongUnsignedType>(
-          passWCharStructInlineArrayIntUintPtrx2LongUnsigned),
-      passWCharStructInlineArrayIntUintPtrx2LongUnsignedAfterCallback),
-  AsyncCallbackTest(
-      "PassInt64x7Struct12BytesHomogeneousInt32",
-      Pointer.fromFunction<PassInt64x7Struct12BytesHomogeneousInt32Type>(
-          passInt64x7Struct12BytesHomogeneousInt32),
-      passInt64x7Struct12BytesHomogeneousInt32AfterCallback),
-  AsyncCallbackTest(
-      "PassPointerStruct12BytesHomogeneousInt32",
-      Pointer.fromFunction<PassPointerStruct12BytesHomogeneousInt32Type>(
-          passPointerStruct12BytesHomogeneousInt32),
-      noChecksAsync),
-  AsyncCallbackTest(
-      "PassPointerStructInlineArrayVariable",
-      Pointer.fromFunction<PassPointerStructInlineArrayVariableType>(
-          passPointerStructInlineArrayVariable),
-      noChecksAsync),
-  AsyncCallbackTest(
-      "PassPointerStructInlineArrayVariableAlign",
-      Pointer.fromFunction<PassPointerStructInlineArrayVariableAlignType>(
-          passPointerStructInlineArrayVariableAlign),
-      noChecksAsync),
-  AsyncCallbackTest(
-      "ReturnStruct1ByteInt",
-      Pointer.fromFunction<ReturnStruct1ByteIntType>(returnStruct1ByteInt),
-      returnStruct1ByteIntAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct3BytesHomogeneousUint8",
-      Pointer.fromFunction<ReturnStruct3BytesHomogeneousUint8Type>(
-          returnStruct3BytesHomogeneousUint8),
-      returnStruct3BytesHomogeneousUint8AfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct3BytesInt2ByteAligned",
-      Pointer.fromFunction<ReturnStruct3BytesInt2ByteAlignedType>(
-          returnStruct3BytesInt2ByteAligned),
-      returnStruct3BytesInt2ByteAlignedAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct4BytesHomogeneousInt16",
-      Pointer.fromFunction<ReturnStruct4BytesHomogeneousInt16Type>(
-          returnStruct4BytesHomogeneousInt16),
-      returnStruct4BytesHomogeneousInt16AfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct7BytesHomogeneousUint8",
-      Pointer.fromFunction<ReturnStruct7BytesHomogeneousUint8Type>(
-          returnStruct7BytesHomogeneousUint8),
-      returnStruct7BytesHomogeneousUint8AfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct7BytesInt4ByteAligned",
-      Pointer.fromFunction<ReturnStruct7BytesInt4ByteAlignedType>(
-          returnStruct7BytesInt4ByteAligned),
-      returnStruct7BytesInt4ByteAlignedAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct8BytesInt",
-      Pointer.fromFunction<ReturnStruct8BytesIntType>(returnStruct8BytesInt),
-      returnStruct8BytesIntAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct8BytesHomogeneousFloat",
-      Pointer.fromFunction<ReturnStruct8BytesHomogeneousFloatType>(
-          returnStruct8BytesHomogeneousFloat),
-      returnStruct8BytesHomogeneousFloatAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct8BytesMixed",
-      Pointer.fromFunction<ReturnStruct8BytesMixedType>(
-          returnStruct8BytesMixed),
-      returnStruct8BytesMixedAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct9BytesHomogeneousUint8",
-      Pointer.fromFunction<ReturnStruct9BytesHomogeneousUint8Type>(
-          returnStruct9BytesHomogeneousUint8),
-      returnStruct9BytesHomogeneousUint8AfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct9BytesInt4Or8ByteAligned",
-      Pointer.fromFunction<ReturnStruct9BytesInt4Or8ByteAlignedType>(
-          returnStruct9BytesInt4Or8ByteAligned),
-      returnStruct9BytesInt4Or8ByteAlignedAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct12BytesHomogeneousFloat",
-      Pointer.fromFunction<ReturnStruct12BytesHomogeneousFloatType>(
-          returnStruct12BytesHomogeneousFloat),
-      returnStruct12BytesHomogeneousFloatAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct16BytesHomogeneousFloat",
-      Pointer.fromFunction<ReturnStruct16BytesHomogeneousFloatType>(
-          returnStruct16BytesHomogeneousFloat),
-      returnStruct16BytesHomogeneousFloatAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct16BytesMixed",
-      Pointer.fromFunction<ReturnStruct16BytesMixedType>(
-          returnStruct16BytesMixed),
-      returnStruct16BytesMixedAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct16BytesMixed2",
-      Pointer.fromFunction<ReturnStruct16BytesMixed2Type>(
-          returnStruct16BytesMixed2),
-      returnStruct16BytesMixed2AfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct17BytesInt",
-      Pointer.fromFunction<ReturnStruct17BytesIntType>(returnStruct17BytesInt),
-      returnStruct17BytesIntAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct19BytesHomogeneousUint8",
-      Pointer.fromFunction<ReturnStruct19BytesHomogeneousUint8Type>(
-          returnStruct19BytesHomogeneousUint8),
-      returnStruct19BytesHomogeneousUint8AfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct20BytesHomogeneousInt32",
-      Pointer.fromFunction<ReturnStruct20BytesHomogeneousInt32Type>(
-          returnStruct20BytesHomogeneousInt32),
-      returnStruct20BytesHomogeneousInt32AfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct20BytesHomogeneousFloat",
-      Pointer.fromFunction<ReturnStruct20BytesHomogeneousFloatType>(
-          returnStruct20BytesHomogeneousFloat),
-      returnStruct20BytesHomogeneousFloatAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct32BytesHomogeneousDouble",
-      Pointer.fromFunction<ReturnStruct32BytesHomogeneousDoubleType>(
-          returnStruct32BytesHomogeneousDouble),
-      returnStruct32BytesHomogeneousDoubleAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct40BytesHomogeneousDouble",
-      Pointer.fromFunction<ReturnStruct40BytesHomogeneousDoubleType>(
-          returnStruct40BytesHomogeneousDouble),
-      returnStruct40BytesHomogeneousDoubleAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct1024BytesHomogeneousUint64",
-      Pointer.fromFunction<ReturnStruct1024BytesHomogeneousUint64Type>(
-          returnStruct1024BytesHomogeneousUint64),
-      returnStruct1024BytesHomogeneousUint64AfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct3BytesPackedInt",
-      Pointer.fromFunction<ReturnStruct3BytesPackedIntType>(
-          returnStruct3BytesPackedInt),
-      returnStruct3BytesPackedIntAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct8BytesPackedInt",
-      Pointer.fromFunction<ReturnStruct8BytesPackedIntType>(
-          returnStruct8BytesPackedInt),
-      returnStruct8BytesPackedIntAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct9BytesPackedMixed",
-      Pointer.fromFunction<ReturnStruct9BytesPackedMixedType>(
-          returnStruct9BytesPackedMixed),
-      returnStruct9BytesPackedMixedAfterCallback),
-  AsyncCallbackTest(
-      "ReturnUnion4BytesMixed",
-      Pointer.fromFunction<ReturnUnion4BytesMixedType>(returnUnion4BytesMixed),
-      returnUnion4BytesMixedAfterCallback),
-  AsyncCallbackTest(
-      "ReturnUnion8BytesNestedFloat",
-      Pointer.fromFunction<ReturnUnion8BytesNestedFloatType>(
-          returnUnion8BytesNestedFloat),
-      returnUnion8BytesNestedFloatAfterCallback),
-  AsyncCallbackTest(
-      "ReturnUnion9BytesNestedInt",
-      Pointer.fromFunction<ReturnUnion9BytesNestedIntType>(
-          returnUnion9BytesNestedInt),
-      returnUnion9BytesNestedIntAfterCallback),
-  AsyncCallbackTest(
-      "ReturnUnion16BytesNestedFloat",
-      Pointer.fromFunction<ReturnUnion16BytesNestedFloatType>(
-          returnUnion16BytesNestedFloat),
-      returnUnion16BytesNestedFloatAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStructArgumentStruct1ByteInt",
-      Pointer.fromFunction<ReturnStructArgumentStruct1ByteIntType>(
-          returnStructArgumentStruct1ByteInt),
-      returnStructArgumentStruct1ByteIntAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStructArgumentInt32x8Struct1ByteInt",
-      Pointer.fromFunction<ReturnStructArgumentInt32x8Struct1ByteIntType>(
-          returnStructArgumentInt32x8Struct1ByteInt),
-      returnStructArgumentInt32x8Struct1ByteIntAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStructArgumentStruct8BytesHomogeneousFloat",
-      Pointer.fromFunction<
-              ReturnStructArgumentStruct8BytesHomogeneousFloatType>(
-          returnStructArgumentStruct8BytesHomogeneousFloat),
-      returnStructArgumentStruct8BytesHomogeneousFloatAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStructArgumentStruct20BytesHomogeneousInt32",
-      Pointer.fromFunction<
-              ReturnStructArgumentStruct20BytesHomogeneousInt32Type>(
-          returnStructArgumentStruct20BytesHomogeneousInt32),
-      returnStructArgumentStruct20BytesHomogeneousInt32AfterCallback),
-  AsyncCallbackTest(
-      "ReturnStructArgumentInt32x8Struct20BytesHomogeneou",
-      Pointer.fromFunction<
-              ReturnStructArgumentInt32x8Struct20BytesHomogeneouType>(
-          returnStructArgumentInt32x8Struct20BytesHomogeneou),
-      returnStructArgumentInt32x8Struct20BytesHomogeneouAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStructArgumentStruct8BytesInlineArrayInt",
-      Pointer.fromFunction<ReturnStructArgumentStruct8BytesInlineArrayIntType>(
-          returnStructArgumentStruct8BytesInlineArrayInt),
-      returnStructArgumentStruct8BytesInlineArrayIntAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStructArgumentStructStruct16BytesHomogeneous",
-      Pointer.fromFunction<
-              ReturnStructArgumentStructStruct16BytesHomogeneousType>(
-          returnStructArgumentStructStruct16BytesHomogeneous),
-      returnStructArgumentStructStruct16BytesHomogeneousAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStructArgumentStructStruct32BytesHomogeneous",
-      Pointer.fromFunction<
-              ReturnStructArgumentStructStruct32BytesHomogeneousType>(
-          returnStructArgumentStructStruct32BytesHomogeneous),
-      returnStructArgumentStructStruct32BytesHomogeneousAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStructArgumentStructStruct16BytesMixed3",
-      Pointer.fromFunction<ReturnStructArgumentStructStruct16BytesMixed3Type>(
-          returnStructArgumentStructStruct16BytesMixed3),
-      returnStructArgumentStructStruct16BytesMixed3AfterCallback),
-  AsyncCallbackTest(
-      "ReturnStructAlignmentInt16",
-      Pointer.fromFunction<ReturnStructAlignmentInt16Type>(
-          returnStructAlignmentInt16),
-      returnStructAlignmentInt16AfterCallback),
-  AsyncCallbackTest(
-      "ReturnStructAlignmentInt32",
-      Pointer.fromFunction<ReturnStructAlignmentInt32Type>(
-          returnStructAlignmentInt32),
-      returnStructAlignmentInt32AfterCallback),
-  AsyncCallbackTest(
-      "ReturnStructAlignmentInt64",
-      Pointer.fromFunction<ReturnStructAlignmentInt64Type>(
-          returnStructAlignmentInt64),
-      returnStructAlignmentInt64AfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct8BytesNestedInt",
-      Pointer.fromFunction<ReturnStruct8BytesNestedIntType>(
-          returnStruct8BytesNestedInt),
-      returnStruct8BytesNestedIntAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct8BytesNestedFloat",
-      Pointer.fromFunction<ReturnStruct8BytesNestedFloatType>(
-          returnStruct8BytesNestedFloat),
-      returnStruct8BytesNestedFloatAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct8BytesNestedFloat2",
-      Pointer.fromFunction<ReturnStruct8BytesNestedFloat2Type>(
-          returnStruct8BytesNestedFloat2),
-      returnStruct8BytesNestedFloat2AfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct8BytesNestedMixed",
-      Pointer.fromFunction<ReturnStruct8BytesNestedMixedType>(
-          returnStruct8BytesNestedMixed),
-      returnStruct8BytesNestedMixedAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct16BytesNestedInt",
-      Pointer.fromFunction<ReturnStruct16BytesNestedIntType>(
-          returnStruct16BytesNestedInt),
-      returnStruct16BytesNestedIntAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStruct32BytesNestedInt",
-      Pointer.fromFunction<ReturnStruct32BytesNestedIntType>(
-          returnStruct32BytesNestedInt),
-      returnStruct32BytesNestedIntAfterCallback),
-  AsyncCallbackTest(
-      "ReturnStructNestedIntStructAlignmentInt16",
-      Pointer.fromFunction<ReturnStructNestedIntStructAlignmentInt16Type>(
-          returnStructNestedIntStructAlignmentInt16),
-      returnStructNestedIntStructAlignmentInt16AfterCallback),
-  AsyncCallbackTest(
-      "ReturnStructNestedIntStructAlignmentInt32",
-      Pointer.fromFunction<ReturnStructNestedIntStructAlignmentInt32Type>(
-          returnStructNestedIntStructAlignmentInt32),
-      returnStructNestedIntStructAlignmentInt32AfterCallback),
-  AsyncCallbackTest(
-      "ReturnStructNestedIntStructAlignmentInt64",
-      Pointer.fromFunction<ReturnStructNestedIntStructAlignmentInt64Type>(
-          returnStructNestedIntStructAlignmentInt64),
-      returnStructNestedIntStructAlignmentInt64AfterCallback),
-  AsyncCallbackTest(
-      "ReturnStructNestedIrregularEvenBigger",
-      Pointer.fromFunction<ReturnStructNestedIrregularEvenBiggerType>(
-          returnStructNestedIrregularEvenBigger),
-      returnStructNestedIrregularEvenBiggerAfterCallback),
+    "PassStruct1ByteIntx10",
+    Pointer.fromFunction<PassStruct1ByteIntx10Type>(passStruct1ByteIntx10),
+    passStruct1ByteIntx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct3BytesHomogeneousUint8x10",
+    Pointer.fromFunction<PassStruct3BytesHomogeneousUint8x10Type>(
+      passStruct3BytesHomogeneousUint8x10,
+    ),
+    passStruct3BytesHomogeneousUint8x10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct3BytesInt2ByteAlignedx10",
+    Pointer.fromFunction<PassStruct3BytesInt2ByteAlignedx10Type>(
+      passStruct3BytesInt2ByteAlignedx10,
+    ),
+    passStruct3BytesInt2ByteAlignedx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct4BytesHomogeneousInt16x10",
+    Pointer.fromFunction<PassStruct4BytesHomogeneousInt16x10Type>(
+      passStruct4BytesHomogeneousInt16x10,
+    ),
+    passStruct4BytesHomogeneousInt16x10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct7BytesHomogeneousUint8x10",
+    Pointer.fromFunction<PassStruct7BytesHomogeneousUint8x10Type>(
+      passStruct7BytesHomogeneousUint8x10,
+    ),
+    passStruct7BytesHomogeneousUint8x10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct7BytesInt4ByteAlignedx10",
+    Pointer.fromFunction<PassStruct7BytesInt4ByteAlignedx10Type>(
+      passStruct7BytesInt4ByteAlignedx10,
+    ),
+    passStruct7BytesInt4ByteAlignedx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct8BytesIntx10",
+    Pointer.fromFunction<PassStruct8BytesIntx10Type>(passStruct8BytesIntx10),
+    passStruct8BytesIntx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct8BytesHomogeneousFloatx10",
+    Pointer.fromFunction<PassStruct8BytesHomogeneousFloatx10Type>(
+      passStruct8BytesHomogeneousFloatx10,
+    ),
+    passStruct8BytesHomogeneousFloatx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct8BytesMixedx10",
+    Pointer.fromFunction<PassStruct8BytesMixedx10Type>(
+      passStruct8BytesMixedx10,
+    ),
+    passStruct8BytesMixedx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct9BytesHomogeneousUint8x10",
+    Pointer.fromFunction<PassStruct9BytesHomogeneousUint8x10Type>(
+      passStruct9BytesHomogeneousUint8x10,
+    ),
+    passStruct9BytesHomogeneousUint8x10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct9BytesInt4Or8ByteAlignedx10",
+    Pointer.fromFunction<PassStruct9BytesInt4Or8ByteAlignedx10Type>(
+      passStruct9BytesInt4Or8ByteAlignedx10,
+    ),
+    passStruct9BytesInt4Or8ByteAlignedx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct12BytesHomogeneousFloatx6",
+    Pointer.fromFunction<PassStruct12BytesHomogeneousFloatx6Type>(
+      passStruct12BytesHomogeneousFloatx6,
+    ),
+    passStruct12BytesHomogeneousFloatx6AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct16BytesHomogeneousFloatx5",
+    Pointer.fromFunction<PassStruct16BytesHomogeneousFloatx5Type>(
+      passStruct16BytesHomogeneousFloatx5,
+    ),
+    passStruct16BytesHomogeneousFloatx5AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct16BytesMixedx10",
+    Pointer.fromFunction<PassStruct16BytesMixedx10Type>(
+      passStruct16BytesMixedx10,
+    ),
+    passStruct16BytesMixedx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct16BytesMixed2x10",
+    Pointer.fromFunction<PassStruct16BytesMixed2x10Type>(
+      passStruct16BytesMixed2x10,
+    ),
+    passStruct16BytesMixed2x10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct17BytesIntx10",
+    Pointer.fromFunction<PassStruct17BytesIntx10Type>(passStruct17BytesIntx10),
+    passStruct17BytesIntx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct19BytesHomogeneousUint8x10",
+    Pointer.fromFunction<PassStruct19BytesHomogeneousUint8x10Type>(
+      passStruct19BytesHomogeneousUint8x10,
+    ),
+    passStruct19BytesHomogeneousUint8x10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct20BytesHomogeneousInt32x10",
+    Pointer.fromFunction<PassStruct20BytesHomogeneousInt32x10Type>(
+      passStruct20BytesHomogeneousInt32x10,
+    ),
+    passStruct20BytesHomogeneousInt32x10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct20BytesHomogeneousFloat",
+    Pointer.fromFunction<PassStruct20BytesHomogeneousFloatType>(
+      passStruct20BytesHomogeneousFloat,
+    ),
+    passStruct20BytesHomogeneousFloatAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct32BytesHomogeneousDoublex5",
+    Pointer.fromFunction<PassStruct32BytesHomogeneousDoublex5Type>(
+      passStruct32BytesHomogeneousDoublex5,
+    ),
+    passStruct32BytesHomogeneousDoublex5AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct40BytesHomogeneousDouble",
+    Pointer.fromFunction<PassStruct40BytesHomogeneousDoubleType>(
+      passStruct40BytesHomogeneousDouble,
+    ),
+    passStruct40BytesHomogeneousDoubleAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct1024BytesHomogeneousUint64",
+    Pointer.fromFunction<PassStruct1024BytesHomogeneousUint64Type>(
+      passStruct1024BytesHomogeneousUint64,
+    ),
+    passStruct1024BytesHomogeneousUint64AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassFloatStruct16BytesHomogeneousFloatFloatStruct1",
+    Pointer.fromFunction<
+      PassFloatStruct16BytesHomogeneousFloatFloatStruct1Type
+    >(passFloatStruct16BytesHomogeneousFloatFloatStruct1),
+    passFloatStruct16BytesHomogeneousFloatFloatStruct1AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassFloatStruct32BytesHomogeneousDoubleFloatStruct",
+    Pointer.fromFunction<
+      PassFloatStruct32BytesHomogeneousDoubleFloatStructType
+    >(passFloatStruct32BytesHomogeneousDoubleFloatStruct),
+    passFloatStruct32BytesHomogeneousDoubleFloatStructAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassInt8Struct16BytesMixedInt8Struct16BytesMixedIn",
+    Pointer.fromFunction<
+      PassInt8Struct16BytesMixedInt8Struct16BytesMixedInType
+    >(passInt8Struct16BytesMixedInt8Struct16BytesMixedIn),
+    passInt8Struct16BytesMixedInt8Struct16BytesMixedInAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassDoublex6Struct16BytesMixedx4Int32",
+    Pointer.fromFunction<PassDoublex6Struct16BytesMixedx4Int32Type>(
+      passDoublex6Struct16BytesMixedx4Int32,
+    ),
+    passDoublex6Struct16BytesMixedx4Int32AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassInt32x4Struct16BytesMixedx4Double",
+    Pointer.fromFunction<PassInt32x4Struct16BytesMixedx4DoubleType>(
+      passInt32x4Struct16BytesMixedx4Double,
+    ),
+    passInt32x4Struct16BytesMixedx4DoubleAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct40BytesHomogeneousDoubleStruct4BytesHomo",
+    Pointer.fromFunction<
+      PassStruct40BytesHomogeneousDoubleStruct4BytesHomoType
+    >(passStruct40BytesHomogeneousDoubleStruct4BytesHomo),
+    passStruct40BytesHomogeneousDoubleStruct4BytesHomoAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int",
+    Pointer.fromFunction<
+      PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntType
+    >(passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int),
+    passInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStructAlignmentInt16",
+    Pointer.fromFunction<PassStructAlignmentInt16Type>(
+      passStructAlignmentInt16,
+    ),
+    passStructAlignmentInt16AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStructAlignmentInt32",
+    Pointer.fromFunction<PassStructAlignmentInt32Type>(
+      passStructAlignmentInt32,
+    ),
+    passStructAlignmentInt32AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStructAlignmentInt64",
+    Pointer.fromFunction<PassStructAlignmentInt64Type>(
+      passStructAlignmentInt64,
+    ),
+    passStructAlignmentInt64AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct8BytesNestedIntx10",
+    Pointer.fromFunction<PassStruct8BytesNestedIntx10Type>(
+      passStruct8BytesNestedIntx10,
+    ),
+    passStruct8BytesNestedIntx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct8BytesNestedFloatx10",
+    Pointer.fromFunction<PassStruct8BytesNestedFloatx10Type>(
+      passStruct8BytesNestedFloatx10,
+    ),
+    passStruct8BytesNestedFloatx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct8BytesNestedFloat2x10",
+    Pointer.fromFunction<PassStruct8BytesNestedFloat2x10Type>(
+      passStruct8BytesNestedFloat2x10,
+    ),
+    passStruct8BytesNestedFloat2x10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct8BytesNestedMixedx10",
+    Pointer.fromFunction<PassStruct8BytesNestedMixedx10Type>(
+      passStruct8BytesNestedMixedx10,
+    ),
+    passStruct8BytesNestedMixedx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct16BytesNestedIntx2",
+    Pointer.fromFunction<PassStruct16BytesNestedIntx2Type>(
+      passStruct16BytesNestedIntx2,
+    ),
+    passStruct16BytesNestedIntx2AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct32BytesNestedIntx2",
+    Pointer.fromFunction<PassStruct32BytesNestedIntx2Type>(
+      passStruct32BytesNestedIntx2,
+    ),
+    passStruct32BytesNestedIntx2AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStructNestedIntStructAlignmentInt16",
+    Pointer.fromFunction<PassStructNestedIntStructAlignmentInt16Type>(
+      passStructNestedIntStructAlignmentInt16,
+    ),
+    passStructNestedIntStructAlignmentInt16AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStructNestedIntStructAlignmentInt32",
+    Pointer.fromFunction<PassStructNestedIntStructAlignmentInt32Type>(
+      passStructNestedIntStructAlignmentInt32,
+    ),
+    passStructNestedIntStructAlignmentInt32AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStructNestedIntStructAlignmentInt64",
+    Pointer.fromFunction<PassStructNestedIntStructAlignmentInt64Type>(
+      passStructNestedIntStructAlignmentInt64,
+    ),
+    passStructNestedIntStructAlignmentInt64AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStructNestedIrregularEvenBiggerx4",
+    Pointer.fromFunction<PassStructNestedIrregularEvenBiggerx4Type>(
+      passStructNestedIrregularEvenBiggerx4,
+    ),
+    passStructNestedIrregularEvenBiggerx4AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct8BytesInlineArrayIntx4",
+    Pointer.fromFunction<PassStruct8BytesInlineArrayIntx4Type>(
+      passStruct8BytesInlineArrayIntx4,
+    ),
+    passStruct8BytesInlineArrayIntx4AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStructInlineArrayIrregularx4",
+    Pointer.fromFunction<PassStructInlineArrayIrregularx4Type>(
+      passStructInlineArrayIrregularx4,
+    ),
+    passStructInlineArrayIrregularx4AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStructInlineArray100Bytes",
+    Pointer.fromFunction<PassStructInlineArray100BytesType>(
+      passStructInlineArray100Bytes,
+    ),
+    passStructInlineArray100BytesAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStructStruct16BytesHomogeneousFloat2x5",
+    Pointer.fromFunction<PassStructStruct16BytesHomogeneousFloat2x5Type>(
+      passStructStruct16BytesHomogeneousFloat2x5,
+    ),
+    passStructStruct16BytesHomogeneousFloat2x5AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStructStruct32BytesHomogeneousDouble2x5",
+    Pointer.fromFunction<PassStructStruct32BytesHomogeneousDouble2x5Type>(
+      passStructStruct32BytesHomogeneousDouble2x5,
+    ),
+    passStructStruct32BytesHomogeneousDouble2x5AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStructStruct16BytesMixed3x10",
+    Pointer.fromFunction<PassStructStruct16BytesMixed3x10Type>(
+      passStructStruct16BytesMixed3x10,
+    ),
+    passStructStruct16BytesMixed3x10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassUint8Struct32BytesInlineArrayMultiDimensionalI",
+    Pointer.fromFunction<
+      PassUint8Struct32BytesInlineArrayMultiDimensionalIType
+    >(passUint8Struct32BytesInlineArrayMultiDimensionalI),
+    passUint8Struct32BytesInlineArrayMultiDimensionalIAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassUint8Struct4BytesInlineArrayMultiDimensionalIn",
+    Pointer.fromFunction<
+      PassUint8Struct4BytesInlineArrayMultiDimensionalInType
+    >(passUint8Struct4BytesInlineArrayMultiDimensionalIn),
+    passUint8Struct4BytesInlineArrayMultiDimensionalInAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct3BytesPackedIntx10",
+    Pointer.fromFunction<PassStruct3BytesPackedIntx10Type>(
+      passStruct3BytesPackedIntx10,
+    ),
+    passStruct3BytesPackedIntx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct8BytesPackedIntx10",
+    Pointer.fromFunction<PassStruct8BytesPackedIntx10Type>(
+      passStruct8BytesPackedIntx10,
+    ),
+    passStruct8BytesPackedIntx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct9BytesPackedMixedx10DoubleInt32x2",
+    Pointer.fromFunction<PassStruct9BytesPackedMixedx10DoubleInt32x2Type>(
+      passStruct9BytesPackedMixedx10DoubleInt32x2,
+    ),
+    passStruct9BytesPackedMixedx10DoubleInt32x2AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct5BytesPackedMixed",
+    Pointer.fromFunction<PassStruct5BytesPackedMixedType>(
+      passStruct5BytesPackedMixed,
+    ),
+    passStruct5BytesPackedMixedAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStructNestedAlignmentStruct5BytesPackedMixed",
+    Pointer.fromFunction<PassStructNestedAlignmentStruct5BytesPackedMixedType>(
+      passStructNestedAlignmentStruct5BytesPackedMixed,
+    ),
+    passStructNestedAlignmentStruct5BytesPackedMixedAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct6BytesInlineArrayInt",
+    Pointer.fromFunction<PassStruct6BytesInlineArrayIntType>(
+      passStruct6BytesInlineArrayInt,
+    ),
+    passStruct6BytesInlineArrayIntAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassStruct15BytesInlineArrayMixed",
+    Pointer.fromFunction<PassStruct15BytesInlineArrayMixedType>(
+      passStruct15BytesInlineArrayMixed,
+    ),
+    passStruct15BytesInlineArrayMixedAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassUnion4BytesMixedx10",
+    Pointer.fromFunction<PassUnion4BytesMixedx10Type>(passUnion4BytesMixedx10),
+    passUnion4BytesMixedx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassUnion8BytesNestedFloatx10",
+    Pointer.fromFunction<PassUnion8BytesNestedFloatx10Type>(
+      passUnion8BytesNestedFloatx10,
+    ),
+    passUnion8BytesNestedFloatx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassUnion9BytesNestedIntx10",
+    Pointer.fromFunction<PassUnion9BytesNestedIntx10Type>(
+      passUnion9BytesNestedIntx10,
+    ),
+    passUnion9BytesNestedIntx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassUnion16BytesNestedInlineArrayFloatx10",
+    Pointer.fromFunction<PassUnion16BytesNestedInlineArrayFloatx10Type>(
+      passUnion16BytesNestedInlineArrayFloatx10,
+    ),
+    passUnion16BytesNestedInlineArrayFloatx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassUnion16BytesNestedFloatx10",
+    Pointer.fromFunction<PassUnion16BytesNestedFloatx10Type>(
+      passUnion16BytesNestedFloatx10,
+    ),
+    passUnion16BytesNestedFloatx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassUint8Boolx9Struct10BytesHomogeneousBoolBool",
+    Pointer.fromFunction<PassUint8Boolx9Struct10BytesHomogeneousBoolBoolType>(
+      passUint8Boolx9Struct10BytesHomogeneousBoolBool,
+    ),
+    passUint8Boolx9Struct10BytesHomogeneousBoolBoolAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassUint8Boolx9Struct10BytesInlineArrayBoolBool",
+    Pointer.fromFunction<PassUint8Boolx9Struct10BytesInlineArrayBoolBoolType>(
+      passUint8Boolx9Struct10BytesInlineArrayBoolBool,
+    ),
+    passUint8Boolx9Struct10BytesInlineArrayBoolBoolAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassUint8Struct1ByteBool",
+    Pointer.fromFunction<PassUint8Struct1ByteBoolType>(
+      passUint8Struct1ByteBool,
+    ),
+    passUint8Struct1ByteBoolAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassWCharStructInlineArrayIntUintPtrx2LongUnsigned",
+    Pointer.fromFunction<
+      PassWCharStructInlineArrayIntUintPtrx2LongUnsignedType
+    >(passWCharStructInlineArrayIntUintPtrx2LongUnsigned),
+    passWCharStructInlineArrayIntUintPtrx2LongUnsignedAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassInt64x7Struct12BytesHomogeneousInt32",
+    Pointer.fromFunction<PassInt64x7Struct12BytesHomogeneousInt32Type>(
+      passInt64x7Struct12BytesHomogeneousInt32,
+    ),
+    passInt64x7Struct12BytesHomogeneousInt32AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassPointerStruct12BytesHomogeneousInt32",
+    Pointer.fromFunction<PassPointerStruct12BytesHomogeneousInt32Type>(
+      passPointerStruct12BytesHomogeneousInt32,
+    ),
+    noChecksAsync,
+  ),
+  AsyncCallbackTest(
+    "PassPointerStructInlineArrayVariable",
+    Pointer.fromFunction<PassPointerStructInlineArrayVariableType>(
+      passPointerStructInlineArrayVariable,
+    ),
+    noChecksAsync,
+  ),
+  AsyncCallbackTest(
+    "PassPointerStructInlineArrayVariableAlign",
+    Pointer.fromFunction<PassPointerStructInlineArrayVariableAlignType>(
+      passPointerStructInlineArrayVariableAlign,
+    ),
+    noChecksAsync,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct1ByteInt",
+    Pointer.fromFunction<ReturnStruct1ByteIntType>(returnStruct1ByteInt),
+    returnStruct1ByteIntAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct3BytesHomogeneousUint8",
+    Pointer.fromFunction<ReturnStruct3BytesHomogeneousUint8Type>(
+      returnStruct3BytesHomogeneousUint8,
+    ),
+    returnStruct3BytesHomogeneousUint8AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct3BytesInt2ByteAligned",
+    Pointer.fromFunction<ReturnStruct3BytesInt2ByteAlignedType>(
+      returnStruct3BytesInt2ByteAligned,
+    ),
+    returnStruct3BytesInt2ByteAlignedAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct4BytesHomogeneousInt16",
+    Pointer.fromFunction<ReturnStruct4BytesHomogeneousInt16Type>(
+      returnStruct4BytesHomogeneousInt16,
+    ),
+    returnStruct4BytesHomogeneousInt16AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct7BytesHomogeneousUint8",
+    Pointer.fromFunction<ReturnStruct7BytesHomogeneousUint8Type>(
+      returnStruct7BytesHomogeneousUint8,
+    ),
+    returnStruct7BytesHomogeneousUint8AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct7BytesInt4ByteAligned",
+    Pointer.fromFunction<ReturnStruct7BytesInt4ByteAlignedType>(
+      returnStruct7BytesInt4ByteAligned,
+    ),
+    returnStruct7BytesInt4ByteAlignedAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct8BytesInt",
+    Pointer.fromFunction<ReturnStruct8BytesIntType>(returnStruct8BytesInt),
+    returnStruct8BytesIntAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct8BytesHomogeneousFloat",
+    Pointer.fromFunction<ReturnStruct8BytesHomogeneousFloatType>(
+      returnStruct8BytesHomogeneousFloat,
+    ),
+    returnStruct8BytesHomogeneousFloatAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct8BytesMixed",
+    Pointer.fromFunction<ReturnStruct8BytesMixedType>(returnStruct8BytesMixed),
+    returnStruct8BytesMixedAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct9BytesHomogeneousUint8",
+    Pointer.fromFunction<ReturnStruct9BytesHomogeneousUint8Type>(
+      returnStruct9BytesHomogeneousUint8,
+    ),
+    returnStruct9BytesHomogeneousUint8AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct9BytesInt4Or8ByteAligned",
+    Pointer.fromFunction<ReturnStruct9BytesInt4Or8ByteAlignedType>(
+      returnStruct9BytesInt4Or8ByteAligned,
+    ),
+    returnStruct9BytesInt4Or8ByteAlignedAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct12BytesHomogeneousFloat",
+    Pointer.fromFunction<ReturnStruct12BytesHomogeneousFloatType>(
+      returnStruct12BytesHomogeneousFloat,
+    ),
+    returnStruct12BytesHomogeneousFloatAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct16BytesHomogeneousFloat",
+    Pointer.fromFunction<ReturnStruct16BytesHomogeneousFloatType>(
+      returnStruct16BytesHomogeneousFloat,
+    ),
+    returnStruct16BytesHomogeneousFloatAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct16BytesMixed",
+    Pointer.fromFunction<ReturnStruct16BytesMixedType>(
+      returnStruct16BytesMixed,
+    ),
+    returnStruct16BytesMixedAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct16BytesMixed2",
+    Pointer.fromFunction<ReturnStruct16BytesMixed2Type>(
+      returnStruct16BytesMixed2,
+    ),
+    returnStruct16BytesMixed2AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct17BytesInt",
+    Pointer.fromFunction<ReturnStruct17BytesIntType>(returnStruct17BytesInt),
+    returnStruct17BytesIntAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct19BytesHomogeneousUint8",
+    Pointer.fromFunction<ReturnStruct19BytesHomogeneousUint8Type>(
+      returnStruct19BytesHomogeneousUint8,
+    ),
+    returnStruct19BytesHomogeneousUint8AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct20BytesHomogeneousInt32",
+    Pointer.fromFunction<ReturnStruct20BytesHomogeneousInt32Type>(
+      returnStruct20BytesHomogeneousInt32,
+    ),
+    returnStruct20BytesHomogeneousInt32AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct20BytesHomogeneousFloat",
+    Pointer.fromFunction<ReturnStruct20BytesHomogeneousFloatType>(
+      returnStruct20BytesHomogeneousFloat,
+    ),
+    returnStruct20BytesHomogeneousFloatAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct32BytesHomogeneousDouble",
+    Pointer.fromFunction<ReturnStruct32BytesHomogeneousDoubleType>(
+      returnStruct32BytesHomogeneousDouble,
+    ),
+    returnStruct32BytesHomogeneousDoubleAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct40BytesHomogeneousDouble",
+    Pointer.fromFunction<ReturnStruct40BytesHomogeneousDoubleType>(
+      returnStruct40BytesHomogeneousDouble,
+    ),
+    returnStruct40BytesHomogeneousDoubleAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct1024BytesHomogeneousUint64",
+    Pointer.fromFunction<ReturnStruct1024BytesHomogeneousUint64Type>(
+      returnStruct1024BytesHomogeneousUint64,
+    ),
+    returnStruct1024BytesHomogeneousUint64AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct3BytesPackedInt",
+    Pointer.fromFunction<ReturnStruct3BytesPackedIntType>(
+      returnStruct3BytesPackedInt,
+    ),
+    returnStruct3BytesPackedIntAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct8BytesPackedInt",
+    Pointer.fromFunction<ReturnStruct8BytesPackedIntType>(
+      returnStruct8BytesPackedInt,
+    ),
+    returnStruct8BytesPackedIntAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct9BytesPackedMixed",
+    Pointer.fromFunction<ReturnStruct9BytesPackedMixedType>(
+      returnStruct9BytesPackedMixed,
+    ),
+    returnStruct9BytesPackedMixedAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnUnion4BytesMixed",
+    Pointer.fromFunction<ReturnUnion4BytesMixedType>(returnUnion4BytesMixed),
+    returnUnion4BytesMixedAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnUnion8BytesNestedFloat",
+    Pointer.fromFunction<ReturnUnion8BytesNestedFloatType>(
+      returnUnion8BytesNestedFloat,
+    ),
+    returnUnion8BytesNestedFloatAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnUnion9BytesNestedInt",
+    Pointer.fromFunction<ReturnUnion9BytesNestedIntType>(
+      returnUnion9BytesNestedInt,
+    ),
+    returnUnion9BytesNestedIntAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnUnion16BytesNestedFloat",
+    Pointer.fromFunction<ReturnUnion16BytesNestedFloatType>(
+      returnUnion16BytesNestedFloat,
+    ),
+    returnUnion16BytesNestedFloatAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStructArgumentStruct1ByteInt",
+    Pointer.fromFunction<ReturnStructArgumentStruct1ByteIntType>(
+      returnStructArgumentStruct1ByteInt,
+    ),
+    returnStructArgumentStruct1ByteIntAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStructArgumentInt32x8Struct1ByteInt",
+    Pointer.fromFunction<ReturnStructArgumentInt32x8Struct1ByteIntType>(
+      returnStructArgumentInt32x8Struct1ByteInt,
+    ),
+    returnStructArgumentInt32x8Struct1ByteIntAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStructArgumentStruct8BytesHomogeneousFloat",
+    Pointer.fromFunction<ReturnStructArgumentStruct8BytesHomogeneousFloatType>(
+      returnStructArgumentStruct8BytesHomogeneousFloat,
+    ),
+    returnStructArgumentStruct8BytesHomogeneousFloatAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStructArgumentStruct20BytesHomogeneousInt32",
+    Pointer.fromFunction<ReturnStructArgumentStruct20BytesHomogeneousInt32Type>(
+      returnStructArgumentStruct20BytesHomogeneousInt32,
+    ),
+    returnStructArgumentStruct20BytesHomogeneousInt32AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStructArgumentInt32x8Struct20BytesHomogeneou",
+    Pointer.fromFunction<
+      ReturnStructArgumentInt32x8Struct20BytesHomogeneouType
+    >(returnStructArgumentInt32x8Struct20BytesHomogeneou),
+    returnStructArgumentInt32x8Struct20BytesHomogeneouAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStructArgumentStruct8BytesInlineArrayInt",
+    Pointer.fromFunction<ReturnStructArgumentStruct8BytesInlineArrayIntType>(
+      returnStructArgumentStruct8BytesInlineArrayInt,
+    ),
+    returnStructArgumentStruct8BytesInlineArrayIntAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStructArgumentStructStruct16BytesHomogeneous",
+    Pointer.fromFunction<
+      ReturnStructArgumentStructStruct16BytesHomogeneousType
+    >(returnStructArgumentStructStruct16BytesHomogeneous),
+    returnStructArgumentStructStruct16BytesHomogeneousAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStructArgumentStructStruct32BytesHomogeneous",
+    Pointer.fromFunction<
+      ReturnStructArgumentStructStruct32BytesHomogeneousType
+    >(returnStructArgumentStructStruct32BytesHomogeneous),
+    returnStructArgumentStructStruct32BytesHomogeneousAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStructArgumentStructStruct16BytesMixed3",
+    Pointer.fromFunction<ReturnStructArgumentStructStruct16BytesMixed3Type>(
+      returnStructArgumentStructStruct16BytesMixed3,
+    ),
+    returnStructArgumentStructStruct16BytesMixed3AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStructAlignmentInt16",
+    Pointer.fromFunction<ReturnStructAlignmentInt16Type>(
+      returnStructAlignmentInt16,
+    ),
+    returnStructAlignmentInt16AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStructAlignmentInt32",
+    Pointer.fromFunction<ReturnStructAlignmentInt32Type>(
+      returnStructAlignmentInt32,
+    ),
+    returnStructAlignmentInt32AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStructAlignmentInt64",
+    Pointer.fromFunction<ReturnStructAlignmentInt64Type>(
+      returnStructAlignmentInt64,
+    ),
+    returnStructAlignmentInt64AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct8BytesNestedInt",
+    Pointer.fromFunction<ReturnStruct8BytesNestedIntType>(
+      returnStruct8BytesNestedInt,
+    ),
+    returnStruct8BytesNestedIntAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct8BytesNestedFloat",
+    Pointer.fromFunction<ReturnStruct8BytesNestedFloatType>(
+      returnStruct8BytesNestedFloat,
+    ),
+    returnStruct8BytesNestedFloatAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct8BytesNestedFloat2",
+    Pointer.fromFunction<ReturnStruct8BytesNestedFloat2Type>(
+      returnStruct8BytesNestedFloat2,
+    ),
+    returnStruct8BytesNestedFloat2AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct8BytesNestedMixed",
+    Pointer.fromFunction<ReturnStruct8BytesNestedMixedType>(
+      returnStruct8BytesNestedMixed,
+    ),
+    returnStruct8BytesNestedMixedAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct16BytesNestedInt",
+    Pointer.fromFunction<ReturnStruct16BytesNestedIntType>(
+      returnStruct16BytesNestedInt,
+    ),
+    returnStruct16BytesNestedIntAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStruct32BytesNestedInt",
+    Pointer.fromFunction<ReturnStruct32BytesNestedIntType>(
+      returnStruct32BytesNestedInt,
+    ),
+    returnStruct32BytesNestedIntAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStructNestedIntStructAlignmentInt16",
+    Pointer.fromFunction<ReturnStructNestedIntStructAlignmentInt16Type>(
+      returnStructNestedIntStructAlignmentInt16,
+    ),
+    returnStructNestedIntStructAlignmentInt16AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStructNestedIntStructAlignmentInt32",
+    Pointer.fromFunction<ReturnStructNestedIntStructAlignmentInt32Type>(
+      returnStructNestedIntStructAlignmentInt32,
+    ),
+    returnStructNestedIntStructAlignmentInt32AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStructNestedIntStructAlignmentInt64",
+    Pointer.fromFunction<ReturnStructNestedIntStructAlignmentInt64Type>(
+      returnStructNestedIntStructAlignmentInt64,
+    ),
+    returnStructNestedIntStructAlignmentInt64AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "ReturnStructNestedIrregularEvenBigger",
+    Pointer.fromFunction<ReturnStructNestedIrregularEvenBiggerType>(
+      returnStructNestedIrregularEvenBigger,
+    ),
+    returnStructNestedIrregularEvenBiggerAfterCallback,
+  ),
 ];
-typedef PassStruct1ByteIntx10Type = Void Function(
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt);
+typedef PassStruct1ByteIntx10Type =
+    Void Function(
+      Struct1ByteInt,
+      Struct1ByteInt,
+      Struct1ByteInt,
+      Struct1ByteInt,
+      Struct1ByteInt,
+      Struct1ByteInt,
+      Struct1ByteInt,
+      Struct1ByteInt,
+      Struct1ByteInt,
+      Struct1ByteInt,
+    );
 
 // Global variable that stores the result.
 final PassStruct1ByteIntx10Result = Completer<double>();
@@ -667,18 +885,20 @@ final PassStruct1ByteIntx10Result = Completer<double>();
 /// Smallest struct with data.
 /// 10 struct arguments will exhaust available registers.
 void passStruct1ByteIntx10(
-    Struct1ByteInt a0,
-    Struct1ByteInt a1,
-    Struct1ByteInt a2,
-    Struct1ByteInt a3,
-    Struct1ByteInt a4,
-    Struct1ByteInt a5,
-    Struct1ByteInt a6,
-    Struct1ByteInt a7,
-    Struct1ByteInt a8,
-    Struct1ByteInt a9) {
+  Struct1ByteInt a0,
+  Struct1ByteInt a1,
+  Struct1ByteInt a2,
+  Struct1ByteInt a3,
+  Struct1ByteInt a4,
+  Struct1ByteInt a5,
+  Struct1ByteInt a6,
+  Struct1ByteInt a7,
+  Struct1ByteInt a8,
+  Struct1ByteInt a9,
+) {
   print(
-      "passStruct1ByteIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct1ByteIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -703,17 +923,19 @@ Future<void> passStruct1ByteIntx10AfterCallback() async {
   Expect.approxEquals(5, result);
 }
 
-typedef PassStruct3BytesHomogeneousUint8x10Type = Void Function(
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8);
+typedef PassStruct3BytesHomogeneousUint8x10Type =
+    Void Function(
+      Struct3BytesHomogeneousUint8,
+      Struct3BytesHomogeneousUint8,
+      Struct3BytesHomogeneousUint8,
+      Struct3BytesHomogeneousUint8,
+      Struct3BytesHomogeneousUint8,
+      Struct3BytesHomogeneousUint8,
+      Struct3BytesHomogeneousUint8,
+      Struct3BytesHomogeneousUint8,
+      Struct3BytesHomogeneousUint8,
+      Struct3BytesHomogeneousUint8,
+    );
 
 // Global variable that stores the result.
 final PassStruct3BytesHomogeneousUint8x10Result = Completer<double>();
@@ -721,18 +943,20 @@ final PassStruct3BytesHomogeneousUint8x10Result = Completer<double>();
 /// Not a multiple of word size, not a power of two.
 /// 10 struct arguments will exhaust available registers.
 void passStruct3BytesHomogeneousUint8x10(
-    Struct3BytesHomogeneousUint8 a0,
-    Struct3BytesHomogeneousUint8 a1,
-    Struct3BytesHomogeneousUint8 a2,
-    Struct3BytesHomogeneousUint8 a3,
-    Struct3BytesHomogeneousUint8 a4,
-    Struct3BytesHomogeneousUint8 a5,
-    Struct3BytesHomogeneousUint8 a6,
-    Struct3BytesHomogeneousUint8 a7,
-    Struct3BytesHomogeneousUint8 a8,
-    Struct3BytesHomogeneousUint8 a9) {
+  Struct3BytesHomogeneousUint8 a0,
+  Struct3BytesHomogeneousUint8 a1,
+  Struct3BytesHomogeneousUint8 a2,
+  Struct3BytesHomogeneousUint8 a3,
+  Struct3BytesHomogeneousUint8 a4,
+  Struct3BytesHomogeneousUint8 a5,
+  Struct3BytesHomogeneousUint8 a6,
+  Struct3BytesHomogeneousUint8 a7,
+  Struct3BytesHomogeneousUint8 a8,
+  Struct3BytesHomogeneousUint8 a9,
+) {
   print(
-      "passStruct3BytesHomogeneousUint8x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct3BytesHomogeneousUint8x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -777,17 +1001,19 @@ Future<void> passStruct3BytesHomogeneousUint8x10AfterCallback() async {
   Expect.approxEquals(465, result);
 }
 
-typedef PassStruct3BytesInt2ByteAlignedx10Type = Void Function(
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned);
+typedef PassStruct3BytesInt2ByteAlignedx10Type =
+    Void Function(
+      Struct3BytesInt2ByteAligned,
+      Struct3BytesInt2ByteAligned,
+      Struct3BytesInt2ByteAligned,
+      Struct3BytesInt2ByteAligned,
+      Struct3BytesInt2ByteAligned,
+      Struct3BytesInt2ByteAligned,
+      Struct3BytesInt2ByteAligned,
+      Struct3BytesInt2ByteAligned,
+      Struct3BytesInt2ByteAligned,
+      Struct3BytesInt2ByteAligned,
+    );
 
 // Global variable that stores the result.
 final PassStruct3BytesInt2ByteAlignedx10Result = Completer<double>();
@@ -796,18 +1022,20 @@ final PassStruct3BytesInt2ByteAlignedx10Result = Completer<double>();
 /// With alignment rules taken into account size is 4 bytes.
 /// 10 struct arguments will exhaust available registers.
 void passStruct3BytesInt2ByteAlignedx10(
-    Struct3BytesInt2ByteAligned a0,
-    Struct3BytesInt2ByteAligned a1,
-    Struct3BytesInt2ByteAligned a2,
-    Struct3BytesInt2ByteAligned a3,
-    Struct3BytesInt2ByteAligned a4,
-    Struct3BytesInt2ByteAligned a5,
-    Struct3BytesInt2ByteAligned a6,
-    Struct3BytesInt2ByteAligned a7,
-    Struct3BytesInt2ByteAligned a8,
-    Struct3BytesInt2ByteAligned a9) {
+  Struct3BytesInt2ByteAligned a0,
+  Struct3BytesInt2ByteAligned a1,
+  Struct3BytesInt2ByteAligned a2,
+  Struct3BytesInt2ByteAligned a3,
+  Struct3BytesInt2ByteAligned a4,
+  Struct3BytesInt2ByteAligned a5,
+  Struct3BytesInt2ByteAligned a6,
+  Struct3BytesInt2ByteAligned a7,
+  Struct3BytesInt2ByteAligned a8,
+  Struct3BytesInt2ByteAligned a9,
+) {
   print(
-      "passStruct3BytesInt2ByteAlignedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct3BytesInt2ByteAlignedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -842,17 +1070,19 @@ Future<void> passStruct3BytesInt2ByteAlignedx10AfterCallback() async {
   Expect.approxEquals(10, result);
 }
 
-typedef PassStruct4BytesHomogeneousInt16x10Type = Void Function(
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16);
+typedef PassStruct4BytesHomogeneousInt16x10Type =
+    Void Function(
+      Struct4BytesHomogeneousInt16,
+      Struct4BytesHomogeneousInt16,
+      Struct4BytesHomogeneousInt16,
+      Struct4BytesHomogeneousInt16,
+      Struct4BytesHomogeneousInt16,
+      Struct4BytesHomogeneousInt16,
+      Struct4BytesHomogeneousInt16,
+      Struct4BytesHomogeneousInt16,
+      Struct4BytesHomogeneousInt16,
+      Struct4BytesHomogeneousInt16,
+    );
 
 // Global variable that stores the result.
 final PassStruct4BytesHomogeneousInt16x10Result = Completer<double>();
@@ -860,18 +1090,20 @@ final PassStruct4BytesHomogeneousInt16x10Result = Completer<double>();
 /// Exactly word size on 32-bit architectures.
 /// 10 struct arguments will exhaust available registers.
 void passStruct4BytesHomogeneousInt16x10(
-    Struct4BytesHomogeneousInt16 a0,
-    Struct4BytesHomogeneousInt16 a1,
-    Struct4BytesHomogeneousInt16 a2,
-    Struct4BytesHomogeneousInt16 a3,
-    Struct4BytesHomogeneousInt16 a4,
-    Struct4BytesHomogeneousInt16 a5,
-    Struct4BytesHomogeneousInt16 a6,
-    Struct4BytesHomogeneousInt16 a7,
-    Struct4BytesHomogeneousInt16 a8,
-    Struct4BytesHomogeneousInt16 a9) {
+  Struct4BytesHomogeneousInt16 a0,
+  Struct4BytesHomogeneousInt16 a1,
+  Struct4BytesHomogeneousInt16 a2,
+  Struct4BytesHomogeneousInt16 a3,
+  Struct4BytesHomogeneousInt16 a4,
+  Struct4BytesHomogeneousInt16 a5,
+  Struct4BytesHomogeneousInt16 a6,
+  Struct4BytesHomogeneousInt16 a7,
+  Struct4BytesHomogeneousInt16 a8,
+  Struct4BytesHomogeneousInt16 a9,
+) {
   print(
-      "passStruct4BytesHomogeneousInt16x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct4BytesHomogeneousInt16x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -906,17 +1138,19 @@ Future<void> passStruct4BytesHomogeneousInt16x10AfterCallback() async {
   Expect.approxEquals(10, result);
 }
 
-typedef PassStruct7BytesHomogeneousUint8x10Type = Void Function(
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8);
+typedef PassStruct7BytesHomogeneousUint8x10Type =
+    Void Function(
+      Struct7BytesHomogeneousUint8,
+      Struct7BytesHomogeneousUint8,
+      Struct7BytesHomogeneousUint8,
+      Struct7BytesHomogeneousUint8,
+      Struct7BytesHomogeneousUint8,
+      Struct7BytesHomogeneousUint8,
+      Struct7BytesHomogeneousUint8,
+      Struct7BytesHomogeneousUint8,
+      Struct7BytesHomogeneousUint8,
+      Struct7BytesHomogeneousUint8,
+    );
 
 // Global variable that stores the result.
 final PassStruct7BytesHomogeneousUint8x10Result = Completer<double>();
@@ -924,18 +1158,20 @@ final PassStruct7BytesHomogeneousUint8x10Result = Completer<double>();
 /// Sub word size on 64 bit architectures.
 /// 10 struct arguments will exhaust available registers.
 void passStruct7BytesHomogeneousUint8x10(
-    Struct7BytesHomogeneousUint8 a0,
-    Struct7BytesHomogeneousUint8 a1,
-    Struct7BytesHomogeneousUint8 a2,
-    Struct7BytesHomogeneousUint8 a3,
-    Struct7BytesHomogeneousUint8 a4,
-    Struct7BytesHomogeneousUint8 a5,
-    Struct7BytesHomogeneousUint8 a6,
-    Struct7BytesHomogeneousUint8 a7,
-    Struct7BytesHomogeneousUint8 a8,
-    Struct7BytesHomogeneousUint8 a9) {
+  Struct7BytesHomogeneousUint8 a0,
+  Struct7BytesHomogeneousUint8 a1,
+  Struct7BytesHomogeneousUint8 a2,
+  Struct7BytesHomogeneousUint8 a3,
+  Struct7BytesHomogeneousUint8 a4,
+  Struct7BytesHomogeneousUint8 a5,
+  Struct7BytesHomogeneousUint8 a6,
+  Struct7BytesHomogeneousUint8 a7,
+  Struct7BytesHomogeneousUint8 a8,
+  Struct7BytesHomogeneousUint8 a9,
+) {
   print(
-      "passStruct7BytesHomogeneousUint8x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct7BytesHomogeneousUint8x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -1020,17 +1256,19 @@ Future<void> passStruct7BytesHomogeneousUint8x10AfterCallback() async {
   Expect.approxEquals(2485, result);
 }
 
-typedef PassStruct7BytesInt4ByteAlignedx10Type = Void Function(
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned);
+typedef PassStruct7BytesInt4ByteAlignedx10Type =
+    Void Function(
+      Struct7BytesInt4ByteAligned,
+      Struct7BytesInt4ByteAligned,
+      Struct7BytesInt4ByteAligned,
+      Struct7BytesInt4ByteAligned,
+      Struct7BytesInt4ByteAligned,
+      Struct7BytesInt4ByteAligned,
+      Struct7BytesInt4ByteAligned,
+      Struct7BytesInt4ByteAligned,
+      Struct7BytesInt4ByteAligned,
+      Struct7BytesInt4ByteAligned,
+    );
 
 // Global variable that stores the result.
 final PassStruct7BytesInt4ByteAlignedx10Result = Completer<double>();
@@ -1039,18 +1277,20 @@ final PassStruct7BytesInt4ByteAlignedx10Result = Completer<double>();
 /// With alignment rules taken into account size is 8 bytes.
 /// 10 struct arguments will exhaust available registers.
 void passStruct7BytesInt4ByteAlignedx10(
-    Struct7BytesInt4ByteAligned a0,
-    Struct7BytesInt4ByteAligned a1,
-    Struct7BytesInt4ByteAligned a2,
-    Struct7BytesInt4ByteAligned a3,
-    Struct7BytesInt4ByteAligned a4,
-    Struct7BytesInt4ByteAligned a5,
-    Struct7BytesInt4ByteAligned a6,
-    Struct7BytesInt4ByteAligned a7,
-    Struct7BytesInt4ByteAligned a8,
-    Struct7BytesInt4ByteAligned a9) {
+  Struct7BytesInt4ByteAligned a0,
+  Struct7BytesInt4ByteAligned a1,
+  Struct7BytesInt4ByteAligned a2,
+  Struct7BytesInt4ByteAligned a3,
+  Struct7BytesInt4ByteAligned a4,
+  Struct7BytesInt4ByteAligned a5,
+  Struct7BytesInt4ByteAligned a6,
+  Struct7BytesInt4ByteAligned a7,
+  Struct7BytesInt4ByteAligned a8,
+  Struct7BytesInt4ByteAligned a9,
+) {
   print(
-      "passStruct7BytesInt4ByteAlignedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct7BytesInt4ByteAlignedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -1095,17 +1335,19 @@ Future<void> passStruct7BytesInt4ByteAlignedx10AfterCallback() async {
   Expect.approxEquals(15, result);
 }
 
-typedef PassStruct8BytesIntx10Type = Void Function(
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt);
+typedef PassStruct8BytesIntx10Type =
+    Void Function(
+      Struct8BytesInt,
+      Struct8BytesInt,
+      Struct8BytesInt,
+      Struct8BytesInt,
+      Struct8BytesInt,
+      Struct8BytesInt,
+      Struct8BytesInt,
+      Struct8BytesInt,
+      Struct8BytesInt,
+      Struct8BytesInt,
+    );
 
 // Global variable that stores the result.
 final PassStruct8BytesIntx10Result = Completer<double>();
@@ -1113,18 +1355,20 @@ final PassStruct8BytesIntx10Result = Completer<double>();
 /// Exactly word size struct on 64bit architectures.
 /// 10 struct arguments will exhaust available registers.
 void passStruct8BytesIntx10(
-    Struct8BytesInt a0,
-    Struct8BytesInt a1,
-    Struct8BytesInt a2,
-    Struct8BytesInt a3,
-    Struct8BytesInt a4,
-    Struct8BytesInt a5,
-    Struct8BytesInt a6,
-    Struct8BytesInt a7,
-    Struct8BytesInt a8,
-    Struct8BytesInt a9) {
+  Struct8BytesInt a0,
+  Struct8BytesInt a1,
+  Struct8BytesInt a2,
+  Struct8BytesInt a3,
+  Struct8BytesInt a4,
+  Struct8BytesInt a5,
+  Struct8BytesInt a6,
+  Struct8BytesInt a7,
+  Struct8BytesInt a8,
+  Struct8BytesInt a9,
+) {
   print(
-      "passStruct8BytesIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct8BytesIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -1169,17 +1413,19 @@ Future<void> passStruct8BytesIntx10AfterCallback() async {
   Expect.approxEquals(15, result);
 }
 
-typedef PassStruct8BytesHomogeneousFloatx10Type = Void Function(
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat);
+typedef PassStruct8BytesHomogeneousFloatx10Type =
+    Void Function(
+      Struct8BytesHomogeneousFloat,
+      Struct8BytesHomogeneousFloat,
+      Struct8BytesHomogeneousFloat,
+      Struct8BytesHomogeneousFloat,
+      Struct8BytesHomogeneousFloat,
+      Struct8BytesHomogeneousFloat,
+      Struct8BytesHomogeneousFloat,
+      Struct8BytesHomogeneousFloat,
+      Struct8BytesHomogeneousFloat,
+      Struct8BytesHomogeneousFloat,
+    );
 
 // Global variable that stores the result.
 final PassStruct8BytesHomogeneousFloatx10Result = Completer<double>();
@@ -1187,18 +1433,20 @@ final PassStruct8BytesHomogeneousFloatx10Result = Completer<double>();
 /// Arguments passed in FP registers as long as they fit.
 /// 10 struct arguments will exhaust available registers.
 void passStruct8BytesHomogeneousFloatx10(
-    Struct8BytesHomogeneousFloat a0,
-    Struct8BytesHomogeneousFloat a1,
-    Struct8BytesHomogeneousFloat a2,
-    Struct8BytesHomogeneousFloat a3,
-    Struct8BytesHomogeneousFloat a4,
-    Struct8BytesHomogeneousFloat a5,
-    Struct8BytesHomogeneousFloat a6,
-    Struct8BytesHomogeneousFloat a7,
-    Struct8BytesHomogeneousFloat a8,
-    Struct8BytesHomogeneousFloat a9) {
+  Struct8BytesHomogeneousFloat a0,
+  Struct8BytesHomogeneousFloat a1,
+  Struct8BytesHomogeneousFloat a2,
+  Struct8BytesHomogeneousFloat a3,
+  Struct8BytesHomogeneousFloat a4,
+  Struct8BytesHomogeneousFloat a5,
+  Struct8BytesHomogeneousFloat a6,
+  Struct8BytesHomogeneousFloat a7,
+  Struct8BytesHomogeneousFloat a8,
+  Struct8BytesHomogeneousFloat a9,
+) {
   print(
-      "passStruct8BytesHomogeneousFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct8BytesHomogeneousFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -1233,17 +1481,19 @@ Future<void> passStruct8BytesHomogeneousFloatx10AfterCallback() async {
   Expect.approxEquals(10, result);
 }
 
-typedef PassStruct8BytesMixedx10Type = Void Function(
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed);
+typedef PassStruct8BytesMixedx10Type =
+    Void Function(
+      Struct8BytesMixed,
+      Struct8BytesMixed,
+      Struct8BytesMixed,
+      Struct8BytesMixed,
+      Struct8BytesMixed,
+      Struct8BytesMixed,
+      Struct8BytesMixed,
+      Struct8BytesMixed,
+      Struct8BytesMixed,
+      Struct8BytesMixed,
+    );
 
 // Global variable that stores the result.
 final PassStruct8BytesMixedx10Result = Completer<double>();
@@ -1251,18 +1501,20 @@ final PassStruct8BytesMixedx10Result = Completer<double>();
 /// On x64, arguments go in int registers because it is not only float.
 /// 10 struct arguments will exhaust available registers.
 void passStruct8BytesMixedx10(
-    Struct8BytesMixed a0,
-    Struct8BytesMixed a1,
-    Struct8BytesMixed a2,
-    Struct8BytesMixed a3,
-    Struct8BytesMixed a4,
-    Struct8BytesMixed a5,
-    Struct8BytesMixed a6,
-    Struct8BytesMixed a7,
-    Struct8BytesMixed a8,
-    Struct8BytesMixed a9) {
+  Struct8BytesMixed a0,
+  Struct8BytesMixed a1,
+  Struct8BytesMixed a2,
+  Struct8BytesMixed a3,
+  Struct8BytesMixed a4,
+  Struct8BytesMixed a5,
+  Struct8BytesMixed a6,
+  Struct8BytesMixed a7,
+  Struct8BytesMixed a8,
+  Struct8BytesMixed a9,
+) {
   print(
-      "passStruct8BytesMixedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct8BytesMixedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -1307,17 +1559,19 @@ Future<void> passStruct8BytesMixedx10AfterCallback() async {
   Expect.approxEquals(15, result);
 }
 
-typedef PassStruct9BytesHomogeneousUint8x10Type = Void Function(
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8);
+typedef PassStruct9BytesHomogeneousUint8x10Type =
+    Void Function(
+      Struct9BytesHomogeneousUint8,
+      Struct9BytesHomogeneousUint8,
+      Struct9BytesHomogeneousUint8,
+      Struct9BytesHomogeneousUint8,
+      Struct9BytesHomogeneousUint8,
+      Struct9BytesHomogeneousUint8,
+      Struct9BytesHomogeneousUint8,
+      Struct9BytesHomogeneousUint8,
+      Struct9BytesHomogeneousUint8,
+      Struct9BytesHomogeneousUint8,
+    );
 
 // Global variable that stores the result.
 final PassStruct9BytesHomogeneousUint8x10Result = Completer<double>();
@@ -1328,18 +1582,20 @@ final PassStruct9BytesHomogeneousUint8x10Result = Completer<double>();
 /// Tests upper bytes in the integer registers that are partly filled.
 /// Tests stack alignment of non word size stack arguments.
 void passStruct9BytesHomogeneousUint8x10(
-    Struct9BytesHomogeneousUint8 a0,
-    Struct9BytesHomogeneousUint8 a1,
-    Struct9BytesHomogeneousUint8 a2,
-    Struct9BytesHomogeneousUint8 a3,
-    Struct9BytesHomogeneousUint8 a4,
-    Struct9BytesHomogeneousUint8 a5,
-    Struct9BytesHomogeneousUint8 a6,
-    Struct9BytesHomogeneousUint8 a7,
-    Struct9BytesHomogeneousUint8 a8,
-    Struct9BytesHomogeneousUint8 a9) {
+  Struct9BytesHomogeneousUint8 a0,
+  Struct9BytesHomogeneousUint8 a1,
+  Struct9BytesHomogeneousUint8 a2,
+  Struct9BytesHomogeneousUint8 a3,
+  Struct9BytesHomogeneousUint8 a4,
+  Struct9BytesHomogeneousUint8 a5,
+  Struct9BytesHomogeneousUint8 a6,
+  Struct9BytesHomogeneousUint8 a7,
+  Struct9BytesHomogeneousUint8 a8,
+  Struct9BytesHomogeneousUint8 a9,
+) {
   print(
-      "passStruct9BytesHomogeneousUint8x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct9BytesHomogeneousUint8x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -1444,17 +1700,19 @@ Future<void> passStruct9BytesHomogeneousUint8x10AfterCallback() async {
   Expect.approxEquals(4095, result);
 }
 
-typedef PassStruct9BytesInt4Or8ByteAlignedx10Type = Void Function(
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned);
+typedef PassStruct9BytesInt4Or8ByteAlignedx10Type =
+    Void Function(
+      Struct9BytesInt4Or8ByteAligned,
+      Struct9BytesInt4Or8ByteAligned,
+      Struct9BytesInt4Or8ByteAligned,
+      Struct9BytesInt4Or8ByteAligned,
+      Struct9BytesInt4Or8ByteAligned,
+      Struct9BytesInt4Or8ByteAligned,
+      Struct9BytesInt4Or8ByteAligned,
+      Struct9BytesInt4Or8ByteAligned,
+      Struct9BytesInt4Or8ByteAligned,
+      Struct9BytesInt4Or8ByteAligned,
+    );
 
 // Global variable that stores the result.
 final PassStruct9BytesInt4Or8ByteAlignedx10Result = Completer<double>();
@@ -1464,18 +1722,20 @@ final PassStruct9BytesInt4Or8ByteAlignedx10Result = Completer<double>();
 /// 10 struct arguments will exhaust available registers.
 ///
 void passStruct9BytesInt4Or8ByteAlignedx10(
-    Struct9BytesInt4Or8ByteAligned a0,
-    Struct9BytesInt4Or8ByteAligned a1,
-    Struct9BytesInt4Or8ByteAligned a2,
-    Struct9BytesInt4Or8ByteAligned a3,
-    Struct9BytesInt4Or8ByteAligned a4,
-    Struct9BytesInt4Or8ByteAligned a5,
-    Struct9BytesInt4Or8ByteAligned a6,
-    Struct9BytesInt4Or8ByteAligned a7,
-    Struct9BytesInt4Or8ByteAligned a8,
-    Struct9BytesInt4Or8ByteAligned a9) {
+  Struct9BytesInt4Or8ByteAligned a0,
+  Struct9BytesInt4Or8ByteAligned a1,
+  Struct9BytesInt4Or8ByteAligned a2,
+  Struct9BytesInt4Or8ByteAligned a3,
+  Struct9BytesInt4Or8ByteAligned a4,
+  Struct9BytesInt4Or8ByteAligned a5,
+  Struct9BytesInt4Or8ByteAligned a6,
+  Struct9BytesInt4Or8ByteAligned a7,
+  Struct9BytesInt4Or8ByteAligned a8,
+  Struct9BytesInt4Or8ByteAligned a9,
+) {
   print(
-      "passStruct9BytesInt4Or8ByteAlignedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct9BytesInt4Or8ByteAlignedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -1510,13 +1770,15 @@ Future<void> passStruct9BytesInt4Or8ByteAlignedx10AfterCallback() async {
   Expect.approxEquals(10, result);
 }
 
-typedef PassStruct12BytesHomogeneousFloatx6Type = Void Function(
-    Struct12BytesHomogeneousFloat,
-    Struct12BytesHomogeneousFloat,
-    Struct12BytesHomogeneousFloat,
-    Struct12BytesHomogeneousFloat,
-    Struct12BytesHomogeneousFloat,
-    Struct12BytesHomogeneousFloat);
+typedef PassStruct12BytesHomogeneousFloatx6Type =
+    Void Function(
+      Struct12BytesHomogeneousFloat,
+      Struct12BytesHomogeneousFloat,
+      Struct12BytesHomogeneousFloat,
+      Struct12BytesHomogeneousFloat,
+      Struct12BytesHomogeneousFloat,
+      Struct12BytesHomogeneousFloat,
+    );
 
 // Global variable that stores the result.
 final PassStruct12BytesHomogeneousFloatx6Result = Completer<double>();
@@ -1525,14 +1787,16 @@ final PassStruct12BytesHomogeneousFloatx6Result = Completer<double>();
 /// Struct arguments will exhaust available registers, and leave some empty.
 /// The last argument is to test whether arguments are backfilled.
 void passStruct12BytesHomogeneousFloatx6(
-    Struct12BytesHomogeneousFloat a0,
-    Struct12BytesHomogeneousFloat a1,
-    Struct12BytesHomogeneousFloat a2,
-    Struct12BytesHomogeneousFloat a3,
-    Struct12BytesHomogeneousFloat a4,
-    Struct12BytesHomogeneousFloat a5) {
+  Struct12BytesHomogeneousFloat a0,
+  Struct12BytesHomogeneousFloat a1,
+  Struct12BytesHomogeneousFloat a2,
+  Struct12BytesHomogeneousFloat a3,
+  Struct12BytesHomogeneousFloat a4,
+  Struct12BytesHomogeneousFloat a5,
+) {
   print(
-      "passStruct12BytesHomogeneousFloatx6(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5})");
+    "passStruct12BytesHomogeneousFloatx6(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5})",
+  );
 
   double result = 0;
 
@@ -1565,12 +1829,14 @@ Future<void> passStruct12BytesHomogeneousFloatx6AfterCallback() async {
   Expect.approxEquals(9, result);
 }
 
-typedef PassStruct16BytesHomogeneousFloatx5Type = Void Function(
-    Struct16BytesHomogeneousFloat,
-    Struct16BytesHomogeneousFloat,
-    Struct16BytesHomogeneousFloat,
-    Struct16BytesHomogeneousFloat,
-    Struct16BytesHomogeneousFloat);
+typedef PassStruct16BytesHomogeneousFloatx5Type =
+    Void Function(
+      Struct16BytesHomogeneousFloat,
+      Struct16BytesHomogeneousFloat,
+      Struct16BytesHomogeneousFloat,
+      Struct16BytesHomogeneousFloat,
+      Struct16BytesHomogeneousFloat,
+    );
 
 // Global variable that stores the result.
 final PassStruct16BytesHomogeneousFloatx5Result = Completer<double>();
@@ -1579,13 +1845,15 @@ final PassStruct16BytesHomogeneousFloatx5Result = Completer<double>();
 /// Arguments in FPU registers on arm hardfp and arm64.
 /// 5 struct arguments will exhaust available registers.
 void passStruct16BytesHomogeneousFloatx5(
-    Struct16BytesHomogeneousFloat a0,
-    Struct16BytesHomogeneousFloat a1,
-    Struct16BytesHomogeneousFloat a2,
-    Struct16BytesHomogeneousFloat a3,
-    Struct16BytesHomogeneousFloat a4) {
+  Struct16BytesHomogeneousFloat a0,
+  Struct16BytesHomogeneousFloat a1,
+  Struct16BytesHomogeneousFloat a2,
+  Struct16BytesHomogeneousFloat a3,
+  Struct16BytesHomogeneousFloat a4,
+) {
   print(
-      "passStruct16BytesHomogeneousFloatx5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
+    "passStruct16BytesHomogeneousFloatx5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})",
+  );
 
   double result = 0;
 
@@ -1620,17 +1888,19 @@ Future<void> passStruct16BytesHomogeneousFloatx5AfterCallback() async {
   Expect.approxEquals(10, result);
 }
 
-typedef PassStruct16BytesMixedx10Type = Void Function(
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed);
+typedef PassStruct16BytesMixedx10Type =
+    Void Function(
+      Struct16BytesMixed,
+      Struct16BytesMixed,
+      Struct16BytesMixed,
+      Struct16BytesMixed,
+      Struct16BytesMixed,
+      Struct16BytesMixed,
+      Struct16BytesMixed,
+      Struct16BytesMixed,
+      Struct16BytesMixed,
+      Struct16BytesMixed,
+    );
 
 // Global variable that stores the result.
 final PassStruct16BytesMixedx10Result = Completer<double>();
@@ -1640,18 +1910,20 @@ final PassStruct16BytesMixedx10Result = Completer<double>();
 /// The rest goes on the stack.
 /// On arm, arguments are 8 byte aligned.
 void passStruct16BytesMixedx10(
-    Struct16BytesMixed a0,
-    Struct16BytesMixed a1,
-    Struct16BytesMixed a2,
-    Struct16BytesMixed a3,
-    Struct16BytesMixed a4,
-    Struct16BytesMixed a5,
-    Struct16BytesMixed a6,
-    Struct16BytesMixed a7,
-    Struct16BytesMixed a8,
-    Struct16BytesMixed a9) {
+  Struct16BytesMixed a0,
+  Struct16BytesMixed a1,
+  Struct16BytesMixed a2,
+  Struct16BytesMixed a3,
+  Struct16BytesMixed a4,
+  Struct16BytesMixed a5,
+  Struct16BytesMixed a6,
+  Struct16BytesMixed a7,
+  Struct16BytesMixed a8,
+  Struct16BytesMixed a9,
+) {
   print(
-      "passStruct16BytesMixedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct16BytesMixedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -1686,17 +1958,19 @@ Future<void> passStruct16BytesMixedx10AfterCallback() async {
   Expect.approxEquals(10, result);
 }
 
-typedef PassStruct16BytesMixed2x10Type = Void Function(
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2);
+typedef PassStruct16BytesMixed2x10Type =
+    Void Function(
+      Struct16BytesMixed2,
+      Struct16BytesMixed2,
+      Struct16BytesMixed2,
+      Struct16BytesMixed2,
+      Struct16BytesMixed2,
+      Struct16BytesMixed2,
+      Struct16BytesMixed2,
+      Struct16BytesMixed2,
+      Struct16BytesMixed2,
+      Struct16BytesMixed2,
+    );
 
 // Global variable that stores the result.
 final PassStruct16BytesMixed2x10Result = Completer<double>();
@@ -1706,18 +1980,20 @@ final PassStruct16BytesMixed2x10Result = Completer<double>();
 /// The rest goes on the stack.
 /// On arm, arguments are 4 byte aligned.
 void passStruct16BytesMixed2x10(
-    Struct16BytesMixed2 a0,
-    Struct16BytesMixed2 a1,
-    Struct16BytesMixed2 a2,
-    Struct16BytesMixed2 a3,
-    Struct16BytesMixed2 a4,
-    Struct16BytesMixed2 a5,
-    Struct16BytesMixed2 a6,
-    Struct16BytesMixed2 a7,
-    Struct16BytesMixed2 a8,
-    Struct16BytesMixed2 a9) {
+  Struct16BytesMixed2 a0,
+  Struct16BytesMixed2 a1,
+  Struct16BytesMixed2 a2,
+  Struct16BytesMixed2 a3,
+  Struct16BytesMixed2 a4,
+  Struct16BytesMixed2 a5,
+  Struct16BytesMixed2 a6,
+  Struct16BytesMixed2 a7,
+  Struct16BytesMixed2 a8,
+  Struct16BytesMixed2 a9,
+) {
   print(
-      "passStruct16BytesMixed2x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct16BytesMixed2x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -1772,17 +2048,19 @@ Future<void> passStruct16BytesMixed2x10AfterCallback() async {
   Expect.approxEquals(20, result);
 }
 
-typedef PassStruct17BytesIntx10Type = Void Function(
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt);
+typedef PassStruct17BytesIntx10Type =
+    Void Function(
+      Struct17BytesInt,
+      Struct17BytesInt,
+      Struct17BytesInt,
+      Struct17BytesInt,
+      Struct17BytesInt,
+      Struct17BytesInt,
+      Struct17BytesInt,
+      Struct17BytesInt,
+      Struct17BytesInt,
+      Struct17BytesInt,
+    );
 
 // Global variable that stores the result.
 final PassStruct17BytesIntx10Result = Completer<double>();
@@ -1790,18 +2068,20 @@ final PassStruct17BytesIntx10Result = Completer<double>();
 /// Arguments are passed as pointer to copy on arm64.
 /// Tests that the memory allocated for copies are rounded up to word size.
 void passStruct17BytesIntx10(
-    Struct17BytesInt a0,
-    Struct17BytesInt a1,
-    Struct17BytesInt a2,
-    Struct17BytesInt a3,
-    Struct17BytesInt a4,
-    Struct17BytesInt a5,
-    Struct17BytesInt a6,
-    Struct17BytesInt a7,
-    Struct17BytesInt a8,
-    Struct17BytesInt a9) {
+  Struct17BytesInt a0,
+  Struct17BytesInt a1,
+  Struct17BytesInt a2,
+  Struct17BytesInt a3,
+  Struct17BytesInt a4,
+  Struct17BytesInt a5,
+  Struct17BytesInt a6,
+  Struct17BytesInt a7,
+  Struct17BytesInt a8,
+  Struct17BytesInt a9,
+) {
   print(
-      "passStruct17BytesIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct17BytesIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -1846,17 +2126,19 @@ Future<void> passStruct17BytesIntx10AfterCallback() async {
   Expect.approxEquals(15, result);
 }
 
-typedef PassStruct19BytesHomogeneousUint8x10Type = Void Function(
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8);
+typedef PassStruct19BytesHomogeneousUint8x10Type =
+    Void Function(
+      Struct19BytesHomogeneousUint8,
+      Struct19BytesHomogeneousUint8,
+      Struct19BytesHomogeneousUint8,
+      Struct19BytesHomogeneousUint8,
+      Struct19BytesHomogeneousUint8,
+      Struct19BytesHomogeneousUint8,
+      Struct19BytesHomogeneousUint8,
+      Struct19BytesHomogeneousUint8,
+      Struct19BytesHomogeneousUint8,
+      Struct19BytesHomogeneousUint8,
+    );
 
 // Global variable that stores the result.
 final PassStruct19BytesHomogeneousUint8x10Result = Completer<double>();
@@ -1865,18 +2147,20 @@ final PassStruct19BytesHomogeneousUint8x10Result = Completer<double>();
 /// Test that the memory backing these structs is extended to the right size.
 ///
 void passStruct19BytesHomogeneousUint8x10(
-    Struct19BytesHomogeneousUint8 a0,
-    Struct19BytesHomogeneousUint8 a1,
-    Struct19BytesHomogeneousUint8 a2,
-    Struct19BytesHomogeneousUint8 a3,
-    Struct19BytesHomogeneousUint8 a4,
-    Struct19BytesHomogeneousUint8 a5,
-    Struct19BytesHomogeneousUint8 a6,
-    Struct19BytesHomogeneousUint8 a7,
-    Struct19BytesHomogeneousUint8 a8,
-    Struct19BytesHomogeneousUint8 a9) {
+  Struct19BytesHomogeneousUint8 a0,
+  Struct19BytesHomogeneousUint8 a1,
+  Struct19BytesHomogeneousUint8 a2,
+  Struct19BytesHomogeneousUint8 a3,
+  Struct19BytesHomogeneousUint8 a4,
+  Struct19BytesHomogeneousUint8 a5,
+  Struct19BytesHomogeneousUint8 a6,
+  Struct19BytesHomogeneousUint8 a7,
+  Struct19BytesHomogeneousUint8 a8,
+  Struct19BytesHomogeneousUint8 a9,
+) {
   print(
-      "passStruct19BytesHomogeneousUint8x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct19BytesHomogeneousUint8x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -2081,17 +2365,19 @@ Future<void> passStruct19BytesHomogeneousUint8x10AfterCallback() async {
   Expect.approxEquals(18145, result);
 }
 
-typedef PassStruct20BytesHomogeneousInt32x10Type = Void Function(
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32);
+typedef PassStruct20BytesHomogeneousInt32x10Type =
+    Void Function(
+      Struct20BytesHomogeneousInt32,
+      Struct20BytesHomogeneousInt32,
+      Struct20BytesHomogeneousInt32,
+      Struct20BytesHomogeneousInt32,
+      Struct20BytesHomogeneousInt32,
+      Struct20BytesHomogeneousInt32,
+      Struct20BytesHomogeneousInt32,
+      Struct20BytesHomogeneousInt32,
+      Struct20BytesHomogeneousInt32,
+      Struct20BytesHomogeneousInt32,
+    );
 
 // Global variable that stores the result.
 final PassStruct20BytesHomogeneousInt32x10Result = Completer<double>();
@@ -2101,18 +2387,20 @@ final PassStruct20BytesHomogeneousInt32x10Result = Completer<double>();
 /// The amount of arguments exhausts the number of integer registers, such that
 /// pointers to copies are also passed on the stack.
 void passStruct20BytesHomogeneousInt32x10(
-    Struct20BytesHomogeneousInt32 a0,
-    Struct20BytesHomogeneousInt32 a1,
-    Struct20BytesHomogeneousInt32 a2,
-    Struct20BytesHomogeneousInt32 a3,
-    Struct20BytesHomogeneousInt32 a4,
-    Struct20BytesHomogeneousInt32 a5,
-    Struct20BytesHomogeneousInt32 a6,
-    Struct20BytesHomogeneousInt32 a7,
-    Struct20BytesHomogeneousInt32 a8,
-    Struct20BytesHomogeneousInt32 a9) {
+  Struct20BytesHomogeneousInt32 a0,
+  Struct20BytesHomogeneousInt32 a1,
+  Struct20BytesHomogeneousInt32 a2,
+  Struct20BytesHomogeneousInt32 a3,
+  Struct20BytesHomogeneousInt32 a4,
+  Struct20BytesHomogeneousInt32 a5,
+  Struct20BytesHomogeneousInt32 a6,
+  Struct20BytesHomogeneousInt32 a7,
+  Struct20BytesHomogeneousInt32 a8,
+  Struct20BytesHomogeneousInt32 a9,
+) {
   print(
-      "passStruct20BytesHomogeneousInt32x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct20BytesHomogeneousInt32x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -2177,8 +2465,8 @@ Future<void> passStruct20BytesHomogeneousInt32x10AfterCallback() async {
   Expect.approxEquals(25, result);
 }
 
-typedef PassStruct20BytesHomogeneousFloatType = Void Function(
-    Struct20BytesHomogeneousFloat);
+typedef PassStruct20BytesHomogeneousFloatType =
+    Void Function(Struct20BytesHomogeneousFloat);
 
 // Global variable that stores the result.
 final PassStruct20BytesHomogeneousFloatResult = Completer<double>();
@@ -2205,12 +2493,14 @@ Future<void> passStruct20BytesHomogeneousFloatAfterCallback() async {
   Expect.approxEquals(-3, result);
 }
 
-typedef PassStruct32BytesHomogeneousDoublex5Type = Void Function(
-    Struct32BytesHomogeneousDouble,
-    Struct32BytesHomogeneousDouble,
-    Struct32BytesHomogeneousDouble,
-    Struct32BytesHomogeneousDouble,
-    Struct32BytesHomogeneousDouble);
+typedef PassStruct32BytesHomogeneousDoublex5Type =
+    Void Function(
+      Struct32BytesHomogeneousDouble,
+      Struct32BytesHomogeneousDouble,
+      Struct32BytesHomogeneousDouble,
+      Struct32BytesHomogeneousDouble,
+      Struct32BytesHomogeneousDouble,
+    );
 
 // Global variable that stores the result.
 final PassStruct32BytesHomogeneousDoublex5Result = Completer<double>();
@@ -2218,13 +2508,15 @@ final PassStruct32BytesHomogeneousDoublex5Result = Completer<double>();
 /// Arguments in FPU registers on arm64.
 /// 5 struct arguments will exhaust available registers.
 void passStruct32BytesHomogeneousDoublex5(
-    Struct32BytesHomogeneousDouble a0,
-    Struct32BytesHomogeneousDouble a1,
-    Struct32BytesHomogeneousDouble a2,
-    Struct32BytesHomogeneousDouble a3,
-    Struct32BytesHomogeneousDouble a4) {
+  Struct32BytesHomogeneousDouble a0,
+  Struct32BytesHomogeneousDouble a1,
+  Struct32BytesHomogeneousDouble a2,
+  Struct32BytesHomogeneousDouble a3,
+  Struct32BytesHomogeneousDouble a4,
+) {
   print(
-      "passStruct32BytesHomogeneousDoublex5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
+    "passStruct32BytesHomogeneousDoublex5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})",
+  );
 
   double result = 0;
 
@@ -2259,8 +2551,8 @@ Future<void> passStruct32BytesHomogeneousDoublex5AfterCallback() async {
   Expect.approxEquals(10, result);
 }
 
-typedef PassStruct40BytesHomogeneousDoubleType = Void Function(
-    Struct40BytesHomogeneousDouble);
+typedef PassStruct40BytesHomogeneousDoubleType =
+    Void Function(Struct40BytesHomogeneousDouble);
 
 // Global variable that stores the result.
 final PassStruct40BytesHomogeneousDoubleResult = Completer<double>();
@@ -2287,8 +2579,8 @@ Future<void> passStruct40BytesHomogeneousDoubleAfterCallback() async {
   Expect.approxEquals(-3, result);
 }
 
-typedef PassStruct1024BytesHomogeneousUint64Type = Void Function(
-    Struct1024BytesHomogeneousUint64);
+typedef PassStruct1024BytesHomogeneousUint64Type =
+    Void Function(Struct1024BytesHomogeneousUint64);
 
 // Global variable that stores the result.
 final PassStruct1024BytesHomogeneousUint64Result = Completer<double>();
@@ -2438,16 +2730,18 @@ Future<void> passStruct1024BytesHomogeneousUint64AfterCallback() async {
   Expect.approxEquals(8256, result);
 }
 
-typedef PassFloatStruct16BytesHomogeneousFloatFloatStruct1Type = Void Function(
-    Float,
-    Struct16BytesHomogeneousFloat,
-    Float,
-    Struct16BytesHomogeneousFloat,
-    Float,
-    Struct16BytesHomogeneousFloat,
-    Float,
-    Struct16BytesHomogeneousFloat,
-    Float);
+typedef PassFloatStruct16BytesHomogeneousFloatFloatStruct1Type =
+    Void Function(
+      Float,
+      Struct16BytesHomogeneousFloat,
+      Float,
+      Struct16BytesHomogeneousFloat,
+      Float,
+      Struct16BytesHomogeneousFloat,
+      Float,
+      Struct16BytesHomogeneousFloat,
+      Float,
+    );
 
 // Global variable that stores the result.
 final PassFloatStruct16BytesHomogeneousFloatFloatStruct1Result =
@@ -2455,17 +2749,19 @@ final PassFloatStruct16BytesHomogeneousFloatFloatStruct1Result =
 
 /// Tests the alignment of structs in FPU registers and backfilling.
 void passFloatStruct16BytesHomogeneousFloatFloatStruct1(
-    double a0,
-    Struct16BytesHomogeneousFloat a1,
-    double a2,
-    Struct16BytesHomogeneousFloat a3,
-    double a4,
-    Struct16BytesHomogeneousFloat a5,
-    double a6,
-    Struct16BytesHomogeneousFloat a7,
-    double a8) {
+  double a0,
+  Struct16BytesHomogeneousFloat a1,
+  double a2,
+  Struct16BytesHomogeneousFloat a3,
+  double a4,
+  Struct16BytesHomogeneousFloat a5,
+  double a6,
+  Struct16BytesHomogeneousFloat a7,
+  double a8,
+) {
   print(
-      "passFloatStruct16BytesHomogeneousFloatFloatStruct1(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
+    "passFloatStruct16BytesHomogeneousFloatFloatStruct1(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})",
+  );
 
   double result = 0;
 
@@ -2496,23 +2792,25 @@ void passFloatStruct16BytesHomogeneousFloatFloatStruct1(
 }
 
 Future<void>
-    passFloatStruct16BytesHomogeneousFloatFloatStruct1AfterCallback() async {
+passFloatStruct16BytesHomogeneousFloatFloatStruct1AfterCallback() async {
   final result =
       await PassFloatStruct16BytesHomogeneousFloatFloatStruct1Result.future;
   print("after callback result = $result");
   Expect.approxEquals(-11, result);
 }
 
-typedef PassFloatStruct32BytesHomogeneousDoubleFloatStructType = Void Function(
-    Float,
-    Struct32BytesHomogeneousDouble,
-    Float,
-    Struct32BytesHomogeneousDouble,
-    Float,
-    Struct32BytesHomogeneousDouble,
-    Float,
-    Struct32BytesHomogeneousDouble,
-    Float);
+typedef PassFloatStruct32BytesHomogeneousDoubleFloatStructType =
+    Void Function(
+      Float,
+      Struct32BytesHomogeneousDouble,
+      Float,
+      Struct32BytesHomogeneousDouble,
+      Float,
+      Struct32BytesHomogeneousDouble,
+      Float,
+      Struct32BytesHomogeneousDouble,
+      Float,
+    );
 
 // Global variable that stores the result.
 final PassFloatStruct32BytesHomogeneousDoubleFloatStructResult =
@@ -2520,17 +2818,19 @@ final PassFloatStruct32BytesHomogeneousDoubleFloatStructResult =
 
 /// Tests the alignment of structs in FPU registers and backfilling.
 void passFloatStruct32BytesHomogeneousDoubleFloatStruct(
-    double a0,
-    Struct32BytesHomogeneousDouble a1,
-    double a2,
-    Struct32BytesHomogeneousDouble a3,
-    double a4,
-    Struct32BytesHomogeneousDouble a5,
-    double a6,
-    Struct32BytesHomogeneousDouble a7,
-    double a8) {
+  double a0,
+  Struct32BytesHomogeneousDouble a1,
+  double a2,
+  Struct32BytesHomogeneousDouble a3,
+  double a4,
+  Struct32BytesHomogeneousDouble a5,
+  double a6,
+  Struct32BytesHomogeneousDouble a7,
+  double a8,
+) {
   print(
-      "passFloatStruct32BytesHomogeneousDoubleFloatStruct(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
+    "passFloatStruct32BytesHomogeneousDoubleFloatStruct(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})",
+  );
 
   double result = 0;
 
@@ -2561,23 +2861,25 @@ void passFloatStruct32BytesHomogeneousDoubleFloatStruct(
 }
 
 Future<void>
-    passFloatStruct32BytesHomogeneousDoubleFloatStructAfterCallback() async {
+passFloatStruct32BytesHomogeneousDoubleFloatStructAfterCallback() async {
   final result =
       await PassFloatStruct32BytesHomogeneousDoubleFloatStructResult.future;
   print("after callback result = $result");
   Expect.approxEquals(-11, result);
 }
 
-typedef PassInt8Struct16BytesMixedInt8Struct16BytesMixedInType = Void Function(
-    Int8,
-    Struct16BytesMixed,
-    Int8,
-    Struct16BytesMixed,
-    Int8,
-    Struct16BytesMixed,
-    Int8,
-    Struct16BytesMixed,
-    Int8);
+typedef PassInt8Struct16BytesMixedInt8Struct16BytesMixedInType =
+    Void Function(
+      Int8,
+      Struct16BytesMixed,
+      Int8,
+      Struct16BytesMixed,
+      Int8,
+      Struct16BytesMixed,
+      Int8,
+      Struct16BytesMixed,
+      Int8,
+    );
 
 // Global variable that stores the result.
 final PassInt8Struct16BytesMixedInt8Struct16BytesMixedInResult =
@@ -2589,17 +2891,19 @@ final PassInt8Struct16BytesMixedInt8Struct16BytesMixedInResult =
 /// on stack.
 /// Test backfilling of integer registers.
 void passInt8Struct16BytesMixedInt8Struct16BytesMixedIn(
-    int a0,
-    Struct16BytesMixed a1,
-    int a2,
-    Struct16BytesMixed a3,
-    int a4,
-    Struct16BytesMixed a5,
-    int a6,
-    Struct16BytesMixed a7,
-    int a8) {
+  int a0,
+  Struct16BytesMixed a1,
+  int a2,
+  Struct16BytesMixed a3,
+  int a4,
+  Struct16BytesMixed a5,
+  int a6,
+  Struct16BytesMixed a7,
+  int a8,
+) {
   print(
-      "passInt8Struct16BytesMixedInt8Struct16BytesMixedIn(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
+    "passInt8Struct16BytesMixedInt8Struct16BytesMixedIn(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})",
+  );
 
   double result = 0;
 
@@ -2622,25 +2926,27 @@ void passInt8Struct16BytesMixedInt8Struct16BytesMixedIn(
 }
 
 Future<void>
-    passInt8Struct16BytesMixedInt8Struct16BytesMixedInAfterCallback() async {
+passInt8Struct16BytesMixedInt8Struct16BytesMixedInAfterCallback() async {
   final result =
       await PassInt8Struct16BytesMixedInt8Struct16BytesMixedInResult.future;
   print("after callback result = $result");
   Expect.approxEquals(-7, result);
 }
 
-typedef PassDoublex6Struct16BytesMixedx4Int32Type = Void Function(
-    Double,
-    Double,
-    Double,
-    Double,
-    Double,
-    Double,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Int32);
+typedef PassDoublex6Struct16BytesMixedx4Int32Type =
+    Void Function(
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Struct16BytesMixed,
+      Struct16BytesMixed,
+      Struct16BytesMixed,
+      Struct16BytesMixed,
+      Int32,
+    );
 
 // Global variable that stores the result.
 final PassDoublex6Struct16BytesMixedx4Int32Result = Completer<double>();
@@ -2649,19 +2955,21 @@ final PassDoublex6Struct16BytesMixedx4Int32Result = Completer<double>();
 /// structs. The rest of the structs will go on the stack.
 /// The int will be backfilled into the int register.
 void passDoublex6Struct16BytesMixedx4Int32(
-    double a0,
-    double a1,
-    double a2,
-    double a3,
-    double a4,
-    double a5,
-    Struct16BytesMixed a6,
-    Struct16BytesMixed a7,
-    Struct16BytesMixed a8,
-    Struct16BytesMixed a9,
-    int a10) {
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  Struct16BytesMixed a6,
+  Struct16BytesMixed a7,
+  Struct16BytesMixed a8,
+  Struct16BytesMixed a9,
+  int a10,
+) {
   print(
-      "passDoublex6Struct16BytesMixedx4Int32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10})");
+    "passDoublex6Struct16BytesMixedx4Int32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10})",
+  );
 
   double result = 0;
 
@@ -2691,16 +2999,18 @@ Future<void> passDoublex6Struct16BytesMixedx4Int32AfterCallback() async {
   Expect.approxEquals(-8, result);
 }
 
-typedef PassInt32x4Struct16BytesMixedx4DoubleType = Void Function(
-    Int32,
-    Int32,
-    Int32,
-    Int32,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Double);
+typedef PassInt32x4Struct16BytesMixedx4DoubleType =
+    Void Function(
+      Int32,
+      Int32,
+      Int32,
+      Int32,
+      Struct16BytesMixed,
+      Struct16BytesMixed,
+      Struct16BytesMixed,
+      Struct16BytesMixed,
+      Double,
+    );
 
 // Global variable that stores the result.
 final PassInt32x4Struct16BytesMixedx4DoubleResult = Completer<double>();
@@ -2709,17 +3019,19 @@ final PassInt32x4Struct16BytesMixedx4DoubleResult = Completer<double>();
 /// The rest of the structs will go on the stack.
 /// The double will be backfilled into the xmm register.
 void passInt32x4Struct16BytesMixedx4Double(
-    int a0,
-    int a1,
-    int a2,
-    int a3,
-    Struct16BytesMixed a4,
-    Struct16BytesMixed a5,
-    Struct16BytesMixed a6,
-    Struct16BytesMixed a7,
-    double a8) {
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  Struct16BytesMixed a4,
+  Struct16BytesMixed a5,
+  Struct16BytesMixed a6,
+  Struct16BytesMixed a7,
+  double a8,
+) {
   print(
-      "passInt32x4Struct16BytesMixedx4Double(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
+    "passInt32x4Struct16BytesMixedx4Double(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})",
+  );
 
   double result = 0;
 
@@ -2747,10 +3059,12 @@ Future<void> passInt32x4Struct16BytesMixedx4DoubleAfterCallback() async {
   Expect.approxEquals(-7, result);
 }
 
-typedef PassStruct40BytesHomogeneousDoubleStruct4BytesHomoType = Void Function(
-    Struct40BytesHomogeneousDouble,
-    Struct4BytesHomogeneousInt16,
-    Struct8BytesHomogeneousFloat);
+typedef PassStruct40BytesHomogeneousDoubleStruct4BytesHomoType =
+    Void Function(
+      Struct40BytesHomogeneousDouble,
+      Struct4BytesHomogeneousInt16,
+      Struct8BytesHomogeneousFloat,
+    );
 
 // Global variable that stores the result.
 final PassStruct40BytesHomogeneousDoubleStruct4BytesHomoResult =
@@ -2759,11 +3073,13 @@ final PassStruct40BytesHomogeneousDoubleStruct4BytesHomoResult =
 /// On various architectures, first struct is allocated on stack.
 /// Check that the other two arguments are allocated on registers.
 void passStruct40BytesHomogeneousDoubleStruct4BytesHomo(
-    Struct40BytesHomogeneousDouble a0,
-    Struct4BytesHomogeneousInt16 a1,
-    Struct8BytesHomogeneousFloat a2) {
+  Struct40BytesHomogeneousDouble a0,
+  Struct4BytesHomogeneousInt16 a1,
+  Struct8BytesHomogeneousFloat a2,
+) {
   print(
-      "passStruct40BytesHomogeneousDoubleStruct4BytesHomo(${a0}, ${a1}, ${a2})");
+    "passStruct40BytesHomogeneousDoubleStruct4BytesHomo(${a0}, ${a1}, ${a2})",
+  );
 
   double result = 0;
 
@@ -2782,54 +3098,56 @@ void passStruct40BytesHomogeneousDoubleStruct4BytesHomo(
 }
 
 Future<void>
-    passStruct40BytesHomogeneousDoubleStruct4BytesHomoAfterCallback() async {
+passStruct40BytesHomogeneousDoubleStruct4BytesHomoAfterCallback() async {
   final result =
       await PassStruct40BytesHomogeneousDoubleStruct4BytesHomoResult.future;
   print("after callback result = $result");
   Expect.approxEquals(-5, result);
 }
 
-typedef PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntType = Void Function(
-    Int32,
-    Int32,
-    Int32,
-    Int32,
-    Int32,
-    Int32,
-    Int32,
-    Int32,
-    Double,
-    Double,
-    Double,
-    Double,
-    Double,
-    Double,
-    Double,
-    Double,
-    Int64,
-    Int8,
-    Struct1ByteInt,
-    Int64,
-    Int8,
-    Struct4BytesHomogeneousInt16,
-    Int64,
-    Int8,
-    Struct8BytesInt,
-    Int64,
-    Int8,
-    Struct8BytesHomogeneousFloat,
-    Int64,
-    Int8,
-    Struct8BytesMixed,
-    Int64,
-    Int8,
-    StructAlignmentInt16,
-    Int64,
-    Int8,
-    StructAlignmentInt32,
-    Int64,
-    Int8,
-    StructAlignmentInt64);
+typedef PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntType =
+    Void Function(
+      Int32,
+      Int32,
+      Int32,
+      Int32,
+      Int32,
+      Int32,
+      Int32,
+      Int32,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Int64,
+      Int8,
+      Struct1ByteInt,
+      Int64,
+      Int8,
+      Struct4BytesHomogeneousInt16,
+      Int64,
+      Int8,
+      Struct8BytesInt,
+      Int64,
+      Int8,
+      Struct8BytesHomogeneousFloat,
+      Int64,
+      Int8,
+      Struct8BytesMixed,
+      Int64,
+      Int8,
+      StructAlignmentInt16,
+      Int64,
+      Int8,
+      StructAlignmentInt32,
+      Int64,
+      Int8,
+      StructAlignmentInt64,
+    );
 
 // Global variable that stores the result.
 final PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntResult =
@@ -2837,48 +3155,50 @@ final PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntResult =
 
 /// Test alignment and padding of 16 byte int within struct.
 void passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(
-    int a0,
-    int a1,
-    int a2,
-    int a3,
-    int a4,
-    int a5,
-    int a6,
-    int a7,
-    double a8,
-    double a9,
-    double a10,
-    double a11,
-    double a12,
-    double a13,
-    double a14,
-    double a15,
-    int a16,
-    int a17,
-    Struct1ByteInt a18,
-    int a19,
-    int a20,
-    Struct4BytesHomogeneousInt16 a21,
-    int a22,
-    int a23,
-    Struct8BytesInt a24,
-    int a25,
-    int a26,
-    Struct8BytesHomogeneousFloat a27,
-    int a28,
-    int a29,
-    Struct8BytesMixed a30,
-    int a31,
-    int a32,
-    StructAlignmentInt16 a33,
-    int a34,
-    int a35,
-    StructAlignmentInt32 a36,
-    int a37,
-    int a38,
-    StructAlignmentInt64 a39) {
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  int a7,
+  double a8,
+  double a9,
+  double a10,
+  double a11,
+  double a12,
+  double a13,
+  double a14,
+  double a15,
+  int a16,
+  int a17,
+  Struct1ByteInt a18,
+  int a19,
+  int a20,
+  Struct4BytesHomogeneousInt16 a21,
+  int a22,
+  int a23,
+  Struct8BytesInt a24,
+  int a25,
+  int a26,
+  Struct8BytesHomogeneousFloat a27,
+  int a28,
+  int a29,
+  Struct8BytesMixed a30,
+  int a31,
+  int a32,
+  StructAlignmentInt16 a33,
+  int a34,
+  int a35,
+  StructAlignmentInt32 a36,
+  int a37,
+  int a38,
+  StructAlignmentInt64 a39,
+) {
   print(
-      "passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18}, ${a19}, ${a20}, ${a21}, ${a22}, ${a23}, ${a24}, ${a25}, ${a26}, ${a27}, ${a28}, ${a29}, ${a30}, ${a31}, ${a32}, ${a33}, ${a34}, ${a35}, ${a36}, ${a37}, ${a38}, ${a39})");
+    "passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18}, ${a19}, ${a20}, ${a21}, ${a22}, ${a23}, ${a24}, ${a25}, ${a26}, ${a27}, ${a28}, ${a29}, ${a30}, ${a31}, ${a32}, ${a33}, ${a34}, ${a35}, ${a36}, ${a37}, ${a38}, ${a39})",
+  );
 
   double result = 0;
 
@@ -2940,7 +3260,7 @@ void passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(
 }
 
 Future<void>
-    passInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntAfterCallback() async {
+passInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntAfterCallback() async {
   final result =
       await PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntResult.future;
   print("after callback result = $result");
@@ -3022,17 +3342,19 @@ Future<void> passStructAlignmentInt64AfterCallback() async {
   Expect.approxEquals(-2, result);
 }
 
-typedef PassStruct8BytesNestedIntx10Type = Void Function(
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt);
+typedef PassStruct8BytesNestedIntx10Type =
+    Void Function(
+      Struct8BytesNestedInt,
+      Struct8BytesNestedInt,
+      Struct8BytesNestedInt,
+      Struct8BytesNestedInt,
+      Struct8BytesNestedInt,
+      Struct8BytesNestedInt,
+      Struct8BytesNestedInt,
+      Struct8BytesNestedInt,
+      Struct8BytesNestedInt,
+      Struct8BytesNestedInt,
+    );
 
 // Global variable that stores the result.
 final PassStruct8BytesNestedIntx10Result = Completer<double>();
@@ -3040,18 +3362,20 @@ final PassStruct8BytesNestedIntx10Result = Completer<double>();
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust registers on all platforms.
 void passStruct8BytesNestedIntx10(
-    Struct8BytesNestedInt a0,
-    Struct8BytesNestedInt a1,
-    Struct8BytesNestedInt a2,
-    Struct8BytesNestedInt a3,
-    Struct8BytesNestedInt a4,
-    Struct8BytesNestedInt a5,
-    Struct8BytesNestedInt a6,
-    Struct8BytesNestedInt a7,
-    Struct8BytesNestedInt a8,
-    Struct8BytesNestedInt a9) {
+  Struct8BytesNestedInt a0,
+  Struct8BytesNestedInt a1,
+  Struct8BytesNestedInt a2,
+  Struct8BytesNestedInt a3,
+  Struct8BytesNestedInt a4,
+  Struct8BytesNestedInt a5,
+  Struct8BytesNestedInt a6,
+  Struct8BytesNestedInt a7,
+  Struct8BytesNestedInt a8,
+  Struct8BytesNestedInt a9,
+) {
   print(
-      "passStruct8BytesNestedIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct8BytesNestedIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -3106,17 +3430,19 @@ Future<void> passStruct8BytesNestedIntx10AfterCallback() async {
   Expect.approxEquals(20, result);
 }
 
-typedef PassStruct8BytesNestedFloatx10Type = Void Function(
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat);
+typedef PassStruct8BytesNestedFloatx10Type =
+    Void Function(
+      Struct8BytesNestedFloat,
+      Struct8BytesNestedFloat,
+      Struct8BytesNestedFloat,
+      Struct8BytesNestedFloat,
+      Struct8BytesNestedFloat,
+      Struct8BytesNestedFloat,
+      Struct8BytesNestedFloat,
+      Struct8BytesNestedFloat,
+      Struct8BytesNestedFloat,
+      Struct8BytesNestedFloat,
+    );
 
 // Global variable that stores the result.
 final PassStruct8BytesNestedFloatx10Result = Completer<double>();
@@ -3124,18 +3450,20 @@ final PassStruct8BytesNestedFloatx10Result = Completer<double>();
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust fpu registers on all platforms.
 void passStruct8BytesNestedFloatx10(
-    Struct8BytesNestedFloat a0,
-    Struct8BytesNestedFloat a1,
-    Struct8BytesNestedFloat a2,
-    Struct8BytesNestedFloat a3,
-    Struct8BytesNestedFloat a4,
-    Struct8BytesNestedFloat a5,
-    Struct8BytesNestedFloat a6,
-    Struct8BytesNestedFloat a7,
-    Struct8BytesNestedFloat a8,
-    Struct8BytesNestedFloat a9) {
+  Struct8BytesNestedFloat a0,
+  Struct8BytesNestedFloat a1,
+  Struct8BytesNestedFloat a2,
+  Struct8BytesNestedFloat a3,
+  Struct8BytesNestedFloat a4,
+  Struct8BytesNestedFloat a5,
+  Struct8BytesNestedFloat a6,
+  Struct8BytesNestedFloat a7,
+  Struct8BytesNestedFloat a8,
+  Struct8BytesNestedFloat a9,
+) {
   print(
-      "passStruct8BytesNestedFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct8BytesNestedFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -3170,17 +3498,19 @@ Future<void> passStruct8BytesNestedFloatx10AfterCallback() async {
   Expect.approxEquals(10, result);
 }
 
-typedef PassStruct8BytesNestedFloat2x10Type = Void Function(
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2);
+typedef PassStruct8BytesNestedFloat2x10Type =
+    Void Function(
+      Struct8BytesNestedFloat2,
+      Struct8BytesNestedFloat2,
+      Struct8BytesNestedFloat2,
+      Struct8BytesNestedFloat2,
+      Struct8BytesNestedFloat2,
+      Struct8BytesNestedFloat2,
+      Struct8BytesNestedFloat2,
+      Struct8BytesNestedFloat2,
+      Struct8BytesNestedFloat2,
+      Struct8BytesNestedFloat2,
+    );
 
 // Global variable that stores the result.
 final PassStruct8BytesNestedFloat2x10Result = Completer<double>();
@@ -3190,18 +3520,20 @@ final PassStruct8BytesNestedFloat2x10Result = Completer<double>();
 /// The nesting is irregular, testing homogenous float rules on arm and arm64,
 /// and the fpu register usage on x64.
 void passStruct8BytesNestedFloat2x10(
-    Struct8BytesNestedFloat2 a0,
-    Struct8BytesNestedFloat2 a1,
-    Struct8BytesNestedFloat2 a2,
-    Struct8BytesNestedFloat2 a3,
-    Struct8BytesNestedFloat2 a4,
-    Struct8BytesNestedFloat2 a5,
-    Struct8BytesNestedFloat2 a6,
-    Struct8BytesNestedFloat2 a7,
-    Struct8BytesNestedFloat2 a8,
-    Struct8BytesNestedFloat2 a9) {
+  Struct8BytesNestedFloat2 a0,
+  Struct8BytesNestedFloat2 a1,
+  Struct8BytesNestedFloat2 a2,
+  Struct8BytesNestedFloat2 a3,
+  Struct8BytesNestedFloat2 a4,
+  Struct8BytesNestedFloat2 a5,
+  Struct8BytesNestedFloat2 a6,
+  Struct8BytesNestedFloat2 a7,
+  Struct8BytesNestedFloat2 a8,
+  Struct8BytesNestedFloat2 a9,
+) {
   print(
-      "passStruct8BytesNestedFloat2x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct8BytesNestedFloat2x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -3236,17 +3568,19 @@ Future<void> passStruct8BytesNestedFloat2x10AfterCallback() async {
   Expect.approxEquals(10, result);
 }
 
-typedef PassStruct8BytesNestedMixedx10Type = Void Function(
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed);
+typedef PassStruct8BytesNestedMixedx10Type =
+    Void Function(
+      Struct8BytesNestedMixed,
+      Struct8BytesNestedMixed,
+      Struct8BytesNestedMixed,
+      Struct8BytesNestedMixed,
+      Struct8BytesNestedMixed,
+      Struct8BytesNestedMixed,
+      Struct8BytesNestedMixed,
+      Struct8BytesNestedMixed,
+      Struct8BytesNestedMixed,
+      Struct8BytesNestedMixed,
+    );
 
 // Global variable that stores the result.
 final PassStruct8BytesNestedMixedx10Result = Completer<double>();
@@ -3254,18 +3588,20 @@ final PassStruct8BytesNestedMixedx10Result = Completer<double>();
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust all registers on all platforms.
 void passStruct8BytesNestedMixedx10(
-    Struct8BytesNestedMixed a0,
-    Struct8BytesNestedMixed a1,
-    Struct8BytesNestedMixed a2,
-    Struct8BytesNestedMixed a3,
-    Struct8BytesNestedMixed a4,
-    Struct8BytesNestedMixed a5,
-    Struct8BytesNestedMixed a6,
-    Struct8BytesNestedMixed a7,
-    Struct8BytesNestedMixed a8,
-    Struct8BytesNestedMixed a9) {
+  Struct8BytesNestedMixed a0,
+  Struct8BytesNestedMixed a1,
+  Struct8BytesNestedMixed a2,
+  Struct8BytesNestedMixed a3,
+  Struct8BytesNestedMixed a4,
+  Struct8BytesNestedMixed a5,
+  Struct8BytesNestedMixed a6,
+  Struct8BytesNestedMixed a7,
+  Struct8BytesNestedMixed a8,
+  Struct8BytesNestedMixed a9,
+) {
   print(
-      "passStruct8BytesNestedMixedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct8BytesNestedMixedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -3310,15 +3646,17 @@ Future<void> passStruct8BytesNestedMixedx10AfterCallback() async {
   Expect.approxEquals(15, result);
 }
 
-typedef PassStruct16BytesNestedIntx2Type = Void Function(
-    Struct16BytesNestedInt, Struct16BytesNestedInt);
+typedef PassStruct16BytesNestedIntx2Type =
+    Void Function(Struct16BytesNestedInt, Struct16BytesNestedInt);
 
 // Global variable that stores the result.
 final PassStruct16BytesNestedIntx2Result = Completer<double>();
 
 /// Deeper nested struct to test recursive member access.
 void passStruct16BytesNestedIntx2(
-    Struct16BytesNestedInt a0, Struct16BytesNestedInt a1) {
+  Struct16BytesNestedInt a0,
+  Struct16BytesNestedInt a1,
+) {
   print("passStruct16BytesNestedIntx2(${a0}, ${a1})");
 
   double result = 0;
@@ -3350,15 +3688,17 @@ Future<void> passStruct16BytesNestedIntx2AfterCallback() async {
   Expect.approxEquals(8, result);
 }
 
-typedef PassStruct32BytesNestedIntx2Type = Void Function(
-    Struct32BytesNestedInt, Struct32BytesNestedInt);
+typedef PassStruct32BytesNestedIntx2Type =
+    Void Function(Struct32BytesNestedInt, Struct32BytesNestedInt);
 
 // Global variable that stores the result.
 final PassStruct32BytesNestedIntx2Result = Completer<double>();
 
 /// Even deeper nested struct to test recursive member access.
 void passStruct32BytesNestedIntx2(
-    Struct32BytesNestedInt a0, Struct32BytesNestedInt a1) {
+  Struct32BytesNestedInt a0,
+  Struct32BytesNestedInt a1,
+) {
   print("passStruct32BytesNestedIntx2(${a0}, ${a1})");
 
   double result = 0;
@@ -3406,15 +3746,16 @@ Future<void> passStruct32BytesNestedIntx2AfterCallback() async {
   Expect.approxEquals(16, result);
 }
 
-typedef PassStructNestedIntStructAlignmentInt16Type = Void Function(
-    StructNestedIntStructAlignmentInt16);
+typedef PassStructNestedIntStructAlignmentInt16Type =
+    Void Function(StructNestedIntStructAlignmentInt16);
 
 // Global variable that stores the result.
 final PassStructNestedIntStructAlignmentInt16Result = Completer<double>();
 
 /// Test alignment and padding of nested struct with 16 byte int.
 void passStructNestedIntStructAlignmentInt16(
-    StructNestedIntStructAlignmentInt16 a0) {
+  StructNestedIntStructAlignmentInt16 a0,
+) {
   print("passStructNestedIntStructAlignmentInt16(${a0})");
 
   double result = 0;
@@ -3436,15 +3777,16 @@ Future<void> passStructNestedIntStructAlignmentInt16AfterCallback() async {
   Expect.approxEquals(3, result);
 }
 
-typedef PassStructNestedIntStructAlignmentInt32Type = Void Function(
-    StructNestedIntStructAlignmentInt32);
+typedef PassStructNestedIntStructAlignmentInt32Type =
+    Void Function(StructNestedIntStructAlignmentInt32);
 
 // Global variable that stores the result.
 final PassStructNestedIntStructAlignmentInt32Result = Completer<double>();
 
 /// Test alignment and padding of nested struct with 32 byte int.
 void passStructNestedIntStructAlignmentInt32(
-    StructNestedIntStructAlignmentInt32 a0) {
+  StructNestedIntStructAlignmentInt32 a0,
+) {
   print("passStructNestedIntStructAlignmentInt32(${a0})");
 
   double result = 0;
@@ -3466,15 +3808,16 @@ Future<void> passStructNestedIntStructAlignmentInt32AfterCallback() async {
   Expect.approxEquals(3, result);
 }
 
-typedef PassStructNestedIntStructAlignmentInt64Type = Void Function(
-    StructNestedIntStructAlignmentInt64);
+typedef PassStructNestedIntStructAlignmentInt64Type =
+    Void Function(StructNestedIntStructAlignmentInt64);
 
 // Global variable that stores the result.
 final PassStructNestedIntStructAlignmentInt64Result = Completer<double>();
 
 /// Test alignment and padding of nested struct with 64 byte int.
 void passStructNestedIntStructAlignmentInt64(
-    StructNestedIntStructAlignmentInt64 a0) {
+  StructNestedIntStructAlignmentInt64 a0,
+) {
   print("passStructNestedIntStructAlignmentInt64(${a0})");
 
   double result = 0;
@@ -3496,21 +3839,24 @@ Future<void> passStructNestedIntStructAlignmentInt64AfterCallback() async {
   Expect.approxEquals(3, result);
 }
 
-typedef PassStructNestedIrregularEvenBiggerx4Type = Void Function(
-    StructNestedIrregularEvenBigger,
-    StructNestedIrregularEvenBigger,
-    StructNestedIrregularEvenBigger,
-    StructNestedIrregularEvenBigger);
+typedef PassStructNestedIrregularEvenBiggerx4Type =
+    Void Function(
+      StructNestedIrregularEvenBigger,
+      StructNestedIrregularEvenBigger,
+      StructNestedIrregularEvenBigger,
+      StructNestedIrregularEvenBigger,
+    );
 
 // Global variable that stores the result.
 final PassStructNestedIrregularEvenBiggerx4Result = Completer<double>();
 
 /// Return big irregular struct as smoke test.
 void passStructNestedIrregularEvenBiggerx4(
-    StructNestedIrregularEvenBigger a0,
-    StructNestedIrregularEvenBigger a1,
-    StructNestedIrregularEvenBigger a2,
-    StructNestedIrregularEvenBigger a3) {
+  StructNestedIrregularEvenBigger a0,
+  StructNestedIrregularEvenBigger a1,
+  StructNestedIrregularEvenBigger a2,
+  StructNestedIrregularEvenBigger a3,
+) {
   print("passStructNestedIrregularEvenBiggerx4(${a0}, ${a1}, ${a2}, ${a3})");
 
   double result = 0;
@@ -3662,21 +4008,24 @@ Future<void> passStructNestedIrregularEvenBiggerx4AfterCallback() async {
   Expect.approxEquals(1572, result);
 }
 
-typedef PassStruct8BytesInlineArrayIntx4Type = Void Function(
-    Struct8BytesInlineArrayInt,
-    Struct8BytesInlineArrayInt,
-    Struct8BytesInlineArrayInt,
-    Struct8BytesInlineArrayInt);
+typedef PassStruct8BytesInlineArrayIntx4Type =
+    Void Function(
+      Struct8BytesInlineArrayInt,
+      Struct8BytesInlineArrayInt,
+      Struct8BytesInlineArrayInt,
+      Struct8BytesInlineArrayInt,
+    );
 
 // Global variable that stores the result.
 final PassStruct8BytesInlineArrayIntx4Result = Completer<double>();
 
 /// Simple struct with inline array.
 void passStruct8BytesInlineArrayIntx4(
-    Struct8BytesInlineArrayInt a0,
-    Struct8BytesInlineArrayInt a1,
-    Struct8BytesInlineArrayInt a2,
-    Struct8BytesInlineArrayInt a3) {
+  Struct8BytesInlineArrayInt a0,
+  Struct8BytesInlineArrayInt a1,
+  Struct8BytesInlineArrayInt a2,
+  Struct8BytesInlineArrayInt a3,
+) {
   print("passStruct8BytesInlineArrayIntx4(${a0}, ${a1}, ${a2}, ${a3})");
 
   double result = 0;
@@ -3724,21 +4073,24 @@ Future<void> passStruct8BytesInlineArrayIntx4AfterCallback() async {
   Expect.approxEquals(528, result);
 }
 
-typedef PassStructInlineArrayIrregularx4Type = Void Function(
-    StructInlineArrayIrregular,
-    StructInlineArrayIrregular,
-    StructInlineArrayIrregular,
-    StructInlineArrayIrregular);
+typedef PassStructInlineArrayIrregularx4Type =
+    Void Function(
+      StructInlineArrayIrregular,
+      StructInlineArrayIrregular,
+      StructInlineArrayIrregular,
+      StructInlineArrayIrregular,
+    );
 
 // Global variable that stores the result.
 final PassStructInlineArrayIrregularx4Result = Completer<double>();
 
 /// Irregular struct with inline array.
 void passStructInlineArrayIrregularx4(
-    StructInlineArrayIrregular a0,
-    StructInlineArrayIrregular a1,
-    StructInlineArrayIrregular a2,
-    StructInlineArrayIrregular a3) {
+  StructInlineArrayIrregular a0,
+  StructInlineArrayIrregular a1,
+  StructInlineArrayIrregular a2,
+  StructInlineArrayIrregular a3,
+) {
   print("passStructInlineArrayIrregularx4(${a0}, ${a1}, ${a2}, ${a3})");
 
   double result = 0;
@@ -3774,8 +4126,8 @@ Future<void> passStructInlineArrayIrregularx4AfterCallback() async {
   Expect.approxEquals(50, result);
 }
 
-typedef PassStructInlineArray100BytesType = Void Function(
-    StructInlineArray100Bytes);
+typedef PassStructInlineArray100BytesType =
+    Void Function(StructInlineArray100Bytes);
 
 // Global variable that stores the result.
 final PassStructInlineArray100BytesResult = Completer<double>();
@@ -3897,12 +4249,14 @@ Future<void> passStructInlineArray100BytesAfterCallback() async {
   Expect.approxEquals(5050, result);
 }
 
-typedef PassStructStruct16BytesHomogeneousFloat2x5Type = Void Function(
-    StructStruct16BytesHomogeneousFloat2,
-    StructStruct16BytesHomogeneousFloat2,
-    StructStruct16BytesHomogeneousFloat2,
-    StructStruct16BytesHomogeneousFloat2,
-    StructStruct16BytesHomogeneousFloat2);
+typedef PassStructStruct16BytesHomogeneousFloat2x5Type =
+    Void Function(
+      StructStruct16BytesHomogeneousFloat2,
+      StructStruct16BytesHomogeneousFloat2,
+      StructStruct16BytesHomogeneousFloat2,
+      StructStruct16BytesHomogeneousFloat2,
+      StructStruct16BytesHomogeneousFloat2,
+    );
 
 // Global variable that stores the result.
 final PassStructStruct16BytesHomogeneousFloat2x5Result = Completer<double>();
@@ -3910,13 +4264,15 @@ final PassStructStruct16BytesHomogeneousFloat2x5Result = Completer<double>();
 /// Arguments in FPU registers on arm hardfp and arm64.
 /// 5 struct arguments will exhaust available registers.
 void passStructStruct16BytesHomogeneousFloat2x5(
-    StructStruct16BytesHomogeneousFloat2 a0,
-    StructStruct16BytesHomogeneousFloat2 a1,
-    StructStruct16BytesHomogeneousFloat2 a2,
-    StructStruct16BytesHomogeneousFloat2 a3,
-    StructStruct16BytesHomogeneousFloat2 a4) {
+  StructStruct16BytesHomogeneousFloat2 a0,
+  StructStruct16BytesHomogeneousFloat2 a1,
+  StructStruct16BytesHomogeneousFloat2 a2,
+  StructStruct16BytesHomogeneousFloat2 a3,
+  StructStruct16BytesHomogeneousFloat2 a4,
+) {
   print(
-      "passStructStruct16BytesHomogeneousFloat2x5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
+    "passStructStruct16BytesHomogeneousFloat2x5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})",
+  );
 
   double result = 0;
 
@@ -3951,12 +4307,14 @@ Future<void> passStructStruct16BytesHomogeneousFloat2x5AfterCallback() async {
   Expect.approxEquals(10, result);
 }
 
-typedef PassStructStruct32BytesHomogeneousDouble2x5Type = Void Function(
-    StructStruct32BytesHomogeneousDouble2,
-    StructStruct32BytesHomogeneousDouble2,
-    StructStruct32BytesHomogeneousDouble2,
-    StructStruct32BytesHomogeneousDouble2,
-    StructStruct32BytesHomogeneousDouble2);
+typedef PassStructStruct32BytesHomogeneousDouble2x5Type =
+    Void Function(
+      StructStruct32BytesHomogeneousDouble2,
+      StructStruct32BytesHomogeneousDouble2,
+      StructStruct32BytesHomogeneousDouble2,
+      StructStruct32BytesHomogeneousDouble2,
+      StructStruct32BytesHomogeneousDouble2,
+    );
 
 // Global variable that stores the result.
 final PassStructStruct32BytesHomogeneousDouble2x5Result = Completer<double>();
@@ -3964,13 +4322,15 @@ final PassStructStruct32BytesHomogeneousDouble2x5Result = Completer<double>();
 /// Arguments in FPU registers on arm64.
 /// 5 struct arguments will exhaust available registers.
 void passStructStruct32BytesHomogeneousDouble2x5(
-    StructStruct32BytesHomogeneousDouble2 a0,
-    StructStruct32BytesHomogeneousDouble2 a1,
-    StructStruct32BytesHomogeneousDouble2 a2,
-    StructStruct32BytesHomogeneousDouble2 a3,
-    StructStruct32BytesHomogeneousDouble2 a4) {
+  StructStruct32BytesHomogeneousDouble2 a0,
+  StructStruct32BytesHomogeneousDouble2 a1,
+  StructStruct32BytesHomogeneousDouble2 a2,
+  StructStruct32BytesHomogeneousDouble2 a3,
+  StructStruct32BytesHomogeneousDouble2 a4,
+) {
   print(
-      "passStructStruct32BytesHomogeneousDouble2x5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
+    "passStructStruct32BytesHomogeneousDouble2x5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})",
+  );
 
   double result = 0;
 
@@ -4005,17 +4365,19 @@ Future<void> passStructStruct32BytesHomogeneousDouble2x5AfterCallback() async {
   Expect.approxEquals(10, result);
 }
 
-typedef PassStructStruct16BytesMixed3x10Type = Void Function(
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3);
+typedef PassStructStruct16BytesMixed3x10Type =
+    Void Function(
+      StructStruct16BytesMixed3,
+      StructStruct16BytesMixed3,
+      StructStruct16BytesMixed3,
+      StructStruct16BytesMixed3,
+      StructStruct16BytesMixed3,
+      StructStruct16BytesMixed3,
+      StructStruct16BytesMixed3,
+      StructStruct16BytesMixed3,
+      StructStruct16BytesMixed3,
+      StructStruct16BytesMixed3,
+    );
 
 // Global variable that stores the result.
 final PassStructStruct16BytesMixed3x10Result = Completer<double>();
@@ -4025,18 +4387,20 @@ final PassStructStruct16BytesMixed3x10Result = Completer<double>();
 /// The rest goes on the stack.
 /// On arm, arguments are 4 byte aligned.
 void passStructStruct16BytesMixed3x10(
-    StructStruct16BytesMixed3 a0,
-    StructStruct16BytesMixed3 a1,
-    StructStruct16BytesMixed3 a2,
-    StructStruct16BytesMixed3 a3,
-    StructStruct16BytesMixed3 a4,
-    StructStruct16BytesMixed3 a5,
-    StructStruct16BytesMixed3 a6,
-    StructStruct16BytesMixed3 a7,
-    StructStruct16BytesMixed3 a8,
-    StructStruct16BytesMixed3 a9) {
+  StructStruct16BytesMixed3 a0,
+  StructStruct16BytesMixed3 a1,
+  StructStruct16BytesMixed3 a2,
+  StructStruct16BytesMixed3 a3,
+  StructStruct16BytesMixed3 a4,
+  StructStruct16BytesMixed3 a5,
+  StructStruct16BytesMixed3 a6,
+  StructStruct16BytesMixed3 a7,
+  StructStruct16BytesMixed3 a8,
+  StructStruct16BytesMixed3 a9,
+) {
   print(
-      "passStructStruct16BytesMixed3x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStructStruct16BytesMixed3x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -4111,14 +4475,16 @@ Future<void> passStructStruct16BytesMixed3x10AfterCallback() async {
   Expect.approxEquals(30, result);
 }
 
-typedef PassUint8Struct32BytesInlineArrayMultiDimensionalIType = Void Function(
-    Uint8,
-    Struct32BytesInlineArrayMultiDimensionalInt,
-    Uint8,
-    Struct8BytesInlineArrayMultiDimensionalInt,
-    Uint8,
-    Struct8BytesInlineArrayMultiDimensionalInt,
-    Uint8);
+typedef PassUint8Struct32BytesInlineArrayMultiDimensionalIType =
+    Void Function(
+      Uint8,
+      Struct32BytesInlineArrayMultiDimensionalInt,
+      Uint8,
+      Struct8BytesInlineArrayMultiDimensionalInt,
+      Uint8,
+      Struct8BytesInlineArrayMultiDimensionalInt,
+      Uint8,
+    );
 
 // Global variable that stores the result.
 final PassUint8Struct32BytesInlineArrayMultiDimensionalIResult =
@@ -4126,15 +4492,17 @@ final PassUint8Struct32BytesInlineArrayMultiDimensionalIResult =
 
 /// Test multi dimensional inline array struct as argument.
 void passUint8Struct32BytesInlineArrayMultiDimensionalI(
-    int a0,
-    Struct32BytesInlineArrayMultiDimensionalInt a1,
-    int a2,
-    Struct8BytesInlineArrayMultiDimensionalInt a3,
-    int a4,
-    Struct8BytesInlineArrayMultiDimensionalInt a5,
-    int a6) {
+  int a0,
+  Struct32BytesInlineArrayMultiDimensionalInt a1,
+  int a2,
+  Struct8BytesInlineArrayMultiDimensionalInt a3,
+  int a4,
+  Struct8BytesInlineArrayMultiDimensionalInt a5,
+  int a6,
+) {
   print(
-      "passUint8Struct32BytesInlineArrayMultiDimensionalI(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6})");
+    "passUint8Struct32BytesInlineArrayMultiDimensionalI(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6})",
+  );
 
   double result = 0;
 
@@ -4196,15 +4564,15 @@ void passUint8Struct32BytesInlineArrayMultiDimensionalI(
 }
 
 Future<void>
-    passUint8Struct32BytesInlineArrayMultiDimensionalIAfterCallback() async {
+passUint8Struct32BytesInlineArrayMultiDimensionalIAfterCallback() async {
   final result =
       await PassUint8Struct32BytesInlineArrayMultiDimensionalIResult.future;
   print("after callback result = $result");
   Expect.approxEquals(1378, result);
 }
 
-typedef PassUint8Struct4BytesInlineArrayMultiDimensionalInType = Void Function(
-    Uint8, Struct4BytesInlineArrayMultiDimensionalInt, Uint8);
+typedef PassUint8Struct4BytesInlineArrayMultiDimensionalInType =
+    Void Function(Uint8, Struct4BytesInlineArrayMultiDimensionalInt, Uint8);
 
 // Global variable that stores the result.
 final PassUint8Struct4BytesInlineArrayMultiDimensionalInResult =
@@ -4212,9 +4580,13 @@ final PassUint8Struct4BytesInlineArrayMultiDimensionalInResult =
 
 /// Test struct in multi dimensional inline array.
 void passUint8Struct4BytesInlineArrayMultiDimensionalIn(
-    int a0, Struct4BytesInlineArrayMultiDimensionalInt a1, int a2) {
+  int a0,
+  Struct4BytesInlineArrayMultiDimensionalInt a1,
+  int a2,
+) {
   print(
-      "passUint8Struct4BytesInlineArrayMultiDimensionalIn(${a0}, ${a1}, ${a2})");
+    "passUint8Struct4BytesInlineArrayMultiDimensionalIn(${a0}, ${a1}, ${a2})",
+  );
 
   double result = 0;
 
@@ -4230,42 +4602,46 @@ void passUint8Struct4BytesInlineArrayMultiDimensionalIn(
 }
 
 Future<void>
-    passUint8Struct4BytesInlineArrayMultiDimensionalInAfterCallback() async {
+passUint8Struct4BytesInlineArrayMultiDimensionalInAfterCallback() async {
   final result =
       await PassUint8Struct4BytesInlineArrayMultiDimensionalInResult.future;
   print("after callback result = $result");
   Expect.approxEquals(5, result);
 }
 
-typedef PassStruct3BytesPackedIntx10Type = Void Function(
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt);
+typedef PassStruct3BytesPackedIntx10Type =
+    Void Function(
+      Struct3BytesPackedInt,
+      Struct3BytesPackedInt,
+      Struct3BytesPackedInt,
+      Struct3BytesPackedInt,
+      Struct3BytesPackedInt,
+      Struct3BytesPackedInt,
+      Struct3BytesPackedInt,
+      Struct3BytesPackedInt,
+      Struct3BytesPackedInt,
+      Struct3BytesPackedInt,
+    );
 
 // Global variable that stores the result.
 final PassStruct3BytesPackedIntx10Result = Completer<double>();
 
 /// Small struct with mis-aligned member.
 void passStruct3BytesPackedIntx10(
-    Struct3BytesPackedInt a0,
-    Struct3BytesPackedInt a1,
-    Struct3BytesPackedInt a2,
-    Struct3BytesPackedInt a3,
-    Struct3BytesPackedInt a4,
-    Struct3BytesPackedInt a5,
-    Struct3BytesPackedInt a6,
-    Struct3BytesPackedInt a7,
-    Struct3BytesPackedInt a8,
-    Struct3BytesPackedInt a9) {
+  Struct3BytesPackedInt a0,
+  Struct3BytesPackedInt a1,
+  Struct3BytesPackedInt a2,
+  Struct3BytesPackedInt a3,
+  Struct3BytesPackedInt a4,
+  Struct3BytesPackedInt a5,
+  Struct3BytesPackedInt a6,
+  Struct3BytesPackedInt a7,
+  Struct3BytesPackedInt a8,
+  Struct3BytesPackedInt a9,
+) {
   print(
-      "passStruct3BytesPackedIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct3BytesPackedIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -4300,35 +4676,39 @@ Future<void> passStruct3BytesPackedIntx10AfterCallback() async {
   Expect.approxEquals(10, result);
 }
 
-typedef PassStruct8BytesPackedIntx10Type = Void Function(
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt);
+typedef PassStruct8BytesPackedIntx10Type =
+    Void Function(
+      Struct8BytesPackedInt,
+      Struct8BytesPackedInt,
+      Struct8BytesPackedInt,
+      Struct8BytesPackedInt,
+      Struct8BytesPackedInt,
+      Struct8BytesPackedInt,
+      Struct8BytesPackedInt,
+      Struct8BytesPackedInt,
+      Struct8BytesPackedInt,
+      Struct8BytesPackedInt,
+    );
 
 // Global variable that stores the result.
 final PassStruct8BytesPackedIntx10Result = Completer<double>();
 
 /// Struct with mis-aligned member.
 void passStruct8BytesPackedIntx10(
-    Struct8BytesPackedInt a0,
-    Struct8BytesPackedInt a1,
-    Struct8BytesPackedInt a2,
-    Struct8BytesPackedInt a3,
-    Struct8BytesPackedInt a4,
-    Struct8BytesPackedInt a5,
-    Struct8BytesPackedInt a6,
-    Struct8BytesPackedInt a7,
-    Struct8BytesPackedInt a8,
-    Struct8BytesPackedInt a9) {
+  Struct8BytesPackedInt a0,
+  Struct8BytesPackedInt a1,
+  Struct8BytesPackedInt a2,
+  Struct8BytesPackedInt a3,
+  Struct8BytesPackedInt a4,
+  Struct8BytesPackedInt a5,
+  Struct8BytesPackedInt a6,
+  Struct8BytesPackedInt a7,
+  Struct8BytesPackedInt a8,
+  Struct8BytesPackedInt a9,
+) {
   print(
-      "passStruct8BytesPackedIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passStruct8BytesPackedIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -4393,20 +4773,22 @@ Future<void> passStruct8BytesPackedIntx10AfterCallback() async {
   Expect.approxEquals(1275, result);
 }
 
-typedef PassStruct9BytesPackedMixedx10DoubleInt32x2Type = Void Function(
-    Struct9BytesPackedMixed,
-    Struct9BytesPackedMixed,
-    Struct9BytesPackedMixed,
-    Struct9BytesPackedMixed,
-    Struct9BytesPackedMixed,
-    Struct9BytesPackedMixed,
-    Struct9BytesPackedMixed,
-    Struct9BytesPackedMixed,
-    Struct9BytesPackedMixed,
-    Struct9BytesPackedMixed,
-    Double,
-    Int32,
-    Int32);
+typedef PassStruct9BytesPackedMixedx10DoubleInt32x2Type =
+    Void Function(
+      Struct9BytesPackedMixed,
+      Struct9BytesPackedMixed,
+      Struct9BytesPackedMixed,
+      Struct9BytesPackedMixed,
+      Struct9BytesPackedMixed,
+      Struct9BytesPackedMixed,
+      Struct9BytesPackedMixed,
+      Struct9BytesPackedMixed,
+      Struct9BytesPackedMixed,
+      Struct9BytesPackedMixed,
+      Double,
+      Int32,
+      Int32,
+    );
 
 // Global variable that stores the result.
 final PassStruct9BytesPackedMixedx10DoubleInt32x2Result = Completer<double>();
@@ -4414,21 +4796,23 @@ final PassStruct9BytesPackedMixedx10DoubleInt32x2Result = Completer<double>();
 /// Struct with mis-aligned member.
 /// Tests backfilling of CPU and FPU registers.
 void passStruct9BytesPackedMixedx10DoubleInt32x2(
-    Struct9BytesPackedMixed a0,
-    Struct9BytesPackedMixed a1,
-    Struct9BytesPackedMixed a2,
-    Struct9BytesPackedMixed a3,
-    Struct9BytesPackedMixed a4,
-    Struct9BytesPackedMixed a5,
-    Struct9BytesPackedMixed a6,
-    Struct9BytesPackedMixed a7,
-    Struct9BytesPackedMixed a8,
-    Struct9BytesPackedMixed a9,
-    double a10,
-    int a11,
-    int a12) {
+  Struct9BytesPackedMixed a0,
+  Struct9BytesPackedMixed a1,
+  Struct9BytesPackedMixed a2,
+  Struct9BytesPackedMixed a3,
+  Struct9BytesPackedMixed a4,
+  Struct9BytesPackedMixed a5,
+  Struct9BytesPackedMixed a6,
+  Struct9BytesPackedMixed a7,
+  Struct9BytesPackedMixed a8,
+  Struct9BytesPackedMixed a9,
+  double a10,
+  int a11,
+  int a12,
+) {
   print(
-      "passStruct9BytesPackedMixedx10DoubleInt32x2(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12})");
+    "passStruct9BytesPackedMixedx10DoubleInt32x2(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12})",
+  );
 
   double result = 0;
 
@@ -4466,8 +4850,8 @@ Future<void> passStruct9BytesPackedMixedx10DoubleInt32x2AfterCallback() async {
   Expect.approxEquals(188, result);
 }
 
-typedef PassStruct5BytesPackedMixedType = Void Function(
-    Struct5BytesPackedMixed);
+typedef PassStruct5BytesPackedMixedType =
+    Void Function(Struct5BytesPackedMixed);
 
 // Global variable that stores the result.
 final PassStruct5BytesPackedMixedResult = Completer<double>();
@@ -4491,8 +4875,8 @@ Future<void> passStruct5BytesPackedMixedAfterCallback() async {
   Expect.approxEquals(1, result);
 }
 
-typedef PassStructNestedAlignmentStruct5BytesPackedMixedType = Void Function(
-    StructNestedAlignmentStruct5BytesPackedMixed);
+typedef PassStructNestedAlignmentStruct5BytesPackedMixedType =
+    Void Function(StructNestedAlignmentStruct5BytesPackedMixed);
 
 // Global variable that stores the result.
 final PassStructNestedAlignmentStruct5BytesPackedMixedResult =
@@ -4500,7 +4884,8 @@ final PassStructNestedAlignmentStruct5BytesPackedMixedResult =
 
 /// Check alignment of packed struct in non-packed struct.
 void passStructNestedAlignmentStruct5BytesPackedMixed(
-    StructNestedAlignmentStruct5BytesPackedMixed a0) {
+  StructNestedAlignmentStruct5BytesPackedMixed a0,
+) {
   print("passStructNestedAlignmentStruct5BytesPackedMixed(${a0})");
 
   double result = 0;
@@ -4514,15 +4899,15 @@ void passStructNestedAlignmentStruct5BytesPackedMixed(
 }
 
 Future<void>
-    passStructNestedAlignmentStruct5BytesPackedMixedAfterCallback() async {
+passStructNestedAlignmentStruct5BytesPackedMixedAfterCallback() async {
   final result =
       await PassStructNestedAlignmentStruct5BytesPackedMixedResult.future;
   print("after callback result = $result");
   Expect.approxEquals(6, result);
 }
 
-typedef PassStruct6BytesInlineArrayIntType = Void Function(
-    Struct6BytesInlineArrayInt);
+typedef PassStruct6BytesInlineArrayIntType =
+    Void Function(Struct6BytesInlineArrayInt);
 
 // Global variable that stores the result.
 final PassStruct6BytesInlineArrayIntResult = Completer<double>();
@@ -4548,8 +4933,8 @@ Future<void> passStruct6BytesInlineArrayIntAfterCallback() async {
   Expect.approxEquals(2, result);
 }
 
-typedef PassStruct15BytesInlineArrayMixedType = Void Function(
-    Struct15BytesInlineArrayMixed);
+typedef PassStruct15BytesInlineArrayMixedType =
+    Void Function(Struct15BytesInlineArrayMixed);
 
 // Global variable that stores the result.
 final PassStruct15BytesInlineArrayMixedResult = Completer<double>();
@@ -4577,35 +4962,39 @@ Future<void> passStruct15BytesInlineArrayMixedAfterCallback() async {
   Expect.approxEquals(3, result);
 }
 
-typedef PassUnion4BytesMixedx10Type = Void Function(
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed);
+typedef PassUnion4BytesMixedx10Type =
+    Void Function(
+      Union4BytesMixed,
+      Union4BytesMixed,
+      Union4BytesMixed,
+      Union4BytesMixed,
+      Union4BytesMixed,
+      Union4BytesMixed,
+      Union4BytesMixed,
+      Union4BytesMixed,
+      Union4BytesMixed,
+      Union4BytesMixed,
+    );
 
 // Global variable that stores the result.
 final PassUnion4BytesMixedx10Result = Completer<double>();
 
 /// Check placement of mixed integer/float union.
 void passUnion4BytesMixedx10(
-    Union4BytesMixed a0,
-    Union4BytesMixed a1,
-    Union4BytesMixed a2,
-    Union4BytesMixed a3,
-    Union4BytesMixed a4,
-    Union4BytesMixed a5,
-    Union4BytesMixed a6,
-    Union4BytesMixed a7,
-    Union4BytesMixed a8,
-    Union4BytesMixed a9) {
+  Union4BytesMixed a0,
+  Union4BytesMixed a1,
+  Union4BytesMixed a2,
+  Union4BytesMixed a3,
+  Union4BytesMixed a4,
+  Union4BytesMixed a5,
+  Union4BytesMixed a6,
+  Union4BytesMixed a7,
+  Union4BytesMixed a8,
+  Union4BytesMixed a9,
+) {
   print(
-      "passUnion4BytesMixedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passUnion4BytesMixedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -4630,35 +5019,39 @@ Future<void> passUnion4BytesMixedx10AfterCallback() async {
   Expect.approxEquals(55, result);
 }
 
-typedef PassUnion8BytesNestedFloatx10Type = Void Function(
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat);
+typedef PassUnion8BytesNestedFloatx10Type =
+    Void Function(
+      Union8BytesNestedFloat,
+      Union8BytesNestedFloat,
+      Union8BytesNestedFloat,
+      Union8BytesNestedFloat,
+      Union8BytesNestedFloat,
+      Union8BytesNestedFloat,
+      Union8BytesNestedFloat,
+      Union8BytesNestedFloat,
+      Union8BytesNestedFloat,
+      Union8BytesNestedFloat,
+    );
 
 // Global variable that stores the result.
 final PassUnion8BytesNestedFloatx10Result = Completer<double>();
 
 /// Check placement of mixed floats union.
 void passUnion8BytesNestedFloatx10(
-    Union8BytesNestedFloat a0,
-    Union8BytesNestedFloat a1,
-    Union8BytesNestedFloat a2,
-    Union8BytesNestedFloat a3,
-    Union8BytesNestedFloat a4,
-    Union8BytesNestedFloat a5,
-    Union8BytesNestedFloat a6,
-    Union8BytesNestedFloat a7,
-    Union8BytesNestedFloat a8,
-    Union8BytesNestedFloat a9) {
+  Union8BytesNestedFloat a0,
+  Union8BytesNestedFloat a1,
+  Union8BytesNestedFloat a2,
+  Union8BytesNestedFloat a3,
+  Union8BytesNestedFloat a4,
+  Union8BytesNestedFloat a5,
+  Union8BytesNestedFloat a6,
+  Union8BytesNestedFloat a7,
+  Union8BytesNestedFloat a8,
+  Union8BytesNestedFloat a9,
+) {
   print(
-      "passUnion8BytesNestedFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passUnion8BytesNestedFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -4683,35 +5076,39 @@ Future<void> passUnion8BytesNestedFloatx10AfterCallback() async {
   Expect.approxEquals(5, result);
 }
 
-typedef PassUnion9BytesNestedIntx10Type = Void Function(
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt);
+typedef PassUnion9BytesNestedIntx10Type =
+    Void Function(
+      Union9BytesNestedInt,
+      Union9BytesNestedInt,
+      Union9BytesNestedInt,
+      Union9BytesNestedInt,
+      Union9BytesNestedInt,
+      Union9BytesNestedInt,
+      Union9BytesNestedInt,
+      Union9BytesNestedInt,
+      Union9BytesNestedInt,
+      Union9BytesNestedInt,
+    );
 
 // Global variable that stores the result.
 final PassUnion9BytesNestedIntx10Result = Completer<double>();
 
 /// Mixed-size union argument.
 void passUnion9BytesNestedIntx10(
-    Union9BytesNestedInt a0,
-    Union9BytesNestedInt a1,
-    Union9BytesNestedInt a2,
-    Union9BytesNestedInt a3,
-    Union9BytesNestedInt a4,
-    Union9BytesNestedInt a5,
-    Union9BytesNestedInt a6,
-    Union9BytesNestedInt a7,
-    Union9BytesNestedInt a8,
-    Union9BytesNestedInt a9) {
+  Union9BytesNestedInt a0,
+  Union9BytesNestedInt a1,
+  Union9BytesNestedInt a2,
+  Union9BytesNestedInt a3,
+  Union9BytesNestedInt a4,
+  Union9BytesNestedInt a5,
+  Union9BytesNestedInt a6,
+  Union9BytesNestedInt a7,
+  Union9BytesNestedInt a8,
+  Union9BytesNestedInt a9,
+) {
   print(
-      "passUnion9BytesNestedIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passUnion9BytesNestedIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -4756,35 +5153,39 @@ Future<void> passUnion9BytesNestedIntx10AfterCallback() async {
   Expect.approxEquals(15, result);
 }
 
-typedef PassUnion16BytesNestedInlineArrayFloatx10Type = Void Function(
-    Union16BytesNestedInlineArrayFloat,
-    Union16BytesNestedInlineArrayFloat,
-    Union16BytesNestedInlineArrayFloat,
-    Union16BytesNestedInlineArrayFloat,
-    Union16BytesNestedInlineArrayFloat,
-    Union16BytesNestedInlineArrayFloat,
-    Union16BytesNestedInlineArrayFloat,
-    Union16BytesNestedInlineArrayFloat,
-    Union16BytesNestedInlineArrayFloat,
-    Union16BytesNestedInlineArrayFloat);
+typedef PassUnion16BytesNestedInlineArrayFloatx10Type =
+    Void Function(
+      Union16BytesNestedInlineArrayFloat,
+      Union16BytesNestedInlineArrayFloat,
+      Union16BytesNestedInlineArrayFloat,
+      Union16BytesNestedInlineArrayFloat,
+      Union16BytesNestedInlineArrayFloat,
+      Union16BytesNestedInlineArrayFloat,
+      Union16BytesNestedInlineArrayFloat,
+      Union16BytesNestedInlineArrayFloat,
+      Union16BytesNestedInlineArrayFloat,
+      Union16BytesNestedInlineArrayFloat,
+    );
 
 // Global variable that stores the result.
 final PassUnion16BytesNestedInlineArrayFloatx10Result = Completer<double>();
 
 /// Union with homogenous floats.
 void passUnion16BytesNestedInlineArrayFloatx10(
-    Union16BytesNestedInlineArrayFloat a0,
-    Union16BytesNestedInlineArrayFloat a1,
-    Union16BytesNestedInlineArrayFloat a2,
-    Union16BytesNestedInlineArrayFloat a3,
-    Union16BytesNestedInlineArrayFloat a4,
-    Union16BytesNestedInlineArrayFloat a5,
-    Union16BytesNestedInlineArrayFloat a6,
-    Union16BytesNestedInlineArrayFloat a7,
-    Union16BytesNestedInlineArrayFloat a8,
-    Union16BytesNestedInlineArrayFloat a9) {
+  Union16BytesNestedInlineArrayFloat a0,
+  Union16BytesNestedInlineArrayFloat a1,
+  Union16BytesNestedInlineArrayFloat a2,
+  Union16BytesNestedInlineArrayFloat a3,
+  Union16BytesNestedInlineArrayFloat a4,
+  Union16BytesNestedInlineArrayFloat a5,
+  Union16BytesNestedInlineArrayFloat a6,
+  Union16BytesNestedInlineArrayFloat a7,
+  Union16BytesNestedInlineArrayFloat a8,
+  Union16BytesNestedInlineArrayFloat a9,
+) {
   print(
-      "passUnion16BytesNestedInlineArrayFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passUnion16BytesNestedInlineArrayFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -4839,35 +5240,39 @@ Future<void> passUnion16BytesNestedInlineArrayFloatx10AfterCallback() async {
   Expect.approxEquals(20, result);
 }
 
-typedef PassUnion16BytesNestedFloatx10Type = Void Function(
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat);
+typedef PassUnion16BytesNestedFloatx10Type =
+    Void Function(
+      Union16BytesNestedFloat,
+      Union16BytesNestedFloat,
+      Union16BytesNestedFloat,
+      Union16BytesNestedFloat,
+      Union16BytesNestedFloat,
+      Union16BytesNestedFloat,
+      Union16BytesNestedFloat,
+      Union16BytesNestedFloat,
+      Union16BytesNestedFloat,
+      Union16BytesNestedFloat,
+    );
 
 // Global variable that stores the result.
 final PassUnion16BytesNestedFloatx10Result = Completer<double>();
 
 /// Union with homogenous floats.
 void passUnion16BytesNestedFloatx10(
-    Union16BytesNestedFloat a0,
-    Union16BytesNestedFloat a1,
-    Union16BytesNestedFloat a2,
-    Union16BytesNestedFloat a3,
-    Union16BytesNestedFloat a4,
-    Union16BytesNestedFloat a5,
-    Union16BytesNestedFloat a6,
-    Union16BytesNestedFloat a7,
-    Union16BytesNestedFloat a8,
-    Union16BytesNestedFloat a9) {
+  Union16BytesNestedFloat a0,
+  Union16BytesNestedFloat a1,
+  Union16BytesNestedFloat a2,
+  Union16BytesNestedFloat a3,
+  Union16BytesNestedFloat a4,
+  Union16BytesNestedFloat a5,
+  Union16BytesNestedFloat a6,
+  Union16BytesNestedFloat a7,
+  Union16BytesNestedFloat a8,
+  Union16BytesNestedFloat a9,
+) {
   print(
-      "passUnion16BytesNestedFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+    "passUnion16BytesNestedFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
 
   double result = 0;
 
@@ -4902,19 +5307,21 @@ Future<void> passUnion16BytesNestedFloatx10AfterCallback() async {
   Expect.approxEquals(10, result);
 }
 
-typedef PassUint8Boolx9Struct10BytesHomogeneousBoolBoolType = Void Function(
-    Uint8,
-    Bool,
-    Bool,
-    Bool,
-    Bool,
-    Bool,
-    Bool,
-    Bool,
-    Bool,
-    Bool,
-    Struct10BytesHomogeneousBool,
-    Bool);
+typedef PassUint8Boolx9Struct10BytesHomogeneousBoolBoolType =
+    Void Function(
+      Uint8,
+      Bool,
+      Bool,
+      Bool,
+      Bool,
+      Bool,
+      Bool,
+      Bool,
+      Bool,
+      Bool,
+      Struct10BytesHomogeneousBool,
+      Bool,
+    );
 
 // Global variable that stores the result.
 final PassUint8Boolx9Struct10BytesHomogeneousBoolBoolResult =
@@ -4924,20 +5331,22 @@ final PassUint8Boolx9Struct10BytesHomogeneousBoolBoolResult =
 /// Exhausts the registers to test bools and the bool struct alignment on the
 /// stack.
 void passUint8Boolx9Struct10BytesHomogeneousBoolBool(
-    int a0,
-    bool a1,
-    bool a2,
-    bool a3,
-    bool a4,
-    bool a5,
-    bool a6,
-    bool a7,
-    bool a8,
-    bool a9,
-    Struct10BytesHomogeneousBool a10,
-    bool a11) {
+  int a0,
+  bool a1,
+  bool a2,
+  bool a3,
+  bool a4,
+  bool a5,
+  bool a6,
+  bool a7,
+  bool a8,
+  bool a9,
+  Struct10BytesHomogeneousBool a10,
+  bool a11,
+) {
   print(
-      "passUint8Boolx9Struct10BytesHomogeneousBoolBool(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11})");
+    "passUint8Boolx9Struct10BytesHomogeneousBoolBool(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11})",
+  );
 
   double result = 0;
 
@@ -4968,26 +5377,28 @@ void passUint8Boolx9Struct10BytesHomogeneousBoolBool(
 }
 
 Future<void>
-    passUint8Boolx9Struct10BytesHomogeneousBoolBoolAfterCallback() async {
+passUint8Boolx9Struct10BytesHomogeneousBoolBoolAfterCallback() async {
   final result =
       await PassUint8Boolx9Struct10BytesHomogeneousBoolBoolResult.future;
   print("after callback result = $result");
   Expect.approxEquals(11, result);
 }
 
-typedef PassUint8Boolx9Struct10BytesInlineArrayBoolBoolType = Void Function(
-    Uint8,
-    Bool,
-    Bool,
-    Bool,
-    Bool,
-    Bool,
-    Bool,
-    Bool,
-    Bool,
-    Bool,
-    Struct10BytesInlineArrayBool,
-    Bool);
+typedef PassUint8Boolx9Struct10BytesInlineArrayBoolBoolType =
+    Void Function(
+      Uint8,
+      Bool,
+      Bool,
+      Bool,
+      Bool,
+      Bool,
+      Bool,
+      Bool,
+      Bool,
+      Bool,
+      Struct10BytesInlineArrayBool,
+      Bool,
+    );
 
 // Global variable that stores the result.
 final PassUint8Boolx9Struct10BytesInlineArrayBoolBoolResult =
@@ -4997,20 +5408,22 @@ final PassUint8Boolx9Struct10BytesInlineArrayBoolBoolResult =
 /// Exhausts the registers to test bools and the bool struct alignment on the
 /// stack.
 void passUint8Boolx9Struct10BytesInlineArrayBoolBool(
-    int a0,
-    bool a1,
-    bool a2,
-    bool a3,
-    bool a4,
-    bool a5,
-    bool a6,
-    bool a7,
-    bool a8,
-    bool a9,
-    Struct10BytesInlineArrayBool a10,
-    bool a11) {
+  int a0,
+  bool a1,
+  bool a2,
+  bool a3,
+  bool a4,
+  bool a5,
+  bool a6,
+  bool a7,
+  bool a8,
+  bool a9,
+  Struct10BytesInlineArrayBool a10,
+  bool a11,
+) {
   print(
-      "passUint8Boolx9Struct10BytesInlineArrayBoolBool(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11})");
+    "passUint8Boolx9Struct10BytesInlineArrayBoolBool(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11})",
+  );
 
   double result = 0;
 
@@ -5041,7 +5454,7 @@ void passUint8Boolx9Struct10BytesInlineArrayBoolBool(
 }
 
 Future<void>
-    passUint8Boolx9Struct10BytesInlineArrayBoolBoolAfterCallback() async {
+passUint8Boolx9Struct10BytesInlineArrayBoolBoolAfterCallback() async {
   final result =
       await PassUint8Boolx9Struct10BytesInlineArrayBoolBoolResult.future;
   print("after callback result = $result");
@@ -5072,8 +5485,15 @@ Future<void> passUint8Struct1ByteBoolAfterCallback() async {
   Expect.approxEquals(1, result);
 }
 
-typedef PassWCharStructInlineArrayIntUintPtrx2LongUnsignedType = Void Function(
-    WChar, StructInlineArrayInt, UintPtr, UintPtr, Long, UnsignedLong);
+typedef PassWCharStructInlineArrayIntUintPtrx2LongUnsignedType =
+    Void Function(
+      WChar,
+      StructInlineArrayInt,
+      UintPtr,
+      UintPtr,
+      Long,
+      UnsignedLong,
+    );
 
 // Global variable that stores the result.
 final PassWCharStructInlineArrayIntUintPtrx2LongUnsignedResult =
@@ -5081,9 +5501,16 @@ final PassWCharStructInlineArrayIntUintPtrx2LongUnsignedResult =
 
 /// Returning a wchar.
 void passWCharStructInlineArrayIntUintPtrx2LongUnsigned(
-    int a0, StructInlineArrayInt a1, int a2, int a3, int a4, int a5) {
+  int a0,
+  StructInlineArrayInt a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+) {
   print(
-      "passWCharStructInlineArrayIntUintPtrx2LongUnsigned(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5})");
+    "passWCharStructInlineArrayIntUintPtrx2LongUnsigned(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5})",
+  );
 
   double result = 0;
 
@@ -5108,24 +5535,42 @@ void passWCharStructInlineArrayIntUintPtrx2LongUnsigned(
 }
 
 Future<void>
-    passWCharStructInlineArrayIntUintPtrx2LongUnsignedAfterCallback() async {
+passWCharStructInlineArrayIntUintPtrx2LongUnsignedAfterCallback() async {
   final result =
       await PassWCharStructInlineArrayIntUintPtrx2LongUnsignedResult.future;
   print("after callback result = $result");
   Expect.approxEquals(120, result);
 }
 
-typedef PassInt64x7Struct12BytesHomogeneousInt32Type = Void Function(Int64,
-    Int64, Int64, Int64, Int64, Int64, Int64, Struct12BytesHomogeneousInt32);
+typedef PassInt64x7Struct12BytesHomogeneousInt32Type =
+    Void Function(
+      Int64,
+      Int64,
+      Int64,
+      Int64,
+      Int64,
+      Int64,
+      Int64,
+      Struct12BytesHomogeneousInt32,
+    );
 
 // Global variable that stores the result.
 final PassInt64x7Struct12BytesHomogeneousInt32Result = Completer<double>();
 
 /// Struct stradles last argument register
-void passInt64x7Struct12BytesHomogeneousInt32(int a0, int a1, int a2, int a3,
-    int a4, int a5, int a6, Struct12BytesHomogeneousInt32 a7) {
+void passInt64x7Struct12BytesHomogeneousInt32(
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  Struct12BytesHomogeneousInt32 a7,
+) {
   print(
-      "passInt64x7Struct12BytesHomogeneousInt32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7})");
+    "passInt64x7Struct12BytesHomogeneousInt32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7})",
+  );
 
   double result = 0;
 
@@ -5150,15 +5595,16 @@ Future<void> passInt64x7Struct12BytesHomogeneousInt32AfterCallback() async {
   Expect.approxEquals(5, result);
 }
 
-typedef PassPointerStruct12BytesHomogeneousInt32Type = Void Function(
-    Pointer<Struct12BytesHomogeneousInt32>);
+typedef PassPointerStruct12BytesHomogeneousInt32Type =
+    Void Function(Pointer<Struct12BytesHomogeneousInt32>);
 
 // Global variable that stores the result.
 final PassPointerStruct12BytesHomogeneousInt32Result = Completer<double>();
 
 /// Passing a pointer to a struct
 void passPointerStruct12BytesHomogeneousInt32(
-    Pointer<Struct12BytesHomogeneousInt32> a0) {
+  Pointer<Struct12BytesHomogeneousInt32> a0,
+) {
   print("passPointerStruct12BytesHomogeneousInt32(${a0})");
 
   double result = 0;
@@ -5177,15 +5623,16 @@ Future<void> passPointerStruct12BytesHomogeneousInt32AfterCallback() async {
   Expect.approxEquals(-2, result);
 }
 
-typedef PassPointerStructInlineArrayVariableType = Void Function(
-    Pointer<StructInlineArrayVariable>);
+typedef PassPointerStructInlineArrayVariableType =
+    Void Function(Pointer<StructInlineArrayVariable>);
 
 // Global variable that stores the result.
 final PassPointerStructInlineArrayVariableResult = Completer<double>();
 
 /// Variable length array
 void passPointerStructInlineArrayVariable(
-    Pointer<StructInlineArrayVariable> a0) {
+  Pointer<StructInlineArrayVariable> a0,
+) {
   print("passPointerStructInlineArrayVariable(${a0})");
 
   double result = 0;
@@ -5212,8 +5659,8 @@ Future<void> passPointerStructInlineArrayVariableAfterCallback() async {
   Expect.approxEquals(66, result);
 }
 
-typedef PassPointerStructInlineArrayVariableAlignType = Void Function(
-    Pointer<StructInlineArrayVariableAlign>);
+typedef PassPointerStructInlineArrayVariableAlignType =
+    Void Function(Pointer<StructInlineArrayVariableAlign>);
 
 // Global variable that stores the result.
 final PassPointerStructInlineArrayVariableAlignResult = Completer<double>();
@@ -5221,7 +5668,8 @@ final PassPointerStructInlineArrayVariableAlignResult = Completer<double>();
 /// Variable length array with variable length element having more alignment than
 /// the rest of the struct.
 void passPointerStructInlineArrayVariableAlign(
-    Pointer<StructInlineArrayVariableAlign> a0) {
+  Pointer<StructInlineArrayVariableAlign> a0,
+) {
   print("passPointerStructInlineArrayVariableAlign(${a0})");
 
   double result = 0;
@@ -5271,8 +5719,8 @@ Future<void> returnStruct1ByteIntAfterCallback() async {
   Expect.approxEquals(-1, result);
 }
 
-typedef ReturnStruct3BytesHomogeneousUint8Type = Void Function(
-    Uint8, Uint8, Uint8);
+typedef ReturnStruct3BytesHomogeneousUint8Type =
+    Void Function(Uint8, Uint8, Uint8);
 
 // Global variable that stores the result.
 final ReturnStruct3BytesHomogeneousUint8Result = Completer<double>();
@@ -5346,17 +5794,25 @@ Future<void> returnStruct4BytesHomogeneousInt16AfterCallback() async {
   Expect.approxEquals(1, result);
 }
 
-typedef ReturnStruct7BytesHomogeneousUint8Type = Void Function(
-    Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8);
+typedef ReturnStruct7BytesHomogeneousUint8Type =
+    Void Function(Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8);
 
 // Global variable that stores the result.
 final ReturnStruct7BytesHomogeneousUint8Result = Completer<double>();
 
 /// Non-wordsize return value.
 void returnStruct7BytesHomogeneousUint8(
-    int a0, int a1, int a2, int a3, int a4, int a5, int a6) {
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+) {
   print(
-      "returnStruct7BytesHomogeneousUint8(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6})");
+    "returnStruct7BytesHomogeneousUint8(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6})",
+  );
 
   double result = 0;
 
@@ -5378,8 +5834,8 @@ Future<void> returnStruct7BytesHomogeneousUint8AfterCallback() async {
   Expect.approxEquals(28, result);
 }
 
-typedef ReturnStruct7BytesInt4ByteAlignedType = Void Function(
-    Int32, Int16, Int8);
+typedef ReturnStruct7BytesInt4ByteAlignedType =
+    Void Function(Int32, Int16, Int8);
 
 // Global variable that stores the result.
 final ReturnStruct7BytesInt4ByteAlignedResult = Completer<double>();
@@ -5479,8 +5935,18 @@ Future<void> returnStruct8BytesMixedAfterCallback() async {
   Expect.approxEquals(-2, result);
 }
 
-typedef ReturnStruct9BytesHomogeneousUint8Type = Void Function(
-    Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8);
+typedef ReturnStruct9BytesHomogeneousUint8Type =
+    Void Function(
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+    );
 
 // Global variable that stores the result.
 final ReturnStruct9BytesHomogeneousUint8Result = Completer<double>();
@@ -5489,9 +5955,19 @@ final ReturnStruct9BytesHomogeneousUint8Result = Completer<double>();
 /// Test that the memory backing these structs is the right size and that
 /// dart:ffi trampolines do not write outside this size.
 void returnStruct9BytesHomogeneousUint8(
-    int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8) {
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  int a7,
+  int a8,
+) {
   print(
-      "returnStruct9BytesHomogeneousUint8(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
+    "returnStruct9BytesHomogeneousUint8(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})",
+  );
 
   double result = 0;
 
@@ -5540,8 +6016,8 @@ Future<void> returnStruct9BytesInt4Or8ByteAlignedAfterCallback() async {
   Expect.approxEquals(1, result);
 }
 
-typedef ReturnStruct12BytesHomogeneousFloatType = Void Function(
-    Float, Float, Float);
+typedef ReturnStruct12BytesHomogeneousFloatType =
+    Void Function(Float, Float, Float);
 
 // Global variable that stores the result.
 final ReturnStruct12BytesHomogeneousFloatResult = Completer<double>();
@@ -5567,15 +6043,19 @@ Future<void> returnStruct12BytesHomogeneousFloatAfterCallback() async {
   Expect.approxEquals(-2, result);
 }
 
-typedef ReturnStruct16BytesHomogeneousFloatType = Void Function(
-    Float, Float, Float, Float);
+typedef ReturnStruct16BytesHomogeneousFloatType =
+    Void Function(Float, Float, Float, Float);
 
 // Global variable that stores the result.
 final ReturnStruct16BytesHomogeneousFloatResult = Completer<double>();
 
 /// Return value in FPU registers on arm hardfp and arm64.
 void returnStruct16BytesHomogeneousFloat(
-    double a0, double a1, double a2, double a3) {
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+) {
   print("returnStruct16BytesHomogeneousFloat(${a0}, ${a1}, ${a2}, ${a3})");
 
   double result = 0;
@@ -5619,8 +6099,8 @@ Future<void> returnStruct16BytesMixedAfterCallback() async {
   Expect.approxEquals(1, result);
 }
 
-typedef ReturnStruct16BytesMixed2Type = Void Function(
-    Float, Float, Float, Int32);
+typedef ReturnStruct16BytesMixed2Type =
+    Void Function(Float, Float, Float, Int32);
 
 // Global variable that stores the result.
 final ReturnStruct16BytesMixed2Result = Completer<double>();
@@ -5674,26 +6154,28 @@ Future<void> returnStruct17BytesIntAfterCallback() async {
   Expect.approxEquals(-2, result);
 }
 
-typedef ReturnStruct19BytesHomogeneousUint8Type = Void Function(
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8);
+typedef ReturnStruct19BytesHomogeneousUint8Type =
+    Void Function(
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+    );
 
 // Global variable that stores the result.
 final ReturnStruct19BytesHomogeneousUint8Result = Completer<double>();
@@ -5702,27 +6184,29 @@ final ReturnStruct19BytesHomogeneousUint8Result = Completer<double>();
 /// Test that the memory backing these structs is the right size and that
 /// dart:ffi trampolines do not write outside this size.
 void returnStruct19BytesHomogeneousUint8(
-    int a0,
-    int a1,
-    int a2,
-    int a3,
-    int a4,
-    int a5,
-    int a6,
-    int a7,
-    int a8,
-    int a9,
-    int a10,
-    int a11,
-    int a12,
-    int a13,
-    int a14,
-    int a15,
-    int a16,
-    int a17,
-    int a18) {
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  int a7,
+  int a8,
+  int a9,
+  int a10,
+  int a11,
+  int a12,
+  int a13,
+  int a14,
+  int a15,
+  int a16,
+  int a17,
+  int a18,
+) {
   print(
-      "returnStruct19BytesHomogeneousUint8(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18})");
+    "returnStruct19BytesHomogeneousUint8(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18})",
+  );
 
   double result = 0;
 
@@ -5756,17 +6240,23 @@ Future<void> returnStruct19BytesHomogeneousUint8AfterCallback() async {
   Expect.approxEquals(190, result);
 }
 
-typedef ReturnStruct20BytesHomogeneousInt32Type = Void Function(
-    Int32, Int32, Int32, Int32, Int32);
+typedef ReturnStruct20BytesHomogeneousInt32Type =
+    Void Function(Int32, Int32, Int32, Int32, Int32);
 
 // Global variable that stores the result.
 final ReturnStruct20BytesHomogeneousInt32Result = Completer<double>();
 
 /// Return value too big to go in cpu registers on arm64.
 void returnStruct20BytesHomogeneousInt32(
-    int a0, int a1, int a2, int a3, int a4) {
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+) {
   print(
-      "returnStruct20BytesHomogeneousInt32(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
+    "returnStruct20BytesHomogeneousInt32(${a0}, ${a1}, ${a2}, ${a3}, ${a4})",
+  );
 
   double result = 0;
 
@@ -5786,17 +6276,23 @@ Future<void> returnStruct20BytesHomogeneousInt32AfterCallback() async {
   Expect.approxEquals(-3, result);
 }
 
-typedef ReturnStruct20BytesHomogeneousFloatType = Void Function(
-    Float, Float, Float, Float, Float);
+typedef ReturnStruct20BytesHomogeneousFloatType =
+    Void Function(Float, Float, Float, Float, Float);
 
 // Global variable that stores the result.
 final ReturnStruct20BytesHomogeneousFloatResult = Completer<double>();
 
 /// Return value too big to go in FPU registers on x64, arm hardfp and arm64.
 void returnStruct20BytesHomogeneousFloat(
-    double a0, double a1, double a2, double a3, double a4) {
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+) {
   print(
-      "returnStruct20BytesHomogeneousFloat(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
+    "returnStruct20BytesHomogeneousFloat(${a0}, ${a1}, ${a2}, ${a3}, ${a4})",
+  );
 
   double result = 0;
 
@@ -5816,15 +6312,19 @@ Future<void> returnStruct20BytesHomogeneousFloatAfterCallback() async {
   Expect.approxEquals(-3, result);
 }
 
-typedef ReturnStruct32BytesHomogeneousDoubleType = Void Function(
-    Double, Double, Double, Double);
+typedef ReturnStruct32BytesHomogeneousDoubleType =
+    Void Function(Double, Double, Double, Double);
 
 // Global variable that stores the result.
 final ReturnStruct32BytesHomogeneousDoubleResult = Completer<double>();
 
 /// Return value in FPU registers on arm64.
 void returnStruct32BytesHomogeneousDouble(
-    double a0, double a1, double a2, double a3) {
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+) {
   print("returnStruct32BytesHomogeneousDouble(${a0}, ${a1}, ${a2}, ${a3})");
 
   double result = 0;
@@ -5844,17 +6344,23 @@ Future<void> returnStruct32BytesHomogeneousDoubleAfterCallback() async {
   Expect.approxEquals(2, result);
 }
 
-typedef ReturnStruct40BytesHomogeneousDoubleType = Void Function(
-    Double, Double, Double, Double, Double);
+typedef ReturnStruct40BytesHomogeneousDoubleType =
+    Void Function(Double, Double, Double, Double, Double);
 
 // Global variable that stores the result.
 final ReturnStruct40BytesHomogeneousDoubleResult = Completer<double>();
 
 /// Return value too big to go in FPU registers on arm64.
 void returnStruct40BytesHomogeneousDouble(
-    double a0, double a1, double a2, double a3, double a4) {
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+) {
   print(
-      "returnStruct40BytesHomogeneousDouble(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
+    "returnStruct40BytesHomogeneousDouble(${a0}, ${a1}, ${a2}, ${a3}, ${a4})",
+  );
 
   double result = 0;
 
@@ -5874,271 +6380,275 @@ Future<void> returnStruct40BytesHomogeneousDoubleAfterCallback() async {
   Expect.approxEquals(-3, result);
 }
 
-typedef ReturnStruct1024BytesHomogeneousUint64Type = Void Function(
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64,
-    Uint64);
+typedef ReturnStruct1024BytesHomogeneousUint64Type =
+    Void Function(
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+      Uint64,
+    );
 
 // Global variable that stores the result.
 final ReturnStruct1024BytesHomogeneousUint64Result = Completer<double>();
 
 /// Test 1kb struct.
 void returnStruct1024BytesHomogeneousUint64(
-    int a0,
-    int a1,
-    int a2,
-    int a3,
-    int a4,
-    int a5,
-    int a6,
-    int a7,
-    int a8,
-    int a9,
-    int a10,
-    int a11,
-    int a12,
-    int a13,
-    int a14,
-    int a15,
-    int a16,
-    int a17,
-    int a18,
-    int a19,
-    int a20,
-    int a21,
-    int a22,
-    int a23,
-    int a24,
-    int a25,
-    int a26,
-    int a27,
-    int a28,
-    int a29,
-    int a30,
-    int a31,
-    int a32,
-    int a33,
-    int a34,
-    int a35,
-    int a36,
-    int a37,
-    int a38,
-    int a39,
-    int a40,
-    int a41,
-    int a42,
-    int a43,
-    int a44,
-    int a45,
-    int a46,
-    int a47,
-    int a48,
-    int a49,
-    int a50,
-    int a51,
-    int a52,
-    int a53,
-    int a54,
-    int a55,
-    int a56,
-    int a57,
-    int a58,
-    int a59,
-    int a60,
-    int a61,
-    int a62,
-    int a63,
-    int a64,
-    int a65,
-    int a66,
-    int a67,
-    int a68,
-    int a69,
-    int a70,
-    int a71,
-    int a72,
-    int a73,
-    int a74,
-    int a75,
-    int a76,
-    int a77,
-    int a78,
-    int a79,
-    int a80,
-    int a81,
-    int a82,
-    int a83,
-    int a84,
-    int a85,
-    int a86,
-    int a87,
-    int a88,
-    int a89,
-    int a90,
-    int a91,
-    int a92,
-    int a93,
-    int a94,
-    int a95,
-    int a96,
-    int a97,
-    int a98,
-    int a99,
-    int a100,
-    int a101,
-    int a102,
-    int a103,
-    int a104,
-    int a105,
-    int a106,
-    int a107,
-    int a108,
-    int a109,
-    int a110,
-    int a111,
-    int a112,
-    int a113,
-    int a114,
-    int a115,
-    int a116,
-    int a117,
-    int a118,
-    int a119,
-    int a120,
-    int a121,
-    int a122,
-    int a123,
-    int a124,
-    int a125,
-    int a126,
-    int a127) {
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  int a7,
+  int a8,
+  int a9,
+  int a10,
+  int a11,
+  int a12,
+  int a13,
+  int a14,
+  int a15,
+  int a16,
+  int a17,
+  int a18,
+  int a19,
+  int a20,
+  int a21,
+  int a22,
+  int a23,
+  int a24,
+  int a25,
+  int a26,
+  int a27,
+  int a28,
+  int a29,
+  int a30,
+  int a31,
+  int a32,
+  int a33,
+  int a34,
+  int a35,
+  int a36,
+  int a37,
+  int a38,
+  int a39,
+  int a40,
+  int a41,
+  int a42,
+  int a43,
+  int a44,
+  int a45,
+  int a46,
+  int a47,
+  int a48,
+  int a49,
+  int a50,
+  int a51,
+  int a52,
+  int a53,
+  int a54,
+  int a55,
+  int a56,
+  int a57,
+  int a58,
+  int a59,
+  int a60,
+  int a61,
+  int a62,
+  int a63,
+  int a64,
+  int a65,
+  int a66,
+  int a67,
+  int a68,
+  int a69,
+  int a70,
+  int a71,
+  int a72,
+  int a73,
+  int a74,
+  int a75,
+  int a76,
+  int a77,
+  int a78,
+  int a79,
+  int a80,
+  int a81,
+  int a82,
+  int a83,
+  int a84,
+  int a85,
+  int a86,
+  int a87,
+  int a88,
+  int a89,
+  int a90,
+  int a91,
+  int a92,
+  int a93,
+  int a94,
+  int a95,
+  int a96,
+  int a97,
+  int a98,
+  int a99,
+  int a100,
+  int a101,
+  int a102,
+  int a103,
+  int a104,
+  int a105,
+  int a106,
+  int a107,
+  int a108,
+  int a109,
+  int a110,
+  int a111,
+  int a112,
+  int a113,
+  int a114,
+  int a115,
+  int a116,
+  int a117,
+  int a118,
+  int a119,
+  int a120,
+  int a121,
+  int a122,
+  int a123,
+  int a124,
+  int a125,
+  int a126,
+  int a127,
+) {
   print(
-      "returnStruct1024BytesHomogeneousUint64(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18}, ${a19}, ${a20}, ${a21}, ${a22}, ${a23}, ${a24}, ${a25}, ${a26}, ${a27}, ${a28}, ${a29}, ${a30}, ${a31}, ${a32}, ${a33}, ${a34}, ${a35}, ${a36}, ${a37}, ${a38}, ${a39}, ${a40}, ${a41}, ${a42}, ${a43}, ${a44}, ${a45}, ${a46}, ${a47}, ${a48}, ${a49}, ${a50}, ${a51}, ${a52}, ${a53}, ${a54}, ${a55}, ${a56}, ${a57}, ${a58}, ${a59}, ${a60}, ${a61}, ${a62}, ${a63}, ${a64}, ${a65}, ${a66}, ${a67}, ${a68}, ${a69}, ${a70}, ${a71}, ${a72}, ${a73}, ${a74}, ${a75}, ${a76}, ${a77}, ${a78}, ${a79}, ${a80}, ${a81}, ${a82}, ${a83}, ${a84}, ${a85}, ${a86}, ${a87}, ${a88}, ${a89}, ${a90}, ${a91}, ${a92}, ${a93}, ${a94}, ${a95}, ${a96}, ${a97}, ${a98}, ${a99}, ${a100}, ${a101}, ${a102}, ${a103}, ${a104}, ${a105}, ${a106}, ${a107}, ${a108}, ${a109}, ${a110}, ${a111}, ${a112}, ${a113}, ${a114}, ${a115}, ${a116}, ${a117}, ${a118}, ${a119}, ${a120}, ${a121}, ${a122}, ${a123}, ${a124}, ${a125}, ${a126}, ${a127})");
+    "returnStruct1024BytesHomogeneousUint64(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18}, ${a19}, ${a20}, ${a21}, ${a22}, ${a23}, ${a24}, ${a25}, ${a26}, ${a27}, ${a28}, ${a29}, ${a30}, ${a31}, ${a32}, ${a33}, ${a34}, ${a35}, ${a36}, ${a37}, ${a38}, ${a39}, ${a40}, ${a41}, ${a42}, ${a43}, ${a44}, ${a45}, ${a46}, ${a47}, ${a48}, ${a49}, ${a50}, ${a51}, ${a52}, ${a53}, ${a54}, ${a55}, ${a56}, ${a57}, ${a58}, ${a59}, ${a60}, ${a61}, ${a62}, ${a63}, ${a64}, ${a65}, ${a66}, ${a67}, ${a68}, ${a69}, ${a70}, ${a71}, ${a72}, ${a73}, ${a74}, ${a75}, ${a76}, ${a77}, ${a78}, ${a79}, ${a80}, ${a81}, ${a82}, ${a83}, ${a84}, ${a85}, ${a86}, ${a87}, ${a88}, ${a89}, ${a90}, ${a91}, ${a92}, ${a93}, ${a94}, ${a95}, ${a96}, ${a97}, ${a98}, ${a99}, ${a100}, ${a101}, ${a102}, ${a103}, ${a104}, ${a105}, ${a106}, ${a107}, ${a108}, ${a109}, ${a110}, ${a111}, ${a112}, ${a113}, ${a114}, ${a115}, ${a116}, ${a117}, ${a118}, ${a119}, ${a120}, ${a121}, ${a122}, ${a123}, ${a124}, ${a125}, ${a126}, ${a127})",
+  );
 
   double result = 0;
 
@@ -6305,8 +6815,8 @@ Future<void> returnStruct3BytesPackedIntAfterCallback() async {
   Expect.approxEquals(1, result);
 }
 
-typedef ReturnStruct8BytesPackedIntType = Void Function(
-    Uint8, Uint32, Uint8, Uint8, Uint8);
+typedef ReturnStruct8BytesPackedIntType =
+    Void Function(Uint8, Uint32, Uint8, Uint8, Uint8);
 
 // Global variable that stores the result.
 final ReturnStruct8BytesPackedIntResult = Completer<double>();
@@ -6429,8 +6939,8 @@ Future<void> returnUnion9BytesNestedIntAfterCallback() async {
   Expect.approxEquals(-2, result);
 }
 
-typedef ReturnUnion16BytesNestedFloatType = Void Function(
-    Struct8BytesHomogeneousFloat);
+typedef ReturnUnion16BytesNestedFloatType =
+    Void Function(Struct8BytesHomogeneousFloat);
 
 // Global variable that stores the result.
 final ReturnUnion16BytesNestedFloatResult = Completer<double>();
@@ -6479,8 +6989,18 @@ Future<void> returnStructArgumentStruct1ByteIntAfterCallback() async {
   Expect.approxEquals(-1, result);
 }
 
-typedef ReturnStructArgumentInt32x8Struct1ByteIntType = Void Function(
-    Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32, Struct1ByteInt);
+typedef ReturnStructArgumentInt32x8Struct1ByteIntType =
+    Void Function(
+      Int32,
+      Int32,
+      Int32,
+      Int32,
+      Int32,
+      Int32,
+      Int32,
+      Int32,
+      Struct1ByteInt,
+    );
 
 // Global variable that stores the result.
 final ReturnStructArgumentInt32x8Struct1ByteIntResult = Completer<double>();
@@ -6488,10 +7008,20 @@ final ReturnStructArgumentInt32x8Struct1ByteIntResult = Completer<double>();
 /// Test that a struct passed in as argument can be returned.
 /// Especially for ffi callbacks.
 /// Struct is passed on stack on all ABIs.
-void returnStructArgumentInt32x8Struct1ByteInt(int a0, int a1, int a2, int a3,
-    int a4, int a5, int a6, int a7, Struct1ByteInt a8) {
+void returnStructArgumentInt32x8Struct1ByteInt(
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  int a7,
+  Struct1ByteInt a8,
+) {
   print(
-      "returnStructArgumentInt32x8Struct1ByteInt(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
+    "returnStructArgumentInt32x8Struct1ByteInt(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})",
+  );
 
   double result = 0;
 
@@ -6515,8 +7045,8 @@ Future<void> returnStructArgumentInt32x8Struct1ByteIntAfterCallback() async {
   Expect.approxEquals(-5, result);
 }
 
-typedef ReturnStructArgumentStruct8BytesHomogeneousFloatType = Void Function(
-    Struct8BytesHomogeneousFloat);
+typedef ReturnStructArgumentStruct8BytesHomogeneousFloatType =
+    Void Function(Struct8BytesHomogeneousFloat);
 
 // Global variable that stores the result.
 final ReturnStructArgumentStruct8BytesHomogeneousFloatResult =
@@ -6526,7 +7056,8 @@ final ReturnStructArgumentStruct8BytesHomogeneousFloatResult =
 /// Especially for ffi callbacks.
 /// Struct is passed in float registers in most ABIs.
 void returnStructArgumentStruct8BytesHomogeneousFloat(
-    Struct8BytesHomogeneousFloat a0) {
+  Struct8BytesHomogeneousFloat a0,
+) {
   print("returnStructArgumentStruct8BytesHomogeneousFloat(${a0})");
 
   double result = 0;
@@ -6539,15 +7070,15 @@ void returnStructArgumentStruct8BytesHomogeneousFloat(
 }
 
 Future<void>
-    returnStructArgumentStruct8BytesHomogeneousFloatAfterCallback() async {
+returnStructArgumentStruct8BytesHomogeneousFloatAfterCallback() async {
   final result =
       await ReturnStructArgumentStruct8BytesHomogeneousFloatResult.future;
   print("after callback result = $result");
   Expect.approxEquals(1, result);
 }
 
-typedef ReturnStructArgumentStruct20BytesHomogeneousInt32Type = Void Function(
-    Struct20BytesHomogeneousInt32);
+typedef ReturnStructArgumentStruct20BytesHomogeneousInt32Type =
+    Void Function(Struct20BytesHomogeneousInt32);
 
 // Global variable that stores the result.
 final ReturnStructArgumentStruct20BytesHomogeneousInt32Result =
@@ -6555,7 +7086,8 @@ final ReturnStructArgumentStruct20BytesHomogeneousInt32Result =
 
 /// On arm64, both argument and return value are passed in by pointer.
 void returnStructArgumentStruct20BytesHomogeneousInt32(
-    Struct20BytesHomogeneousInt32 a0) {
+  Struct20BytesHomogeneousInt32 a0,
+) {
   print("returnStructArgumentStruct20BytesHomogeneousInt32(${a0})");
 
   double result = 0;
@@ -6571,23 +7103,25 @@ void returnStructArgumentStruct20BytesHomogeneousInt32(
 }
 
 Future<void>
-    returnStructArgumentStruct20BytesHomogeneousInt32AfterCallback() async {
+returnStructArgumentStruct20BytesHomogeneousInt32AfterCallback() async {
   final result =
       await ReturnStructArgumentStruct20BytesHomogeneousInt32Result.future;
   print("after callback result = $result");
   Expect.approxEquals(-3, result);
 }
 
-typedef ReturnStructArgumentInt32x8Struct20BytesHomogeneouType = Void Function(
-    Int32,
-    Int32,
-    Int32,
-    Int32,
-    Int32,
-    Int32,
-    Int32,
-    Int32,
-    Struct20BytesHomogeneousInt32);
+typedef ReturnStructArgumentInt32x8Struct20BytesHomogeneouType =
+    Void Function(
+      Int32,
+      Int32,
+      Int32,
+      Int32,
+      Int32,
+      Int32,
+      Int32,
+      Int32,
+      Struct20BytesHomogeneousInt32,
+    );
 
 // Global variable that stores the result.
 final ReturnStructArgumentInt32x8Struct20BytesHomogeneouResult =
@@ -6595,10 +7129,20 @@ final ReturnStructArgumentInt32x8Struct20BytesHomogeneouResult =
 
 /// On arm64, both argument and return value are passed in by pointer.
 /// Ints exhaust registers, so that pointer is passed on stack.
-void returnStructArgumentInt32x8Struct20BytesHomogeneou(int a0, int a1, int a2,
-    int a3, int a4, int a5, int a6, int a7, Struct20BytesHomogeneousInt32 a8) {
+void returnStructArgumentInt32x8Struct20BytesHomogeneou(
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  int a7,
+  Struct20BytesHomogeneousInt32 a8,
+) {
   print(
-      "returnStructArgumentInt32x8Struct20BytesHomogeneou(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
+    "returnStructArgumentInt32x8Struct20BytesHomogeneou(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})",
+  );
 
   double result = 0;
 
@@ -6621,15 +7165,15 @@ void returnStructArgumentInt32x8Struct20BytesHomogeneou(int a0, int a1, int a2,
 }
 
 Future<void>
-    returnStructArgumentInt32x8Struct20BytesHomogeneouAfterCallback() async {
+returnStructArgumentInt32x8Struct20BytesHomogeneouAfterCallback() async {
   final result =
       await ReturnStructArgumentInt32x8Struct20BytesHomogeneouResult.future;
   print("after callback result = $result");
   Expect.approxEquals(-7, result);
 }
 
-typedef ReturnStructArgumentStruct8BytesInlineArrayIntType = Void Function(
-    Struct8BytesInlineArrayInt);
+typedef ReturnStructArgumentStruct8BytesInlineArrayIntType =
+    Void Function(Struct8BytesInlineArrayInt);
 
 // Global variable that stores the result.
 final ReturnStructArgumentStruct8BytesInlineArrayIntResult =
@@ -6637,7 +7181,8 @@ final ReturnStructArgumentStruct8BytesInlineArrayIntResult =
 
 /// Test returning struct with inline array.
 void returnStructArgumentStruct8BytesInlineArrayInt(
-    Struct8BytesInlineArrayInt a0) {
+  Struct8BytesInlineArrayInt a0,
+) {
   print("returnStructArgumentStruct8BytesInlineArrayInt(${a0})");
 
   double result = 0;
@@ -6656,15 +7201,15 @@ void returnStructArgumentStruct8BytesInlineArrayInt(
 }
 
 Future<void>
-    returnStructArgumentStruct8BytesInlineArrayIntAfterCallback() async {
+returnStructArgumentStruct8BytesInlineArrayIntAfterCallback() async {
   final result =
       await ReturnStructArgumentStruct8BytesInlineArrayIntResult.future;
   print("after callback result = $result");
   Expect.approxEquals(36, result);
 }
 
-typedef ReturnStructArgumentStructStruct16BytesHomogeneousType = Void Function(
-    StructStruct16BytesHomogeneousFloat2);
+typedef ReturnStructArgumentStructStruct16BytesHomogeneousType =
+    Void Function(StructStruct16BytesHomogeneousFloat2);
 
 // Global variable that stores the result.
 final ReturnStructArgumentStructStruct16BytesHomogeneousResult =
@@ -6672,7 +7217,8 @@ final ReturnStructArgumentStructStruct16BytesHomogeneousResult =
 
 /// Return value in FPU registers on arm hardfp and arm64.
 void returnStructArgumentStructStruct16BytesHomogeneous(
-    StructStruct16BytesHomogeneousFloat2 a0) {
+  StructStruct16BytesHomogeneousFloat2 a0,
+) {
   print("returnStructArgumentStructStruct16BytesHomogeneous(${a0})");
 
   double result = 0;
@@ -6687,15 +7233,15 @@ void returnStructArgumentStructStruct16BytesHomogeneous(
 }
 
 Future<void>
-    returnStructArgumentStructStruct16BytesHomogeneousAfterCallback() async {
+returnStructArgumentStructStruct16BytesHomogeneousAfterCallback() async {
   final result =
       await ReturnStructArgumentStructStruct16BytesHomogeneousResult.future;
   print("after callback result = $result");
   Expect.approxEquals(2, result);
 }
 
-typedef ReturnStructArgumentStructStruct32BytesHomogeneousType = Void Function(
-    StructStruct32BytesHomogeneousDouble2);
+typedef ReturnStructArgumentStructStruct32BytesHomogeneousType =
+    Void Function(StructStruct32BytesHomogeneousDouble2);
 
 // Global variable that stores the result.
 final ReturnStructArgumentStructStruct32BytesHomogeneousResult =
@@ -6703,7 +7249,8 @@ final ReturnStructArgumentStructStruct32BytesHomogeneousResult =
 
 /// Return value in FPU registers on arm64.
 void returnStructArgumentStructStruct32BytesHomogeneous(
-    StructStruct32BytesHomogeneousDouble2 a0) {
+  StructStruct32BytesHomogeneousDouble2 a0,
+) {
   print("returnStructArgumentStructStruct32BytesHomogeneous(${a0})");
 
   double result = 0;
@@ -6718,22 +7265,23 @@ void returnStructArgumentStructStruct32BytesHomogeneous(
 }
 
 Future<void>
-    returnStructArgumentStructStruct32BytesHomogeneousAfterCallback() async {
+returnStructArgumentStructStruct32BytesHomogeneousAfterCallback() async {
   final result =
       await ReturnStructArgumentStructStruct32BytesHomogeneousResult.future;
   print("after callback result = $result");
   Expect.approxEquals(2, result);
 }
 
-typedef ReturnStructArgumentStructStruct16BytesMixed3Type = Void Function(
-    StructStruct16BytesMixed3);
+typedef ReturnStructArgumentStructStruct16BytesMixed3Type =
+    Void Function(StructStruct16BytesMixed3);
 
 // Global variable that stores the result.
 final ReturnStructArgumentStructStruct16BytesMixed3Result = Completer<double>();
 
 /// On x64 Linux, return value is split over FP and int registers.
 void returnStructArgumentStructStruct16BytesMixed3(
-    StructStruct16BytesMixed3 a0) {
+  StructStruct16BytesMixed3 a0,
+) {
   print("returnStructArgumentStructStruct16BytesMixed3(${a0})");
 
   double result = 0;
@@ -6750,7 +7298,7 @@ void returnStructArgumentStructStruct16BytesMixed3(
 }
 
 Future<void>
-    returnStructArgumentStructStruct16BytesMixed3AfterCallback() async {
+returnStructArgumentStructStruct16BytesMixed3AfterCallback() async {
   final result =
       await ReturnStructArgumentStructStruct16BytesMixed3Result.future;
   print("after callback result = $result");
@@ -6832,15 +7380,17 @@ Future<void> returnStructAlignmentInt64AfterCallback() async {
   Expect.approxEquals(-2, result);
 }
 
-typedef ReturnStruct8BytesNestedIntType = Void Function(
-    Struct4BytesHomogeneousInt16, Struct4BytesHomogeneousInt16);
+typedef ReturnStruct8BytesNestedIntType =
+    Void Function(Struct4BytesHomogeneousInt16, Struct4BytesHomogeneousInt16);
 
 // Global variable that stores the result.
 final ReturnStruct8BytesNestedIntResult = Completer<double>();
 
 /// Simple nested struct.
 void returnStruct8BytesNestedInt(
-    Struct4BytesHomogeneousInt16 a0, Struct4BytesHomogeneousInt16 a1) {
+  Struct4BytesHomogeneousInt16 a0,
+  Struct4BytesHomogeneousInt16 a1,
+) {
   print("returnStruct8BytesNestedInt(${a0}, ${a1})");
 
   double result = 0;
@@ -6860,8 +7410,8 @@ Future<void> returnStruct8BytesNestedIntAfterCallback() async {
   Expect.approxEquals(2, result);
 }
 
-typedef ReturnStruct8BytesNestedFloatType = Void Function(
-    Struct4BytesFloat, Struct4BytesFloat);
+typedef ReturnStruct8BytesNestedFloatType =
+    Void Function(Struct4BytesFloat, Struct4BytesFloat);
 
 // Global variable that stores the result.
 final ReturnStruct8BytesNestedFloatResult = Completer<double>();
@@ -6885,8 +7435,8 @@ Future<void> returnStruct8BytesNestedFloatAfterCallback() async {
   Expect.approxEquals(1, result);
 }
 
-typedef ReturnStruct8BytesNestedFloat2Type = Void Function(
-    Struct4BytesFloat, Float);
+typedef ReturnStruct8BytesNestedFloat2Type =
+    Void Function(Struct4BytesFloat, Float);
 
 // Global variable that stores the result.
 final ReturnStruct8BytesNestedFloat2Result = Completer<double>();
@@ -6911,15 +7461,17 @@ Future<void> returnStruct8BytesNestedFloat2AfterCallback() async {
   Expect.approxEquals(1, result);
 }
 
-typedef ReturnStruct8BytesNestedMixedType = Void Function(
-    Struct4BytesHomogeneousInt16, Struct4BytesFloat);
+typedef ReturnStruct8BytesNestedMixedType =
+    Void Function(Struct4BytesHomogeneousInt16, Struct4BytesFloat);
 
 // Global variable that stores the result.
 final ReturnStruct8BytesNestedMixedResult = Completer<double>();
 
 /// Simple nested struct with mixed members.
 void returnStruct8BytesNestedMixed(
-    Struct4BytesHomogeneousInt16 a0, Struct4BytesFloat a1) {
+  Struct4BytesHomogeneousInt16 a0,
+  Struct4BytesFloat a1,
+) {
   print("returnStruct8BytesNestedMixed(${a0}, ${a1})");
 
   double result = 0;
@@ -6938,15 +7490,17 @@ Future<void> returnStruct8BytesNestedMixedAfterCallback() async {
   Expect.approxEquals(-2, result);
 }
 
-typedef ReturnStruct16BytesNestedIntType = Void Function(
-    Struct8BytesNestedInt, Struct8BytesNestedInt);
+typedef ReturnStruct16BytesNestedIntType =
+    Void Function(Struct8BytesNestedInt, Struct8BytesNestedInt);
 
 // Global variable that stores the result.
 final ReturnStruct16BytesNestedIntResult = Completer<double>();
 
 /// Deeper nested struct to test recursive member access.
 void returnStruct16BytesNestedInt(
-    Struct8BytesNestedInt a0, Struct8BytesNestedInt a1) {
+  Struct8BytesNestedInt a0,
+  Struct8BytesNestedInt a1,
+) {
   print("returnStruct16BytesNestedInt(${a0}, ${a1})");
 
   double result = 0;
@@ -6970,15 +7524,17 @@ Future<void> returnStruct16BytesNestedIntAfterCallback() async {
   Expect.approxEquals(4, result);
 }
 
-typedef ReturnStruct32BytesNestedIntType = Void Function(
-    Struct16BytesNestedInt, Struct16BytesNestedInt);
+typedef ReturnStruct32BytesNestedIntType =
+    Void Function(Struct16BytesNestedInt, Struct16BytesNestedInt);
 
 // Global variable that stores the result.
 final ReturnStruct32BytesNestedIntResult = Completer<double>();
 
 /// Even deeper nested struct to test recursive member access.
 void returnStruct32BytesNestedInt(
-    Struct16BytesNestedInt a0, Struct16BytesNestedInt a1) {
+  Struct16BytesNestedInt a0,
+  Struct16BytesNestedInt a1,
+) {
   print("returnStruct32BytesNestedInt(${a0}, ${a1})");
 
   double result = 0;
@@ -7010,15 +7566,17 @@ Future<void> returnStruct32BytesNestedIntAfterCallback() async {
   Expect.approxEquals(8, result);
 }
 
-typedef ReturnStructNestedIntStructAlignmentInt16Type = Void Function(
-    StructAlignmentInt16, StructAlignmentInt16);
+typedef ReturnStructNestedIntStructAlignmentInt16Type =
+    Void Function(StructAlignmentInt16, StructAlignmentInt16);
 
 // Global variable that stores the result.
 final ReturnStructNestedIntStructAlignmentInt16Result = Completer<double>();
 
 /// Test alignment and padding of nested struct with 16 byte int.
 void returnStructNestedIntStructAlignmentInt16(
-    StructAlignmentInt16 a0, StructAlignmentInt16 a1) {
+  StructAlignmentInt16 a0,
+  StructAlignmentInt16 a1,
+) {
   print("returnStructNestedIntStructAlignmentInt16(${a0}, ${a1})");
 
   double result = 0;
@@ -7040,15 +7598,17 @@ Future<void> returnStructNestedIntStructAlignmentInt16AfterCallback() async {
   Expect.approxEquals(3, result);
 }
 
-typedef ReturnStructNestedIntStructAlignmentInt32Type = Void Function(
-    StructAlignmentInt32, StructAlignmentInt32);
+typedef ReturnStructNestedIntStructAlignmentInt32Type =
+    Void Function(StructAlignmentInt32, StructAlignmentInt32);
 
 // Global variable that stores the result.
 final ReturnStructNestedIntStructAlignmentInt32Result = Completer<double>();
 
 /// Test alignment and padding of nested struct with 32 byte int.
 void returnStructNestedIntStructAlignmentInt32(
-    StructAlignmentInt32 a0, StructAlignmentInt32 a1) {
+  StructAlignmentInt32 a0,
+  StructAlignmentInt32 a1,
+) {
   print("returnStructNestedIntStructAlignmentInt32(${a0}, ${a1})");
 
   double result = 0;
@@ -7070,15 +7630,17 @@ Future<void> returnStructNestedIntStructAlignmentInt32AfterCallback() async {
   Expect.approxEquals(3, result);
 }
 
-typedef ReturnStructNestedIntStructAlignmentInt64Type = Void Function(
-    StructAlignmentInt64, StructAlignmentInt64);
+typedef ReturnStructNestedIntStructAlignmentInt64Type =
+    Void Function(StructAlignmentInt64, StructAlignmentInt64);
 
 // Global variable that stores the result.
 final ReturnStructNestedIntStructAlignmentInt64Result = Completer<double>();
 
 /// Test alignment and padding of nested struct with 64 byte int.
 void returnStructNestedIntStructAlignmentInt64(
-    StructAlignmentInt64 a0, StructAlignmentInt64 a1) {
+  StructAlignmentInt64 a0,
+  StructAlignmentInt64 a1,
+) {
   print("returnStructNestedIntStructAlignmentInt64(${a0}, ${a1})");
 
   double result = 0;
@@ -7100,15 +7662,24 @@ Future<void> returnStructNestedIntStructAlignmentInt64AfterCallback() async {
   Expect.approxEquals(3, result);
 }
 
-typedef ReturnStructNestedIrregularEvenBiggerType = Void Function(
-    Uint64, StructNestedIrregularBigger, StructNestedIrregularBigger, Double);
+typedef ReturnStructNestedIrregularEvenBiggerType =
+    Void Function(
+      Uint64,
+      StructNestedIrregularBigger,
+      StructNestedIrregularBigger,
+      Double,
+    );
 
 // Global variable that stores the result.
 final ReturnStructNestedIrregularEvenBiggerResult = Completer<double>();
 
 /// Return big irregular struct as smoke test.
-void returnStructNestedIrregularEvenBigger(int a0,
-    StructNestedIrregularBigger a1, StructNestedIrregularBigger a2, double a3) {
+void returnStructNestedIrregularEvenBigger(
+  int a0,
+  StructNestedIrregularBigger a1,
+  StructNestedIrregularBigger a2,
+  double a3,
+) {
   print("returnStructNestedIrregularEvenBigger(${a0}, ${a1}, ${a2}, ${a3})");
 
   double result = 0;

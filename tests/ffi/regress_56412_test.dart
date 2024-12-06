@@ -13,21 +13,15 @@
 import 'dart:ffi';
 
 void main() {
-  MyFinalizable().myMethod(
-    namedArgument: Object(),
-    () {
-      final error = StateError('Cause crash');
-      throw error;
-    },
-  );
+  MyFinalizable().myMethod(namedArgument: Object(), () {
+    final error = StateError('Cause crash');
+    throw error;
+  });
   print('done');
 }
 
 class MyFinalizable implements Finalizable {
-  Object myMethod(
-    Object Function() action, {
-    Object? namedArgument,
-  }) {
+  Object myMethod(Object Function() action, {Object? namedArgument}) {
     return Object();
   }
 }

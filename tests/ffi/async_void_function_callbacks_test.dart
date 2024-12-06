@@ -125,7 +125,9 @@ Future<void> testNativeCallableNestedCloseCall() async {
 
   simpleFunctionResult = Completer<int>();
   lib.callFunctionOnSameThread(
-      1000, simpleFunctionAndCloseSelf_callable!.nativeFunction);
+    1000,
+    simpleFunctionAndCloseSelf_callable!.nativeFunction,
+  );
 
   Expect.equals(1123, await simpleFunctionResult.future);
 
@@ -144,12 +146,16 @@ Future<void> testNativeCallableThrowInsideCallback() async {
   var caughtError;
   late final callback;
 
-  runZonedGuarded(() {
-    callback =
-        NativeCallable<CallbackNativeType>.listener(simpleFunctionThrows);
-  }, (Object error, StackTrace stack) {
-    caughtError = error;
-  });
+  runZonedGuarded(
+    () {
+      callback = NativeCallable<CallbackNativeType>.listener(
+        simpleFunctionThrows,
+      );
+    },
+    (Object error, StackTrace stack) {
+      caughtError = error;
+    },
+  );
 
   lib.callFunctionOnSameThread(1000, callback.nativeFunction);
   await Future.delayed(Duration(milliseconds: 100));
@@ -161,17 +167,22 @@ Future<void> testNativeCallableThrowInsideCallback() async {
 
 Future<void> testNativeCallableDontKeepAlive() async {
   final exitPort = ReceivePort();
-  await Isolate.spawn((_) async {
-    final lib = NativeLibrary();
-    final callback =
-        NativeCallable<CallbackNativeType>.listener(simpleFunction);
+  await Isolate.spawn(
+    (_) async {
+      final lib = NativeLibrary();
+      final callback = NativeCallable<CallbackNativeType>.listener(
+        simpleFunction,
+      );
 
-    simpleFunctionResult = Completer<int>();
-    lib.callFunctionOnSameThread(1000, callback.nativeFunction);
+      simpleFunctionResult = Completer<int>();
+      lib.callFunctionOnSameThread(1000, callback.nativeFunction);
 
-    Expect.equals(1123, await simpleFunctionResult.future);
-    callback.keepIsolateAlive = false;
-  }, null, onExit: exitPort.sendPort);
+      Expect.equals(1123, await simpleFunctionResult.future);
+      callback.keepIsolateAlive = false;
+    },
+    null,
+    onExit: exitPort.sendPort,
+  );
   await exitPort.first;
   exitPort.close();
 }
@@ -221,9 +232,12 @@ class SanityCheck extends TestCase {
   @override
   Future<void> runOnIsoA(IsolateA iso) async {
     Expect.equals(1000, globalVar);
-    final result = iso.atm.call((responseId) => iso.natLib
-        .callFunctionOnSameThread(
-            responseId, Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr)));
+    final result = iso.atm.call(
+      (responseId) => iso.natLib.callFunctionOnSameThread(
+        responseId,
+        Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr),
+      ),
+    );
     print("SanityCheck.runOnIsoA message sent. Awaiting result...");
     Expect.equals(1123, await result);
   }
@@ -231,9 +245,12 @@ class SanityCheck extends TestCase {
   @override
   Future<void> runOnIsoB(IsolateB iso) async {
     Expect.equals(2000, globalVar);
-    final result = iso.atm.call((responseId) => iso.natLib
-        .callFunctionOnSameThread(
-            responseId, Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr)));
+    final result = iso.atm.call(
+      (responseId) => iso.natLib.callFunctionOnSameThread(
+        responseId,
+        Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr),
+      ),
+    );
     print("SanityCheck.runOnIsoB message sent. Awaiting result...");
     Expect.equals(2123, await result);
   }
@@ -245,9 +262,12 @@ class CallFromIsoAToIsoB extends TestCase {
 
   @override
   Future<void> runOnIsoA(IsolateA iso) async {
-    final result = iso.atm.call((responseId) => iso.natLib
-        .callFunctionOnSameThread(
-            responseId, Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr)));
+    final result = iso.atm.call(
+      (responseId) => iso.natLib.callFunctionOnSameThread(
+        responseId,
+        Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr),
+      ),
+    );
     print("CallFromIsoAToIsoB.runOnIsoA message sent. Awaiting result...");
     Expect.equals(2123, await result);
   }
@@ -259,9 +279,12 @@ class CallFromIsoBToIsoA extends TestCase {
 
   @override
   Future<void> runOnIsoB(IsolateB iso) async {
-    final result = iso.atm.call((responseId) => iso.natLib
-        .callFunctionOnSameThread(
-            responseId, Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr)));
+    final result = iso.atm.call(
+      (responseId) => iso.natLib.callFunctionOnSameThread(
+        responseId,
+        Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr),
+      ),
+    );
     print("CallFromIsoBToIsoA.runOnIsoB message sent. Awaiting result...");
     Expect.equals(1123, await result);
   }
@@ -273,11 +296,15 @@ class CallFromIsoAToIsoBViaNewThreadBlocking extends TestCase {
 
   @override
   Future<void> runOnIsoA(IsolateA iso) async {
-    final result = iso.atm.call((responseId) => iso.natLib
-        .callFunctionOnNewThreadBlocking(
-            responseId, Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr)));
+    final result = iso.atm.call(
+      (responseId) => iso.natLib.callFunctionOnNewThreadBlocking(
+        responseId,
+        Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr),
+      ),
+    );
     print(
-        "CallFromIsoAToIsoBViaNewThreadBlocking.runOnIsoA message sent. Awaiting result...");
+      "CallFromIsoAToIsoBViaNewThreadBlocking.runOnIsoA message sent. Awaiting result...",
+    );
     Expect.equals(2123, await result);
   }
 }
@@ -288,11 +315,15 @@ class CallFromIsoBToIsoAViaNewThreadBlocking extends TestCase {
 
   @override
   Future<void> runOnIsoB(IsolateB iso) async {
-    final result = iso.atm.call((responseId) => iso.natLib
-        .callFunctionOnNewThreadBlocking(
-            responseId, Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr)));
+    final result = iso.atm.call(
+      (responseId) => iso.natLib.callFunctionOnNewThreadBlocking(
+        responseId,
+        Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr),
+      ),
+    );
     print(
-        "CallFromIsoBToIsoAViaNewThreadBlocking.runOnIsoB message sent. Awaiting result...");
+      "CallFromIsoBToIsoAViaNewThreadBlocking.runOnIsoB message sent. Awaiting result...",
+    );
     Expect.equals(1123, await result);
   }
 }
@@ -303,11 +334,15 @@ class CallFromIsoAToIsoBViaNewThreadNonBlocking extends TestCase {
 
   @override
   Future<void> runOnIsoA(IsolateA iso) async {
-    final result = iso.atm.call((responseId) => iso.natLib
-        .callFunctionOnNewThreadNonBlocking(
-            responseId, Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr)));
+    final result = iso.atm.call(
+      (responseId) => iso.natLib.callFunctionOnNewThreadNonBlocking(
+        responseId,
+        Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr),
+      ),
+    );
     print(
-        "CallFromIsoAToIsoBViaNewThreadNonBlocking.runOnIsoA message sent. Awaiting result...");
+      "CallFromIsoAToIsoBViaNewThreadNonBlocking.runOnIsoA message sent. Awaiting result...",
+    );
     Expect.equals(2123, await result);
   }
 }
@@ -318,11 +353,15 @@ class CallFromIsoBToIsoAViaNewThreadNonBlocking extends TestCase {
 
   @override
   Future<void> runOnIsoB(IsolateB iso) async {
-    final result = iso.atm.call((responseId) => iso.natLib
-        .callFunctionOnNewThreadNonBlocking(
-            responseId, Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr)));
+    final result = iso.atm.call(
+      (responseId) => iso.natLib.callFunctionOnNewThreadNonBlocking(
+        responseId,
+        Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr),
+      ),
+    );
     print(
-        "CallFromIsoBToIsoAViaNewThreadNonBlocking.runOnIsoB message sent. Awaiting result...");
+      "CallFromIsoBToIsoAViaNewThreadNonBlocking.runOnIsoB message sent. Awaiting result...",
+    );
     Expect.equals(1123, await result);
   }
 }
@@ -336,11 +375,12 @@ class CallFromIsoAToBToA extends TestCase {
 
   @override
   Future<void> runOnIsoA(IsolateA iso) async {
-    final result = iso.atm.call((responseId) => iso.natLib
-        .callFunctionOnSameThread(
-            responseId,
-            Pointer.fromAddress(
-                iso.fnPtrsB.callFromIsoBToAAndMultByGlobalVarPtr)));
+    final result = iso.atm.call(
+      (responseId) => iso.natLib.callFunctionOnSameThread(
+        responseId,
+        Pointer.fromAddress(iso.fnPtrsB.callFromIsoBToAAndMultByGlobalVarPtr),
+      ),
+    );
     print("CallFromIsoAToBToA.runOnIsoA message sent. Awaiting result...");
     Expect.equals(2000 * 1123, await result);
   }
@@ -355,11 +395,12 @@ class CallFromIsoBToAToB extends TestCase {
 
   @override
   Future<void> runOnIsoB(IsolateB iso) async {
-    final result = iso.atm.call((responseId) => iso.natLib
-        .callFunctionOnSameThread(
-            responseId,
-            Pointer.fromAddress(
-                iso.fnPtrsA.callFromIsoAToBAndMultByGlobalVarPtr)));
+    final result = iso.atm.call(
+      (responseId) => iso.natLib.callFunctionOnSameThread(
+        responseId,
+        Pointer.fromAddress(iso.fnPtrsA.callFromIsoAToBAndMultByGlobalVarPtr),
+      ),
+    );
     print("CallFromIsoBToAToB.runOnIsoB message sent. Awaiting result...");
     Expect.equals(1000 * 2123, await result);
   }
@@ -375,23 +416,33 @@ class ManyCallsBetweenIsolates extends TestCase {
   @override
   Future<void> runOnIsoA(IsolateA iso) async {
     print("ManyCallsBetweenIsolates.runOnIsoA sending messages.");
-    await Future.wait(List.filled(100, null).map((_) async {
-      final result = iso.atm.call((responseId) => iso.natLib
-          .callFunctionOnSameThread(
-              responseId, Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr)));
-      Expect.equals(2123, await result);
-    }));
+    await Future.wait(
+      List.filled(100, null).map((_) async {
+        final result = iso.atm.call(
+          (responseId) => iso.natLib.callFunctionOnSameThread(
+            responseId,
+            Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr),
+          ),
+        );
+        Expect.equals(2123, await result);
+      }),
+    );
   }
 
   @override
   Future<void> runOnIsoB(IsolateB iso) async {
     print("ManyCallsBetweenIsolates.runOnIsoB sending messages.");
-    await Future.wait(List.filled(100, null).map((_) async {
-      final result = iso.atm.call((responseId) => iso.natLib
-          .callFunctionOnSameThread(
-              responseId, Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr)));
-      Expect.equals(1123, await result);
-    }));
+    await Future.wait(
+      List.filled(100, null).map((_) async {
+        final result = iso.atm.call(
+          (responseId) => iso.natLib.callFunctionOnSameThread(
+            responseId,
+            Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr),
+          ),
+        );
+        Expect.equals(1123, await result);
+      }),
+    );
   }
 }
 
@@ -405,25 +456,37 @@ class ManyCallsBetweenIsolatesViaNewThreadBlocking extends TestCase {
   @override
   Future<void> runOnIsoA(IsolateA iso) async {
     print(
-        "ManyCallsBetweenIsolatesViaNewThreadBlocking.runOnIsoA sending messages.");
-    await Future.wait(List.filled(100, null).map((_) async {
-      final result = iso.atm.call((responseId) => iso.natLib
-          .callFunctionOnNewThreadBlocking(
-              responseId, Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr)));
-      Expect.equals(2123, await result);
-    }));
+      "ManyCallsBetweenIsolatesViaNewThreadBlocking.runOnIsoA sending messages.",
+    );
+    await Future.wait(
+      List.filled(100, null).map((_) async {
+        final result = iso.atm.call(
+          (responseId) => iso.natLib.callFunctionOnNewThreadBlocking(
+            responseId,
+            Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr),
+          ),
+        );
+        Expect.equals(2123, await result);
+      }),
+    );
   }
 
   @override
   Future<void> runOnIsoB(IsolateB iso) async {
     print(
-        "ManyCallsBetweenIsolatesViaNewThreadBlocking.runOnIsoB sending messages.");
-    await Future.wait(List.filled(100, null).map((_) async {
-      final result = iso.atm.call((responseId) => iso.natLib
-          .callFunctionOnNewThreadBlocking(
-              responseId, Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr)));
-      Expect.equals(1123, await result);
-    }));
+      "ManyCallsBetweenIsolatesViaNewThreadBlocking.runOnIsoB sending messages.",
+    );
+    await Future.wait(
+      List.filled(100, null).map((_) async {
+        final result = iso.atm.call(
+          (responseId) => iso.natLib.callFunctionOnNewThreadBlocking(
+            responseId,
+            Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr),
+          ),
+        );
+        Expect.equals(1123, await result);
+      }),
+    );
   }
 }
 
@@ -437,25 +500,37 @@ class ManyCallsBetweenIsolatesViaNewThreadNonBlocking extends TestCase {
   @override
   Future<void> runOnIsoA(IsolateA iso) async {
     print(
-        "ManyCallsBetweenIsolatesViaNewThreadNonBlocking.runOnIsoA sending messages.");
-    await Future.wait(List.filled(100, null).map((_) async {
-      final result = iso.atm.call((responseId) => iso.natLib
-          .callFunctionOnNewThreadNonBlocking(
-              responseId, Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr)));
-      Expect.equals(2123, await result);
-    }));
+      "ManyCallsBetweenIsolatesViaNewThreadNonBlocking.runOnIsoA sending messages.",
+    );
+    await Future.wait(
+      List.filled(100, null).map((_) async {
+        final result = iso.atm.call(
+          (responseId) => iso.natLib.callFunctionOnNewThreadNonBlocking(
+            responseId,
+            Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr),
+          ),
+        );
+        Expect.equals(2123, await result);
+      }),
+    );
   }
 
   @override
   Future<void> runOnIsoB(IsolateB iso) async {
     print(
-        "ManyCallsBetweenIsolatesViaNewThreadNonBlocking.runOnIsoB sending messages.");
-    await Future.wait(List.filled(100, null).map((_) async {
-      final result = iso.atm.call((responseId) => iso.natLib
-          .callFunctionOnNewThreadNonBlocking(
-              responseId, Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr)));
-      Expect.equals(1123, await result);
-    }));
+      "ManyCallsBetweenIsolatesViaNewThreadNonBlocking.runOnIsoB sending messages.",
+    );
+    await Future.wait(
+      List.filled(100, null).map((_) async {
+        final result = iso.atm.call(
+          (responseId) => iso.natLib.callFunctionOnNewThreadNonBlocking(
+            responseId,
+            Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr),
+          ),
+        );
+        Expect.equals(1123, await result);
+      }),
+    );
   }
 }
 
@@ -501,24 +576,32 @@ void addGlobalVar(int responseId, int x) {
 void callFromIsoBToAAndMultByGlobalVar(int responseIdToA, int x) {
   final iso = IsolateB.instance!;
   iso.atm
-      .call((responseIdToB) => iso.natLib.callFunctionOnSameThread(
-          responseIdToB, Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr)))
+      .call(
+        (responseIdToB) => iso.natLib.callFunctionOnSameThread(
+          responseIdToB,
+          Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr),
+        ),
+      )
       .then((response) {
-    final result = (response as int) * globalVar;
-    _callbackResultPort!.send([responseIdToA, result]);
-  });
+        final result = (response as int) * globalVar;
+        _callbackResultPort!.send([responseIdToA, result]);
+      });
   print("callFromIsoBToAAndMultByGlobalVar message sent. Awaiting result...");
 }
 
 void callFromIsoAToBAndMultByGlobalVar(int responseIdToB, int x) {
   final iso = IsolateA.instance!;
   iso.atm
-      .call((responseIdToA) => iso.natLib.callFunctionOnSameThread(
-          responseIdToA, Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr)))
+      .call(
+        (responseIdToA) => iso.natLib.callFunctionOnSameThread(
+          responseIdToA,
+          Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr),
+        ),
+      )
       .then((response) {
-    final result = (response as int) * globalVar;
-    _callbackResultPort!.send([responseIdToB, result]);
-  });
+        final result = (response as int) * globalVar;
+        _callbackResultPort!.send([responseIdToB, result]);
+      });
   print("callFromIsoAToBAndMultByGlobalVar message sent. Awaiting result...");
 }
 
@@ -530,14 +613,17 @@ class Callbacks {
   final NativeCallable callFromIsoAToBAndMultByGlobalVarFn;
 
   Callbacks()
-      : addGlobalVarFn =
-            NativeCallable<CallbackNativeType>.listener(addGlobalVar),
-        callFromIsoBToAAndMultByGlobalVarFn =
-            NativeCallable<CallbackNativeType>.listener(
-                callFromIsoBToAAndMultByGlobalVar),
-        callFromIsoAToBAndMultByGlobalVarFn =
-            NativeCallable<CallbackNativeType>.listener(
-                callFromIsoAToBAndMultByGlobalVar);
+    : addGlobalVarFn = NativeCallable<CallbackNativeType>.listener(
+        addGlobalVar,
+      ),
+      callFromIsoBToAAndMultByGlobalVarFn =
+          NativeCallable<CallbackNativeType>.listener(
+            callFromIsoBToAAndMultByGlobalVar,
+          ),
+      callFromIsoAToBAndMultByGlobalVarFn =
+          NativeCallable<CallbackNativeType>.listener(
+            callFromIsoAToBAndMultByGlobalVar,
+          );
 
   void close() {
     addGlobalVarFn.close();
@@ -552,21 +638,24 @@ class FnPtrs {
   final int callFromIsoBToAAndMultByGlobalVarPtr;
   final int callFromIsoAToBAndMultByGlobalVarPtr;
 
-  FnPtrs._(this.addGlobalVarPtr, this.callFromIsoBToAAndMultByGlobalVarPtr,
-      this.callFromIsoAToBAndMultByGlobalVarPtr);
+  FnPtrs._(
+    this.addGlobalVarPtr,
+    this.callFromIsoBToAAndMultByGlobalVarPtr,
+    this.callFromIsoAToBAndMultByGlobalVarPtr,
+  );
 
   static FnPtrs fromCallbacks(Callbacks callbacks) => FnPtrs._(
-        callbacks.addGlobalVarFn.nativeFunction.address,
-        callbacks.callFromIsoBToAAndMultByGlobalVarFn.nativeFunction.address,
-        callbacks.callFromIsoAToBAndMultByGlobalVarFn.nativeFunction.address,
-      );
+    callbacks.addGlobalVarFn.nativeFunction.address,
+    callbacks.callFromIsoBToAAndMultByGlobalVarFn.nativeFunction.address,
+    callbacks.callFromIsoAToBAndMultByGlobalVarFn.nativeFunction.address,
+  );
 
   static FnPtrs fromList(List<int> ptrs) => FnPtrs._(ptrs[0], ptrs[1], ptrs[2]);
   List<int> toList() => [
-        addGlobalVarPtr,
-        callFromIsoBToAAndMultByGlobalVarPtr,
-        callFromIsoAToBAndMultByGlobalVarPtr,
-      ];
+    addGlobalVarPtr,
+    callFromIsoBToAAndMultByGlobalVarPtr,
+    callFromIsoAToBAndMultByGlobalVarPtr,
+  ];
 }
 
 typedef FnRunnerNativeType = Void Function(Int64, Pointer);
@@ -578,15 +667,18 @@ class NativeLibrary {
   late final FnRunnerType callFunctionOnNewThreadNonBlocking;
 
   NativeLibrary() {
-    callFunctionOnSameThread =
-        ffiTestFunctions.lookupFunction<FnRunnerNativeType, FnRunnerType>(
-            "CallFunctionOnSameThread");
-    callFunctionOnNewThreadBlocking =
-        ffiTestFunctions.lookupFunction<FnRunnerNativeType, FnRunnerType>(
-            "CallFunctionOnNewThreadBlocking");
-    callFunctionOnNewThreadNonBlocking =
-        ffiTestFunctions.lookupFunction<FnRunnerNativeType, FnRunnerType>(
-            "CallFunctionOnNewThreadNonBlocking");
+    callFunctionOnSameThread = ffiTestFunctions
+        .lookupFunction<FnRunnerNativeType, FnRunnerType>(
+          "CallFunctionOnSameThread",
+        );
+    callFunctionOnNewThreadBlocking = ffiTestFunctions
+        .lookupFunction<FnRunnerNativeType, FnRunnerType>(
+          "CallFunctionOnNewThreadBlocking",
+        );
+    callFunctionOnNewThreadNonBlocking = ffiTestFunctions
+        .lookupFunction<FnRunnerNativeType, FnRunnerType>(
+          "CallFunctionOnNewThreadNonBlocking",
+        );
   }
 }
 

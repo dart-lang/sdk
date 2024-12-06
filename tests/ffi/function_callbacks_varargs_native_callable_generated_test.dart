@@ -35,123 +35,177 @@ void main() {
 
 final testCases = [
   CallbackTest.withCheck(
-      "VariadicAt1Int64x2",
-      NativeCallable<VariadicAt1Int64x2Type>.isolateLocal(variadicAt1Int64x2,
-          exceptionalReturn: 0),
-      variadicAt1Int64x2AfterCallback),
+    "VariadicAt1Int64x2",
+    NativeCallable<VariadicAt1Int64x2Type>.isolateLocal(
+      variadicAt1Int64x2,
+      exceptionalReturn: 0,
+    ),
+    variadicAt1Int64x2AfterCallback,
+  ),
   CallbackTest.withCheck(
-      "VariadicAt1Doublex2",
-      NativeCallable<VariadicAt1Doublex2Type>.isolateLocal(variadicAt1Doublex2,
-          exceptionalReturn: 0.0),
-      variadicAt1Doublex2AfterCallback),
+    "VariadicAt1Doublex2",
+    NativeCallable<VariadicAt1Doublex2Type>.isolateLocal(
+      variadicAt1Doublex2,
+      exceptionalReturn: 0.0,
+    ),
+    variadicAt1Doublex2AfterCallback,
+  ),
   CallbackTest.withCheck(
-      "VariadicAt1Int64x5",
-      NativeCallable<VariadicAt1Int64x5Type>.isolateLocal(variadicAt1Int64x5,
-          exceptionalReturn: 0),
-      variadicAt1Int64x5AfterCallback),
+    "VariadicAt1Int64x5",
+    NativeCallable<VariadicAt1Int64x5Type>.isolateLocal(
+      variadicAt1Int64x5,
+      exceptionalReturn: 0,
+    ),
+    variadicAt1Int64x5AfterCallback,
+  ),
   CallbackTest.withCheck(
-      "VariadicAt1Doublex5",
-      NativeCallable<VariadicAt1Doublex5Type>.isolateLocal(variadicAt1Doublex5,
-          exceptionalReturn: 0.0),
-      variadicAt1Doublex5AfterCallback),
+    "VariadicAt1Doublex5",
+    NativeCallable<VariadicAt1Doublex5Type>.isolateLocal(
+      variadicAt1Doublex5,
+      exceptionalReturn: 0.0,
+    ),
+    variadicAt1Doublex5AfterCallback,
+  ),
   CallbackTest.withCheck(
-      "VariadicAt1Int64x20",
-      NativeCallable<VariadicAt1Int64x20Type>.isolateLocal(variadicAt1Int64x20,
-          exceptionalReturn: 0),
-      variadicAt1Int64x20AfterCallback),
+    "VariadicAt1Int64x20",
+    NativeCallable<VariadicAt1Int64x20Type>.isolateLocal(
+      variadicAt1Int64x20,
+      exceptionalReturn: 0,
+    ),
+    variadicAt1Int64x20AfterCallback,
+  ),
   CallbackTest.withCheck(
-      "VariadicAt1Doublex20",
-      NativeCallable<VariadicAt1Doublex20Type>.isolateLocal(
-          variadicAt1Doublex20,
-          exceptionalReturn: 0.0),
-      variadicAt1Doublex20AfterCallback),
+    "VariadicAt1Doublex20",
+    NativeCallable<VariadicAt1Doublex20Type>.isolateLocal(
+      variadicAt1Doublex20,
+      exceptionalReturn: 0.0,
+    ),
+    variadicAt1Doublex20AfterCallback,
+  ),
   CallbackTest.withCheck(
-      "VariadicAt1Int64x2Struct8BytesIntInt64",
-      NativeCallable<VariadicAt1Int64x2Struct8BytesIntInt64Type>.isolateLocal(
-          variadicAt1Int64x2Struct8BytesIntInt64,
-          exceptionalReturn: 0),
-      variadicAt1Int64x2Struct8BytesIntInt64AfterCallback),
+    "VariadicAt1Int64x2Struct8BytesIntInt64",
+    NativeCallable<VariadicAt1Int64x2Struct8BytesIntInt64Type>.isolateLocal(
+      variadicAt1Int64x2Struct8BytesIntInt64,
+      exceptionalReturn: 0,
+    ),
+    variadicAt1Int64x2Struct8BytesIntInt64AfterCallback,
+  ),
   CallbackTest.withCheck(
-      "VariadicAt1Doublex2Struct32BytesHomogeneousDoubleD",
-      NativeCallable<
-              VariadicAt1Doublex2Struct32BytesHomogeneousDoubleDType>.isolateLocal(
-          variadicAt1Doublex2Struct32BytesHomogeneousDoubleD,
-          exceptionalReturn: 0.0),
-      variadicAt1Doublex2Struct32BytesHomogeneousDoubleDAfterCallback),
+    "VariadicAt1Doublex2Struct32BytesHomogeneousDoubleD",
+    NativeCallable<
+      VariadicAt1Doublex2Struct32BytesHomogeneousDoubleDType
+    >.isolateLocal(
+      variadicAt1Doublex2Struct32BytesHomogeneousDoubleD,
+      exceptionalReturn: 0.0,
+    ),
+    variadicAt1Doublex2Struct32BytesHomogeneousDoubleDAfterCallback,
+  ),
   CallbackTest.withCheck(
-      "VariadicAt1DoubleStruct12BytesHomogeneousFloatDoub",
-      NativeCallable<
-              VariadicAt1DoubleStruct12BytesHomogeneousFloatDoubType>.isolateLocal(
-          variadicAt1DoubleStruct12BytesHomogeneousFloatDoub,
-          exceptionalReturn: 0.0),
-      variadicAt1DoubleStruct12BytesHomogeneousFloatDoubAfterCallback),
+    "VariadicAt1DoubleStruct12BytesHomogeneousFloatDoub",
+    NativeCallable<
+      VariadicAt1DoubleStruct12BytesHomogeneousFloatDoubType
+    >.isolateLocal(
+      variadicAt1DoubleStruct12BytesHomogeneousFloatDoub,
+      exceptionalReturn: 0.0,
+    ),
+    variadicAt1DoubleStruct12BytesHomogeneousFloatDoubAfterCallback,
+  ),
   CallbackTest.withCheck(
-      "VariadicAt1Int32Struct20BytesHomogeneousInt32Int32",
-      NativeCallable<
-              VariadicAt1Int32Struct20BytesHomogeneousInt32Int32Type>.isolateLocal(
-          variadicAt1Int32Struct20BytesHomogeneousInt32Int32,
-          exceptionalReturn: 0),
-      variadicAt1Int32Struct20BytesHomogeneousInt32Int32AfterCallback),
+    "VariadicAt1Int32Struct20BytesHomogeneousInt32Int32",
+    NativeCallable<
+      VariadicAt1Int32Struct20BytesHomogeneousInt32Int32Type
+    >.isolateLocal(
+      variadicAt1Int32Struct20BytesHomogeneousInt32Int32,
+      exceptionalReturn: 0,
+    ),
+    variadicAt1Int32Struct20BytesHomogeneousInt32Int32AfterCallback,
+  ),
   CallbackTest.withCheck(
-      "VariadicAt1DoubleStruct20BytesHomogeneousFloatDoub",
-      NativeCallable<
-              VariadicAt1DoubleStruct20BytesHomogeneousFloatDoubType>.isolateLocal(
-          variadicAt1DoubleStruct20BytesHomogeneousFloatDoub,
-          exceptionalReturn: 0.0),
-      variadicAt1DoubleStruct20BytesHomogeneousFloatDoubAfterCallback),
+    "VariadicAt1DoubleStruct20BytesHomogeneousFloatDoub",
+    NativeCallable<
+      VariadicAt1DoubleStruct20BytesHomogeneousFloatDoubType
+    >.isolateLocal(
+      variadicAt1DoubleStruct20BytesHomogeneousFloatDoub,
+      exceptionalReturn: 0.0,
+    ),
+    variadicAt1DoubleStruct20BytesHomogeneousFloatDoubAfterCallback,
+  ),
   CallbackTest.withCheck(
-      "VariadicAt2Int32Int64IntPtr",
-      NativeCallable<VariadicAt2Int32Int64IntPtrType>.isolateLocal(
-          variadicAt2Int32Int64IntPtr,
-          exceptionalReturn: 0),
-      variadicAt2Int32Int64IntPtrAfterCallback),
+    "VariadicAt2Int32Int64IntPtr",
+    NativeCallable<VariadicAt2Int32Int64IntPtrType>.isolateLocal(
+      variadicAt2Int32Int64IntPtr,
+      exceptionalReturn: 0,
+    ),
+    variadicAt2Int32Int64IntPtrAfterCallback,
+  ),
   CallbackTest.withCheck(
-      "VariadicAt1DoubleInt64Int32DoubleInt64Int32",
-      NativeCallable<
-              VariadicAt1DoubleInt64Int32DoubleInt64Int32Type>.isolateLocal(
-          variadicAt1DoubleInt64Int32DoubleInt64Int32,
-          exceptionalReturn: 0.0),
-      variadicAt1DoubleInt64Int32DoubleInt64Int32AfterCallback),
+    "VariadicAt1DoubleInt64Int32DoubleInt64Int32",
+    NativeCallable<
+      VariadicAt1DoubleInt64Int32DoubleInt64Int32Type
+    >.isolateLocal(
+      variadicAt1DoubleInt64Int32DoubleInt64Int32,
+      exceptionalReturn: 0.0,
+    ),
+    variadicAt1DoubleInt64Int32DoubleInt64Int32AfterCallback,
+  ),
   CallbackTest.withCheck(
-      "VariadicAt1Int64Int32Struct12BytesHomogeneousFloat",
-      NativeCallable<
-              VariadicAt1Int64Int32Struct12BytesHomogeneousFloatType>.isolateLocal(
-          variadicAt1Int64Int32Struct12BytesHomogeneousFloat,
-          exceptionalReturn: 0.0),
-      variadicAt1Int64Int32Struct12BytesHomogeneousFloatAfterCallback),
+    "VariadicAt1Int64Int32Struct12BytesHomogeneousFloat",
+    NativeCallable<
+      VariadicAt1Int64Int32Struct12BytesHomogeneousFloatType
+    >.isolateLocal(
+      variadicAt1Int64Int32Struct12BytesHomogeneousFloat,
+      exceptionalReturn: 0.0,
+    ),
+    variadicAt1Int64Int32Struct12BytesHomogeneousFloatAfterCallback,
+  ),
   CallbackTest.withCheck(
-      "VariadicAt11Doublex8FloatStruct12BytesHomogeneousF",
-      NativeCallable<
-              VariadicAt11Doublex8FloatStruct12BytesHomogeneousFType>.isolateLocal(
-          variadicAt11Doublex8FloatStruct12BytesHomogeneousF,
-          exceptionalReturn: 0.0),
-      variadicAt11Doublex8FloatStruct12BytesHomogeneousFAfterCallback),
+    "VariadicAt11Doublex8FloatStruct12BytesHomogeneousF",
+    NativeCallable<
+      VariadicAt11Doublex8FloatStruct12BytesHomogeneousFType
+    >.isolateLocal(
+      variadicAt11Doublex8FloatStruct12BytesHomogeneousF,
+      exceptionalReturn: 0.0,
+    ),
+    variadicAt11Doublex8FloatStruct12BytesHomogeneousFAfterCallback,
+  ),
   CallbackTest.withCheck(
-      "VariadicAt1DoubleInt64Int32Struct20BytesHomogeneou",
-      NativeCallable<
-              VariadicAt1DoubleInt64Int32Struct20BytesHomogeneouType>.isolateLocal(
-          variadicAt1DoubleInt64Int32Struct20BytesHomogeneou,
-          exceptionalReturn: 0.0),
-      variadicAt1DoubleInt64Int32Struct20BytesHomogeneouAfterCallback),
+    "VariadicAt1DoubleInt64Int32Struct20BytesHomogeneou",
+    NativeCallable<
+      VariadicAt1DoubleInt64Int32Struct20BytesHomogeneouType
+    >.isolateLocal(
+      variadicAt1DoubleInt64Int32Struct20BytesHomogeneou,
+      exceptionalReturn: 0.0,
+    ),
+    variadicAt1DoubleInt64Int32Struct20BytesHomogeneouAfterCallback,
+  ),
   CallbackTest.withCheck(
-      "VariadicAt5Doublex5",
-      NativeCallable<VariadicAt5Doublex5Type>.isolateLocal(variadicAt5Doublex5,
-          exceptionalReturn: 0.0),
-      variadicAt5Doublex5AfterCallback),
+    "VariadicAt5Doublex5",
+    NativeCallable<VariadicAt5Doublex5Type>.isolateLocal(
+      variadicAt5Doublex5,
+      exceptionalReturn: 0.0,
+    ),
+    variadicAt5Doublex5AfterCallback,
+  ),
   CallbackTest.withCheck(
-      "VariadicAt1Int64x7Struct12BytesHomogeneousInt32",
-      NativeCallable<
-              VariadicAt1Int64x7Struct12BytesHomogeneousInt32Type>.isolateLocal(
-          variadicAt1Int64x7Struct12BytesHomogeneousInt32,
-          exceptionalReturn: 0),
-      variadicAt1Int64x7Struct12BytesHomogeneousInt32AfterCallback),
+    "VariadicAt1Int64x7Struct12BytesHomogeneousInt32",
+    NativeCallable<
+      VariadicAt1Int64x7Struct12BytesHomogeneousInt32Type
+    >.isolateLocal(
+      variadicAt1Int64x7Struct12BytesHomogeneousInt32,
+      exceptionalReturn: 0,
+    ),
+    variadicAt1Int64x7Struct12BytesHomogeneousInt32AfterCallback,
+  ),
   CallbackTest.withCheck(
-      "VariadicAt1Struct12BytesHomogeneousInt32Int32x4",
-      NativeCallable<
-              VariadicAt1Struct12BytesHomogeneousInt32Int32x4Type>.isolateLocal(
-          variadicAt1Struct12BytesHomogeneousInt32Int32x4,
-          exceptionalReturn: 0),
-      variadicAt1Struct12BytesHomogeneousInt32Int32x4AfterCallback),
+    "VariadicAt1Struct12BytesHomogeneousInt32Int32x4",
+    NativeCallable<
+      VariadicAt1Struct12BytesHomogeneousInt32Int32x4Type
+    >.isolateLocal(
+      variadicAt1Struct12BytesHomogeneousInt32Int32x4,
+      exceptionalReturn: 0,
+    ),
+    variadicAt1Struct12BytesHomogeneousInt32Int32x4AfterCallback,
+  ),
 ];
 typedef VariadicAt1Int64x2Type = Int64 Function(Int64, VarArgs<(Int64,)>);
 
@@ -249,8 +303,8 @@ void variadicAt1Doublex2AfterCallback() {
   Expect.approxEquals(1.0, result);
 }
 
-typedef VariadicAt1Int64x5Type = Int64 Function(
-    Int64, VarArgs<(Int64, Int64, Int64, Int64)>);
+typedef VariadicAt1Int64x5Type =
+    Int64 Function(Int64, VarArgs<(Int64, Int64, Int64, Int64)>);
 
 // Global variables to be able to test inputs after callback returned.
 int variadicAt1Int64x5_a0 = 0;
@@ -307,8 +361,8 @@ void variadicAt1Int64x5AfterCallback() {
   Expect.equals(-3, result);
 }
 
-typedef VariadicAt1Doublex5Type = Double Function(
-    Double, VarArgs<(Double, Double, Double, Double)>);
+typedef VariadicAt1Doublex5Type =
+    Double Function(Double, VarArgs<(Double, Double, Double, Double)>);
 
 // Global variables to be able to test inputs after callback returned.
 double variadicAt1Doublex5_a0 = 0.0;
@@ -336,7 +390,12 @@ double variadicAt1Doublex5CalculateResult() {
 
 /// Variadic arguments.
 double variadicAt1Doublex5(
-    double a0, double a1, double a2, double a3, double a4) {
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+) {
   print("variadicAt1Doublex5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
 
   // Possibly throw.
@@ -366,9 +425,10 @@ void variadicAt1Doublex5AfterCallback() {
   Expect.approxEquals(-3.0, result);
 }
 
-typedef VariadicAt1Int64x20Type = Int64 Function(
-    Int64,
-    VarArgs<
+typedef VariadicAt1Int64x20Type =
+    Int64 Function(
+      Int64,
+      VarArgs<
         (
           Int64,
           Int64,
@@ -388,8 +448,10 @@ typedef VariadicAt1Int64x20Type = Int64 Function(
           Int64,
           Int64,
           Int64,
-          Int64
-        )>);
+          Int64,
+        )
+      >,
+    );
 
 // Global variables to be able to test inputs after callback returned.
 int variadicAt1Int64x20_a0 = 0;
@@ -447,28 +509,30 @@ int variadicAt1Int64x20CalculateResult() {
 
 /// Variadic arguments exhaust registers.
 int variadicAt1Int64x20(
-    int a0,
-    int a1,
-    int a2,
-    int a3,
-    int a4,
-    int a5,
-    int a6,
-    int a7,
-    int a8,
-    int a9,
-    int a10,
-    int a11,
-    int a12,
-    int a13,
-    int a14,
-    int a15,
-    int a16,
-    int a17,
-    int a18,
-    int a19) {
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  int a7,
+  int a8,
+  int a9,
+  int a10,
+  int a11,
+  int a12,
+  int a13,
+  int a14,
+  int a15,
+  int a16,
+  int a17,
+  int a18,
+  int a19,
+) {
   print(
-      "variadicAt1Int64x20(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18}, ${a19})");
+    "variadicAt1Int64x20(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18}, ${a19})",
+  );
 
   // Possibly throw.
   if (a0 == 42 || a0 == 84) {
@@ -512,9 +576,10 @@ void variadicAt1Int64x20AfterCallback() {
   Expect.equals(10, result);
 }
 
-typedef VariadicAt1Doublex20Type = Double Function(
-    Double,
-    VarArgs<
+typedef VariadicAt1Doublex20Type =
+    Double Function(
+      Double,
+      VarArgs<
         (
           Double,
           Double,
@@ -534,8 +599,10 @@ typedef VariadicAt1Doublex20Type = Double Function(
           Double,
           Double,
           Double,
-          Double
-        )>);
+          Double,
+        )
+      >,
+    );
 
 // Global variables to be able to test inputs after callback returned.
 double variadicAt1Doublex20_a0 = 0.0;
@@ -593,28 +660,30 @@ double variadicAt1Doublex20CalculateResult() {
 
 /// Variadic arguments exhaust registers.
 double variadicAt1Doublex20(
-    double a0,
-    double a1,
-    double a2,
-    double a3,
-    double a4,
-    double a5,
-    double a6,
-    double a7,
-    double a8,
-    double a9,
-    double a10,
-    double a11,
-    double a12,
-    double a13,
-    double a14,
-    double a15,
-    double a16,
-    double a17,
-    double a18,
-    double a19) {
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  double a9,
+  double a10,
+  double a11,
+  double a12,
+  double a13,
+  double a14,
+  double a15,
+  double a16,
+  double a17,
+  double a18,
+  double a19,
+) {
   print(
-      "variadicAt1Doublex20(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18}, ${a19})");
+    "variadicAt1Doublex20(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18}, ${a19})",
+  );
 
   // Possibly throw.
   if (a0 == 42 || a0 == 84) {
@@ -658,8 +727,8 @@ void variadicAt1Doublex20AfterCallback() {
   Expect.approxEquals(10.0, result);
 }
 
-typedef VariadicAt1Int64x2Struct8BytesIntInt64Type = Int64 Function(
-    Int64, VarArgs<(Int64, Struct8BytesInt, Int64)>);
+typedef VariadicAt1Int64x2Struct8BytesIntInt64Type =
+    Int64 Function(Int64, VarArgs<(Int64, Struct8BytesInt, Int64)>);
 
 // Global variables to be able to test inputs after callback returned.
 int variadicAt1Int64x2Struct8BytesIntInt64_a0 = 0;
@@ -688,14 +757,19 @@ int variadicAt1Int64x2Struct8BytesIntInt64CalculateResult() {
 
 /// Variadic arguments including struct.
 int variadicAt1Int64x2Struct8BytesIntInt64(
-    int a0, int a1, Struct8BytesInt a2, int a3) {
+  int a0,
+  int a1,
+  Struct8BytesInt a2,
+  int a3,
+) {
   print("variadicAt1Int64x2Struct8BytesIntInt64(${a0}, ${a1}, ${a2}, ${a3})");
 
   // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "VariadicAt1Int64x2Struct8BytesIntInt64 throwing on purpose!");
+      "VariadicAt1Int64x2Struct8BytesIntInt64 throwing on purpose!",
+    );
   }
 
   variadicAt1Int64x2Struct8BytesIntInt64_a0 = a0;
@@ -718,14 +792,17 @@ void variadicAt1Int64x2Struct8BytesIntInt64AfterCallback() {
   Expect.equals(3, result);
 }
 
-typedef VariadicAt1Doublex2Struct32BytesHomogeneousDoubleDType = Double
-    Function(Double, VarArgs<(Double, Struct32BytesHomogeneousDouble, Double)>);
+typedef VariadicAt1Doublex2Struct32BytesHomogeneousDoubleDType =
+    Double Function(
+      Double,
+      VarArgs<(Double, Struct32BytesHomogeneousDouble, Double)>,
+    );
 
 // Global variables to be able to test inputs after callback returned.
 double variadicAt1Doublex2Struct32BytesHomogeneousDoubleD_a0 = 0.0;
 double variadicAt1Doublex2Struct32BytesHomogeneousDoubleD_a1 = 0.0;
 Struct32BytesHomogeneousDouble
-    variadicAt1Doublex2Struct32BytesHomogeneousDoubleD_a2 =
+variadicAt1Doublex2Struct32BytesHomogeneousDoubleD_a2 =
     Pointer<Struct32BytesHomogeneousDouble>.fromAddress(0).ref;
 double variadicAt1Doublex2Struct32BytesHomogeneousDoubleD_a3 = 0.0;
 
@@ -750,15 +827,21 @@ double variadicAt1Doublex2Struct32BytesHomogeneousDoubleDCalculateResult() {
 
 /// Variadic arguments including struct.
 double variadicAt1Doublex2Struct32BytesHomogeneousDoubleD(
-    double a0, double a1, Struct32BytesHomogeneousDouble a2, double a3) {
+  double a0,
+  double a1,
+  Struct32BytesHomogeneousDouble a2,
+  double a3,
+) {
   print(
-      "variadicAt1Doublex2Struct32BytesHomogeneousDoubleD(${a0}, ${a1}, ${a2}, ${a3})");
+    "variadicAt1Doublex2Struct32BytesHomogeneousDoubleD(${a0}, ${a1}, ${a2}, ${a3})",
+  );
 
   // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "VariadicAt1Doublex2Struct32BytesHomogeneousDoubleD throwing on purpose!");
+      "VariadicAt1Doublex2Struct32BytesHomogeneousDoubleD throwing on purpose!",
+    );
   }
 
   variadicAt1Doublex2Struct32BytesHomogeneousDoubleD_a0 = a0;
@@ -783,13 +866,13 @@ void variadicAt1Doublex2Struct32BytesHomogeneousDoubleDAfterCallback() {
   Expect.approxEquals(-4.0, result);
 }
 
-typedef VariadicAt1DoubleStruct12BytesHomogeneousFloatDoubType = Double
-    Function(Double, VarArgs<(Struct12BytesHomogeneousFloat, Double)>);
+typedef VariadicAt1DoubleStruct12BytesHomogeneousFloatDoubType =
+    Double Function(Double, VarArgs<(Struct12BytesHomogeneousFloat, Double)>);
 
 // Global variables to be able to test inputs after callback returned.
 double variadicAt1DoubleStruct12BytesHomogeneousFloatDoub_a0 = 0.0;
 Struct12BytesHomogeneousFloat
-    variadicAt1DoubleStruct12BytesHomogeneousFloatDoub_a1 =
+variadicAt1DoubleStruct12BytesHomogeneousFloatDoub_a1 =
     Pointer<Struct12BytesHomogeneousFloat>.fromAddress(0).ref;
 double variadicAt1DoubleStruct12BytesHomogeneousFloatDoub_a2 = 0.0;
 
@@ -812,15 +895,20 @@ double variadicAt1DoubleStruct12BytesHomogeneousFloatDoubCalculateResult() {
 
 /// Variadic arguments including struct.
 double variadicAt1DoubleStruct12BytesHomogeneousFloatDoub(
-    double a0, Struct12BytesHomogeneousFloat a1, double a2) {
+  double a0,
+  Struct12BytesHomogeneousFloat a1,
+  double a2,
+) {
   print(
-      "variadicAt1DoubleStruct12BytesHomogeneousFloatDoub(${a0}, ${a1}, ${a2})");
+    "variadicAt1DoubleStruct12BytesHomogeneousFloatDoub(${a0}, ${a1}, ${a2})",
+  );
 
   // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "VariadicAt1DoubleStruct12BytesHomogeneousFloatDoub throwing on purpose!");
+      "VariadicAt1DoubleStruct12BytesHomogeneousFloatDoub throwing on purpose!",
+    );
   }
 
   variadicAt1DoubleStruct12BytesHomogeneousFloatDoub_a0 = a0;
@@ -844,13 +932,13 @@ void variadicAt1DoubleStruct12BytesHomogeneousFloatDoubAfterCallback() {
   Expect.approxEquals(-3.0, result);
 }
 
-typedef VariadicAt1Int32Struct20BytesHomogeneousInt32Int32Type = Int32 Function(
-    Int32, VarArgs<(Struct20BytesHomogeneousInt32, Int32)>);
+typedef VariadicAt1Int32Struct20BytesHomogeneousInt32Int32Type =
+    Int32 Function(Int32, VarArgs<(Struct20BytesHomogeneousInt32, Int32)>);
 
 // Global variables to be able to test inputs after callback returned.
 int variadicAt1Int32Struct20BytesHomogeneousInt32Int32_a0 = 0;
 Struct20BytesHomogeneousInt32
-    variadicAt1Int32Struct20BytesHomogeneousInt32Int32_a1 =
+variadicAt1Int32Struct20BytesHomogeneousInt32Int32_a1 =
     Pointer<Struct20BytesHomogeneousInt32>.fromAddress(0).ref;
 int variadicAt1Int32Struct20BytesHomogeneousInt32Int32_a2 = 0;
 
@@ -875,15 +963,20 @@ int variadicAt1Int32Struct20BytesHomogeneousInt32Int32CalculateResult() {
 
 /// Variadic arguments including struct.
 int variadicAt1Int32Struct20BytesHomogeneousInt32Int32(
-    int a0, Struct20BytesHomogeneousInt32 a1, int a2) {
+  int a0,
+  Struct20BytesHomogeneousInt32 a1,
+  int a2,
+) {
   print(
-      "variadicAt1Int32Struct20BytesHomogeneousInt32Int32(${a0}, ${a1}, ${a2})");
+    "variadicAt1Int32Struct20BytesHomogeneousInt32Int32(${a0}, ${a1}, ${a2})",
+  );
 
   // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "VariadicAt1Int32Struct20BytesHomogeneousInt32Int32 throwing on purpose!");
+      "VariadicAt1Int32Struct20BytesHomogeneousInt32Int32 throwing on purpose!",
+    );
   }
 
   variadicAt1Int32Struct20BytesHomogeneousInt32Int32_a0 = a0;
@@ -907,13 +1000,13 @@ void variadicAt1Int32Struct20BytesHomogeneousInt32Int32AfterCallback() {
   Expect.equals(-4, result);
 }
 
-typedef VariadicAt1DoubleStruct20BytesHomogeneousFloatDoubType = Double
-    Function(Double, VarArgs<(Struct20BytesHomogeneousFloat, Double)>);
+typedef VariadicAt1DoubleStruct20BytesHomogeneousFloatDoubType =
+    Double Function(Double, VarArgs<(Struct20BytesHomogeneousFloat, Double)>);
 
 // Global variables to be able to test inputs after callback returned.
 double variadicAt1DoubleStruct20BytesHomogeneousFloatDoub_a0 = 0.0;
 Struct20BytesHomogeneousFloat
-    variadicAt1DoubleStruct20BytesHomogeneousFloatDoub_a1 =
+variadicAt1DoubleStruct20BytesHomogeneousFloatDoub_a1 =
     Pointer<Struct20BytesHomogeneousFloat>.fromAddress(0).ref;
 double variadicAt1DoubleStruct20BytesHomogeneousFloatDoub_a2 = 0.0;
 
@@ -938,15 +1031,20 @@ double variadicAt1DoubleStruct20BytesHomogeneousFloatDoubCalculateResult() {
 
 /// Variadic arguments including struct.
 double variadicAt1DoubleStruct20BytesHomogeneousFloatDoub(
-    double a0, Struct20BytesHomogeneousFloat a1, double a2) {
+  double a0,
+  Struct20BytesHomogeneousFloat a1,
+  double a2,
+) {
   print(
-      "variadicAt1DoubleStruct20BytesHomogeneousFloatDoub(${a0}, ${a1}, ${a2})");
+    "variadicAt1DoubleStruct20BytesHomogeneousFloatDoub(${a0}, ${a1}, ${a2})",
+  );
 
   // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "VariadicAt1DoubleStruct20BytesHomogeneousFloatDoub throwing on purpose!");
+      "VariadicAt1DoubleStruct20BytesHomogeneousFloatDoub throwing on purpose!",
+    );
   }
 
   variadicAt1DoubleStruct20BytesHomogeneousFloatDoub_a0 = a0;
@@ -970,8 +1068,8 @@ void variadicAt1DoubleStruct20BytesHomogeneousFloatDoubAfterCallback() {
   Expect.approxEquals(-4.0, result);
 }
 
-typedef VariadicAt2Int32Int64IntPtrType = Int32 Function(
-    Int32, Int64, VarArgs<(IntPtr,)>);
+typedef VariadicAt2Int32Int64IntPtrType =
+    Int32 Function(Int32, Int64, VarArgs<(IntPtr,)>);
 
 // Global variables to be able to test inputs after callback returned.
 int variadicAt2Int32Int64IntPtr_a0 = 0;
@@ -1023,8 +1121,8 @@ void variadicAt2Int32Int64IntPtrAfterCallback() {
   Expect.equals(-2, result);
 }
 
-typedef VariadicAt1DoubleInt64Int32DoubleInt64Int32Type = Double Function(
-    Double, VarArgs<(Int64, Int32, Double, Int64, Int32)>);
+typedef VariadicAt1DoubleInt64Int32DoubleInt64Int32Type =
+    Double Function(Double, VarArgs<(Int64, Int32, Double, Int64, Int32)>);
 
 // Global variables to be able to test inputs after callback returned.
 double variadicAt1DoubleInt64Int32DoubleInt64Int32_a0 = 0.0;
@@ -1054,15 +1152,23 @@ double variadicAt1DoubleInt64Int32DoubleInt64Int32CalculateResult() {
 
 /// Variadic arguments mixed.
 double variadicAt1DoubleInt64Int32DoubleInt64Int32(
-    double a0, int a1, int a2, double a3, int a4, int a5) {
+  double a0,
+  int a1,
+  int a2,
+  double a3,
+  int a4,
+  int a5,
+) {
   print(
-      "variadicAt1DoubleInt64Int32DoubleInt64Int32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5})");
+    "variadicAt1DoubleInt64Int32DoubleInt64Int32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5})",
+  );
 
   // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "VariadicAt1DoubleInt64Int32DoubleInt64Int32 throwing on purpose!");
+      "VariadicAt1DoubleInt64Int32DoubleInt64Int32 throwing on purpose!",
+    );
   }
 
   variadicAt1DoubleInt64Int32DoubleInt64Int32_a0 = a0;
@@ -1087,14 +1193,14 @@ void variadicAt1DoubleInt64Int32DoubleInt64Int32AfterCallback() {
   Expect.approxEquals(3.0, result);
 }
 
-typedef VariadicAt1Int64Int32Struct12BytesHomogeneousFloatType = Double
-    Function(Int64, VarArgs<(Int32, Struct12BytesHomogeneousFloat)>);
+typedef VariadicAt1Int64Int32Struct12BytesHomogeneousFloatType =
+    Double Function(Int64, VarArgs<(Int32, Struct12BytesHomogeneousFloat)>);
 
 // Global variables to be able to test inputs after callback returned.
 int variadicAt1Int64Int32Struct12BytesHomogeneousFloat_a0 = 0;
 int variadicAt1Int64Int32Struct12BytesHomogeneousFloat_a1 = 0;
 Struct12BytesHomogeneousFloat
-    variadicAt1Int64Int32Struct12BytesHomogeneousFloat_a2 =
+variadicAt1Int64Int32Struct12BytesHomogeneousFloat_a2 =
     Pointer<Struct12BytesHomogeneousFloat>.fromAddress(0).ref;
 
 // Result variable also global, so we can delete it after the callback.
@@ -1116,15 +1222,20 @@ double variadicAt1Int64Int32Struct12BytesHomogeneousFloatCalculateResult() {
 
 /// Variadic arguments homogenous struct stack alignment on macos_arm64.
 double variadicAt1Int64Int32Struct12BytesHomogeneousFloat(
-    int a0, int a1, Struct12BytesHomogeneousFloat a2) {
+  int a0,
+  int a1,
+  Struct12BytesHomogeneousFloat a2,
+) {
   print(
-      "variadicAt1Int64Int32Struct12BytesHomogeneousFloat(${a0}, ${a1}, ${a2})");
+    "variadicAt1Int64Int32Struct12BytesHomogeneousFloat(${a0}, ${a1}, ${a2})",
+  );
 
   // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "VariadicAt1Int64Int32Struct12BytesHomogeneousFloat throwing on purpose!");
+      "VariadicAt1Int64Int32Struct12BytesHomogeneousFloat throwing on purpose!",
+    );
   }
 
   variadicAt1Int64Int32Struct12BytesHomogeneousFloat_a0 = a0;
@@ -1148,20 +1259,21 @@ void variadicAt1Int64Int32Struct12BytesHomogeneousFloatAfterCallback() {
   Expect.approxEquals(-3.0, result);
 }
 
-typedef VariadicAt11Doublex8FloatStruct12BytesHomogeneousFType
-    = Double Function(
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Float,
-        Struct12BytesHomogeneousFloat,
-        Int64,
-        VarArgs<(Int32, Struct12BytesHomogeneousFloat)>);
+typedef VariadicAt11Doublex8FloatStruct12BytesHomogeneousFType =
+    Double Function(
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Float,
+      Struct12BytesHomogeneousFloat,
+      Int64,
+      VarArgs<(Int32, Struct12BytesHomogeneousFloat)>,
+    );
 
 // Global variables to be able to test inputs after callback returned.
 double variadicAt11Doublex8FloatStruct12BytesHomogeneousF_a0 = 0.0;
@@ -1174,12 +1286,12 @@ double variadicAt11Doublex8FloatStruct12BytesHomogeneousF_a6 = 0.0;
 double variadicAt11Doublex8FloatStruct12BytesHomogeneousF_a7 = 0.0;
 double variadicAt11Doublex8FloatStruct12BytesHomogeneousF_a8 = 0.0;
 Struct12BytesHomogeneousFloat
-    variadicAt11Doublex8FloatStruct12BytesHomogeneousF_a9 =
+variadicAt11Doublex8FloatStruct12BytesHomogeneousF_a9 =
     Pointer<Struct12BytesHomogeneousFloat>.fromAddress(0).ref;
 int variadicAt11Doublex8FloatStruct12BytesHomogeneousF_a10 = 0;
 int variadicAt11Doublex8FloatStruct12BytesHomogeneousF_a11 = 0;
 Struct12BytesHomogeneousFloat
-    variadicAt11Doublex8FloatStruct12BytesHomogeneousF_a12 =
+variadicAt11Doublex8FloatStruct12BytesHomogeneousF_a12 =
     Pointer<Struct12BytesHomogeneousFloat>.fromAddress(0).ref;
 
 // Result variable also global, so we can delete it after the callback.
@@ -1213,27 +1325,30 @@ double variadicAt11Doublex8FloatStruct12BytesHomogeneousFCalculateResult() {
 
 /// Variadic arguments homogenous struct stack alignment on macos_arm64.
 double variadicAt11Doublex8FloatStruct12BytesHomogeneousF(
-    double a0,
-    double a1,
-    double a2,
-    double a3,
-    double a4,
-    double a5,
-    double a6,
-    double a7,
-    double a8,
-    Struct12BytesHomogeneousFloat a9,
-    int a10,
-    int a11,
-    Struct12BytesHomogeneousFloat a12) {
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct12BytesHomogeneousFloat a9,
+  int a10,
+  int a11,
+  Struct12BytesHomogeneousFloat a12,
+) {
   print(
-      "variadicAt11Doublex8FloatStruct12BytesHomogeneousF(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12})");
+    "variadicAt11Doublex8FloatStruct12BytesHomogeneousF(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12})",
+  );
 
   // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "VariadicAt11Doublex8FloatStruct12BytesHomogeneousF throwing on purpose!");
+      "VariadicAt11Doublex8FloatStruct12BytesHomogeneousF throwing on purpose!",
+    );
   }
 
   variadicAt11Doublex8FloatStruct12BytesHomogeneousF_a0 = a0;
@@ -1267,33 +1382,35 @@ void variadicAt11Doublex8FloatStruct12BytesHomogeneousFAfterCallback() {
   Expect.approxEquals(-9.0, result);
 }
 
-typedef VariadicAt1DoubleInt64Int32Struct20BytesHomogeneouType
-    = Double Function(
-        Double,
-        VarArgs<
-            (
-              Int64,
-              Int32,
-              Struct20BytesHomogeneousInt32,
-              Double,
-              Int64,
-              Int32,
-              Struct12BytesHomogeneousFloat,
-              Int64
-            )>);
+typedef VariadicAt1DoubleInt64Int32Struct20BytesHomogeneouType =
+    Double Function(
+      Double,
+      VarArgs<
+        (
+          Int64,
+          Int32,
+          Struct20BytesHomogeneousInt32,
+          Double,
+          Int64,
+          Int32,
+          Struct12BytesHomogeneousFloat,
+          Int64,
+        )
+      >,
+    );
 
 // Global variables to be able to test inputs after callback returned.
 double variadicAt1DoubleInt64Int32Struct20BytesHomogeneou_a0 = 0.0;
 int variadicAt1DoubleInt64Int32Struct20BytesHomogeneou_a1 = 0;
 int variadicAt1DoubleInt64Int32Struct20BytesHomogeneou_a2 = 0;
 Struct20BytesHomogeneousInt32
-    variadicAt1DoubleInt64Int32Struct20BytesHomogeneou_a3 =
+variadicAt1DoubleInt64Int32Struct20BytesHomogeneou_a3 =
     Pointer<Struct20BytesHomogeneousInt32>.fromAddress(0).ref;
 double variadicAt1DoubleInt64Int32Struct20BytesHomogeneou_a4 = 0.0;
 int variadicAt1DoubleInt64Int32Struct20BytesHomogeneou_a5 = 0;
 int variadicAt1DoubleInt64Int32Struct20BytesHomogeneou_a6 = 0;
 Struct12BytesHomogeneousFloat
-    variadicAt1DoubleInt64Int32Struct20BytesHomogeneou_a7 =
+variadicAt1DoubleInt64Int32Struct20BytesHomogeneou_a7 =
     Pointer<Struct12BytesHomogeneousFloat>.fromAddress(0).ref;
 int variadicAt1DoubleInt64Int32Struct20BytesHomogeneou_a8 = 0;
 
@@ -1326,23 +1443,26 @@ double variadicAt1DoubleInt64Int32Struct20BytesHomogeneouCalculateResult() {
 
 /// Variadic arguments mixed.
 double variadicAt1DoubleInt64Int32Struct20BytesHomogeneou(
-    double a0,
-    int a1,
-    int a2,
-    Struct20BytesHomogeneousInt32 a3,
-    double a4,
-    int a5,
-    int a6,
-    Struct12BytesHomogeneousFloat a7,
-    int a8) {
+  double a0,
+  int a1,
+  int a2,
+  Struct20BytesHomogeneousInt32 a3,
+  double a4,
+  int a5,
+  int a6,
+  Struct12BytesHomogeneousFloat a7,
+  int a8,
+) {
   print(
-      "variadicAt1DoubleInt64Int32Struct20BytesHomogeneou(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
+    "variadicAt1DoubleInt64Int32Struct20BytesHomogeneou(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})",
+  );
 
   // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "VariadicAt1DoubleInt64Int32Struct20BytesHomogeneou throwing on purpose!");
+      "VariadicAt1DoubleInt64Int32Struct20BytesHomogeneou throwing on purpose!",
+    );
   }
 
   variadicAt1DoubleInt64Int32Struct20BytesHomogeneou_a0 = a0;
@@ -1372,8 +1492,8 @@ void variadicAt1DoubleInt64Int32Struct20BytesHomogeneouAfterCallback() {
   Expect.approxEquals(-8.0, result);
 }
 
-typedef VariadicAt5Doublex5Type = Double Function(
-    Double, Double, Double, Double, Double, VarArgs<()>);
+typedef VariadicAt5Doublex5Type =
+    Double Function(Double, Double, Double, Double, Double, VarArgs<()>);
 
 // Global variables to be able to test inputs after callback returned.
 double variadicAt5Doublex5_a0 = 0.0;
@@ -1401,7 +1521,12 @@ double variadicAt5Doublex5CalculateResult() {
 
 /// Variadic arguments function definition, but not passing any.
 double variadicAt5Doublex5(
-    double a0, double a1, double a2, double a3, double a4) {
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+) {
   print("variadicAt5Doublex5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
 
   // Possibly throw.
@@ -1431,9 +1556,10 @@ void variadicAt5Doublex5AfterCallback() {
   Expect.approxEquals(-3.0, result);
 }
 
-typedef VariadicAt1Int64x7Struct12BytesHomogeneousInt32Type = Int64 Function(
-    Int64,
-    VarArgs<
+typedef VariadicAt1Int64x7Struct12BytesHomogeneousInt32Type =
+    Int64 Function(
+      Int64,
+      VarArgs<
         (
           Int64,
           Int64,
@@ -1441,8 +1567,10 @@ typedef VariadicAt1Int64x7Struct12BytesHomogeneousInt32Type = Int64 Function(
           Int64,
           Int64,
           Int64,
-          Struct12BytesHomogeneousInt32
-        )>);
+          Struct12BytesHomogeneousInt32,
+        )
+      >,
+    );
 
 // Global variables to be able to test inputs after callback returned.
 int variadicAt1Int64x7Struct12BytesHomogeneousInt32_a0 = 0;
@@ -1453,7 +1581,7 @@ int variadicAt1Int64x7Struct12BytesHomogeneousInt32_a4 = 0;
 int variadicAt1Int64x7Struct12BytesHomogeneousInt32_a5 = 0;
 int variadicAt1Int64x7Struct12BytesHomogeneousInt32_a6 = 0;
 Struct12BytesHomogeneousInt32
-    variadicAt1Int64x7Struct12BytesHomogeneousInt32_a7 =
+variadicAt1Int64x7Struct12BytesHomogeneousInt32_a7 =
     Pointer<Struct12BytesHomogeneousInt32>.fromAddress(0).ref;
 
 // Result variable also global, so we can delete it after the callback.
@@ -1479,16 +1607,26 @@ int variadicAt1Int64x7Struct12BytesHomogeneousInt32CalculateResult() {
 }
 
 /// Struct stradles last argument register, variadic
-int variadicAt1Int64x7Struct12BytesHomogeneousInt32(int a0, int a1, int a2,
-    int a3, int a4, int a5, int a6, Struct12BytesHomogeneousInt32 a7) {
+int variadicAt1Int64x7Struct12BytesHomogeneousInt32(
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  Struct12BytesHomogeneousInt32 a7,
+) {
   print(
-      "variadicAt1Int64x7Struct12BytesHomogeneousInt32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7})");
+    "variadicAt1Int64x7Struct12BytesHomogeneousInt32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7})",
+  );
 
   // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "VariadicAt1Int64x7Struct12BytesHomogeneousInt32 throwing on purpose!");
+      "VariadicAt1Int64x7Struct12BytesHomogeneousInt32 throwing on purpose!",
+    );
   }
 
   variadicAt1Int64x7Struct12BytesHomogeneousInt32_a0 = a0;
@@ -1517,12 +1655,15 @@ void variadicAt1Int64x7Struct12BytesHomogeneousInt32AfterCallback() {
   Expect.equals(5, result);
 }
 
-typedef VariadicAt1Struct12BytesHomogeneousInt32Int32x4Type = Int32 Function(
-    Struct12BytesHomogeneousInt32, VarArgs<(Int32, Int32, Int32, Int32)>);
+typedef VariadicAt1Struct12BytesHomogeneousInt32Int32x4Type =
+    Int32 Function(
+      Struct12BytesHomogeneousInt32,
+      VarArgs<(Int32, Int32, Int32, Int32)>,
+    );
 
 // Global variables to be able to test inputs after callback returned.
 Struct12BytesHomogeneousInt32
-    variadicAt1Struct12BytesHomogeneousInt32Int32x4_a0 =
+variadicAt1Struct12BytesHomogeneousInt32Int32x4_a0 =
     Pointer<Struct12BytesHomogeneousInt32>.fromAddress(0).ref;
 int variadicAt1Struct12BytesHomogeneousInt32Int32x4_a1 = 0;
 int variadicAt1Struct12BytesHomogeneousInt32Int32x4_a2 = 0;
@@ -1550,15 +1691,22 @@ int variadicAt1Struct12BytesHomogeneousInt32Int32x4CalculateResult() {
 
 /// Variadic arguments test on macos_arm64.
 int variadicAt1Struct12BytesHomogeneousInt32Int32x4(
-    Struct12BytesHomogeneousInt32 a0, int a1, int a2, int a3, int a4) {
+  Struct12BytesHomogeneousInt32 a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+) {
   print(
-      "variadicAt1Struct12BytesHomogeneousInt32Int32x4(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
+    "variadicAt1Struct12BytesHomogeneousInt32Int32x4(${a0}, ${a1}, ${a2}, ${a3}, ${a4})",
+  );
 
   // Possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "VariadicAt1Struct12BytesHomogeneousInt32Int32x4 throwing on purpose!");
+      "VariadicAt1Struct12BytesHomogeneousInt32Int32x4 throwing on purpose!",
+    );
   }
 
   variadicAt1Struct12BytesHomogeneousInt32Int32x4_a0 = a0;

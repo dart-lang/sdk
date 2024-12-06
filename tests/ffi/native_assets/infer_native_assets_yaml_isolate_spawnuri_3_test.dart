@@ -71,10 +71,7 @@ Future<void> createTestFiles(Uri tempUri, Uri helperContentsDataUri) async {
 
   final nativeAssetsYaml = createNativeAssetYaml(
     asset: helperContentsDataUri.toString(),
-    assetMapping: [
-      'absolute',
-      ffiTestFunctionsUriAbsolute.toFilePath(),
-    ],
+    assetMapping: ['absolute', ffiTestFunctionsUriAbsolute.toFilePath()],
   );
   final nativeAssetsUri = dartToolsUri.resolve('native_assets.yaml');
   await File.fromUri(nativeAssetsUri).writeAsString(nativeAssetsYaml);

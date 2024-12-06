@@ -53,5 +53,5 @@ void testInitStringInDart() {
 
 final takeString = ffiTestFunctions
     .lookupFunction<Char Function(Pointer<Utf8>), int Function(Pointer<Utf8>)>(
-  'TakeString',
-);
+      'TakeString',
+    );

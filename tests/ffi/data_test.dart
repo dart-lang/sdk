@@ -442,8 +442,9 @@ void testDynamicInvocation() {
 }
 
 final nullableInt64ElementAt1 = ffiTestFunctions.lookupFunction<
-    Pointer<Int64> Function(Pointer<Int64>),
-    Pointer<Int64> Function(Pointer<Int64>)>("NullableInt64ElemAt1");
+  Pointer<Int64> Function(Pointer<Int64>),
+  Pointer<Int64> Function(Pointer<Int64>)
+>("NullableInt64ElemAt1");
 
 void testNullptrCast() {
   Pointer<Int64> ptr = nullptr;

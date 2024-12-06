@@ -21,11 +21,7 @@ Future<void> invokeHelper2(SendPort sendPort, Uri tempUri2) async {
   final helper2CopiedUri = tempUri2.resolve(helper2Name);
 
   final receivePort = ReceivePort();
-  await Isolate.spawnUri(
-    helper2CopiedUri,
-    [],
-    receivePort.sendPort,
-  );
+  await Isolate.spawnUri(helper2CopiedUri, [], receivePort.sendPort);
 
   final result = (await receivePort.first);
   sendPort.send(result);

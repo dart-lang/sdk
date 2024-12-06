@@ -221,11 +221,11 @@ class PointerType extends CType {
   bool get hasSize => false;
   int get size => throw "Size unknown";
   String get dartTypedData => switch (pointerTo) {
-        float => 'Float32List',
-        double_ => 'Float64List',
-        FundamentalType() => '${pointerTo.dartCType}List',
-        _ => throw UnimplementedError(),
-      };
+    float => 'Float32List',
+    double_ => 'Float64List',
+    FundamentalType() => '${pointerTo.dartCType}List',
+    _ => throw UnimplementedError(),
+  };
 
   bool get isOnlyFloatingPoint => false;
   bool get isOnlyInteger => true;
@@ -276,15 +276,15 @@ abstract class CompositeType extends CType {
   final String overrideName;
 
   CompositeType(List<CType> memberTypes)
-      : this.members = generateMemberNames(memberTypes),
-        this.suffix = "",
-        this.overrideName = "";
+    : this.members = generateMemberNames(memberTypes),
+      this.suffix = "",
+      this.overrideName = "";
   CompositeType.disambiguate(List<CType> memberTypes, this.suffix)
-      : this.members = generateMemberNames(memberTypes),
-        this.overrideName = "";
+    : this.members = generateMemberNames(memberTypes),
+      this.overrideName = "";
   CompositeType.override(List<CType> memberTypes, this.overrideName)
-      : this.members = generateMemberNames(memberTypes),
-        this.suffix = "";
+    : this.members = generateMemberNames(memberTypes),
+      this.suffix = "";
 
   List<CType> get memberTypes => members.map((a) => a.type).toList();
 
@@ -310,23 +310,28 @@ abstract class CompositeType extends CType {
   bool get hasInlineArrays =>
       members.map((e) => e.type is FixedLengthArrayType).contains(true);
 
-  bool get hasMultiDimensionalInlineArrays => members
-      .map((e) => e.type)
-      .whereType<FixedLengthArrayType>()
-      .where((e) => e.isMulti)
-      .isNotEmpty;
+  bool get hasMultiDimensionalInlineArrays =>
+      members
+          .map((e) => e.type)
+          .whereType<FixedLengthArrayType>()
+          .where((e) => e.isMulti)
+          .isNotEmpty;
 }
 
 class StructType extends CompositeType {
   final int? packing;
 
   StructType(List<CType> memberTypes, {int? this.packing}) : super(memberTypes);
-  StructType.disambiguate(List<CType> memberTypes, String suffix,
-      {int? this.packing})
-      : super.disambiguate(memberTypes, suffix);
-  StructType.override(List<CType> memberTypes, String overrideName,
-      {int? this.packing})
-      : super.override(memberTypes, overrideName);
+  StructType.disambiguate(
+    List<CType> memberTypes,
+    String suffix, {
+    int? this.packing,
+  }) : super.disambiguate(memberTypes, suffix);
+  StructType.override(
+    List<CType> memberTypes,
+    String overrideName, {
+    int? this.packing,
+  }) : super.override(memberTypes, overrideName);
 
   String get cKeyword => "struct";
   String get dartSuperClass => "Struct";
@@ -446,8 +451,10 @@ class FixedLengthArrayType extends CType {
     }
 
     final remainingDimensions = dimensions.sublist(1);
-    final nestedArray =
-        FixedLengthArrayType.multi(elementType, remainingDimensions);
+    final nestedArray = FixedLengthArrayType.multi(
+      elementType,
+      remainingDimensions,
+    );
     return FixedLengthArrayType(nestedArray, dimensions.first);
   }
 
@@ -481,14 +488,16 @@ class FixedLengthArrayType extends CType {
 }
 
 class VariableLengthArrayType extends FixedLengthArrayType {
-  VariableLengthArrayType(
-    CType elementType,
-  ) : super(elementType, 0);
+  VariableLengthArrayType(CType elementType) : super(elementType, 0);
 
   factory VariableLengthArrayType.multi(
-      CType elementType, List<int> fixedDimensions) {
-    final nestedArray =
-        FixedLengthArrayType.multi(elementType, fixedDimensions);
+    CType elementType,
+    List<int> fixedDimensions,
+  ) {
+    final nestedArray = FixedLengthArrayType.multi(
+      elementType,
+      fixedDimensions,
+    );
     return VariableLengthArrayType(nestedArray);
   }
 
@@ -541,8 +550,9 @@ class FunctionType extends CType {
     } else {
       final normalArgTypes = argumentTypes.take(varArgsIndex_).toList();
       final varArgTypes = argumentTypes.skip(varArgsIndex_).toList();
-      final normalArgsString =
-          normalArgTypes.map((e) => e.dartCType).join(', ');
+      final normalArgsString = normalArgTypes
+          .map((e) => e.dartCType)
+          .join(', ');
       final varArgString = varArgTypes.map((e) => e.dartCType).join(', ');
       final unaryRecordType = varArgTypes.length == 1;
       if (unaryRecordType) {
@@ -609,8 +619,9 @@ class FunctionType extends CType {
     }
 
     for (final group in argumentsGrouped) {
-      final dartCType =
-          group.first.type.dartCType.replaceAll('<', '').replaceAll('>', '');
+      final dartCType = group.first.type.dartCType
+          .replaceAll('<', '')
+          .replaceAll('>', '');
       result += dartCType;
       if (group.length > 1) {
         result += "x${group.length}";
@@ -630,19 +641,19 @@ class FunctionType extends CType {
 
 extension MemberList on List<Member> {
   bool get containsComposites => map((m) {
-        final type = m.type;
-        switch (type) {
+    final type = m.type;
+    switch (type) {
+      case CompositeType _:
+        return true;
+      case PointerType _:
+        final pointerTo = type.pointerTo;
+        switch (pointerTo) {
           case CompositeType _:
             return true;
-          case PointerType _:
-            final pointerTo = type.pointerTo;
-            switch (pointerTo) {
-              case CompositeType _:
-                return true;
-            }
         }
-        return false;
-      }).contains(true);
+    }
+    return false;
+  }).contains(true);
 
   bool get containsPointers => any((m) => m.type is PointerType);
 }

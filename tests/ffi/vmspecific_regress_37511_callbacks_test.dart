@@ -39,9 +39,10 @@ final List<Function()> functionsToTest = [
 typedef NativeCallbackTest = Int32 Function(Pointer);
 typedef NativeCallbackTestFn = int Function(Pointer);
 
-final callbackSmallDouble =
-    ffiTestFunctions.lookupFunction<NativeCallbackTest, NativeCallbackTestFn>(
-        "TestSimpleMultiply");
+final callbackSmallDouble = ffiTestFunctions
+    .lookupFunction<NativeCallbackTest, NativeCallbackTestFn>(
+      "TestSimpleMultiply",
+    );
 
 typedef SimpleMultiplyType = Double Function(Double);
 double simpleMultiply(double x) => x * 1.337;

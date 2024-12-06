@@ -102,28 +102,31 @@ void main() {
 }
 
 @Native<
-    Int64 Function(
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt,
-        Struct1ByteInt)>(symbol: 'PassStruct1ByteIntx10', isLeaf: true)
+  Int64 Function(
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+    Struct1ByteInt,
+  )
+>(symbol: 'PassStruct1ByteIntx10', isLeaf: true)
 external int passStruct1ByteIntx10NativeLeaf(
-    Struct1ByteInt a0,
-    Struct1ByteInt a1,
-    Struct1ByteInt a2,
-    Struct1ByteInt a3,
-    Struct1ByteInt a4,
-    Struct1ByteInt a5,
-    Struct1ByteInt a6,
-    Struct1ByteInt a7,
-    Struct1ByteInt a8,
-    Struct1ByteInt a9);
+  Struct1ByteInt a0,
+  Struct1ByteInt a1,
+  Struct1ByteInt a2,
+  Struct1ByteInt a3,
+  Struct1ByteInt a4,
+  Struct1ByteInt a5,
+  Struct1ByteInt a6,
+  Struct1ByteInt a7,
+  Struct1ByteInt a8,
+  Struct1ByteInt a9,
+);
 
 /// Smallest struct with data.
 /// 10 struct arguments will exhaust available registers.
@@ -160,8 +163,18 @@ void testPassStruct1ByteIntx10NativeLeaf() {
   a8.a0 = -9;
   a9.a0 = 10;
 
-  final result =
-      passStruct1ByteIntx10NativeLeaf(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct1ByteIntx10NativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -180,29 +193,31 @@ void testPassStruct1ByteIntx10NativeLeaf() {
 }
 
 @Native<
-        Int64 Function(
-            Struct3BytesHomogeneousUint8,
-            Struct3BytesHomogeneousUint8,
-            Struct3BytesHomogeneousUint8,
-            Struct3BytesHomogeneousUint8,
-            Struct3BytesHomogeneousUint8,
-            Struct3BytesHomogeneousUint8,
-            Struct3BytesHomogeneousUint8,
-            Struct3BytesHomogeneousUint8,
-            Struct3BytesHomogeneousUint8,
-            Struct3BytesHomogeneousUint8)>(
-    symbol: 'PassStruct3BytesHomogeneousUint8x10', isLeaf: true)
+  Int64 Function(
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+  )
+>(symbol: 'PassStruct3BytesHomogeneousUint8x10', isLeaf: true)
 external int passStruct3BytesHomogeneousUint8x10NativeLeaf(
-    Struct3BytesHomogeneousUint8 a0,
-    Struct3BytesHomogeneousUint8 a1,
-    Struct3BytesHomogeneousUint8 a2,
-    Struct3BytesHomogeneousUint8 a3,
-    Struct3BytesHomogeneousUint8 a4,
-    Struct3BytesHomogeneousUint8 a5,
-    Struct3BytesHomogeneousUint8 a6,
-    Struct3BytesHomogeneousUint8 a7,
-    Struct3BytesHomogeneousUint8 a8,
-    Struct3BytesHomogeneousUint8 a9);
+  Struct3BytesHomogeneousUint8 a0,
+  Struct3BytesHomogeneousUint8 a1,
+  Struct3BytesHomogeneousUint8 a2,
+  Struct3BytesHomogeneousUint8 a3,
+  Struct3BytesHomogeneousUint8 a4,
+  Struct3BytesHomogeneousUint8 a5,
+  Struct3BytesHomogeneousUint8 a6,
+  Struct3BytesHomogeneousUint8 a7,
+  Struct3BytesHomogeneousUint8 a8,
+  Struct3BytesHomogeneousUint8 a9,
+);
 
 /// Not a multiple of word size, not a power of two.
 /// 10 struct arguments will exhaust available registers.
@@ -260,7 +275,17 @@ void testPassStruct3BytesHomogeneousUint8x10NativeLeaf() {
   a9.a2 = 30;
 
   final result = passStruct3BytesHomogeneousUint8x10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -279,29 +304,31 @@ void testPassStruct3BytesHomogeneousUint8x10NativeLeaf() {
 }
 
 @Native<
-        Int64 Function(
-            Struct3BytesInt2ByteAligned,
-            Struct3BytesInt2ByteAligned,
-            Struct3BytesInt2ByteAligned,
-            Struct3BytesInt2ByteAligned,
-            Struct3BytesInt2ByteAligned,
-            Struct3BytesInt2ByteAligned,
-            Struct3BytesInt2ByteAligned,
-            Struct3BytesInt2ByteAligned,
-            Struct3BytesInt2ByteAligned,
-            Struct3BytesInt2ByteAligned)>(
-    symbol: 'PassStruct3BytesInt2ByteAlignedx10', isLeaf: true)
+  Int64 Function(
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+  )
+>(symbol: 'PassStruct3BytesInt2ByteAlignedx10', isLeaf: true)
 external int passStruct3BytesInt2ByteAlignedx10NativeLeaf(
-    Struct3BytesInt2ByteAligned a0,
-    Struct3BytesInt2ByteAligned a1,
-    Struct3BytesInt2ByteAligned a2,
-    Struct3BytesInt2ByteAligned a3,
-    Struct3BytesInt2ByteAligned a4,
-    Struct3BytesInt2ByteAligned a5,
-    Struct3BytesInt2ByteAligned a6,
-    Struct3BytesInt2ByteAligned a7,
-    Struct3BytesInt2ByteAligned a8,
-    Struct3BytesInt2ByteAligned a9);
+  Struct3BytesInt2ByteAligned a0,
+  Struct3BytesInt2ByteAligned a1,
+  Struct3BytesInt2ByteAligned a2,
+  Struct3BytesInt2ByteAligned a3,
+  Struct3BytesInt2ByteAligned a4,
+  Struct3BytesInt2ByteAligned a5,
+  Struct3BytesInt2ByteAligned a6,
+  Struct3BytesInt2ByteAligned a7,
+  Struct3BytesInt2ByteAligned a8,
+  Struct3BytesInt2ByteAligned a9,
+);
 
 /// Not a multiple of word size, not a power of two.
 /// With alignment rules taken into account size is 4 bytes.
@@ -350,7 +377,17 @@ void testPassStruct3BytesInt2ByteAlignedx10NativeLeaf() {
   a9.a1 = 20;
 
   final result = passStruct3BytesInt2ByteAlignedx10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -369,29 +406,31 @@ void testPassStruct3BytesInt2ByteAlignedx10NativeLeaf() {
 }
 
 @Native<
-        Int64 Function(
-            Struct4BytesHomogeneousInt16,
-            Struct4BytesHomogeneousInt16,
-            Struct4BytesHomogeneousInt16,
-            Struct4BytesHomogeneousInt16,
-            Struct4BytesHomogeneousInt16,
-            Struct4BytesHomogeneousInt16,
-            Struct4BytesHomogeneousInt16,
-            Struct4BytesHomogeneousInt16,
-            Struct4BytesHomogeneousInt16,
-            Struct4BytesHomogeneousInt16)>(
-    symbol: 'PassStruct4BytesHomogeneousInt16x10', isLeaf: true)
+  Int64 Function(
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+    Struct4BytesHomogeneousInt16,
+  )
+>(symbol: 'PassStruct4BytesHomogeneousInt16x10', isLeaf: true)
 external int passStruct4BytesHomogeneousInt16x10NativeLeaf(
-    Struct4BytesHomogeneousInt16 a0,
-    Struct4BytesHomogeneousInt16 a1,
-    Struct4BytesHomogeneousInt16 a2,
-    Struct4BytesHomogeneousInt16 a3,
-    Struct4BytesHomogeneousInt16 a4,
-    Struct4BytesHomogeneousInt16 a5,
-    Struct4BytesHomogeneousInt16 a6,
-    Struct4BytesHomogeneousInt16 a7,
-    Struct4BytesHomogeneousInt16 a8,
-    Struct4BytesHomogeneousInt16 a9);
+  Struct4BytesHomogeneousInt16 a0,
+  Struct4BytesHomogeneousInt16 a1,
+  Struct4BytesHomogeneousInt16 a2,
+  Struct4BytesHomogeneousInt16 a3,
+  Struct4BytesHomogeneousInt16 a4,
+  Struct4BytesHomogeneousInt16 a5,
+  Struct4BytesHomogeneousInt16 a6,
+  Struct4BytesHomogeneousInt16 a7,
+  Struct4BytesHomogeneousInt16 a8,
+  Struct4BytesHomogeneousInt16 a9,
+);
 
 /// Exactly word size on 32-bit architectures.
 /// 10 struct arguments will exhaust available registers.
@@ -439,7 +478,17 @@ void testPassStruct4BytesHomogeneousInt16x10NativeLeaf() {
   a9.a1 = 20;
 
   final result = passStruct4BytesHomogeneousInt16x10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -458,29 +507,31 @@ void testPassStruct4BytesHomogeneousInt16x10NativeLeaf() {
 }
 
 @Native<
-        Int64 Function(
-            Struct7BytesHomogeneousUint8,
-            Struct7BytesHomogeneousUint8,
-            Struct7BytesHomogeneousUint8,
-            Struct7BytesHomogeneousUint8,
-            Struct7BytesHomogeneousUint8,
-            Struct7BytesHomogeneousUint8,
-            Struct7BytesHomogeneousUint8,
-            Struct7BytesHomogeneousUint8,
-            Struct7BytesHomogeneousUint8,
-            Struct7BytesHomogeneousUint8)>(
-    symbol: 'PassStruct7BytesHomogeneousUint8x10', isLeaf: true)
+  Int64 Function(
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+  )
+>(symbol: 'PassStruct7BytesHomogeneousUint8x10', isLeaf: true)
 external int passStruct7BytesHomogeneousUint8x10NativeLeaf(
-    Struct7BytesHomogeneousUint8 a0,
-    Struct7BytesHomogeneousUint8 a1,
-    Struct7BytesHomogeneousUint8 a2,
-    Struct7BytesHomogeneousUint8 a3,
-    Struct7BytesHomogeneousUint8 a4,
-    Struct7BytesHomogeneousUint8 a5,
-    Struct7BytesHomogeneousUint8 a6,
-    Struct7BytesHomogeneousUint8 a7,
-    Struct7BytesHomogeneousUint8 a8,
-    Struct7BytesHomogeneousUint8 a9);
+  Struct7BytesHomogeneousUint8 a0,
+  Struct7BytesHomogeneousUint8 a1,
+  Struct7BytesHomogeneousUint8 a2,
+  Struct7BytesHomogeneousUint8 a3,
+  Struct7BytesHomogeneousUint8 a4,
+  Struct7BytesHomogeneousUint8 a5,
+  Struct7BytesHomogeneousUint8 a6,
+  Struct7BytesHomogeneousUint8 a7,
+  Struct7BytesHomogeneousUint8 a8,
+  Struct7BytesHomogeneousUint8 a9,
+);
 
 /// Sub word size on 64 bit architectures.
 /// 10 struct arguments will exhaust available registers.
@@ -578,7 +629,17 @@ void testPassStruct7BytesHomogeneousUint8x10NativeLeaf() {
   a9.a6 = 70;
 
   final result = passStruct7BytesHomogeneousUint8x10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -597,29 +658,31 @@ void testPassStruct7BytesHomogeneousUint8x10NativeLeaf() {
 }
 
 @Native<
-        Int64 Function(
-            Struct7BytesInt4ByteAligned,
-            Struct7BytesInt4ByteAligned,
-            Struct7BytesInt4ByteAligned,
-            Struct7BytesInt4ByteAligned,
-            Struct7BytesInt4ByteAligned,
-            Struct7BytesInt4ByteAligned,
-            Struct7BytesInt4ByteAligned,
-            Struct7BytesInt4ByteAligned,
-            Struct7BytesInt4ByteAligned,
-            Struct7BytesInt4ByteAligned)>(
-    symbol: 'PassStruct7BytesInt4ByteAlignedx10', isLeaf: true)
+  Int64 Function(
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+  )
+>(symbol: 'PassStruct7BytesInt4ByteAlignedx10', isLeaf: true)
 external int passStruct7BytesInt4ByteAlignedx10NativeLeaf(
-    Struct7BytesInt4ByteAligned a0,
-    Struct7BytesInt4ByteAligned a1,
-    Struct7BytesInt4ByteAligned a2,
-    Struct7BytesInt4ByteAligned a3,
-    Struct7BytesInt4ByteAligned a4,
-    Struct7BytesInt4ByteAligned a5,
-    Struct7BytesInt4ByteAligned a6,
-    Struct7BytesInt4ByteAligned a7,
-    Struct7BytesInt4ByteAligned a8,
-    Struct7BytesInt4ByteAligned a9);
+  Struct7BytesInt4ByteAligned a0,
+  Struct7BytesInt4ByteAligned a1,
+  Struct7BytesInt4ByteAligned a2,
+  Struct7BytesInt4ByteAligned a3,
+  Struct7BytesInt4ByteAligned a4,
+  Struct7BytesInt4ByteAligned a5,
+  Struct7BytesInt4ByteAligned a6,
+  Struct7BytesInt4ByteAligned a7,
+  Struct7BytesInt4ByteAligned a8,
+  Struct7BytesInt4ByteAligned a9,
+);
 
 /// Sub word size on 64 bit architectures.
 /// With alignment rules taken into account size is 8 bytes.
@@ -678,7 +741,17 @@ void testPassStruct7BytesInt4ByteAlignedx10NativeLeaf() {
   a9.a2 = 30;
 
   final result = passStruct7BytesInt4ByteAlignedx10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -697,28 +770,31 @@ void testPassStruct7BytesInt4ByteAlignedx10NativeLeaf() {
 }
 
 @Native<
-    Int64 Function(
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt,
-        Struct8BytesInt)>(symbol: 'PassStruct8BytesIntx10', isLeaf: true)
+  Int64 Function(
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+    Struct8BytesInt,
+  )
+>(symbol: 'PassStruct8BytesIntx10', isLeaf: true)
 external int passStruct8BytesIntx10NativeLeaf(
-    Struct8BytesInt a0,
-    Struct8BytesInt a1,
-    Struct8BytesInt a2,
-    Struct8BytesInt a3,
-    Struct8BytesInt a4,
-    Struct8BytesInt a5,
-    Struct8BytesInt a6,
-    Struct8BytesInt a7,
-    Struct8BytesInt a8,
-    Struct8BytesInt a9);
+  Struct8BytesInt a0,
+  Struct8BytesInt a1,
+  Struct8BytesInt a2,
+  Struct8BytesInt a3,
+  Struct8BytesInt a4,
+  Struct8BytesInt a5,
+  Struct8BytesInt a6,
+  Struct8BytesInt a7,
+  Struct8BytesInt a8,
+  Struct8BytesInt a9,
+);
 
 /// Exactly word size struct on 64bit architectures.
 /// 10 struct arguments will exhaust available registers.
@@ -775,8 +851,18 @@ void testPassStruct8BytesIntx10NativeLeaf() {
   a9.a1 = -29;
   a9.a2 = 30;
 
-  final result =
-      passStruct8BytesIntx10NativeLeaf(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct8BytesIntx10NativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -795,29 +881,31 @@ void testPassStruct8BytesIntx10NativeLeaf() {
 }
 
 @Native<
-        Float Function(
-            Struct8BytesHomogeneousFloat,
-            Struct8BytesHomogeneousFloat,
-            Struct8BytesHomogeneousFloat,
-            Struct8BytesHomogeneousFloat,
-            Struct8BytesHomogeneousFloat,
-            Struct8BytesHomogeneousFloat,
-            Struct8BytesHomogeneousFloat,
-            Struct8BytesHomogeneousFloat,
-            Struct8BytesHomogeneousFloat,
-            Struct8BytesHomogeneousFloat)>(
-    symbol: 'PassStruct8BytesHomogeneousFloatx10', isLeaf: true)
+  Float Function(
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+    Struct8BytesHomogeneousFloat,
+  )
+>(symbol: 'PassStruct8BytesHomogeneousFloatx10', isLeaf: true)
 external double passStruct8BytesHomogeneousFloatx10NativeLeaf(
-    Struct8BytesHomogeneousFloat a0,
-    Struct8BytesHomogeneousFloat a1,
-    Struct8BytesHomogeneousFloat a2,
-    Struct8BytesHomogeneousFloat a3,
-    Struct8BytesHomogeneousFloat a4,
-    Struct8BytesHomogeneousFloat a5,
-    Struct8BytesHomogeneousFloat a6,
-    Struct8BytesHomogeneousFloat a7,
-    Struct8BytesHomogeneousFloat a8,
-    Struct8BytesHomogeneousFloat a9);
+  Struct8BytesHomogeneousFloat a0,
+  Struct8BytesHomogeneousFloat a1,
+  Struct8BytesHomogeneousFloat a2,
+  Struct8BytesHomogeneousFloat a3,
+  Struct8BytesHomogeneousFloat a4,
+  Struct8BytesHomogeneousFloat a5,
+  Struct8BytesHomogeneousFloat a6,
+  Struct8BytesHomogeneousFloat a7,
+  Struct8BytesHomogeneousFloat a8,
+  Struct8BytesHomogeneousFloat a9,
+);
 
 /// Arguments passed in FP registers as long as they fit.
 /// 10 struct arguments will exhaust available registers.
@@ -865,7 +953,17 @@ void testPassStruct8BytesHomogeneousFloatx10NativeLeaf() {
   a9.a1 = 20.0;
 
   final result = passStruct8BytesHomogeneousFloatx10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -884,28 +982,31 @@ void testPassStruct8BytesHomogeneousFloatx10NativeLeaf() {
 }
 
 @Native<
-    Float Function(
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed,
-        Struct8BytesMixed)>(symbol: 'PassStruct8BytesMixedx10', isLeaf: true)
+  Float Function(
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+    Struct8BytesMixed,
+  )
+>(symbol: 'PassStruct8BytesMixedx10', isLeaf: true)
 external double passStruct8BytesMixedx10NativeLeaf(
-    Struct8BytesMixed a0,
-    Struct8BytesMixed a1,
-    Struct8BytesMixed a2,
-    Struct8BytesMixed a3,
-    Struct8BytesMixed a4,
-    Struct8BytesMixed a5,
-    Struct8BytesMixed a6,
-    Struct8BytesMixed a7,
-    Struct8BytesMixed a8,
-    Struct8BytesMixed a9);
+  Struct8BytesMixed a0,
+  Struct8BytesMixed a1,
+  Struct8BytesMixed a2,
+  Struct8BytesMixed a3,
+  Struct8BytesMixed a4,
+  Struct8BytesMixed a5,
+  Struct8BytesMixed a6,
+  Struct8BytesMixed a7,
+  Struct8BytesMixed a8,
+  Struct8BytesMixed a9,
+);
 
 /// On x64, arguments go in int registers because it is not only float.
 /// 10 struct arguments will exhaust available registers.
@@ -963,7 +1064,17 @@ void testPassStruct8BytesMixedx10NativeLeaf() {
   a9.a2 = 30;
 
   final result = passStruct8BytesMixedx10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -982,29 +1093,31 @@ void testPassStruct8BytesMixedx10NativeLeaf() {
 }
 
 @Native<
-        Int64 Function(
-            Struct9BytesHomogeneousUint8,
-            Struct9BytesHomogeneousUint8,
-            Struct9BytesHomogeneousUint8,
-            Struct9BytesHomogeneousUint8,
-            Struct9BytesHomogeneousUint8,
-            Struct9BytesHomogeneousUint8,
-            Struct9BytesHomogeneousUint8,
-            Struct9BytesHomogeneousUint8,
-            Struct9BytesHomogeneousUint8,
-            Struct9BytesHomogeneousUint8)>(
-    symbol: 'PassStruct9BytesHomogeneousUint8x10', isLeaf: true)
+  Int64 Function(
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+  )
+>(symbol: 'PassStruct9BytesHomogeneousUint8x10', isLeaf: true)
 external int passStruct9BytesHomogeneousUint8x10NativeLeaf(
-    Struct9BytesHomogeneousUint8 a0,
-    Struct9BytesHomogeneousUint8 a1,
-    Struct9BytesHomogeneousUint8 a2,
-    Struct9BytesHomogeneousUint8 a3,
-    Struct9BytesHomogeneousUint8 a4,
-    Struct9BytesHomogeneousUint8 a5,
-    Struct9BytesHomogeneousUint8 a6,
-    Struct9BytesHomogeneousUint8 a7,
-    Struct9BytesHomogeneousUint8 a8,
-    Struct9BytesHomogeneousUint8 a9);
+  Struct9BytesHomogeneousUint8 a0,
+  Struct9BytesHomogeneousUint8 a1,
+  Struct9BytesHomogeneousUint8 a2,
+  Struct9BytesHomogeneousUint8 a3,
+  Struct9BytesHomogeneousUint8 a4,
+  Struct9BytesHomogeneousUint8 a5,
+  Struct9BytesHomogeneousUint8 a6,
+  Struct9BytesHomogeneousUint8 a7,
+  Struct9BytesHomogeneousUint8 a8,
+  Struct9BytesHomogeneousUint8 a9,
+);
 
 /// Argument is a single byte over a multiple of word size.
 /// 10 struct arguments will exhaust available registers.
@@ -1125,7 +1238,17 @@ void testPassStruct9BytesHomogeneousUint8x10NativeLeaf() {
   a9.a8 = 90;
 
   final result = passStruct9BytesHomogeneousUint8x10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -1144,29 +1267,31 @@ void testPassStruct9BytesHomogeneousUint8x10NativeLeaf() {
 }
 
 @Native<
-        Int64 Function(
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned,
-            Struct9BytesInt4Or8ByteAligned)>(
-    symbol: 'PassStruct9BytesInt4Or8ByteAlignedx10', isLeaf: true)
+  Int64 Function(
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+  )
+>(symbol: 'PassStruct9BytesInt4Or8ByteAlignedx10', isLeaf: true)
 external int passStruct9BytesInt4Or8ByteAlignedx10NativeLeaf(
-    Struct9BytesInt4Or8ByteAligned a0,
-    Struct9BytesInt4Or8ByteAligned a1,
-    Struct9BytesInt4Or8ByteAligned a2,
-    Struct9BytesInt4Or8ByteAligned a3,
-    Struct9BytesInt4Or8ByteAligned a4,
-    Struct9BytesInt4Or8ByteAligned a5,
-    Struct9BytesInt4Or8ByteAligned a6,
-    Struct9BytesInt4Or8ByteAligned a7,
-    Struct9BytesInt4Or8ByteAligned a8,
-    Struct9BytesInt4Or8ByteAligned a9);
+  Struct9BytesInt4Or8ByteAligned a0,
+  Struct9BytesInt4Or8ByteAligned a1,
+  Struct9BytesInt4Or8ByteAligned a2,
+  Struct9BytesInt4Or8ByteAligned a3,
+  Struct9BytesInt4Or8ByteAligned a4,
+  Struct9BytesInt4Or8ByteAligned a5,
+  Struct9BytesInt4Or8ByteAligned a6,
+  Struct9BytesInt4Or8ByteAligned a7,
+  Struct9BytesInt4Or8ByteAligned a8,
+  Struct9BytesInt4Or8ByteAligned a9,
+);
 
 /// Argument is a single byte over a multiple of word size.
 /// With alignment rules taken into account size is 12 or 16 bytes.
@@ -1216,7 +1341,17 @@ void testPassStruct9BytesInt4Or8ByteAlignedx10NativeLeaf() {
   a9.a1 = 20;
 
   final result = passStruct9BytesInt4Or8ByteAlignedx10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -1235,21 +1370,23 @@ void testPassStruct9BytesInt4Or8ByteAlignedx10NativeLeaf() {
 }
 
 @Native<
-        Float Function(
-            Struct12BytesHomogeneousFloat,
-            Struct12BytesHomogeneousFloat,
-            Struct12BytesHomogeneousFloat,
-            Struct12BytesHomogeneousFloat,
-            Struct12BytesHomogeneousFloat,
-            Struct12BytesHomogeneousFloat)>(
-    symbol: 'PassStruct12BytesHomogeneousFloatx6', isLeaf: true)
+  Float Function(
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+    Struct12BytesHomogeneousFloat,
+  )
+>(symbol: 'PassStruct12BytesHomogeneousFloatx6', isLeaf: true)
 external double passStruct12BytesHomogeneousFloatx6NativeLeaf(
-    Struct12BytesHomogeneousFloat a0,
-    Struct12BytesHomogeneousFloat a1,
-    Struct12BytesHomogeneousFloat a2,
-    Struct12BytesHomogeneousFloat a3,
-    Struct12BytesHomogeneousFloat a4,
-    Struct12BytesHomogeneousFloat a5);
+  Struct12BytesHomogeneousFloat a0,
+  Struct12BytesHomogeneousFloat a1,
+  Struct12BytesHomogeneousFloat a2,
+  Struct12BytesHomogeneousFloat a3,
+  Struct12BytesHomogeneousFloat a4,
+  Struct12BytesHomogeneousFloat a5,
+);
 
 /// Arguments in FPU registers on arm hardfp and arm64.
 /// Struct arguments will exhaust available registers, and leave some empty.
@@ -1287,8 +1424,14 @@ void testPassStruct12BytesHomogeneousFloatx6NativeLeaf() {
   a5.a1 = -17.0;
   a5.a2 = 18.0;
 
-  final result =
-      passStruct12BytesHomogeneousFloatx6NativeLeaf(a0, a1, a2, a3, a4, a5);
+  final result = passStruct12BytesHomogeneousFloatx6NativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+  );
 
   print("result = $result");
 
@@ -1303,19 +1446,21 @@ void testPassStruct12BytesHomogeneousFloatx6NativeLeaf() {
 }
 
 @Native<
-        Float Function(
-            Struct16BytesHomogeneousFloat,
-            Struct16BytesHomogeneousFloat,
-            Struct16BytesHomogeneousFloat,
-            Struct16BytesHomogeneousFloat,
-            Struct16BytesHomogeneousFloat)>(
-    symbol: 'PassStruct16BytesHomogeneousFloatx5', isLeaf: true)
+  Float Function(
+    Struct16BytesHomogeneousFloat,
+    Struct16BytesHomogeneousFloat,
+    Struct16BytesHomogeneousFloat,
+    Struct16BytesHomogeneousFloat,
+    Struct16BytesHomogeneousFloat,
+  )
+>(symbol: 'PassStruct16BytesHomogeneousFloatx5', isLeaf: true)
 external double passStruct16BytesHomogeneousFloatx5NativeLeaf(
-    Struct16BytesHomogeneousFloat a0,
-    Struct16BytesHomogeneousFloat a1,
-    Struct16BytesHomogeneousFloat a2,
-    Struct16BytesHomogeneousFloat a3,
-    Struct16BytesHomogeneousFloat a4);
+  Struct16BytesHomogeneousFloat a0,
+  Struct16BytesHomogeneousFloat a1,
+  Struct16BytesHomogeneousFloat a2,
+  Struct16BytesHomogeneousFloat a3,
+  Struct16BytesHomogeneousFloat a4,
+);
 
 /// On Linux x64 argument is transferred on stack because it is over 16 bytes.
 /// Arguments in FPU registers on arm hardfp and arm64.
@@ -1353,8 +1498,13 @@ void testPassStruct16BytesHomogeneousFloatx5NativeLeaf() {
   a4.a2 = -19.0;
   a4.a3 = 20.0;
 
-  final result =
-      passStruct16BytesHomogeneousFloatx5NativeLeaf(a0, a1, a2, a3, a4);
+  final result = passStruct16BytesHomogeneousFloatx5NativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+  );
 
   print("result = $result");
 
@@ -1368,28 +1518,31 @@ void testPassStruct16BytesHomogeneousFloatx5NativeLeaf() {
 }
 
 @Native<
-    Double Function(
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed)>(symbol: 'PassStruct16BytesMixedx10', isLeaf: true)
+  Double Function(
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+  )
+>(symbol: 'PassStruct16BytesMixedx10', isLeaf: true)
 external double passStruct16BytesMixedx10NativeLeaf(
-    Struct16BytesMixed a0,
-    Struct16BytesMixed a1,
-    Struct16BytesMixed a2,
-    Struct16BytesMixed a3,
-    Struct16BytesMixed a4,
-    Struct16BytesMixed a5,
-    Struct16BytesMixed a6,
-    Struct16BytesMixed a7,
-    Struct16BytesMixed a8,
-    Struct16BytesMixed a9);
+  Struct16BytesMixed a0,
+  Struct16BytesMixed a1,
+  Struct16BytesMixed a2,
+  Struct16BytesMixed a3,
+  Struct16BytesMixed a4,
+  Struct16BytesMixed a5,
+  Struct16BytesMixed a6,
+  Struct16BytesMixed a7,
+  Struct16BytesMixed a8,
+  Struct16BytesMixed a9,
+);
 
 /// On x64, arguments are split over FP and int registers.
 /// On x64, it will exhaust the integer registers with the 6th argument.
@@ -1439,7 +1592,17 @@ void testPassStruct16BytesMixedx10NativeLeaf() {
   a9.a1 = 20;
 
   final result = passStruct16BytesMixedx10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -1458,29 +1621,31 @@ void testPassStruct16BytesMixedx10NativeLeaf() {
 }
 
 @Native<
-        Float Function(
-            Struct16BytesMixed2,
-            Struct16BytesMixed2,
-            Struct16BytesMixed2,
-            Struct16BytesMixed2,
-            Struct16BytesMixed2,
-            Struct16BytesMixed2,
-            Struct16BytesMixed2,
-            Struct16BytesMixed2,
-            Struct16BytesMixed2,
-            Struct16BytesMixed2)>(
-    symbol: 'PassStruct16BytesMixed2x10', isLeaf: true)
+  Float Function(
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+    Struct16BytesMixed2,
+  )
+>(symbol: 'PassStruct16BytesMixed2x10', isLeaf: true)
 external double passStruct16BytesMixed2x10NativeLeaf(
-    Struct16BytesMixed2 a0,
-    Struct16BytesMixed2 a1,
-    Struct16BytesMixed2 a2,
-    Struct16BytesMixed2 a3,
-    Struct16BytesMixed2 a4,
-    Struct16BytesMixed2 a5,
-    Struct16BytesMixed2 a6,
-    Struct16BytesMixed2 a7,
-    Struct16BytesMixed2 a8,
-    Struct16BytesMixed2 a9);
+  Struct16BytesMixed2 a0,
+  Struct16BytesMixed2 a1,
+  Struct16BytesMixed2 a2,
+  Struct16BytesMixed2 a3,
+  Struct16BytesMixed2 a4,
+  Struct16BytesMixed2 a5,
+  Struct16BytesMixed2 a6,
+  Struct16BytesMixed2 a7,
+  Struct16BytesMixed2 a8,
+  Struct16BytesMixed2 a9,
+);
 
 /// On x64, arguments are split over FP and int registers.
 /// On x64, it will exhaust the integer registers with the 6th argument.
@@ -1550,7 +1715,17 @@ void testPassStruct16BytesMixed2x10NativeLeaf() {
   a9.a3 = 40;
 
   final result = passStruct16BytesMixed2x10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -1569,28 +1744,31 @@ void testPassStruct16BytesMixed2x10NativeLeaf() {
 }
 
 @Native<
-    Int64 Function(
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt,
-        Struct17BytesInt)>(symbol: 'PassStruct17BytesIntx10', isLeaf: true)
+  Int64 Function(
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+    Struct17BytesInt,
+  )
+>(symbol: 'PassStruct17BytesIntx10', isLeaf: true)
 external int passStruct17BytesIntx10NativeLeaf(
-    Struct17BytesInt a0,
-    Struct17BytesInt a1,
-    Struct17BytesInt a2,
-    Struct17BytesInt a3,
-    Struct17BytesInt a4,
-    Struct17BytesInt a5,
-    Struct17BytesInt a6,
-    Struct17BytesInt a7,
-    Struct17BytesInt a8,
-    Struct17BytesInt a9);
+  Struct17BytesInt a0,
+  Struct17BytesInt a1,
+  Struct17BytesInt a2,
+  Struct17BytesInt a3,
+  Struct17BytesInt a4,
+  Struct17BytesInt a5,
+  Struct17BytesInt a6,
+  Struct17BytesInt a7,
+  Struct17BytesInt a8,
+  Struct17BytesInt a9,
+);
 
 /// Arguments are passed as pointer to copy on arm64.
 /// Tests that the memory allocated for copies are rounded up to word size.
@@ -1647,8 +1825,18 @@ void testPassStruct17BytesIntx10NativeLeaf() {
   a9.a1 = -29;
   a9.a2 = 30;
 
-  final result =
-      passStruct17BytesIntx10NativeLeaf(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct17BytesIntx10NativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -1667,29 +1855,31 @@ void testPassStruct17BytesIntx10NativeLeaf() {
 }
 
 @Native<
-        Int64 Function(
-            Struct19BytesHomogeneousUint8,
-            Struct19BytesHomogeneousUint8,
-            Struct19BytesHomogeneousUint8,
-            Struct19BytesHomogeneousUint8,
-            Struct19BytesHomogeneousUint8,
-            Struct19BytesHomogeneousUint8,
-            Struct19BytesHomogeneousUint8,
-            Struct19BytesHomogeneousUint8,
-            Struct19BytesHomogeneousUint8,
-            Struct19BytesHomogeneousUint8)>(
-    symbol: 'PassStruct19BytesHomogeneousUint8x10', isLeaf: true)
+  Int64 Function(
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+    Struct19BytesHomogeneousUint8,
+  )
+>(symbol: 'PassStruct19BytesHomogeneousUint8x10', isLeaf: true)
 external int passStruct19BytesHomogeneousUint8x10NativeLeaf(
-    Struct19BytesHomogeneousUint8 a0,
-    Struct19BytesHomogeneousUint8 a1,
-    Struct19BytesHomogeneousUint8 a2,
-    Struct19BytesHomogeneousUint8 a3,
-    Struct19BytesHomogeneousUint8 a4,
-    Struct19BytesHomogeneousUint8 a5,
-    Struct19BytesHomogeneousUint8 a6,
-    Struct19BytesHomogeneousUint8 a7,
-    Struct19BytesHomogeneousUint8 a8,
-    Struct19BytesHomogeneousUint8 a9);
+  Struct19BytesHomogeneousUint8 a0,
+  Struct19BytesHomogeneousUint8 a1,
+  Struct19BytesHomogeneousUint8 a2,
+  Struct19BytesHomogeneousUint8 a3,
+  Struct19BytesHomogeneousUint8 a4,
+  Struct19BytesHomogeneousUint8 a5,
+  Struct19BytesHomogeneousUint8 a6,
+  Struct19BytesHomogeneousUint8 a7,
+  Struct19BytesHomogeneousUint8 a8,
+  Struct19BytesHomogeneousUint8 a9,
+);
 
 /// The minimum alignment of this struct is only 1 byte based on its fields.
 /// Test that the memory backing these structs is extended to the right size.
@@ -1908,7 +2098,17 @@ void testPassStruct19BytesHomogeneousUint8x10NativeLeaf() {
   a9.a18 = 190;
 
   final result = passStruct19BytesHomogeneousUint8x10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -1927,29 +2127,31 @@ void testPassStruct19BytesHomogeneousUint8x10NativeLeaf() {
 }
 
 @Native<
-        Int32 Function(
-            Struct20BytesHomogeneousInt32,
-            Struct20BytesHomogeneousInt32,
-            Struct20BytesHomogeneousInt32,
-            Struct20BytesHomogeneousInt32,
-            Struct20BytesHomogeneousInt32,
-            Struct20BytesHomogeneousInt32,
-            Struct20BytesHomogeneousInt32,
-            Struct20BytesHomogeneousInt32,
-            Struct20BytesHomogeneousInt32,
-            Struct20BytesHomogeneousInt32)>(
-    symbol: 'PassStruct20BytesHomogeneousInt32x10', isLeaf: true)
+  Int32 Function(
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+    Struct20BytesHomogeneousInt32,
+  )
+>(symbol: 'PassStruct20BytesHomogeneousInt32x10', isLeaf: true)
 external int passStruct20BytesHomogeneousInt32x10NativeLeaf(
-    Struct20BytesHomogeneousInt32 a0,
-    Struct20BytesHomogeneousInt32 a1,
-    Struct20BytesHomogeneousInt32 a2,
-    Struct20BytesHomogeneousInt32 a3,
-    Struct20BytesHomogeneousInt32 a4,
-    Struct20BytesHomogeneousInt32 a5,
-    Struct20BytesHomogeneousInt32 a6,
-    Struct20BytesHomogeneousInt32 a7,
-    Struct20BytesHomogeneousInt32 a8,
-    Struct20BytesHomogeneousInt32 a9);
+  Struct20BytesHomogeneousInt32 a0,
+  Struct20BytesHomogeneousInt32 a1,
+  Struct20BytesHomogeneousInt32 a2,
+  Struct20BytesHomogeneousInt32 a3,
+  Struct20BytesHomogeneousInt32 a4,
+  Struct20BytesHomogeneousInt32 a5,
+  Struct20BytesHomogeneousInt32 a6,
+  Struct20BytesHomogeneousInt32 a7,
+  Struct20BytesHomogeneousInt32 a8,
+  Struct20BytesHomogeneousInt32 a9,
+);
 
 /// Argument too big to go into integer registers on arm64.
 /// The arguments are passed as pointers to copies.
@@ -2029,7 +2231,17 @@ void testPassStruct20BytesHomogeneousInt32x10NativeLeaf() {
   a9.a4 = 50;
 
   final result = passStruct20BytesHomogeneousInt32x10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -2048,9 +2260,12 @@ void testPassStruct20BytesHomogeneousInt32x10NativeLeaf() {
 }
 
 @Native<Float Function(Struct20BytesHomogeneousFloat)>(
-    symbol: 'PassStruct20BytesHomogeneousFloat', isLeaf: true)
+  symbol: 'PassStruct20BytesHomogeneousFloat',
+  isLeaf: true,
+)
 external double passStruct20BytesHomogeneousFloatNativeLeaf(
-    Struct20BytesHomogeneousFloat a0);
+  Struct20BytesHomogeneousFloat a0,
+);
 
 /// Argument too big to go into FPU registers in hardfp and arm64.
 void testPassStruct20BytesHomogeneousFloatNativeLeaf() {
@@ -2073,19 +2288,21 @@ void testPassStruct20BytesHomogeneousFloatNativeLeaf() {
 }
 
 @Native<
-        Double Function(
-            Struct32BytesHomogeneousDouble,
-            Struct32BytesHomogeneousDouble,
-            Struct32BytesHomogeneousDouble,
-            Struct32BytesHomogeneousDouble,
-            Struct32BytesHomogeneousDouble)>(
-    symbol: 'PassStruct32BytesHomogeneousDoublex5', isLeaf: true)
+  Double Function(
+    Struct32BytesHomogeneousDouble,
+    Struct32BytesHomogeneousDouble,
+    Struct32BytesHomogeneousDouble,
+    Struct32BytesHomogeneousDouble,
+    Struct32BytesHomogeneousDouble,
+  )
+>(symbol: 'PassStruct32BytesHomogeneousDoublex5', isLeaf: true)
 external double passStruct32BytesHomogeneousDoublex5NativeLeaf(
-    Struct32BytesHomogeneousDouble a0,
-    Struct32BytesHomogeneousDouble a1,
-    Struct32BytesHomogeneousDouble a2,
-    Struct32BytesHomogeneousDouble a3,
-    Struct32BytesHomogeneousDouble a4);
+  Struct32BytesHomogeneousDouble a0,
+  Struct32BytesHomogeneousDouble a1,
+  Struct32BytesHomogeneousDouble a2,
+  Struct32BytesHomogeneousDouble a3,
+  Struct32BytesHomogeneousDouble a4,
+);
 
 /// Arguments in FPU registers on arm64.
 /// 5 struct arguments will exhaust available registers.
@@ -2122,8 +2339,13 @@ void testPassStruct32BytesHomogeneousDoublex5NativeLeaf() {
   a4.a2 = -19.0;
   a4.a3 = 20.0;
 
-  final result =
-      passStruct32BytesHomogeneousDoublex5NativeLeaf(a0, a1, a2, a3, a4);
+  final result = passStruct32BytesHomogeneousDoublex5NativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+  );
 
   print("result = $result");
 
@@ -2137,9 +2359,12 @@ void testPassStruct32BytesHomogeneousDoublex5NativeLeaf() {
 }
 
 @Native<Double Function(Struct40BytesHomogeneousDouble)>(
-    symbol: 'PassStruct40BytesHomogeneousDouble', isLeaf: true)
+  symbol: 'PassStruct40BytesHomogeneousDouble',
+  isLeaf: true,
+)
 external double passStruct40BytesHomogeneousDoubleNativeLeaf(
-    Struct40BytesHomogeneousDouble a0);
+  Struct40BytesHomogeneousDouble a0,
+);
 
 /// Argument too big to go into FPU registers in arm64.
 void testPassStruct40BytesHomogeneousDoubleNativeLeaf() {
@@ -2162,9 +2387,12 @@ void testPassStruct40BytesHomogeneousDoubleNativeLeaf() {
 }
 
 @Native<Uint64 Function(Struct1024BytesHomogeneousUint64)>(
-    symbol: 'PassStruct1024BytesHomogeneousUint64', isLeaf: true)
+  symbol: 'PassStruct1024BytesHomogeneousUint64',
+  isLeaf: true,
+)
 external int passStruct1024BytesHomogeneousUint64NativeLeaf(
-    Struct1024BytesHomogeneousUint64 a0);
+  Struct1024BytesHomogeneousUint64 a0,
+);
 
 /// Test 1kb struct.
 void testPassStruct1024BytesHomogeneousUint64NativeLeaf() {
@@ -2310,27 +2538,29 @@ void testPassStruct1024BytesHomogeneousUint64NativeLeaf() {
 }
 
 @Native<
-        Float Function(
-            Float,
-            Struct16BytesHomogeneousFloat,
-            Float,
-            Struct16BytesHomogeneousFloat,
-            Float,
-            Struct16BytesHomogeneousFloat,
-            Float,
-            Struct16BytesHomogeneousFloat,
-            Float)>(
-    symbol: 'PassFloatStruct16BytesHomogeneousFloatFloatStruct1', isLeaf: true)
+  Float Function(
+    Float,
+    Struct16BytesHomogeneousFloat,
+    Float,
+    Struct16BytesHomogeneousFloat,
+    Float,
+    Struct16BytesHomogeneousFloat,
+    Float,
+    Struct16BytesHomogeneousFloat,
+    Float,
+  )
+>(symbol: 'PassFloatStruct16BytesHomogeneousFloatFloatStruct1', isLeaf: true)
 external double passFloatStruct16BytesHomogeneousFloatFloatStruct1NativeLeaf(
-    double a0,
-    Struct16BytesHomogeneousFloat a1,
-    double a2,
-    Struct16BytesHomogeneousFloat a3,
-    double a4,
-    Struct16BytesHomogeneousFloat a5,
-    double a6,
-    Struct16BytesHomogeneousFloat a7,
-    double a8);
+  double a0,
+  Struct16BytesHomogeneousFloat a1,
+  double a2,
+  Struct16BytesHomogeneousFloat a3,
+  double a4,
+  Struct16BytesHomogeneousFloat a5,
+  double a6,
+  Struct16BytesHomogeneousFloat a7,
+  double a8,
+);
 
 /// Tests the alignment of structs in FPU registers and backfilling.
 void testPassFloatStruct16BytesHomogeneousFloatFloatStruct1NativeLeaf() {
@@ -2371,7 +2601,16 @@ void testPassFloatStruct16BytesHomogeneousFloatFloatStruct1NativeLeaf() {
   a8 = -21.0;
 
   final result = passFloatStruct16BytesHomogeneousFloatFloatStruct1NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -2384,27 +2623,29 @@ void testPassFloatStruct16BytesHomogeneousFloatFloatStruct1NativeLeaf() {
 }
 
 @Native<
-        Double Function(
-            Float,
-            Struct32BytesHomogeneousDouble,
-            Float,
-            Struct32BytesHomogeneousDouble,
-            Float,
-            Struct32BytesHomogeneousDouble,
-            Float,
-            Struct32BytesHomogeneousDouble,
-            Float)>(
-    symbol: 'PassFloatStruct32BytesHomogeneousDoubleFloatStruct', isLeaf: true)
+  Double Function(
+    Float,
+    Struct32BytesHomogeneousDouble,
+    Float,
+    Struct32BytesHomogeneousDouble,
+    Float,
+    Struct32BytesHomogeneousDouble,
+    Float,
+    Struct32BytesHomogeneousDouble,
+    Float,
+  )
+>(symbol: 'PassFloatStruct32BytesHomogeneousDoubleFloatStruct', isLeaf: true)
 external double passFloatStruct32BytesHomogeneousDoubleFloatStructNativeLeaf(
-    double a0,
-    Struct32BytesHomogeneousDouble a1,
-    double a2,
-    Struct32BytesHomogeneousDouble a3,
-    double a4,
-    Struct32BytesHomogeneousDouble a5,
-    double a6,
-    Struct32BytesHomogeneousDouble a7,
-    double a8);
+  double a0,
+  Struct32BytesHomogeneousDouble a1,
+  double a2,
+  Struct32BytesHomogeneousDouble a3,
+  double a4,
+  Struct32BytesHomogeneousDouble a5,
+  double a6,
+  Struct32BytesHomogeneousDouble a7,
+  double a8,
+);
 
 /// Tests the alignment of structs in FPU registers and backfilling.
 void testPassFloatStruct32BytesHomogeneousDoubleFloatStructNativeLeaf() {
@@ -2445,7 +2686,16 @@ void testPassFloatStruct32BytesHomogeneousDoubleFloatStructNativeLeaf() {
   a8 = -21.0;
 
   final result = passFloatStruct32BytesHomogeneousDoubleFloatStructNativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -2458,19 +2708,29 @@ void testPassFloatStruct32BytesHomogeneousDoubleFloatStructNativeLeaf() {
 }
 
 @Native<
-        Double Function(Int8, Struct16BytesMixed, Int8, Struct16BytesMixed,
-            Int8, Struct16BytesMixed, Int8, Struct16BytesMixed, Int8)>(
-    symbol: 'PassInt8Struct16BytesMixedInt8Struct16BytesMixedIn', isLeaf: true)
+  Double Function(
+    Int8,
+    Struct16BytesMixed,
+    Int8,
+    Struct16BytesMixed,
+    Int8,
+    Struct16BytesMixed,
+    Int8,
+    Struct16BytesMixed,
+    Int8,
+  )
+>(symbol: 'PassInt8Struct16BytesMixedInt8Struct16BytesMixedIn', isLeaf: true)
 external double passInt8Struct16BytesMixedInt8Struct16BytesMixedInNativeLeaf(
-    int a0,
-    Struct16BytesMixed a1,
-    int a2,
-    Struct16BytesMixed a3,
-    int a4,
-    Struct16BytesMixed a5,
-    int a6,
-    Struct16BytesMixed a7,
-    int a8);
+  int a0,
+  Struct16BytesMixed a1,
+  int a2,
+  Struct16BytesMixed a3,
+  int a4,
+  Struct16BytesMixed a5,
+  int a6,
+  Struct16BytesMixed a7,
+  int a8,
+);
 
 /// Tests the alignment of structs in integers registers and on the stack.
 /// Arm32 aligns this struct at 8.
@@ -2507,7 +2767,16 @@ void testPassInt8Struct16BytesMixedInt8Struct16BytesMixedInNativeLeaf() {
   a8 = -13;
 
   final result = passInt8Struct16BytesMixedInt8Struct16BytesMixedInNativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -2520,30 +2789,33 @@ void testPassInt8Struct16BytesMixedInt8Struct16BytesMixedInNativeLeaf() {
 }
 
 @Native<
-    Double Function(
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Int32)>(symbol: 'PassDoublex6Struct16BytesMixedx4Int32', isLeaf: true)
+  Double Function(
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Int32,
+  )
+>(symbol: 'PassDoublex6Struct16BytesMixedx4Int32', isLeaf: true)
 external double passDoublex6Struct16BytesMixedx4Int32NativeLeaf(
-    double a0,
-    double a1,
-    double a2,
-    double a3,
-    double a4,
-    double a5,
-    Struct16BytesMixed a6,
-    Struct16BytesMixed a7,
-    Struct16BytesMixed a8,
-    Struct16BytesMixed a9,
-    int a10);
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  Struct16BytesMixed a6,
+  Struct16BytesMixed a7,
+  Struct16BytesMixed a8,
+  Struct16BytesMixed a9,
+  int a10,
+);
 
 /// On Linux x64, it will exhaust xmm registers first, after 6 doubles and 2
 /// structs. The rest of the structs will go on the stack.
@@ -2582,7 +2854,18 @@ void testPassDoublex6Struct16BytesMixedx4Int32NativeLeaf() {
   a10 = -15;
 
   final result = passDoublex6Struct16BytesMixedx4Int32NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+  );
 
   print("result = $result");
 
@@ -2595,26 +2878,29 @@ void testPassDoublex6Struct16BytesMixedx4Int32NativeLeaf() {
 }
 
 @Native<
-    Double Function(
-        Int32,
-        Int32,
-        Int32,
-        Int32,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Struct16BytesMixed,
-        Double)>(symbol: 'PassInt32x4Struct16BytesMixedx4Double', isLeaf: true)
+  Double Function(
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Struct16BytesMixed,
+    Double,
+  )
+>(symbol: 'PassInt32x4Struct16BytesMixedx4Double', isLeaf: true)
 external double passInt32x4Struct16BytesMixedx4DoubleNativeLeaf(
-    int a0,
-    int a1,
-    int a2,
-    int a3,
-    Struct16BytesMixed a4,
-    Struct16BytesMixed a5,
-    Struct16BytesMixed a6,
-    Struct16BytesMixed a7,
-    double a8);
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  Struct16BytesMixed a4,
+  Struct16BytesMixed a5,
+  Struct16BytesMixed a6,
+  Struct16BytesMixed a7,
+  double a8,
+);
 
 /// On Linux x64, it will exhaust int registers first.
 /// The rest of the structs will go on the stack.
@@ -2649,7 +2935,16 @@ void testPassInt32x4Struct16BytesMixedx4DoubleNativeLeaf() {
   a8 = -13.0;
 
   final result = passInt32x4Struct16BytesMixedx4DoubleNativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -2662,13 +2957,17 @@ void testPassInt32x4Struct16BytesMixedx4DoubleNativeLeaf() {
 }
 
 @Native<
-        Double Function(Struct40BytesHomogeneousDouble,
-            Struct4BytesHomogeneousInt16, Struct8BytesHomogeneousFloat)>(
-    symbol: 'PassStruct40BytesHomogeneousDoubleStruct4BytesHomo', isLeaf: true)
+  Double Function(
+    Struct40BytesHomogeneousDouble,
+    Struct4BytesHomogeneousInt16,
+    Struct8BytesHomogeneousFloat,
+  )
+>(symbol: 'PassStruct40BytesHomogeneousDoubleStruct4BytesHomo', isLeaf: true)
 external double passStruct40BytesHomogeneousDoubleStruct4BytesHomoNativeLeaf(
-    Struct40BytesHomogeneousDouble a0,
-    Struct4BytesHomogeneousInt16 a1,
-    Struct8BytesHomogeneousFloat a2);
+  Struct40BytesHomogeneousDouble a0,
+  Struct4BytesHomogeneousInt16 a1,
+  Struct8BytesHomogeneousFloat a2,
+);
 
 /// On various architectures, first struct is allocated on stack.
 /// Check that the other two arguments are allocated on registers.
@@ -2690,8 +2989,11 @@ void testPassStruct40BytesHomogeneousDoubleStruct4BytesHomoNativeLeaf() {
   a2.a0 = 8.0;
   a2.a1 = -9.0;
 
-  final result =
-      passStruct40BytesHomogeneousDoubleStruct4BytesHomoNativeLeaf(a0, a1, a2);
+  final result = passStruct40BytesHomogeneousDoubleStruct4BytesHomoNativeLeaf(
+    a0,
+    a1,
+    a2,
+  );
 
   print("result = $result");
 
@@ -2703,89 +3005,91 @@ void testPassStruct40BytesHomogeneousDoubleStruct4BytesHomoNativeLeaf() {
 }
 
 @Native<
-        Double Function(
-            Int32,
-            Int32,
-            Int32,
-            Int32,
-            Int32,
-            Int32,
-            Int32,
-            Int32,
-            Double,
-            Double,
-            Double,
-            Double,
-            Double,
-            Double,
-            Double,
-            Double,
-            Int64,
-            Int8,
-            Struct1ByteInt,
-            Int64,
-            Int8,
-            Struct4BytesHomogeneousInt16,
-            Int64,
-            Int8,
-            Struct8BytesInt,
-            Int64,
-            Int8,
-            Struct8BytesHomogeneousFloat,
-            Int64,
-            Int8,
-            Struct8BytesMixed,
-            Int64,
-            Int8,
-            StructAlignmentInt16,
-            Int64,
-            Int8,
-            StructAlignmentInt32,
-            Int64,
-            Int8,
-            StructAlignmentInt64)>(
-    symbol: 'PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int', isLeaf: true)
+  Double Function(
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Int32,
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+    Int64,
+    Int8,
+    Struct1ByteInt,
+    Int64,
+    Int8,
+    Struct4BytesHomogeneousInt16,
+    Int64,
+    Int8,
+    Struct8BytesInt,
+    Int64,
+    Int8,
+    Struct8BytesHomogeneousFloat,
+    Int64,
+    Int8,
+    Struct8BytesMixed,
+    Int64,
+    Int8,
+    StructAlignmentInt16,
+    Int64,
+    Int8,
+    StructAlignmentInt32,
+    Int64,
+    Int8,
+    StructAlignmentInt64,
+  )
+>(symbol: 'PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int', isLeaf: true)
 external double passInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntNativeLeaf(
-    int a0,
-    int a1,
-    int a2,
-    int a3,
-    int a4,
-    int a5,
-    int a6,
-    int a7,
-    double a8,
-    double a9,
-    double a10,
-    double a11,
-    double a12,
-    double a13,
-    double a14,
-    double a15,
-    int a16,
-    int a17,
-    Struct1ByteInt a18,
-    int a19,
-    int a20,
-    Struct4BytesHomogeneousInt16 a21,
-    int a22,
-    int a23,
-    Struct8BytesInt a24,
-    int a25,
-    int a26,
-    Struct8BytesHomogeneousFloat a27,
-    int a28,
-    int a29,
-    Struct8BytesMixed a30,
-    int a31,
-    int a32,
-    StructAlignmentInt16 a33,
-    int a34,
-    int a35,
-    StructAlignmentInt32 a36,
-    int a37,
-    int a38,
-    StructAlignmentInt64 a39);
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  int a7,
+  double a8,
+  double a9,
+  double a10,
+  double a11,
+  double a12,
+  double a13,
+  double a14,
+  double a15,
+  int a16,
+  int a17,
+  Struct1ByteInt a18,
+  int a19,
+  int a20,
+  Struct4BytesHomogeneousInt16 a21,
+  int a22,
+  int a23,
+  Struct8BytesInt a24,
+  int a25,
+  int a26,
+  Struct8BytesHomogeneousFloat a27,
+  int a28,
+  int a29,
+  Struct8BytesMixed a30,
+  int a31,
+  int a32,
+  StructAlignmentInt16 a33,
+  int a34,
+  int a35,
+  StructAlignmentInt32 a36,
+  int a37,
+  int a38,
+  StructAlignmentInt64 a39,
+);
 
 /// Test alignment and padding of 16 byte int within struct.
 void testPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntNativeLeaf() {
@@ -2892,46 +3196,47 @@ void testPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntNativeLeaf() {
   a39.a2 = 52;
 
   final result = passInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntNativeLeaf(
-      a0,
-      a1,
-      a2,
-      a3,
-      a4,
-      a5,
-      a6,
-      a7,
-      a8,
-      a9,
-      a10,
-      a11,
-      a12,
-      a13,
-      a14,
-      a15,
-      a16,
-      a17,
-      a18,
-      a19,
-      a20,
-      a21,
-      a22,
-      a23,
-      a24,
-      a25,
-      a26,
-      a27,
-      a28,
-      a29,
-      a30,
-      a31,
-      a32,
-      a33,
-      a34,
-      a35,
-      a36,
-      a37,
-      a38,
-      a39);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+    a12,
+    a13,
+    a14,
+    a15,
+    a16,
+    a17,
+    a18,
+    a19,
+    a20,
+    a21,
+    a22,
+    a23,
+    a24,
+    a25,
+    a26,
+    a27,
+    a28,
+    a29,
+    a30,
+    a31,
+    a32,
+    a33,
+    a34,
+    a35,
+    a36,
+    a37,
+    a38,
+    a39,
+  );
 
   print("result = $result");
 
@@ -2948,7 +3253,9 @@ void testPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntNativeLeaf() {
 }
 
 @Native<Int64 Function(StructAlignmentInt16)>(
-    symbol: 'PassStructAlignmentInt16', isLeaf: true)
+  symbol: 'PassStructAlignmentInt16',
+  isLeaf: true,
+)
 external int passStructAlignmentInt16NativeLeaf(StructAlignmentInt16 a0);
 
 /// Test alignment and padding of 16 byte int within struct.
@@ -2970,7 +3277,9 @@ void testPassStructAlignmentInt16NativeLeaf() {
 }
 
 @Native<Int64 Function(StructAlignmentInt32)>(
-    symbol: 'PassStructAlignmentInt32', isLeaf: true)
+  symbol: 'PassStructAlignmentInt32',
+  isLeaf: true,
+)
 external int passStructAlignmentInt32NativeLeaf(StructAlignmentInt32 a0);
 
 /// Test alignment and padding of 32 byte int within struct.
@@ -2992,7 +3301,9 @@ void testPassStructAlignmentInt32NativeLeaf() {
 }
 
 @Native<Int64 Function(StructAlignmentInt64)>(
-    symbol: 'PassStructAlignmentInt64', isLeaf: true)
+  symbol: 'PassStructAlignmentInt64',
+  isLeaf: true,
+)
 external int passStructAlignmentInt64NativeLeaf(StructAlignmentInt64 a0);
 
 /// Test alignment and padding of 64 byte int within struct.
@@ -3014,29 +3325,31 @@ void testPassStructAlignmentInt64NativeLeaf() {
 }
 
 @Native<
-        Int64 Function(
-            Struct8BytesNestedInt,
-            Struct8BytesNestedInt,
-            Struct8BytesNestedInt,
-            Struct8BytesNestedInt,
-            Struct8BytesNestedInt,
-            Struct8BytesNestedInt,
-            Struct8BytesNestedInt,
-            Struct8BytesNestedInt,
-            Struct8BytesNestedInt,
-            Struct8BytesNestedInt)>(
-    symbol: 'PassStruct8BytesNestedIntx10', isLeaf: true)
+  Int64 Function(
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+    Struct8BytesNestedInt,
+  )
+>(symbol: 'PassStruct8BytesNestedIntx10', isLeaf: true)
 external int passStruct8BytesNestedIntx10NativeLeaf(
-    Struct8BytesNestedInt a0,
-    Struct8BytesNestedInt a1,
-    Struct8BytesNestedInt a2,
-    Struct8BytesNestedInt a3,
-    Struct8BytesNestedInt a4,
-    Struct8BytesNestedInt a5,
-    Struct8BytesNestedInt a6,
-    Struct8BytesNestedInt a7,
-    Struct8BytesNestedInt a8,
-    Struct8BytesNestedInt a9);
+  Struct8BytesNestedInt a0,
+  Struct8BytesNestedInt a1,
+  Struct8BytesNestedInt a2,
+  Struct8BytesNestedInt a3,
+  Struct8BytesNestedInt a4,
+  Struct8BytesNestedInt a5,
+  Struct8BytesNestedInt a6,
+  Struct8BytesNestedInt a7,
+  Struct8BytesNestedInt a8,
+  Struct8BytesNestedInt a9,
+);
 
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust registers on all platforms.
@@ -3104,7 +3417,17 @@ void testPassStruct8BytesNestedIntx10NativeLeaf() {
   a9.a1.a1 = 40;
 
   final result = passStruct8BytesNestedIntx10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -3123,29 +3446,31 @@ void testPassStruct8BytesNestedIntx10NativeLeaf() {
 }
 
 @Native<
-        Float Function(
-            Struct8BytesNestedFloat,
-            Struct8BytesNestedFloat,
-            Struct8BytesNestedFloat,
-            Struct8BytesNestedFloat,
-            Struct8BytesNestedFloat,
-            Struct8BytesNestedFloat,
-            Struct8BytesNestedFloat,
-            Struct8BytesNestedFloat,
-            Struct8BytesNestedFloat,
-            Struct8BytesNestedFloat)>(
-    symbol: 'PassStruct8BytesNestedFloatx10', isLeaf: true)
+  Float Function(
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+    Struct8BytesNestedFloat,
+  )
+>(symbol: 'PassStruct8BytesNestedFloatx10', isLeaf: true)
 external double passStruct8BytesNestedFloatx10NativeLeaf(
-    Struct8BytesNestedFloat a0,
-    Struct8BytesNestedFloat a1,
-    Struct8BytesNestedFloat a2,
-    Struct8BytesNestedFloat a3,
-    Struct8BytesNestedFloat a4,
-    Struct8BytesNestedFloat a5,
-    Struct8BytesNestedFloat a6,
-    Struct8BytesNestedFloat a7,
-    Struct8BytesNestedFloat a8,
-    Struct8BytesNestedFloat a9);
+  Struct8BytesNestedFloat a0,
+  Struct8BytesNestedFloat a1,
+  Struct8BytesNestedFloat a2,
+  Struct8BytesNestedFloat a3,
+  Struct8BytesNestedFloat a4,
+  Struct8BytesNestedFloat a5,
+  Struct8BytesNestedFloat a6,
+  Struct8BytesNestedFloat a7,
+  Struct8BytesNestedFloat a8,
+  Struct8BytesNestedFloat a9,
+);
 
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust fpu registers on all platforms.
@@ -3193,7 +3518,17 @@ void testPassStruct8BytesNestedFloatx10NativeLeaf() {
   a9.a1.a0 = 20.0;
 
   final result = passStruct8BytesNestedFloatx10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -3212,29 +3547,31 @@ void testPassStruct8BytesNestedFloatx10NativeLeaf() {
 }
 
 @Native<
-        Float Function(
-            Struct8BytesNestedFloat2,
-            Struct8BytesNestedFloat2,
-            Struct8BytesNestedFloat2,
-            Struct8BytesNestedFloat2,
-            Struct8BytesNestedFloat2,
-            Struct8BytesNestedFloat2,
-            Struct8BytesNestedFloat2,
-            Struct8BytesNestedFloat2,
-            Struct8BytesNestedFloat2,
-            Struct8BytesNestedFloat2)>(
-    symbol: 'PassStruct8BytesNestedFloat2x10', isLeaf: true)
+  Float Function(
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+    Struct8BytesNestedFloat2,
+  )
+>(symbol: 'PassStruct8BytesNestedFloat2x10', isLeaf: true)
 external double passStruct8BytesNestedFloat2x10NativeLeaf(
-    Struct8BytesNestedFloat2 a0,
-    Struct8BytesNestedFloat2 a1,
-    Struct8BytesNestedFloat2 a2,
-    Struct8BytesNestedFloat2 a3,
-    Struct8BytesNestedFloat2 a4,
-    Struct8BytesNestedFloat2 a5,
-    Struct8BytesNestedFloat2 a6,
-    Struct8BytesNestedFloat2 a7,
-    Struct8BytesNestedFloat2 a8,
-    Struct8BytesNestedFloat2 a9);
+  Struct8BytesNestedFloat2 a0,
+  Struct8BytesNestedFloat2 a1,
+  Struct8BytesNestedFloat2 a2,
+  Struct8BytesNestedFloat2 a3,
+  Struct8BytesNestedFloat2 a4,
+  Struct8BytesNestedFloat2 a5,
+  Struct8BytesNestedFloat2 a6,
+  Struct8BytesNestedFloat2 a7,
+  Struct8BytesNestedFloat2 a8,
+  Struct8BytesNestedFloat2 a9,
+);
 
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust fpu registers on all platforms.
@@ -3284,7 +3621,17 @@ void testPassStruct8BytesNestedFloat2x10NativeLeaf() {
   a9.a1 = 20.0;
 
   final result = passStruct8BytesNestedFloat2x10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -3303,29 +3650,31 @@ void testPassStruct8BytesNestedFloat2x10NativeLeaf() {
 }
 
 @Native<
-        Double Function(
-            Struct8BytesNestedMixed,
-            Struct8BytesNestedMixed,
-            Struct8BytesNestedMixed,
-            Struct8BytesNestedMixed,
-            Struct8BytesNestedMixed,
-            Struct8BytesNestedMixed,
-            Struct8BytesNestedMixed,
-            Struct8BytesNestedMixed,
-            Struct8BytesNestedMixed,
-            Struct8BytesNestedMixed)>(
-    symbol: 'PassStruct8BytesNestedMixedx10', isLeaf: true)
+  Double Function(
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+    Struct8BytesNestedMixed,
+  )
+>(symbol: 'PassStruct8BytesNestedMixedx10', isLeaf: true)
 external double passStruct8BytesNestedMixedx10NativeLeaf(
-    Struct8BytesNestedMixed a0,
-    Struct8BytesNestedMixed a1,
-    Struct8BytesNestedMixed a2,
-    Struct8BytesNestedMixed a3,
-    Struct8BytesNestedMixed a4,
-    Struct8BytesNestedMixed a5,
-    Struct8BytesNestedMixed a6,
-    Struct8BytesNestedMixed a7,
-    Struct8BytesNestedMixed a8,
-    Struct8BytesNestedMixed a9);
+  Struct8BytesNestedMixed a0,
+  Struct8BytesNestedMixed a1,
+  Struct8BytesNestedMixed a2,
+  Struct8BytesNestedMixed a3,
+  Struct8BytesNestedMixed a4,
+  Struct8BytesNestedMixed a5,
+  Struct8BytesNestedMixed a6,
+  Struct8BytesNestedMixed a7,
+  Struct8BytesNestedMixed a8,
+  Struct8BytesNestedMixed a9,
+);
 
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust all registers on all platforms.
@@ -3383,7 +3732,17 @@ void testPassStruct8BytesNestedMixedx10NativeLeaf() {
   a9.a1.a0 = 30.0;
 
   final result = passStruct8BytesNestedMixedx10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -3402,9 +3761,13 @@ void testPassStruct8BytesNestedMixedx10NativeLeaf() {
 }
 
 @Native<Int64 Function(Struct16BytesNestedInt, Struct16BytesNestedInt)>(
-    symbol: 'PassStruct16BytesNestedIntx2', isLeaf: true)
+  symbol: 'PassStruct16BytesNestedIntx2',
+  isLeaf: true,
+)
 external int passStruct16BytesNestedIntx2NativeLeaf(
-    Struct16BytesNestedInt a0, Struct16BytesNestedInt a1);
+  Struct16BytesNestedInt a0,
+  Struct16BytesNestedInt a1,
+);
 
 /// Deeper nested struct to test recursive member access.
 void testPassStruct16BytesNestedIntx2NativeLeaf() {
@@ -3441,9 +3804,13 @@ void testPassStruct16BytesNestedIntx2NativeLeaf() {
 }
 
 @Native<Int64 Function(Struct32BytesNestedInt, Struct32BytesNestedInt)>(
-    symbol: 'PassStruct32BytesNestedIntx2', isLeaf: true)
+  symbol: 'PassStruct32BytesNestedIntx2',
+  isLeaf: true,
+)
 external int passStruct32BytesNestedIntx2NativeLeaf(
-    Struct32BytesNestedInt a0, Struct32BytesNestedInt a1);
+  Struct32BytesNestedInt a0,
+  Struct32BytesNestedInt a1,
+);
 
 /// Even deeper nested struct to test recursive member access.
 void testPassStruct32BytesNestedIntx2NativeLeaf() {
@@ -3496,9 +3863,12 @@ void testPassStruct32BytesNestedIntx2NativeLeaf() {
 }
 
 @Native<Int64 Function(StructNestedIntStructAlignmentInt16)>(
-    symbol: 'PassStructNestedIntStructAlignmentInt16', isLeaf: true)
+  symbol: 'PassStructNestedIntStructAlignmentInt16',
+  isLeaf: true,
+)
 external int passStructNestedIntStructAlignmentInt16NativeLeaf(
-    StructNestedIntStructAlignmentInt16 a0);
+  StructNestedIntStructAlignmentInt16 a0,
+);
 
 /// Test alignment and padding of nested struct with 16 byte int.
 void testPassStructNestedIntStructAlignmentInt16NativeLeaf() {
@@ -3522,9 +3892,12 @@ void testPassStructNestedIntStructAlignmentInt16NativeLeaf() {
 }
 
 @Native<Int64 Function(StructNestedIntStructAlignmentInt32)>(
-    symbol: 'PassStructNestedIntStructAlignmentInt32', isLeaf: true)
+  symbol: 'PassStructNestedIntStructAlignmentInt32',
+  isLeaf: true,
+)
 external int passStructNestedIntStructAlignmentInt32NativeLeaf(
-    StructNestedIntStructAlignmentInt32 a0);
+  StructNestedIntStructAlignmentInt32 a0,
+);
 
 /// Test alignment and padding of nested struct with 32 byte int.
 void testPassStructNestedIntStructAlignmentInt32NativeLeaf() {
@@ -3548,9 +3921,12 @@ void testPassStructNestedIntStructAlignmentInt32NativeLeaf() {
 }
 
 @Native<Int64 Function(StructNestedIntStructAlignmentInt64)>(
-    symbol: 'PassStructNestedIntStructAlignmentInt64', isLeaf: true)
+  symbol: 'PassStructNestedIntStructAlignmentInt64',
+  isLeaf: true,
+)
 external int passStructNestedIntStructAlignmentInt64NativeLeaf(
-    StructNestedIntStructAlignmentInt64 a0);
+  StructNestedIntStructAlignmentInt64 a0,
+);
 
 /// Test alignment and padding of nested struct with 64 byte int.
 void testPassStructNestedIntStructAlignmentInt64NativeLeaf() {
@@ -3574,17 +3950,19 @@ void testPassStructNestedIntStructAlignmentInt64NativeLeaf() {
 }
 
 @Native<
-        Double Function(
-            StructNestedIrregularEvenBigger,
-            StructNestedIrregularEvenBigger,
-            StructNestedIrregularEvenBigger,
-            StructNestedIrregularEvenBigger)>(
-    symbol: 'PassStructNestedIrregularEvenBiggerx4', isLeaf: true)
+  Double Function(
+    StructNestedIrregularEvenBigger,
+    StructNestedIrregularEvenBigger,
+    StructNestedIrregularEvenBigger,
+    StructNestedIrregularEvenBigger,
+  )
+>(symbol: 'PassStructNestedIrregularEvenBiggerx4', isLeaf: true)
 external double passStructNestedIrregularEvenBiggerx4NativeLeaf(
-    StructNestedIrregularEvenBigger a0,
-    StructNestedIrregularEvenBigger a1,
-    StructNestedIrregularEvenBigger a2,
-    StructNestedIrregularEvenBigger a3);
+  StructNestedIrregularEvenBigger a0,
+  StructNestedIrregularEvenBigger a1,
+  StructNestedIrregularEvenBigger a2,
+  StructNestedIrregularEvenBigger a3,
+);
 
 /// Return big irregular struct as smoke test.
 void testPassStructNestedIrregularEvenBiggerx4NativeLeaf() {
@@ -3734,8 +4112,12 @@ void testPassStructNestedIrregularEvenBiggerx4NativeLeaf() {
   a3.a2.a3 = -135.0;
   a3.a3 = 136.0;
 
-  final result =
-      passStructNestedIrregularEvenBiggerx4NativeLeaf(a0, a1, a2, a3);
+  final result = passStructNestedIrregularEvenBiggerx4NativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+  );
 
   print("result = $result");
 
@@ -3748,14 +4130,19 @@ void testPassStructNestedIrregularEvenBiggerx4NativeLeaf() {
 }
 
 @Native<
-        Int32 Function(Struct8BytesInlineArrayInt, Struct8BytesInlineArrayInt,
-            Struct8BytesInlineArrayInt, Struct8BytesInlineArrayInt)>(
-    symbol: 'PassStruct8BytesInlineArrayIntx4', isLeaf: true)
+  Int32 Function(
+    Struct8BytesInlineArrayInt,
+    Struct8BytesInlineArrayInt,
+    Struct8BytesInlineArrayInt,
+    Struct8BytesInlineArrayInt,
+  )
+>(symbol: 'PassStruct8BytesInlineArrayIntx4', isLeaf: true)
 external int passStruct8BytesInlineArrayIntx4NativeLeaf(
-    Struct8BytesInlineArrayInt a0,
-    Struct8BytesInlineArrayInt a1,
-    Struct8BytesInlineArrayInt a2,
-    Struct8BytesInlineArrayInt a3);
+  Struct8BytesInlineArrayInt a0,
+  Struct8BytesInlineArrayInt a1,
+  Struct8BytesInlineArrayInt a2,
+  Struct8BytesInlineArrayInt a3,
+);
 
 /// Simple struct with inline array.
 void testPassStruct8BytesInlineArrayIntx4NativeLeaf() {
@@ -3814,14 +4201,19 @@ void testPassStruct8BytesInlineArrayIntx4NativeLeaf() {
 }
 
 @Native<
-        Int32 Function(StructInlineArrayIrregular, StructInlineArrayIrregular,
-            StructInlineArrayIrregular, StructInlineArrayIrregular)>(
-    symbol: 'PassStructInlineArrayIrregularx4', isLeaf: true)
+  Int32 Function(
+    StructInlineArrayIrregular,
+    StructInlineArrayIrregular,
+    StructInlineArrayIrregular,
+    StructInlineArrayIrregular,
+  )
+>(symbol: 'PassStructInlineArrayIrregularx4', isLeaf: true)
 external int passStructInlineArrayIrregularx4NativeLeaf(
-    StructInlineArrayIrregular a0,
-    StructInlineArrayIrregular a1,
-    StructInlineArrayIrregular a2,
-    StructInlineArrayIrregular a3);
+  StructInlineArrayIrregular a0,
+  StructInlineArrayIrregular a1,
+  StructInlineArrayIrregular a2,
+  StructInlineArrayIrregular a3,
+);
 
 /// Irregular struct with inline array.
 void testPassStructInlineArrayIrregularx4NativeLeaf() {
@@ -3868,9 +4260,12 @@ void testPassStructInlineArrayIrregularx4NativeLeaf() {
 }
 
 @Native<Int32 Function(StructInlineArray100Bytes)>(
-    symbol: 'PassStructInlineArray100Bytes', isLeaf: true)
+  symbol: 'PassStructInlineArray100Bytes',
+  isLeaf: true,
+)
 external int passStructInlineArray100BytesNativeLeaf(
-    StructInlineArray100Bytes a0);
+  StructInlineArray100Bytes a0,
+);
 
 /// Regular larger struct with inline array.
 void testPassStructInlineArray100BytesNativeLeaf() {
@@ -3988,19 +4383,21 @@ void testPassStructInlineArray100BytesNativeLeaf() {
 }
 
 @Native<
-        Float Function(
-            StructStruct16BytesHomogeneousFloat2,
-            StructStruct16BytesHomogeneousFloat2,
-            StructStruct16BytesHomogeneousFloat2,
-            StructStruct16BytesHomogeneousFloat2,
-            StructStruct16BytesHomogeneousFloat2)>(
-    symbol: 'PassStructStruct16BytesHomogeneousFloat2x5', isLeaf: true)
+  Float Function(
+    StructStruct16BytesHomogeneousFloat2,
+    StructStruct16BytesHomogeneousFloat2,
+    StructStruct16BytesHomogeneousFloat2,
+    StructStruct16BytesHomogeneousFloat2,
+    StructStruct16BytesHomogeneousFloat2,
+  )
+>(symbol: 'PassStructStruct16BytesHomogeneousFloat2x5', isLeaf: true)
 external double passStructStruct16BytesHomogeneousFloat2x5NativeLeaf(
-    StructStruct16BytesHomogeneousFloat2 a0,
-    StructStruct16BytesHomogeneousFloat2 a1,
-    StructStruct16BytesHomogeneousFloat2 a2,
-    StructStruct16BytesHomogeneousFloat2 a3,
-    StructStruct16BytesHomogeneousFloat2 a4);
+  StructStruct16BytesHomogeneousFloat2 a0,
+  StructStruct16BytesHomogeneousFloat2 a1,
+  StructStruct16BytesHomogeneousFloat2 a2,
+  StructStruct16BytesHomogeneousFloat2 a3,
+  StructStruct16BytesHomogeneousFloat2 a4,
+);
 
 /// Arguments in FPU registers on arm hardfp and arm64.
 /// 5 struct arguments will exhaust available registers.
@@ -4037,8 +4434,13 @@ void testPassStructStruct16BytesHomogeneousFloat2x5NativeLeaf() {
   a4.a1[1].a0 = -19.0;
   a4.a2 = 20.0;
 
-  final result =
-      passStructStruct16BytesHomogeneousFloat2x5NativeLeaf(a0, a1, a2, a3, a4);
+  final result = passStructStruct16BytesHomogeneousFloat2x5NativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+  );
 
   print("result = $result");
 
@@ -4052,19 +4454,21 @@ void testPassStructStruct16BytesHomogeneousFloat2x5NativeLeaf() {
 }
 
 @Native<
-        Double Function(
-            StructStruct32BytesHomogeneousDouble2,
-            StructStruct32BytesHomogeneousDouble2,
-            StructStruct32BytesHomogeneousDouble2,
-            StructStruct32BytesHomogeneousDouble2,
-            StructStruct32BytesHomogeneousDouble2)>(
-    symbol: 'PassStructStruct32BytesHomogeneousDouble2x5', isLeaf: true)
+  Double Function(
+    StructStruct32BytesHomogeneousDouble2,
+    StructStruct32BytesHomogeneousDouble2,
+    StructStruct32BytesHomogeneousDouble2,
+    StructStruct32BytesHomogeneousDouble2,
+    StructStruct32BytesHomogeneousDouble2,
+  )
+>(symbol: 'PassStructStruct32BytesHomogeneousDouble2x5', isLeaf: true)
 external double passStructStruct32BytesHomogeneousDouble2x5NativeLeaf(
-    StructStruct32BytesHomogeneousDouble2 a0,
-    StructStruct32BytesHomogeneousDouble2 a1,
-    StructStruct32BytesHomogeneousDouble2 a2,
-    StructStruct32BytesHomogeneousDouble2 a3,
-    StructStruct32BytesHomogeneousDouble2 a4);
+  StructStruct32BytesHomogeneousDouble2 a0,
+  StructStruct32BytesHomogeneousDouble2 a1,
+  StructStruct32BytesHomogeneousDouble2 a2,
+  StructStruct32BytesHomogeneousDouble2 a3,
+  StructStruct32BytesHomogeneousDouble2 a4,
+);
 
 /// Arguments in FPU registers on arm64.
 /// 5 struct arguments will exhaust available registers.
@@ -4101,8 +4505,13 @@ void testPassStructStruct32BytesHomogeneousDouble2x5NativeLeaf() {
   a4.a1[1].a0 = -19.0;
   a4.a2 = 20.0;
 
-  final result =
-      passStructStruct32BytesHomogeneousDouble2x5NativeLeaf(a0, a1, a2, a3, a4);
+  final result = passStructStruct32BytesHomogeneousDouble2x5NativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+  );
 
   print("result = $result");
 
@@ -4116,29 +4525,31 @@ void testPassStructStruct32BytesHomogeneousDouble2x5NativeLeaf() {
 }
 
 @Native<
-        Float Function(
-            StructStruct16BytesMixed3,
-            StructStruct16BytesMixed3,
-            StructStruct16BytesMixed3,
-            StructStruct16BytesMixed3,
-            StructStruct16BytesMixed3,
-            StructStruct16BytesMixed3,
-            StructStruct16BytesMixed3,
-            StructStruct16BytesMixed3,
-            StructStruct16BytesMixed3,
-            StructStruct16BytesMixed3)>(
-    symbol: 'PassStructStruct16BytesMixed3x10', isLeaf: true)
+  Float Function(
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+  )
+>(symbol: 'PassStructStruct16BytesMixed3x10', isLeaf: true)
 external double passStructStruct16BytesMixed3x10NativeLeaf(
-    StructStruct16BytesMixed3 a0,
-    StructStruct16BytesMixed3 a1,
-    StructStruct16BytesMixed3 a2,
-    StructStruct16BytesMixed3 a3,
-    StructStruct16BytesMixed3 a4,
-    StructStruct16BytesMixed3 a5,
-    StructStruct16BytesMixed3 a6,
-    StructStruct16BytesMixed3 a7,
-    StructStruct16BytesMixed3 a8,
-    StructStruct16BytesMixed3 a9);
+  StructStruct16BytesMixed3 a0,
+  StructStruct16BytesMixed3 a1,
+  StructStruct16BytesMixed3 a2,
+  StructStruct16BytesMixed3 a3,
+  StructStruct16BytesMixed3 a4,
+  StructStruct16BytesMixed3 a5,
+  StructStruct16BytesMixed3 a6,
+  StructStruct16BytesMixed3 a7,
+  StructStruct16BytesMixed3 a8,
+  StructStruct16BytesMixed3 a9,
+);
 
 /// On x64, arguments are split over FP and int registers.
 /// On x64, it will exhaust the integer registers with the 6th argument.
@@ -4228,7 +4639,17 @@ void testPassStructStruct16BytesMixed3x10NativeLeaf() {
   a9.a2[1] = 60;
 
   final result = passStructStruct16BytesMixed3x10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -4247,23 +4668,25 @@ void testPassStructStruct16BytesMixed3x10NativeLeaf() {
 }
 
 @Native<
-        Uint32 Function(
-            Uint8,
-            Struct32BytesInlineArrayMultiDimensionalInt,
-            Uint8,
-            Struct8BytesInlineArrayMultiDimensionalInt,
-            Uint8,
-            Struct8BytesInlineArrayMultiDimensionalInt,
-            Uint8)>(
-    symbol: 'PassUint8Struct32BytesInlineArrayMultiDimensionalI', isLeaf: true)
+  Uint32 Function(
+    Uint8,
+    Struct32BytesInlineArrayMultiDimensionalInt,
+    Uint8,
+    Struct8BytesInlineArrayMultiDimensionalInt,
+    Uint8,
+    Struct8BytesInlineArrayMultiDimensionalInt,
+    Uint8,
+  )
+>(symbol: 'PassUint8Struct32BytesInlineArrayMultiDimensionalI', isLeaf: true)
 external int passUint8Struct32BytesInlineArrayMultiDimensionalINativeLeaf(
-    int a0,
-    Struct32BytesInlineArrayMultiDimensionalInt a1,
-    int a2,
-    Struct8BytesInlineArrayMultiDimensionalInt a3,
-    int a4,
-    Struct8BytesInlineArrayMultiDimensionalInt a5,
-    int a6);
+  int a0,
+  Struct32BytesInlineArrayMultiDimensionalInt a1,
+  int a2,
+  Struct8BytesInlineArrayMultiDimensionalInt a3,
+  int a4,
+  Struct8BytesInlineArrayMultiDimensionalInt a5,
+  int a6,
+);
 
 /// Test multi dimensional inline array struct as argument.
 void testPassUint8Struct32BytesInlineArrayMultiDimensionalINativeLeaf() {
@@ -4332,7 +4755,14 @@ void testPassUint8Struct32BytesInlineArrayMultiDimensionalINativeLeaf() {
   a6 = 52;
 
   final result = passUint8Struct32BytesInlineArrayMultiDimensionalINativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+  );
 
   print("result = $result");
 
@@ -4344,11 +4774,13 @@ void testPassUint8Struct32BytesInlineArrayMultiDimensionalINativeLeaf() {
 }
 
 @Native<
-        Uint32 Function(
-            Uint8, Struct4BytesInlineArrayMultiDimensionalInt, Uint8)>(
-    symbol: 'PassUint8Struct4BytesInlineArrayMultiDimensionalIn', isLeaf: true)
+  Uint32 Function(Uint8, Struct4BytesInlineArrayMultiDimensionalInt, Uint8)
+>(symbol: 'PassUint8Struct4BytesInlineArrayMultiDimensionalIn', isLeaf: true)
 external int passUint8Struct4BytesInlineArrayMultiDimensionalInNativeLeaf(
-    int a0, Struct4BytesInlineArrayMultiDimensionalInt a1, int a2);
+  int a0,
+  Struct4BytesInlineArrayMultiDimensionalInt a1,
+  int a2,
+);
 
 /// Test struct in multi dimensional inline array.
 void testPassUint8Struct4BytesInlineArrayMultiDimensionalInNativeLeaf() {
@@ -4364,8 +4796,11 @@ void testPassUint8Struct4BytesInlineArrayMultiDimensionalInNativeLeaf() {
   a1.a0[1][1].a0 = -5;
   a2 = 6;
 
-  final result =
-      passUint8Struct4BytesInlineArrayMultiDimensionalInNativeLeaf(a0, a1, a2);
+  final result = passUint8Struct4BytesInlineArrayMultiDimensionalInNativeLeaf(
+    a0,
+    a1,
+    a2,
+  );
 
   print("result = $result");
 
@@ -4375,29 +4810,31 @@ void testPassUint8Struct4BytesInlineArrayMultiDimensionalInNativeLeaf() {
 }
 
 @Native<
-        Int64 Function(
-            Struct3BytesPackedInt,
-            Struct3BytesPackedInt,
-            Struct3BytesPackedInt,
-            Struct3BytesPackedInt,
-            Struct3BytesPackedInt,
-            Struct3BytesPackedInt,
-            Struct3BytesPackedInt,
-            Struct3BytesPackedInt,
-            Struct3BytesPackedInt,
-            Struct3BytesPackedInt)>(
-    symbol: 'PassStruct3BytesPackedIntx10', isLeaf: true)
+  Int64 Function(
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+  )
+>(symbol: 'PassStruct3BytesPackedIntx10', isLeaf: true)
 external int passStruct3BytesPackedIntx10NativeLeaf(
-    Struct3BytesPackedInt a0,
-    Struct3BytesPackedInt a1,
-    Struct3BytesPackedInt a2,
-    Struct3BytesPackedInt a3,
-    Struct3BytesPackedInt a4,
-    Struct3BytesPackedInt a5,
-    Struct3BytesPackedInt a6,
-    Struct3BytesPackedInt a7,
-    Struct3BytesPackedInt a8,
-    Struct3BytesPackedInt a9);
+  Struct3BytesPackedInt a0,
+  Struct3BytesPackedInt a1,
+  Struct3BytesPackedInt a2,
+  Struct3BytesPackedInt a3,
+  Struct3BytesPackedInt a4,
+  Struct3BytesPackedInt a5,
+  Struct3BytesPackedInt a6,
+  Struct3BytesPackedInt a7,
+  Struct3BytesPackedInt a8,
+  Struct3BytesPackedInt a9,
+);
 
 /// Small struct with mis-aligned member.
 void testPassStruct3BytesPackedIntx10NativeLeaf() {
@@ -4444,7 +4881,17 @@ void testPassStruct3BytesPackedIntx10NativeLeaf() {
   a9.a1 = 20;
 
   final result = passStruct3BytesPackedIntx10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -4463,29 +4910,31 @@ void testPassStruct3BytesPackedIntx10NativeLeaf() {
 }
 
 @Native<
-        Int64 Function(
-            Struct8BytesPackedInt,
-            Struct8BytesPackedInt,
-            Struct8BytesPackedInt,
-            Struct8BytesPackedInt,
-            Struct8BytesPackedInt,
-            Struct8BytesPackedInt,
-            Struct8BytesPackedInt,
-            Struct8BytesPackedInt,
-            Struct8BytesPackedInt,
-            Struct8BytesPackedInt)>(
-    symbol: 'PassStruct8BytesPackedIntx10', isLeaf: true)
+  Int64 Function(
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+  )
+>(symbol: 'PassStruct8BytesPackedIntx10', isLeaf: true)
 external int passStruct8BytesPackedIntx10NativeLeaf(
-    Struct8BytesPackedInt a0,
-    Struct8BytesPackedInt a1,
-    Struct8BytesPackedInt a2,
-    Struct8BytesPackedInt a3,
-    Struct8BytesPackedInt a4,
-    Struct8BytesPackedInt a5,
-    Struct8BytesPackedInt a6,
-    Struct8BytesPackedInt a7,
-    Struct8BytesPackedInt a8,
-    Struct8BytesPackedInt a9);
+  Struct8BytesPackedInt a0,
+  Struct8BytesPackedInt a1,
+  Struct8BytesPackedInt a2,
+  Struct8BytesPackedInt a3,
+  Struct8BytesPackedInt a4,
+  Struct8BytesPackedInt a5,
+  Struct8BytesPackedInt a6,
+  Struct8BytesPackedInt a7,
+  Struct8BytesPackedInt a8,
+  Struct8BytesPackedInt a9,
+);
 
 /// Struct with mis-aligned member.
 void testPassStruct8BytesPackedIntx10NativeLeaf() {
@@ -4562,7 +5011,17 @@ void testPassStruct8BytesPackedIntx10NativeLeaf() {
   a9.a4 = 50;
 
   final result = passStruct8BytesPackedIntx10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -4581,35 +5040,37 @@ void testPassStruct8BytesPackedIntx10NativeLeaf() {
 }
 
 @Native<
-        Double Function(
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Struct9BytesPackedMixed,
-            Double,
-            Int32,
-            Int32)>(
-    symbol: 'PassStruct9BytesPackedMixedx10DoubleInt32x2', isLeaf: true)
+  Double Function(
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Double,
+    Int32,
+    Int32,
+  )
+>(symbol: 'PassStruct9BytesPackedMixedx10DoubleInt32x2', isLeaf: true)
 external double passStruct9BytesPackedMixedx10DoubleInt32x2NativeLeaf(
-    Struct9BytesPackedMixed a0,
-    Struct9BytesPackedMixed a1,
-    Struct9BytesPackedMixed a2,
-    Struct9BytesPackedMixed a3,
-    Struct9BytesPackedMixed a4,
-    Struct9BytesPackedMixed a5,
-    Struct9BytesPackedMixed a6,
-    Struct9BytesPackedMixed a7,
-    Struct9BytesPackedMixed a8,
-    Struct9BytesPackedMixed a9,
-    double a10,
-    int a11,
-    int a12);
+  Struct9BytesPackedMixed a0,
+  Struct9BytesPackedMixed a1,
+  Struct9BytesPackedMixed a2,
+  Struct9BytesPackedMixed a3,
+  Struct9BytesPackedMixed a4,
+  Struct9BytesPackedMixed a5,
+  Struct9BytesPackedMixed a6,
+  Struct9BytesPackedMixed a7,
+  Struct9BytesPackedMixed a8,
+  Struct9BytesPackedMixed a9,
+  double a10,
+  int a11,
+  int a12,
+);
 
 /// Struct with mis-aligned member.
 /// Tests backfilling of CPU and FPU registers.
@@ -4663,7 +5124,20 @@ void testPassStruct9BytesPackedMixedx10DoubleInt32x2NativeLeaf() {
   a12 = -23;
 
   final result = passStruct9BytesPackedMixedx10DoubleInt32x2NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+    a12,
+  );
 
   print("result = $result");
 
@@ -4682,9 +5156,12 @@ void testPassStruct9BytesPackedMixedx10DoubleInt32x2NativeLeaf() {
 }
 
 @Native<Double Function(Struct5BytesPackedMixed)>(
-    symbol: 'PassStruct5BytesPackedMixed', isLeaf: true)
+  symbol: 'PassStruct5BytesPackedMixed',
+  isLeaf: true,
+)
 external double passStruct5BytesPackedMixedNativeLeaf(
-    Struct5BytesPackedMixed a0);
+  Struct5BytesPackedMixed a0,
+);
 
 /// This packed struct happens to have only aligned members.
 void testPassStruct5BytesPackedMixedNativeLeaf() {
@@ -4704,9 +5181,12 @@ void testPassStruct5BytesPackedMixedNativeLeaf() {
 }
 
 @Native<Double Function(StructNestedAlignmentStruct5BytesPackedMixed)>(
-    symbol: 'PassStructNestedAlignmentStruct5BytesPackedMixed', isLeaf: true)
+  symbol: 'PassStructNestedAlignmentStruct5BytesPackedMixed',
+  isLeaf: true,
+)
 external double passStructNestedAlignmentStruct5BytesPackedMixedNativeLeaf(
-    StructNestedAlignmentStruct5BytesPackedMixed a0);
+  StructNestedAlignmentStruct5BytesPackedMixed a0,
+);
 
 /// Check alignment of packed struct in non-packed struct.
 void testPassStructNestedAlignmentStruct5BytesPackedMixedNativeLeaf() {
@@ -4727,9 +5207,12 @@ void testPassStructNestedAlignmentStruct5BytesPackedMixedNativeLeaf() {
 }
 
 @Native<Double Function(Struct6BytesInlineArrayInt)>(
-    symbol: 'PassStruct6BytesInlineArrayInt', isLeaf: true)
+  symbol: 'PassStruct6BytesInlineArrayInt',
+  isLeaf: true,
+)
 external double passStruct6BytesInlineArrayIntNativeLeaf(
-    Struct6BytesInlineArrayInt a0);
+  Struct6BytesInlineArrayInt a0,
+);
 
 /// Check alignment of packed struct array in non-packed struct.
 void testPassStruct6BytesInlineArrayIntNativeLeaf() {
@@ -4751,9 +5234,12 @@ void testPassStruct6BytesInlineArrayIntNativeLeaf() {
 }
 
 @Native<Double Function(Struct15BytesInlineArrayMixed)>(
-    symbol: 'PassStruct15BytesInlineArrayMixed', isLeaf: true)
+  symbol: 'PassStruct15BytesInlineArrayMixed',
+  isLeaf: true,
+)
 external double passStruct15BytesInlineArrayMixedNativeLeaf(
-    Struct15BytesInlineArrayMixed a0);
+  Struct15BytesInlineArrayMixed a0,
+);
 
 /// Check alignment of packed struct array in non-packed struct.
 void testPassStruct15BytesInlineArrayMixedNativeLeaf() {
@@ -4777,28 +5263,31 @@ void testPassStruct15BytesInlineArrayMixedNativeLeaf() {
 }
 
 @Native<
-    Double Function(
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed,
-        Union4BytesMixed)>(symbol: 'PassUnion4BytesMixedx10', isLeaf: true)
+  Double Function(
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+  )
+>(symbol: 'PassUnion4BytesMixedx10', isLeaf: true)
 external double passUnion4BytesMixedx10NativeLeaf(
-    Union4BytesMixed a0,
-    Union4BytesMixed a1,
-    Union4BytesMixed a2,
-    Union4BytesMixed a3,
-    Union4BytesMixed a4,
-    Union4BytesMixed a5,
-    Union4BytesMixed a6,
-    Union4BytesMixed a7,
-    Union4BytesMixed a8,
-    Union4BytesMixed a9);
+  Union4BytesMixed a0,
+  Union4BytesMixed a1,
+  Union4BytesMixed a2,
+  Union4BytesMixed a3,
+  Union4BytesMixed a4,
+  Union4BytesMixed a5,
+  Union4BytesMixed a6,
+  Union4BytesMixed a7,
+  Union4BytesMixed a8,
+  Union4BytesMixed a9,
+);
 
 /// Check placement of mixed integer/float union.
 void testPassUnion4BytesMixedx10NativeLeaf() {
@@ -4834,8 +5323,18 @@ void testPassUnion4BytesMixedx10NativeLeaf() {
   a8.a0 = 9;
   a9.a0 = 10;
 
-  final result =
-      passUnion4BytesMixedx10NativeLeaf(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passUnion4BytesMixedx10NativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -4854,29 +5353,31 @@ void testPassUnion4BytesMixedx10NativeLeaf() {
 }
 
 @Native<
-        Double Function(
-            Union8BytesNestedFloat,
-            Union8BytesNestedFloat,
-            Union8BytesNestedFloat,
-            Union8BytesNestedFloat,
-            Union8BytesNestedFloat,
-            Union8BytesNestedFloat,
-            Union8BytesNestedFloat,
-            Union8BytesNestedFloat,
-            Union8BytesNestedFloat,
-            Union8BytesNestedFloat)>(
-    symbol: 'PassUnion8BytesNestedFloatx10', isLeaf: true)
+  Double Function(
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+  )
+>(symbol: 'PassUnion8BytesNestedFloatx10', isLeaf: true)
 external double passUnion8BytesNestedFloatx10NativeLeaf(
-    Union8BytesNestedFloat a0,
-    Union8BytesNestedFloat a1,
-    Union8BytesNestedFloat a2,
-    Union8BytesNestedFloat a3,
-    Union8BytesNestedFloat a4,
-    Union8BytesNestedFloat a5,
-    Union8BytesNestedFloat a6,
-    Union8BytesNestedFloat a7,
-    Union8BytesNestedFloat a8,
-    Union8BytesNestedFloat a9);
+  Union8BytesNestedFloat a0,
+  Union8BytesNestedFloat a1,
+  Union8BytesNestedFloat a2,
+  Union8BytesNestedFloat a3,
+  Union8BytesNestedFloat a4,
+  Union8BytesNestedFloat a5,
+  Union8BytesNestedFloat a6,
+  Union8BytesNestedFloat a7,
+  Union8BytesNestedFloat a8,
+  Union8BytesNestedFloat a9,
+);
 
 /// Check placement of mixed floats union.
 void testPassUnion8BytesNestedFloatx10NativeLeaf() {
@@ -4913,7 +5414,17 @@ void testPassUnion8BytesNestedFloatx10NativeLeaf() {
   a9.a0 = 10.0;
 
   final result = passUnion8BytesNestedFloatx10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -4932,29 +5443,31 @@ void testPassUnion8BytesNestedFloatx10NativeLeaf() {
 }
 
 @Native<
-        Double Function(
-            Union9BytesNestedInt,
-            Union9BytesNestedInt,
-            Union9BytesNestedInt,
-            Union9BytesNestedInt,
-            Union9BytesNestedInt,
-            Union9BytesNestedInt,
-            Union9BytesNestedInt,
-            Union9BytesNestedInt,
-            Union9BytesNestedInt,
-            Union9BytesNestedInt)>(
-    symbol: 'PassUnion9BytesNestedIntx10', isLeaf: true)
+  Double Function(
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+  )
+>(symbol: 'PassUnion9BytesNestedIntx10', isLeaf: true)
 external double passUnion9BytesNestedIntx10NativeLeaf(
-    Union9BytesNestedInt a0,
-    Union9BytesNestedInt a1,
-    Union9BytesNestedInt a2,
-    Union9BytesNestedInt a3,
-    Union9BytesNestedInt a4,
-    Union9BytesNestedInt a5,
-    Union9BytesNestedInt a6,
-    Union9BytesNestedInt a7,
-    Union9BytesNestedInt a8,
-    Union9BytesNestedInt a9);
+  Union9BytesNestedInt a0,
+  Union9BytesNestedInt a1,
+  Union9BytesNestedInt a2,
+  Union9BytesNestedInt a3,
+  Union9BytesNestedInt a4,
+  Union9BytesNestedInt a5,
+  Union9BytesNestedInt a6,
+  Union9BytesNestedInt a7,
+  Union9BytesNestedInt a8,
+  Union9BytesNestedInt a9,
+);
 
 /// Mixed-size union argument.
 void testPassUnion9BytesNestedIntx10NativeLeaf() {
@@ -5011,7 +5524,17 @@ void testPassUnion9BytesNestedIntx10NativeLeaf() {
   a9.a0.a2 = 30;
 
   final result = passUnion9BytesNestedIntx10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -5030,29 +5553,31 @@ void testPassUnion9BytesNestedIntx10NativeLeaf() {
 }
 
 @Native<
-        Double Function(
-            Union16BytesNestedInlineArrayFloat,
-            Union16BytesNestedInlineArrayFloat,
-            Union16BytesNestedInlineArrayFloat,
-            Union16BytesNestedInlineArrayFloat,
-            Union16BytesNestedInlineArrayFloat,
-            Union16BytesNestedInlineArrayFloat,
-            Union16BytesNestedInlineArrayFloat,
-            Union16BytesNestedInlineArrayFloat,
-            Union16BytesNestedInlineArrayFloat,
-            Union16BytesNestedInlineArrayFloat)>(
-    symbol: 'PassUnion16BytesNestedInlineArrayFloatx10', isLeaf: true)
+  Double Function(
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+  )
+>(symbol: 'PassUnion16BytesNestedInlineArrayFloatx10', isLeaf: true)
 external double passUnion16BytesNestedInlineArrayFloatx10NativeLeaf(
-    Union16BytesNestedInlineArrayFloat a0,
-    Union16BytesNestedInlineArrayFloat a1,
-    Union16BytesNestedInlineArrayFloat a2,
-    Union16BytesNestedInlineArrayFloat a3,
-    Union16BytesNestedInlineArrayFloat a4,
-    Union16BytesNestedInlineArrayFloat a5,
-    Union16BytesNestedInlineArrayFloat a6,
-    Union16BytesNestedInlineArrayFloat a7,
-    Union16BytesNestedInlineArrayFloat a8,
-    Union16BytesNestedInlineArrayFloat a9);
+  Union16BytesNestedInlineArrayFloat a0,
+  Union16BytesNestedInlineArrayFloat a1,
+  Union16BytesNestedInlineArrayFloat a2,
+  Union16BytesNestedInlineArrayFloat a3,
+  Union16BytesNestedInlineArrayFloat a4,
+  Union16BytesNestedInlineArrayFloat a5,
+  Union16BytesNestedInlineArrayFloat a6,
+  Union16BytesNestedInlineArrayFloat a7,
+  Union16BytesNestedInlineArrayFloat a8,
+  Union16BytesNestedInlineArrayFloat a9,
+);
 
 /// Union with homogenous floats.
 void testPassUnion16BytesNestedInlineArrayFloatx10NativeLeaf() {
@@ -5119,7 +5644,17 @@ void testPassUnion16BytesNestedInlineArrayFloatx10NativeLeaf() {
   a9.a0[3] = 40.0;
 
   final result = passUnion16BytesNestedInlineArrayFloatx10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -5138,29 +5673,31 @@ void testPassUnion16BytesNestedInlineArrayFloatx10NativeLeaf() {
 }
 
 @Native<
-        Double Function(
-            Union16BytesNestedFloat,
-            Union16BytesNestedFloat,
-            Union16BytesNestedFloat,
-            Union16BytesNestedFloat,
-            Union16BytesNestedFloat,
-            Union16BytesNestedFloat,
-            Union16BytesNestedFloat,
-            Union16BytesNestedFloat,
-            Union16BytesNestedFloat,
-            Union16BytesNestedFloat)>(
-    symbol: 'PassUnion16BytesNestedFloatx10', isLeaf: true)
+  Double Function(
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+  )
+>(symbol: 'PassUnion16BytesNestedFloatx10', isLeaf: true)
 external double passUnion16BytesNestedFloatx10NativeLeaf(
-    Union16BytesNestedFloat a0,
-    Union16BytesNestedFloat a1,
-    Union16BytesNestedFloat a2,
-    Union16BytesNestedFloat a3,
-    Union16BytesNestedFloat a4,
-    Union16BytesNestedFloat a5,
-    Union16BytesNestedFloat a6,
-    Union16BytesNestedFloat a7,
-    Union16BytesNestedFloat a8,
-    Union16BytesNestedFloat a9);
+  Union16BytesNestedFloat a0,
+  Union16BytesNestedFloat a1,
+  Union16BytesNestedFloat a2,
+  Union16BytesNestedFloat a3,
+  Union16BytesNestedFloat a4,
+  Union16BytesNestedFloat a5,
+  Union16BytesNestedFloat a6,
+  Union16BytesNestedFloat a7,
+  Union16BytesNestedFloat a8,
+  Union16BytesNestedFloat a9,
+);
 
 /// Union with homogenous floats.
 void testPassUnion16BytesNestedFloatx10NativeLeaf() {
@@ -5207,7 +5744,17 @@ void testPassUnion16BytesNestedFloatx10NativeLeaf() {
   a9.a0.a1 = 20.0;
 
   final result = passUnion16BytesNestedFloatx10NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
 
   print("result = $result");
 
@@ -5226,22 +5773,35 @@ void testPassUnion16BytesNestedFloatx10NativeLeaf() {
 }
 
 @Native<
-        Int32 Function(Uint8, Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool,
-            Bool, Struct10BytesHomogeneousBool, Bool)>(
-    symbol: 'PassUint8Boolx9Struct10BytesHomogeneousBoolBool', isLeaf: true)
+  Int32 Function(
+    Uint8,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Struct10BytesHomogeneousBool,
+    Bool,
+  )
+>(symbol: 'PassUint8Boolx9Struct10BytesHomogeneousBoolBool', isLeaf: true)
 external int passUint8Boolx9Struct10BytesHomogeneousBoolBoolNativeLeaf(
-    int a0,
-    bool a1,
-    bool a2,
-    bool a3,
-    bool a4,
-    bool a5,
-    bool a6,
-    bool a7,
-    bool a8,
-    bool a9,
-    Struct10BytesHomogeneousBool a10,
-    bool a11);
+  int a0,
+  bool a1,
+  bool a2,
+  bool a3,
+  bool a4,
+  bool a5,
+  bool a6,
+  bool a7,
+  bool a8,
+  bool a9,
+  Struct10BytesHomogeneousBool a10,
+  bool a11,
+);
 
 /// Passing bools and a struct with bools.
 /// Exhausts the registers to test bools and the bool struct alignment on the
@@ -5284,7 +5844,19 @@ void testPassUint8Boolx9Struct10BytesHomogeneousBoolBoolNativeLeaf() {
   a11 = true;
 
   final result = passUint8Boolx9Struct10BytesHomogeneousBoolBoolNativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+  );
 
   print("result = $result");
 
@@ -5294,22 +5866,35 @@ void testPassUint8Boolx9Struct10BytesHomogeneousBoolBoolNativeLeaf() {
 }
 
 @Native<
-        Int32 Function(Uint8, Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool,
-            Bool, Struct10BytesInlineArrayBool, Bool)>(
-    symbol: 'PassUint8Boolx9Struct10BytesInlineArrayBoolBool', isLeaf: true)
+  Int32 Function(
+    Uint8,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Bool,
+    Struct10BytesInlineArrayBool,
+    Bool,
+  )
+>(symbol: 'PassUint8Boolx9Struct10BytesInlineArrayBoolBool', isLeaf: true)
 external int passUint8Boolx9Struct10BytesInlineArrayBoolBoolNativeLeaf(
-    int a0,
-    bool a1,
-    bool a2,
-    bool a3,
-    bool a4,
-    bool a5,
-    bool a6,
-    bool a7,
-    bool a8,
-    bool a9,
-    Struct10BytesInlineArrayBool a10,
-    bool a11);
+  int a0,
+  bool a1,
+  bool a2,
+  bool a3,
+  bool a4,
+  bool a5,
+  bool a6,
+  bool a7,
+  bool a8,
+  bool a9,
+  Struct10BytesInlineArrayBool a10,
+  bool a11,
+);
 
 /// Passing bools and a struct with bools.
 /// Exhausts the registers to test bools and the bool struct alignment on the
@@ -5352,7 +5937,19 @@ void testPassUint8Boolx9Struct10BytesInlineArrayBoolBoolNativeLeaf() {
   a11 = true;
 
   final result = passUint8Boolx9Struct10BytesInlineArrayBoolBoolNativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+  );
 
   print("result = $result");
 
@@ -5362,7 +5959,9 @@ void testPassUint8Boolx9Struct10BytesInlineArrayBoolBoolNativeLeaf() {
 }
 
 @Native<Bool Function(Uint8, Struct1ByteBool)>(
-    symbol: 'PassUint8Struct1ByteBool', isLeaf: true)
+  symbol: 'PassUint8Struct1ByteBool',
+  isLeaf: true,
+)
 external bool passUint8Struct1ByteBoolNativeLeaf(int a0, Struct1ByteBool a1);
 
 /// Returning a bool.
@@ -5384,11 +5983,23 @@ void testPassUint8Struct1ByteBoolNativeLeaf() {
 }
 
 @Native<
-        WChar Function(
-            WChar, StructInlineArrayInt, UintPtr, UintPtr, Long, UnsignedLong)>(
-    symbol: 'PassWCharStructInlineArrayIntUintPtrx2LongUnsigned', isLeaf: true)
+  WChar Function(
+    WChar,
+    StructInlineArrayInt,
+    UintPtr,
+    UintPtr,
+    Long,
+    UnsignedLong,
+  )
+>(symbol: 'PassWCharStructInlineArrayIntUintPtrx2LongUnsigned', isLeaf: true)
 external int passWCharStructInlineArrayIntUintPtrx2LongUnsignedNativeLeaf(
-    int a0, StructInlineArrayInt a1, int a2, int a3, int a4, int a5);
+  int a0,
+  StructInlineArrayInt a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+);
 
 /// Returning a wchar.
 void testPassWCharStructInlineArrayIntUintPtrx2LongUnsignedNativeLeaf() {
@@ -5417,7 +6028,13 @@ void testPassWCharStructInlineArrayIntUintPtrx2LongUnsignedNativeLeaf() {
   a5 = 15;
 
   final result = passWCharStructInlineArrayIntUintPtrx2LongUnsignedNativeLeaf(
-      a0, a1, a2, a3, a4, a5);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+  );
 
   print("result = $result");
 
@@ -5427,11 +6044,27 @@ void testPassWCharStructInlineArrayIntUintPtrx2LongUnsignedNativeLeaf() {
 }
 
 @Native<
-        Int64 Function(Int64, Int64, Int64, Int64, Int64, Int64, Int64,
-            Struct12BytesHomogeneousInt32)>(
-    symbol: 'PassInt64x7Struct12BytesHomogeneousInt32', isLeaf: true)
-external int passInt64x7Struct12BytesHomogeneousInt32NativeLeaf(int a0, int a1,
-    int a2, int a3, int a4, int a5, int a6, Struct12BytesHomogeneousInt32 a7);
+  Int64 Function(
+    Int64,
+    Int64,
+    Int64,
+    Int64,
+    Int64,
+    Int64,
+    Int64,
+    Struct12BytesHomogeneousInt32,
+  )
+>(symbol: 'PassInt64x7Struct12BytesHomogeneousInt32', isLeaf: true)
+external int passInt64x7Struct12BytesHomogeneousInt32NativeLeaf(
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  Struct12BytesHomogeneousInt32 a7,
+);
 
 /// Struct stradles last argument register
 void testPassInt64x7Struct12BytesHomogeneousInt32NativeLeaf() {
@@ -5457,7 +6090,15 @@ void testPassInt64x7Struct12BytesHomogeneousInt32NativeLeaf() {
   a7.a2 = 10;
 
   final result = passInt64x7Struct12BytesHomogeneousInt32NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+  );
 
   print("result = $result");
 
@@ -5467,14 +6108,18 @@ void testPassInt64x7Struct12BytesHomogeneousInt32NativeLeaf() {
 }
 
 @Native<Int64 Function(Pointer<Struct12BytesHomogeneousInt32>)>(
-    symbol: 'PassPointerStruct12BytesHomogeneousInt32', isLeaf: true)
+  symbol: 'PassPointerStruct12BytesHomogeneousInt32',
+  isLeaf: true,
+)
 external int passPointerStruct12BytesHomogeneousInt32NativeLeaf(
-    Pointer<Struct12BytesHomogeneousInt32> a0);
+  Pointer<Struct12BytesHomogeneousInt32> a0,
+);
 
 /// Passing a pointer to a struct
 void testPassPointerStruct12BytesHomogeneousInt32NativeLeaf() {
   final a0 = calloc.allocate<Struct12BytesHomogeneousInt32>(
-      sizeOf<Struct12BytesHomogeneousInt32>());
+    sizeOf<Struct12BytesHomogeneousInt32>(),
+  );
 
   a0.ref.a0 = -1;
   a0.ref.a1 = 2;
@@ -5490,14 +6135,18 @@ void testPassPointerStruct12BytesHomogeneousInt32NativeLeaf() {
 }
 
 @Native<Int64 Function(Pointer<StructInlineArrayVariable>)>(
-    symbol: 'PassPointerStructInlineArrayVariable', isLeaf: true)
+  symbol: 'PassPointerStructInlineArrayVariable',
+  isLeaf: true,
+)
 external int passPointerStructInlineArrayVariableNativeLeaf(
-    Pointer<StructInlineArrayVariable> a0);
+  Pointer<StructInlineArrayVariable> a0,
+);
 
 /// Variable length array
 void testPassPointerStructInlineArrayVariableNativeLeaf() {
   final a0 = calloc.allocate<StructInlineArrayVariable>(
-      sizeOf<StructInlineArrayVariable>() + 10 * sizeOf<Uint8>());
+    sizeOf<StructInlineArrayVariable>() + 10 * sizeOf<Uint8>(),
+  );
 
   a0.ref.a0 = 1;
   a0.ref.a1[0] = 2;
@@ -5521,15 +6170,19 @@ void testPassPointerStructInlineArrayVariableNativeLeaf() {
 }
 
 @Native<Int64 Function(Pointer<StructInlineArrayVariableAlign>)>(
-    symbol: 'PassPointerStructInlineArrayVariableAlign', isLeaf: true)
+  symbol: 'PassPointerStructInlineArrayVariableAlign',
+  isLeaf: true,
+)
 external int passPointerStructInlineArrayVariableAlignNativeLeaf(
-    Pointer<StructInlineArrayVariableAlign> a0);
+  Pointer<StructInlineArrayVariableAlign> a0,
+);
 
 /// Variable length array with variable length element having more alignment than
 /// the rest of the struct.
 void testPassPointerStructInlineArrayVariableAlignNativeLeaf() {
   final a0 = calloc.allocate<StructInlineArrayVariableAlign>(
-      sizeOf<StructInlineArrayVariableAlign>() + 10 * sizeOf<Uint32>());
+    sizeOf<StructInlineArrayVariableAlign>() + 10 * sizeOf<Uint32>(),
+  );
 
   a0.ref.a0 = 1;
   a0.ref.a1[0] = 2;

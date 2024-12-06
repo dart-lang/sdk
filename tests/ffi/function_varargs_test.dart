@@ -20,13 +20,16 @@ void main() {
 }
 
 final printf = DynamicLibrary.executable().lookupFunction<
-    Void Function(Pointer<Utf8>, VarArgs<()>),
-    void Function(Pointer<Utf8>)>('printf');
+  Void Function(Pointer<Utf8>, VarArgs<()>),
+  void Function(Pointer<Utf8>)
+>('printf');
 
 final printfInt32 = DynamicLibrary.executable().lookupFunction<
-    Void Function(Pointer<Utf8>, VarArgs<(Int32,)>),
-    void Function(Pointer<Utf8>, int)>('printf');
+  Void Function(Pointer<Utf8>, VarArgs<(Int32,)>),
+  void Function(Pointer<Utf8>, int)
+>('printf');
 
 final printfInt32x2 = DynamicLibrary.executable().lookupFunction<
-    Void Function(Pointer<Utf8>, VarArgs<(Int32, Int32)>),
-    void Function(Pointer<Utf8>, int, int)>('printf');
+  Void Function(Pointer<Utf8>, VarArgs<(Int32, Int32)>),
+  void Function(Pointer<Utf8>, int, int)
+>('printf');

@@ -173,8 +173,9 @@ QuadOp intComputation = ffiTestFunctions
 
 void testAliasFromAddressViaNativeFunction() {
   final source = calloc<Int64>();
-  final alias =
-      Pointer<Int64>.fromAddress(intComputation(0, 0, 0, source.address));
+  final alias = Pointer<Int64>.fromAddress(
+    intComputation(0, 0, 0, source.address),
+  );
   source.value = 42;
   final int a = source.value;
   alias.value = 1984;
@@ -185,10 +186,12 @@ void testAliasFromAddressViaNativeFunction() {
 
 void testAliasFromAddressViaNativeFunction2() {
   final source = calloc<Int64>();
-  final alias =
-      Pointer<Int64>.fromAddress(intComputation(0, 0, 0, source.address));
-  final alias2 =
-      Pointer<Int64>.fromAddress(intComputation(0, 0, 0, source.address));
+  final alias = Pointer<Int64>.fromAddress(
+    intComputation(0, 0, 0, source.address),
+  );
+  final alias2 = Pointer<Int64>.fromAddress(
+    intComputation(0, 0, 0, source.address),
+  );
   alias.value = 42;
   final int a = alias.value;
   alias2.value = 1984;

@@ -38,9 +38,10 @@ const RTLD_GLOBAL_android_arm32 = 0x00002;
 /// On Linux and Android Arm64.
 const RTLD_GLOBAL_rest = 0x00100;
 
-final RTLD_GLOBAL = Abi.current() == Abi.androidArm
-    ? RTLD_GLOBAL_android_arm32
-    : RTLD_GLOBAL_rest;
+final RTLD_GLOBAL =
+    Abi.current() == Abi.androidArm
+        ? RTLD_GLOBAL_android_arm32
+        : RTLD_GLOBAL_rest;
 
 @Native<Pointer<Void> Function(Pointer<Char>, Int)>()
 external Pointer<Void> dlopen(Pointer<Char> file, int mode);
@@ -51,8 +52,9 @@ Object dlopenGlobalPlatformSpecific(String name, {String? path}) {
     // TODO(https://dartbug.com/50105): enable dlopen global via package:ffi.
     return using((arena) {
       final dylibHandle = dlopen(
-          platformPath(name).toNativeUtf8(allocator: arena).cast(),
-          RTLD_LAZY | RTLD_GLOBAL);
+        platformPath(name).toNativeUtf8(allocator: arena).cast(),
+        RTLD_LAZY | RTLD_GLOBAL,
+      );
       return dylibHandle;
     });
   } else {

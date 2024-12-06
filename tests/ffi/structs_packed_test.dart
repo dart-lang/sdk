@@ -20,9 +20,10 @@ void main() {
 
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
-final sizeOfStruct3BytesPackedInt =
-    ffiTestFunctions.lookupFunction<Uint64 Function(), int Function()>(
-        "SizeOfStruct3BytesPackedInt");
+final sizeOfStruct3BytesPackedInt = ffiTestFunctions
+    .lookupFunction<Uint64 Function(), int Function()>(
+      "SizeOfStruct3BytesPackedInt",
+    );
 
 void testSizeOfC() {
   Expect.equals(3, sizeOfStruct3BytesPackedInt());

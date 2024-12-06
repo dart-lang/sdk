@@ -22,20 +22,32 @@ class CallbackTest {
   final Object callback;
 
   CallbackTest(this.name, this.callback, {this.isLeaf = false})
-      : afterCallbackChecks = noChecks {}
-  CallbackTest.withCheck(this.name, this.callback, this.afterCallbackChecks,
-      {this.isLeaf = false}) {}
+    : afterCallbackChecks = noChecks {}
+  CallbackTest.withCheck(
+    this.name,
+    this.callback,
+    this.afterCallbackChecks, {
+    this.isLeaf = false,
+  }) {}
 
   void run() {
-    final NativeCallbackTestFn tester = isLeaf
-        ? ffiTestFunctions.lookupFunction<NativeCallbackTest,
-            NativeCallbackTestFn>("Test$name", isLeaf: true)
-        : ffiTestFunctions.lookupFunction<NativeCallbackTest,
-            NativeCallbackTestFn>("Test$name", isLeaf: false);
+    final NativeCallbackTestFn tester =
+        isLeaf
+            ? ffiTestFunctions
+                .lookupFunction<NativeCallbackTest, NativeCallbackTestFn>(
+                  "Test$name",
+                  isLeaf: true,
+                )
+            : ffiTestFunctions
+                .lookupFunction<NativeCallbackTest, NativeCallbackTestFn>(
+                  "Test$name",
+                  isLeaf: false,
+                );
 
     final cb = callback;
-    final int testCode =
-        tester(cb is NativeCallable ? cb.nativeFunction : cb as Pointer);
+    final int testCode = tester(
+      cb is NativeCallable ? cb.nativeFunction : cb as Pointer,
+    );
 
     if (testCode != 0) {
       Expect.fail("Test $name failed.");

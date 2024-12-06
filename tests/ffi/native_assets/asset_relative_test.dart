@@ -65,9 +65,10 @@ Future<void> selfInvokes() async {
     selfSourceUri: selfSourceUri,
     runtime: Runtime.aot,
     kernelCombine: KernelCombine.concatenation,
-    aotCompile: (Platform.isLinux || Platform.isMacOS)
-        ? AotCompile.assembly
-        : AotCompile.elf,
+    aotCompile:
+        (Platform.isLinux || Platform.isMacOS)
+            ? AotCompile.assembly
+            : AotCompile.elf,
     relativePath: RelativePath.up,
     arguments: [runTestsArg],
     useSymlink: true,
@@ -76,11 +77,7 @@ Future<void> selfInvokes() async {
 }
 
 /// Where asset is compared to kernel file or aot snapshot.
-enum RelativePath {
-  same,
-  up,
-  down,
-}
+enum RelativePath { same, up, down }
 
 Future<void> invokeSelf({
   required Uri selfSourceUri,
@@ -109,16 +106,15 @@ Future<void> invokeSelf({
           return Uri(path: 'nested/$ffiTestFunctionsFileName');
       }
     }();
-    final ffiTestFunctionsCopyUriAbsolute =
-        tempUri.resolve(ffiTestFunctionsCopyUriRelative.toFilePath());
-    await File(ffiTestFunctionsUriAbsolute.toFilePath())
-        .copy(ffiTestFunctionsCopyUriAbsolute.toFilePath());
+    final ffiTestFunctionsCopyUriAbsolute = tempUri.resolve(
+      ffiTestFunctionsCopyUriRelative.toFilePath(),
+    );
+    await File(
+      ffiTestFunctionsUriAbsolute.toFilePath(),
+    ).copy(ffiTestFunctionsCopyUriAbsolute.toFilePath());
     final nativeAssetsYaml = createNativeAssetYaml(
       asset: selfSourceUri.toString(),
-      assetMapping: [
-        'relative',
-        ffiTestFunctionsCopyUriRelative.toFilePath(),
-      ],
+      assetMapping: ['relative', ffiTestFunctionsCopyUriRelative.toFilePath()],
     );
 
     await compileAndRun(
@@ -132,14 +128,16 @@ Future<void> invokeSelf({
       runArguments: arguments,
       useSymlink: useSymlink,
     );
-    print([
-      selfSourceUri.toFilePath(),
-      runtime.name,
-      kernelCombine.name,
-      if (runtime == Runtime.aot) aotCompile.name,
-      relativePath.name,
-      'done',
-    ].join(' '));
+    print(
+      [
+        selfSourceUri.toFilePath(),
+        runtime.name,
+        kernelCombine.name,
+        if (runtime == Runtime.aot) aotCompile.name,
+        relativePath.name,
+        'done',
+      ].join(' '),
+    );
   });
 }
 
@@ -157,8 +155,9 @@ void testFfiTestfunctionsDll() {
   Expect.equals(2 + 3 + 42, result2);
 
   final viaAddressOf =
-      Native.addressOf<NativeFunction<Int32 Function(Int32, Int32)>>(SumPlus42)
-          .asFunction<int Function(int, int)>();
+      Native.addressOf<NativeFunction<Int32 Function(Int32, Int32)>>(
+        SumPlus42,
+      ).asFunction<int Function(int, int)>();
 
   Expect.equals(2 + 3 + 42, viaAddressOf(2, 3));
 }
