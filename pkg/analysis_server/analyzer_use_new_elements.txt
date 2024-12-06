@@ -4,7 +4,6 @@ lib/src/cider/fixes.dart
 lib/src/cider/rename.dart
 lib/src/computer/computer_call_hierarchy.dart
 lib/src/computer/computer_documentation.dart
-lib/src/computer/import_elements_computer.dart
 lib/src/domains/analysis/implemented_dart.dart
 lib/src/domains/analysis/occurrences_dart.dart
 lib/src/handler/legacy/completion_get_suggestions2.dart
