@@ -1,0 +1,5 @@
+# This is just a stub, not the real node_preamble package
+name: node_preamble
+environment:
+  sdk: ^3.5.0
+publish_to: none
