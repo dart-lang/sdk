@@ -140,7 +140,7 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
   @override
   DartType? visitInterfaceType(covariant InterfaceTypeImpl type) {
     if (_keepUserInteropTypes
-        ? _isJsInteropType(type, _InteropTypeKind.userJsInteropType)
+        ? _isJsInteropType(type, _InteropTypeKind.any)
         : _isJsInteropType(type, _InteropTypeKind.dartJsInteropType)) {
       // Nullability and generics on interop types are ignored for this lint. In
       // order to just compare the interfaces themselves, we use `thisType`.

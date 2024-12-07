@@ -79,7 +79,7 @@ Future<void> addLibraryImports(
           .map(
             (library) => getLibrarySourceUri(
               session.resourceProvider.pathContext,
-              targetLibrary,
+              targetLibrary2,
               library.uri,
             ),
           )
@@ -1110,7 +1110,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   void _prepareExcludedNames() {
     _excludedNames.clear();
     var localElements = getDefinedLocalElements(_parentMember!);
-    _excludedNames.addAll(localElements.map((e) => e.name!));
+    _excludedNames.addAll(localElements.map((e) => e.name3!));
   }
 
   void _prepareNames() {
@@ -1903,7 +1903,7 @@ extension on LibraryElement {
   /// May be `null` if was not imported, i.e. declared in the same library.
   LibraryImportElement? _getImportElement(Element element) {
     for (var imp in library.definingCompilationUnit.libraryImports) {
-      var definedNames = getImportNamespace(imp);
+      var definedNames = imp.namespace.definedNames;
       if (definedNames.containsValue(element)) {
         return imp;
       }

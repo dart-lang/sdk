@@ -68,6 +68,13 @@ class RenameProcessor {
         .then(addReferenceEdits);
   }
 
+  /// Update the [element] declaration and references to it.
+  Future<void> renameElement2(Element2 element) async {
+    addDeclarationEdit2(element);
+    var matches = await workspace.searchEngine.searchReferences2(element);
+    addReferenceEdits(matches);
+  }
+
   /// Add an edit that replaces the specified region with [code].
   /// Uses [referenceElement] to identify the file to update.
   void replace({
@@ -78,6 +85,22 @@ class RenameProcessor {
   }) {
     var edit = SourceEdit(offset, length, code);
     doSourceChange_addElementEdit(change, referenceElement, edit);
+  }
+
+  /// Add an edit that replaces the specified region with [code].
+  /// Uses [referenceElement] to identify the file to update.
+  void replace2({
+    required Element2 referenceElement,
+    required int offset,
+    required int length,
+    required String code,
+  }) {
+    var edit = SourceEdit(offset, length, code);
+    doSourceChange_addFragmentEdit(
+      change,
+      referenceElement.firstFragment,
+      edit,
+    );
   }
 }
 
@@ -118,16 +141,16 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
     if (element.library?.isInSdk == true) {
       var message = format(
         "The {0} '{1}' is defined in the SDK, so cannot be renamed.",
-        getElementKindName(element),
-        getElementQualifiedName(element),
+        getElementKindName(element2),
+        getElementQualifiedName(element2),
       );
       result.addFatalError(message);
     }
     if (!workspace.containsElement(element)) {
       var message = format(
         "The {0} '{1}' is defined outside of the project, so cannot be renamed.",
-        getElementKindName(element),
-        getElementQualifiedName(element),
+        getElementKindName(element2),
+        getElementQualifiedName(element2),
       );
       result.addFatalError(message);
     }

@@ -239,7 +239,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
       return false;
     }
 
-    var references = findLocalElementReferences3(functionBody, element);
+    var references = findLocalElementReferences(functionBody, element);
 
     var deletedRanges = <SourceRange>[];
 

@@ -14,7 +14,7 @@ import 'package:analysis_server/src/utilities/change_builder.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -24,11 +24,11 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   RenameConstructorRefactoringImpl(
     super.workspace,
     super.sessionHelper,
-    ConstructorElement super.element,
-  );
+    ConstructorElement2 super.element,
+  ) : super.c2();
 
   @override
-  ConstructorElement get element => super.element as ConstructorElement;
+  ConstructorElement2 get element2 => super.element2 as ConstructorElement2;
 
   @override
   String get refactoringName {
@@ -52,7 +52,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<void> fillChange() async {
     // prepare references
-    var matches = await searchEngine.searchReferences(element);
+    var matches = await searchEngine.searchReferences2(element2);
     var references = getSourceReferences(matches);
     // update references
     for (var reference in references) {
@@ -86,12 +86,12 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       reference.addEdit(change, replacement);
     }
     // Update the declaration.
-    if (element.isSynthetic) {
+    if (element2.isSynthetic) {
       await _replaceSynthetic();
     } else {
       doSourceChange_addSourceEdit(
         change,
-        element.source,
+        element2.firstFragment.libraryFragment.source,
         newSourceEdit_range(
           _declarationNameRange(),
           newName.isNotEmpty ? '.$newName' : '',
@@ -133,16 +133,16 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   void _analyzePossibleConflicts(RefactoringStatus result) {
-    var parentClass = element.enclosingElement3;
+    var parentClass = element2.enclosingElement2;
     // Check if the "newName" is the name of the enclosing class.
-    if (parentClass.name == newName) {
+    if (parentClass.name3 == newName) {
       result.addError(
         'The constructor should not have the same name '
         'as the name of the enclosing class.',
       );
     }
     // check if there are members with "newName" in the same ClassElement
-    for (var newNameMember in getChildren(parentClass, newName)) {
+    for (var newNameMember in getChildren2(parentClass, newName)) {
       var message = format(
         "{0} '{1}' already declares {2} with name '{3}'.",
         capitalize(parentClass.kind.displayName),
@@ -150,23 +150,28 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
         getElementKindName(newNameMember),
         newName,
       );
-      result.addError(message, newLocation_fromElement(newNameMember));
+      result.addError(message, newLocation_fromElement2(newNameMember));
     }
   }
 
   SourceRange _declarationNameRange() {
-    var offset = element.periodOffset;
-    var nameEnd = element.nameEnd!;
+    var fragment = element2.firstFragment;
+    var offset = fragment.periodOffset;
     if (offset != null) {
+      var name = fragment.name2;
+      var nameEnd = fragment.nameOffset2! + name.length;
       return range.startOffsetEndOffset(offset, nameEnd);
     } else {
-      return SourceRange(nameEnd, 0);
+      return SourceRange(
+        fragment.typeNameOffset! + fragment.typeName!.length,
+        0,
+      );
     }
   }
 
   Future<AstNode?> _nodeCoveringReference(SourceReference reference) async {
-    var element = reference.element;
-    var unitResult = await sessionHelper.getResolvedUnitByElement(element);
+    var element = reference.element2;
+    var unitResult = await sessionHelper.getResolvedUnitByElement2(element);
     return unitResult?.unit
         .select(offset: reference.range.offset, length: 0)
         ?.coveringNode;
@@ -177,17 +182,18 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     required SourceRange range,
     required String replacement,
   }) {
-    doSourceChange_addElementEdit(
+    doSourceChange_addFragmentEdit(
       change,
-      reference.element,
+      reference.element2.firstFragment,
       newSourceEdit_range(range, replacement),
     );
   }
 
   Future<void> _replaceSynthetic() async {
-    var classElement = element.enclosingElement3;
+    var classElement = element2.enclosingElement2;
 
-    var result = await sessionHelper.getElementDeclaration(classElement);
+    var fragment = classElement.firstFragment;
+    var result = await sessionHelper.getElementDeclaration2(fragment);
     if (result == null) {
       return;
     }
@@ -210,7 +216,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       resolvedUnit: resolvedUnit,
       session: sessionHelper.session,
       (builder) => builder.writeConstructorDeclaration(
-        classElement.name,
+        classElement.name3!,
         constructorName: newName,
         isConst: node is EnumDeclaration,
       ),
@@ -218,6 +224,6 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     if (edit == null) {
       return;
     }
-    doSourceChange_addElementEdit(change, classElement, edit);
+    doSourceChange_addFragmentEdit(change, fragment, edit);
   }
 }

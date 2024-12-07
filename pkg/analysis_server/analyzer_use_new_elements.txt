@@ -27,7 +27,6 @@ lib/src/protocol_server.dart
 lib/src/search/element_references.dart
 lib/src/search/type_hierarchy.dart
 lib/src/services/correction/namespace.dart
-lib/src/services/correction/util.dart
 lib/src/services/kythe/kythe_visitors.dart
 lib/src/services/refactoring/agnostic/change_method_signature.dart
 lib/src/services/refactoring/framework/formal_parameter.dart
@@ -37,10 +36,7 @@ lib/src/services/refactoring/legacy/refactoring.dart
 lib/src/services/refactoring/legacy/refactoring_internal.dart
 lib/src/services/refactoring/legacy/refactoring_manager.dart
 lib/src/services/refactoring/legacy/rename.dart
-lib/src/services/refactoring/legacy/rename_constructor.dart
-lib/src/services/refactoring/legacy/rename_extension_member.dart
 lib/src/services/refactoring/legacy/rename_import.dart
-lib/src/services/refactoring/legacy/rename_label.dart
 lib/src/services/refactoring/legacy/rename_library.dart
 lib/src/services/refactoring/legacy/rename_local.dart
 lib/src/services/refactoring/legacy/rename_parameter.dart

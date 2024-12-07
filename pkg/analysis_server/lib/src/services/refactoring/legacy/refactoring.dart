@@ -478,11 +478,15 @@ abstract class RenameRefactoring implements Refactoring {
       return RenameConstructorRefactoringImpl(
         workspace,
         sessionHelper,
-        element,
+        element.asElement2,
       );
     }
     if (element is LabelElement) {
-      return RenameLabelRefactoringImpl(workspace, sessionHelper, element);
+      return RenameLabelRefactoringImpl(
+        workspace,
+        sessionHelper,
+        element.asElement2 as LabelElement2,
+      );
     }
     if (element is LibraryElement) {
       return RenameLibraryRefactoringImpl(workspace, sessionHelper, element);
@@ -512,8 +516,8 @@ abstract class RenameRefactoring implements Refactoring {
       return RenameExtensionMemberRefactoringImpl(
         workspace,
         sessionHelper,
-        enclosingElement,
-        element,
+        enclosingElement.asElement2,
+        element.asElement2!,
       );
     }
     return null;

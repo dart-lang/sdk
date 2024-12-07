@@ -956,7 +956,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   }
 
   void _addParameter(SimpleIdentifier node) {
-    var parameterElement = getParameterElement2(node);
+    var parameterElement = getFormalParameterElement(node);
     // not a parameter
     if (parameterElement == null) {
       return;
@@ -977,7 +977,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   }
 
   void _addVariable(SimpleIdentifier node) {
-    var variableElement = getLocalVariableElement2(node);
+    var variableElement = getLocalVariableElement(node);
     if (variableElement != null) {
       var nodeRange = range.node(node);
       result.addVariable(variableElement, nodeRange);

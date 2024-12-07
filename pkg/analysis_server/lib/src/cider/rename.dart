@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 
 class CanRenameResponse {
@@ -86,7 +87,7 @@ class CanRenameResponse {
       var message = format(
         "Class '{0}' already declares {1} with name '{2}'.",
         parentClass.displayName,
-        getElementKindName(newNameMember),
+        getElementKindName(newNameMember.asElement2!),
         newName,
       );
       result.addError(message, newLocation_fromElement(newNameMember));

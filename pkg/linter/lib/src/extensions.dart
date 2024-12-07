@@ -5,12 +5,10 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/dart/element/member.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/type.dart' // ignore: implementation_imports
     show
         InvalidTypeImpl;
@@ -236,12 +234,6 @@ extension ClassElement2Extension on ClassElement2 {
   bool isEnumLikeClass() => asEnumLikeClass() != null;
 }
 
-// TODO(pq): remove when internal migration is complete.
-extension ClassElementExtension on ClassElement {
-  /// Get all constructors, including merged augmentations.
-  List<ConstructorElement> get allConstructors => augmented.constructors;
-}
-
 extension ClassMemberListExtension on List<ClassMember> {
   MethodDeclaration? getMethod(String name) => whereType<MethodDeclaration>()
       .firstWhereOrNull((node) => node.name.lexeme == name);
@@ -317,31 +309,9 @@ extension DartTypeExtension on DartType? {
           _extendsClass(type.superclass, seenElements, className, library));
 }
 
-extension ElementExtension on Element {
-  Element get canonicalElement {
-    var self = this;
-    if (self is PropertyAccessorElement) {
-      var variable = self.variable2;
-      if (variable is FieldMember) {
-        // A field element defined in a parameterized type where the values of
-        // the type parameters are known.
-        //
-        // This concept should be invisible when comparing FieldElements, but a
-        // bug in the analyzer causes FieldElements to not evaluate as
-        // equivalent to equivalent FieldMembers. See
-        // https://github.com/dart-lang/sdk/issues/35343.
-        return variable.declaration;
-      } else if (variable != null) {
-        return variable;
-      }
-    }
-    return self;
-  }
-}
-
 extension ElementExtension2 on Element2? {
   Element2? get canonicalElement2 => switch (this) {
-        PropertyAccessorElement2(:var variable3) => variable3,
+        PropertyAccessorElement2(:var variable3?) => variable3,
         _ => this,
       };
 
@@ -569,42 +539,46 @@ extension LinterContextExtension on LinterContext {
 }
 
 extension MethodDeclarationExtension on MethodDeclaration {
-  bool get hasInheritedMethod => lookUpInheritedMethod() != null;
-
   /// Returns whether this method is an override of a method in any supertype.
   bool get isOverride {
-    var name = declaredElement?.name;
-    if (name == null) {
-      return false;
-    }
-    var parentElement = declaredElement?.enclosingElement3;
-    if (parentElement is! InterfaceElement) {
-      return false;
-    }
-    var parentLibrary = parentElement.library;
+    var element = declaredFragment?.element;
+
+    var name = element?.name3;
+    if (name == null) return false;
+
+    var parentElement = element?.enclosingElement2;
+    if (parentElement is! InterfaceElement2) return false;
+
+    var parentLibrary = parentElement.library2;
 
     if (isGetter) {
       // Search supertypes for a getter of the same name.
       return parentElement.allSupertypes
-          .any((t) => t.lookUpGetter2(name, parentLibrary) != null);
+          .any((t) => t.lookUpGetter3(name, parentLibrary) != null);
     } else if (isSetter) {
       // Search supertypes for a setter of the same name.
       return parentElement.allSupertypes
-          .any((t) => t.lookUpSetter2(name, parentLibrary) != null);
+          .any((t) => t.lookUpSetter3(name, parentLibrary) != null);
     } else {
       // Search supertypes for a method of the same name.
       return parentElement.allSupertypes
-          .any((t) => t.lookUpMethod2(name, parentLibrary) != null);
+          .any((t) => t.lookUpMethod3(name, parentLibrary) != null);
     }
   }
 
-  MethodElement? lookUpInheritedMethod() {
-    var declaredElement = this.declaredElement;
+  bool hasInheritedMethod(InheritanceManager3 inheritanceManager) =>
+      lookUpInheritedMethod(inheritanceManager) != null;
+
+  MethodElement2? lookUpInheritedMethod(
+      InheritanceManager3 inheritanceManager) {
+    var declaredElement = declaredFragment?.element;
     if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement3;
-      if (parent is InterfaceElement) {
-        return parent.lookUpInheritedMethod(
-            name.lexeme, declaredElement.library);
+      var parent = declaredElement.enclosingElement2;
+      if (parent is InterfaceElement2) {
+        var methodName = Name.forElement(declaredElement);
+        if (methodName == null) return null;
+        var inherited = inheritanceManager.getInherited4(parent, methodName);
+        if (inherited is MethodElement2) return inherited;
       }
     }
     return null;
