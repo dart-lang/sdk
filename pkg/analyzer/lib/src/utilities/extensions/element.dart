@@ -61,6 +61,15 @@ extension ConstructorElementExtension on ConstructorElement {
 }
 
 extension Element2Extension on Element2 {
+  List<Fragment> get fragments {
+    return [
+      for (Fragment? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment)
+        fragment,
+    ];
+  }
+
   /// Whether the element is effectively [internal].
   bool get isInternal {
     if (this case Annotatable annotatable) {

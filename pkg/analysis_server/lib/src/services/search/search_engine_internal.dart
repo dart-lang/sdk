@@ -117,6 +117,7 @@ class SearchEngineImpl implements SearchEngine {
     return members;
   }
 
+  @override
   Future<Set<String>?> membersOfSubtypes2(InterfaceElement2 type) async {
     return await membersOfSubtypes(type.asElement);
   }

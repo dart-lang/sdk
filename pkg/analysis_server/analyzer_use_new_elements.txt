@@ -3,7 +3,6 @@ lib/src/analysis_server.dart
 lib/src/cider/rename.dart
 lib/src/computer/computer_call_hierarchy.dart
 lib/src/computer/computer_documentation.dart
-lib/src/domains/analysis/implemented_dart.dart
 lib/src/domains/analysis/occurrences_dart.dart
 lib/src/handler/legacy/edit_get_available_refactorings.dart
 lib/src/handler/legacy/legacy_handler.dart
@@ -18,7 +17,6 @@ lib/src/lsp/handlers/handler_definition.dart
 lib/src/lsp/handlers/handler_implementation.dart
 lib/src/lsp/handlers/handler_references.dart
 lib/src/lsp/handlers/handler_rename.dart
-lib/src/operation/operation_analysis.dart
 lib/src/protocol_server.dart
 lib/src/search/element_references.dart
 lib/src/services/correction/namespace.dart

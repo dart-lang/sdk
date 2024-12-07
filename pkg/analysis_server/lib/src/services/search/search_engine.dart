@@ -103,6 +103,11 @@ abstract class SearchEngine {
   /// return `null`.
   Future<Set<String>?> membersOfSubtypes(InterfaceElement type);
 
+  /// If the [type] has subtypes, return the set of names of members which these
+  /// subtypes declare, possibly empty.  If the [type] does not have subtypes,
+  /// return `null`.
+  Future<Set<String>?> membersOfSubtypes2(InterfaceElement2 type);
+
   /// Returns declarations of class members with the given name.
   ///
   /// [name] - the name being declared by the found matches.
