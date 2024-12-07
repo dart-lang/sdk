@@ -53,7 +53,7 @@ class ConvertIntoIsNotEmpty extends ResolvedCorrectionProducer {
     // should have "isNotEmpty"
     var propertyTarget = propertyElement.enclosingElement2;
     if (propertyTarget == null ||
-        getChildren2(propertyTarget, 'isNotEmpty').isEmpty) {
+        getChildren(propertyTarget, 'isNotEmpty').isEmpty) {
       return;
     }
     // should be in PrefixExpression

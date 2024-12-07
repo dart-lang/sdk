@@ -357,7 +357,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
     _ClosestElementFinder finder,
     InterfaceElement2 clazz,
   ) {
-    var members = getMembers2(clazz);
+    var members = getMembers(clazz);
     finder._updateList(members);
   }
 
@@ -366,7 +366,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
     ExtensionElement2? element,
   ) {
     if (element != null) {
-      finder._updateList(getExtensionMembers2(element));
+      finder._updateList(getExtensionMembers(element));
     }
   }
 }

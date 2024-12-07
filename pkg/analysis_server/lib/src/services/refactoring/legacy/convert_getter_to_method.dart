@@ -60,7 +60,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     if (field is FieldElement2 &&
         (field.enclosingElement2 is InterfaceElement2 ||
             field.enclosingElement2 is ExtensionElement2)) {
-      var elements = await getHierarchyMembers2(searchEngine, field);
+      var elements = await getHierarchyMembers(searchEngine, field);
       await Future.forEach(elements, (Element2 member) async {
         if (member is FieldElement2) {
           var getter = member.getter2;

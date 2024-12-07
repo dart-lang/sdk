@@ -7,7 +7,6 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/fuzzy_filter_sort.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
@@ -179,7 +178,7 @@ class CiderCompletionComputer {
             .toSet();
     for (var importedLibrary in importedLibraries) {
       var importedSuggestions = _importedLibrarySuggestions(
-        element: importedLibrary.asElement,
+        element: importedLibrary,
         performance: performance,
       );
       suggestionBuilders.addAll(importedSuggestions);
@@ -191,12 +190,12 @@ class CiderCompletionComputer {
   /// Return cached, or compute unprefixed suggestions for all elements
   /// exported from the library.
   List<CompletionSuggestionBuilder> _importedLibrarySuggestions({
-    required LibraryElement element,
+    required LibraryElement2 element,
     required OperationPerformanceImpl performance,
   }) {
     performance.getDataInt('libraryCount').increment();
 
-    var path = element.source.fullName;
+    var path = element.firstFragment.libraryFragment!.source.fullName;
     var signature = _fileResolver.getLibraryLinkedSignature(path);
 
     var cacheEntry = _cache._importedLibraries[path];
@@ -213,20 +212,20 @@ class CiderCompletionComputer {
   /// Compute all unprefixed suggestions for all elements exported from
   /// the library.
   List<CompletionSuggestionBuilder> _librarySuggestions(
-    LibraryElement element,
+    LibraryElement2 element,
   ) {
     var suggestionBuilder = SuggestionBuilder(
       _dartCompletionRequest,
       useFilter: false,
     );
-    suggestionBuilder.libraryUriStr = element.source.uri.toString();
+    suggestionBuilder.libraryUriStr = element.uri.toString();
     var visitor = LibraryElementSuggestionBuilder(
       _dartCompletionRequest,
       suggestionBuilder,
     );
-    var exportMap = element.exportNamespace.definedNames;
+    var exportMap = element.exportNamespace.definedNames2;
     for (var definedElement in exportMap.values) {
-      definedElement.asElement2?.accept2(visitor);
+      definedElement.accept2(visitor);
     }
     return suggestionBuilder.suggestions.toList();
   }

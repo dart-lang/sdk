@@ -287,7 +287,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       }
     }
     // Find new top-level declarations.
-    var librariesWithElements = await getTopLevelDeclarations2(name);
+    var librariesWithElements = await getTopLevelDeclarations(name);
     for (var libraryEntry in librariesWithElements.entries) {
       var libraryElement = libraryEntry.key;
       var declaration = libraryEntry.value;
@@ -426,7 +426,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       memberName,
     );
     var producers = <ResolvedCorrectionProducer>[];
-    await for (var libraryToImport in librariesWithExtensions2(memberName)) {
+    await for (var libraryToImport in librariesWithExtensions(memberName)) {
       producers.addAll(
         _importExtensionInLibrary(libraryToImport, targetType, name),
       );

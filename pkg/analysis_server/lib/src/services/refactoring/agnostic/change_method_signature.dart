@@ -662,8 +662,11 @@ class _SignatureUpdater {
   Future<List<ExecutableElement>> computeElements() async {
     var element = selectionState.element;
     if (element case ClassMemberElement member) {
-      var set = await getHierarchyMembers(searchEngine, member);
-      return set.whereType<ExecutableElement>().toList();
+      var set = await getHierarchyMembers(searchEngine, member.asElement2!);
+      return set
+          .whereType<ExecutableElement2>()
+          .map((e) => e.asElement)
+          .toList();
     }
     return [element];
   }

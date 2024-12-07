@@ -1177,7 +1177,7 @@ abstract class InstanceElement2
   ///
   /// The behavior of this method is defined by the Dart Language Specification
   /// in section 17.18 Lookup.
-  PropertyAccessorElement2? lookUpGetter2({
+  GetterElement? lookUpGetter2({
     required String name,
     required LibraryElement2 library,
   });
@@ -1189,6 +1189,17 @@ abstract class InstanceElement2
   /// The behavior of this method is defined by the Dart Language Specification
   /// in section 17.18 Lookup.
   MethodElement2? lookUpMethod2({
+    required String name,
+    required LibraryElement2 library,
+  });
+
+  /// Returns the element representing the setter that results from looking up
+  /// the given [name] in this class with respect to the given [library],
+  /// or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 17.18 Lookup.
+  SetterElement? lookUpSetter2({
     required String name,
     required LibraryElement2 library,
   });

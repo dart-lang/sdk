@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/visible_ranges_c
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A [Refactoring] for renaming [ParameterElement]s.
 class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
@@ -104,7 +105,11 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
   Future<void> _prepareElements() async {
     var element = this.element;
     if (element.isNamed) {
-      elements = await getHierarchyNamedParameters(searchEngine, element);
+      elements =
+          (await getHierarchyNamedParameters(
+            searchEngine,
+            element.asElement2,
+          )).map((e) => e.asElement).toList();
     } else {
       elements = [element];
     }

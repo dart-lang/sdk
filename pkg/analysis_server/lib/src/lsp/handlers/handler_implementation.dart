@@ -13,6 +13,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 typedef StaticOptions =
     Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>;
@@ -68,7 +69,7 @@ class ImplementationHandler
       return success([]);
     }
 
-    var helper = TypeHierarchyComputerHelper.fromElement(element);
+    var helper = TypeHierarchyComputerHelper.fromElement(element.asElement2!);
     var interfaceElement = helper.pivotClass;
     if (interfaceElement == null) {
       return success([]);
@@ -79,7 +80,7 @@ class ImplementationHandler
     await performance.runAsync(
       'appendAllSubtypes',
       (performance) => server.searchEngine.appendAllSubtypes(
-        interfaceElement,
+        interfaceElement.asElement,
         allSubtypes,
         performance,
       ),
@@ -94,23 +95,32 @@ class ImplementationHandler
                     // Filter based on type, so when searching for members we don't
                     // include any intermediate classes that don't have
                     // implementations for the method.
-                    ? helper.findMemberElement(element)?.nonSynthetic
-                    : element;
+                    ? helper.findMemberElement(element.asElement2)?.nonSynthetic2
+                    : element.asElement2;
               })
               .nonNulls
               .toSet()
               .map((element) {
-                var unitElement =
-                    element.thisOrAncestorOfType<CompilationUnitElement>();
-                if (unitElement == null) {
+                var firstFragment = element.firstFragment;
+                var libraryFragment = firstFragment.libraryFragment;
+                if (libraryFragment == null) {
                   return null;
                 }
+
+                var nameOffset = firstFragment.nameOffset2;
+                var name = firstFragment.name2;
+                if (nameOffset == null || name == null) {
+                  return null;
+                }
+
                 return Location(
-                  uri: uriConverter.toClientUri(unitElement.source.fullName),
+                  uri: uriConverter.toClientUri(
+                    libraryFragment.source.fullName,
+                  ),
                   range: toRange(
-                    unitElement.lineInfo,
-                    element.nameOffset,
-                    element.nameLength,
+                    libraryFragment.lineInfo,
+                    nameOffset,
+                    name.length,
                   ),
                 );
               })

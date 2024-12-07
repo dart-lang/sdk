@@ -119,7 +119,7 @@ class _ExtensionMemberValidator {
 
   Future<RefactoringStatus> validate() async {
     // Check if there is a member with "newName" in the extension.
-    for (var newNameMember in getChildren2(elementExtension, name)) {
+    for (var newNameMember in getChildren(elementExtension, name)) {
       result.addError(
         format(
           "Extension '{0}' already declares {1} with name '{2}'.",

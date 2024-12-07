@@ -182,7 +182,7 @@ Set<String> _getNamesConflictingAt(AstNode node) {
         enclosingInterfaceElement,
       ];
       for (var interfaceElement in elements) {
-        var classMembers = getChildren2(interfaceElement);
+        var classMembers = getChildren(interfaceElement);
         for (var classMemberElement in classMembers) {
           result.add(classMemberElement.displayName);
         }

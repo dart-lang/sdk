@@ -51,9 +51,27 @@ class SearchEngineImpl implements SearchEngine {
     Set<InterfaceElement2> allSubtypes,
     OperationPerformanceImpl performance,
   ) async {
-    var subtypes = <InterfaceElement>{};
-    await appendAllSubtypes(type.asElement, subtypes, performance);
-    allSubtypes.addAll(subtypes.map((e) => e.asElement2));
+    var searchEngineCache = SearchEngineCache();
+
+    Future<void> addSubtypes(InterfaceElement2 type) async {
+      var directResults = await performance.runAsync(
+        '_searchDirectSubtypes',
+        (performance) => _searchDirectSubtypes(
+          type.asElement,
+          searchEngineCache,
+          performance,
+        ),
+      );
+      for (var directResult in directResults) {
+        var directSubtype =
+            directResult.enclosingElement.asElement2 as InterfaceElement2;
+        if (allSubtypes.add(directSubtype)) {
+          await addSubtypes(directSubtype);
+        }
+      }
+    }
+
+    await addSubtypes(type);
   }
 
   @override
@@ -99,6 +117,7 @@ class SearchEngineImpl implements SearchEngine {
     return members;
   }
 
+  @override
   Future<Set<String>?> membersOfSubtypes2(InterfaceElement2 type) async {
     return await membersOfSubtypes(type.asElement);
   }

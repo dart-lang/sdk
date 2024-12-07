@@ -59,7 +59,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     }
     // MethodElement
     if (element is MethodElement2) {
-      var elements = await getHierarchyMembers2(searchEngine, element);
+      var elements = await getHierarchyMembers(searchEngine, element);
       await Future.forEach(elements, (Element2 element) async {
         await _updateElementDeclaration(element as ExecutableElement2);
         return _updateElementReferences(element);

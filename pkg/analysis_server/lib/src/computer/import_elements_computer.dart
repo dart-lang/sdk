@@ -5,7 +5,7 @@
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
@@ -37,7 +37,7 @@ class ImportElementsComputer {
     var filteredImportedElements = _filterImportedElements(
       importedElementsList,
     );
-    var libraryElement = libraryResult.libraryElement;
+    var libraryElement = libraryResult.libraryElement2;
     var uriConverter = libraryResult.session.uriConverter;
     var existingImports = <ImportDirective>[];
     for (var directive in unit.directives) {
@@ -342,7 +342,7 @@ class ImportElementsComputer {
   /// Computes the best URI to import [what] into [from].
   ///
   /// Copied from DartFileEditBuilderImpl.
-  String _getLibrarySourceUri(LibraryElement from, Source what) {
+  String _getLibrarySourceUri(LibraryElement2 from, Source what) {
     var whatPath = what.fullName;
     // check if an absolute URI (such as 'dart:' or 'package:')
     var whatUri = what.uri;
@@ -352,17 +352,17 @@ class ImportElementsComputer {
     }
     // compute a relative URI
     var context = resourceProvider.pathContext;
-    var fromFolder = context.dirname(from.source.fullName);
+    var fromFolder = context.dirname(from.firstFragment.source.fullName);
     var relativeFile = context.relative(whatPath, from: fromFolder);
     return context.split(relativeFile).join('/');
   }
 
   bool _hasElement(String prefix, String name) {
-    var scope = libraryResult.libraryElement.definingCompilationUnit.scope;
+    var scope = libraryResult.libraryElement2.firstFragment.scope;
 
     if (prefix.isNotEmpty) {
-      var prefixElement = scope.lookup(prefix).getter;
-      if (prefixElement is PrefixElement) {
+      var prefixElement = scope.lookup(prefix).getter2;
+      if (prefixElement is PrefixElement2) {
         scope = prefixElement.scope;
       } else {
         return false;
@@ -370,20 +370,20 @@ class ImportElementsComputer {
     }
 
     var lookupResult = scope.lookup(name);
-    return lookupResult.getter != null || lookupResult.setter != null;
+    return lookupResult.getter2 != null || lookupResult.setter2 != null;
   }
 
   /// Return `true` if the given [import] matches the given specification of
   /// [importedElements]. They will match if they import the same library using
   /// the same prefix.
   bool _matches(ImportDirective import, ImportedElements importedElements) {
-    var importElement = import.element;
-    if (importElement == null) {
+    var libraryImport = import.libraryImport;
+    if (libraryImport == null) {
       return false;
     }
-    var library = importElement.importedLibrary;
+    var library = libraryImport.importedLibrary2;
     return library != null &&
-        library.source.fullName == importedElements.path &&
+        library.firstFragment.source.fullName == importedElements.path &&
         (import.prefix?.name ?? '') == importedElements.prefix;
   }
 }

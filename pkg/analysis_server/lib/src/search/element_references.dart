@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A computer for `search.findElementReferences` request results.
 class ElementReferencesComputer {
@@ -85,23 +86,26 @@ class ElementReferencesComputer {
     OperationPerformanceImpl performance,
   ) async {
     if (element is ParameterElement && element.isNamed) {
-      return await performance.runAsync(
+      return (await performance.runAsync(
         'getHierarchyNamedParameters',
-        (_) => getHierarchyNamedParameters(searchEngine, element),
-      );
+        (_) => getHierarchyNamedParameters(searchEngine, element.asElement2),
+      )).map((e) => e.asElement);
     }
     if (element is ClassMemberElement) {
       var (members, parameters) = await performance.runAsync(
         'getHierarchyMembers',
         (performance) => getHierarchyMembersAndParameters(
           searchEngine,
-          element,
+          element.asElement2!,
           performance: performance,
           includeParametersForFields: true,
         ),
       );
 
-      return {...members, ...parameters};
+      return {
+        ...members.map((e) => e.asElement!),
+        ...parameters.map((e) => e.asElement),
+      };
     }
     return [element];
   }
