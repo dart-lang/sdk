@@ -21,7 +21,6 @@ lib/src/lsp/handlers/handler_rename.dart
 lib/src/operation/operation_analysis.dart
 lib/src/protocol_server.dart
 lib/src/search/element_references.dart
-lib/src/search/type_hierarchy.dart
 lib/src/services/correction/namespace.dart
 lib/src/services/kythe/kythe_visitors.dart
 lib/src/services/refactoring/agnostic/change_method_signature.dart

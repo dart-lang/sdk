@@ -5594,14 +5594,14 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   }
 
   @override
-  PropertyAccessorElement2? lookUpGetter2({
+  GetterElement? lookUpGetter2({
     required String name,
     required LibraryElement2 library,
   }) {
     return lookUpGetter(
       name: name,
       library: library.asElement,
-    )?.asElement2;
+    )?.asElement2 as GetterElement?;
   }
 
   @override
@@ -5631,6 +5631,17 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   }) {
     return _implementationsOfSetter(name).firstWhereOrNull(
         (PropertyAccessorElement setter) => setter.isAccessibleIn(library));
+  }
+
+  @override
+  SetterElement? lookUpSetter2({
+    required String name,
+    required LibraryElement2 library,
+  }) {
+    return lookUpSetter(
+      name: name,
+      library: library.asElement,
+    )?.asElement2 as SetterElement?;
   }
 
   @override
