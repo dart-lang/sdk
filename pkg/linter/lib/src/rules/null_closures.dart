@@ -93,7 +93,7 @@ final Map<String, Set<NonNullableFunction>>
   },
   'splitMap': {
     NonNullableFunction('dart.core', 'Iterable', 'splitMap',
-      named: ['onMatch', 'onNonMatch']),
+        named: ['onMatch', 'onNonMatch']),
   },
   'takeWhile': {
     NonNullableFunction('dart.core', 'Iterable', 'takeWhile', positional: [0]),

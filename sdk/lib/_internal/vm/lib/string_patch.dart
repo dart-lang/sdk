@@ -888,8 +888,8 @@ abstract final class _StringBase implements String {
 
   Iterable<T> splitMap<T>(
     Pattern pattern, {
-      T onMatch(Match match)?,
-      T onNonMatch(String nonMatch)?,
+    T onMatch(Match match)?,
+    T onNonMatch(String nonMatch)?,
   }) {
     if (pattern == null) {
       throw new ArgumentError.notNull("pattern");

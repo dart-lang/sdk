@@ -85,19 +85,20 @@ final class JSString extends Interceptor
 
   @notNull
   Iterable<T> splitMap<T>(
-      Pattern pattern, {
-      T Function(Match match)? onMatch,
-      T Function(String nonMatch)? onNonMatch,
-    }) {
-      return stringSplitMapUnchecked(this, pattern, onMatch, onNonMatch);
-    }
+    Pattern pattern, {
+    T Function(Match match)? onMatch,
+    T Function(String nonMatch)? onNonMatch,
+  }) {
+    return stringSplitMapUnchecked(this, pattern, onMatch, onNonMatch);
+  }
 
-    Iterable<T> stringSplitMapUnchecked<T>(String receiver, Pattern pattern,
+  Iterable<T> stringSplitMapUnchecked<T>(String receiver, Pattern pattern,
       T Function(Match)? onMatch, T Function(String)? onNonMatch) {
     onMatch ??= (match) => match[0]! as T;
     onNonMatch ??= (string) => string as T;
     if (pattern is String) {
-      return stringSplitStringMapUnchecked(receiver, pattern, onMatch, onNonMatch);
+      return stringSplitStringMapUnchecked(
+        receiver, pattern, onMatch, onNonMatch);
     }
     if (pattern is JSSyntaxRegExp) {
       return stringSplitJSRegExpMapUnchecked(receiver, pattern, onMatch, onNonMatch);
