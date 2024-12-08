@@ -8,6 +8,7 @@ testAll(Pattern Function(Pattern) wrap) {
   testReplaceAll(wrap);
   testReplaceAllMapped(wrap);
   testSplitMapJoin(wrap);
+  testSplitMap(wrap);
 }
 
 testReplaceAll(Pattern Function(Pattern) wrap) {
@@ -164,5 +165,76 @@ testSplitMapJoin(Pattern Function(Pattern) wrap) {
   Expect.equals(
     "<>a<bc>a<bd>a<e>",
     "abcabdae".splitMapJoin(wrap("a"), onNonMatch: rest),
+  );
+}
+
+testSplitMap(Pattern Function(Pattern) wrap) {
+  String mark(Match m) => "[${m[0]}]";
+  String rest(String s) => "<${s}>";
+
+  Expect.listEquals(
+    ["<a>", "[b]", "<ca>", "[b]", "<dae>"],
+    "abcabdae".splitMap(wrap("b"), onMatch: mark, onNonMatch: rest),
+  );
+
+  // Test with the replaced string at the beginning.
+  Expect.listEquals(
+    ["<>", "[a]", "<bc>", "[a]", "<bd>", "[a]", "<e>"],
+    "abcabdae".splitMap(wrap("a"), onMatch: mark, onNonMatch: rest),
+  );
+
+  // Test with the replaced string at the end.
+  Expect.listEquals(
+    ["<abcabda>", "[e]", "<>"],
+    "abcabdae".splitMap(wrap("e"), onMatch: mark, onNonMatch: rest),
+  );
+
+  // Test when there are no occurrence of the string to replace.
+  Expect.listEquals(
+    ["<abcabdae>"],
+    "abcabdae".splitMap(wrap("f"), onMatch: mark, onNonMatch: rest),
+  );
+
+  // Test when the string to change is the empty string.
+  Expect.listEquals(
+    ["<>"],
+    "".splitMap(wrap("from"), onMatch: mark, onNonMatch: rest),
+  );
+
+  // Test when the string to change is a substring of the string to
+  // replace.
+  Expect.listEquals(
+    ["<fro>"],
+    "fro".splitMap(wrap("from"), onMatch: mark, onNonMatch: rest),
+  );
+
+  // Test when matches are adjacent
+  Expect.listEquals(
+    ["<>", "[from]", "<>", "[from]", "<>"],
+    "fromfrom".splitMap(wrap("from"), onMatch: mark, onNonMatch: rest),
+  );
+
+  // Test changing the empty string.
+  Expect.listEquals(
+    ["<>"],
+    "".splitMap(wrap(""), onMatch: mark, onNonMatch: rest),
+  );
+
+  // Test replacing the empty string.
+  Expect.listEquals(
+    ["<>", "[A]", "<>", "[B]", "<>", "[C]", "<>"],
+    "ABC".splitMap(wrap(""), onMatch: mark, onNonMatch: rest),
+  );
+
+  // Test with only onMatch.
+  Expect.listEquals(
+    ["[a]", "bc", "[a]", "bd", "[a]", "e"],
+    "abcabdae".splitMap(wrap("a"), onMatch: mark),
+  );
+
+  // Test with only onNonMatch
+  Expect.listEquals(
+    ["", "a", "bc", "a", "bd", "a", "e"],
+    "abcabdae".splitMap(wrap("a"), onNonMatch: rest),
   );
 }

@@ -1015,6 +1015,31 @@ abstract final class StringBase extends WasmStringBase
     return buffer.toString();
   }
 
+  Iterable<T> splitMap<T>(
+    Pattern pattern, {
+    T Function(Match match)? onMatch, 
+    T Function(String nonMatch)? onNonMatch,
+  }){
+    List<T> result = [];
+    int startIndex = 0;
+
+    onMatch ??= (Match match) => unsafeCast<T>(match[0]);
+    onNonMatch ??= (String nonMatch) => unsafeCast<T>(nonMatch);
+
+    for (Match match in pattern.allMatches(this)) {
+      if (startIndex != match.start) {
+        result.add(onNonMatch(this.substring(startIndex, match.start)));
+      }
+      result.add(onMatch(match));
+      startIndex = match.end;
+    }
+
+    if (startIndex != this.length) {
+      result.add(onNonMatch(this.substring(startIndex)));
+    }
+    return result;
+  }
+
   // Used in string interpolation expressions where ownership of array is passed
   // to this function.
   //

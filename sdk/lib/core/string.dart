@@ -707,6 +707,44 @@ abstract final class String implements Comparable<String>, Pattern {
     String Function(String)? onNonMatch,
   });
 
+  /// Splits the string and returns an iterable of generic type.
+  /// 
+  /// The [pattern] is used to split the string
+  /// into parts and separating matches.
+  /// Each match of [Pattern.allMatches] of [pattern] on this string is
+  /// used as a match, and the substrings between the end of one match
+  /// (or the start of the string) and the start of the next match (or the
+  /// end of the string) is treated as a non-matched part.
+  /// (There is no omission of leading or trailing empty matchs, like
+  /// in [split], all matches and parts between the are included.)
+  /// 
+  /// Each match is converted to a value of type [T] by calling [onMatch]. If [onMatch]
+  /// is omitted, the matched substring is used.
+  /// 
+  /// Each non-matched part is converted to a value of type [T] by a call to [onNonMatch].
+  /// If [onNonMatch] is omitted, the non-matching substring itself is used.
+  /// 
+  /// The resulting iterable is lazy, and will only convert the parts as they are
+  /// read. The conversion is done in order, so the first part of the iterable
+  /// will be the first part of the string, and so on.
+  /// 
+  /// ```dart
+  /// final result = 'Here is a [link](https://dart.dev) to the dart website'
+  ///    .splitMap<TextSpan>(
+  ///     RegExp( r'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)'),
+  ///     onMatch: (m) => TextSpan(
+  ///       text: m[0]!,
+  ///       style: TextStyle(color: Colors.blue),
+  ///     ),
+  ///     onNonMatch: (n) => TextSpan(text: n),
+  /// );
+  /// ```
+  Iterable<T> splitMap<T>(
+    Pattern pattern, {
+    T Function(Match match)? onMatch, 
+    T Function(String nonMatch)? onNonMatch,
+  });
+
   /// An unmodifiable list of the UTF-16 code units of this string.
   List<int> get codeUnits;
 

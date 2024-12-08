@@ -886,6 +886,20 @@ abstract final class _StringBase implements String {
     return buffer.toString();
   }
 
+  Iterable<T> splitMap<T>(
+    Pattern pattern, {
+      T onMatch(Match match)?,
+      T onNonMatch(String nonMatch)?,
+  }) {
+    if (pattern == null) {
+      throw new ArgumentError.notNull("pattern");
+    }
+    onMatch ??= _matchString as T Function(Match);
+    onNonMatch ??= _stringIdentity as T Function(String);
+
+    return _StringSplitIterable(this, pattern, onMatch, onNonMatch);
+  }
+
   // Convert single object to string.
   @pragma("vm:entry-point", "call")
   static String _interpolateSingle(Object? o) {
@@ -1029,6 +1043,77 @@ abstract final class _StringBase implements String {
   // but not all are known to be OneByteString(s).
   @pragma("vm:external-name", "String_concatRange")
   external static String _concatRangeNative(List strings, int start, int end);
+}
+
+final class _StringSplitIterable<T> extends Iterable<T> {
+  final String _input;
+  final Pattern _pattern;
+  final T Function(Match match) _onMatch;
+  final T Function(String nonMatch) _onNonMatch;
+
+  _StringSplitIterable(
+    this._input,
+    this._pattern,
+    this._onMatch,
+    this._onNonMatch,
+  );
+
+  Iterator<T> get iterator =>
+      _StringSplitIterator(_input, _pattern, _onMatch, _onNonMatch);
+}
+
+final class _StringSplitIterator<T> implements Iterator<T> {
+  final String _input;
+  final Pattern _pattern;
+  final T Function(Match match) _onMatch;
+  final T Function(String nonMatch) _onNonMatch;
+  int _index = 0;
+  int _matchStart = 0;
+  T? _current;
+  bool _isDone = false;
+
+  _StringSplitIterator(
+    this._input,
+    this._pattern,
+    this._onMatch,
+    this._onNonMatch,
+  );
+
+  bool moveNext() {
+    if (_isDone) {
+      return false;
+    }
+    if (_current != null) {
+      _current = null;
+      return true;
+    }
+    if (_index == _input.length) {
+      _isDone = true;
+      return false;
+    }
+    Iterator<Match> matches = _pattern.allMatches(_input, _index).iterator;
+    if (!matches.moveNext()) {
+      _current = _onNonMatch(_input.substring(_index));
+      _index = _input.length;
+      return true;
+    }
+    Match match = matches.current;
+    if (match.start == _index) {
+      _current = _onMatch(match);
+      _index = match.end;
+      return true;
+    }
+    _current = _onNonMatch(_input.substring(_index, match.start));
+    _index = match.start;
+    return true;
+  }
+
+  T get current {
+    if (_current == null) {
+      throw new StateError("No element");
+    }
+    return _current!;
+  }
 }
 
 /// Product of two positive integers, clamped to the maximum int value on

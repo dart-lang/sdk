@@ -246,6 +246,67 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
     return buffer.toString();
   }
 
+  @override
+  Iterable<T> splitMap<T>(
+    Pattern pattern, {
+    T Function(Match match)? onMatch,
+    T Function(String nonMatch)? onNonMatch,
+  }) {
+    onMatch ??= _stringIdentity as T Function(Match);
+    onNonMatch ??= _stringIdentity as T Function(String);
+
+    final result = <T>[];
+    if (pattern is String) {
+      final patternLength = pattern.length;
+      if (patternLength == 0) {
+        // Pattern is the empty string.
+        int i = 0;
+        result.add(onNonMatch(""));
+        final length = this.length;
+        while (i < length) {
+          result.add(onMatch!(StringMatch(i, this, "")));
+          // Special case to avoid splitting a surrogate pair.
+          int code = codeUnitAt(i);
+          if ((code & ~0x3FF) == 0xD800 && length > i + 1) {
+            // Leading surrogate;
+            code = codeUnitAt(i + 1);
+            if ((code & ~0x3FF) == 0xDC00) {
+              // Matching trailing surrogate.
+              result.add(onNonMatch(substring(i, i + 2)));
+              i += 2;
+              continue;
+            }
+          }
+          result.add(onNonMatch(this[i]));
+          i++;
+        }
+        result.add(onMatch!(StringMatch(i, this, "")));
+        return result;
+      }
+      int startIndex = 0;
+      final length = this.length;
+      while (startIndex < length) {
+        int position = indexOf(pattern, startIndex);
+        if (position == -1) {
+          break;
+        }
+        result.add(onNonMatch(substring(startIndex, position)));
+        result.add(onMatch!(StringMatch(position, this, pattern)));
+        startIndex = position + patternLength;
+      }
+      result.add(onNonMatch(substring(startIndex)));
+      return result;
+    } 
+    int startIndex = 0;
+    for (Match match in pattern.allMatches(this)) {
+      result.add(onNonMatch(substring(startIndex, match.start)));
+      result.add(onMatch!(match));
+      startIndex = match.end;
+    }
+    result.add(onNonMatch(substring(startIndex)));
+    return result;
+  }
+
   String _replaceRange(int start, int end, String replacement) {
     String prefix = substring(0, start);
     String suffix = substring(end);

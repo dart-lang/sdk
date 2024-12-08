@@ -243,6 +243,7 @@ void main() {
         s.replaceRange(1, 2, s);
         s.split(s);
         s.splitMapJoin(s, onMatch: (_) => s, onNonMatch: (_) => s);
+        s.splitMap(s, onMatch: (_) => s, onNonMatch: (_) => s);
         s.startsWith(s);
         s.substring(1);
         s.toLowerCase();

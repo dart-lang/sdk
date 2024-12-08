@@ -84,6 +84,103 @@ final class JSString extends Interceptor
   }
 
   @notNull
+  Iterable<T> splitMap<T>(
+      Pattern pattern, {
+      T Function(Match match)? onMatch,
+      T Function(String nonMatch)? onNonMatch,
+    }) {
+      return stringSplitMapUnchecked(this, pattern, onMatch, onNonMatch);
+    }
+
+    Iterable<T> stringSplitMapUnchecked<T>(String receiver, Pattern pattern,
+      T Function(Match)? onMatch, T Function(String)? onNonMatch) {
+    onMatch ??= (match) => match[0]! as T;
+    onNonMatch ??= (string) => string as T;
+    if (pattern is String) {
+      return stringSplitStringMapUnchecked(receiver, pattern, onMatch, onNonMatch);
+    }
+    if (pattern is JSSyntaxRegExp) {
+      return stringSplitJSRegExpMapUnchecked(receiver, pattern, onMatch, onNonMatch);
+    }
+    return stringSplitGeneralMapUnchecked(receiver, pattern, onMatch, onNonMatch);
+  }
+
+  Iterable<T> stringSplitStringMapUnchecked<T>(String receiver, String pattern,
+      T Function(Match) onMatch, T Function(String) onNonMatch) {
+    if (pattern.isEmpty) {
+      return stringSplitEmptyMapUnchecked(receiver, onMatch, onNonMatch);
+    }
+    List<T> result = <T>[];
+    int startIndex = 0;
+    int patternLength = pattern.length;
+    while (true) {
+      int position = stringIndexOfStringUnchecked(receiver, pattern, startIndex);
+      if (position == -1) {
+        break;
+      }
+      result.add(onNonMatch(receiver.substring(startIndex, position)));
+      result.add(onMatch(StringMatch(position, receiver, pattern)));
+      startIndex = position + patternLength;
+    }
+    result.add(onNonMatch(receiver.substring(startIndex)));
+    return result;
+  }
+
+  Iterable<T> stringSplitEmptyMapUnchecked<T>(
+      String receiver, T Function(Match) onMatch, T Function(String) onNonMatch) {
+    List<T> result = <T>[];
+    int length = receiver.length;
+    int i = 0;
+    result.add(onNonMatch(""));
+    while (i < length) {
+      result.add(onMatch(StringMatch(i, receiver, "")));
+      // Special case to avoid splitting a surrogate pair.
+      int code = receiver.codeUnitAt(i);
+      if ((code & ~0x3FF) == 0xD800 && length > i + 1) {
+        // Leading surrogate;
+        code = receiver.codeUnitAt(i + 1);
+        if ((code & ~0x3FF) == 0xDC00) {
+          // Matching trailing surrogate.
+          result.add(onNonMatch(receiver.substring(i, i + 2)));
+          i += 2;
+          continue;
+        }
+      }
+      result.add(onNonMatch(receiver[i]));
+      i++;
+    }
+    result.add(onMatch(StringMatch(i, receiver, "")));
+    result.add(onNonMatch(""));
+    return result;
+  }
+
+  Iterable<T> stringSplitJSRegExpMapUnchecked<T>(String receiver,
+      JSSyntaxRegExp pattern, T Function(Match) onMatch, T Function(String) onNonMatch) {
+    List<T> result = <T>[];
+    int startIndex = 0;
+    for (Match match in pattern.allMatches(receiver)) {
+      result.add(onNonMatch(receiver.substring(startIndex, match.start)));
+      result.add(onMatch(match));
+      startIndex = match.end;
+    }
+    result.add(onNonMatch(receiver.substring(startIndex)));
+    return result;
+  }
+
+  Iterable<T> stringSplitGeneralMapUnchecked<T>(String receiver, Pattern pattern,
+      T Function(Match) onMatch, T Function(String) onNonMatch) {
+    List<T> result = <T>[];
+    int startIndex = 0;
+    for (Match match in pattern.allMatches(receiver)) {
+      result.add(onNonMatch(receiver.substring(startIndex, match.start)));
+      result.add(onMatch(match));
+      startIndex = match.end;
+    }
+    result.add(onNonMatch(receiver.substring(startIndex)));
+    return result;
+  }
+
+  @notNull
   String replaceFirst(
     Pattern from,
     @nullCheck String to, [

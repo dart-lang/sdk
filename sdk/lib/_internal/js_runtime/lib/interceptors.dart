@@ -42,6 +42,7 @@ import 'dart:_js_helper'
         stringIndexOfStringUnchecked,
         stringLastIndexOfUnchecked,
         stringReplaceAllFuncUnchecked,
+        stringSplitMapUnchecked,
         stringReplaceAllUnchecked,
         stringReplaceFirstUnchecked,
         stringReplaceFirstMappedUnchecked,
