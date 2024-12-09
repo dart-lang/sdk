@@ -347,6 +347,10 @@ class PrecompileParsedFunctionHelper : public ValueObject {
   bool optimized() const { return optimized_; }
   Thread* thread() const { return thread_; }
 
+  bool GenerateCode(FlowGraph* flow_graph,
+                    CompilerPassState* pass_state,
+                    ZoneGrowableArray<const ICData*>* ic_data_array);
+
   void FinalizeCompilation(compiler::Assembler* assembler,
                            FlowGraphCompiler* graph_compiler,
                            FlowGraph* flow_graph,
@@ -3477,24 +3481,17 @@ static void GenerateNecessaryAllocationStubs(FlowGraph* flow_graph) {
   }
 }
 
-// Return false if bailed out.
-bool PrecompileParsedFunctionHelper::Compile() {
-  ASSERT(CompilerState::Current().is_aot());
-  if (optimized() && !parsed_function()->function().IsOptimizable()) {
-    // All functions compiled by precompiler must be optimizable.
-    UNREACHABLE();
-    return false;
-  }
-  volatile bool is_compiled = false;
-  Zone* const zone = thread()->zone();
-  HANDLESCOPE(thread());
-
+bool PrecompileParsedFunctionHelper::GenerateCode(
+    FlowGraph* flow_graph,
+    CompilerPassState* pass_state,
+    ZoneGrowableArray<const ICData*>* ic_data_array) {
   // We may reattempt compilation if the function needs to be assembled using
   // far branches on ARM. In the else branch of the setjmp call, done is set to
   // false, and use_far_branches is set to true if there is a longjmp from the
   // ARM assembler. In all other paths through this while loop, done is set to
   // true. use_far_branches is always false on ia32 and x64.
   bool done = false;
+  volatile bool is_compiled = false;
   // volatile because the variable may be clobbered by a longjmp.
   volatile intptr_t far_branch_level = 0;
 
@@ -3502,67 +3499,6 @@ bool PrecompileParsedFunctionHelper::Compile() {
     LongJumpScope jump;
     const intptr_t val = setjmp(*jump.Set());
     if (val == 0) {
-      FlowGraph* flow_graph = nullptr;
-      ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
-      const Function& function = parsed_function()->function();
-      ASSERT(!function.IsIrregexpFunction());
-
-      CompilerState compiler_state(thread(), /*is_aot=*/true, optimized(),
-                                   CompilerState::ShouldTrace(function));
-      compiler_state.set_function(function);
-
-      {
-        ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
-
-        TIMELINE_DURATION(thread(), CompilerVerbose, "BuildFlowGraph");
-        COMPILER_TIMINGS_TIMER_SCOPE(thread(), BuildGraph);
-        kernel::FlowGraphBuilder builder(parsed_function(), ic_data_array,
-                                         /* not building var desc */ nullptr,
-                                         /* not inlining */ nullptr,
-                                         optimized(), Compiler::kNoOSRDeoptId);
-        flow_graph = builder.BuildGraph();
-        ASSERT(flow_graph != nullptr);
-      }
-
-      if (optimized()) {
-        flow_graph->PopulateWithICData(function);
-      }
-
-      const bool print_flow_graph =
-          (FLAG_print_flow_graph ||
-           (optimized() && FLAG_print_flow_graph_optimized)) &&
-          FlowGraphPrinter::ShouldPrint(function);
-
-      if (print_flow_graph && !optimized()) {
-        FlowGraphPrinter::PrintGraph("Unoptimized Compilation", flow_graph);
-      }
-
-      CompilerPassState pass_state(thread(), flow_graph, precompiler_);
-
-      if (optimized()) {
-        TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
-
-        AotCallSpecializer call_specializer(precompiler_, flow_graph);
-        pass_state.call_specializer = &call_specializer;
-
-        flow_graph = CompilerPass::RunPipeline(CompilerPass::kAOT, &pass_state);
-      }
-
-      ASSERT(pass_state.inline_id_to_function.length() ==
-             pass_state.caller_inline_id.length());
-
-      ASSERT(precompiler_ != nullptr);
-
-      // When generating code in bare instruction mode all code objects
-      // share the same global object pool. To reduce interleaving of
-      // unrelated object pool entries from different code objects
-      // we attempt to pregenerate stubs referenced by the code
-      // we are going to generate.
-      //
-      // Reducing interleaving means reducing recompilations triggered by
-      // failure to commit object pool into the global object pool.
-      GenerateNecessaryAllocationStubs(flow_graph);
-
       // Even in bare instructions mode we don't directly add objects into
       // the global object pool because code generation can bail out
       // (e.g. due to speculative optimization or branch offsets being
@@ -3588,10 +3524,10 @@ bool PrecompileParsedFunctionHelper::Compile() {
 
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), optimized(),
-          pass_state.inline_id_to_function, pass_state.inline_id_to_token_pos,
-          pass_state.caller_inline_id, ic_data_array, function_stats);
-      pass_state.graph_compiler = &graph_compiler;
-      CompilerPass::GenerateCode(&pass_state);
+          pass_state->inline_id_to_function, pass_state->inline_id_to_token_pos,
+          pass_state->caller_inline_id, ic_data_array, function_stats);
+      pass_state->graph_compiler = &graph_compiler;
+      CompilerPass::GenerateCode(pass_state);
       {
         COMPILER_TIMINGS_TIMER_SCOPE(thread(), FinalizeCode);
         TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");
@@ -3658,19 +3594,89 @@ bool PrecompileParsedFunctionHelper::Compile() {
           THR_Print("%s\n", error.ToErrorCString());
         }
         done = true;
-      }
 
-      if (error.IsLanguageError() &&
-          (LanguageError::Cast(error).kind() == Report::kBailout)) {
-        // Discard the error if it was not a real error, but just a bailout.
-      } else {
-        // Otherwise, continue propagating.
+        // Continue propagating.
         thread()->set_sticky_error(error);
       }
       is_compiled = false;
     }
   }
   return is_compiled;
+}
+
+// Return false if bailed out.
+bool PrecompileParsedFunctionHelper::Compile() {
+  ASSERT(CompilerState::Current().is_aot());
+  if (optimized() && !parsed_function()->function().IsOptimizable()) {
+    // All functions compiled by precompiler must be optimizable.
+    UNREACHABLE();
+    return false;
+  }
+  Zone* const zone = thread()->zone();
+  HANDLESCOPE(thread());
+
+  FlowGraph* flow_graph = nullptr;
+  ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
+  const Function& function = parsed_function()->function();
+  ASSERT(!function.IsIrregexpFunction());
+
+  CompilerState compiler_state(thread(), /*is_aot=*/true, optimized(),
+                               CompilerState::ShouldTrace(function));
+  compiler_state.set_function(function);
+
+  {
+    ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
+
+    TIMELINE_DURATION(thread(), CompilerVerbose, "BuildFlowGraph");
+    COMPILER_TIMINGS_TIMER_SCOPE(thread(), BuildGraph);
+    kernel::FlowGraphBuilder builder(parsed_function(), ic_data_array,
+                                     /* not building var desc */ nullptr,
+                                     /* not inlining */ nullptr, optimized(),
+                                     Compiler::kNoOSRDeoptId);
+    flow_graph = builder.BuildGraph();
+    ASSERT(flow_graph != nullptr);
+  }
+
+  if (optimized()) {
+    flow_graph->PopulateWithICData(function);
+  }
+
+  const bool print_flow_graph =
+      (FLAG_print_flow_graph ||
+       (optimized() && FLAG_print_flow_graph_optimized)) &&
+      FlowGraphPrinter::ShouldPrint(function);
+
+  if (print_flow_graph && !optimized()) {
+    FlowGraphPrinter::PrintGraph("Unoptimized Compilation", flow_graph);
+  }
+
+  CompilerPassState pass_state(thread(), flow_graph, precompiler_);
+
+  if (optimized()) {
+    TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
+
+    AotCallSpecializer call_specializer(precompiler_, flow_graph);
+    pass_state.call_specializer = &call_specializer;
+
+    flow_graph = CompilerPass::RunPipeline(CompilerPass::kAOT, &pass_state);
+  }
+
+  ASSERT(pass_state.inline_id_to_function.length() ==
+         pass_state.caller_inline_id.length());
+
+  ASSERT(precompiler_ != nullptr);
+
+  // When generating code in bare instruction mode all code objects
+  // share the same global object pool. To reduce interleaving of
+  // unrelated object pool entries from different code objects
+  // we attempt to pregenerate stubs referenced by the code
+  // we are going to generate.
+  //
+  // Reducing interleaving means reducing recompilations triggered by
+  // failure to commit object pool into the global object pool.
+  GenerateNecessaryAllocationStubs(flow_graph);
+
+  return GenerateCode(flow_graph, &pass_state, ic_data_array);
 }
 
 static ErrorPtr PrecompileFunctionHelper(Precompiler* precompiler,
