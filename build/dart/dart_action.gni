@@ -89,10 +89,7 @@ template("_compiled_action") {
     # it will exit with a non-zero status when the target program does.
     args = [ "compiled_action" ]
 
-    if (_is_dart && use_rbe &&
-        (target_os == rbe_os ||
-         (target_os == "android" && rbe_os == "linux")) &&
-        target_cpu == rbe_cpu) {
+    if (_is_dart && use_rbe && host_os == rbe_os && host_cpu == rbe_cpu) {
       args += [
                 "/usr/bin/python3",
                 rebase_path("//build/rbe/rewrapper_dart.py", root_build_dir),
@@ -142,10 +139,7 @@ template("_prebuilt_tool_action") {
 
     args = [ "compiled_action" ]
 
-    if (_is_dart && use_rbe &&
-        (target_os == rbe_os ||
-         (target_os == "android" && rbe_os == "linux")) &&
-        target_cpu == rbe_cpu) {
+    if (_is_dart && use_rbe && host_os == rbe_os && host_cpu == rbe_cpu) {
       args += [
                 "/usr/bin/python3",
                 rebase_path("//build/rbe/rewrapper_dart.py", root_build_dir),
