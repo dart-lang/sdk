@@ -169,7 +169,6 @@ lib/src/utilities/extensions/library_element.dart
 test/error/error_reporter_test.dart
 test/generated/element_resolver_test.dart
 test/generated/elements_types_mixin.dart
-test/generated/invalid_code_test.dart
 test/generated/non_error_resolver_test.dart
 test/generated/resolver_test_case.dart
 test/generated/simple_resolver_test.dart
