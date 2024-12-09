@@ -1850,10 +1850,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         metadata: metadata,
         modifiers: modifiers,
         returnType: returnType ?? addInferableType(),
-        typeParameters: typeParameters,
+        declaredTypeParameters: typeParameters,
         typeParameterNameSpace: typeParameterNameSpace,
         typeParameterScope: typeParameterScope.lookupScope,
-        formals: formals,
+        declaredFormals: formals,
         asyncModifier: asyncModifier,
         nativeMethodName: nativeMethodName);
     _addFragment(fragment);
@@ -2375,7 +2375,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       fragment.builder.becomeNative(loader);
     }
     for (GetterFragment fragment in _nativeGetterFragments) {
-      fragment.builder.becomeNative(loader);
+      fragment.becomeNative(loader);
     }
     for (SetterFragment fragment in _nativeSetterFragments) {
       fragment.builder.becomeNative(loader);

@@ -131,8 +131,26 @@ abstract class BodyBuilderContext {
 
   /// Returns the [FormalParameterBuilder] by the given [name] declared in the
   /// member whose body is being built.
-  FormalParameterBuilder? getFormalParameterByName(Identifier name) {
-    throw new UnsupportedError('${runtimeType}.getFormalParameterByName');
+  FormalParameterBuilder? getFormalParameterByName(Identifier identifier) {
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals!) {
+        if (formal.isWildcard &&
+            // Coverage-ignore(suite): Not run.
+            identifier.name == '_' &&
+            // Coverage-ignore(suite): Not run.
+            formal.fileOffset == identifier.nameOffset) {
+          return formal;
+        }
+        if (formal.name == identifier.name &&
+            formal.fileOffset == identifier.nameOffset) {
+          return formal;
+        }
+      }
+      // Coverage-ignore(suite): Not run.
+      // If we have any formals we should find the one we're looking for.
+      assert(false, "$identifier not found in $formals");
+    }
+    return null;
   }
 
   /// Returns the [FunctionNode] for the function body currently being built.
@@ -149,12 +167,10 @@ abstract class BodyBuilderContext {
   /// constructor declaration marked as `external`.
   bool get isExternalConstructor => false;
 
-  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the member whose body is being built is a constructor,
   /// factory, method, getter, or setter marked as `external`.
   bool get isExternalFunction => false;
 
-  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the member whose body is being built is a setter
   /// declaration.
   bool get isSetter => false;
@@ -169,7 +185,6 @@ abstract class BodyBuilderContext {
   /// factory declaration.
   bool get isFactory => false;
 
-  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the member whose body is being built is marked as
   /// native.
   bool get isNativeMethod => false;
@@ -810,6 +825,7 @@ mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isNativeMethod {
     return _member.isNative;
   }

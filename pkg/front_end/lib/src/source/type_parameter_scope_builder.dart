@@ -36,6 +36,7 @@ import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
 import 'source_procedure_builder.dart';
+import 'source_property_builder.dart';
 import 'source_type_alias_builder.dart';
 
 enum _PropertyKind {
@@ -1602,8 +1603,11 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         var (
           List<NominalParameterBuilder>? typeParameters,
           List<FormalParameterBuilder>? formals
-        ) = _createTypeParametersAndFormals(declarationBuilder,
-            fragment.typeParameters, fragment.formals, unboundNominalParameters,
+        ) = _createTypeParametersAndFormals(
+            declarationBuilder,
+            fragment.declaredTypeParameters,
+            fragment.declaredFormals,
+            unboundNominalParameters,
             isInstanceMember: isInstanceMember,
             fileUri: fragment.fileUri,
             nameOffset: fragment.nameOffset);
@@ -1633,34 +1637,22 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           procedureReference =
               indexedContainer!.lookupGetterReference(nameToLookup);
         }
-
-        SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
-            metadata: fragment.metadata,
-            modifiers: fragment.modifiers,
-            returnType: fragment.returnType,
+        SourcePropertyBuilder propertyBuilder = new SourcePropertyBuilder(
+            fileUri: fragment.fileUri,
+            fileOffset: fragment.nameOffset,
             name: name,
-            typeParameters: typeParameters,
-            formals: formals,
-            kind: kind,
             libraryBuilder: enclosingLibraryBuilder,
             declarationBuilder: declarationBuilder,
-            fileUri: fragment.fileUri,
-            startOffset: fragment.startOffset,
-            nameOffset: fragment.nameOffset,
-            // TODO(johnniwinther): Avoid formals offset on getter.
-            formalsOffset: fragment.formalsOffset,
-            endOffset: fragment.endOffset,
-            procedureReference: procedureReference,
-            tearOffReference: null,
-            asyncModifier: fragment.asyncModifier,
+            isStatic: fragment.modifiers.isStatic,
+            fragment: fragment,
             nameScheme: nameScheme,
-            nativeMethodName: fragment.nativeMethodName);
-        fragment.builder = procedureBuilder;
-        builders.add(new _AddBuilder(fragment.name, procedureBuilder,
+            getterReference: procedureReference);
+        fragment.setBuilder(propertyBuilder, typeParameters, formals);
+        builders.add(new _AddBuilder(fragment.name, propertyBuilder,
             fragment.fileUri, fragment.nameOffset));
         if (procedureReference != null) {
           loader.buildersCreatedWithReferences[procedureReference] =
-              procedureBuilder;
+              propertyBuilder;
         }
       case SetterFragment():
         String name = fragment.name;

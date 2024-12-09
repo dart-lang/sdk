@@ -921,6 +921,25 @@ severity: $severity
 
   MemberBuilder getNativeAnnotation() => target.getNativeAnnotation(this);
 
+  void addNativeAnnotation(Annotatable annotatable, String nativeMethodName) {
+    MemberBuilder constructor = getNativeAnnotation();
+    Arguments arguments =
+        new Arguments(<Expression>[new StringLiteral(nativeMethodName)]);
+    Expression annotation;
+    if (constructor.isConstructor) {
+      annotation = new ConstructorInvocation(
+          constructor.invokeTarget as Constructor, arguments)
+        ..isConst = true;
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      annotation =
+          new StaticInvocation(constructor.invokeTarget as Procedure, arguments)
+            ..isConst = true;
+    }
+
+    annotatable.addAnnotation(annotation);
+  }
+
   BodyBuilder createBodyBuilderForOutlineExpression(
       SourceLibraryBuilder library,
       BodyBuilderContext bodyBuilderContext,

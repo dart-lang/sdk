@@ -233,8 +233,15 @@ abstract class ClassMember {
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder);
 
   bool get isDuplicate;
+
+  /// The name of the member prefixed by the name of the enclosing declaration.
   String get fullName;
+
+  /// The name corresponding to the [Builder.fullNameForErrors].
+  // TODO(johnniwinther): We need better semantics for this.
   String get fullNameForErrors;
+
+  /// Returns the enclosing declaration of this member.
   DeclarationBuilder get declarationBuilder;
 
   /// Returns `true` if this class member is declared in Object from dart:core.

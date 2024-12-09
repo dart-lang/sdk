@@ -15,6 +15,7 @@ import 'package:front_end/src/builder/member_builder.dart';
 import 'package:front_end/src/builder/type_builder.dart';
 import 'package:front_end/src/source/source_function_builder.dart';
 import 'package:front_end/src/source/source_library_builder.dart';
+import 'package:front_end/src/source/source_property_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
@@ -254,6 +255,32 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
       if (memberBuilder.typeParameters != null) {
         for (NominalParameterBuilder typeVariable
             in memberBuilder.typeParameters!) {
+          features.addElement(Tags.builderTypeParameters,
+              typeVariableBuilderToText(typeVariable));
+        }
+        features.markAsUnsorted(Tags.builderTypeParameters);
+      }
+    } else if (memberBuilder is SourcePropertyBuilder) {
+      if (memberBuilder.formalsForTesting != null) {
+        for (FormalParameterBuilder parameter
+            in memberBuilder.formalsForTesting!) {
+          if (parameter.isRequiredPositional) {
+            features.addElement(Tags.builderRequiredParameters, parameter.name);
+          } else if (parameter.isPositional) {
+            features.addElement(
+                Tags.builderPositionalParameters, parameter.name);
+          } else {
+            assert(parameter.isNamed);
+            features.addElement(Tags.builderNamedParameters, parameter.name);
+          }
+        }
+        features.markAsUnsorted(Tags.builderRequiredParameters);
+        features.markAsUnsorted(Tags.builderPositionalParameters);
+        features.markAsUnsorted(Tags.builderNamedParameters);
+      }
+      if (memberBuilder.typeParametersForTesting != null) {
+        for (NominalParameterBuilder typeVariable
+            in memberBuilder.typeParametersForTesting!) {
           features.addElement(Tags.builderTypeParameters,
               typeVariableBuilderToText(typeVariable));
         }

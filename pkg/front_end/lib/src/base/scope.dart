@@ -25,6 +25,7 @@ import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
+import '../source/source_property_builder.dart';
 import 'messages.dart';
 import 'name_space.dart';
 import 'uri_offset.dart';
@@ -1492,6 +1493,8 @@ extension on Builder {
     } else if (self is SourceClassBuilder) {
       return _hasPatchAnnotation(self.metadata);
     } else if (self is SourceExtensionBuilder) {
+      return _hasPatchAnnotation(self.metadata);
+    } else if (self is SourcePropertyBuilder) {
       return _hasPatchAnnotation(self.metadata);
     } else if (self is SourceExtensionTypeDeclarationBuilder) {
       // Coverage-ignore-block(suite): Not run.
