@@ -69,11 +69,11 @@ base class CustomHashMap<K, V> extends InternalMap<K, V> {
   @notNull
   bool containsKey(Object? key) {
     if (key is K) {
-      var buckets = JS('', '#.get(# & 0x3fffffff)', _keyMap, _hashCode(key));
-      if (buckets != null) {
+      var bucket = JS('', '#.get(# & 0x3fffffff)', _keyMap, _hashCode(key));
+      if (bucket != null) {
         var equals = _equals;
-        for (int i = 0, n = JS<int>('!', '#.length', buckets); i < n; i++) {
-          K k = JS('', '#[#]', buckets, i);
+        for (int i = 0, n = JS<int>('!', '#.length', bucket); i < n; i++) {
+          K k = JS('', '#[#]', bucket, i);
           if (equals(k, key)) return true;
         }
       }
@@ -96,15 +96,20 @@ base class CustomHashMap<K, V> extends InternalMap<K, V> {
 
   V? operator [](Object? key) {
     if (key is K) {
-      var buckets = JS('', '#.get(# & 0x3fffffff)', _keyMap, _hashCode(key));
-      if (buckets != null) {
+      var bucket = JS('', '#.get(# & 0x3fffffff)', _keyMap, _hashCode(key));
+      var modifications = _modifications;
+      if (bucket != null) {
         var equals = _equals;
-        for (int i = 0, n = JS<int>('!', '#.length', buckets); i < n; i++) {
-          K k = JS('', '#[#]', buckets, i);
+        for (int i = 0, n = JS<int>('!', '#.length', bucket); i < n; i++) {
+          K k = JS('', '#[#]', bucket, i);
           if (equals(k, key)) {
-            V value = JS('', '#.get(#)', _map, k);
-            // coerce undefined to null.
-            return JS<bool>('!', '# === void 0', value) ? null : value;
+            if (modifications == _modifications) {
+              V value = JS('', '#.get(#)', _map, k);
+              // Coerce undefined to null.
+              return JS<bool>('!', '# === void 0', value) ? null : value;
+            }
+            // Calling equals changed the map.
+            throw ConcurrentModificationError(this);
           }
         }
       }
@@ -113,71 +118,106 @@ base class CustomHashMap<K, V> extends InternalMap<K, V> {
   }
 
   void operator []=(K key, V value) {
-    var keyMap = _keyMap;
     int hash = JS('!', '# & 0x3fffffff', _hashCode(key));
-    var buckets = JS('', '#.get(#)', keyMap, hash);
-    if (buckets == null) {
-      JS('', '#.set(#, [#])', keyMap, hash, key);
-    } else {
-      var equals = _equals;
-      for (int i = 0, n = JS<int>('!', '#.length', buckets); ;) {
-        K k = JS('', '#[#]', buckets, i);
-        if (equals(k, key)) {
-          key = k;
-          break;
-        }
-        if (++i >= n) {
-          JS('', '#.push(#)', buckets, key);
-          break;
+    _set(key, hash, value);
+  }
+
+  /// Sets a value, just like `[]=`, after having computed hash code.
+  ///
+  /// Used by `[]=` and `putIfAbsent` if `ifAbsent` modifies the map.
+  void _set(K key, int hash, V value) {
+    concurrentModification:
+    {
+      var bucket = JS('', '#.get(#)', _keyMap, hash);
+      if (bucket == null) {
+        JS('', '#.set(#, [#])', _keyMap, hash, key);
+      } else {
+        var modifications = _modifications;
+        var equals = _equals;
+        for (int i = 0, n = JS<int>('!', '#.length', bucket); ;) {
+          K k = JS('', '#[#]', bucket, i);
+          if (equals(k, key)) {
+            if (modifications != _modifications) break concurrentModification;
+            key = k;
+            break;
+          }
+          if (++i >= n) {
+            // Check for modification before adding key to bucket.
+            if (modifications != _modifications) break concurrentModification;
+            JS('', '#.push(#)', bucket, key);
+            break;
+          }
         }
       }
+      JS('', '#.set(#, #)', _map, key, value);
+      _modifications = (_modifications + 1) & 0x3fffffff;
+      return;
     }
-    JS('', '#.set(#, #)', _map, key, value);
-    _modifications = (_modifications + 1) & 0x3fffffff;
+    // Break to here in case of modification.
+    throw ConcurrentModificationError(this);
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
     var keyMap = _keyMap;
+    var modifications = _modifications;
     int hash = JS('!', '# & 0x3fffffff', _hashCode(key));
-    var buckets = JS('', '#.get(#)', keyMap, hash);
-    if (buckets == null) {
-      JS('', '#.set(#, [#])', keyMap, hash, key);
-    } else {
+    var bucket = JS('', '#.get(#)', keyMap, hash);
+    if (bucket != null) {
       var equals = _equals;
-      for (int i = 0, n = JS<int>('!', '#.length', buckets); i < n; i++) {
-        K k = JS('', '#[#]', buckets, i);
-        if (equals(k, key)) return JS('', '#.get(#)', _map, k);
+      for (int i = 0, n = JS<int>('!', '#.length', bucket); i < n; i++) {
+        K k = JS('', '#[#]', bucket, i);
+        if (equals(k, key)) {
+          if (modifications == _modifications) {
+            return JS('', '#.get(#)', _map, k);
+          }
+          // Calling `equals` changed the map.
+          throw ConcurrentModificationError(this);
+        }
       }
-      JS('', '#.push(#)', buckets, key);
     }
     V value = ifAbsent();
     if (value == null) JS('', '# = null', value); // coerce undefined to null.
-    JS('', '#.set(#, #)', _map, key, value);
-    _modifications = (_modifications + 1) & 0x3fffffff;
+    if (_modifications == modifications) {
+      if (bucket == null) {
+        JS('', '#.set(#, [#])', keyMap, hash, key);
+      } else {
+        JS('', '#.push(#)', bucket, key);
+      }
+      JS('', '#.set(#, #)', _map, key, value);
+      _modifications = (_modifications + 1) & 0x3fffffff;
+    } else {
+      // Start from scratch, an equal key might have been added.
+      _set(key, hash, value);
+    }
     return value;
   }
 
   V? remove(Object? key) {
     if (key is K) {
       int hash = JS('!', '# & 0x3fffffff', _hashCode(key));
+      var modifications = _modifications;
       var keyMap = _keyMap;
-      var buckets = JS('', '#.get(#)', keyMap, hash);
-      if (buckets == null) return null; // not found
+      var bucket = JS('', '#.get(#)', keyMap, hash);
+      if (bucket == null) return null; // not found
       var equals = _equals;
-      for (int i = 0, n = JS<int>('!', '#.length', buckets); i < n; i++) {
-        K k = JS('', '#[#]', buckets, i);
+      for (int i = 0, n = JS<int>('!', '#.length', bucket); i < n; i++) {
+        K k = JS('', '#[#]', bucket, i);
         if (equals(k, key)) {
-          if (n == 1) {
-            JS('', '#.delete(#)', keyMap, hash);
-          } else {
-            JS('', '#.splice(#, 1)', buckets, i);
+          if (modifications == _modifications) {
+            if (n == 1) {
+              JS('', '#.delete(#)', keyMap, hash);
+            } else {
+              JS('', '#.splice(#, 1)', bucket, i);
+            }
+            var map = _map;
+            V value = JS('', '#.get(#)', map, k);
+            JS('', '#.delete(#)', map, k);
+            _modifications = (_modifications + 1) & 0x3fffffff;
+            // Coerce undefined to null.
+            return JS<bool>('!', '# === void 0', value) ? null : value;
           }
-          var map = _map;
-          V value = JS('', '#.get(#)', map, k);
-          JS('', '#.delete(#)', map, k);
-          _modifications = (_modifications + 1) & 0x3fffffff;
-          // coerce undefined to null.
-          return JS<bool>('!', '# === void 0', value) ? null : value;
+          // Calling equals changed the bucket, can't trust position of `k`.
+          throw ConcurrentModificationError(this);
         }
       }
     }

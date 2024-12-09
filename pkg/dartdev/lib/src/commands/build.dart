@@ -158,9 +158,8 @@ class BuildCommand extends DartdevCommand {
       workingDirectory: workingDirectory,
       targetOS: target.os,
       buildMode: BuildMode.release,
-      includeParentEnvironment: true,
       linkingEnabled: true,
-      supportedAssetTypes: [
+      buildAssetTypes: [
         CodeAsset.type,
       ],
       buildValidator: (config, output) async => [
@@ -219,9 +218,8 @@ class BuildCommand extends DartdevCommand {
         workingDirectory: workingDirectory,
         targetOS: target.os,
         buildMode: BuildMode.release,
-        includeParentEnvironment: true,
         buildResult: buildResult,
-        supportedAssetTypes: [
+        buildAssetTypes: [
           CodeAsset.type,
         ],
         linkValidator: (config, output) async => [

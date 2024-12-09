@@ -103,6 +103,7 @@ general/patch_annotations/main: SemiFuzzFailure
 general/patch_conflict/main: SemiFuzzFailure
 general/patch_extends_implements/main: SemiFuzzFailure
 general/patch_extension_scope/main: SemiFuzzFailure
+general/patch_getter/main: SemiFuzzFailure
 general/tear_off_patch/main: SemiFuzzFailure
 late_lowering/injected_late_field_checks/main: SemiFuzzFailure
 late_lowering/issue41436/issue41436: SemiFuzzFailure

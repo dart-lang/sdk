@@ -253,7 +253,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       case BuiltMemberKind.ExtensionTypeRepresentationField:
         // Coverage-ignore(suite): Not run.
         unhandled(
-            "${memberBuilder.runtimeType}:${memberKind}",
+            "$memberBuilder(${memberBuilder.runtimeType}):${memberKind}",
             "addMemberDescriptorInternal",
             memberBuilder.fileOffset,
             memberBuilder.fileUri);

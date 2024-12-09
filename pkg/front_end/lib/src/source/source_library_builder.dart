@@ -906,6 +906,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         if (member is SourceProcedureBuilder &&
             !member.isStatic &&
             member.isGetter) {
+          // Coverage-ignore-block(suite): Not run.
           individualPropertyReasons[member.procedure] =
               member.memberName.isPrivate
                   ? PropertyNonPromotabilityReason.isNotField
@@ -1601,7 +1602,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  // Coverage-ignore(suite): Not run.
   void reportTypeArgumentIssue(Message message, Uri fileUri, int fileOffset,
       {TypeParameter? typeParameter,
       DartType? superBoundedAttempt,
@@ -1621,6 +1621,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               noLength));
     }
     if (superBoundedAttemptInverted != null && superBoundedAttempt != null) {
+      // Coverage-ignore-block(suite): Not run.
       (context ??= <LocatedMessage>[]).add(templateSuperBoundedHint
           .withArguments(superBoundedAttempt, superBoundedAttemptInverted)
           .withLocation(fileUri, fileOffset, noLength));

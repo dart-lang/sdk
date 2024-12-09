@@ -67,10 +67,9 @@ Future<List<EncodedAsset>?> compileNativeAssetsJit({
     targetOS: target.os,
     // Dart has no concept of release vs debug, default to release.
     buildMode: BuildMode.release,
-    includeParentEnvironment: true,
     runPackageName: runPackageName,
     linkingEnabled: false,
-    supportedAssetTypes: [
+    buildAssetTypes: [
       CodeAsset.type,
     ],
     buildValidator: (config, output) async => [

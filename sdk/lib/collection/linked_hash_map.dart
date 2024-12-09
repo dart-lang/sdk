@@ -116,15 +116,20 @@ abstract final class LinkedHashMap<K, V> implements Map<K, V> {
   /// If [equals] is provided, it is used to compare the keys in the table with
   /// new keys. If [equals] is omitted, the key's own [Object.==] is used
   /// instead.
+  /// The [equals] function *must not* change the map it's used as an equality
+  /// for. If it does, the resulting behavior is unspecified.
   ///
   /// Similarly, if [hashCode] is provided, it is used to produce a hash value
   /// for keys in order to place them in the hash table. If it is omitted, the
   /// key's own [Object.hashCode] is used.
+  /// The [hashCode] function *must not* change the map it's used as a hash code
+  /// for. If it does, the resulting behavior is unspecified.
   ///
   /// The used `equals` and `hashCode` methods should always be consistent,
   /// so that if `equals(a, b)` then `hashCode(a) == hashCode(b)`. The hash
   /// of an object, or what it compares equal to, should not change while the
-  /// object is in the table. If it does change, the result is unpredictable.
+  /// object is in the table. If the hash code or equality of an object does
+  /// change, the resulting behavior is unspecified.
   ///
   /// If you supply one of [equals] or [hashCode],
   /// you should generally also supply the other.

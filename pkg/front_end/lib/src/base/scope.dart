@@ -13,8 +13,6 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/prefix_builder.dart';
-//import '../kernel/body_builder.dart' show JumpTarget;
-import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart';
 import '../kernel/load_library_builder.dart';
@@ -25,6 +23,7 @@ import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
+import '../source/source_property_builder.dart';
 import 'messages.dart';
 import 'name_space.dart';
 import 'uri_offset.dart';
@@ -761,12 +760,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
-  BodyBuilderContext createBodyBuilderContext() {
-    throw new UnsupportedError(
-        '$runtimeType.bodyBuilderContextForAnnotations}');
-  }
-
-  @override
   Iterable<Annotatable> get annotatables {
     throw new UnsupportedError('$runtimeType.annotatables}');
   }
@@ -1492,6 +1485,8 @@ extension on Builder {
     } else if (self is SourceClassBuilder) {
       return _hasPatchAnnotation(self.metadata);
     } else if (self is SourceExtensionBuilder) {
+      return _hasPatchAnnotation(self.metadata);
+    } else if (self is SourcePropertyBuilder) {
       return _hasPatchAnnotation(self.metadata);
     } else if (self is SourceExtensionTypeDeclarationBuilder) {
       // Coverage-ignore-block(suite): Not run.

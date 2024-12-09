@@ -1,0 +1,77 @@
+library;
+import self as self;
+import "dart:test" as test;
+import "dart:core" as core;
+
+import "dart:test";
+
+static method main() → dynamic {
+  test::topLevelGetter;
+  test::Class::staticGetter;
+  test::Extension|staticGetter;
+  test::Class c = new test::Class::•();
+  c.{test::Class::instanceGetter}{core::int};
+  test::Extension|get#instanceGetter(0);
+}
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/patch_getter/patch_lib.dart:29:1: Error: Can't inject public 'methodInPatch' into 'dart:test'.
+// Make 'methodInPatch' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
+// methodInPatch() {
+// ^
+//
+import self as test;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
+class Class extends core::Object {
+  constructor •() → test::Class
+    : super core::Object::•()
+    ;
+  @#C1
+  get /* from org-dartlang-testcase:///patch_lib.dart */ instanceGetter() → core::int
+    return 42;
+  @#C1
+  static get /* from org-dartlang-testcase:///patch_lib.dart */ staticGetter() → core::int
+    return 42;
+}
+@#C1
+extension Extension on core::int {
+  get instanceGetter = test::Extension|get#instanceGetter;
+  static get staticGetter = get test::Extension|staticGetter;
+}
+@#C1
+static get /* from org-dartlang-testcase:///patch_lib.dart */ topLevelGetter() → core::int
+  return 42;
+@#C1
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|get#instanceGetter(lowered final core::int #this) → core::int
+  return 42;
+@#C1
+static extension-member get /* from org-dartlang-testcase:///patch_lib.dart */ Extension|staticGetter() → core::int
+  return 42;
+static method methodInOrigin() → dynamic {
+  test::topLevelGetter;
+  test::Class::staticGetter;
+  test::Extension|staticGetter;
+  test::Class c = new test::Class::•();
+  c.{test::Class::instanceGetter}{core::int};
+  test::Extension|get#instanceGetter(0);
+}
+static method /* from org-dartlang-testcase:///patch_lib.dart */ methodInPatch() → dynamic {
+  test::topLevelGetter;
+  test::Class::staticGetter;
+  test::Extension|staticGetter;
+  test::Class c = new test::Class::•();
+  c.{test::Class::instanceGetter}{core::int};
+  test::Extension|get#instanceGetter(0);
+}
+
+constants  {
+  #C1 = _in::_Patch {}
+}

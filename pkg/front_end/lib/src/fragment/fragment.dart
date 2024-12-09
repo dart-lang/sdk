@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/parser/member_kind.dart';
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/transformations/flags.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../base/local_scope.dart';
 import '../base/modifiers.dart';
@@ -15,9 +18,14 @@ import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/mixin_application_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
+import '../kernel/hierarchy/class_member.dart';
+import '../kernel/hierarchy/members_builder.dart';
+import '../kernel/type_algorithms.dart';
 import '../source/name_scheme.dart';
+import '../source/source_property_builder.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_enum_builder.dart';
@@ -25,10 +33,15 @@ import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
+import '../source/source_function_builder.dart';
+import '../source/source_library_builder.dart';
+import '../source/source_loader.dart';
+import '../source/source_member_builder.dart';
 import '../source/source_procedure_builder.dart';
 import '../source/source_type_alias_builder.dart';
 import '../source/type_parameter_scope_builder.dart';
 import '../type_inference/type_inference_engine.dart';
+import '../type_inference/type_schema.dart';
 
 part 'class.dart';
 part 'constructor.dart';

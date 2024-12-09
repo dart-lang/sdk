@@ -216,6 +216,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     if (_typeEnsured) return;
     if (_overrideDependencies != null) {
       if (isGetter) {
+        // Coverage-ignore-block(suite): Not run.
         membersBuilder.inferGetterType(declarationBuilder as SourceClassBuilder,
             returnType, _overrideDependencies!,
             name: fullNameForErrors,
@@ -256,6 +257,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       case ProcedureKind.Method:
         return extensionTearOff ?? procedure;
       case ProcedureKind.Getter:
+        // Coverage-ignore(suite): Not run.
         return procedure;
       case ProcedureKind.Factory:
         // Coverage-ignore(suite): Not run.
@@ -310,7 +312,9 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
               kind: BuiltMemberKind.ExtensionMethod);
           break;
         case ProcedureKind.Getter:
+          // Coverage-ignore(suite): Not run.
           assert(extensionTearOff == null, "Unexpected extension tear-off.");
+          // Coverage-ignore(suite): Not run.
           f(member: _procedure, kind: BuiltMemberKind.ExtensionGetter);
           break;
         case ProcedureKind.Setter:
@@ -335,7 +339,9 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
               kind: BuiltMemberKind.ExtensionTypeMethod);
           break;
         case ProcedureKind.Getter:
+          // Coverage-ignore(suite): Not run.
           assert(extensionTearOff == null, "Unexpected extension tear-off.");
+          // Coverage-ignore(suite): Not run.
           f(member: _procedure, kind: BuiltMemberKind.ExtensionTypeGetter);
           break;
         case ProcedureKind.Setter:
@@ -709,6 +715,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       }
     }
     if (isGetter) {
+      // Coverage-ignore-block(suite): Not run.
       if (!isClassMember) {
         // Getter/setter type conflict for class members is handled in the class
         // hierarchy builder.
@@ -898,6 +905,7 @@ class SourceProcedureMember extends BuilderClassMember {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool isSameDeclaration(ClassMember other) {
     return other is SourceProcedureMember &&
         memberBuilder == other.memberBuilder;

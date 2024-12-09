@@ -24,8 +24,7 @@ class _SplayTreeSetNode<K> extends _SplayTreeNode<K, _SplayTreeSetNode<K>> {
 
 /// A node in a splay tree based map.
 ///
-/// A [_SplayTreeNode] that also contains a value,
-/// and which implements [MapEntry].
+/// A [_SplayTreeNode] that also contains a value.
 class _SplayTreeMapNode<K, V>
     extends _SplayTreeNode<K, _SplayTreeMapNode<K, V>> {
   final V value;
@@ -536,13 +535,15 @@ final class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
     int modificationCount = _modificationCount;
     int splayCount = _splayCount;
     V value = ifAbsent();
-    if (modificationCount != _modificationCount) {
-      throw ConcurrentModificationError(this);
-    }
-    if (splayCount != _splayCount) {
+    if (modificationCount != _modificationCount || splayCount != _splayCount) {
       comp = _splay(key);
-      // Key is still not there, otherwise _modificationCount would be changed.
-      assert(comp != 0);
+      if (comp == 0) {
+        // Key was added.
+        _root = _root!._replaceValue(value);
+        _splayCount += 1; // Tree restructured.
+        return value;
+      }
+      // Key is still not there.
     }
     _addNewRoot(_SplayTreeMapNode(key, value), comp);
     return value;

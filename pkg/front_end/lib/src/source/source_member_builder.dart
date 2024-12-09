@@ -10,7 +10,6 @@ import '../base/common.dart';
 import '../base/name_space.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
 import '../type_inference/type_inference_engine.dart'
@@ -61,8 +60,6 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   void set isConflictingAugmentationMember(bool value);
 
   AugmentSuperTarget? get augmentSuperTarget;
-
-  BodyBuilderContext createBodyBuilderContext();
 }
 
 mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
@@ -98,11 +95,6 @@ mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
   @override
   AugmentSuperTarget? get augmentSuperTarget {
     throw new UnimplementedError('$runtimeType.augmentSuperTarget');
-  }
-
-  @override
-  BodyBuilderContext createBodyBuilderContext() {
-    throw new UnimplementedError('$runtimeType.bodyBuilderContext');
   }
 }
 

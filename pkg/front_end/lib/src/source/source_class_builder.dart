@@ -27,6 +27,7 @@ import '../builder/augmentation_iterator.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -1055,6 +1056,54 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
+  void checkVarianceInTypeParameters(TypeEnvironment typeEnvironment,
+      List<NominalParameterBuilder>? typeParameters) {
+    List<TypeParameter> classTypeParameters = cls.typeParameters;
+    // Coverage-ignore(suite): Not run.
+    if (typeParameters != null && classTypeParameters.isNotEmpty) {
+      for (NominalParameterBuilder nominalParameter in typeParameters) {
+        for (TypeParameter classTypeParameter in classTypeParameters) {
+          Variance typeVariance = Variance.invariant.combine(computeVariance(
+              classTypeParameter, nominalParameter.actualParameter.bound));
+          reportVariancePositionIfInvalid(typeVariance, classTypeParameter,
+              fileUri, nominalParameter.fileOffset);
+        }
+      }
+    }
+  }
+
+  void checkVarianceInFormals(
+      TypeEnvironment type, List<FormalParameterBuilder>? formals) {
+    List<TypeParameter> classTypeParameters = cls.typeParameters;
+    if (formals != null && classTypeParameters.isNotEmpty) {
+      // Coverage-ignore-block(suite): Not run.
+      for (FormalParameterBuilder formal in formals) {
+        if (!formal.isCovariantByDeclaration) {
+          for (TypeParameter typeParameter in classTypeParameters) {
+            Variance formalVariance = Variance.contravariant
+                .combine(computeVariance(typeParameter, formal.variable!.type));
+            reportVariancePositionIfInvalid(formalVariance, typeParameter,
+                formal.fileUri, formal.fileOffset);
+          }
+        }
+      }
+    }
+  }
+
+  void checkVarianceInReturnType(TypeEnvironment type, DartType returnType,
+      {required Uri fileUri, required fileOffset}) {
+    List<TypeParameter> classTypeParameters = cls.typeParameters;
+    if (classTypeParameters.isNotEmpty) {
+      for (TypeParameter typeParameter in classTypeParameters) {
+        Variance returnTypeVariance =
+            computeVariance(typeParameter, returnType);
+        reportVariancePositionIfInvalid(
+            returnTypeVariance, typeParameter, fileUri, fileOffset,
+            isReturnType: true);
+      }
+    }
+  }
+
   void checkVarianceInFunction(Procedure procedure,
       TypeEnvironment typeEnvironment, List<TypeParameter> typeParameters) {
     List<TypeParameter> functionTypeParameters =
@@ -1106,7 +1155,6 @@ class SourceClassBuilder extends ClassBuilderImpl
     SourceLibraryBuilder library = this.libraryBuilder;
     if (!typeParameter.isLegacyCovariant &&
         !variance.greaterThanOrEqual(typeParameter.variance)) {
-      // Coverage-ignore-block(suite): Not run.
       Message message;
       if (isReturnType) {
         message = templateInvalidTypeParameterVariancePositionInReturnType

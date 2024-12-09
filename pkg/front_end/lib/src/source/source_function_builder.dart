@@ -22,10 +22,10 @@ import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
-import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/kernel_helper.dart';
 import '../type_inference/type_inference_engine.dart'
@@ -284,6 +284,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isNative => nativeMethodName != null;
 
   bool get supportsTypeParameters => true;
@@ -452,25 +453,12 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   void becomeNative(SourceLoader loader) {
-    MemberBuilder constructor = loader.getNativeAnnotation();
     for (Annotatable annotatable in annotatables) {
-      Arguments arguments =
-          new Arguments(<Expression>[new StringLiteral(nativeMethodName!)]);
-      Expression annotation;
-      if (constructor.isConstructor) {
-        annotation = new ConstructorInvocation(
-            constructor.invokeTarget as Constructor, arguments)
-          ..isConst = true;
-      } else {
-        // Coverage-ignore-block(suite): Not run.
-        annotation = new StaticInvocation(
-            constructor.invokeTarget as Procedure, arguments)
-          ..isConst = true;
-      }
-
-      annotatable.addAnnotation(annotation);
+      loader.addNativeAnnotation(annotatable, nativeMethodName!);
     }
   }
+
+  BodyBuilderContext createBodyBuilderContext();
 }
 
 /// Builds the [TypeParameter]s for [declaredTypeParameters] and the parameter
@@ -549,8 +537,8 @@ bool checkAugmentation(
     {required SourceLibraryBuilder augmentationLibraryBuilder,
     required Builder origin,
     required Builder augmentation}) {
-  // Coverage-ignore-block(suite): Not run.
   if (!origin.isExternal && !augmentationLibraryBuilder.isAugmentationLibrary) {
+    // Coverage-ignore-block(suite): Not run.
     augmentationLibraryBuilder.addProblem(messagePatchNonExternal,
         augmentation.fileOffset, noLength, augmentation.fileUri!,
         context: [
@@ -562,8 +550,8 @@ bool checkAugmentation(
   return true;
 }
 
-/// Reports the error that [augmentation] cannot augment [origin].
 // Coverage-ignore(suite): Not run.
+/// Reports the error that [augmentation] cannot augment [origin].
 void reportAugmentationMismatch(
     {required SourceLibraryBuilder originLibraryBuilder,
     required Builder origin,
