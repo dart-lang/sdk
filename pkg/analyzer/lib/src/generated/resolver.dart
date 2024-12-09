@@ -3411,8 +3411,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var rewrittenPropertyAccess =
         _prefixedIdentifierResolver.resolve(node, contextType: contextType);
     if (rewrittenPropertyAccess != null) {
-      inferenceLogWriter?.exitExpression(node, reanalyze: true);
-      visitPropertyAccess(rewrittenPropertyAccess, contextType: contextType);
+      _resolvePropertyAccess(rewrittenPropertyAccess, contextType);
       // We did record that `node` was replaced with `rewrittenPropertyAccess`.
       // But if `rewrittenPropertyAccess` was itself rewritten, replace the
       // rewrite result of `node`.
@@ -3423,6 +3422,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
         return true;
       }());
+      inferenceLogWriter?.exitExpression(node);
       return;
     }
     _insertImplicitCallReference(
@@ -3450,62 +3450,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
 
-    var target = node.target;
-    if (target != null) {
-      analyzeExpression(
-          target, SharedTypeSchemaView(UnknownInferredType.instance));
-      popRewrite();
-    }
-
-    if (node.isNullAware) {
-      _startNullAwareAccess(node, node.target);
-    }
-
-    var result = _propertyElementResolver.resolvePropertyAccess(
-      node: node,
-      hasRead: true,
-      hasWrite: false,
-    );
-
-    var element = result.readElement;
-
-    var propertyName = node.propertyName;
-    propertyName.staticElement = element;
-
-    DartType type;
-    if (element is MethodElement) {
-      type = element.type;
-    } else if (element is PropertyAccessorElement && element.isGetter) {
-      type = result.getType!;
-    } else if (result.functionTypeCallType != null) {
-      type = result.functionTypeCallType!;
-    } else if (result.recordField != null) {
-      type = result.recordField!.type;
-    } else if (result.atDynamicTarget) {
-      type = DynamicTypeImpl.instance;
-    } else {
-      type = InvalidTypeImpl.instance;
-    }
-
-    if (!isConstructorTearoffsEnabled) {
-      // Only perform a generic function instantiation on a [PrefixedIdentifier]
-      // in pre-constructor-tearoffs code. In constructor-tearoffs-enabled code,
-      // generic function instantiation is performed at assignability check
-      // sites.
-      // TODO(srawlins): Switch all resolution to use the latter method, in a
-      // breaking change release.
-      type = inferenceHelper.inferTearOff(node, propertyName, type,
-          contextType: contextType);
-    }
-
-    propertyName.setPseudoExpressionStaticType(type);
-    node.recordStaticType(type, resolver: this);
-    var replacement =
-        insertGenericFunctionInstantiation(node, contextType: contextType);
-
-    nullShortingTermination(node, rewrittenExpression: replacement);
-    _insertImplicitCallReference(replacement, contextType: contextType);
-    nullSafetyDeadCodeVerifier.verifyPropertyAccess(node);
+    _resolvePropertyAccess(node, contextType);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -4138,6 +4083,65 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     replaceExpression(expression, callReference, parent: parent);
 
     callReference.setPseudoExpressionStaticType(callMethodType);
+  }
+
+  void _resolvePropertyAccess(PropertyAccessImpl node, DartType contextType) {
+    var target = node.target;
+    if (target != null) {
+      analyzeExpression(
+          target, SharedTypeSchemaView(UnknownInferredType.instance));
+      popRewrite();
+    }
+
+    if (node.isNullAware) {
+      _startNullAwareAccess(node, node.target);
+    }
+
+    var result = _propertyElementResolver.resolvePropertyAccess(
+      node: node,
+      hasRead: true,
+      hasWrite: false,
+    );
+
+    var element = result.readElement;
+
+    var propertyName = node.propertyName;
+    propertyName.staticElement = element;
+
+    DartType type;
+    if (element is MethodElement) {
+      type = element.type;
+    } else if (element is PropertyAccessorElement && element.isGetter) {
+      type = result.getType!;
+    } else if (result.functionTypeCallType != null) {
+      type = result.functionTypeCallType!;
+    } else if (result.recordField != null) {
+      type = result.recordField!.type;
+    } else if (result.atDynamicTarget) {
+      type = DynamicTypeImpl.instance;
+    } else {
+      type = InvalidTypeImpl.instance;
+    }
+
+    if (!isConstructorTearoffsEnabled) {
+      // Only perform a generic function instantiation on a [PrefixedIdentifier]
+      // in pre-constructor-tearoffs code. In constructor-tearoffs-enabled code,
+      // generic function instantiation is performed at assignability check
+      // sites.
+      // TODO(srawlins): Switch all resolution to use the latter method, in a
+      // breaking change release.
+      type = inferenceHelper.inferTearOff(node, propertyName, type,
+          contextType: contextType);
+    }
+
+    propertyName.setPseudoExpressionStaticType(type);
+    node.recordStaticType(type, resolver: this);
+    var replacement =
+        insertGenericFunctionInstantiation(node, contextType: contextType);
+
+    nullShortingTermination(node, rewrittenExpression: replacement);
+    _insertImplicitCallReference(replacement, contextType: contextType);
+    nullSafetyDeadCodeVerifier.verifyPropertyAccess(node);
   }
 
   /// Continues resolution of a [FunctionExpressionInvocation] that was created
