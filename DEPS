@@ -119,7 +119,7 @@ vars = {
   # EOL comment after a dependency to disable this and pin it at its current
   # revision.
 
-  "core_rev": "abcf992cf9fe1e896ed9dcff15523c0a6c00621d",
+  "core_rev": "7f9f597e64fa52faebd3c0a2214f61a7b081174d",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here. Please follow this process to make updates:
@@ -132,7 +132,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "1de89eb3bd340315f9ff5f2afc319cc1d6131b8d", # disable tools/rev_sdk_deps.dart
   "dartdoc_rev": "c7f11603effa88ddacabfd555993f322fca8b3fe",
-  "ecosystem_rev": "248b1801131ddc2e738c8181fc32d488e1312052",
+  "ecosystem_rev": "b4b2a438ff40cbbdf245b2854567316c1d24a394",
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "994191a107b99a1911a3ef52ca238cd9305c8d37",
   "http_rev": "79470d014b467f01b0e7c5b63ab6c86b22dec8db",
@@ -159,12 +159,12 @@ vars = {
   "sync_http_rev": "47e6b264a209d0d806cfe9cdad8b6c69ce231986",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
   "term_glyph_rev": "9ed8ed96fdd84cb7b72ee1be3e86010969fa95d4",
-  "test_rev": "20967732ea9dd30240a6429621ab2f82874bd9f0",
+  "test_rev": "dc0f8ea4d09aabb0fed16daea3d4653c8f967b02",
   "test_descriptor_rev": "408526a84e74d7af0f9c8c3fbb49ce9178927ee0",
   "test_process_rev": "5b0349ca18fe48cd527f74ac883db2964cbdba40",
   "test_reflective_loader_rev": "faade6299d1823f0d062eb5e98f3b440ddcea7c6",
-  "tools_rev": "1c5b8b949128d62182e162ef65a2e6f3feb19acf",
-  "vector_math_rev": "433fb6c829b18719fd0db4a703b607a26b7d81f4",
+  "tools_rev": "223daf5300a5e3f6e09b7e24a5fda1009d6708f7",
+  "vector_math_rev": "bd4b574b2a457a3955d223694f1a979a0c0f38c9",
   "watcher_rev": "bc44e6f6b85972e516c44b9ae6c042b4cbd7c72b",
   "web_rev": "bdf112ec64d28285cc29c6c78274ff3a827bb79b",
   "web_socket_channel_rev": "7a2039fd7c4c656ab27850926f89103b5f188dab",
