@@ -2593,7 +2593,7 @@ class _InstanceCreationEvaluator {
     for (var parameter in _constructor.parameters) {
       if (parameter is SuperFormalParameterElement) {
         var value = SimpleIdentifierImpl(
-          StringToken(TokenType.STRING, parameter.name, -1),
+          StringToken(TokenType.STRING, parameter.name, parameter.nameOffset),
         )
           ..staticElement = parameter
           ..setPseudoExpressionStaticType(parameter.type);
@@ -2604,7 +2604,8 @@ class _InstanceCreationEvaluator {
             NamedExpressionImpl(
               name: LabelImpl(
                 label: SimpleIdentifierImpl(
-                  StringToken(TokenType.STRING, parameter.name, -1),
+                  StringToken(
+                      TokenType.STRING, parameter.name, parameter.nameOffset),
                 )..staticElement = parameter,
                 colon: StringToken(TokenType.COLON, ':', -1),
               ),
