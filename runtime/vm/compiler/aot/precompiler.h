@@ -243,10 +243,9 @@ class Precompiler : public ValueObject {
  public:
   static ErrorPtr CompileAll();
 
-  static ErrorPtr CompileFunction(Precompiler* precompiler,
-                                  Thread* thread,
-                                  Zone* zone,
-                                  const Function& function);
+  static void CompileFunction(Precompiler* precompiler,
+                              Thread* thread,
+                              const Function& function);
 
   // Returns true if get:runtimeType is not overloaded by any class.
   bool get_runtime_type_is_unique() const {

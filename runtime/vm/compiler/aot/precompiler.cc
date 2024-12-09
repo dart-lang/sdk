@@ -333,18 +333,15 @@ class RetainedReasonsWriter : public StackResource {
 class PrecompileParsedFunctionHelper : public ValueObject {
  public:
   PrecompileParsedFunctionHelper(Precompiler* precompiler,
-                                 ParsedFunction* parsed_function,
-                                 bool optimized)
+                                 ParsedFunction* parsed_function)
       : precompiler_(precompiler),
         parsed_function_(parsed_function),
-        optimized_(optimized),
         thread_(Thread::Current()) {}
 
   bool Compile();
 
  private:
   ParsedFunction* parsed_function() const { return parsed_function_; }
-  bool optimized() const { return optimized_; }
   Thread* thread() const { return thread_; }
 
   bool GenerateCode(FlowGraph* flow_graph,
@@ -358,7 +355,6 @@ class PrecompileParsedFunctionHelper : public ValueObject {
 
   Precompiler* precompiler_;
   ParsedFunction* parsed_function_;
-  const bool optimized_;
   Thread* const thread_;
 
   DISALLOW_COPY_AND_ASSIGN(PrecompileParsedFunctionHelper);
@@ -710,7 +706,7 @@ void Precompiler::PrecompileConstructors() {
         THR_Print("Precompiling constructor %s\n", function.ToCString());
       }
       ASSERT(Class::Handle(zone_, function.Owner()).is_finalized());
-      CompileFunction(precompiler_, Thread::Current(), zone_, function);
+      CompileFunction(precompiler_, Thread::Current(), function);
     }
 
    private:
@@ -876,10 +872,7 @@ void Precompiler::ProcessFunction(const Function& function) {
 
   ASSERT(!function.is_abstract());
 
-  error_ = CompileFunction(this, thread_, zone_, function);
-  if (!error_.IsNull()) {
-    Jump(error_);
-  }
+  CompileFunction(this, thread_, function);
 
   // Used in the JIT to save type-feedback across compilations.
   function.ClearICDataArray();
@@ -3425,6 +3418,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
     CodeStatistics* stats) {
   const Function& function = parsed_function()->function();
   Zone* const zone = thread()->zone();
+  ASSERT(function.IsOptimizable());
 
   // CreateDeoptInfo uses the object pool and needs to be done before
   // FinalizeCode.
@@ -3437,14 +3431,9 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
   const Code& code = Code::Handle(
       Code::FinalizeCodeAndNotify(function, graph_compiler, assembler,
-                                  pool_attachment, optimized(), stats));
-  code.set_is_optimized(optimized());
+                                  pool_attachment, /*optimized=*/true, stats));
+  code.set_is_optimized(true);
   code.set_owner(function);
-  if (!function.IsOptimizable()) {
-    // A function with huge unoptimized code can become non-optimizable
-    // after generating unoptimized code.
-    function.set_usage_counter(INT32_MIN);
-  }
 
   graph_compiler->FinalizePcDescriptors(code);
   code.set_deopt_info_array(deopt_info_array);
@@ -3456,14 +3445,9 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   graph_compiler->FinalizeStaticCallTargetsTable(code);
   graph_compiler->FinalizeCodeSourceMap(code);
 
-  if (optimized()) {
-    // Installs code while at safepoint.
-    ASSERT(thread()->IsDartMutatorThread());
-    function.InstallOptimizedCode(code);
-  } else {  // not optimized.
-    function.set_unoptimized_code(code);
-    function.AttachCode(code);
-  }
+  // Installs code while at safepoint.
+  ASSERT(thread()->IsDartMutatorThread());
+  function.InstallOptimizedCode(code);
 
   if (function.IsFfiCallbackTrampoline()) {
     compiler::ffi::SetFfiCallbackCode(thread(), function, code);
@@ -3523,7 +3507,7 @@ bool PrecompileParsedFunctionHelper::GenerateCode(
       }
 
       FlowGraphCompiler graph_compiler(
-          &assembler, flow_graph, *parsed_function(), optimized(),
+          &assembler, flow_graph, *parsed_function(), /*is_optimizing=*/true,
           pass_state->inline_id_to_function, pass_state->inline_id_to_token_pos,
           pass_state->caller_inline_id, ic_data_array, function_stats);
       pass_state->graph_compiler = &graph_compiler;
@@ -3607,11 +3591,6 @@ bool PrecompileParsedFunctionHelper::GenerateCode(
 // Return false if bailed out.
 bool PrecompileParsedFunctionHelper::Compile() {
   ASSERT(CompilerState::Current().is_aot());
-  if (optimized() && !parsed_function()->function().IsOptimizable()) {
-    // All functions compiled by precompiler must be optimizable.
-    UNREACHABLE();
-    return false;
-  }
   Zone* const zone = thread()->zone();
   HANDLESCOPE(thread());
 
@@ -3619,8 +3598,10 @@ bool PrecompileParsedFunctionHelper::Compile() {
   ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
   const Function& function = parsed_function()->function();
   ASSERT(!function.IsIrregexpFunction());
+  ASSERT(function.IsOptimizable());
 
-  CompilerState compiler_state(thread(), /*is_aot=*/true, optimized(),
+  CompilerState compiler_state(thread(), /*is_aot=*/true,
+                               /*is_optimizing=*/true,
                                CompilerState::ShouldTrace(function));
   compiler_state.set_function(function);
 
@@ -3631,28 +3612,18 @@ bool PrecompileParsedFunctionHelper::Compile() {
     COMPILER_TIMINGS_TIMER_SCOPE(thread(), BuildGraph);
     kernel::FlowGraphBuilder builder(parsed_function(), ic_data_array,
                                      /* not building var desc */ nullptr,
-                                     /* not inlining */ nullptr, optimized(),
+                                     /* not inlining */ nullptr,
+                                     /*optimizing=*/true,
                                      Compiler::kNoOSRDeoptId);
     flow_graph = builder.BuildGraph();
     ASSERT(flow_graph != nullptr);
   }
 
-  if (optimized()) {
-    flow_graph->PopulateWithICData(function);
-  }
-
-  const bool print_flow_graph =
-      (FLAG_print_flow_graph ||
-       (optimized() && FLAG_print_flow_graph_optimized)) &&
-      FlowGraphPrinter::ShouldPrint(function);
-
-  if (print_flow_graph && !optimized()) {
-    FlowGraphPrinter::PrintGraph("Unoptimized Compilation", flow_graph);
-  }
+  flow_graph->PopulateWithICData(function);
 
   CompilerPassState pass_state(thread(), flow_graph, precompiler_);
 
-  if (optimized()) {
+  {
     TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
     AotCallSpecializer call_specializer(precompiler_, flow_graph);
@@ -3679,80 +3650,9 @@ bool PrecompileParsedFunctionHelper::Compile() {
   return GenerateCode(flow_graph, &pass_state, ic_data_array);
 }
 
-static ErrorPtr PrecompileFunctionHelper(Precompiler* precompiler,
-                                         const Function& function,
-                                         bool optimized) {
-  // Check that we optimize, except if the function is not optimizable.
-  ASSERT(CompilerState::Current().is_aot());
-  ASSERT(!function.IsOptimizable() || optimized);
-  ASSERT(!function.HasCode());
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    Thread* const thread = Thread::Current();
-    StackZone stack_zone(thread);
-    Zone* const zone = stack_zone.GetZone();
-    const bool trace_compiler =
-        FLAG_trace_compiler || (FLAG_trace_optimizing_compiler && optimized);
-    Timer per_compile_timer;
-    per_compile_timer.Start();
-
-    ParsedFunction* parsed_function = new (zone)
-        ParsedFunction(thread, Function::ZoneHandle(zone, function.ptr()));
-    if (trace_compiler) {
-      THR_Print("Precompiling %sfunction: '%s' @ token %" Pd ", size %" Pd "\n",
-                (optimized ? "optimized " : ""),
-                function.ToFullyQualifiedCString(), function.token_pos().Pos(),
-                (function.end_token_pos().Pos() - function.token_pos().Pos()));
-    }
-
-    PrecompileParsedFunctionHelper helper(precompiler, parsed_function,
-                                          optimized);
-    const bool success = helper.Compile();
-    if (!success) {
-      // We got an error during compilation.
-      const Error& error = Error::Handle(thread->StealStickyError());
-      ASSERT(error.IsLanguageError() &&
-             LanguageError::Cast(error).kind() != Report::kBailout);
-      return error.ptr();
-    }
-
-    per_compile_timer.Stop();
-
-    if (trace_compiler) {
-      THR_Print("--> '%s' entry: %#" Px " size: %" Pd " time: %" Pd64 " us\n",
-                function.ToFullyQualifiedCString(),
-                Code::Handle(function.CurrentCode()).PayloadStart(),
-                Code::Handle(function.CurrentCode()).Size(),
-                per_compile_timer.TotalElapsedTime());
-    }
-
-    if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
-      Code& code = Code::Handle(function.CurrentCode());
-      Disassembler::DisassembleCode(function, code, optimized);
-    } else if (FLAG_disassemble_optimized && optimized &&
-               FlowGraphPrinter::ShouldPrint(function)) {
-      Code& code = Code::Handle(function.CurrentCode());
-      Disassembler::DisassembleCode(function, code, true);
-    }
-    return Error::null();
-  } else {
-    Thread* const thread = Thread::Current();
-    StackZone stack_zone(thread);
-    // We got an error during compilation.
-    const Error& error = Error::Handle(thread->StealStickyError());
-    // Precompilation may encounter compile-time errors.
-    // Do not attempt to optimize functions that can cause errors.
-    function.set_is_optimizable(false);
-    return error.ptr();
-  }
-  UNREACHABLE();
-  return Error::null();
-}
-
-ErrorPtr Precompiler::CompileFunction(Precompiler* precompiler,
-                                      Thread* thread,
-                                      Zone* zone,
-                                      const Function& function) {
+void Precompiler::CompileFunction(Precompiler* precompiler,
+                                  Thread* thread,
+                                  const Function& function) {
   PRECOMPILER_TIMER_SCOPE(precompiler, CompileFunction);
   NoActiveIsolateScope no_isolate_scope;
 
@@ -3760,12 +3660,54 @@ ErrorPtr Precompiler::CompileFunction(Precompiler* precompiler,
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "CompileFunction", function);
 
   ASSERT(CompilerState::Current().is_aot());
-  const bool optimized = function.IsOptimizable();  // False for natives.
+  ASSERT(function.IsOptimizable());
+  ASSERT(!function.HasCode());
+
   if (precompiler->is_tracing()) {
     precompiler->tracer_->WriteCompileFunctionEvent(function);
   }
 
-  return PrecompileFunctionHelper(precompiler, function, optimized);
+  StackZone stack_zone(thread);
+  Zone* const zone = stack_zone.GetZone();
+  const bool trace_compiler =
+      FLAG_trace_compiler || FLAG_trace_optimizing_compiler;
+  Timer per_compile_timer;
+  per_compile_timer.Start();
+
+  ParsedFunction* parsed_function = new (zone)
+      ParsedFunction(thread, Function::ZoneHandle(zone, function.ptr()));
+  if (trace_compiler) {
+    THR_Print("Precompiling optimized function: '%s' @ token %" Pd ", size %" Pd
+              "\n",
+              function.ToFullyQualifiedCString(), function.token_pos().Pos(),
+              (function.end_token_pos().Pos() - function.token_pos().Pos()));
+  }
+
+  PrecompileParsedFunctionHelper helper(precompiler, parsed_function);
+  const bool success = helper.Compile();
+  if (!success) {
+    // We got an error during compilation.
+    const Error& error = Error::Handle(thread->StealStickyError());
+    ASSERT(error.IsLanguageError() &&
+           LanguageError::Cast(error).kind() != Report::kBailout);
+    Jump(error);
+  }
+
+  per_compile_timer.Stop();
+
+  if (trace_compiler) {
+    THR_Print("--> '%s' entry: %#" Px " size: %" Pd " time: %" Pd64 " us\n",
+              function.ToFullyQualifiedCString(),
+              Code::Handle(function.CurrentCode()).PayloadStart(),
+              Code::Handle(function.CurrentCode()).Size(),
+              per_compile_timer.TotalElapsedTime());
+  }
+
+  if ((FLAG_disassemble || FLAG_disassemble_optimized) &&
+      FlowGraphPrinter::ShouldPrint(function)) {
+    Code& code = Code::Handle(function.CurrentCode());
+    Disassembler::DisassembleCode(function, code, /*optimized=*/true);
+  }
 }
 
 Obfuscator::Obfuscator(Thread* thread, const String& private_key)
