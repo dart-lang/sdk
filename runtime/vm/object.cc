@@ -15144,6 +15144,7 @@ LibraryPtr Library::LookupLibrary(Thread* thread, const String& url) {
 
   // Use the libraries map to lookup the library by URL.
   Library& lib = Library::Handle(zone);
+  SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (object_store->libraries_map() == Array::null()) {
     return Library::null();
   } else {
@@ -15276,6 +15277,7 @@ void Library::Register(Thread* thread) const {
   const String& lib_url = String::Handle(zone, url());
   ASSERT(Library::LookupLibrary(thread, lib_url) == Library::null());
   ASSERT(lib_url.HasHash());
+  SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
   GrowableObjectArray& libs =
       GrowableObjectArray::Handle(zone, object_store->libraries());
   ASSERT(!libs.IsNull());
