@@ -434,6 +434,10 @@ class Expect {
         _fail('Expect.mapEquals(unexpected key: <$key>$msg) fails');
       }
     }
+    if (expectedKeys.length != actualKeys.length) {
+      _failNotEqual(expectedKeys.length, actualKeys.length,
+          "mapEquals", "map.length");
+    }
   }
 
   /// Specialized equality test for strings. When the strings don't match,
