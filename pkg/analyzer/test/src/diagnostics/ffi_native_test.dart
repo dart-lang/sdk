@@ -73,6 +73,19 @@ void main() {
     ]);
   }
 
+  test_invalid_MissingType2() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external Pointer<IntPtr> global;
+
+void main() => print(Native.addressOf(global));
+''', [
+      error(FfiCode.MUST_BE_A_SUBTYPE, 85, 24),
+    ]);
+  }
+
   test_invalid_NotAConstant() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
@@ -87,6 +100,19 @@ void entry(bool condition) {
 }
 ''', [
       error(FfiCode.ARGUMENT_MUST_BE_NATIVE, 171, 21),
+    ]);
+  }
+
+  test_invalid_NotAPreciseType() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native<Void Function()>()
+external void foo();
+
+void main() => print(Native.addressOf<NativeFunction>(foo));
+''', [
+      error(FfiCode.MUST_BE_A_SUBTYPE, 90, 37),
     ]);
   }
 

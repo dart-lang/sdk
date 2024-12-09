@@ -30,72 +30,12 @@ class Precompiler;
 class StaticCallInstr;
 class TargetEntryInstr;
 
-class SpeculativeInliningPolicy {
- public:
-  explicit SpeculativeInliningPolicy(bool enable_suppression,
-                                     intptr_t limit = -1)
-      : enable_suppression_(enable_suppression), remaining_(limit) {}
-
-  bool AllowsSpeculativeInlining() const {
-    return !enable_suppression_ || remaining_ > 0;
-  }
-
-  bool IsAllowedForInlining(intptr_t call_deopt_id) const {
-    // If we are not suppressing, we always enable optimistic inlining.
-    if (!enable_suppression_) {
-      return true;
-    }
-
-    // If we have already suppressed the deopt-id we don't allow inlining it.
-    if (IsSuppressed(call_deopt_id)) {
-      return false;
-    }
-
-    // Allow it if we can bailout at least one more time.
-    return remaining_ > 0;
-  }
-
-  bool AddBlockedDeoptId(intptr_t id) {
-    ASSERT(enable_suppression_);
-#if defined(DEBUG)
-    ASSERT(!IsSuppressed(id));
-#endif
-
-    // If we exhausted the number of suppression entries there is no point
-    // in adding entries to the list.
-    if (remaining_ <= 0) return false;
-
-    inlining_suppressions_.Add(id);
-    remaining_ -= 1;
-    return true;
-  }
-
-  intptr_t length() const { return inlining_suppressions_.length(); }
-
- private:
-  bool IsSuppressed(intptr_t id) const {
-    for (intptr_t i = 0; i < inlining_suppressions_.length(); ++i) {
-      if (inlining_suppressions_[i] == id) return true;
-    }
-    return false;
-  }
-
-  // Whether we enable suppressing inlining at specific deopt-ids.
-  const bool enable_suppression_;
-
-  // After we reach [remaining_] number of deopt-ids in [inlining_suppressions_]
-  // list, we'll disable speculative inlining entirely.
-  intptr_t remaining_;
-  GrowableArray<intptr_t> inlining_suppressions_;
-};
-
 class FlowGraphInliner : ValueObject {
  public:
   FlowGraphInliner(FlowGraph* flow_graph,
                    GrowableArray<const Function*>* inline_id_to_function,
                    GrowableArray<TokenPosition>* inline_id_to_token_pos,
                    GrowableArray<intptr_t>* caller_inline_id,
-                   SpeculativeInliningPolicy* speculative_policy,
                    Precompiler* precompiler);
 
   // The flow graph is destructively updated upon inlining.  Returns the max
@@ -133,10 +73,6 @@ class FlowGraphInliner : ValueObject {
 
   bool trace_inlining() const { return trace_inlining_; }
 
-  SpeculativeInliningPolicy* speculative_policy() {
-    return speculative_policy_;
-  }
-
  private:
   friend class CallSiteInliner;
 
@@ -145,7 +81,6 @@ class FlowGraphInliner : ValueObject {
   GrowableArray<TokenPosition>* inline_id_to_token_pos_;
   GrowableArray<intptr_t>* caller_inline_id_;
   const bool trace_inlining_;
-  SpeculativeInliningPolicy* speculative_policy_;
   Precompiler* precompiler_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphInliner);

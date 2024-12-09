@@ -37,3 +37,44 @@ class _IntegerWithMixin extends Integer with IntegerMixin {
   const _IntegerWithMixin(int integer) : this._(integer);
   const _IntegerWithMixin._(super.integer) : super._();
 }
+
+// Selector chain test declarations.
+
+class ConstructorClass {
+  final int? x;
+  ConstructorClass(this.x);
+  ConstructorClass.regular(this.x);
+  ConstructorClass.named({this.x});
+  ConstructorClass.optional([this.x]);
+
+  const ConstructorClass.constRegular(this.x);
+  const ConstructorClass.constNamed({this.x});
+  const ConstructorClass.constOptional([this.x]);
+}
+
+class UnnamedConstructor {}
+
+class UnnamedConstructorTypeParameters<T> {}
+
+extension type ConstructorExt(int? x) {
+  ConstructorExt.regular(this.x);
+  ConstructorExt.named({this.x});
+  ConstructorExt.optional([this.x]);
+
+  const ConstructorExt.constRegular(this.x);
+  const ConstructorExt.constNamed({this.x});
+  const ConstructorExt.constOptional([this.x]);
+}
+
+class StaticMember<T> {
+  static StaticMember<int> member() => StaticMember(1);
+  static StaticMember<U> memberType<U, V>(U u) => StaticMember(u);
+
+  final T t;
+  StaticMember(this.t);
+}
+
+extension type StaticMemberExt<T>(T x) {
+  static StaticMemberExt<int> member() => StaticMemberExt(1);
+  static StaticMemberExt<U> memberType<U, V>(U u) => StaticMemberExt(u);
+}

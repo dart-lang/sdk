@@ -5,7 +5,6 @@ lib/src/computer/computer_call_hierarchy.dart
 lib/src/computer/computer_documentation.dart
 lib/src/domains/analysis/occurrences_dart.dart
 lib/src/handler/legacy/edit_get_available_refactorings.dart
-lib/src/handler/legacy/legacy_handler.dart
 lib/src/handler/legacy/search_find_element_references.dart
 lib/src/handler/legacy/search_get_type_hierarchy.dart
 lib/src/lsp/completion_utils.dart
@@ -14,7 +13,6 @@ lib/src/lsp/handlers/commands/abstract_refactor.dart
 lib/src/lsp/handlers/handler_completion.dart
 lib/src/lsp/handlers/handler_completion_resolve.dart
 lib/src/lsp/handlers/handler_definition.dart
-lib/src/lsp/handlers/handler_implementation.dart
 lib/src/lsp/handlers/handler_references.dart
 lib/src/lsp/handlers/handler_rename.dart
 lib/src/protocol_server.dart

@@ -14,13 +14,10 @@
 namespace dart {
 
 class Precompiler;
-class SpeculativeInliningPolicy;
 
 class AotCallSpecializer : public CallSpecializer {
  public:
-  AotCallSpecializer(Precompiler* precompiler,
-                     FlowGraph* flow_graph,
-                     SpeculativeInliningPolicy* speculative_policy);
+  AotCallSpecializer(Precompiler* precompiler, FlowGraph* flow_graph);
 
   virtual ~AotCallSpecializer() {}
 

@@ -1706,8 +1706,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             } else {
               var targetFunctionType =
                   (targetType as InterfaceType).typeArguments[0];
-              if (!typeSystem.isAssignableTo(nativeType, targetFunctionType,
-                  strictCasts: strictCasts)) {
+              if (!typeSystem.isEqualTo(nativeType, targetFunctionType)) {
                 _errorReporter.atNode(
                   node,
                   FfiCode.MUST_BE_A_SUBTYPE,
@@ -1731,7 +1730,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
               }
             }
 
-            if (!typeSystem.isAssignableTo(nativeType, targetType)) {
+            if (!typeSystem.isEqualTo(nativeType, targetType)) {
               _errorReporter.atNode(
                 node,
                 FfiCode.MUST_BE_A_SUBTYPE,

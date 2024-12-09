@@ -64,14 +64,12 @@ class FlowGraph;
 class FlowGraphCompiler;
 class Function;
 class Precompiler;
-class SpeculativeInliningPolicy;
 class TimelineStream;
 class Thread;
 
 struct CompilerPassState {
   CompilerPassState(Thread* thread,
                     FlowGraph* flow_graph,
-                    SpeculativeInliningPolicy* speculative_policy,
                     Precompiler* precompiler = nullptr);
 
   FlowGraph* flow_graph() const { return flow_graph_; }
@@ -92,8 +90,6 @@ struct CompilerPassState {
   GrowableArray<intptr_t> caller_inline_id;
 
   CallSpecializer* call_specializer;
-
-  SpeculativeInliningPolicy* speculative_policy;
 
   intptr_t sticky_flags;
 
