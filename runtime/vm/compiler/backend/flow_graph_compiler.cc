@@ -137,7 +137,6 @@ FlowGraphCompiler::FlowGraphCompiler(
     FlowGraph* flow_graph,
     const ParsedFunction& parsed_function,
     bool is_optimizing,
-    SpeculativeInliningPolicy* speculative_policy,
     const GrowableArray<const Function*>& inline_id_to_function,
     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
     const GrowableArray<intptr_t>& caller_inline_id,
@@ -160,7 +159,6 @@ FlowGraphCompiler::FlowGraphCompiler(
       static_calls_target_table_(),
       indirect_gotos_(),
       is_optimizing_(is_optimizing),
-      speculative_policy_(speculative_policy),
       may_reoptimize_(false),
       intrinsic_mode_(false),
       stats_(stats),
@@ -1248,15 +1246,9 @@ compiler::Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
 
   // No deoptimization allowed when 'FLAG_precompiled_mode' is set.
   if (FLAG_precompiled_mode) {
-    if (FLAG_trace_compiler) {
-      THR_Print(
-          "Retrying compilation %s, suppressing inlining of deopt_id:%" Pd "\n",
+    FATAL("Speculative instructions are not allowed in AOT: %s, deopt_id %" Pd
+          "\n",
           parsed_function_.function().ToFullyQualifiedCString(), deopt_id);
-    }
-    ASSERT(speculative_policy_->AllowsSpeculativeInlining());
-    ASSERT(deopt_id != 0);  // longjmp must return non-zero value.
-    Thread::Current()->long_jump_base()->Jump(
-        deopt_id, Object::speculative_inlining_error());
   }
 
   ASSERT(is_optimizing_);

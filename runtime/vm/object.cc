@@ -1271,9 +1271,6 @@ void Object::Init(IsolateGroup* isolate_group) {
   error_str = String::New("Branch offset overflow", Heap::kOld);
   *branch_offset_error_ =
       LanguageError::New(error_str, Report::kBailout, Heap::kOld);
-  error_str = String::New("Speculative inlining failed", Heap::kOld);
-  *speculative_inlining_error_ =
-      LanguageError::New(error_str, Report::kBailout, Heap::kOld);
   error_str = String::New("Background Compilation Failed", Heap::kOld);
   *background_compilation_error_ =
       LanguageError::New(error_str, Report::kBailout, Heap::kOld);
@@ -1397,8 +1394,6 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(snapshot_writer_error_->IsLanguageError());
   ASSERT(!branch_offset_error_->IsSmi());
   ASSERT(branch_offset_error_->IsLanguageError());
-  ASSERT(!speculative_inlining_error_->IsSmi());
-  ASSERT(speculative_inlining_error_->IsLanguageError());
   ASSERT(!background_compilation_error_->IsSmi());
   ASSERT(background_compilation_error_->IsLanguageError());
   ASSERT(!out_of_memory_error_->IsSmi());

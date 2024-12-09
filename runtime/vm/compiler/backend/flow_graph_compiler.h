@@ -33,7 +33,6 @@ class Function;
 template <typename T>
 class GrowableArray;
 class ParsedFunction;
-class SpeculativeInliningPolicy;
 
 namespace compiler {
 struct TableSelector;
@@ -381,7 +380,6 @@ class FlowGraphCompiler : public ValueObject {
                     FlowGraph* flow_graph,
                     const ParsedFunction& parsed_function,
                     bool is_optimizing,
-                    SpeculativeInliningPolicy* speculative_policy,
                     const GrowableArray<const Function*>& inline_id_to_function,
                     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
                     const GrowableArray<intptr_t>& caller_inline_id,
@@ -1212,7 +1210,6 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<const compiler::TableSelector*> dispatch_table_call_targets_;
   GrowableArray<IndirectGotoInstr*> indirect_gotos_;
   bool is_optimizing_;
-  SpeculativeInliningPolicy* speculative_policy_;
   // Set to true if optimized code has IC calls.
   bool may_reoptimize_;
   // True while emitting intrinsic code.

@@ -1429,22 +1429,18 @@ class CallSiteInliner : public ValueObject {
           if (CompilerState::Current().is_aot()) {
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
             AotCallSpecializer call_specializer(inliner_->precompiler_,
-                                                callee_graph,
-                                                inliner_->speculative_policy_);
+                                                callee_graph);
 
-            CompilerPassState state(Thread::Current(), callee_graph,
-                                    inliner_->speculative_policy_);
+            CompilerPassState state(Thread::Current(), callee_graph);
             state.call_specializer = &call_specializer;
             CompilerPass::RunInliningPipeline(CompilerPass::kAOT, &state);
 #else
             UNREACHABLE();
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
           } else {
-            JitCallSpecializer call_specializer(callee_graph,
-                                                inliner_->speculative_policy_);
+            JitCallSpecializer call_specializer(callee_graph);
 
-            CompilerPassState state(Thread::Current(), callee_graph,
-                                    inliner_->speculative_policy_);
+            CompilerPassState state(Thread::Current(), callee_graph);
             state.call_specializer = &call_specializer;
             CompilerPass::RunInliningPipeline(CompilerPass::kJIT, &state);
           }
@@ -2396,14 +2392,12 @@ FlowGraphInliner::FlowGraphInliner(
     GrowableArray<const Function*>* inline_id_to_function,
     GrowableArray<TokenPosition>* inline_id_to_token_pos,
     GrowableArray<intptr_t>* caller_inline_id,
-    SpeculativeInliningPolicy* speculative_policy,
     Precompiler* precompiler)
     : flow_graph_(flow_graph),
       inline_id_to_function_(inline_id_to_function),
       inline_id_to_token_pos_(inline_id_to_token_pos),
       caller_inline_id_(caller_inline_id),
       trace_inlining_(FLAG_trace_inlining && flow_graph->should_print()),
-      speculative_policy_(speculative_policy),
       precompiler_(precompiler) {}
 
 void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph,

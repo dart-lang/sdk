@@ -1051,8 +1051,8 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     }
   }
 
-  return TryReplaceInstanceCallWithInline(flow_graph_, current_iterator(), call,
-                                          speculative_policy_);
+  return TryReplaceInstanceCallWithInline(flow_graph_, current_iterator(),
+                                          call);
 }
 
 // If type tests specified by 'ic_data' do not depend on type arguments,
@@ -1273,9 +1273,8 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     if (as_bool.IsNull() || CompilerState::Current().is_aot()) {
       if (results->length() == number_of_checks * 2) {
         const bool can_deopt = SpecializeTestCidsForNumericTypes(results, type);
-        if (can_deopt &&
-            !speculative_policy_->IsAllowedForInlining(call->deopt_id())) {
-          // Guard against repeated speculative inlining.
+        if (can_deopt && CompilerState::Current().is_aot()) {
+          // Guard against speculative inlining.
           return;
         }
         TestCidsInstr* test_cids = new (Z) TestCidsInstr(
@@ -1305,12 +1304,11 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 }
 
 void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
-  if (TryReplaceStaticCallWithInline(flow_graph_, current_iterator(), call,
-                                     speculative_policy_)) {
+  if (TryReplaceStaticCallWithInline(flow_graph_, current_iterator(), call)) {
     return;
   }
 
-  if (speculative_policy_->IsAllowedForInlining(call->deopt_id())) {
+  if (!CompilerState::Current().is_aot()) {
     // Only if speculative inlining is enabled.
 
     MethodRecognizer::Kind recognized_kind = call->function().recognized_kind();
@@ -1984,18 +1982,28 @@ static bool InlineDoubleOp(FlowGraph* flow_graph,
   Definition* left = receiver;
   Definition* right = call->ArgumentAt(1);
 
+  if (CompilerState::Current().is_aot()) {
+    if (!left->Type()->IsDouble() || !right->Type()->IsDouble()) {
+      return false;
+    }
+  }
+
   *entry =
       new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                  call->GetBlock()->try_index(), DeoptId::kNone);
   (*entry)->InheritDeoptTarget(Z, call);
-  left =
-      UnboxInstr::Create(kUnboxedDouble, new (Z) Value(left), call->deopt_id(),
-                         UnboxInstr::ValueMode::kCheckType);
-  flow_graph->InsertBefore(call, left, call->env(), FlowGraph::kValue);
-  right =
-      UnboxInstr::Create(kUnboxedDouble, new (Z) Value(right), call->deopt_id(),
-                         UnboxInstr::ValueMode::kCheckType);
-  flow_graph->InsertBefore(call, right, call->env(), FlowGraph::kValue);
+  if (!left->Type()->IsDouble()) {
+    left =
+        UnboxInstr::Create(kUnboxedDouble, new (Z) Value(left),
+                           call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
+    flow_graph->InsertBefore(call, left, call->env(), FlowGraph::kValue);
+  }
+  if (!right->Type()->IsDouble()) {
+    right =
+        UnboxInstr::Create(kUnboxedDouble, new (Z) Value(right),
+                           call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
+    flow_graph->InsertBefore(call, right, call->env(), FlowGraph::kValue);
+  }
   BinaryDoubleOpInstr* double_bin_op = new (Z)
       BinaryDoubleOpInstr(op_kind, new (Z) Value(left), new (Z) Value(right),
                           call->deopt_id(), call->source());
@@ -2179,8 +2187,7 @@ static bool InlineStringBaseCodeUnitAt(FlowGraph* flow_graph,
 bool CallSpecializer::TryReplaceInstanceCallWithInline(
     FlowGraph* flow_graph,
     ForwardInstructionIterator* iterator,
-    InstanceCallInstr* call,
-    SpeculativeInliningPolicy* policy) {
+    InstanceCallInstr* call) {
   const CallTargets& targets = call->Targets();
   ASSERT(targets.IsMonomorphic());
   const intptr_t receiver_cid = targets.MonomorphicReceiverCid();
@@ -2194,8 +2201,7 @@ bool CallSpecializer::TryReplaceInstanceCallWithInline(
   if (CallSpecializer::TryInlineRecognizedMethod(
           flow_graph, receiver_cid, target, call,
           call->Receiver()->definition(), call->source(), call->ic_data(),
-          /*graph_entry=*/nullptr, &entry, &last, &result, policy,
-          &exactness_info)) {
+          /*graph_entry=*/nullptr, &entry, &last, &result, &exactness_info)) {
     // The empty Object constructor is the only case where the inlined body is
     // empty and there is no result.
     ASSERT((last != nullptr && result != nullptr) ||
@@ -2267,8 +2273,7 @@ bool CallSpecializer::TryReplaceInstanceCallWithInline(
 bool CallSpecializer::TryReplaceStaticCallWithInline(
     FlowGraph* flow_graph,
     ForwardInstructionIterator* iterator,
-    StaticCallInstr* call,
-    SpeculativeInliningPolicy* policy) {
+    StaticCallInstr* call) {
   FunctionEntryInstr* entry = nullptr;
   Instruction* last = nullptr;
   Definition* result = nullptr;
@@ -2281,7 +2286,7 @@ bool CallSpecializer::TryReplaceStaticCallWithInline(
   if (CallSpecializer::TryInlineRecognizedMethod(
           flow_graph, receiver_cid, call->function(), call, receiver,
           call->source(), call->ic_data(), /*graph_entry=*/nullptr, &entry,
-          &last, &result, policy)) {
+          &last, &result)) {
     // The empty Object constructor is the only case where the inlined body is
     // empty and there is no result.
     ASSERT((last != nullptr && result != nullptr) ||
@@ -3183,7 +3188,6 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     FunctionEntryInstr** entry,
     Instruction** last,
     Definition** result,
-    SpeculativeInliningPolicy* policy,
     CallSpecializer::ExactnessInfo* exactness) {
   COMPILER_TIMINGS_TIMER_SCOPE(flow_graph->thread(), InlineRecognizedMethod);
 
@@ -3194,7 +3198,9 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     return false;
   }
 
-  const bool can_speculate = policy->IsAllowedForInlining(call->deopt_id());
+  const bool can_speculate = !CompilerState::Current().is_aot() ||
+                             (receiver == nullptr) ||
+                             (receiver->Type()->ToCid() == receiver_cid);
   const bool is_dynamic_call = Function::IsDynamicInvocationForwarderName(
       String::Handle(flow_graph->zone(), target.name()));
 

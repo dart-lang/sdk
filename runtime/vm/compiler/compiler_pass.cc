@@ -51,17 +51,14 @@
 
 namespace dart {
 
-CompilerPassState::CompilerPassState(
-    Thread* thread,
-    FlowGraph* flow_graph,
-    SpeculativeInliningPolicy* speculative_policy,
-    Precompiler* precompiler)
+CompilerPassState::CompilerPassState(Thread* thread,
+                                     FlowGraph* flow_graph,
+                                     Precompiler* precompiler)
     : thread(thread),
       precompiler(precompiler),
       inlining_depth(0),
       sinking(nullptr),
       call_specializer(nullptr),
-      speculative_policy(speculative_policy),
       sticky_flags(0),
       flow_graph_(flow_graph) {
   // Top scope function is at inlining id 0.
@@ -395,9 +392,9 @@ COMPILER_PASS(SetOuterInliningId, {
 });
 
 COMPILER_PASS(Inlining, {
-  FlowGraphInliner inliner(
-      flow_graph, &state->inline_id_to_function, &state->inline_id_to_token_pos,
-      &state->caller_inline_id, state->speculative_policy, state->precompiler);
+  FlowGraphInliner inliner(flow_graph, &state->inline_id_to_function,
+                           &state->inline_id_to_token_pos,
+                           &state->caller_inline_id, state->precompiler);
   state->inlining_depth = inliner.Inline();
 });
 

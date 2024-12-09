@@ -491,10 +491,6 @@ CodePtr CompileParsedFunctionHelper::Compile() {
   // volatile because the variable may be clobbered by a longjmp.
   volatile intptr_t far_branch_level = 0;
 
-  // In the JIT case we allow speculative inlining and have no need for a
-  // suppression, since we don't restart optimization.
-  SpeculativeInliningPolicy speculative_policy(/*enable_suppression=*/false);
-
   Code* volatile result = &Code::ZoneHandle(zone);
   while (!done) {
     *result = Code::null();
@@ -551,12 +547,12 @@ CodePtr CompileParsedFunctionHelper::Compile() {
         BlockScheduler::AssignEdgeWeights(flow_graph);
       }
 
-      CompilerPassState pass_state(thread(), flow_graph, &speculative_policy);
+      CompilerPassState pass_state(thread(), flow_graph);
 
       if (optimized()) {
         TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
-        JitCallSpecializer call_specializer(flow_graph, &speculative_policy);
+        JitCallSpecializer call_specializer(flow_graph);
         pass_state.call_specializer = &call_specializer;
 
         flow_graph = CompilerPass::RunPipeline(CompilerPass::kJIT, &pass_state);
@@ -568,9 +564,8 @@ CodePtr CompileParsedFunctionHelper::Compile() {
       compiler::Assembler assembler(&object_pool_builder, far_branch_level);
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), optimized(),
-          &speculative_policy, pass_state.inline_id_to_function,
-          pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
-          ic_data_array);
+          pass_state.inline_id_to_function, pass_state.inline_id_to_token_pos,
+          pass_state.caller_inline_id, ic_data_array);
       pass_state.graph_compiler = &graph_compiler;
       CompilerPass::GenerateCode(&pass_state);
 
@@ -642,9 +637,6 @@ CodePtr CompileParsedFunctionHelper::Compile() {
         done = false;
         RELEASE_ASSERT(far_branch_level < 2);
         far_branch_level += 1;
-      } else if (error.ptr() == Object::speculative_inlining_error().ptr()) {
-        // Can only happen with precompilation.
-        UNREACHABLE();
       } else {
         // If the error isn't due to an out of range branch offset, we don't
         // try again (done = true).

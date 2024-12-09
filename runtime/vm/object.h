@@ -511,7 +511,6 @@ class Object {
   V(UnwindError, unwind_in_progress_error)                                     \
   V(LanguageError, snapshot_writer_error)                                      \
   V(LanguageError, branch_offset_error)                                        \
-  V(LanguageError, speculative_inlining_error)                                 \
   V(LanguageError, background_compilation_error)                               \
   V(LanguageError, no_debuggable_code_error)                                   \
   V(LanguageError, out_of_memory_error)                                        \

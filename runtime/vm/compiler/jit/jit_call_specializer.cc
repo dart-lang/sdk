@@ -29,11 +29,8 @@ namespace dart {
 // Quick access to the current zone.
 #define Z (zone())
 
-JitCallSpecializer::JitCallSpecializer(
-    FlowGraph* flow_graph,
-    SpeculativeInliningPolicy* speculative_policy)
+JitCallSpecializer::JitCallSpecializer(FlowGraph* flow_graph)
     : CallSpecializer(flow_graph,
-                      speculative_policy,
                       CompilerState::Current().should_clone_fields()) {}
 
 bool JitCallSpecializer::IsAllowedForInlining(intptr_t deopt_id) const {

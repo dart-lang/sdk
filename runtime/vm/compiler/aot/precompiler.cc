@@ -76,11 +76,6 @@ DEFINE_FLAG(charp,
             nullptr,
             "Print layout of Dart objects to the given file");
 DEFINE_FLAG(bool, trace_precompiler, false, "Trace precompiler.");
-DEFINE_FLAG(
-    int,
-    max_speculative_inlining_attempts,
-    1,
-    "Max number of attempts with speculative inlining (precompilation only)");
 DEFINE_FLAG(charp,
             write_retained_reasons_to,
             nullptr,
@@ -3502,8 +3497,6 @@ bool PrecompileParsedFunctionHelper::Compile() {
   bool done = false;
   // volatile because the variable may be clobbered by a longjmp.
   volatile intptr_t far_branch_level = 0;
-  SpeculativeInliningPolicy speculative_policy(
-      true, FLAG_max_speculative_inlining_attempts);
 
   while (!done) {
     LongJumpScope jump;
@@ -3544,14 +3537,12 @@ bool PrecompileParsedFunctionHelper::Compile() {
         FlowGraphPrinter::PrintGraph("Unoptimized Compilation", flow_graph);
       }
 
-      CompilerPassState pass_state(thread(), flow_graph, &speculative_policy,
-                                   precompiler_);
+      CompilerPassState pass_state(thread(), flow_graph, precompiler_);
 
       if (optimized()) {
         TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
-        AotCallSpecializer call_specializer(precompiler_, flow_graph,
-                                            &speculative_policy);
+        AotCallSpecializer call_specializer(precompiler_, flow_graph);
         pass_state.call_specializer = &call_specializer;
 
         flow_graph = CompilerPass::RunPipeline(CompilerPass::kAOT, &pass_state);
@@ -3597,9 +3588,8 @@ bool PrecompileParsedFunctionHelper::Compile() {
 
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), optimized(),
-          &speculative_policy, pass_state.inline_id_to_function,
-          pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
-          ic_data_array, function_stats);
+          pass_state.inline_id_to_function, pass_state.inline_id_to_token_pos,
+          pass_state.caller_inline_id, ic_data_array, function_stats);
       pass_state.graph_compiler = &graph_compiler;
       CompilerPass::GenerateCode(&pass_state);
       {
@@ -3660,20 +3650,6 @@ bool PrecompileParsedFunctionHelper::Compile() {
         done = false;
         RELEASE_ASSERT(far_branch_level < 2);
         far_branch_level = far_branch_level + 1;
-      } else if (error.ptr() == Object::speculative_inlining_error().ptr()) {
-        // The return value of setjmp is the deopt id of the check instruction
-        // that caused the bailout.
-        done = false;
-        if (!speculative_policy.AllowsSpeculativeInlining()) {
-          // Assert that we don't repeatedly retry speculation.
-          UNREACHABLE();
-        }
-        if (!speculative_policy.AddBlockedDeoptId(val)) {
-          if (FLAG_trace_compiler || FLAG_trace_optimizing_compiler) {
-            THR_Print("Disabled speculative inlining after %" Pd " attempts.\n",
-                      speculative_policy.length());
-          }
-        }
       } else {
         // If the error isn't due to an out of range branch offset, we don't
         // try again (done = true), and indicate that we did not finish
