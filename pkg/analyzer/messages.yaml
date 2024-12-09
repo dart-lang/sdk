@@ -20400,6 +20400,76 @@ FfiCode:
         NativeCallable<Void Function(Int32)>.listener(f);
       }
       ```
+  NEGATIVE_VARIABLE_DIMENSION:
+    problemMessage: The variable dimension of a variable-length array must be non-negative.
+    correctionMessage: Try using a value that is zero or greater.
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic in two cases.
+
+      The first is when the variable dimension given in an
+      `Array.variableWithVariableDimension` annotation is negative. The variable
+      dimension is the first argument in the annotation.
+
+      The second is when the variable dimension given in an
+      `Array.variableMulti` annotation is negative. The variable dimension is
+      specified in the `variableDimension` argument of the annotation.
+
+      For more information about FFI, see [C interop using dart:ffi][ffi].
+
+      #### Examples
+
+      The following code produces this diagnostic because a variable dimension
+      of `-1` was provided in the `Array.variableWithVariableDimension`
+      annotation:
+
+      ```dart
+      import 'dart:ffi';
+
+      final class MyStruct extends Struct {
+        @Array.variableWithVariableDimension([!-1!])
+        external Array<Uint8> a0;
+      }
+      ```
+
+      The following code produces this diagnostic because a variable dimension
+      of `-1` was provided in the `Array.variableMulti` annotation:
+
+      ```dart
+      import 'dart:ffi';
+
+      final class MyStruct2 extends Struct {
+        @Array.variableMulti(variableDimension: [!-1!], [1, 2])
+        external Array<Array<Array<Uint8>>> a0;
+      }
+      ```
+
+      #### Common fixes
+
+      Change the variable dimension with zero (`0`) or a positive number:
+
+      ```dart
+      import 'dart:ffi';
+
+      final class MyStruct extends Struct {
+        @Array.variableWithVariableDimension(1)
+        external Array<Uint8> a0;
+      }
+      ```
+
+      Change the variable dimension with zero (`0`) or a positive number:
+
+      ```dart
+      import 'dart:ffi';
+
+      final class MyStruct2 extends Struct {
+        @Array.variableMulti(variableDimension: 1, [1, 2])
+        external Array<Array<Array<Uint8>>> a0;
+      }
+      ```
   NON_CONSTANT_TYPE_ARGUMENT:
     problemMessage: "The type arguments to '{0}' must be known at compile time, so they can't be type parameters."
     correctionMessage: Try changing the type argument to be a constant type.
@@ -20515,7 +20585,7 @@ FfiCode:
       #### Example
 
       The following code produces this diagnostic because an array dimension of
-      `-1` was provided:
+      `-8` was provided:
 
       ```dart
       import 'dart:ffi';
@@ -20539,7 +20609,8 @@ FfiCode:
       }
       ```
 
-      If this is a variable length inline array, change the annotation to `Array.variable()`:
+      If this is a variable length inline array, change the annotation to
+      `Array.variable()`:
 
       ```dart
       import 'dart:ffi';

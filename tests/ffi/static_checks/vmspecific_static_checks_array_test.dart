@@ -121,3 +121,41 @@ final class TestStruct12 extends Struct {
   bool get a1 => true;
   set a1(bool value) {}
 }
+
+final class TestStruct13 extends Struct {
+  @Array.variableWithVariableDimension(-1)
+  //                                   ^^
+  // [analyzer] COMPILE_TIME_ERROR.NEGATIVE_VARIABLE_DIMENSION
+  external Array<Uint8> a0;
+  //                    ^^
+  // [cfe] The variable dimension of a variable-length array must be non-negative.
+}
+
+final class TestStruct14 extends Struct {
+  @Array.variableWithVariableDimension(0)
+  external Array<Uint8> a0;
+}
+
+final class TestStruct15 extends Struct {
+  @Array.variableWithVariableDimension(1)
+  external Array<Uint8> a0;
+}
+
+final class TestStruct16 extends Struct {
+  @Array.variableMulti(variableDimension: -1, [1, 2])
+  //                                      ^^
+  // [analyzer] COMPILE_TIME_ERROR.NEGATIVE_VARIABLE_DIMENSION
+  external Array<Array<Array<Uint8>>> a0;
+  //                                  ^^
+  // [cfe] The variable dimension of a variable-length array must be non-negative.
+}
+
+final class TestStruct17 extends Struct {
+  @Array.variableMulti(variableDimension: 0, [1, 2])
+  external Array<Array<Array<Uint8>>> a0;
+}
+
+final class TestStruct18 extends Struct {
+  @Array.variableMulti(variableDimension: 1, [1, 2])
+  external Array<Array<Array<Uint8>>> a0;
+}

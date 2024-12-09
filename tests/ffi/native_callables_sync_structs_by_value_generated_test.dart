@@ -518,6 +518,13 @@ final testCases = [
     noChecksAsync,
   ),
   AsyncCallbackTest(
+    "PassPointerStructInlineArrayVariable2",
+    Pointer.fromFunction<PassPointerStructInlineArrayVariable2Type>(
+      passPointerStructInlineArrayVariable2,
+    ),
+    noChecksAsync,
+  ),
+  AsyncCallbackTest(
     "ReturnStruct1ByteInt",
     Pointer.fromFunction<ReturnStruct1ByteIntType>(returnStruct1ByteInt),
     returnStruct1ByteIntAfterCallback,
@@ -5692,6 +5699,42 @@ void passPointerStructInlineArrayVariableAlign(
 
 Future<void> passPointerStructInlineArrayVariableAlignAfterCallback() async {
   final result = await PassPointerStructInlineArrayVariableAlignResult.future;
+  print("after callback result = $result");
+  Expect.approxEquals(66, result);
+}
+
+typedef PassPointerStructInlineArrayVariable2Type =
+    Void Function(Pointer<StructInlineArrayVariable2>);
+
+// Global variable that stores the result.
+final PassPointerStructInlineArrayVariable2Result = Completer<double>();
+
+/// Variable length array with variable dimension of 1.
+void passPointerStructInlineArrayVariable2(
+  Pointer<StructInlineArrayVariable2> a0,
+) {
+  print("passPointerStructInlineArrayVariable2(${a0})");
+
+  double result = 0;
+
+  result += a0.ref.a0;
+  result += a0.ref.a1[0];
+  result += a0.ref.a1[1];
+  result += a0.ref.a1[2];
+  result += a0.ref.a1[3];
+  result += a0.ref.a1[4];
+  result += a0.ref.a1[5];
+  result += a0.ref.a1[6];
+  result += a0.ref.a1[7];
+  result += a0.ref.a1[8];
+  result += a0.ref.a1[9];
+
+  print("result = $result");
+  PassPointerStructInlineArrayVariable2Result.complete(result);
+}
+
+Future<void> passPointerStructInlineArrayVariable2AfterCallback() async {
+  final result = await PassPointerStructInlineArrayVariable2Result.future;
   print("after callback result = $result");
   Expect.approxEquals(66, result);
 }

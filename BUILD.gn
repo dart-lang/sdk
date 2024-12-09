@@ -258,6 +258,7 @@ if (is_fuchsia) {
     "tests/ffi/function_structs_by_value_generated_args_native_leaf_test.dart",
     "tests/ffi/function_structs_by_value_generated_args_native_test.dart",
     "tests/ffi/function_structs_by_value_generated_args_test.dart",
+    "tests/ffi/function_structs_by_value_generated_compounds_sizeof_test.dart",
     "tests/ffi/function_structs_by_value_generated_ret_arg_leaf_test.dart",
     "tests/ffi/function_structs_by_value_generated_ret_arg_native_leaf_test.dart",
     "tests/ffi/function_structs_by_value_generated_ret_arg_native_test.dart",

@@ -1991,28 +1991,54 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     }
 
-    // Check dimensions are positive.
-    List<AstNode>? getArgumentNodes() {
-      var arguments = annotation.arguments?.arguments;
-      if (arguments != null && arguments.length == 1) {
-        var firstArgument = arguments[0];
-        if (firstArgument is ListLiteral) {
-          return firstArgument.elements;
-        }
-      }
-      return arguments;
+    // Check dimensions are valid.
+    (List<AstNode>? dimensionsNodes, AstNode? variableDimensionNode)
+        getArgumentNodes() {
+      return switch (annotation.arguments) {
+        // `@Array.variableMulti([..], variableDimension: ..)`
+        ArgumentList(
+          arguments: [ListLiteral dimensions, NamedExpression variableDimension]
+        ) =>
+          (dimensions.elements, variableDimension.expression),
+        // `@Array.variableMulti([..])`
+        ArgumentList(arguments: [ListLiteral dimensions]) => (
+            dimensions.elements,
+            null
+          ),
+        // `@Array(..)`, `@Array.variable(..)`,
+        // `@Array.variableWithVariableDimension(..)`
+        ArgumentList(arguments: NodeList<AstNode> dimensions) => (
+            dimensions,
+            null
+          ),
+        _ => (null, null)
+      };
     }
 
+    var (dimensionsNodes, variableDimensionNode) = getArgumentNodes();
+    AstNode errorNode = variableDimensionNode ?? annotation;
+
     for (int i = 0; i < dimensions.length; i++) {
-      if (i == 0 && variableLength) {
-        continue; // First dimension is variable.
-      }
-      if (dimensions[i] <= 0) {
-        AstNode errorNode = annotation;
-        var argumentNodes = getArgumentNodes();
-        if (argumentNodes != null && argumentNodes.isNotEmpty) {
-          errorNode = argumentNodes[i];
+      if (dimensionsNodes case var dimensionsNodes?) {
+        if (dimensionsNodes.length > i && variableDimensionNode == null) {
+          var node = dimensionsNodes[i];
+          errorNode = node is NamedExpression ? node.expression : node;
         }
+      }
+
+      // First dimension is variable.
+      if (i == 0 && variableLength) {
+        // Variable dimension can't be negative.
+        if (dimensions[0] < 0) {
+          _errorReporter.atNode(
+            errorNode,
+            FfiCode.NEGATIVE_VARIABLE_DIMENSION,
+          );
+        }
+        continue;
+      }
+
+      if (dimensions[i] <= 0) {
         _errorReporter.atNode(
           errorNode,
           FfiCode.NON_POSITIVE_ARRAY_DIMENSION,
@@ -2093,8 +2119,8 @@ extension on ElementAnnotation {
     assert(isArray);
     var value = computeConstantValue();
 
-    var variableLength =
-        value?.getField('variableLength')?.toBoolValue() ?? false;
+    var variableDimension = value?.getField('variableDimension')?.toIntValue();
+    var variableLength = variableDimension != null;
 
     // Element of `@Array.multi([1, 2, 3])`.
     var listField = value?.getField('dimensions');
@@ -2105,7 +2131,10 @@ extension on ElementAnnotation {
           .whereType<int>()
           .toList();
       if (listValues != null) {
-        return ([if (variableLength) 0, ...listValues], variableLength);
+        return (
+          [if (variableLength) variableDimension, ...listValues],
+          variableLength
+        );
       }
     }
 

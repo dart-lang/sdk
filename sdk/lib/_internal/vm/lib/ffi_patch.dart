@@ -332,8 +332,15 @@ final class _NativeCallableListener<T extends Function>
 @patch
 @pragma("vm:entry-point")
 final class Array<T extends NativeType> extends _Compound {
+  /// The size of the current dimension.
+  ///
+  /// This is variable if [_variableLength] is true.
   @pragma("vm:entry-point")
   final int _size;
+
+  /// Whether the current dimension is variable.
+  @pragma("vm:entry-point")
+  final bool _variableLength;
 
   @pragma("vm:entry-point")
   final List<int> _nestedDimensions;
@@ -347,6 +354,7 @@ final class Array<T extends NativeType> extends _Compound {
     super._typedDataBase,
     super._offsetInBytes,
     this._size,
+    this._variableLength,
     this._nestedDimensions,
   ) : super._fromTypedDataBase();
 
@@ -362,13 +370,9 @@ final class Array<T extends NativeType> extends _Compound {
   List<int> get _nestedDimensionsRest =>
       _nestedDimensionsRestCache ??= _nestedDimensions.sublist(1);
 
-  static const _variableLengthLength = 0;
-
   @pragma('vm:prefer-inline')
   void _checkIndex(int index) {
-    if (_size == _variableLengthLength) {
-      return;
-    }
+    if (_variableLength) return;
     if (index < 0 || index >= _size) {
       throw RangeError.range(index, 0, _size - 1);
     }
@@ -1519,6 +1523,9 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
   }
 
   int get _size => throw UnsupportedError('_ArraySize._size');
+
+  bool get _variableLength =>
+      throw UnsupportedError('_ArraySize._variableLength');
 
   Object get _typedDataBase =>
       throw UnsupportedError('_ArraySize._typedDataBase');

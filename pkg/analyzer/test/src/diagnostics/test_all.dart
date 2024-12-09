@@ -308,6 +308,7 @@ import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
 import 'extra_size_annotation_carray_test.dart' as extra_size_annotation_carray;
 import 'extraneous_modifier_test.dart' as extraneous_modifier;
 import 'ffi_address_of_cast_test.dart' as ffi_addresss_of_cast_test;
+import 'ffi_array_test.dart' as ffi_array_test;
 import 'ffi_async_callback_test.dart' as ffi_async_callback_test;
 import 'ffi_leaf_call_must_not_use_handle_test.dart'
     as ffi_leaf_call_must_not_use_handle;
@@ -1128,6 +1129,7 @@ main() {
     extra_size_annotation_carray.main();
     extraneous_modifier.main();
     ffi_addresss_of_cast_test.main();
+    ffi_array_test.main();
     ffi_async_callback_test.main();
     ffi_leaf_call_must_not_use_handle.main();
     ffi_native_test.main();

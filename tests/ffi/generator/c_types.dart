@@ -245,8 +245,7 @@ class Member {
 
   String get cStructField {
     String postFix = "";
-    if (type is FixedLengthArrayType) {
-      final dimensions = (type as FixedLengthArrayType).dimensions;
+    if (type case FixedLengthArrayType(:final dimensions)) {
       postFix =
           "[${dimensions.map((d) => d == 0 ? '' : d.toString()).join("][")}]";
     }
@@ -488,24 +487,35 @@ class FixedLengthArrayType extends CType {
 }
 
 class VariableLengthArrayType extends FixedLengthArrayType {
-  VariableLengthArrayType(CType elementType) : super(elementType, 0);
+  VariableLengthArrayType(CType elementType, {this.variableDimension = 0})
+    : super(elementType, variableDimension);
 
   factory VariableLengthArrayType.multi(
     CType elementType,
-    List<int> fixedDimensions,
-  ) {
+    List<int> fixedDimensions, {
+    int variableDimension = 0,
+  }) {
     final nestedArray = FixedLengthArrayType.multi(
       elementType,
       fixedDimensions,
     );
-    return VariableLengthArrayType(nestedArray);
+    return VariableLengthArrayType(
+      nestedArray,
+      variableDimension: variableDimension,
+    );
   }
+
+  final int variableDimension;
 
   String get dartStructFieldAnnotation {
     if (dimensions.length > 5) {
-      return "@Array.variableMulti([${dimensions.skip(1).join(", ")}])";
+      return variableDimension > 0
+          ? "@Array.variableMulti(variableDimension: $variableDimension, [${dimensions.skip(1).join(", ")}])"
+          : "@Array.variableMulti([${dimensions.skip(1).join(", ")}])";
     }
-    return "@Array.variable(${dimensions.skip(1).join(", ")})";
+    return variableDimension > 0
+        ? "@Array.variableWithVariableDimension($variableDimension, ${dimensions.skip(1).join(", ")})"
+        : "@Array.variable(${dimensions.skip(1).join(", ")})";
   }
 }
 
@@ -614,6 +624,8 @@ class FunctionType extends CType {
       }
     } else if (returnValue is UnionType && arguments.length == 1) {
       return "Return${returnValue.dartCType}";
+    } else if (returnValue == uint64 && arguments.isEmpty) {
+      result = "SizeOf${reason}";
     } else {
       result = "Uncategorized";
     }

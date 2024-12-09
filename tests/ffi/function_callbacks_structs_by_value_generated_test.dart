@@ -581,6 +581,14 @@ final testCases = [
     noChecks,
   ),
   CallbackTest.withCheck(
+    "PassPointerStructInlineArrayVariable2",
+    Pointer.fromFunction<PassPointerStructInlineArrayVariable2Type>(
+      passPointerStructInlineArrayVariable2,
+      0,
+    ),
+    noChecks,
+  ),
+  CallbackTest.withCheck(
     "ReturnStruct1ByteInt",
     Pointer.fromFunction<ReturnStruct1ByteIntType>(returnStruct1ByteInt),
     returnStruct1ByteIntAfterCallback,
@@ -8623,6 +8631,59 @@ int passPointerStructInlineArrayVariableAlign(
   passPointerStructInlineArrayVariableAlign_a0 = a0;
 
   final result = passPointerStructInlineArrayVariableAlignCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+typedef PassPointerStructInlineArrayVariable2Type =
+    Int64 Function(Pointer<StructInlineArrayVariable2>);
+
+// Global variables to be able to test inputs after callback returned.
+Pointer<StructInlineArrayVariable2> passPointerStructInlineArrayVariable2_a0 =
+    nullptr;
+
+// Result variable also global, so we can delete it after the callback.
+int passPointerStructInlineArrayVariable2Result = 0;
+
+int passPointerStructInlineArrayVariable2CalculateResult() {
+  int result = 0;
+
+  result += passPointerStructInlineArrayVariable2_a0.ref.a0;
+  result += passPointerStructInlineArrayVariable2_a0.ref.a1[0];
+  result += passPointerStructInlineArrayVariable2_a0.ref.a1[1];
+  result += passPointerStructInlineArrayVariable2_a0.ref.a1[2];
+  result += passPointerStructInlineArrayVariable2_a0.ref.a1[3];
+  result += passPointerStructInlineArrayVariable2_a0.ref.a1[4];
+  result += passPointerStructInlineArrayVariable2_a0.ref.a1[5];
+  result += passPointerStructInlineArrayVariable2_a0.ref.a1[6];
+  result += passPointerStructInlineArrayVariable2_a0.ref.a1[7];
+  result += passPointerStructInlineArrayVariable2_a0.ref.a1[8];
+  result += passPointerStructInlineArrayVariable2_a0.ref.a1[9];
+
+  passPointerStructInlineArrayVariable2Result = result;
+
+  return result;
+}
+
+/// Variable length array with variable dimension of 1.
+int passPointerStructInlineArrayVariable2(
+  Pointer<StructInlineArrayVariable2> a0,
+) {
+  print("passPointerStructInlineArrayVariable2(${a0})");
+
+  // Possibly throw.
+  if (a0.ref.a0 == 42 || a0.ref.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+      "PassPointerStructInlineArrayVariable2 throwing on purpose!",
+    );
+  }
+
+  passPointerStructInlineArrayVariable2_a0 = a0;
+
+  final result = passPointerStructInlineArrayVariable2CalculateResult();
 
   print("result = $result");
 

@@ -598,6 +598,996 @@ struct StructInlineArrayVariableAlign {
   uint32_t a1[];
 };
 
+struct StructInlineArrayVariable2 {
+  uint32_t a0;
+  uint8_t a1[1];
+};
+
+struct StructInlineArrayVariableNested2 {
+  uint32_t a0;
+  uint8_t a1[1][2][2];
+};
+
+struct StructInlineArrayVariableNestedDeep2 {
+  uint32_t a0;
+  uint8_t a1[1][2][2][2][2][2][2];
+};
+
+// Used for testing the size of Struct1ByteBool.
+DART_EXPORT uint64_t SizeOfStruct1ByteBool() {
+  std::cout << "SizeOfStruct1ByteBool"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct1ByteBool);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct1ByteInt.
+DART_EXPORT uint64_t SizeOfStruct1ByteInt() {
+  std::cout << "SizeOfStruct1ByteInt"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct1ByteInt);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct3BytesHomogeneousUint8.
+DART_EXPORT uint64_t SizeOfStruct3BytesHomogeneousUint8() {
+  std::cout << "SizeOfStruct3BytesHomogeneousUint8"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct3BytesHomogeneousUint8);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct3BytesInt2ByteAligned.
+DART_EXPORT uint64_t SizeOfStruct3BytesInt2ByteAligned() {
+  std::cout << "SizeOfStruct3BytesInt2ByteAligned"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct3BytesInt2ByteAligned);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct4BytesHomogeneousInt16.
+DART_EXPORT uint64_t SizeOfStruct4BytesHomogeneousInt16() {
+  std::cout << "SizeOfStruct4BytesHomogeneousInt16"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct4BytesHomogeneousInt16);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct4BytesFloat.
+DART_EXPORT uint64_t SizeOfStruct4BytesFloat() {
+  std::cout << "SizeOfStruct4BytesFloat"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct4BytesFloat);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct7BytesHomogeneousUint8.
+DART_EXPORT uint64_t SizeOfStruct7BytesHomogeneousUint8() {
+  std::cout << "SizeOfStruct7BytesHomogeneousUint8"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct7BytesHomogeneousUint8);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct7BytesInt4ByteAligned.
+DART_EXPORT uint64_t SizeOfStruct7BytesInt4ByteAligned() {
+  std::cout << "SizeOfStruct7BytesInt4ByteAligned"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct7BytesInt4ByteAligned);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct8BytesInt.
+DART_EXPORT uint64_t SizeOfStruct8BytesInt() {
+  std::cout << "SizeOfStruct8BytesInt"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct8BytesInt);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct8BytesHomogeneousFloat.
+DART_EXPORT uint64_t SizeOfStruct8BytesHomogeneousFloat() {
+  std::cout << "SizeOfStruct8BytesHomogeneousFloat"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct8BytesHomogeneousFloat);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct8BytesFloat.
+DART_EXPORT uint64_t SizeOfStruct8BytesFloat() {
+  std::cout << "SizeOfStruct8BytesFloat"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct8BytesFloat);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct8BytesMixed.
+DART_EXPORT uint64_t SizeOfStruct8BytesMixed() {
+  std::cout << "SizeOfStruct8BytesMixed"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct8BytesMixed);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct9BytesHomogeneousUint8.
+DART_EXPORT uint64_t SizeOfStruct9BytesHomogeneousUint8() {
+  std::cout << "SizeOfStruct9BytesHomogeneousUint8"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct9BytesHomogeneousUint8);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct9BytesInt4Or8ByteAligned.
+DART_EXPORT uint64_t SizeOfStruct9BytesInt4Or8ByteAligned() {
+  std::cout << "SizeOfStruct9BytesInt4Or8ByteAligned"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct9BytesInt4Or8ByteAligned);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct10BytesHomogeneousBool.
+DART_EXPORT uint64_t SizeOfStruct10BytesHomogeneousBool() {
+  std::cout << "SizeOfStruct10BytesHomogeneousBool"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct10BytesHomogeneousBool);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct12BytesHomogeneousFloat.
+DART_EXPORT uint64_t SizeOfStruct12BytesHomogeneousFloat() {
+  std::cout << "SizeOfStruct12BytesHomogeneousFloat"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct12BytesHomogeneousFloat);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct12BytesHomogeneousInt32.
+DART_EXPORT uint64_t SizeOfStruct12BytesHomogeneousInt32() {
+  std::cout << "SizeOfStruct12BytesHomogeneousInt32"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct12BytesHomogeneousInt32);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct16BytesHomogeneousFloat.
+DART_EXPORT uint64_t SizeOfStruct16BytesHomogeneousFloat() {
+  std::cout << "SizeOfStruct16BytesHomogeneousFloat"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct16BytesHomogeneousFloat);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct16BytesMixed.
+DART_EXPORT uint64_t SizeOfStruct16BytesMixed() {
+  std::cout << "SizeOfStruct16BytesMixed"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct16BytesMixed);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct16BytesMixed2.
+DART_EXPORT uint64_t SizeOfStruct16BytesMixed2() {
+  std::cout << "SizeOfStruct16BytesMixed2"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct16BytesMixed2);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct17BytesInt.
+DART_EXPORT uint64_t SizeOfStruct17BytesInt() {
+  std::cout << "SizeOfStruct17BytesInt"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct17BytesInt);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct19BytesHomogeneousUint8.
+DART_EXPORT uint64_t SizeOfStruct19BytesHomogeneousUint8() {
+  std::cout << "SizeOfStruct19BytesHomogeneousUint8"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct19BytesHomogeneousUint8);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct20BytesHomogeneousInt32.
+DART_EXPORT uint64_t SizeOfStruct20BytesHomogeneousInt32() {
+  std::cout << "SizeOfStruct20BytesHomogeneousInt32"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct20BytesHomogeneousInt32);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct20BytesHomogeneousFloat.
+DART_EXPORT uint64_t SizeOfStruct20BytesHomogeneousFloat() {
+  std::cout << "SizeOfStruct20BytesHomogeneousFloat"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct20BytesHomogeneousFloat);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct32BytesHomogeneousDouble.
+DART_EXPORT uint64_t SizeOfStruct32BytesHomogeneousDouble() {
+  std::cout << "SizeOfStruct32BytesHomogeneousDouble"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct32BytesHomogeneousDouble);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct40BytesHomogeneousDouble.
+DART_EXPORT uint64_t SizeOfStruct40BytesHomogeneousDouble() {
+  std::cout << "SizeOfStruct40BytesHomogeneousDouble"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct40BytesHomogeneousDouble);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct1024BytesHomogeneousUint64.
+DART_EXPORT uint64_t SizeOfStruct1024BytesHomogeneousUint64() {
+  std::cout << "SizeOfStruct1024BytesHomogeneousUint64"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct1024BytesHomogeneousUint64);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructAlignmentInt16.
+DART_EXPORT uint64_t SizeOfStructAlignmentInt16() {
+  std::cout << "SizeOfStructAlignmentInt16"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructAlignmentInt16);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructAlignmentInt32.
+DART_EXPORT uint64_t SizeOfStructAlignmentInt32() {
+  std::cout << "SizeOfStructAlignmentInt32"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructAlignmentInt32);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructAlignmentInt64.
+DART_EXPORT uint64_t SizeOfStructAlignmentInt64() {
+  std::cout << "SizeOfStructAlignmentInt64"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructAlignmentInt64);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct8BytesNestedInt.
+DART_EXPORT uint64_t SizeOfStruct8BytesNestedInt() {
+  std::cout << "SizeOfStruct8BytesNestedInt"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct8BytesNestedInt);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct8BytesNestedFloat.
+DART_EXPORT uint64_t SizeOfStruct8BytesNestedFloat() {
+  std::cout << "SizeOfStruct8BytesNestedFloat"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct8BytesNestedFloat);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct8BytesNestedFloat2.
+DART_EXPORT uint64_t SizeOfStruct8BytesNestedFloat2() {
+  std::cout << "SizeOfStruct8BytesNestedFloat2"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct8BytesNestedFloat2);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct8BytesNestedMixed.
+DART_EXPORT uint64_t SizeOfStruct8BytesNestedMixed() {
+  std::cout << "SizeOfStruct8BytesNestedMixed"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct8BytesNestedMixed);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct16BytesNestedInt.
+DART_EXPORT uint64_t SizeOfStruct16BytesNestedInt() {
+  std::cout << "SizeOfStruct16BytesNestedInt"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct16BytesNestedInt);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct32BytesNestedInt.
+DART_EXPORT uint64_t SizeOfStruct32BytesNestedInt() {
+  std::cout << "SizeOfStruct32BytesNestedInt"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct32BytesNestedInt);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructNestedIntStructAlignmentInt16.
+DART_EXPORT uint64_t SizeOfStructNestedIntStructAlignmentInt16() {
+  std::cout << "SizeOfStructNestedIntStructAlignmentInt16"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructNestedIntStructAlignmentInt16);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructNestedIntStructAlignmentInt32.
+DART_EXPORT uint64_t SizeOfStructNestedIntStructAlignmentInt32() {
+  std::cout << "SizeOfStructNestedIntStructAlignmentInt32"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructNestedIntStructAlignmentInt32);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructNestedIntStructAlignmentInt64.
+DART_EXPORT uint64_t SizeOfStructNestedIntStructAlignmentInt64() {
+  std::cout << "SizeOfStructNestedIntStructAlignmentInt64"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructNestedIntStructAlignmentInt64);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructNestedIrregularBig.
+DART_EXPORT uint64_t SizeOfStructNestedIrregularBig() {
+  std::cout << "SizeOfStructNestedIrregularBig"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructNestedIrregularBig);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructNestedIrregularBigger.
+DART_EXPORT uint64_t SizeOfStructNestedIrregularBigger() {
+  std::cout << "SizeOfStructNestedIrregularBigger"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructNestedIrregularBigger);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructNestedIrregularEvenBigger.
+DART_EXPORT uint64_t SizeOfStructNestedIrregularEvenBigger() {
+  std::cout << "SizeOfStructNestedIrregularEvenBigger"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructNestedIrregularEvenBigger);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct8BytesInlineArrayInt.
+DART_EXPORT uint64_t SizeOfStruct8BytesInlineArrayInt() {
+  std::cout << "SizeOfStruct8BytesInlineArrayInt"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct8BytesInlineArrayInt);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct10BytesInlineArrayBool.
+DART_EXPORT uint64_t SizeOfStruct10BytesInlineArrayBool() {
+  std::cout << "SizeOfStruct10BytesInlineArrayBool"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct10BytesInlineArrayBool);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructInlineArrayIrregular.
+DART_EXPORT uint64_t SizeOfStructInlineArrayIrregular() {
+  std::cout << "SizeOfStructInlineArrayIrregular"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructInlineArrayIrregular);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructInlineArray100Bytes.
+DART_EXPORT uint64_t SizeOfStructInlineArray100Bytes() {
+  std::cout << "SizeOfStructInlineArray100Bytes"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructInlineArray100Bytes);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructInlineArrayBig.
+DART_EXPORT uint64_t SizeOfStructInlineArrayBig() {
+  std::cout << "SizeOfStructInlineArrayBig"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructInlineArrayBig);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructStruct16BytesHomogeneousFloat2.
+DART_EXPORT uint64_t SizeOfStructStruct16BytesHomogeneousFloat2() {
+  std::cout << "SizeOfStructStruct16BytesHomogeneousFloat2"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructStruct16BytesHomogeneousFloat2);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructStruct32BytesHomogeneousDouble2.
+DART_EXPORT uint64_t SizeOfStructStruct32BytesHomogeneousDouble2() {
+  std::cout << "SizeOfStructStruct32BytesHomogeneousDouble2"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructStruct32BytesHomogeneousDouble2);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructStruct16BytesMixed3.
+DART_EXPORT uint64_t SizeOfStructStruct16BytesMixed3() {
+  std::cout << "SizeOfStructStruct16BytesMixed3"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructStruct16BytesMixed3);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct8BytesInlineArrayMultiDimensionalInt.
+DART_EXPORT uint64_t SizeOfStruct8BytesInlineArrayMultiDimensionalInt() {
+  std::cout << "SizeOfStruct8BytesInlineArrayMultiDimensionalInt"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct8BytesInlineArrayMultiDimensionalInt);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct32BytesInlineArrayMultiDimensionalInt.
+DART_EXPORT uint64_t SizeOfStruct32BytesInlineArrayMultiDimensionalInt() {
+  std::cout << "SizeOfStruct32BytesInlineArrayMultiDimensionalInt"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct32BytesInlineArrayMultiDimensionalInt);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct64BytesInlineArrayMultiDimensionalInt.
+DART_EXPORT uint64_t SizeOfStruct64BytesInlineArrayMultiDimensionalInt() {
+  std::cout << "SizeOfStruct64BytesInlineArrayMultiDimensionalInt"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct64BytesInlineArrayMultiDimensionalInt);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct4BytesInlineArrayMultiDimensionalInt.
+DART_EXPORT uint64_t SizeOfStruct4BytesInlineArrayMultiDimensionalInt() {
+  std::cout << "SizeOfStruct4BytesInlineArrayMultiDimensionalInt"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct4BytesInlineArrayMultiDimensionalInt);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct3BytesPackedInt.
+DART_EXPORT uint64_t SizeOfStruct3BytesPackedInt() {
+  std::cout << "SizeOfStruct3BytesPackedInt"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct3BytesPackedInt);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct3BytesPackedIntMembersAligned.
+DART_EXPORT uint64_t SizeOfStruct3BytesPackedIntMembersAligned() {
+  std::cout << "SizeOfStruct3BytesPackedIntMembersAligned"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct3BytesPackedIntMembersAligned);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct5BytesPackedMixed.
+DART_EXPORT uint64_t SizeOfStruct5BytesPackedMixed() {
+  std::cout << "SizeOfStruct5BytesPackedMixed"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct5BytesPackedMixed);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructNestedAlignmentStruct5BytesPackedMixed.
+DART_EXPORT uint64_t SizeOfStructNestedAlignmentStruct5BytesPackedMixed() {
+  std::cout << "SizeOfStructNestedAlignmentStruct5BytesPackedMixed"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructNestedAlignmentStruct5BytesPackedMixed);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct6BytesInlineArrayInt.
+DART_EXPORT uint64_t SizeOfStruct6BytesInlineArrayInt() {
+  std::cout << "SizeOfStruct6BytesInlineArrayInt"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct6BytesInlineArrayInt);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct8BytesPackedInt.
+DART_EXPORT uint64_t SizeOfStruct8BytesPackedInt() {
+  std::cout << "SizeOfStruct8BytesPackedInt"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct8BytesPackedInt);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct9BytesPackedMixed.
+DART_EXPORT uint64_t SizeOfStruct9BytesPackedMixed() {
+  std::cout << "SizeOfStruct9BytesPackedMixed"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct9BytesPackedMixed);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct15BytesInlineArrayMixed.
+DART_EXPORT uint64_t SizeOfStruct15BytesInlineArrayMixed() {
+  std::cout << "SizeOfStruct15BytesInlineArrayMixed"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Struct15BytesInlineArrayMixed);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Union4BytesMixed.
+DART_EXPORT uint64_t SizeOfUnion4BytesMixed() {
+  std::cout << "SizeOfUnion4BytesMixed"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Union4BytesMixed);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Union8BytesNestedFloat.
+DART_EXPORT uint64_t SizeOfUnion8BytesNestedFloat() {
+  std::cout << "SizeOfUnion8BytesNestedFloat"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Union8BytesNestedFloat);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Union9BytesNestedInt.
+DART_EXPORT uint64_t SizeOfUnion9BytesNestedInt() {
+  std::cout << "SizeOfUnion9BytesNestedInt"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Union9BytesNestedInt);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Union16BytesNestedInlineArrayFloat.
+DART_EXPORT uint64_t SizeOfUnion16BytesNestedInlineArrayFloat() {
+  std::cout << "SizeOfUnion16BytesNestedInlineArrayFloat"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Union16BytesNestedInlineArrayFloat);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Union16BytesNestedFloat.
+DART_EXPORT uint64_t SizeOfUnion16BytesNestedFloat() {
+  std::cout << "SizeOfUnion16BytesNestedFloat"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(Union16BytesNestedFloat);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructInlineArrayInt.
+DART_EXPORT uint64_t SizeOfStructInlineArrayInt() {
+  std::cout << "SizeOfStructInlineArrayInt"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructInlineArrayInt);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructInlineArrayVariable.
+DART_EXPORT uint64_t SizeOfStructInlineArrayVariable() {
+  std::cout << "SizeOfStructInlineArrayVariable"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructInlineArrayVariable);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructInlineArrayVariableNested.
+DART_EXPORT uint64_t SizeOfStructInlineArrayVariableNested() {
+  std::cout << "SizeOfStructInlineArrayVariableNested"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructInlineArrayVariableNested);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructInlineArrayVariableNestedDeep.
+DART_EXPORT uint64_t SizeOfStructInlineArrayVariableNestedDeep() {
+  std::cout << "SizeOfStructInlineArrayVariableNestedDeep"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructInlineArrayVariableNestedDeep);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructInlineArrayVariableAlign.
+DART_EXPORT uint64_t SizeOfStructInlineArrayVariableAlign() {
+  std::cout << "SizeOfStructInlineArrayVariableAlign"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructInlineArrayVariableAlign);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructInlineArrayVariable2.
+DART_EXPORT uint64_t SizeOfStructInlineArrayVariable2() {
+  std::cout << "SizeOfStructInlineArrayVariable2"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructInlineArrayVariable2);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructInlineArrayVariableNested2.
+DART_EXPORT uint64_t SizeOfStructInlineArrayVariableNested2() {
+  std::cout << "SizeOfStructInlineArrayVariableNested2"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructInlineArrayVariableNested2);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of StructInlineArrayVariableNestedDeep2.
+DART_EXPORT uint64_t SizeOfStructInlineArrayVariableNestedDeep2() {
+  std::cout << "SizeOfStructInlineArrayVariableNestedDeep2"
+            << "()"
+            << "\n";
+
+  uint64_t result = sizeof(StructInlineArrayVariableNestedDeep2);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
 // Used for testing structs and unions by value.
 // Smallest struct with data.
 // 10 struct arguments will exhaust available registers.
@@ -4882,6 +5872,42 @@ PassPointerStructInlineArrayVariableAlign(StructInlineArrayVariableAlign* a0) {
             << a0->a1[1] << ", " << a0->a1[2] << ", " << a0->a1[3] << ", "
             << a0->a1[4] << ", " << a0->a1[5] << ", " << a0->a1[6] << ", "
             << a0->a1[7] << ", " << a0->a1[8] << ", " << a0->a1[9] << "]))"
+            << "\n";
+
+  int64_t result = 0;
+
+  result += a0->a0;
+  result += a0->a1[0];
+  result += a0->a1[1];
+  result += a0->a1[2];
+  result += a0->a1[3];
+  result += a0->a1[4];
+  result += a0->a1[5];
+  result += a0->a1[6];
+  result += a0->a1[7];
+  result += a0->a1[8];
+  result += a0->a1[9];
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Variable length array with variable dimension of 1.
+DART_EXPORT int64_t
+PassPointerStructInlineArrayVariable2(StructInlineArrayVariable2* a0) {
+  std::cout << "PassPointerStructInlineArrayVariable2"
+            << "((" << a0->a0 << ", [" << static_cast<int>(a0->a1[0]) << ", "
+            << static_cast<int>(a0->a1[1]) << ", "
+            << static_cast<int>(a0->a1[2]) << ", "
+            << static_cast<int>(a0->a1[3]) << ", "
+            << static_cast<int>(a0->a1[4]) << ", "
+            << static_cast<int>(a0->a1[5]) << ", "
+            << static_cast<int>(a0->a1[6]) << ", "
+            << static_cast<int>(a0->a1[7]) << ", "
+            << static_cast<int>(a0->a1[8]) << ", "
+            << static_cast<int>(a0->a1[9]) << "]))"
             << "\n";
 
   int64_t result = 0;
@@ -12552,6 +13578,64 @@ DART_EXPORT intptr_t TestPassPointerStructInlineArrayVariableAlign(
             << a0->a1[1] << ", " << a0->a1[2] << ", " << a0->a1[3] << ", "
             << a0->a1[4] << ", " << a0->a1[5] << ", " << a0->a1[6] << ", "
             << a0->a1[7] << ", " << a0->a1[8] << ", " << a0->a1[9] << "]))"
+            << ")\n";
+
+  int64_t result = f(a0);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(66, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0->a0 = 42;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0->a0 = 84;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result);
+
+  free(a0);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Variable length array with variable dimension of 1.
+DART_EXPORT intptr_t TestPassPointerStructInlineArrayVariable2(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int64_t (*f)(StructInlineArrayVariable2* a0)) {
+  StructInlineArrayVariable2* a0 = static_cast<StructInlineArrayVariable2*>(
+      calloc(1, sizeof(StructInlineArrayVariable2) + 10 * sizeof(uint8_t)));
+
+  a0->a0 = 1;
+  a0->a1[0] = 2;
+  a0->a1[1] = 3;
+  a0->a1[2] = 4;
+  a0->a1[3] = 5;
+  a0->a1[4] = 6;
+  a0->a1[5] = 7;
+  a0->a1[6] = 8;
+  a0->a1[7] = 9;
+  a0->a1[8] = 10;
+  a0->a1[9] = 11;
+
+  std::cout << "Calling TestPassPointerStructInlineArrayVariable2("
+            << "((" << a0->a0 << ", [" << static_cast<int>(a0->a1[0]) << ", "
+            << static_cast<int>(a0->a1[1]) << ", "
+            << static_cast<int>(a0->a1[2]) << ", "
+            << static_cast<int>(a0->a1[3]) << ", "
+            << static_cast<int>(a0->a1[4]) << ", "
+            << static_cast<int>(a0->a1[5]) << ", "
+            << static_cast<int>(a0->a1[6]) << ", "
+            << static_cast<int>(a0->a1[7]) << ", "
+            << static_cast<int>(a0->a1[8]) << ", "
+            << static_cast<int>(a0->a1[9]) << "]))"
             << ")\n";
 
   int64_t result = f(a0);
@@ -21091,6 +22175,44 @@ DART_EXPORT void TestAsyncPassPointerStructInlineArrayVariableAlign(
             << a0->a1[1] << ", " << a0->a1[2] << ", " << a0->a1[3] << ", "
             << a0->a1[4] << ", " << a0->a1[5] << ", " << a0->a1[6] << ", "
             << a0->a1[7] << ", " << a0->a1[8] << ", " << a0->a1[9] << "]))"
+            << ")\n";
+
+  f(a0);
+
+  free(a0);
+}
+
+// Used for testing structs and unions by value.
+// Variable length array with variable dimension of 1.
+DART_EXPORT void TestAsyncPassPointerStructInlineArrayVariable2(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructInlineArrayVariable2* a0)) {
+  StructInlineArrayVariable2* a0 = static_cast<StructInlineArrayVariable2*>(
+      calloc(1, sizeof(StructInlineArrayVariable2) + 10 * sizeof(uint8_t)));
+
+  a0->a0 = 1;
+  a0->a1[0] = 2;
+  a0->a1[1] = 3;
+  a0->a1[2] = 4;
+  a0->a1[3] = 5;
+  a0->a1[4] = 6;
+  a0->a1[5] = 7;
+  a0->a1[6] = 8;
+  a0->a1[7] = 9;
+  a0->a1[8] = 10;
+  a0->a1[9] = 11;
+
+  std::cout << "Calling TestAsyncPassPointerStructInlineArrayVariable2("
+            << "((" << a0->a0 << ", [" << static_cast<int>(a0->a1[0]) << ", "
+            << static_cast<int>(a0->a1[1]) << ", "
+            << static_cast<int>(a0->a1[2]) << ", "
+            << static_cast<int>(a0->a1[3]) << ", "
+            << static_cast<int>(a0->a1[4]) << ", "
+            << static_cast<int>(a0->a1[5]) << ", "
+            << static_cast<int>(a0->a1[6]) << ", "
+            << static_cast<int>(a0->a1[7]) << ", "
+            << static_cast<int>(a0->a1[8]) << ", "
+            << static_cast<int>(a0->a1[9]) << "]))"
             << ")\n";
 
   f(a0);

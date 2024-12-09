@@ -9,9 +9,13 @@ import 'c_types.dart';
 import 'structs_by_value_tests_configuration.dart';
 import 'utils.dart';
 
-/// The test type determines how to convert the arguments into return values
-/// such that the caller knows what to check.
+/// Defines the type of test, detailing how arguments are handled and return
+/// values are generated for validation.
 enum TestType {
+  /// Tested by comparing the sizes of compounds using Dart's `sizeOf` and C++'s
+  /// `sizeof`.
+  compoundSizeOf,
+
   /// Tested by getting all the individual fields out of the structs and
   /// summing their values.
   structArguments,
@@ -40,6 +44,9 @@ extension on FunctionType {
       if (arguments.length == 1) {
         return TestType.structReturn;
       }
+    }
+    if (returnValue == uint64 && arguments.isEmpty) {
+      return TestType.compoundSizeOf;
     }
 
     // No structs, sum the arguments as well.
@@ -344,8 +351,11 @@ extension on CType {
           case StructType _:
             final lastMember = pointerTo.memberTypes.last;
             final String extraBytes = switch (lastMember) {
-              VariableLengthArrayType _ =>
-                '+ $_variableLengthLength * sizeOf<${lastMember.elementType.dartCType}>()',
+              VariableLengthArrayType(:final variableDimension) =>
+                variableDimension > 0
+                    ? '+ ${_variableLengthLength - variableDimension} * sizeOf<${lastMember.elementType.dartCType}>()'
+                    : '+ $_variableLengthLength * sizeOf<${lastMember.elementType.dartCType}>()',
+
               _ => '',
             };
             return '''
@@ -753,6 +763,13 @@ extension on FunctionType {
 
     String expects;
     switch (testType) {
+      case TestType.compoundSizeOf:
+        // Check against sizeOf.
+        expects = returnValue.dartExpectsStatements(
+          "sizeOf<$reason>()",
+          "result",
+        );
+        break;
       case TestType.structArguments:
         // Check against sum value.
         final expectedResult = a.sumValue(returnValue as FundamentalType);
@@ -772,6 +789,12 @@ extension on FunctionType {
 
     var namePostfix = isNative ? "Native" : "";
     namePostfix += isLeaf ? "Leaf" : "";
+    final docs =
+        testType == TestType.compoundSizeOf
+            ? '''
+/// Tests that the Dart [sizeOf] returns the same value as the C++ `sizeof` for
+/// [$reason].'''
+            : reason.makeDartDocComment();
     return """
 
 ${isNative ? '''
@@ -782,7 +805,7 @@ final $dartName$namePostfix =
   ffiTestFunctions.lookupFunction<$dartCType, $dartType>(
       "$cName"${isLeaf ? ", isLeaf:true" : ""});
 '''}
-${reason.makeDartDocComment()}
+$docs
 void $dartTestName$namePostfix() {
 ${arguments.dartAllocateStatements()}
 ${assignValues}
@@ -817,6 +840,8 @@ ${assignValues}
     }
 
     switch (testType) {
+      case TestType.compoundSizeOf:
+        throw UnsupportedError("Unsupported test type: $testType");
       case TestType.structArguments:
         // Sum all input values.
 
@@ -868,6 +893,8 @@ ${arguments.addToResultStatements(true, '${dartName}_')}
     String afterCallbackExpects = "";
     String afterCallbackFrees = "";
     switch (testType) {
+      case TestType.compoundSizeOf:
+        throw UnsupportedError("Unsupported test type: $testType");
       case TestType.structArguments:
         // Check that the input structs are still available.
         // Check against sum value.
@@ -1043,6 +1070,11 @@ Future<void> ${dartName}AfterCallback() async {
       returnStatement = 'return result % 2 != 0;';
     }
     switch (testType) {
+      case TestType.compoundSizeOf:
+        body = """
+        $returnValueType result = sizeof($reason);
+        """;
+        break;
       case TestType.structArguments:
         body = """
         $returnValueType result = 0;
@@ -1085,9 +1117,12 @@ $varArgUnpackArguments
 """;
     }
 
+    final docs =
+        testType == TestType.compoundSizeOf
+            ? "// Used for testing the size of $reason."
+            : "// Used for testing structs and unions by value.\n${reason.makeCComment()}";
     return """
-// Used for testing structs and unions by value.
-${reason.makeCComment()}
+$docs
 DART_EXPORT ${returnValue.cType} $cName($argumentString) {
 $varArgsUnpack
 
@@ -1120,6 +1155,8 @@ $varArgsUnpack
     String expects = "";
     String expectsZero = "";
     switch (testType) {
+      case TestType.compoundSizeOf:
+        throw UnsupportedError("Unsupported test type: $testType");
       case TestType.structArguments:
         // Check against sum value.
         final returnValue_ = returnValue as FundamentalType;
@@ -1250,6 +1287,38 @@ Future<void> writeDartCompounds() async {
   buffer.writeAll(compounds.map((e) => e.dartClass()));
 
   final path = compoundsPath();
+  await File(path).writeAsString(buffer.toString());
+  await runProcess(Platform.resolvedExecutable, ["format", path]);
+}
+
+String compoundsSizeOfTestPath() =>
+    Platform.script
+        .resolve(
+          "../../ffi/function_structs_by_value_generated_compounds_sizeof_test.dart",
+        )
+        .toFilePath();
+
+Future<void> writeDartCompoundsSizeOfTest(List<FunctionType> functions) async {
+  final StringBuffer buffer = StringBuffer();
+  buffer.write(headerDartCallTest(copyrightYear: 2024));
+
+  final forceDlOpen = '''
+  // Force dlopen so @Native lookups in DynamicLibrary.process() succeed.
+  dlopenGlobalPlatformSpecific('ffi_test_functions');
+''';
+
+  buffer.write("""
+void main() {
+$forceDlOpen
+  ${functions.map((e) => "${e.dartTestName}NativeLeaf();").join("\n    ")}
+}
+""");
+
+  buffer.writeAll(
+    functions.map((e) => e.dartCallCode(isLeaf: true, isNative: true)),
+  );
+
+  final path = compoundsSizeOfTestPath();
   await File(path).writeAsString(buffer.toString());
   await runProcess(Platform.resolvedExecutable, ["format", path]);
 }
@@ -1403,7 +1472,7 @@ Future<void> writeDartCallbackTest(
 
     buffer.write("""
   final testCases = [
-  ${functions.map((e) => e.dartCallbackTestConstructor(isNativeCallable: isNativeCallable)).join("\n")}
+  ${functions.map((e) => e.dartCallbackTestConstructor(isNativeCallable: isNativeCallable)).join()}
   ];
   """);
 
@@ -1482,9 +1551,13 @@ Future<void> writeDartNativeCallableListenerTest(
   if (isAsync) {
     functions = functions.where((f) => !f.arguments.containsPointers).toList();
   }
-  final constructors = functions
-      .map((e) => e.dartNativeCallableListenerTestConstructor(isAsync: isAsync))
-      .join("\n");
+  final constructors =
+      functions
+          .map(
+            (e) =>
+                e.dartNativeCallableListenerTestConstructor(isAsync: isAsync),
+          )
+          .join();
 
   buffer.write("""
 final testCases = [
@@ -1515,6 +1588,7 @@ Future<void> writeC() async {
   buffer.write(headerC(copyrightYear: 2020, generatorPath: generatorPath));
 
   buffer.writeAll(compounds.map((e) => e.cDefinition));
+  buffer.writeAll(functionsCompoundSizeOf.map((e) => e.cCallCode));
   buffer.writeAll(functions.map((e) => e.cCallCode));
   buffer.writeAll(functions.map((e) => e.cCallbackCode));
   buffer.writeAll(functions.map((e) => e.cAsyncCallbackCode));
@@ -1563,6 +1637,7 @@ void main(List<String> arguments) async {
 
   await Future.wait([
     writeDartCompounds(),
+    writeDartCompoundsSizeOfTest(functionsCompoundSizeOf),
     for (bool isLeaf in [false, true]) ...[
       for (bool isNative in [false, true]) ...[
         writeDartCallTest(
