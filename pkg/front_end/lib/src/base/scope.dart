@@ -13,8 +13,6 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/prefix_builder.dart';
-//import '../kernel/body_builder.dart' show JumpTarget;
-import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart';
 import '../kernel/load_library_builder.dart';
@@ -759,12 +757,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   @override
   AugmentSuperTarget? get augmentSuperTarget {
     throw new UnsupportedError('$runtimeType.augmentSuperTarget}');
-  }
-
-  @override
-  BodyBuilderContext createBodyBuilderContext() {
-    throw new UnsupportedError(
-        '$runtimeType.bodyBuilderContextForAnnotations}');
   }
 
   @override

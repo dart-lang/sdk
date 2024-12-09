@@ -25,6 +25,7 @@ import '../builder/function_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/kernel_helper.dart';
 import '../type_inference/type_inference_engine.dart'
@@ -456,6 +457,8 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       loader.addNativeAnnotation(annotatable, nativeMethodName!);
     }
   }
+
+  BodyBuilderContext createBodyBuilderContext();
 }
 
 /// Builds the [TypeParameter]s for [declaredTypeParameters] and the parameter

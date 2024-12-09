@@ -147,14 +147,24 @@ class GetterFragment implements Fragment, FunctionFragment {
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
       LookupScope parentScope,
-      BodyBuilderContext bodyBuilderContext,
       Annotatable annotatable,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
-    _encoding.buildOutlineExpressions(classHierarchy, libraryBuilder,
-        declarationBuilder, parentScope, bodyBuilderContext, annotatable,
+    _encoding.buildOutlineExpressions(
+        classHierarchy,
+        libraryBuilder,
+        declarationBuilder,
+        parentScope,
+        createBodyBuilderContext(),
+        annotatable,
         isClassInstanceMember: isClassInstanceMember,
         createFileUriExpression: createFileUriExpression);
+  }
+
+  BodyBuilderContext createBodyBuilderContext() {
+    return new GetterFragmentBodyBuilderContext(
+        this, builder.libraryBuilder, builder.declarationBuilder,
+        isDeclarationInstanceMember: builder.isDeclarationInstanceMember);
   }
 
   void becomeNative(SourceLoader loader) {
@@ -246,7 +256,7 @@ class _GetterBodyBuildingContext implements FunctionBodyBuildingContext {
 
   @override
   BodyBuilderContext createBodyBuilderContext() {
-    return _fragment.builder.createBodyBuilderContext();
+    return _fragment.createBodyBuilderContext();
   }
 
   @override

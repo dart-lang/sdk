@@ -15,7 +15,6 @@ import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
 import '../kernel/augmentation_lowering.dart';
-import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart';
@@ -246,13 +245,11 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl {
     if (!hasBuiltOutlineExpressions) {
       LookupScope parentScope =
           declarationBuilder?.scope ?? libraryBuilder.scope;
-      BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
       _introductory.buildOutlineExpressions(
           classHierarchy,
           libraryBuilder,
           declarationBuilder,
           parentScope,
-          bodyBuilderContext,
           readTarget as Annotatable,
           isClassInstanceMember: isClassInstanceMember,
           createFileUriExpression: isAugmented);
@@ -291,13 +288,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl {
         augmentation.checkVariance(sourceClassBuilder, typeEnvironment);
       }
     }
-  }
-
-  @override
-  BodyBuilderContext createBodyBuilderContext() {
-    return new GetterFragmentBodyBuilderContext(
-        _introductory, libraryBuilder, declarationBuilder,
-        isDeclarationInstanceMember: isDeclarationInstanceMember);
   }
 
   @override

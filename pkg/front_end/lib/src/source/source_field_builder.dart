@@ -506,7 +506,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     _fieldEncoding.build(libraryBuilder, this);
   }
 
-  @override
   BodyBuilderContext createBodyBuilderContext() {
     return new FieldBodyBuilderContext(this, _fieldEncoding.builtMember);
   }
