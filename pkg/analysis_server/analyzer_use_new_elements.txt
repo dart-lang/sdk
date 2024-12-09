@@ -14,7 +14,6 @@ lib/src/lsp/handlers/commands/abstract_refactor.dart
 lib/src/lsp/handlers/handler_completion.dart
 lib/src/lsp/handlers/handler_completion_resolve.dart
 lib/src/lsp/handlers/handler_definition.dart
-lib/src/lsp/handlers/handler_implementation.dart
 lib/src/lsp/handlers/handler_references.dart
 lib/src/lsp/handlers/handler_rename.dart
 lib/src/protocol_server.dart

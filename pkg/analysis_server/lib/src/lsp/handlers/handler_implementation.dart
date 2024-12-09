@@ -10,10 +10,9 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 typedef StaticOptions =
     Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>;
@@ -64,23 +63,23 @@ class ImplementationHandler
     OperationPerformanceImpl performance,
   ) async {
     var node = NodeLocator(offset).searchWithin(result.unit);
-    var element = server.getElementOfNode(node);
+    var element = server.getElementOfNode2(node);
     if (element == null) {
       return success([]);
     }
 
-    var helper = TypeHierarchyComputerHelper.fromElement(element.asElement2!);
+    var helper = TypeHierarchyComputerHelper.fromElement(element);
     var interfaceElement = helper.pivotClass;
     if (interfaceElement == null) {
       return success([]);
     }
     var needsMember = helper.findMemberElement(interfaceElement) != null;
 
-    var allSubtypes = <InterfaceElement>{};
+    var allSubtypes = <InterfaceElement2>{};
     await performance.runAsync(
       'appendAllSubtypes',
-      (performance) => server.searchEngine.appendAllSubtypes(
-        interfaceElement.asElement,
+      (performance) => server.searchEngine.appendAllSubtypes2(
+        interfaceElement,
         allSubtypes,
         performance,
       ),
@@ -95,8 +94,8 @@ class ImplementationHandler
                     // Filter based on type, so when searching for members we don't
                     // include any intermediate classes that don't have
                     // implementations for the method.
-                    ? helper.findMemberElement(element.asElement2)?.nonSynthetic2
-                    : element.asElement2;
+                    ? helper.findMemberElement(element)?.nonSynthetic2
+                    : element;
               })
               .nonNulls
               .toSet()
