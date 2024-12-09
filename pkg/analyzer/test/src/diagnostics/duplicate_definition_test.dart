@@ -146,6 +146,34 @@ class C {
 ''');
   }
 
+  test_instance_fieldLateFinalInitializer_setter() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  late final int foo = 1;
+  set foo(_) {}
+}
+''');
+  }
+
+  test_instance_fieldLateFinalNoInitializer_setter() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  late final int foo;
+  set foo(_) {}
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          38,
+          3,
+          contextMessages: [message(testFile, 27, 3)],
+        ),
+      ],
+    );
+  }
+
   test_instance_getter_getter() async {
     await assertErrorsInCode(r'''
 class C {
@@ -443,6 +471,27 @@ class C {
 ''');
   }
 
+  test_static_fieldLateFinalInitializer_setter() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static late final int foo = 0;
+  static set foo(int x) {}
+}
+''');
+  }
+
+  test_static_fieldLateFinalNoInitializer_setter() async {
+    await assertErrorsInCode(r'''
+class C {
+  static late final int foo;
+  static set foo(int x) {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 52, 3,
+          contextMessages: [message(testFile, 34, 3)]),
+    ]);
+  }
+
   test_static_getter_getter() async {
     await assertErrorsInCode(r'''
 class C {
@@ -623,15 +672,6 @@ augment class A {
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 77, 3,
           contextMessages: [message(testFile, 28, 3)]),
-    ]);
-  }
-
-  test_topLevel_syntheticParameters() async {
-    await assertErrorsInCode(r'''
-f(,[]) {}
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 2, 1),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 4, 1),
     ]);
   }
 }
@@ -2869,6 +2909,15 @@ f(int a, double a) {}
     ]);
   }
 
+  test_parameters_topLevelFunction_synthetic() async {
+    await assertErrorsInCode(r'''
+f(,[]) {}
+''', [
+      error(ParserErrorCode.MISSING_IDENTIFIER, 2, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 4, 1),
+    ]);
+  }
+
   test_parameters_topLevelFunction_wildcard() async {
     await assertNoErrorsInCode(r'''
 f(int _, double _) {}
@@ -2996,6 +3045,50 @@ void f() {
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 105, 1,
           contextMessages: [message(testFile, 92, 1)]),
+    ]);
+  }
+
+  test_topLevel_field_getter() async {
+    await assertErrorsInCode(r'''
+int f = 1;
+int get f => 7;
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 19, 1,
+          contextMessages: [message(testFile, 4, 1)]),
+    ]);
+  }
+
+  test_topLevel_field_setter() async {
+    await assertErrorsInCode(r'''
+int f = 1;
+set f(int value) {}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 15, 1,
+          contextMessages: [message(testFile, 4, 1)]),
+    ]);
+  }
+
+  test_topLevel_fieldFinal_setter() async {
+    await assertNoErrorsInCode(r'''
+final f = 1;
+set f(int value) {}
+''');
+  }
+
+  test_topLevel_fieldLateFinalInitializer_setter() async {
+    await assertNoErrorsInCode(r'''
+late final f = 1;
+set f(int value) {}
+''');
+  }
+
+  test_topLevel_fieldLateFinalNoInitializer_setter() async {
+    await assertErrorsInCode(r'''
+late final f;
+set f(int value) {}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 18, 1,
+          contextMessages: [message(testFile, 11, 1)]),
     ]);
   }
 
