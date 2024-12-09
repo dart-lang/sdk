@@ -171,6 +171,12 @@ void addressOf() {
   //     ^
   // [cfe] Expected type 'NativeType' to be a valid and instantiated subtype of 'NativeType'.
 
+  Native.addressOf<NativeFunction>(_valid);
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
+  //     ^
+  // [cfe] Expected type 'NativeFunction<Function>' to be a valid and instantiated subtype of 'NativeType'.
+
   Native.addressOf<NativeFunction<Void Function(Int)>>(_valid);
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
@@ -178,6 +184,12 @@ void addressOf() {
   // [cfe] Expected type 'void Function()' to be 'void Function(int)', which is the Dart type corresponding to 'NativeFunction<Void Function(Int)>'.
 
   Native.addressOf<NativeFunction<ComplexNativeFunction>>(validNative);
+
+  Native.addressOf(myStruct0);
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
+  //     ^
+  // [cfe] Expected type 'NativeType' to be a valid and instantiated subtype of 'NativeType'.
 
   Native.addressOf<MyStruct>(myStruct0);
   Native.addressOf<MyStruct>(myStruct1);
