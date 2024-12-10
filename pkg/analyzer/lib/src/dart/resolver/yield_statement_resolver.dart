@@ -100,10 +100,10 @@ class YieldStatementResolver {
           return;
         }
       } else {
-        var imposedSequenceType = imposedReturnType.asInstanceOf(
+        var imposedSequenceType = imposedReturnType.asInstanceOf2(
           bodyContext.isSynchronous
-              ? _typeProvider.iterableElement
-              : _typeProvider.streamElement,
+              ? _typeProvider.iterableElement2
+              : _typeProvider.streamElement2,
         );
         if (imposedSequenceType != null) {
           var imposedValueType = imposedSequenceType.typeArguments[0];
