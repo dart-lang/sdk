@@ -304,7 +304,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
         supportsTypeParameters: supportsTypeParameters);
     if (!(isExtensionInstanceMember || isExtensionTypeInstanceMember) &&
         isSetter &&
+        // Coverage-ignore(suite): Not run.
         (formals?.length != 1 || formals![0].isOptionalPositional)) {
+      // Coverage-ignore-block(suite): Not run.
       // Replace illegal parameters by single dummy parameter.
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
@@ -316,7 +318,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       function.requiredParameterCount = 1;
     } else if ((isExtensionInstanceMember || isExtensionTypeInstanceMember) &&
         isSetter &&
+        // Coverage-ignore(suite): Not run.
         (formals?.length != 2 || formals![1].isOptionalPositional)) {
+      // Coverage-ignore-block(suite): Not run.
       // Replace illegal parameters by single dummy parameter (after #this).
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.

@@ -162,7 +162,7 @@ class GetterFragment implements Fragment, FunctionFragment {
   }
 
   BodyBuilderContext createBodyBuilderContext() {
-    return new GetterFragmentBodyBuilderContext(
+    return new _GetterFragmentBodyBuilderContext(
         this, builder.libraryBuilder, builder.declarationBuilder,
         isDeclarationInstanceMember: builder.isDeclarationInstanceMember);
   }
@@ -190,10 +190,10 @@ class GetterFragment implements Fragment, FunctionFragment {
   void ensureTypes(
       ClassMembersBuilder membersBuilder,
       SourceClassBuilder enclosingClassBuilder,
-      Set<ClassMember>? _getterOverrideDependencies) {
-    if (_getterOverrideDependencies != null) {
+      Set<ClassMember>? getterOverrideDependencies) {
+    if (getterOverrideDependencies != null) {
       membersBuilder.inferGetterType(
-          enclosingClassBuilder, returnType, _getterOverrideDependencies,
+          enclosingClassBuilder, returnType, getterOverrideDependencies,
           name: name,
           fileUri: fileUri,
           nameOffset: nameOffset,
@@ -204,7 +204,7 @@ class GetterFragment implements Fragment, FunctionFragment {
   }
 
   void checkTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourceProcedureBuilder? setterBuilder,
+      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder,
       {required bool isAbstract, required bool isExternal}) {
     _encoding.checkTypes(libraryBuilder, typeEnvironment, setterBuilder,
         isAbstract: isAbstract, isExternal: isExternal);
@@ -296,58 +296,6 @@ sealed class _GetterEncoding implements InferredTypeListener {
       {required bool isClassInstanceMember,
       required bool createFileUriExpression});
 
-  void _buildMetadataForOutlineExpressions(
-      SourceLibraryBuilder libraryBuilder,
-      LookupScope parentScope,
-      BodyBuilderContext bodyBuilderContext,
-      Annotatable annotatable,
-      List<MetadataBuilder>? metadata,
-      {required Uri fileUri,
-      required bool createFileUriExpression}) {
-    MetadataBuilder.buildAnnotations(annotatable, metadata, bodyBuilderContext,
-        libraryBuilder, fileUri, parentScope,
-        createFileUriExpression: createFileUriExpression);
-  }
-
-  void _buildTypeParametersForOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      BodyBuilderContext bodyBuilderContext,
-      LookupScope typeParameterScope,
-      List<NominalParameterBuilder>? typeParameters) {
-    if (typeParameters != null) {
-      for (int i = 0; i < typeParameters.length; i++) {
-        typeParameters[i].buildOutlineExpressions(libraryBuilder,
-            bodyBuilderContext, classHierarchy, typeParameterScope);
-      }
-    }
-  }
-
-  void _buildFormalsForOutlineExpressions(
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      List<FormalParameterBuilder>? formals,
-      {required bool isClassInstanceMember}) {
-    if (formals != null) {
-      for (FormalParameterBuilder formal in formals) {
-        _buildFormalForOutlineExpressions(
-            libraryBuilder, declarationBuilder, formal,
-            isClassInstanceMember: isClassInstanceMember);
-      }
-    }
-  }
-
-  void _buildFormalForOutlineExpressions(SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder, FormalParameterBuilder formal,
-      {required bool isClassInstanceMember}) {
-    // For const constructors we need to include default parameter values
-    // into the outline. For all other formals we need to call
-    // buildOutlineExpressions to clear initializerToken to prevent
-    // consuming too much memory.
-    formal.buildOutlineExpressions(libraryBuilder, declarationBuilder,
-        buildDefaultValue: isClassInstanceMember);
-  }
-
   LocalScope createFormalParameterScope(LookupScope typeParameterScope);
 
   int computeDefaultTypes(ComputeDefaultTypeContext context,
@@ -363,7 +311,7 @@ sealed class _GetterEncoding implements InferredTypeListener {
   VariableDeclaration getFormalParameter(int index);
 
   void checkTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourceProcedureBuilder? setterBuilder,
+      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder,
       {required bool isAbstract, required bool isExternal});
 
   void checkVariance(
@@ -497,7 +445,7 @@ mixin _DirectGetterEncodingMixin implements _GetterEncoding {
 
   @override
   void checkTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourceProcedureBuilder? setterBuilder,
+      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder,
       {required bool isAbstract, required bool isExternal}) {
     List<TypeParameterBuilder>? typeParameters =
         _fragment.declaredTypeParameters;
@@ -510,7 +458,7 @@ mixin _DirectGetterEncodingMixin implements _GetterEncoding {
         isAbstract: isAbstract, isExternal: isExternal);
     if (setterBuilder != null) {
       DartType getterType = function.returnType;
-      DartType setterType = SourceProcedureBuilder.getSetterType(setterBuilder,
+      DartType setterType = SourcePropertyBuilder.getSetterType(setterBuilder,
           getterExtensionTypeParameters: null);
       libraryBuilder.checkGetterSetterTypes(typeEnvironment,
           getterType: getterType,
@@ -763,7 +711,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements _GetterEncoding {
 
   @override
   void checkTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourceProcedureBuilder? setterBuilder,
+      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder,
       {required bool isAbstract, required bool isExternal}) {
     List<TypeParameterBuilder>? typeParameters =
         _fragment.declaredTypeParameters;
@@ -776,7 +724,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements _GetterEncoding {
         isAbstract: isAbstract, isExternal: isExternal);
     if (setterBuilder != null) {
       DartType getterType = function.returnType;
-      DartType setterType = SourceProcedureBuilder.getSetterType(setterBuilder,
+      DartType setterType = SourcePropertyBuilder.getSetterType(setterBuilder,
           getterExtensionTypeParameters: function.typeParameters);
       libraryBuilder.checkGetterSetterTypes(typeEnvironment,
           getterType: getterType,
@@ -870,10 +818,10 @@ class _ExtensionTypeInstanceGetterEncoding extends _GetterEncoding
   bool get _isExtensionTypeMember => true;
 }
 
-class GetterFragmentBodyBuilderContext extends BodyBuilderContext {
+class _GetterFragmentBodyBuilderContext extends BodyBuilderContext {
   final GetterFragment _fragment;
 
-  GetterFragmentBodyBuilderContext(
+  _GetterFragmentBodyBuilderContext(
       this._fragment,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,

@@ -1076,7 +1076,6 @@ class SourceClassBuilder extends ClassBuilderImpl
       TypeEnvironment type, List<FormalParameterBuilder>? formals) {
     List<TypeParameter> classTypeParameters = cls.typeParameters;
     if (formals != null && classTypeParameters.isNotEmpty) {
-      // Coverage-ignore-block(suite): Not run.
       for (FormalParameterBuilder formal in formals) {
         if (!formal.isCovariantByDeclaration) {
           for (TypeParameter typeParameter in classTypeParameters) {

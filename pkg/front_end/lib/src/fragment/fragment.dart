@@ -23,6 +23,7 @@ import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
+import '../kernel/internal_ast.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/name_scheme.dart';
 import '../source/source_property_builder.dart';

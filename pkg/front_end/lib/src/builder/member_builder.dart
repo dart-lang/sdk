@@ -227,6 +227,7 @@ abstract class BuilderClassMember implements ClassMember {
   @override
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
     if (isStatic) {
+      // Coverage-ignore-block(suite): Not run.
       return new StaticMemberResult(getMember(membersBuilder), memberKind,
           isDeclaredAsField: memberBuilder.isField,
           fullName:

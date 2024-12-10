@@ -1604,10 +1604,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           List<NominalParameterBuilder>? typeParameters,
           List<FormalParameterBuilder>? formals
         ) = _createTypeParametersAndFormals(
-            declarationBuilder,
-            fragment.declaredTypeParameters,
-            fragment.declaredFormals,
-            unboundNominalParameters,
+            declarationBuilder, null, null, unboundNominalParameters,
             isInstanceMember: isInstanceMember,
             fileUri: fragment.fileUri,
             nameOffset: fragment.nameOffset);
@@ -1637,16 +1634,17 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           procedureReference =
               indexedContainer!.lookupGetterReference(nameToLookup);
         }
-        SourcePropertyBuilder propertyBuilder = new SourcePropertyBuilder(
-            fileUri: fragment.fileUri,
-            fileOffset: fragment.nameOffset,
-            name: name,
-            libraryBuilder: enclosingLibraryBuilder,
-            declarationBuilder: declarationBuilder,
-            isStatic: fragment.modifiers.isStatic,
-            fragment: fragment,
-            nameScheme: nameScheme,
-            getterReference: procedureReference);
+        SourcePropertyBuilder propertyBuilder =
+            new SourcePropertyBuilder.forGetter(
+                fileUri: fragment.fileUri,
+                fileOffset: fragment.nameOffset,
+                name: name,
+                libraryBuilder: enclosingLibraryBuilder,
+                declarationBuilder: declarationBuilder,
+                isStatic: fragment.modifiers.isStatic,
+                fragment: fragment,
+                nameScheme: nameScheme,
+                getterReference: procedureReference);
         fragment.setBuilder(propertyBuilder, typeParameters, formals);
         builders.add(new _AddBuilder(fragment.name, propertyBuilder,
             fragment.fileUri, fragment.nameOffset));
@@ -1662,8 +1660,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         var (
           List<NominalParameterBuilder>? typeParameters,
           List<FormalParameterBuilder>? formals
-        ) = _createTypeParametersAndFormals(declarationBuilder,
-            fragment.typeParameters, fragment.formals, unboundNominalParameters,
+        ) = _createTypeParametersAndFormals(
+            declarationBuilder, null, null, unboundNominalParameters,
             isInstanceMember: isInstanceMember,
             fileUri: fragment.fileUri,
             nameOffset: fragment.nameOffset);
@@ -1704,36 +1702,26 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 indexedContainer!.lookupSetterReference(nameToLookup);
           }
         }
-
-        SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
-            metadata: fragment.metadata,
-            modifiers: fragment.modifiers,
-            returnType: fragment.returnType,
-            name: name,
-            typeParameters: typeParameters,
-            formals: formals,
-            kind: kind,
-            libraryBuilder: enclosingLibraryBuilder,
-            declarationBuilder: declarationBuilder,
-            fileUri: fragment.fileUri,
-            startOffset: fragment.startOffset,
-            nameOffset: fragment.nameOffset,
-            formalsOffset: fragment.formalsOffset,
-            endOffset: fragment.endOffset,
-            procedureReference: procedureReference,
-            tearOffReference: null,
-            asyncModifier: fragment.asyncModifier,
-            nameScheme: nameScheme,
-            nativeMethodName: fragment.nativeMethodName);
-        fragment.builder = procedureBuilder;
-        builders.add(new _AddBuilder(fragment.name, procedureBuilder,
+        SourcePropertyBuilder propertyBuilder =
+            new SourcePropertyBuilder.forSetter(
+                fileUri: fragment.fileUri,
+                fileOffset: fragment.nameOffset,
+                name: name,
+                libraryBuilder: enclosingLibraryBuilder,
+                declarationBuilder: declarationBuilder,
+                isStatic: fragment.modifiers.isStatic,
+                fragment: fragment,
+                nameScheme: nameScheme,
+                setterReference: procedureReference);
+        fragment.setBuilder(propertyBuilder, typeParameters, formals);
+        builders.add(new _AddBuilder(fragment.name, propertyBuilder,
             fragment.fileUri, fragment.nameOffset));
         if (procedureReference != null) {
           loader.buildersCreatedWithReferences[procedureReference] =
-              procedureBuilder;
+              propertyBuilder;
         }
         if (conflictingSetter) {
-          procedureBuilder.isConflictingSetter = true;
+          propertyBuilder.isConflictingSetter = true;
         }
       case MethodFragment():
         String name = fragment.name;
