@@ -669,8 +669,8 @@ enum E {
 
   void _createEnumConstantRefactoring(String search) {
     var enumConstant = findNode.enumConstantDeclaration(search);
-    var element = enumConstant.constructorElement;
-    createRenameRefactoringForElement(element);
+    var element = enumConstant.constructorElement2;
+    createRenameRefactoringForElement2(element);
   }
 }
 
@@ -937,13 +937,13 @@ void f() {
 
 class _RenameConstructorTest extends RenameRefactoringTest {
   void _createConstructorDeclarationRefactoring(String search) {
-    var element = findNode.constructor(search).declaredElement;
-    createRenameRefactoringForElement(element);
+    var element = findNode.constructor(search).declaredFragment?.element;
+    createRenameRefactoringForElement2(element);
   }
 
   void _createConstructorInvocationRefactoring(String search) {
     var instanceCreation = findNode.instanceCreation(search);
-    var element = instanceCreation.constructorName.staticElement;
-    createRenameRefactoringForElement(element);
+    var element = instanceCreation.constructorName.element;
+    createRenameRefactoringForElement2(element);
   }
 }

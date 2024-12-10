@@ -535,6 +535,18 @@ abstract class RenameRefactoring implements Refactoring {
     return null;
   }
 
+  /// Returns a new [RenameRefactoring] instance for renaming the [element].
+  ///
+  /// Returns `null` if there is no support for renaming elements of the given
+  /// kind.
+  static RenameRefactoring? create2(
+    RefactoringWorkspace workspace,
+    ResolvedUnitResult resolvedUnit,
+    Element2? element,
+  ) {
+    return create(workspace, resolvedUnit, element.asElement);
+  }
+
   /// Given a node/element, finds the best element to rename (for example
   /// the class when on the `new` keyword).
   static RenameRefactoringElement? getElementToRename(

@@ -32,8 +32,5 @@ test/abstract_single_unit.dart
 test/plugin/protocol_dart_test.dart
 test/services/correction/status_test.dart
 test/services/refactoring/legacy/abstract_rename.dart
-test/services/refactoring/legacy/rename_class_member_test.dart
-test/services/refactoring/legacy/rename_constructor_test.dart
 test/services/refactoring/legacy/rename_import_test.dart
-test/services/refactoring/legacy/rename_library_test.dart
 test/services/search/element_visitors_test.dart
