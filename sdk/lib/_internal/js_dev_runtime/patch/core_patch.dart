@@ -704,7 +704,7 @@ class _Uri {
   /// that appear in [canonicalTable], and returns the escaped string.
   @patch
   static String _uriEncode(
-    List<int> canonicalTable,
+    int canonicalMask,
     String text,
     Encoding encoding,
     bool spaceToPlus,
@@ -719,8 +719,7 @@ class _Uri {
     var bytes = encoding.encode(text);
     for (int i = 0; i < bytes.length; i++) {
       int byte = bytes[i];
-      if (byte < 128 &&
-          ((canonicalTable[byte >> 4] & (1 << (byte & 0x0f))) != 0)) {
+      if (byte < 128 && ((_charTables.codeUnitAt(byte) & canonicalMask) != 0)) {
         result.writeCharCode(byte);
       } else if (spaceToPlus && byte == _SPACE) {
         result.write('+');

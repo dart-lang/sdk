@@ -15,6 +15,7 @@
 // The file should be the `sdk/lib/core/uri.dart` file, which contains markers
 // showing where to insert the generated code.
 
+import "dart:convert" show LineSplitter;
 import "dart:io";
 import "dart:typed_data";
 
@@ -84,6 +85,66 @@ const int _charXor = 0x60;
 const int _xorCharLimit = 0x5f;
 
 void main(List<String> args) {
+  var parserTableText = _createParserTableText();
+  var charsetTableText = _createCharacterSetText();
+  if (args.isEmpty || !args.first.startsWith("-u")) {
+    print(parserTableText);
+    print(charsetTableText);
+    return;
+  }
+  var arg = args.first;
+  var filePath = "sdk/lib/core/uri.dart";
+  // Default file location, if run from root of SDK.
+  if (arg.length > 2) {
+    filePath = arg.substring(2);
+  } else if (args.length > 1) {
+    filePath = args[1];
+  }
+  var file = File(filePath);
+  if (!file.existsSync()) {
+    stderr.writeln("Cannot find file: $filePath");
+    exit(1);
+  }
+  var contents = file.readAsStringSync();
+
+  // Replace marked range for parser tables.
+  var pattern = RegExp(
+    r"^// --- URI PARSER TABLE --- (start|end) --- [^]*?^",
+    multiLine: true,
+  );
+  var matches = pattern.allMatches(contents).toList();
+  if (matches.length != 2) {
+    stderr.writeln("Cannot find marked section in file $filePath");
+    exit(1);
+  }
+  var start = matches.first.end;
+  var end = matches.last.start;
+  var newContents = contents.replaceRange(start, end, parserTableText);
+
+  // Replace marked range for character sets.
+  pattern = RegExp(
+    r"^// --- URI CHARSET TABLE --- (start|end) --- [^]*?^",
+    multiLine: true,
+  );
+  matches = pattern.allMatches(contents).toList();
+  if (matches.length != 2) {
+    stderr.writeln("Cannot find marked section in file $filePath");
+    exit(1);
+  }
+  start = matches.first.end;
+  end = matches.last.start;
+  newContents = newContents.replaceRange(start, end, charsetTableText);
+
+  if (newContents != contents) {
+    file.writeAsStringSync(newContents);
+    print("$filePath updated.");
+  } else {
+    stderr.writeln("No update needed.");
+    return;
+  }
+}
+
+String _createParserTableText() {
   var tables = _createTables();
   var literalBuilder = StringLiteralBuilder("_scannerTables");
   for (var table in tables) {
@@ -92,8 +153,7 @@ void main(List<String> args) {
   var tableString = literalBuilder.close();
 
   var result = """
-// Use tools/generate_uri_parser_tables.dart to generate this code
-// if necessary.
+$generatedHeader
 
 // --------------------------------------------------------------------
 // Constants used to read the scanner result.
@@ -192,42 +252,164 @@ int _scan(String uri, int start, int end, int state, List<int> indices) {
   return state;
 }
 """;
-  if (args.isEmpty || !args.first.startsWith("-u")) {
-    print(result);
-    return;
-  }
-  var arg = args.first;
-  var filePath = "sdk/lib/core/uri.dart";
-  // Default file location, if run from root of SDK.
-  if (arg.length > 2) {
-    filePath = arg.substring(2);
-  } else if (args.length > 1) {
-    filePath = args[1];
-  }
-  var file = File(filePath);
-  if (!file.existsSync()) {
-    stderr.writeln("Cannot find file: $filePath");
-    exit(1);
-  }
-  var contents = file.readAsStringSync();
-  var pattern = RegExp(r"^// --- URI PARSER TABLE --- (start|end) --- [^]*?^",
-      multiLine: true);
-  var matches = pattern.allMatches(contents).toList();
-  if (matches.length != 2) {
-    stderr.writeln("Cannot find marked section in file $filePath");
-    exit(1);
-  }
-  var start = matches.first.end;
-  var end = matches.last.start;
-  var newContents = contents.replaceRange(start, end, result);
-  if (newContents != contents) {
-    file.writeAsStringSync(newContents);
-    print("$filePath updated.");
-  } else {
-    stderr.writeln("No update needed.");
-    return;
-  }
+  return result;
 }
+
+String _createCharacterSetText() {
+  var bits = Uint16List(128);
+  var nextBit = 1;
+  var seen = <String, String>{};
+  var buffer = StringBuffer(generatedHeader);
+  buffer.writeln();
+
+  // Generates a documented entry for `${name}Mask` and adds the `chars`
+  // to the `bits` table.
+  // The chars can use `-` for a range of characters, and `\` for
+  // the next character being verbatim (to escape `-` and `\`).
+  void tableEntry(String name, String chars, String doc) {
+    buffer.writeln();
+    for (var line in LineSplitter.split(doc)) {
+      if (line.isEmpty) {
+        buffer.writeln("//");
+      } else {
+        buffer
+          ..write('// ')
+          ..writeln(line);
+      }
+    }
+    buffer
+      ..write('const ')
+      ..write(name)
+      ..write('Mask = ');
+    if (seen[chars] case var existingName?) {
+      buffer
+        ..write(existingName)
+        ..write('Mask');
+    } else {
+      seen[chars] = name;
+      var bit = nextBit;
+      nextBit *= 2;
+      // Previous char emitted. Used to test that strings are ordered,
+      // and as start for writing ranges.
+      var prevChar = -1;
+      for (var i = 0; i < chars.length; i++) {
+        var char = chars.codeUnitAt(i);
+        int? rangeStart;
+        const charDash = 0x2D; // `-` character.
+        const charBackslash = 0x5C; // `;` character.
+        if (char == charDash) {
+          char = chars.codeUnitAt(++i);
+          rangeStart = prevChar + 1;
+        }
+        if (char == charBackslash) {
+          char = chars.codeUnitAt(++i);
+        }
+        if (char <= prevChar) throw FormatException("Not sorted", chars, i);
+        for (var c = rangeStart ?? char; c <= char; c++) {
+          bits[c] |= bit;
+        }
+        prevChar = char;
+      }
+      var hexDigits = bit.toRadixString(16);
+      const zeroPrefix = ['0x', '0x0', '0x00', '0x000'];
+      buffer
+        ..write(zeroPrefix[4 - hexDigits.length])
+        ..write(hexDigits);
+    }
+    buffer.writeln(';');
+  }
+
+  tableEntry("_unreserved", r"\-.0-9A-Z_a-z~", r"""
+The unreserved characters of RFC 3986.
+[A-Za-z0-9\-._~]
+""");
+  tableEntry("_unreserved2396", r"!'()*\-.0-9A-Z_a-z~", r"""
+The unreserved characters of RFC 2396.
+[A-Za-z0-9!'()*\-._~]
+""");
+  tableEntry("_encodeFull", r"!#$&'()*+,\-./0-9:;=?@A-Z_a-z~", r"""
+Table of reserved characters specified by ECMAScript 5.
+[A-Za-z0-9!#$&'()*+,\-./:;=?_~]
+""");
+  tableEntry("_scheme", r"+\-.0-9A-Za-z", r"""
+Characters allowed in the scheme.
+[A-Za-z0-9+\-.]
+""");
+  tableEntry("_userinfo", r"!$&'()*+,\-.0-9:;=A-Z_a-z~", r"""
+Characters allowed in the userinfo as of RFC 3986.
+RFC 3986 Appendix A
+userinfo = *( unreserved / pct-encoded / sub-delims / ':')
+[A-Za-z0-9!$&'()*+,\-.:;=_~] (without '%')
+""");
+  tableEntry("_regName", r"!$%&'()*+,\-.0-9;=A-Z_a-z~", r"""
+Characters allowed in the reg-name as of RFC 3986.
+RFC 3986 Appendix A
+reg-name = *( unreserved / pct-encoded / sub-delims )
+Same as `_userInfoMask` without the `:`.
+// [A-Za-z0-9!$%&'()*+,\-.;=_~] (including '%')
+""");
+  tableEntry("_pathChar", r"!$&'()*+,\-.0-9:;=@A-Z_a-z~", r"""
+Characters allowed in the path as of RFC 3986.
+RFC 3986 section 3.3.
+pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
+[A-Za-z0-9!$&'()*+,\-.:;=@_~] (without '%')
+""");
+  tableEntry("_pathCharOrSlash", r"!$&'()*+,\-./0-9:;=@A-Z_a-z~", r"""
+Characters allowed in the path as of RFC 3986.
+RFC 3986 section 3.3 *and* slash.
+[A-Za-z0-9!$&'()*+,\-./:;=@_~] (without '%')
+""");
+  tableEntry("_queryChar", r"!$&'()*+,\-./0-9:;=?@A-Z_a-z~", r"""
+Characters allowed in the query as of RFC 3986.
+RFC 3986 section 3.4.
+query = *( pchar / "/" / "?" )
+[A-Za-z0-9!$&'()*+,\-./:;=?@_~] (without '%')
+""");
+  tableEntry("_zoneID", r"\-.0-9A-Z_a-z~", r"""
+Characters allowed in the ZoneID as of RFC 6874.
+ZoneID = 1*( unreserved / pct-encoded )
+[A-Za-z0-9\-._~] + '%'
+""");
+  tableEntry("_tokenChar", r"!$&'*+\-.0-9A-Z^_`a-z{|}~", r"""
+Table of the `token` characters of RFC 2045 in a `data:` URI.
+
+A token is any US-ASCII character except SPACE, control characters and
+`tspecial` characters. The `tspecial` category is:
+'(', ')', '<', '>', '@', ',', ';', ':', '\', '"', '/', '[, ']', '?', '='.
+
+In a data URI, we also need to escape '%' and '#' characters.
+""");
+  tableEntry("_uric", r"!$&'()*+,\-./0-9:;=?@A-Z_a-z~", r"""
+All non-escape RFC-2396 "uric" characters.
+
+The "uric" character set is defined by:
+```
+ uric        =  reserved | unreserved | escaped
+ reserved    =  ";" | "/" | "?" | ":" | "@" | "&" | "=" | "+" | "$" | ","
+ unreserved  =  alphanum | mark
+ mark        =  "-" | "_" | "." | "!" | "~" | "*" | "'" | "(" | ")"
+```
+This is the same characters as in a URI query (which is URI pchar plus '?')
+""");
+  tableEntry("_genDelimiters", r"#/:?@[]", r"""
+General delimiter characters, RFC 3986 section 2.2.
+gen-delims  = ":" / "/" / "?" / "#" / "[" / "]" / "@"
+[:/?#[]@]
+""");
+
+  var table = (StringLiteralBuilder('_charTables')
+        ..writeChars(bits, hexAll: true))
+      .close();
+  buffer
+    ..writeln()
+    ..write(table);
+
+  return buffer.toString();
+}
+
+const String generatedHeader = """
+// Use tools/generate_uri_parser_tables.dart to generate this code
+// if necessary.""";
 
 /// Creates a literal of the form
 /// ```dart
@@ -237,6 +419,9 @@ int _scan(String uri, int start, int end, int state, List<int> indices) {
 /// ```
 /// while escaping non-printable characters, `"`, `$` and `\`,
 /// and trying to fit as many characters on each line as possible.
+///
+/// Not optimized for speed or memory consumption. Assumed to be run
+/// rarely and offline.
 class StringLiteralBuilder {
   final buffer = StringBuffer();
   String indent;
@@ -266,6 +451,21 @@ class StringLiteralBuilder {
     }
   }
 
+  void writeChars(Uint16List chars, {bool hexAll = false}) {
+    for (var char in chars) {
+      var string = hexAll ? hex(char) : charString(char);
+      lineLength += string.length;
+      if (lineLength > 79) {
+        buffer
+          ..write('"\n')
+          ..write(indent)
+          ..write('"');
+        lineLength = indent.length + 1 + string.length;
+      }
+      buffer.write(string);
+    }
+  }
+
   /// Terminates the string literal.
   ///
   /// Do not call use builder after calling close.
@@ -281,9 +481,9 @@ class StringLiteralBuilder {
     return buffer.toString();
   }
 
-  static String charString(int byte) {
+  static String charString(int char) {
     // Recognized characters that need escaping, or has a short escape.
-    switch (byte) {
+    switch (char) {
       case 0x08:
         return r"\b";
       case 0x09:
@@ -303,17 +503,21 @@ class StringLiteralBuilder {
       case 0x24:
         return r"\$";
     }
-    // All control characters.
-    if (byte & 0x60 == 0 || byte == 0x7F) {
-      // 0x00 - 0x1F, 0x80 - 0xBF, 0x7F
-      return hex(byte);
+    // All control characters, all non-one-byte-string chars.
+    if (char > 0xFF || char & 0x60 == 0 || char == 0x7F) {
+      // 0x00 - 0x1F, 0x80 - 0xBF, 0x7F-...
+      return hex(char);
     }
-    return String.fromCharCode(byte);
+    return String.fromCharCode(char);
   }
 
-  static String hex(int byte) {
+  static String hex(int char) {
     const digits = "0123456789ABCDEF";
-    return "\\x${digits[byte >> 4]}${digits[byte & 0xf]}";
+    if (char <= 0xFF) {
+      return "\\x${digits[char >> 4]}${digits[char & 0xf]}";
+    }
+    // Don't try to be clever.
+    return "\\u${char.toRadixString(16).padLeft(4, "0")}";
   }
 }
 
