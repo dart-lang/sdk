@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -39,7 +40,18 @@ class RenameProcessor {
 
   /// Add the edit that updates the [element] declaration.
   void addDeclarationEdit2(Element2? element) {
-    if (element != null && workspace.containsElement2(element)) {
+    if (element == null) {
+      return;
+    } else if (element is LibraryElementImpl) {
+      // TODO(brianwilkerson): Consider adding public API to get the offset and
+      //  length of the library's name.
+      var nameRange = range.startOffsetLength(
+        element.nameOffset,
+        element.nameLength,
+      );
+      var edit = newSourceEdit_range(nameRange, newName);
+      doSourceChange_addFragmentEdit(change, element.firstFragment, edit);
+    } else if (workspace.containsElement2(element)) {
       Fragment? fragment = element.firstFragment;
       while (fragment != null) {
         var edit = newSourceEdit_range(range.fragmentName(fragment)!, newName);

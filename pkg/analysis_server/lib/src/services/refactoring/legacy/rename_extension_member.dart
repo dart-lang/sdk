@@ -178,7 +178,7 @@ class _ExtensionMemberValidator {
         localElements = collector.elements;
         localElementMap[unitFragment] = localElements;
 
-        visibleRangeMap.addAll(VisibleRangesComputer.forNode2(unit));
+        visibleRangeMap.addAll(VisibleRangesComputer.forNode(unit));
       }
 
       return localElements;

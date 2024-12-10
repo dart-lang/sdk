@@ -278,7 +278,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   final List<int> lengths = <int>[];
 
   /// The map of local elements to their visibility ranges.
-  late Map<LocalElement, SourceRange> _visibleRangeMap;
+  late Map<LocalElement2, SourceRange> _visibleRangeMap;
 
   /// The map of local names to their visibility ranges.
   final Map<String, List<SourceRange>> _localNames =
@@ -642,7 +642,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     var parent = _parentMember!.parent;
     // top-level function
     if (parent is CompilationUnit) {
-      var libraryElement = parent.declaredElement!.library;
+      var libraryElement = parent.declaredFragment!.element;
       return validateCreateFunction(_searchEngine, libraryElement, name);
     }
     // method of class
@@ -1684,7 +1684,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
     if (element is LocalElement) {
       // declared local elements
       if (node.inDeclarationContext()) {
-        var range = ref._visibleRangeMap[element];
+        var range = ref._visibleRangeMap[element.asElement2];
         if (range != null) {
           var ranges = ref._localNames.putIfAbsent(name, () => <SourceRange>[]);
           ranges.add(range);
@@ -1714,7 +1714,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
       // remember information for conflicts checking
       if (element is LocalElement) {
         // declared local elements
-        var range = ref._visibleRangeMap[element as LocalElement];
+        var range = ref._visibleRangeMap[element.asElement2 as LocalElement2];
         if (range != null) {
           var name = node.name.lexeme;
           var ranges = ref._localNames.putIfAbsent(name, () => <SourceRange>[]);

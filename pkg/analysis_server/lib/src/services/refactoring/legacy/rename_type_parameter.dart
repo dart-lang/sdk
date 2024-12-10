@@ -6,17 +6,17 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 class RenameTypeParameterRefactoringImpl extends RenameRefactoringImpl {
   RenameTypeParameterRefactoringImpl(
     super.workspace,
     super.sessionHelper,
-    TypeParameterElement super.element,
-  );
+    TypeParameterElement2 super.element2,
+  ) : super.c2();
 
   @override
-  TypeParameterElement get element => super.element as TypeParameterElement;
+  TypeParameterElement2 get element2 => super.element2 as TypeParameterElement2;
 
   @override
   String get refactoringName {
@@ -27,13 +27,13 @@ class RenameTypeParameterRefactoringImpl extends RenameRefactoringImpl {
   Future<RefactoringStatus> checkFinalConditions() async {
     var result = RefactoringStatus();
 
-    var enclosing = element.enclosingElement3;
-    if (enclosing is TypeParameterizedElement) {
-      for (var sibling in enclosing.typeParameters) {
-        if (sibling.name == newName) {
+    var enclosing = element2.enclosingElement2;
+    if (enclosing is TypeParameterizedElement2) {
+      for (var sibling in enclosing.typeParameters2) {
+        if (sibling.name3 == newName) {
           var nodeKind = sibling.kind.displayName;
           var message = "Duplicate $nodeKind '$newName'.";
-          result.addError(message, newLocation_fromElement(sibling));
+          result.addError(message, newLocation_fromElement2(sibling));
         }
       }
     }
@@ -51,9 +51,9 @@ class RenameTypeParameterRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<void> fillChange() async {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
-    processor.addDeclarationEdit(element);
+    processor.addDeclarationEdit2(element2);
 
-    var references = await searchEngine.searchReferences(element);
+    var references = await searchEngine.searchReferences2(element2);
     processor.addReferenceEdits(references);
   }
 }
