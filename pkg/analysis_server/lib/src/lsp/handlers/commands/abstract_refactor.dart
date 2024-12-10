@@ -16,7 +16,6 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 final _manager = LspRefactorManager._();
 
@@ -127,7 +126,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
 
       case RefactoringKind.CONVERT_GETTER_TO_METHOD:
         var node = NodeLocator(offset).searchWithin(result.unit);
-        var element = server.getElementOfNode(node).asElement2;
+        var element = server.getElementOfNode2(node);
         if (element is GetterElement) {
           var refactor = ConvertGetterToMethodRefactoring(
             server.refactoringWorkspace,
@@ -143,7 +142,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
 
       case RefactoringKind.CONVERT_METHOD_TO_GETTER:
         var node = NodeLocator(offset).searchWithin(result.unit);
-        var element = server.getElementOfNode(node).asElement2;
+        var element = server.getElementOfNode2(node);
         if (element is ExecutableElement2) {
           var refactor = ConvertMethodToGetterRefactoring(
             server.refactoringWorkspace,
