@@ -95,6 +95,7 @@ void main() {
     testPassPointerStruct12BytesHomogeneousInt32Leaf();
     testPassPointerStructInlineArrayVariableLeaf();
     testPassPointerStructInlineArrayVariableAlignLeaf();
+    testPassPointerStructInlineArrayVariable2Leaf();
   }
 }
 
@@ -6142,6 +6143,39 @@ void testPassPointerStructInlineArrayVariableAlignLeaf() {
   a0.ref.a1[9] = 11;
 
   final result = passPointerStructInlineArrayVariableAlignLeaf(a0);
+
+  print("result = $result");
+
+  Expect.equals(66, result);
+
+  calloc.free(a0);
+}
+
+final passPointerStructInlineArrayVariable2Leaf = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(Pointer<StructInlineArrayVariable2>),
+      int Function(Pointer<StructInlineArrayVariable2>)
+    >("PassPointerStructInlineArrayVariable2", isLeaf: true);
+
+/// Variable length array with variable dimension of 1.
+void testPassPointerStructInlineArrayVariable2Leaf() {
+  final a0 = calloc.allocate<StructInlineArrayVariable2>(
+    sizeOf<StructInlineArrayVariable2>() + 9 * sizeOf<Uint8>(),
+  );
+
+  a0.ref.a0 = 1;
+  a0.ref.a1[0] = 2;
+  a0.ref.a1[1] = 3;
+  a0.ref.a1[2] = 4;
+  a0.ref.a1[3] = 5;
+  a0.ref.a1[4] = 6;
+  a0.ref.a1[5] = 7;
+  a0.ref.a1[6] = 8;
+  a0.ref.a1[7] = 9;
+  a0.ref.a1[8] = 10;
+  a0.ref.a1[9] = 11;
+
+  final result = passPointerStructInlineArrayVariable2Leaf(a0);
 
   print("result = $result");
 

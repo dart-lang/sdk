@@ -386,6 +386,13 @@ class FfiCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const FfiCode NEGATIVE_VARIABLE_DIMENSION = FfiCode(
+    'NEGATIVE_VARIABLE_DIMENSION',
+    "The variable dimension of a variable-length array must be non-negative.",
+    correctionMessage: "Try using a value that is zero or greater.",
+  );
+
   ///  Parameters:
   ///  0: the name of the function, method, or constructor having type arguments
   static const FfiCode NON_CONSTANT_TYPE_ARGUMENT = FfiCode(

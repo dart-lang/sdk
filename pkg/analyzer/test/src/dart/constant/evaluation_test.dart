@@ -2076,6 +2076,120 @@ const c = _;
 ''');
   }
 
+  test_visitInstanceCreationExpression_invalidNamedArg() async {
+    await assertErrorsInCode('''
+class A {
+  const A({ required int x });
+}
+const a = A(x: false);
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 58, 5),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 55, 8),
+    ]);
+  }
+
+  test_visitInstanceCreationExpression_invalidNamedArg_superParam() async {
+    await assertErrorsInCode('''
+class A {
+  const A({ required int x });
+}
+class B extends A {
+  const B({ required super.x });
+}
+const a = B(x: false);
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 113, 5),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 110, 8),
+    ]);
+  }
+
+  test_visitInstanceCreationExpression_invalidPositionalArg() async {
+    await assertErrorsInCode('''
+class A {
+  const A(int x);
+}
+const a = A(false);
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 5),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 42, 5),
+    ]);
+  }
+
+  test_visitInstanceCreationExpression_invalidPositionalArg_superParam() async {
+    await assertErrorsInCode('''
+class A {
+  const A(int x);
+}
+class B extends A {
+  const B(super.x);
+}
+const a = B(false);
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 84, 5),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 84, 5),
+    ]);
+  }
+
+  test_visitInstanceCreationExpression_missingNamedArg() async {
+    await assertErrorsInCode('''
+class A {
+  const A({required int x });
+}
+const a = A();
+''', [
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 52, 1),
+    ]);
+  }
+
+  test_visitInstanceCreationExpression_missingNamedArg_superParam() async {
+    await assertErrorsInCode('''
+class A {
+  const A({required int x });
+}
+class B extends A {
+  const B({required super.x });
+}
+const a = B();
+''', [
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 106, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 106,
+          3),
+      error(CompileTimeErrorCode.INVALID_CONSTANT, 106, 3,
+          contextMessages: [message(testFile, 88, 1)]),
+    ]);
+  }
+
+  test_visitInstanceCreationExpression_missingPositionalArg() async {
+    await assertErrorsInCode('''
+class A {
+  const A(int x);
+}
+const a = A();
+''', [
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          42, 1),
+    ]);
+  }
+
+  test_visitInstanceCreationExpression_missingPositionalArg_superParam() async {
+    await assertErrorsInCode('''
+class A {
+  const A(int x);
+}
+class B extends A {
+  const B(super.x);
+}
+const a = B();
+''', [
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          84, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 82,
+          3),
+      error(CompileTimeErrorCode.INVALID_CONSTANT, 82, 3,
+          contextMessages: [message(testFile, 66, 1)]),
+    ]);
+  }
+
   test_visitInstanceCreationExpression_noArgs() async {
     await assertNoErrorsInCode('''
 class A {

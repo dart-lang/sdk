@@ -14,6 +14,7 @@ import 'package:front_end/src/codes/cfe_codes.dart'
         messageFfiLeafCallMustNotReturnHandle,
         messageFfiLeafCallMustNotTakeHandle,
         messageFfiVariableLengthArrayNotLast,
+        messageNegativeVariableDimension,
         messageNonPositiveArrayDimensions,
         templateFfiSizeAnnotation,
         templateFfiSizeAnnotationDimensions,
@@ -224,7 +225,7 @@ class FfiTransformer extends Transformer {
   final Field arraySizeDimension4Field;
   final Field arraySizeDimension5Field;
   final Field arraySizeDimensionsField;
-  final Field arraySizeVariableLengthField;
+  final Field arraySizeVariableDimensionField;
   final Class pointerClass;
   final Class compoundClass;
   final Class structClass;
@@ -241,6 +242,7 @@ class FfiTransformer extends Transformer {
   final Class ffiInlineArrayClass;
   final Field ffiInlineArrayElementTypeField;
   final Field ffiInlineArrayLengthField;
+  final Field ffiInlineArrayVariableLengthField;
   final Class packedClass;
   final Field packedMemberAlignmentField;
   final Procedure allocateMethod;
@@ -286,6 +288,7 @@ class FfiTransformer extends Transformer {
   final Field compoundTypedDataBaseField;
   final Field compoundOffsetInBytesField;
   final Field arraySizeField;
+  final Field arrayVariableLengthField;
   final Field arrayNestedDimensionsField;
   final Procedure arrayCheckIndex;
   final Procedure arrayNestedDimensionsFlattened;
@@ -415,8 +418,8 @@ class FfiTransformer extends Transformer {
             index.getField('dart:ffi', '_ArraySize', 'dimension5'),
         arraySizeDimensionsField =
             index.getField('dart:ffi', '_ArraySize', 'dimensions'),
-        arraySizeVariableLengthField =
-            index.getField('dart:ffi', '_ArraySize', 'variableLength'),
+        arraySizeVariableDimensionField =
+            index.getField('dart:ffi', '_ArraySize', 'variableDimension'),
         pointerClass = index.getClass('dart:ffi', 'Pointer'),
         compoundClass = index.getClass('dart:ffi', '_Compound'),
         structClass = index.getClass('dart:ffi', 'Struct'),
@@ -442,6 +445,8 @@ class FfiTransformer extends Transformer {
             index.getField('dart:ffi', '_FfiInlineArray', 'elementType'),
         ffiInlineArrayLengthField =
             index.getField('dart:ffi', '_FfiInlineArray', 'length'),
+        ffiInlineArrayVariableLengthField =
+            index.getField('dart:ffi', '_FfiInlineArray', 'variableLength'),
         packedClass = index.getClass('dart:ffi', 'Packed'),
         packedMemberAlignmentField =
             index.getField('dart:ffi', 'Packed', 'memberAlignment'),
@@ -458,6 +463,8 @@ class FfiTransformer extends Transformer {
         compoundOffsetInBytesField =
             index.getField('dart:ffi', '_Compound', '_offsetInBytes'),
         arraySizeField = index.getField('dart:ffi', 'Array', '_size'),
+        arrayVariableLengthField =
+            index.getField('dart:ffi', 'Array', '_variableLength'),
         arrayNestedDimensionsField =
             index.getField('dart:ffi', 'Array', '_nestedDimensions'),
         arrayCheckIndex =
@@ -1025,10 +1032,19 @@ class FfiTransformer extends Transformer {
               node.fileUri,
             );
           }
-          return dimensions; // Variable length single dimension.
         }
-        for (var dimension in dimensions) {
-          if (dimension <= 0) {
+        for (var i = 0; i < dimensions.length; i++) {
+          // First dimension is variable.
+          if (i == 0 && variableLength) {
+            // Variable dimension can't be negative.
+            if (dimensions[0] < 0) {
+              diagnosticReporter.report(messageNegativeVariableDimension,
+                  node.fileOffset, node.name.text.length, node.fileUri);
+            }
+            continue;
+          }
+
+          if (dimensions[i] <= 0) {
             diagnosticReporter.report(messageNonPositiveArrayDimensions,
                 node.fileOffset, node.name.text.length, node.fileUri);
             success = false;
@@ -1062,18 +1078,18 @@ class FfiTransformer extends Transformer {
 
   /// Reads the dimensions from a constant instance of `_ArraySize`.
   (List<int>, bool) _arraySize(InstanceConstant constant) {
-    final variableLength =
-        (constant.fieldValues[arraySizeVariableLengthField.fieldReference]
-                as BoolConstant)
-            .value;
+    final variableDimension =
+        constant.fieldValues[arraySizeVariableDimensionField.fieldReference];
+    final variableLength = variableDimension is IntConstant;
     final dimensions =
         constant.fieldValues[arraySizeDimensionsField.fieldReference];
-    if (dimensions != null) {
-      if (dimensions is ListConstant) {
-        final result =
-            dimensions.entries.whereType<IntConstant>().map((e) => e.value);
-        return ([if (variableLength) 0, ...result], variableLength);
-      }
+    if (dimensions is ListConstant) {
+      final result =
+          dimensions.entries.whereType<IntConstant>().map((e) => e.value);
+      return (
+        [if (variableLength) variableDimension.value, ...result],
+        variableLength,
+      );
     }
     final dimensionFields = [
       arraySizeDimension1Field,

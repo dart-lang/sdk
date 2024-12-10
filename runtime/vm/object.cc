@@ -14207,7 +14207,7 @@ ObjectPtr Library::GetMetadata(const Object& declaration) const {
   }
   if (!value.IsSmi()) {
     // Metadata is already evaluated.
-    ASSERT(value.IsArray());
+    ASSERT(value.IsArray() || value.IsLanguageError());
     return value.ptr();
   }
   const auto& smi_value = Smi::Cast(value);
@@ -14218,7 +14218,8 @@ ObjectPtr Library::GetMetadata(const Object& declaration) const {
                 *this, kernel_offset,
                 /* is_annotations_offset = */ declaration.IsLibrary() ||
                     declaration.IsNamespace()));
-  if (evaluated_value.IsArray() || evaluated_value.IsNull()) {
+  if (evaluated_value.IsArray() || evaluated_value.IsNull() ||
+      evaluated_value.IsLanguageError()) {
     ASSERT(evaluated_value.ptr() != Object::empty_array().ptr());
     SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
     MetadataMap map(metadata());

@@ -5432,6 +5432,11 @@ NonNullAwareSpreadIsNull:
       <int>[...null];
     }
 
+NegativeVariableDimension:
+  # Used by dart:ffi
+  problemMessage: "The variable dimension of a variable-length array must be non-negative."
+  external: test/ffi_test.dart
+
 NonPositiveArrayDimensions:
   # Used by dart:ffi
   problemMessage: "Array dimensions must be positive numbers."

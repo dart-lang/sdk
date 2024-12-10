@@ -11,6 +11,12 @@ final functions = [
   ...functionsReturnArgument,
 ];
 
+/// Functions that return the size of each compound.
+final functionsCompoundSizeOf = [
+  for (final compound in compounds)
+    FunctionType(const [], uint64, compound.name),
+];
+
 /// Functions that pass structs as arguments.
 final functionsStructArguments = [
   FunctionType(List.filled(10, struct1byteInt), int64, """
@@ -475,6 +481,12 @@ Variable length array""",
 Variable length array with variable length element having more alignment than
 the rest of the struct.""",
   ),
+  FunctionType(
+    [PointerType(structVariableLengthArray5)],
+    int64,
+    """
+Variable length array with variable dimension of 1.""",
+  ),
 ];
 
 /// Functions that return a struct by value.
@@ -748,6 +760,9 @@ final compounds = [
   structVariableLengthArray2,
   structVariableLengthArray3,
   structVariableLengthArray4,
+  structVariableLengthArray5,
+  structVariableLengthArray6,
+  structVariableLengthArray7,
 ];
 
 /// Function signatures for variadic argument tests.
@@ -1160,3 +1175,25 @@ final structVariableLengthArray4 = StructType.override([
   uint8,
   VariableLengthArrayType(uint32),
 ], "InlineArrayVariableAlign");
+
+final structVariableLengthArray5 = StructType.override([
+  uint32,
+  VariableLengthArrayType(uint8, variableDimension: 1),
+], "InlineArrayVariable2");
+
+final structVariableLengthArray6 = StructType.override([
+  uint32,
+  VariableLengthArrayType.multi(uint8, [2, 2], variableDimension: 1),
+], "InlineArrayVariableNested2");
+
+final structVariableLengthArray7 = StructType.override([
+  uint32,
+  VariableLengthArrayType.multi(uint8, [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+  ], variableDimension: 1),
+], "InlineArrayVariableNestedDeep2");

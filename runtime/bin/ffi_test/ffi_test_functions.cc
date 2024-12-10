@@ -1238,10 +1238,6 @@ struct Struct3BytesPackedIntCopy {
 };
 #pragma pack(pop)
 
-DART_EXPORT uint64_t SizeOfStruct3BytesPackedInt() {
-  return sizeof(Struct3BytesPackedIntCopy);
-}
-
 // Define ssize_t for Windows as intptr_t.
 #if defined(_WIN32)
 typedef intptr_t ssize_t;

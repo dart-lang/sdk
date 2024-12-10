@@ -54,7 +54,7 @@ final class WCharStruct extends ffi::Struct {
   static get #sizeOf() → core::int
     return #C77.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
-@#C82
+@#C83
 final class WCharArrayStruct extends ffi::Struct {
   synthetic constructor •() → self::WCharArrayStruct
     : super ffi::Struct::•()
@@ -69,7 +69,7 @@ final class WCharArrayStruct extends ffi::Struct {
   @#C84
   @#C67
   get a0() → ffi::Array<self::WChar>
-    return new ffi::Array::_<self::WChar>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::WCharArrayStruct::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C78, #C85);
+    return new ffi::Array::_<self::WChar>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::WCharArrayStruct::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C78, #C79, #C85);
   @#C84
   @#C67
   set a0(synthesized ffi::Array<self::WChar> #externalFieldValue) → void
@@ -224,12 +224,12 @@ constants  {
   #C76 = 8
   #C77 = <core::int>[#C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C76, #C41, #C41, #C41]
   #C78 = 100
-  #C79 = ffi::_FfiInlineArray {elementType:#C70, length:#C78}
-  #C80 = <core::Type>[#C79]
-  #C81 = ffi::_FfiStructLayout {fieldTypes:#C80, packing:#C66}
-  #C82 = core::pragma {name:#C69, options:#C81}
-  #C83 = false
-  #C84 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C78, dimension2:#C66, dimension3:#C66, dimension4:#C66, dimension5:#C66, dimensions:#C66, variableLength:#C83}
+  #C79 = false
+  #C80 = ffi::_FfiInlineArray {elementType:#C70, length:#C78, variableLength:#C79}
+  #C81 = <core::Type>[#C80]
+  #C82 = ffi::_FfiStructLayout {fieldTypes:#C81, packing:#C66}
+  #C83 = core::pragma {name:#C69, options:#C82}
+  #C84 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C78, dimension2:#C66, dimension3:#C66, dimension4:#C66, dimension5:#C66, dimensions:#C66, variableDimension:#C66}
   #C85 = <core::int>[]
   #C86 = 400
   #C87 = 200

@@ -16,6 +16,26 @@ final class Vec2d extends Struct {
   external double y;
 }
 
+final class MyStruct extends Struct {
+  @Array.variable()
+  external Array<Uint8> array;
+}
+
+final class MyStruct2 extends Struct {
+  @Array.variableWithVariableDimension(1)
+  external Array<Uint8> array;
+}
+
+final class MyStruct3 extends Struct {
+  @Array.variableMulti([1, 2])
+  external Array<Array<Array<Uint8>>> array;
+}
+
+final class MyStruct4 extends Struct {
+  @Array.variableMulti(variableDimension: 1, [1, 2])
+  external Array<Array<Array<Uint8>>> array;
+}
+
 final class MyUnion extends Union {
   external Vec2d vector;
   external Pointer<Vec2d> indirectVector;

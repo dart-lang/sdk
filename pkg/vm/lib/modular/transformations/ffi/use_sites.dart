@@ -1217,6 +1217,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
                     arrayNestedDimensionsFirst.name,
                     interfaceTarget: arrayNestedDimensionsFirst,
                     resultType: arrayNestedDimensionsFirst.getterType),
+                InstanceGet(
+                  InstanceAccessKind.Instance,
+                  VariableGet(arrayVar),
+                  arrayVariableLengthField.name,
+                  interfaceTarget: arrayVariableLengthField,
+                  resultType: arrayVariableLengthField.type,
+                ),
                 InstanceGet(InstanceAccessKind.Instance, VariableGet(arrayVar),
                     arrayNestedDimensionsRest.name,
                     interfaceTarget: arrayNestedDimensionsRest,

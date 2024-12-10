@@ -13366,6 +13366,17 @@ const MessageCode messageNativeClauseShouldBeAnnotation = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNegativeVariableDimension =
+    messageNegativeVariableDimension;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNegativeVariableDimension = const MessageCode(
+  "NegativeVariableDimension",
+  problemMessage:
+      r"""The variable dimension of a variable-length array must be non-negative.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNeverReachableSwitchDefaultError =
     messageNeverReachableSwitchDefaultError;
 
