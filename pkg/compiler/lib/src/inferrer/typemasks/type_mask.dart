@@ -104,6 +104,22 @@ enum TypeMaskKind {
   value,
 }
 
+/// Specific values that are independently tracked.
+enum TypeMaskSpecialValue {
+  null_,
+  lateSentinel,
+}
+
+final _numSpecialValues = TypeMaskSpecialValue.values.length;
+
+EnumSet<TypeMaskSpecialValue> _composeSpecialValues(
+    {required bool isNullable, required bool hasLateSentinel}) {
+  EnumSet<TypeMaskSpecialValue> result = EnumSet.empty();
+  if (isNullable) result = result.add(TypeMaskSpecialValue.null_);
+  if (hasLateSentinel) result = result.add(TypeMaskSpecialValue.lateSentinel);
+  return result;
+}
+
 /// A type mask represents a set of contained classes, but the
 /// operations on it are not guaranteed to be precise and they may
 /// yield conservative answers that contain too many classes.
@@ -293,7 +309,7 @@ abstract class TypeMask implements AbstractValue {
       TypeMask mask, JClosedWorld closedWorld) {
     mask = nonForwardingMask(mask);
     if (mask is FlatTypeMask) {
-      if (mask.isEmptyOrFlagged) return null;
+      if (mask.isEmptyOrSpecial) return null;
       if (mask.base == closedWorld.commonElements.nullClass) {
         return 'The class ${mask.base} is not canonicalized.';
       }
@@ -338,17 +354,17 @@ abstract class TypeMask implements AbstractValue {
   }
 
   /// Returns a nullable variant of this [TypeMask].
-  TypeMask nullable() => withFlags(isNullable: true);
+  TypeMask nullable() => withSpecialValues(isNullable: true);
 
   /// Returns a non-nullable variant of this [TypeMask].
-  TypeMask nonNullable() => withFlags(isNullable: false);
+  TypeMask nonNullable() => withSpecialValues(isNullable: false);
 
   /// Returns a variant of this [TypeMask] whose value is neither `null` nor
   /// the late sentinel.
-  TypeMask withoutFlags() =>
-      withFlags(isNullable: false, hasLateSentinel: false);
+  TypeMask withoutSpecialValues() =>
+      withSpecialValues(isNullable: false, hasLateSentinel: false);
 
-  TypeMask withFlags({bool? isNullable, bool? hasLateSentinel});
+  TypeMask withSpecialValues({bool? isNullable, bool? hasLateSentinel});
 
   /// Whether nothing matches this mask, not even null.
   bool get isEmpty;
@@ -365,9 +381,9 @@ abstract class TypeMask implements AbstractValue {
   /// Whether a late sentinel is a valid value of this mask.
   bool get hasLateSentinel => isLateSentinel.isPotentiallyTrue;
 
-  /// Whether this [TypeMask] is empty or only represents values tracked by
-  /// flags (i.e. `null` and the late sentinel).
-  bool get isEmptyOrFlagged;
+  /// Whether this [TypeMask] is empty or only represents
+  /// [TypeMaskSpecialValue]s (i.e. `null` and the late sentinel).
+  bool get isEmptyOrSpecial;
 
   /// Whether this mask only includes instances of an exact class, and none of
   /// it's subclasses or subtypes.

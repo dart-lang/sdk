@@ -68,7 +68,6 @@ lib/src/dart/resolver/binary_expression_resolver.dart
 lib/src/dart/resolver/body_inference_context.dart
 lib/src/dart/resolver/comment_reference_resolver.dart
 lib/src/dart/resolver/constructor_reference_resolver.dart
-lib/src/dart/resolver/exit_detector.dart
 lib/src/dart/resolver/extension_member_resolver.dart
 lib/src/dart/resolver/flow_analysis_visitor.dart
 lib/src/dart/resolver/for_resolver.dart
@@ -104,7 +103,6 @@ lib/src/error/deprecated_member_use_verifier.dart
 lib/src/error/duplicate_definition_verifier.dart
 lib/src/error/imports_verifier.dart
 lib/src/error/inheritance_override.dart
-lib/src/error/literal_element_verifier.dart
 lib/src/error/override_verifier.dart
 lib/src/error/required_parameters_verifier.dart
 lib/src/error/unused_local_elements_verifier.dart
@@ -169,7 +167,6 @@ lib/src/utilities/extensions/library_element.dart
 test/error/error_reporter_test.dart
 test/generated/element_resolver_test.dart
 test/generated/elements_types_mixin.dart
-test/generated/invalid_code_test.dart
 test/generated/non_error_resolver_test.dart
 test/generated/resolver_test_case.dart
 test/generated/simple_resolver_test.dart
@@ -180,7 +177,6 @@ test/id_tests/type_constraint_generation_test.dart
 test/src/dart/analysis/driver_caching_test.dart
 test/src/dart/analysis/driver_test.dart
 test/src/dart/analysis/index_test.dart
-test/src/dart/analysis/resolve_for_completion_test.dart
 test/src/dart/analysis/result_printer.dart
 test/src/dart/analysis/results/get_element_declaration_test.dart
 test/src/dart/analysis/search_test.dart

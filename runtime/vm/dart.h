@@ -37,6 +37,7 @@ class Dart : public AllStatic {
 
   // Returns true if the VM is initialized.
   static bool IsInitialized();
+  static bool IsShuttingDown();
 
   // Used to Indicate that a Dart API call is active.
   static bool SetActiveApiCall();

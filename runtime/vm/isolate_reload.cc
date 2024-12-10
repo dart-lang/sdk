@@ -661,8 +661,11 @@ static ObjectPtr AcceptCompilation(Thread* thread) {
 }
 
 static ObjectPtr RejectCompilation(Thread* thread) {
-  TransitionVMToNative transition(thread);
-  Dart_KernelCompilationResult result = KernelIsolate::RejectCompilation();
+  Dart_KernelCompilationResult result;
+  {
+    TransitionVMToNative transition(thread);
+    result = KernelIsolate::RejectCompilation();
+  }
   if (result.status != Dart_KernelCompilationStatus_Ok) {
     if (result.status != Dart_KernelCompilationStatus_MsgFailed) {
       FATAL(

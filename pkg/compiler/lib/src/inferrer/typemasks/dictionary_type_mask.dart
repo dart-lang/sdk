@@ -52,7 +52,8 @@ class DictionaryTypeMask extends MapTypeMask {
   }
 
   @override
-  DictionaryTypeMask withFlags({bool? isNullable, bool? hasLateSentinel}) {
+  DictionaryTypeMask withSpecialValues(
+      {bool? isNullable, bool? hasLateSentinel}) {
     isNullable ??= this.isNullable;
     hasLateSentinel ??= this.hasLateSentinel;
     if (isNullable == this.isNullable &&
@@ -60,7 +61,7 @@ class DictionaryTypeMask extends MapTypeMask {
       return this;
     }
     return DictionaryTypeMask(
-        forwardTo.withFlags(
+        forwardTo.withSpecialValues(
             isNullable: isNullable, hasLateSentinel: hasLateSentinel),
         allocationNode,
         allocationElement,

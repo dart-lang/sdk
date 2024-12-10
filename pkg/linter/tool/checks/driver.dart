@@ -15,10 +15,10 @@ import 'package:analyzer/src/lint/registry.dart'; // ignore: implementation_impo
 import 'package:cli_util/cli_logging.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/test_utilities/analysis_error_info.dart';
-import 'package:linter/src/test_utilities/formatter.dart';
 import 'package:path/path.dart' as path;
 
 import '../../test/mocks.dart';
+import '../util/formatter.dart';
 import 'rules/no_solo_tests.dart';
 import 'rules/no_trailing_spaces.dart';
 import 'rules/visit_registered_nodes.dart';

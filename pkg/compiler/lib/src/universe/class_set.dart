@@ -63,14 +63,14 @@ class ClassHierarchyNode {
   static final EnumSet<Instantiation> EXPLICITLY_INSTANTIATED =
       EnumSet.fromValues(const [
     Instantiation.DIRECTLY_INSTANTIATED,
-    Instantiation.ABSTRACTLY_INSTANTIATED
+    Instantiation.ABSTRACTLY_INSTANTIATED,
   ]);
 
   /// Enum set for selecting all classes in
   /// [ClassHierarchyNode.subclassesByMask],
   /// [ClassHierarchyNode.subclassesByMask] and [ClassSet.subtypesByMask].
   static final EnumSet<Instantiation> ALL =
-      EnumSet.fromValues(Instantiation.values);
+      EnumSet.allValues(Instantiation.values);
 
   /// Creates an enum set for selecting the returned classes in
   /// [ClassHierarchyNode.subclassesByMask],

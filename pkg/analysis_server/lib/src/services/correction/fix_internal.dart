@@ -947,11 +947,16 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA: [
     AddTrailingComma.new,
   ],
+  CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE: [
+    AddAsync.wrongReturnType,
+  ],
   CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION: [
+    AddAsync.wrongReturnType,
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
   ],
   CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD: [
+    AddAsync.wrongReturnType,
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
   ],

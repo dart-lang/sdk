@@ -24,6 +24,8 @@ import '../../universe/selector.dart' show Selector;
 import '../../universe/use.dart' show DynamicUse;
 import '../../universe/world_builder.dart'
     show UniverseSelectorConstraints, SelectorConstraintsStrategy;
+import '../../util/bitset.dart';
+import '../../util/enumset.dart';
 import '../../util/util.dart';
 import '../abstract_value_domain.dart';
 import '../abstract_value_strategy.dart';
@@ -52,19 +54,19 @@ class CommonMasks with AbstractValueDomain {
 
   final Map<TypeMask, Map<TypeMask, TypeMask>> _intersectionCache = {};
 
-  /// Cache of [FlatTypeMask]s grouped by the possible values of the
-  /// `FlatTypeMask.flags` property.
+  /// Cache of [FlatTypeMask]s grouped by base class and any special values
+  /// included in the mask.
   final List<Map<ClassEntity?, TypeMask>?> _canonicalizedTypeMasks =
-      List.filled(
-          _FlatTypeMaskKind.values.length << FlatTypeMask._USED_INDICES, null);
+      List.filled(FlatTypeMaskKind.values.length << _numSpecialValues, null);
 
-  /// Return the cached mask for [base] with the given flags, or
+  /// Return the cached mask for [base] with the given special values, or
   /// calls [createMask] to create the mask and cache it.
-  T getCachedMask<T extends TypeMask>(
-      ClassEntity? base, int flags, T createMask()) {
+  T getCachedMask<T extends TypeMask>(ClassEntity? base, FlatTypeMaskKind kind,
+      EnumSet<TypeMaskSpecialValue> specialValues, T createMask()) {
+    final key = (kind.index << _numSpecialValues) | specialValues.mask.bits;
     // `null` is a valid base so we allow it as a key in the map.
     final Map<ClassEntity?, TypeMask> cachedMasks =
-        _canonicalizedTypeMasks[flags] ??= {};
+        _canonicalizedTypeMasks[key] ??= {};
     return cachedMasks.putIfAbsent(base, createMask) as T;
   }
 
@@ -382,11 +384,11 @@ class CommonMasks with AbstractValueDomain {
 
   @override
   TypeMask excludeLateSentinel(TypeMask mask) =>
-      mask.withFlags(hasLateSentinel: false);
+      mask.withSpecialValues(hasLateSentinel: false);
 
   @override
   TypeMask includeLateSentinel(TypeMask mask) =>
-      mask.withFlags(hasLateSentinel: true);
+      mask.withSpecialValues(hasLateSentinel: true);
 
   @override
   AbstractBool containsType(TypeMask typeMask, ClassEntity cls) {
@@ -1038,7 +1040,7 @@ String formatType(DartTypes dartTypes, TypeMask type) {
     // Capitalize Null to emphasize that it's the null type mask and not
     // a null value we accidentally printed out.
     if (type.isEmpty) return 'Empty';
-    if (type.isEmptyOrFlagged) {
+    if (type.isEmptyOrSpecial) {
       return [
         if (type.isNullable) 'Null',
         if (type.hasLateSentinel) '\$',

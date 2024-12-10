@@ -1427,7 +1427,7 @@ CompileTimeErrorCode.RETURN_IN_GENERATOR:
   notes: |-
     Replace with a yield.
 CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE:
-  status: noFix
+  status: hasFix
 CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR:
   status: noFix
 CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION:
