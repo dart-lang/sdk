@@ -68,7 +68,6 @@ lib/src/dart/resolver/binary_expression_resolver.dart
 lib/src/dart/resolver/body_inference_context.dart
 lib/src/dart/resolver/comment_reference_resolver.dart
 lib/src/dart/resolver/constructor_reference_resolver.dart
-lib/src/dart/resolver/exit_detector.dart
 lib/src/dart/resolver/extension_member_resolver.dart
 lib/src/dart/resolver/flow_analysis_visitor.dart
 lib/src/dart/resolver/for_resolver.dart
