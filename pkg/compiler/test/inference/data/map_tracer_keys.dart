@@ -29,7 +29,7 @@ test1() {
   theMap
       /*update: Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt], map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: [null|exact=JSNumNotInt]})*/
       ['d'] = 5.5;
-  /*iterator: [exact=LinkedHashMapKeyIterable]*/
+  /*iterator: [exact=LinkedHashMapKeysIterable]*/
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
   for (var key in theMap.
@@ -60,7 +60,7 @@ test2() {
   theMap
       /*update: Map([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt])*/
       [aList2] = 5.5;
-  /*iterator: [exact=LinkedHashMapKeyIterable]*/
+  /*iterator: [exact=LinkedHashMapKeysIterable]*/
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
   for (var key in theMap.
@@ -91,7 +91,7 @@ test3() {
   theMap
       /*update: Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt]), map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: Container([null|exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
       ['d'] = aList3;
-  /*iterator: [exact=LinkedHashMapKeyIterable]*/
+  /*iterator: [exact=LinkedHashMapKeysIterable]*/
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
   for (var key in theMap.
@@ -119,7 +119,7 @@ consume4(
 /*member: test4:[null]*/
 test4() {
   var theMap = {'a': 2.2, 'b': 3.3, 'c': 4.4, 'd': 5.5};
-  /*iterator: [exact=LinkedHashMapKeyIterable]*/
+  /*iterator: [exact=LinkedHashMapKeysIterable]*/
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
   for (var key in theMap.
@@ -147,7 +147,7 @@ consume5(
 /*member: test5:[null]*/
 test5() {
   var theMap = {'a': 2.2, 'b': 3.3, 'c': 4.4, aList5: 5.5};
-  /*iterator: [exact=LinkedHashMapKeyIterable]*/
+  /*iterator: [exact=LinkedHashMapKeysIterable]*/
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
   for (var key in theMap.
@@ -174,7 +174,7 @@ consume6(
 /*member: test6:[null]*/
 test6() {
   var theMap = {'a': 2.2, 'b': 3.3, 'c': 4.4, 'd': aList6};
-  /*iterator: [exact=LinkedHashMapKeyIterable]*/
+  /*iterator: [exact=LinkedHashMapKeysIterable]*/
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
   for (var key in theMap.

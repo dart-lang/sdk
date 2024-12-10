@@ -6,6 +6,8 @@ import "package:expect/expect.dart";
 
 /// Expects that [expected] appears as a substring in [actual].
 expectStringContains(String expected, String actual) {
-  Expect.isTrue(actual.contains(expected),
-      'Failure: "$expected" should appear in: "$actual".');
+  Expect.isTrue(
+    actual.contains(expected),
+    'Failure: "$expected" should appear in: "$actual".',
+  );
 }
