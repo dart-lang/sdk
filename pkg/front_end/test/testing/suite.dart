@@ -1746,10 +1746,24 @@ class FuzzAstVisitorSorter extends IgnoreSomeForCompatibilityAstVisitor {
         node.exportKeyword, node.semicolon);
   }
 
+  ImportEnd? _importEndNode;
+
   @override
   void visitImportEnd(ImportEnd node) {
-    handleData(FuzzOriginalType.Import, FuzzSorterState.importExportSortable,
-        node.importKeyword, node.semicolon!);
+    if (node.semicolon != null) {
+      handleData(FuzzOriginalType.Import, FuzzSorterState.importExportSortable,
+          node.importKeyword, node.semicolon!);
+    } else {
+      _importEndNode = node;
+    }
+  }
+
+  @override
+  void visitRecoverImportHandle(RecoverImportHandle node) {
+    if (node.semicolon != null && _importEndNode != null) {
+      handleData(FuzzOriginalType.Import, FuzzSorterState.importExportSortable,
+          _importEndNode!.importKeyword, node.semicolon!);
+    }
   }
 
   @override
