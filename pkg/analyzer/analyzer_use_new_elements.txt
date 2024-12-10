@@ -83,7 +83,6 @@ lib/src/dart/resolver/postfix_expression_resolver.dart
 lib/src/dart/resolver/prefix_expression_resolver.dart
 lib/src/dart/resolver/prefixed_identifier_resolver.dart
 lib/src/dart/resolver/property_element_resolver.dart
-lib/src/dart/resolver/record_type_annotation_resolver.dart
 lib/src/dart/resolver/resolution_result.dart
 lib/src/dart/resolver/resolution_visitor.dart
 lib/src/dart/resolver/scope.dart
