@@ -1224,7 +1224,7 @@ abstract interface class Uri {
   /// print(encoded); // http%3A%2F%2Fexample.com%2Fsearch%3DDart
   /// ```
   static String encodeComponent(String component) {
-    return _Uri._uriEncode(_Uri._unreserved2396Table, component, utf8, false);
+    return _Uri._uriEncode(_unreserved2396Mask, component, utf8, false);
   }
 
   /**
@@ -1260,7 +1260,7 @@ abstract interface class Uri {
     String component, {
     Encoding encoding = utf8,
   }) {
-    return _Uri._uriEncode(_Uri._unreservedTable, component, encoding, true);
+    return _Uri._uriEncode(_unreservedMask, component, encoding, true);
   }
 
   /// Decodes the percent-encoding in [encodedComponent].
@@ -1325,7 +1325,7 @@ abstract interface class Uri {
   /// print(encoded); // https://example.com/api/query?search=%20dart%20is
   /// ```
   static String encodeFull(String uri) {
-    return _Uri._uriEncode(_Uri._encodeFullTable, uri, utf8, false);
+    return _Uri._uriEncode(_encodeFullMask, uri, utf8, false);
   }
 
   /// Decodes the percent-encoding in [uri].
@@ -2215,7 +2215,7 @@ final class _Uri implements _PlatformUri {
   }
 
   static bool _isZoneIDChar(int char) {
-    return char < 127 && (_zoneIDTable[char >> 4] & (1 << (char & 0xf))) != 0;
+    return char < 127 && (_charTables.codeUnitAt(char) & _zoneIDMask) != 0;
   }
 
   /// Validates and does case- and percent-encoding normalization.
@@ -2297,7 +2297,7 @@ final class _Uri implements _PlatformUri {
   }
 
   static bool _isRegNameChar(int char) {
-    return char < 127 && (_regNameTable[char >> 4] & (1 << (char & 0xf))) != 0;
+    return char < 127 && (_charTables.codeUnitAt(char) & _regNameMask) != 0;
   }
 
   /// Validates and does case- and percent-encoding normalization.
@@ -2315,7 +2315,7 @@ final class _Uri implements _PlatformUri {
     while (index < end) {
       int char = host.codeUnitAt(index);
       if (char == _PERCENT) {
-        // The _regNameTable contains "%", so we check that first.
+        // The _regNameMask table contains "%", so we check that first.
         String? replacement = _normalizeEscape(host, index, true);
         if (replacement == null && isNormalized) {
           index += 3;
@@ -2413,7 +2413,7 @@ final class _Uri implements _PlatformUri {
 
   static String _makeUserInfo(String? userInfo, int start, int end) {
     if (userInfo == null) return "";
-    return _normalizeOrSubstring(userInfo, start, end, _userinfoTable);
+    return _normalizeOrSubstring(userInfo, start, end, _userinfoMask);
   }
 
   static String _makePath(
@@ -2430,7 +2430,7 @@ final class _Uri implements _PlatformUri {
     if (path == null) {
       if (pathSegments == null) return isFile ? "/" : "";
       result = pathSegments
-          .map((s) => _uriEncode(_pathCharTable, s, utf8, false))
+          .map((s) => _uriEncode(_pathCharMask, s, utf8, false))
           .join("/");
     } else if (pathSegments != null) {
       throw ArgumentError('Both path and pathSegments specified');
@@ -2439,7 +2439,7 @@ final class _Uri implements _PlatformUri {
         path,
         start,
         end,
-        _pathCharOrSlashTable,
+        _pathCharOrSlashMask,
         escapeDelimiters: true,
         replaceBackslash: true,
       );
@@ -2482,7 +2482,7 @@ final class _Uri implements _PlatformUri {
         query,
         start,
         end,
-        _queryCharTable,
+        _queryCharMask,
         escapeDelimiters: true,
       );
     }
@@ -2533,7 +2533,7 @@ final class _Uri implements _PlatformUri {
       fragment,
       start,
       end,
-      _queryCharTable,
+      _queryCharMask,
       escapeDelimiters: true,
     );
   }
@@ -2620,7 +2620,7 @@ final class _Uri implements _PlatformUri {
     String component,
     int start,
     int end,
-    List<int> charTable, {
+    int charMask, {
     bool escapeDelimiters = false,
     bool replaceBackslash = false,
   }) {
@@ -2628,7 +2628,7 @@ final class _Uri implements _PlatformUri {
           component,
           start,
           end,
-          charTable,
+          charMask,
           escapeDelimiters: escapeDelimiters,
           replaceBackslash: replaceBackslash,
         ) ??
@@ -2648,7 +2648,7 @@ final class _Uri implements _PlatformUri {
     String component,
     int start,
     int end,
-    List<int> charTable, {
+    int charMask, {
     bool escapeDelimiters = false,
     bool replaceBackslash = false,
   }) {
@@ -2658,7 +2658,7 @@ final class _Uri implements _PlatformUri {
     // Loop while characters are valid and escapes correct and upper-case.
     while (index < end) {
       int char = component.codeUnitAt(index);
-      if (char < 127 && (charTable[char >> 4] & (1 << (char & 0x0f))) != 0) {
+      if (char < 127 && (_charTables.codeUnitAt(char) & charMask) != 0) {
         index++;
       } else {
         String? replacement;
@@ -2714,13 +2714,13 @@ final class _Uri implements _PlatformUri {
     return buffer.toString();
   }
 
-  static bool _isSchemeCharacter(int ch) {
-    return ch < 128 && ((_schemeTable[ch >> 4] & (1 << (ch & 0x0f))) != 0);
+  static bool _isSchemeCharacter(int char) {
+    return char < 128 && ((_charTables.codeUnitAt(char) & _schemeMask) != 0);
   }
 
-  static bool _isGeneralDelimiter(int ch) {
-    return ch <= _RIGHT_BRACKET &&
-        ((_genDelimitersTable[ch >> 4] & (1 << (ch & 0x0f))) != 0);
+  static bool _isGeneralDelimiter(int char) {
+    return char <= _RIGHT_BRACKET &&
+        ((_charTables.codeUnitAt(char) & _genDelimitersMask) != 0);
   }
 
   /// Whether the URI is absolute.
@@ -2854,8 +2854,7 @@ final class _Uri implements _PlatformUri {
         if (char == _COLON) {
           return "${path.substring(0, i)}%3A${path.substring(i + 1)}";
         }
-        if (char > 127 ||
-            ((_schemeTable[char >> 4] & (1 << (char & 0x0f))) == 0)) {
+        if (char > 127 || ((_charTables.codeUnitAt(char) & _schemeMask) == 0)) {
           break;
         }
       }
@@ -3256,7 +3255,7 @@ final class _Uri implements _PlatformUri {
   }
 
   external static String _uriEncode(
-    List<int> canonicalTable,
+    int canonicalMask,
     String text,
     Encoding encoding,
     bool spaceToPlus,
@@ -3351,244 +3350,8 @@ final class _Uri implements _PlatformUri {
 
   static bool _isUnreservedChar(int char) {
     return char < 127 &&
-        ((_unreservedTable[char >> 4] & (1 << (char & 0x0f))) != 0);
+        ((_charTables.codeUnitAt(char) & _unreservedMask) != 0);
   }
-
-  // Tables of char-codes organized as a bit vector of 128 bits where
-  // each bit indicate whether a character code on the 0-127 needs to
-  // be escaped or not.
-
-  // The unreserved characters of RFC 3986.
-  static const _unreservedTable = <int>[
-    //                     LSB            MSB
-    //                      |              |
-    0x0000, // 0x00 - 0x0f  0000000000000000
-    0x0000, // 0x10 - 0x1f  0000000000000000
-    //                                   -.
-    0x6000, // 0x20 - 0x2f  0000000000000110
-    //                      0123456789
-    0x03ff, // 0x30 - 0x3f  1111111111000000
-    //                       ABCDEFGHIJKLMNO
-    0xfffe, // 0x40 - 0x4f  0111111111111111
-    //                      PQRSTUVWXYZ    _
-    0x87ff, // 0x50 - 0x5f  1111111111100001
-    //                       abcdefghijklmno
-    0xfffe, // 0x60 - 0x6f  0111111111111111
-    //                      pqrstuvwxyz   ~
-    0x47ff, // 0x70 - 0x7f  1111111111100010
-  ];
-
-  // The unreserved characters of RFC 2396.
-  static const _unreserved2396Table = <int>[
-    //                     LSB            MSB
-    //                      |              |
-    0x0000, // 0x00 - 0x0f  0000000000000000
-    0x0000, // 0x10 - 0x1f  0000000000000000
-    //                       !     '()*  -.
-    0x6782, // 0x20 - 0x2f  0100000111100110
-    //                      0123456789
-    0x03ff, // 0x30 - 0x3f  1111111111000000
-    //                       ABCDEFGHIJKLMNO
-    0xfffe, // 0x40 - 0x4f  0111111111111111
-    //                      PQRSTUVWXYZ    _
-    0x87ff, // 0x50 - 0x5f  1111111111100001
-    //                       abcdefghijklmno
-    0xfffe, // 0x60 - 0x6f  0111111111111111
-    //                      pqrstuvwxyz   ~
-    0x47ff, // 0x70 - 0x7f  1111111111100010
-  ];
-
-  // Table of reserved characters specified by ECMAScript 5.
-  static const _encodeFullTable = <int>[
-    //                     LSB            MSB
-    //                      |              |
-    0x0000, // 0x00 - 0x0f  0000000000000000
-    0x0000, // 0x10 - 0x1f  0000000000000000
-    //                       ! #$ &'()*+,-./
-    0xffda, // 0x20 - 0x2f  0101101111111111
-    //                      0123456789:; = ?
-    0xafff, // 0x30 - 0x3f  1111111111110101
-    //                      @ABCDEFGHIJKLMNO
-    0xffff, // 0x40 - 0x4f  1111111111111111
-    //                      PQRSTUVWXYZ    _
-    0x87ff, // 0x50 - 0x5f  1111111111100001
-    //                       abcdefghijklmno
-    0xfffe, // 0x60 - 0x6f  0111111111111111
-    //                      pqrstuvwxyz   ~
-    0x47ff, // 0x70 - 0x7f  1111111111100010
-  ];
-
-  // Characters allowed in the scheme.
-  static const _schemeTable = <int>[
-    //                     LSB            MSB
-    //                      |              |
-    0x0000, // 0x00 - 0x0f  0000000000000000
-    0x0000, // 0x10 - 0x1f  0000000000000000
-    //                                 + -.
-    0x6800, // 0x20 - 0x2f  0000000000010110
-    //                      0123456789
-    0x03ff, // 0x30 - 0x3f  1111111111000000
-    //                       ABCDEFGHIJKLMNO
-    0xfffe, // 0x40 - 0x4f  0111111111111111
-    //                      PQRSTUVWXYZ
-    0x07ff, // 0x50 - 0x5f  1111111111100001
-    //                       abcdefghijklmno
-    0xfffe, // 0x60 - 0x6f  0111111111111111
-    //                      pqrstuvwxyz
-    0x07ff, // 0x70 - 0x7f  1111111111100010
-  ];
-
-  // General delimiter characters, RFC 3986 section 2.2.
-  // gen-delims  = ":" / "/" / "?" / "#" / "[" / "]" / "@"
-  //
-  static const _genDelimitersTable = <int>[
-    //                     LSB            MSB
-    //                      |              |
-    0x0000, // 0x00 - 0x0f  0000000000000000
-    0x0000, // 0x10 - 0x1f  0000000000000000
-    //                         #           /
-    0x8008, // 0x20 - 0x2f  0001000000000001
-    //                                :    ?
-    0x8400, // 0x30 - 0x3f  0000000000100001
-    //                      @
-    0x0001, // 0x40 - 0x4f  1000000000000000
-    //                                 [ ]
-    0x2800, // 0x50 - 0x5f  0000000000010100
-    //
-    0x0000, // 0x60 - 0x6f  0000000000000000
-    //
-    0x0000, // 0x70 - 0x7f  0000000000000000
-  ];
-
-  // Characters allowed in the userinfo as of RFC 3986.
-  // RFC 3986 Appendix A
-  // userinfo = *( unreserved / pct-encoded / sub-delims / ':')
-  static const _userinfoTable = <int>[
-    //                     LSB            MSB
-    //                      |              |
-    0x0000, // 0x00 - 0x0f  0000000000000000
-    0x0000, // 0x10 - 0x1f  0000000000000000
-    //                       !  $ &'()*+,-.
-    0x7fd2, // 0x20 - 0x2f  0100101111111110
-    //                      0123456789:; =
-    0x2fff, // 0x30 - 0x3f  1111111111110100
-    //                       ABCDEFGHIJKLMNO
-    0xfffe, // 0x40 - 0x4f  0111111111111111
-    //                      PQRSTUVWXYZ    _
-    0x87ff, // 0x50 - 0x5f  1111111111100001
-    //                       abcdefghijklmno
-    0xfffe, // 0x60 - 0x6f  0111111111111111
-    //                      pqrstuvwxyz   ~
-    0x47ff, // 0x70 - 0x7f  1111111111100010
-  ];
-
-  // Characters allowed in the reg-name as of RFC 3986.
-  // RFC 3986 Appendix A
-  // reg-name = *( unreserved / pct-encoded / sub-delims )
-  static const _regNameTable = <int>[
-    //                     LSB            MSB
-    //                      |              |
-    0x0000, // 0x00 - 0x0f  0000000000000000
-    0x0000, // 0x10 - 0x1f  0000000000000000
-    //                       !  $%&'()*+,-.
-    0x7ff2, // 0x20 - 0x2f  0100111111111110
-    //                      0123456789 ; =
-    0x2bff, // 0x30 - 0x3f  1111111111010100
-    //                       ABCDEFGHIJKLMNO
-    0xfffe, // 0x40 - 0x4f  0111111111111111
-    //                      PQRSTUVWXYZ    _
-    0x87ff, // 0x50 - 0x5f  1111111111100001
-    //                       abcdefghijklmno
-    0xfffe, // 0x60 - 0x6f  0111111111111111
-    //                      pqrstuvwxyz   ~
-    0x47ff, // 0x70 - 0x7f  1111111111100010
-  ];
-
-  // Characters allowed in the path as of RFC 3986.
-  // RFC 3986 section 3.3.
-  // pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
-  static const _pathCharTable = <int>[
-    //                     LSB            MSB
-    //                      |              |
-    0x0000, // 0x00 - 0x0f  0000000000000000
-    0x0000, // 0x10 - 0x1f  0000000000000000
-    //                       !  $ &'()*+,-.
-    0x7fd2, // 0x20 - 0x2f  0100101111111110
-    //                      0123456789:; =
-    0x2fff, // 0x30 - 0x3f  1111111111110100
-    //                      @ABCDEFGHIJKLMNO
-    0xffff, // 0x40 - 0x4f  1111111111111111
-    //                      PQRSTUVWXYZ    _
-    0x87ff, // 0x50 - 0x5f  1111111111100001
-    //                       abcdefghijklmno
-    0xfffe, // 0x60 - 0x6f  0111111111111111
-    //                      pqrstuvwxyz   ~
-    0x47ff, // 0x70 - 0x7f  1111111111100010
-  ];
-
-  // Characters allowed in the path as of RFC 3986.
-  // RFC 3986 section 3.3 *and* slash.
-  static const _pathCharOrSlashTable = [
-    //                     LSB            MSB
-    //                      |              |
-    0x0000, // 0x00 - 0x0f  0000000000000000
-    0x0000, // 0x10 - 0x1f  0000000000000000
-    //                       !  $ &'()*+,-./
-    0xffd2, // 0x20 - 0x2f  0100101111111111
-    //                      0123456789:; =
-    0x2fff, // 0x30 - 0x3f  1111111111110100
-    //                      @ABCDEFGHIJKLMNO
-    0xffff, // 0x40 - 0x4f  1111111111111111
-    //                      PQRSTUVWXYZ    _
-    0x87ff, // 0x50 - 0x5f  1111111111100001
-    //                       abcdefghijklmno
-    0xfffe, // 0x60 - 0x6f  0111111111111111
-    //                      pqrstuvwxyz   ~
-    0x47ff, // 0x70 - 0x7f  1111111111100010
-  ];
-
-  // Characters allowed in the query as of RFC 3986.
-  // RFC 3986 section 3.4.
-  // query = *( pchar / "/" / "?" )
-  static const _queryCharTable = [
-    //                     LSB            MSB
-    //                      |              |
-    0x0000, // 0x00 - 0x0f  0000000000000000
-    0x0000, // 0x10 - 0x1f  0000000000000000
-    //                       !  $ &'()*+,-./
-    0xffd2, // 0x20 - 0x2f  0100101111111111
-    //                      0123456789:; = ?
-    0xafff, // 0x30 - 0x3f  1111111111110101
-    //                      @ABCDEFGHIJKLMNO
-    0xffff, // 0x40 - 0x4f  1111111111111111
-    //                      PQRSTUVWXYZ    _
-    0x87ff, // 0x50 - 0x5f  1111111111100001
-    //                       abcdefghijklmno
-    0xfffe, // 0x60 - 0x6f  0111111111111111
-    //                      pqrstuvwxyz   ~
-    0x47ff, // 0x70 - 0x7f  1111111111100010
-  ];
-
-  // Characters allowed in the ZoneID as of RFC 6874.
-  // ZoneID = 1*( unreserved / pct-encoded )
-  static const _zoneIDTable = <int>[
-    //                     LSB            MSB
-    //                      |              |
-    0x0000, // 0x00 - 0x0f  0000000000000000
-    0x0000, // 0x10 - 0x1f  0000000000000000
-    //                       !  $%&'()*+,-.
-    0x6000, // 0x20 - 0x2f  0000000000000110
-    //                      0123456789 ; =
-    0x03ff, // 0x30 - 0x3f  1111111111000000
-    //                       ABCDEFGHIJKLMNO
-    0xfffe, // 0x40 - 0x4f  0111111111111111
-    //                      PQRSTUVWXYZ    _
-    0x87ff, // 0x50 - 0x5f  1111111111100001
-    //                       abcdefghijklmno
-    0xfffe, // 0x60 - 0x6f  0111111111111111
-    //                      pqrstuvwxyz   ~
-    0x47ff, // 0x70 - 0x7f  1111111111100010
-  ];
 }
 
 // --------------------------------------------------------------------
@@ -3673,7 +3436,7 @@ final class UriData {
       buffer.write(encoding.fuse(_base64).encode(content));
     } else {
       buffer.write(',');
-      _uriEncodeBytes(_uricTable, encoding.encode(content), buffer);
+      _uriEncodeBytes(_uricMask, encoding.encode(content), buffer);
     }
     return UriData._(buffer.toString(), indices, null);
   }
@@ -3694,7 +3457,7 @@ final class UriData {
     indices.add(buffer.length);
     if (percentEncoded) {
       buffer.write(',');
-      _uriEncodeBytes(_uricTable, bytes, buffer);
+      _uriEncodeBytes(_uricMask, bytes, buffer);
     } else {
       buffer.write(';base64,');
       indices.add(buffer.length - 1);
@@ -3758,7 +3521,7 @@ final class UriData {
       }
       buffer.write(
         _Uri._uriEncode(
-          _tokenCharTable,
+          _tokenCharMask,
           mimeType.substring(0, slashIndex),
           utf8,
           false,
@@ -3767,7 +3530,7 @@ final class UriData {
       buffer.write("/");
       buffer.write(
         _Uri._uriEncode(
-          _tokenCharTable,
+          _tokenCharMask,
           mimeType.substring(slashIndex + 1),
           utf8,
           false,
@@ -3779,7 +3542,7 @@ final class UriData {
         ?..add(buffer.length)
         ..add(buffer.length + 8);
       buffer.write(";charset=");
-      buffer.write(_Uri._uriEncode(_tokenCharTable, charsetName, utf8, false));
+      buffer.write(_Uri._uriEncode(_tokenCharMask, charsetName, utf8, false));
     }
     parameters?.forEach((key, value) {
       if (key.isEmpty) {
@@ -3795,10 +3558,10 @@ final class UriData {
       indices?.add(buffer.length);
       buffer.write(';');
       // Encode any non-RFC2045-token character and both '%' and '#'.
-      buffer.write(_Uri._uriEncode(_tokenCharTable, key, utf8, false));
+      buffer.write(_Uri._uriEncode(_tokenCharMask, key, utf8, false));
       indices?.add(buffer.length);
       buffer.write('=');
-      buffer.write(_Uri._uriEncode(_tokenCharTable, value, utf8, false));
+      buffer.write(_Uri._uriEncode(_tokenCharMask, value, utf8, false));
     });
   }
 
@@ -3884,7 +3647,7 @@ final class UriData {
         _text,
         queryIndex + 1,
         end,
-        _Uri._queryCharTable,
+        _queryCharMask,
       );
       end = queryIndex;
     }
@@ -3892,7 +3655,7 @@ final class UriData {
       _text,
       colonIndex + 1,
       end,
-      _Uri._pathCharOrSlashTable,
+      _pathCharOrSlashMask,
     );
     return _DataUri(this, path, query);
   }
@@ -4221,7 +3984,7 @@ final class UriData {
         text,
         i + 1,
         text.length,
-        _uricTable,
+        _uricMask,
         escapeDelimiters: true,
       );
       if (data != null) {
@@ -4235,7 +3998,7 @@ final class UriData {
   ///
   /// Encodes into [buffer] instead of creating its own buffer.
   static void _uriEncodeBytes(
-    List<int> canonicalTable,
+    int canonicalMask,
     List<int> bytes,
     StringSink buffer,
   ) {
@@ -4246,7 +4009,7 @@ final class UriData {
       int byte = bytes[i];
       byteOr |= byte;
       if (byte < 128 &&
-          ((canonicalTable[byte >> 4] & (1 << (byte & 0x0f))) != 0)) {
+          ((_charTables.codeUnitAt(byte) & canonicalMask) != 0)) {
         buffer.writeCharCode(byte);
       } else {
         buffer.writeCharCode(_PERCENT);
@@ -4267,41 +4030,6 @@ final class UriData {
   String toString() =>
       (_separatorIndices[0] == _noScheme) ? "data:$_text" : _text;
 
-  // Table of the `token` characters of RFC 2045 in a URI.
-  //
-  // A token is any US-ASCII character except SPACE, control characters and
-  // `tspecial` characters. The `tspecial` category is:
-  // '(', ')', '<', '>', '@', ',', ';', ':', '\', '"', '/', '[, ']', '?', '='.
-  //
-  // In a data URI, we also need to escape '%' and '#' characters.
-  static const _tokenCharTable = [
-    //                     LSB             MSB
-    //                      |               |
-    0x0000, // 0x00 - 0x0f  00000000 00000000
-    0x0000, // 0x10 - 0x1f  00000000 00000000
-    //                       !  $ &'   *+ -.
-    0x6cd2, // 0x20 - 0x2f  01001011 00110110
-    //                      01234567 89
-    0x03ff, // 0x30 - 0x3f  11111111 11000000
-    //                       ABCDEFG HIJKLMNO
-    0xfffe, // 0x40 - 0x4f  01111111 11111111
-    //                      PQRSTUVW XYZ   ^_
-    0xc7ff, // 0x50 - 0x5f  11111111 11100011
-    //                      `abcdefg hijklmno
-    0xffff, // 0x60 - 0x6f  11111111 11111111
-    //                      pqrstuvw xyz{|}~
-    0x7fff, // 0x70 - 0x7f  11111111 11111110
-  ];
-
-  // All non-escape RFC-2396 uric characters.
-  //
-  //  uric        =  reserved | unreserved | escaped
-  //  reserved    =  ";" | "/" | "?" | ":" | "@" | "&" | "=" | "+" | "$" | ","
-  //  unreserved  =  alphanum | mark
-  //  mark        =  "-" | "_" | "." | "!" | "~" | "*" | "'" | "(" | ")"
-  //
-  // This is the same characters as in a URI query (which is URI pchar plus '?')
-  static const _uricTable = _Uri._queryCharTable;
 }
 
 // --- URI PARSER TABLE --- start --- generated code, do not edit ---
@@ -5168,3 +4896,97 @@ int _caseInsensitiveCompareStart(String prefix, String string, int start) {
 bool _caseInsensitiveEquals(String string1, String string2) =>
     string1.length == string2.length &&
     _caseInsensitiveStartsWith(string1, string2, 0);
+
+
+// --- URI CHARSET TABLE --- start --- generated code, do not edit ---
+// Use tools/generate_uri_parser_tables.dart to generate this code
+// if necessary.
+
+// The unreserved characters of RFC 3986.
+// [A-Za-z0-9\-._~]
+const _unreservedMask = 0x0001;
+
+// The unreserved characters of RFC 2396.
+// [A-Za-z0-9!'()*\-._~]
+const _unreserved2396Mask = 0x0002;
+
+// Table of reserved characters specified by ECMAScript 5.
+// [A-Za-z0-9!#$&'()*+,\-./:;=?_~]
+const _encodeFullMask = 0x0004;
+
+// Characters allowed in the scheme.
+// [A-Za-z0-9+\-.]
+const _schemeMask = 0x0008;
+
+// Characters allowed in the userinfo as of RFC 3986.
+// RFC 3986 Appendix A
+// userinfo = *( unreserved / pct-encoded / sub-delims / ':')
+// [A-Za-z0-9!$&'()*+,\-.:;=_~] (without '%')
+const _userinfoMask = 0x0010;
+
+// Characters allowed in the reg-name as of RFC 3986.
+// RFC 3986 Appendix A
+// reg-name = *( unreserved / pct-encoded / sub-delims )
+// Same as `_userInfoMask` without the `:`.
+// // [A-Za-z0-9!$%&'()*+,\-.;=_~] (including '%')
+const _regNameMask = 0x0020;
+
+// Characters allowed in the path as of RFC 3986.
+// RFC 3986 section 3.3.
+// pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
+// [A-Za-z0-9!$&'()*+,\-.:;=@_~] (without '%')
+const _pathCharMask = 0x0040;
+
+// Characters allowed in the path as of RFC 3986.
+// RFC 3986 section 3.3 *and* slash.
+// [A-Za-z0-9!$&'()*+,\-./:;=@_~] (without '%')
+const _pathCharOrSlashMask = 0x0080;
+
+// Characters allowed in the query as of RFC 3986.
+// RFC 3986 section 3.4.
+// query = *( pchar / "/" / "?" )
+// [A-Za-z0-9!$&'()*+,\-./:;=?@_~] (without '%')
+const _queryCharMask = 0x0100;
+
+// Characters allowed in the ZoneID as of RFC 6874.
+// ZoneID = 1*( unreserved / pct-encoded )
+// [A-Za-z0-9\-._~] + '%'
+const _zoneIDMask = _unreservedMask;
+
+// Table of the `token` characters of RFC 2045 in a `data:` URI.
+//
+// A token is any US-ASCII character except SPACE, control characters and
+// `tspecial` characters. The `tspecial` category is:
+// '(', ')', '<', '>', '@', ',', ';', ':', '\', '"', '/', '[, ']', '?', '='.
+//
+// In a data URI, we also need to escape '%' and '#' characters.
+const _tokenCharMask = 0x0200;
+
+// All non-escape RFC-2396 "uric" characters.
+//
+// The "uric" character set is defined by:
+// ```
+//  uric        =  reserved | unreserved | escaped
+//  reserved    =  ";" | "/" | "?" | ":" | "@" | "&" | "=" | "+" | "$" | ","
+//  unreserved  =  alphanum | mark
+//  mark        =  "-" | "_" | "." | "!" | "~" | "*" | "'" | "(" | ")"
+// ```
+// This is the same characters as in a URI query (which is URI pchar plus '?')
+const _uricMask = _queryCharMask;
+
+// General delimiter characters, RFC 3986 section 2.2.
+// gen-delims  = ":" / "/" / "?" / "#" / "[" / "]" / "@"
+// [:/?#[]@]
+const _genDelimitersMask = 0x0400;
+
+const String _charTables = "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    "\x00\x00\x00\u03f6\x00\u0404\u03f4\x20\u03f4\u03f6\u01f6\u01f6\u03f6\u03fc"
+    "\u01f4\u03ff\u03ff\u0584\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff"
+    "\u03ff\u03ff\u05d4\u01f4\x00\u01f4\x00\u0504\u05c4\u03ff\u03ff\u03ff\u03ff"
+    "\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff"
+    "\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u0400\x00"
+    "\u0400\u0200\u03f7\u0200\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff"
+    "\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff"
+    "\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u0200\u0200\u0200\u03f7\x00";
+// --- URI CHARSET TABLE --- end --- generated code, do not edit ---

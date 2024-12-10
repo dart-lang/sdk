@@ -133,7 +133,7 @@ vars = {
   "dart_style_rev": "1de89eb3bd340315f9ff5f2afc319cc1d6131b8d", # disable tools/rev_sdk_deps.dart
   "dartdoc_rev": "c7f11603effa88ddacabfd555993f322fca8b3fe",
   "ecosystem_rev": "b4b2a438ff40cbbdf245b2854567316c1d24a394",
-  "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
+  "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
   "glob_rev": "994191a107b99a1911a3ef52ca238cd9305c8d37",
   "http_rev": "79470d014b467f01b0e7c5b63ab6c86b22dec8db",
   "http_multi_server_rev": "f6a748819139b8cbf513d5fc36b10676b0cb066f",
@@ -143,7 +143,7 @@ vars = {
   "markdown_rev": "4d5dbc659955973902f2585c54e94d453532db70",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
-  "native_rev": "8ea1a9db0af42933eb22334c4506ca464d7237e9", # disable tools/rev_sdk_deps.dart
+  "native_rev": "da5dc148a0430b6c4224b59178db5385d79b2298", # disable tools/rev_sdk_deps.dart
   "package_config_rev": "76f2f6c245451da1fa24d7bbb00251b909e729a5",
   "pool_rev": "f85209d83cb0aa3c5612ed80de32df51ba580abd",
   "protobuf_rev": "da7279c56734cffed4deb1e3a6f93bdcefccf6b8",

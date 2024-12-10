@@ -85,7 +85,8 @@ class DebugPrinter extends VisitorDefault<void>
       'name': '${node.name ?? '--unnamed--'}',
       'isFinal': '${node.isFinal}',
       'isConst': '${node.isConst}',
-      'isInitializingFormal': '${node.isInitializingFormal}'
+      'isInitializingFormal': '${node.isInitializingFormal}',
+      'isSuperInitializingFormal': '${node.isSuperInitializingFormal}'
     });
     node.visitChildren(this);
     closeNode();

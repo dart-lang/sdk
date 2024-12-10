@@ -59,7 +59,6 @@ regress/issue_39091_2: EmptyOutput
 regress/utf_16_le_content.crash: EmptyOutput
 
 extension_types/with_dependencies/issue53209_2/main: UnknownChunk
-general/bad_import: UnknownChunk # Test has parser errors
 general/error_recovery/constructor_recovery_operator.crash: UnknownChunk # Test has parser errors
 general/error_recovery/issue_39058_prime.crash: UnknownChunk # Test has parser errors
 general/error_recovery/issue_39202.crash: UnknownChunk # Test has parser errors

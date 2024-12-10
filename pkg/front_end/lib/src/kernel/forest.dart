@@ -643,6 +643,7 @@ class Forest {
       bool isFinal = false,
       bool isConst = false,
       bool isInitializingFormal = false,
+      bool isSuperInitializingFormal = false,
       bool isCovariantByDeclaration = false,
       bool isLocalFunction = false,
       bool isSynthesized = false}) {
@@ -652,6 +653,7 @@ class Forest {
         isFinal: isFinal,
         isConst: isConst,
         isInitializingFormal: isInitializingFormal,
+        isSuperInitializingFormal: isSuperInitializingFormal,
         isCovariantByDeclaration: isCovariantByDeclaration,
         isLocalFunction: isLocalFunction,
         isSynthesized: isSynthesized,
