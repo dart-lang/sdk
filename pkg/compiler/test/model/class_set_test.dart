@@ -202,7 +202,7 @@ testIterators() async {
       world.classHierarchy.getClassHierarchyNode(B),
       EnumSet<Instantiation>.fromValues(<Instantiation>[
         Instantiation.DIRECTLY_INSTANTIATED,
-        Instantiation.UNINSTANTIATED
+        Instantiation.UNINSTANTIATED,
       ])).iterator;
   checkState(B, currentNode: null, stack: null);
   Expect.isTrue(iterator.moveNext());
@@ -255,7 +255,7 @@ testIterators() async {
       world.classHierarchy.getClassHierarchyNode(A),
       EnumSet<Instantiation>.fromValues(<Instantiation>[
         Instantiation.DIRECTLY_INSTANTIATED,
-        Instantiation.UNINSTANTIATED
+        Instantiation.UNINSTANTIATED,
       ])).iterator;
   checkState(A, currentNode: null, stack: null);
   Expect.isTrue(iterator.moveNext());
@@ -277,7 +277,7 @@ testIterators() async {
           world.classHierarchy.getClassHierarchyNode(A),
           EnumSet<Instantiation>.fromValues(<Instantiation>[
             Instantiation.DIRECTLY_INSTANTIATED,
-            Instantiation.UNINSTANTIATED
+            Instantiation.UNINSTANTIATED,
           ]),
           includeRoot: false)
       .iterator;

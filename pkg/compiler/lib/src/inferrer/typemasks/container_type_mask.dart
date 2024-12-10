@@ -57,7 +57,8 @@ class ContainerTypeMask extends AllocationTypeMask {
   }
 
   @override
-  ContainerTypeMask withFlags({bool? isNullable, bool? hasLateSentinel}) {
+  ContainerTypeMask withSpecialValues(
+      {bool? isNullable, bool? hasLateSentinel}) {
     isNullable ??= this.isNullable;
     hasLateSentinel ??= this.hasLateSentinel;
     if (isNullable == this.isNullable &&
@@ -65,7 +66,7 @@ class ContainerTypeMask extends AllocationTypeMask {
       return this;
     }
     return ContainerTypeMask(
-        forwardTo.withFlags(
+        forwardTo.withSpecialValues(
             isNullable: isNullable, hasLateSentinel: hasLateSentinel),
         allocationNode,
         allocationElement,

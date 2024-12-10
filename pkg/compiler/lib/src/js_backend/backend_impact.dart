@@ -377,7 +377,7 @@ class BackendImpacts {
     ],
     features: EnumSet<BackendFeature>.fromValues([
       BackendFeature.needToInitializeDispatchProperty,
-      BackendFeature.needToInitializeIsolateAffinityTag
+      BackendFeature.needToInitializeIsolateAffinityTag,
     ]),
   );
 

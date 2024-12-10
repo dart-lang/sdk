@@ -57,7 +57,7 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
         // TODO(johnniwinther): Track super constructor invocations?
         return EnumSet.fromValues([Access.staticAccess]);
       } else if (member.isInstanceMember) {
-        return EnumSet.fromValues(Access.values);
+        return EnumSet.allValues(Access.values);
       } else {
         assert(member is JContextField, "Unexpected member: $member");
         return EnumSet.empty();

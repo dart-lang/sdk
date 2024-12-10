@@ -27,8 +27,8 @@ class RecordTypeMask extends TypeMask {
     // If any field is empty then this record is not instantiable and we
     // simplify to an empty mask.
     if (types.any((e) => e.isEmpty)) {
-      return domain.emptyType
-          .withFlags(isNullable: isNullable, hasLateSentinel: hasLateSentinel);
+      return domain.emptyType.withSpecialValues(
+          isNullable: isNullable, hasLateSentinel: hasLateSentinel);
     }
     return RecordTypeMask._(types, shape,
         isNullable: isNullable, hasLateSentinel: hasLateSentinel);
@@ -65,7 +65,7 @@ class RecordTypeMask extends TypeMask {
   }
 
   @override
-  RecordTypeMask withFlags({bool? isNullable, bool? hasLateSentinel}) {
+  RecordTypeMask withSpecialValues({bool? isNullable, bool? hasLateSentinel}) {
     isNullable ??= this.isNullable;
     hasLateSentinel ??= this.hasLateSentinel;
     if (isNullable == this.isNullable &&
@@ -108,8 +108,8 @@ class RecordTypeMask extends TypeMask {
       }
     }
     if (other is FlatTypeMask) {
-      if (other.isEmptyOrFlagged) {
-        return withFlags(
+      if (other.isEmptyOrSpecial) {
+        return withSpecialValues(
             isNullable: newIsNullable, hasLateSentinel: newHasLateSentinel);
       }
       final otherBase = other.base!;
@@ -125,7 +125,7 @@ class RecordTypeMask extends TypeMask {
             .isSubtypeOf(recordClass, otherBase)) {
           // Other is a supertype of this shape so it encompasses this shape as
           // well. Use a subtype check to check for the Record interface.
-          return other.withFlags(
+          return other.withSpecialValues(
               isNullable: newIsNullable, hasLateSentinel: newHasLateSentinel);
         }
       }
@@ -153,10 +153,10 @@ class RecordTypeMask extends TypeMask {
         return RecordTypeMask.createRecord(domain, intersectedFields, shape,
             isNullable: newIsNullable, hasLateSentinel: newHasLateSentinel);
       }
-    } else if (other is FlatTypeMask && !other.isEmptyOrFlagged) {
+    } else if (other is FlatTypeMask && !other.isEmptyOrSpecial) {
       if (other.containsAll(domain._closedWorld)) {
         // Top type encompasses this record so just update flags.
-        return withFlags(
+        return withSpecialValues(
             isNullable: newIsNullable, hasLateSentinel: newHasLateSentinel);
       }
       final otherBase = other.base!;
@@ -169,13 +169,13 @@ class RecordTypeMask extends TypeMask {
             .isSubtypeOf(recordClass, otherBase)) {
           // This record is encompassed in `other` so maintain the current
           // shape.
-          return withFlags(
+          return withSpecialValues(
               isNullable: newIsNullable, hasLateSentinel: newHasLateSentinel);
         } else if (domain._closedWorld.classHierarchy
             .isSubclassOf(otherBase, recordClass)) {
           // Other is a specialization of this shape. We don't know the field
           // types on this specialization so we just use the class itself.
-          return other.withFlags(
+          return other.withSpecialValues(
               isNullable: newIsNullable, hasLateSentinel: newHasLateSentinel);
         }
       }
@@ -226,7 +226,7 @@ class RecordTypeMask extends TypeMask {
       // Must contain all submasks on `other`.
       return other.disjointMasks.every((e) => containsMask(e, closedWorld));
     } else if (other is FlatTypeMask) {
-      if (other.isEmptyOrFlagged) return true;
+      if (other.isEmptyOrSpecial) return true;
     }
     // We don't handle flat type masks here because even if the class matches,
     // each field is considered dynamic. This is likely wider than the field
@@ -255,7 +255,7 @@ class RecordTypeMask extends TypeMask {
       }
       return false;
     } else if (other is FlatTypeMask) {
-      if (other.isEmptyOrFlagged) return true;
+      if (other.isEmptyOrSpecial) return true;
       if (other.containsAll(closedWorld)) return false;
       final otherBase = other.base!;
       final recordClass = _classForRecord(closedWorld);
@@ -297,7 +297,7 @@ class RecordTypeMask extends TypeMask {
       }
       return true;
     } else if (other is FlatTypeMask) {
-      if (other.isEmptyOrFlagged) return false;
+      if (other.isEmptyOrSpecial) return false;
       if (other.containsAll(closedWorld)) return true;
       final otherBase = other.base!;
       final recordClass = _classForRecord(closedWorld);
@@ -425,7 +425,7 @@ class RecordTypeMask extends TypeMask {
   bool get isEmpty => false;
 
   @override
-  bool get isEmptyOrFlagged => false;
+  bool get isEmptyOrSpecial => false;
 
   @override
   AbstractBool get isLateSentinel => AbstractBool.maybeOrFalse(hasLateSentinel);

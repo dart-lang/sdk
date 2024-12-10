@@ -51,7 +51,7 @@ class SetTypeMask extends AllocationTypeMask {
   }
 
   @override
-  SetTypeMask withFlags({bool? isNullable, bool? hasLateSentinel}) {
+  SetTypeMask withSpecialValues({bool? isNullable, bool? hasLateSentinel}) {
     isNullable ??= this.isNullable;
     hasLateSentinel ??= this.hasLateSentinel;
     if (isNullable == this.isNullable &&
@@ -59,7 +59,7 @@ class SetTypeMask extends AllocationTypeMask {
       return this;
     }
     return SetTypeMask(
-        forwardTo.withFlags(
+        forwardTo.withSpecialValues(
             isNullable: isNullable, hasLateSentinel: hasLateSentinel),
         allocationNode,
         allocationElement,

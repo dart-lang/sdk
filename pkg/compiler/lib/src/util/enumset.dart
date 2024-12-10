@@ -138,13 +138,13 @@ class EnumSetDomain<E extends Enum> {
 
   final Iterable<E> values;
 
+  /// A bitset containing all enum values in [E].
+  late final Bitset allValues = Bitset(((1 << values.length) - 1) << offset);
+
   EnumSetDomain(this.offset, this.values);
 
   /// When composing [EnumSetDomain]s, the [offset] to use for the next domain.
   int get nextOffset => offset + values.length;
-
-  /// Returns a bitset containing all enum values in [E].
-  Bitset get allValues => Bitset(((1 << values.length) - 1) << offset);
 
   /// Returns a singleton bitset containing [value].
   Bitset fromValue(E value) => value.mask(offset);
@@ -152,6 +152,16 @@ class EnumSetDomain<E extends Enum> {
   /// Returns a bitset containing [values].
   Bitset fromValues(Iterable<E> values) =>
       values.fold(Bitset.empty(), (acc, e) => acc.union(e.mask(offset)));
+
+  /// Returns a bitset derived from [values] shifted by the appropriate offset.
+  Bitset fromEnumSet(EnumSet<E> values) => Bitset(values.mask.bits << offset);
+
+  EnumSet<E> toEnumSet(Bitset bits) =>
+      EnumSet.fromRawBits(restrict(bits).bits >> offset);
+
+  /// Returns a bitset equal to [bits] with only bits in this domain set.
+  @useResult
+  Bitset restrict(Bitset bits) => bits.intersection(allValues);
 
   /// Returns a bitset containing all enum values in [bits] as well as
   /// [enumValue].
@@ -173,4 +183,26 @@ class EnumSetDomain<E extends Enum> {
   /// Returns `true` if [enumValue] is in [bits].
   bool contains(Bitset bits, E enumValue) =>
       bits.intersects(enumValue.mask(offset));
+
+  /// Returns `true` if [bits] contains any [E].
+  bool isNotEmpty(Bitset bits) => bits.intersects(allValues);
+
+  /// Returns `true` if [bits] does not contain any [E].
+  bool isEmpty(Bitset bits) => !isNotEmpty(bits);
+}
+
+class ComposedEnumSetDomains {
+  final List<EnumSetDomain> domains;
+  final int bitWidth;
+  late final Bitset mask;
+  late final Bitset notMask;
+
+  ComposedEnumSetDomains(this.domains) : bitWidth = domains.last.nextOffset {
+    final maskBits = (1 << bitWidth) - 1;
+    mask = Bitset(maskBits);
+    notMask = Bitset(~maskBits);
+  }
+
+  @useResult
+  Bitset restrict(Bitset bits) => bits.intersection(mask);
 }

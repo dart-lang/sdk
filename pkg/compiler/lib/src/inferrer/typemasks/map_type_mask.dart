@@ -56,7 +56,7 @@ class MapTypeMask extends AllocationTypeMask {
   }
 
   @override
-  MapTypeMask withFlags({bool? isNullable, bool? hasLateSentinel}) {
+  MapTypeMask withSpecialValues({bool? isNullable, bool? hasLateSentinel}) {
     isNullable ??= this.isNullable;
     hasLateSentinel ??= this.hasLateSentinel;
     if (isNullable == this.isNullable &&
@@ -64,7 +64,7 @@ class MapTypeMask extends AllocationTypeMask {
       return this;
     }
     return MapTypeMask(
-        forwardTo.withFlags(
+        forwardTo.withSpecialValues(
             isNullable: isNullable, hasLateSentinel: hasLateSentinel),
         allocationNode,
         allocationElement,
