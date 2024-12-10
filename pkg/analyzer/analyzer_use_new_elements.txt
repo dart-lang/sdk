@@ -179,7 +179,6 @@ test/id_tests/type_constraint_generation_test.dart
 test/src/dart/analysis/driver_caching_test.dart
 test/src/dart/analysis/driver_test.dart
 test/src/dart/analysis/index_test.dart
-test/src/dart/analysis/resolve_for_completion_test.dart
 test/src/dart/analysis/result_printer.dart
 test/src/dart/analysis/results/get_element_declaration_test.dart
 test/src/dart/analysis/search_test.dart
