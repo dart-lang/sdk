@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -30,7 +30,7 @@ class TypeArgumentIssue {
   final int index;
 
   /// The type parameter with the bound that was violated.
-  final TypeParameterElement parameter;
+  final TypeParameterElement2 parameter;
 
   /// The substituted bound of the [parameter].
   final DartType parameterBound;
@@ -75,23 +75,23 @@ class TypeBoundedHelper {
   TypeBoundedResult _isRegularBounded(DartType type) {
     List<TypeArgumentIssue>? issues;
 
-    String elementName;
-    List<TypeParameterElement> typeParameters;
+    String? elementName;
+    List<TypeParameterElement2> typeParameters;
     List<DartType> typeArguments;
     var alias = type.alias;
     if (alias != null) {
-      elementName = alias.element.name;
-      typeParameters = alias.element.typeParameters;
+      elementName = alias.element2.name3;
+      typeParameters = alias.element2.typeParameters2;
       typeArguments = alias.typeArguments;
     } else if (type is InterfaceType) {
-      elementName = type.element.name;
-      typeParameters = type.element.typeParameters;
+      elementName = type.element3.name3;
+      typeParameters = type.element3.typeParameters2;
       typeArguments = type.typeArguments;
     } else {
       return const RegularBoundedTypeResult._();
     }
 
-    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+    var substitution = Substitution.fromPairs2(typeParameters, typeArguments);
     for (var i = 0; i < typeParameters.length; i++) {
       var typeParameter = typeParameters[i];
       var typeArgument = typeArguments[i];
@@ -111,7 +111,7 @@ class TypeBoundedHelper {
       }
     }
 
-    if (issues == null) {
+    if (issues == null || elementName == null) {
       return const RegularBoundedTypeResult._();
     } else {
       return NotWellBoundedTypeResult._(

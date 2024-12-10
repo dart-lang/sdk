@@ -1818,7 +1818,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // available to process those expressions.
     var isTopLevel = flowAnalysis.flow == null;
     if (isTopLevel) {
-      flowAnalysis.topLevelDeclaration_enter(node, null);
+      flowAnalysis.bodyOrInitializer_enter(node, null);
     }
     assert(flowAnalysis.flow != null);
     var whyNotPromotedArguments =
@@ -1830,7 +1830,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           arguments, whyNotPromotedArguments);
     }
     if (isTopLevel) {
-      flowAnalysis.topLevelDeclaration_exit();
+      flowAnalysis.bodyOrInitializer_exit();
     }
     inferenceLogWriter?.exitAnnotation(node);
   }
@@ -2295,15 +2295,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     var element = node.declaredElement!;
-
-    flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
-    flowAnalysis.executableDeclaration_enter(node, node.parameters,
-        isClosure: false);
-
     var returnType = element.type.returnType;
-
     var outerFunction = _enclosingFunction;
     var outerAugmentation = enclosingAugmentation;
+
     try {
       _enclosingFunction = element;
       enclosingAugmentation = element;
@@ -2314,25 +2309,30 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.metadata.accept(this);
       node.returnType.accept(this);
       node.parameters.accept(this);
+
+      flowAnalysis.bodyOrInitializer_enter(node, node.parameters);
+      flowAnalysis.executableDeclaration_enter(node, node.parameters,
+          isClosure: false);
+
       node.initializers.accept(this);
       node.redirectedConstructor?.accept(this);
       node.body.resolve(this, returnType is DynamicType ? null : returnType);
       elementResolver.visitConstructorDeclaration(node);
+
+      if (node.factoryKeyword != null) {
+        checkForBodyMayCompleteNormally(
+          body: node.body,
+          errorNode: node,
+        );
+      }
+      flowAnalysis.executableDeclaration_exit(node.body, false);
+      flowAnalysis.bodyOrInitializer_exit();
+      nullSafetyDeadCodeVerifier.flowEnd(node);
     } finally {
       _enclosingFunction = outerFunction;
       enclosingAugmentation = outerAugmentation;
       _thisType = null;
     }
-
-    if (node.factoryKeyword != null) {
-      checkForBodyMayCompleteNormally(
-        body: node.body,
-        errorNode: node,
-      );
-    }
-    flowAnalysis.executableDeclaration_exit(node.body, false);
-    flowAnalysis.topLevelDeclaration_exit();
-    nullSafetyDeadCodeVerifier.flowEnd(node);
   }
 
   @override
@@ -2731,12 +2731,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // expressions.
     var isTopLevel = flowAnalysis.flow == null;
     if (isTopLevel) {
-      flowAnalysis.topLevelDeclaration_enter(node, null);
+      flowAnalysis.bodyOrInitializer_enter(node, null);
     }
     checkUnreachableNode(node);
     node.visitChildren(this);
     if (isTopLevel) {
-      flowAnalysis.topLevelDeclaration_exit();
+      flowAnalysis.bodyOrInitializer_exit();
     }
   }
 
@@ -2753,23 +2753,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
     bool isLocal = node.parent is FunctionDeclarationStatement;
     var element = node.declaredElement!;
-
-    if (isLocal) {
-      flowAnalysis.flow!.functionExpression_begin(node);
-    } else {
-      flowAnalysis.topLevelDeclaration_enter(
-          node, node.functionExpression.parameters);
-    }
-    flowAnalysis.executableDeclaration_enter(
-      node,
-      node.functionExpression.parameters,
-      isClosure: isLocal,
-    );
-
     var functionType = node.declaredElement!.type;
-
     var outerFunction = _enclosingFunction;
     var outerAugmentation = enclosingAugmentation;
+
     try {
       _enclosingFunction = element;
       if (!isLocal) {
@@ -2781,31 +2768,44 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.documentationComment?.accept(this);
       node.metadata.accept(this);
       node.returnType?.accept(this);
+
+      if (isLocal) {
+        flowAnalysis.flow!.functionExpression_begin(node);
+      } else {
+        flowAnalysis.bodyOrInitializer_enter(
+            node, node.functionExpression.parameters);
+      }
+      flowAnalysis.executableDeclaration_enter(
+        node,
+        node.functionExpression.parameters,
+        isClosure: isLocal,
+      );
+
       analyzeExpression(
           node.functionExpression, SharedTypeSchemaView(functionType));
       popRewrite();
       elementResolver.visitFunctionDeclaration(node);
+
+      if (!node.isSetter) {
+        checkForBodyMayCompleteNormally(
+          body: node.functionExpression.body,
+          errorNode: node.name,
+        );
+      }
+      flowAnalysis.executableDeclaration_exit(
+        node.functionExpression.body,
+        isLocal,
+      );
+      if (isLocal) {
+        flowAnalysis.flow!.functionExpression_end();
+      } else {
+        flowAnalysis.bodyOrInitializer_exit();
+      }
+      nullSafetyDeadCodeVerifier.flowEnd(node);
     } finally {
       _enclosingFunction = outerFunction;
       enclosingAugmentation = outerAugmentation;
     }
-
-    if (!node.isSetter) {
-      checkForBodyMayCompleteNormally(
-        body: node.functionExpression.body,
-        errorNode: node.name,
-      );
-    }
-    flowAnalysis.executableDeclaration_exit(
-      node.functionExpression.body,
-      isLocal,
-    );
-    if (isLocal) {
-      flowAnalysis.flow!.functionExpression_end();
-    } else {
-      flowAnalysis.topLevelDeclaration_exit();
-    }
-    nullSafetyDeadCodeVerifier.flowEnd(node);
   }
 
   @override
@@ -3156,15 +3156,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     var element = node.declaredElement!;
-
-    flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
-    flowAnalysis.executableDeclaration_enter(node, node.parameters,
-        isClosure: false);
-
     DartType returnType = element.returnType;
-
     var outerFunction = _enclosingFunction;
     var outerAugmentation = enclosingAugmentation;
+
     try {
       _enclosingFunction = element;
       if (element case AugmentableElement augmentation) {
@@ -3178,23 +3173,28 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
       node.parameters?.accept(this);
+
+      flowAnalysis.bodyOrInitializer_enter(node, node.parameters);
+      flowAnalysis.executableDeclaration_enter(node, node.parameters,
+          isClosure: false);
+
       node.body.resolve(this, returnType is DynamicType ? null : returnType);
       elementResolver.visitMethodDeclaration(node);
+
+      if (!node.isSetter) {
+        checkForBodyMayCompleteNormally(
+          body: node.body,
+          errorNode: node.name,
+        );
+      }
+      flowAnalysis.executableDeclaration_exit(node.body, false);
+      flowAnalysis.bodyOrInitializer_exit();
+      nullSafetyDeadCodeVerifier.flowEnd(node);
     } finally {
       _enclosingFunction = outerFunction;
       enclosingAugmentation = outerAugmentation;
       _thisType = null;
     }
-
-    if (!node.isSetter) {
-      checkForBodyMayCompleteNormally(
-        body: node.body,
-        errorNode: node.name,
-      );
-    }
-    flowAnalysis.executableDeclaration_exit(node.body, false);
-    flowAnalysis.topLevelDeclaration_exit();
-    nullSafetyDeadCodeVerifier.flowEnd(node);
   }
 
   @override

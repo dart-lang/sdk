@@ -407,6 +407,15 @@ class AnalysisDriver {
   /// Return the number of files scheduled for analysis.
   int get numberOfFilesToAnalyze => _fileTracker.numberOfPendingFiles;
 
+  List<PluginConfiguration> get pluginConfigurations {
+    // We currently only support plugins which are specified at the root of a
+    // context.
+    var rootOptionsFile = analysisContext?.contextRoot.optionsFile;
+    return rootOptionsFile != null
+        ? getAnalysisOptionsForFile(rootOptionsFile).pluginConfigurations
+        : const [];
+  }
+
   /// Return the list of files that the driver should try to analyze sooner.
   List<String> get priorityFiles => _priorityFiles.toList(growable: false);
 

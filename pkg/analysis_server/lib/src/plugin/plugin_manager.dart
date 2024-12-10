@@ -341,17 +341,20 @@ class PluginManager {
   ///
   /// If the plugin had not yet been started, then it will be started by this
   /// method.
+  ///
+  /// Specify whether this is a legacy plugin with [isLegacyPlugin].
   Future<void> addPluginToContextRoot(
     analyzer.ContextRoot contextRoot,
-    String path,
-  ) async {
+    String path, {
+    required bool isLegacyPlugin,
+  }) async {
     var plugin = _pluginMap[path];
     var isNew = false;
     if (plugin == null) {
       isNew = true;
       PluginFiles pluginFiles;
       try {
-        pluginFiles = filesFor(path);
+        pluginFiles = filesFor(path, isLegacyPlugin: isLegacyPlugin);
       } catch (exception, stackTrace) {
         plugin = DiscoveredPluginInfo(
           path,
@@ -464,10 +467,14 @@ class PluginManager {
 
   /// Returns the files associated with the plugin at the given [pluginPath].
   ///
+  /// In some cases, the plugin's sources are copied to a special directory. If
+  /// [pluginPath] does not include a `pubspec.yaml` file, we do not. If
+  /// [pluginPath] exists in a [BlazeWorkspace], we do not.
+  ///
   /// Throws a [PluginException] if there is a problem that prevents the plugin
   /// from being executing.
   @visibleForTesting
-  PluginFiles filesFor(String pluginPath) {
+  PluginFiles filesFor(String pluginPath, {required bool isLegacyPlugin}) {
     var pluginFolder = resourceProvider.getFolder(pluginPath);
     var pubspecFile = pluginFolder.getChildAssumingFile(file_paths.pubspecYaml);
     if (!pubspecFile.exists) {
@@ -482,16 +489,16 @@ class PluginManager {
       return _computeFiles(pluginFolder, workspace: workspace);
     }
 
+    if (!isLegacyPlugin) {
+      return _computeFiles(pluginFolder, pubCommand: 'upgrade');
+    }
+
     // Copy the plugin directory to a unique subdirectory of the plugin
     // manager's state location. The subdirectory's name is selected such that
     // it will be invariant across sessions, reducing the number of times we
     // copy the plugin contents, and the number of times we run `pub`.
-    var stateFolder = resourceProvider.getStateLocation('.plugin_manager');
-    if (stateFolder == null) {
-      throw PluginException('No state location, so plugin could not be copied');
-    }
-    var stateName = _uniqueDirectoryName(pluginPath);
-    var parentFolder = stateFolder.getChildAssumingFolder(stateName);
+
+    var parentFolder = pluginStateFolder(pluginPath);
     if (parentFolder.exists) {
       var executionFolder = parentFolder.getChildAssumingFolder(
         pluginFolder.shortName,
@@ -516,6 +523,19 @@ class PluginManager {
       }
     }
     return plugins;
+  }
+
+  /// Returns the "plugin state" folder for a plugin at [pluginPath].
+  ///
+  /// This is a directory under the state location for '.plugin_manager', named
+  /// with a hash based on [pluginPath].
+  Folder pluginStateFolder(String pluginPath) {
+    var stateFolder = resourceProvider.getStateLocation('.plugin_manager');
+    if (stateFolder == null) {
+      throw PluginException('No state location, so plugin could not be copied');
+    }
+    var stateName = _uniqueDirectoryName(pluginPath);
+    return stateFolder.getChildAssumingFolder(stateName);
   }
 
   /// The given [contextRoot] is no longer being analyzed.

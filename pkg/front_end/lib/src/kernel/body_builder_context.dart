@@ -135,9 +135,7 @@ abstract class BodyBuilderContext {
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
         if (formal.isWildcard &&
-            // Coverage-ignore(suite): Not run.
             identifier.name == '_' &&
-            // Coverage-ignore(suite): Not run.
             formal.fileOffset == identifier.nameOffset) {
           return formal;
         }

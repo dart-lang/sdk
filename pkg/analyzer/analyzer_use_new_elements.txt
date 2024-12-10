@@ -56,7 +56,6 @@ lib/src/dart/element/type_provider.dart
 lib/src/dart/element/type_schema.dart
 lib/src/dart/element/type_system.dart
 lib/src/dart/element/type_visitor.dart
-lib/src/dart/element/well_bounded.dart
 lib/src/dart/micro/analysis_context.dart
 lib/src/dart/micro/resolve_file.dart
 lib/src/dart/micro/utils.dart

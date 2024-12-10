@@ -164,8 +164,9 @@ class TestPluginManager implements PluginManager {
   @override
   Future<void> addPluginToContextRoot(
     analyzer.ContextRoot contextRoot,
-    String path,
-  ) async {
+    String path, {
+    required bool isLegacyPlugin,
+  }) async {
     contextRootPlugins.putIfAbsent(contextRoot, () => []).add(path);
   }
 

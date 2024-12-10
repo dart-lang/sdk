@@ -224,6 +224,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
             nameOffset: nameOffset,
             nameLength: fullNameForErrors.length);
       } else if (isSetter) {
+        // Coverage-ignore-block(suite): Not run.
         membersBuilder.inferSetterType(declarationBuilder as SourceClassBuilder,
             formals, _overrideDependencies!,
             name: fullNameForErrors,
@@ -263,6 +264,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         // Coverage-ignore(suite): Not run.
         return procedure;
       case ProcedureKind.Operator:
+      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Setter:
         return null;
     }
@@ -272,6 +274,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   Member? get writeTarget {
     switch (_kind) {
       case ProcedureKind.Setter:
+        // Coverage-ignore(suite): Not run.
         return procedure;
       case ProcedureKind.Method:
       // Coverage-ignore(suite): Not run.
@@ -290,8 +293,10 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       case ProcedureKind.Method:
       case ProcedureKind.Getter:
       case ProcedureKind.Operator:
+      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Factory:
         return procedure;
+      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Setter:
         return null;
     }
@@ -318,7 +323,9 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
           f(member: _procedure, kind: BuiltMemberKind.ExtensionGetter);
           break;
         case ProcedureKind.Setter:
+          // Coverage-ignore(suite): Not run.
           assert(extensionTearOff == null, "Unexpected extension tear-off.");
+          // Coverage-ignore(suite): Not run.
           f(member: _procedure, kind: BuiltMemberKind.ExtensionSetter);
           break;
         case ProcedureKind.Operator:
@@ -345,7 +352,9 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
           f(member: _procedure, kind: BuiltMemberKind.ExtensionTypeGetter);
           break;
         case ProcedureKind.Setter:
+          // Coverage-ignore(suite): Not run.
           assert(extensionTearOff == null, "Unexpected extension tear-off.");
+          // Coverage-ignore(suite): Not run.
           f(member: _procedure, kind: BuiltMemberKind.ExtensionTypeSetter);
           break;
         case ProcedureKind.Operator:
@@ -554,12 +563,13 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         ];
 
   @override
-  List<ClassMember> get localSetters =>
-      _localSetters ??= isSetter && !isConflictingSetter
-          ? <ClassMember>[
-              new SourceProcedureMember(this, ClassMemberKind.Setter)
-            ]
-          : const <ClassMember>[];
+  List<ClassMember> get localSetters => _localSetters ??= isSetter &&
+          // Coverage-ignore(suite): Not run.
+          !isConflictingSetter
+      ?
+      // Coverage-ignore(suite): Not run.
+      <ClassMember>[new SourceProcedureMember(this, ClassMemberKind.Setter)]
+      : const <ClassMember>[];
 
   @override
   void becomeNative(SourceLoader loader) {
@@ -625,17 +635,21 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         readTarget = extensionTearOff ?? augmentedProcedure;
         invokeTarget = augmentedProcedure;
         break;
+      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Getter:
         readTarget = augmentedProcedure;
         invokeTarget = augmentedProcedure;
         break;
+      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Factory:
         readTarget = augmentedProcedure;
         invokeTarget = augmentedProcedure;
         break;
+      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Operator:
         invokeTarget = augmentedProcedure;
         break;
+      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Setter:
         writeTarget = augmentedProcedure;
         break;
@@ -767,6 +781,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   static DartType getSetterType(SourceProcedureBuilder setterBuilder,
       {required List<TypeParameter>? getterExtensionTypeParameters}) {
     DartType setterType;
