@@ -163,6 +163,7 @@ class FormalParameterBuilder extends BuilderImpl
           isFinal: modifiers.isFinal,
           isConst: false,
           isInitializingFormal: isInitializingFormal,
+          isSuperInitializingFormal: isSuperInitializingFormal,
           isCovariantByDeclaration: isCovariantByDeclaration,
           isRequired: isRequiredNamed,
           hasDeclaredInitializer: hasDeclaredInitializer,
