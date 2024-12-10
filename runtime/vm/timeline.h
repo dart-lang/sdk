@@ -1254,6 +1254,7 @@ class TimelineEventFileRecorderBase : public TimelineEventPlatformRecorder {
   void Write(const char* buffer, intptr_t len) const;
   void Write(const char* buffer) const { Write(buffer, strlen(buffer)); }
   void CompleteEvent(TimelineEvent* event) final;
+  void StartUp(const char* name);
   void ShutDown();
 
  private:
