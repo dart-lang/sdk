@@ -8,7 +8,6 @@ import 'package:analysis_server/protocol/protocol.dart' as protocol;
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// The handler for the `search.getTypeHierarchy` request.
 class SearchGetTypeHierarchyHandler extends LegacyHandler {
@@ -30,14 +29,14 @@ class SearchGetTypeHierarchyHandler extends LegacyHandler {
     );
     var file = params.file;
     // prepare element
-    var element = await server.getElementAtOffset(file, params.offset);
+    var element = await server.getElementAtOffset2(file, params.offset);
     if (element == null) {
       _sendTypeHierarchyNull(request);
       return;
     }
     // maybe supertype hierarchy only
     if (params.superOnly == true) {
-      var computer = TypeHierarchyComputer(searchEngine, element.asElement2!);
+      var computer = TypeHierarchyComputer(searchEngine, element);
       var items = computer.computeSuper();
       var response = protocol.SearchGetTypeHierarchyResult(
         hierarchyItems: items,
@@ -46,7 +45,7 @@ class SearchGetTypeHierarchyHandler extends LegacyHandler {
       return;
     }
     // prepare type hierarchy
-    var computer = TypeHierarchyComputer(searchEngine, element.asElement2!);
+    var computer = TypeHierarchyComputer(searchEngine, element);
     var items = await computer.compute();
     var response = protocol.SearchGetTypeHierarchyResult(
       hierarchyItems: items,

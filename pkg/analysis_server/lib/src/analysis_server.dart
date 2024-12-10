@@ -83,6 +83,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
     as analyzer_plugin;
@@ -674,6 +675,12 @@ abstract class AnalysisServer {
     var node = await getNodeAtOffset(file, offset);
     return getElementOfNode(node);
   }
+
+  /// Return a [Future] that completes with the [Element2] at the given
+  /// [offset] of the given [file], or with `null` if there is no node at the
+  /// [offset] or the node does not have an element.
+  Future<Element2?> getElementAtOffset2(String file, int offset) async =>
+      (await getElementAtOffset(file, offset)).asElement2;
 
   /// Return the [Element] of the given [node], or `null` if [node] is `null` or
   /// does not have an element.
