@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart'
     as shared;
+import 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
@@ -129,7 +130,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             void,
             TypeParameterElement,
             InterfaceType,
-            InterfaceElement> {
+            InterfaceElement>,
+        // TODO(paulberry): not yet used.
+        NullShortingMixin<Null, Expression, SharedTypeView<DartType>> {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite], [pushRewrite], and [replaceExpression] will be printed.
   static const bool _debugRewriteStack = false;
@@ -789,7 +792,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
       staticType = operations.unknownType.unwrapTypeSchemaView();
     }
-    return SimpleTypeAnalysisResult<DartType>(type: SharedTypeView(staticType));
+    return ExpressionTypeAnalysisResult<DartType>(
+        type: SharedTypeView(staticType));
   }
 
   @override
@@ -3363,8 +3367,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         analyzePatternAssignment(node, node.pattern, node.expression);
     node.patternTypeSchema =
         analysisResult.patternSchema.unwrapTypeSchemaView();
-    node.recordStaticType(analysisResult.resolveShorting().unwrapTypeView(),
-        resolver: this);
+    node.recordStaticType(analysisResult.type.unwrapTypeView(), resolver: this);
     popRewrite(); // expression
     inferenceLogWriter?.exitExpression(node);
   }
