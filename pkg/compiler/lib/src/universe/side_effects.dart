@@ -15,8 +15,9 @@ enum SideEffectsFlag {
   staticProperty,
 }
 
-final _changes = EnumSetDomain<SideEffectsFlag>(0);
-final _depends = EnumSetDomain<SideEffectsFlag>(SideEffectsFlag.values.length);
+final _changes = EnumSetDomain<SideEffectsFlag>(0, SideEffectsFlag.values);
+final _depends =
+    EnumSetDomain<SideEffectsFlag>(_changes.nextOffset, SideEffectsFlag.values);
 
 class SideEffects {
   /// Tag used for identifying serialized [SideEffects] objects in a debugging
@@ -25,9 +26,9 @@ class SideEffects {
 
   Bitset _flags = Bitset.empty();
 
-  static final Bitset allChanges = _changes.allValues(SideEffectsFlag.values);
+  static final Bitset allChanges = _changes.allValues;
 
-  static final Bitset allDepends = _depends.allValues(SideEffectsFlag.values);
+  static final Bitset allDepends = _depends.allValues;
 
   SideEffects() {
     setAllSideEffects();

@@ -136,12 +136,15 @@ class EnumSetDomain<E extends Enum> {
   /// is equivalent to using an [EnumSet] directly.
   final int offset;
 
-  const EnumSetDomain(this.offset);
+  final Iterable<E> values;
+
+  EnumSetDomain(this.offset, this.values);
+
+  /// When composing [EnumSetDomain]s, the [offset] to use for the next domain.
+  int get nextOffset => offset + values.length;
 
   /// Returns a bitset containing all enum values in [E].
-  /// [values] is intended to be the `values` property of the enum class.
-  Bitset allValues(Iterable<E> values) =>
-      Bitset(((1 << values.length) - 1) << offset);
+  Bitset get allValues => Bitset(((1 << values.length) - 1) << offset);
 
   /// Returns a singleton bitset containing [value].
   Bitset fromValue(E value) => value.mask(offset);
