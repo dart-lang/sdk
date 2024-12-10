@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/src/generated/resolver.dart';
+library;
+
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
@@ -147,6 +150,56 @@ class FlowAnalysisHelper {
     }
   }
 
+  /// This method is called whenever the [ResolverVisitor] enters the body or
+  /// initializer of a top level declaration.
+  ///
+  /// It causes flow analysis to be initialized.
+  ///
+  /// [node] is the top level declaration that is being entered. [parameters] is
+  /// the formal parameter list of [node], or `null` if [node] doesn't have a
+  /// formal parameter list.
+  ///
+  /// [visit] is a callback that can be used to visit the body or initializer of
+  /// the top level declaration. This is used to compute assigned variables
+  /// information within the body or initializer. If `null`, the entire [node]
+  /// will be visited.
+  void bodyOrInitializer_enter(AstNode node, FormalParameterList? parameters,
+      {void Function(AstVisitor<Object?> visitor)? visit}) {
+    assert(flow == null);
+    assignedVariables = computeAssignedVariables(node, parameters,
+        retainDataForTesting: dataForTesting != null, visit: visit);
+    if (dataForTesting != null) {
+      dataForTesting!.assignedVariables[node] = assignedVariables
+          as AssignedVariablesForTesting<AstNode, PromotableElement>;
+    }
+    flow = isNonNullableByDefault
+        ? FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
+            SharedTypeView<DartType>>(
+            typeOperations,
+            assignedVariables!,
+            respectImplicitlyTypedVarInitializers:
+                respectImplicitlyTypedVarInitializers,
+            fieldPromotionEnabled: fieldPromotionEnabled,
+            inferenceUpdate4Enabled: inferenceUpdate4Enabled,
+          )
+        : FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
+                SharedTypeView<DartType>>.legacy(
+            typeOperations, assignedVariables!);
+  }
+
+  /// This method is called whenever the [ResolverVisitor] leaves the body or
+  /// initializer of a top level declaration.
+  void bodyOrInitializer_exit() {
+    // Set this.flow to null before doing any clean-up so that if an exception
+    // is raised, the state is already updated correctly, and we don't have
+    // cascading failures.
+    var flow = this.flow;
+    this.flow = null;
+    assignedVariables = null;
+
+    flow!.finish();
+  }
+
   void breakStatement(BreakStatement node) {
     var target = getLabelTarget(node, node.label?.staticElement, isBreak: true);
     flow!.handleBreak(target);
@@ -258,41 +311,6 @@ class FlowAnalysisHelper {
     if (flow == null) return;
 
     flow!.labeledStatement_end();
-  }
-
-  void topLevelDeclaration_enter(AstNode node, FormalParameterList? parameters,
-      {void Function(AstVisitor<Object?> visitor)? visit}) {
-    assert(flow == null);
-    assignedVariables = computeAssignedVariables(node, parameters,
-        retainDataForTesting: dataForTesting != null, visit: visit);
-    if (dataForTesting != null) {
-      dataForTesting!.assignedVariables[node] = assignedVariables
-          as AssignedVariablesForTesting<AstNode, PromotableElement>;
-    }
-    flow = isNonNullableByDefault
-        ? FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
-            SharedTypeView<DartType>>(
-            typeOperations,
-            assignedVariables!,
-            respectImplicitlyTypedVarInitializers:
-                respectImplicitlyTypedVarInitializers,
-            fieldPromotionEnabled: fieldPromotionEnabled,
-            inferenceUpdate4Enabled: inferenceUpdate4Enabled,
-          )
-        : FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
-                SharedTypeView<DartType>>.legacy(
-            typeOperations, assignedVariables!);
-  }
-
-  void topLevelDeclaration_exit() {
-    // Set this.flow to null before doing any clean-up so that if an exception
-    // is raised, the state is already updated correctly, and we don't have
-    // cascading failures.
-    var flow = this.flow;
-    this.flow = null;
-    assignedVariables = null;
-
-    flow!.finish();
   }
 
   /// Transfers any test data that was recorded for [oldNode] so that it is now
