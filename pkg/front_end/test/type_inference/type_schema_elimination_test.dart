@@ -29,8 +29,7 @@ class TypeSchemaEliminationTest {
   }
 
   DartType leastClosure(DartType schema) {
-    return typeSchemaElimination.leastClosure(schema,
-        topType: new DynamicType());
+    return typeSchemaElimination.leastClosure(schema, coreTypes: env.coreTypes);
   }
 
   void testGreatest(String type, String expectedClosure) {
@@ -69,13 +68,13 @@ class TypeSchemaEliminationTest {
   }
 
   void test_leastClosure_contravariant() {
-    testLeast("(UNKNOWN) ->* dynamic", "(dynamic) ->* dynamic");
-    testLeast("({UNKNOWN foo}) ->* dynamic", "({dynamic foo}) ->* dynamic");
+    testLeast("(UNKNOWN) ->* dynamic", "(Object?) ->* dynamic");
+    testLeast("({UNKNOWN foo}) ->* dynamic", "({Object? foo}) ->* dynamic");
   }
 
   void test_leastClosure_contravariant_contravariant() {
     testLeast("((UNKNOWN) ->* UNKNOWN) ->* dynamic",
-        "((Never) ->* dynamic) ->* dynamic");
+        "((Never) ->* Object?) ->* dynamic");
   }
 
   void test_leastClosure_covariant() {
@@ -85,7 +84,7 @@ class TypeSchemaEliminationTest {
 
   void test_leastClosure_function_multipleUnknown() {
     testLeast("(UNKNOWN, UNKNOWN, {UNKNOWN a, UNKNOWN b}) ->* UNKNOWN",
-        "(dynamic, dynamic, {dynamic a, dynamic b}) ->* Never");
+        "(Object?, Object?, {Object? a, Object? b}) ->* Never");
   }
 
   void test_leastClosure_simple() {
