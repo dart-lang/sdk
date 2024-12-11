@@ -10,6 +10,7 @@ import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// The handler for the `search.findElementReferences` request.
 class SearchFindElementReferencesHandler extends LegacyHandler {
@@ -52,7 +53,10 @@ class SearchFindElementReferencesHandler extends LegacyHandler {
     // search elements
     if (element != null) {
       var computer = ElementReferencesComputer(searchEngine);
-      var results = await computer.compute(element, params.includePotential);
+      var results = await computer.compute(
+        element.asElement2!,
+        params.includePotential,
+      );
       sendSearchResults(
         protocol.SearchResultsParams(
           searchId,

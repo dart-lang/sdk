@@ -112,11 +112,11 @@ Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(
 
 Map<String, String> processEnvironment(List<String> defines) =>
     Map<String, String>.fromEntries(defines.map((d) {
-      List<String> keyAndValue = d.split('=');
-      if (keyAndValue.length != 2) {
+      int index = d.indexOf('=');
+      if (index == -1) {
         throw ArgumentError('Bad define string: $d');
       }
-      return MapEntry<String, String>(keyAndValue[0], keyAndValue[1]);
+      return MapEntry<String, String>(d.substring(0, index), d.substring(index + 1));
     }));
 
 WasmCompilerOptions parseArguments(List<String> arguments) {

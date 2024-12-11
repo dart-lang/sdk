@@ -1482,10 +1482,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         );
         NodeReplacer.replace(node, propertyAccess);
         inferenceLogWriter?.exitLValue(node);
-        return resolveForWrite(
-          node: propertyAccess,
-          hasRead: hasRead,
-        );
+        return _propertyElementResolver.resolvePropertyAccess(
+            node: propertyAccess, hasRead: hasRead, hasWrite: true);
       }
 
       inferenceLogWriter?.exitLValue(node);
@@ -3414,7 +3412,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var rewrittenPropertyAccess =
         _prefixedIdentifierResolver.resolve(node, contextType: contextType);
     if (rewrittenPropertyAccess != null) {
-      _resolvePropertyAccess(rewrittenPropertyAccess, contextType);
+      _resolvePropertyAccessRhs(rewrittenPropertyAccess, contextType);
       // We did record that `node` was replaced with `rewrittenPropertyAccess`.
       // But if `rewrittenPropertyAccess` was itself rewritten, replace the
       // rewrite result of `node`.
@@ -3453,7 +3451,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
 
-    _resolvePropertyAccess(node, contextType);
+    var target = node.target;
+    if (target != null) {
+      analyzeExpression(
+          target, SharedTypeSchemaView(UnknownInferredType.instance));
+      popRewrite();
+    }
+
+    _resolvePropertyAccessRhs(node, contextType);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -4088,14 +4093,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     callReference.setPseudoExpressionStaticType(callMethodType);
   }
 
-  void _resolvePropertyAccess(PropertyAccessImpl node, DartType contextType) {
-    var target = node.target;
-    if (target != null) {
-      analyzeExpression(
-          target, SharedTypeSchemaView(UnknownInferredType.instance));
-      popRewrite();
-    }
-
+  void _resolvePropertyAccessRhs(
+      PropertyAccessImpl node, DartType contextType) {
     if (node.isNullAware) {
       _startNullAwareAccess(node, node.target);
     }
