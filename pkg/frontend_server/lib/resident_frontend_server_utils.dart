@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show jsonDecode;
+import 'dart:convert' show jsonDecode, jsonEncode;
 import 'dart:io' show Directory, File, InternetAddress, Socket;
 
 import 'package:path/path.dart' as path;
@@ -111,4 +111,23 @@ Future<Map<String, dynamic>> sendAndReceiveResponse(
   }
   client?.destroy();
   return jsonResponse;
+}
+
+/// Sends a 'replaceCachedDill' request with [replacementDillPath] as the lone
+/// argument to the resident frontend compiler associated with [serverInfoFile],
+/// and returns a boolean indicating whether or not replacement succeeded.
+///
+/// Throws a [FileSystemException] if [serverInfoFile] cannot be accessed.
+Future<bool> invokeReplaceCachedDill({
+  required String replacementDillPath,
+  required File serverInfoFile,
+}) async {
+  final Map<String, dynamic> response = await sendAndReceiveResponse(
+    jsonEncode({
+      'command': 'replaceCachedDill',
+      'replacementDillPath': replacementDillPath,
+    }),
+    serverInfoFile,
+  );
+  return response['success'];
 }
