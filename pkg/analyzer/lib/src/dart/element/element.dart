@@ -7411,6 +7411,9 @@ class LocalVariableElementImpl2 extends PromotableElementImpl2
   LocalVariableElement2 get baseElement => this;
 
   @override
+  String? get documentationComment => null;
+
+  @override
   LocalVariableFragment get firstFragment => _wrappedElement;
 
   @override
@@ -7435,6 +7438,9 @@ class LocalVariableElementImpl2 extends PromotableElementImpl2
   LibraryElement2 get library2 {
     return _wrappedElement.library2;
   }
+
+  @override
+  Metadata get metadata2 => wrappedElement.metadata2;
 
   @override
   DartType get type => _wrappedElement.type;

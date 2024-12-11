@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -267,8 +267,8 @@ Annotation
   element2: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
 
-    var localVariable = findElement.localVar('x');
-    var annotationOnElement = localVariable.metadata.single;
+    var localVariable = findElement2.localVar('x');
+    var annotationOnElement = localVariable.firstAnnotation;
     _assertElementAnnotationValueText(annotationOnElement, '''
 A
   a: int 3
@@ -1485,8 +1485,8 @@ import 'a.dart';
 void f(C c) {}
 ''');
 
-    var classC = findNode.namedType('C c').element!;
-    var annotation = classC.metadata.single;
+    var classC = findNode.namedType('C c').element2!;
+    var annotation = classC.firstAnnotation;
     _assertElementAnnotationValueText(annotation, r'''
 B
   a: A
@@ -1515,8 +1515,8 @@ import 'b.dart';
 void f(B b) {}
 ''');
 
-    var classB = findNode.namedType('B b').element!;
-    var annotation = classB.metadata.single;
+    var classB = findNode.namedType('B b').element2!;
+    var annotation = classB.firstAnnotation;
     _assertElementAnnotationValueText(annotation, r'''
 A
   f: int 42
@@ -1544,8 +1544,8 @@ import 'b.dart';
 void f(B b) {}
 ''');
 
-    var classB = findNode.namedType('B b').element!;
-    var annotation = classB.metadata.single;
+    var classB = findNode.namedType('B b').element2!;
+    var annotation = classB.firstAnnotation;
     _assertElementAnnotationValueText(annotation, r'''
 A
   f: int 42
@@ -2670,4 +2670,9 @@ int 42
     var value = annotation.computeConstantValue();
     assertDartObjectText(value, expected);
   }
+}
+
+extension on Element2 {
+  ElementAnnotation get firstAnnotation =>
+      (this as Annotatable).metadata2.annotations.first;
 }
