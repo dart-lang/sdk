@@ -1482,10 +1482,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         );
         NodeReplacer.replace(node, propertyAccess);
         inferenceLogWriter?.exitLValue(node);
-        return resolveForWrite(
-          node: propertyAccess,
-          hasRead: hasRead,
-        );
+        return _propertyElementResolver.resolvePropertyAccess(
+            node: propertyAccess, hasRead: hasRead, hasWrite: true);
       }
 
       inferenceLogWriter?.exitLValue(node);
