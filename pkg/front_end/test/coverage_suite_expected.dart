@@ -290,7 +290,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/formal_parameter_builder.dart": (
-    hitCount: 169,
+    hitCount: 170,
     missCount: 0,
   ),
   // 100.0%.
@@ -510,7 +510,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/getter.dart": (
-    hitCount: 501,
+    hitCount: 526,
     missCount: 0,
   ),
   // 100.0%.
@@ -535,7 +535,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/setter.dart": (
-    hitCount: 521,
+    hitCount: 546,
     missCount: 0,
   ),
   // 100.0%.
