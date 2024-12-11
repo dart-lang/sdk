@@ -626,8 +626,10 @@ _ElementDocumentation? _getDocsFromComputer(
   Element element,
   DartCompletionRequest request,
 ) {
+  var element2 = element.asElement2;
+  if (element2 == null) return null;
   var doc = request.documentationComputer.compute(
-    element,
+    element2,
     includeSummary: true,
   );
   if (doc is DocumentationWithSummary) {

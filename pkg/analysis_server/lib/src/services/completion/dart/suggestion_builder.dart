@@ -1576,7 +1576,7 @@ class SuggestionBuilder {
 
   /// If the [element] has a documentation comment, return it.
   _ElementDocumentation? _getDocumentation(Element2 element) {
-    var doc = request.documentationComputer.compute2(
+    var doc = request.documentationComputer.compute(
       element,
       includeSummary: true,
     );
@@ -1642,7 +1642,7 @@ class SuggestionBuilder {
   /// If the [element] has a documentation comment, fill the [suggestion]'s
   /// documentation fields.
   void _setDocumentation(CompletionSuggestion suggestion, Element2 element) {
-    var doc = request.documentationComputer.compute2(
+    var doc = request.documentationComputer.compute(
       element,
       includeSummary: true,
     );

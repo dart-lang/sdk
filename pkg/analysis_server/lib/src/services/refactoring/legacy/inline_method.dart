@@ -165,7 +165,7 @@ Set<String> _getNamesConflictingAt(AstNode node) {
     var localsRange = _getLocalsConflictingRange(node);
     var enclosingExecutable = getEnclosingExecutableNode(node);
     if (enclosingExecutable != null) {
-      var visibleRangeMap = VisibleRangesComputer.forNode2(enclosingExecutable);
+      var visibleRangeMap = VisibleRangesComputer.forNode(enclosingExecutable);
       visibleRangeMap.forEach((element, elementRange) {
         if (elementRange.intersects(localsRange)) {
           result.add(element.displayName);

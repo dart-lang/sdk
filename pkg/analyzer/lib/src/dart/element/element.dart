@@ -3272,6 +3272,9 @@ abstract class ElementImpl implements Element, Element2 {
 }
 
 abstract class ElementImpl2 implements Element2 {
+  /// A cached copy of the calculated `hashCode` for this element.
+  int? _cachedHashCode;
+
   ElementLocation? _cachedLocation;
 
   @override
@@ -3290,10 +3293,17 @@ abstract class ElementImpl2 implements Element2 {
   // TODO(augmentations): implement enclosingElement2
   Element2? get enclosingElement2 => throw UnimplementedError();
 
+  @override
+  int get hashCode {
+    // TODO(scheglov): We might want to re-visit this optimization in the future.
+    // We cache the hash code as this is a very frequently called method.
+    return _cachedHashCode ??= location.hashCode;
+  }
+
   /// Return an identifier that uniquely identifies this element among the
   /// children of this element's parent.
   String get identifier {
-    var identifier = name3!;
+    var identifier = name3 ?? (asElement as ElementImpl).codeOffset.toString();
     // TODO(augmentations): Figure out how to get a unique identifier. In the
     //  old model we sometimes used the offset of the name to disambiguate
     //  between elements, but we can't do that anymore because the name can
@@ -3336,6 +3346,18 @@ abstract class ElementImpl2 implements Element2 {
   @override
   AnalysisSession? get session {
     return enclosingElement2?.session;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return other is ElementImpl2 &&
+        other.kind == kind &&
+        other.location == location &&
+        other.nonSynthetic2.firstFragment.nameOffset2 ==
+            nonSynthetic2.firstFragment.nameOffset2;
   }
 
   /// Append a textual representation of this element to the given [builder].

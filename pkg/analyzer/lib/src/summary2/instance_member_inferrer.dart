@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/util/collection.dart';
 import 'package:collection/collection.dart';
@@ -20,20 +19,14 @@ class InstanceMemberInferrer {
   final InheritanceManager3 inheritance;
   final Set<InterfaceElement> elementsBeingInferred = {};
 
-  late TypeSystemImpl typeSystem;
-  late bool isNonNullableByDefault;
   late InterfaceElement currentInterfaceElement;
 
   /// Initialize a newly create inferrer.
   InstanceMemberInferrer(this.inheritance);
 
-  DartType get _dynamicType => DynamicTypeImpl.instance;
-
   /// Infer type information for all of the instance members in the given
   /// compilation [unit].
   void inferCompilationUnit(CompilationUnitElementImpl unit) {
-    typeSystem = unit.library.typeSystem;
-    isNonNullableByDefault = true;
     _inferClasses(unit.classes);
     _inferClasses(unit.enums);
     _inferExtensionTypes(unit.extensionTypes);
@@ -610,10 +603,6 @@ class InstanceMemberInferrer {
       }
     }
 
-    // Reset the type.
-    if (!isNonNullableByDefault) {
-      parameter.type = _dynamicType;
-    }
     element.isOperatorEqualWithParameterTypeFromObject = true;
   }
 

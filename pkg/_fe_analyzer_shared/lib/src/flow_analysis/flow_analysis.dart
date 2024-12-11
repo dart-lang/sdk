@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
+library;
+
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:meta/meta.dart';
 
@@ -188,7 +191,8 @@ class ExpressionPropertyTarget<Expression extends Object>
 /// analysis knows that the "is" expression is *not* an immediate child of the
 /// "if" statement, so therefore no type promotion should occur.
 abstract class FlowAnalysis<Node extends Object, Statement extends Node,
-    Expression extends Node, Variable extends Object, Type extends Object> {
+        Expression extends Node, Variable extends Object, Type extends Object>
+    implements FlowAnalysisNullShortingInterface<Expression, Type> {
   factory FlowAnalysis(
     FlowAnalysisOperations<Variable, Type> operations,
     AssignedVariables<Node, Variable> assignedVariables, {
@@ -732,26 +736,6 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method just after visiting a non-null assertion (`x!`)
   /// expression.
   void nonNullAssert_end(Expression operand);
-
-  /// Call this method after visiting an expression using `?.`.
-  void nullAwareAccess_end();
-
-  /// Call this method after visiting a null-aware operator such as `?.`,
-  /// `?..`, `?.[`, or `?..[`.
-  ///
-  /// [target] should be the expression just before the null-aware operator, or
-  /// `null` if the null-aware access starts a cascade section.
-  ///
-  /// [targetType] should be the type of the expression just before the
-  /// null-aware operator, and should be non-null even if the null-aware access
-  /// starts a cascade section.
-  ///
-  /// Note that [nullAwareAccess_end] should be called after the conclusion
-  /// of any null-shorting that is caused by the `?.`.  So, for example, if the
-  /// code being analyzed is `x?.y?.z(x)`, [nullAwareAccess_rightBegin] should
-  /// be called once upon reaching each `?.`, but [nullAwareAccess_end] should
-  /// not be called until after processing the method call to `z(x)`.
-  void nullAwareAccess_rightBegin(Expression? target, Type targetType);
 
   /// Call this method after visiting the value of a null-aware map entry.
   void nullAwareMapEntry_end({required bool isKeyNullAware});
@@ -2113,6 +2097,34 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
     }
     return value.toString();
   }
+}
+
+/// Flow analysis interface methods used by [NullShortingMixin].
+///
+/// These are separated from [FlowAnalysis] in order to isolate
+/// [NullShortingMixin] from the type parameters of [FlowAnalysis] that aren't
+/// relevant to it.
+abstract interface class FlowAnalysisNullShortingInterface<
+    Expression extends Object, Type extends Object> {
+  /// Call this method after visiting an expression using `?.`.
+  void nullAwareAccess_end();
+
+  /// Call this method after visiting a null-aware operator such as `?.`,
+  /// `?..`, `?.[`, or `?..[`.
+  ///
+  /// [target] should be the expression just before the null-aware operator, or
+  /// `null` if the null-aware access starts a cascade section.
+  ///
+  /// [targetType] should be the type of the expression just before the
+  /// null-aware operator, and should be non-null even if the null-aware access
+  /// starts a cascade section.
+  ///
+  /// Note that [nullAwareAccess_end] should be called after the conclusion
+  /// of any null-shorting that is caused by the `?.`.  So, for example, if the
+  /// code being analyzed is `x?.y?.z(x)`, [nullAwareAccess_rightBegin] should
+  /// be called once upon reaching each `?.`, but [nullAwareAccess_end] should
+  /// not be called until after processing the method call to `z(x)`.
+  void nullAwareAccess_rightBegin(Expression? target, Type targetType);
 }
 
 /// An instance of the [FlowModel] class represents the information gathered by

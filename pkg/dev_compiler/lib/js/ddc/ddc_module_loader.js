@@ -1913,7 +1913,7 @@ if (!self.deferred_loader) {
      * @returns {Array<string>} Array containing the extension names.
      */
     get extensionNames() {
-      return dartDeveloperLibrary()._extensions.keys().toList();
+      return dartDeveloperLibrary()._extensions.keys.toList();
     }
 
     /**

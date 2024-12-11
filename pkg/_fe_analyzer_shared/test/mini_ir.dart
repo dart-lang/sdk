@@ -108,9 +108,13 @@ class MiniIRBuilder {
   /// and creates a fresh [MiniIRTmp] representing a temporary variable whose
   /// initializer is that expression.
   ///
+  /// [location] should be a string representing the location of the test logic
+  /// that caused this temporary variable to be created (see [computeLocation]).
+  ///
   /// See [let].
-  MiniIRTmp allocateTmp() {
-    return MiniIRTmp._('t${_tmpCounter++}', _pop(Kind.expression).ir);
+  MiniIRTmp allocateTmp({required String location}) {
+    return MiniIRTmp._('t${_tmpCounter++}', _pop(Kind.expression).ir,
+        location: location);
   }
 
   /// Pops the top [inputKinds].length nodes from the stack and pushes a node
@@ -194,7 +198,7 @@ class MiniIRBuilder {
   /// operations.
   void ifNotNull(MiniIRTmp tmp, {required String location}) {
     _push(IRNode(
-        ir: 'if(==(${tmp._name}, null), null, ${_pop(Kind.expression)})',
+        ir: 'if(==(${tmp._name}, null), null, ${_pop(Kind.expression).ir})',
         kind: Kind.expression,
         location: location));
     let(tmp, location: location);
@@ -371,5 +375,9 @@ class MiniIRTmp {
   /// The initial value of the temporary variable.
   final String _value;
 
-  MiniIRTmp._(this._name, this._value);
+  /// A string representing the location of the test logic that caused this
+  /// temporary variable to be created (see [computeLocation]).
+  final String location;
+
+  MiniIRTmp._(this._name, this._value, {required this.location});
 }

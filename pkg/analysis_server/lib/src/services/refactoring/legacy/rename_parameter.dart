@@ -9,22 +9,22 @@ import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename_local.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A [Refactoring] for renaming [ParameterElement]s.
 class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
-  List<ParameterElement> elements = [];
+  List<FormalParameterElement> elements = [];
 
   RenameParameterRefactoringImpl(
     super.workspace,
     super.sessionHelper,
-    ParameterElement super.element,
-  );
+    FormalParameterElement super.element,
+  ) : super.c2();
 
   @override
-  ParameterElement get element => super.element as ParameterElement;
+  FormalParameterElement get element2 =>
+      super.element2 as FormalParameterElement;
 
   @override
   String get refactoringName {
@@ -40,12 +40,12 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
         result.addError(
           format(
             "The parameter '{0}' is named and can not be private.",
-            element.name,
+            element.name3,
           ),
         );
         break;
       }
-      var resolvedUnit = await sessionHelper.getResolvedUnitByElement(element);
+      var resolvedUnit = await sessionHelper.getResolvedUnitByElement2(element);
       var unit = resolvedUnit?.unit;
       unit?.accept(
         ConflictValidatorVisitor(
@@ -71,18 +71,18 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
     for (var element in elements) {
       var fieldRenamed = false;
-      if (element is FieldFormalParameterElement) {
-        var field = element.field;
+      if (element is FieldFormalParameterElement2) {
+        var field = element.field2;
         if (field != null) {
-          await processor.renameElement(field);
+          await processor.renameElement2(field);
           fieldRenamed = true;
         }
       }
 
       if (!fieldRenamed) {
-        processor.addDeclarationEdit(element);
+        processor.addDeclarationEdit2(element);
       }
-      var references = await searchEngine.searchReferences(element);
+      var references = await searchEngine.searchReferences2(element);
 
       // Remove references that don't have to have the same name.
 
@@ -93,7 +93,7 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
       // References to positional parameters from super-formal.
       if (element.isPositional) {
         references.removeWhere(
-          (match) => match.element is SuperFormalParameterElement,
+          (match) => match.element2 is SuperFormalParameterElement2,
         );
       }
 
@@ -103,13 +103,10 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
 
   /// Fills [elements] with [Element]s to rename.
   Future<void> _prepareElements() async {
-    var element = this.element;
+    var element = element2;
     if (element.isNamed) {
       elements =
-          (await getHierarchyNamedParameters(
-            searchEngine,
-            element.asElement2,
-          )).map((e) => e.asElement).toList();
+          (await getHierarchyNamedParameters(searchEngine, element)).toList();
     } else {
       elements = [element];
     }

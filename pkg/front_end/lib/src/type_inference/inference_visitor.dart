@@ -6,6 +6,7 @@
 // "nulled out".
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
@@ -115,6 +116,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             StructuralParameter,
             TypeDeclarationType,
             TypeDeclaration>,
+        // TODO(paulberry): not yet used.
+        NullShortingMixin<NullAwareGuard, Expression, SharedTypeView<DartType>>,
         StackChecker
     implements
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
@@ -10259,7 +10262,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // TODO(paulberry): eliminate the need for this--see
     // https://github.com/dart-lang/sdk/issues/52189.
     flow.forwardExpression(node, expressionResult.expression);
-    return new SimpleTypeAnalysisResult(
+    return new ExpressionTypeAnalysisResult(
         type: new SharedTypeView(expressionResult.inferredType));
   }
 
@@ -11765,7 +11768,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [/*empty*/]));
 
     return new ExpressionInferenceResult(
-        analysisResult.resolveShorting().unwrapTypeView(), node);
+        analysisResult.type.unwrapTypeView(), node);
   }
 
   @override

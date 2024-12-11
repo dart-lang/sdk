@@ -4,31 +4,16 @@
 
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
-/// Computes documentation for an [Element].
+/// Computes documentation for an [Element2].
 class DartDocumentationComputer {
   final DartdocDirectiveInfo dartdocInfo;
 
   DartDocumentationComputer(this.dartdocInfo);
 
   Documentation? compute(
-    Element elementBeingDocumented, {
-    bool includeSummary = false,
-  }) {
-    // TODO(dantup): Remove this temporary implementation used to split
-    //  migration of this class and callers into separate changes.
-    var element2 = elementBeingDocumented.asElement2;
-
-    return element2 != null
-        ? compute2(element2, includeSummary: includeSummary)
-        : null;
-  }
-
-  Documentation? compute2(
     Element2 elementBeingDocumented, {
     bool includeSummary = false,
   }) {
@@ -96,18 +81,6 @@ class DartDocumentationComputer {
   /// Compute documentation for [element] and return either the summary or full
   /// docs (or `null`) depending on `preference`.
   String? computePreferred(
-    Element element,
-    DocumentationPreference preference,
-  ) {
-    // TODO(dantup): Remove this temporary implementation used to split
-    //  migration of this class and callers into separate changes.
-    var element2 = element.asElement2;
-    return element2 != null ? computePreferred2(element2, preference) : null;
-  }
-
-  /// Compute documentation for [element] and return either the summary or full
-  /// docs (or `null`) depending on `preference`.
-  String? computePreferred2(
     Element2 element,
     DocumentationPreference preference,
   ) {
@@ -115,7 +88,7 @@ class DartDocumentationComputer {
       return null;
     }
 
-    var doc = compute2(
+    var doc = compute(
       element,
       includeSummary: preference == DocumentationPreference.summary,
     );

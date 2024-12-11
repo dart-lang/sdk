@@ -13,6 +13,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class CompletionResolveHandler
@@ -130,7 +131,7 @@ class CompletionResolveHandler
         Either2<MarkupContent, String>? documentation;
         var element =
             elementLocation != null
-                ? await session.locateElement(elementLocation)
+                ? (await session.locateElement(elementLocation)).asElement2
                 : null;
         if (element != null) {
           var formats = clientCapabilities.completionDocumentationFormats;

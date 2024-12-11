@@ -471,7 +471,7 @@ abstract class RenameRefactoring implements Refactoring {
         workspace,
         sessionHelper,
         resolvedUnit,
-        element,
+        element.asElement2!,
       );
     }
     if (element is ConstructorElement) {
@@ -489,19 +489,31 @@ abstract class RenameRefactoring implements Refactoring {
       );
     }
     if (element is LibraryElement) {
-      return RenameLibraryRefactoringImpl(workspace, sessionHelper, element);
+      return RenameLibraryRefactoringImpl(
+        workspace,
+        sessionHelper,
+        element.asElement2,
+      );
     }
     if (element is ParameterElement) {
-      return RenameParameterRefactoringImpl(workspace, sessionHelper, element);
+      return RenameParameterRefactoringImpl(
+        workspace,
+        sessionHelper,
+        element.asElement2,
+      );
     }
     if (element is LocalElement) {
-      return RenameLocalRefactoringImpl(workspace, sessionHelper, element);
+      return RenameLocalRefactoringImpl(
+        workspace,
+        sessionHelper,
+        element.asElement2 as LocalElement2,
+      );
     }
     if (element is TypeParameterElement) {
       return RenameTypeParameterRefactoringImpl(
         workspace,
         sessionHelper,
-        element,
+        element.asElement2 as TypeParameterElement2,
       );
     }
     if (enclosingElement is InterfaceElement) {

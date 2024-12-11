@@ -633,6 +633,7 @@ explosion
 exportable
 exportee
 exportees
+expose
 exposing
 expr
 expression's
@@ -1489,6 +1490,7 @@ reinterpret
 reissued
 reject
 rejoin
+rejoins
 relatively
 relativize
 relax

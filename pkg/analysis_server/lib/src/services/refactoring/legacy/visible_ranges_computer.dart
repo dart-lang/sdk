@@ -4,51 +4,30 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// Computer of local elements and source ranges in which they are visible.
 class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
-  final Map<LocalElement, SourceRange> _map = {};
-
   final Map<LocalElement2, SourceRange> _map2 = {};
 
   @override
   void visitCatchClause(CatchClause node) {
-    _addLocalVariable(
-      node,
-      node.exceptionParameter?.declaredElement,
-      node.exceptionParameter?.declaredElement2,
-    );
-    _addLocalVariable(
-      node,
-      node.stackTraceParameter?.declaredElement,
-      node.stackTraceParameter?.declaredElement2,
-    );
+    _addLocalVariable(node, node.exceptionParameter?.declaredElement2);
+    _addLocalVariable(node, node.stackTraceParameter?.declaredElement2);
     node.body.accept(this);
   }
 
   @override
   void visitFormalParameter(FormalParameter node) {
-    var element = node.declaredElement;
-    if (element is ParameterElement) {
+    var element = node.declaredFragment?.element;
+    if (element is FormalParameterElement) {
       var body = _getFunctionBody(node);
       if (body is BlockFunctionBody) {
-        _map[element] = range.node(body);
+        _map2[element] = range.node(body);
       } else if (body is ExpressionFunctionBody) {
-        _map[element] = range.node(body);
-      }
-    }
-
-    var element2 = node.declaredFragment?.element;
-    if (element2 is FormalParameterElement) {
-      var body = _getFunctionBody(node);
-      if (body is BlockFunctionBody) {
-        _map2[element2] = range.node(body);
-      } else if (body is ExpressionFunctionBody) {
-        _map2[element2] = range.node(body);
+        _map2[element] = range.node(body);
       }
     }
   }
@@ -58,11 +37,7 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
     var loop = node.parent;
     if (loop != null) {
       for (var variable in node.variables.variables) {
-        _addLocalVariable(
-          loop,
-          variable.declaredElement,
-          variable.declaredElement2,
-        );
+        _addLocalVariable(loop, variable.declaredElement2);
         variable.initializer?.accept(this);
       }
     }
@@ -72,11 +47,8 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     var block = node.parent?.parent;
     if (block is Block) {
-      var element = node.declaredElement as FunctionElement;
-      _map[element] = range.node(block);
-
-      var element2 = node.declaredFragment?.element as LocalFunctionElement;
-      _map2[element2] = range.node(block);
+      var element = node.declaredFragment?.element as LocalFunctionElement;
+      _map2[element] = range.node(block);
     }
 
     super.visitFunctionDeclaration(node);
@@ -101,38 +73,21 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
     var block = node.parent;
     if (block != null) {
       for (var variable in node.variables.variables) {
-        _addLocalVariable(
-          block,
-          variable.declaredElement,
-          variable.declaredElement2,
-        );
+        _addLocalVariable(block, variable.declaredElement2);
         variable.initializer?.accept(this);
       }
     }
   }
 
-  void _addLocalVariable(
-    AstNode scopeNode,
-    Element? element,
-    Element2? element2,
-  ) {
-    if (element is LocalVariableElement) {
-      // TODO(brianwilkerson): Figure out why this isn't `PromotableElement`. It
-      //  appears to be missing parameter elements.
-      _map[element] = range.node(scopeNode);
-    }
-    if (element2 is LocalElement2) {
-      _map2[element2] = range.node(scopeNode);
+  void _addLocalVariable(AstNode scopeNode, Element2? element) {
+    // TODO(brianwilkerson): Figure out whether this should be testing for
+    //  `PromotableElement`. The test is missing parameter elements.
+    if (element is LocalElement2) {
+      _map2[element] = range.node(scopeNode);
     }
   }
 
-  static Map<LocalElement, SourceRange> forNode(AstNode unit) {
-    var computer = VisibleRangesComputer();
-    unit.accept(computer);
-    return computer._map;
-  }
-
-  static Map<LocalElement2, SourceRange> forNode2(AstNode unit) {
+  static Map<LocalElement2, SourceRange> forNode(AstNode unit) {
     var computer = VisibleRangesComputer();
     unit.accept(computer);
     return computer._map2;
