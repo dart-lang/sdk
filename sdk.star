@@ -54,9 +54,6 @@ sdk_builder_category()
 dart.try_builder(
     "dart-sdk-linux",
     properties = {
-        "$dart/build": {
-            "timeout": 100 * 60,  # 100 minutes,
-        },
         "archs": ["ia32", "x64"],
         "dartdoc_arch": "x64",
         "disable_bcid": True,
@@ -70,6 +67,9 @@ dart.try_builder(
     "dart-sdk-linux-arm64",
     dimensions = [jammy, arm64],
     properties = {
+        "$dart/build": {
+            "timeout": 70 * 60,  # 70 minutes, non-RBE-build
+        },
         "archs": ["arm", "arm64"],
         "disable_bcid": True,
     },
@@ -81,9 +81,6 @@ dart.try_builder(
 dart.try_builder(
     "dart-sdk-linux-riscv64",
     properties = {
-        "$dart/build": {
-            "timeout": 120 * 60,  # 120 minutes,
-        },
         "archs": ["riscv64"],
         "disable_bcid": True,
     },
