@@ -376,7 +376,6 @@ class FunctionReferenceResolver {
     }
 
     if (member is PropertyAccessorElement) {
-      function.accept(_resolver);
       _resolve(node: node, rawType: member.returnType);
       return;
     }
