@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert' show jsonDecode;
-import 'dart:io' show Directory, File, InternetAddress, Platform, Socket;
+import 'dart:io' show Directory, File, InternetAddress, Socket;
 
 import 'package:path/path.dart' as path;
 
@@ -60,22 +60,15 @@ final class ResidentCompilerInfo {
 String computeCachedDillPath(
   final String canonicalizedLibraryPath,
 ) {
-  final int lastSeparatorPosInCanonicalizedLibraryPath =
-      canonicalizedLibraryPath.lastIndexOf(Platform.pathSeparator);
-  final String dirname = canonicalizedLibraryPath.substring(
-    0,
-    lastSeparatorPosInCanonicalizedLibraryPath,
-  );
-  final String basename = canonicalizedLibraryPath.substring(
-    lastSeparatorPosInCanonicalizedLibraryPath + 1,
-  );
+  final String dirname = path.dirname(canonicalizedLibraryPath);
+  final String basename = path.basename(canonicalizedLibraryPath);
 
   final String cachedKernelDirectoryPath = path.join(
     path.join(
       Directory.systemTemp.path,
       'dart_resident_compiler_kernel_cache',
     ),
-    dirname.replaceAll('/', '_').replaceAll(r'\', '_'),
+    dirname.replaceAll(new RegExp(r':|\\|\/'), '_'),
   );
 
   try {

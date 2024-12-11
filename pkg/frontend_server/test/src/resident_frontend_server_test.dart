@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:frontend_server/src/resident_frontend_server.dart';
 import 'package:frontend_server/resident_frontend_server_utils.dart'
-    show sendAndReceiveResponse;
+    show computeCachedDillPath, sendAndReceiveResponse;
 import 'package:frontend_server/starter.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -20,6 +20,40 @@ void main() async {
   // Waiting for this number of milliseconds guarantees that the files in
   // the unit tests will not be counted as modified.
   const int statGranularity = 1100;
+
+  group('Resident Frontend Server utility functions: ', () {
+    test('computeCachedDillPath', () async {
+      // [computeCachedDillPath] is implemented using [path.dirname] and
+      // [path.basename], and those functions are platform-sensitive, so we test
+      // with an example of a Windows path on Windows, and an example of a POSIX
+      // path on other platforms.
+      if (Platform.isWindows) {
+        const String exampleCanonicalizedLibraryPath =
+            r'C:\Users\user\directory\file.dart';
+        expect(
+          computeCachedDillPath(exampleCanonicalizedLibraryPath),
+          path.join(
+            Directory.systemTemp.path,
+            'dart_resident_compiler_kernel_cache',
+            'C__Users_user_directory_file',
+            'file.dart.dill',
+          ),
+        );
+      } else {
+        const String exampleCanonicalizedLibraryPath =
+            '/home/user/directory/file.dart';
+        expect(
+          computeCachedDillPath(exampleCanonicalizedLibraryPath),
+          path.join(
+            Directory.systemTemp.path,
+            'dart_resident_compiler_kernel_cache',
+            '_home_user_directory',
+            'file.dart.dill',
+          ),
+        );
+      }
+    });
+  });
 
   group('Resident Frontend Server: invalid input: ', () {
     test('no command given', () async {
