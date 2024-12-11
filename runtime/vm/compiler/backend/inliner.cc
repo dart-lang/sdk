@@ -1324,12 +1324,7 @@ class CallSiteInliner : public ValueObject {
           callee_graph->set_current_ssa_temp_index(
               caller_graph_->current_ssa_temp_index());
 #if defined(DEBUG)
-          // The inlining IDs of instructions in the callee graph are unset
-          // until we call SetInliningID later.
-          GrowableArray<const Function*> callee_inline_id_to_function;
-          callee_inline_id_to_function.Add(&function);
-          FlowGraphChecker(callee_graph, callee_inline_id_to_function)
-              .Check("Builder (callee)");
+          FlowGraphChecker(callee_graph).Check("Builder (callee)");
 #endif
           CalleeGraphValidator::Validate(callee_graph);
         }
@@ -1406,12 +1401,7 @@ class CallSiteInliner : public ValueObject {
           COMPILER_TIMINGS_TIMER_SCOPE(thread(), ComputeSSA);
           callee_graph->ComputeSSA(param_stubs);
 #if defined(DEBUG)
-          // The inlining IDs of instructions in the callee graph are unset
-          // until we call SetInliningID later.
-          GrowableArray<const Function*> callee_inline_id_to_function;
-          callee_inline_id_to_function.Add(&function);
-          FlowGraphChecker(callee_graph, callee_inline_id_to_function)
-              .Check("SSA (callee)");
+          FlowGraphChecker(callee_graph).Check("SSA (callee)");
 #endif
         }
 
@@ -2387,16 +2377,14 @@ bool PolymorphicInliner::Inline() {
   return true;
 }
 
-FlowGraphInliner::FlowGraphInliner(
-    FlowGraph* flow_graph,
-    GrowableArray<const Function*>* inline_id_to_function,
-    GrowableArray<TokenPosition>* inline_id_to_token_pos,
-    GrowableArray<intptr_t>* caller_inline_id,
-    Precompiler* precompiler)
+FlowGraphInliner::FlowGraphInliner(FlowGraph* flow_graph,
+                                   Precompiler* precompiler)
     : flow_graph_(flow_graph),
-      inline_id_to_function_(inline_id_to_function),
-      inline_id_to_token_pos_(inline_id_to_token_pos),
-      caller_inline_id_(caller_inline_id),
+      inline_id_to_function_(
+          &(flow_graph->inlining_info().inline_id_to_function)),
+      inline_id_to_token_pos_(
+          &(flow_graph->inlining_info().inline_id_to_token_pos)),
+      caller_inline_id_(&(flow_graph->inlining_info().caller_inline_id)),
       trace_inlining_(FLAG_trace_inlining && flow_graph->should_print()),
       precompiler_(precompiler) {}
 

@@ -344,9 +344,7 @@ class PrecompileParsedFunctionHelper : public ValueObject {
   ParsedFunction* parsed_function() const { return parsed_function_; }
   Thread* thread() const { return thread_; }
 
-  bool GenerateCode(FlowGraph* flow_graph,
-                    CompilerPassState* pass_state,
-                    ZoneGrowableArray<const ICData*>* ic_data_array);
+  bool GenerateCode(FlowGraph* flow_graph);
 
   void FinalizeCompilation(compiler::Assembler* assembler,
                            FlowGraphCompiler* graph_compiler,
@@ -3465,10 +3463,7 @@ static void GenerateNecessaryAllocationStubs(FlowGraph* flow_graph) {
   }
 }
 
-bool PrecompileParsedFunctionHelper::GenerateCode(
-    FlowGraph* flow_graph,
-    CompilerPassState* pass_state,
-    ZoneGrowableArray<const ICData*>* ic_data_array) {
+bool PrecompileParsedFunctionHelper::GenerateCode(FlowGraph* flow_graph) {
   // We may reattempt compilation if the function needs to be assembled using
   // far branches on ARM. In the else branch of the setjmp call, done is set to
   // false, and use_far_branches is set to true if there is a longjmp from the
@@ -3508,10 +3503,11 @@ bool PrecompileParsedFunctionHelper::GenerateCode(
 
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), /*is_optimizing=*/true,
-          pass_state->inline_id_to_function, pass_state->inline_id_to_token_pos,
-          pass_state->caller_inline_id, ic_data_array, function_stats);
-      pass_state->graph_compiler = &graph_compiler;
-      CompilerPass::GenerateCode(pass_state);
+          /*deopt_id_to_ic_data=*/nullptr, function_stats);
+
+      CompilerPassState pass_state(thread(), flow_graph, precompiler_);
+      pass_state.graph_compiler = &graph_compiler;
+      CompilerPass::GenerateCode(&pass_state);
       {
         COMPILER_TIMINGS_TIMER_SCOPE(thread(), FinalizeCode);
         TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");
@@ -3595,7 +3591,6 @@ bool PrecompileParsedFunctionHelper::Compile() {
   HANDLESCOPE(thread());
 
   FlowGraph* flow_graph = nullptr;
-  ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
   const Function& function = parsed_function()->function();
   ASSERT(!function.IsIrregexpFunction());
   ASSERT(function.IsOptimizable());
@@ -3606,7 +3601,8 @@ bool PrecompileParsedFunctionHelper::Compile() {
   compiler_state.set_function(function);
 
   {
-    ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
+    ZoneGrowableArray<const ICData*>* ic_data_array =
+        new (zone) ZoneGrowableArray<const ICData*>();
 
     TIMELINE_DURATION(thread(), CompilerVerbose, "BuildFlowGraph");
     COMPILER_TIMINGS_TIMER_SCOPE(thread(), BuildGraph);
@@ -3621,19 +3617,15 @@ bool PrecompileParsedFunctionHelper::Compile() {
 
   flow_graph->PopulateWithICData(function);
 
-  CompilerPassState pass_state(thread(), flow_graph, precompiler_);
-
   {
     TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
     AotCallSpecializer call_specializer(precompiler_, flow_graph);
+    CompilerPassState pass_state(thread(), flow_graph, precompiler_);
     pass_state.call_specializer = &call_specializer;
 
     flow_graph = CompilerPass::RunPipeline(CompilerPass::kAOT, &pass_state);
   }
-
-  ASSERT(pass_state.inline_id_to_function.length() ==
-         pass_state.caller_inline_id.length());
 
   ASSERT(precompiler_ != nullptr);
 
@@ -3647,7 +3639,7 @@ bool PrecompileParsedFunctionHelper::Compile() {
   // failure to commit object pool into the global object pool.
   GenerateNecessaryAllocationStubs(flow_graph);
 
-  return GenerateCode(flow_graph, &pass_state, ic_data_array);
+  return GenerateCode(flow_graph);
 }
 
 void Precompiler::CompileFunction(Precompiler* precompiler,

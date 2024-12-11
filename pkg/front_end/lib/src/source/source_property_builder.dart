@@ -474,12 +474,10 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl {
       {required bool inErrorRecovery}) {
     int count = 0;
     if (_introductoryGetable != null) {
-      count += _introductoryGetable!
-          .computeDefaultTypes(context, inErrorRecovery: inErrorRecovery);
+      count += _introductoryGetable!.computeDefaultTypes(context);
     }
     if (_introductorySetable != null) {
-      count += _introductorySetable!
-          .computeDefaultTypes(context, inErrorRecovery: inErrorRecovery);
+      count += _introductorySetable!.computeDefaultTypes(context);
     }
     return count;
   }
@@ -855,7 +853,7 @@ class _SetterClassMember implements ClassMember {
   @override
   // Coverage-ignore(suite): Not run.
   bool isSameDeclaration(ClassMember other) {
-    return other is _GetterClassMember && _builder == other._builder;
+    return other is _SetterClassMember && _builder == other._builder;
   }
 
   @override

@@ -171,20 +171,8 @@ class GetterFragment implements Fragment, FunctionFragment {
     _encoding.becomeNative(loader);
   }
 
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery}) {
-    bool hasErrors =
-        context.reportSimplicityIssuesForTypeParameters(declaredTypeParameters);
-    context.reportGenericFunctionTypesForFormals(declaredFormals);
-    if (returnType is! OmittedTypeBuilder) {
-      hasErrors |= context.reportInboundReferenceIssuesForType(returnType);
-      context.recursivelyReportGenericFunctionTypesAsBoundsForType(returnType);
-    }
-    int count = context.computeDefaultTypesForVariables(declaredTypeParameters,
-        inErrorRecovery: hasErrors);
-    count += _encoding.computeDefaultTypes(context,
-        inErrorRecovery: inErrorRecovery);
-    return count;
+  int computeDefaultTypes(ComputeDefaultTypeContext context) {
+    return _encoding.computeDefaultTypes(context);
   }
 
   void ensureTypes(
@@ -298,8 +286,7 @@ sealed class _GetterEncoding implements InferredTypeListener {
 
   LocalScope createFormalParameterScope(LookupScope typeParameterScope);
 
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery});
+  int computeDefaultTypes(ComputeDefaultTypeContext context);
 
   void ensureTypes(
       SourceLibraryBuilder libraryBuilder, ClassHierarchyBase hierarchy);
@@ -414,16 +401,26 @@ mixin _DirectGetterEncodingMixin implements _GetterEncoding {
   }
 
   @override
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery}) {
-    return 0;
+  int computeDefaultTypes(ComputeDefaultTypeContext context) {
+    bool hasErrors = context.reportSimplicityIssuesForTypeParameters(
+        _fragment.declaredTypeParameters);
+    context.reportGenericFunctionTypesForFormals(_fragment.declaredFormals);
+    if (_fragment.returnType is! OmittedTypeBuilder) {
+      hasErrors |=
+          context.reportInboundReferenceIssuesForType(_fragment.returnType);
+      context.recursivelyReportGenericFunctionTypesAsBoundsForType(
+          _fragment.returnType);
+    }
+    return context.computeDefaultTypesForVariables(
+        _fragment.declaredTypeParameters,
+        inErrorRecovery: hasErrors);
   }
 
   @override
   void ensureTypes(
       SourceLibraryBuilder libraryBuilder, ClassHierarchyBase hierarchy) {
     _fragment.returnType
-        .build(libraryBuilder, TypeUse.fieldType, hierarchy: hierarchy);
+        .build(libraryBuilder, TypeUse.returnType, hierarchy: hierarchy);
   }
 
   @override
@@ -665,11 +662,23 @@ mixin _ExtensionInstanceGetterEncodingMixin implements _GetterEncoding {
   }
 
   @override
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery}) {
-    return context.computeDefaultTypesForVariables(
+  int computeDefaultTypes(ComputeDefaultTypeContext context) {
+    bool hasErrors = context.reportSimplicityIssuesForTypeParameters(
+        _fragment.declaredTypeParameters);
+    context.reportGenericFunctionTypesForFormals(_fragment.declaredFormals);
+    if (_fragment.returnType is! OmittedTypeBuilder) {
+      hasErrors |=
+          context.reportInboundReferenceIssuesForType(_fragment.returnType);
+      context.recursivelyReportGenericFunctionTypesAsBoundsForType(
+          _fragment.returnType);
+    }
+    int count = context.computeDefaultTypesForVariables(
+        _fragment.declaredTypeParameters,
+        inErrorRecovery: hasErrors);
+    count += context.computeDefaultTypesForVariables(
         _clonedDeclarationTypeParameters,
-        inErrorRecovery: inErrorRecovery);
+        inErrorRecovery: hasErrors);
+    return count;
   }
 
   BuiltMemberKind get _builtMemberKind;

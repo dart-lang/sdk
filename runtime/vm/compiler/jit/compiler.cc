@@ -558,14 +558,11 @@ CodePtr CompileParsedFunctionHelper::Compile() {
         flow_graph = CompilerPass::RunPipeline(CompilerPass::kJIT, &pass_state);
       }
 
-      ASSERT(pass_state.inline_id_to_function.length() ==
-             pass_state.caller_inline_id.length());
       compiler::ObjectPoolBuilder object_pool_builder;
       compiler::Assembler assembler(&object_pool_builder, far_branch_level);
-      FlowGraphCompiler graph_compiler(
-          &assembler, flow_graph, *parsed_function(), optimized(),
-          pass_state.inline_id_to_function, pass_state.inline_id_to_token_pos,
-          pass_state.caller_inline_id, ic_data_array);
+      FlowGraphCompiler graph_compiler(&assembler, flow_graph,
+                                       *parsed_function(), optimized(),
+                                       ic_data_array);
       pass_state.graph_compiler = &graph_compiler;
       CompilerPass::GenerateCode(&pass_state);
 

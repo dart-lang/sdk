@@ -70,6 +70,7 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       loop_invariant_loads_(nullptr),
       captured_parameters_(new(zone()) BitVector(zone(), variable_count())),
       inlining_id_(-1),
+      inlining_info_(&parsed_function.function()),
       should_print_(false),
       should_omit_check_bounds_(
           dart::ShouldOmitCheckBoundsIn(parsed_function.function())) {
