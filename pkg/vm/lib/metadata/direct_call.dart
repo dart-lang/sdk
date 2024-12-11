@@ -39,6 +39,15 @@ class DirectCallMetadata {
   bool get checkReceiverForNull => (_flags & flagCheckReceiverForNull) != 0;
   bool get isClosure => (_flags & flagClosure) != 0;
 
+  /// When calling a closure, the enclosing member of the closure, and the
+  /// closure index.
+  ///
+  /// Closures in a member are assigned ids based on pre-order traversal of the
+  /// member body, and the member itself also counts as a closure (for
+  /// tear-offs). So index 0 is the member itself, called as a closure
+  /// (tear-off).
+  (Member, int)? get targetClosure => isClosure ? (_member, _closureId) : null;
+
   @override
   String toString() => isClosure
       ? 'closure ${_closureId} in ${_member.toText(astTextStrategyForTesting)}'

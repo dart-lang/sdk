@@ -213,15 +213,6 @@ abstract class AstCodeGenerator
     translator.membersBeingGenerated.remove(enclosingMember);
   }
 
-  void addNestedClosuresToCompilationQueue() {
-    for (Lambda lambda in closures.lambdas.values) {
-      translator.compilationQueue.add(CompilationTask(
-          lambda.function,
-          getLambdaCodeGenerator(
-              translator, lambda, enclosingMember, closures)));
-    }
-  }
-
   // Generate the body.
   void generateInternal();
 
@@ -2388,14 +2379,11 @@ abstract class AstCodeGenerator
           expectedType);
     }
 
-    final Expression receiver = node.receiver;
-    final Arguments arguments = node.arguments;
-
-    int typeCount = arguments.types.length;
-    int posArgCount = arguments.positional.length;
-    List<String> argNames = arguments.named.map((a) => a.name).toList()..sort();
+    List<String> argNames = node.arguments.named.map((a) => a.name).toList()
+      ..sort();
     ClosureRepresentation? representation = translator.closureLayouter
-        .getClosureRepresentation(typeCount, posArgCount, argNames);
+        .getClosureRepresentation(node.arguments.types.length,
+            node.arguments.positional.length, argNames);
     if (representation == null) {
       // This is a dynamic function call with a signature that matches no
       // functions in the program.
@@ -2403,26 +2391,75 @@ abstract class AstCodeGenerator
       return translator.topInfo.nullableType;
     }
 
+    final SingleClosureTarget? directClosureCall =
+        translator.singleClosureTarget(node, representation, typeContext);
+
+    if (directClosureCall != null) {
+      return _generateDirectClosureCall(
+          node, representation, directClosureCall);
+    }
+
+    return _generateClosureInvocation(node, representation);
+  }
+
+  w.ValueType _generateDirectClosureCall(FunctionInvocation node,
+      ClosureRepresentation representation, SingleClosureTarget closureTarget) {
+    final closureStruct = representation.closureStruct;
+    final closureStructRef = w.RefType.def(closureStruct, nullable: false);
+    final signature = closureTarget.signature;
+    final paramInfo = closureTarget.paramInfo;
+    final member = closureTarget.member;
+    final lambdaFunction = closureTarget.lambdaFunction;
+
+    if (lambdaFunction == null) {
+      if (paramInfo.takesContextOrReceiver) {
+        translateExpression(node.receiver, closureStructRef);
+        b.struct_get(closureStruct, FieldIndex.closureContext);
+        translator.convertType(
+            b,
+            closureStruct.fields[FieldIndex.closureContext].type.unpacked,
+            signature.inputs[0]);
+        _visitArguments(node.arguments, signature, paramInfo, 1);
+      } else {
+        _visitArguments(node.arguments, signature, paramInfo, 0);
+      }
+      return translator.outputOrVoid(call(member.reference));
+    } else {
+      assert(paramInfo.takesContextOrReceiver);
+      translateExpression(node.receiver, closureStructRef);
+      b.struct_get(closureStruct, FieldIndex.closureContext);
+      _visitArguments(node.arguments, signature, paramInfo, 1);
+      return translator
+          .outputOrVoid(translator.callFunction(lambdaFunction, b));
+    }
+  }
+
+  w.ValueType _generateClosureInvocation(
+      FunctionInvocation node, ClosureRepresentation representation) {
+    final closureStruct = representation.closureStruct;
+
     // Evaluate receiver
-    w.StructType struct = representation.closureStruct;
-    w.Local closureLocal = addLocal(w.RefType.def(struct, nullable: false));
-    translateExpression(receiver, closureLocal.type);
+    w.Local closureLocal =
+        addLocal(w.RefType.def(closureStruct, nullable: false));
+    translateExpression(node.receiver, closureLocal.type);
     b.local_tee(closureLocal);
-    b.struct_get(struct, FieldIndex.closureContext);
+    b.struct_get(closureStruct, FieldIndex.closureContext);
 
     // Type arguments
-    for (DartType typeArg in arguments.types) {
+    for (DartType typeArg in node.arguments.types) {
       types.makeType(this, typeArg);
     }
 
     // Positional arguments
-    for (Expression arg in arguments.positional) {
+    for (Expression arg in node.arguments.positional) {
       translateExpression(arg, translator.topInfo.nullableType);
     }
 
     // Named arguments
+    final List<String> argNames =
+        node.arguments.named.map((a) => a.name).toList()..sort();
     final Map<String, w.Local> namedLocals = {};
-    for (final namedArg in arguments.named) {
+    for (final namedArg in node.arguments.named) {
       final w.Local namedLocal = addLocal(translator.topInfo.nullableType);
       namedLocals[namedArg.name] = namedLocal;
       translateExpression(namedArg.value, namedLocal.type);
@@ -2432,15 +2469,17 @@ abstract class AstCodeGenerator
       b.local_get(namedLocals[name]!);
     }
 
-    // Call entry point in vtable
-    int vtableFieldIndex =
-        representation.fieldIndexForSignature(posArgCount, argNames);
-    w.FunctionType functionType =
+    final int vtableFieldIndex = representation.fieldIndexForSignature(
+        node.arguments.positional.length, argNames);
+    final w.FunctionType functionType =
         representation.getVtableFieldType(vtableFieldIndex);
+
+    // Call entry point in vtable
     b.local_get(closureLocal);
-    b.struct_get(struct, FieldIndex.closureVtable);
+    b.struct_get(closureStruct, FieldIndex.closureVtable);
     b.struct_get(representation.vtableStruct, vtableFieldIndex);
     b.call_ref(functionType);
+
     return translator.topInfo.nullableType;
   }
 
@@ -3181,7 +3220,7 @@ class SynchronousProcedureCodeGenerator extends AstCodeGenerator {
       return;
     }
 
-    closures = Closures(translator, member);
+    closures = translator.getClosures(member);
 
     setupParametersAndContexts(member, useUncheckedEntry: useUncheckedEntry);
 
@@ -3192,7 +3231,6 @@ class SynchronousProcedureCodeGenerator extends AstCodeGenerator {
 
     _implicitReturn();
     b.end();
-    addNestedClosuresToCompilationQueue();
   }
 }
 
@@ -3209,7 +3247,7 @@ class TearOffCodeGenerator extends AstCodeGenerator {
     // used by `makeType` below, when generating runtime types of type
     // parameters of the function type, but the type parameters are not
     // captured, always loaded from the `this` struct.
-    closures = Closures(translator, member, findCaptures: false);
+    closures = translator.getClosures(member, findCaptures: false);
 
     _initializeThis(member.reference);
     Procedure procedure = member as Procedure;
@@ -3242,7 +3280,7 @@ class TypeCheckerCodeGenerator extends AstCodeGenerator {
     // Initialize [Closures] without [Closures.captures]: Similar to
     // [TearOffCodeGenerator], type parameters will be loaded from the `this`
     // struct.
-    closures = Closures(translator, member, findCaptures: false);
+    closures = translator.getClosures(member, findCaptures: false);
     if (member is Field ||
         (member is Procedure && (member as Procedure).isSetter)) {
       _generateFieldSetterTypeCheckerMethod();
@@ -3482,7 +3520,6 @@ class InitializerListCodeGenerator extends AstCodeGenerator {
       generateInitializerList();
     }
     b.end();
-    addNestedClosuresToCompilationQueue();
   }
 
   // Generates a constructor's initializer list method, and returns:
@@ -3848,7 +3885,7 @@ class StaticFieldInitializerCodeGenerator extends AstCodeGenerator {
     setSourceMapSourceAndFileOffset(source, field.fileOffset);
 
     // Static field initializer function
-    closures = Closures(translator, field);
+    closures = translator.getClosures(field);
 
     w.Global global = translator.globals.getGlobalForStaticField(field);
     w.Global? flag = translator.globals.getGlobalInitializedFlag(field);
@@ -3861,7 +3898,6 @@ class StaticFieldInitializerCodeGenerator extends AstCodeGenerator {
     b.global_get(global);
     translator.convertType(b, global.type.type, outputs.single);
     b.end();
-    addNestedClosuresToCompilationQueue();
   }
 }
 
@@ -3944,7 +3980,7 @@ class ImplicitFieldAccessorCodeGenerator extends AstCodeGenerator {
     // that instantiates types uses closure information to see whether a type
     // parameter was captured (and loads it from context chain) or not (and
     // loads it directly from `this`).
-    closures = Closures(translator, field, findCaptures: false);
+    closures = translator.getClosures(field, findCaptures: false);
 
     final source = field.enclosingComponent!.uriToSource[field.fileUri]!;
     setSourceMapSourceAndFileOffset(source, field.fileOffset);

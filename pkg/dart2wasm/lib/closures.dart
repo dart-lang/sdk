@@ -5,12 +5,14 @@
 import 'dart:collection';
 import 'dart:math' show min;
 
+import 'package:collection/collection.dart';
 import 'package:kernel/ast.dart';
 import 'package:vm/metadata/procedure_attributes.dart';
 import 'package:vm/transformations/type_flow/utils.dart' show UnionFind;
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
+import 'param_info.dart';
 import 'translator.dart';
 
 /// Describes the implementation of a concrete closure, including its vtable
@@ -34,8 +36,16 @@ class ClosureImplementation {
   /// The module this closure is implemented in.
   final w.ModuleBuilder module;
 
-  ClosureImplementation(this.representation, this.functions,
-      this.dynamicCallEntry, this.vtable, this.module);
+  /// [ParameterInfo] to be used when directly calling the closure.
+  final ParameterInfo directCallParamInfo;
+
+  ClosureImplementation(
+      this.representation,
+      this.functions,
+      this.dynamicCallEntry,
+      this.vtable,
+      this.module,
+      this.directCallParamInfo);
 }
 
 /// Describes the representation of closures for a particular function
@@ -131,6 +141,8 @@ class ClosureRepresentation {
   /// The field index in the vtable struct for the function entry to use when
   /// calling the closure with the given number of positional arguments and the
   /// given set of named arguments.
+  ///
+  /// `argNames` should be sorted.
   int fieldIndexForSignature(int posArgCount, List<String> argNames) {
     if (argNames.isEmpty) {
       return vtableBaseIndex + posArgCount;
@@ -155,7 +167,9 @@ class ClosureRepresentation {
 class NameCombination implements Comparable<NameCombination> {
   final List<String> names;
 
-  NameCombination(this.names);
+  NameCombination(this.names) {
+    assert(names.isSorted(Comparable.compare));
+  }
 
   @override
   int compareTo(NameCombination other) {
@@ -363,6 +377,8 @@ class ClosureLayouter extends RecursiveVisitor {
   /// Get the representation for closures with a specific signature, described
   /// by the number of type parameters, the maximum number of positional
   /// parameters and the names of named parameters.
+  ///
+  /// `names` should be sorted.
   ClosureRepresentation? getClosureRepresentation(
       int typeCount, int positionalCount, List<String> names) {
     final representations =
@@ -1002,10 +1018,20 @@ class ClosureRepresentationCluster {
 /// A local function or function expression.
 class Lambda {
   final FunctionNode functionNode;
+
+  // Note: creating a `Lambda` does not add this function to the compilation
+  // queue. Make sure to get it with `Functions.getLambdaFunction` to add it
+  // to the compilation queue.
   final w.FunctionBuilder function;
+
   final Source functionNodeSource;
 
-  Lambda(this.functionNode, this.function, this.functionNodeSource);
+  /// Index of the function within the enclosing member, based on pre-order
+  /// traversal of the member body.
+  final int index;
+
+  Lambda._(
+      this.functionNode, this.function, this.functionNodeSource, this.index);
 }
 
 /// The context for one or more closures, containing their captured variables.
@@ -1141,7 +1167,10 @@ class Closures {
   /// does not populate [lambdas], [contexts], [captures], and
   /// [closurizedFunctions]. This mode is useful in the code generators that
   /// always have direct access to variables (instead of via a context).
-  Closures(this.translator, this._member, {bool findCaptures = true})
+  ///
+  /// When `findCaptures` is `true`, the created [Lambda]s are also added to the
+  /// compilation queue.
+  Closures(this.translator, this._member, {required bool findCaptures})
       : _nullableThisType = _member is Constructor || _member.isInstanceMember
             ? translator.preciseThisFor(_member, nullable: true) as w.RefType
             : null {
@@ -1385,7 +1414,10 @@ class _CaptureFinder extends RecursiveVisitor {
       functionName = "$member closure $functionNodeName at ${node.location}";
     }
     final function = module.functions.define(type, functionName);
-    closures.lambdas[node] = Lambda(node, function, _currentSource);
+    final lambda =
+        Lambda._(node, function, _currentSource, closures.lambdas.length);
+    closures.lambdas[node] = lambda;
+    translator.functions.getLambdaFunction(lambda, member, closures);
 
     functionIsSyncStarOrAsync.add(node.asyncMarker == AsyncMarker.SyncStar ||
         node.asyncMarker == AsyncMarker.Async);
