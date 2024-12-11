@@ -16,11 +16,9 @@ import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/line_info.dart' as server;
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:analyzer_plugin/src/utilities/documentation.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -127,13 +125,14 @@ Future<lsp.CompletionItem?> toLspCompletionItem(
   // functions but they should not be included in the completions.
   var element =
       suggestion is ElementBasedSuggestion
-          ? (suggestion as ElementBasedSuggestion).element.asElement
+          ? (suggestion as ElementBasedSuggestion).element
           : null;
   var isCallable =
       element != null &&
-      (element is ConstructorElement ||
-          element is FunctionElement ||
-          element is MethodElement);
+      (element is ConstructorElement2 ||
+          element is LocalFunctionElement ||
+          element is TopLevelFunctionElement ||
+          element is MethodElement2);
   var isInvocation =
       (suggestion is ExecutableSuggestion &&
           suggestion.kind == server.CompletionSuggestionKind.INVOCATION) ||
@@ -191,7 +190,7 @@ Future<lsp.CompletionItem?> toLspCompletionItem(
   var colorPreviewHex =
       capabilities.completionItemKinds.contains(lsp.CompletionItemKind.Color) &&
               suggestion is ElementBasedSuggestion
-          ? server.getColorHexString(element)
+          ? server.getColorHexString2(element)
           : null;
 
   var completionKind =
@@ -382,7 +381,7 @@ lsp.CompletionItemKind? _candidateToCompletionItemKind(
 
   if (suggestion is ElementBasedSuggestion) {
     return _elementToCompletionItemKind(
-      (suggestion as ElementBasedSuggestion).element.asElement!,
+      (suggestion as ElementBasedSuggestion).element,
       supportedCompletionKinds,
     ).firstWhereOrNull(isSupported);
   }
@@ -430,30 +429,28 @@ lsp.CompletionItemKind? _candidateToCompletionItemKind(
   return getCompletionKind().firstWhereOrNull(isSupported);
 }
 
-/// Get the [lsp.CompletionItemKind] based on the [Element] for an [ElementBasedSuggestion].
+/// Get the [lsp.CompletionItemKind] based on the [Element2] for
+/// an [ElementBasedSuggestion].
 List<lsp.CompletionItemKind> _elementToCompletionItemKind(
-  Element element,
+  Element2 element,
   Set<lsp.CompletionItemKind> supportedCompletionKinds,
 ) {
-  if (element is ClassElement) {
+  if (element is ClassElement2) {
     return const [lsp.CompletionItemKind.Class];
   }
-  if (element is CompilationUnitElement) {
-    return const [lsp.CompletionItemKind.File, lsp.CompletionItemKind.Module];
-  }
-  if (element is ConstructorElement) {
+  if (element is ConstructorElement2) {
     return const [lsp.CompletionItemKind.Constructor];
   }
-  if (element is EnumElement) {
+  if (element is EnumElement2) {
     return const [lsp.CompletionItemKind.Enum];
   }
-  if (element is ExtensionElement) {
+  if (element is ExtensionElement2) {
     return const [lsp.CompletionItemKind.Method];
   }
-  if (element is ExtensionTypeElement) {
+  if (element is ExtensionTypeElement2) {
     return const [lsp.CompletionItemKind.Class];
   }
-  if (element is FieldElement) {
+  if (element is FieldElement2) {
     if (element.isEnumConstant) {
       return const [
         lsp.CompletionItemKind.EnumMember,
@@ -462,40 +459,43 @@ List<lsp.CompletionItemKind> _elementToCompletionItemKind(
     }
     return const [lsp.CompletionItemKind.Field];
   }
-  if (element is FunctionElement) {
+  if (element is LocalFunctionElement) {
     return const [lsp.CompletionItemKind.Function];
   }
-  if (element is LabelElement) {
+  if (element is TopLevelFunctionElement) {
+    return const [lsp.CompletionItemKind.Function];
+  }
+  if (element is LabelElement2) {
     return const [lsp.CompletionItemKind.Text];
   }
-  if (element is LibraryElement) {
+  if (element is LibraryElement2) {
     return const [lsp.CompletionItemKind.Module];
   }
-  if (element is LocalVariableElement) {
+  if (element is LocalVariableElement2) {
     return const [lsp.CompletionItemKind.Variable];
   }
-  if (element is MethodElement) {
+  if (element is MethodElement2) {
     return const [lsp.CompletionItemKind.Method];
   }
-  if (element is MixinElement) {
+  if (element is MixinElement2) {
     return const [lsp.CompletionItemKind.Class];
   }
-  if (element is ParameterElement) {
+  if (element is FormalParameterElement) {
     return const [lsp.CompletionItemKind.Variable];
   }
-  if (element is PrefixElement) {
+  if (element is PrefixElement2) {
     return const [lsp.CompletionItemKind.Variable];
   }
-  if (element is PropertyAccessorElement) {
+  if (element is PropertyAccessorElement2) {
     return const [lsp.CompletionItemKind.Property];
   }
-  if (element is TopLevelVariableElement) {
+  if (element is TopLevelVariableElement2) {
     return const [lsp.CompletionItemKind.Variable];
   }
-  if (element is TypeAliasElement) {
+  if (element is TypeAliasElement2) {
     return const [lsp.CompletionItemKind.Class];
   }
-  if (element is TypeParameterElement) {
+  if (element is TypeParameterElement2) {
     return const [
       lsp.CompletionItemKind.TypeParameter,
       lsp.CompletionItemKind.Variable,
@@ -623,13 +623,11 @@ String _getDisplayText(
 
 /// If the [element] has a documentation comment, return it.
 _ElementDocumentation? _getDocsFromComputer(
-  Element element,
+  Element2 element,
   DartCompletionRequest request,
 ) {
-  var element2 = element.asElement2;
-  if (element2 == null) return null;
   var doc = request.documentationComputer.compute(
-    element2,
+    element,
     includeSummary: true,
   );
   if (doc is DocumentationWithSummary) {
@@ -647,7 +645,7 @@ String? _getDocumentation(
   DartCompletionRequest request,
   DocumentationPreference includeDocumentation,
 ) {
-  var docs = _getDocsFromComputer(element.asElement!, request);
+  var docs = _getDocsFromComputer(element, request);
 
   var doc = removeDartDocDelimiters(docs?.full);
   var rawDoc =
