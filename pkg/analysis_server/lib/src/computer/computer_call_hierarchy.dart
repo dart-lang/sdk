@@ -12,6 +12,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Returns the container for [element] that should be used in Call Hierarchy.
 ///
@@ -221,7 +222,7 @@ class DartCallHierarchyComputer {
     }
 
     var computer = ElementReferencesComputer(searchEngine);
-    var references = await computer.compute(element, false);
+    var references = await computer.compute(element.asElement2, false);
 
     // Group results by their container, since we only want to return a single
     // entry for a body, with a set of ranges within.

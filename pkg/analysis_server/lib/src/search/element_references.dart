@@ -6,9 +6,8 @@ import 'package:analysis_server/src/protocol_server.dart'
     show SearchResult, newSearchResult_fromMatch;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A computer for `search.findElementReferences` request results.
 class ElementReferencesComputer {
@@ -18,7 +17,7 @@ class ElementReferencesComputer {
 
   /// Computes [SearchMatch]es for [element] references.
   Future<List<SearchMatch>> compute(
-    Element element,
+    Element2 element,
     bool withPotential, {
     OperationPerformanceImpl? performance,
   }) async {
@@ -50,7 +49,7 @@ class ElementReferencesComputer {
   /// Returns a [Future] completing with a [List] of references to [element] or
   /// to the corresponding hierarchy [Element]s.
   Future<List<SearchMatch>> _findElementsReferences(
-    Element element,
+    Element2 element,
     OperationPerformanceImpl performance,
   ) async {
     var allResults = <SearchMatch>[];
@@ -70,9 +69,9 @@ class ElementReferencesComputer {
 
   /// Returns a [Future] completing with a [List] of references to [element].
   Future<List<SearchMatch>> _findSingleElementReferences(
-    Element element,
+    Element2 element,
   ) async {
-    return searchEngine.searchReferences(element);
+    return searchEngine.searchReferences2(element);
   }
 
   /// Returns a [Future] completing with [Element]s to search references to.
@@ -81,31 +80,30 @@ class ElementReferencesComputer {
   /// corresponding [Element] in the hierarchy is returned.
   ///
   /// Otherwise, only references to [element] should be searched.
-  Future<Iterable<Element>> _getRefElements(
-    Element element,
+  Future<Iterable<Element2>> _getRefElements(
+    Element2 element,
     OperationPerformanceImpl performance,
   ) async {
-    if (element is ParameterElement && element.isNamed) {
-      return (await performance.runAsync(
+    if (element is FormalParameterElement && element.isNamed) {
+      return await performance.runAsync(
         'getHierarchyNamedParameters',
-        (_) => getHierarchyNamedParameters(searchEngine, element.asElement2),
-      )).map((e) => e.asElement);
+        (_) => getHierarchyNamedParameters(searchEngine, element),
+      );
     }
-    if (element is ClassMemberElement) {
+    if (element is MethodElement2 ||
+        element is FieldElement2 ||
+        element is ConstructorElement2) {
       var (members, parameters) = await performance.runAsync(
         'getHierarchyMembers',
         (performance) => getHierarchyMembersAndParameters(
           searchEngine,
-          element.asElement2!,
+          element,
           performance: performance,
           includeParametersForFields: true,
         ),
       );
 
-      return {
-        ...members.map((e) => e.asElement!),
-        ...parameters.map((e) => e.asElement),
-      };
+      return {...members.map((e) => e), ...parameters.map((e) => e)};
     }
     return [element];
   }
@@ -114,10 +112,10 @@ class ElementReferencesComputer {
     return newSearchResult_fromMatch(match);
   }
 
-  static bool _isMemberElement(Element element) {
-    if (element is ConstructorElement) {
+  static bool _isMemberElement(Element2 element) {
+    if (element is ConstructorElement2) {
       return false;
     }
-    return element.enclosingElement3 is InterfaceElement;
+    return element.enclosingElement2 is InterfaceElement2;
   }
 }

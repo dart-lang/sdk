@@ -15,6 +15,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 typedef StaticOptions = Either2<bool, ReferenceOptions>;
 
@@ -90,10 +91,17 @@ class ReferencesHandler
 
     var computer = ElementReferencesComputer(server.searchEngine);
     var session = element.session ?? result.session;
+    var element2 =
+        element is LibraryImportElement
+            ? element.prefix?.element.asElement2
+            : element.asElement2;
+    if (element2 == null) {
+      return success(null);
+    }
     var results = await performance.runAsync(
       'computer.compute',
       (childPerformance) =>
-          computer.compute(element, false, performance: childPerformance),
+          computer.compute(element2, false, performance: childPerformance),
     );
 
     Location? toLocation(SearchMatch result) {
