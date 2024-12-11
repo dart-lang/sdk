@@ -22,7 +22,6 @@ lib/src/services/refactoring/legacy/refactoring_internal.dart
 lib/src/services/refactoring/legacy/refactoring_manager.dart
 lib/src/services/refactoring/legacy/rename.dart
 lib/src/services/refactoring/legacy/rename_import.dart
-lib/src/services/refactoring/move_top_level_to_file.dart
 lib/src/services/search/element_visitors.dart
 lib/src/services/search/search_engine.dart
 lib/src/services/search/search_engine_internal.dart

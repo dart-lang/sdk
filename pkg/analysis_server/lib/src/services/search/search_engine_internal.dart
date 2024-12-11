@@ -160,6 +160,19 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   @override
+  Future<Set<String>> searchPrefixesUsedInLibrary2(
+    covariant LibraryElementImpl library,
+    Element2 element,
+  ) async {
+    var driver =
+        (library.session.analysisContext as DriverBasedAnalysisContext).driver;
+    return await driver.search.prefixesUsedInLibrary(
+      library,
+      element.asElement!,
+    );
+  }
+
+  @override
   Future<List<SearchMatch>> searchReferences(Element element) async {
     var allResults = <SearchResult>[];
     var drivers = _drivers.toList();

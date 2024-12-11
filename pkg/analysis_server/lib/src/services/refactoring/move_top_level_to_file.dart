@@ -9,10 +9,9 @@ import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server/src/utilities/import_analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -151,31 +150,33 @@ class MoveTopLevelToFile extends RefactoringProducer {
         builder.addDeletion(sourceRange);
       }
     });
-    var libraries = <LibraryElement, Set<Element>>{};
+    var libraries = <LibraryElement2, Set<Element2>>{};
     for (var element2 in analyzer.movingDeclarations) {
-      var element = element2.asElement!;
-      var matches = await searchEngine.searchReferences(element);
+      var element = element2;
+      var matches = await searchEngine.searchReferences2(element);
       for (var match in matches) {
         if (match.isResolved) {
-          libraries.putIfAbsent(match.libraryElement, () => {}).add(element);
+          libraries.putIfAbsent(match.libraryElement2, () => {}).add(element2);
         }
       }
     }
 
     /// Don't update the library from which the code is being moved because
     /// that's already been done.
-    libraries.remove(libraryResult.element);
+    libraries.remove(libraryResult.element2);
     for (var entry in libraries.entries) {
       var library = entry.key;
       var prefixes = <String>{};
       for (var element in entry.value) {
-        var prefixList = await searchEngine.searchPrefixesUsedInLibrary(
+        var prefixList = await searchEngine.searchPrefixesUsedInLibrary2(
           library,
           element,
         );
         prefixes.addAll(prefixList);
       }
-      await builder.addDartFileEdit(library.source.fullName, (builder) {
+      await builder.addDartFileEdit(library.firstFragment.source.fullName, (
+        builder,
+      ) {
         for (var prefix in prefixes) {
           builder.importLibrary(destinationImportUri, prefix: prefix);
         }
@@ -284,7 +285,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
       unitResult.unit,
       candidateElements:
           candidateMembers.keys
-              .map((member) => member.declaredElement)
+              .map((member) => member.declaredFragment?.element)
               .nonNulls
               .toSet(),
     );
@@ -333,8 +334,8 @@ class MoveTopLevelToFile extends RefactoringProducer {
         .expand((unit) => unit.unit.declarations)
         .expand((declaration) => declaration.sealedSuperclassElements)
         // Check if any of them are in the source file.
-        .map((element) => element.enclosingElement3)
-        .contains(unitResult.unit.declaredElement);
+        .map((element) => element.enclosingElement2)
+        .contains(unitResult.unit.declaredFragment?.element);
   }
 
   /// Return a list containing the top-level declarations that are selected, or
@@ -486,10 +487,10 @@ class _SealedSubclassIndex {
   final CompilationUnit unit;
 
   /// The set of initial candidate elements.
-  final Set<Element> candidateElements;
+  final Set<Element2> candidateElements;
 
   /// A map of sealed named classes/mixin elements to a set of their subclasses.
-  final Map<Element, Set<CompilationUnitMember>> sealedTypeSubclasses = {};
+  final Map<Element2, Set<CompilationUnitMember>> sealedTypeSubclasses = {};
 
   /// Whether or not the candidate set is invalid.
   ///
@@ -515,7 +516,7 @@ class _SealedSubclassIndex {
 
         // If this declaration is a candidate but it's sealed super is not,
         // we have an invalid selection.
-        if (isCandidate(declaration.declaredElement) &&
+        if (isCandidate(declaration.declaredFragment?.element) &&
             !isCandidate(superElement)) {
           hasInvalidCandidateSet = true;
           return;
@@ -536,7 +537,7 @@ class _SealedSubclassIndex {
       ...members,
       ...members.whereType<NamedCompilationUnitMember>().expand(
         (member) => findSubclassesOfSealedRecursively(
-          sealedTypeSubclasses[member.declaredElement] ?? const {},
+          sealedTypeSubclasses[member.declaredFragment?.element] ?? const {},
         ),
       ),
     };
@@ -545,10 +546,10 @@ class _SealedSubclassIndex {
 
 extension on CompilationUnitMember {
   /// Gets all sealed [ClassElement]s that are superclasses of this member.
-  Iterable<ClassElement> get sealedSuperclassElements {
+  Iterable<ClassElement2> get sealedSuperclassElements {
     return superclasses
-        .map((type) => type?.element)
-        .whereType<ClassElement>()
+        .map((type) => type?.element2)
+        .whereType<ClassElement2>()
         .where((element) => element.isSealed);
   }
 
