@@ -118,6 +118,28 @@ struct PrologueInfo {
   }
 };
 
+struct InliningInfo {
+  // Maps inline_id_to_function[inline_id] -> function. Top scope
+  // function has inline_id 0. The map is populated by the inliner.
+  GrowableArray<const Function*> inline_id_to_function;
+  // Token position where inlining occurred.
+  GrowableArray<TokenPosition> inline_id_to_token_pos;
+  // For a given inlining-id(index) specifies the caller's inlining-id.
+  GrowableArray<intptr_t> caller_inline_id;
+
+  explicit InliningInfo(const Function* function) {
+    // Top scope function is at inlining id 0.
+    inline_id_to_function.Add(function);
+    // Top scope function has no caller (-1).
+    caller_inline_id.Add(-1);
+    // We do not add a token position for the top scope function to
+    // |inline_id_to_token_pos| because it is not (currently) inlined into
+    // another graph at a given token position. A side effect of this is that
+    // the length of |inline_id_to_function| and |caller_inline_id| is always
+    // larger than the length of |inline_id_to_token_pos| by one.
+  }
+};
+
 // Class to encapsulate the construction and manipulation of the flow graph.
 class FlowGraph : public ZoneAllocated {
  public:
@@ -476,6 +498,9 @@ class FlowGraph : public ZoneAllocated {
   intptr_t inlining_id() const { return inlining_id_; }
   void set_inlining_id(intptr_t value) { inlining_id_ = value; }
 
+  InliningInfo& inlining_info() { return inlining_info_; }
+  const InliningInfo& inlining_info() const { return inlining_info_; }
+
   // Returns true if any instructions were canonicalized away.
   bool Canonicalize();
 
@@ -745,7 +770,10 @@ class FlowGraph : public ZoneAllocated {
   DirectChainedHashMap<ConstantPoolTrait> constant_instr_pool_;
   BitVector* captured_parameters_;
 
+  // Inlining related fields.
   intptr_t inlining_id_;
+  InliningInfo inlining_info_;
+
   bool should_print_;
   const bool should_omit_check_bounds_;
   uint8_t* compiler_pass_filters_ = nullptr;

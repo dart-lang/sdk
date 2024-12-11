@@ -380,9 +380,6 @@ class FlowGraphCompiler : public ValueObject {
                     FlowGraph* flow_graph,
                     const ParsedFunction& parsed_function,
                     bool is_optimizing,
-                    const GrowableArray<const Function*>& inline_id_to_function,
-                    const GrowableArray<TokenPosition>& inline_id_to_token_pos,
-                    const GrowableArray<intptr_t>& caller_inline_id,
                     ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
                     CodeStatistics* stats = nullptr);
 

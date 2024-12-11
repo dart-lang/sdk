@@ -658,7 +658,6 @@ void FlowGraphSerializer::WriteFlowGraph(
 
   Write<intptr_t>(flow_graph.current_ssa_temp_index());
   Write<intptr_t>(flow_graph.max_block_id());
-  Write<intptr_t>(flow_graph.inlining_id());
   Write<const Array&>(flow_graph.coverage_array());
 
   PrologueInfo prologue_info = flow_graph.prologue_info();
@@ -709,12 +708,27 @@ void FlowGraphSerializer::WriteFlowGraph(
     }
     Write<GrowableArray<intptr_t>>(indices);
   }
+
+  Write<intptr_t>(flow_graph.inlining_id());
+
+  const InliningInfo& inlining_info = flow_graph.inlining_info();
+  Write<intptr_t>(inlining_info.inline_id_to_function.length());
+  ASSERT(inlining_info.inline_id_to_function.length() ==
+         inlining_info.caller_inline_id.length());
+  ASSERT(inlining_info.inline_id_to_function.length() ==
+         inlining_info.inline_id_to_token_pos.length() + 1);
+
+  for (intptr_t i = 1, n = inlining_info.inline_id_to_function.length(); i < n;
+       ++i) {
+    Write<const Function&>(*(inlining_info.inline_id_to_function[i]));
+    Write<intptr_t>(inlining_info.caller_inline_id[i]);
+    Write<TokenPosition>(inlining_info.inline_id_to_token_pos[i - 1]);
+  }
 }
 
 FlowGraph* FlowGraphDeserializer::ReadFlowGraph() {
   const intptr_t current_ssa_temp_index = Read<intptr_t>();
   const intptr_t max_block_id = Read<intptr_t>();
-  const intptr_t inlining_id = Read<intptr_t>();
   const Array& coverage_array = Read<const Array&>();
   const PrologueInfo prologue_info(Read<intptr_t>(), Read<intptr_t>());
 
@@ -750,7 +764,6 @@ FlowGraph* FlowGraphDeserializer::ReadFlowGraph() {
   flow_graph->set_current_ssa_temp_index(current_ssa_temp_index);
   flow_graph->CreateCommonConstants();
   flow_graph->disallow_licm();
-  flow_graph->set_inlining_id(inlining_id);
   flow_graph->set_coverage_array(coverage_array);
 
   {
@@ -769,6 +782,19 @@ FlowGraph* FlowGraphDeserializer::ReadFlowGraph() {
     for (intptr_t i : indices) {
       flow_graph->captured_parameters()->Add(i);
     }
+  }
+
+  flow_graph->set_inlining_id(Read<intptr_t>());
+
+  auto& inlining_info = flow_graph->inlining_info();
+  const intptr_t inlining_info_len = Read<intptr_t>();
+  ASSERT(inlining_info.inline_id_to_function.length() == 1);
+  ASSERT(inlining_info.caller_inline_id.length() == 1);
+  ASSERT(inlining_info.inline_id_to_token_pos.length() == 0);
+  for (intptr_t i = 1; i < inlining_info_len; ++i) {
+    inlining_info.inline_id_to_function.Add(&Read<const Function&>());
+    inlining_info.caller_inline_id.Add(Read<intptr_t>());
+    inlining_info.inline_id_to_token_pos.Add(Read<TokenPosition>());
   }
 
   return flow_graph;

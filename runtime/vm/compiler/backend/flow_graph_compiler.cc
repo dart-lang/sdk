@@ -137,9 +137,6 @@ FlowGraphCompiler::FlowGraphCompiler(
     FlowGraph* flow_graph,
     const ParsedFunction& parsed_function,
     bool is_optimizing,
-    const GrowableArray<const Function*>& inline_id_to_function,
-    const GrowableArray<TokenPosition>& inline_id_to_token_pos,
-    const GrowableArray<intptr_t>& caller_inline_id,
     ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
     CodeStatistics* stats /* = nullptr */)
     : thread_(Thread::Current()),
@@ -194,13 +191,18 @@ FlowGraphCompiler::FlowGraphCompiler(
 #else
   const bool stack_traces_only = false;
 #endif
+
+  const auto& inlining_info = flow_graph->inlining_info();
   // Make sure that the function is at the position for inline_id 0.
-  ASSERT(inline_id_to_function.length() >= 1);
-  ASSERT(inline_id_to_function[0]->ptr() ==
+  ASSERT(inlining_info.inline_id_to_function.length() >= 1);
+  ASSERT(inlining_info.inline_id_to_function[0]->ptr() ==
          flow_graph->parsed_function().function().ptr());
-  code_source_map_builder_ = new (zone_)
-      CodeSourceMapBuilder(zone_, stack_traces_only, caller_inline_id,
-                           inline_id_to_token_pos, inline_id_to_function);
+  ASSERT(inlining_info.inline_id_to_function.length() ==
+         inlining_info.caller_inline_id.length());
+  code_source_map_builder_ = new (zone_) CodeSourceMapBuilder(
+      zone_, stack_traces_only, inlining_info.caller_inline_id,
+      inlining_info.inline_id_to_token_pos,
+      inlining_info.inline_id_to_function);
 
   ArchSpecificInitialization();
 }

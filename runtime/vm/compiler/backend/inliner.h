@@ -32,11 +32,7 @@ class TargetEntryInstr;
 
 class FlowGraphInliner : ValueObject {
  public:
-  FlowGraphInliner(FlowGraph* flow_graph,
-                   GrowableArray<const Function*>* inline_id_to_function,
-                   GrowableArray<TokenPosition>* inline_id_to_token_pos,
-                   GrowableArray<intptr_t>* caller_inline_id,
-                   Precompiler* precompiler);
+  FlowGraphInliner(FlowGraph* flow_graph, Precompiler* precompiler);
 
   // The flow graph is destructively updated upon inlining.  Returns the max
   // depth that we inlined.

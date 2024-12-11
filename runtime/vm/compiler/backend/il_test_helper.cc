@@ -218,14 +218,10 @@ void TestPipeline::CompileGraphAndAttachFunction() {
   const intptr_t far_branch_level = 1;
 #endif
 
-  ASSERT(pass_state_->inline_id_to_function.length() ==
-         pass_state_->caller_inline_id.length());
   compiler::ObjectPoolBuilder object_pool_builder;
   compiler::Assembler assembler(&object_pool_builder, far_branch_level);
-  FlowGraphCompiler graph_compiler(
-      &assembler, flow_graph_, *parsed_function_, optimized,
-      pass_state_->inline_id_to_function, pass_state_->inline_id_to_token_pos,
-      pass_state_->caller_inline_id, ic_data_array_);
+  FlowGraphCompiler graph_compiler(&assembler, flow_graph_, *parsed_function_,
+                                   optimized, ic_data_array_);
 
   graph_compiler.CompileGraph();
 
