@@ -36,7 +36,9 @@ main() {
   final map = const {1: 42, 'foo': 499, 2: 'bar'};
   Expect.equals(42, map[getValueNonOptimized(1.0)]);
   Expect.equals(
-      499, map[getValueNonOptimized(new String.fromCharCodes('foo'.runes))]);
+    499,
+    map[getValueNonOptimized(new String.fromCharCodes('foo'.runes))],
+  );
   Expect.equals('bar', map[getValueNonOptimized(2)]);
 
   void testThrowsNoModification(void Function() f) {
@@ -46,7 +48,9 @@ main() {
 
     Expect.equals(42, map[getValueNonOptimized(1.0)]);
     Expect.equals(
-        499, map[getValueNonOptimized(new String.fromCharCodes('foo'.runes))]);
+      499,
+      map[getValueNonOptimized(new String.fromCharCodes('foo'.runes))],
+    );
     Expect.equals('bar', map[getValueNonOptimized(2)]);
     Expect.isNull(map[1024]);
   }

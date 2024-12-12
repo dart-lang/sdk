@@ -13,12 +13,9 @@ void test(A func(String value), String value) {
   });
 }
 
+class A {}
 
-class A {
-}
-
-class B extends A {
-}
+class B extends A {}
 
 class C {
   static A a(String x) => new A();

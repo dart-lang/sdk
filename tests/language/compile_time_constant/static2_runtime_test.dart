@@ -10,23 +10,7 @@ class A {
 
   const A.a2(this.x);
 
-
-
   const A.a6(int x) : this.x = x;
 }
 
-
-
-
-
-
-
-
-main() {
-
-
-
-
-
-
-}
+main() {}

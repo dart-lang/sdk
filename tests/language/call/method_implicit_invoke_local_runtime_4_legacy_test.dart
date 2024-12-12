@@ -34,6 +34,4 @@ main() {
   // Implicitly invokes d2.call(1)
   Expect.equals(d2(1), 2);
   // Cannot invoke with the wrong signature.
-
-
 }

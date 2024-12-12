@@ -7,7 +7,6 @@
 
 class A {
   A() {}
-
 }
 
 main() {

@@ -8,10 +8,8 @@
 class A {
   var x;
   A(x) : this.named(x, 0);
-  A.named(x, int y)
-      // Redirecting constructors must not be cyclic.
-
-      ;
+  A.named(x, int y);
+  // Redirecting constructors must not be cyclic.
 }
 
 main() {

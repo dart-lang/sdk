@@ -54,26 +54,25 @@ class A<U extends num> {
   final void Function(int) x14;
 
   const A(bool b)
-      : x1 = b ? (b ? f1 : prefix.f2)<U> : (b ? f1 : prefix.f2)<int>,
-        x2 = b ? (b ? prefix.c01 : c02)<U> : (b ? prefix.c01 : c02)<int>,
-        x3 = b ? ((b ? prefix.f1 : f2))<U> : ((b ? prefix.f1 : f2))<int>,
-        x4 = b ? ((b ? c01 : prefix.c02))<U> : ((b ? c01 : prefix.c02))<int>,
-        x5 = b ? (null ?? f1)<U> : (null ?? f1)<int>,
-        x6 = b
-            ? ((c01 as dynamic) as void Function<X extends num>(X,
-                [num, List<X>]))<U>
-            : ((c01 as dynamic) as void Function<X extends num>(X,
-                [num, List<X>]))<int>,
-        x7 = b ? f1 : f2,
-        x8 = b ? c01 : c02,
-        x9 = null ?? c02,
-        x10 =
-            (c01 as dynamic) as void Function<X extends num>(X, [int, List<X>]),
-        x11 = b ? f1 : f2,
-        x12 = b ? c01 : c02,
-        x13 = null ?? c02,
-        x14 =
-            (c01 as dynamic) as void Function<X extends num>(X, [int, List<X>]);
+    : x1 = b ? (b ? f1 : prefix.f2)<U> : (b ? f1 : prefix.f2)<int>,
+      x2 = b ? (b ? prefix.c01 : c02)<U> : (b ? prefix.c01 : c02)<int>,
+      x3 = b ? ((b ? prefix.f1 : f2))<U> : ((b ? prefix.f1 : f2))<int>,
+      x4 = b ? ((b ? c01 : prefix.c02))<U> : ((b ? c01 : prefix.c02))<int>,
+      x5 = b ? (null ?? f1)<U> : (null ?? f1)<int>,
+      x6 =
+          b
+              ? ((c01 as dynamic)
+                  as void Function<X extends num>(X, [num, List<X>]))<U>
+              : ((c01 as dynamic)
+                  as void Function<X extends num>(X, [num, List<X>]))<int>,
+      x7 = b ? f1 : f2,
+      x8 = b ? c01 : c02,
+      x9 = null ?? c02,
+      x10 = (c01 as dynamic) as void Function<X extends num>(X, [int, List<X>]),
+      x11 = b ? f1 : f2,
+      x12 = b ? c01 : c02,
+      x13 = null ?? c02,
+      x14 = (c01 as dynamic) as void Function<X extends num>(X, [int, List<X>]);
 }
 
 void main() {

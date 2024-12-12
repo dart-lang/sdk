@@ -22,7 +22,7 @@ Future<void> testList() async {
 
   // Downcast variable.
   var b = <int>[
-    await for (int n in numStream([1, 2, 3, 4])) n
+    await for (int n in numStream([1, 2, 3, 4])) n,
     //             ^
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
     //                  ^^^^^^^^^^^^^^^^^^^^^^^
@@ -31,7 +31,7 @@ Future<void> testList() async {
 
   // Downcast element.
   var c = <int>[
-    await for (num n in numStream([1, 2, 3, 4])) n
+    await for (num n in numStream([1, 2, 3, 4])) n,
     //                                           ^
     // [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
@@ -48,7 +48,7 @@ Future<void> testMap() async {
 
   // Downcast variable.
   var b = <int, int>{
-    await for (int n in numStream([1, 2, 3, 4])) n: n
+    await for (int n in numStream([1, 2, 3, 4])) n: n,
     //             ^
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
     //                  ^^^^^^^^^^^^^^^^^^^^^^^
@@ -57,7 +57,7 @@ Future<void> testMap() async {
 
   // Downcast element.
   var c = <int, int>{
-    await for (num n in numStream([1, 2, 3, 4])) n: n
+    await for (num n in numStream([1, 2, 3, 4])) n: n,
     //                                           ^
     // [analyzer] COMPILE_TIME_ERROR.MAP_KEY_TYPE_NOT_ASSIGNABLE
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
@@ -77,7 +77,7 @@ Future<void> testSet() async {
 
   // Downcast variable.
   var b = <int>{
-    await for (int n in numStream([1, 2, 3, 4])) n
+    await for (int n in numStream([1, 2, 3, 4])) n,
     //             ^
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
     //                  ^^^^^^^^^^^^^^^^^^^^^^^
@@ -86,7 +86,7 @@ Future<void> testSet() async {
 
   // Downcast element.
   var c = <int>{
-    await for (num n in numStream([1, 2, 3, 4])) n
+    await for (num n in numStream([1, 2, 3, 4])) n,
     //                                           ^
     // [analyzer] COMPILE_TIME_ERROR.SET_ELEMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.

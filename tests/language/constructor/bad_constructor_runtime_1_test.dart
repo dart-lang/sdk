@@ -7,14 +7,14 @@
 
 // A constructor can't be static.
 class A {
-
   A();
 }
 
 // A factory constructor can't be static.
 class B {
-
-  factory B() { return B._(); }
+  factory B() {
+    return B._();
+  }
 
   B._();
 }
@@ -27,8 +27,7 @@ class E {
 
 // A constructor can't be static.
 class F {
-
-  F(){}
+  F() {}
 }
 
 main() {

@@ -5,10 +5,10 @@
 void test(dynamic d, Object o, Function f) {
   d();
   o();
-//^
-// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
-// ^
-// [cfe] The method 'call' isn't defined for the class 'Object'.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+  // [error column 4]
+  // [cfe] The method 'call' isn't defined for the class 'Object'.
   f();
   d.call;
   o.call;

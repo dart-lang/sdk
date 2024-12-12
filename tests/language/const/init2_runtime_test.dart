@@ -7,9 +7,4 @@
 
 const intValue = 0;
 
-
-
-main() {
-
-
-}
+main() {}
