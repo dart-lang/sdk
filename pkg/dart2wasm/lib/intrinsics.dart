@@ -420,6 +420,10 @@ class Intrinsifier {
               codeGen.translateExpression(receiver, w.NumType.f64);
               b.i64_trunc_sat_f64_s();
               return w.NumType.i64;
+            case "sqrt":
+              codeGen.translateExpression(receiver, w.NumType.f64);
+              b.f64_sqrt();
+              return w.NumType.f64;
             case "copysign":
               codeGen.translateExpression(receiver, w.NumType.f64);
               codeGen.translateExpression(
