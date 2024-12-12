@@ -268,7 +268,7 @@ Annotation
 ''');
 
     var localVariable = findElement2.localVar('x');
-    var annotationOnElement = localVariable.firstAnnotation;
+    var annotationOnElement = localVariable.metadata2.annotations.first;
     _assertElementAnnotationValueText(annotationOnElement, '''
 A
   a: int 3
@@ -1485,8 +1485,8 @@ import 'a.dart';
 void f(C c) {}
 ''');
 
-    var classC = findNode.namedType('C c').element2!;
-    var annotation = classC.firstAnnotation;
+    var classC = findNode.namedType('C c').element2 as ClassElement2;
+    var annotation = classC.metadata2.annotations.first;
     _assertElementAnnotationValueText(annotation, r'''
 B
   a: A
@@ -1515,8 +1515,8 @@ import 'b.dart';
 void f(B b) {}
 ''');
 
-    var classB = findNode.namedType('B b').element2!;
-    var annotation = classB.firstAnnotation;
+    var classB = findNode.namedType('B b').element2! as ClassElement2;
+    var annotation = classB.metadata2.annotations.first;
     _assertElementAnnotationValueText(annotation, r'''
 A
   f: int 42
@@ -1544,8 +1544,8 @@ import 'b.dart';
 void f(B b) {}
 ''');
 
-    var classB = findNode.namedType('B b').element2!;
-    var annotation = classB.firstAnnotation;
+    var classB = findNode.namedType('B b').element2 as ClassElement2;
+    var annotation = classB.metadata2.annotations.first;
     _assertElementAnnotationValueText(annotation, r'''
 A
   f: int 42
@@ -2670,9 +2670,4 @@ int 42
     var value = annotation.computeConstantValue();
     assertDartObjectText(value, expected);
   }
-}
-
-extension on Element2 {
-  ElementAnnotation get firstAnnotation =>
-      (this as Annotatable).metadata2.annotations.first;
 }
