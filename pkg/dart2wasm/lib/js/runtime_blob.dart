@@ -3,16 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 const jsRuntimeBlobPart1 = r'''
-// Returns whether the `js-string` built-in is supported.
-function detectJsStringBuiltins() {
-  let bytes = [
-    0,   97,  115, 109, 1,   0,   0,  0,   1,   4,   1,   96,  0,
-    0,   2,   23,  1,   14,  119, 97, 115, 109, 58,  106, 115, 45,
-    115, 116, 114, 105, 110, 103, 4,  99,  97,  115, 116, 0,   0
-  ];
-  return WebAssembly.validate(
-    new Uint8Array(bytes), {builtins: ['js-string']});
-}
 
 // Compiles a dart2wasm-generated main module from `source` which can then
 // instantiatable via the `instantiate` method.
@@ -20,8 +10,7 @@ function detectJsStringBuiltins() {
 // `source` needs to be a `Response` object (or promise thereof) e.g. created
 // via the `fetch()` JS API.
 export async function compileStreaming(source) {
-  const builtins = detectJsStringBuiltins()
-      ? {builtins: ['js-string']} : {};
+  const builtins = {builtins: ['js-string']};
   return new CompiledApp(
       await WebAssembly.compileStreaming(source, builtins), builtins);
 }
@@ -29,8 +18,7 @@ export async function compileStreaming(source) {
 // Compiles a dart2wasm-generated wasm modules from `bytes` which is then
 // instantiatable via the `instantiate` method.
 export async function compile(bytes) {
-  const builtins = detectJsStringBuiltins()
-      ? {builtins: ['js-string']} : {};
+  const builtins = {builtins: ['js-string']};
   return new CompiledApp(await WebAssembly.compile(bytes, builtins), builtins);
 }
 
