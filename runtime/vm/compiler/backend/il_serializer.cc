@@ -30,11 +30,7 @@ FlowGraphSerializer::FlowGraphSerializer(NonStreamingWriteStream* stream)
       zone_(Thread::Current()->zone()),
       thread_(Thread::Current()),
       isolate_group_(IsolateGroup::Current()),
-      heap_(IsolateGroup::Current()->heap()) {
-  // We want to preserve the identity of these, even though they are not const.
-  AddBaseObject(Object::uninitialized_index());
-  AddBaseObject(Object::uninitialized_data());
-}
+      heap_(IsolateGroup::Current()->heap()) {}
 
 FlowGraphSerializer::~FlowGraphSerializer() {
   heap_->ResetObjectIdTable();
@@ -47,11 +43,7 @@ FlowGraphDeserializer::FlowGraphDeserializer(
       stream_(stream),
       zone_(Thread::Current()->zone()),
       thread_(Thread::Current()),
-      isolate_group_(IsolateGroup::Current()) {
-  // We want to preserve the identity of these, even though they are not const.
-  AddBaseObject(Object::uninitialized_index());
-  AddBaseObject(Object::uninitialized_data());
-}
+      isolate_group_(IsolateGroup::Current()) {}
 
 ClassPtr FlowGraphDeserializer::GetClassById(classid_t id) const {
   return isolate_group()->class_table()->At(id);
@@ -1411,11 +1403,6 @@ void MoveOperands::Write(FlowGraphSerializer* s) const {
 MoveOperands::MoveOperands(FlowGraphDeserializer* d)
     : dest_(Location::Read(d)), src_(Location::Read(d)) {}
 
-void FlowGraphSerializer::AddBaseObject(const Object& x) {
-  const intptr_t object_index = object_counter_++;
-  heap()->SetObjectId(x.ptr(), object_index + 1);
-}
-
 template <>
 void FlowGraphSerializer::WriteTrait<const Object&>::Write(
     FlowGraphSerializer* s,
@@ -1434,12 +1421,6 @@ void FlowGraphSerializer::WriteTrait<const Object&>::Write(
   s->heap()->SetObjectId(x.ptr(), object_index + 1);
   s->Write<intptr_t>(cid);
   s->WriteObjectImpl(x, cid, object_index);
-}
-
-void FlowGraphDeserializer::AddBaseObject(const Object& x) {
-  const intptr_t object_index = object_counter_;
-  object_counter_++;
-  SetObjectAt(object_index, x);
 }
 
 template <>

@@ -857,10 +857,9 @@ void ConstantPropagator::VisitLoadIndexedUnsafe(LoadIndexedUnsafeInstr* instr) {
 }
 
 void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
-  // We cannot generally take the current value for an initialized constant
-  // field because the same code will be used when the AppAOT or AppJIT starts
-  // over with everything uninitialized or another isolate in the isolate group
-  // starts with everything uninitialized.
+  // Cannot treat an initialized field as constant because the same code will be
+  // used when the AppAOT or AppJIT starts over with everything uninitialized or
+  // another isolate in the isolate group starts with everything uninitialized.
   SetValue(instr, non_constant_);
 }
 
