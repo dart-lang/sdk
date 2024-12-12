@@ -115,10 +115,80 @@ class ExpressionCompiler {
         dartScope.definitions[extractLocalName(localName)] =
             dartScope.definitions.remove(localName)!;
       }
+
+      // Create a mapping from Dart variable names in scope to the corresponding
+      // JS variable names. The Dart variable may have had a suffix of the
+      // form '$N' added to it where N is either the empty string or an
+      // integer >= 0.
+      final dartNameToJsName = <String, String>{};
+
+      int nameCompare(String a, String b) {
+        final lengthCmp = b.length.compareTo(a.length);
+        if (lengthCmp != 0) return lengthCmp;
+        return b.compareTo(a);
+      }
+
+      // Sort Dart names in case a user-defined name includes a '$'. The
+      // resulting normalized JS name might seem like a suffixed version of a
+      // shorter Dart name. Since longer Dart names can't incorrectly match a
+      // shorter JS name (JS names are always at least as long as the Dart
+      // name), we process them from longest to shortest.
+      final dartNames = [...dartScope.definitions.keys]..sort(nameCompare);
+
+      // Sort JS names so that the highest suffix value gets assigned to the
+      // corresponding Dart name first. Since names are suffixed in ascending
+      // order as inner scopes are visited, the highest suffix value will be
+      // the one that matches the visible Dart name in a given scope.
+      final jsNames = [...jsScope.keys]..sort(nameCompare);
+
+      const removedSentinel = '';
+      const thisJsName = r'$this';
+
+      for (final dartName in dartNames) {
+        if (isExtensionThisName(dartName)) {
+          if (jsScope.containsKey(thisJsName)) {
+            dartNameToJsName[dartName] = thisJsName;
+          }
+          continue;
+        }
+        // Any name containing a '$' symbol will have that symbol expanded to
+        // '$36' in JS. We do a similar expansion here to normalize the names.
+        final jsNamePrefix =
+            js_ast.toJSIdentifier(dartName).replaceAll('\$', '\\\$');
+        print(jsNamePrefix);
+        final regexp = RegExp(r'^' + jsNamePrefix + r'(\$[0-9]*)?$');
+        for (var i = 0; i < jsNames.length; i++) {
+          final jsName = jsNames[i];
+          if (jsName == removedSentinel) continue;
+          if (jsName.length < dartName.length) break;
+          if (regexp.hasMatch(jsName)) {
+            dartNameToJsName[dartName] = jsName;
+            jsNames[i] = removedSentinel;
+
+            // Remove any additional JS names that match this name as these will
+            // correspond to shadowed Dart variables that are not visible in the
+            // current scope.
+            //
+            // Note: In some extreme cases this can match the wrong variable.
+            // This would require a combination of 36 nested variables with the
+            // same name and a similarly named variable with a $ in its name.
+            for (var j = i; j < jsNames.length; j++) {
+              final jsName = jsNames[j];
+              if (jsName == removedSentinel) continue;
+              if (jsName.length < dartName.length) break;
+              if (regexp.hasMatch(jsNames[j])) {
+                jsNames[j] = removedSentinel;
+              }
+            }
+            break;
+          }
+        }
+      }
+
       // remove undefined js variables (this allows us to get a reference error
       // from chrome on evaluation)
-      dartScope.definitions.removeWhere((variable, type) =>
-          !jsScope.containsKey(_dartNameToJsName(variable)));
+      dartScope.definitions.removeWhere(
+          (variable, type) => !dartNameToJsName.containsKey(variable));
 
       dartScope.typeParameters
           .removeWhere((parameter) => !jsScope.containsKey(parameter.name));
@@ -128,7 +198,7 @@ class ExpressionCompiler {
       var localJsScope = [
         ...dartScope.typeParameters.map((parameter) => jsScope[parameter.name]),
         ...dartScope.definitions.keys
-            .map((variable) => jsScope[_dartNameToJsName(variable)])
+            .map((variable) => jsScope[dartNameToJsName[variable]])
       ];
 
       _log('Performed scope substitutions for expression');
@@ -175,12 +245,6 @@ class ExpressionCompiler {
           _createInternalError(Uri.parse(libraryUri), line, column, '$e:$s'));
       return null;
     }
-  }
-
-  String? _dartNameToJsName(String? dartName) {
-    if (dartName == null) return dartName;
-    if (isExtensionThisName(dartName)) return r'$this';
-    return dartName;
   }
 
   DartScope? _findScopeAt(

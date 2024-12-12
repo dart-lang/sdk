@@ -24,31 +24,31 @@ abstract class FixedNames {
 }
 
 /// Unique instance for temporary variables. Will be renamed consistently
-/// across the entire file. Different instances will be named differently
-/// even if they have the same name, this makes it safe to use in code
-/// generation without needing global knowledge. See [TemporaryNamer].
+/// across the entire file. Instances with different IDs will be named
+/// differently even if they have the same name, this makes it safe to use in
+/// code generation without needing global knowledge. See [TemporaryNamer].
 // TODO(jmesserly): move into js_ast? add a boolean to Identifier?
 class TemporaryId extends Identifier {
-  // TODO(jmesserly): by design, temporary identifier nodes are shared
-  // throughout the AST, so any source information we attach in one location
-  // be incorrect for another location (and overwrites previous data).
-  //
-  // If we want to track source information for temporary variables, we'll
-  // need to separate the identity of the variable from its Identifier.
-  //
-  // In practice that makes temporaries more difficult to use: they're no longer
-  // JS AST nodes, so `toIdentifier()` is required to put them in the JS AST.
-  // And anywhere we currently use type `Identifier` to hold Identifier or
-  // TemporaryId, those types would need to change to `Identifier Function()`.
-  //
-  // However we may need to fix this if we want hover to work well for things
-  // like library prefixes and field-initializing formals.
-  @override
-  dynamic get sourceInformation => null;
-  @override
-  set sourceInformation(Object? obj) {}
+  final int _id;
 
-  TemporaryId(super.name);
+  @override
+  TemporaryId withSourceInformation(dynamic sourceInformation) =>
+      TemporaryId.from(this)..sourceInformation = sourceInformation;
+
+  static int _idCounter = 0;
+
+  TemporaryId(super.name) : _id = _idCounter++;
+  TemporaryId.from(TemporaryId other)
+      : _id = other._id,
+        super(other.name);
+
+  @override
+  int get hashCode => _id;
+
+  @override
+  bool operator ==(Object other) {
+    return other is TemporaryId && other._id == _id;
+  }
 }
 
 /// Creates a qualified identifier, without determining for sure if it needs to

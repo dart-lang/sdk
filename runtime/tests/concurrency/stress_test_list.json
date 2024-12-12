@@ -600,7 +600,6 @@
   "../../../tests/language/abstract/method_test.dart",
   "../../../tests/language/abstract/object_method_test.dart",
   "../../../tests/language/abstract/override_adds_optional_args_test.dart",
-  "../../../tests/language/abstract/syntax_runtime_test.dart",
   "../../../tests/language/accessor_conflict/export2_test.dart",
   "../../../tests/language/accessor_conflict/export_test.dart",
   "../../../tests/language/accessor_conflict/import2_test.dart",
