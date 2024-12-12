@@ -20,13 +20,13 @@ abstract class A1 {
 }
 
 class A2 {
-//    ^
-// [cfe] The non-abstract class 'A2' is missing implementations for these members:
+  //  ^
+  // [cfe] The non-abstract class 'A2' is missing implementations for these members:
 
   // Intentionally abstract method.
   method();
-//^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+  // [error column 3, length 9]
+  // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
   A2.make() {}
 }
 

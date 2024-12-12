@@ -5,6 +5,7 @@
 import "dart:_internal" show mix64, patch;
 import "dart:_js_types" show JSUint8ArrayImpl;
 import "dart:js_interop";
+import "dart:_wasm";
 
 /// There are no parts of this patch library.
 
@@ -113,7 +114,7 @@ double asin(num x) => _asin(x.toDouble());
 @patch
 double atan(num x) => _atan(x.toDouble());
 @patch
-double sqrt(num x) => _sqrt(x.toDouble());
+double sqrt(num x) => x.toDouble().sqrt();
 @patch
 double exp(num x) => _exp(x.toDouble());
 @patch
@@ -133,8 +134,6 @@ external double _acos(double x);
 external double _asin(double x);
 @pragma("wasm:import", "Math.atan")
 external double _atan(double x);
-@pragma("wasm:import", "Math.sqrt")
-external double _sqrt(double x);
 @pragma("wasm:import", "Math.exp")
 external double _exp(double x);
 @pragma("wasm:import", "Math.log")
