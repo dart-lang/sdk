@@ -168,7 +168,7 @@ vars = {
   "watcher_rev": "bc44e6f6b85972e516c44b9ae6c042b4cbd7c72b",
   "web_rev": "bdf112ec64d28285cc29c6c78274ff3a827bb79b",
   "web_socket_channel_rev": "7a2039fd7c4c656ab27850926f89103b5f188dab",
-  "webdev_rev": "5f30c560dc4e3df341356c43ec1a766ee6b74a7c",
+  "webdev_rev": "ab620d1a81adc57b5045a189e076b9930ae66208",
   "webdriver_rev": "d83d6a3cbaab152ff9b99b29382d1f48b5d5ba23",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
   "yaml_rev": "2a3727288a9336b6f9b7c5236657414ce1ee5d8a",
