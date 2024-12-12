@@ -211,7 +211,6 @@ test/src/dart/resolution/constant_test.dart
 test/src/dart/resolution/context_collection_resolution.dart
 test/src/dart/resolution/generic_type_alias_test.dart
 test/src/dart/resolution/local_variable_test.dart
-test/src/dart/resolution/metadata_test.dart
 test/src/dart/resolution/prefix_element_test.dart
 test/src/dart/resolution/resolution.dart
 test/src/dart/resolution/scope_test.dart

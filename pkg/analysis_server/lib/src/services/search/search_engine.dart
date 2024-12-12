@@ -127,6 +127,14 @@ abstract class SearchEngine {
     Element element,
   );
 
+  /// Return the prefixes used to reference the [element] in any of the
+  /// compilation units in the [library]. The returned set will include an empty
+  /// string if the element is referenced without a prefix.
+  Future<Set<String>> searchPrefixesUsedInLibrary2(
+    LibraryElement2 library,
+    Element2 element,
+  );
+
   /// Returns references to the given [Element].
   ///
   /// [element] - the [Element] being referenced by the found matches.

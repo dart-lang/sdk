@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show jsonDecode;
-import 'dart:io' show Directory, File, InternetAddress, Platform, Socket;
+import 'dart:convert' show jsonDecode, jsonEncode;
+import 'dart:io' show Directory, File, InternetAddress, Socket;
 
 import 'package:path/path.dart' as path;
 
@@ -60,22 +60,15 @@ final class ResidentCompilerInfo {
 String computeCachedDillPath(
   final String canonicalizedLibraryPath,
 ) {
-  final int lastSeparatorPosInCanonicalizedLibraryPath =
-      canonicalizedLibraryPath.lastIndexOf(Platform.pathSeparator);
-  final String dirname = canonicalizedLibraryPath.substring(
-    0,
-    lastSeparatorPosInCanonicalizedLibraryPath,
-  );
-  final String basename = canonicalizedLibraryPath.substring(
-    lastSeparatorPosInCanonicalizedLibraryPath + 1,
-  );
+  final String dirname = path.dirname(canonicalizedLibraryPath);
+  final String basename = path.basename(canonicalizedLibraryPath);
 
   final String cachedKernelDirectoryPath = path.join(
     path.join(
       Directory.systemTemp.path,
       'dart_resident_compiler_kernel_cache',
     ),
-    dirname.replaceAll('/', '_').replaceAll(r'\', '_'),
+    dirname.replaceAll(new RegExp(r':|\\|\/'), '_'),
   );
 
   try {
@@ -118,4 +111,23 @@ Future<Map<String, dynamic>> sendAndReceiveResponse(
   }
   client?.destroy();
   return jsonResponse;
+}
+
+/// Sends a 'replaceCachedDill' request with [replacementDillPath] as the lone
+/// argument to the resident frontend compiler associated with [serverInfoFile],
+/// and returns a boolean indicating whether or not replacement succeeded.
+///
+/// Throws a [FileSystemException] if [serverInfoFile] cannot be accessed.
+Future<bool> invokeReplaceCachedDill({
+  required String replacementDillPath,
+  required File serverInfoFile,
+}) async {
+  final Map<String, dynamic> response = await sendAndReceiveResponse(
+    jsonEncode({
+      'command': 'replaceCachedDill',
+      'replacementDillPath': replacementDillPath,
+    }),
+    serverInfoFile,
+  );
+  return response['success'];
 }

@@ -517,7 +517,9 @@ class Object {
   V(Array, vm_isolate_snapshot_object_table)                                   \
   V(Type, dynamic_type)                                                        \
   V(Type, void_type)                                                           \
-  V(AbstractType, null_abstract_type)
+  V(AbstractType, null_abstract_type)                                          \
+  V(TypedData, uninitialized_index)                                            \
+  V(Array, uninitialized_data)
 
 #define DEFINE_SHARED_READONLY_HANDLE_GETTER(Type, name)                       \
   static const Type& name() {                                                  \
@@ -12147,10 +12149,10 @@ class LinkedHashBase : public Instance {
   virtual uint32_t CanonicalizeHash() const;
   virtual void CanonicalizeFieldsLocked(Thread* thread) const;
 
- protected:
   // Keep this in sync with Dart implementation (lib/compact_hash.dart).
   static constexpr intptr_t kInitialIndexBits = 2;
   static constexpr intptr_t kInitialIndexSize = 1 << (kInitialIndexBits + 1);
+  static constexpr intptr_t kUninitializedIndexSize = 1;
 
  private:
   LinkedHashBasePtr ptr() const { return static_cast<LinkedHashBasePtr>(ptr_); }

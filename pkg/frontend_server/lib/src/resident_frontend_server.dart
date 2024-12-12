@@ -18,6 +18,7 @@ import 'dart:typed_data' show Uint8List;
 import 'package:args/args.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/binary/tag.dart' show expectedSdkHash;
+import 'package:kernel/kernel.dart' show Component, loadComponentFromBytes;
 import 'package:path/path.dart' as path;
 
 import '../frontend_server.dart';
@@ -89,6 +90,10 @@ class ResidentCompiler {
     updateState(_compileOptions);
   }
 
+  void resetStateToWaitingForFirstCompile() {
+    _state = _ResidentState.waitingForFirstCompile;
+  }
+
   /// The [ResidentCompiler] will use the [newOptions] for future compilation
   /// requests.
   void updateState(ArgResults newOptions) {
@@ -99,7 +104,7 @@ class ResidentCompiler {
     // Refresh the compiler's output for the next compile
     _compilerOutput.clear();
     _formattedOutput.clear();
-    _state = _ResidentState.waitingForFirstCompile;
+    resetStateToWaitingForFirstCompile();
   }
 
   /// The current compiler options are outdated when any option has changed
@@ -170,7 +175,7 @@ class ResidentCompiler {
         ..resetIncrementalCompiler();
       _state = _ResidentState.waitingForRecompile;
     } else {
-      _state = _ResidentState.waitingForFirstCompile;
+      resetStateToWaitingForFirstCompile();
     }
 
     return _createResponseMap(
@@ -256,6 +261,8 @@ class ResidentCompiler {
 /// residentListenAndCompile method.
 class ResidentFrontendServer {
   static const String _commandString = 'command';
+  static const String _replaceCachedDillString = 'replaceCachedDill';
+  static const String _replacementDillPathString = 'replacementDillPath';
   static const String _compileString = 'compile';
   static const String _executableString = 'executable';
   static const String _packageString = 'packages';
@@ -299,6 +306,43 @@ class ResidentFrontendServer {
     }
 
     return residentCompiler;
+  }
+
+  static Future<String> _handleReplaceCachedDillRequest(
+    Map<String, dynamic> request,
+  ) async {
+    if (request[_replacementDillPathString] == null) {
+      return _encodeErrorMessage(
+        "'$_replaceCachedDillString' requests must include a "
+        "'$_replacementDillPathString' property.",
+      );
+    }
+
+    final File replacementDillFile =
+        new File(request[_replacementDillPathString]);
+
+    final String canonicalizedLibraryPath;
+    try {
+      final Component component =
+          loadComponentFromBytes(replacementDillFile.readAsBytesSync());
+      canonicalizedLibraryPath = path.canonicalize(
+        component.mainMethod!.enclosingLibrary.fileUri.toFilePath(),
+      );
+
+      final String cachedDillPath =
+          computeCachedDillPath(canonicalizedLibraryPath);
+      replacementDillFile.copySync(cachedDillPath);
+    } catch (e) {
+      return _encodeErrorMessage('Failed to replace cached dill');
+    }
+
+    if (compilers[canonicalizedLibraryPath] != null) {
+      compilers[canonicalizedLibraryPath]!.resetStateToWaitingForFirstCompile();
+    }
+
+    return jsonEncode({
+      "success": true,
+    });
   }
 
   static Future<String> _handleCompileRequest(
@@ -365,6 +409,8 @@ class ResidentFrontendServer {
     }
 
     switch (request[_commandString]) {
+      case _replaceCachedDillString:
+        return _handleReplaceCachedDillRequest(request);
       case _compileString:
         return _handleCompileRequest(request);
       case _shutdownString:

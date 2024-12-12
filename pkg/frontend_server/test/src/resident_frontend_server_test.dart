@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:frontend_server/src/resident_frontend_server.dart';
 import 'package:frontend_server/resident_frontend_server_utils.dart'
-    show sendAndReceiveResponse;
+    show computeCachedDillPath, sendAndReceiveResponse;
 import 'package:frontend_server/starter.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -20,6 +20,40 @@ void main() async {
   // Waiting for this number of milliseconds guarantees that the files in
   // the unit tests will not be counted as modified.
   const int statGranularity = 1100;
+
+  group('Resident Frontend Server utility functions: ', () {
+    test('computeCachedDillPath', () async {
+      // [computeCachedDillPath] is implemented using [path.dirname] and
+      // [path.basename], and those functions are platform-sensitive, so we test
+      // with an example of a Windows path on Windows, and an example of a POSIX
+      // path on other platforms.
+      if (Platform.isWindows) {
+        const String exampleCanonicalizedLibraryPath =
+            r'C:\Users\user\directory\file.dart';
+        expect(
+          computeCachedDillPath(exampleCanonicalizedLibraryPath),
+          path.join(
+            Directory.systemTemp.path,
+            'dart_resident_compiler_kernel_cache',
+            'C__Users_user_directory_file',
+            'file.dart.dill',
+          ),
+        );
+      } else {
+        const String exampleCanonicalizedLibraryPath =
+            '/home/user/directory/file.dart';
+        expect(
+          computeCachedDillPath(exampleCanonicalizedLibraryPath),
+          path.join(
+            Directory.systemTemp.path,
+            'dart_resident_compiler_kernel_cache',
+            '_home_user_directory',
+            'file.dart.dill',
+          ),
+        );
+      }
+    });
+  });
 
   group('Resident Frontend Server: invalid input: ', () {
     test('no command given', () async {
@@ -69,7 +103,72 @@ void main() async {
     });
   });
 
-  group('Resident Frontend Server: compile tests: ', () {
+  group("Resident Frontend Server: 'replaceCachedDill' command tests: ", () {
+    late Directory d;
+    late File executable, outputDill;
+
+    setUp(() async {
+      d = Directory.systemTemp.createTempSync();
+      executable = new File(path.join(d.path, 'src.dart'))
+        ..createSync()
+        ..writeAsStringSync('void main() {print("hello " "there");}');
+      outputDill = new File(path.join(d.path, 'src.dart.dill'));
+    });
+
+    tearDown(() async {
+      d.deleteSync(recursive: true);
+      ResidentFrontendServer.compilers.clear();
+    });
+
+    test('basic', () async {
+      final File cachedDillFile =
+          new File(computeCachedDillPath(executable.path));
+      expect(cachedDillFile.existsSync(), false);
+
+      final Map<String, dynamic> compileResult =
+          jsonDecode(await ResidentFrontendServer.handleRequest(
+        ResidentFrontendServer.createCompileJSON(
+          executable: executable.path,
+          outputDill: outputDill.path,
+        ),
+      ));
+      expect(compileResult['success'], true);
+
+      expect(cachedDillFile.existsSync(), true);
+      // Delete the kernel file associated with [executable.path] from the
+      // resident frontend compiler kernel cache.
+      cachedDillFile.deleteSync();
+
+      final Map<String, dynamic> replaceCachedDillResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          jsonEncode({
+            'command': 'replaceCachedDill',
+            'replacementDillPath': outputDill.path,
+          }),
+        ),
+      );
+      expect(replaceCachedDillResult['success'], true);
+      // Calling 'replaceCachedDill' with [outputDill] as the replacement dill
+      // should make [outputDill] the kernel file associated with
+      // [executable.path] in the resident frontend compiler kernel cache.
+      expect(cachedDillFile.existsSync(), true);
+      cachedDillFile.deleteSync();
+    });
+
+    test("invalid 'replacementDillPath' property in request", () async {
+      final Map<String, dynamic> replaceCachedDillResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          jsonEncode({
+            'command': 'replaceCachedDill',
+            'replacementDillPath': path.join(d.path, 'nonexistent'),
+          }),
+        ),
+      );
+      expect(replaceCachedDillResult['success'], false);
+    });
+  });
+
+  group("Resident Frontend Server: 'compile' command tests: ", () {
     late Directory d;
     late File executable, package, outputDill;
 

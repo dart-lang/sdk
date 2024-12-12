@@ -1329,6 +1329,11 @@ void Object::Init(IsolateGroup* isolate_group) {
       KernelBytecode::kVMInternal_ImplicitConstructorClosure);
 #endif  // defined(DART_DYNAMIC_MODULES)
 
+  *uninitialized_index_ =
+      TypedData::New(kTypedDataUint32ArrayCid,
+                     LinkedHashBase::kUninitializedIndexSize, Heap::kOld);
+  *uninitialized_data_ = Array::New(0, Heap::kOld);
+
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
   thread->ClearStickyError();
@@ -1428,6 +1433,10 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(implicit_instance_closure_bytecode_->IsBytecode());
   ASSERT(!implicit_constructor_closure_bytecode_->IsSmi());
   ASSERT(implicit_constructor_closure_bytecode_->IsBytecode());
+  ASSERT(!uninitialized_index_->IsSmi());
+  ASSERT(uninitialized_index_->IsTypedData());
+  ASSERT(!uninitialized_data_->IsSmi());
+  ASSERT(uninitialized_data_->IsArray());
 }
 
 void Object::FinishInit(IsolateGroup* isolate_group) {

@@ -1807,7 +1807,7 @@ abstract class LocalFunctionFragment
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LocalVariableElement2
-    implements PromotableElement2, LocalElement2 {
+    implements PromotableElement2, LocalElement2, Annotatable {
   @override
   LocalVariableElement2 get baseElement;
 
