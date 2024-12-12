@@ -293,10 +293,10 @@ class SearchMatchImpl implements SearchMatch {
   final Source unitSource;
 
   @override
-  final LibraryElement libraryElement;
+  final LibraryElement2 libraryElement2;
 
   @override
-  final Element element;
+  final Element2 element2;
 
   @override
   final bool isResolved;
@@ -314,8 +314,8 @@ class SearchMatchImpl implements SearchMatch {
     this.file,
     this.librarySource,
     this.unitSource,
-    this.libraryElement,
-    this.element,
+    this.libraryElement2,
+    this.element2,
     this.isResolved,
     this.isQualified,
     this.kind,
@@ -323,10 +323,10 @@ class SearchMatchImpl implements SearchMatch {
   );
 
   @override
-  Element2 get element2 => element.asElement2!;
+  Element get element => element2.asElement!;
 
   @override
-  LibraryElement2 get libraryElement2 => libraryElement.asElement2;
+  LibraryElement get libraryElement => libraryElement2.asElement;
 
   @override
   String toString() {
@@ -352,8 +352,8 @@ class SearchMatchImpl implements SearchMatch {
       element.source!.fullName,
       element.librarySource!,
       element.source!,
-      element.library!,
-      element,
+      element.library!.asElement2,
+      element.asElement2!,
       true,
       true,
       MatchKind.DECLARATION,
@@ -367,8 +367,8 @@ class SearchMatchImpl implements SearchMatch {
       enclosingElement.source!.fullName,
       enclosingElement.librarySource!,
       enclosingElement.source!,
-      enclosingElement.library!,
-      enclosingElement,
+      enclosingElement.library!.asElement2,
+      enclosingElement.asElement2!,
       result.isResolved,
       result.isQualified,
       toMatchKind(result.kind),
