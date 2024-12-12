@@ -177,7 +177,7 @@ class _WeakReferenceWrapper<T extends Object> implements WeakReference<T> {
   T? get target {
     var target = JS<T?>('', '#.deref()', _weakRef);
     // Coerce to null if JavaScript returns undefined.
-    if (JS<bool>('!', 'target === void 0')) return null;
+    if (JS<bool>('!', '# === void 0', target)) return null;
     return target;
   }
 }

@@ -248,6 +248,15 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   Map<VariableDeclaration, js_ast.Identifier> get variableIdentifiers =>
       _symbolData.variableIdentifiers;
 
+  /// Identifiers for kernel variables with an analgous identifier in JS.
+  ///
+  /// [VariableDeclaration.name] is not necessarily a safe identifier for JS
+  /// transpiled code. The same name can be used in shadowing contexts. We map
+  /// each kernel variable to a [js_ast.TemporaryId] so that at code emission
+  /// time, references that would be shadowed are given a unique name. If there
+  /// is no risk of shadowing, the original name will be used.
+  final Map<VariableDeclaration, js_ast.TemporaryId> _variableTempIds = {};
+
   /// Maps a library URI import, that is not in [_libraries], to the
   /// corresponding Kernel summary module we imported it with.
   ///
@@ -5250,7 +5259,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var v = node.variable;
     var id = _emitVariableRef(v);
     if (id.name == v.name) {
-      id.sourceInformation = _variableSpan(node.fileOffset, v.name!.length);
+      id = id.withSourceInformation(
+          _variableSpan(node.fileOffset, v.name!.length));
     }
     return id;
   }
@@ -5284,7 +5294,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return null;
   }
 
-  js_ast.Identifier _emitVariableRef(VariableDeclaration v) {
+  js_ast.TemporaryId _emitVariableRef(VariableDeclaration v) {
     if (_isTemporaryVariable(v)) {
       var name = _debuggerFriendlyTemporaryVariableName(v);
       name ??= 't\$${_tempVariables.length}';
@@ -5298,7 +5308,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // See https://github.com/dart-lang/sdk/issues/55918
       name = extractLocalNameFromLateLoweredLocal(name);
     }
-    return _emitIdentifier(name);
+    return js_ast.TemporaryId.from(
+        _variableTempIds[v] ??= _emitTemporaryId(name));
   }
 
   /// Emits the declaration of a variable.

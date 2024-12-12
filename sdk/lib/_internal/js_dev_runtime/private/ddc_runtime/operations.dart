@@ -534,7 +534,7 @@ validateFunctionToJSArgs(f, List args) {
     return noSuchMethod(
       f,
       InvocationImpl(
-        JS('', 'f.name'),
+        JS('', '#.name', f),
         args,
         isMethod: true,
         failureMessage: errorMessage,
@@ -551,7 +551,7 @@ dcall(f, args, [named]) => _checkAndCall(
   null,
   args,
   named,
-  JS('', 'f.name'),
+  JS('', '#.name', f),
 );
 
 dgcall(f, typeArgs, args, [named]) => _checkAndCall(
@@ -561,7 +561,7 @@ dgcall(f, typeArgs, args, [named]) => _checkAndCall(
   typeArgs,
   args,
   named,
-  JS('', "f.name || 'call'"),
+  JS('', "#.name || 'call'", f),
 );
 
 /// Helper for REPL dynamic invocation variants that make a best effort to
