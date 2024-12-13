@@ -13,16 +13,15 @@ import 'common/test_helper.dart';
 
 void testFunction() {
   final x = Foo(42);
-  final y = [x];
-  debugger();
   x.printFoo();
-  print(y.last.otherCall());
 }
 
 extension type Foo(int value) {
   void printFoo() {
+    debugger();
     print("This foos value is '$value'");
   }
+
   int otherCall() {
     return value * 2;
   }
@@ -32,27 +31,27 @@ Future triggerEvaluation(VmService service, IsolateRef isolateRef) async {
   final Stack stack = await service.getStack(isolateRef.id!);
 
   // Make sure we are in the right place.
-  expect(stack.frames!.length, greaterThanOrEqualTo(1));
-  expect(stack.frames![0].function!.name, 'testFunction');
+  expect(stack.frames!.length, greaterThanOrEqualTo(2));
+  expect(stack.frames![0].function!.name, 'Foo.printFoo');
 
   final dynamic result = await service.evaluateInFrame(
     isolateRef.id!,
     0,
-    'x.printFoo()',
+    'this.value',
   );
-  expect(result.valueAsString, 'null');
+  expect(result.valueAsString, '42');
 
   final dynamic result2 = await service.evaluateInFrame(
     isolateRef.id!,
     0,
-    'x.otherCall()',
+    'otherCall()',
   );
   expect(result2.valueAsString, '84');
 
   final dynamic result3 = await service.evaluateInFrame(
     isolateRef.id!,
     0,
-    'x.value + y.last.value + x.otherCall()',
+    'this.value + value + otherCall()',
   );
   expect(result3.valueAsString, '168');
 }
@@ -66,6 +65,6 @@ final testSteps = <IsolateTest>[
 Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       testSteps,
-      'eval_on_extension_type.dart',
+      'eval_inside_extension_type_method_test.dart',
       testeeConcurrent: testFunction,
     );

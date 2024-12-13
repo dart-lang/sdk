@@ -161,6 +161,7 @@ vm_service/test/issue_27238_test: SkipByDesign # Debugger is disabled in AOT mod
 vm_service/test/issue_27287_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/issue_30555_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/issue_56911_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/issue_59661_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/kill_paused_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/library_dependency_test: SkipByDesign # Uses 'dart:mirrors' library.
 vm_service/test/local_variable_declaration_test: SkipByDesign # Debugger is disabled in AOT mode.
