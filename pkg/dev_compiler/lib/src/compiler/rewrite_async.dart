@@ -3258,14 +3258,14 @@ class _ScopeCollector extends js_ast.VariableDeclarationVisitor {
 
   @override
   void declare(js_ast.Identifier node) {
-    if (node is ScopedId) return;
+    if (node is ScopedId && !node.needsCapture) return;
     _currentScope.declare(node, inClosure || skipHoisting);
     registerUsed(node);
   }
 
   @override
   void visitIdentifier(js_ast.Identifier node) {
-    if (node is ScopedId) return;
+    if (node is ScopedId && !node.needsCapture) return;
     registerUsed(node);
   }
 

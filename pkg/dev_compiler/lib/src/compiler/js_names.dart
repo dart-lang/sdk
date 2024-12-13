@@ -33,15 +33,20 @@ abstract class FixedNames {
 class ScopedId extends Identifier {
   final int _id;
 
+  /// If true, this variable can be used across different async scopes and must
+  /// therefore be specially captured.
+  final bool needsCapture;
+
   @override
   ScopedId withSourceInformation(dynamic sourceInformation) =>
       ScopedId.from(this)..sourceInformation = sourceInformation;
 
   static int _idCounter = 0;
 
-  ScopedId(super.name) : _id = _idCounter++;
+  ScopedId(super.name, {this.needsCapture = false}) : _id = _idCounter++;
   ScopedId.from(ScopedId other)
       : _id = other._id,
+        needsCapture = other.needsCapture,
         super(other.name);
 
   @override

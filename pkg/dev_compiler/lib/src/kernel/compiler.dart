@@ -1035,8 +1035,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   static js_ast.Identifier _emitIdentifier(String name) =>
       js_ast.Identifier(js_ast.toJSIdentifier(name));
 
-  static js_ast.ScopedId _emitScopedId(String name) =>
-      js_ast.ScopedId(js_ast.toJSIdentifier(name));
+  static js_ast.ScopedId _emitScopedId(String name,
+          {bool needsCapture = false}) =>
+      js_ast.ScopedId(js_ast.toJSIdentifier(name), needsCapture: needsCapture);
 
   js_ast.Statement _emitClassDeclaration(Class c) {
     var className = _emitTopLevelNameNoExternalInterop(c);
@@ -4988,7 +4989,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // See https://github.com/dart-lang/sdk/issues/55918
       name = extractLocalNameFromLateLoweredLocal(name);
     }
-    return js_ast.ScopedId.from(_variableTempIds[v] ??= _emitScopedId(name));
+    return js_ast.ScopedId.from(
+        _variableTempIds[v] ??= _emitScopedId(name, needsCapture: true));
   }
 
   /// Emits the declaration of a variable.
