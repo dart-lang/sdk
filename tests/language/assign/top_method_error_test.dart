@@ -9,11 +9,11 @@ method() {
 }
 
 main() {
-  // Illegal, can't change a top level method
+  // Illegal, can't change a top level method.
   method = () {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FUNCTION
-// [cfe] Setter not found: 'method'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FUNCTION
+    // [cfe] Setter not found: 'method'.
     return 1;
   };
 }

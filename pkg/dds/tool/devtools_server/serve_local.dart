@@ -15,7 +15,6 @@ void main(List<String> args) {
       argDevToolsBuild,
       help: 'The location of the DevTools build to serve from DevTools server '
           '(e.g. --devtools-build=absolute/path/to/devtools/build).',
-      mandatory: true,
     );
 
   try {
@@ -23,7 +22,9 @@ void main(List<String> args) {
     unawaited(
       DevToolsServer().serveDevToolsWithArgs(
         _removeDevToolsBuildOption(args),
-        customDevToolsPath: argResults[argDevToolsBuild],
+        customDevToolsPath: argResults.wasParsed(argDevToolsBuild)
+            ? argResults[argDevToolsBuild]
+            : null,
       ),
     );
   } on FormatException catch (e) {

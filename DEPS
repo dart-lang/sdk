@@ -97,7 +97,7 @@ vars = {
   ### /third_party/ dependencies
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
-  "binaryen_rev" : "93883fde36ac158fd415dcd6dbd387dcfd928d3c",
+  "binaryen_rev" : "87f9dac127b387715d8d96ac7ec8fd469d8c2dab",
   "boringssl_rev": "57f525e425a95e7c89fa2df926fa93273bd47311",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
@@ -147,7 +147,7 @@ vars = {
   "package_config_rev": "76f2f6c245451da1fa24d7bbb00251b909e729a5",
   "pool_rev": "f85209d83cb0aa3c5612ed80de32df51ba580abd",
   "protobuf_rev": "da7279c56734cffed4deb1e3a6f93bdcefccf6b8",
-  "pub_rev": "7745ee72d7089515cf0de04709504839609b896e", # disable tools/rev_sdk_deps.dart
+  "pub_rev": "58de642dc1d07601f6eb2b4ecd94555c0210106b", # disable tools/rev_sdk_deps.dart
   "pub_semver_rev": "8e9fcb9d3f89f06022387f906da4d380688f935c",
   "shelf_rev": "2b5b683e78f5cc84e479a43297fd7b5489d7db02",
   "source_maps_rev": "198d32bbde2f5736c04dfbab306a17096fd1648b",
