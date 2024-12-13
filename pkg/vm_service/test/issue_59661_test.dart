@@ -132,7 +132,7 @@ final tests = <IsolateTest>[
 void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
-      'issue_59661.dart',
+      'issue_59661_test.dart',
       testeeConcurrent: code,
       pauseOnStart: false,
       pauseOnExit: true,
