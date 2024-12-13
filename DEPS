@@ -50,11 +50,11 @@ vars = {
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution
   # in a cipd package used to run Dart scripts in the build and test
   # infrastructure, which is automatically built on the release commits.
-  "sdk_tag": "git_revision:c7e47c6c5df6ffa16d92704d5291b3387f974648",
+  "sdk_tag": "git_revision:f863f0b43625eb04539a34d7cc25029ba80dd522",
 
   # co19 is a cipd package automatically generated for each co19 commit.
   # Use tests/co19/update.sh to update this hash.
-  "co19_rev": "486d45a328c11d87520a410f1b1c69711f4aede8",
+  "co19_rev": "8aa677577f4a2d4edd99f1bd4e3ec554c3712edb",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "3bd6bc6d207dfb7cf687537e819863cf9a8f2470",
@@ -147,7 +147,7 @@ vars = {
   "package_config_rev": "76f2f6c245451da1fa24d7bbb00251b909e729a5",
   "pool_rev": "f85209d83cb0aa3c5612ed80de32df51ba580abd",
   "protobuf_rev": "da7279c56734cffed4deb1e3a6f93bdcefccf6b8",
-  "pub_rev": "30bfc439fedba1ee3daadcf542f1483479bc4909", # disable tools/rev_sdk_deps.dart
+  "pub_rev": "7745ee72d7089515cf0de04709504839609b896e", # disable tools/rev_sdk_deps.dart
   "pub_semver_rev": "8e9fcb9d3f89f06022387f906da4d380688f935c",
   "shelf_rev": "2b5b683e78f5cc84e479a43297fd7b5489d7db02",
   "source_maps_rev": "198d32bbde2f5736c04dfbab306a17096fd1648b",

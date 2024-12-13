@@ -51,8 +51,7 @@ void main(List<String> arguments) {
   bool usePipe = results["text"];
   if (usePipe) {
     lintStdIn(
-        checkForDisjunctions: checkForDisjunctions,
-        checkForNonExisting: checkForNonExisting);
+        checkForDisjunctions: checkForDisjunctions, checkForNonExisting: false);
   } else {
     if (results.rest.length != 1) {
       printHelp(parser);
