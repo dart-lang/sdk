@@ -50,23 +50,32 @@ main(List<String> args) {
     String obfuscatedTrace = File(args[0]).readAsStringSync();
     String? error = extractErrorMessage(obfuscatedTrace);
     var provider = CachingFileProvider(logger: Logger());
-    StackDeobfuscationResult result =
-        deobfuscateStack(obfuscatedTrace, provider);
+    StackDeobfuscationResult result = deobfuscateStack(
+      obfuscatedTrace,
+      provider,
+    );
     Frame firstFrame = result.original.frames.first;
-    String? translatedError =
-        translate(error, provider.mappingFor(firstFrame.uri));
+    String? translatedError = translate(
+      error,
+      provider.mappingFor(firstFrame.uri),
+    );
     translatedError ??= '<no error message found>';
     printPadded(translatedError, error, sb);
-    int longest =
-        result.deobfuscated.frames.fold(0, (m, f) => max(f.member!.length, m));
+    int longest = result.deobfuscated.frames.fold(
+      0,
+      (m, f) => max(f.member!.length, m),
+    );
     for (var originalFrame in result.original.frames) {
       var deobfuscatedFrames = result.frameMap[originalFrame];
       if (deobfuscatedFrames == null) {
         printPadded('no mapping', originalFrame.location, sb);
       } else {
         for (var frame in deobfuscatedFrames) {
-          printPadded('${frame.member!.padRight(longest)} ${frame.location}',
-              originalFrame.location, sb);
+          printPadded(
+            '${frame.member!.padRight(longest)} ${frame.location}',
+            originalFrame.location,
+            sb,
+          );
         }
       }
     }

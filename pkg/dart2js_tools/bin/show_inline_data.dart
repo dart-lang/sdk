@@ -34,7 +34,8 @@ main(List<String> args) {
 
       if (depth != 0) {
         sb.write(
-            "[31m[invalid] function start with non-zero depth: $depth[0m\n");
+          "[31m[invalid] function start with non-zero depth: $depth[0m\n",
+        );
       }
       lastFunctionStart = functionStart;
     }
