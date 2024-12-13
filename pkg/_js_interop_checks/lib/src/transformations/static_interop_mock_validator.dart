@@ -26,24 +26,31 @@ class StaticInteropMockValidator {
   // Cache of @staticInterop classes to a mapping between their extension
   // members and those members' export names.
   final Map<Class, Map<String, Set<ExtensionMemberDescriptor>>>
-      _staticInteropExportNameToDescriptorMap = {};
+  _staticInteropExportNameToDescriptorMap = {};
   late final Map<Reference, Set<Extension>>
-      _staticInteropClassesWithExtensions = _computeStaticInteropExtensionMap();
+  _staticInteropClassesWithExtensions = _computeStaticInteropExtensionMap();
   final TypeEnvironment _typeEnvironment;
   final TypeParameterResolver typeParameterResolver = TypeParameterResolver();
   StaticInteropMockValidator(
-      this._diagnosticReporter, this._exportChecker, this._typeEnvironment);
+    this._diagnosticReporter,
+    this._exportChecker,
+    this._typeEnvironment,
+  );
 
   bool validateStaticInteropTypeArgument(
-      StaticInvocation node, DartType staticInteropType) {
+    StaticInvocation node,
+    DartType staticInteropType,
+  ) {
     if (staticInteropType is! InterfaceType ||
         !js_interop.hasStaticInteropAnnotation(staticInteropType.classNode)) {
       _diagnosticReporter.report(
-          templateJsInteropStaticInteropMockNotStaticInteropType
-              .withArguments(staticInteropType),
-          node.fileOffset,
-          node.name.text.length,
-          node.location?.file);
+        templateJsInteropStaticInteropMockNotStaticInteropType.withArguments(
+          staticInteropType,
+        ),
+        node.fileOffset,
+        node.name.text.length,
+        node.location?.file,
+      );
       return false;
     } else {
       return _validateNoTypeParametersInTypeArgument(node, staticInteropType);
@@ -70,7 +77,9 @@ class StaticInteropMockValidator {
   ///
   /// Returns whether the validation passed.
   bool _validateNoTypeParametersInTypeArgument(
-      StaticInvocation node, DartType type) {
+    StaticInvocation node,
+    DartType type,
+  ) {
     if (type is InterfaceType) {
       final typeArguments = type.typeArguments;
       final typeParams = type.classNode.typeParameters;
@@ -79,11 +88,12 @@ class StaticInteropMockValidator {
         // Uninstantiated type parameters are replaced with dynamic by the CFE.
         if (arg is! DynamicType && arg != typeParams[i].bound) {
           _diagnosticReporter.report(
-              templateJsInteropStaticInteropMockTypeParametersNotAllowed
-                  .withArguments(type),
-              node.fileOffset,
-              node.name.text.length,
-              node.location?.file);
+            templateJsInteropStaticInteropMockTypeParametersNotAllowed
+                .withArguments(type),
+            node.fileOffset,
+            node.name.text.length,
+            node.location?.file,
+          );
           return false;
         }
       }
@@ -96,29 +106,38 @@ class StaticInteropMockValidator {
   /// [dartClass] has sufficient members to be exported in place of
   /// [staticInteropClass].
   bool validateCreateStaticInteropMock(
-      StaticInvocation node, Class staticInteropClass, Class dartClass) {
+    StaticInvocation node,
+    Class staticInteropClass,
+    Class dartClass,
+  ) {
     var conformanceError = false;
-    var exportNameToDescriptors =
-        _computeImplementableExtensionMembers(staticInteropClass);
+    var exportNameToDescriptors = _computeImplementableExtensionMembers(
+      staticInteropClass,
+    );
     var exportMap = _exportChecker.exportClassToMemberMap[dartClass.reference]!;
 
     for (var MapEntry(key: exportName, value: descriptors)
         in exportNameToDescriptors.entries) {
       String getAsErrorString(Iterable<ExtensionMemberDescriptor> descriptors) {
-        var withExtensionNameAndType = descriptors.map((descriptor) {
-          var extension = _descriptorToExtensionName[descriptor]!;
-          var name = descriptor.name.text;
-          var type = _getTypeOfDescriptor(descriptor);
-          if (descriptor.isGetter) {
-            type = FunctionType([], type, Nullability.nonNullable);
-          } else if (descriptor.isSetter) {
-            type = FunctionType([type], VoidType(), Nullability.nonNullable);
-            name += '=';
-          }
-          type = typeParameterResolver.resolve(type);
-          return '$extension.$name ($type)';
-        }).toList()
-          ..sort();
+        var withExtensionNameAndType =
+            descriptors.map((descriptor) {
+                var extension = _descriptorToExtensionName[descriptor]!;
+                var name = descriptor.name.text;
+                var type = _getTypeOfDescriptor(descriptor);
+                if (descriptor.isGetter) {
+                  type = FunctionType([], type, Nullability.nonNullable);
+                } else if (descriptor.isSetter) {
+                  type = FunctionType(
+                    [type],
+                    VoidType(),
+                    Nullability.nonNullable,
+                  );
+                  name += '=';
+                }
+                type = typeParameterResolver.resolve(type);
+                return '$extension.$name ($type)';
+              }).toList()
+              ..sort();
         return withExtensionNameAndType.join(', ');
       }
 
@@ -133,8 +152,9 @@ class StaticInteropMockValidator {
       if (dartMembers != null) {
         var firstMember = dartMembers.first;
         if (firstMember.isMethod) {
-          hasImplementation = descriptors
-              .any((descriptor) => _implements(firstMember, descriptor));
+          hasImplementation = descriptors.any(
+            (descriptor) => _implements(firstMember, descriptor),
+          );
         } else {
           var (:getter, :setter) = _exportChecker.getGetterSetter(dartMembers);
 
@@ -163,16 +183,18 @@ class StaticInteropMockValidator {
               setters.isNotEmpty &&
               (implementsGetter ^ implementsSetter)) {
             _diagnosticReporter.report(
-                templateJsInteropStaticInteropMockMissingGetterOrSetter
-                    .withArguments(
-                        dartClass.name,
-                        implementsGetter ? 'getter' : 'setter',
-                        implementsGetter ? 'setter' : 'getter',
-                        exportName,
-                        getAsErrorString(implementsGetter ? setters : getters)),
-                node.fileOffset,
-                node.name.text.length,
-                node.location?.file);
+              templateJsInteropStaticInteropMockMissingGetterOrSetter
+                  .withArguments(
+                    dartClass.name,
+                    implementsGetter ? 'getter' : 'setter',
+                    implementsGetter ? 'setter' : 'getter',
+                    exportName,
+                    getAsErrorString(implementsGetter ? setters : getters),
+                  ),
+              node.fileOffset,
+              node.name.text.length,
+              node.location?.file,
+            );
             // While we do have an implementation, this is still an error.
             conformanceError = true;
           }
@@ -181,11 +203,15 @@ class StaticInteropMockValidator {
 
       if (!hasImplementation) {
         _diagnosticReporter.report(
-            templateJsInteropStaticInteropMockMissingImplements.withArguments(
-                dartClass.name, exportName, getAsErrorString(descriptors)),
-            node.fileOffset,
-            node.name.text.length,
-            node.location?.file);
+          templateJsInteropStaticInteropMockMissingImplements.withArguments(
+            dartClass.name,
+            exportName,
+            getAsErrorString(descriptors),
+          ),
+          node.fileOffset,
+          node.name.text.length,
+          node.location?.file,
+        );
         conformanceError = true;
       }
     }
@@ -207,23 +233,27 @@ class StaticInteropMockValidator {
       assert(interopDescriptor.isMethod);
       // We don't care about the method's own type parameters to determine
       // subtyping. We simply substitute them by their bounds, if any.
-      final interopMemberType = interopMember.function
-          .computeThisFunctionType(Nullability.nonNullable)
-          .withoutTypeParameters;
+      final interopMemberType =
+          interopMember.function
+              .computeThisFunctionType(Nullability.nonNullable)
+              .withoutTypeParameters;
       // Ignore the first argument `this` in the generated procedure.
       return FunctionType(
-          interopMemberType.positionalParameters.skip(1).toList(),
-          interopMemberType.returnType,
-          interopMemberType.declaredNullability,
-          namedParameters: interopMemberType.namedParameters,
-          requiredParameterCount: interopMemberType.requiredParameterCount - 1);
+        interopMemberType.positionalParameters.skip(1).toList(),
+        interopMemberType.returnType,
+        interopMemberType.declaredNullability,
+        namedParameters: interopMemberType.namedParameters,
+        requiredParameterCount: interopMemberType.requiredParameterCount - 1,
+      );
     }
   }
 
   // Determine if the given Dart member is the right kind and subtype to
   // implement the descriptor.
   bool _implements(
-      Member? dartMember, ExtensionMemberDescriptor interopDescriptor) {
+    Member? dartMember,
+    ExtensionMemberDescriptor interopDescriptor,
+  ) {
     if (dartMember == null) return false;
 
     // If it isn't even the right kind, don't continue.
@@ -239,9 +269,10 @@ class StaticInteropMockValidator {
       // Remove and substitute type parameters with their bounds/instantiated
       // type arguments.
       return _typeEnvironment.isSubtypeOf(
-          typeParameterResolver.resolve(dartType),
-          typeParameterResolver.resolve(interopType),
-          SubtypeCheckMode.withNullabilities);
+        typeParameterResolver.resolve(dartType),
+        typeParameterResolver.resolve(interopType),
+        SubtypeCheckMode.withNullabilities,
+      );
     }
 
     var interopType = _getTypeOfDescriptor(interopDescriptor);
@@ -256,11 +287,11 @@ class StaticInteropMockValidator {
       }
     } else if (interopDescriptor.isMethod) {
       if (!isSubtypeOf(
-          (dartMember as Procedure)
-              .function
-              .computeThisFunctionType(Nullability.nonNullable)
-              .withoutTypeParameters,
-          interopType)) {
+        (dartMember as Procedure).function
+            .computeThisFunctionType(Nullability.nonNullable)
+            .withoutTypeParameters,
+        interopType,
+      )) {
         return false;
       }
     }
@@ -302,7 +333,7 @@ class StaticInteropMockValidator {
   /// Also computes a mapping between descriptors and their name for error
   /// reporting.
   Map<String, Set<ExtensionMemberDescriptor>>
-      _computeImplementableExtensionMembers(Class staticInteropClass) {
+  _computeImplementableExtensionMembers(Class staticInteropClass) {
     assert(js_interop.hasStaticInteropAnnotation(staticInteropClass));
 
     // Get the cached result if we've already processed this class.
@@ -333,8 +364,9 @@ class StaticInteropMockValidator {
               }
               _descriptorToExtensionName[descriptor] =
                   extension.isUnnamedExtension ? '<unnamed>' : extension.name;
-              var name =
-                  js_interop.getJSName(descriptor.memberReference.asMember);
+              var name = js_interop.getJSName(
+                descriptor.memberReference.asMember,
+              );
               if (name.isEmpty) name = descriptor.name.text;
               exportNameToDescriptors!
                   .putIfAbsent(name, () => {})
@@ -367,7 +399,9 @@ class TypeParameterResolver extends ReplacementVisitor {
 
   @override
   DartType? visitStructuralParameterType(
-      StructuralParameterType node, Variance variance) {
+    StructuralParameterType node,
+    Variance variance,
+  ) {
     return node.nonTypeParameterBound;
   }
 
