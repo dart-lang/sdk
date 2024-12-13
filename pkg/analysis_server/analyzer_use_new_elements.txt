@@ -27,5 +27,4 @@ lib/src/services/search/search_engine.dart
 lib/src/services/search/search_engine_internal.dart
 test/abstract_single_unit.dart
 test/services/refactoring/legacy/abstract_rename.dart
-test/services/refactoring/legacy/rename_import_test.dart
 test/services/search/element_visitors_test.dart

@@ -157,6 +157,8 @@ extension Element2OrNullExtension on Element2? {
         return element2.asElement;
       case LibraryElementImpl():
         return self as Element;
+      case LibraryImportElementImpl():
+        return self as Element;
       case LocalFunctionElementImpl():
         return self.wrappedElement as Element;
       case LocalVariableElementImpl2():
