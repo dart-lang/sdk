@@ -2866,6 +2866,12 @@ CompileTimeErrorCode:
     comment: |-
       See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
       for text about "A literal string".
+  CONST_EVAL_PRIMITIVE_EQUALITY:
+    problemMessage: "In constant expressions, operands of the equality operator must have primitive equality."
+    hasPublishedDocs: false
+    comment: |-
+      See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+      for text about "An expression of the form e1 == e2".
   CONST_EVAL_TYPE_INT:
     problemMessage: "In constant expressions, operands of this operator must be of type 'int'."
     hasPublishedDocs: false

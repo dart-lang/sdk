@@ -521,8 +521,9 @@ class DartObjectImpl implements DartObject, Constant {
         );
       }
     }
-    throw EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+    throw EvaluationException(featureSet.isEnabled(Feature.patterns)
+        ? CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY
+        : CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
   }
 
   @override
@@ -2600,7 +2601,12 @@ class ListState extends InstanceState {
     if (isUnknown || rightOperand.isUnknown) {
       return BoolState.UNKNOWN_VALUE;
     }
-    return BoolState.from(this == rightOperand);
+    if (rightOperand is! ListState) {
+      return BoolState.FALSE_STATE;
+    }
+    return BoolState.from(typeSystem.normalize(elementType) ==
+            typeSystem.normalize(rightOperand.elementType) &&
+        this == rightOperand);
   }
 
   @override

@@ -246,6 +246,28 @@ bool false
 ''');
   }
 
+  test_equalEqual_hasPrimitiveEquality_false() async {
+    await assertNoErrorsInCode('''
+const v = const <int>[1, 2] == const <num>[1, 2];
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool false
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
+  test_equalEqual_hasPrimitiveEquality_true() async {
+    await assertNoErrorsInCode('''
+const v = [1, 2] == [1, 2];
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool true
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
   test_equalEqual_int_int_false() async {
     await assertNoErrorsInCode('''
 const v = 1 == 2;
@@ -358,7 +380,7 @@ class A {
 
 const v = A() == 0;
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 72, 8),
+      error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 72, 8),
     ]);
     var result = _topLevelVar('v');
     _assertNull(result);
@@ -373,7 +395,7 @@ class A {
 
 const v = A() == 0;
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 61, 8),
+      error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 61, 8),
     ]);
     var result = _topLevelVar('v');
     _assertNull(result);
@@ -424,6 +446,19 @@ const v = A(0) == A(0);
 bool true
   variable: <testLibraryFragment>::@topLevelVariable::v
 ''');
+  }
+
+  test_equalEqual_userClass_noPrimitiveEquality() async {
+    await assertErrorsInCode('''
+class A {
+  const A();
+  bool operator ==(other) => false;
+}
+
+const v = A() == A();
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 72, 10),
+    ]);
   }
 
   test_hasPrimitiveEquality_bool() async {
