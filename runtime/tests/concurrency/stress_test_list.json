@@ -618,8 +618,6 @@
   "../../../tests/language/assert/with_type_test_or_cast_test.dart",
   "../../../tests/language/assign/instance_method_test.dart",
   "../../../tests/language/assign/op_test.dart",
-  "../../../tests/language/assign/static_type_runtime_test.dart",
-  "../../../tests/language/assign/to_type_runtime_test.dart",
   "../../../tests/language/async/and_or_test.dart",
   "../../../tests/language/async/async_test.dart",
   "../../../tests/language/async/await_catch_regression_test.dart",
