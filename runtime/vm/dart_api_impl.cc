@@ -2795,6 +2795,11 @@ DART_EXPORT Dart_Handle Dart_GetStaticMethodClosure(Dart_Handle library,
     return Api::NewError(
         "function_name must be the name of a regular function.");
   }
+
+  if (FLAG_verify_entry_points) {
+    CHECK_ERROR_HANDLE(func.VerifyEntryPoint(EntryPointPragma::kGetterOnly));
+  }
+
   func = func.ImplicitClosureFunction();
   if (func.IsNull()) {
     return Dart_Null();

@@ -1270,17 +1270,29 @@ TEST_CASE(DartAPI_ClosureFunction) {
 }
 
 TEST_CASE(DartAPI_GetStaticMethodClosure) {
-  const char* kScriptChars =
-      "class Foo {\n"
-      "  static int getInt() {\n"
-      "    return 1;\n"
-      "  }\n"
-      "  double getDouble() {\n"
-      "    return 1.0;\n"
-      "  }\n"
-      "}\n";
+  const char* kScriptChars = R"(
+    @pragma("vm:entry-point")
+    class Foo {
+      static int getIntNoAnnotation() {
+        return 1;
+      }
+      @pragma("vm:entry-point", "call")
+      static int getIntCallOnly() {
+        return 1;
+      }
+      @pragma("vm:entry-point", "get")
+      static int getInt() {
+        return 1;
+      }
+      @pragma("vm:entry-point", "get")
+      double getDouble() {
+        return 1.0;
+      }
+    }
+  )";
+  // Ensure entry points are checked.
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, true);
   // Create a test library and Load up a test script in it.
-  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
   Dart_Handle foo_cls = Dart_GetClass(lib, NewString("Foo"));
@@ -1321,6 +1333,15 @@ TEST_CASE(DartAPI_GetStaticMethodClosure) {
   EXPECT_ERROR(Dart_GetStaticMethodClosure(lib, foo_cls, Dart_Null()),
                "Dart_GetStaticMethodClosure expects argument 'function_name' "
                "to be non-null.");
+  EXPECT_ERROR(
+      Dart_GetStaticMethodClosure(lib, foo_cls,
+                                  NewString("getIntNoAnnotation")),
+      "To closurize 'file:///test-lib::Foo.getIntNoAnnotation' from native "
+      "code, it must be annotated.");
+  EXPECT_ERROR(
+      Dart_GetStaticMethodClosure(lib, foo_cls, NewString("getIntCallOnly")),
+      "To closurize 'file:///test-lib::Foo.getIntCallOnly' from native "
+      "code, it must be annotated.");
 }
 
 TEST_CASE(DartAPI_ClassLibrary) {
