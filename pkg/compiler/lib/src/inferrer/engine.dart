@@ -133,7 +133,7 @@ class InferrerEngine {
         memberHierarchyBuilder = MemberHierarchyBuilder(closedWorld),
         // Ensure `_MAX_CHANGE_COUNT` conforms to TypeInformation flag encoding.
         assert(_MAX_CHANGE_COUNT.bitLength <
-            64 - TypeInformation.NUM_TYPE_INFO_FLAGS);
+            64 - TypeInformation.numTypeInfoFlags);
 
   /// Applies [f] to all elements in the universe that match [selector] and
   /// [mask]. If [f] returns false, aborts the iteration.
@@ -340,8 +340,7 @@ class InferrerEngine {
     _initMemberHierarchy();
 
     metrics.analyze.measure(_analyzeAllElements);
-    final dump =
-        debug.PRINT_GRAPH ? TypeGraphDump(_compilerOutput, this) : null;
+    final dump = debug.printGraph ? TypeGraphDump(_compilerOutput, this) : null;
 
     dump?.beforeAnalysis();
     _buildWorkQueue();

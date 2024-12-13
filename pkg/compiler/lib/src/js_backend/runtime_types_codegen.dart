@@ -37,6 +37,9 @@ class TypeCheck {
   TypeCheck(this.cls, this.substitution, {this.needsIs = true});
 
   @override
+  bool operator ==(other) => identical(this, other);
+
+  @override
   String toString() =>
       'TypeCheck(cls=$cls,needsIs=$needsIs,substitution=$substitution)';
 }

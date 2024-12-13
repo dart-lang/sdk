@@ -5,7 +5,7 @@
 library ssa.tracer;
 
 import '../../compiler_api.dart' as api show OutputSink;
-import '../diagnostics/invariant.dart' show DEBUG_MODE;
+import '../diagnostics/invariant.dart' show debugMode;
 import '../inferrer/abstract_value_domain.dart';
 import '../js_backend/namer.dart' show suffixForGetInterceptor;
 import '../js_model/js_world.dart' show JClosedWorld;
@@ -23,7 +23,7 @@ class HTracer extends HGraphVisitor with TracerUtil {
   HTracer(this.output, this.closedWorld);
 
   void traceGraph(String name, HGraph graph) {
-    DEBUG_MODE = true;
+    debugMode = true;
     tag("cfg", () {
       printProperty("name", name);
       visitDominatorTree(graph);
@@ -31,7 +31,7 @@ class HTracer extends HGraphVisitor with TracerUtil {
   }
 
   void traceJavaScriptText(String name, String data) {
-    DEBUG_MODE = true;
+    debugMode = true;
     tag("cfg", () {
       printProperty("name", name);
       // Emit a fake basic block, with one 'instruction' per line of text.

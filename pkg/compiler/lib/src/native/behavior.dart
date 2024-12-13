@@ -30,6 +30,10 @@ class SpecialType {
   static const JsObject = SpecialType._('=Object');
 
   @override
+  bool operator ==(other) =>
+      identical(this, other) || other is SpecialType && name == other.name;
+
+  @override
   int get hashCode => name.hashCode;
 
   @override
@@ -99,11 +103,11 @@ class NativeBehavior {
 
   // TODO(sra): Make NativeBehavior immutable so PURE and PURE_ALLOCATION can be
   // final constant-like objects.
-  static NativeBehavior get PURE => NativeBehavior._makePure();
-  static NativeBehavior get PURE_ALLOCATION =>
+  static NativeBehavior get pure => NativeBehavior._makePure();
+  static NativeBehavior get pureAllocation =>
       NativeBehavior._makePure(isAllocation: true);
-  static NativeBehavior get CHANGES_OTHER => NativeBehavior._makeChangesOther();
-  static NativeBehavior get DEPENDS_OTHER => NativeBehavior._makeDependsOther();
+  static NativeBehavior get changesOther => NativeBehavior._makeChangesOther();
+  static NativeBehavior get dependsOther => NativeBehavior._makeDependsOther();
 
   NativeBehavior() : sideEffects = SideEffects.empty();
 
@@ -229,7 +233,7 @@ class NativeBehavior {
   ///    The types Ti are non-nullable, so add class `Null` to specify a
   ///    nullable type, e.g `'String|Null'`.
   ///
-  /// 2) A sequence of <tag>:<value> pairs of the following kinds
+  /// 2) A sequence of `<tag>:<value>` pairs of the following kinds
   ///
   ///        <type-tag>:<type-string>
   ///        <effect-tag>:<effect-string>

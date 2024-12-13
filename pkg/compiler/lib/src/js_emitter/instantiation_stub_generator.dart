@@ -146,8 +146,9 @@ class InstantiationStubGenerator {
     late FieldEntity functionField;
     _elementEnvironment.forEachInstanceField(instantiationClass,
         (ClassEntity enclosing, FieldEntity field) {
-      if (_closedWorld.fieldAnalysis.getFieldData(field as JField).isElided)
+      if (_closedWorld.fieldAnalysis.getFieldData(field as JField).isElided) {
         return;
+      }
       if (field.name == '_genericClosure') functionField = field;
     });
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter.startup_emitter.model_emitter;
+part of 'model_emitter.dart';
 
 /// The fast startup emitter's goal is to minimize the amount of work that the
 /// JavaScript engine has to do before it can start running user code.

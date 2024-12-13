@@ -111,7 +111,7 @@ class JClosedWorldBuilder {
         .forEachSubclass((ClassEntity cls) {
       convertClassSet(closedWorld.classHierarchy.getClassSet(cls));
       return IterationStep.CONTINUE;
-    }, ClassHierarchyNode.ALL);
+    }, ClassHierarchyNode.all);
 
     Set<MemberEntity> liveInstanceMembers =
         map.toBackendMemberSet(closedWorld.liveInstanceMembers);

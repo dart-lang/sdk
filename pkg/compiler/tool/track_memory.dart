@@ -25,7 +25,7 @@ Future<void> main(List<String> args) async {
   _printHeader();
   _showProgress(0, 0, 0, 0);
   try {
-    var port = args.length > 0 ? int.parse(args[0]) : 8181;
+    var port = args.isNotEmpty ? int.parse(args[0]) : 8181;
     socket = await WebSocket.connect('ws://localhost:$port/ws');
     socket.listen(_handleResponse);
     await _resumeMainIsolateIfPaused();
@@ -171,12 +171,13 @@ void _showProgress(int newUsed, int newCapacity, int oldUsed, int oldCapacity) {
 
 const mega = 1024 * 1024;
 bool _writeNumber(StringBuffer sb, int before, int now, {bool color = false}) {
-  if (color)
+  if (color) {
     sb.write(before < now
         ? _RED
         : before > now
             ? _GREEN
             : '');
+  }
   String string;
   if (now < 1024) {
     string = ' ${now}b';

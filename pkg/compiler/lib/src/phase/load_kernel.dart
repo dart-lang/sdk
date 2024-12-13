@@ -129,9 +129,10 @@ void _simplifyConstConditionals(ir.Component component, CompilerOptions options,
     if (node is! ir.Annotatable) {
       return false;
     }
-    return computePragmaAnnotationDataFromIr(node).any((pragma) =>
-        pragma == const PragmaAnnotationData('noInline') ||
-        pragma == const PragmaAnnotationData('never-inline'));
+    return computePragmaAnnotationDataFromIr(node).any(
+        (PragmaAnnotationData pragma) =>
+            pragma == const PragmaAnnotationData('noInline') ||
+            pragma == const PragmaAnnotationData('never-inline'));
   }
 
   fe.ConstConditionalSimplifier(

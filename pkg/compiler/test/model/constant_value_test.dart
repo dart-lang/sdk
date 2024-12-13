@@ -10,11 +10,11 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/constants/values.dart';
-import 'package:compiler/src/diagnostics/invariant.dart' show DEBUG_MODE;
+import 'package:compiler/src/diagnostics/invariant.dart' show debugMode;
 import '../helpers/type_test_helper.dart';
 
 void main() {
-  DEBUG_MODE = true;
+  debugMode = true;
 
   asyncTest(() async {
     TypeEnvironment env = await TypeEnvironment.create("""

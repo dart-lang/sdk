@@ -159,7 +159,7 @@ class Selectors {
   ///
   /// These objects are shared between different runs in batch-mode and must
   /// thus remain in the [Selector.canonicalizedValues] map.
-  static final List<Selector> ALL = <Selector>[
+  static final List<Selector> all = <Selector>[
     cancel,
     current,
     iterator,
@@ -189,94 +189,93 @@ class Selectors {
 /// [Uri]s commonly used.
 class Uris {
   /// The URI for 'dart:async'.
-  static final Uri dart_async = Uri(scheme: 'dart', path: 'async');
+  static final Uri dartAsync = Uri(scheme: 'dart', path: 'async');
 
   /// The URI for 'dart:collection'.
-  static final Uri dart_collection = Uri(scheme: 'dart', path: 'collection');
+  static final Uri dartCollection = Uri(scheme: 'dart', path: 'collection');
 
   /// The URI for 'dart:core'.
-  static final Uri dart_core = Uri(scheme: 'dart', path: 'core');
+  static final Uri dartCore = Uri(scheme: 'dart', path: 'core');
 
   /// The URI for 'dart:html'.
-  static final Uri dart_html = Uri(scheme: 'dart', path: 'html');
+  static final Uri dartHtml = Uri(scheme: 'dart', path: 'html');
 
   /// The URI for 'dart:html_common'.
-  static final Uri dart_html_common = Uri(scheme: 'dart', path: 'html_common');
+  static final Uri dartHtmlCommon = Uri(scheme: 'dart', path: 'html_common');
 
   /// The URI for 'dart:indexed_db'.
-  static final Uri dart_indexed_db = Uri(scheme: 'dart', path: 'indexed_db');
+  static final Uri dartIndexedDB = Uri(scheme: 'dart', path: 'indexed_db');
 
   /// The URI for 'dart:isolate'.
-  static final Uri dart_isolate = Uri(scheme: 'dart', path: 'isolate');
+  static final Uri dartIsolate = Uri(scheme: 'dart', path: 'isolate');
 
   /// The URI for 'dart:math'.
-  static final Uri dart_math = Uri(scheme: 'dart', path: 'math');
+  static final Uri dartMath = Uri(scheme: 'dart', path: 'math');
 
   /// The URI for 'dart:mirrors'.
-  static final Uri dart_mirrors = Uri(scheme: 'dart', path: 'mirrors');
+  static final Uri dartMirrors = Uri(scheme: 'dart', path: 'mirrors');
 
   /// The URI for 'dart:_internal'.
-  static final Uri dart__internal = Uri(scheme: 'dart', path: '_internal');
+  static final Uri dartInternal = Uri(scheme: 'dart', path: '_internal');
 
   /// The URI for 'dart:_native_typed_data'.
-  static final Uri dart__native_typed_data =
+  static final Uri dartNativeTypedData =
       Uri(scheme: 'dart', path: '_native_typed_data');
 
   /// The URI for 'dart:typed_data'.
-  static final Uri dart_typed_data = Uri(scheme: 'dart', path: 'typed_data');
+  static final Uri dartTypedData = Uri(scheme: 'dart', path: 'typed_data');
 
   /// The URI for 'dart:svg'.
-  static final Uri dart_svg = Uri(scheme: 'dart', path: 'svg');
+  static final Uri dartSvg = Uri(scheme: 'dart', path: 'svg');
 
   /// The URI for 'dart:web_audio'.
-  static final Uri dart_web_audio = Uri(scheme: 'dart', path: 'web_audio');
+  static final Uri dartWebAudio = Uri(scheme: 'dart', path: 'web_audio');
 
   /// The URI for 'dart:web_gl'.
-  static final Uri dart_web_gl = Uri(scheme: 'dart', path: 'web_gl');
+  static final Uri dartWebGL = Uri(scheme: 'dart', path: 'web_gl');
 
   /// The URI for 'dart:_js_helper'.
-  static final Uri dart__js_helper = Uri(scheme: 'dart', path: '_js_helper');
+  static final Uri dartJSHelper = Uri(scheme: 'dart', path: '_js_helper');
 
   /// The URI for 'dart:_late_helper'.
-  static final Uri dart__late_helper =
-      Uri(scheme: 'dart', path: '_late_helper');
+  static final Uri dartLateHelper = Uri(scheme: 'dart', path: '_late_helper');
 
   /// The URI for 'dart:_rti'.
-  static final Uri dart__rti = Uri(scheme: 'dart', path: '_rti');
+  static final Uri dartRti = Uri(scheme: 'dart', path: '_rti');
 
   /// The URI for 'dart:_interceptors'.
-  static final Uri dart__interceptors =
+  static final Uri dartInterceptors =
       Uri(scheme: 'dart', path: '_interceptors');
 
   /// The URI for 'dart:_foreign_helper'.
-  static final Uri dart__foreign_helper =
+  static final Uri dartForeignHelper =
       Uri(scheme: 'dart', path: '_foreign_helper');
 
   /// The URI for 'dart:_js_names'.
-  static final Uri dart__js_names = Uri(scheme: 'dart', path: '_js_names');
+  static final Uri dartJSNames = Uri(scheme: 'dart', path: '_js_names');
 
   /// The URI for 'dart:_js_embedded_names'.
-  static final Uri dart__js_embedded_names =
+  static final Uri dartJSEmbeddedNames =
       Uri(scheme: 'dart', path: '_js_embedded_names');
 
   /// The URI for 'dart:_js_shared_embedded_names'.
-  static final Uri dart__js_shared_embedded_names =
+  static final Uri dartJSSharedEmbeddedNames =
       Uri(scheme: 'dart', path: '_js_shared_embedded_names');
 
   /// The URI for 'dart:js_util'.
-  static final Uri dart_js_util = Uri(scheme: 'dart', path: 'js_util');
+  static final Uri dartJSUtil = Uri(scheme: 'dart', path: 'js_util');
 
   /// The URI for 'package:js'.
-  static final Uri package_js = Uri(scheme: 'package', path: 'js/js.dart');
+  static final Uri packageJS = Uri(scheme: 'package', path: 'js/js.dart');
 
   /// The URI for 'dart:_js_annotations'.
-  static final Uri dart__js_annotations =
+  static final Uri dartJSAnnotations =
       Uri(scheme: 'dart', path: '_js_annotations');
 
   /// The URI for 'dart:js_interop'.
-  static final Uri dart__js_interop = Uri(scheme: 'dart', path: 'js_interop');
+  static final Uri dartJSInterop = Uri(scheme: 'dart', path: 'js_interop');
 
   /// The URI for 'package:meta/dart2js.dart'.
-  static final Uri package_meta_dart2js =
+  static final Uri packageMetaDart2js =
       Uri(scheme: 'package', path: 'meta/dart2js.dart');
 }

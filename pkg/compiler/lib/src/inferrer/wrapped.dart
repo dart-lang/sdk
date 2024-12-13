@@ -312,11 +312,11 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractValue unionOfMany(covariant Iterable<AbstractValue> values) {
-    List<AbstractValue> unwrapped_Values = values
+    List<AbstractValue> unwrappedValues = values
         .map((element) => (element as WrappedAbstractValue)._abstractValue)
         .toList();
     return WrappedAbstractValue(
-        _abstractValueDomain.unionOfMany(unwrapped_Values));
+        _abstractValueDomain.unionOfMany(unwrappedValues));
   }
 
   @override

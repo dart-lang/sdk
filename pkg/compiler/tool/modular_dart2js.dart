@@ -153,8 +153,8 @@ Future<void> subProcess(List<String> baseOptions,
       runInShell: true);
   _Prefixer stdoutPrefixer = new _Prefixer(outputPrefix, stdout);
   _Prefixer stderrOutputter = new _Prefixer(outputPrefix, stderr);
-  process.stdout.transform(utf8.decoder).listen(stdoutPrefixer);
-  process.stderr.transform(utf8.decoder).listen(stderrOutputter);
+  process.stdout.transform(utf8.decoder).listen(stdoutPrefixer.call);
+  process.stderr.transform(utf8.decoder).listen(stderrOutputter.call);
 
   int exitCode = await process.exitCode;
   if (exitCode != 0) {

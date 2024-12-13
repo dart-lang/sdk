@@ -307,8 +307,9 @@ class PowersetBitsDomain {
   AbstractBool isExact(int value) => AbstractBool.Maybe;
 
   AbstractBool isEmpty(int value) {
-    if (value & interceptorDomainMask == powersetBottom)
+    if (value & interceptorDomainMask == powersetBottom) {
       return AbstractBool.True;
+    }
     if (value & boolNullOtherMask == powersetBottom) return AbstractBool.True;
     if (isPrecise(value)) return AbstractBool.False;
     return AbstractBool.Maybe;

@@ -20,7 +20,7 @@ abstract class NativeEnqueuer {
   final Set<ClassEntity> _unusedClasses = {};
 
   /// Returns whether native classes are being used.
-  bool get hasInstantiatedNativeClasses => !_registeredClasses.isEmpty;
+  bool get hasInstantiatedNativeClasses => _registeredClasses.isNotEmpty;
 
   /// Log message reported if all native types are used.
   String? _allUsedMessage;

@@ -848,12 +848,6 @@ class JsClosureClassInfo extends JsScopeInfo
   }
 
   @override
-  List<Local> getCreatedFieldEntities(KernelToLocalsMap localsMap) {
-    _ensureFieldToLocalsMap(localsMap);
-    return _fieldToLocalsMap!.values.toList();
-  }
-
-  @override
   Local getLocalForField(KernelToLocalsMap localsMap, FieldEntity field) {
     _ensureFieldToLocalsMap(localsMap);
     return _fieldToLocalsMap![field]!;

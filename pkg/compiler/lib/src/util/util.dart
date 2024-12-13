@@ -84,7 +84,7 @@ class Hashing {
   /// Mix the bits of the hash codes of the unordered key/value from [map] with
   /// [existing].
   static int unorderedMapHash(Map<Object?, Object?> map, [int existing = 0]) {
-    if (map.length == 0) return existing;
+    if (map.isEmpty) return existing;
     List<int> hashCodes = List.filled(map.length, 0);
     int i = 0;
     for (var entry in map.entries) {

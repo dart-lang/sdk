@@ -188,8 +188,9 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
   api.Diagnostic? lastKind = null;
   int fatalCount = 0;
 
-  final int FATAL = api.Diagnostic.crash.ordinal | api.Diagnostic.error.ordinal;
-  final int INFO =
+  final int fatalCode =
+      api.Diagnostic.crash.ordinal | api.Diagnostic.error.ordinal;
+  final int infoCode =
       api.Diagnostic.info.ordinal | api.Diagnostic.verboseInfo.ordinal;
 
   FormattingDiagnosticHandler();
@@ -232,8 +233,8 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
     if (isAborting) return;
     isAborting = (kind == api.Diagnostic.crash);
 
-    bool fatal = (kind.ordinal & FATAL) != 0;
-    bool isInfo = (kind.ordinal & INFO) != 0;
+    bool fatal = (kind.ordinal & fatalCode) != 0;
+    bool isInfo = (kind.ordinal & infoCode) != 0;
     if (isInfo && uri == null && kind != api.Diagnostic.info) {
       info(message, kind);
       return;

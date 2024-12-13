@@ -5,6 +5,8 @@
 /// Test the modular compilation pipeline of dart2js.
 ///
 /// This is a shell that runs multiple tests, one per folder under `data/`.
+library;
+
 import 'dart:io';
 import 'dart:ffi';
 import 'dart:async';
@@ -277,8 +279,9 @@ class ConcatenateDillsStep extends IOModularStep {
 
   @override
   void notifyCached(Module module) {
-    if (_options.verbose)
+    if (_options.verbose) {
       print("\ncached step: dart2js concatenate dills on $module");
+    }
   }
 }
 
@@ -306,8 +309,9 @@ class ComputeClosedWorldStep extends IOModularStep {
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
-    if (_options.verbose)
+    if (_options.verbose) {
       print("\nstep: dart2js compute closed world on $module");
+    }
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
@@ -329,8 +333,9 @@ class ComputeClosedWorldStep extends IOModularStep {
 
   @override
   void notifyCached(Module module) {
-    if (_options.verbose)
+    if (_options.verbose) {
       print("\ncached step: dart2js compute closed world on $module");
+    }
   }
 }
 
@@ -377,8 +382,9 @@ class GlobalAnalysisStep extends IOModularStep {
 
   @override
   void notifyCached(Module module) {
-    if (_options.verbose)
+    if (_options.verbose) {
       print("\ncached step: dart2js global analysis on $module");
+    }
   }
 }
 

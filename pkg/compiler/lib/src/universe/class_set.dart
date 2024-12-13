@@ -51,7 +51,7 @@ class ClassHierarchyNode {
   /// Enum set for selecting instantiated classes in
   /// [ClassHierarchyNode.subclassesByMask],
   /// [ClassHierarchyNode.subclassesByMask] and [ClassSet.subtypesByMask].
-  static final EnumSet<Instantiation> INSTANTIATED = EnumSet.fromValues(const [
+  static final EnumSet<Instantiation> instantiated = EnumSet.fromValues(const [
     Instantiation.DIRECTLY_INSTANTIATED,
     Instantiation.INDIRECTLY_INSTANTIATED,
     Instantiation.ABSTRACTLY_INSTANTIATED,
@@ -60,7 +60,7 @@ class ClassHierarchyNode {
   /// Enum set for selecting directly and abstractly instantiated classes in
   /// [ClassHierarchyNode.subclassesByMask],
   /// [ClassHierarchyNode.subclassesByMask] and [ClassSet.subtypesByMask].
-  static final EnumSet<Instantiation> EXPLICITLY_INSTANTIATED =
+  static final EnumSet<Instantiation> explicitlyInstantiated =
       EnumSet.fromValues(const [
     Instantiation.DIRECTLY_INSTANTIATED,
     Instantiation.ABSTRACTLY_INSTANTIATED,
@@ -69,7 +69,7 @@ class ClassHierarchyNode {
   /// Enum set for selecting all classes in
   /// [ClassHierarchyNode.subclassesByMask],
   /// [ClassHierarchyNode.subclassesByMask] and [ClassSet.subtypesByMask].
-  static final EnumSet<Instantiation> ALL =
+  static final EnumSet<Instantiation> all =
       EnumSet.allValues(Instantiation.values);
 
   /// Creates an enum set for selecting the returned classes in
@@ -404,7 +404,7 @@ class ClassHierarchyNode {
           continue;
         }
         if (withRespectTo != null &&
-            !child.anySubclass(isRelatedTo, ClassHierarchyNode.ALL)) {
+            !child.anySubclass(isRelatedTo, ClassHierarchyNode.all)) {
           continue;
         }
         if (needsComma) {
@@ -655,7 +655,7 @@ class ClassSet {
       return node.subclassesByMask(mask, strict: strict);
     }
 
-    return SubtypesIterable.SubtypesIterator(this, mask, includeRoot: !strict);
+    return SubtypesIterable.subtypesIterator(this, mask, includeRoot: !strict);
   }
 
   /// Applies [predicate] to each subclass of [cls] matching the criteria
@@ -951,7 +951,7 @@ class SubtypesIterable extends IterableBase<ClassEntity> {
   final EnumSet<Instantiation> mask;
   final bool includeRoot;
 
-  SubtypesIterable.SubtypesIterator(this.subtypeSet, this.mask,
+  SubtypesIterable.subtypesIterator(this.subtypeSet, this.mask,
       {this.includeRoot = true});
 
   @override

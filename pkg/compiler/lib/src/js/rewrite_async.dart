@@ -437,12 +437,16 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   /// temporary.
   ///
   /// We cannot rewrite `<receiver>.m()` to:
+  ///
   ///     temp = <receiver>.m;
   ///     temp();
+  ///
   /// Because this leaves `this` unbound in the call. But because of dart
   /// evaluation order we can write:
+  ///
   ///     temp = <receiver>;
   ///     temp.m();
+  ///
   js.Expression withCallTargetExpression(
       js.Expression node, js.Expression fn(js.Expression result),
       {required bool store}) {

@@ -196,7 +196,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
         }
       }
     }
-    if (!capturedVariablesForScope.isEmpty) {
+    if (capturedVariablesForScope.isNotEmpty) {
       assert(_model.scopeInfo != null);
       KernelScopeInfo from = _model.scopeInfo!;
 

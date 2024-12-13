@@ -407,8 +407,8 @@ class ImportDescription {
 
 /// Returns the filename for the output-unit named [name].
 ///
-/// The filename is of the form "<main output file>_<name>.part.js".
-/// If [addExtension] is false, the ".part.js" suffix is left out.
+/// The filename is of the form `<main output file>_<name>.part.js`.
+/// If [addExtension] is false, the `.part.js` suffix is left out.
 String deferredPartFileName(CompilerOptions options, String name,
     {bool addExtension = true}) {
   assert(name != "");

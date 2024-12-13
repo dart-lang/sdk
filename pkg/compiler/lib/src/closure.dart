@@ -272,12 +272,6 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// The signature method for [callMethod] if needed.
   FunctionEntity? get signatureMethod => null;
 
-  /// List of locals that this closure class has created corresponding field
-  /// entities for.
-  @deprecated
-  List<Local> getCreatedFieldEntities(KernelToLocalsMap localsMap) =>
-      const <Local>[];
-
   /// As shown in the example in the comments at the top of this class, we
   /// create fields in the closure class for each captured variable. This is an
   /// accessor the [local] for which [field] was created.

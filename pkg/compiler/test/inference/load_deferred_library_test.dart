@@ -44,7 +44,7 @@ runTest(List<String> options, {bool trust = true}) async {
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity helperLibrary =
-      elementEnvironment.lookupLibrary(Uris.dart__js_helper)!;
+      elementEnvironment.lookupLibrary(Uris.dartJSHelper)!;
   final loadDeferredLibrary = elementEnvironment.lookupLibraryMember(
       helperLibrary, 'loadDeferredLibrary') as FunctionEntity;
   TypeMask typeMask;

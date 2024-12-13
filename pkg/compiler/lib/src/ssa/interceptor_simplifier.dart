@@ -208,7 +208,9 @@ class SsaSimplifyInterceptors extends HBaseVisitor<bool>
         instructions.where((i) => i.block == bestBlock).toSet();
     HInstruction? current =
         (dominator?.block == bestBlock) ? dominator : bestBlock.first;
-    while (current != null && !set.contains(current)) current = current.next;
+    while (current != null && !set.contains(current)) {
+      current = current.next;
+    }
     assert(current != null);
     return current;
   }

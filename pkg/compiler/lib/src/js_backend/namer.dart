@@ -17,7 +17,7 @@ import '../common/names.dart' show Identifiers, Names, Selectors;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../common/elements.dart' show CommonElements, ElementEnvironment;
-import '../diagnostics/invariant.dart' show DEBUG_MODE;
+import '../diagnostics/invariant.dart' show debugMode;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/jumps.dart';
@@ -97,7 +97,7 @@ part 'namer_names.dart';
 /// JavaScript property such as `__proto__`.
 ///
 /// The following annotated names are generated for instance members, where
-/// <NAME> denotes the disambiguated name.
+/// `<NAME>` denotes the disambiguated name.
 ///
 /// 0. The disambiguated name can itself be seen as an annotated name.
 ///
@@ -670,7 +670,7 @@ class Namer extends ModularNamer {
     jsAst.Name? newName = userInstanceMembers[key];
     if (newName == null) {
       String proposedName = privateName(originalName);
-      if (!suffixes.isEmpty) {
+      if (suffixes.isNotEmpty) {
         // In the proposed name, separate the name parts by '$', because the
         // proposed name must be a valid identifier, but not necessarily unique.
         proposedName += r'$' + suffixes.join(r'$');
@@ -906,15 +906,15 @@ class Namer extends ModularNamer {
     }
     // The filename based name can contain all kinds of nasty characters. Make
     // sure it is an identifier.
-    if (!IDENTIFIER.hasMatch(name)) {
+    if (!identifier.hasMatch(name)) {
       String replacer(Match match) {
         String s = match[0]!;
         if (s == '.') return '_';
         return s.codeUnitAt(0).toRadixString(16);
       }
 
-      name = name.replaceAllMapped(NON_IDENTIFIER_CHAR, replacer);
-      if (!IDENTIFIER.hasMatch(name)) {
+      name = name.replaceAllMapped(nonIdentifierChar, replacer);
+      if (!identifier.hasMatch(name)) {
         // e.g. starts with digit.
         name = 'lib_$name';
       }
@@ -1206,7 +1206,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor<void, Null> {
   }
 
   void add(String fragment) {
-    assert(fragment.length > 0);
+    assert(fragment.isNotEmpty);
     fragments.add(fragment);
     length += fragment.length;
     if (fragments.length > MAX_FRAGMENTS) failed = true;
@@ -1216,7 +1216,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor<void, Null> {
   }
 
   void addIdentifier(String fragment) {
-    if (fragment.length <= MAX_EXTRA_LENGTH && IDENTIFIER.hasMatch(fragment)) {
+    if (fragment.length <= MAX_EXTRA_LENGTH && identifier.hasMatch(fragment)) {
       add(fragment);
     } else {
       failed = true;
@@ -2157,8 +2157,8 @@ String suffixForGetInterceptor(CommonElements commonElements,
 ///
 ///     $<T>$<N>$namedParam1...$namedParam<M>
 ///
-/// Where <T> is the number of type arguments, <N> is the number of positional
-/// arguments and <M> is the number of named arguments.
+/// Where `<T>` is the number of type arguments, `<N>` is the number of
+/// positional arguments and `<M>` is the number of named arguments.
 ///
 /// If there are no type arguments the `$<T>` is omitted.
 ///
@@ -2602,8 +2602,8 @@ final Set<String> jsReserved = {
   ...reservedPropertySymbols
 };
 
-final RegExp IDENTIFIER = RegExp(r'^[A-Za-z_$][A-Za-z0-9_$]*$');
-final RegExp NON_IDENTIFIER_CHAR = RegExp(r'[^A-Za-z_0-9$]');
+final RegExp identifier = RegExp(r'^[A-Za-z_$][A-Za-z0-9_$]*$');
+final RegExp nonIdentifierChar = RegExp(r'[^A-Za-z_0-9$]');
 const MAX_FRAGMENTS = 5;
 const MAX_EXTRA_LENGTH = 30;
 const DEFAULT_TAG_LENGTH = 3;

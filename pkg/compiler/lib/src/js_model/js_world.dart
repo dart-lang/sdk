@@ -296,7 +296,7 @@ class JClosedWorld implements World {
 
   /// Returns `true` if [cls] is mixed into a live class.
   bool isUsedAsMixin(ClassEntity cls) {
-    return !mixinUsesOf(cls).isEmpty;
+    return mixinUsesOf(cls).isNotEmpty;
   }
 
   /// Returns `true` if any live class that mixes in [cls] implements [type].
@@ -390,7 +390,7 @@ class JClosedWorld implements World {
           // Stop fast - we found a need for noSuchMethod handling.
           return IterationStep.STOP;
         }
-      }, ClassHierarchyNode.EXPLICITLY_INSTANTIATED, strict: true);
+      }, ClassHierarchyNode.explicitlyInstantiated, strict: true);
       // We stopped fast so we need noSuchMethod handling.
       return result == IterationStep.STOP;
     }
@@ -439,7 +439,7 @@ class JClosedWorld implements World {
         link = link.tail!) {
       ClassEntity cls = link.head.element;
       for (Link<OrderedTypeSet> link = otherTypeSets;
-          !link.isEmpty;
+          link.isNotEmpty;
           link = link.tail!) {
         if (link.head.asInstanceOf(
                 cls, elementMap.getHierarchyDepth(cls as JClass)) ==

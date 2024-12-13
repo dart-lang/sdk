@@ -156,8 +156,9 @@ String? constructOperatorNameOrNull(String op, bool isUnary) {
 
 String constructOperatorName(String op, bool isUnary) {
   String? operatorName = constructOperatorNameOrNull(op, isUnary);
-  if (operatorName == null)
+  if (operatorName == null) {
     throw 'Unhandled operator: $op';
-  else
+  } else {
     return operatorName;
+  }
 }

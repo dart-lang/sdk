@@ -210,7 +210,7 @@ class SsaBranchBuilder {
 
     HBasicBlock? joinBlock;
     // If at least one branch did not abort, open the joinBranch.
-    if (!joinBranch.block.predecessors.isEmpty) {
+    if (joinBranch.block.predecessors.isNotEmpty) {
       startBranch(joinBranch);
       joinBlock = joinBranch.block;
     }

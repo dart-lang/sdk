@@ -492,15 +492,16 @@ class LocalsHandler {
   ///     for (var i = 0; i < 2; i++) fs[i]();
   ///
   /// We solve this by emitting the following code (only for [ast.For] loops):
-  ///  <Create box>    <== move the first box creation outside the loop.
-  ///  <initializer>;
-  ///  loop-entry:
-  ///    if (!<condition>) goto loop-exit;
-  ///    <body>
-  ///    <update box>  // create a new box and copy the captured loop-variables.
-  ///    <updates>
-  ///    goto loop-entry;
-  ///  loop-exit:
+  ///
+  ///     <Create box>    <== move the first box creation outside the loop.
+  ///     <initializer>;
+  ///     loop-entry:
+  ///       if (!<condition>) goto loop-exit;
+  ///     <body>
+  ///     <update box>  // create a new box and copy the captured loop-variables.
+  ///     <updates>
+  ///     goto loop-entry;
+  ///     loop-exit:
   void startLoop(
       CapturedLoopScope loopInfo, SourceInformation? sourceInformation) {
     if (loopInfo.hasBoxedLoopVariables) {
@@ -609,7 +610,7 @@ class LocalsHandler {
   /// exclude local values from the result when they are no longer in scope.
   LocalsHandler mergeMultiple(
       List<LocalsHandler> localsHandlers, HBasicBlock joinBlock) {
-    assert(localsHandlers.length > 0);
+    assert(localsHandlers.isNotEmpty);
     if (localsHandlers.length == 1) return localsHandlers.single;
     Map<Local, HInstruction> joinedLocals = {};
     HInstruction? thisValue = null;
@@ -707,6 +708,9 @@ class SyntheticLocal extends Local {
   static int _nextHashCode = 0;
 
   SyntheticLocal(this.name, this.executableContext, this.memberContext);
+
+  @override
+  bool operator ==(other) => identical(this, other);
 
   @override
   String toString() => 'SyntheticLocal($name)';

@@ -1189,22 +1189,22 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       if (cachedMayLookupInMain!) {
         type ??= findInLibrary(elementEnvironment.mainLibrary);
       }
-      type ??= findIn(Uris.dart_core);
-      type ??= findIn(Uris.dart__js_helper);
-      type ??= findIn(Uris.dart__late_helper);
-      type ??= findIn(Uris.dart__interceptors);
-      type ??= findIn(Uris.dart__native_typed_data);
-      type ??= findIn(Uris.dart_collection);
-      type ??= findIn(Uris.dart_math);
-      type ??= findIn(Uris.dart_html);
-      type ??= findIn(Uris.dart_html_common);
-      type ??= findIn(Uris.dart_svg);
-      type ??= findIn(Uris.dart_web_audio);
-      type ??= findIn(Uris.dart_web_gl);
-      type ??= findIn(Uris.dart_indexed_db);
-      type ??= findIn(Uris.dart_typed_data);
-      type ??= findIn(Uris.dart__rti);
-      type ??= findIn(Uris.dart_mirrors);
+      type ??= findIn(Uris.dartCore);
+      type ??= findIn(Uris.dartJSHelper);
+      type ??= findIn(Uris.dartLateHelper);
+      type ??= findIn(Uris.dartInterceptors);
+      type ??= findIn(Uris.dartNativeTypedData);
+      type ??= findIn(Uris.dartCollection);
+      type ??= findIn(Uris.dartMath);
+      type ??= findIn(Uris.dartHtml);
+      type ??= findIn(Uris.dartHtmlCommon);
+      type ??= findIn(Uris.dartSvg);
+      type ??= findIn(Uris.dartWebAudio);
+      type ??= findIn(Uris.dartWebGL);
+      type ??= findIn(Uris.dartIndexedDB);
+      type ??= findIn(Uris.dartTypedData);
+      type ??= findIn(Uris.dartRti);
+      type ??= findIn(Uris.dartMirrors);
       if (type == null && required) {
         reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
             MessageKind.GENERIC, {'text': "Type '$typeName' not found."});
@@ -1254,7 +1254,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   // TODO(johnniwinther): Cache this for later use.
   @override
   NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node) {
-    if (node.arguments.positional.length < 1) {
+    if (node.arguments.positional.isEmpty) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "JS builtin expression has no type.");
     }
@@ -1279,7 +1279,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   @override
   NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node) {
-    if (node.arguments.positional.length < 1) {
+    if (node.arguments.positional.isEmpty) {
       reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
           "JS embedded global expression has no type.");
     }

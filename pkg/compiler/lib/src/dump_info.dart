@@ -85,8 +85,8 @@ class DumpInfoJsAstRegistry {
 
   void registerConstantAst(ConstantValue constant, jsAst.Node code) {
     if (_disabled) return;
-    assert(!_constantRegistry.containsKey(constant) ||
-        _constantRegistry[constant] == code);
+    assert(!_constantRegistry.containsValue(constant) ||
+        _constantRegistry[code] == constant);
     _constantRegistry[code] = constant;
   }
 
@@ -854,8 +854,9 @@ class KernelInfoCollector {
   }
 
   ClassInfo? visitClass(ir.Class clazz, {required ClassEntity classEntity}) {
-    if (state.entityToInfo[classEntity] != null)
+    if (state.entityToInfo[classEntity] != null) {
       return state.entityToInfo[classEntity] as ClassInfo?;
+    }
 
     final supers = <ClassInfo>[];
     clazz.supers.forEach((supertype) {
@@ -979,10 +980,10 @@ class KernelInfoCollector {
         type: functionType.toStringInternal());
 
     final functionParent = function.parent;
-    if (functionParent is ir.Member)
+    if (functionParent is ir.Member) {
       _addClosureInfo(info, functionParent,
           libraryEntity: functionEntity.library, memberEntity: functionEntity);
-    else {
+    } else {
       // This branch is only reached when function is a 'call' method.
       // TODO(markzipan): Ensure call methods never have children.
       info.closures = [];
@@ -1349,7 +1350,7 @@ class DumpInfoAnnotator {
         kFunctionInfos.length <= 1,
         'Ambiguous function resolution. '
         'Expected single or none, found $kFunctionInfos');
-    if (kFunctionInfos.length == 0) return null;
+    if (kFunctionInfos.isEmpty) return null;
     final kFunctionInfo = kFunctionInfos.first;
     kernelInfo.state.entityToInfo[function] = kFunctionInfo;
 
@@ -1861,8 +1862,9 @@ class LocalFunctionInfoCollector extends ir.RecursiveVisitor {
 
   @override
   void visitLocalFunctionInvocation(ir.LocalFunctionInvocation node) {
-    if (localFunctions[node.localFunction] == null)
+    if (localFunctions[node.localFunction] == null) {
       visitFunctionDeclaration(node.localFunction);
+    }
     localFunctions[node.localFunction]!.isInvoked = true;
   }
 }

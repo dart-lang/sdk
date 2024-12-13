@@ -179,7 +179,7 @@ class ListFactorySpecializer extends BaseSpecializer {
   /// Returns constant value of the first argument in [args], or null if it is
   /// not a constant.
   int? _getLengthArgument(Arguments args) {
-    if (args.positional.length < 1) return null;
+    if (args.positional.isEmpty) return null;
     final value = args.positional.first;
     if (value is IntLiteral) {
       return value.value;

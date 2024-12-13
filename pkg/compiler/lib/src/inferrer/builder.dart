@@ -1350,7 +1350,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   /// Returns `true` for constructors of typed arrays.
   bool _isConstructorOfTypedArraySubclass(ConstructorEntity constructor) {
     ClassEntity cls = constructor.enclosingClass;
-    return cls.library.canonicalUri == Uris.dart__native_typed_data &&
+    return cls.library.canonicalUri == Uris.dartNativeTypedData &&
         _closedWorld.nativeData.isNativeClass(cls) &&
         _closedWorld.classHierarchy
             .isSubtypeOf(cls, _closedWorld.commonElements.typedDataClass) &&

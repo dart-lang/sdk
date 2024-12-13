@@ -83,7 +83,7 @@ class InvokeDynamicSpecializer {
       return const InvokeDynamicSpecializer();
     }
     if (selector.isCall) {
-      if (selector.namedArguments.length == 0) {
+      if (selector.namedArguments.isEmpty) {
         int argumentCount = selector.argumentCount;
         if (argumentCount == 0) {
           if (name == 'abs') return const AbsSpecializer();

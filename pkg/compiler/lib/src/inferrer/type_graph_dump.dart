@@ -46,7 +46,7 @@ class TypeGraphDump {
   void beforeAnalysis() {
     for (TypeInformation node in inferrer.types.allTypes) {
       Set<TypeInformation> copy = node.inputs.toSet();
-      if (!copy.isEmpty) {
+      if (copy.isNotEmpty) {
         assignmentsBeforeAnalysis[node] = copy;
       }
     }
@@ -56,7 +56,7 @@ class TypeGraphDump {
   void beforeTracing() {
     for (TypeInformation node in inferrer.types.allTypes) {
       Set<TypeInformation> copy = node.inputs.toSet();
-      if (!copy.isEmpty) {
+      if (copy.isNotEmpty) {
         assignmentsBeforeTracing[node] = copy;
       }
     }
@@ -310,7 +310,7 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
         }
       }
     }
-    if (PRINT_GRAPH_ALL_NODES) {
+    if (printGraphAllNodes) {
       for (TypeInformation user in node.users) {
         if (!isExternal(user)) {
           visit(user);
@@ -322,7 +322,7 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
   @override
   void visitNarrowTypeInformation(NarrowTypeInformation info) {
     // Omit unused Narrows.
-    if (!PRINT_GRAPH_ALL_NODES && info.users.isEmpty) return;
+    if (!printGraphAllNodes && info.users.isEmpty) return;
     addNode(info, 'Narrow\n${formatType(info.typeAnnotation)}',
         color: narrowColor);
   }
@@ -330,7 +330,7 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
   @override
   void visitPhiElementTypeInformation(PhiElementTypeInformation info) {
     // Omit unused Phis.
-    if (!PRINT_GRAPH_ALL_NODES && info.users.isEmpty) return;
+    if (!printGraphAllNodes && info.users.isEmpty) return;
     addNode(info, 'Phi ${info.variable?.name ?? ''}', color: phiColor);
   }
 

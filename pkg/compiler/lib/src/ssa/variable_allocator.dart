@@ -62,7 +62,9 @@ class LiveInterval {
   @override
   String toString() {
     List<String> res = [];
-    for (final interval in ranges) res.add(interval.toString());
+    for (final interval in ranges) {
+      res.add(interval.toString());
+    }
     return '(${res.join(", ")})';
   }
 }
@@ -474,12 +476,14 @@ class VariableNamer {
   }
 
   String allocateTemporary() {
-    while (!freeTemporaryNames.isEmpty) {
+    while (freeTemporaryNames.isNotEmpty) {
       String name = freeTemporaryNames.removeLast();
       if (!usedNames.contains(name)) return name;
     }
     String name = 't${temporaryIndex++}';
-    while (usedNames.contains(name)) name = 't${temporaryIndex++}';
+    while (usedNames.contains(name)) {
+      name = 't${temporaryIndex++}';
+    }
     return name;
   }
 
@@ -653,7 +657,9 @@ class SsaVariableAllocator extends HBaseVisitor<void> implements CodegenPhase {
       // A [HTypeKnown] instruction never has a name, but its checked
       // input might, therefore we need to do a copy instead of an
       // assignment.
-      while (input is HTypeKnown) input = input.inputs[0];
+      while (input is HTypeKnown) {
+        input = input.inputs[0];
+      }
       if (!needsName(input)) {
         names.addAssignment(predecessor, input, phi);
       } else {

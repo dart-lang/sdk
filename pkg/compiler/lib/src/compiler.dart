@@ -328,7 +328,7 @@ class Compiler {
     StaticUse.clearCache();
 
     // The selector objects held in static fields must remain canonical.
-    for (Selector selector in Selectors.ALL) {
+    for (Selector selector in Selectors.all) {
       Selector.canonicalizedValues
           .putIfAbsent(selector.hashCode, () => <Selector>[])
           .add(selector);

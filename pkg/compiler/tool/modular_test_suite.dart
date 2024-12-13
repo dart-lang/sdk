@@ -5,6 +5,8 @@
 /// Test the compilation pipeline of dart2js.
 ///
 /// This is a shell that runs multiple tests, one per folder under `data/`.
+library;
+
 import 'dart:async';
 
 import 'package:modular_test/src/io_pipeline.dart';

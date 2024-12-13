@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of masks;
+part of 'masks.dart';
 
 /// A [MapTypeMask] is a [TypeMask] for a specific allocation
 /// site of a map (currently only internal Map class) that will get specialized

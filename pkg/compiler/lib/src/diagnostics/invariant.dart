@@ -11,12 +11,12 @@ import 'spannable.dart';
 ///
 /// This flag is automatically set to true if helper methods like, [debugPrint],
 /// [debugWrapPrint], [trace], and [reportHere] are called.
-bool DEBUG_MODE = false;
+bool debugMode = false;
 
-/// Assert that [DEBUG_MODE] is `true` and provide [message] as part of the
+/// Assert that [debugMode] is `true` and provide [message] as part of the
 /// error message.
 void assertDebugMode(String message) {
-  assert(DEBUG_MODE,
+  assert(debugMode,
       failedAt(NO_LOCATION_SPANNABLE, 'Debug mode is not enabled: $message'));
 }
 

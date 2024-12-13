@@ -308,7 +308,7 @@ class CodegenRegistry {
   @override
   String toString() => 'CodegenRegistry for $_currentElement';
 
-  @deprecated
+  @Deprecated("Use StaticUse for precise registration of statically known use")
   void registerInstantiatedClass(ClassEntity element) {
     registerInstantiation(_elementEnvironment.getRawType(element));
   }

@@ -872,7 +872,7 @@ class SsaInstructionMerger extends HBaseVisitor<void> implements CodegenPhase {
     // entry.
     int initializingAssignmentCount = (local is HParameterValue) ? 0 : 1;
     return local.usedBy
-        .where((user) => user is HLocalSet)
+        .whereType<HLocalSet>()
         .skip(initializingAssignmentCount)
         .isNotEmpty;
   }
@@ -1090,7 +1090,7 @@ class SsaInstructionMerger extends HBaseVisitor<void> implements CodegenPhase {
     // Return true if it is found, or false if not.
     bool findInInputsAndPopNonMatching(HInstruction instruction) {
       assert(!isEffectivelyPure(instruction));
-      while (!expectedInputs!.isEmpty) {
+      while (expectedInputs!.isNotEmpty) {
         HInstruction nextInput = expectedInputs!.removeLast();
         assert(!generateAtUseSite.contains(nextInput));
         assert(nextInput.usedBy.length == 1);
@@ -1232,7 +1232,9 @@ class SsaConditionMerger extends HGraphVisitor implements CodegenPhase {
     // before the control flow instruction, or the last instruction,
     // then we will have to emit a statement for that last instruction.
     if (instruction != block.last &&
-        !identical(instruction, block.last!.previous)) return true;
+        !identical(instruction, block.last!.previous)) {
+      return true;
+    }
 
     // If one of the instructions in the block until [instruction] is
     // not generated at use site, then we will have to emit a
@@ -1535,8 +1537,9 @@ class SsaPhiConditioning extends HGraphVisitor implements CodegenPhase {
   void _markHandled(HPhi phi, HBasicBlock dominator) {
     if (_handled.add(phi)) {
       for (final input in phi.inputs) {
-        if (input is HPhi && dominator.dominates(input.block!))
+        if (input is HPhi && dominator.dominates(input.block!)) {
           _markHandled(input, dominator);
+        }
       }
     }
   }

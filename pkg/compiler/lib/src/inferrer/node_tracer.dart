@@ -161,7 +161,7 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
     // Collect the [TypeInformation] where the list can flow in,
     // as well as the operations done on all these [TypeInformation]s.
     addNewEscapeInformation(tracedType);
-    while (!workList.isEmpty) {
+    while (workList.isNotEmpty) {
       final user = currentUser = workList.removeLast();
       if (_wouldBeTooManyUsers(user.users)) {
         bailout('Too many users');
@@ -171,16 +171,16 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
         analyzedElements.add(info.owner);
         info.accept(this);
       }
-      while (!listsToAnalyze.isEmpty) {
+      while (listsToAnalyze.isNotEmpty) {
         analyzeStoredIntoList(listsToAnalyze.removeLast());
       }
       while (setsToAnalyze.isNotEmpty) {
         analyzeStoredIntoSet(setsToAnalyze.removeLast());
       }
-      while (!mapsToAnalyze.isEmpty) {
+      while (mapsToAnalyze.isNotEmpty) {
         analyzeStoredIntoMap(mapsToAnalyze.removeLast());
       }
-      while (!recordsToAnalyze.isEmpty) {
+      while (recordsToAnalyze.isNotEmpty) {
         analyzeStoredIntoRecord(recordsToAnalyze.removeLast());
       }
       if (!continueAnalyzing) break;

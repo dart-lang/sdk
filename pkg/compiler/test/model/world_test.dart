@@ -331,7 +331,7 @@ testNativeClasses() async {
       """, testBackendWorld: true);
   JClosedWorld closedWorld = env.jClosedWorld;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-  LibraryEntity dart_html = elementEnvironment.lookupLibrary(Uris.dart_html)!;
+  LibraryEntity dart_html = elementEnvironment.lookupLibrary(Uris.dartHtml)!;
 
   ClassEntity clsEventTarget =
       elementEnvironment.lookupClass(dart_html, 'EventTarget')!;

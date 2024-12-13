@@ -5,7 +5,7 @@
 /// This tool builds a program with a deferred graph isomorphic to the provided
 /// graph, or generates permutations of bits and the associated files to
 /// generate complex deferred graphs.
-
+///
 /// For example, if 5 bits are permuted, we end up with files like:
 ///   lib1.dart
 ///   lib2.dart
@@ -36,6 +36,7 @@
 /// a file representing the intersection of all import entities. So, for example
 /// with three bits, each of 100, 010, 001 and 111 must be present in the graph
 /// file, but 110, 101, and 011 are optional.
+library;
 
 // TODO(joshualitt): This is a good start for a fuzzer. There is still work to
 // do:
@@ -410,7 +411,9 @@ class GraphIsomorphizer {
       // 0s with a single 1 bit flipped.
       int oneBit = i - 1;
       List<int> bits = [];
-      for (int j = 0; j < maxBit; j++) bits.add(j == oneBit ? 1 : 0);
+      for (int j = 0; j < maxBit; j++) {
+        bits.add(j == oneBit ? 1 : 0);
+      }
 
       // Generate the mixerLib for this entryLib.
       var name = generateBitString(bits);

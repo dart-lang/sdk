@@ -43,6 +43,10 @@ class Selector {
   @override
   final int hashCode;
 
+  @override
+  bool operator ==(other) =>
+      identical(this, other) || other is Selector && hashCode == other.hashCode;
+
   int get argumentCount => callStructure.argumentCount;
   int get namedArgumentCount => callStructure.namedArgumentCount;
   int get positionalArgumentCount => callStructure.positionalArgumentCount;
@@ -253,7 +257,9 @@ class Selector {
         (name == "hashCode" ||
             name == "runtimeType" ||
             name == "toString" ||
-            name == "noSuchMethod")) return true;
+            name == "noSuchMethod")) {
+      return true;
+    }
     // Calling toString always succeeds, calls to `noSuchMethod` (even well
     // formed calls) always throw.
     if (isCall &&

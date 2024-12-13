@@ -11,7 +11,7 @@ import '../tracer.dart';
 import 'nodes.dart';
 import 'optimize.dart' show OptimizationPhase, SsaOptimizerTask;
 
-bool _DEBUG = false;
+bool _debug = false;
 
 class ValueRangeInfo {
   late final IntValue intZero;
@@ -333,6 +333,9 @@ class MarkerValue extends VariableValue {
   MarkerValue(this.isLower, this.isPositive, super.info);
 
   @override
+  int get hashCode => isLower.hashCode;
+
+  @override
   bool operator ==(other) {
     return other is MarkerValue && isLower == other.isLower;
   }
@@ -606,20 +609,22 @@ class Range {
     // If we could not compute max or min, pick a value in the two
     // ranges, with priority to [IntValue]s because they are simpler.
     if (low == info.unknownValue) {
-      if (lower is IntValue)
+      if (lower is IntValue) {
         low = lower;
-      else if (other.lower is IntValue)
+      } else if (other.lower is IntValue) {
         low = other.lower;
-      else
+      } else {
         low = lower;
+      }
     }
     if (up == info.unknownValue) {
-      if (upper is IntValue)
+      if (upper is IntValue) {
         up = upper;
-      else if (other.upper is IntValue)
+      } else if (other.upper is IntValue) {
         up = other.upper;
-      else
+      } else {
         up = upper;
+      }
     }
     return info.newNormalizedRange(low, up);
   }
@@ -1081,8 +1086,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
 
   @override
   Range visitInvokeDynamicMethod(HInvokeDynamicMethod invoke) {
-    if ((invoke.inputs.length == 3) && (invoke.selector.name == "%"))
+    if ((invoke.inputs.length == 3) && (invoke.selector.name == "%")) {
       return handleInvokeModulo(invoke);
+    }
     return super.visitInvokeDynamicMethod(invoke);
   }
 
@@ -1329,7 +1335,7 @@ class LoopUpdateRecognizer extends HBaseVisitor<Range?> {
     final widened = updateRange.replaceMarkers(lowerBound, upperBound);
     final result = startRange.union(widened);
 
-    if (_DEBUG) {
+    if (_debug) {
       print('------- ${loopPhi.sourceElement}'
           '\n    marker  $markerRange'
           '\n    update  $updateRange'

@@ -515,7 +515,7 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
       // additional unnecessary work.
       final name = node.target.name.text;
       if (node.target.enclosingClass == null &&
-          node.target.enclosingLibrary.importUri == Uris.dart__foreign_helper &&
+          node.target.enclosingLibrary.importUri == Uris.dartForeignHelper &&
           getForeignKindFromName(name) != ForeignKind.NONE) {
         registerForeignStaticInvocationNode(node);
       }

@@ -151,11 +151,6 @@ abstract class TypeRecipe {
 
   TypeRecipe();
 
-  @override
-  late final hashCode = _computeHashCode();
-
-  int _computeHashCode();
-
   factory TypeRecipe.readFromDataSource(DataSourceReader source) {
     TypeRecipe recipe;
     source.begin(tag);
@@ -225,7 +220,7 @@ class TypeExpressionRecipe extends TypeRecipe {
   }
 
   @override
-  int _computeHashCode() => type.hashCode * 7;
+  late final int hashCode = type.hashCode * 7;
 
   @override
   bool operator ==(other) {
@@ -260,7 +255,7 @@ class SingletonTypeEnvironmentRecipe extends TypeEnvironmentRecipe {
   }
 
   @override
-  int _computeHashCode() => type.hashCode * 11;
+  late final int hashCode = type.hashCode * 11;
 
   @override
   bool operator ==(other) {
@@ -304,9 +299,8 @@ class FullTypeEnvironmentRecipe extends TypeEnvironmentRecipe {
   }
 
   @override
-  int _computeHashCode() {
-    return Hashing.listHash(types, Hashing.objectHash(classType, 0));
-  }
+  late final int hashCode =
+      Hashing.listHash(types, Hashing.objectHash(classType, 0));
 
   @override
   bool operator ==(other) {

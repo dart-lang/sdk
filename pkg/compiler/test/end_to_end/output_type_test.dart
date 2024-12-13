@@ -15,8 +15,8 @@ import 'package:compiler/src/null_compiler_output.dart';
 import 'package:compiler/src/options.dart';
 import 'package:compiler/src/source_file_provider.dart';
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
-import 'package:compiler/src/inferrer/debug.dart' show PRINT_GRAPH;
-import 'package:compiler/src/tracer.dart' show TRACE_FILTER_PATTERN_FOR_TEST;
+import 'package:compiler/src/inferrer/debug.dart' show printGraph;
+import 'package:compiler/src/tracer.dart' show traceFilterPatternForTest;
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
@@ -82,8 +82,8 @@ main() {
   oldCompileFunc = compileFunc;
 
   runTests() async {
-    PRINT_GRAPH = true;
-    TRACE_FILTER_PATTERN_FOR_TEST = 'x';
+    printGraph = true;
+    traceFilterPatternForTest = 'x';
     await test([
       'pkg/compiler/test/deferred/data/deferred_helper.dart',
       '--out=custom.js',
@@ -101,8 +101,8 @@ main() {
       '.dot', // From PRINT_GRAPH
     ]);
 
-    PRINT_GRAPH = false;
-    TRACE_FILTER_PATTERN_FOR_TEST = null;
+    printGraph = false;
+    traceFilterPatternForTest = null;
     List<String> additionOptionals = [];
     List<String> expectedOutput = [
       'out.js',

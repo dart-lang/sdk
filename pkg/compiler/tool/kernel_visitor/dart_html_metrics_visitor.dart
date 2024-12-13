@@ -8,7 +8,7 @@ import "package:kernel/kernel.dart";
 
 Future<void> main(List<String> args) async {
   // Ensure right args are passed.
-  if (args.length < 1) {
+  if (args.isEmpty) {
     print("usage: ${Platform.script} a.dill");
   }
 
@@ -89,7 +89,7 @@ class MetricsVisitor extends RecursiveVisitor {
       }
 
       // Check for implemented classes.
-      if (node.implementedTypes.length > 0) {
+      if (node.implementedTypes.isNotEmpty) {
         var implementedTypes =
             node.implementedTypes.map((type) => type.className.asClass.name);
         metrics.implementedTypes = implementedTypes.toList();

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend.namer;
+part of 'namer.dart';
 
 /// Assigns JavaScript identifiers to Dart variables, class-names and members.
 class MinifyNamer extends Namer
@@ -20,8 +20,8 @@ class MinifyNamer extends Namer
   @override
   String get genericInstantiationPrefix => r'$I';
 
-  final ALPHABET_CHARACTERS = 52; // a-zA-Z.
-  final ALPHANUMERIC_CHARACTERS = 62; // a-zA-Z0-9.
+  static const ALPHABET_CHARACTERS = 52; // a-zA-Z.
+  static const ALPHANUMERIC_CHARACTERS = 62; // a-zA-Z0-9.
 
   /// You can pass an invalid identifier to this and unlike its non-minifying
   /// counterpart it will never return the proposedName as the new fresh name.

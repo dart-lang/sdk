@@ -145,7 +145,7 @@ class SourceInformationBuilder {
       null;
 
   /// Generate [SourceInformation] for the generic [node].
-  @deprecated
+  @Deprecated("Use SourceInformationFactory")
   SourceInformation? buildGeneric(ir.Node node) => null;
 
   /// Generate [SourceInformation] for an instantiation of a class using [node]

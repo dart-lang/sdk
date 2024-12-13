@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of masks;
+part of 'masks.dart';
 
 enum FlatTypeMaskKind { empty, exact, subclass, subtype }
 
@@ -293,8 +293,9 @@ class FlatTypeMask extends TypeMask {
     // TODO(herhut): Add check whether flatOther.base is superclass of
     //               all subclasses of this.base.
     if (flatOther.isSubclass) {
-      if (isSubtype)
+      if (isSubtype) {
         return (otherBase == closedWorld.commonElements.objectClass);
+      }
       return closedWorld.classHierarchy.isSubclassOf(base!, otherBase!);
     }
     assert(flatOther.isSubtype);
@@ -718,8 +719,9 @@ class FlatTypeMask extends TypeMask {
   MemberEntity? locateSingleMember(Selector selector, CommonMasks domain) {
     if (isEmptyOrSpecial) return null;
     JClosedWorld closedWorld = domain._closedWorld;
-    if (closedWorld.includesClosureCallInDomain(selector, this, domain))
+    if (closedWorld.includesClosureCallInDomain(selector, this, domain)) {
       return null;
+    }
     Iterable<MemberEntity> targets =
         closedWorld.locateMembersInDomain(selector, this, domain);
     if (targets.length != 1) return null;
@@ -742,8 +744,9 @@ class FlatTypeMask extends TypeMask {
       if (closedWorld.classHierarchy.isSubclassOf(thisBase, enclosing)) {
         return result;
       }
-      if (closedWorld.isSubclassOfMixinUseOf(thisBase, enclosing))
+      if (closedWorld.isSubclassOfMixinUseOf(thisBase, enclosing)) {
         return result;
+      }
     }
     return null;
   }

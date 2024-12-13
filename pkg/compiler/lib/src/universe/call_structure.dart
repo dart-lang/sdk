@@ -200,8 +200,9 @@ class CallStructure {
       if (positionalArgumentCount > requiredParameterCount) return false;
       assert(positionalArgumentCount == requiredParameterCount);
       if (namedArgumentCount >
-          optionalParameterCount + parameters.requiredNamedParameters.length)
+          optionalParameterCount + parameters.requiredNamedParameters.length) {
         return false;
+      }
 
       int nameIndex = 0;
       List<String> namedParameters = parameters.namedParameters;
@@ -213,8 +214,9 @@ class CallStructure {
         while (nameIndex < namedParameters.length) {
           String parameterName = namedParameters[nameIndex];
           if (name == parameterName) {
-            if (parameters.requiredNamedParameters.contains(name))
+            if (parameters.requiredNamedParameters.contains(name)) {
               seenRequiredNamedParameters++;
+            }
             found = true;
             break;
           }

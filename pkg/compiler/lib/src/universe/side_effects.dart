@@ -96,8 +96,8 @@ class SideEffects {
 
   Bitset getDependsOnFlags() => _flags.intersection(allDepends);
 
-  bool hasSideEffects() => getChangesFlags() != 0;
-  bool dependsOnSomething() => getDependsOnFlags() != 0;
+  bool hasSideEffects() => getChangesFlags().isNotEmpty;
+  bool dependsOnSomething() => getDependsOnFlags().isNotEmpty;
 
   bool setAllSideEffects() {
     final before = _flags;

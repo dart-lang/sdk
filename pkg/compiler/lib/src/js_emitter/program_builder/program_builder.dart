@@ -442,7 +442,7 @@ class ProgramBuilder {
             if (member.isGetter || member is FieldEntity || member.isFunction) {
               final selectors =
                   _codegenWorld.getterInvocationsByName(member.name!);
-              if (selectors != null && !selectors.isEmpty) {
+              if (selectors != null && selectors.isNotEmpty) {
                 for (Selector selector in selectors) {
                   js.Name stubName = _namer.invocationName(selector);
                   if (stubNames.add(stubName.key)) {
@@ -462,7 +462,7 @@ class ProgramBuilder {
             if (member.isSetter || (member is FieldEntity && !member.isConst)) {
               final selectors =
                   _codegenWorld.setterInvocationsByName(member.name!);
-              if (selectors != null && !selectors.isEmpty) {
+              if (selectors != null && selectors.isNotEmpty) {
                 var stubName = _namer.setterForMember(member);
                 if (stubNames.add(stubName.key)) {
                   interceptorClass!.callStubs.add(_buildStubMethod(stubName,
@@ -498,7 +498,7 @@ class ProgramBuilder {
               // Named arguments are not yet supported. In the future we
               // may want to map named arguments to an object literal containing
               // all named arguments.
-              if (selectors != null && !selectors.isEmpty) {
+              if (selectors != null && selectors.isNotEmpty) {
                 for (var selector in selectors.keys) {
                   // Check whether the arity matches this member.
                   var argumentCount = selector.argumentCount;
@@ -624,7 +624,7 @@ class ProgramBuilder {
       if (member.isGetter || member is FieldEntity) {
         Map<Selector, SelectorConstraints>? selectors =
             _codegenWorld.invocationsByName(member.name!);
-        if (selectors != null && !selectors.isEmpty) {
+        if (selectors != null && selectors.isNotEmpty) {
           Map<js.Name, js.Expression> callStubsForMember =
               classStubGenerator.generateCallStubsForGetter(member, selectors);
           callStubsForMember.forEach((js.Name name, js.Expression code) {

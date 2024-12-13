@@ -19,6 +19,8 @@
 /// wait for additional input. On every new-line entered (text is ignored), it
 /// will trigger a hot reload to refresh the compiler, then reexecute the
 /// compiler with the exact same args provided upfront.
+library;
+
 import 'dart:developer';
 import 'package:vm_service/vm_service_io.dart' as vm_service_io;
 

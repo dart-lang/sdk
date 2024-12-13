@@ -59,7 +59,7 @@ class HValidator extends HInstructionVisitor {
       markInvalid("Return or throw node with > 1 successor "
           "or not going to exit-block");
     }
-    if (block.last is HExit && !block.successors.isEmpty) {
+    if (block.last is HExit && block.successors.isNotEmpty) {
       markInvalid("Exit block with successor");
     }
 

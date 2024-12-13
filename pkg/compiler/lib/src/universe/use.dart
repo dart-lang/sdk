@@ -762,6 +762,7 @@ class _ExtendedStaticUse extends StaticUse {
   }
 
   @override
+  // ignore: hash_and_equals
   bool operator ==(other) {
     if (identical(this, other)) return true;
     // Subtypes of StaticUse are normalized so we can just compare against this

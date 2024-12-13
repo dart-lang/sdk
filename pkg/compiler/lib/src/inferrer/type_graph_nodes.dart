@@ -97,7 +97,7 @@ enum _Flag {
 /// changes.
 abstract class TypeInformation {
   // This will be treated as effectively constant by the VM.
-  static final int NUM_TYPE_INFO_FLAGS = _Flag.values.length;
+  static final int numTypeInfoFlags = _Flag.values.length;
 
   Set<TypeInformation> users;
   ParameterInputs _inputs;
@@ -117,9 +117,9 @@ abstract class TypeInformation {
   /// We abandon inference in certain cases (complex cyclic flow, native
   /// behaviours, etc.). In some case, we might resume inference in the
   /// closure tracer, which is handled by checking whether [inputs] has
-  /// been set to [STOP_TRACKING_INPUTS_MARKER].
+  /// been set to [stopTrackingInputsMarker].
   bool get abandonInferencing => _flags.contains(_Flag.abandonInferencing);
-  bool get mightResume => !identical(inputs, STOP_TRACKING_INPUTS_MARKER);
+  bool get mightResume => !identical(inputs, stopTrackingInputsMarker);
 
   /// Whether this [TypeInformation] is currently in the inferrer's
   /// work queue.
@@ -160,13 +160,13 @@ abstract class TypeInformation {
   EnumSet<_Flag> _flags = EnumSet.empty();
 
   /// Number of times this [TypeInformation] has changed type.
-  int get refineCount => _flags.mask.bits >> NUM_TYPE_INFO_FLAGS;
+  int get refineCount => _flags.mask.bits >> numTypeInfoFlags;
 
-  void incrementRefineCount() => _flags =
-      EnumSet.fromRawBits(_flags.mask.bits + (1 << NUM_TYPE_INFO_FLAGS));
+  void incrementRefineCount() =>
+      _flags = EnumSet.fromRawBits(_flags.mask.bits + (1 << numTypeInfoFlags));
 
   void clearRefineCount() => _flags =
-      EnumSet.fromRawBits(_flags.mask.bits & ((1 << NUM_TYPE_INFO_FLAGS) - 1));
+      EnumSet.fromRawBits(_flags.mask.bits & ((1 << numTypeInfoFlags) - 1));
 
   void addUser(TypeInformation user) {
     assert(!user.isConcrete);
@@ -184,11 +184,10 @@ abstract class TypeInformation {
 
   // The below is not a compile time constant to make it differentiable
   // from other empty lists of [TypeInformation].
-  static final STOP_TRACKING_INPUTS_MARKER =
-      _BasicParameterInputs(List.empty());
+  static final stopTrackingInputsMarker = _BasicParameterInputs(List.empty());
 
   bool areInputsTracked() {
-    return inputs != STOP_TRACKING_INPUTS_MARKER;
+    return inputs != stopTrackingInputsMarker;
   }
 
   void addInput(TypeInformation input) {
@@ -232,13 +231,13 @@ abstract class TypeInformation {
     // Do not remove [this] as a user of nodes in [inputs],
     // because our tracing analysis could be interested in tracing
     // this node.
-    if (clearInputs) _inputs = STOP_TRACKING_INPUTS_MARKER;
+    if (clearInputs) _inputs = stopTrackingInputsMarker;
     // Do not remove users because our tracing analysis could be
     // interested in tracing the users of this node.
   }
 
   void clear() {
-    _inputs = STOP_TRACKING_INPUTS_MARKER;
+    _inputs = stopTrackingInputsMarker;
     users = const {};
   }
 
@@ -274,7 +273,7 @@ abstract class TypeInformation {
     removeAndClearReferences(inferrer);
     // Do not remove users because the tracing analysis could be interested
     // in tracing the users of this node.
-    _inputs = STOP_TRACKING_INPUTS_MARKER;
+    _inputs = stopTrackingInputsMarker;
     _flags = _flags.add(_Flag.abandonInferencing);
     _flags = _flags.add(_Flag.isStable);
   }
@@ -741,11 +740,6 @@ class FactoryConstructorTypeInformation extends MemberTypeInformation {
   AbstractValue _potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
     return _narrowType(inferrer.abstractValueDomain, mask, _type);
-  }
-
-  @override
-  bool hasStableType(InferrerEngine inferrer) {
-    return super.hasStableType(inferrer);
   }
 }
 
@@ -1258,7 +1252,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     }
     if (!selector.isCall && !selector.isOperator) return null;
     final args = arguments!;
-    if (!args.named.isEmpty) return null;
+    if (args.named.isNotEmpty) return null;
     if (args.positional.length > 1) return null;
 
     bool isInt(TypeInformation info) =>
@@ -1489,7 +1483,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   String toString() => 'Call site $debugName on ${receiver.type} $type';
 
   @override
-  T accept<T>(TypeInformationVisitor<T> visitor) {
+  S accept<S>(TypeInformationVisitor<S> visitor) {
     return visitor.visitDynamicCallSiteTypeInformation(this);
   }
 

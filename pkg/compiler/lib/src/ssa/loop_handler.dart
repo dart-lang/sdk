@@ -267,7 +267,7 @@ abstract class LoopHandler {
     builder.open(loopExitBlock);
 
     // Create a new localsHandler for the loopExitBlock with the correct phis.
-    if (!breakHandlers.isEmpty) {
+    if (breakHandlers.isNotEmpty) {
       if (branchExitBlock != null) {
         // Add the values of the locals at the end of the condition block to
         // the phis.  These are the values that flow to the exit if the

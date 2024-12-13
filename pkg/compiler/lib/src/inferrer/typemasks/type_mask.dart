@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of masks;
+part of 'masks.dart';
 
 /// An implementation of a [UniverseSelectorConstraints] that is consists if an
 /// only increasing set of [TypeMask]s, that is, once a mask is added it cannot
@@ -394,13 +394,6 @@ abstract class TypeMask implements AbstractValue {
   bool containsOnlyBool(JClosedWorld closedWorld);
   bool containsOnlyString(JClosedWorld closedWorld);
   bool containsOnly(ClassEntity cls);
-
-  /// Compares two [TypeMask] objects for structural equality.
-  ///
-  /// Note: This may differ from semantic equality in the set containment sense.
-  ///   Use [containsMask] and [isInMask] for that, instead.
-  @override
-  bool operator ==(other);
 
   /// If this returns `true`, [other] is guaranteed to be a supertype of this
   /// mask, i.e., this mask is in [other]. However, the inverse does not hold.

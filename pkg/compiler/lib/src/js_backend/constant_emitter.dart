@@ -223,7 +223,7 @@ class ModularConstantEmitter
 class ConstantEmitter extends ModularConstantEmitter {
   // Matches blank lines, comment lines and trailing comments that can't be part
   // of a string.
-  static final RegExp COMMENT_RE =
+  static final RegExp commentRE =
       RegExp(r'''^ *(//.*)?\n|  *//[^''"\n]*$''', multiLine: true);
 
   final JCommonElements _commonElements;
@@ -488,7 +488,7 @@ class ConstantEmitter extends ModularConstantEmitter {
   }
 
   String stripComments(String rawJavaScript) {
-    return rawJavaScript.replaceAll(COMMENT_RE, '');
+    return rawJavaScript.replaceAll(commentRE, '');
   }
 
   jsAst.Expression maybeAddListTypeArgumentsNewRti(

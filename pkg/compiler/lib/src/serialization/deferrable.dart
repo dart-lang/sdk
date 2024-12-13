@@ -33,6 +33,7 @@ import 'package:compiler/src/serialization/serialization.dart';
 ///
 /// Example class before:
 ///
+/// ```
 /// class Foo {
 ///   final Bar bar;
 ///   final String name;
@@ -45,9 +46,11 @@ import 'package:compiler/src/serialization/serialization.dart';
 ///     return Foo(bar, name);
 ///   }
 /// }
+/// ```
 ///
 /// After:
 ///
+/// ```
 /// class Foo {
 ///   Bar get bar => _bar.loaded();
 ///   final Deferrable<Bar> _bar;
@@ -67,6 +70,7 @@ import 'package:compiler/src/serialization/serialization.dart';
 ///     return Foo._deserialized(bar, name);
 ///   }
 /// }
+/// ```
 abstract class Deferrable<E> {
   E loaded();
 
@@ -119,7 +123,7 @@ class _DeferredCacheWithArg<E, A> extends Deferrable<E> {
   E _loadData() {
     final reader = _reader!;
     final dataLoader = _dataLoader!;
-    final arg = _arg!;
+    final arg = _arg as A;
     _reader = null;
     _dataLoader = null;
     _arg = null;

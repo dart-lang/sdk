@@ -27,7 +27,7 @@ import '../helpers/sourcemap_html_helper.dart';
 import '../helpers/trace_graph.dart';
 
 main(List<String> args) async {
-  DEBUG_MODE = true;
+  debugMode = true;
   String out = 'out.js.diff_view.html';
   late String filename;
   List<String> currentOptions = [];
@@ -259,9 +259,9 @@ void outputDiffView(
   width: 100%;
   border-spacing: 0px;
 }
-.${ClassNames.cell}, 
-.${ClassNames.innerCell}, 
-.${ClassNames.originalDart}, 
+.${ClassNames.cell},
+.${ClassNames.innerCell},
+.${ClassNames.originalDart},
 .${ClassNames.inlinedDart} {
   overflow-y: hidden;
   vertical-align: top;
@@ -402,7 +402,7 @@ function toggleAnnotations(show, name) {
       }
     }
   }
-} 
+}
 </script>
 </head>
 <body>''');
@@ -410,36 +410,36 @@ function toggleAnnotations(show, name) {
   sb.write('''
 <div class="${ClassNames.header}">
 <div class="${ClassNames.legend}">
-  <span class="${ClassNames.identical(false)}">&nbsp;&nbsp;&nbsp;</span> 
+  <span class="${ClassNames.identical(false)}">&nbsp;&nbsp;&nbsp;</span>
   <span class="${ClassNames.identical(true)}">&nbsp;&nbsp;&nbsp;</span>
   identical blocks
   <span class="${ClassNames.corresponding(false)}">&nbsp;&nbsp;&nbsp;</span>
-  <span class="${ClassNames.corresponding(true)}">&nbsp;&nbsp;&nbsp;</span> 
+  <span class="${ClassNames.corresponding(true)}">&nbsp;&nbsp;&nbsp;</span>
   corresponding blocks
 ''');
 
   sb.write('''
   <span class="${ClassNames.markers}">
   <span class="${ClassNames.withSourceInfo}">&nbsp;&nbsp;&nbsp;</span>
-  <span title="'offset with source information' means that source information 
-is available for an offset which is expected to have a source location 
+  <span title="'offset with source information' means that source information
+is available for an offset which is expected to have a source location
 attached. This offset has source information as intended.">
   offset with source information</span>
   <span class="${ClassNames.withoutSourceInfo}">&nbsp;&nbsp;&nbsp;</span>
-  <span title="'offset without source information' means that _no_ source 
-information is available for an offset which was expected to have a source 
+  <span title="'offset without source information' means that _no_ source
+information is available for an offset which was expected to have a source
 location attached. Source information must be found for this offset.">
   offset without source information</span>
   <span class="${ClassNames.additionalSourceInfo}">&nbsp;&nbsp;&nbsp;</span>
-  <span title="'offset with unneeded source information' means that a source 
+  <span title="'offset with unneeded source information' means that a source
 location was attached to an offset which was _not_ expected to have a source
 location attached. The source location should be removed from this offset.">
   offset with unneeded source information</span>
   <span class="${ClassNames.unusedSourceInfo}">&nbsp;&nbsp;&nbsp;</span>
-  <span title="'offset with unused source information' means that source 
+  <span title="'offset with unused source information' means that source
 information is available for an offset which is _not_ expected to have a source
 location attached. This source information _could_ be used by a parent AST node
-offset that is an 'offset without source information'."> 
+offset that is an 'offset without source information'.">
   offset with unused source information</span>
   </span>
   <span class="${ClassNames.sourceMapped}">
@@ -449,7 +449,7 @@ offset that is an 'offset without source information'.">
 <span class="${ClassNames.sourceMappingIndex(i)}">&nbsp;&nbsp;</span>''');
   }
   sb.write('''
-  <span title="JavaScript offsets and their corresponding Dart Code offset 
+  <span title="JavaScript offsets and their corresponding Dart Code offset
 as mapped through source-maps.">
   mapped source locations</span>
   </span>
@@ -550,35 +550,35 @@ as mapped through source-maps.">
   sb.write('''
 </table>
 <div class="${ClassNames.buttons}">
-<input type="checkbox" id="box-${ClassNames.column(column_js0)}" 
-  onclick="javascript:toggleDisplay('${ClassNames.column(column_js0)}')" 
+<input type="checkbox" id="box-${ClassNames.column(column_js0)}"
+  onclick="javascript:toggleDisplay('${ClassNames.column(column_js0)}')"
   checked>
 Left JavaScript code<br/>
 
-<input type="checkbox" id="box-${ClassNames.column(column_js1)}" 
-  onclick="javascript:toggleDisplay('${ClassNames.column(column_js1)}')" 
+<input type="checkbox" id="box-${ClassNames.column(column_js1)}"
+  onclick="javascript:toggleDisplay('${ClassNames.column(column_js1)}')"
   checked>
 Right JavaScript code<br/>
 
-<input type="checkbox" id="box-${ClassNames.column(column_dart)}" 
-  onclick="javascript:toggleDisplay('${ClassNames.column(column_dart)}')" 
+<input type="checkbox" id="box-${ClassNames.column(column_dart)}"
+  onclick="javascript:toggleDisplay('${ClassNames.column(column_dart)}')"
   checked>
 <span title="Show column with Dart code corresponding to the block.">
 Dart code</span><br/>
 
-<input type="checkbox" id="box-${ClassNames.inlinedDart}" 
+<input type="checkbox" id="box-${ClassNames.inlinedDart}"
   onclick="javascript:toggleDisplay('${ClassNames.inlinedDart}')" checked>
 <span title="Show Dart code inlined into the block.">
 Inlined Dart code</span><br/>
 
-<input type="checkbox" id="box-${ClassNames.markers}" 
-  onclick="javascript:toggle${ClassNames.markers}()" 
+<input type="checkbox" id="box-${ClassNames.markers}"
+  onclick="javascript:toggle${ClassNames.markers}()"
   ${showMarkers ? 'checked' : ''}>
 <span title="Show markers for JavaScript offsets with source information.">
 Source information markers</span><br/>
 
-<input type="checkbox" id="box-${ClassNames.sourceMapped}" 
-  onclick="javascript:toggle${ClassNames.sourceMapped}()" 
+<input type="checkbox" id="box-${ClassNames.sourceMapped}"
+  onclick="javascript:toggle${ClassNames.sourceMapped}()"
   ${showSourceMapped ? 'checked' : ''}>
 <span title="Show line-per-line mappings of JavaScript to Dart code.">
 Source mapped Dart code</span><br/>

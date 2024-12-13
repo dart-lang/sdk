@@ -107,7 +107,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
 
   void processWorklist() {
     do {
-      while (!worklist.isEmpty) {
+      while (worklist.isNotEmpty) {
         int id = worklist.removeLast();
         HInstruction instruction = workmap[id]!;
         workmap.remove(id);
@@ -120,7 +120,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
       // replaced operands, so we may need to take another stab at
       // emptying the worklist afterwards.
       processPendingOptimizations();
-    } while (!worklist.isEmpty);
+    } while (worklist.isNotEmpty);
   }
 
   void addToWorkList(HInstruction instruction) {

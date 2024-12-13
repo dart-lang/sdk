@@ -115,8 +115,8 @@ class KernelCapturedScope extends KernelScopeInfo {
             _empty,
             null,
             _empty,
-            Set.of(scope.freeVariables.where(
-                (ir.Node variable) => variable is TypeVariableTypeWithContext)),
+            Set.of(
+                scope.freeVariables.whereType<TypeVariableTypeWithContext>()),
             scope.freeVariablesForRti,
             scope.thisUsedAsFreeVariable,
             scope.thisUsedAsFreeVariableIfNeedsRti,

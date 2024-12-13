@@ -245,8 +245,12 @@ class Measurer {
   final bool enableTaskMeasurements;
 
   static int _hashCodeGenerator = 197;
+
   @override
   final int hashCode = _hashCodeGenerator++;
+
+  @override
+  bool operator ==(other) => identical(this, other);
 
   Measurer({this.enableTaskMeasurements = false});
 

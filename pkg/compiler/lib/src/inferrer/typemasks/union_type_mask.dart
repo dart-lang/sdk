@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of masks;
+part of 'masks.dart';
 
 class UnionTypeMask extends TypeMask {
   /// Tag used for identifying serialized [UnionTypeMask] objects in a
@@ -74,17 +74,19 @@ class UnionTypeMask extends TypeMask {
     bool isNullable = masks.any((TypeMask mask) => mask.isNullable);
     bool hasLateSentinel = masks.any((TypeMask mask) => mask.hasLateSentinel);
     unionOfHelper(masks, disjoint, domain);
-    if (disjoint.isEmpty)
+    if (disjoint.isEmpty) {
       return isNullable
           ? TypeMask.empty(hasLateSentinel: hasLateSentinel)
           : TypeMask.nonNullEmpty(hasLateSentinel: hasLateSentinel);
+    }
     if (disjoint.length > MAX_UNION_LENGTH) {
       return flatten(disjoint, domain,
           includeNull: isNullable, includeLateSentinel: hasLateSentinel);
     }
-    if (disjoint.length == 1)
+    if (disjoint.length == 1) {
       return disjoint.single.withSpecialValues(
           isNullable: isNullable, hasLateSentinel: hasLateSentinel);
+    }
     UnionTypeMask union = UnionTypeMask._compose(
       disjoint,
       isNullable: isNullable,

@@ -105,29 +105,29 @@ class InterceptorStubGenerator {
       if (cls == _commonElements.jsArrayClass ||
           cls == _commonElements.jsMutableArrayClass ||
           cls == _commonElements.jsFixedArrayClass ||
-          cls == _commonElements.jsExtendableArrayClass)
+          cls == _commonElements.jsExtendableArrayClass) {
         hasArray = true;
-      else if (cls == _commonElements.jsBoolClass)
+      } else if (cls == _commonElements.jsBoolClass) {
         hasBool = true;
-      else if (cls == _commonElements.jsNumNotIntClass)
+      } else if (cls == _commonElements.jsNumNotIntClass) {
         hasNumNotInt = true;
-      else if (cls == _commonElements.jsIntClass)
+      } else if (cls == _commonElements.jsIntClass) {
         hasInt = true;
-      else if (cls == _commonElements.jsNullClass)
+      } else if (cls == _commonElements.jsNullClass) {
         hasNull = true;
-      else if (cls == _commonElements.jsNumberClass)
+      } else if (cls == _commonElements.jsNumberClass) {
         hasNumber = true;
-      else if (cls == _commonElements.jsStringClass)
+      } else if (cls == _commonElements.jsStringClass) {
         hasString = true;
-      else if (cls == _commonElements.jsJavaScriptBigIntClass)
+      } else if (cls == _commonElements.jsJavaScriptBigIntClass) {
         hasJavaScriptBigInt = true;
-      else if (cls == _commonElements.jsJavaScriptFunctionClass)
+      } else if (cls == _commonElements.jsJavaScriptFunctionClass) {
         hasJavaScriptFunction = true;
-      else if (cls == _commonElements.jsJavaScriptSymbolClass)
+      } else if (cls == _commonElements.jsJavaScriptSymbolClass) {
         hasJavaScriptSymbol = true;
-      else if (cls == _commonElements.jsJavaScriptObjectClass)
+      } else if (cls == _commonElements.jsJavaScriptObjectClass) {
         hasJavaScriptObject = true;
-      else {
+      } else {
         // The set of classes includes classes mixed-in to interceptor classes
         // and user extensions of native classes.
         //

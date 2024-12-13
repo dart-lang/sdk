@@ -60,7 +60,7 @@ abstract class Name {
   Uri? get uri;
 
   /// Returns `true` when [s] is private if used as an identifier.
-  static bool isPrivateName(String s) => !s.isEmpty && s.codeUnitAt(0) == $_;
+  static bool isPrivateName(String s) => s.isNotEmpty && s.codeUnitAt(0) == $_;
 
   /// Returns `true` when [s] is public if used as an identifier.
   static bool isPublicName(String s) => !isPrivateName(s);

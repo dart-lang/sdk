@@ -139,7 +139,9 @@ class _Pool {
     List<_Pool> pools = [];
     for (var name in names) {
       int length = name.length;
-      while (pools.length < length) pools.add(_Pool());
+      while (pools.length < length) {
+        pools.add(_Pool());
+      }
       _Pool pool = pools[length - 1];
       pool._availableSlots[pool._names.length] = true;
       pool._names.add(name);
@@ -183,7 +185,9 @@ class _Cohort {
 
   _Cohort? skipEmpty() {
     _Cohort? cohort = this;
-    while (cohort != null && cohort.remaining == 0) cohort = cohort.next;
+    while (cohort != null && cohort.remaining == 0) {
+      cohort = cohort.next;
+    }
     return cohort;
   }
 

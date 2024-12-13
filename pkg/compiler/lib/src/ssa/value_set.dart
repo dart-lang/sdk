@@ -164,4 +164,8 @@ class ValueSetNode {
   int get hashCode => hash;
   ValueSetNode? next;
   ValueSetNode(this.value, this.hash, this.next);
+
+  @override
+  bool operator ==(other) =>
+      identical(this, other) || other is ValueSetNode && hash == other.hash;
 }

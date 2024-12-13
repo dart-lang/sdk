@@ -97,67 +97,67 @@ abstract class CommonElements {
 
   /// The dart:core library.
   late final LibraryEntity coreLibrary =
-      _env.lookupLibrary(Uris.dart_core, required: true)!;
+      _env.lookupLibrary(Uris.dartCore, required: true)!;
 
   /// The dart:async library.
-  late final LibraryEntity? asyncLibrary = _env.lookupLibrary(Uris.dart_async);
+  late final LibraryEntity? asyncLibrary = _env.lookupLibrary(Uris.dartAsync);
 
   /// The dart:collection library.
   late final LibraryEntity? collectionLibrary =
-      _env.lookupLibrary(Uris.dart_collection);
+      _env.lookupLibrary(Uris.dartCollection);
 
   /// The dart:mirrors library.
   /// Null if the program doesn't access dart:mirrors.
   late final LibraryEntity? mirrorsLibrary =
-      _env.lookupLibrary(Uris.dart_mirrors);
+      _env.lookupLibrary(Uris.dartMirrors);
 
   /// The dart:typed_data library.
   late final LibraryEntity typedDataLibrary =
-      _env.lookupLibrary(Uris.dart__native_typed_data, required: true)!;
+      _env.lookupLibrary(Uris.dartNativeTypedData, required: true)!;
 
   /// The dart:_js_shared_embedded_names library.
   late final LibraryEntity sharedEmbeddedNamesLibrary =
-      _env.lookupLibrary(Uris.dart__js_shared_embedded_names, required: true)!;
+      _env.lookupLibrary(Uris.dartJSSharedEmbeddedNames, required: true)!;
 
   /// The dart:_js_helper library.
   late final LibraryEntity? jsHelperLibrary =
-      _env.lookupLibrary(Uris.dart__js_helper);
+      _env.lookupLibrary(Uris.dartJSHelper);
 
   /// The dart:_late_helper library
   late final LibraryEntity? lateHelperLibrary =
-      _env.lookupLibrary(Uris.dart__late_helper);
+      _env.lookupLibrary(Uris.dartLateHelper);
 
   /// The dart:_interceptors library.
   late final LibraryEntity? interceptorsLibrary =
-      _env.lookupLibrary(Uris.dart__interceptors);
+      _env.lookupLibrary(Uris.dartInterceptors);
 
   /// The dart:_foreign_helper library.
   late final LibraryEntity? foreignLibrary =
-      _env.lookupLibrary(Uris.dart__foreign_helper);
+      _env.lookupLibrary(Uris.dartForeignHelper);
 
   /// The dart:_rti library.
   late final LibraryEntity rtiLibrary =
-      _env.lookupLibrary(Uris.dart__rti, required: true)!;
+      _env.lookupLibrary(Uris.dartRti, required: true)!;
 
   /// The dart:_internal library.
   late final LibraryEntity internalLibrary =
-      _env.lookupLibrary(Uris.dart__internal, required: true)!;
+      _env.lookupLibrary(Uris.dartInternal, required: true)!;
 
   /// The dart:js_util library.
   late final LibraryEntity? dartJsUtilLibrary =
-      _env.lookupLibrary(Uris.dart_js_util);
+      _env.lookupLibrary(Uris.dartJSUtil);
 
   /// The package:js library.
   late final LibraryEntity? packageJsLibrary =
-      _env.lookupLibrary(Uris.package_js);
+      _env.lookupLibrary(Uris.packageJS);
 
   /// The dart:_js_annotations library.
   late final LibraryEntity? dartJsAnnotationsLibrary =
-      _env.lookupLibrary(Uris.dart__js_annotations);
+      _env.lookupLibrary(Uris.dartJSAnnotations);
 
   /// The dart:js_interop library.
   late final LibraryEntity? dartJsInteropLibrary =
-      _env.lookupLibrary(Uris.dart__js_interop);
+      _env.lookupLibrary(Uris.dartJSInterop);
 
   /// The `NativeTypedData` class from dart:typed_data.
   ClassEntity get typedDataClass =>

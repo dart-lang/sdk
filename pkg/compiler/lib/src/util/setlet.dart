@@ -142,7 +142,9 @@ class Setlet<E> extends SetBase<E> {
         _extra++;
         // Clear all elements after the new last elements to
         // make sure we don't keep extra stuff alive.
-        while (copyTo < CAPACITY) _contents[copyTo++] = null;
+        while (copyTo < CAPACITY) {
+          _contents[copyTo++] = null;
+        }
       } else {
         _contents = Set<E>()
           ..addAll((_contents as List).cast<E>())

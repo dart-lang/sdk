@@ -763,7 +763,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   void visitStatement(HInstruction node) {
     assert(!isGeneratingExpression);
     visit(node);
-    if (!expressionStack.isEmpty) {
+    if (expressionStack.isNotEmpty) {
       assert(expressionStack.length == 1);
       js.Expression expression = pop();
       pushExpressionAsStatement(expression, node.sourceInformation);
@@ -962,7 +962,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         js.Block avoidContainer = js.Block.empty();
         currentContainer = avoidContainer;
         assignPhisOfSuccessors(condition!.end.successors.last);
-        bool hasPhiUpdates = !avoidContainer.statements.isEmpty;
+        bool hasPhiUpdates = avoidContainer.statements.isNotEmpty;
         currentContainer = oldContainer;
 
         if (isConditionExpression &&
@@ -1079,7 +1079,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         js.Block exitAvoidContainer = js.Block.empty();
         currentContainer = exitAvoidContainer;
         assignPhisOfSuccessors(condition!.end.successors.last);
-        bool hasExitPhiUpdates = !exitAvoidContainer.statements.isEmpty;
+        bool hasExitPhiUpdates = exitAvoidContainer.statements.isNotEmpty;
         currentContainer = oldContainer;
 
         oldContainer = currentContainer;
@@ -1099,7 +1099,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         js.Block updateBody = js.Block.empty();
         currentContainer = updateBody;
         assignPhisOfSuccessors(avoidEdge);
-        bool hasPhiUpdates = !updateBody.statements.isEmpty;
+        bool hasPhiUpdates = updateBody.statements.isNotEmpty;
         currentContainer = body;
         visitBodyIgnoreLabels(info);
         if (info.updates != null) {
@@ -1206,7 +1206,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     generateStatements(labeledBlockInfo.body);
 
     if (labeledBlockInfo.isContinue) {
-      while (!continueOverrides.isEmpty) {
+      while (continueOverrides.isNotEmpty) {
         continueAction.remove(continueOverrides.head);
         implicitContinueAction.remove(continueOverrides.head);
         continueOverrides = continueOverrides.tail!;
@@ -1367,8 +1367,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       }
     }
 
-    while (!worklist.isEmpty) {
-      while (!ready.isEmpty) {
+    while (worklist.isNotEmpty) {
+      while (ready.isNotEmpty) {
         String destination = ready.removeLast();
         String source = initialValue[destination]!;
         // Since [source] might have been updated, use the current
@@ -2156,7 +2156,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       List<HInstruction> arguments,
       SourceInformation? sourceInformation) {
     ConstantValue? findConstant(HInstruction node) {
-      while (node is HLateValue) node = node.target;
+      while (node is HLateValue) {
+        node = node.target;
+      }
       return node is HConstant ? node.constant : null;
     }
 

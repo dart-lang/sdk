@@ -292,8 +292,9 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
 
   @override
   NativeThrowBehavior visitPrefix(js.Prefix node) {
-    if (node.op == 'typeof' && node.argument is js.VariableUse)
+    if (node.op == 'typeof' && node.argument is js.VariableUse) {
       return NativeThrowBehavior.never;
+    }
     NativeThrowBehavior result = visit(node.argument);
     switch (node.op) {
       case '+':

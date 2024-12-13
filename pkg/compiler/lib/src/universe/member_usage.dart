@@ -747,7 +747,7 @@ class ParameterUsage {
             _parameterStructure.requiredPositionalParameters
         ? null
         : 0;
-    if (!_parameterStructure.namedParameters.isEmpty) {
+    if (_parameterStructure.namedParameters.isNotEmpty) {
       _unprovidedNamedParameters =
           Set<String>.from(_parameterStructure.namedParameters);
     }

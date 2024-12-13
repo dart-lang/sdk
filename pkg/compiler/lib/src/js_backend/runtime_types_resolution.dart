@@ -707,11 +707,13 @@ abstract class RuntimeTypesNeed {
   ///
   /// This is for instance the case for generic classes used in a type test:
   ///
+  ///   ```
   ///   class C<T> {}
   ///   main() {
   ///     C<int>() is C<int>;
   ///     C<String>() is C<String>;
   ///   }
+  ///   ```
   ///
   bool classNeedsTypeArguments(ClassEntity cls);
 
@@ -723,11 +725,13 @@ abstract class RuntimeTypesNeed {
   ///
   /// This is for instance the case for generic methods that use type tests:
   ///
+  ///   ```
   ///   method<T>(T t) => t is T;
   ///   main() {
   ///     method<int>(0);
   ///     method<String>('');
   ///   }
+  ///   ```
   ///
   bool methodNeedsTypeArguments(FunctionEntity method);
 

@@ -12,7 +12,7 @@ import 'options.dart' show CompilerOptions;
 import 'ssa/nodes.dart' as ssa show HGraph;
 import 'ssa/tracer.dart' show HTracer;
 
-String? TRACE_FILTER_PATTERN_FOR_TEST;
+String? traceFilterPatternForTest;
 
 /// Dumps the intermediate representation after each phase in a format
 /// readable by IR Hydra.
@@ -27,7 +27,7 @@ class Tracer with TracerUtil {
 
   factory Tracer(JClosedWorld closedWorld, CompilerOptions options,
       api.CompilerOutput compilerOutput) {
-    String? pattern = options.dumpSsaPattern ?? TRACE_FILTER_PATTERN_FOR_TEST;
+    String? pattern = options.dumpSsaPattern ?? traceFilterPatternForTest;
     if (pattern == null) return Tracer._(closedWorld, null, null);
     var traceFilter = RegExp(pattern);
     var output =

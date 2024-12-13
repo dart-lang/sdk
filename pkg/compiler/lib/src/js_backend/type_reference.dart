@@ -589,8 +589,8 @@ class _TypeReferenceCollectorVisitor extends js.BaseVisitorVoid {
 /// interface types with the same name (i.e. from different libraries), or types
 /// with names that contain underscores or dollar signs. There is also some
 /// ambiguity in the generated names in the interest of keeping most names
-/// short, e.g. "FutureOr_int_Function" could be "FutureOr<int> Function()" or
-/// "FutureOr<int Function()>".
+/// short, e.g. `"FutureOr_int_Function"` could be `"FutureOr<int> Function()"`
+/// or `"FutureOr<int Function()>"`.
 class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
   final Map<DartType, int> _backrefs = Map.identity();
   final List<String> _fragments = [];

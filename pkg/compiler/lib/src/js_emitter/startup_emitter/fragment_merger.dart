@@ -646,14 +646,14 @@ class FragmentMerger {
   ///
   /// Where
   ///
-  /// - <library uri> is the import uri of the library making a deferred
+  /// - library uri is the import uri of the library making a deferred
   ///   import.
-  /// - <library name> is the name of the library, or "<unnamed>" if it is
+  /// - library name is the name of the library, or `"<unnamed>"` if it is
   ///   unnamed.
-  /// - <prefix> is the `as` prefix used for a given deferred import.
-  /// - <loadId> is the unique ID assigned by the compiler for each
-  ///   <library uri>/<prefix> pair.
-  /// - <list of files> is a list of the filenames the must be loaded when that
+  /// - prefix is the `as` prefix used for a given deferred import.
+  /// - loadId is the unique ID assigned by the compiler for each
+  ///   library uri/prefix pair.
+  /// - list of files is a list of the filenames the must be loaded when that
   ///   import is loaded.
   /// TODO(joshualitt): the library name is unused and should be removed. This
   /// will be a breaking change.

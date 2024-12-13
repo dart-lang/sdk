@@ -30,7 +30,7 @@ const String OUTPUT_LANGUAGE_DART = 'Dart';
 /// an aid in reproducing bug reports.
 ///
 /// The actual string is rewritten by a wrapper script when included in the sdk.
-String? BUILD_ID;
+String? buildID;
 
 /// The data passed to the [HandleOption] callback is either a single
 /// string argument, or the arguments iterator for multiple arguments
@@ -165,8 +165,8 @@ Future<api.CompilationResult> compile(List<String> argv,
   void passThrough(String argument) => options.add(argument);
   void ignoreOption(String argument) {}
 
-  if (BUILD_ID != null) {
-    passThrough("--build-id=$BUILD_ID");
+  if (buildID != null) {
+    passThrough("--build-id=$buildID");
   }
 
   Uri extractResolvedFileUri(String argument) {
@@ -1177,7 +1177,7 @@ be removed in a future version:
 
 void helpAndExit(bool wantHelp, bool wantVersion, bool verbose) {
   if (wantVersion) {
-    var version = (BUILD_ID == null) ? '<non-SDK build>' : BUILD_ID;
+    var version = (buildID == null) ? '<non-SDK build>' : buildID;
     print('Dart-to-JavaScript compiler (dart2js) version: $version');
   }
   if (wantHelp) {
@@ -1212,14 +1212,14 @@ Future<void> main(List<String> arguments) async {
   // file and expanding them into the resulting argument list.
   //
   // TODO: Remove when internal tooling targets bazelMain instead of this.
-  if (arguments.length > 0 && arguments.last.startsWith('@')) {
+  if (arguments.isNotEmpty && arguments.last.startsWith('@')) {
     var extra = _readLines(arguments.last.substring(1));
     arguments = arguments.take(arguments.length - 1).followedBy(extra).toList();
   }
 
   // Since the sdk/bin/dart2js script adds its own arguments in front of
   // user-supplied arguments we search for '--batch' at the end of the list.
-  if (arguments.length > 0 && arguments.last == "--batch") {
+  if (arguments.isNotEmpty && arguments.last == "--batch") {
     batchMain(arguments.sublist(0, arguments.length - 1));
     return;
   }
@@ -1227,7 +1227,7 @@ Future<void> main(List<String> arguments) async {
 }
 
 Future<String?> bazelMain(List<String> arguments) async {
-  if (arguments.length > 0 && arguments.last.startsWith('@')) {
+  if (arguments.isNotEmpty && arguments.last.startsWith('@')) {
     var extra = _readLines(arguments.last.substring(1));
     arguments = arguments.take(arguments.length - 1).followedBy(extra).toList();
   }

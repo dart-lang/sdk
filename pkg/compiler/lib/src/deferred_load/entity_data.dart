@@ -49,7 +49,7 @@ class MemberEntityData extends EntityData<MemberEntity> {
 
 class LocalFunctionEntityData extends EntityData<Local> {
   @override
-  void accept(EntityDataVisitor) {}
+  void accept(EntityDataVisitor _) {}
 
   // Note: local functions are not updated recursively because the
   // dependencies are already visited as dependencies of the enclosing member.

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend.namer;
+part of 'namer.dart';
 
 abstract class _NamerName extends jsAst.Name {
   int get _kind;
@@ -20,7 +20,7 @@ abstract class _NamerName extends jsAst.Name {
 
   @override
   String toString() {
-    if (DEBUG_MODE) {
+    if (debugMode) {
       return 'Name($key)';
     }
     throw UnsupportedError("Cannot convert a name to a string");
@@ -223,14 +223,12 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
   void markSeen(jsAst.TokenCounter counter) => _rc++;
 
   @override
+  // ignore: hash_and_equals
   bool operator ==(Object other) {
     if (other is _NameReference) return this == other._target;
     if (identical(this, other)) return true;
     return false;
   }
-
-  @override
-  int get hashCode => super.hashCode;
 
   void finalize() {
     assert(

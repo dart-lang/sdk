@@ -154,7 +154,7 @@ class FunctionSetNode {
         final set = elements as Set<MemberEntity>;
         set.add(element);
       }
-      if (!cache.isEmpty) cache.clear();
+      if (cache.isNotEmpty) cache.clear();
     }
   }
 
@@ -167,14 +167,14 @@ class FunctionSetNode {
       if (index != list.length) {
         list[index] = last;
       }
-      if (!cache.isEmpty) cache.clear();
+      if (cache.isNotEmpty) cache.clear();
     } else {
       final set = elements as List<MemberEntity>;
       if (set.remove(element)) {
         // To avoid wobbling between the two representations, we do
         // not transition back to the list representation even if we
         // end up with few enough elements at this point.
-        if (!cache.isEmpty) cache.clear();
+        if (cache.isNotEmpty) cache.clear();
       }
     }
   }
@@ -214,7 +214,7 @@ class FunctionSetNode {
       // have been provided.
       FunctionSetQuery noSuchMethodQuery =
           noSuchMethods.query(noSuchMethodMask!, domain);
-      if (!noSuchMethodQuery.functions.isEmpty) {
+      if (noSuchMethodQuery.functions.isNotEmpty) {
         functions ??= Setlet();
         functions.addAll(noSuchMethodQuery.functions);
       }

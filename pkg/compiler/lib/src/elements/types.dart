@@ -17,12 +17,12 @@ import 'entities.dart';
 /// This hierarchy is a super hierarchy of the use-case specific hierarchies
 /// used in different parts of the compiler. This hierarchy abstracts details
 /// not generally needed or required for the Dart type hierarchy. For instance,
-/// the hierarchy in 'resolution_types.dart' has properties supporting lazy
-/// computation (like computeAlias) and distinctions between 'Foo' and
-/// 'Foo<dynamic>', features that are not needed for code generation and not
+/// the hierarchy in `resolution_types.dart` has properties supporting lazy
+/// computation (like computeAlias) and distinctions between `Foo` and
+/// `Foo<dynamic>`, features that are not needed for code generation and not
 /// supported from kernel.
 ///
-/// Current only 'resolution_types.dart' implement this hierarchy but when the
+/// Current only `resolution_types.dart` implement this hierarchy but when the
 /// compiler moves to use [Entity] instead of [Element] this hierarchy can be
 /// implemented directly but other entity systems, for instance based directly
 /// on kernel ir without the need for [Element].
@@ -348,12 +348,11 @@ class InterfaceType extends DartType {
 
   @override
   bool get isObject =>
-      element.name == 'Object' &&
-      element.library.canonicalUri == Uris.dart_core;
+      element.name == 'Object' && element.library.canonicalUri == Uris.dartCore;
 
   @override
   bool get isNull =>
-      element.name == 'Null' && element.library.canonicalUri == Uris.dart_core;
+      element.name == 'Null' && element.library.canonicalUri == Uris.dartCore;
 
   @override
   bool get containsTypeVariables =>
@@ -515,7 +514,7 @@ class TypeVariableType extends DartType {
 /// A type variable declared on a function type.
 ///
 /// For instance `T` in
-///     void Function<T>(T t)
+///     `void Function<T>(T t)`
 ///
 /// Such a type variable is different from a [TypeVariableType] because it
 /// doesn't have a unique identity; is equal to any other
@@ -553,6 +552,9 @@ class FunctionTypeVariable extends DartType {
 
   @override
   int get hashCode => index * 113; // ignore bound which can have cycles.
+
+  @override
+  bool operator ==(other) => identical(this, other);
 
   @override
   bool _equals(DartType other, _Assumptions? assumptions) {
@@ -1074,7 +1076,9 @@ class _LegacyErasureVisitor extends DartTypeVisitor<DartType, Null> {
         identical(parameterTypes, type.parameterTypes) &&
         identical(optionalParameterTypes, type.optionalParameterTypes) &&
         identical(namedParameterTypes, type.namedParameterTypes) &&
-        erasableTypeVariables.isEmpty) return type;
+        erasableTypeVariables.isEmpty) {
+      return type;
+    }
 
     // TODO(48820): Can we avoid the cast?
     return _dartTypes.subst(
@@ -2025,7 +2029,9 @@ abstract class DartTypes {
       if (env != null &&
           s is FunctionTypeVariable &&
           t is FunctionTypeVariable &&
-          env.isAssumed(s, t)) return true;
+          env.isAssumed(s, t)) {
+        return true;
+      }
 
       if (s is AnyType) return true;
 
@@ -2221,8 +2227,9 @@ abstract class DartTypes {
                     !useLegacySubtyping && tRequiredNamed.contains(tName);
                 if (sIsRequired && !tIsRequired) return false;
                 if (!_isSubtype(
-                    tNamedTypes[tIndex], sNamedTypes[sIndex - 1], env))
+                    tNamedTypes[tIndex], sNamedTypes[sIndex - 1], env)) {
                   return false;
+                }
                 break;
               }
             }
@@ -2261,7 +2268,9 @@ abstract class DartTypes {
                 break;
               case Variance.invariant:
                 if (!_isSubtype(sArgs[i], tArgs[i], env) ||
-                    !_isSubtype(tArgs[i], sArgs[i], env)) return false;
+                    !_isSubtype(tArgs[i], sArgs[i], env)) {
+                  return false;
+                }
                 break;
             }
           }

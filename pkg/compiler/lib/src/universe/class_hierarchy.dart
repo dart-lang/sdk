@@ -201,12 +201,12 @@ class ClassHierarchyImpl implements ClassHierarchy {
     node.forEachSubclass((ClassEntity cls) {
       getClassHierarchyNode(cls).writeToDataSink(sink);
       return IterationStep.CONTINUE;
-    }, ClassHierarchyNode.ALL);
+    }, ClassHierarchyNode.all);
     ClassSet set = getClassSet(_commonElements.objectClass);
     set.forEachSubclass((ClassEntity cls) {
       getClassSet(cls).writeToDataSink(sink);
       return IterationStep.CONTINUE;
-    }, ClassHierarchyNode.ALL);
+    }, ClassHierarchyNode.all);
     sink.end(tag);
   }
 
@@ -262,7 +262,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
     ClassHierarchyNode? hierarchy = _classHierarchyNodes[cls];
     if (hierarchy == null) return const [];
     return hierarchy
-        .subclassesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
+        .subclassesByMask(ClassHierarchyNode.explicitlyInstantiated);
   }
 
   @override
@@ -270,7 +270,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
     ClassHierarchyNode? subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return const [];
     return subclasses.subclassesByMask(
-        ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
+        ClassHierarchyNode.explicitlyInstantiated,
         strict: true);
   }
 
@@ -286,7 +286,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
       ClassEntity cls, IterationStep f(ClassEntity cls)) {
     ClassHierarchyNode? subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return;
-    subclasses.forEachSubclass(f, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
+    subclasses.forEachSubclass(f, ClassHierarchyNode.explicitlyInstantiated,
         strict: true);
   }
 
@@ -295,7 +295,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
     ClassHierarchyNode? subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return false;
     return subclasses.anySubclass(
-        predicate, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
+        predicate, ClassHierarchyNode.explicitlyInstantiated,
         strict: true);
   }
 
@@ -305,8 +305,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
     if (classSet == null) {
       return const [];
     } else {
-      return classSet
-          .subtypesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
+      return classSet.subtypesByMask(ClassHierarchyNode.explicitlyInstantiated);
     }
   }
 
@@ -316,7 +315,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
     if (classSet == null) {
       return const [];
     } else {
-      return classSet.subtypesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
+      return classSet.subtypesByMask(ClassHierarchyNode.explicitlyInstantiated,
           strict: true);
     }
   }
@@ -327,7 +326,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
     if (classSet == null) {
       return const [];
     } else {
-      return classSet.subtypesByMask(ClassHierarchyNode.ALL);
+      return classSet.subtypesByMask(ClassHierarchyNode.all);
     }
   }
 
@@ -343,7 +342,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
       ClassEntity cls, IterationStep f(ClassEntity cls)) {
     ClassSet? classSet = _classSets[cls];
     if (classSet == null) return;
-    classSet.forEachSubtype(f, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
+    classSet.forEachSubtype(f, ClassHierarchyNode.explicitlyInstantiated,
         strict: true);
   }
 
@@ -352,7 +351,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
     ClassSet? classSet = _classSets[cls];
     if (classSet == null) return false;
     return classSet.anySubtype(
-        predicate, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
+        predicate, ClassHierarchyNode.explicitlyInstantiated,
         strict: true);
   }
 
@@ -779,11 +778,11 @@ class _InheritedInThisClassCache {
     if (_inheritingClasses == null) {
       _inheritingClasses = {};
       _inheritingClasses!.addAll(memberHoldingClassNode
-          .subclassesByMask(ClassHierarchyNode.ALL, strict: false));
+          .subclassesByMask(ClassHierarchyNode.all, strict: false));
       for (ClassHierarchyNode mixinApplication
           in builder._classSets[memberHoldingClass]!.mixinApplicationNodes) {
         _inheritingClasses!.addAll(mixinApplication
-            .subclassesByMask(ClassHierarchyNode.ALL, strict: false));
+            .subclassesByMask(ClassHierarchyNode.all, strict: false));
       }
     }
 
@@ -861,7 +860,7 @@ class _InheritedInSubtypeCache {
           classes.add(z);
         }
         return IterationStep.CONTINUE;
-      }, ClassHierarchyNode.ALL, strict: strict);
+      }, ClassHierarchyNode.all, strict: strict);
     }
 
     // A subclasses of [x] that implement [y].

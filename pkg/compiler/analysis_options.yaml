@@ -12,6 +12,8 @@ analyzer:
     strict-inference: true
     strict-raw-types: true
 
+include: package:lints/core.yaml
+
 linter:
   rules:
     - always_declare_return_types

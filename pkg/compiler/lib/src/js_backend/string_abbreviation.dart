@@ -34,7 +34,7 @@ void _partition(
     List<_Node> nodes, int minLength, List<String> path, int index) {
   while (true) {
     // Handle trivial partitions.
-    if (nodes.length == 0) return;
+    if (nodes.isEmpty) return;
     if (nodes.length == 1 && path.length >= minLength) {
       String name = path.join();
       assert(name.isNotEmpty);
@@ -49,7 +49,7 @@ void _partition(
 
     for (final node in nodes) {
       String string = node.string;
-      assert(string.length > 0);
+      assert(string.isNotEmpty);
       if (index < string.length) {
         int codeUnit = string.codeUnitAt(index);
         (partition[codeUnit] ??= []).add(node);
@@ -63,7 +63,7 @@ void _partition(
       terminating.assignment = path.join();
     }
 
-    if (partition.length == 0) return;
+    if (partition.isEmpty) return;
 
     if (partition.length > 1) {
       var keys = partition.keys.toList();

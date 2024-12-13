@@ -31,7 +31,7 @@ void main(List<String> args) {
     }
   }
 
-  if (files.length == 0) {
+  if (files.isEmpty) {
     printUsage();
     return;
   }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter.program_builder;
+part of 'program_builder.dart';
 
 /// Generates the code for all used classes in the program. Static fields (even
 /// in classes) are ignored, since they can be treated as non-class elements.

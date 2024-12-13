@@ -1321,7 +1321,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     final targetTypeArguments =
         closedWorld.elementEnvironment.getFunctionTypeVariables(stubTarget);
 
-    if (targetTypeArguments.length > 0) {
+    if (targetTypeArguments.isNotEmpty) {
       if (stubParameterStructure.typeParameters == 0) {
         // This stub does not include type parameters so use RTI to make the
         // appropriate defaults.
@@ -1498,7 +1498,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           _abstractValueDomain
               .isEmpty(parameter.instructionType)
               .isDefinitelyTrue);
-      if (emptyParameters.length > 0) {
+      if (emptyParameters.isNotEmpty) {
         _addComment('${emptyParameters} inferred as [empty]');
         add(HInvokeStatic(_commonElements.assertUnreachableMethod, [],
             _abstractValueDomain.dynamicType, const []));
@@ -2025,8 +2025,9 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     // check. The null check is added before the argument type checks since in
     // strong mode, the parameter type might be non-nullable.
     if (member is FunctionEntity && member.name == '==') {
-      if (functionNode == null)
+      if (functionNode == null) {
         throw StateError("'==' should have functionNode");
+      }
       if (!_commonElements.operatorEqHandlesNullArgument(member)) {
         _handleIf(
             visitCondition: () {
@@ -2688,7 +2689,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         bodyExitBlock.addSuccessor(conditionBlock);
       }
 
-      if (!continueHandlers.isEmpty) {
+      if (continueHandlers.isNotEmpty) {
         if (!isAbortingBody) continueHandlers.add(localsHandler);
         localsHandler =
             savedLocals.mergeMultiple(continueHandlers, conditionBlock);
@@ -2697,7 +2698,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         HSubGraphBlockInformation bodyInfo =
             HSubGraphBlockInformation(bodyGraph);
         HLabeledBlockInformation info;
-        if (!labels.isEmpty) {
+        if (labels.isNotEmpty) {
           info = HLabeledBlockInformation(bodyInfo, labels, isContinue: true);
         } else {
           info = HLabeledBlockInformation.implicit(bodyInfo, target,
@@ -3297,7 +3298,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         js.Template code = js.js.parseForeignJS('#');
         push(HForeignCode(code, _abstractValueDomain.boolType,
             [localsHandler.readLocal(switchTarget)],
-            nativeBehavior: NativeBehavior.PURE));
+            nativeBehavior: NativeBehavior.pure));
       }
 
       _handleIf(
@@ -5035,7 +5036,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       ConstantValue constant, ClassEntity classElement) {
     if (constant is ConstructedConstantValue &&
         constant.type.element == classElement) {
-      assert(constant.fields.length >= 1);
+      assert(constant.fields.isNotEmpty);
       for (var field in constant.fields.keys) {
         if (field.memberName.text == "index") {
           final indexConstant = constant.fields[field];

@@ -115,14 +115,14 @@ class _SourceLocationsImpl implements SourceLocations {
     assert(name == other.name);
     if (_closed) throw UnsupportedError('SourceLocations already closed.');
     int length = codeOutput.length;
-    if (other.markers.length > 0) {
+    if (other.markers.isNotEmpty) {
       other.markers
           .forEach((int targetOffset, List<SourceLocation> sourceLocations) {
         (markers[length + targetOffset] ??= []).addAll(sourceLocations);
       });
     }
 
-    if (other.frameMarkers.length > 0) {
+    if (other.frameMarkers.isNotEmpty) {
       other.frameMarkers.forEach((int targetOffset, List<FrameEntry> frames) {
         (frameMarkers[length + targetOffset] ??= []).addAll(frames);
       });

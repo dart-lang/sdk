@@ -398,7 +398,7 @@ class MemberHierarchyBuilder {
       final override = elementEnv.lookupClassMember(subtype, name);
       if (override != null) addParent(override, member);
       return IterationStep.CONTINUE;
-    }, ClassHierarchyNode.INSTANTIATED, strict: true);
+    }, ClassHierarchyNode.instantiated, strict: true);
 
     if (!foundSuperclass) {
       (_dynamicRoots[selector] ??= Setlet()).add(member);

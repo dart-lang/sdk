@@ -86,7 +86,7 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   void out(String s) {
-    if (s.length > 0) {
+    if (s.isNotEmpty) {
       // We can elide a semicolon in some cases, but for simplicity we
       // assume a semicolon is needed here.
       if (pendingSemicolon) {
@@ -357,7 +357,7 @@ class SizeEstimator implements NodeVisitor<void> {
     visitNestedExpression(node.expression, Precedence.expression,
         newInForInit: false, newAtStatementBegin: false);
     out(':'); // ':'
-    if (!node.body.statements.isEmpty) {
+    if (node.body.statements.isNotEmpty) {
       blockOutWithoutBraces(node.body);
     }
   }
@@ -365,7 +365,7 @@ class SizeEstimator implements NodeVisitor<void> {
   @override
   void visitDefault(Default node) {
     out('default:'); // 'default:'
-    if (!node.body.statements.isEmpty) {
+    if (node.body.statements.isNotEmpty) {
       blockOutWithoutBraces(node.body);
     }
   }
@@ -734,7 +734,7 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   bool isValidJavaScriptId(String field) {
-    if (field.length == 0) return false;
+    if (field.isEmpty) return false;
     // Ignore the leading and trailing string-delimiter.
     for (int i = 0; i < field.length; i++) {
       // TODO(floitsch): allow more characters.
