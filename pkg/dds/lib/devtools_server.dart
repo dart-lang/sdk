@@ -299,7 +299,7 @@ class DevToolsServer {
     );
 
     handler ??= await defaultHandler(
-      buildDir: customDevToolsPath!,
+      buildDir: customDevToolsPath,
       clientManager: clientManager,
       dtd: dtdInfo,
       devtoolsExtensionsManager: ExtensionsManager(),
@@ -334,6 +334,16 @@ class DevToolsServer {
       // The origin-agent-cluster header is required to support the embedding of
       // Dart DevTools in Chrome DevTools.
       server.defaultResponseHeaders.add('origin-agent-cluster', '?1');
+    }
+
+    // This is only true when the DevTools server is started through the
+    // tool/devtools_server/serve_local.dart script. This is required to allow
+    // connecting a debug instance of DevTools app to a running DevTools server.
+    if (Platform.script.toString().endsWith('serve_local.dart')) {
+      server.defaultResponseHeaders.add(
+        HttpHeaders.accessControlAllowOriginHeader,
+        '*',
+      );
     }
 
     // Ensure browsers don't cache older versions of the app.
