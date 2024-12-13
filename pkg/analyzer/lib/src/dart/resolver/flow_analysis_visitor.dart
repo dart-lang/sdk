@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
+import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 
 export 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart'
@@ -165,6 +166,7 @@ class FlowAnalysisHelper {
   /// will be visited.
   void bodyOrInitializer_enter(AstNode node, FormalParameterList? parameters,
       {void Function(AstVisitor<Object?> visitor)? visit}) {
+    inferenceLogWriter?.enterBodyOrInitializer(node);
     assert(flow == null);
     assignedVariables = computeAssignedVariables(node, parameters,
         retainDataForTesting: dataForTesting != null, visit: visit);
@@ -190,6 +192,7 @@ class FlowAnalysisHelper {
   /// This method is called whenever the [ResolverVisitor] leaves the body or
   /// initializer of a top level declaration.
   void bodyOrInitializer_exit() {
+    inferenceLogWriter?.exitBodyOrInitializer();
     // Set this.flow to null before doing any clean-up so that if an exception
     // is raised, the state is already updated correctly, and we don't have
     // cascading failures.
