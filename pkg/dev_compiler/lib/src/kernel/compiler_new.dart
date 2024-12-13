@@ -163,7 +163,7 @@ class LibraryBundleCompiler implements old.Compiler {
         js.statement('# = #', [
           js_ast.PropertyAccess.field(id, 'link'),
           js_ast.NamedFunction(
-              js_ast.TemporaryId('link__$_extensionSymbolHolderName'),
+              js_ast.ScopedId('link__$_extensionSymbolHolderName'),
               js_ast.Fun(const [], js_ast.Block(const [])))
         ]),
       ];
@@ -252,10 +252,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// [VariableDeclaration.name] is not necessarily a safe identifier for JS
   /// transpiled code. The same name can be used in shadowing contexts. We map
-  /// each kernel variable to a [js_ast.TemporaryId] so that at code emission
+  /// each kernel variable to a [js_ast.ScopedId] so that at code emission
   /// time, references that would be shadowed are given a unique name. If there
   /// is no risk of shadowing, the original name will be used.
-  final Map<VariableDeclaration, js_ast.TemporaryId> _variableTempIds = {};
+  final Map<VariableDeclaration, js_ast.ScopedId> _variableTempIds = {};
 
   /// Maps a library URI import, that is not in [_libraries], to the
   /// corresponding Kernel summary module we imported it with.
@@ -272,10 +272,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   VariableDeclaration? _rethrowParameter;
 
   /// Temporary variables mapped to their corresponding JavaScript variable.
-  final _tempVariables = <VariableDeclaration, js_ast.TemporaryId>{};
+  final _tempVariables = <VariableDeclaration, js_ast.ScopedId>{};
 
   /// Let variables collected for the given function.
-  List<js_ast.TemporaryId>? _letVariables;
+  List<js_ast.ScopedId>? _letVariables;
 
   final _constTable = js_ast.Identifier('CT');
 
@@ -394,7 +394,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// Reserved parameter used to reference RTI objects passed to generic
   /// constructors/factories and generic method signatures.
-  final _rtiParam = js_ast.TemporaryId('_ti');
+  final _rtiParam = js_ast.ScopedId('_ti');
 
   // Compilation of Kernel's [BreakStatement].
   //
@@ -482,7 +482,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final _operatorSetResultStack = <js_ast.Identifier?>[];
 
   /// Private member names in this module, organized by their library.
-  final _privateNames = HashMap<Library, HashMap<String, js_ast.TemporaryId>>();
+  final _privateNames = HashMap<Library, HashMap<String, js_ast.ScopedId>>();
 
   /// Holds all top-level JS symbols (used for caching or indexing fields).
   final _symbolContainer = ModuleItemContainer<js_ast.Identifier>.asObject('S',
@@ -492,7 +492,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// These are added to the [_extensionSymbolsLibraryId]; see that field for more
   /// information.
-  final _extensionSymbols = <String, js_ast.TemporaryId>{};
+  final _extensionSymbols = <String, js_ast.ScopedId>{};
 
   /// The set of libraries we are currently compiling, and the temporaries used
   /// to refer to them.
@@ -527,7 +527,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// Must manually name the dart:_rti library because there are local variables
   /// within the library that inadvertently shadow the default name.
-  final _rtiLibraryId = js_ast.TemporaryId('dart_rti');
+  final _rtiLibraryId = js_ast.ScopedId('dart_rti');
 
   /// The library referred to by [_rtiLibraryId].
   final Library _rtiLibrary;
@@ -550,7 +550,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// The temporary variable that stores named arguments (these are passed via a
   /// JS object literal, to match JS conventions).
-  final _namedArgumentTemp = js_ast.TemporaryId('opts');
+  final _namedArgumentTemp = js_ast.ScopedId('opts');
 
   /// The list of output module items, in the order they need to be emitted in.
   final _moduleItems = <js_ast.ModuleItem>[];
@@ -994,7 +994,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Statement _emitLibraryLinkMethod(Library library) {
     var libraryName = _emitLibraryName(library);
     var nameExpr = js_ast.PropertyAccess.field(libraryName, 'link');
-    var functionName = _emitTemporaryId('link__${_jsLibraryName(library)}');
+    var functionName = _emitScopedId('link__${_jsLibraryName(library)}');
 
     var parameters = const <js_ast.Parameter>[];
     var body = js_ast.Block([
@@ -1204,8 +1204,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   static js_ast.Identifier _emitIdentifier(String name) =>
       js_ast.Identifier(js_ast.toJSIdentifier(name));
 
-  static js_ast.TemporaryId _emitTemporaryId(String name) =>
-      js_ast.TemporaryId(js_ast.toJSIdentifier(name));
+  static js_ast.ScopedId _emitScopedId(String name) =>
+      js_ast.ScopedId(js_ast.toJSIdentifier(name));
 
   js_ast.Statement _emitClassDeclaration(Class c) {
     var className = _emitTopLevelNameNoExternalInterop(c);
@@ -1379,7 +1379,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Statement _emitClassStatement(Class c, js_ast.Expression className,
       js_ast.Expression? heritage, List<js_ast.Property> properties) {
-    var classIdentifier = _emitTemporaryId(getLocalClassName(c));
+    var classIdentifier = _emitScopedId(getLocalClassName(c));
     if (_options.emitDebugSymbols) classIdentifiers[c] = classIdentifier;
     if (heritage != null) {
       _classExtendsLinks
@@ -1429,10 +1429,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var instanceProperties = properties.where((m) => !m.isStatic).toList();
 
     body.add(_emitClassStatement(c, className, heritage, staticProperties));
-    var superclassId = _emitTemporaryId(getLocalClassName(c.superclass!));
+    var superclassId = _emitScopedId(getLocalClassName(c.superclass!));
     var classId = className is js_ast.Identifier
         ? className
-        : _emitTemporaryId(getLocalClassName(c));
+        : _emitScopedId(getLocalClassName(c));
 
     var mixinMemberClass =
         js_ast.ClassExpression(classId, superclassId, instanceProperties);
@@ -1554,7 +1554,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           _hierarchy.getClassAsInstanceOf(c, mixinClass)!.asInterfaceType;
       var mixinName =
           '${getLocalClassName(superclass)}_${getLocalClassName(mixinClass)}';
-      var mixinId = _emitTemporaryId('$mixinName\$');
+      var mixinId = _emitScopedId('$mixinName\$');
       // Collect all forwarding stub members from anonymous mixins classes.
       // These can contain covariant parameter checks that need to be applied.
       var savedClassProperties = _classProperties;
@@ -1599,7 +1599,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       body.add(js.statement('const # = #', [
         mixinId,
         js_ast.ClassExpression(
-            _emitTemporaryId(mixinName), null, forwardingMethodStubs)
+            _emitScopedId(mixinName), null, forwardingMethodStubs)
       ]));
       _classExtendsLinks
           .add(_runtimeStatement('classExtends(#, #)', [mixinId, baseClass]));
@@ -1658,7 +1658,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   void _emitDartSymbols(
-      Iterable<js_ast.TemporaryId> vars, List<js_ast.ModuleItem> body) {
+      Iterable<js_ast.ScopedId> vars, List<js_ast.ModuleItem> body) {
     for (var id in vars) {
       body.add(js.statement('const # = Symbol(#)', [id, js.string(id.name)]));
     }
@@ -1666,7 +1666,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   void _emitSuperHelperSymbols(List<js_ast.Statement> body) {
     _emitDartSymbols(
-        _superHelpers.values.map((m) => m.name as js_ast.TemporaryId), body);
+        _superHelpers.values.map((m) => m.name as js_ast.ScopedId), body);
     _superHelpers.clear();
   }
 
@@ -2702,7 +2702,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Generate setter
     if (!field.isFinal) {
-      var value = _emitTemporaryId('value');
+      var value = _emitScopedId('value');
       fn = js_ast.Fun([value], js.block('{ this.# = #; }', [name, value]));
       method = js_ast.Method(_declareMemberName(field), fn, isSetter: true);
       jsMethods.add(method);
@@ -3586,7 +3586,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var nameExpr = _emitTopLevelName(p);
     var jsName = _safeFunctionNameForSafari(p.name.text, fn);
-    var functionName = _emitTemporaryId(jsName);
+    var functionName = _emitScopedId(jsName);
     procedureIdentifiers[p] = functionName;
     body.add(js.statement(
         '# = #', [nameExpr, js_ast.NamedFunction(functionName, fn)]));
@@ -3984,7 +3984,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       SourceLocation? functionBody,
       List<js_ast.Statement>? bodyPrefix}) {
     AsyncRewriterBase? asyncRewriter;
-    final bodyName = _emitTemporaryId('t\$async${name ?? 'Body'}');
+    final bodyName = _emitScopedId('t\$async${name ?? 'Body'}');
     switch (asyncMarker) {
       case AsyncMarker.Sync:
         break;
@@ -4791,13 +4791,13 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// }
   /// ```
   js_ast.Statement _rewriteAsWhile(ForStatement node) {
-    var initFlagTempId = _emitTemporaryId('t#_init');
+    var initFlagTempId = _emitScopedId('t#_init');
     var loopVariableIds = {
       for (var variable in node.variables) variable: _emitVariableDef(variable),
     };
     var prevVariableTempIds = {
       for (var variable in node.variables)
-        variable: _emitTemporaryId('t#_prev_${variable.name!}'),
+        variable: _emitScopedId('t#_prev_${variable.name!}'),
     };
     var inits = js_ast.Block([
       // Set init flag to false so the initialization only happens on the first
@@ -4880,7 +4880,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       if (node.variable.name != null &&
           js_ast.variableIsReferenced(node.variable.name!, iterable)) {
-        var temp = _emitTemporaryId('iter');
+        var temp = _emitScopedId('iter');
         return js_ast.Block([
           iterable.toVariableDeclaration(temp),
           js_ast.ForOf(init, temp, body)
@@ -4918,7 +4918,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
                 .firstWhere((p) => p.isFactory && p.name.text == '')),
         [streamIteratorRti, _visitExpression(node.iterable)]);
 
-    var iter = _emitTemporaryId('iter');
+    var iter = _emitScopedId('iter');
 
     var savedContinueTargets = _currentContinueTargets;
     var savedBreakTargets = _currentBreakTargets;
@@ -4967,7 +4967,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var cases = <js_ast.SwitchClause>[];
 
     if (_inLabeledContinueSwitch) {
-      var labelState = _emitTemporaryId('labelState');
+      var labelState = _emitScopedId('labelState');
       // TODO(markzipan): Retrieve the real label name with source offsets
       var labelName = 'SL${_switchLabelStates.length}';
       _switchLabelStates[node] = _SwitchLabelState(labelName, labelState);
@@ -5294,11 +5294,11 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return null;
   }
 
-  js_ast.TemporaryId _emitVariableRef(VariableDeclaration v) {
+  js_ast.ScopedId _emitVariableRef(VariableDeclaration v) {
     if (_isTemporaryVariable(v)) {
       var name = _debuggerFriendlyTemporaryVariableName(v);
       name ??= 't\$${_tempVariables.length}';
-      return _tempVariables.putIfAbsent(v, () => _emitTemporaryId(name!));
+      return _tempVariables.putIfAbsent(v, () => _emitScopedId(name!));
     }
     var name = v.name!;
     if (isLateLoweredLocal(v)) {
@@ -5308,8 +5308,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // See https://github.com/dart-lang/sdk/issues/55918
       name = extractLocalNameFromLateLoweredLocal(name);
     }
-    return js_ast.TemporaryId.from(
-        _variableTempIds[v] ??= _emitTemporaryId(name));
+    return js_ast.ScopedId.from(_variableTempIds[v] ??= _emitScopedId(name));
   }
 
   /// Emits the declaration of a variable.
@@ -6290,7 +6289,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
                 : 'function() { return super[#]; }',
             [jsName]);
 
-        return js_ast.Method(_emitTemporaryId(name), fn,
+        return js_ast.Method(_emitScopedId(name), fn,
             isGetter: !setter, isSetter: setter);
       } else {
         var function = member.function;
@@ -6304,7 +6303,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         var fn = js.fun(
             'function(#) { return super[#](#); }', [params, jsName, params]);
         name = js_ast.friendlyNameForDartOperator[name] ?? name;
-        return js_ast.Method(_emitTemporaryId(name), fn);
+        return js_ast.Method(_emitScopedId(name), fn);
       }
     });
     return js_ast.PropertyAccess(js_ast.This(), jsMethod.name);
@@ -6324,7 +6323,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           _runtimeCall('bind(this, #, super[#])', [jsName, jsName]);
       var fn = js.fun('function() { return #; }', [jsReturnValue]);
       name = js_ast.friendlyNameForDartOperator[name] ?? name;
-      return js_ast.Method(_emitTemporaryId(name), fn);
+      return js_ast.Method(_emitScopedId(name), fn);
     });
     return js_ast.Call(js_ast.PropertyAccess(js_ast.This(), jsMethod.name), []);
   }
@@ -7917,9 +7916,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// This is now required for fields of constant objects that may be overridden
   /// within the same library.
-  js_ast.TemporaryId _emitClassPrivateNameSymbol(
+  js_ast.ScopedId _emitClassPrivateNameSymbol(
       Library library, String className, Member member,
-      [js_ast.TemporaryId? id]) {
+      [js_ast.ScopedId? id]) {
     var name = '$className.${member.name.text}';
     // Wrap the name as a symbol here so it matches what you would find at
     // runtime when you get all properties and symbols from an instance.
@@ -8043,7 +8042,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       bool Function() isLastParamMutated) {
     if (name == '[]=') {
       _operatorSetResultStack.add(isLastParamMutated()
-          ? js_ast.TemporaryId((formals.last as js_ast.Identifier).name)
+          ? js_ast.ScopedId((formals.last as js_ast.Identifier).name)
           : formals.last as js_ast.Identifier);
     } else {
       _operatorSetResultStack.add(null);
@@ -8120,8 +8119,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// define new symbols and to reference existing ones.  If it's called
   /// multiple times with same [library] and [name], we'll allocate redundant
   /// top-level variables (see callers to this method).
-  js_ast.TemporaryId _emitPrivateNameSymbol(Library library, String name,
-      [js_ast.TemporaryId? id]) {
+  js_ast.ScopedId _emitPrivateNameSymbol(Library library, String name,
+      [js_ast.ScopedId? id]) {
     /// Initializes the JS `Symbol` for the private member [name] in [library].
     ///
     /// If the library is in the current JS module ([_libraries] contains it),
@@ -8135,10 +8134,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     /// If the library is imported, then the existing private name will be
     /// retrieved from it. In both cases, we use the same `dart.privateName`
     /// runtime call.
-    js_ast.TemporaryId initPrivateNameSymbol() {
+    js_ast.ScopedId initPrivateNameSymbol() {
       var idName = name.endsWith('=') ? name.replaceAll('=', '_') : name;
       idName = idName.replaceAll(js_ast.invalidCharInIdentifier, '_');
-      var identifier = id ?? js_ast.TemporaryId(idName);
+      var identifier = id ?? js_ast.ScopedId(idName);
       _addSymbol(
           identifier,
           _runtimeCall('privateName(#, #)',
@@ -8238,9 +8237,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           js_ast.Identifier(_extensionSymbolHolderName);
     } else {
       // Otherwise allow these to be renamed so users can write them.
-      _runtimeLibraryId = js_ast.TemporaryId('dart');
-      _extensionSymbolsLibraryId =
-          js_ast.TemporaryId(_extensionSymbolHolderName);
+      _runtimeLibraryId = js_ast.ScopedId('dart');
+      _extensionSymbolsLibraryId = js_ast.ScopedId(_extensionSymbolHolderName);
     }
 
     // Initialize our library variables.
@@ -8251,11 +8249,11 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     } else {
       var libraryId = _isBuildingSdk && _isDartLibrary(library, '_rti')
           ? _rtiLibraryId
-          : js_ast.TemporaryId(_jsLibraryName(library));
+          : js_ast.ScopedId(_jsLibraryName(library));
 
       _libraries[library] = libraryId;
       var alias = _jsLibraryAlias(library);
-      var aliasId = alias == null ? null : js_ast.TemporaryId(alias);
+      var aliasId = alias == null ? null : js_ast.ScopedId(alias);
       exports.add(js_ast.NameSpecifier(libraryId, asName: aliasId));
     }
     items.add(js_ast.ExportDeclaration(js_ast.ExportClause(exports)));
@@ -8263,7 +8261,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (_isSdkInternalRuntime(library)) {
       // Initialize the private name function.
       // To bootstrap the SDK, this needs to be emitted before other code.
-      var privateNamesId = _emitTemporaryId('privateNames');
+      var privateNamesId = _emitScopedId('privateNames');
       items.add(js.statement('const # = new Map()', privateNamesId));
       items.add(_runtimeStatement(r'''
         privateName = function privateName(libraryUri, name) {
@@ -8288,7 +8286,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _imports.putIfAbsent(library, () {
           if (_isSdkInternalRuntime(library)) return _runtimeLibraryId;
           if (_isDartLibrary(library, '_rti')) return _rtiLibraryId;
-          return js_ast.TemporaryId(_jsLibraryName(library));
+          return js_ast.ScopedId(_jsLibraryName(library));
         });
   }
 
@@ -8318,7 +8316,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               usedLibraries!.contains(_jsLibraryName(library))) {
             var alias = _jsLibraryAlias(library);
             if (alias != null) {
-              var aliasId = js_ast.TemporaryId(alias);
+              var aliasId = js_ast.ScopedId(alias);
               items.add(js_ast.ImportDeclaration(
                   from: js.string('${library.importUri}'),
                   namedImports: [
@@ -8407,7 +8405,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _libraries.forEach((library, libraryId) {
         if (usedLibraries.contains(_jsLibraryName(library))) {
           var alias = _jsLibraryAlias(library);
-          var aliasId = alias == null ? libraryId : js_ast.TemporaryId(alias);
+          var aliasId = alias == null ? libraryId : js_ast.ScopedId(alias);
           var asName = alias == null ? null : libraryId;
           exports.add(js_ast.NameSpecifier(aliasId, asName: asName));
         }
@@ -8552,9 +8550,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// Do not call this directly; you want [_emitMemberName], which knows how to
   /// handle the many details involved in naming.
-  js_ast.TemporaryId _getExtensionSymbolInternal(String name) {
+  js_ast.ScopedId _getExtensionSymbolInternal(String name) {
     if (!_extensionSymbols.containsKey(name)) {
-      var id = js_ast.TemporaryId(
+      var id = js_ast.ScopedId(
           '\$${js_ast.friendlyNameForDartOperator[name] ?? name}');
       _extensionSymbols[name] = id;
       _addSymbol(id, id);

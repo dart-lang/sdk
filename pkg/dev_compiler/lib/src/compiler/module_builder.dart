@@ -267,7 +267,7 @@ class DdcModuleBuilder extends _ModuleBuilder {
     // Collect imports/exports/statements.
     visitProgram(module);
 
-    var exportsVar = TemporaryId('exports');
+    var exportsVar = ScopedId('exports');
     var parameters = <Identifier>[exportsVar];
     var importNames = <Expression>[];
 
@@ -319,7 +319,7 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
     for (var import in imports) {
       // TODO(jmesserly): we could use destructuring here.
       var moduleVar =
-          TemporaryId(pathToJSIdentifier(import.from.valueWithoutQuotes));
+          ScopedId(pathToJSIdentifier(import.from.valueWithoutQuotes));
       importStatements
           .add(js.statement('const # = require(#);', [moduleVar, import.from]));
 
@@ -592,7 +592,7 @@ List<MapEntry<Identifier, ImportDeclaration>> _collectModuleImports(
   for (var import in imports) {
     // TODO(jmesserly): we could use destructuring once Atom supports it.
     var moduleVar =
-        TemporaryId(pathToJSIdentifier(import.from.valueWithoutQuotes));
+        ScopedId(pathToJSIdentifier(import.from.valueWithoutQuotes));
 
     result.add(MapEntry<Identifier, ImportDeclaration>(moduleVar, import));
   }
