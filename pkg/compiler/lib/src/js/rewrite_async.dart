@@ -1618,8 +1618,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
       String errorRename = freshName(catchPart.declaration.name);
       localVariables.add(js.VariableDeclaration(errorRename));
       variableRenamings.add((catchPart.declaration.name, errorRename));
-      addStatement(
-          js.js.statement("# = #.pop();", [errorRename, errorStack]));
+      addStatement(js.js.statement("# = #.pop();", [errorRename, errorStack]));
       visitStatement(catchPart.body);
       variableRenamings.removeLast();
       if (finallyPart != null) {
@@ -1841,8 +1840,8 @@ class AsyncRewriter extends AsyncRewriterBase {
   void addErrorExit(js.JavaScriptNodeSourceInformation? sourceInformation) {
     if (!hasHandlerLabels) return; // rethrow handled in method boilerplate.
     beginLabel(rethrowLabel);
-    js.Expression thenHelperCall =
-        js.js("#thenHelper(#errorStack.at(-1), #completer)", {
+    js.Expression thenHelperCall = js.js(
+        "#thenHelper(#errorStack.at(-1), #completer)", {
       "thenHelper": asyncRethrow,
       "errorStack": errorStack,
       "completer": completer

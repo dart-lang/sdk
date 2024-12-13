@@ -195,10 +195,10 @@ class FindTypeVisitor extends DartTypeVisitor<bool, Null> {
   }
 
   @override
-  bool visitLegacyType(LegacyType type, _) => visit(type.baseType, _);
+  bool visitLegacyType(LegacyType type, _) => visit(type.baseType, null);
 
   @override
-  bool visitNullableType(NullableType type, _) => visit(type.baseType, _);
+  bool visitNullableType(NullableType type, _) => visit(type.baseType, null);
 
   @override
   bool visitNeverType(NeverType type, _) => false;

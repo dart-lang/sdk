@@ -1015,7 +1015,7 @@ class _LegacyErasureVisitor extends DartTypeVisitor<DartType, Null> {
   }
 
   @override
-  DartType visit(DartType type, Null _) => type.accept(this, _);
+  DartType visit(DartType type, Null _) => type.accept(this, null);
 
   @override
   DartType visitLegacyType(LegacyType type, Null _) => erase(type.baseType);

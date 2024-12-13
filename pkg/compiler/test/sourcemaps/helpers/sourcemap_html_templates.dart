@@ -83,7 +83,7 @@ function setFile(value) {
 ''');
     }
   }
-  sb.write('''  
+  sb.write('''
 <div style="right:0px;height:30px;background-color:#E0E0E0;position:fixed;">
   file:
 ''');
