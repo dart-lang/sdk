@@ -26,7 +26,7 @@ var tests = <VMTest>[
       expect(
         e.details,
         contains(
-          "getMemoryUsage: invalid 'isolateGroupId' parameter: badid",
+          "getMemoryUsage: invalid 'isolateId' parameter: badid",
         ),
       );
     }
@@ -37,5 +37,5 @@ var tests = <VMTest>[
 void main([args = const <String>[]]) => runVMTests(
       args,
       tests,
-      'get_isolate_group_memory_usage.dart',
+      'get_isolate_group_memory_usage_test.dart',
     );
