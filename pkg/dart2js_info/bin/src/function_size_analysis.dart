@@ -33,13 +33,16 @@ class FunctionSizeCommand extends Command<void> with PrintUsageException {
   }
 }
 
-void showCodeDistribution(AllInfo info,
-    {bool Function(Info info)? filter, bool showLibrarySizes = false}) {
+void showCodeDistribution(
+  AllInfo info, {
+  bool Function(Info info)? filter,
+  bool showLibrarySizes = false,
+}) {
   var realTotal = info.program!.size;
   filter ??= (i) => true;
   var reported = <BasicInfo>[
     ...info.functions.where(filter),
-    ...info.fields.where(filter)
+    ...info.fields.where(filter),
   ];
 
   // Compute a graph from the dependencies in [info].
@@ -68,8 +71,10 @@ void showCodeDistribution(AllInfo info,
       nodeData[f] = sccData;
     }
   }
-  print('scc sizes: min: $minS, max: $maxS, '
-      'avg ${totalCount / components.length}');
+  print(
+    'scc sizes: min: $minS, max: $maxS, '
+    'avg ${totalCount / components.length}',
+  );
 
   // Compute a dominator tree and calculate the size dominated by each element.
   // TODO(sigmund): we need a more reliable way to fetch main.
@@ -91,11 +96,13 @@ void showCodeDistribution(AllInfo info,
   for (var n in reported) {
     dominatedSize.putIfAbsent(n, () => n.size);
   }
-  reported.sort((a, b) =>
-      // ignore: avoid_dynamic_calls
-      (dominatedSize[b] + nodeData[b].maxSize) -
-      // ignore: avoid_dynamic_calls
-      (dominatedSize[a] + nodeData[a].maxSize));
+  reported.sort(
+    (a, b) =>
+        // ignore: avoid_dynamic_calls
+        (dominatedSize[b] + nodeData[b].maxSize) -
+        // ignore: avoid_dynamic_calls
+        (dominatedSize[a] + nodeData[a].maxSize),
+  );
 
   if (showLibrarySizes) {
     print(' --- Results per library ---');
@@ -108,8 +115,11 @@ void showCodeDistribution(AllInfo info,
         lib = lib.parent;
       }
       if (lib == null) return;
-      totals.update(lib as LibraryInfo, (value) => value + size,
-          ifAbsent: () => size);
+      totals.update(
+        lib as LibraryInfo,
+        (value) => value + size,
+        ifAbsent: () => size,
+      );
       longest = math.max(longest, '${lib.uri}'.length);
     }
 
@@ -129,7 +139,12 @@ void showCodeDistribution(AllInfo info,
     // ignore: avoid_dynamic_calls
     var max = nodeData[info].maxSize;
     _showElement(
-        longName(info, useLibraryUri: true), size, min, max, realTotal);
+      longName(info, useLibraryUri: true),
+      size,
+      min,
+      max,
+      realTotal,
+    );
   }
 }
 
@@ -156,30 +171,43 @@ class _SccData {
 }
 
 void _showLibHeader(int namePadding) {
-  print(' ${pad("Library", namePadding, right: true)}'
-      ' ${pad("bytes", 8)} ${pad("%", 6)}');
+  print(
+    ' ${pad("Library", namePadding, right: true)}'
+    ' ${pad("bytes", 8)} ${pad("%", 6)}',
+  );
 }
 
 void _showLib(String msg, int size, int total, int namePadding) {
   var percent = (size * 100 / total).toStringAsFixed(2);
-  print(' ${pad(msg, namePadding, right: true)}'
-      ' ${pad(size, 8)} ${pad(percent, 6)}%');
+  print(
+    ' ${pad(msg, namePadding, right: true)}'
+    ' ${pad(size, 8)} ${pad(percent, 6)}%',
+  );
 }
 
 void _showElementHeader() {
-  print('${pad("element size", 16)} '
-      '${pad("dominated size", 18)} '
-      '${pad("reachable size", 18)} '
-      'Element identifier');
+  print(
+    '${pad("element size", 16)} '
+    '${pad("dominated size", 18)} '
+    '${pad("reachable size", 18)} '
+    'Element identifier',
+  );
 }
 
 void _showElement(
-    String name, int size, int dominatedSize, int maxSize, int total) {
+  String name,
+  int size,
+  int dominatedSize,
+  int maxSize,
+  int total,
+) {
   var percent = (size * 100 / total).toStringAsFixed(2);
   var minPercent = (dominatedSize * 100 / total).toStringAsFixed(2);
   var maxPercent = (maxSize * 100 / total).toStringAsFixed(2);
-  print('${pad(size, 8)} ${pad(percent, 6)}% '
-      '${pad(dominatedSize, 10)} ${pad(minPercent, 6)}% '
-      '${pad(maxSize, 10)} ${pad(maxPercent, 6)}% '
-      '$name');
+  print(
+    '${pad(size, 8)} ${pad(percent, 6)}% '
+    '${pad(dominatedSize, 10)} ${pad(minPercent, 6)}% '
+    '${pad(maxSize, 10)} ${pad(maxPercent, 6)}% '
+    '$name',
+  );
 }

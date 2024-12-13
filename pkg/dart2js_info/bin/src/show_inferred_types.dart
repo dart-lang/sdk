@@ -20,8 +20,12 @@ class ShowInferredTypesCommand extends Command<void> with PrintUsageException {
   final String description = "Show data inferred by dart2js global inference";
 
   ShowInferredTypesCommand() {
-    argParser.addFlag('long-names',
-        abbr: 'l', negatable: false, help: 'Show long qualified names.');
+    argParser.addFlag(
+      'long-names',
+      abbr: 'l',
+      negatable: false,
+      help: 'Show long qualified names.',
+    );
   }
 
   @override
@@ -30,14 +34,18 @@ class ShowInferredTypesCommand extends Command<void> with PrintUsageException {
     var args = argRes.rest;
     if (args.length < 2) {
       usageException(
-          'Missing arguments, expected: info.data <function-name-regex>');
+        'Missing arguments, expected: info.data <function-name-regex>',
+      );
     }
     await _showInferredTypes(args[0], args[1], argRes['long-names']);
   }
 }
 
 Future<void> _showInferredTypes(
-    String infoFile, String pattern, bool showLongName) async {
+  String infoFile,
+  String pattern,
+  bool showLongName,
+) async {
   var info = await infoFromFile(infoFile);
   var nameRegExp = RegExp(pattern);
   bool matches(e) => nameRegExp.hasMatch(longName(e));

@@ -5,7 +5,7 @@
 import 'dart:io';
 import 'package:args/command_runner.dart';
 
-abstract class PrintUsageException implements Command<void> {
+mixin PrintUsageException implements Command<void> {
   @override
   Never usageException(String message) {
     print(message);

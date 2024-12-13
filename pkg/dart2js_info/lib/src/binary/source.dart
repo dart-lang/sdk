@@ -278,9 +278,10 @@ class BinarySource extends AbstractDataSource {
   E _readEnumInternal<E>(List<E> values) {
     int index = _readIntInternal();
     assert(
-        0 <= index && index < values.length,
-        "Invalid data kind index. "
-        "Expected one of $values, found index $index.");
+      0 <= index && index < values.length,
+      "Invalid data kind index. "
+      "Expected one of $values, found index $index.",
+    );
     return values[index];
   }
 }
