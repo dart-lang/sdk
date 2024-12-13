@@ -59,15 +59,20 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
 
   @override
   void writeAbstractValueToDataSink(
-      DataSinkWriter sink, covariant WrappedAbstractValue value) {
+    DataSinkWriter sink,
+    covariant WrappedAbstractValue value,
+  ) {
     _abstractValueDomain.writeAbstractValueToDataSink(
-        sink, value._abstractValue);
+      sink,
+      value._abstractValue,
+    );
   }
 
   @override
   AbstractValue readAbstractValueFromDataSource(DataSourceReader source) =>
       WrappedAbstractValue(
-          _abstractValueDomain.readAbstractValueFromDataSource(source));
+        _abstractValueDomain.readAbstractValueFromDataSource(source),
+      );
 
   @override
   String getCompactText(covariant WrappedAbstractValue value) =>
@@ -87,26 +92,39 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
 
   @override
   MemberEntity? locateSingleMember(
-          covariant WrappedAbstractValue receiver, Selector selector) =>
-      _abstractValueDomain.locateSingleMember(
-          receiver._abstractValue, selector);
+    covariant WrappedAbstractValue receiver,
+    Selector selector,
+  ) => _abstractValueDomain.locateSingleMember(
+    receiver._abstractValue,
+    selector,
+  );
 
   @override
-  AbstractBool isIn(covariant WrappedAbstractValue subset,
-          covariant WrappedAbstractValue superset) =>
+  AbstractBool isIn(
+    covariant WrappedAbstractValue subset,
+    covariant WrappedAbstractValue superset,
+  ) =>
       _abstractValueDomain.isIn(subset._abstractValue, superset._abstractValue);
 
   @override
   AbstractBool needsNoSuchMethodHandling(
-          covariant WrappedAbstractValue receiver, Selector selector) =>
-      _abstractValueDomain.needsNoSuchMethodHandling(
-          receiver._abstractValue, selector);
+    covariant WrappedAbstractValue receiver,
+    Selector selector,
+  ) => _abstractValueDomain.needsNoSuchMethodHandling(
+    receiver._abstractValue,
+    selector,
+  );
 
   @override
-  AbstractBool isTargetingMember(covariant WrappedAbstractValue receiver,
-          MemberEntity member, Name name) =>
-      _abstractValueDomain.isTargetingMember(
-          receiver._abstractValue, member, name);
+  AbstractBool isTargetingMember(
+    covariant WrappedAbstractValue receiver,
+    MemberEntity member,
+    Name name,
+  ) => _abstractValueDomain.isTargetingMember(
+    receiver._abstractValue,
+    member,
+    name,
+  );
 
   @override
   AbstractValue computeReceiver(Iterable<MemberEntity> members) =>
@@ -114,15 +132,19 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
 
   @override
   PrimitiveConstantValue? getPrimitiveValue(
-          covariant WrappedAbstractValue value) =>
-      _abstractValueDomain.getPrimitiveValue(value._abstractValue);
+    covariant WrappedAbstractValue value,
+  ) => _abstractValueDomain.getPrimitiveValue(value._abstractValue);
 
   @override
   AbstractValue createPrimitiveValue(
-          covariant WrappedAbstractValue originalValue,
-          PrimitiveConstantValue value) =>
-      WrappedAbstractValue(_abstractValueDomain.createPrimitiveValue(
-          originalValue._abstractValue, value));
+    covariant WrappedAbstractValue originalValue,
+    PrimitiveConstantValue value,
+  ) => WrappedAbstractValue(
+    _abstractValueDomain.createPrimitiveValue(
+      originalValue._abstractValue,
+      value,
+    ),
+  );
 
   @override
   bool isPrimitiveValue(covariant WrappedAbstractValue value) =>
@@ -139,42 +161,54 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
   @override
   AbstractValue getGeneralization(covariant WrappedAbstractValue value) =>
       WrappedAbstractValue(
-          _abstractValueDomain.getGeneralization(unwrapOrNull(value))!);
+        _abstractValueDomain.getGeneralization(unwrapOrNull(value))!,
+      );
 
   @override
-  bool isSpecializationOf(covariant WrappedAbstractValue specialization,
-          covariant WrappedAbstractValue generalization) =>
-      _abstractValueDomain.isSpecializationOf(
-          specialization._abstractValue, generalization._abstractValue);
+  bool isSpecializationOf(
+    covariant WrappedAbstractValue specialization,
+    covariant WrappedAbstractValue generalization,
+  ) => _abstractValueDomain.isSpecializationOf(
+    specialization._abstractValue,
+    generalization._abstractValue,
+  );
 
   @override
   AbstractValue getDictionaryValueForKey(
-          covariant WrappedAbstractValue value, String key) =>
-      WrappedAbstractValue(_abstractValueDomain.getDictionaryValueForKey(
-          value._abstractValue, key));
+    covariant WrappedAbstractValue value,
+    String key,
+  ) => WrappedAbstractValue(
+    _abstractValueDomain.getDictionaryValueForKey(value._abstractValue, key),
+  );
 
   @override
   bool containsDictionaryKey(
-          covariant WrappedAbstractValue value, String key) =>
-      _abstractValueDomain.containsDictionaryKey(value._abstractValue, key);
+    covariant WrappedAbstractValue value,
+    String key,
+  ) => _abstractValueDomain.containsDictionaryKey(value._abstractValue, key);
 
   @override
   AbstractValue createDictionaryValue(
-      covariant WrappedAbstractValue? originalValue,
-      Object? allocationNode,
-      MemberEntity? allocationElement,
-      covariant WrappedAbstractValue key,
-      covariant WrappedAbstractValue value,
-      covariant Map<String, AbstractValue> mappings) {
-    return WrappedAbstractValue(_abstractValueDomain.createDictionaryValue(
+    covariant WrappedAbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    covariant WrappedAbstractValue key,
+    covariant WrappedAbstractValue value,
+    covariant Map<String, AbstractValue> mappings,
+  ) {
+    return WrappedAbstractValue(
+      _abstractValueDomain.createDictionaryValue(
         originalValue?._abstractValue,
         allocationNode,
         allocationElement,
         key._abstractValue,
-        value._abstractValue, {
-      for (var entry in mappings.entries)
-        entry.key: (entry.value as WrappedAbstractValue)._abstractValue
-    }));
+        value._abstractValue,
+        {
+          for (var entry in mappings.entries)
+            entry.key: (entry.value as WrappedAbstractValue)._abstractValue,
+        },
+      ),
+    );
   }
 
   @override
@@ -183,12 +217,15 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractValue createRecordValue(
-      RecordShape shape, List<AbstractValue> types) {
+    RecordShape shape,
+    List<AbstractValue> types,
+  ) {
     AbstractValue abstractValue = _abstractValueDomain.createRecordValue(
-        shape,
-        types
-            .map((e) => (e as WrappedAbstractValue)._abstractValue)
-            .toList(growable: false));
+      shape,
+      types
+          .map((e) => (e as WrappedAbstractValue)._abstractValue)
+          .toList(growable: false),
+    );
     return WrappedAbstractValue(abstractValue);
   }
 
@@ -198,38 +235,49 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
 
   @override
   bool recordHasGetter(
-          covariant WrappedAbstractValue value, String getterName) =>
-      _abstractValueDomain.recordHasGetter(value._abstractValue, getterName);
+    covariant WrappedAbstractValue value,
+    String getterName,
+  ) => _abstractValueDomain.recordHasGetter(value._abstractValue, getterName);
 
   @override
   AbstractValue getGetterTypeInRecord(
-          covariant WrappedAbstractValue value, String getterName) =>
-      WrappedAbstractValue(_abstractValueDomain.getGetterTypeInRecord(
-          value._abstractValue, getterName));
+    covariant WrappedAbstractValue value,
+    String getterName,
+  ) => WrappedAbstractValue(
+    _abstractValueDomain.getGetterTypeInRecord(
+      value._abstractValue,
+      getterName,
+    ),
+  );
 
   @override
   AbstractValue getMapValueType(covariant WrappedAbstractValue value) =>
       WrappedAbstractValue(
-          _abstractValueDomain.getMapValueType(value._abstractValue));
+        _abstractValueDomain.getMapValueType(value._abstractValue),
+      );
 
   @override
   AbstractValue getMapKeyType(covariant WrappedAbstractValue value) =>
       WrappedAbstractValue(
-          _abstractValueDomain.getMapKeyType(value._abstractValue));
+        _abstractValueDomain.getMapKeyType(value._abstractValue),
+      );
 
   @override
   AbstractValue createMapValue(
-          covariant WrappedAbstractValue? originalValue,
-          Object? allocationNode,
-          MemberEntity? allocationElement,
-          covariant WrappedAbstractValue key,
-          covariant WrappedAbstractValue value) =>
-      WrappedAbstractValue(_abstractValueDomain.createMapValue(
-          originalValue?._abstractValue,
-          allocationNode,
-          allocationElement,
-          key._abstractValue,
-          value._abstractValue));
+    covariant WrappedAbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    covariant WrappedAbstractValue key,
+    covariant WrappedAbstractValue value,
+  ) => WrappedAbstractValue(
+    _abstractValueDomain.createMapValue(
+      originalValue?._abstractValue,
+      allocationNode,
+      allocationElement,
+      key._abstractValue,
+      value._abstractValue,
+    ),
+  );
 
   @override
   bool isMap(covariant WrappedAbstractValue value) =>
@@ -238,19 +286,23 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
   @override
   AbstractValue getSetElementType(covariant WrappedAbstractValue value) =>
       WrappedAbstractValue(
-          _abstractValueDomain.getSetElementType(value._abstractValue));
+        _abstractValueDomain.getSetElementType(value._abstractValue),
+      );
 
   @override
   AbstractValue createSetValue(
-          covariant WrappedAbstractValue? originalValue,
-          Object? allocationNode,
-          MemberEntity? allocationElement,
-          covariant WrappedAbstractValue elementType) =>
-      WrappedAbstractValue(_abstractValueDomain.createSetValue(
-          originalValue?._abstractValue,
-          allocationNode,
-          allocationElement,
-          elementType._abstractValue));
+    covariant WrappedAbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    covariant WrappedAbstractValue elementType,
+  ) => WrappedAbstractValue(
+    _abstractValueDomain.createSetValue(
+      originalValue?._abstractValue,
+      allocationNode,
+      allocationElement,
+      elementType._abstractValue,
+    ),
+  );
 
   @override
   bool isSet(covariant WrappedAbstractValue value) =>
@@ -263,21 +315,25 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
   @override
   AbstractValue getContainerElementType(covariant WrappedAbstractValue value) =>
       WrappedAbstractValue(
-          _abstractValueDomain.getContainerElementType(value._abstractValue));
+        _abstractValueDomain.getContainerElementType(value._abstractValue),
+      );
 
   @override
   AbstractValue createContainerValue(
-          covariant WrappedAbstractValue? originalValue,
-          Object? allocationNode,
-          MemberEntity? allocationElement,
-          covariant WrappedAbstractValue elementType,
-          int? length) =>
-      WrappedAbstractValue(_abstractValueDomain.createContainerValue(
-          originalValue?._abstractValue,
-          allocationNode,
-          allocationElement,
-          elementType._abstractValue,
-          length));
+    covariant WrappedAbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    covariant WrappedAbstractValue elementType,
+    int? length,
+  ) => WrappedAbstractValue(
+    _abstractValueDomain.createContainerValue(
+      originalValue?._abstractValue,
+      allocationNode,
+      allocationElement,
+      elementType._abstractValue,
+      length,
+    ),
+  );
 
   @override
   bool isContainer(covariant WrappedAbstractValue value) =>
@@ -285,14 +341,16 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractValue computeAbstractValueForConstant(
-          covariant ConstantValue value) =>
-      WrappedAbstractValue(
-          _abstractValueDomain.computeAbstractValueForConstant(value));
+    covariant ConstantValue value,
+  ) => WrappedAbstractValue(
+    _abstractValueDomain.computeAbstractValueForConstant(value),
+  );
 
   @override
   AbstractValue? getAbstractValueForNativeMethodParameterType(DartType type) {
-    return wrapOrNull(_abstractValueDomain
-        .getAbstractValueForNativeMethodParameterType(type));
+    return wrapOrNull(
+      _abstractValueDomain.getAbstractValueForNativeMethodParameterType(type),
+    );
   }
 
   @override
@@ -301,29 +359,36 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractBool areDisjoint(
-          covariant WrappedAbstractValue a, covariant WrappedAbstractValue b) =>
-      _abstractValueDomain.areDisjoint(a._abstractValue, b._abstractValue);
+    covariant WrappedAbstractValue a,
+    covariant WrappedAbstractValue b,
+  ) => _abstractValueDomain.areDisjoint(a._abstractValue, b._abstractValue);
 
   @override
   AbstractValue intersection(
-          covariant WrappedAbstractValue a, covariant WrappedAbstractValue b) =>
-      WrappedAbstractValue(_abstractValueDomain.intersection(
-          a._abstractValue, b._abstractValue));
+    covariant WrappedAbstractValue a,
+    covariant WrappedAbstractValue b,
+  ) => WrappedAbstractValue(
+    _abstractValueDomain.intersection(a._abstractValue, b._abstractValue),
+  );
 
   @override
   AbstractValue unionOfMany(covariant Iterable<AbstractValue> values) {
-    List<AbstractValue> unwrappedValues = values
-        .map((element) => (element as WrappedAbstractValue)._abstractValue)
-        .toList();
+    List<AbstractValue> unwrappedValues =
+        values
+            .map((element) => (element as WrappedAbstractValue)._abstractValue)
+            .toList();
     return WrappedAbstractValue(
-        _abstractValueDomain.unionOfMany(unwrappedValues));
+      _abstractValueDomain.unionOfMany(unwrappedValues),
+    );
   }
 
   @override
   AbstractValue union(
-          covariant WrappedAbstractValue a, covariant WrappedAbstractValue b) =>
-      WrappedAbstractValue(
-          _abstractValueDomain.union(a._abstractValue, b._abstractValue));
+    covariant WrappedAbstractValue a,
+    covariant WrappedAbstractValue b,
+  ) => WrappedAbstractValue(
+    _abstractValueDomain.union(a._abstractValue, b._abstractValue),
+  );
 
   @override
   AbstractBool isPrimitiveOrNull(covariant WrappedAbstractValue value) =>
@@ -447,38 +512,45 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractBool isInstanceOf(
-          covariant WrappedAbstractValue value, ClassEntity cls) =>
-      _abstractValueDomain.isInstanceOf(value._abstractValue, cls);
+    covariant WrappedAbstractValue value,
+    ClassEntity cls,
+  ) => _abstractValueDomain.isInstanceOf(value._abstractValue, cls);
 
   @override
   AbstractBool containsOnlyType(
-          covariant WrappedAbstractValue value, ClassEntity cls) =>
-      _abstractValueDomain.containsOnlyType(value._abstractValue, cls);
+    covariant WrappedAbstractValue value,
+    ClassEntity cls,
+  ) => _abstractValueDomain.containsOnlyType(value._abstractValue, cls);
 
   @override
   AbstractBool containsType(
-          covariant WrappedAbstractValue value, ClassEntity cls) =>
-      _abstractValueDomain.containsType(value._abstractValue, cls);
+    covariant WrappedAbstractValue value,
+    ClassEntity cls,
+  ) => _abstractValueDomain.containsType(value._abstractValue, cls);
 
   @override
   AbstractValue includeNull(covariant WrappedAbstractValue value) =>
       WrappedAbstractValue(
-          _abstractValueDomain.includeNull(value._abstractValue));
+        _abstractValueDomain.includeNull(value._abstractValue),
+      );
 
   @override
   AbstractValue excludeNull(covariant WrappedAbstractValue value) =>
       WrappedAbstractValue(
-          _abstractValueDomain.excludeNull(value._abstractValue));
+        _abstractValueDomain.excludeNull(value._abstractValue),
+      );
 
   @override
   AbstractValue includeLateSentinel(covariant WrappedAbstractValue value) =>
       WrappedAbstractValue(
-          _abstractValueDomain.includeLateSentinel(value._abstractValue));
+        _abstractValueDomain.includeLateSentinel(value._abstractValue),
+      );
 
   @override
   AbstractValue excludeLateSentinel(covariant WrappedAbstractValue value) =>
       WrappedAbstractValue(
-          _abstractValueDomain.excludeLateSentinel(value._abstractValue));
+        _abstractValueDomain.excludeLateSentinel(value._abstractValue),
+      );
 
   @override
   AbstractBool couldBeTypedArray(covariant WrappedAbstractValue value) =>
@@ -509,12 +581,18 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
       WrappedAbstractValue(_abstractValueDomain.createNonNullExact(cls));
 
   @override
-  AbstractValueWithPrecision createFromStaticType(DartType type,
-      {required bool nullable}) {
-    var unwrapped =
-        _abstractValueDomain.createFromStaticType(type, nullable: nullable);
+  AbstractValueWithPrecision createFromStaticType(
+    DartType type, {
+    required bool nullable,
+  }) {
+    var unwrapped = _abstractValueDomain.createFromStaticType(
+      type,
+      nullable: nullable,
+    );
     return AbstractValueWithPrecision(
-        WrappedAbstractValue(unwrapped.abstractValue), unwrapped.isPrecise);
+      WrappedAbstractValue(unwrapped.abstractValue),
+      unwrapped.isPrecise,
+    );
   }
 
   @override
@@ -627,17 +705,24 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
 
   @override
   Iterable<DynamicCallTarget> findRootsOfTargets(
-          covariant WrappedAbstractValue receiver,
-          Selector selector,
-          MemberHierarchyBuilder memberHierarchyBuilder) =>
-      _abstractValueDomain.findRootsOfTargets(
-          receiver._abstractValue, selector, memberHierarchyBuilder);
+    covariant WrappedAbstractValue receiver,
+    Selector selector,
+    MemberHierarchyBuilder memberHierarchyBuilder,
+  ) => _abstractValueDomain.findRootsOfTargets(
+    receiver._abstractValue,
+    selector,
+    memberHierarchyBuilder,
+  );
 
   @override
-  bool isInvalidRefinement(covariant WrappedAbstractValue before,
-      covariant WrappedAbstractValue after) {
+  bool isInvalidRefinement(
+    covariant WrappedAbstractValue before,
+    covariant WrappedAbstractValue after,
+  ) {
     return _abstractValueDomain.isInvalidRefinement(
-        before._abstractValue, after._abstractValue);
+      before._abstractValue,
+      after._abstractValue,
+    );
   }
 }
 
@@ -648,13 +733,15 @@ class WrappedAbstractValueStrategy implements AbstractValueStrategy {
   @override
   AbstractValueDomain createDomain(JClosedWorld closedWorld) {
     return WrappedAbstractValueDomain(
-        _abstractValueStrategy.createDomain(closedWorld));
+      _abstractValueStrategy.createDomain(closedWorld),
+    );
   }
 
   @override
   SelectorConstraintsStrategy createSelectorStrategy() {
     return WrappedSelectorStrategy(
-        _abstractValueStrategy.createSelectorStrategy());
+      _abstractValueStrategy.createSelectorStrategy(),
+    );
   }
 }
 
@@ -664,23 +751,32 @@ class WrappedSelectorStrategy implements SelectorConstraintsStrategy {
 
   @override
   UniverseSelectorConstraints createSelectorConstraints(
-      Selector selector, Object? initialConstraint) {
+    Selector selector,
+    Object? initialConstraint,
+  ) {
     return WrappedUniverseSelectorConstraints(
-        _selectorConstraintsStrategy.createSelectorConstraints(
-            selector,
-            initialConstraint == null
-                ? null
-                : (initialConstraint as WrappedAbstractValue)._abstractValue));
+      _selectorConstraintsStrategy.createSelectorConstraints(
+        selector,
+        initialConstraint == null
+            ? null
+            : (initialConstraint as WrappedAbstractValue)._abstractValue,
+      ),
+    );
   }
 
   @override
-  bool appliedUnnamed(DynamicUse dynamicUse, MemberEntity member,
-      covariant JClosedWorld world) {
+  bool appliedUnnamed(
+    DynamicUse dynamicUse,
+    MemberEntity member,
+    covariant JClosedWorld world,
+  ) {
     return _selectorConstraintsStrategy.appliedUnnamed(
-        dynamicUse.withReceiverConstraint(unwrapOrNull(
-            dynamicUse.receiverConstraint as WrappedAbstractValue?)),
-        member,
-        world);
+      dynamicUse.withReceiverConstraint(
+        unwrapOrNull(dynamicUse.receiverConstraint as WrappedAbstractValue?),
+      ),
+      member,
+      world,
+    );
   }
 }
 
@@ -691,9 +787,11 @@ class WrappedUniverseSelectorConstraints
 
   @override
   bool addReceiverConstraint(Object? constraint) =>
-      _universeSelectorConstraints.addReceiverConstraint(constraint == null
-          ? null
-          : (constraint as WrappedAbstractValue)._abstractValue);
+      _universeSelectorConstraints.addReceiverConstraint(
+        constraint == null
+            ? null
+            : (constraint as WrappedAbstractValue)._abstractValue,
+      );
 
   @override
   bool needsNoSuchMethodHandling(Selector selector, World world) =>

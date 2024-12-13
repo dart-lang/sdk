@@ -35,7 +35,9 @@ abstract class SourceFileProvider implements api.CompilerInput {
   SourceFileProvider(this.byteReader, {this.disableByteCache = true});
 
   Future<api.Input<Uint8List>> readBytesFromUri(
-      Uri resourceUri, api.InputKind inputKind) {
+    Uri resourceUri,
+    api.InputKind inputKind,
+  ) {
     if (!resourceUri.isAbsolute) {
       resourceUri = cwd.resolveUri(resourceUri);
     }
@@ -48,7 +50,10 @@ abstract class SourceFileProvider implements api.CompilerInput {
 
   /// Adds [source] to the cache under the [resourceUri] key.
   api.Input<Uint8List> _sourceToFile(
-      Uri resourceUri, Uint8List source, api.InputKind inputKind) {
+    Uri resourceUri,
+    Uint8List source,
+    api.InputKind inputKind,
+  ) {
     switch (inputKind) {
       case api.InputKind.utf8:
         return Utf8BytesSourceFile(resourceUri, source);
@@ -99,7 +104,9 @@ abstract class SourceFileProvider implements api.CompilerInput {
   }
 
   api.Input<Uint8List>? _readFromFileSyncOrNull(
-      Uri uri, api.InputKind inputKind) {
+    Uri uri,
+    api.InputKind inputKind,
+  ) {
     try {
       return _readFromFileSync(uri, inputKind);
     } catch (_) {
@@ -120,7 +127,9 @@ abstract class SourceFileProvider implements api.CompilerInput {
   }
 
   Future<api.Input<Uint8List>> _readFromFile(
-      Uri resourceUri, api.InputKind inputKind) {
+    Uri resourceUri,
+    api.InputKind inputKind,
+  ) {
     api.Input<Uint8List> input;
     try {
       input = _readFromFileSync(resourceUri, inputKind);
@@ -138,7 +147,10 @@ abstract class SourceFileProvider implements api.CompilerInput {
 
     if (_byteCache.containsKey(resourceUri)) {
       return _sourceToFile(
-          resourceUri, _byteCache[resourceUri]!, api.InputKind.utf8);
+        resourceUri,
+        _byteCache[resourceUri]!,
+        api.InputKind.utf8,
+      );
     }
     return resourceUri.isScheme('file')
         ? _readFromFileSyncOrNull(resourceUri, api.InputKind.utf8)
@@ -166,15 +178,16 @@ Uint8List readAll(String filename) {
 }
 
 class CompilerSourceFileProvider extends SourceFileProvider {
-  CompilerSourceFileProvider(
-      {SourceFileByteReader byteReader = const MemoryCopySourceFileByteReader(),
-      super.disableByteCache})
-      : super(byteReader);
+  CompilerSourceFileProvider({
+    SourceFileByteReader byteReader = const MemoryCopySourceFileByteReader(),
+    super.disableByteCache,
+  }) : super(byteReader);
 
   @override
-  Future<api.Input<Uint8List>> readFromUri(Uri uri,
-          {api.InputKind inputKind = api.InputKind.utf8}) =>
-      readBytesFromUri(uri, inputKind);
+  Future<api.Input<Uint8List>> readFromUri(
+    Uri uri, {
+    api.InputKind inputKind = api.InputKind.utf8,
+  }) => readBytesFromUri(uri, inputKind);
 }
 
 class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
@@ -200,8 +213,10 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
     this.provider = provider;
   }
 
-  void info(String message,
-      [api.Diagnostic kind = api.Diagnostic.verboseInfo]) {
+  void info(
+    String message, [
+    api.Diagnostic kind = api.Diagnostic.verboseInfo,
+  ]) {
     if (!verbose && kind == api.Diagnostic.verboseInfo) return;
     if (enableColors) {
       print('${colors.green("Info:")} $message');
@@ -229,8 +244,14 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
   }
 
   @override
-  void report(var code, Uri? uri, int? begin, int? end, String message,
-      api.Diagnostic kind) {
+  void report(
+    var code,
+    Uri? uri,
+    int? begin,
+    int? end,
+    String message,
+    api.Diagnostic kind,
+  ) {
     if (isAborting) return;
     isAborting = (kind == api.Diagnostic.crash);
 
@@ -277,14 +298,18 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
     } else {
       api.Input<Uint8List>? file = provider.getUtf8SourceFile(uri);
       if (file is SourceFile && begin != null && end != null) {
-        print(file.getLocationMessage(color(message), begin, end,
-            colorize: color));
+        print(
+          file.getLocationMessage(color(message), begin, end, colorize: color),
+        );
       } else {
-        String position = begin != null && end != null && end - begin > 0
-            ? '@$begin+${end - begin}'
-            : '';
-        print('${provider.relativizeUri(uri)}$position:\n'
-            '${color(message)}');
+        String position =
+            begin != null && end != null && end - begin > 0
+                ? '@$begin+${end - begin}'
+                : '';
+        print(
+          '${provider.relativizeUri(uri)}$position:\n'
+          '${color(message)}',
+        );
       }
     }
     if (fatal && ++fatalCount >= throwOnErrorCount && throwOnError) {
@@ -320,8 +345,12 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
 
   List<String> allOutputFiles = <String>[];
 
-  RandomAccessFileOutputProvider(this.out, this.sourceMapOut,
-      {required this.onInfo, required this.onFailure});
+  RandomAccessFileOutputProvider(
+    this.out,
+    this.sourceMapOut, {
+    required this.onInfo,
+    required this.onFailure,
+  });
 
   Uri createUri(String name, String extension, api.OutputType type) {
     Uri uri;
@@ -373,7 +402,10 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
 
   @override
   api.OutputSink createOutputSink(
-      String name, String extension, api.OutputType type) {
+    String name,
+    String extension,
+    api.OutputType type,
+  ) {
     Uri uri = createUri(name, extension, type);
     bool isPrimaryOutput = uri == out;
 
@@ -383,8 +415,8 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
 
     RandomAccessFile output;
     try {
-      output = (File(uri.toFilePath())..createSync(recursive: true))
-          .openSync(mode: FileMode.write);
+      output = (File(uri.toFilePath())
+        ..createSync(recursive: true)).openSync(mode: FileMode.write);
     } on FileSystemException catch (e) {
       onFailure('$e');
     }
@@ -402,7 +434,8 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
     }
 
     return BufferedStringSinkWrapper(
-        FileStringOutputSink(output, onClose: onClose));
+      FileStringOutputSink(output, onClose: onClose),
+    );
   }
 
   @override
@@ -417,8 +450,8 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
 
     RandomAccessFile output;
     try {
-      output = (File(uri.toFilePath())..createSync(recursive: true))
-          .openSync(mode: FileMode.write);
+      output = (File(uri.toFilePath())
+        ..createSync(recursive: true)).openSync(mode: FileMode.write);
     } on FileSystemException catch (e) {
       onFailure('$e');
     }
@@ -435,7 +468,7 @@ class RandomAccessBinaryOutputSink implements api.BinaryOutputSink {
   final RandomAccessFile output;
 
   RandomAccessBinaryOutputSink(Uri uri)
-      : output = File.fromUri(uri).openSync(mode: FileMode.write);
+    : output = File.fromUri(uri).openSync(mode: FileMode.write);
 
   @override
   void add(List<int> buffer, [int start = 0, int? end]) {
@@ -487,15 +520,19 @@ class RandomAccessBinaryOutputSink implements api.BinaryOutputSink {
 class BazelInputProvider extends SourceFileProvider {
   final List<Uri> dirs;
 
-  BazelInputProvider(List<String> searchPaths, super.byteReader,
-      {super.disableByteCache})
-      : dirs = searchPaths.map(_resolve).toList();
+  BazelInputProvider(
+    List<String> searchPaths,
+    super.byteReader, {
+    super.disableByteCache,
+  }) : dirs = searchPaths.map(_resolve).toList();
 
   static Uri _resolve(String path) => Uri.base.resolve(path);
 
   @override
-  Future<api.Input<Uint8List>> readFromUri(Uri uri,
-      {api.InputKind inputKind = api.InputKind.utf8}) async {
+  Future<api.Input<Uint8List>> readFromUri(
+    Uri uri, {
+    api.InputKind inputKind = api.InputKind.utf8,
+  }) async {
     var resolvedUri = uri;
     var path = uri.path;
     if (path.startsWith('/bazel-root')) {
@@ -508,8 +545,10 @@ class BazelInputProvider extends SourceFileProvider {
         }
       }
     }
-    api.Input<Uint8List> result =
-        await readBytesFromUri(resolvedUri, inputKind);
+    api.Input<Uint8List> result = await readBytesFromUri(
+      resolvedUri,
+      inputKind,
+    );
     if (uri != resolvedUri) {
       if (!resolvedUri.isAbsolute) {
         resolvedUri = cwd.resolveUri(resolvedUri);
@@ -535,12 +574,18 @@ class MultiRootInputProvider extends SourceFileProvider {
   final List<Uri> roots;
   final String markerScheme;
 
-  MultiRootInputProvider(this.markerScheme, this.roots, super.byteReader,
-      {super.disableByteCache});
+  MultiRootInputProvider(
+    this.markerScheme,
+    this.roots,
+    super.byteReader, {
+    super.disableByteCache,
+  });
 
   @override
-  Future<api.Input<Uint8List>> readFromUri(Uri uri,
-      {api.InputKind inputKind = api.InputKind.utf8}) async {
+  Future<api.Input<Uint8List>> readFromUri(
+    Uri uri, {
+    api.InputKind inputKind = api.InputKind.utf8,
+  }) async {
     var resolvedUri = uri;
     if (resolvedUri.isScheme(markerScheme)) {
       var path = resolvedUri.path;
@@ -553,8 +598,10 @@ class MultiRootInputProvider extends SourceFileProvider {
         }
       }
     }
-    api.Input<Uint8List> result =
-        await readBytesFromUri(resolvedUri, inputKind);
+    api.Input<Uint8List> result = await readBytesFromUri(
+      resolvedUri,
+      inputKind,
+    );
     _mappedUris[uri] = resolvedUri;
     return result;
   }

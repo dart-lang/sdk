@@ -12,8 +12,9 @@ class Class<T> {
     // If any method was `async`, this would have triggered the need for type
     // arguments on `Class`. See the 'async_foreach.dart' test.
     list.forEach(
-        /*spec.needsSignature*/
-        (x) => makeLive(x));
+      /*spec.needsSignature*/
+      (x) => makeLive(x),
+    );
   }
 }
 

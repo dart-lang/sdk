@@ -114,7 +114,11 @@ void testAllLikeSet() {
 }
 
 void testSetXElement<E, R>(
-    String name, R Function(Set<E>, E) fn, Iterable<E> a, E b) {
+  String name,
+  R Function(Set<E>, E) fn,
+  Iterable<E> a,
+  E b,
+) {
   final set1 = LinkedHashSet.of(a);
   final setlet1 = Setlet.of(a);
 
@@ -127,7 +131,11 @@ void testSetXElement<E, R>(
 }
 
 void testSetXSet<E, R>(
-    String name, R Function(Set<E>, Set<E>) fn, Iterable<E> a, Iterable<E> b) {
+  String name,
+  R Function(Set<E>, Set<E>) fn,
+  Iterable<E> a,
+  Iterable<E> b,
+) {
   final set1 = LinkedHashSet.of(a);
   final set2 = LinkedHashSet.of(b);
   final setlet1 = Setlet.of(a);
@@ -142,28 +150,52 @@ void testSetXSet<E, R>(
 }
 
 void checkResult(
-    String operationName, dynamic setResult, dynamic setletResult) {
+  String operationName,
+  dynamic setResult,
+  dynamic setletResult,
+) {
   if (setResult == null || setResult is bool || setResult is num) {
     Expect.equals(setResult, setletResult, '$operationName');
   } else if (setResult is Iterable) {
     Expect.isTrue(setletResult is Iterable, '$operationName: returns Iterable');
-    Expect.equals(setResult.isEmpty, setletResult.isEmpty,
-        '$operationName: same isEmpty');
     Expect.equals(
-        setResult.length, setletResult.length, '$operationName: same length');
-    Expect.listEquals(setResult.toList(), setletResult.toList(),
-        '$operationName: same toList() result');
-    Expect.listEquals([...setResult], [...setletResult],
-        '$operationName: same spread result');
+      setResult.isEmpty,
+      setletResult.isEmpty,
+      '$operationName: same isEmpty',
+    );
+    Expect.equals(
+      setResult.length,
+      setletResult.length,
+      '$operationName: same length',
+    );
+    Expect.listEquals(
+      setResult.toList(),
+      setletResult.toList(),
+      '$operationName: same toList() result',
+    );
+    Expect.listEquals(
+      [...setResult],
+      [...setletResult],
+      '$operationName: same spread result',
+    );
   } else {
     Expect.isFalse(true, '$operationName: unexpected result type');
   }
 }
 
 void checkModifications<E>(
-    String operationName, Set<E> setReceiver, Set<E> setletReceiver) {
-  Expect.equals(setReceiver.length, setletReceiver.length,
-      '$operationName: same post-operation receiver length');
-  Expect.listEquals(setReceiver.toList(), setletReceiver.toList(),
-      '$operationName: same post-operation receiver contents');
+  String operationName,
+  Set<E> setReceiver,
+  Set<E> setletReceiver,
+) {
+  Expect.equals(
+    setReceiver.length,
+    setletReceiver.length,
+    '$operationName: same post-operation receiver length',
+  );
+  Expect.listEquals(
+    setReceiver.toList(),
+    setletReceiver.toList(),
+    '$operationName: same post-operation receiver contents',
+  );
 }

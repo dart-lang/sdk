@@ -9,15 +9,13 @@ import '../serialization/serialization.dart';
 import '../util/bitset.dart';
 import '../util/enumset.dart';
 
-enum SideEffectsFlag {
-  index_,
-  instanceProperty,
-  staticProperty,
-}
+enum SideEffectsFlag { index_, instanceProperty, staticProperty }
 
 final _changes = EnumSetDomain<SideEffectsFlag>(0, SideEffectsFlag.values);
-final _depends =
-    EnumSetDomain<SideEffectsFlag>(_changes.nextOffset, SideEffectsFlag.values);
+final _depends = EnumSetDomain<SideEffectsFlag>(
+  _changes.nextOffset,
+  SideEffectsFlag.values,
+);
 
 class SideEffects {
   /// Tag used for identifying serialized [SideEffects] objects in a debugging

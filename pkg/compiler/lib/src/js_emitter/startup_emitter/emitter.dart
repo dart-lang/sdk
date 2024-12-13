@@ -33,15 +33,19 @@ abstract class ModularEmitterBase implements ModularEmitter {
 
   js.PropertyAccess globalPropertyAccessForClass(ClassEntity element) {
     js.Name name = _namer.globalPropertyNameForClass(element);
-    js.PropertyAccess pa =
-        js.PropertyAccess(_namer.readGlobalObjectForClass(element), name);
+    js.PropertyAccess pa = js.PropertyAccess(
+      _namer.readGlobalObjectForClass(element),
+      name,
+    );
     return pa;
   }
 
   js.PropertyAccess globalPropertyAccessForMember(MemberEntity element) {
     js.Name name = _namer.globalPropertyNameForMember(element);
-    js.PropertyAccess pa =
-        js.PropertyAccess(_namer.readGlobalObjectForMember(element), name);
+    js.PropertyAccess pa = js.PropertyAccess(
+      _namer.readGlobalObjectForMember(element),
+      name,
+    );
     return pa;
   }
 
@@ -52,8 +56,10 @@ abstract class ModularEmitterBase implements ModularEmitter {
 
   @override
   js.Expression isolateLazyInitializerAccess(FieldEntity element) {
-    return js.PropertyAccess(_namer.readGlobalObjectForMember(element),
-        _namer.lazyInitializerName(element));
+    return js.PropertyAccess(
+      _namer.readGlobalObjectForMember(element),
+      _namer.lazyInitializerName(element),
+    );
   }
 
   @override
@@ -85,9 +91,12 @@ abstract class ModularEmitterBase implements ModularEmitter {
   @override
   js.Expression staticClosureAccess(FunctionEntity element) {
     return js.Call(
-        js.PropertyAccess(_namer.readGlobalObjectForMember(element),
-            _namer.staticClosureName(element)),
-        const []);
+      js.PropertyAccess(
+        _namer.readGlobalObjectForMember(element),
+        _namer.staticClosureName(element),
+      ),
+      const [],
+    );
   }
 
   @override
@@ -102,7 +111,7 @@ class ModularEmitterImpl extends ModularEmitterBase {
   final ModularConstantEmitter _constantEmitter;
 
   ModularEmitterImpl(super.namer, this._registry, CompilerOptions options)
-      : _constantEmitter = ModularConstantEmitter(options, namer);
+    : _constantEmitter = ModularConstantEmitter(options, namer);
 
   @override
   js.Expression constantReference(ConstantValue constant) {
@@ -113,16 +122,20 @@ class ModularEmitterImpl extends ModularEmitterBase {
     if (expression != null) {
       return expression;
     }
-    final modularExpression =
-        ModularExpression(ModularExpressionKind.constant, constant);
+    final modularExpression = ModularExpression(
+      ModularExpressionKind.constant,
+      constant,
+    );
     _registry.registerModularExpression(modularExpression);
     return modularExpression;
   }
 
   @override
   js.Expression generateEmbeddedGlobalAccess(String global) {
-    final expression =
-        ModularExpression(ModularExpressionKind.embeddedGlobalAccess, global);
+    final expression = ModularExpression(
+      ModularExpressionKind.embeddedGlobalAccess,
+      global,
+    );
     _registry.registerModularExpression(expression);
     return expression;
   }
@@ -152,31 +165,32 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
   late final FragmentMerger fragmentMerger;
 
   EmitterImpl(
-      CompilerOptions options,
-      this._reporter,
-      api.CompilerOutput outputProvider,
-      DumpInfoJsAstRegistry dumpInfoRegistry,
-      Namer namer,
-      this._closedWorld,
-      this._rtiRecipeEncoder,
-      this._nativeEmitter,
-      SourceInformationStrategy sourceInformationStrategy,
-      this._task,
-      bool shouldGenerateSourceMap)
-      : super(namer) {
+    CompilerOptions options,
+    this._reporter,
+    api.CompilerOutput outputProvider,
+    DumpInfoJsAstRegistry dumpInfoRegistry,
+    Namer namer,
+    this._closedWorld,
+    this._rtiRecipeEncoder,
+    this._nativeEmitter,
+    SourceInformationStrategy sourceInformationStrategy,
+    this._task,
+    bool shouldGenerateSourceMap,
+  ) : super(namer) {
     _emitter = ModelEmitter(
-        options,
-        _reporter,
-        outputProvider,
-        dumpInfoRegistry,
-        namer,
-        _closedWorld,
-        _task,
-        this,
-        _nativeEmitter,
-        sourceInformationStrategy,
-        _rtiRecipeEncoder,
-        shouldGenerateSourceMap);
+      options,
+      _reporter,
+      outputProvider,
+      dumpInfoRegistry,
+      namer,
+      _closedWorld,
+      _task,
+      this,
+      _nativeEmitter,
+      sourceInformationStrategy,
+      _rtiRecipeEncoder,
+      shouldGenerateSourceMap,
+    );
   }
 
   @override

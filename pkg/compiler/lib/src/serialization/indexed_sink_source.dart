@@ -53,8 +53,9 @@ class SerializationIndices {
   }
 
   IndexedSource<E> getIndexedSource<E extends Object>() {
-    final source = (_indexedSources[E] ??= UnorderedIndexedSource<E>(this))
-        as IndexedSource<E>;
+    final source =
+        (_indexedSources[E] ??= UnorderedIndexedSource<E>(this))
+            as IndexedSource<E>;
     if (testMode) {
       /// In test mode we ensure that the values we read out are identical to
       /// the values we write in. When copying the elements we turn the local
@@ -78,15 +79,18 @@ class SerializationIndices {
   }
 
   IndexedSink<T> getMappedIndexedSink<E extends Object, T extends Object>(
-      T Function(E value) f) {
+    T Function(E value) f,
+  ) {
     return _getIndexedSink<E, T>(f, identity: false);
   }
 
   IndexedSink<T> _getIndexedSink<E extends Object, T extends Object>(
-      T Function(E value)? f,
-      {required bool identity}) {
-    final sink = (_indexedSinks[T] ??=
-        UnorderedIndexedSink<T>(identity: identity)) as IndexedSink<T>;
+    T Function(E value)? f, {
+    required bool identity,
+  }) {
+    final sink =
+        (_indexedSinks[T] ??= UnorderedIndexedSink<T>(identity: identity))
+            as IndexedSink<T>;
     final source = _indexedSources[E] as UnorderedIndexedSource<E>?;
     source?.cache.forEach((offset, value) {
       final key = (f != null ? f(value) : value) as T;
@@ -132,7 +136,7 @@ class UnorderedIndexedSink<E extends Object> implements IndexedSink<E> {
   final Map<E, int> _cache;
 
   UnorderedIndexedSink({bool identity = false})
-      : _cache = identity ? Map.identity() : {};
+    : _cache = identity ? Map.identity() : {};
 
   @override
   Map<E, int> get cache => _cache;
@@ -234,8 +238,13 @@ class UnorderedIndexedSource<E extends Object> implements IndexedSource<E> {
           isLocal ? _localToGlobalOffset(offset, source) : offset;
       final cachedValue = _cache[globalOffset];
       if (cachedValue != null) return cachedValue;
-      return _readAtOffset(source, readValue, globalOffset, isLocal,
-          isCached: true);
+      return _readAtOffset(
+        source,
+        readValue,
+        globalOffset,
+        isLocal,
+        isCached: true,
+      );
     }
   }
 
@@ -261,8 +270,13 @@ class UnorderedIndexedSource<E extends Object> implements IndexedSource<E> {
       bool isLocal = _isLocalOffset(offset);
       final globalOffset =
           isLocal ? _localToGlobalOffset(offset, source) : offset;
-      return _readAtOffset(source, readValue, globalOffset, isLocal,
-          isCached: false);
+      return _readAtOffset(
+        source,
+        readValue,
+        globalOffset,
+        isLocal,
+        isCached: false,
+      );
     }
   }
 
@@ -276,15 +290,22 @@ class UnorderedIndexedSource<E extends Object> implements IndexedSource<E> {
     throw StateError('Could not find source for $offset.');
   }
 
-  E _readAtOffset(DataSourceReader source, E Function() readValue,
-      int globalOffset, bool isLocal,
-      {required bool isCached}) {
+  E _readAtOffset(
+    DataSourceReader source,
+    E Function() readValue,
+    int globalOffset,
+    bool isLocal, {
+    required bool isCached,
+  }) {
     final realSource = isLocal ? source : findSource(globalOffset);
     final realOffset = _globalToRealOffset(globalOffset, realSource);
-    final value = isLocal
-        ? source.readWithOffset(realOffset, readValue)
-        : source.readWithSource(
-            realSource, () => source.readWithOffset(realOffset, readValue));
+    final value =
+        isLocal
+            ? source.readWithOffset(realOffset, readValue)
+            : source.readWithSource(
+              realSource,
+              () => source.readWithOffset(realOffset, readValue),
+            );
     if (isCached) _cache[globalOffset] = value;
     return value;
   }

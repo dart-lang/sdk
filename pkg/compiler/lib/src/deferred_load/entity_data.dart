@@ -86,8 +86,9 @@ class EntityDataRegistry {
       _constantData[constant] ??= ConstantEntityData(constant);
 
   LocalFunctionEntityData createLocalFunctionEntityData(Local localFunction) =>
-      _localFunctionData[localFunction] ??=
-          LocalFunctionEntityData(localFunction);
+      _localFunctionData[localFunction] ??= LocalFunctionEntityData(
+        localFunction,
+      );
 
   MemberEntityData createMemberEntityData(MemberEntity member) {
     return _memberData[member] ??= MemberEntityData(member);

@@ -78,14 +78,19 @@ abstract class SelectorConstraintsStrategy {
   /// Create a [UniverseSelectorConstraints] to represent the global receiver
   /// constraints for dynamic call sites with [selector].
   UniverseSelectorConstraints createSelectorConstraints(
-      Selector selector, Object? initialConstraint);
+    Selector selector,
+    Object? initialConstraint,
+  );
 
   /// Returns `true`  if [member] is a potential target of [dynamicUse].
   bool appliedUnnamed(DynamicUse dynamicUse, MemberEntity member, World world);
 }
 
-ClassEntity defaultReceiverClass(CommonElements commonElements,
-    NativeBasicData nativeBasicData, ClassEntity cls) {
+ClassEntity defaultReceiverClass(
+  CommonElements commonElements,
+  NativeBasicData nativeBasicData,
+  ClassEntity cls,
+) {
   if (nativeBasicData.isJsInteropClass(cls)) {
     // We can not tell js-interop classes apart, so we just assume the
     // receiver could be any js-interop class.
@@ -103,14 +108,19 @@ class StrongModeWorldStrategy implements SelectorConstraintsStrategy {
 
   @override
   StrongModeWorldConstraints createSelectorConstraints(
-      Selector selector, covariant ClassEntity? initialConstraint) {
+    Selector selector,
+    covariant ClassEntity? initialConstraint,
+  ) {
     return StrongModeWorldConstraints()
       ..addReceiverConstraint(initialConstraint);
   }
 
   @override
-  bool appliedUnnamed(DynamicUse dynamicUse, MemberEntity member,
-      covariant ResolutionWorldBuilder world) {
+  bool appliedUnnamed(
+    DynamicUse dynamicUse,
+    MemberEntity member,
+    covariant ResolutionWorldBuilder world,
+  ) {
     Selector selector = dynamicUse.selector;
     final constraint = dynamicUse.receiverConstraint as ClassEntity?;
     return selector.appliesUnnamed(member) &&
@@ -127,7 +137,10 @@ class StrongModeWorldConstraints extends UniverseSelectorConstraints {
 
   @override
   bool canHit(
-      MemberEntity member, Name name, covariant ResolutionWorldBuilder world) {
+    MemberEntity member,
+    Name name,
+    covariant ResolutionWorldBuilder world,
+  ) {
     if (isAll) return true;
     final memberClass = member.enclosingClass!;
 
@@ -160,8 +173,9 @@ class StrongModeWorldConstraints extends UniverseSelectorConstraints {
       return anyHit;
     }
 
-    return _constraints
-        .any((constraint) => world.isInheritedIn(member, constraint));
+    return _constraints.any(
+      (constraint) => world.isInheritedIn(member, constraint),
+    );
   }
 
   @override
@@ -200,14 +214,18 @@ abstract class WorldBuilder {
   final Set<TypeVariableType> typeVariableTypeLiterals = {};
 
   void _registerStaticTypeArgumentDependency(
-      Entity element, List<DartType> typeArguments) {
+    Entity element,
+    List<DartType> typeArguments,
+  ) {
     staticTypeArgumentDependencies
         .putIfAbsent(element, () => {})
         .addAll(typeArguments);
   }
 
   void _registerDynamicTypeArgumentDependency(
-      Selector selector, List<DartType> typeArguments) {
+    Selector selector,
+    List<DartType> typeArguments,
+  ) {
     dynamicTypeArgumentDependencies
         .putIfAbsent(selector, () => {})
         .addAll(typeArguments);
@@ -220,7 +238,9 @@ abstract class WorldBuilder {
   }
 
   void registerDynamicInvocation(
-      Selector selector, List<DartType> typeArguments) {
+    Selector selector,
+    List<DartType> typeArguments,
+  ) {
     if (typeArguments.isEmpty) return;
     _registerDynamicTypeArgumentDependency(selector, typeArguments);
   }

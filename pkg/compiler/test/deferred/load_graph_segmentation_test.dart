@@ -25,8 +25,9 @@ List<OutputUnit> collectOutputUnits(List<FinalizedFragment> fragments) {
 
 void main() {
   asyncTest(() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+    );
     Compiler compiler = result.compiler!;
 
     var closedWorld = compiler.backendClosedWorldForTesting!;

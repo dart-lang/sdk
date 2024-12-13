@@ -54,18 +54,34 @@ foo(a) {
 
 main() {
   runTests() async {
-    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      Expect.isTrue(generated.contains(r'for ('));
-    });
-    await compile(TEST_TWO, entry: 'foo', check: (String generated) {
-      Expect.isTrue(!generated.contains(r'break'));
-    });
-    await compile(TEST_THREE, entry: 'foo', check: (String generated) {
-      Expect.isTrue(generated.contains(r'continue'));
-    });
-    await compile(TEST_FOUR, entry: 'foo', check: (String generated) {
-      Expect.isTrue(generated.contains(r'continue'));
-    });
+    await compile(
+      TEST_ONE,
+      entry: 'foo',
+      check: (String generated) {
+        Expect.isTrue(generated.contains(r'for ('));
+      },
+    );
+    await compile(
+      TEST_TWO,
+      entry: 'foo',
+      check: (String generated) {
+        Expect.isTrue(!generated.contains(r'break'));
+      },
+    );
+    await compile(
+      TEST_THREE,
+      entry: 'foo',
+      check: (String generated) {
+        Expect.isTrue(generated.contains(r'continue'));
+      },
+    );
+    await compile(
+      TEST_FOUR,
+      entry: 'foo',
+      check: (String generated) {
+        Expect.isTrue(generated.contains(r'continue'));
+      },
+    );
   }
 
   asyncTest(() async {

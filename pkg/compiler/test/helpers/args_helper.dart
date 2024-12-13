@@ -25,7 +25,8 @@ Uri? getEntryPoint(ArgResults argResults) {
   if (argResults.rest.isNotEmpty) {
     if (argResults.rest.length > 1) {
       throw ArgumentError(
-          'Extra arguments: ${argResults.rest.skip(1).join(" ")}');
+        'Extra arguments: ${argResults.rest.skip(1).join(" ")}',
+      );
     }
     entryPoint = Uri.base.resolve(nativeToUriPath(argResults.rest.single));
   }

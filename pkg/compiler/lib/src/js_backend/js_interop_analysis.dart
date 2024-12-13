@@ -15,11 +15,16 @@ import 'namer.dart';
 import 'native_data.dart';
 
 js_ast.Statement? buildJsInteropBootstrap(
-    CodegenWorld codegenWorld, NativeBasicData nativeBasicData, Namer namer) {
+  CodegenWorld codegenWorld,
+  NativeBasicData nativeBasicData,
+  Namer namer,
+) {
   if (!nativeBasicData.isJsInteropUsed) return null;
   List<js_ast.Statement> statements = [];
-  codegenWorld.forEachInvokedName(
-      (String name, Map<Selector, SelectorConstraints> selectors) {
+  codegenWorld.forEachInvokedName((
+    String name,
+    Map<Selector, SelectorConstraints> selectors,
+  ) {
     selectors.forEach((Selector selector, SelectorConstraints constraints) {
       if (selector.isMaybeClosureCall) {
         // TODO(jacobr): support named arguments.
@@ -28,12 +33,17 @@ js_ast.Statement? buildJsInteropBootstrap(
         String candidateParameterNames =
             'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         List<String> parameters = List<String>.generate(
-            argumentCount, (i) => candidateParameterNames[i]);
+          argumentCount,
+          (i) => candidateParameterNames[i],
+        );
 
         js_ast.Name name = namer.invocationName(selector);
-        statements.add(js.statement(
+        statements.add(
+          js.statement(
             'Function.prototype.# = function(#) { return this(#) }',
-            [name, parameters, parameters]));
+            [name, parameters, parameters],
+          ),
+        );
       }
     });
   });
@@ -45,11 +55,12 @@ FunctionType buildJsFunctionType(DartTypes dartTypes) {
   // range of positional arguments that need to be supported by JavaScript
   // function types.
   return dartTypes.functionType(
-      dartTypes.dynamicType(),
-      const <DartType>[],
-      List<DartType>.filled(16, dartTypes.dynamicType()),
-      const <String>[],
-      const <String>{},
-      const <DartType>[],
-      const <FunctionTypeVariable>[]);
+    dartTypes.dynamicType(),
+    const <DartType>[],
+    List<DartType>.filled(16, dartTypes.dynamicType()),
+    const <String>[],
+    const <String>{},
+    const <DartType>[],
+    const <FunctionTypeVariable>[],
+  );
 }

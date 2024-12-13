@@ -30,9 +30,17 @@ class TestRandomAccessFileOutputProvider implements api.CompilerOutput {
 
   @override
   api.OutputSink createOutputSink(
-      String name, String extension, api.OutputType type) {
-    outputs.add(fe.relativizeUri(provider.out!,
-        provider.createUri(name, extension, type), Platform.isWindows));
+    String name,
+    String extension,
+    api.OutputType type,
+  ) {
+    outputs.add(
+      fe.relativizeUri(
+        provider.out!,
+        provider.createUri(name, extension, type),
+        Platform.isWindows,
+      ),
+    );
     return NullSink.outputProvider(name, extension, type);
   }
 
@@ -42,39 +50,54 @@ class TestRandomAccessFileOutputProvider implements api.CompilerOutput {
 
 late CompileFunc oldCompileFunc;
 
-Future<Null> test(List<String> arguments, List<String> expectedOutput,
-    {List<String> groupOutputs = const <String>[]}) async {
-  List<String> options = List<String>.from(arguments)
-    // TODO(nshahan) Should change to sdkPlatformBinariesPath when testing
-    // with unsound null safety is no longer needed.
-    ..add('--platform-binaries=$buildPlatformBinariesPath')
-    ..add('--libraries-spec=$sdkLibrariesSpecificationUri');
+Future<Null> test(
+  List<String> arguments,
+  List<String> expectedOutput, {
+  List<String> groupOutputs = const <String>[],
+}) async {
+  List<String> options =
+      List<String>.from(arguments)
+        // TODO(nshahan) Should change to sdkPlatformBinariesPath when testing
+        // with unsound null safety is no longer needed.
+        ..add('--platform-binaries=$buildPlatformBinariesPath')
+        ..add('--libraries-spec=$sdkLibrariesSpecificationUri');
   print('--------------------------------------------------------------------');
   print('dart2js ${options.join(' ')}');
   late TestRandomAccessFileOutputProvider outputProvider;
-  compileFunc = (CompilerOptions compilerOptions,
-      api.CompilerInput compilerInput,
-      api.CompilerDiagnostics compilerDiagnostics,
-      api.CompilerOutput compilerOutput) async {
+  compileFunc = (
+    CompilerOptions compilerOptions,
+    api.CompilerInput compilerInput,
+    api.CompilerDiagnostics compilerDiagnostics,
+    api.CompilerOutput compilerOutput,
+  ) async {
     return oldCompileFunc(
-        compilerOptions,
-        compilerInput,
-        compilerDiagnostics,
-        outputProvider = TestRandomAccessFileOutputProvider(
-            compilerOutput as RandomAccessFileOutputProvider));
+      compilerOptions,
+      compilerInput,
+      compilerDiagnostics,
+      outputProvider = TestRandomAccessFileOutputProvider(
+        compilerOutput as RandomAccessFileOutputProvider,
+      ),
+    );
   };
   await internalMain(options);
   List<String> outputs = outputProvider.outputs;
   for (String outputGroup in groupOutputs) {
     int countBefore = outputs.length;
-    outputs = outputs
-        .where((String output) => !output.endsWith(outputGroup))
-        .toList();
-    Expect.notEquals(0, countBefore - outputs.length,
-        'Expected output group ${outputGroup}');
+    outputs =
+        outputs
+            .where((String output) => !output.endsWith(outputGroup))
+            .toList();
+    Expect.notEquals(
+      0,
+      countBefore - outputs.length,
+      'Expected output group ${outputGroup}',
+    );
   }
-  Expect.setEquals(expectedOutput, outputs,
-      "Output mismatch. Expected $expectedOutput, actual $outputs.");
+  Expect.setEquals(
+    expectedOutput,
+    outputs,
+    "Output mismatch. Expected $expectedOutput, actual $outputs.",
+  );
 }
 
 main() {
@@ -84,22 +107,26 @@ main() {
   runTests() async {
     printGraph = true;
     traceFilterPatternForTest = 'x';
-    await test([
-      'pkg/compiler/test/deferred/data/deferred_helper.dart',
-      '--out=custom.js',
-      '--deferred-map=def/deferred.json',
-      '--no-sound-null-safety',
-      '--no-csp',
-      '--stage=dump-info-all',
-    ], [
-      'custom.js', 'custom.js.map',
-      'custom.js_1.part.js', 'custom.js_1.part.js.map',
-      'def/deferred.json', // From --deferred-map
-      'custom.js.info.json', // From --dump-info
-      'custom.js.cfg', // From TRACE_FILTER_PATTERN_FOR_TEST
-    ], groupOutputs: [
-      '.dot', // From PRINT_GRAPH
-    ]);
+    await test(
+      [
+        'pkg/compiler/test/deferred/data/deferred_helper.dart',
+        '--out=custom.js',
+        '--deferred-map=def/deferred.json',
+        '--no-sound-null-safety',
+        '--no-csp',
+        '--stage=dump-info-all',
+      ],
+      [
+        'custom.js', 'custom.js.map',
+        'custom.js_1.part.js', 'custom.js_1.part.js.map',
+        'def/deferred.json', // From --deferred-map
+        'custom.js.info.json', // From --dump-info
+        'custom.js.cfg', // From TRACE_FILTER_PATTERN_FOR_TEST
+      ],
+      groupOutputs: [
+        '.dot', // From PRINT_GRAPH
+      ],
+    );
 
     printGraph = false;
     traceFilterPatternForTest = null;
@@ -120,16 +147,16 @@ main() {
 
     // If we add the '--write-resources' flag, we get another file
     // `out.js.resources.json'.
-    await test([
-      'pkg/compiler/test/deferred/data/deferred_helper.dart',
-      '--no-sound-null-safety',
-      '--csp',
-      Flags.writeResources,
-      ...additionOptionals,
-    ], [
-      ...expectedOutput,
-      'out.js.resources.json',
-    ]);
+    await test(
+      [
+        'pkg/compiler/test/deferred/data/deferred_helper.dart',
+        '--no-sound-null-safety',
+        '--csp',
+        Flags.writeResources,
+        ...additionOptionals,
+      ],
+      [...expectedOutput, 'out.js.resources.json'],
+    );
   }
 
   asyncTest(() async {

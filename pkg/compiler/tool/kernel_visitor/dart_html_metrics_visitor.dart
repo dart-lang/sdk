@@ -42,10 +42,12 @@ class MetricsVisitor extends RecursiveVisitor {
   @override
   void visitLibrary(Library node) {
     // Check if this is a library we want to visit.
-    var visit = libraryFilter.isNotEmpty
-        ? libraryFilter
-            .contains("${node.importUri.scheme}:${node.importUri.path}")
-        : true;
+    var visit =
+        libraryFilter.isNotEmpty
+            ? libraryFilter.contains(
+              "${node.importUri.scheme}:${node.importUri.path}",
+            )
+            : true;
 
     if (visit) {
       super.visitLibrary(node);
@@ -54,13 +56,16 @@ class MetricsVisitor extends RecursiveVisitor {
 
   @override
   void visitProcedure(Procedure node) {
-    classInfo[currentClass]!.methods.add(ClassMetricsMethod(
+    classInfo[currentClass]!.methods.add(
+      ClassMetricsMethod(
         node.name.text,
         node.containsSuperCalls,
         node.isInstanceMember,
         node.isExternal,
         node.isAbstract,
-        node.kind.toString()));
+        node.kind.toString(),
+      ),
+    );
   }
 
   @override
@@ -90,8 +95,9 @@ class MetricsVisitor extends RecursiveVisitor {
 
       // Check for implemented classes.
       if (node.implementedTypes.isNotEmpty) {
-        var implementedTypes =
-            node.implementedTypes.map((type) => type.className.asClass.name);
+        var implementedTypes = node.implementedTypes.map(
+          (type) => type.className.asClass.name,
+        );
         metrics.implementedTypes = implementedTypes.toList();
       }
 
@@ -178,20 +184,20 @@ class ClassMetrics {
   bool mixed;
   bool containsNativeMember;
 
-  ClassMetrics(
-      {this.mixed = false,
-      this.containsNativeMember = false,
-      this.parent,
-      List<ClassMetricsMethod>? methods,
-      List<String>? mixins,
-      List<String>? notOverridden,
-      List<String>? implementedTypes,
-      List<String>? inheritedBy})
-      : methods = methods ?? [],
-        mixins = mixins ?? [],
-        notOverriddenMethods = notOverridden ?? [],
-        implementedTypes = implementedTypes ?? [],
-        inheritedBy = inheritedBy ?? [];
+  ClassMetrics({
+    this.mixed = false,
+    this.containsNativeMember = false,
+    this.parent,
+    List<ClassMetricsMethod>? methods,
+    List<String>? mixins,
+    List<String>? notOverridden,
+    List<String>? implementedTypes,
+    List<String>? inheritedBy,
+  }) : methods = methods ?? [],
+       mixins = mixins ?? [],
+       notOverriddenMethods = notOverridden ?? [],
+       implementedTypes = implementedTypes ?? [],
+       inheritedBy = inheritedBy ?? [];
 
   bool get invokesSuper {
     if (methods.isNotEmpty) {
@@ -211,7 +217,7 @@ class ClassMetrics {
       "inheritedBy": inheritedBy,
       "containsNativeMember": containsNativeMember,
       "notOverriddenMethods": notOverriddenMethods,
-      "implementedTypes": implementedTypes
+      "implementedTypes": implementedTypes,
     };
   }
 }
@@ -225,12 +231,14 @@ class ClassMetricsMethod {
   bool isExternal;
   bool isAbstract;
 
-  ClassMetricsMethod(this.name,
-      [this.invokesSuper = false,
-      this.isInstanceMember = false,
-      this.isExternal = false,
-      this.isAbstract = false,
-      this.methodKind = ""]);
+  ClassMetricsMethod(
+    this.name, [
+    this.invokesSuper = false,
+    this.isInstanceMember = false,
+    this.isExternal = false,
+    this.isAbstract = false,
+    this.methodKind = "",
+  ]);
 
   Map<String, dynamic> toJson() {
     return {
@@ -239,7 +247,7 @@ class ClassMetricsMethod {
       "isInstanceMember": isInstanceMember,
       "isExternal": isExternal,
       "isAbstract": isAbstract,
-      "methodKind": methodKind
+      "methodKind": methodKind,
     };
   }
 }

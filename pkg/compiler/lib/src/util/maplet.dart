@@ -12,7 +12,7 @@ class Maplet<K, V> extends MapBase<K, V> {
   static const _MapletMarker _marker = _MapletMarker();
   static const int capacity = 8;
 
-// The maplet can be in one of four states:
+  // The maplet can be in one of four states:
   //
   //   * Empty          (extra: null,   key: marker, value: null)
   //   * Single element (extra: null,   key: key,    value: value)

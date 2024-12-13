@@ -4,7 +4,8 @@
 
 main() {
   test(1);
-  /*1:main*/ test(null);
+  /*1:main*/
+  test(null);
   test(2);
 }
 

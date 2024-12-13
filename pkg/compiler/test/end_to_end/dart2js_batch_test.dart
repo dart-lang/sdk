@@ -16,8 +16,10 @@ var tmpDir;
 
 copyDirectory(Directory sourceDir, Directory destinationDir) {
   sourceDir.listSync().forEach((FileSystemEntity element) {
-    String newPath =
-        path.join(destinationDir.path, path.basename(element.path));
+    String newPath = path.join(
+      destinationDir.path,
+      path.basename(element.path),
+    );
     if (element is File) {
       element.copySync(newPath);
     } else if (element is Directory) {
@@ -29,9 +31,9 @@ copyDirectory(Directory sourceDir, Directory destinationDir) {
 }
 
 Future<Directory> createTempDir() {
-  return Directory.systemTemp
-      .createTemp('dart2js_batch_test-')
-      .then((Directory dir) {
+  return Directory.systemTemp.createTemp('dart2js_batch_test-').then((
+    Directory dir,
+  ) {
     return dir;
   });
 }
@@ -39,8 +41,9 @@ Future<Directory> createTempDir() {
 Future setup() {
   return createTempDir().then((Directory directory) {
     tmpDir = directory;
-    Directory appDir =
-        Directory.fromUri(Uri.base.resolve('pkg/compiler/test/codesize/swarm'));
+    Directory appDir = Directory.fromUri(
+      Uri.base.resolve('pkg/compiler/test/codesize/swarm'),
+    );
 
     print("Copying '${appDir.path}' to '${tmpDir.path}'.");
     copyDirectory(appDir, tmpDir);
@@ -54,10 +57,11 @@ void cleanUp() {
 
 Future<Process> launchDart2Js(_) {
   return Process.start(
-      // Use an absolute path because we are changing the cwd below.
-      path.absolute(Platform.executable),
-      dart2JsCommand(['--batch']),
-      workingDirectory: tmpDir.path);
+    // Use an absolute path because we are changing the cwd below.
+    path.absolute(Platform.executable),
+    dart2JsCommand(['--batch']),
+    workingDirectory: tmpDir.path,
+  );
 }
 
 Future runTests(Process process) {

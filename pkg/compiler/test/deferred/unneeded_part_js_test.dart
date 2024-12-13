@@ -13,9 +13,10 @@ main() {
     DiagnosticCollector diagnostics = DiagnosticCollector();
     OutputCollector output = OutputCollector();
     CompilationResult result = await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES,
-        diagnosticHandler: diagnostics,
-        outputProvider: output);
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      diagnosticHandler: diagnostics,
+      outputProvider: output,
+    );
     Expect.isFalse(diagnostics.hasRegularMessages);
     Expect.isFalse(output.hasExtraOutput);
     Expect.isTrue(result.isSuccess);

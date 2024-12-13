@@ -17,8 +17,12 @@ import 'late_lowering.dart';
 ///
 /// Each transformation is applied locally to AST nodes of certain types after
 /// transforming children nodes.
-void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
-    ClassHierarchy hierarchy, CompilerOptions? options) {
+void transformLibraries(
+  List<Library> libraries,
+  CoreTypes coreTypes,
+  ClassHierarchy hierarchy,
+  CompilerOptions? options,
+) {
   final transformer = _ModularTransformer(coreTypes, hierarchy, options);
   libraries.forEach(transformer.visitLibrary);
 }
@@ -32,14 +36,16 @@ class _ModularTransformer extends Transformer {
   Member? _currentMember;
 
   _ModularTransformer(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, CompilerOptions? options)
-      : factorySpecializer = FactorySpecializer(coreTypes, hierarchy),
-        _lateLowering = LateLowering(coreTypes, options),
-        _awaitLowering = AwaitLowering(coreTypes),
-        _asyncLowering =
-            (options?.features.simpleAsyncToFuture.isEnabled ?? false)
-                ? AsyncLowering(coreTypes)
-                : null;
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    CompilerOptions? options,
+  ) : factorySpecializer = FactorySpecializer(coreTypes, hierarchy),
+      _lateLowering = LateLowering(coreTypes, options),
+      _awaitLowering = AwaitLowering(coreTypes),
+      _asyncLowering =
+          (options?.features.simpleAsyncToFuture.isEnabled ?? false)
+              ? AsyncLowering(coreTypes)
+              : null;
 
   @override
   TreeNode defaultMember(Member node) {

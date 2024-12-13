@@ -77,32 +77,44 @@ class RecordData {
   Iterable<ClassEntity> get allClasses => _classToRepresentation.keys;
 
   factory RecordData.readFromDataSource(
-      JsToElementMap elementMap, DataSourceReader source) {
+    JsToElementMap elementMap,
+    DataSourceReader source,
+  ) {
     source.begin(tag);
-    List<RecordRepresentation> representations =
-        source.readList(() => RecordRepresentation.readFromDataSource(source));
-    final shapes =
-        source.readList(() => RecordShape.readFromDataSource(source));
+    List<RecordRepresentation> representations = source.readList(
+      () => RecordRepresentation.readFromDataSource(source),
+    );
+    final shapes = source.readList(
+      () => RecordShape.readFromDataSource(source),
+    );
     final getters = source.readList(source.readMembers);
     source.end(tag);
     return RecordData._(
-        elementMap, representations, Map.fromIterables(shapes, getters));
+      elementMap,
+      representations,
+      Map.fromIterables(shapes, getters),
+    );
   }
 
   /// Serializes this [RecordData] to [sink].
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeList<RecordRepresentation>(
-        _representations, (info) => info.writeToDataSink(sink));
+      _representations,
+      (info) => info.writeToDataSink(sink),
+    );
     sink.writeList(
-        _gettersByShape.keys, (RecordShape v) => v.writeToDataSink(sink));
+      _gettersByShape.keys,
+      (RecordShape v) => v.writeToDataSink(sink),
+    );
     sink.writeList(_gettersByShape.values, sink.writeMembers);
     sink.end(tag);
   }
 
   /// Returns a fresh List of representations that define shapes.
-  List<RecordRepresentation> representationsForShapes() =>
-      [..._shapeToRepresentation.values];
+  List<RecordRepresentation> representationsForShapes() => [
+    ..._shapeToRepresentation.values,
+  ];
 
   /// Returns the representation for a shape.  Returns `null` if the record
   /// shape is not instantiated.
@@ -121,8 +133,10 @@ class RecordData {
     // field values.
 
     return representationForShape(type.shape) ??
-        (throw StateError('representationForStaticType $type '
-            'for uninstantiated shape ${type.shape}'));
+        (throw StateError(
+          'representationForStaticType $type '
+          'for uninstantiated shape ${type.shape}',
+        ));
   }
 
   /// Returns `null` if [cls] is not a record representation.
@@ -139,12 +153,16 @@ class RecordData {
     final representation = representationForShape(shape)!;
     final cls = representation.cls;
     if (representation.usesList) {
-      final field = _elementMap.elementEnvironment
-          .lookupClassMember(cls, Name('_values', cls.library.canonicalUri));
+      final field = _elementMap.elementEnvironment.lookupClassMember(
+        cls,
+        Name('_values', cls.library.canonicalUri),
+      );
       return RecordAccessPath(field as FieldEntity, indexInShape);
     } else {
       final field = _elementMap.elementEnvironment.lookupClassMember(
-          cls, Name('_$indexInShape', cls.library.canonicalUri));
+        cls,
+        Name('_$indexInShape', cls.library.canonicalUri),
+      );
       return RecordAccessPath(field as FieldEntity, null);
     }
   }
@@ -200,8 +218,14 @@ class RecordRepresentation {
   // `List` of inferred types.
   final String? _specializationKey;
 
-  RecordRepresentation._(this.cls, this.shape, this.definesShape, this.usesList,
-      this.shapeTag, this._specializationKey);
+  RecordRepresentation._(
+    this.cls,
+    this.shape,
+    this.definesShape,
+    this.usesList,
+    this.shapeTag,
+    this._specializationKey,
+  );
 
   factory RecordRepresentation.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
@@ -213,7 +237,13 @@ class RecordRepresentation {
     final specializationKey = source.readStringOrNull();
     source.end(tag);
     return RecordRepresentation._(
-        cls, shape, definesShape, usesList, shapeTag, specializationKey);
+      cls,
+      shape,
+      definesShape,
+      usesList,
+      shapeTag,
+      specializationKey,
+    );
   }
 
   /// Serializes this [RecordData] to [sink].
@@ -235,7 +265,7 @@ class RecordRepresentation {
       'cls=$cls',
       'shape=$shape',
       'shapeTag=$shapeTag',
-      if (_specializationKey != null) 'specializationKey=$_specializationKey'
+      if (_specializationKey != null) 'specializationKey=$_specializationKey',
     ], ',');
     sb.write(')');
     return sb.toString();
@@ -251,28 +281,38 @@ class RecordDataBuilder {
 
   RecordDataBuilder(this._reporter, this._elementMap, this._annotationsData);
 
-  RecordData createRecordData(JClosedWorldBuilder closedWorldBuilder,
-      Iterable<RecordType> recordTypes) {
+  RecordData createRecordData(
+    JClosedWorldBuilder closedWorldBuilder,
+    Iterable<RecordType> recordTypes,
+  ) {
     _reporter;
     _annotationsData;
 
     // Sorted shapes lead to a more consistent class ordering in the generated
     // code.
-    final shapes = recordTypes.map((type) => type.shape).toSet().toList()
-      ..sort(RecordShape.compare);
+    final shapes =
+        recordTypes.map((type) => type.shape).toSet().toList()
+          ..sort(RecordShape.compare);
 
     List<RecordRepresentation> representations = [];
     for (int i = 0; i < shapes.length; i++) {
       final shape = shapes[i];
       final getters = <MemberEntity>[];
-      final cls = shape.fieldCount == 0
-          ? _elementMap.commonElements.emptyRecordClass
-          : closedWorldBuilder.buildRecordShapeClass(shape, getters);
+      final cls =
+          shape.fieldCount == 0
+              ? _elementMap.commonElements.emptyRecordClass
+              : closedWorldBuilder.buildRecordShapeClass(shape, getters);
       _gettersByShape[shape] = getters;
       int shapeTag = i;
       bool usesList = _computeUsesGeneralClass(cls);
-      final info =
-          RecordRepresentation._(cls, shape, true, usesList, shapeTag, null);
+      final info = RecordRepresentation._(
+        cls,
+        shape,
+        true,
+        usesList,
+        shapeTag,
+        null,
+      );
       representations.add(info);
     }
 
@@ -337,7 +377,11 @@ class RecordClassData implements JClassData {
   final InterfaceType? supertype;
 
   RecordClassData(
-      this.definition, this.thisType, this.supertype, this.orderedTypeSet);
+    this.definition,
+    this.thisType,
+    this.supertype,
+    this.orderedTypeSet,
+  );
 
   factory RecordClassData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
@@ -394,9 +438,15 @@ class JRecordGetter extends JFunction {
   static const String tag = 'record-getter';
 
   JRecordGetter(JClass enclosingClass, Name name)
-      : super(enclosingClass.library, enclosingClass, name,
-            ParameterStructure.getter, AsyncMarker.sync,
-            isStatic: false, isExternal: false);
+    : super(
+        enclosingClass.library,
+        enclosingClass,
+        name,
+        ParameterStructure.getter,
+        AsyncMarker.sync,
+        isStatic: false,
+        isExternal: false,
+      );
 
   factory JRecordGetter.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
@@ -422,7 +472,8 @@ class JRecordGetter extends JFunction {
   bool get isGetter => true;
 
   @override
-  String toString() => '${jsElementPrefix}record_getter'
+  String toString() =>
+      '${jsElementPrefix}record_getter'
       '(${enclosingClass!.name}.$name)';
 }
 
@@ -449,7 +500,10 @@ class RecordGetterData extends RecordMemberData implements FunctionData {
   RecordGetterData(super.definition, super.memberThisType, this.functionType);
 
   RecordGetterData._deserialized(
-      super.definition, super.memberThisType, this.functionType);
+    super.definition,
+    super.memberThisType,
+    this.functionType,
+  );
 
   factory RecordGetterData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
@@ -459,7 +513,10 @@ class RecordGetterData extends RecordMemberData implements FunctionData {
     FunctionType functionType = source.readDartType() as FunctionType;
     source.end(tag);
     return RecordGetterData._deserialized(
-        definition, memberThisType, functionType);
+      definition,
+      memberThisType,
+      functionType,
+    );
   }
 
   @override
@@ -478,16 +535,18 @@ class RecordGetterData extends RecordMemberData implements FunctionData {
 
   @override
   List<TypeVariableType> getFunctionTypeVariables(
-      covariant JsKernelToElementMap unusedElementMap) {
+    covariant JsKernelToElementMap unusedElementMap,
+  ) {
     return const <TypeVariableType>[];
   }
 
   @override
   void forEachParameter(
-      JsToElementMap elementMap,
-      ParameterStructure parameterStructure,
-      void Function(DartType type, String? name, ConstantValue? defaultValue) f,
-      {bool isNative = false}) {}
+    JsToElementMap elementMap,
+    ParameterStructure parameterStructure,
+    void Function(DartType type, String? name, ConstantValue? defaultValue) f, {
+    bool isNative = false,
+  }) {}
 
   @override
   // It is a bit of a code-smell here that an synthetic element introduced

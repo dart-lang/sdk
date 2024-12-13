@@ -55,7 +55,9 @@ void main() {
   runTest() async {
     var options = [Flags.omitImplicitChecks];
     var result = await runCompiler(
-        memorySourceFiles: {'main.dart': TEST}, options: options);
+      memorySourceFiles: {'main.dart': TEST},
+      options: options,
+    );
     Compiler compiler = result.compiler!;
     var results = compiler.globalInference.resultsForTesting!;
     var closedWorld = results.closedWorld;
@@ -75,11 +77,14 @@ void main() {
       MemberEntity element =
           elementEnvironment.lookupClassMember(classA, PublicName(name))!;
       Expect.isTrue(
-          type.containsMask(results.resultOfMember(element).type, closedWorld));
+        type.containsMask(results.resultOfMember(element).type, closedWorld),
+      );
     }
 
-    var intMask =
-        TypeMask.subtype(closedWorld.commonElements.intClass, closedWorld);
+    var intMask = TypeMask.subtype(
+      closedWorld.commonElements.intClass,
+      closedWorld,
+    );
 
     checkReturn('foo', intMask);
     checkReturn('faa', intMask);

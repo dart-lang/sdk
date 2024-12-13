@@ -75,30 +75,27 @@ Future<void> main(List<String> args) async {
 
   stopwatch.start();
   if (start <= 0 && stop >= 0) {
-    await subProcess(
-        baseOptions, [input, '${Flags.stage}=cfe', '--out=$cfeOutput'], '0:\t');
+    await subProcess(baseOptions, [
+      input,
+      '${Flags.stage}=cfe',
+      '--out=$cfeOutput',
+    ], '0:\t');
   }
   if (start <= 1 && stop >= 1) {
-    await subProcess(
-        baseOptions,
-        [
-          cfeOutput,
-          '--out=$dillOutput',
-          '${Flags.closedWorldUri}=$dataOutput',
-          '${Flags.stage}=closed-world'
-        ],
-        '1:\t');
+    await subProcess(baseOptions, [
+      cfeOutput,
+      '--out=$dillOutput',
+      '${Flags.closedWorldUri}=$dataOutput',
+      '${Flags.stage}=closed-world',
+    ], '1:\t');
   }
   if (shards <= 1) {
-    await subProcess(
-        baseOptions,
-        [
-          dillOutput,
-          '${Flags.globalInferenceUri}=$dataOutput',
-          '${Flags.stage}=codegen-emit-js',
-          '--out=$output'
-        ],
-        '3:\t');
+    await subProcess(baseOptions, [
+      dillOutput,
+      '${Flags.globalInferenceUri}=$dataOutput',
+      '${Flags.stage}=codegen-emit-js',
+      '--out=$output',
+    ], '3:\t');
   } else {
     if (start <= 2 && stop >= 2) {
       List<List<String>> additionalArguments = [];
@@ -110,45 +107,54 @@ Future<void> main(List<String> args) async {
           '${Flags.codegenShard}=$shard',
           '${Flags.codegenShards}=$shards',
           '${Flags.codegenUri}=$codeOutput',
-          '${Flags.stage}=codegen'
+          '${Flags.stage}=codegen',
         ]);
         outputPrefixes.add('2:${shard + 1}/$shards\t');
       }
 
       Stopwatch subwatch = Stopwatch();
       subwatch.start();
-      await Future.wait(List<Future<void>>.generate(shards, (int shard) {
-        return subProcess(
-            baseOptions, additionalArguments[shard], outputPrefixes[shard]);
-      }));
+      await Future.wait(
+        List<Future<void>>.generate(shards, (int shard) {
+          return subProcess(
+            baseOptions,
+            additionalArguments[shard],
+            outputPrefixes[shard],
+          );
+        }),
+      );
       subwatch.stop();
       print('2:\tTotal time: ${_formatMs(subwatch.elapsedMilliseconds)}');
     }
     if (start <= 3 && stop >= 3) {
-      await subProcess(
-          baseOptions,
-          [
-            dillOutput,
-            '${Flags.globalInferenceUri}=$dataOutput',
-            '${Flags.codegenUri}=$codeOutput',
-            '${Flags.codegenShards}=$shards',
-            '${Flags.stage}=emit-js',
-            '--out=$output'
-          ],
-          '3:\t');
+      await subProcess(baseOptions, [
+        dillOutput,
+        '${Flags.globalInferenceUri}=$dataOutput',
+        '${Flags.codegenUri}=$codeOutput',
+        '${Flags.codegenShards}=$shards',
+        '${Flags.stage}=emit-js',
+        '--out=$output',
+      ], '3:\t');
     }
   }
   stopwatch.stop();
   print('Total time: ${_formatMs(stopwatch.elapsedMilliseconds)}');
 }
 
-Future<void> subProcess(List<String> baseOptions,
-    List<String> additionalOptions, String outputPrefix) async {
+Future<void> subProcess(
+  List<String> baseOptions,
+  List<String> additionalOptions,
+  String outputPrefix,
+) async {
   List<String> options = [...baseOptions, ...additionalOptions];
   print(
-      '${outputPrefix}Command: ${Platform.resolvedExecutable} ${options.join(' ')}');
-  Process process = await Process.start(Platform.resolvedExecutable, options,
-      runInShell: true);
+    '${outputPrefix}Command: ${Platform.resolvedExecutable} ${options.join(' ')}',
+  );
+  Process process = await Process.start(
+    Platform.resolvedExecutable,
+    options,
+    runInShell: true,
+  );
   _Prefixer stdoutPrefixer = _Prefixer(outputPrefix, stdout);
   _Prefixer stderrOutputter = _Prefixer(outputPrefix, stderr);
   process.stdout.transform(utf8.decoder).listen(stdoutPrefixer.call);

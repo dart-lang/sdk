@@ -86,10 +86,14 @@ class HTracer extends HGraphVisitor with TracerUtil {
   }
 
   void addInstructions(
-      HInstructionStringifier stringifier, HInstructionList list) {
-    for (HInstruction? instruction = list.first;
-        instruction != null;
-        instruction = instruction.next) {
+    HInstructionStringifier stringifier,
+    HInstructionList list,
+  ) {
+    for (
+      HInstruction? instruction = list.first;
+      instruction != null;
+      instruction = instruction.next
+    ) {
       int bci = 0;
       int uses = instruction.usedBy.length;
       String changes = instruction.sideEffects.hasSideEffects() ? '!' : ' ';
@@ -103,8 +107,10 @@ class HTracer extends HGraphVisitor with TracerUtil {
 
   @override
   void visitBasicBlock(HBasicBlock block) {
-    HInstructionStringifier stringifier =
-        HInstructionStringifier(block, closedWorld);
+    HInstructionStringifier stringifier = HInstructionStringifier(
+      block,
+      closedWorld,
+    );
     assert(block.id >= 0);
     tag("block", () {
       printProperty("name", "B${block.id}");
@@ -149,9 +155,10 @@ class HInstructionStringifier implements HVisitor<String> {
   AbstractValueDomain get _abstractValueDomain =>
       closedWorld.abstractValueDomain;
 
-  String visit(HInstruction node) => node is HControlFlow
-      ? node.accept(this)
-      : '${node.accept(this)} ${node.instructionType}';
+  String visit(HInstruction node) =>
+      node is HControlFlow
+          ? node.accept(this)
+          : '${node.accept(this)} ${node.instructionType}';
 
   String temporaryId(HInstruction instruction) {
     String prefix;
@@ -367,7 +374,10 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String handleGenericInvoke(
-      String invokeType, String? functionName, List<HInstruction> arguments) {
+    String invokeType,
+    String? functionName,
+    List<HInstruction> arguments,
+  ) {
     StringBuffer argumentsString = StringBuffer();
     for (int i = 0; i < arguments.length; i++) {
       if (i != 0) argumentsString.write(", ");
@@ -395,8 +405,11 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitInterceptor(HInterceptor node) {
     String value = temporaryId(node.inputs[0]);
     if (node.interceptedClasses != null) {
-      String cls = suffixForGetInterceptor(closedWorld.commonElements,
-          closedWorld.nativeData, node.interceptedClasses!);
+      String cls = suffixForGetInterceptor(
+        closedWorld.commonElements,
+        closedWorld.nativeData,
+        node.interceptedClasses!,
+      );
       return "Interceptor ($cls): $value";
     }
     return "Interceptor: $value";
@@ -655,9 +668,9 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String _primitiveCheckKind(HPrimitiveCheck node) => switch (node.kind) {
-        PrimitiveCheckKind.receiverType => 'RECEIVER',
-        PrimitiveCheckKind.argumentType => 'ARGUMENT',
-      };
+    PrimitiveCheckKind.receiverType => 'RECEIVER',
+    PrimitiveCheckKind.argumentType => 'ARGUMENT',
+  };
 
   @override
   String visitBoolConversion(HBoolConversion node) {

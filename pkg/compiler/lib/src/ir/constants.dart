@@ -13,19 +13,21 @@ import '../environment.dart';
 import '../kernel/dart2js_target.dart';
 
 class Dart2jsConstantEvaluator extends ir.TryConstantEvaluator {
-  Dart2jsConstantEvaluator(ir.Component component,
-      ir.TypeEnvironment typeEnvironment, ir.ReportErrorFunction reportError,
-      {Environment? environment,
-      super.supportReevaluationForTesting,
-      required super.evaluationMode})
-      : super(
-          const Dart2jsDartLibrarySupport(),
-          const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
-          component,
-          typeEnvironment,
-          reportError,
-          environmentDefines: environment?.definitions ?? const {},
-        );
+  Dart2jsConstantEvaluator(
+    ir.Component component,
+    ir.TypeEnvironment typeEnvironment,
+    ir.ReportErrorFunction reportError, {
+    Environment? environment,
+    super.supportReevaluationForTesting,
+    required super.evaluationMode,
+  }) : super(
+         const Dart2jsDartLibrarySupport(),
+         const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
+         component,
+         typeEnvironment,
+         reportError,
+         environmentDefines: environment?.definitions ?? const {},
+       );
 }
 
 /// Class to represent a reference to a constant in allocation nodes.

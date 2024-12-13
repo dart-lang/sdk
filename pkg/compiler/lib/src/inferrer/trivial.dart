@@ -35,7 +35,9 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
 
   @override
   void writeAbstractValueToDataSink(
-      DataSinkWriter sink, AbstractValue? value) {}
+    DataSinkWriter sink,
+    AbstractValue? value,
+  ) {}
 
   @override
   AbstractValue readAbstractValueFromDataSource(DataSourceReader source) =>
@@ -65,13 +67,16 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractBool needsNoSuchMethodHandling(
-          AbstractValue receiver, Selector selector) =>
-      AbstractBool.maybe;
+    AbstractValue receiver,
+    Selector selector,
+  ) => AbstractBool.maybe;
 
   @override
   AbstractBool isTargetingMember(
-          AbstractValue receiver, MemberEntity member, Name name) =>
-      AbstractBool.maybe;
+    AbstractValue receiver,
+    MemberEntity member,
+    Name name,
+  ) => AbstractBool.maybe;
 
   @override
   AbstractValue computeReceiver(Iterable<MemberEntity> members) =>
@@ -82,8 +87,9 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractValue createPrimitiveValue(
-          AbstractValue originalValue, PrimitiveConstantValue value) =>
-      const TrivialAbstractValue();
+    AbstractValue originalValue,
+    PrimitiveConstantValue value,
+  ) => const TrivialAbstractValue();
 
   @override
   bool isPrimitiveValue(AbstractValue value) => false;
@@ -100,13 +106,15 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
 
   @override
   bool isSpecializationOf(
-          AbstractValue specialization, AbstractValue generalization) =>
-      false;
+    AbstractValue specialization,
+    AbstractValue generalization,
+  ) => false;
 
   @override
   AbstractValue getDictionaryValueForKey(AbstractValue value, String key) {
     throw UnsupportedError(
-        "TrivialAbstractValueDomain.getDictionaryValueForKey");
+      "TrivialAbstractValueDomain.getDictionaryValueForKey",
+    );
   }
 
   @override
@@ -116,21 +124,22 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractValue createDictionaryValue(
-          AbstractValue? originalValue,
-          Object? allocationNode,
-          MemberEntity? allocationElement,
-          AbstractValue key,
-          AbstractValue value,
-          Map<String, AbstractValue> mappings) =>
-      const TrivialAbstractValue();
+    AbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    AbstractValue key,
+    AbstractValue value,
+    Map<String, AbstractValue> mappings,
+  ) => const TrivialAbstractValue();
 
   @override
   bool isDictionary(AbstractValue value) => false;
 
   @override
   AbstractValue createRecordValue(
-          RecordShape shape, List<AbstractValue> types) =>
-      const TrivialAbstractValue();
+    RecordShape shape,
+    List<AbstractValue> types,
+  ) => const TrivialAbstractValue();
 
   @override
   bool isRecord(AbstractValue value) => false;
@@ -154,12 +163,12 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractValue createMapValue(
-          AbstractValue? originalValue,
-          Object? allocationNode,
-          MemberEntity? allocationElement,
-          AbstractValue key,
-          AbstractValue value) =>
-      const TrivialAbstractValue();
+    AbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    AbstractValue key,
+    AbstractValue value,
+  ) => const TrivialAbstractValue();
 
   @override
   bool isMap(AbstractValue value) => false;
@@ -171,11 +180,11 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractValue createSetValue(
-          AbstractValue? originalValue,
-          Object? allocationNode,
-          MemberEntity? allocationElement,
-          AbstractValue elementType) =>
-      const TrivialAbstractValue();
+    AbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    AbstractValue elementType,
+  ) => const TrivialAbstractValue();
 
   @override
   bool isSet(AbstractValue value) => false;
@@ -186,17 +195,18 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
   @override
   AbstractValue getContainerElementType(AbstractValue value) {
     throw UnsupportedError(
-        "TrivialAbstractValueDomain.getContainerElementType");
+      "TrivialAbstractValueDomain.getContainerElementType",
+    );
   }
 
   @override
   AbstractValue createContainerValue(
-          AbstractValue? originalValue,
-          Object? allocationNode,
-          MemberEntity? allocationElement,
-          AbstractValue elementType,
-          int? length) =>
-      const TrivialAbstractValue();
+    AbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    AbstractValue elementType,
+    int? length,
+  ) => const TrivialAbstractValue();
 
   @override
   bool isContainer(AbstractValue value) => false;
@@ -374,17 +384,19 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
       const TrivialAbstractValue();
 
   @override
-  AbstractValueWithPrecision createFromStaticType(DartType type,
-      {required bool nullable}) {
+  AbstractValueWithPrecision createFromStaticType(
+    DartType type, {
+    required bool nullable,
+  }) {
     return const AbstractValueWithPrecision(TrivialAbstractValue(), false);
   }
 
   @override
   Iterable<DynamicCallTarget> findRootsOfTargets(
-          covariant TrivialAbstractValue receiver,
-          Selector selector,
-          MemberHierarchyBuilder memberHierarchyBuilder) =>
-      const [];
+    covariant TrivialAbstractValue receiver,
+    Selector selector,
+    MemberHierarchyBuilder memberHierarchyBuilder,
+  ) => const [];
 
   @override
   bool isInvalidRefinement(AbstractValue before, AbstractValue after) => true;
@@ -490,13 +502,18 @@ class TrivialSelectorStrategy implements SelectorConstraintsStrategy {
 
   @override
   UniverseSelectorConstraints createSelectorConstraints(
-      Selector selector, Object? initialConstraint) {
+    Selector selector,
+    Object? initialConstraint,
+  ) {
     return const TrivialUniverseSelectorConstraints();
   }
 
   @override
-  bool appliedUnnamed(DynamicUse dynamicUse, MemberEntity member,
-      covariant JClosedWorld world) {
+  bool appliedUnnamed(
+    DynamicUse dynamicUse,
+    MemberEntity member,
+    covariant JClosedWorld world,
+  ) {
     return dynamicUse.selector.appliesUnnamed(member);
   }
 }

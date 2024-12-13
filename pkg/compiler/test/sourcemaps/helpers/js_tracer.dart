@@ -19,16 +19,24 @@ TraceGraph createTraceGraph(SourceMapInfo info, Coverage coverage) {
   final outBuffer = NoopCodeOutput();
   SourceInformationProcessor sourceInformationProcessor =
       HelperOnlinePositionSourceInformationStrategy([
-    CoverageListener(coverage, const SourceInformationReader()),
-    listener
-  ]).createProcessor(
-          SourceMapperProviderImpl(outBuffer), const SourceInformationReader());
+        CoverageListener(coverage, const SourceInformationReader()),
+        listener,
+      ]).createProcessor(
+        SourceMapperProviderImpl(outBuffer),
+        const SourceInformationReader(),
+      );
 
   js.Dart2JSJavaScriptPrintingContext context =
-      js.Dart2JSJavaScriptPrintingContext(null, outBuffer,
-          sourceInformationProcessor, const js.JavaScriptAnnotationMonitor());
-  js.Printer printer =
-      js.Printer(const js.JavaScriptPrintingOptions(), context);
+      js.Dart2JSJavaScriptPrintingContext(
+        null,
+        outBuffer,
+        sourceInformationProcessor,
+        const js.JavaScriptAnnotationMonitor(),
+      );
+  js.Printer printer = js.Printer(
+    const js.JavaScriptPrintingOptions(),
+    context,
+  );
   printer.visit(info.node);
   return graph;
 }
@@ -57,8 +65,9 @@ class StepTraceListener extends TraceListener
         text = ['<exit>'];
         break;
       case StepKind.call:
-        CallPosition callPosition =
-            CallPosition.getSemanticPositionForCall(node as js.Call);
+        CallPosition callPosition = CallPosition.getSemanticPositionForCall(
+          node as js.Call,
+        );
         sourcePositionKind = callPosition.sourcePositionKind;
         break;
       case StepKind.access:
@@ -100,18 +109,23 @@ class StepTraceListener extends TraceListener
       case StepKind.noInfo:
         break;
     }
-    createTraceStep(kind, node,
-        offset: offset,
-        sourceLocation:
-            getSourceLocation(sourceInformation!, sourcePositionKind),
-        text: text);
+    createTraceStep(
+      kind,
+      node,
+      offset: offset,
+      sourceLocation: getSourceLocation(sourceInformation!, sourcePositionKind),
+      text: text,
+    );
   }
 
-  void createTraceStep(StepKind kind, js.Node node,
-      {required Offset offset,
-      List? text,
-      String? note,
-      SourceLocation? sourceLocation}) {
+  void createTraceStep(
+    StepKind kind,
+    js.Node node, {
+    required Offset offset,
+    List? text,
+    String? note,
+    SourceLocation? sourceLocation,
+  }) {
     int id = steppableMap.length;
 
     if (text == null) {

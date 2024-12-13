@@ -20,8 +20,12 @@ import '../equivalence/id_equivalence_helper.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, const AnnotationDataComputer(),
-        args: args, testedConfigs: allSpecConfigs);
+    await checkTests(
+      dataDir,
+      const AnnotationDataComputer(),
+      args: args,
+      testedConfigs: allSpecConfigs,
+    );
   });
 }
 
@@ -32,20 +36,23 @@ class AnnotationDataComputer extends DataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool verbose = false}) {
+  void computeMemberData(
+    Compiler compiler,
+    MemberEntity member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool verbose = false,
+  }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     AnnotationIrComputer(
-            compiler.reporter,
-            actualMap,
-            elementMap,
-            member,
-            closedWorld.closureDataLookup,
-            closedWorld.annotationsData as AnnotationsDataImpl)
-        .run(definition.node);
+      compiler.reporter,
+      actualMap,
+      elementMap,
+      member,
+      closedWorld.closureDataLookup,
+      closedWorld.annotationsData as AnnotationsDataImpl,
+    ).run(definition.node);
   }
 
   @override
@@ -53,7 +60,10 @@ class AnnotationDataComputer extends DataComputer<String> {
 
   @override
   String computeErrorData(
-      Compiler compiler, Id id, List<CollectedMessage> errors) {
+    Compiler compiler,
+    Id id,
+    List<CollectedMessage> errors,
+  ) {
     return '[${errors.map((error) => error.message!.message).join(',')}]';
   }
 
@@ -68,21 +78,22 @@ class AnnotationIrComputer extends IrDataExtractor<String> {
   final AnnotationsDataImpl _annotationData;
 
   AnnotationIrComputer(
-      DiagnosticReporter reporter,
-      Map<Id, ActualData<String>> actualMap,
-      this._elementMap,
-      MemberEntity member,
-      this._closureDataLookup,
-      this._annotationData)
-      : super(reporter, actualMap);
+    DiagnosticReporter reporter,
+    Map<Id, ActualData<String>> actualMap,
+    this._elementMap,
+    MemberEntity member,
+    this._closureDataLookup,
+    this._annotationData,
+  ) : super(reporter, actualMap);
 
   String? getMemberValue(MemberEntity member) {
     EnumSet<PragmaAnnotation>? pragmas =
         _annotationData.pragmaAnnotations[member];
     if (pragmas != null) {
       Features features = Features();
-      for (PragmaAnnotation pragma
-          in pragmas.iterable(PragmaAnnotation.values)) {
+      for (PragmaAnnotation pragma in pragmas.iterable(
+        PragmaAnnotation.values,
+      )) {
         features.add(pragma.name);
       }
       return features.getText();
@@ -98,8 +109,9 @@ class AnnotationIrComputer extends IrDataExtractor<String> {
   @override
   String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info =
-          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(
+        node as ir.LocalFunction,
+      );
       return getMemberValue(info.callMethod as FunctionEntity);
     }
     if (node is ir.LoadLibrary) {

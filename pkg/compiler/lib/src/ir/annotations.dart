@@ -72,13 +72,21 @@ class IrAnnotationData {
   }
 
   void forEachJsInteropClass(
-      void Function(ir.Class, String,
-              {required bool isAnonymous, required bool isStaticInterop})
-          f) {
+    void Function(
+      ir.Class,
+      String, {
+      required bool isAnonymous,
+      required bool isStaticInterop,
+    })
+    f,
+  ) {
     _jsInteropClassNames.forEach((ir.Class node, String name) {
-      f(node, name,
-          isAnonymous: isAnonymousJsInteropClass(node),
-          isStaticInterop: isStaticInteropClass(node));
+      f(
+        node,
+        name,
+        isAnonymous: isAnonymousJsInteropClass(node),
+        isStaticInterop: isStaticInteropClass(node),
+      );
     });
   }
 
@@ -103,9 +111,14 @@ class IrAnnotationData {
   }
 
   void forEachNativeMethodData(
-      void Function(ir.Member, String name, Iterable<String> createsAnnotations,
-              Iterable<String> returnsAnnotations)
-          f) {
+    void Function(
+      ir.Member,
+      String name,
+      Iterable<String> createsAnnotations,
+      Iterable<String> returnsAnnotations,
+    )
+    f,
+  ) {
     for (ir.Member node in _nativeMembers) {
       if (node is! ir.Field) {
         String name = _nativeMemberNames[node] ?? node.name.text;
@@ -115,15 +128,24 @@ class IrAnnotationData {
   }
 
   void forEachNativeFieldData(
-      void Function(ir.Member, String name, Iterable<String> createsAnnotations,
-              Iterable<String> returnsAnnotations)
-          f) {
+    void Function(
+      ir.Member,
+      String name,
+      Iterable<String> createsAnnotations,
+      Iterable<String> returnsAnnotations,
+    )
+    f,
+  ) {
     for (ir.Class cls in _nativeClassNames.keys) {
       for (ir.Field field in cls.fields) {
         if (field.isInstanceMember) {
           String name = _nativeMemberNames[field] ?? field.name.text;
-          f(field, name, getCreatesAnnotations(field),
-              getReturnsAnnotations(field));
+          f(
+            field,
+            name,
+            getCreatesAnnotations(field),
+            getReturnsAnnotations(field),
+          );
         }
       }
     }
@@ -387,21 +409,26 @@ PragmaAnnotationData? _getPragmaAnnotation(ir.Constant constant) {
     String prefix = 'dart2js:';
     if (!name.startsWith(prefix)) return null;
     String suffix = name.substring(prefix.length);
-    return PragmaAnnotationData(suffix,
-        options: optionsValue is ir.NullConstant ? null : optionsValue);
+    return PragmaAnnotationData(
+      suffix,
+      options: optionsValue is ir.NullConstant ? null : optionsValue,
+    );
   }
   return null;
 }
 
 List<PragmaAnnotationData> computePragmaAnnotationDataFromIr(
-    ir.Annotatable node) {
+  ir.Annotatable node,
+) {
   List<PragmaAnnotationData> annotations = [];
   for (ir.Expression metadata in node.annotations) {
     if (metadata is! ir.ConstantExpression) continue;
     ir.ConstantExpression constantExpression = metadata;
     ir.Constant constant = constantExpression.constant;
-    assert(constant is! ir.UnevaluatedConstant,
-        "Unexpected unevaluated constant on $node: $metadata");
+    assert(
+      constant is! ir.UnevaluatedConstant,
+      "Unexpected unevaluated constant on $node: $metadata",
+    );
     PragmaAnnotationData? data = _getPragmaAnnotation(constant);
     if (data != null) {
       annotations.add(data);

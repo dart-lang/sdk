@@ -25,7 +25,9 @@ main() {
       String main = 'sdk/tests/web/native/main.dart';
       Uri entryPoint = Uri.parse('memory:$main');
       var result = await runCompiler(
-          entryPoint: entryPoint, memorySourceFiles: {main: test});
+        entryPoint: entryPoint,
+        memorySourceFiles: {main: test},
+      );
       Expect.isTrue(result.isSuccess);
       var compiler = result.compiler!;
       var closedWorld = compiler.backendClosedWorldForTesting!;

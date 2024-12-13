@@ -27,7 +27,7 @@ Set<String> okMapSelectorsSet = <String>{
   "containsKey",
   "containsValue",
   "forEach",
-  "remove"
+  "remove",
 };
 
 class MapTracerVisitor extends TracerVisitor {
@@ -61,7 +61,8 @@ class MapTracerVisitor extends TracerVisitor {
 
   @override
   void visitClosureCallSiteTypeInformation(
-      ClosureCallSiteTypeInformation info) {
+    ClosureCallSiteTypeInformation info,
+  ) {
     bailout('Passed to a closure');
   }
 
@@ -77,7 +78,8 @@ class MapTracerVisitor extends TracerVisitor {
 
   @override
   void visitDynamicCallSiteTypeInformation(
-      DynamicCallSiteTypeInformation info) {
+    DynamicCallSiteTypeInformation info,
+  ) {
     super.visitDynamicCallSiteTypeInformation(info);
     final selector = info.selector!;
     final selectorName = selector.name;

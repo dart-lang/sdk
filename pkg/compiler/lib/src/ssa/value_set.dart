@@ -103,7 +103,10 @@ class ValueSet {
   // by iterating through the hash table and the collisions list and
   // calling [:other.add:].
   static ValueSet copyTo(
-      ValueSet other, List<HInstruction?> table, ValueSetNode? collisions) {
+    ValueSet other,
+    List<HInstruction?> table,
+    ValueSetNode? collisions,
+  ) {
     // Copy elements from the hash table.
     for (final instruction in table) {
       if (instruction != null) other.add(instruction);

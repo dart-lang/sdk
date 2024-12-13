@@ -46,8 +46,8 @@ class View implements Positionable {
   View.fromNode(this._node) : customStyle = <String, String>{};
 
   View.html(String html)
-      : customStyle = <String, String>{},
-        _node = Element.html(html);
+    : customStyle = <String, String>{},
+      _node = Element.html(html);
 
   // TODO(rnystrom): Get rid of this when all views are refactored to not use
   // it.
@@ -160,7 +160,9 @@ class View implements Positionable {
   /// view, then register a bunch of listeners which all fire to populate the
   /// view with model data.
   void watch(
-      Observable observable, void Function(EventSummary summary) watcher) {
+    Observable observable,
+    void Function(EventSummary summary) watcher,
+  ) {
     // Make a fake summary for the initial watch.
     final summary = EventSummary(observable);
     watcher(summary);
@@ -170,7 +172,9 @@ class View implements Positionable {
 
   /// Registers the given listener callback to the given observable. */
   void attachWatch(
-      Observable observable, void Function(EventSummary summary) watcher) {
+    Observable observable,
+    void Function(EventSummary summary) watcher,
+  ) {
     observable.addChangeListener(watcher);
 
     // TODO(rnystrom): Should keep track of this and unregister when the view

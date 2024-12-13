@@ -12,8 +12,10 @@ import 'package:compiler/src/js/js.dart' show prettyPrint;
 import 'package:js_ast/js_ast.dart' as js;
 
 void test(List<String> strings, String expected, {bool minified = false}) {
-  var finalizer =
-      StringReferenceFinalizerImpl(minified, shortestSharedLength: 5);
+  var finalizer = StringReferenceFinalizerImpl(
+    minified,
+    shortestSharedLength: 5,
+  );
 
   for (var string in strings) {
     finalizer.addCode(StringReference(StringConstantValue(string)));
@@ -63,12 +65,10 @@ void main() {
     'Greetings Bob Smith',
     'Great work!',
     'Greetings Alice',
-    'Greetings Bob Henry'
+    'Greetings Bob Henry',
   ];
 
-  test(
-    greets * 2,
-    r'''
+  test(greets * 2, r'''
 {
   var string$ = {
     Great_: "Great work!",
@@ -76,20 +76,16 @@ void main() {
     GreetiBH: "Greetings Bob Henry",
     GreetiBS: "Greetings Bob Smith"
   };
-}''',
-  );
+}''');
 
   // Non-identifiers are replaced with '_' if that is unambiguous.
-  test(
-    ['xylograph', '!pingpong'] * 2,
-    r'''
+  test(['xylograph', '!pingpong'] * 2, r'''
 {
   var string$ = {
     _pingp: "!pingpong",
     xylogr: "xylograph"
   };
-}''',
-  );
+}''');
 
   final strings1 = [
     ...['a xylograph'] * 2,
@@ -99,17 +95,14 @@ void main() {
 
   // Multiple discriminating non-identifier characters are replaced with an
   // escape, which causes a potentially ambiguous non-escape to be escaped.
-  test(
-    strings1,
-    r'''
+  test(strings1, r'''
 {
   var string$ = {
     a_x21pin: "a !pingpong",
     a_x25per: "a %percent",
     a_x78ylo: "a xylograph"
   };
-}''',
-  );
+}''');
 
   // Minified version keeps the strings in the same order as unminified, and
   // tries to allocate the same minified name.
@@ -124,7 +117,7 @@ void main() {
 
   final strings2 = [
     ...['a xylograph'] * 20, // now most frequent.
-    ...strings1
+    ...strings1,
   ];
   test(strings1, minified1, minified: true);
   test(strings2, minified1, minified: true);

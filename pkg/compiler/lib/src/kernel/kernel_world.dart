@@ -91,38 +91,39 @@ class KClosedWorld implements BuiltWorld {
 
   RuntimeTypesNeed get rtiNeed => _rtiNeed;
 
-  KClosedWorld(this.elementMap,
-      {required CompilerOptions options,
-      required this.elementEnvironment,
-      required this.dartTypes,
-      required this.commonElements,
-      required this.nativeData,
-      required this.interceptorData,
-      required this.backendUsage,
-      required this.noSuchMethodData,
-      required RuntimeTypesNeedBuilder rtiNeedBuilder,
-      required this.fieldAnalysis,
-      required Set<ClassEntity> implementedClasses,
-      required this.liveNativeClasses,
-      required this.liveInstanceMembers,
-      required this.liveAbstractInstanceMembers,
-      required this.assignedInstanceMembers,
-      required this.liveMemberUsage,
-      required this.mixinUses,
-      required this.typesImplementedBySubclasses,
-      required this.classHierarchy,
-      required this.annotationsData,
-      required this.isChecks,
-      required this.namedTypeVariablesNewRti,
-      required this.staticTypeArgumentDependencies,
-      required this.dynamicTypeArgumentDependencies,
-      required this.typeVariableTypeLiterals,
-      required this.genericLocalFunctions,
-      required this.closurizedMembersWithFreeTypeVariables,
-      required this.localFunctions,
-      required this.instantiatedTypes,
-      required this.instantiatedRecordTypes})
-      : _implementedClasses = implementedClasses {
+  KClosedWorld(
+    this.elementMap, {
+    required CompilerOptions options,
+    required this.elementEnvironment,
+    required this.dartTypes,
+    required this.commonElements,
+    required this.nativeData,
+    required this.interceptorData,
+    required this.backendUsage,
+    required this.noSuchMethodData,
+    required RuntimeTypesNeedBuilder rtiNeedBuilder,
+    required this.fieldAnalysis,
+    required Set<ClassEntity> implementedClasses,
+    required this.liveNativeClasses,
+    required this.liveInstanceMembers,
+    required this.liveAbstractInstanceMembers,
+    required this.assignedInstanceMembers,
+    required this.liveMemberUsage,
+    required this.mixinUses,
+    required this.typesImplementedBySubclasses,
+    required this.classHierarchy,
+    required this.annotationsData,
+    required this.isChecks,
+    required this.namedTypeVariablesNewRti,
+    required this.staticTypeArgumentDependencies,
+    required this.dynamicTypeArgumentDependencies,
+    required this.typeVariableTypeLiterals,
+    required this.genericLocalFunctions,
+    required this.closurizedMembersWithFreeTypeVariables,
+    required this.localFunctions,
+    required this.instantiatedTypes,
+    required this.instantiatedRecordTypes,
+  }) : _implementedClasses = implementedClasses {
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(this, options);
     assert(_checkIntegrity());
   }
@@ -134,9 +135,10 @@ class KClosedWorld implements BuiltWorld {
             .getEnv(member.enclosingClass as JClass)
             .checkHasMember(elementMap.getMemberNode(member))) {
           throw SpannableAssertionFailure(
-              member,
-              "Member $member is not in the environment of its enclosing class"
-              " ${member.enclosingClass}.");
+            member,
+            "Member $member is not in the environment of its enclosing class"
+            " ${member.enclosingClass}.",
+          );
         }
       }
     }
@@ -153,13 +155,15 @@ class KClosedWorld implements BuiltWorld {
 
   @override
   void forEachStaticTypeArgument(
-      void Function(Entity function, Set<DartType> typeArguments) f) {
+    void Function(Entity function, Set<DartType> typeArguments) f,
+  ) {
     staticTypeArgumentDependencies.forEach(f);
   }
 
   @override
   void forEachDynamicTypeArgument(
-      void Function(Selector selector, Set<DartType> typeArguments) f) {
+    void Function(Selector selector, Set<DartType> typeArguments) f,
+  ) {
     dynamicTypeArgumentDependencies.forEach(f);
   }
 
@@ -189,19 +193,20 @@ class KClosedWorld implements BuiltWorld {
   }
 
   @override
-  late final Iterable<FunctionEntity> userNoSuchMethods = (() {
-    final result = <FunctionEntity>[];
-    liveMemberUsage.forEach((MemberEntity member, MemberUsage memberUsage) {
-      if (member is FunctionEntity && memberUsage.hasUse) {
-        if (member.isInstanceMember &&
-            member.name == Identifiers.noSuchMethod_ &&
-            !commonElements.isDefaultNoSuchMethodImplementation(member)) {
-          result.add(member);
-        }
-      }
-    });
-    return result;
-  })();
+  late final Iterable<FunctionEntity> userNoSuchMethods =
+      (() {
+        final result = <FunctionEntity>[];
+        liveMemberUsage.forEach((MemberEntity member, MemberUsage memberUsage) {
+          if (member is FunctionEntity && memberUsage.hasUse) {
+            if (member.isInstanceMember &&
+                member.name == Identifiers.noSuchMethod_ &&
+                !commonElements.isDefaultNoSuchMethodImplementation(member)) {
+              result.add(member);
+            }
+          }
+        });
+        return result;
+      })();
 
   @override
   late final Iterable<FunctionEntity> closurizedMembers = (() {
@@ -215,46 +220,49 @@ class KClosedWorld implements BuiltWorld {
   }());
 
   @override
-  late final Iterable<FunctionEntity> closurizedStatics = (() {
-    final result = <FunctionEntity>{};
-    liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
-      if (member.isFunction &&
-          (member.isStatic || member.isTopLevel) &&
-          usage.hasRead) {
-        result.add(member as FunctionEntity);
-      }
-    });
-    return result;
-  })();
+  late final Iterable<FunctionEntity> closurizedStatics =
+      (() {
+        final result = <FunctionEntity>{};
+        liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+          if (member.isFunction &&
+              (member.isStatic || member.isTopLevel) &&
+              usage.hasRead) {
+            result.add(member as FunctionEntity);
+          }
+        });
+        return result;
+      })();
 
   @override
-  late final Map<MemberEntity, DartType> genericCallableProperties = (() {
-    final result = <MemberEntity, DartType>{};
-    liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
-      if (usage.hasRead) {
-        DartType? type;
-        if (member is FieldEntity) {
-          type = elementEnvironment.getFieldType(member);
-        } else if (member.isGetter) {
-          type = elementEnvironment
-              .getFunctionType(member as FunctionEntity)
-              .returnType;
-        }
-        if (type == null) return;
-        if (dartTypes.canAssignGenericFunctionTo(type)) {
-          result[member] = type;
-        } else {
-          type = type.withoutNullability;
-          if (type is InterfaceType) {
-            FunctionType? callType = dartTypes.getCallType(type);
-            if (callType != null &&
-                dartTypes.canAssignGenericFunctionTo(callType)) {
-              result[member] = callType;
+  late final Map<MemberEntity, DartType> genericCallableProperties =
+      (() {
+        final result = <MemberEntity, DartType>{};
+        liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+          if (usage.hasRead) {
+            DartType? type;
+            if (member is FieldEntity) {
+              type = elementEnvironment.getFieldType(member);
+            } else if (member.isGetter) {
+              type =
+                  elementEnvironment
+                      .getFunctionType(member as FunctionEntity)
+                      .returnType;
+            }
+            if (type == null) return;
+            if (dartTypes.canAssignGenericFunctionTo(type)) {
+              result[member] = type;
+            } else {
+              type = type.withoutNullability;
+              if (type is InterfaceType) {
+                FunctionType? callType = dartTypes.getCallType(type);
+                if (callType != null &&
+                    dartTypes.canAssignGenericFunctionTo(callType)) {
+                  result[member] = callType;
+                }
+              }
             }
           }
-        }
-      }
-    });
-    return result;
-  })();
+        });
+        return result;
+      })();
 }

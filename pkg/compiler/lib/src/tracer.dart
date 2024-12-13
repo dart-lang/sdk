@@ -25,13 +25,19 @@ class Tracer with TracerUtil {
 
   Tracer._(this.closedWorld, this.traceFilter, this.output);
 
-  factory Tracer(JClosedWorld closedWorld, CompilerOptions options,
-      api.CompilerOutput compilerOutput) {
+  factory Tracer(
+    JClosedWorld closedWorld,
+    CompilerOptions options,
+    api.CompilerOutput compilerOutput,
+  ) {
     String? pattern = options.dumpSsaPattern ?? traceFilterPatternForTest;
     if (pattern == null) return Tracer._(closedWorld, null, null);
     var traceFilter = RegExp(pattern);
-    var output =
-        compilerOutput.createOutputSink('', 'cfg', api.OutputType.debug);
+    var output = compilerOutput.createOutputSink(
+      '',
+      'cfg',
+      api.OutputType.debug,
+    );
     return Tracer._(closedWorld, traceFilter, output);
   }
 

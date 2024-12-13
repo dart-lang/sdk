@@ -131,8 +131,10 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
 
 FormattingDiagnosticHandler? diagnosticHandler;
 
-Future<api.CompilationResult> compile(List<String> argv,
-    {fe.InitializedCompilerState? kernelInitializedCompilerState}) {
+Future<api.CompilationResult> compile(
+  List<String> argv, {
+  fe.InitializedCompilerState? kernelInitializedCompilerState,
+}) {
   Stopwatch wallclock = Stopwatch()..start();
   stackTraceFilePrefix = '${Uri.base}';
   Uri? entryUri;
@@ -217,12 +219,16 @@ Future<api.CompilationResult> compile(List<String> argv,
   void setOptimizationLevel(String argument) {
     final value = int.tryParse(extractParameter(argument));
     if (value == null || value < 0 || value > 4) {
-      _helpAndFail("Unsupported optimization level '$argument', "
-          "supported levels are: 0, 1, 2, 3, 4");
+      _helpAndFail(
+        "Unsupported optimization level '$argument', "
+        "supported levels are: 0, 1, 2, 3, 4",
+      );
     }
     if (optimizationLevel != null) {
-      print("Optimization level '$argument' ignored "
-          "due to preceding '-O$optimizationLevel'");
+      print(
+        "Optimization level '$argument' ignored "
+        "due to preceding '-O$optimizationLevel'",
+      );
       return;
     }
     optimizationLevel = value;
@@ -232,14 +238,17 @@ Future<api.CompilationResult> compile(List<String> argv,
     if (argument == '--output-type=dart' ||
         argument == '--output-type=dart-multi') {
       _helpAndFail(
-          "--output-type=dart is no longer supported. It was deprecated "
-          "since Dart 1.11 and removed in Dart 1.19.");
+        "--output-type=dart is no longer supported. It was deprecated "
+        "since Dart 1.11 and removed in Dart 1.19.",
+      );
     }
   }
 
   Never setStrip(String argument) {
-    _helpAndFail("Option '--force-strip' is not in use now that"
-        "--output-type=dart is no longer supported.");
+    _helpAndFail(
+      "Option '--force-strip' is not in use now that"
+      "--output-type=dart is no longer supported.",
+    );
   }
 
   void setBazelPaths(String argument) {
@@ -303,19 +312,23 @@ Future<api.CompilationResult> compile(List<String> argv,
     List<String> categories = extractParameter(argument).split(',');
     bool isServerMode = categories.length == 1 && categories.single == "Server";
     if (isServerMode) {
-      hints.add("The --categories flag is deprecated and will be deleted in a "
-          "future release, please use '${Flags.serverMode}' instead of "
-          "'--categories=Server'.");
+      hints.add(
+        "The --categories flag is deprecated and will be deleted in a "
+        "future release, please use '${Flags.serverMode}' instead of "
+        "'--categories=Server'.",
+      );
       passThrough(Flags.serverMode);
     } else {
       hints.add(
-          "The --categories flag is deprecated, see the usage for details.");
+        "The --categories flag is deprecated, see the usage for details.",
+      );
     }
   }
 
   void setPlatformBinaries(String argument) {
-    platformBinaries =
-        Uri.base.resolve(extractPath(argument, isDirectory: true));
+    platformBinaries = Uri.base.resolve(
+      extractPath(argument, isDirectory: true),
+    );
   }
 
   List<Uri> setUriList(String flag, String argument) {
@@ -339,8 +352,10 @@ Future<api.CompilationResult> compile(List<String> argv,
       passThrough(argument);
       return;
     }
-    _helpAndFail("Unsupported dump-info format '$argument', "
-        "supported formats are: json or binary");
+    _helpAndFail(
+      "Unsupported dump-info format '$argument', "
+      "supported formats are: json or binary",
+    );
   }
 
   String? nullSafetyMode;
@@ -404,8 +419,10 @@ Future<api.CompilationResult> compile(List<String> argv,
       passThrough(argument);
     }),
     // TODO(sigmund): remove entirely after Dart 1.20
-    _OneOption('--output-type=dart|--output-type=dart-multi|--output-type=js',
-        setOutputType),
+    _OneOption(
+      '--output-type=dart|--output-type=dart-multi|--output-type=js',
+      setOutputType,
+    ),
     _OneOption('--use-kernel', ignoreOption),
     _OneOption(Flags.platformBinaries, setPlatformBinaries),
     _OneOption(Flags.noFrequencyBasedMinification, passThrough),
@@ -419,7 +436,9 @@ Future<api.CompilationResult> compile(List<String> argv,
     _OneOption('${Flags.dillDependencies}=.+', setDillDependencies),
     _OneOption('${Flags.sources}=.+', ignoreOption),
     _OneOption(
-        '${Flags.globalInferenceUri}=.+', setDataUri(Flags.globalInferenceUri)),
+      '${Flags.globalInferenceUri}=.+',
+      setDataUri(Flags.globalInferenceUri),
+    ),
     _OneOption('${Flags.closedWorldUri}=.+', setDataUri(Flags.closedWorldUri)),
     _OneOption('${Flags.codegenUri}=.+', setDataUri(Flags.codegenUri)),
     _OneOption('${Flags.codegenShard}=.+', passThrough),
@@ -447,8 +466,10 @@ Future<api.CompilationResult> compile(List<String> argv,
     _OneOption(Flags.enableDiagnosticColors, (_) {
       enableColors = true;
     }),
-    _OneOption('--enable[_-]checked[_-]mode|--checked',
-        (_) => setCheckedMode(Flags.enableCheckedMode)),
+    _OneOption(
+      '--enable[_-]checked[_-]mode|--checked',
+      (_) => setCheckedMode(Flags.enableCheckedMode),
+    ),
     _OneOption(Flags.enableAsserts, passThrough),
     _OneOption(Flags.enableNullAssertions, passThrough),
     _OneOption(Flags.nativeNullAssertions, passThrough),
@@ -479,13 +500,17 @@ Future<api.CompilationResult> compile(List<String> argv,
     _OneOption(Flags.disableRtiOptimization, passThrough),
     _OneOption(Flags.terse, passThrough),
     _OneOption('--deferred-map=.+', passThrough),
-    _OneOption('${Flags.deferredLoadIdMapUri}=.+',
-        setDataUri(Flags.deferredLoadIdMapUri)),
+    _OneOption(
+      '${Flags.deferredLoadIdMapUri}=.+',
+      setDataUri(Flags.deferredLoadIdMapUri),
+    ),
     _OneOption('${Flags.writeProgramSplit}=.+', passThrough),
     _OneOption('${Flags.readProgramSplit}=.+', passThrough),
     _OneOption('${Flags.dumpInfo}|${Flags.dumpInfo}=.+', setDumpInfo),
     _OneOption(
-        '${Flags.dumpInfoDataUri}=.+', setDataUri(Flags.dumpInfoDataUri)),
+      '${Flags.dumpInfoDataUri}=.+',
+      setDataUri(Flags.dumpInfoDataUri),
+    ),
     _OneOption('--disallow-unsafe-eval', ignoreOption),
     _OneOption(Option.showPackageWarnings, passThrough),
     _OneOption(Option.enableLanguageExperiments, passThrough),
@@ -566,7 +591,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     }),
     _OneOption('.*', (String argument) {
       arguments.add(fe.nativeToUriPath(argument));
-    })
+    }),
   ];
 
   parseCommandLine(handlers, argv);
@@ -578,8 +603,10 @@ Future<api.CompilationResult> compile(List<String> argv,
     // compile initiated through `dart compile js --no-sound-null-safety`
     // will not find a .dill in the default location and should be prevented
     // from executing.
-    _fail('the flag --no-sound-null-safety is not supported in Dart 3.\n'
-        'See: https://dart.dev/null-safety.');
+    _fail(
+      'the flag --no-sound-null-safety is not supported in Dart 3.\n'
+      'See: https://dart.dev/null-safety.',
+    );
   }
   final diagnostic = diagnosticHandler = FormattingDiagnosticHandler();
   if (verbose != null) {
@@ -603,13 +630,17 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   if (checkedMode && strongMode) {
     checkedMode = false;
-    hints.add("Option '${Flags.enableCheckedMode}' is not needed in Dart 2.0. "
-        "To enable assertions use '${Flags.enableAsserts}' instead.");
+    hints.add(
+      "Option '${Flags.enableCheckedMode}' is not needed in Dart 2.0. "
+      "To enable assertions use '${Flags.enableAsserts}' instead.",
+    );
   }
 
   if (trustTypeAnnotations && strongMode) {
-    hints.add("Option '${Flags.trustTypeAnnotations}' is not available "
-        "in Dart 2.0. Try using '${Flags.omitImplicitChecks}' instead.");
+    hints.add(
+      "Option '${Flags.trustTypeAnnotations}' is not available "
+      "in Dart 2.0. Try using '${Flags.omitImplicitChecks}' instead.",
+    );
   }
 
   for (String hint in hints) {
@@ -621,7 +652,8 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   if (invoker == null) {
-    final message = "The 'dart2js' entrypoint script is deprecated, "
+    final message =
+        "The 'dart2js' entrypoint script is deprecated, "
         "please use 'dart compile js' instead.";
     // Aside from asking for `-h`, dart2js fails when it is invoked from its
     // snapshot directly and not using the supported workflows.  However, we
@@ -646,8 +678,10 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   if (trustTypeAnnotations && checkedMode) {
-    _helpAndFail("Option '${Flags.trustTypeAnnotations}' may not be used in "
-        "checked mode.");
+    _helpAndFail(
+      "Option '${Flags.trustTypeAnnotations}' may not be used in "
+      "checked mode.",
+    );
   }
 
   if (arguments.isNotEmpty) {
@@ -664,20 +698,26 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   // Make [scriptName] a relative path.
-  String scriptName =
-      fe.relativizeUri(Uri.base, inputDillUri ?? entryUri!, Platform.isWindows);
+  String scriptName = fe.relativizeUri(
+    Uri.base,
+    inputDillUri ?? entryUri!,
+    Platform.isWindows,
+  );
 
-  CompilerOptions compilerOptions = CompilerOptions.parse(options,
-      featureOptions: features,
-      librariesSpecificationUri: librariesSpecificationUri,
-      platformBinaries: platformBinaries,
-      useDefaultOutputUri: true,
-      onError: (String message) => _fail(message),
-      onWarning: (String message) => print(message))
-    ..packageConfig = packageConfig
-    ..environment = environment
-    ..kernelInitializedCompilerState = kernelInitializedCompilerState
-    ..optimizationLevel = optimizationLevel;
+  CompilerOptions compilerOptions =
+      CompilerOptions.parse(
+          options,
+          featureOptions: features,
+          librariesSpecificationUri: librariesSpecificationUri,
+          platformBinaries: platformBinaries,
+          useDefaultOutputUri: true,
+          onError: (String message) => _fail(message),
+          onWarning: (String message) => print(message),
+        )
+        ..packageConfig = packageConfig
+        ..environment = environment
+        ..kernelInitializedCompilerState = kernelInitializedCompilerState
+        ..optimizationLevel = optimizationLevel;
 
   final errorMessage = compilerOptions.validateStage();
   if (errorMessage != null) {
@@ -692,43 +732,59 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   // TODO(johnniwinther): Measure time for reading files.
-  SourceFileByteReader byteReader = compilerOptions.memoryMappedFiles
-      ? const MemoryMapSourceFileByteReader()
-      : const MemoryCopySourceFileByteReader();
+  SourceFileByteReader byteReader =
+      compilerOptions.memoryMappedFiles
+          ? const MemoryMapSourceFileByteReader()
+          : const MemoryCopySourceFileByteReader();
 
   SourceFileProvider inputProvider;
   if (bazelPaths != null) {
     if (multiRoots != null) {
       _helpAndFail(
-          'The options --bazel-root and --multi-root cannot be supplied '
-          'together, please choose one or the other.');
+        'The options --bazel-root and --multi-root cannot be supplied '
+        'together, please choose one or the other.',
+      );
     }
-    inputProvider = BazelInputProvider(bazelPaths!, byteReader,
-        disableByteCache: compilerOptions.disableDiagnosticByteCache);
+    inputProvider = BazelInputProvider(
+      bazelPaths!,
+      byteReader,
+      disableByteCache: compilerOptions.disableDiagnosticByteCache,
+    );
   } else if (multiRoots != null) {
     inputProvider = MultiRootInputProvider(
-        multiRootScheme!, multiRoots!, byteReader,
-        disableByteCache: compilerOptions.disableDiagnosticByteCache);
+      multiRootScheme!,
+      multiRoots!,
+      byteReader,
+      disableByteCache: compilerOptions.disableDiagnosticByteCache,
+    );
   } else {
     inputProvider = CompilerSourceFileProvider(
-        byteReader: byteReader,
-        disableByteCache: compilerOptions.disableDiagnosticByteCache);
+      byteReader: byteReader,
+      disableByteCache: compilerOptions.disableDiagnosticByteCache,
+    );
   }
 
   diagnostic.registerFileProvider(inputProvider);
 
   RandomAccessFileOutputProvider outputProvider =
-      RandomAccessFileOutputProvider(out, sourceMapOut,
-          onInfo: diagnostic.info, onFailure: _fail);
+      RandomAccessFileOutputProvider(
+        out,
+        sourceMapOut,
+        onInfo: diagnostic.info,
+        onFailure: _fail,
+      );
 
   Future<api.CompilationResult> compilationDone(
-      api.CompilationResult result) async {
+    api.CompilationResult result,
+  ) async {
     if (!result.isSuccess) {
       _fail('Compilation failed.');
     }
     if (out != null) {
       writeString(
-          Uri.parse('$out.deps'), getDepsOutput(inputProvider.getSourceUris()));
+        Uri.parse('$out.deps'),
+        getDepsOutput(inputProvider.getSourceUris()),
+      );
     }
 
     String input = scriptName;
@@ -745,8 +801,9 @@ Future<api.CompilationResult> compile(List<String> argv,
       case CompilerStage.all:
       case CompilerStage.cfe:
       case CompilerStage.dumpInfoAll:
-        final sourceCharCount =
-            _formatCharacterCount(inputProvider.sourceBytesFromDill);
+        final sourceCharCount = _formatCharacterCount(
+          inputProvider.sourceBytesFromDill,
+        );
         inputName = 'input bytes ($sourceCharCount characters source)';
         inputSize = inputProvider.bytesRead;
         summary = 'Dart file $input ';
@@ -761,9 +818,10 @@ Future<api.CompilationResult> compile(List<String> argv,
         inputName = 'bytes data';
         inputSize = inputProvider.bytesRead;
         String dataInput = fe.relativizeUri(
-            Uri.base,
-            compilerOptions.dataUriForStage(CompilerStage.closedWorld),
-            Platform.isWindows);
+          Uri.base,
+          compilerOptions.dataUriForStage(CompilerStage.closedWorld),
+          Platform.isWindows,
+        );
         summary = 'Data files $input and $dataInput ';
         break;
       case CompilerStage.codegenSharded:
@@ -772,31 +830,37 @@ Future<api.CompilationResult> compile(List<String> argv,
         inputName = 'bytes data';
         inputSize = inputProvider.bytesRead;
         String worldInput = fe.relativizeUri(
-            Uri.base,
-            compilerOptions.dataUriForStage(CompilerStage.closedWorld),
-            Platform.isWindows);
+          Uri.base,
+          compilerOptions.dataUriForStage(CompilerStage.closedWorld),
+          Platform.isWindows,
+        );
         String dataInput = fe.relativizeUri(
-            Uri.base,
-            compilerOptions.dataUriForStage(CompilerStage.globalInference),
-            Platform.isWindows);
+          Uri.base,
+          compilerOptions.dataUriForStage(CompilerStage.globalInference),
+          Platform.isWindows,
+        );
         summary = 'Data files $input, $worldInput, and $dataInput ';
         break;
       case CompilerStage.jsEmitter:
         inputName = 'bytes data';
         inputSize = inputProvider.bytesRead;
         String worldInput = fe.relativizeUri(
-            Uri.base,
-            compilerOptions.dataUriForStage(CompilerStage.closedWorld),
-            Platform.isWindows);
+          Uri.base,
+          compilerOptions.dataUriForStage(CompilerStage.closedWorld),
+          Platform.isWindows,
+        );
         String dataInput = fe.relativizeUri(
-            Uri.base,
-            compilerOptions.dataUriForStage(CompilerStage.globalInference),
-            Platform.isWindows);
+          Uri.base,
+          compilerOptions.dataUriForStage(CompilerStage.globalInference),
+          Platform.isWindows,
+        );
         String codeInput = fe.relativizeUri(
-            Uri.base,
-            compilerOptions.dataUriForStage(CompilerStage.codegenSharded),
-            Platform.isWindows);
-        summary = 'Data files $input, $worldInput, $dataInput and '
+          Uri.base,
+          compilerOptions.dataUriForStage(CompilerStage.codegenSharded),
+          Platform.isWindows,
+        );
+        summary =
+            'Data files $input, $worldInput, $dataInput and '
             '$codeInput[0-${compilerOptions.codegenShards! - 1}] ';
         break;
     }
@@ -812,7 +876,10 @@ Future<api.CompilationResult> compile(List<String> argv,
         outputSize = outputProvider.totalCharactersWrittenJavaScript;
         primaryOutputSize = outputProvider.totalCharactersWrittenPrimary;
         String output = fe.relativizeUri(
-            Uri.base, out ?? Uri.parse('out.js'), Platform.isWindows);
+          Uri.base,
+          out ?? Uri.parse('out.js'),
+          Platform.isWindows,
+        );
         summary += 'compiled to JavaScript: $output';
         break;
       case CompilerStage.cfe:
@@ -828,9 +895,10 @@ Future<api.CompilationResult> compile(List<String> argv,
         outputSize = outputProvider.totalDataWritten;
         final producesDill = compilerOptions.producesModifiedDill;
         String dataOutput = fe.relativizeUri(
-            Uri.base,
-            compilerOptions.dataUriForStage(compilerOptions.stage),
-            Platform.isWindows);
+          Uri.base,
+          compilerOptions.dataUriForStage(compilerOptions.stage),
+          Platform.isWindows,
+        );
         String summaryLine = dataOutput;
         if (producesDill) {
           summaryLine += ' and ';
@@ -843,9 +911,10 @@ Future<api.CompilationResult> compile(List<String> argv,
         outputName = 'character map';
         outputSize = outputProvider.totalCharactersWritten;
         String dataOutput = fe.relativizeUri(
-            Uri.base,
-            compilerOptions.dataUriForStage(compilerOptions.stage),
-            Platform.isWindows);
+          Uri.base,
+          compilerOptions.dataUriForStage(compilerOptions.stage),
+          Platform.isWindows,
+        );
         summary += 'mapped to: $dataOutput.';
         break;
       case CompilerStage.globalInference:
@@ -853,9 +922,10 @@ Future<api.CompilationResult> compile(List<String> argv,
         outputName = 'bytes data';
         outputSize = outputProvider.totalDataWritten;
         String dataOutput = fe.relativizeUri(
-            Uri.base,
-            compilerOptions.dataUriForStage(compilerOptions.stage),
-            Platform.isWindows);
+          Uri.base,
+          compilerOptions.dataUriForStage(compilerOptions.stage),
+          Platform.isWindows,
+        );
         summary += 'serialized to data: $dataOutput.';
         break;
       case CompilerStage.codegenSharded:
@@ -863,22 +933,28 @@ Future<api.CompilationResult> compile(List<String> argv,
         outputName = 'bytes data';
         outputSize = outputProvider.totalDataWritten;
         String codeOutput = fe.relativizeUri(
-            Uri.base,
-            compilerOptions.dataUriForStage(compilerOptions.stage),
-            Platform.isWindows);
-        summary += 'serialized to codegen data: '
+          Uri.base,
+          compilerOptions.dataUriForStage(compilerOptions.stage),
+          Platform.isWindows,
+        );
+        summary +=
+            'serialized to codegen data: '
             '$codeOutput${compilerOptions.codegenShard}.';
         break;
     }
 
-    print('$processName '
-        '${_formatCharacterCount(inputSize)} $inputName to '
-        '${_formatCharacterCount(outputSize)} $outputName in '
-        '${_formatDurationAsSeconds(wallclock.elapsed)} seconds using '
-        '${await currentHeapCapacityInMb()} of memory');
+    print(
+      '$processName '
+      '${_formatCharacterCount(inputSize)} $inputName to '
+      '${_formatCharacterCount(outputSize)} $outputName in '
+      '${_formatDurationAsSeconds(wallclock.elapsed)} seconds using '
+      '${await currentHeapCapacityInMb()} of memory',
+    );
     if (primaryOutputSize != null && out != null) {
-      diagnostic.info('${_formatCharacterCount(primaryOutputSize)} $outputName '
-          'in ${fe.relativizeUri(Uri.base, out!, Platform.isWindows)}');
+      diagnostic.info(
+        '${_formatCharacterCount(primaryOutputSize)} $outputName '
+        'in ${fe.relativizeUri(Uri.base, out!, Platform.isWindows)}',
+      );
     }
     if (compilerOptions.stage.emitsJs) {
       if (diagnostic.verbose) {
@@ -896,8 +972,12 @@ Future<api.CompilationResult> compile(List<String> argv,
     return result;
   }
 
-  return compileFunc(compilerOptions, inputProvider, diagnostic, outputProvider)
-      .then(compilationDone);
+  return compileFunc(
+    compilerOptions,
+    inputProvider,
+    diagnostic,
+    outputProvider,
+  ).then(compilationDone);
 }
 
 /// Returns the non-negative integer formatted with a thousands separator.
@@ -927,24 +1007,32 @@ void writeString(Uri uri, String text) {
   if (!uri.isScheme('file')) {
     _fail('Unhandled scheme ${uri.scheme}.');
   }
-  var file = (File(uri.toFilePath())..createSync(recursive: true))
-      .openSync(mode: FileMode.write);
+  var file = (File(uri.toFilePath())
+    ..createSync(recursive: true)).openSync(mode: FileMode.write);
   file.writeStringSync(text);
   file.closeSync();
 }
 
 Never _fail(String message) {
   if (diagnosticHandler != null) {
-    diagnosticHandler!
-        .report(null, null, -1, -1, message, api.Diagnostic.error);
+    diagnosticHandler!.report(
+      null,
+      null,
+      -1,
+      -1,
+      message,
+      api.Diagnostic.error,
+    );
   } else {
     print('Error: $message');
   }
   exitFunc(1);
 }
 
-Future<api.CompilationResult> compilerMain(List<String> arguments,
-    {fe.InitializedCompilerState? kernelInitializedCompilerState}) async {
+Future<api.CompilationResult> compilerMain(
+  List<String> arguments, {
+  fe.InitializedCompilerState? kernelInitializedCompilerState,
+}) async {
   if (!arguments.any((a) => a.startsWith('--libraries-spec='))) {
     Uri script = Platform.script;
     if (script.isScheme("package")) {
@@ -953,11 +1041,13 @@ Future<api.CompilationResult> compilerMain(List<String> arguments,
     Uri librariesJson = script.resolve(_defaultSpecificationUri);
     arguments = <String>[
       '--libraries-spec=${librariesJson.toFilePath()}',
-      ...arguments
+      ...arguments,
     ];
   }
-  return compile(arguments,
-      kernelInitializedCompilerState: kernelInitializedCompilerState);
+  return compile(
+    arguments,
+    kernelInitializedCompilerState: kernelInitializedCompilerState,
+  );
 }
 
 void help() {
@@ -965,7 +1055,8 @@ void help() {
   // terminal size normally 80x24. Two lines are used for the prompts
   // before and after running the compiler. Another two lines may be
   // used to print an error message.
-  print('''
+  print(
+    '''
 Compile Dart to JavaScript.
 
 Usage: dart compile js [arguments] <dart entry point>
@@ -978,12 +1069,13 @@ Usage: dart compile js [arguments] <dart entry point>
      -O2          Safe production-oriented optimizations (like minification).
      -O3          Potentially unsafe optimizations (see -h -v for details).
      -O4          More agressive unsafe optimizations (see -h -v for details).
-'''
-      .trim());
+'''.trim(),
+  );
 }
 
 void verboseHelp() {
-  print(r'''
+  print(
+    r'''
 Compile Dart to JavaScript.
 
 Usage: dart compile js [arguments] <dart entry point>
@@ -1174,8 +1266,8 @@ be removed in a future version:
   --no-frequency-based-minification
     Experimental.  Disabled the new frequency based minifying namer and use the
     old namer instead.
-'''
-      .trim());
+'''.trim(),
+  );
 }
 
 void helpAndExit(bool wantHelp, bool wantVersion, bool verbose) {
@@ -1201,8 +1293,14 @@ Never _helpAndFail(String message) {
 
 void warning(String message) {
   if (diagnosticHandler != null) {
-    diagnosticHandler!
-        .report(null, null, -1, -1, message, api.Diagnostic.warning);
+    diagnosticHandler!.report(
+      null,
+      null,
+      -1,
+      -1,
+      message,
+      api.Diagnostic.warning,
+    );
   } else {
     print('Warning: $message');
   }
@@ -1249,11 +1347,13 @@ Iterable<String> _readLines(String path) {
 }
 
 typedef ExitFunc = Never Function(int exitCode);
-typedef CompileFunc = Future<api.CompilationResult> Function(
-    CompilerOptions compilerOptions,
-    api.CompilerInput compilerInput,
-    api.CompilerDiagnostics compilerDiagnostics,
-    api.CompilerOutput compilerOutput);
+typedef CompileFunc =
+    Future<api.CompilationResult> Function(
+      CompilerOptions compilerOptions,
+      api.CompilerInput compilerInput,
+      api.CompilerDiagnostics compilerDiagnostics,
+      api.CompilerOutput compilerOutput,
+    );
 
 ExitFunc exitFunc = exit;
 CompileFunc compileFunc = api.compile;
@@ -1263,8 +1363,10 @@ CompileFunc compileFunc = api.compile;
 /// Set this to `false` in end-to-end tests to avoid generating '.deps' files.
 bool enableWriteString = true;
 
-Future<api.CompilationResult> internalMain(List<String> arguments,
-    {fe.InitializedCompilerState? kernelInitializedCompilerState}) {
+Future<api.CompilationResult> internalMain(
+  List<String> arguments, {
+  fe.InitializedCompilerState? kernelInitializedCompilerState,
+}) {
   Future<api.CompilationResult> onError(Object exception, StackTrace? trace) {
     // If we are already trying to exit, just continue exiting.
     if (exception == _exitSignal) throw exception;
@@ -1285,9 +1387,10 @@ Future<api.CompilationResult> internalMain(List<String> arguments,
   }
 
   try {
-    return compilerMain(arguments,
-            kernelInitializedCompilerState: kernelInitializedCompilerState)
-        .catchError(onError);
+    return compilerMain(
+      arguments,
+      kernelInitializedCompilerState: kernelInitializedCompilerState,
+    ).catchError(onError);
   } catch (exception, trace) {
     return onError(exception, trace);
   }
@@ -1315,50 +1418,56 @@ void batchMain(List<String> batchArguments) {
   fe.InitializedCompilerState? kernelInitializedCompilerState;
   subscription = stream.listen((String line) {
     Future.sync(() {
-      subscription.pause();
-      exitCode = 0;
-      List<String> testArgs = splitLine(line, windows: Platform.isWindows);
+          subscription.pause();
+          exitCode = 0;
+          List<String> testArgs = splitLine(line, windows: Platform.isWindows);
 
-      // Ignore experiment flags given to the batch runner.
-      //
-      // Batch arguments are provided when the batch compiler is created, and
-      // contain flags that are generally enabled for all tests. Tests
-      // may have more specific flags that could conflict with the batch flags.
-      // For example, the batch runner might be setup to run the non-nullable
-      // experiment, but the test may enable more experiments.
-      //
-      // At this time we are only aware of these kind of conflicts with
-      // experiment flags, so we handle those directly. Currently the test
-      // runner passes experiment flags on both the batch runner and the test
-      // itself, so it is safe to ignore the flag that was given to the batch
-      // runner.
-      List<String> args = [
-        for (var arg in batchArguments)
-          if (!arg.startsWith('--enable-experiment')) arg,
-        ...testArgs,
-      ];
-      return internalMain(args,
-          kernelInitializedCompilerState: kernelInitializedCompilerState);
-    }).then((api.CompilationResult? result) {
-      if (result != null) {
-        kernelInitializedCompilerState = result.kernelInitializedCompilerState;
-      }
-    }).catchError((Object exception, StackTrace trace) {
-      if (!identical(exception, _exitSignal)) {
-        exitCode = 253;
-      }
-    }).whenComplete(() {
-      // The testing framework waits for a status line on stdout and
-      // stderr before moving to the next test.
-      if (exitCode == 0) {
-        print(">>> TEST OK");
-      } else if (exitCode == 253) {
-        print(">>> TEST CRASH");
-      } else {
-        print(">>> TEST FAIL");
-      }
-      stderr.writeln(">>> EOF STDERR");
-      subscription.resume();
-    });
+          // Ignore experiment flags given to the batch runner.
+          //
+          // Batch arguments are provided when the batch compiler is created, and
+          // contain flags that are generally enabled for all tests. Tests
+          // may have more specific flags that could conflict with the batch flags.
+          // For example, the batch runner might be setup to run the non-nullable
+          // experiment, but the test may enable more experiments.
+          //
+          // At this time we are only aware of these kind of conflicts with
+          // experiment flags, so we handle those directly. Currently the test
+          // runner passes experiment flags on both the batch runner and the test
+          // itself, so it is safe to ignore the flag that was given to the batch
+          // runner.
+          List<String> args = [
+            for (var arg in batchArguments)
+              if (!arg.startsWith('--enable-experiment')) arg,
+            ...testArgs,
+          ];
+          return internalMain(
+            args,
+            kernelInitializedCompilerState: kernelInitializedCompilerState,
+          );
+        })
+        .then((api.CompilationResult? result) {
+          if (result != null) {
+            kernelInitializedCompilerState =
+                result.kernelInitializedCompilerState;
+          }
+        })
+        .catchError((Object exception, StackTrace trace) {
+          if (!identical(exception, _exitSignal)) {
+            exitCode = 253;
+          }
+        })
+        .whenComplete(() {
+          // The testing framework waits for a status line on stdout and
+          // stderr before moving to the next test.
+          if (exitCode == 0) {
+            print(">>> TEST OK");
+          } else if (exitCode == 253) {
+            print(">>> TEST CRASH");
+          } else {
+            print(">>> TEST FAIL");
+          }
+          stderr.writeln(">>> EOF STDERR");
+          subscription.resume();
+        });
   });
 }

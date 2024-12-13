@@ -32,16 +32,16 @@ class BackendImpact {
   final List<BackendImpact> otherImpacts;
   final EnumSet<BackendFeature> _features;
 
-  const BackendImpact(
-      {this.staticUses = const [],
-      this.globalUses = const [],
-      this.dynamicUses = const [],
-      this.instantiatedTypes = const [],
-      this.instantiatedClasses = const [],
-      this.globalClasses = const [],
-      this.otherImpacts = const [],
-      EnumSet<BackendFeature> features = const EnumSet.empty()})
-      : _features = features;
+  const BackendImpact({
+    this.staticUses = const [],
+    this.globalUses = const [],
+    this.dynamicUses = const [],
+    this.instantiatedTypes = const [],
+    this.instantiatedClasses = const [],
+    this.globalClasses = const [],
+    this.otherImpacts = const [],
+    EnumSet<BackendFeature> features = const EnumSet.empty(),
+  }) : _features = features;
 
   Iterable<BackendFeature> get features =>
       _features.iterable(BackendFeature.values);
@@ -53,8 +53,10 @@ class BackendImpact {
   }
 
   /// Register this backend impact to the [worldImpactBuilder].
-  void registerImpact(WorldImpactBuilder worldImpactBuilder,
-      ElementEnvironment elementEnvironment) {
+  void registerImpact(
+    WorldImpactBuilder worldImpactBuilder,
+    ElementEnvironment elementEnvironment,
+  ) {
     for (FunctionEntity staticUse in staticUses) {
       worldImpactBuilder.registerStaticUse(StaticUse.implicitInvoke(staticUse));
     }
@@ -62,20 +64,24 @@ class BackendImpact {
       worldImpactBuilder.registerStaticUse(StaticUse.implicitInvoke(staticUse));
     }
     for (Selector selector in dynamicUses) {
-      worldImpactBuilder
-          .registerDynamicUse(DynamicUse(selector, null, const []));
+      worldImpactBuilder.registerDynamicUse(
+        DynamicUse(selector, null, const []),
+      );
     }
     for (InterfaceType instantiatedType in instantiatedTypes) {
-      worldImpactBuilder
-          .registerTypeUse(TypeUse.instantiation(instantiatedType));
+      worldImpactBuilder.registerTypeUse(
+        TypeUse.instantiation(instantiatedType),
+      );
     }
     for (ClassEntity cls in instantiatedClasses) {
       worldImpactBuilder.registerTypeUse(
-          TypeUse.instantiation(elementEnvironment.getRawType(cls)));
+        TypeUse.instantiation(elementEnvironment.getRawType(cls)),
+      );
     }
     for (ClassEntity cls in globalClasses) {
       worldImpactBuilder.registerTypeUse(
-          TypeUse.instantiation(elementEnvironment.getRawType(cls)));
+        TypeUse.instantiation(elementEnvironment.getRawType(cls)),
+      );
     }
     for (BackendImpact otherImpact in otherImpacts) {
       otherImpact.registerImpact(worldImpactBuilder, elementEnvironment);
@@ -96,9 +102,7 @@ class BackendImpacts {
   );
 
   late final BackendImpact computeSignature = BackendImpact(
-    globalUses: [
-      _commonElements.setArrayType,
-    ],
+    globalUses: [_commonElements.setArrayType],
     otherImpacts: [listValues],
   );
 
@@ -106,7 +110,7 @@ class BackendImpacts {
     globalUses: [_commonElements.convertMainArgumentList],
     instantiatedClasses: [
       _commonElements.jsArrayClass,
-      _commonElements.jsStringClass
+      _commonElements.jsStringClass,
     ],
   );
 
@@ -117,7 +121,7 @@ class BackendImpacts {
       _commonElements.asyncHelperRethrow,
       _commonElements.streamIteratorConstructor,
       _commonElements.wrapBody,
-      _commonElements.asyncHelperStartSync
+      _commonElements.asyncHelperStartSync,
     ],
   );
 
@@ -144,16 +148,12 @@ class BackendImpacts {
   );
 
   late final BackendImpact typeVariableBoundCheck = BackendImpact(
-    staticUses: [
-      _commonElements.checkTypeBound,
-    ],
+    staticUses: [_commonElements.checkTypeBound],
   );
 
   late final BackendImpact asCheck = BackendImpact(
     staticUses: [],
-    otherImpacts: [
-      newRtiImpact,
-    ],
+    otherImpacts: [newRtiImpact],
   );
 
   late final BackendImpact stringValues = BackendImpact(
@@ -189,7 +189,7 @@ class BackendImpacts {
       _commonElements.jsMutableArrayClass,
       _commonElements.jsFixedArrayClass,
       _commonElements.jsExtendableArrayClass,
-      _commonElements.jsUnmodifiableArrayClass
+      _commonElements.jsUnmodifiableArrayClass,
     ],
   );
 
@@ -197,7 +197,7 @@ class BackendImpacts {
     staticUses: [_commonElements.throwUnsupportedError],
     otherImpacts: [
       // Also register the types of the arguments passed to this method.
-      stringValues
+      stringValues,
     ],
   );
 
@@ -251,8 +251,9 @@ class BackendImpacts {
     otherImpacts: [_needsString('Strings are created.')],
   );
 
-  late final BackendImpact stringJuxtaposition =
-      _needsString('String.concat is used.');
+  late final BackendImpact stringJuxtaposition = _needsString(
+    'String.concat is used.',
+  );
 
   BackendImpact get nullLiteral => nullValue;
 
@@ -268,7 +269,7 @@ class BackendImpacts {
     staticUses: [_commonElements.exceptionUnwrapper],
     instantiatedClasses: [
       _commonElements.jsPlainJavaScriptObjectClass,
-      _commonElements.jsUnknownJavaScriptObjectClass
+      _commonElements.jsUnknownJavaScriptObjectClass,
     ],
   );
 
@@ -278,7 +279,7 @@ class BackendImpacts {
     // we may not need the throwExpression helper.
     staticUses: [
       _commonElements.wrapExceptionHelper,
-      _commonElements.throwExpressionHelper
+      _commonElements.throwExpressionHelper,
     ],
   );
 
@@ -311,35 +312,35 @@ class BackendImpacts {
   late final BackendImpact typeVariableExpression = BackendImpact(
     staticUses: [
       _commonElements.setArrayType,
-      _commonElements.createRuntimeType
+      _commonElements.createRuntimeType,
     ],
     otherImpacts: [
       listValues,
       getRuntimeTypeArgument,
-      _needsInt('Needed for accessing a type variable literal on this.')
+      _needsInt('Needed for accessing a type variable literal on this.'),
     ],
   );
 
-  late final BackendImpact typeCheck =
-      BackendImpact(otherImpacts: [boolValues, newRtiImpact]);
+  late final BackendImpact typeCheck = BackendImpact(
+    otherImpacts: [boolValues, newRtiImpact],
+  );
 
   late final BackendImpact genericTypeCheck = BackendImpact(
     staticUses: [
       // TODO(johnniwinther): Investigate why this is needed.
       _commonElements.setArrayType,
     ],
-    otherImpacts: [
-      listValues,
-      getRuntimeTypeArgument,
-      newRtiImpact,
-    ],
+    otherImpacts: [listValues, getRuntimeTypeArgument, newRtiImpact],
   );
 
-  late final BackendImpact genericIsCheck =
-      BackendImpact(otherImpacts: [intValues, newRtiImpact]);
+  late final BackendImpact genericIsCheck = BackendImpact(
+    otherImpacts: [intValues, newRtiImpact],
+  );
 
-  late final BackendImpact typeVariableTypeCheck =
-      BackendImpact(staticUses: [], otherImpacts: [newRtiImpact]);
+  late final BackendImpact typeVariableTypeCheck = BackendImpact(
+    staticUses: [],
+    otherImpacts: [newRtiImpact],
+  );
 
   late final BackendImpact functionTypeCheck = BackendImpact(
     staticUses: [/*helpers.functionTypeTestMetaHelper*/],
@@ -356,7 +357,7 @@ class BackendImpacts {
       // We will need to add the "$is" and "$as" properties on the
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.
-      _commonElements.defineProperty
+      _commonElements.defineProperty,
     ],
     otherImpacts: [newRtiImpact],
   );
@@ -373,7 +374,7 @@ class BackendImpacts {
       _commonElements.jsPlainJavaScriptObjectClass,
       _commonElements.jsJavaScriptBigIntClass,
       _commonElements.jsJavaScriptFunctionClass,
-      _commonElements.jsJavaScriptSymbolClass
+      _commonElements.jsJavaScriptSymbolClass,
     ],
     features: EnumSet<BackendFeature>.fromValues([
       BackendFeature.needToInitializeDispatchProperty,
@@ -382,9 +383,7 @@ class BackendImpacts {
   );
 
   late final BackendImpact allowInterop = BackendImpact(
-    staticUses: [
-      _commonElements.jsAllowInterop!,
-    ],
+    staticUses: [_commonElements.jsAllowInterop!],
     instantiatedClasses: [_commonElements.jsJavaScriptFunctionClass],
     features: EnumSet<BackendFeature>.fromValues([
       BackendFeature.needToInitializeIsolateAffinityTag,
@@ -402,7 +401,7 @@ class BackendImpacts {
     // `ioore` and `iae` _commonElements directly.
     globalUses: [
       _commonElements.throwIndexOutOfRangeException,
-      _commonElements.throwIllegalArgumentException
+      _commonElements.throwIllegalArgumentException,
     ],
   );
 
@@ -441,7 +440,7 @@ class BackendImpacts {
       _commonElements.jsPlainJavaScriptObjectClass,
       _commonElements.jsJavaScriptBigIntClass,
       _commonElements.jsJavaScriptFunctionClass,
-      _commonElements.jsJavaScriptSymbolClass
+      _commonElements.jsJavaScriptSymbolClass,
     ],
   );
 
@@ -450,7 +449,7 @@ class BackendImpacts {
       _commonElements.mapLiteralConstructor,
       _commonElements.mapLiteralConstructorEmpty,
       _commonElements.mapLiteralUntypedMaker,
-      _commonElements.mapLiteralUntypedEmptyMaker
+      _commonElements.mapLiteralUntypedEmptyMaker,
     ],
   );
 
@@ -492,9 +491,7 @@ class BackendImpacts {
 
   late final BackendImpact runtimeTypeSupport = BackendImpact(
     globalClasses: [_commonElements.listClass],
-    globalUses: [
-      _commonElements.setArrayType,
-    ],
+    globalUses: [_commonElements.setArrayType],
     otherImpacts: [getRuntimeTypeArgument, computeSignature],
   );
 
@@ -507,7 +504,7 @@ class BackendImpacts {
   late final BackendImpact noSuchMethodSupport = BackendImpact(
     globalUses: [
       _commonElements.createInvocationMirror,
-      _commonElements.createUnmangledInvocationMirror
+      _commonElements.createUnmangledInvocationMirror,
     ],
     dynamicUses: [Selectors.noSuchMethod_],
   );
@@ -515,19 +512,19 @@ class BackendImpacts {
   /// Backend impact for accessing a `loadLibrary` function on a deferred
   /// prefix.
   late final BackendImpact loadLibrary = BackendImpact(
-    globalUses: [
-      _commonElements.loadDeferredLibrary,
-    ],
+    globalUses: [_commonElements.loadDeferredLibrary],
   );
 
   /// Backend impact for performing member closurization.
-  late final BackendImpact memberClosure =
-      BackendImpact(globalClasses: [_commonElements.boundClosureClass]);
+  late final BackendImpact memberClosure = BackendImpact(
+    globalClasses: [_commonElements.boundClosureClass],
+  );
 
   /// Backend impact for performing closurization of a top-level or static
   /// function.
-  late final BackendImpact staticClosure =
-      BackendImpact(globalClasses: [_commonElements.closureClass]);
+  late final BackendImpact staticClosure = BackendImpact(
+    globalClasses: [_commonElements.closureClass],
+  );
 
   final Map<int, BackendImpact> _genericInstantiation = {};
 
@@ -623,8 +620,6 @@ class BackendImpacts {
   );
 
   late final BackendImpact recordInstantiation = BackendImpact(
-    globalUses: [
-      _commonElements.recordImpactModel,
-    ],
+    globalUses: [_commonElements.recordImpactModel],
   );
 }

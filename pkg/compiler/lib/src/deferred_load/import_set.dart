@@ -95,8 +95,11 @@ class ImportSetLattice {
 
   /// Builds the [mainSet] which contains transitions for all other deferred
   /// imports as well as [mainImport].
-  void buildMainSet(ImportEntity mainImport, OutputUnit mainOutputUnit,
-      Iterable<ImportEntity> allDeferredImports) {
+  void buildMainSet(
+    ImportEntity mainImport,
+    OutputUnit mainOutputUnit,
+    Iterable<ImportEntity> allDeferredImports,
+  ) {
     _mainSet = setOfImportsToImportSet({mainImport, ...allDeferredImports});
     _mainSet.unit = mainOutputUnit;
     initialSets[mainImport] = _mainSet;
@@ -104,7 +107,8 @@ class ImportSetLattice {
 
   /// Initializes the [initialSet] map.
   void buildInitialSets(
-      Map<ImportEntity, Set<ImportEntity>> initialTransitions) {
+    Map<ImportEntity, Set<ImportEntity>> initialTransitions,
+  ) {
     initialTransitions.forEach((import, setOfImports) {
       initialSets[import] = setOfImportsToImportSet(setOfImports);
     });
@@ -114,9 +118,12 @@ class ImportSetLattice {
   /// before finalizing [ImportSet]s.
   void buildSetTransitions(List<psc.SetTransition> setTransitions) {
     for (var setTransition in setTransitions) {
-      importSetTransitions.add(ImportSetTransition(
+      importSetTransitions.add(
+        ImportSetTransition(
           setOfImportsToImportSet(setTransition.source),
-          setOfImportsToImportSet(setTransition.transitions)));
+          setOfImportsToImportSet(setTransition.transitions),
+        ),
+      );
     }
   }
 
@@ -213,8 +220,10 @@ class ImportSetLattice {
 
   /// Get the index for an [import] according to the canonical order.
   _DeferredImport _wrap(ImportEntity import) {
-    return _importIndex[import] ??=
-        _DeferredImport(import, _importIndex.length);
+    return _importIndex[import] ??= _DeferredImport(
+      import,
+      _importIndex.length,
+    );
   }
 }
 
@@ -266,8 +275,11 @@ abstract class ImportSet {
   ImportSet _add(_DeferredImport import) {
     var self = this;
     assert(self is! _NonEmptyImportSet || import.index > self._import.index);
-    return _transitions[import] ??=
-        _NonEmptyImportSet(import, this, length + 1);
+    return _transitions[import] ??= _NonEmptyImportSet(
+      import,
+      this,
+      length + 1,
+    );
   }
 
   @override

@@ -25,12 +25,18 @@ class SetTypeMask extends AllocationTypeMask {
   // The element type of this set.
   final TypeMask elementType;
 
-  const SetTypeMask(this.forwardTo, this._allocationNode,
-      this.allocationElement, this.elementType);
+  const SetTypeMask(
+    this.forwardTo,
+    this._allocationNode,
+    this.allocationElement,
+    this.elementType,
+  );
 
   /// Deserializes a [SetTypeMask] object from [source].
   factory SetTypeMask.readFromDataSource(
-      DataSourceReader source, CommonMasks domain) {
+    DataSourceReader source,
+    CommonMasks domain,
+  ) {
     source.begin(tag);
     final forwardTo = TypeMask.readFromDataSource(source, domain);
     final allocationElement = source.readMemberOrNull();
@@ -59,19 +65,26 @@ class SetTypeMask extends AllocationTypeMask {
       return this;
     }
     return SetTypeMask(
-        forwardTo.withSpecialValues(
-            isNullable: isNullable, hasLateSentinel: hasLateSentinel),
-        allocationNode,
-        allocationElement,
-        elementType);
+      forwardTo.withSpecialValues(
+        isNullable: isNullable,
+        hasLateSentinel: hasLateSentinel,
+      ),
+      allocationNode,
+      allocationElement,
+      elementType,
+    );
   }
 
   @override
   bool get isExact => true;
 
   @override
-  TypeMask? _unionSpecialCases(TypeMask other, CommonMasks domain,
-      {required bool isNullable, required bool hasLateSentinel}) {
+  TypeMask? _unionSpecialCases(
+    TypeMask other,
+    CommonMasks domain, {
+    required bool isNullable,
+    required bool hasLateSentinel,
+  }) {
     if (other is SetTypeMask) {
       TypeMask newElementType = elementType.union(other.elementType, domain);
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);

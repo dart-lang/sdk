@@ -43,7 +43,11 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
   String get name => 'SsaTypePropagator';
 
   SsaTypePropagator(
-      this.results, this.commonElements, this.closedWorld, this._log);
+    this.results,
+    this.commonElements,
+    this.closedWorld,
+    this._log,
+  );
 
   AbstractValueDomain get abstractValueDomain =>
       closedWorld.abstractValueDomain;
@@ -235,8 +239,10 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
     AbstractValue inputType = input.instructionType;
     AbstractValue checkedType = node.checkedType;
 
-    AbstractValue outputType =
-        abstractValueDomain.intersection(checkedType, inputType);
+    AbstractValue outputType = abstractValueDomain.intersection(
+      checkedType,
+      inputType,
+    );
     if (inputType != outputType) {
       // Replace dominated uses of input with uses of this HPrimitiveCheck so
       // the uses benefit from the stronger type.
@@ -250,21 +256,33 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
   AbstractValue visitTypeKnown(HTypeKnown node) {
     HInstruction input = node.checkedInput;
     AbstractValue inputType = input.instructionType;
-    AbstractValue outputType =
-        abstractValueDomain.intersection(node.knownType, inputType);
+    AbstractValue outputType = abstractValueDomain.intersection(
+      node.knownType,
+      inputType,
+    );
     if (inputType != outputType) {
       input.replaceAllUsersDominatedBy(node.next!, node);
     }
     return outputType;
   }
 
-  void convertInput(HInvokeDynamic instruction, HInstruction input,
-      AbstractValue type, PrimitiveCheckKind kind, DartType typeExpression) {
+  void convertInput(
+    HInvokeDynamic instruction,
+    HInstruction input,
+    AbstractValue type,
+    PrimitiveCheckKind kind,
+    DartType typeExpression,
+  ) {
     Selector? selector =
         (kind == PrimitiveCheckKind.receiverType) ? instruction.selector : null;
     HPrimitiveCheck converted = HPrimitiveCheck(
-        typeExpression, kind, type, input, instruction.sourceInformation,
-        receiverTypeCheckSelector: selector);
+      typeExpression,
+      kind,
+      type,
+      input,
+      instruction.sourceInformation,
+      receiverTypeCheckSelector: selector,
+    );
     instruction.block!.addBefore(instruction, converted);
     input.replaceAllUsersDominatedBy(instruction, converted);
     _log?.registerPrimitiveCheck(instruction, converted);
@@ -294,19 +312,24 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
     }
     if (receiver.isNumberOrNull(abstractValueDomain).isDefinitelyTrue) {
       convertInput(
-          instruction,
-          receiver,
-          abstractValueDomain.excludeNull(receiver.instructionType),
-          PrimitiveCheckKind.receiverType,
-          commonElements.numType);
+        instruction,
+        receiver,
+        abstractValueDomain.excludeNull(receiver.instructionType),
+        PrimitiveCheckKind.receiverType,
+        commonElements.numType,
+      );
       return true;
     } else if (instruction.element == null) {
       if (closedWorld.includesClosureCall(
-          instruction.selector, instruction.receiverType)) {
+        instruction.selector,
+        instruction.receiverType,
+      )) {
         return false;
       }
       Iterable<MemberEntity> targets = closedWorld.locateMembers(
-          instruction.selector, instruction.receiverType);
+        instruction.selector,
+        instruction.receiverType,
+      );
       if (targets.length == 1) {
         MemberEntity target = targets.first;
         ClassEntity cls = target.enclosingClass!;
@@ -322,8 +345,13 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
         }
         if (!isCheckEnoughForNsmOrAe(receiver, type)) return false;
         instruction.element = target;
-        convertInput(instruction, receiver, type,
-            PrimitiveCheckKind.receiverType, typeExpression);
+        convertInput(
+          instruction,
+          receiver,
+          type,
+          PrimitiveCheckKind.receiverType,
+          typeExpression,
+        );
         return true;
       }
     }
@@ -351,8 +379,13 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
       // variant and will do the check in their method anyway. We
       // still add a check because it allows to GVN these operations,
       // but we should find a better way.
-      convertInput(instruction, right, type, PrimitiveCheckKind.argumentType,
-          commonElements.numType);
+      convertInput(
+        instruction,
+        right,
+        type,
+        PrimitiveCheckKind.argumentType,
+        commonElements.numType,
+      );
       return true;
     }
     return false;
@@ -425,8 +458,11 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
           addDependentInstructionsToWorkList(next);
         }
       } else if (abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
-        DominatedUses uses =
-            DominatedUses.of(receiver, node, excludeDominator: true);
+        DominatedUses uses = DominatedUses.of(
+          receiver,
+          node,
+          excludeDominator: true,
+        );
         if (uses.isNotEmpty) {
           // Insert a refinement node after the call and update all users
           // dominated by the call to use that node instead of [receiver].
@@ -439,8 +475,11 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
       }
     }
 
-    var result =
-        node.specializer.computeTypeFromInputTypes(node, results, closedWorld);
+    var result = node.specializer.computeTypeFromInputTypes(
+      node,
+      results,
+      closedWorld,
+    );
     if (node.staticType != null) {
       result = abstractValueDomain.intersection(result, node.staticType!);
     }
@@ -465,8 +504,9 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
   AbstractValue visitLateReadCheck(HLateReadCheck node) {
     HInstruction input = node.checkedInput;
     AbstractValue inputType = input.instructionType;
-    AbstractValue outputType =
-        abstractValueDomain.excludeLateSentinel(inputType);
+    AbstractValue outputType = abstractValueDomain.excludeLateSentinel(
+      inputType,
+    );
     if (inputType != outputType) {
       // Replace dominated uses of input with uses of this check so the uses
       // benefit from the stronger type.
@@ -478,20 +518,31 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
   @override
   AbstractValue visitAsCheck(HAsCheck node) {
     return _narrowAsCheck(
-        node, node.checkedInput, node.checkedType.abstractValue);
+      node,
+      node.checkedInput,
+      node.checkedType.abstractValue,
+    );
   }
 
   @override
   AbstractValue visitAsCheckSimple(HAsCheckSimple node) {
     return _narrowAsCheck(
-        node, node.checkedInput, node.checkedType.abstractValue);
+      node,
+      node.checkedInput,
+      node.checkedType.abstractValue,
+    );
   }
 
   AbstractValue _narrowAsCheck(
-      HInstruction instruction, HInstruction input, AbstractValue checkedType) {
+    HInstruction instruction,
+    HInstruction input,
+    AbstractValue checkedType,
+  ) {
     AbstractValue inputType = input.instructionType;
-    AbstractValue outputType =
-        abstractValueDomain.intersection(checkedType, inputType);
+    AbstractValue outputType = abstractValueDomain.intersection(
+      checkedType,
+      inputType,
+    );
     if (inputType != outputType) {
       // Replace dominated uses of input with uses of this check so the uses
       // benefit from the stronger type.
@@ -504,7 +555,9 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
   @override
   AbstractValue visitBoolConversion(HBoolConversion node) {
     return abstractValueDomain.intersection(
-        abstractValueDomain.boolType, node.checkedInput.instructionType);
+      abstractValueDomain.boolType,
+      node.checkedInput.instructionType,
+    );
   }
 
   @override

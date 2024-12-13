@@ -74,15 +74,22 @@ import 'package:compiler/src/serialization/serialization.dart';
 abstract class Deferrable<E> {
   E loaded();
 
-  factory Deferrable.deferred(DataSourceReader reader,
-          E Function(DataSourceReader source) f, int offset,
-          {bool cacheData = true}) =>
+  factory Deferrable.deferred(
+    DataSourceReader reader,
+    E Function(DataSourceReader source) f,
+    int offset, {
+    bool cacheData = true,
+  }) =>
       cacheData
           ? _DeferredCache(reader, f, offset)
           : _Deferred(reader, f, offset);
-  static Deferrable<E> deferredWithArg<E, A>(DataSourceReader reader,
-          E Function(DataSourceReader source, A arg) f, A arg, int offset,
-          {bool cacheData = true}) =>
+  static Deferrable<E> deferredWithArg<E, A>(
+    DataSourceReader reader,
+    E Function(DataSourceReader source, A arg) f,
+    A arg,
+    int offset, {
+    bool cacheData = true,
+  }) =>
       cacheData
           ? _DeferredCacheWithArg(reader, f, arg, offset)
           : _DeferredWithArg(reader, f, arg, offset);
@@ -131,7 +138,11 @@ class _DeferredCacheWithArg<E, A> extends Deferrable<E> {
   }
 
   _DeferredCacheWithArg(
-      this._reader, this._dataLoader, this._arg, this._dataOffset);
+    this._reader,
+    this._dataLoader,
+    this._arg,
+    this._dataOffset,
+  );
 }
 
 class _Deferred<E> extends Deferrable<E> {

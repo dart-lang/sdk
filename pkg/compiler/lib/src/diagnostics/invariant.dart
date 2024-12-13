@@ -16,8 +16,10 @@ bool debugMode = false;
 /// Assert that [debugMode] is `true` and provide [message] as part of the
 /// error message.
 void assertDebugMode(String message) {
-  assert(debugMode,
-      failedAt(noLocationSpannable, 'Debug mode is not enabled: $message'));
+  assert(
+    debugMode,
+    failedAt(noLocationSpannable, 'Debug mode is not enabled: $message'),
+  );
 }
 
 /// Throws a [SpannableAssertionFailure].

@@ -11,8 +11,10 @@ import 'package:front_end/src/api_unstable/dart2js.dart'
 ///
 /// [strings] must not contain the empty string.
 /// [strings] must have no duplicates.
-List<String> abbreviateToIdentifiers(Iterable<String> strings,
-    {int minLength = 6}) {
+List<String> abbreviateToIdentifiers(
+  Iterable<String> strings, {
+  int minLength = 6,
+}) {
   var nodes = [for (final string in strings) _Node(string)];
   _partition(nodes, minLength, [], 0);
   return [for (final node in nodes) node.assignment];
@@ -32,7 +34,11 @@ class _Node {
 /// - [path] contains the prefix of the compressed name at this depth.
 /// - Path compression starts after the first [minLength] characters.
 void _partition(
-    List<_Node> nodes, int minLength, List<String> path, int index) {
+  List<_Node> nodes,
+  int minLength,
+  List<String> path,
+  int index,
+) {
   while (true) {
     // Handle trivial partitions.
     if (nodes.isEmpty) return;
@@ -87,9 +93,11 @@ void _partition(
     // Add some characters to name to distinguish from terminating strings.
     // Add the first few legal identifier characters of the string regardless.
     if (terminating != null || path.length < minLength) {
-      path.add(_isIdentifier(codeUnit, path.isEmpty)
-          ? String.fromCharCode(codeUnit)
-          : '_');
+      path.add(
+        _isIdentifier(codeUnit, path.isEmpty)
+            ? String.fromCharCode(codeUnit)
+            : '_',
+      );
     }
     nodes = partition.values.single;
     index += 1;

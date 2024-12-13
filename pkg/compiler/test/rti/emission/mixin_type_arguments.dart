@@ -85,19 +85,27 @@ main() {
   makeLive("M1<dynamic>, M2<A>, M3<dynamic>, M4<B>, M5<C>" == trace(new C1()));
   makeLive("M1<A>, M2<B>, M3<C>, M4<D>, M5<E>" == trace(new C2()));
   makeLive(
-      "M1<A>, M2<dynamic>, M3<dynamic>, M4<dynamic>, M5<B>" == trace(new C3()));
+    "M1<A>, M2<dynamic>, M3<dynamic>, M4<dynamic>, M5<B>" == trace(new C3()),
+  );
   makeLive(
-      "M1<A>, M2<F>, M3<dynamic>, M4<dynamic>, M5<B>" == trace(new C3<F>()));
+    "M1<A>, M2<F>, M3<dynamic>, M4<dynamic>, M5<B>" == trace(new C3<F>()),
+  );
   makeLive("M1<dynamic>, M2<A>, M3<dynamic>, M4<B>, M5<C>" == trace(new C4()));
   makeLive("M1<A>, M2<B>, M3<C>, M4<D>, M5<E>" == trace(new C5()));
   makeLive(
-      "M1<A>, M2<dynamic>, M3<dynamic>, M4<dynamic>, M5<B>" == trace(new C6()));
+    "M1<A>, M2<dynamic>, M3<dynamic>, M4<dynamic>, M5<B>" == trace(new C6()),
+  );
   makeLive(
-      "M1<A>, M2<F>, M3<dynamic>, M4<dynamic>, M5<B>" == trace(new C6<F>()));
+    "M1<A>, M2<F>, M3<dynamic>, M4<dynamic>, M5<B>" == trace(new C6<F>()),
+  );
   makeLive("M1<A>, M2<A>, M3<A>, M4<A>, M5<A>" == trace(new C7()));
   makeLive("M1<A>, M2<A>, M3<A>, M4<A>, M5<A>" == trace(new C8()));
-  makeLive("M1<List<A>>, M2<List<A>>, M3<List<A>>, M4<List<A>>, M5<List<A>>" ==
-      trace(new C9()));
-  makeLive("M1<List<A>>, M2<List<A>>, M3<List<A>>, M4<List<A>>, M5<List<A>>" ==
-      trace(new CA()));
+  makeLive(
+    "M1<List<A>>, M2<List<A>>, M3<List<A>>, M4<List<A>>, M5<List<A>>" ==
+        trace(new C9()),
+  );
+  makeLive(
+    "M1<List<A>>, M2<List<A>>, M3<List<A>>, M4<List<A>>, M5<List<A>>" ==
+        trace(new CA()),
+  );
 }

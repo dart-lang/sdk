@@ -36,9 +36,11 @@ abstract class TestSuite {
   }
 
   String generateMinified(Node node) {
-    return prettyPrint(node,
-        enableMinification: true,
-        preferSemicolonToNewlineInMinifiedOutput: true);
+    return prettyPrint(
+      node,
+      enableMinification: true,
+      preferSemicolonToNewlineInMinifiedOutput: true,
+    );
   }
 
   Map<String, String> goldenTestCase(goldenTestCaseJson) {
@@ -88,13 +90,13 @@ class StatementTestSuite extends TestSuite {
   Node parse(String statement) => js.statement(statement);
 }
 
-List<TestSuite> testSuites = [
-  ExpressionTestSuite(),
-  StatementTestSuite(),
-];
+List<TestSuite> testSuites = [ExpressionTestSuite(), StatementTestSuite()];
 
-void generateGoldens(currentGoldens,
-    Map<String, List<Map<String, String>>> newGoldens, List<TestSuite> suites) {
+void generateGoldens(
+  currentGoldens,
+  Map<String, List<Map<String, String>>> newGoldens,
+  List<TestSuite> suites,
+) {
   for (var suite in suites) {
     newGoldens[suite.key] = suite.regenerateGoldens(currentGoldens[suite.key]);
   }
@@ -115,8 +117,9 @@ void main(List<String> args) {
     Map<String, List<Map<String, String>>> newGoldens = {};
     generateGoldens(currentGoldens, newGoldens, testSuites);
 
-    File(goldenFile).writeAsStringSync(
-        json.JsonEncoder.withIndent('  ').convert(newGoldens));
+    File(
+      goldenFile,
+    ).writeAsStringSync(json.JsonEncoder.withIndent('  ').convert(newGoldens));
   } else {
     testGoldens(currentGoldens, testSuites);
   }

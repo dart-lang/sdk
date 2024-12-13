@@ -19,21 +19,22 @@ Future<void> main(List<String> args) async {
   await resolveScripts(options);
   await Future.wait([
     runSuite(
-        sdkRoot.resolve('tests/modular/'),
-        'tests/modular',
-        options,
-        IOPipeline([
-          PrecompileMacroAotStep(verbose: options.verbose),
-          OutlineDillCompilationStep(),
-          FullDillCompilationStep(),
-          ConcatenateDillsStep(),
-          ComputeClosedWorldStep(),
-          GlobalAnalysisStep(),
-          Dart2jsCodegenStep(codeId0),
-          Dart2jsCodegenStep(codeId1),
-          Dart2jsEmissionStep(),
-          Dart2jsDumpInfoStep(),
-          RunD8(),
-        ], cacheSharedModules: true)),
+      sdkRoot.resolve('tests/modular/'),
+      'tests/modular',
+      options,
+      IOPipeline([
+        PrecompileMacroAotStep(verbose: options.verbose),
+        OutlineDillCompilationStep(),
+        FullDillCompilationStep(),
+        ConcatenateDillsStep(),
+        ComputeClosedWorldStep(),
+        GlobalAnalysisStep(),
+        Dart2jsCodegenStep(codeId0),
+        Dart2jsCodegenStep(codeId1),
+        Dart2jsEmissionStep(),
+        Dart2jsDumpInfoStep(),
+        RunD8(),
+      ], cacheSharedModules: true),
+    ),
   ]);
 }

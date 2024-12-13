@@ -73,11 +73,10 @@ main() {
   retainDataForTesting = true;
 
   runTests() async {
-    CompilationResult result = await runCompiler(memorySourceFiles: {
-      'main.dart': CODE
-    }, options: [
-      '--experimental-powersets',
-    ]);
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: {'main.dart': CODE},
+      options: ['--experimental-powersets'],
+    );
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler!;
     var results = compiler.globalInference.resultsForTesting!;

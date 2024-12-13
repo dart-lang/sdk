@@ -28,7 +28,7 @@ abstract class CompilerTask {
   Map<Measurer, CompilerTask>? _zoneValues;
 
   CompilerTask(this._measurer)
-      : _watch = _measurer.enableTaskMeasurements ? Stopwatch() : null;
+    : _watch = _measurer.enableTaskMeasurements ? Stopwatch() : null;
 
   /// Whether measurement is disabled. The functions [measure] and [measureIo]
   /// only measure time if measurements are enabled.
@@ -106,10 +106,16 @@ abstract class CompilerTask {
     // The current zone is already measuring `this` task.
     if (Zone.current[_measurer] == this) return action();
 
-    return runZoned(action,
-        zoneValues: _zoneValues ??= {_measurer: this},
-        zoneSpecification: _zoneSpecification ??= ZoneSpecification(
-            run: _run, runUnary: _runUnary, runBinary: _runBinary));
+    return runZoned(
+      action,
+      zoneValues: _zoneValues ??= {_measurer: this},
+      zoneSpecification:
+          _zoneSpecification ??= ZoneSpecification(
+            run: _run,
+            runUnary: _runUnary,
+            runBinary: _runBinary,
+          ),
+    );
   }
 
   /// Run [f] in [zone]. Running must be delegated to [parent] to ensure that
@@ -131,7 +137,12 @@ abstract class CompilerTask {
 
   /// Same as [run] except that [f] takes one argument, [arg].
   R _runUnary<R, T>(
-      Zone self, ZoneDelegate parent, Zone zone, R Function(T arg) f, T arg) {
+    Zone self,
+    ZoneDelegate parent,
+    Zone zone,
+    R Function(T arg) f,
+    T arg,
+  ) {
     if (zone[_measurer] != this) return parent.runUnary(zone, f, arg);
     CompilerTask? previous = _start();
     try {
@@ -142,8 +153,14 @@ abstract class CompilerTask {
   }
 
   /// Same as [run] except that [f] takes two arguments ([a1] and [a2]).
-  R _runBinary<R, T1, T2>(Zone self, ZoneDelegate parent, Zone zone,
-      R Function(T1 a1, T2 a2) f, T1 a1, T2 a2) {
+  R _runBinary<R, T1, T2>(
+    Zone self,
+    ZoneDelegate parent,
+    Zone zone,
+    R Function(T1 a1, T2 a2) f,
+    T1 a1,
+    T2 a2,
+  ) {
     if (zone[_measurer] != this) return parent.runBinary(zone, f, a1, a2);
     CompilerTask? previous = _start();
     try {

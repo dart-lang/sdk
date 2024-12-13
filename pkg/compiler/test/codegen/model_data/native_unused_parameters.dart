@@ -11,20 +11,20 @@ class Class {
   /*member: Class.method1:calls=[method1()],params=1*/
   @pragma('dart2js:noInline')
   method1([a, b])
-      // ignore: native_function_body_in_non_sdk_code
-      native;
+  // ignore: native_function_body_in_non_sdk_code
+  native;
 
   /*member: Class.method2:calls=[method2(a)],params=2*/
   @pragma('dart2js:noInline')
   method2([a, b])
-      // ignore: native_function_body_in_non_sdk_code
-      native;
+  // ignore: native_function_body_in_non_sdk_code
+  native;
 
   /*member: Class.method3:calls=[method3(a,b)],params=3*/
   @pragma('dart2js:noInline')
   method3([a, b])
-      // ignore: native_function_body_in_non_sdk_code
-      native;
+  // ignore: native_function_body_in_non_sdk_code
+  native;
 
   /*member: Class.method4:
    calls=[method4(a,b)],
@@ -33,8 +33,8 @@ class Class {
   */
   @pragma('dart2js:noInline')
   method4([a, b])
-      // ignore: native_function_body_in_non_sdk_code
-      native;
+  // ignore: native_function_body_in_non_sdk_code
+  native;
 
   /*member: Class.method5:
    calls=[method5(a,b)],
@@ -43,8 +43,8 @@ class Class {
   */
   @pragma('dart2js:noInline')
   method5([a, b])
-      // ignore: native_function_body_in_non_sdk_code
-      native;
+  // ignore: native_function_body_in_non_sdk_code
+  native;
 
   /*member: Class.method6:
    calls=[method6(a,b,c)],
@@ -53,8 +53,8 @@ class Class {
   */
   @pragma('dart2js:noInline')
   method6(a, {b, c})
-      // ignore: native_function_body_in_non_sdk_code
-      native;
+  // ignore: native_function_body_in_non_sdk_code
+  native;
 
   /*member: Class.method7:
    calls=[method7(a,b,c)],
@@ -63,8 +63,8 @@ class Class {
   */
   @pragma('dart2js:noInline')
   method7(a, {b, c})
-      // ignore: native_function_body_in_non_sdk_code
-      native;
+  // ignore: native_function_body_in_non_sdk_code
+  native;
 
   /*member: Class.method8:
    calls=[method8(a,b,c)],
@@ -75,8 +75,8 @@ class Class {
   */
   @pragma('dart2js:noInline')
   method8(a, {b, c})
-      // ignore: native_function_body_in_non_sdk_code
-      native;
+  // ignore: native_function_body_in_non_sdk_code
+  native;
 }
 
 /*member: test:

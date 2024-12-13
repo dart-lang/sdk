@@ -65,14 +65,16 @@ class GridLayout extends ViewLayout {
   Dimension? _dimension;
 
   GridLayout(Positionable view)
-      : rows = _GridTrackParser.parse(view.customStyle['grid-rows']),
-        columns = _GridTrackParser.parse(view.customStyle['grid-columns']),
-        template = _GridTemplateParser.parse(view.customStyle['grid-template']),
-        rowSizing = _GridTrackParser.parseTrackSizing(
-            view.customStyle['grid-row-sizing']),
-        columnSizing = _GridTrackParser.parseTrackSizing(
-            view.customStyle['grid-column-sizing']),
-        super(view) {
+    : rows = _GridTrackParser.parse(view.customStyle['grid-rows']),
+      columns = _GridTrackParser.parse(view.customStyle['grid-columns']),
+      template = _GridTemplateParser.parse(view.customStyle['grid-template']),
+      rowSizing = _GridTrackParser.parseTrackSizing(
+        view.customStyle['grid-row-sizing'],
+      ),
+      columnSizing = _GridTrackParser.parseTrackSizing(
+        view.customStyle['grid-column-sizing'],
+      ),
+      super(view) {
     _rowTracks = rows?.tracks ?? [];
     _columnTracks = columns?.tracks ?? [];
   }
@@ -179,7 +181,11 @@ class GridLayout extends ViewLayout {
     // Note: it's not spec'd what to pass as the accumulator, but usedBreadth
     // seems right.
     _distributeSpaceToTracks(
-        tracks, _getRemainingSpace(tracks), USEDBREADTH, false);
+      tracks,
+      _getRemainingSpace(tracks),
+      USEDBREADTH,
+      false,
+    );
 
     // Spec wording is confusing about which direction this assignment happens,
     // but this is the way that makes sense.
@@ -190,8 +196,10 @@ class GridLayout extends ViewLayout {
     // 6. Grow all Grid Tracks having a fraction as their maxSizing
     final tempBreadth = _calcNormalizedFractionBreadth(tracks);
     for (final t in tracks) {
-      t.usedBreadth =
-          Math.max(t.usedBreadth, tempBreadth * t.maxSizing.fractionValue);
+      t.usedBreadth = Math.max(
+        t.usedBreadth,
+        tempBreadth * t.maxSizing.fractionValue,
+      );
     }
 
     _computeTrackPositions(tracks);
@@ -272,12 +280,18 @@ class GridLayout extends ViewLayout {
   /// Ensures that for each Grid Track in tracks, a value will be
   /// computed, updatedBreadth, that represents the Grid Track's share of
   /// freeSpace.
-  void _distributeSpaceToTracks(List<GridTrack?> tracks, num? freeSpace,
-      _BreadthAccumulator breadth, bool ignoreMaxBreadth) {
+  void _distributeSpaceToTracks(
+    List<GridTrack?> tracks,
+    num? freeSpace,
+    _BreadthAccumulator breadth,
+    bool ignoreMaxBreadth,
+  ) {
     // TODO(jmesserly): in some cases it would be safe to sort the passed in
     // list in place. Not always though.
     tracks = CollectionUtils.orderBy(
-        tracks, (t) => t.maxBreadth - breadth.getSize(t));
+      tracks,
+      (t) => t.maxBreadth - breadth.getSize(t),
+    );
 
     // Give each Grid Track an equal share of the space, but without exceeding
     // their maxBreadth values. Because there are different MaxBreadths
@@ -315,12 +329,18 @@ class GridLayout extends ViewLayout {
   /// the Grid Tracks they cover before those with larger SpanCounts.
   ///
   /// Note: items are assumed to be already sorted in increasing span count
-  void _distributeSpaceBySpanCount(List<ViewLayout> items,
-      ContentSizeMode sizeMode, _BreadthAccumulator breadth) {
-    items = items
-        .where((item) =>
-            _hasContentSizedTracks(_getTracks(item), sizeMode, breadth))
-        .toList();
+  void _distributeSpaceBySpanCount(
+    List<ViewLayout> items,
+    ContentSizeMode sizeMode,
+    _BreadthAccumulator breadth,
+  ) {
+    items =
+        items
+            .where(
+              (item) =>
+                  _hasContentSizedTracks(_getTracks(item), sizeMode, breadth),
+            )
+            .toList();
 
     var tracks = [];
 
@@ -354,8 +374,11 @@ class GridLayout extends ViewLayout {
 
   /// Returns true if we have an appropriate content sized dimension, and don't
   /// cross a fractional track.
-  static bool _hasContentSizedTracks(Iterable<GridTrack?> tracks,
-      ContentSizeMode sizeMode, _BreadthAccumulator breadth) {
+  static bool _hasContentSizedTracks(
+    Iterable<GridTrack?> tracks,
+    ContentSizeMode sizeMode,
+    _BreadthAccumulator breadth,
+  ) {
     for (final t in tracks) {
       final fn = breadth.getSizingFunction(t);
       if (sizeMode == ContentSizeMode.MAX && fn.isMaxContentSized ||
@@ -369,7 +392,11 @@ class GridLayout extends ViewLayout {
 
   /// Ensures that the numbered track exists. */
   void _ensureTrack(
-      List<GridTrack> tracks, TrackSizing sizing, int start, int span) {
+    List<GridTrack> tracks,
+    TrackSizing sizing,
+    int start,
+    int span,
+  ) {
     // Start is 1-based. Make it 0-based.
     start -= 1;
 

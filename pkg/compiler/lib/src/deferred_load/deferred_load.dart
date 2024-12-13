@@ -316,8 +316,12 @@ class DeferredLoadTask extends CompilerTask {
 
   /// A sentinel used only by the [ImportSet] corresponding to the
   /// [_mainOutputUnit].
-  final ImportEntity _mainImport =
-      ImportEntity(true, 'main#main', Uri(), Uri());
+  final ImportEntity _mainImport = ImportEntity(
+    true,
+    'main#main',
+    Uri(),
+    Uri(),
+  );
 
   /// A set containing (eventually) all output units that will result from the
   /// program.
@@ -358,8 +362,8 @@ class DeferredLoadTask extends CompilerTask {
   AlgorithmState? algorithmState;
 
   DeferredLoadTask(this.compiler, this._elementMap)
-      : _mainOutputUnit = OutputUnit(true, 'main', {}),
-        super(compiler.measurer) {
+    : _mainOutputUnit = OutputUnit(true, 'main', {}),
+      super(compiler.measurer) {
     _allOutputUnits.add(_mainOutputUnit);
   }
 
@@ -447,7 +451,12 @@ class DeferredLoadTask extends CompilerTask {
 
     void work() {
       algorithmState = AlgorithmState.create(
-          main, compiler, _elementMap, closedWorld, importSets!);
+        main,
+        compiler,
+        _elementMap,
+        closedWorld,
+        importSets!,
+      );
     }
 
     reporter.withCurrentElement(main.library, () => measure(work));
@@ -476,8 +485,11 @@ class DeferredLoadTask extends CompilerTask {
         graph.add(representation.join());
       }
     }
-    compiler.outputProvider
-        .createOutputSink(deferredGraphUri.path, '', api.OutputType.debug)
+    compiler.outputProvider.createOutputSink(
+        deferredGraphUri.path,
+        '',
+        api.OutputType.debug,
+      )
       ..add(graph.join('\n'))
       ..close();
   }
@@ -519,16 +531,17 @@ class DeferredLoadTask extends CompilerTask {
     algorithmState = null;
     importSets = null;
     return OutputUnitData(
-        isProgramSplit && !disableProgramSplit,
-        _mainOutputUnit,
-        classMap,
-        classTypeMap,
-        memberMap,
-        localFunctionMap,
-        constantMap,
-        _allOutputUnits,
-        importDeferName,
-        _deferredImportDescriptions);
+      isProgramSplit && !disableProgramSplit,
+      _mainOutputUnit,
+      classMap,
+      classTypeMap,
+      memberMap,
+      localFunctionMap,
+      constantMap,
+      _allOutputUnits,
+      importDeferName,
+      _deferredImportDescriptions,
+    );
   }
 
   void beforeResolution(Uri rootLibraryUri, Iterable<Uri> libraries) {
@@ -538,8 +551,11 @@ class DeferredLoadTask extends CompilerTask {
         reporter.withCurrentElement(library, () {
           for (ImportEntity import in elementEnvironment.getImports(library)) {
             if (import.isDeferred) {
-              _deferredImportDescriptions[import] =
-                  ImportDescription(import, library, rootLibraryUri);
+              _deferredImportDescriptions[import] = ImportDescription(
+                import,
+                library,
+                rootLibraryUri,
+              );
               isProgramSplit = true;
             }
           }
@@ -559,7 +575,10 @@ class DeferredLoadTask extends CompilerTask {
 
       // Build the [ImportSet] representing the [_mainOutputUnit].
       importSetsLattice.buildMainSet(
-          _mainImport, _mainOutputUnit, _allDeferredImports);
+        _mainImport,
+        _mainOutputUnit,
+        _allDeferredImports,
+      );
     });
   }
 
@@ -570,15 +589,19 @@ class DeferredLoadTask extends CompilerTask {
     algorithmState?.entityToSet.forEach((d, importSet) {
       if (d is ClassEntityData) {
         var element = d.entity;
-        var elements =
-            elementMap.putIfAbsent(importSet.unit!, () => <String>[]);
+        var elements = elementMap.putIfAbsent(
+          importSet.unit!,
+          () => <String>[],
+        );
         var id = element.name;
         id = '$id cls';
         elements.add(id);
       } else if (d is ClassTypeEntityData) {
         var element = d.entity;
-        var elements =
-            elementMap.putIfAbsent(importSet.unit!, () => <String>[]);
+        var elements = elementMap.putIfAbsent(
+          importSet.unit!,
+          () => <String>[],
+        );
         var id = element.name;
         id = '$id type';
         elements.add(id);
@@ -621,9 +644,10 @@ class DeferredLoadTask extends CompilerTask {
         unitText.write(' <MAIN UNIT>');
       } else {
         unitText.write(' imports:');
-        var imports = outputUnit.imports
-            .map((i) => '${i.enclosingLibraryUri.resolveUri(i.uri)}')
-            .toList();
+        var imports =
+            outputUnit.imports
+                .map((i) => '${i.enclosingLibraryUri.resolveUri(i.uri)}')
+                .toList();
         for (var i in imports..sort()) {
           unitText.write('\n   $i:');
         }
@@ -646,8 +670,9 @@ class DeferredLoadTask extends CompilerTask {
     }
 
     StringBuffer sb = StringBuffer();
-    for (OutputUnit outputUnit in _allOutputUnits.toList()
-      ..sort((a, b) => text[a]!.compareTo(text[b]!))) {
+    for (OutputUnit outputUnit
+        in _allOutputUnits.toList()
+          ..sort((a, b) => text[a]!.compareTo(text[b]!))) {
       sb.write('\n\n-------------------------------\n');
       sb.write('Output unit: ${outputUnit.name}');
       sb.write('\n ${text[outputUnit]}');
@@ -671,7 +696,8 @@ class DeferredLoadTask extends CompilerTask {
     compiler.outputProvider.createOutputSink(
         compiler.options.dataUriForStage(CompilerStage.deferredLoadIds).path,
         '',
-        api.OutputType.deferredLoadIds)
+        api.OutputType.deferredLoadIds,
+      )
       ..add(const JsonEncoder.withIndent("  ").convert(topLevel))
       ..close();
   }

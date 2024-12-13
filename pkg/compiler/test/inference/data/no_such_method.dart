@@ -18,11 +18,11 @@ main() {
 class Class1 {
   /*member: Class1.noSuchMethod:[exact=JSUInt31]*/
   noSuchMethod(
-          Invocation
-              /*spec.[null|subclass=Object]*/
-              /*prod.[exact=JSInvocationMirror]*/
-              _) =>
-      42;
+    Invocation
+    /*spec.[null|subclass=Object]*/
+    /*prod.[exact=JSInvocationMirror]*/
+    _,
+  ) => 42;
 
   /*member: Class1.method:[exact=JSUInt31]*/
   method() {
@@ -42,11 +42,11 @@ missingGetter() => Class1(). /*invoke: [exact=Class1]*/ method();
 class Class2 {
   /*member: Class2.noSuchMethod:[exact=JSUInt31]*/
   noSuchMethod(
-          Invocation
-              /*spec.[null|subclass=Object]*/
-              /*prod.[exact=JSInvocationMirror]*/
-              _) =>
-      42;
+    Invocation
+    /*spec.[null|subclass=Object]*/
+    /*prod.[exact=JSInvocationMirror]*/
+    _,
+  ) => 42;
 
   /*member: Class2.method:[exact=JSUInt31]*/
   method() {
@@ -66,10 +66,11 @@ missingMethod() => Class2(). /*invoke: [exact=Class2]*/ method();
 class Class3 {
   /*member: Class3.noSuchMethod:[null|subclass=Object]*/
   noSuchMethod(
-      Invocation
-          /*spec.[null|subclass=Object]*/
-          /*prod.[exact=JSInvocationMirror]*/
-          invocation) {
+    Invocation
+    /*spec.[null|subclass=Object]*/
+    /*prod.[exact=JSInvocationMirror]*/
+    invocation,
+  ) {
     return invocation
         .
         /*[exact=JSInvocationMirror]*/
@@ -83,7 +84,8 @@ class Class3 {
   method() {
     dynamic a = this;
     return a. /*invoke: [exact=Class3]*/ missingMethod(
-        /*[null]*/ (/*[null|subclass=Object]*/ parameter) {})(0);
+      /*[null]*/ (/*[null|subclass=Object]*/ parameter) {},
+    )(0);
   }
 }
 
@@ -101,17 +103,19 @@ class Class4 {
 
   /*member: Class4.noSuchMethod:[null]*/
   noSuchMethod(
-      Invocation
-          /*spec.[null|subclass=Object]*/
-          /*prod.[exact=JSInvocationMirror]*/
-          invocation) {
-    this. /*update: [exact=Class4]*/ field = invocation
-        .
-        /*[exact=JSInvocationMirror]*/
-        positionalArguments
-        .
-        /*[exact=JSUnmodifiableArray]*/
-        first;
+    Invocation
+    /*spec.[null|subclass=Object]*/
+    /*prod.[exact=JSInvocationMirror]*/
+    invocation,
+  ) {
+    this. /*update: [exact=Class4]*/ field =
+        invocation
+            .
+            /*[exact=JSInvocationMirror]*/
+            positionalArguments
+            .
+            /*[exact=JSUnmodifiableArray]*/
+            first;
     return null;
   }
 

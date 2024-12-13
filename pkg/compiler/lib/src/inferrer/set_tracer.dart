@@ -84,7 +84,8 @@ class SetTracerVisitor extends TracerVisitor {
 
   @override
   void visitClosureCallSiteTypeInformation(
-      ClosureCallSiteTypeInformation info) {
+    ClosureCallSiteTypeInformation info,
+  ) {
     bailout('Passed to a closure');
   }
 
@@ -100,7 +101,8 @@ class SetTracerVisitor extends TracerVisitor {
 
   @override
   void visitDynamicCallSiteTypeInformation(
-      DynamicCallSiteTypeInformation info) {
+    DynamicCallSiteTypeInformation info,
+  ) {
     super.visitDynamicCallSiteTypeInformation(info);
     final selector = info.selector!;
     final selectorName = selector.name;

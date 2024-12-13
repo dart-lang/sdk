@@ -39,8 +39,9 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
   /// placeholder and returns `true` if expression at run time may be null, and
   /// `false` if the value is never null.
   static int analyze(js.Node node, PositionPredicate isNullableInput) {
-    PlaceholderSafetyAnalysis analysis =
-        PlaceholderSafetyAnalysis._(isNullableInput);
+    PlaceholderSafetyAnalysis analysis = PlaceholderSafetyAnalysis._(
+      isNullableInput,
+    );
     analysis.visit(node);
     return analysis.maxSafePosition + 1;
   }

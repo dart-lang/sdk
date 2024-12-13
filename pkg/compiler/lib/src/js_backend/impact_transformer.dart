@@ -40,17 +40,18 @@ class CodegenImpactTransformer {
   final NativeEmitter _nativeEmitter;
 
   CodegenImpactTransformer(
-      this._closedWorld,
-      this._elementEnvironment,
-      this._impacts,
-      this._nativeData,
-      this._backendUsage,
-      this._rtiNeed,
-      this._nativeCodegenEnqueuer,
-      this._namer,
-      this.oneShotInterceptorData,
-      this._rtiChecksBuilder,
-      this._nativeEmitter);
+    this._closedWorld,
+    this._elementEnvironment,
+    this._impacts,
+    this._nativeData,
+    this._backendUsage,
+    this._rtiNeed,
+    this._nativeCodegenEnqueuer,
+    this._namer,
+    this.oneShotInterceptorData,
+    this._rtiChecksBuilder,
+    this._nativeEmitter,
+  );
 
   DartTypes get _dartTypes => _closedWorld.dartTypes;
 
@@ -89,19 +90,32 @@ class CodegenImpactTransformer {
         case ConstantValueKind.set:
         case ConstantValueKind.constructed:
         case ConstantValueKind.list:
-          transformed.registerStaticUse(StaticUse.staticInvoke(
-              _closedWorld.commonElements.findType, CallStructure.oneArg));
+          transformed.registerStaticUse(
+            StaticUse.staticInvoke(
+              _closedWorld.commonElements.findType,
+              CallStructure.oneArg,
+            ),
+          );
           break;
         case ConstantValueKind.instantiation:
-          transformed.registerStaticUse(StaticUse.staticInvoke(
-              _closedWorld.commonElements.findType, CallStructure.oneArg));
+          transformed.registerStaticUse(
+            StaticUse.staticInvoke(
+              _closedWorld.commonElements.findType,
+              CallStructure.oneArg,
+            ),
+          );
           final instantiation = constantUse.value as InstantiationConstantValue;
-          _rtiChecksBuilder.registerGenericInstantiation(GenericInstantiation(
-              instantiation.function.type, instantiation.typeArguments));
+          _rtiChecksBuilder.registerGenericInstantiation(
+            GenericInstantiation(
+              instantiation.function.type,
+              instantiation.typeArguments,
+            ),
+          );
           break;
         case ConstantValueKind.deferredGlobal:
           _closedWorld.outputUnitData.registerConstantDeferredUse(
-              constantUse.value as DeferredGlobalConstantValue);
+            constantUse.value as DeferredGlobalConstantValue,
+          );
           break;
         case ConstantValueKind.bool:
         case ConstantValueKind.double:
@@ -123,7 +137,9 @@ class CodegenImpactTransformer {
 
     for ((DartType, DartType) check in impact.typeVariableBoundsSubtypeChecks) {
       _rtiChecksBuilder.registerTypeVariableBoundsSubtypeCheck(
-          check.$1, check.$2);
+        check.$1,
+        check.$2,
+      );
     }
 
     for (StaticUse staticUse in impact.staticUses) {
@@ -131,8 +147,10 @@ class CodegenImpactTransformer {
         case StaticUseKind.callMethod:
           final callMethod = staticUse.element as FunctionEntity;
           if (_rtiNeed.methodNeedsSignature(callMethod)) {
-            _impacts.computeSignature
-                .registerImpact(transformed, _elementEnvironment);
+            _impacts.computeSignature.registerImpact(
+              transformed,
+              _elementEnvironment,
+            );
           }
           break;
         case StaticUseKind.staticTearOff:
@@ -165,8 +183,10 @@ class CodegenImpactTransformer {
 
     if (impact.usesInterceptor) {
       if (_nativeCodegenEnqueuer.hasInstantiatedNativeClasses) {
-        _impacts.interceptorUse
-            .registerImpact(transformed, _elementEnvironment);
+        _impacts.interceptorUse.registerImpact(
+          transformed,
+          _elementEnvironment,
+        );
         // TODO(johnniwinther): Avoid these workarounds.
         _backendUsage.needToInitializeIsolateAffinityTag = true;
         _backendUsage.needToInitializeDispatchProperty = true;
@@ -179,12 +199,16 @@ class CodegenImpactTransformer {
           _impacts.asyncBody.registerImpact(transformed, _elementEnvironment);
           break;
         case AsyncMarker.syncStar:
-          _impacts.syncStarBody
-              .registerImpact(transformed, _elementEnvironment);
+          _impacts.syncStarBody.registerImpact(
+            transformed,
+            _elementEnvironment,
+          );
           break;
         case AsyncMarker.asyncStar:
-          _impacts.asyncStarBody
-              .registerImpact(transformed, _elementEnvironment);
+          _impacts.asyncStarBody.registerImpact(
+            transformed,
+            _elementEnvironment,
+          );
           break;
         case AsyncMarker.sync:
           // No implicit impacts.
@@ -198,7 +222,10 @@ class CodegenImpactTransformer {
 
     for (NativeBehavior behavior in impact.nativeBehaviors) {
       _nativeCodegenEnqueuer.registerNativeBehavior(
-          transformed, behavior, impact);
+        transformed,
+        behavior,
+        impact,
+      );
     }
 
     for (FunctionEntity function in impact.nativeMethods) {
@@ -207,7 +234,10 @@ class CodegenImpactTransformer {
 
     for (Selector selector in impact.oneShotInterceptors) {
       oneShotInterceptorData.registerOneShotInterceptor(
-          selector, _namer, _closedWorld);
+        selector,
+        _namer,
+        _closedWorld,
+      );
     }
 
     // TODO(johnniwinther): Remove eager registration.

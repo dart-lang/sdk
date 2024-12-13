@@ -33,9 +33,14 @@ class ClassStubGenerator {
   final Emitter _emitter;
   final CommonElements _commonElements;
 
-  ClassStubGenerator(this._emitter, this._commonElements, this._namer,
-      this._codegenWorld, this._closedWorld,
-      {required this.enableMinification});
+  ClassStubGenerator(
+    this._emitter,
+    this._commonElements,
+    this._namer,
+    this._codegenWorld,
+    this._closedWorld, {
+    required this.enableMinification,
+  });
 
   InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
@@ -43,18 +48,22 @@ class ClassStubGenerator {
   ///
   /// Invariant: [member] must be a declaration element.
   Map<js_ast.Name, js_ast.Expression> generateCallStubsForGetter(
-      MemberEntity member, Map<Selector, SelectorConstraints> selectors) {
+    MemberEntity member,
+    Map<Selector, SelectorConstraints> selectors,
+  ) {
     // If the method is intercepted, the stub gets the
     // receiver explicitly and we need to pass it to the getter call.
     bool isInterceptedMethod = _interceptorData.isInterceptedMethod(member);
-    bool isInterceptedClass =
-        _interceptorData.isInterceptedClass(member.enclosingClass!);
+    bool isInterceptedClass = _interceptorData.isInterceptedClass(
+      member.enclosingClass!,
+    );
 
     const String receiverArgumentName = r'$receiver';
 
     js_ast.Expression buildGetter() {
-      js_ast.Expression receiver =
-          js(isInterceptedClass ? receiverArgumentName : 'this');
+      js_ast.Expression receiver = js(
+        isInterceptedClass ? receiverArgumentName : 'this',
+      );
       if (member.isGetter) {
         js_ast.Name getterName = _namer.getterForElement(member);
         if (isInterceptedMethod) {
@@ -62,8 +71,9 @@ class ClassStubGenerator {
         }
         return js('#.#()', [receiver, getterName]);
       } else {
-        FieldAnalysisData fieldData =
-            _closedWorld.fieldAnalysis.getFieldData(member as JField);
+        FieldAnalysisData fieldData = _closedWorld.fieldAnalysis.getFieldData(
+          member as JField,
+        );
         if (fieldData.isEffectivelyConstant) {
           return _emitter.constantReference(fieldData.constantValue!);
         } else {
@@ -82,8 +92,11 @@ class ClassStubGenerator {
     for (Selector selector in selectors.keys) {
       if (generatedSelectors.contains(selector)) continue;
       if (!selector.appliesUnnamed(member)) continue;
-      if (selectors[selector]!
-          .canHit(member, selector.memberName, _closedWorld)) {
+      if (selectors[selector]!.canHit(
+        member,
+        selector.memberName,
+        _closedWorld,
+      )) {
         generatedSelectors.add(selector);
 
         js_ast.Name invocationName = _namer.invocationName(selector);
@@ -108,12 +121,14 @@ class ClassStubGenerator {
           arguments.add(js('#', name));
         }
 
-        final function = js('function(#) { return #.#(#); }', [
-          parameters,
-          buildGetter(),
-          closureCallName,
-          arguments
-        ]) as js_ast.Fun;
+        final function =
+            js('function(#) { return #.#(#); }', [
+                  parameters,
+                  buildGetter(),
+                  closureCallName,
+                  arguments,
+                ])
+                as js_ast.Fun;
 
         generatedStubs[invocationName] = function;
       }
@@ -131,7 +146,9 @@ class ClassStubGenerator {
     }
 
     void addNoSuchMethodHandlers(
-        String ignore, Map<Selector, SelectorConstraints> selectors) {
+      String ignore,
+      Map<Selector, SelectorConstraints> selectors,
+    ) {
       for (Selector selector in selectors.keys) {
         if (selector == Selectors.runtimeType_ ||
             selector == Selectors.equals ||
@@ -161,42 +178,50 @@ class ClassStubGenerator {
     int type = selector.invocationMirrorKind.value;
     List<String> parameterNames =
         List.generate(selector.argumentCount, (i) => '\$$i') +
-            List.generate(selector.typeArgumentCount, (i) => '\$T${i + 1}');
+        List.generate(selector.typeArgumentCount, (i) => '\$T${i + 1}');
 
-    List<js_ast.Expression> argNames = selector.callStructure
-        .getOrderedNamedArguments()
-        .map((String name) => js.string(name))
-        .toList();
+    List<js_ast.Expression> argNames =
+        selector.callStructure
+            .getOrderedNamedArguments()
+            .map((String name) => js.string(name))
+            .toList();
 
     js_ast.Name methodName = _namer.asName(selector.invocationMirrorMemberName);
     js_ast.Name internalName = _namer.invocationMirrorInternalName(selector);
 
     assert(_interceptorData.isInterceptedName(Identifiers.noSuchMethod_));
     bool isIntercepted = _interceptorData.isInterceptedName(selector.name);
-    js_ast.Expression expression = js('''this.#noSuchMethodName(#receiver,
+    js_ast.Expression expression = js(
+      '''this.#noSuchMethodName(#receiver,
                     #createInvocationMirror(#methodName,
                                             #internalName,
                                             #type,
                                             #arguments,
                                             #namedArguments,
-                                            #typeArgumentCount))''', {
-      'receiver': isIntercepted ? r'$receiver' : 'this',
-      'noSuchMethodName': _namer.noSuchMethodName,
-      'createInvocationMirror':
-          _emitter.staticFunctionAccess(_commonElements.createInvocationMirror),
-      'methodName': js.quoteName(methodName),
-      'internalName': js.quoteName(internalName),
-      'type': js.number(type),
-      'arguments': js_ast.ArrayInitializer(
-          parameterNames.map<js_ast.Expression>(js.call).toList()),
-      'namedArguments': js_ast.ArrayInitializer(argNames),
-      'typeArgumentCount': js.number(selector.typeArgumentCount)
-    });
+                                            #typeArgumentCount))''',
+      {
+        'receiver': isIntercepted ? r'$receiver' : 'this',
+        'noSuchMethodName': _namer.noSuchMethodName,
+        'createInvocationMirror': _emitter.staticFunctionAccess(
+          _commonElements.createInvocationMirror,
+        ),
+        'methodName': js.quoteName(methodName),
+        'internalName': js.quoteName(internalName),
+        'type': js.number(type),
+        'arguments': js_ast.ArrayInitializer(
+          parameterNames.map<js_ast.Expression>(js.call).toList(),
+        ),
+        'namedArguments': js_ast.ArrayInitializer(argNames),
+        'typeArgumentCount': js.number(selector.typeArgumentCount),
+      },
+    );
 
     js_ast.Expression function;
     if (isIntercepted) {
-      function = js(
-          r'function($receiver, #) { return # }', [parameterNames, expression]);
+      function = js(r'function($receiver, #) { return # }', [
+        parameterNames,
+        expression,
+      ]);
     } else {
       function = js(r'function(#) { return # }', [parameterNames, expression]);
     }
@@ -209,8 +234,10 @@ class ClassStubGenerator {
 
     js_ast.Expression code;
     if (field.isElided) {
-      code = js("function() { return #; }",
-          _emitter.constantReference(field.constantValue!));
+      code = js(
+        "function() { return #; }",
+        _emitter.constantReference(field.constantValue!),
+      );
     } else {
       String template;
       if (field.needsInterceptedGetterOnReceiver) {
@@ -271,11 +298,14 @@ class ClassStubGenerator {
 ///   * `name`.
 ///   * `isIntercepted.
 List<js_ast.Statement> buildTearOffCode(
-    CompilerOptions options, Emitter emitter, CommonElements commonElements) {
+  CompilerOptions options,
+  Emitter emitter,
+  CommonElements commonElements,
+) {
   FunctionEntity closureFromTearOff = commonElements.closureFromTearOff;
 
-  js_ast.Expression closureFromTearOffAccessExpression =
-      emitter.staticFunctionAccess(closureFromTearOff);
+  js_ast.Expression closureFromTearOffAccessExpression = emitter
+      .staticFunctionAccess(closureFromTearOff);
 
   js_ast.Statement instanceTearOffGetter;
   if (options.features.useContentSecurityPolicy.isEnabled) {
@@ -335,9 +365,10 @@ function instanceTearOffGetter(isIntercepted, parameters) {
         "}")(parameters, #createTearOffClass, null);
 }''',
       {
-        'tpFunctionsOrNames':
-            js.string(TearOffParametersPropertyNames.funsOrNames),
-        'createTearOffClass': closureFromTearOffAccessExpression
+        'tpFunctionsOrNames': js.string(
+          TearOffParametersPropertyNames.funsOrNames,
+        ),
+        'createTearOffClass': closureFromTearOffAccessExpression,
       },
     );
   }

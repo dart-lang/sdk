@@ -16,8 +16,9 @@ import 'serialization/serialization.dart';
 abstract class ClosureData {
   /// Deserializes a [ClosureData] object from [source].
   factory ClosureData.readFromDataSource(
-          JsToElementMap elementMap, DataSourceReader source) =
-      ClosureDataImpl.readFromDataSource;
+    JsToElementMap elementMap,
+    DataSourceReader source,
+  ) = ClosureDataImpl.readFromDataSource;
 
   /// Serializes this [ClosureData] to [sink].
   void writeToDataSink(DataSinkWriter sink);
@@ -113,8 +114,10 @@ class ScopeInfo {
   /// In the case of loops, this is the set of iteration variables (or any
   /// variables declared in the for loop expression (`for (...here...)`) that
   /// need to be boxed to snapshot their value.
-  void forEachBoxedVariable(KernelToLocalsMap localsMap,
-      void Function(Local local, FieldEntity field) f) {}
+  void forEachBoxedVariable(
+    KernelToLocalsMap localsMap,
+    void Function(Local local, FieldEntity field) f,
+  ) {}
 
   /// True if [variable] has been mutated and is also used in another scope.
   bool isBoxedVariable(KernelToLocalsMap localsMap, Local variable) => false;
@@ -240,14 +243,16 @@ class ClosureRepresentationInfo extends ScopeInfo {
 
   /// Deserializes a [ClosureRepresentationInfo] object from [source].
   factory ClosureRepresentationInfo.readFromDataSource(
-      DataSourceReader source) {
+    DataSourceReader source,
+  ) {
     ScopeInfoKind kind = source.readEnum(ScopeInfoKind.values);
     switch (kind) {
       case ScopeInfoKind.scopeInfo:
       case ScopeInfoKind.capturedScope:
       case ScopeInfoKind.capturedLoopScope:
         throw UnsupportedError(
-            'Unexpected ClosureRepresentationInfo kind $kind');
+          'Unexpected ClosureRepresentationInfo kind $kind',
+        );
       case ScopeInfoKind.closureRepresentationInfo:
         return JsClosureClassInfo.readFromDataSource(source);
     }
@@ -292,14 +297,18 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// strictly variables defined in this closure, unlike the behavior in
   /// the superclass ScopeInfo.
   @override
-  void forEachBoxedVariable(KernelToLocalsMap localsMap,
-      void Function(Local local, FieldEntity field) f) {}
+  void forEachBoxedVariable(
+    KernelToLocalsMap localsMap,
+    void Function(Local local, FieldEntity field) f,
+  ) {}
 
   /// Loop through each free variable in this closure. Free variables are the
   /// variables that have been captured *just* in this closure, not in nested
   /// scopes.
-  void forEachFreeVariable(KernelToLocalsMap localsMap,
-      void Function(Local variable, FieldEntity field) f) {}
+  void forEachFreeVariable(
+    KernelToLocalsMap localsMap,
+    void Function(Local variable, FieldEntity field) f,
+  ) {}
 
   // TODO(efortuna): Remove this method. The old system was using
   // ClosureClassMaps for situations other than closure class maps, and that's

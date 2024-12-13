@@ -92,7 +92,7 @@ Set<String> doesNotEscapeMapSet = <String>{
   'containsValue',
   '[]=',
   // [keys] only allows key values to escape, which we do not track.
-  'keys'
+  'keys',
 };
 
 /// Common logic to trace a value through the type inference graph nodes.
@@ -100,8 +100,10 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
   final TypeInformation tracedType;
   final InferrerEngine inferrer;
 
-  static const int maxAnalysisCount =
-      int.fromEnvironment('dart2js.tracing.limit', defaultValue: 32);
+  static const int maxAnalysisCount = int.fromEnvironment(
+    'dart2js.tracing.limit',
+    defaultValue: 32,
+  );
   // TODO(natebiggs): We allow null here to maintain current functionality
   // but we should verify we actually need to allow it.
   final Setlet<MemberEntity?> analyzedElements = Setlet();
@@ -220,7 +222,8 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
 
   @override
   void visitElementInContainerTypeInformation(
-      ElementInContainerTypeInformation info) {
+    ElementInContainerTypeInformation info,
+  ) {
     addNewEscapeInformation(info);
   }
 
@@ -237,7 +240,8 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
 
   @override
   void visitRecordFieldAccessTypeInformation(
-      RecordFieldAccessTypeInformation info) {}
+    RecordFieldAccessTypeInformation info,
+  ) {}
 
   @override
   void visitValueInMapTypeInformation(ValueInMapTypeInformation info) {
@@ -278,7 +282,8 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
 
   @override
   void visitClosureCallSiteTypeInformation(
-      ClosureCallSiteTypeInformation info) {}
+    ClosureCallSiteTypeInformation info,
+  ) {}
 
   @override
   void visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
@@ -359,8 +364,9 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
       for (var flow in record.flowsInto) {
         for (var user in flow.users) {
           if (user is RecordFieldAccessTypeInformation) {
-            final getterIndex =
-                record.recordShape.indexOfGetterName(user.getterName);
+            final getterIndex = record.recordShape.indexOfGetterName(
+              user.getterName,
+            );
             if (user.receiver == flow &&
                 getterIndex >= 0 &&
                 getterIndex < record.fieldTypes.length &&
@@ -426,13 +432,16 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
 
   @override
   void visitDynamicCallSiteTypeInformation(
-      DynamicCallSiteTypeInformation info) {
+    DynamicCallSiteTypeInformation info,
+  ) {
     void addsToContainer(AbstractValue mask) {
-      final allocationNode =
-          inferrer.abstractValueDomain.getAllocationNode(mask);
+      final allocationNode = inferrer.abstractValueDomain.getAllocationNode(
+        mask,
+      );
       if (allocationNode != null) {
-        final list = inferrer.types.allocatedLists[allocationNode]
-            as ListTypeInformation;
+        final list =
+            inferrer.types.allocatedLists[allocationNode]
+                as ListTypeInformation;
         listsToAnalyze.add(list);
       } else {
         // The [mask] is a union of two containers, and we lose track of where
@@ -442,8 +451,9 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
     }
 
     void addsToMapValue(AbstractValue mask) {
-      final allocationNode =
-          inferrer.abstractValueDomain.getAllocationNode(mask);
+      final allocationNode = inferrer.abstractValueDomain.getAllocationNode(
+        mask,
+      );
       if (allocationNode != null) {
         final map =
             inferrer.types.allocatedMaps[allocationNode] as MapTypeInformation;
@@ -595,8 +605,9 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
     if (inferrer.closedWorld.nativeData.isNativeMember(info.method)) {
       bailout('Passed to a native method');
     }
-    if (!inferrer
-        .canFunctionParametersBeUsedForGlobalOptimizations(info.method)) {
+    if (!inferrer.canFunctionParametersBeUsedForGlobalOptimizations(
+      info.method,
+    )) {
       bailout('Escape to code that has special backend treatment');
     }
     if (isParameterOfListAddingMethod(info) ||
@@ -609,7 +620,11 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
   }
 
   bool dynamicCallTargetsNonFunction(DynamicCallSiteTypeInformation info) {
-    return info.targets.any((target) => inferrer.memberHierarchyBuilder
-        .anyTargetMember(target, (element) => !element.isFunction));
+    return info.targets.any(
+      (target) => inferrer.memberHierarchyBuilder.anyTargetMember(
+        target,
+        (element) => !element.isFunction,
+      ),
+    );
   }
 }

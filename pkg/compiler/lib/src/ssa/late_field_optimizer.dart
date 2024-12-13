@@ -24,8 +24,8 @@ class SsaLateFieldOptimizer extends HBaseVisitor<void>
   final JFieldAnalysis _fieldAnalysis;
 
   SsaLateFieldOptimizer(this._closedWorld, this._log)
-      : _abstractValueDomain = _closedWorld.abstractValueDomain,
-        _fieldAnalysis = _closedWorld.fieldAnalysis;
+    : _abstractValueDomain = _closedWorld.abstractValueDomain,
+      _fieldAnalysis = _closedWorld.fieldAnalysis;
 
   @override
   void visitGraph(HGraph graph) {
@@ -210,8 +210,9 @@ class SsaLateFieldOptimizer extends HBaseVisitor<void>
       // There is no need for HTypeKnown.witnessed since it would be an invalid
       // transformation to move the read before the write.
       for (final load in loads) {
-        load.instructionType =
-            _abstractValueDomain.excludeLateSentinel(load.instructionType);
+        load.instructionType = _abstractValueDomain.excludeLateSentinel(
+          load.instructionType,
+        );
       }
     }
   }

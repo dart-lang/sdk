@@ -15,7 +15,9 @@ import 'annotations.dart';
 abstract class InferredData {
   /// Deserializes a [InferredData] object from [source].
   factory InferredData.readFromDataSource(
-      DataSourceReader source, JClosedWorld closedWorld) {
+    DataSourceReader source,
+    JClosedWorld closedWorld,
+  ) {
     bool isTrivial = source.readBool();
     if (isTrivial) {
       return TrivialInferredData();
@@ -34,7 +36,9 @@ abstract class InferredData {
   /// [receiver] indicates the type of the receiver is unknown and therefore
   /// all matches of the selector are returned.
   SideEffects getSideEffectsOfSelector(
-      Selector selector, AbstractValue? receiver);
+    Selector selector,
+    AbstractValue? receiver,
+  );
 
   /// Returns `true` if [element] is guaranteed not to throw an exception.
   bool getCannotThrow(FunctionEntity element);
@@ -85,25 +89,34 @@ class InferredDataImpl implements InferredData {
   final Set<FunctionEntity> _functionsThatMightBePassedToApply;
 
   InferredDataImpl(
-      this._closedWorld,
-      this._functionsCalledInLoop,
-      this._sideEffects,
-      this._elementsThatCannotThrow,
-      this._functionsThatMightBePassedToApply);
+    this._closedWorld,
+    this._functionsCalledInLoop,
+    this._sideEffects,
+    this._elementsThatCannotThrow,
+    this._functionsThatMightBePassedToApply,
+  );
 
   factory InferredDataImpl.readFromDataSource(
-      DataSourceReader source, JClosedWorld closedWorld) {
+    DataSourceReader source,
+    JClosedWorld closedWorld,
+  ) {
     source.begin(tag);
     Set<MemberEntity> functionsCalledInLoop = source.readMembers().toSet();
     Map<FunctionEntity, SideEffects> sideEffects = source.readMemberMap(
-        (MemberEntity member) => SideEffects.readFromDataSource(source));
+      (MemberEntity member) => SideEffects.readFromDataSource(source),
+    );
     Set<FunctionEntity> elementsThatCannotThrow =
         source.readMembers<FunctionEntity>().toSet();
     Set<FunctionEntity> functionsThatMightBePassedToApply =
         source.readMembers<FunctionEntity>().toSet();
     source.end(tag);
-    return InferredDataImpl(closedWorld, functionsCalledInLoop, sideEffects,
-        elementsThatCannotThrow, functionsThatMightBePassedToApply);
+    return InferredDataImpl(
+      closedWorld,
+      functionsCalledInLoop,
+      sideEffects,
+      elementsThatCannotThrow,
+      functionsThatMightBePassedToApply,
+    );
   }
 
   @override
@@ -112,9 +125,10 @@ class InferredDataImpl implements InferredData {
     sink.begin(tag);
     sink.writeMembers(_functionsCalledInLoop);
     sink.writeMemberMap(
-        _sideEffects,
-        (MemberEntity member, SideEffects sideEffects) =>
-            sideEffects.writeToDataSink(sink));
+      _sideEffects,
+      (MemberEntity member, SideEffects sideEffects) =>
+          sideEffects.writeToDataSink(sink),
+    );
     sink.writeMembers(_elementsThatCannotThrow);
     sink.writeMembers(_functionsThatMightBePassedToApply);
     sink.end(tag);
@@ -122,7 +136,9 @@ class InferredDataImpl implements InferredData {
 
   @override
   SideEffects getSideEffectsOfSelector(
-      Selector selector, AbstractValue? receiver) {
+    Selector selector,
+    AbstractValue? receiver,
+  ) {
     // We're not tracking side effects of closures.
     if (selector.isMaybeClosureCall ||
         _closedWorld.includesClosureCall(selector, receiver)) {
@@ -214,8 +230,10 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
   /// Compute [SideEffects] for all registered [SideEffectBuilder]s.
   @override
   InferredData close(JClosedWorld closedWorld) {
-    assert(_sideEffectsBuilders != null,
-        "Inferred data has already been computed.");
+    assert(
+      _sideEffectsBuilders != null,
+      "Inferred data has already been computed.",
+    );
     Map<FunctionEntity, SideEffects> sideEffects = {};
     Iterable<SideEffectsBuilder> sideEffectsBuilders =
         _sideEffectsBuilders!.values;
@@ -234,8 +252,13 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
     _sideEffectsBuilders = null;
     _annotationsData = null;
 
-    return InferredDataImpl(closedWorld, _functionsCalledInLoop, sideEffects,
-        _elementsThatCannotThrow, _functionsThatMightBePassedToApply);
+    return InferredDataImpl(
+      closedWorld,
+      _functionsCalledInLoop,
+      sideEffects,
+      _elementsThatCannotThrow,
+      _functionsThatMightBePassedToApply,
+    );
   }
 
   static void emptyWorkList(Iterable<SideEffectsBuilder> sideEffectsBuilders) {
@@ -300,7 +323,9 @@ class TrivialInferredData implements InferredData {
 
   @override
   SideEffects getSideEffectsOfSelector(
-      Selector selector, AbstractValue? receiver) {
+    Selector selector,
+    AbstractValue? receiver,
+  ) {
     return _allSideEffects;
   }
 }

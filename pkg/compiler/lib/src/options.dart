@@ -10,16 +10,9 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'commandline_options.dart' show Flags;
 import 'util/util.dart';
 
-enum NullSafetyMode {
-  unsound,
-  sound,
-}
+enum NullSafetyMode { unsound, sound }
 
-enum FeatureStatus {
-  shipped,
-  shipping,
-  canary,
-}
+enum FeatureStatus { shipped, shipping, canary }
 
 enum CompilerPhase {
   cfe,
@@ -31,45 +24,64 @@ enum CompilerPhase {
 }
 
 enum CompilerStage {
-  all('all', phases: {
-    CompilerPhase.cfe,
-    CompilerPhase.closedWorld,
-    CompilerPhase.globalInference,
-    CompilerPhase.codegen,
-    CompilerPhase.emitJs
-  }),
-  dumpInfoAll('dump-info-all', phases: {
-    CompilerPhase.cfe,
-    CompilerPhase.closedWorld,
-    CompilerPhase.globalInference,
-    CompilerPhase.codegen,
-    CompilerPhase.emitJs,
-    CompilerPhase.dumpInfo,
-  }),
+  all(
+    'all',
+    phases: {
+      CompilerPhase.cfe,
+      CompilerPhase.closedWorld,
+      CompilerPhase.globalInference,
+      CompilerPhase.codegen,
+      CompilerPhase.emitJs,
+    },
+  ),
+  dumpInfoAll(
+    'dump-info-all',
+    phases: {
+      CompilerPhase.cfe,
+      CompilerPhase.closedWorld,
+      CompilerPhase.globalInference,
+      CompilerPhase.codegen,
+      CompilerPhase.emitJs,
+      CompilerPhase.dumpInfo,
+    },
+  ),
   cfe('cfe', phases: {CompilerPhase.cfe}),
-  deferredLoadIds('deferred-load-ids',
-      dataOutputName: 'deferred_load_ids.data',
-      phases: {CompilerPhase.closedWorld}),
-  closedWorld('closed-world',
-      dataOutputName: 'world.data', phases: {CompilerPhase.closedWorld}),
-  globalInference('global-inference',
-      dataOutputName: 'global.data', phases: {CompilerPhase.globalInference}),
-  codegenAndJsEmitter('codegen-emit-js', phases: {
-    CompilerPhase.codegen,
-    CompilerPhase.emitJs,
-  }),
-  codegenSharded('codegen', dataOutputName: 'codegen', phases: {
-    CompilerPhase.codegen,
-  }),
-  jsEmitter('emit-js', phases: {
-    CompilerPhase.emitJs,
-  }),
-  dumpInfo('dump-info', dataOutputName: 'dump.data', phases: {
-    CompilerPhase.dumpInfo,
-  });
+  deferredLoadIds(
+    'deferred-load-ids',
+    dataOutputName: 'deferred_load_ids.data',
+    phases: {CompilerPhase.closedWorld},
+  ),
+  closedWorld(
+    'closed-world',
+    dataOutputName: 'world.data',
+    phases: {CompilerPhase.closedWorld},
+  ),
+  globalInference(
+    'global-inference',
+    dataOutputName: 'global.data',
+    phases: {CompilerPhase.globalInference},
+  ),
+  codegenAndJsEmitter(
+    'codegen-emit-js',
+    phases: {CompilerPhase.codegen, CompilerPhase.emitJs},
+  ),
+  codegenSharded(
+    'codegen',
+    dataOutputName: 'codegen',
+    phases: {CompilerPhase.codegen},
+  ),
+  jsEmitter('emit-js', phases: {CompilerPhase.emitJs}),
+  dumpInfo(
+    'dump-info',
+    dataOutputName: 'dump.data',
+    phases: {CompilerPhase.dumpInfo},
+  );
 
-  const CompilerStage(this._stageFlag,
-      {this.dataOutputName, required this.phases});
+  const CompilerStage(
+    this._stageFlag, {
+    this.dataOutputName,
+    required this.phases,
+  });
 
   final Set<CompilerPhase> phases;
   final String _stageFlag;
@@ -121,8 +133,10 @@ enum CompilerStage {
         return stage;
       }
     }
-    throw ArgumentError('Invalid stage: $stageFlag. '
-        'Supported values are: $validFlagValuesString');
+    throw ArgumentError(
+      'Invalid stage: $stageFlag. '
+      'Supported values are: $validFlagValuesString',
+    );
   }
 }
 
@@ -172,8 +186,10 @@ class FeatureOptions {
   /// oldest supported versions of JavaScript. This currently means IE11. If
   /// `true`, the generated code runs on the legacy JavaScript platform. If
   /// `false`, the code will fail on the legacy JavaScript platform.
-  FeatureOption legacyJavaScript =
-      FeatureOption('legacy-javascript', isNegativeFlag: true);
+  FeatureOption legacyJavaScript = FeatureOption(
+    'legacy-javascript',
+    isNegativeFlag: true,
+  );
 
   /// Whether to use optimized holders.
   FeatureOption newHolders = FeatureOption('new-holders');
@@ -348,9 +364,10 @@ class CompilerOptions implements DiagnosticOptions {
   Map<fe.ExperimentalFlag, bool> explicitExperimentalFlags = {};
 
   /// `true` if variance is enabled.
-  bool get enableVariance =>
-      fe.isExperimentEnabled(fe.ExperimentalFlag.variance,
-          explicitExperimentalFlags: explicitExperimentalFlags);
+  bool get enableVariance => fe.isExperimentEnabled(
+    fe.ExperimentalFlag.variance,
+    explicitExperimentalFlags: explicitExperimentalFlags,
+  );
 
   /// A possibly null state object for kernel compilation.
   fe.InitializedCompilerState? kernelInitializedCompilerState;
@@ -726,22 +743,25 @@ class CompilerOptions implements DiagnosticOptions {
   /// extension does not match the expected extension for the current [stage]
   /// then the last segment is treated as a prefix. Only set when `--stage` is
   /// specified.
-  late final String _outputPrefix = (() {
-    if (_stageFlag == null) return '';
-    final extension = _outputExtension;
+  late final String _outputPrefix =
+      (() {
+        if (_stageFlag == null) return '';
+        final extension = _outputExtension;
 
-    return (extension != null && _outputFilename.endsWith(extension))
-        ? ''
-        : _outputFilename;
-  })();
+        return (extension != null && _outputFilename.endsWith(extension))
+            ? ''
+            : _outputFilename;
+      })();
 
   /// Output directory specified by the user via the `--out` flag. The directory
   /// is calculated by resolving the substring prior to the final URI segment
   /// (i.e. before the final slash) relative to [Uri.base]. Defaults to
   /// [Uri.base] if `--out` is not provided or does not include a directory.
-  late final Uri _outputDir = (() => (_outputUri != null)
-      ? Uri.base.resolveUri(_outputUri!).resolve('.')
-      : Uri.base)();
+  late final Uri _outputDir =
+      (() =>
+          (_outputUri != null)
+              ? Uri.base.resolveUri(_outputUri!).resolve('.')
+              : Uri.base)();
 
   /// Computes a resolved output URI based on value provided via the `--out`
   /// flag. Updates [outputUri] based on the result and returns the value.
@@ -750,8 +770,9 @@ class CompilerOptions implements DiagnosticOptions {
     if (extension == null) return null;
 
     if (_stageFlag == null) {
-      return outputUri = _outputDir
-          .resolve(_outputFilename.isEmpty ? 'out$extension' : _outputFilename);
+      return outputUri = _outputDir.resolve(
+        _outputFilename.isEmpty ? 'out$extension' : _outputFilename,
+      );
     }
 
     String fullName = _outputFilename;
@@ -805,13 +826,15 @@ class CompilerOptions implements DiagnosticOptions {
   // -------------------------------------------------
 
   /// Create an options object by parsing flags from [options].
-  static CompilerOptions parse(List<String> options,
-      {FeatureOptions? featureOptions,
-      Uri? librariesSpecificationUri,
-      Uri? platformBinaries,
-      bool useDefaultOutputUri = false,
-      void Function(String)? onError,
-      void Function(String)? onWarning}) {
+  static CompilerOptions parse(
+    List<String> options, {
+    FeatureOptions? featureOptions,
+    Uri? librariesSpecificationUri,
+    Uri? platformBinaries,
+    bool useDefaultOutputUri = false,
+    void Function(String)? onError,
+    void Function(String)? onWarning,
+  }) {
     featureOptions ??= FeatureOptions();
     featureOptions.parse(options);
     Map<fe.ExperimentalFlag, bool> explicitExperimentalFlags =
@@ -826,40 +849,61 @@ class CompilerOptions implements DiagnosticOptions {
       .._inputDillUri = _extractUriOption(options, '${Flags.inputDill}=')
       ..librariesSpecificationUri = librariesSpecificationUri
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
-      ..benchmarkingProduction =
-          _hasOption(options, Flags.benchmarkingProduction)
-      ..benchmarkingExperiment =
-          _hasOption(options, Flags.benchmarkingExperiment)
+      ..benchmarkingProduction = _hasOption(
+        options,
+        Flags.benchmarkingProduction,
+      )
+      ..benchmarkingExperiment = _hasOption(
+        options,
+        Flags.benchmarkingExperiment,
+      )
       ..buildId =
           _extractStringOption(options, '--build-id=', _undeterminedBuildID)!
       ..compileForServer = _hasOption(options, Flags.serverMode)
       ..deferredMapUri = _extractUriOption(options, '--deferred-map=')
-      .._deferredLoadIdMapUri =
-          _extractUriOption(options, '${Flags.deferredLoadIdMapUri}=')
-      ..deferredGraphUri =
-          _extractUriOption(options, '${Flags.dumpDeferredGraph}=')
+      .._deferredLoadIdMapUri = _extractUriOption(
+        options,
+        '${Flags.deferredLoadIdMapUri}=',
+      )
+      ..deferredGraphUri = _extractUriOption(
+        options,
+        '${Flags.dumpDeferredGraph}=',
+      )
       ..fatalWarnings = _hasOption(options, Flags.fatalWarnings)
       ..terseDiagnostics = _hasOption(options, Flags.terse)
       ..suppressWarnings = _hasOption(options, Flags.suppressWarnings)
       ..suppressHints = _hasOption(options, Flags.suppressHints)
-      ..shownPackageWarnings =
-          _extractOptionalCsvOption(options, Flags.showPackageWarnings)
+      ..shownPackageWarnings = _extractOptionalCsvOption(
+        options,
+        Flags.showPackageWarnings,
+      )
       ..explicitExperimentalFlags = explicitExperimentalFlags
       ..disableInlining = _hasOption(options, Flags.disableInlining)
       ..disableProgramSplit = _hasOption(options, Flags.disableProgramSplit)
       ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
-      ..useTrivialAbstractValueDomain =
-          _hasOption(options, Flags.useTrivialAbstractValueDomain)
+      ..useTrivialAbstractValueDomain = _hasOption(
+        options,
+        Flags.useTrivialAbstractValueDomain,
+      )
       ..experimentalWrapped = _hasOption(options, Flags.experimentalWrapped)
       ..experimentalPowersets = _hasOption(options, Flags.experimentalPowersets)
-      ..disableRtiOptimization =
-          _hasOption(options, Flags.disableRtiOptimization)
-      .._dumpInfoDataUri =
-          _extractUriOption(options, '${Flags.dumpInfoDataUri}=')
-      ..useDumpInfoBinaryFormat =
-          _hasOption(options, "${Flags.dumpInfo}=binary")
-      ..dumpSsaPattern =
-          _extractStringOption(options, '${Flags.dumpSsa}=', null)
+      ..disableRtiOptimization = _hasOption(
+        options,
+        Flags.disableRtiOptimization,
+      )
+      .._dumpInfoDataUri = _extractUriOption(
+        options,
+        '${Flags.dumpInfoDataUri}=',
+      )
+      ..useDumpInfoBinaryFormat = _hasOption(
+        options,
+        "${Flags.dumpInfo}=binary",
+      )
+      ..dumpSsaPattern = _extractStringOption(
+        options,
+        '${Flags.dumpSsa}=',
+        null,
+      )
       ..writeResources = _hasOption(options, Flags.writeResources)
       ..enableMinification = _hasOption(options, Flags.minify)
       .._disableMinification = _hasOption(options, Flags.noMinify)
@@ -867,27 +911,43 @@ class CompilerOptions implements DiagnosticOptions {
       .._noOmitLateNames = _hasOption(options, Flags.noOmitLateNames)
       ..enableNativeLiveTypeAnalysis =
           !_hasOption(options, Flags.disableNativeLiveTypeAnalysis)
-      ..enableUserAssertions = _hasOption(options, Flags.enableCheckedMode) ||
+      ..enableUserAssertions =
+          _hasOption(options, Flags.enableCheckedMode) ||
           _hasOption(options, Flags.enableAsserts)
-      ..enableNullAssertions = _hasOption(options, Flags.enableCheckedMode) ||
+      ..enableNullAssertions =
+          _hasOption(options, Flags.enableCheckedMode) ||
           _hasOption(options, Flags.enableNullAssertions)
       ..nativeNullAssertions = _hasOption(options, Flags.nativeNullAssertions)
-      .._noNativeNullAssertions =
-          _hasOption(options, Flags.noNativeNullAssertions)
+      .._noNativeNullAssertions = _hasOption(
+        options,
+        Flags.noNativeNullAssertions,
+      )
       ..interopNullAssertions = _hasOption(options, Flags.interopNullAssertions)
-      .._noInteropNullAssertions =
-          _hasOption(options, Flags.noInteropNullAssertions)
-      ..experimentalTrackAllocations =
-          _hasOption(options, Flags.experimentalTrackAllocations)
-      ..experimentStartupFunctions =
-          _hasOption(options, Flags.experimentStartupFunctions)
+      .._noInteropNullAssertions = _hasOption(
+        options,
+        Flags.noInteropNullAssertions,
+      )
+      ..experimentalTrackAllocations = _hasOption(
+        options,
+        Flags.experimentalTrackAllocations,
+      )
+      ..experimentStartupFunctions = _hasOption(
+        options,
+        Flags.experimentStartupFunctions,
+      )
       ..experimentToBoolean = _hasOption(options, Flags.experimentToBoolean)
-      ..experimentUnreachableMethodsThrow =
-          _hasOption(options, Flags.experimentUnreachableMethodsThrow)
-      ..experimentCallInstrumentation =
-          _hasOption(options, Flags.experimentCallInstrumentation)
-      ..experimentNullSafetyChecks =
-          _hasOption(options, Flags.experimentNullSafetyChecks)
+      ..experimentUnreachableMethodsThrow = _hasOption(
+        options,
+        Flags.experimentUnreachableMethodsThrow,
+      )
+      ..experimentCallInstrumentation = _hasOption(
+        options,
+        Flags.experimentCallInstrumentation,
+      )
+      ..experimentNullSafetyChecks = _hasOption(
+        options,
+        Flags.experimentNullSafetyChecks,
+      )
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       .._outputUri = _extractUriOption(options, '--out=')
       ..platformBinaries = platformBinaries
@@ -895,8 +955,10 @@ class CompilerOptions implements DiagnosticOptions {
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
       ..omitImplicitChecks = _hasOption(options, Flags.omitImplicitChecks)
       ..omitAsCasts = _hasOption(options, Flags.omitAsCasts)
-      ..laxRuntimeTypeToString =
-          _hasOption(options, Flags.laxRuntimeTypeToString)
+      ..laxRuntimeTypeToString = _hasOption(
+        options,
+        Flags.laxRuntimeTypeToString,
+      )
       ..enableProtoShaking = _hasOption(options, Flags.enableProtoShaking)
       ..testMode = _hasOption(options, Flags.testMode)
       ..trustPrimitives = _hasOption(options, Flags.trustPrimitives)
@@ -909,12 +971,18 @@ class CompilerOptions implements DiagnosticOptions {
       ..reportPrimaryMetrics = _hasOption(options, Flags.reportMetrics)
       ..reportSecondaryMetrics = _hasOption(options, Flags.reportAllMetrics)
       ..showInternalProgress = _hasOption(options, Flags.progress)
-      ..dillDependencies =
-          _extractUriListOption(options, Flags.dillDependencies)
-      ..readProgramSplit =
-          _extractUriOption(options, '${Flags.readProgramSplit}=')
-      .._globalInferenceUri =
-          _extractUriOption(options, '${Flags.globalInferenceUri}=')
+      ..dillDependencies = _extractUriListOption(
+        options,
+        Flags.dillDependencies,
+      )
+      ..readProgramSplit = _extractUriOption(
+        options,
+        '${Flags.readProgramSplit}=',
+      )
+      .._globalInferenceUri = _extractUriOption(
+        options,
+        '${Flags.globalInferenceUri}=',
+      )
       ..memoryMappedFiles = _hasOption(options, Flags.memoryMappedFiles)
       .._closedWorldUri = _extractUriOption(options, '${Flags.closedWorldUri}=')
       .._codegenUri = _extractUriOption(options, '${Flags.codegenUri}=')
@@ -925,18 +993,27 @@ class CompilerOptions implements DiagnosticOptions {
       ..debugGlobalInference = _hasOption(options, Flags.debugGlobalInference)
       .._soundNullSafety = _hasOption(options, Flags.soundNullSafety)
       .._noSoundNullSafety = _hasOption(options, Flags.noSoundNullSafety)
-      .._mergeFragmentsThreshold =
-          _extractIntOption(options, '${Flags.mergeFragmentsThreshold}=')
+      .._mergeFragmentsThreshold = _extractIntOption(
+        options,
+        '${Flags.mergeFragmentsThreshold}=',
+      )
       ..dumpUnusedLibraries = _hasOption(options, Flags.dumpUnusedLibraries)
       ..cfeInvocationModes = fe.InvocationMode.parseArguments(
-          _extractStringOption(options, '${Flags.cfeInvocationModes}=', '')!,
-          onError: onError)
+        _extractStringOption(options, '${Flags.cfeInvocationModes}=', '')!,
+        onError: onError,
+      )
       ..verbosity = fe.Verbosity.parseArgument(
-          _extractStringOption(
-              options, '${Flags.verbosity}=', fe.Verbosity.defaultValue)!,
-          onError: onError)
-      ..disableDiagnosticByteCache =
-          _hasOption(options, Flags.disableDiagnosticByteCache)
+        _extractStringOption(
+          options,
+          '${Flags.verbosity}=',
+          fe.Verbosity.defaultValue,
+        )!,
+        onError: onError,
+      )
+      ..disableDiagnosticByteCache = _hasOption(
+        options,
+        Flags.disableDiagnosticByteCache,
+      )
       ..features = featureOptions;
   }
 
@@ -983,32 +1060,40 @@ class CompilerOptions implements DiagnosticOptions {
     }
     if (librariesSpecificationUri!.path.endsWith('/')) {
       throw ArgumentError(
-          "[librariesSpecificationUri] should be a file: $librariesSpecificationUri");
+        "[librariesSpecificationUri] should be a file: $librariesSpecificationUri",
+      );
     }
-    Map<fe.ExperimentalFlag, bool> experimentalFlags =
-        Map.from(fe.defaultExperimentalFlags);
+    Map<fe.ExperimentalFlag, bool> experimentalFlags = Map.from(
+      fe.defaultExperimentalFlags,
+    );
     experimentalFlags.addAll(explicitExperimentalFlags);
     if (platformBinaries == null &&
         equalMaps(experimentalFlags, fe.defaultExperimentalFlags)) {
       throw ArgumentError("Missing required ${Flags.platformBinaries}");
     }
     if (_soundNullSafety && _noSoundNullSafety) {
-      throw ArgumentError("'${Flags.soundNullSafety}' is incompatible with "
-          "'${Flags.noSoundNullSafety}'");
+      throw ArgumentError(
+        "'${Flags.soundNullSafety}' is incompatible with "
+        "'${Flags.noSoundNullSafety}'",
+      );
     }
     if (nativeNullAssertions && _noNativeNullAssertions) {
       throw ArgumentError(
-          "'${Flags.nativeNullAssertions}' is incompatible with "
-          "'${Flags.noNativeNullAssertions}'");
+        "'${Flags.nativeNullAssertions}' is incompatible with "
+        "'${Flags.noNativeNullAssertions}'",
+      );
     }
     if (interopNullAssertions && _noInteropNullAssertions) {
       throw ArgumentError(
-          "'${Flags.interopNullAssertions}' is incompatible with "
-          "'${Flags.noInteropNullAssertions}'");
+        "'${Flags.interopNullAssertions}' is incompatible with "
+        "'${Flags.noInteropNullAssertions}'",
+      );
     }
     if (nullSafetyMode == NullSafetyMode.sound && experimentNullSafetyChecks) {
-      throw ArgumentError('${Flags.experimentNullSafetyChecks} is incompatible '
-          'with sound null safety.');
+      throw ArgumentError(
+        '${Flags.experimentNullSafetyChecks} is incompatible '
+        'with sound null safety.',
+      );
     }
   }
 
@@ -1146,8 +1231,7 @@ class CompilerOptions implements DiagnosticOptions {
 /// during global type inference and codegen.
 enum CheckPolicy {
   trusted(isTrusted: true),
-  checked(isEmitted: true),
-  ;
+  checked(isEmitted: true);
 
   /// Whether the type assertion should be trusted.
   final bool isTrusted;
@@ -1158,12 +1242,16 @@ enum CheckPolicy {
   const CheckPolicy({this.isTrusted = false, this.isEmitted = false});
 
   @override
-  String toString() => 'CheckPolicy(isTrusted=$isTrusted,'
+  String toString() =>
+      'CheckPolicy(isTrusted=$isTrusted,'
       'isEmitted=$isEmitted)';
 }
 
 String? _extractStringOption(
-    List<String> options, String prefix, String? defaultValue) {
+  List<String> options,
+  String prefix,
+  String? defaultValue,
+) {
   for (String option in options) {
     if (option.startsWith(prefix)) {
       return option.substring(prefix.length);
@@ -1211,18 +1299,29 @@ List<Uri>? _extractUriListOption(List<String> options, String flag) {
   return stringUris.map(Uri.parse).toList();
 }
 
-Map<fe.ExperimentalFlag, bool> _extractExperiments(List<String> options,
-    {void Function(String)? onError, void Function(String)? onWarning}) {
-  List<String>? experiments =
-      _extractOptionalCsvOption(options, Flags.enableLanguageExperiments);
+Map<fe.ExperimentalFlag, bool> _extractExperiments(
+  List<String> options, {
+  void Function(String)? onError,
+  void Function(String)? onWarning,
+}) {
+  List<String>? experiments = _extractOptionalCsvOption(
+    options,
+    Flags.enableLanguageExperiments,
+  );
   onError ??= (String error) => throw ArgumentError(error);
   onWarning ??= (String warning) => print(warning);
-  return fe.parseExperimentalFlags(fe.parseExperimentalArguments(experiments),
-      onError: onError, onWarning: onWarning);
+  return fe.parseExperimentalFlags(
+    fe.parseExperimentalArguments(experiments),
+    onError: onError,
+    onWarning: onWarning,
+  );
 }
 
 void _extractFeatures(
-    List<String> options, List<FeatureOption> features, FeatureStatus status) {
+  List<String> options,
+  List<FeatureOption> features,
+  FeatureStatus status,
+) {
   bool hasCanaryFlag = _hasOption(options, Flags.canary);
   bool hasNoShippingFlag = _hasOption(options, Flags.noShipping);
   for (var feature in features) {
@@ -1232,10 +1331,13 @@ void _extractFeatures(
     bool enableFeature = _hasOption(options, enableFeatureFlag);
     bool disableFeature = _hasOption(options, disableFeatureFlag);
     if (enableFeature && disableFeature) {
-      throw ArgumentError("'$enableFeatureFlag' incompatible with "
-          "'$disableFeatureFlag'");
+      throw ArgumentError(
+        "'$enableFeatureFlag' incompatible with "
+        "'$disableFeatureFlag'",
+      );
     }
-    bool globalEnable = hasCanaryFlag ||
+    bool globalEnable =
+        hasCanaryFlag ||
         (status == FeatureStatus.shipping && !hasNoShippingFlag);
     globalEnable = feature.isNegativeFlag ? !globalEnable : globalEnable;
     feature.state = (enableFeature || globalEnable) && !disableFeature;
@@ -1243,7 +1345,9 @@ void _extractFeatures(
 }
 
 void _verifyShippedFeatures(
-    List<String> options, List<FeatureOption> features) {
+  List<String> options,
+  List<FeatureOption> features,
+) {
   for (var feature in features) {
     String featureFlag = feature.flag;
     String enableFeatureFlag = '--$featureFlag';
@@ -1251,16 +1355,20 @@ void _verifyShippedFeatures(
     bool enableFeature = _hasOption(options, enableFeatureFlag);
     bool disableFeature = _hasOption(options, disableFeatureFlag);
     if (enableFeature && disableFeature) {
-      throw ArgumentError("'$enableFeatureFlag' incompatible with "
-          "'$disableFeatureFlag'");
+      throw ArgumentError(
+        "'$enableFeatureFlag' incompatible with "
+        "'$disableFeatureFlag'",
+      );
     }
     if (enableFeature && feature.isNegativeFlag) {
       throw ArgumentError(
-          "$enableFeatureFlag has been removed and cannot be enabled.");
+        "$enableFeatureFlag has been removed and cannot be enabled.",
+      );
     }
     if (disableFeature && !feature.isNegativeFlag) {
       throw ArgumentError(
-          "$enableFeatureFlag has already shipped and cannot be disabled.");
+        "$enableFeatureFlag has already shipped and cannot be disabled.",
+      );
     }
     feature.state = !feature.isNegativeFlag;
   }

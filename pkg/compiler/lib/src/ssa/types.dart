@@ -13,27 +13,38 @@ import '../universe/selector.dart' show Selector;
 
 class AbstractValueFactory {
   static AbstractValue inferredReturnTypeForElement(
-      FunctionEntity element, GlobalTypeInferenceResults results) {
+    FunctionEntity element,
+    GlobalTypeInferenceResults results,
+  ) {
     return results.resultOfMember(element).returnType;
   }
 
   static AbstractValue inferredTypeForMember(
-      MemberEntity element, GlobalTypeInferenceResults results) {
+    MemberEntity element,
+    GlobalTypeInferenceResults results,
+  ) {
     return results.resultOfMember(element).type;
   }
 
   static AbstractValue inferredTypeForParameter(
-      Local element, GlobalTypeInferenceResults results) {
+    Local element,
+    GlobalTypeInferenceResults results,
+  ) {
     return results.resultOfParameter(element);
   }
 
-  static AbstractValue inferredResultTypeForSelector(Selector selector,
-      AbstractValue receiver, GlobalTypeInferenceResults results) {
+  static AbstractValue inferredResultTypeForSelector(
+    Selector selector,
+    AbstractValue receiver,
+    GlobalTypeInferenceResults results,
+  ) {
     return results.resultTypeOfSelector(selector, receiver);
   }
 
   static AbstractValue fromNativeBehavior(
-      NativeBehavior nativeBehavior, JClosedWorld closedWorld) {
+    NativeBehavior nativeBehavior,
+    JClosedWorld closedWorld,
+  ) {
     AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
     var typesReturned = nativeBehavior.typesReturned;
     if (typesReturned.isEmpty) return abstractValueDomain.dynamicType;
@@ -44,8 +55,9 @@ class AbstractValueFactory {
     // like [native.SpecialType.JsObject].
     AbstractValue fromNativeType(Object type) {
       if (type == SpecialType.jsObject) {
-        return abstractValueDomain
-            .createNonNullExact(commonElements.objectClass);
+        return abstractValueDomain.createNonNullExact(
+          commonElements.objectClass,
+        );
       }
       if (type is DartType) {
         if (type is VoidType) {
@@ -64,10 +76,13 @@ class AbstractValueFactory {
       throw 'Unexpected type $type';
     }
 
-    AbstractValue result =
-        abstractValueDomain.unionOfMany(typesReturned.map(fromNativeType));
-    assert(abstractValueDomain.isEmpty(result).isPotentiallyFalse,
-        "Unexpected empty return value for $nativeBehavior.");
+    AbstractValue result = abstractValueDomain.unionOfMany(
+      typesReturned.map(fromNativeType),
+    );
+    assert(
+      abstractValueDomain.isEmpty(result).isPotentiallyFalse,
+      "Unexpected empty return value for $nativeBehavior.",
+    );
     return result;
   }
 }

@@ -59,7 +59,8 @@ postfixLocalUsed() {
 prefixLocal() {
   // ignore: UNUSED_LOCAL_VARIABLE
   var local2 = 0;
-  /*invoke: [exact=JSUInt31]*/ ++local2;
+  /*invoke: [exact=JSUInt31]*/
+  ++local2;
   return null;
 }
 

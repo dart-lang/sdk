@@ -26,9 +26,10 @@ class ObjectDataSource implements DataSource {
     Tag expectedTag = Tag('begin:$tag');
     Tag actualTag = _read();
     assert(
-        expectedTag == actualTag,
-        "Unexpected begin tag. "
-        "Expected $expectedTag, found $actualTag.$errorContext");
+      expectedTag == actualTag,
+      "Unexpected begin tag. "
+      "Expected $expectedTag, found $actualTag.$errorContext",
+    );
   }
 
   @override
@@ -36,9 +37,10 @@ class ObjectDataSource implements DataSource {
     Tag expectedTag = Tag('end:$tag');
     Tag actualTag = _read();
     assert(
-        expectedTag == actualTag,
-        "Unexpected end tag. "
-        "Expected $expectedTag, found $actualTag.$errorContext");
+      expectedTag == actualTag,
+      "Unexpected end tag. "
+      "Expected $expectedTag, found $actualTag.$errorContext",
+    );
   }
 
   @override

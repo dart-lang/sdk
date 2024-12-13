@@ -42,12 +42,14 @@ class JsToFrontendMap {
     if (typeVariable is JLocalTypeVariable) {
       if (_closureData == null) {
         failedAt(
-            typeVariable,
-            'ClosureData needs to be registered before converting type variable'
-            ' $typeVariable');
+          typeVariable,
+          'ClosureData needs to be registered before converting type variable'
+          ' $typeVariable',
+        );
       }
-      ClosureRepresentationInfo info =
-          _closureData!.getClosureInfo(typeVariable.typeDeclaration.node);
+      ClosureRepresentationInfo info = _closureData!.getClosureInfo(
+        typeVariable.typeDeclaration.node,
+      );
       return _backend.elementEnvironment
           .getFunctionTypeVariables(info.callMethod!)[typeVariable.index]
           .element;
@@ -55,8 +57,10 @@ class JsToFrontendMap {
     return typeVariable;
   }
 
-  ConstantValue? toBackendConstant(ConstantValue? constant,
-      {bool allowNull = false}) {
+  ConstantValue? toBackendConstant(
+    ConstantValue? constant, {
+    bool allowNull = false,
+  }) {
     if (constant == null) {
       if (!allowNull) {
         throw UnsupportedError('Null not allowed as constant value.');
@@ -64,7 +68,9 @@ class JsToFrontendMap {
       return null;
     }
     return constant.accept(
-        _ConstantConverter(_backend.types, toBackendEntity), null);
+      _ConstantConverter(_backend.types, toBackendEntity),
+      null,
+    );
   }
 
   MemberEntity? toBackendMember(MemberEntity member) =>
@@ -73,9 +79,10 @@ class JsToFrontendMap {
   DartType? toBackendType(DartType? type, {bool allowFreeVariables = false}) =>
       type == null
           ? null
-          : _TypeConverter(_backend.types,
-                  allowFreeVariables: allowFreeVariables)
-              .visit(type, toBackendEntity);
+          : _TypeConverter(
+            _backend.types,
+            allowFreeVariables: allowFreeVariables,
+          ).visit(type, toBackendEntity);
 
   void registerClosureData(ClosureData closureData) {
     assert(_closureData == null, "Closure data has already been registered.");
@@ -94,7 +101,8 @@ class JsToFrontendMap {
     return {
       for (final member in set.map(toBackendMember))
         // Members that are not live don't have a corresponding backend member.
-        if (member != null) member
+        if (member != null)
+          member,
     };
   }
 
@@ -102,7 +110,8 @@ class JsToFrontendMap {
     return {
       for (final member in set.map(toBackendMember))
         // Members that are not live don't have a corresponding backend member.
-        if (member != null) member as FieldEntity
+        if (member != null)
+          member as FieldEntity,
     };
   }
 
@@ -110,30 +119,40 @@ class JsToFrontendMap {
     return {
       for (final member in set.map(toBackendMember))
         // Members that are not live don't have a corresponding backend member.
-        if (member != null) member as FunctionEntity
+        if (member != null)
+          member as FunctionEntity,
     };
   }
 
   Map<LibraryEntity, V> toBackendLibraryMap<V>(
-      Map<LibraryEntity, V> map, V Function(V value) convert) {
+    Map<LibraryEntity, V> map,
+    V Function(V value) convert,
+  ) {
     return convertMap(map, toBackendLibrary, convert);
   }
 
   Map<ClassEntity, V> toBackendClassMap<V>(
-      Map<ClassEntity, V> map, V Function(V value) convert) {
+    Map<ClassEntity, V> map,
+    V Function(V value) convert,
+  ) {
     return convertMap(map, toBackendClass, convert);
   }
 
   Map<MemberEntity, V2> toBackendMemberMap<V1, V2>(
-      Map<MemberEntity, V1> map, V2 Function(V1 value) convert) {
+    Map<MemberEntity, V1> map,
+    V2 Function(V1 value) convert,
+  ) {
     return convertMap(map, toBackendMember, convert);
   }
 }
 
 E identity<E>(E element) => element;
 
-Map<K, V2> convertMap<K, V1, V2>(Map<K, V1> map, K? Function(K key) convertKey,
-    V2 Function(V1 value) convertValue) {
+Map<K, V2> convertMap<K, V1, V2>(
+  Map<K, V1> map,
+  K? Function(K key) convertKey,
+  V2 Function(V1 value) convertValue,
+) {
   Map<K, V2> newMap = {};
   map.forEach((K key, V1 value) {
     K? newKey = convertKey(key);
@@ -158,8 +177,9 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
   _TypeConverter(this._dartTypes, {this.allowFreeVariables = false});
 
   List<DartType> convertTypes(
-          List<DartType> types, _EntityConverter converter) =>
-      visitList(types, converter);
+    List<DartType> types,
+    _EntityConverter converter,
+  ) => visitList(types, converter);
 
   @override
   DartType visit(DartType type, _EntityConverter converter) {
@@ -197,8 +217,10 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
 
   @override
   DartType visitInterfaceType(InterfaceType type, _EntityConverter converter) {
-    return _dartTypes.interfaceType(converter(type.element) as ClassEntity,
-        visitList(type.typeArguments, converter));
+    return _dartTypes.interfaceType(
+      converter(type.element) as ClassEntity,
+      visitList(type.typeArguments, converter),
+    );
   }
 
   @override
@@ -208,51 +230,68 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
 
   @override
   DartType visitTypeVariableType(
-      TypeVariableType type, _EntityConverter converter) {
-    return _dartTypes
-        .typeVariableType(converter(type.element) as TypeVariableEntity);
+    TypeVariableType type,
+    _EntityConverter converter,
+  ) {
+    return _dartTypes.typeVariableType(
+      converter(type.element) as TypeVariableEntity,
+    );
   }
 
   @override
   DartType visitFunctionType(FunctionType type, _EntityConverter converter) {
     List<FunctionTypeVariable> typeVariables = <FunctionTypeVariable>[];
     for (FunctionTypeVariable typeVariable in type.typeVariables) {
-      typeVariables.add(_functionTypeVariables[typeVariable] =
-          _dartTypes.functionTypeVariable(typeVariable.index));
+      typeVariables.add(
+        _functionTypeVariables[typeVariable] = _dartTypes.functionTypeVariable(
+          typeVariable.index,
+        ),
+      );
     }
     for (FunctionTypeVariable typeVariable in type.typeVariables) {
-      _functionTypeVariables[typeVariable]!.bound =
-          visit(typeVariable.bound, converter);
+      _functionTypeVariables[typeVariable]!.bound = visit(
+        typeVariable.bound,
+        converter,
+      );
     }
     DartType returnType = visit(type.returnType, converter);
     List<DartType> parameterTypes = visitList(type.parameterTypes, converter);
-    List<DartType> optionalParameterTypes =
-        visitList(type.optionalParameterTypes, converter);
-    List<DartType> namedParameterTypes =
-        visitList(type.namedParameterTypes, converter);
+    List<DartType> optionalParameterTypes = visitList(
+      type.optionalParameterTypes,
+      converter,
+    );
+    List<DartType> namedParameterTypes = visitList(
+      type.namedParameterTypes,
+      converter,
+    );
     for (FunctionTypeVariable typeVariable in type.typeVariables) {
       _functionTypeVariables.remove(typeVariable);
     }
     return _dartTypes.functionType(
-        returnType,
-        parameterTypes,
-        optionalParameterTypes,
-        type.namedParameters,
-        type.requiredNamedParameters,
-        namedParameterTypes,
-        typeVariables);
+      returnType,
+      parameterTypes,
+      optionalParameterTypes,
+      type.namedParameters,
+      type.requiredNamedParameters,
+      namedParameterTypes,
+      typeVariables,
+    );
   }
 
   @override
   DartType visitFunctionTypeVariable(
-      FunctionTypeVariable type, _EntityConverter converter) {
+    FunctionTypeVariable type,
+    _EntityConverter converter,
+  ) {
     DartType? result = _functionTypeVariables[type];
     if (result == null && allowFreeVariables) {
       return type;
     }
     if (result == null) {
-      throw failedAt(currentElementSpannable,
-          "Function type variable $type not found in $_functionTypeVariables");
+      throw failedAt(
+        currentElementSpannable,
+        "Function type variable $type not found in $_functionTypeVariables",
+      );
     }
     return result;
   }
@@ -272,7 +311,7 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   final _TypeConverter typeConverter;
 
   _ConstantConverter(this._dartTypes, this.toBackendEntity)
-      : typeConverter = _TypeConverter(_dartTypes);
+    : typeConverter = _TypeConverter(_dartTypes);
 
   @override
   NullConstantValue visitNull(NullConstantValue constant, _) => constant;
@@ -286,24 +325,28 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   StringConstantValue visitString(StringConstantValue constant, _) => constant;
   @override
   DummyInterceptorConstantValue visitDummyInterceptor(
-          DummyInterceptorConstantValue constant, _) =>
-      constant;
+    DummyInterceptorConstantValue constant,
+    _,
+  ) => constant;
   @override
   LateSentinelConstantValue visitLateSentinel(
-          LateSentinelConstantValue constant, _) =>
-      constant;
+    LateSentinelConstantValue constant,
+    _,
+  ) => constant;
   @override
   UnreachableConstantValue visitUnreachable(
-          UnreachableConstantValue constant, _) =>
-      constant;
+    UnreachableConstantValue constant,
+    _,
+  ) => constant;
   @override
   JsNameConstantValue visitJsName(JsNameConstantValue constant, _) => constant;
 
   @override
   FunctionConstantValue visitFunction(FunctionConstantValue constant, _) {
     return FunctionConstantValue(
-        toBackendEntity(constant.element) as FunctionEntity,
-        typeConverter.visit(constant.type, toBackendEntity) as FunctionType);
+      toBackendEntity(constant.element) as FunctionEntity,
+      typeConverter.visit(constant.type, toBackendEntity) as FunctionType,
+    );
   }
 
   @override
@@ -318,45 +361,61 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
 
   @override
   constant_system.JavaScriptSetConstant visitSet(
-      covariant constant_system.JavaScriptSetConstant constant, _) {
+    covariant constant_system.JavaScriptSetConstant constant,
+    _,
+  ) {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
     List<ConstantValue> values = _handleValues(constant.values);
     final constantIndex = constant.indexObject;
-    final indexObject = constantIndex == null
-        ? null
-        : visitJavaScriptObject(constantIndex, null);
+    final indexObject =
+        constantIndex == null
+            ? null
+            : visitJavaScriptObject(constantIndex, null);
     if (identical(values, constant.values) &&
         identical(indexObject, constant.indexObject) &&
         type == constant.type) {
       return constant;
     }
     return constant_system.JavaScriptSetConstant(
-        type as InterfaceType, values, indexObject);
+      type as InterfaceType,
+      values,
+      indexObject,
+    );
   }
 
   @override
   constant_system.JavaScriptMapConstant visitMap(
-      covariant constant_system.JavaScriptMapConstant constant, _) {
+    covariant constant_system.JavaScriptMapConstant constant,
+    _,
+  ) {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
     final keyList = visitList(constant.keyList, null);
     final valueList = visitList(constant.valueList, null);
     final constantIndex = constant.indexObject;
-    final indexObject = constantIndex == null
-        ? null
-        : visitJavaScriptObject(constantIndex, null);
+    final indexObject =
+        constantIndex == null
+            ? null
+            : visitJavaScriptObject(constantIndex, null);
     if (identical(keyList, constant.keyList) &&
         identical(valueList, constant.valueList) &&
         identical(indexObject, constant.indexObject) &&
         type == constant.type) {
       return constant;
     }
-    return constant_system.JavaScriptMapConstant(type as InterfaceType, keyList,
-        valueList, constant.onlyStringKeys, indexObject);
+    return constant_system.JavaScriptMapConstant(
+      type as InterfaceType,
+      keyList,
+      valueList,
+      constant.onlyStringKeys,
+      indexObject,
+    );
   }
 
   @override
   ConstructedConstantValue visitConstructed(
-      ConstructedConstantValue constant, _) {
+    ConstructedConstantValue constant,
+    _,
+  ) {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
     Map<FieldEntity, ConstantValue> fields = {};
     constant.fields.forEach((f, v) {
@@ -380,7 +439,9 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
 
   @override
   JavaScriptObjectConstantValue visitJavaScriptObject(
-      JavaScriptObjectConstantValue constant, _) {
+    JavaScriptObjectConstantValue constant,
+    _,
+  ) {
     List<ConstantValue> keys = _handleValues(constant.keys);
     List<ConstantValue> values = _handleValues(constant.values);
     if (identical(keys, constant.keys) && identical(values, constant.values)) {
@@ -392,8 +453,10 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   @override
   TypeConstantValue visitType(TypeConstantValue constant, _) {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
-    DartType representedType =
-        typeConverter.visit(constant.representedType, toBackendEntity);
+    DartType representedType = typeConverter.visit(
+      constant.representedType,
+      toBackendEntity,
+    );
     if (type == constant.type && representedType == constant.representedType) {
       return constant;
     }
@@ -404,24 +467,32 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   Never visitInterceptor(InterceptorConstantValue constant, _) {
     // Interceptor constants are only created in the SSA graph builder.
     throw UnsupportedError(
-        "Unexpected visitInterceptor ${constant.toStructuredText(_dartTypes)}");
+      "Unexpected visitInterceptor ${constant.toStructuredText(_dartTypes)}",
+    );
   }
 
   @override
   Never visitDeferredGlobal(DeferredGlobalConstantValue constant, _) {
     // Deferred global constants are only created in the SSA graph builder.
     throw UnsupportedError(
-        "Unexpected DeferredGlobalConstantValue ${constant.toStructuredText(_dartTypes)}");
+      "Unexpected DeferredGlobalConstantValue ${constant.toStructuredText(_dartTypes)}",
+    );
   }
 
   @override
   InstantiationConstantValue visitInstantiation(
-      InstantiationConstantValue constant, _) {
+    InstantiationConstantValue constant,
+    _,
+  ) {
     ConstantValue function = constant.function.accept(this, null);
-    List<DartType> typeArguments =
-        typeConverter.convertTypes(constant.typeArguments, toBackendEntity);
+    List<DartType> typeArguments = typeConverter.convertTypes(
+      constant.typeArguments,
+      toBackendEntity,
+    );
     return InstantiationConstantValue(
-        typeArguments, function as FunctionConstantValue);
+      typeArguments,
+      function as FunctionConstantValue,
+    );
   }
 
   List<ConstantValue> _handleValues(List<ConstantValue> values) {

@@ -12,10 +12,11 @@ class ScopeModel {
   final VariableScopeModel? variableScopeModel;
   final EvaluationComplexity initializerComplexity;
 
-  const ScopeModel(
-      {this.closureScopeModel,
-      this.variableScopeModel,
-      required this.initializerComplexity});
+  const ScopeModel({
+    this.closureScopeModel,
+    this.variableScopeModel,
+    required this.initializerComplexity,
+  });
 
   /// Inspect members and mark if those members capture any state that needs to
   /// be marked as free variables.

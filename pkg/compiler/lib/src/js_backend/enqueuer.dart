@@ -50,9 +50,13 @@ class CodegenEnqueuer extends Enqueuer {
   // applying additional impacts before re-emptying the queue.
   void Function()? onEmptyForTesting;
 
-  CodegenEnqueuer(this.task, this.worldBuilder, this._workItemBuilder,
-      this.listener, this._annotationsData)
-      : name = 'codegen enqueuer';
+  CodegenEnqueuer(
+    this.task,
+    this.worldBuilder,
+    this._workItemBuilder,
+    this.listener,
+    this._annotationsData,
+  ) : name = 'codegen enqueuer';
 
   @override
   Iterable<ClassEntity> get directlyInstantiatedClasses =>
@@ -84,8 +88,10 @@ class CodegenEnqueuer extends Enqueuer {
     _queue.add(workItem);
   }
 
-  void _registerInstantiatedType(InterfaceType type,
-      {bool nativeUsage = false}) {
+  void _registerInstantiatedType(
+    InterfaceType type, {
+    bool nativeUsage = false,
+  }) {
     task.measureSubtask('codegen.typeUse', () {
       worldBuilder.registerTypeInstantiation(type, _applyClassUse);
       listener.registerInstantiatedType(type, nativeUsage: nativeUsage);
@@ -94,17 +100,22 @@ class CodegenEnqueuer extends Enqueuer {
 
   @override
   bool checkNoEnqueuedInvokedInstanceMethods(
-      ElementEnvironment elementEnvironment) {
+    ElementEnvironment elementEnvironment,
+  ) {
     return checkEnqueuerConsistency(elementEnvironment);
   }
 
   @override
   void checkClass(ClassEntity cls) {
-    worldBuilder.processClassMembers(cls,
-        (MemberEntity member, EnumSet<MemberUse> useSet) {
+    worldBuilder.processClassMembers(cls, (
+      MemberEntity member,
+      EnumSet<MemberUse> useSet,
+    ) {
       if (useSet.isNotEmpty) {
-        failedAt(member,
-            'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}');
+        failedAt(
+          member,
+          'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}',
+        );
       }
     }, checkEnqueuerConsistency: true);
   }
@@ -274,8 +285,9 @@ class CodegenEnqueuer extends Enqueuer {
       _recentClasses.clear();
       _recentConstants = false;
       if (!_onQueueEmpty(recents)) _recentClasses.addAll(recents);
-    } while (
-        _queue.isNotEmpty || _recentClasses.isNotEmpty || _recentConstants);
+    } while (_queue.isNotEmpty ||
+        _recentClasses.isNotEmpty ||
+        _recentConstants);
   }
 
   @override

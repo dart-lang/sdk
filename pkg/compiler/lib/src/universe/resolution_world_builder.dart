@@ -133,7 +133,10 @@ class InstantiationInfo {
 
   /// Register [type] as the instantiation [kind] using [constructor].
   void addInstantiation(
-      ConstructorEntity? constructor, InterfaceType type, Instantiation kind) {
+    ConstructorEntity? constructor,
+    InterfaceType type,
+    Instantiation kind,
+  ) {
     (instantiationMap ??= {})
         .putIfAbsent(constructor, () => <Instance>{})
         .add(Instance(type, kind));
@@ -167,8 +170,10 @@ class InstantiationInfo {
     sb.write('InstantiationInfo[');
     if (instantiationMap != null) {
       bool needsComma = false;
-      instantiationMap!
-          .forEach((ConstructorEntity? constructor, Set<Instance> set) {
+      instantiationMap!.forEach((
+        ConstructorEntity? constructor,
+        Set<Instance> set,
+      ) {
         if (needsComma) {
           sb.write(', ');
         }
@@ -282,26 +287,28 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
   final KernelToElementMap _elementMap;
 
   ResolutionWorldBuilder(
-      this._options,
-      this._elementMap,
-      this.elementEnvironment,
-      this._dartTypes,
-      this._commonElements,
-      this._nativeBasicData,
-      this._nativeDataBuilder,
-      this._interceptorDataBuilder,
-      this._backendUsageBuilder,
-      this._rtiNeedBuilder,
-      this._allocatorAnalysis,
-      this._nativeResolutionEnqueuer,
-      this._noSuchMethodRegistry,
-      this._annotationsDataBuilder,
-      this._selectorConstraintsStrategy,
-      this.classHierarchyBuilder);
+    this._options,
+    this._elementMap,
+    this.elementEnvironment,
+    this._dartTypes,
+    this._commonElements,
+    this._nativeBasicData,
+    this._nativeDataBuilder,
+    this._interceptorDataBuilder,
+    this._backendUsageBuilder,
+    this._rtiNeedBuilder,
+    this._allocatorAnalysis,
+    this._nativeResolutionEnqueuer,
+    this._noSuchMethodRegistry,
+    this._annotationsDataBuilder,
+    this._selectorConstraintsStrategy,
+    this.classHierarchyBuilder,
+  );
 
   /// Returns the classes registered as directly or indirectly instantiated.
-  Iterable<ClassEntity> get processedClasses => _processedClasses.keys
-      .where((cls) => _processedClasses[cls]!.isInstantiated);
+  Iterable<ClassEntity> get processedClasses => _processedClasses.keys.where(
+    (cls) => _processedClasses[cls]!.isInstantiated,
+  );
 
   bool isMemberProcessed(MemberEntity member) =>
       _processedMembers.contains(member);
@@ -318,7 +325,9 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
   KClosedWorld? get closedWorldForTesting {
     if (!_closed) {
       failedAt(
-          noLocationSpannable, "The world builder has not yet been closed.");
+        noLocationSpannable,
+        "The world builder has not yet been closed.",
+      );
     }
     return _closedWorldCache;
   }
@@ -336,8 +345,9 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
 
   /// Registers that [element] has been closurized.
   void registerClosurizedMember(MemberEntity element) {
-    FunctionType type =
-        elementEnvironment.getFunctionType(element as FunctionEntity);
+    FunctionType type = elementEnvironment.getFunctionType(
+      element as FunctionEntity,
+    );
     if (type.containsTypeVariables) {
       _closurizedMembersWithFreeTypeVariables.add(element);
     }
@@ -348,11 +358,15 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
   void registerTypeInstantiation(
-      InterfaceType type, ClassUsedCallback classUsed,
-      {ConstructorEntity? constructor}) {
+    InterfaceType type,
+    ClassUsedCallback classUsed, {
+    ConstructorEntity? constructor,
+  }) {
     ClassEntity cls = type.element;
-    InstantiationInfo info =
-        _instantiationInfo.putIfAbsent(cls, () => InstantiationInfo());
+    InstantiationInfo info = _instantiationInfo.putIfAbsent(
+      cls,
+      () => InstantiationInfo(),
+    );
     Instantiation kind = Instantiation.uninstantiated;
     bool isNative = _nativeBasicData.isNativeClass(cls);
     // We can't use the closed-world assumption with native abstract
@@ -368,9 +382,11 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
     }
     info.addInstantiation(constructor, type, kind);
     if (kind != Instantiation.uninstantiated) {
-      classHierarchyBuilder.updateClassHierarchyNodeForClass(cls,
-          directlyInstantiated: info.isDirectlyInstantiated,
-          abstractlyInstantiated: info.isAbstractlyInstantiated);
+      classHierarchyBuilder.updateClassHierarchyNodeForClass(
+        cls,
+        directlyInstantiated: info.isDirectlyInstantiated,
+        abstractlyInstantiated: info.isAbstractlyInstantiated,
+      );
       _processInstantiatedClass(cls, classUsed);
     }
 
@@ -381,7 +397,9 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
       elementEnvironment.forEachSupertype(cls, (InterfaceType supertype) {
         if (_implementedClasses.add(supertype.element)) {
           classUsed(
-              supertype.element, _getClassUsage(supertype.element).implement());
+            supertype.element,
+            _getClassUsage(supertype.element).implement(),
+          );
         }
       });
     }
@@ -392,7 +410,9 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
   }
 
   Iterable<CallStructure> _getMatchingCallStructures(
-      Map<Selector, SelectorConstraints>? selectors, MemberEntity member) {
+    Map<Selector, SelectorConstraints>? selectors,
+    MemberEntity member,
+  ) {
     if (selectors == null) return const [];
     Set<CallStructure>? callStructures;
     for (Selector selector in selectors.keys) {
@@ -408,7 +428,9 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
   }
 
   bool _hasMatchingSelector(
-      Map<Selector, SelectorConstraints>? selectors, MemberEntity member) {
+    Map<Selector, SelectorConstraints>? selectors,
+    MemberEntity member,
+  ) {
     if (selectors == null) return false;
     for (Selector selector in selectors.keys) {
       if (selector.appliesUnnamed(member)) {
@@ -441,19 +463,25 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
   /// Applies the [dynamicUse] to applicable instance members. Calls
   /// [membersUsed] with the usage changes for each member.
   void registerDynamicUse(
-      DynamicUse dynamicUse, MemberUsedCallback memberUsed) {
+    DynamicUse dynamicUse,
+    MemberUsedCallback memberUsed,
+  ) {
     Selector selector = dynamicUse.selector;
     String methodName = selector.name;
 
     void process(
-        Map<String, Set<MemberUsage>> memberMap,
-        EnumSet<MemberUse> Function(MemberUsage usage) action,
-        bool Function(MemberUsage usage) shouldBeRemoved) {
+      Map<String, Set<MemberUsage>> memberMap,
+      EnumSet<MemberUse> Function(MemberUsage usage) action,
+      bool Function(MemberUsage usage) shouldBeRemoved,
+    ) {
       _processSet(memberMap, methodName, (MemberUsage usage) {
         if (usage.entity.isAbstract ||
             selector.appliesUnnamed(usage.entity) &&
                 (_selectorConstraintsStrategy.appliedUnnamed(
-                    dynamicUse, usage.entity, this))) {
+                  dynamicUse,
+                  usage.entity,
+                  this,
+                ))) {
           memberUsed(usage.entity, action(usage));
           return shouldBeRemoved(usage);
         }
@@ -464,51 +492,62 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
     switch (dynamicUse.kind) {
       case DynamicUseKind.invoke:
         registerDynamicInvocation(
-            dynamicUse.selector, dynamicUse.typeArguments);
+          dynamicUse.selector,
+          dynamicUse.typeArguments,
+        );
         if (_registerNewSelector(dynamicUse, _invokedNames)) {
           process(
-              _invokableInstanceMembersByName,
-              (m) => m.invoke(
-                  Accesses.dynamicAccess, dynamicUse.selector.callStructure),
-              // If not all optional parameters have been passed in invocations
-              // we must keep the member in [_invokableInstanceMembersByName].
-              // TODO(johnniwinther): Also remove from
-              // [_readableInstanceMembersByName] in case of getters/setters.
-              (u) => !u.hasPendingDynamicInvoke);
+            _invokableInstanceMembersByName,
+            (m) => m.invoke(
+              Accesses.dynamicAccess,
+              dynamicUse.selector.callStructure,
+            ),
+            // If not all optional parameters have been passed in invocations
+            // we must keep the member in [_invokableInstanceMembersByName].
+            // TODO(johnniwinther): Also remove from
+            // [_readableInstanceMembersByName] in case of getters/setters.
+            (u) => !u.hasPendingDynamicInvoke,
+          );
         }
         break;
       case DynamicUseKind.get:
         if (_registerNewSelector(dynamicUse, _invokedGetters)) {
           process(
-              _readableInstanceMembersByName,
-              (m) => m.read(Accesses.dynamicAccess),
-              // TODO(johnniwinther): Members cannot be partially read so
-              // we should always remove them.
-              // TODO(johnniwinther): Also remove from
-              // [_invokableInstanceMembersByName] in case of methods.
-              (u) => !u.hasPendingDynamicRead);
+            _readableInstanceMembersByName,
+            (m) => m.read(Accesses.dynamicAccess),
+            // TODO(johnniwinther): Members cannot be partially read so
+            // we should always remove them.
+            // TODO(johnniwinther): Also remove from
+            // [_invokableInstanceMembersByName] in case of methods.
+            (u) => !u.hasPendingDynamicRead,
+          );
         }
         break;
       case DynamicUseKind.set:
         if (_registerNewSelector(dynamicUse, _invokedSetters)) {
           process(
-              _writableInstanceMembersByName,
-              (m) => m.write(Accesses.dynamicAccess),
-              // TODO(johnniwinther): Members cannot be partially written so
-              // we should always remove them.
-              (u) => !u.hasPendingDynamicWrite);
+            _writableInstanceMembersByName,
+            (m) => m.write(Accesses.dynamicAccess),
+            // TODO(johnniwinther): Members cannot be partially written so
+            // we should always remove them.
+            (u) => !u.hasPendingDynamicWrite,
+          );
         }
         break;
     }
   }
 
-  bool _registerNewSelector(DynamicUse dynamicUse,
-      Map<String, Map<Selector, SelectorConstraints>> selectorMap) {
+  bool _registerNewSelector(
+    DynamicUse dynamicUse,
+    Map<String, Map<Selector, SelectorConstraints>> selectorMap,
+  ) {
     Selector selector = dynamicUse.selector;
     String name = selector.name;
     Object? constraint = dynamicUse.receiverConstraint;
     Map<Selector, SelectorConstraints> selectors = selectorMap.putIfAbsent(
-        name, () => Maplet<Selector, SelectorConstraints>());
+      name,
+      () => Maplet<Selector, SelectorConstraints>(),
+    );
     UniverseSelectorConstraints? constraints =
         selectors[selector] as UniverseSelectorConstraints?;
     if (constraints == null) {
@@ -539,8 +578,9 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
     if (staticUse.kind == StaticUseKind.closure) {
       Local localFunction = staticUse.element as Local;
-      FunctionType type =
-          elementEnvironment.getLocalFunctionType(localFunction);
+      FunctionType type = elementEnvironment.getLocalFunctionType(
+        localFunction,
+      );
       if (type.typeVariables.isNotEmpty) {
         _genericLocalFunctions.add(localFunction);
       }
@@ -550,7 +590,9 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
       final typeArguments = staticUse.typeArguments;
       if (typeArguments != null && typeArguments.isNotEmpty) {
         registerDynamicInvocation(
-            Selector.call(Names.call, staticUse.callStructure!), typeArguments);
+          Selector.call(Names.call, staticUse.callStructure!),
+          typeArguments,
+        );
       }
       return;
     }
@@ -615,12 +657,14 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
       case StaticUseKind.superInvoke:
         registerStaticInvocation(staticUse);
         useSet = useSet.union(
-            usage.invoke(Accesses.superAccess, staticUse.callStructure!));
+          usage.invoke(Accesses.superAccess, staticUse.callStructure!),
+        );
         break;
       case StaticUseKind.staticInvoke:
         registerStaticInvocation(staticUse);
         useSet = useSet.union(
-            usage.invoke(Accesses.staticAccess, staticUse.callStructure!));
+          usage.invoke(Accesses.staticAccess, staticUse.callStructure!),
+        );
         if (_pendingWeakTearOffs.remove(element)) {
           useSet = useSet.union(usage.read(Accesses.staticAccess));
         }
@@ -628,14 +672,17 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
       case StaticUseKind.constructorInvoke:
       case StaticUseKind.constConstructorInvoke:
         useSet = useSet.union(
-            usage.invoke(Accesses.staticAccess, staticUse.callStructure!));
+          usage.invoke(Accesses.staticAccess, staticUse.callStructure!),
+        );
         break;
       case StaticUseKind.directInvoke:
         failedAt(element, 'Direct static use is not supported for resolution.');
       case StaticUseKind.inlining:
       case StaticUseKind.callMethod:
-        failedAt(currentElementSpannable,
-            "Static use ${staticUse.kind} is not supported during resolution.");
+        failedAt(
+          currentElementSpannable,
+          "Static use ${staticUse.kind} is not supported during resolution.",
+        );
     }
     if (useSet.isNotEmpty) {
       memberUsed(usage.entity, useSet);
@@ -680,17 +727,28 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
   /// If [checkEnqueuerConsistency] is `true` we check that no new member
   /// usage can be found. This check is performed without changing the already
   /// collected member usage.
-  void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed,
-      {bool checkEnqueuerConsistency = false}) {
-    elementEnvironment.forEachClassMember(cls,
-        (ClassEntity cls, MemberEntity member) {
-      _processMemberInUsedClass(cls, member, memberUsed,
-          checkEnqueuerConsistency: checkEnqueuerConsistency);
+  void processClassMembers(
+    ClassEntity cls,
+    MemberUsedCallback memberUsed, {
+    bool checkEnqueuerConsistency = false,
+  }) {
+    elementEnvironment.forEachClassMember(cls, (
+      ClassEntity cls,
+      MemberEntity member,
+    ) {
+      _processMemberInUsedClass(
+        cls,
+        member,
+        memberUsed,
+        checkEnqueuerConsistency: checkEnqueuerConsistency,
+      );
     });
   }
 
   void processAbstractClassMembers(
-      ClassEntity cls, MemberUsedCallback memberUsed) {
+    ClassEntity cls,
+    MemberUsedCallback memberUsed,
+  ) {
     elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
       if (member.isAbstract) {
         // Check for potential usages of abstract members (i.e. of their
@@ -703,8 +761,11 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
   /// Call [updateUsage] on all [MemberUsage]s in the set in [map] for
   /// [memberName]. If [updateUsage] returns `true` the usage is removed from
   /// the set.
-  void _processSet(Map<String, Set<MemberUsage>> map, String memberName,
-      bool Function(MemberUsage e) updateUsage) {
+  void _processSet(
+    Map<String, Set<MemberUsage>> map,
+    String memberName,
+    bool Function(MemberUsage e) updateUsage,
+  ) {
     Set<MemberUsage>? members = map[memberName];
     if (members == null) return;
     // [f] might add elements to [: map[memberName] :] during the loop below
@@ -720,8 +781,10 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
     map[memberName]!.addAll(remaining);
   }
 
-  (MemberUsage, EnumSet<MemberUse>) _getMemberUsage(MemberEntity member,
-      {bool checkEnqueuerConsistency = false}) {
+  (MemberUsage, EnumSet<MemberUse>) _getMemberUsage(
+    MemberEntity member, {
+    bool checkEnqueuerConsistency = false,
+  }) {
     EnumSet<MemberUse> useSet = EnumSet.empty();
     MemberUsage? usage = _memberUsage[member];
     if (usage == null) {
@@ -749,8 +812,9 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
           if (member.isFunction &&
               member.name == Identifiers.call &&
               elementEnvironment.isGenericClass(cls)) {
-            _closurizedMembersWithFreeTypeVariables
-                .add(member as FunctionEntity);
+            _closurizedMembersWithFreeTypeVariables.add(
+              member as FunctionEntity,
+            );
           }
         }
 
@@ -758,11 +822,13 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
           useSet = useSet.union(usage.read(Accesses.dynamicAccess));
         }
         if (usage.hasPendingDynamicInvoke) {
-          Iterable<CallStructure> callStructures =
-              _getInvocationCallStructures(member);
+          Iterable<CallStructure> callStructures = _getInvocationCallStructures(
+            member,
+          );
           for (CallStructure callStructure in callStructures) {
-            useSet = useSet
-                .union(usage.invoke(Accesses.dynamicAccess, callStructure));
+            useSet = useSet.union(
+              usage.invoke(Accesses.dynamicAccess, callStructure),
+            );
             if (!usage.hasPendingDynamicInvoke) {
               break;
             }
@@ -809,20 +875,27 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
   /// is determined by comparing the signature of [member] to the selector
   /// structure (including arguments) at call sites.
   void _processMemberInUsedClass(
-      ClassEntity cls, MemberEntity member, MemberUsedCallback memberUsed,
-      {bool checkEnqueuerConsistency = false}) {
+    ClassEntity cls,
+    MemberEntity member,
+    MemberUsedCallback memberUsed, {
+    bool checkEnqueuerConsistency = false,
+  }) {
     if (!member.isInstanceMember) return;
     String memberName = member.name!;
 
     MemberUsage? usage = _memberUsage[member];
     if (usage == null) {
-      final (memberUsage, useSet) = _getMemberUsage(member,
-          checkEnqueuerConsistency: checkEnqueuerConsistency);
+      final (memberUsage, useSet) = _getMemberUsage(
+        member,
+        checkEnqueuerConsistency: checkEnqueuerConsistency,
+      );
       usage = memberUsage;
       if (useSet.isNotEmpty) {
         if (checkEnqueuerConsistency) {
-          throw SpannableAssertionFailure(member,
-              'Unenqueued usage of $member: \nbefore: <none>\nafter : $usage');
+          throw SpannableAssertionFailure(
+            member,
+            'Unenqueued usage of $member: \nbefore: <none>\nafter : $usage',
+          );
         } else {
           memberUsed(usage.entity, useSet);
         }
@@ -838,11 +911,13 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
           useSet = useSet.union(usage.read(Accesses.dynamicAccess));
         }
         if (usage.hasPendingDynamicInvoke) {
-          Iterable<CallStructure> callStructures =
-              _getInvocationCallStructures(member);
+          Iterable<CallStructure> callStructures = _getInvocationCallStructures(
+            member,
+          );
           for (CallStructure callStructure in callStructures) {
-            useSet = useSet
-                .union(usage.invoke(Accesses.dynamicAccess, callStructure));
+            useSet = useSet.union(
+              usage.invoke(Accesses.dynamicAccess, callStructure),
+            );
             if (!usage.hasPendingDynamicInvoke) {
               break;
             }
@@ -864,9 +939,10 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
         }
         if (checkEnqueuerConsistency && !original.dataEquals(usage)) {
           _elementMap.reporter.internalError(
-              member,
-              'Unenqueued usage of $member: \n'
-              'before: $original\nafter : $usage');
+            member,
+            'Unenqueued usage of $member: \n'
+            'before: $original\nafter : $usage',
+          );
         }
         memberUsed(usage.entity, useSet);
       }
@@ -893,9 +969,11 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
       if (!info.hasInstantiation) {
         return;
       }
-      classHierarchyBuilder.updateClassHierarchyNodeForClass(cls,
-          directlyInstantiated: info.isDirectlyInstantiated,
-          abstractlyInstantiated: info.isAbstractlyInstantiated);
+      classHierarchyBuilder.updateClassHierarchyNodeForClass(
+        cls,
+        directlyInstantiated: info.isDirectlyInstantiated,
+        abstractlyInstantiated: info.isAbstractlyInstantiated,
+      );
 
       // Walk through the superclasses, and record the types
       // implemented by that type on the superclasses.
@@ -960,7 +1038,9 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
       return true;
     }
     return classHierarchyBuilder.isInheritedInSubtypeOf(
-        memberHoldingClass, type);
+      memberHoldingClass,
+      type,
+    );
   }
 
   KClosedWorld closeWorld(DiagnosticReporter reporter) {
@@ -974,16 +1054,22 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
     _memberUsage.forEach((MemberEntity member, MemberUsage memberUsage) {
       if (memberUsage.hasUse) {
         liveMemberUsage[member] = memberUsage;
-        assert(_processedMembers.contains(member),
-            "Member $member is used but not processed: $memberUsage.");
+        assert(
+          _processedMembers.contains(member),
+          "Member $member is used but not processed: $memberUsage.",
+        );
       } else {
-        assert(!_processedMembers.contains(member),
-            "Member $member is processed but not used: $memberUsage.");
+        assert(
+          !_processedMembers.contains(member),
+          "Member $member is processed but not used: $memberUsage.",
+        );
       }
     });
     for (MemberEntity member in _processedMembers) {
-      assert(_memberUsage.containsKey(member),
-          "Member $member is processed but has not usage.");
+      assert(
+        _memberUsage.containsKey(member),
+        "Member $member is processed but has not usage.",
+      );
     }
 
     Set<InterfaceType> instantiatedTypes = {};
@@ -997,38 +1083,40 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
       }
     });
 
-    KClosedWorld closedWorld = KClosedWorld(_elementMap,
-        options: _options,
-        elementEnvironment: elementEnvironment as KElementEnvironment,
-        dartTypes: _dartTypes,
-        commonElements: _commonElements as KCommonElements,
-        nativeData: _nativeDataBuilder.close(reporter),
-        interceptorData: _interceptorDataBuilder.close(),
-        backendUsage: backendUsage,
-        noSuchMethodData: _noSuchMethodRegistry.close(),
-        rtiNeedBuilder: _rtiNeedBuilder,
-        fieldAnalysis: _allocatorAnalysis,
-        implementedClasses: _implementedClasses,
-        liveNativeClasses: _nativeResolutionEnqueuer.liveNativeClasses,
-        liveInstanceMembers: _liveInstanceMembers,
-        liveAbstractInstanceMembers: _liveAbstractInstanceMembers,
-        assignedInstanceMembers: computeAssignedInstanceMembers(),
-        liveMemberUsage: liveMemberUsage,
-        mixinUses: classHierarchyBuilder.mixinUses,
-        typesImplementedBySubclasses: typesImplementedBySubclasses,
-        classHierarchy: classHierarchyBuilder.close(),
-        annotationsData: _annotationsDataBuilder.close(_options, reporter),
-        isChecks: _isChecks,
-        staticTypeArgumentDependencies: staticTypeArgumentDependencies,
-        dynamicTypeArgumentDependencies: dynamicTypeArgumentDependencies,
-        typeVariableTypeLiterals: typeVariableTypeLiterals,
-        genericLocalFunctions: _genericLocalFunctions,
-        closurizedMembersWithFreeTypeVariables:
-            _closurizedMembersWithFreeTypeVariables,
-        localFunctions: _localFunctions,
-        instantiatedTypes: instantiatedTypes,
-        instantiatedRecordTypes: _instantiatedRecordTypes,
-        namedTypeVariablesNewRti: _namedTypeVariablesNewRti);
+    KClosedWorld closedWorld = KClosedWorld(
+      _elementMap,
+      options: _options,
+      elementEnvironment: elementEnvironment as KElementEnvironment,
+      dartTypes: _dartTypes,
+      commonElements: _commonElements as KCommonElements,
+      nativeData: _nativeDataBuilder.close(reporter),
+      interceptorData: _interceptorDataBuilder.close(),
+      backendUsage: backendUsage,
+      noSuchMethodData: _noSuchMethodRegistry.close(),
+      rtiNeedBuilder: _rtiNeedBuilder,
+      fieldAnalysis: _allocatorAnalysis,
+      implementedClasses: _implementedClasses,
+      liveNativeClasses: _nativeResolutionEnqueuer.liveNativeClasses,
+      liveInstanceMembers: _liveInstanceMembers,
+      liveAbstractInstanceMembers: _liveAbstractInstanceMembers,
+      assignedInstanceMembers: computeAssignedInstanceMembers(),
+      liveMemberUsage: liveMemberUsage,
+      mixinUses: classHierarchyBuilder.mixinUses,
+      typesImplementedBySubclasses: typesImplementedBySubclasses,
+      classHierarchy: classHierarchyBuilder.close(),
+      annotationsData: _annotationsDataBuilder.close(_options, reporter),
+      isChecks: _isChecks,
+      staticTypeArgumentDependencies: staticTypeArgumentDependencies,
+      dynamicTypeArgumentDependencies: dynamicTypeArgumentDependencies,
+      typeVariableTypeLiterals: typeVariableTypeLiterals,
+      genericLocalFunctions: _genericLocalFunctions,
+      closurizedMembersWithFreeTypeVariables:
+          _closurizedMembersWithFreeTypeVariables,
+      localFunctions: _localFunctions,
+      instantiatedTypes: instantiatedTypes,
+      instantiatedRecordTypes: _instantiatedRecordTypes,
+      namedTypeVariablesNewRti: _namedTypeVariablesNewRti,
+    );
     if (retainDataForTesting) {
       _closedWorldCache = closedWorld;
     }

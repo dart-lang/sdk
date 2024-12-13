@@ -9,7 +9,8 @@ abstract class _NamerName extends js_ast.Name {
 
   @override
   _NamerName withSourceInformation(
-      js_ast.JavaScriptNodeSourceInformation? newSourceInformation) {
+    js_ast.JavaScriptNodeSourceInformation? newSourceInformation,
+  ) {
     if (sourceInformation == newSourceInformation) return this;
     final name = this; // Variable needed for type promotion in next line.
     final underlying = name is _NameReference ? name._target : this;
@@ -230,9 +231,12 @@ class TokenName extends _NamerName implements js_ast.ReferenceCountedAstNode {
 
   void finalize() {
     assert(
-        !isFinalized,
-        failedAt(noLocationSpannable,
-            "TokenName($key)=$_name has already been finalized."));
+      !isFinalized,
+      failedAt(
+        noLocationSpannable,
+        "TokenName($key)=$_name has already been finalized.",
+      ),
+    );
     _name = _scope.getNextName();
   }
 }

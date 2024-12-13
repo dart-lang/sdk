@@ -37,8 +37,8 @@ class KernelScopeInfo {
   /// The set of variables that were defined in another scope, but are used in
   /// this scope. The items in this set are either of type VariableDeclaration
   /// or TypeParameterTypeWithContext.
-  Set<ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ >
-      freeVariables = <ir.Node>{};
+  Set<ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */>
+  freeVariables = <ir.Node>{};
 
   /// A set of type parameters that are defined in another scope and are only
   /// used if runtime type information is checked. If runtime type information
@@ -61,24 +61,25 @@ class KernelScopeInfo {
   Set<VariableUse> thisUsedAsFreeVariableIfNeedsRti = <VariableUse>{};
 
   KernelScopeInfo(this.hasThisLocal)
-      : localsUsedInTryOrSync = <ir.VariableDeclaration>{},
-        boxedVariables = <ir.VariableDeclaration>{},
-        capturedVariablesAccessor = null;
+    : localsUsedInTryOrSync = <ir.VariableDeclaration>{},
+      boxedVariables = <ir.VariableDeclaration>{},
+      capturedVariablesAccessor = null;
 
   KernelScopeInfo.from(this.hasThisLocal, KernelScopeInfo info)
-      : localsUsedInTryOrSync = info.localsUsedInTryOrSync,
-        boxedVariables = info.boxedVariables,
-        capturedVariablesAccessor = null;
+    : localsUsedInTryOrSync = info.localsUsedInTryOrSync,
+      boxedVariables = info.boxedVariables,
+      capturedVariablesAccessor = null;
 
   KernelScopeInfo.withBoxedVariables(
-      this.boxedVariables,
-      this.capturedVariablesAccessor,
-      this.localsUsedInTryOrSync,
-      this.freeVariables,
-      this.freeVariablesForRti,
-      this.thisUsedAsFreeVariable,
-      this.thisUsedAsFreeVariableIfNeedsRti,
-      this.hasThisLocal);
+    this.boxedVariables,
+    this.capturedVariablesAccessor,
+    this.localsUsedInTryOrSync,
+    this.freeVariables,
+    this.freeVariablesForRti,
+    this.thisUsedAsFreeVariable,
+    this.thisUsedAsFreeVariableIfNeedsRti,
+    this.hasThisLocal,
+  );
 
   @override
   String toString() {
@@ -99,29 +100,29 @@ class KernelScopeInfo {
 
 class KernelCapturedScope extends KernelScopeInfo {
   KernelCapturedScope(
-      super.boxedVariables,
-      super.capturedVariablesAccessor,
-      super.localsUsedInTryOrSync,
-      super.freeVariables,
-      super.freeVariablesForRti,
-      super.thisUsedAsFreeVariable,
-      super.thisUsedAsFreeVariableIfNeedsRti,
-      super.hasThisLocal)
-      : super.withBoxedVariables();
+    super.boxedVariables,
+    super.capturedVariablesAccessor,
+    super.localsUsedInTryOrSync,
+    super.freeVariables,
+    super.freeVariablesForRti,
+    super.thisUsedAsFreeVariable,
+    super.thisUsedAsFreeVariableIfNeedsRti,
+    super.hasThisLocal,
+  ) : super.withBoxedVariables();
 
   // Loops through the free variables of an existing KernelCapturedScope and
   // creates a new KernelCapturedScope that only captures type variables.
   KernelCapturedScope.forSignature(KernelCapturedScope scope)
-      : this(
-            _empty,
-            null,
-            _empty,
-            Set.of(
-                scope.freeVariables.whereType<TypeVariableTypeWithContext>()),
-            scope.freeVariablesForRti,
-            scope.thisUsedAsFreeVariable,
-            scope.thisUsedAsFreeVariableIfNeedsRti,
-            scope.hasThisLocal);
+    : this(
+        _empty,
+        null,
+        _empty,
+        Set.of(scope.freeVariables.whereType<TypeVariableTypeWithContext>()),
+        scope.freeVariablesForRti,
+        scope.thisUsedAsFreeVariable,
+        scope.thisUsedAsFreeVariableIfNeedsRti,
+        scope.hasThisLocal,
+      );
 
   // Silly hack because we don't have const sets.
   static final Set<ir.VariableDeclaration> _empty = {};
@@ -133,25 +134,26 @@ class KernelCapturedLoopScope extends KernelCapturedScope {
   final List<ir.VariableDeclaration> boxedLoopVariables;
 
   KernelCapturedLoopScope(
-      Set<ir.VariableDeclaration> boxedVariables,
-      NodeBox? capturedVariablesAccessor,
-      this.boxedLoopVariables,
-      Set<ir.VariableDeclaration> localsUsedInTryOrSync,
-      Set<ir.Node /* VariableDeclaration | TypeVariableTypeWithContext */ >
-          freeVariables,
-      Map<TypeVariableTypeWithContext, Set<VariableUse>> freeVariablesForRti,
-      bool thisUsedAsFreeVariable,
-      Set<VariableUse> thisUsedAsFreeVariableIfNeedsRti,
-      bool hasThisLocal)
-      : super(
-            boxedVariables,
-            capturedVariablesAccessor,
-            localsUsedInTryOrSync,
-            freeVariables,
-            freeVariablesForRti,
-            thisUsedAsFreeVariable,
-            thisUsedAsFreeVariableIfNeedsRti,
-            hasThisLocal);
+    Set<ir.VariableDeclaration> boxedVariables,
+    NodeBox? capturedVariablesAccessor,
+    this.boxedLoopVariables,
+    Set<ir.VariableDeclaration> localsUsedInTryOrSync,
+    Set<ir.Node /* VariableDeclaration | TypeVariableTypeWithContext */>
+    freeVariables,
+    Map<TypeVariableTypeWithContext, Set<VariableUse>> freeVariablesForRti,
+    bool thisUsedAsFreeVariable,
+    Set<VariableUse> thisUsedAsFreeVariableIfNeedsRti,
+    bool hasThisLocal,
+  ) : super(
+        boxedVariables,
+        capturedVariablesAccessor,
+        localsUsedInTryOrSync,
+        freeVariables,
+        freeVariablesForRti,
+        thisUsedAsFreeVariable,
+        thisUsedAsFreeVariableIfNeedsRti,
+        hasThisLocal,
+      );
 
   bool get hasBoxedLoopVariables => boxedLoopVariables.isNotEmpty;
 }
@@ -395,7 +397,9 @@ class TypeVariableTypeWithContext implements ir.Node {
   /// [context] can be either an ir.Member or a ir.FunctionDeclaration or
   /// ir.FunctionExpression.
   factory TypeVariableTypeWithContext(
-      ir.TypeParameterType type, ir.TreeNode? context) {
+    ir.TypeParameterType type,
+    ir.TreeNode? context,
+  ) {
     TypeVariableKind kind;
     ir.GenericDeclaration? typeDeclaration = type.parameter.declaration;
     // TODO(fishythefish): Use exhaustive pattern switch.
@@ -419,17 +423,27 @@ class TypeVariableTypeWithContext implements ir.Node {
     } else {
       // We have a generic local function type variable, like `T` in
       // `m() { local<T>() { ... } ... }`.
-      assert(typeDeclaration is ir.LocalFunction,
-          "Unexpected type declaration: $typeDeclaration");
+      assert(
+        typeDeclaration is ir.LocalFunction,
+        "Unexpected type declaration: $typeDeclaration",
+      );
       kind = TypeVariableKind.local;
       context = typeDeclaration;
     }
     return TypeVariableTypeWithContext.internal(
-        type, context, kind, typeDeclaration);
+      type,
+      context,
+      kind,
+      typeDeclaration,
+    );
   }
 
   TypeVariableTypeWithContext.internal(
-      this.type, this.context, this.kind, this.typeDeclaration);
+    this.type,
+    this.context,
+    this.kind,
+    this.typeDeclaration,
+  );
 
   @override
   R accept<R>(ir.Visitor<R> v) {

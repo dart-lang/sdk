@@ -23,16 +23,17 @@ class CompositeView extends View {
   final bool _nestedContainer;
   final bool _showScrollbar;
 
-  CompositeView(this._cssName,
-      [nestedContainer = false,
-      scrollable = false,
-      vertical = false,
-      showScrollbar = false])
-      : _nestedContainer = nestedContainer,
-        _scrollable = scrollable,
-        _vertical = vertical,
-        _showScrollbar = showScrollbar,
-        childViews = <View>[];
+  CompositeView(
+    this._cssName, [
+    nestedContainer = false,
+    scrollable = false,
+    vertical = false,
+    showScrollbar = false,
+  ]) : _nestedContainer = nestedContainer,
+       _scrollable = scrollable,
+       _vertical = vertical,
+       _showScrollbar = showScrollbar,
+       childViews = <View>[];
 
   @override
   Element render() {
@@ -46,8 +47,12 @@ class CompositeView extends View {
     }
 
     if (_scrollable) {
-      scroller = Scroller(container, _vertical /* verticalScrollEnabled */,
-          !_vertical /* horizontalScrollEnabled */, true /* momentumEnabled */);
+      scroller = Scroller(
+        container,
+        _vertical /* verticalScrollEnabled */,
+        !_vertical /* horizontalScrollEnabled */,
+        true /* momentumEnabled */,
+      );
       if (_showScrollbar) {
         _scrollbar = Scrollbar(scroller);
       }
@@ -78,9 +83,10 @@ class CompositeView extends View {
   }
 
   void removeChild(View view) {
-    childViews = childViews.where((e) {
-      return view != e;
-    }).toList();
+    childViews =
+        childViews.where((e) {
+          return view != e;
+        }).toList();
     // TODO(rnystrom): Container shouldn't be null. Remove this check.
     if (container != null) {
       view.node.remove();

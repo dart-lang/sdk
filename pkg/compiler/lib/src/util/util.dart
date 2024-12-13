@@ -49,8 +49,13 @@ class Hashing {
   }
 
   /// Mix the bits of `.hashCode` all non-null objects.
-  static int objectsHash(Object? obj1,
-      [Object? obj2, Object? obj3, Object? obj4, Object? obj5]) {
+  static int objectsHash(
+    Object? obj1, [
+    Object? obj2,
+    Object? obj3,
+    Object? obj4,
+    Object? obj5,
+  ]) {
     int hash = 0;
     if (obj5 != null) hash = objectHash(obj5, hash);
     if (obj4 != null) hash = objectHash(obj4, hash);
@@ -246,8 +251,11 @@ int longestCommonPrefixLength(List<Object?> a, List<Object?> b) {
 /// the smallest number that makes it not appear in [usedNames].
 ///
 /// Adds the result to [usedNames].
-String makeUnique(String suggestedName, Set<String> usedNames,
-    [String separator = '']) {
+String makeUnique(
+  String suggestedName,
+  Set<String> usedNames, [
+  String separator = '',
+]) {
   String result = suggestedName;
   if (usedNames.contains(suggestedName)) {
     int counter = 0;

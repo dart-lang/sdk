@@ -50,7 +50,9 @@ abstract class JsToElementMap {
   /// Return the [InterfaceType] corresponding to the [cls] with the given
   /// [typeArguments] and [nullability].
   InterfaceType createInterfaceType(
-      ir.Class cls, List<ir.DartType> typeArguments);
+    ir.Class cls,
+    List<ir.DartType> typeArguments,
+  );
 
   /// Returns the [CallStructure] corresponding to the [arguments].
   CallStructure getCallStructure(ir.Arguments arguments);
@@ -91,11 +93,15 @@ abstract class JsToElementMap {
   /// Computes the [native.NativeBehavior] for a call to the
   /// [JS_EMBEDDED_GLOBAL] function.
   NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
-      ir.StaticInvocation node);
+    ir.StaticInvocation node,
+  );
 
   /// Computes the [ConstantValue] for the constant [expression].
-  ConstantValue? getConstantValue(ir.Expression? expression,
-      {bool requireConstant = true, bool implicitNull = false});
+  ConstantValue? getConstantValue(
+    ir.Expression? expression, {
+    bool requireConstant = true,
+    bool implicitNull = false,
+  });
 
   /// Returns the [ConstantValue] for the sentinel used to indicate that a
   /// parameter is required.
@@ -129,7 +135,8 @@ abstract class JsToElementMap {
   /// Returns how [member] has access to type variables of the this type
   /// returned by [getMemberThisType].
   ClassTypeVariableAccess getClassTypeVariableAccessForMember(
-      MemberEntity member);
+    MemberEntity member,
+  );
 
   /// Returns the [LibraryEntity] corresponding to the library [node].
   LibraryEntity getLibrary(ir.Library node);
@@ -147,7 +154,9 @@ abstract class JsToElementMap {
   /// Make a mapping from closed-over variables to the context fields where they
   /// are stored.
   Map<ir.VariableDeclaration, JContextField> makeContextContainer(
-      KernelScopeInfo info, MemberEntity member);
+    KernelScopeInfo info,
+    MemberEntity member,
+  );
 }
 
 /// Interface for type inference results for kernel IR nodes.
@@ -159,7 +168,9 @@ abstract class KernelToTypeInferenceMap {
   // TODO(johnniwinther): Improve the type of the [invocation] once the new
   // method invocation encoding is fully utilized.
   AbstractValue? receiverTypeOfInvocation(
-      ir.Expression invocation, AbstractValueDomain abstractValueDomain);
+    ir.Expression invocation,
+    AbstractValueDomain abstractValueDomain,
+  );
 
   /// Returns the inferred receiver type of the dynamic [read].
   // TODO(johnniwinther): Improve the type of the [invocation] once the new
@@ -170,15 +181,21 @@ abstract class KernelToTypeInferenceMap {
   // TODO(johnniwinther): Improve the type of the [invocation] once the new
   // method invocation encoding is fully utilized.
   AbstractValue? receiverTypeOfSet(
-      ir.Expression write, AbstractValueDomain abstractValueDomain);
+    ir.Expression write,
+    AbstractValueDomain abstractValueDomain,
+  );
 
   /// Returns the inferred type of [listLiteral].
   AbstractValue typeOfListLiteral(
-      ir.ListLiteral listLiteral, AbstractValueDomain abstractValueDomain);
+    ir.ListLiteral listLiteral,
+    AbstractValueDomain abstractValueDomain,
+  );
 
   /// Returns the inferred type of [recordLiteral].
   AbstractValue? typeOfRecordLiteral(
-      ir.RecordLiteral recordLiteral, AbstractValueDomain abstractValueDomain);
+    ir.RecordLiteral recordLiteral,
+    AbstractValueDomain abstractValueDomain,
+  );
 
   /// Returns the inferred type of iterator in [forInStatement].
   AbstractValue? typeOfIterator(ir.ForInStatement forInStatement);
@@ -191,8 +208,10 @@ abstract class KernelToTypeInferenceMap {
 
   /// Returns `true` if [forInStatement] is inferred to be a JavaScript
   /// indexable iterator.
-  bool isJsIndexableIterator(ir.ForInStatement forInStatement,
-      AbstractValueDomain abstractValueDomain);
+  bool isJsIndexableIterator(
+    ir.ForInStatement forInStatement,
+    AbstractValueDomain abstractValueDomain,
+  );
 
   /// Returns the inferred index type of [forInStatement].
   AbstractValue inferredIndexType(ir.ForInStatement forInStatement);
@@ -209,13 +228,17 @@ abstract class KernelToTypeInferenceMap {
 
   /// Returns the returned type annotation in the [nativeBehavior].
   AbstractValue typeFromNativeBehavior(
-      NativeBehavior nativeBehavior, JClosedWorld closedWorld);
+    NativeBehavior nativeBehavior,
+    JClosedWorld closedWorld,
+  );
 }
 
 /// Returns the [ir.FunctionNode] that defines [member] or `null` if [member]
 /// is not a constructor, method or local function.
 ir.FunctionNode? getFunctionNode(
-    JsToElementMap elementMap, MemberEntity member) {
+  JsToElementMap elementMap,
+  MemberEntity member,
+) {
   MemberDefinition definition = elementMap.getMemberDefinition(member);
   switch (definition.kind) {
     case MemberKind.regular:
@@ -420,7 +443,8 @@ class RegularMemberDefinition implements MemberDefinition {
   MemberKind get kind => MemberKind.regular;
 
   @override
-  String toString() => 'RegularMemberDefinition(kind:$kind,'
+  String toString() =>
+      'RegularMemberDefinition(kind:$kind,'
       'node:$node,location:$location)';
 }
 
@@ -437,12 +461,13 @@ class SpecialMemberDefinition implements MemberDefinition {
   final MemberKind kind;
 
   SpecialMemberDefinition(ir.TreeNode node, this.kind)
-      : _node = Deferrable.eager(node);
+    : _node = Deferrable.eager(node);
 
   SpecialMemberDefinition.from(MemberDefinition baseMember, this.kind)
-      : _node = baseMember is ClosureMemberDefinition
-            ? baseMember._node
-            : Deferrable.eager(baseMember.node as ir.TreeNode);
+    : _node =
+          baseMember is ClosureMemberDefinition
+              ? baseMember._node
+              : Deferrable.eager(baseMember.node as ir.TreeNode);
 
   SpecialMemberDefinition._deserialized(this._node, this.kind);
 
@@ -450,7 +475,9 @@ class SpecialMemberDefinition implements MemberDefinition {
       source.readTreeNode();
 
   factory SpecialMemberDefinition.readFromDataSource(
-      DataSourceReader source, MemberKind kind) {
+    DataSourceReader source,
+    MemberKind kind,
+  ) {
     source.begin(tag);
     Deferrable<ir.TreeNode> node = source.readDeferrable(_readNode);
     source.end(tag);
@@ -469,7 +496,8 @@ class SpecialMemberDefinition implements MemberDefinition {
   SourceSpan get location => computeSourceSpanFromTreeNode(node);
 
   @override
-  String toString() => 'SpecialMemberDefinition(kind:$kind,'
+  String toString() =>
+      'SpecialMemberDefinition(kind:$kind,'
       'node:$node,location:$location)';
 }
 
@@ -487,19 +515,19 @@ class ClosureMemberDefinition implements MemberDefinition {
   final Deferrable<ir.TreeNode> _node;
 
   ClosureMemberDefinition(this.location, this.kind, ir.TreeNode node)
-      : _node = Deferrable.eager(node),
-        assert(
-            kind == MemberKind.closureCall || kind == MemberKind.closureField);
+    : _node = Deferrable.eager(node),
+      assert(kind == MemberKind.closureCall || kind == MemberKind.closureField);
 
   ClosureMemberDefinition._deserialized(this.location, this.kind, this._node)
-      : assert(
-            kind == MemberKind.closureCall || kind == MemberKind.closureField);
+    : assert(kind == MemberKind.closureCall || kind == MemberKind.closureField);
 
   static ir.TreeNode _readNode(DataSourceReader source) =>
       source.readTreeNode();
 
   factory ClosureMemberDefinition.readFromDataSource(
-      DataSourceReader source, MemberKind kind) {
+    DataSourceReader source,
+    MemberKind kind,
+  ) {
     source.begin(tag);
     SourceSpan location = source.readSourceSpan();
     Deferrable<ir.TreeNode> node = source.readDeferrable(_readNode);
@@ -562,19 +590,27 @@ class RecordGetterDefinition implements MemberDefinition {
 }
 
 void forEachOrderedParameterByFunctionNode(
-    ir.FunctionNode node,
-    ParameterStructure parameterStructure,
-    void Function(ir.VariableDeclaration parameter,
-            {required bool isOptional, required bool isElided})
-        f,
-    {bool useNativeOrdering = false}) {
-  for (int position = 0;
-      position < node.positionalParameters.length;
-      position++) {
+  ir.FunctionNode node,
+  ParameterStructure parameterStructure,
+  void Function(
+    ir.VariableDeclaration parameter, {
+    required bool isOptional,
+    required bool isElided,
+  })
+  f, {
+  bool useNativeOrdering = false,
+}) {
+  for (
+    int position = 0;
+    position < node.positionalParameters.length;
+    position++
+  ) {
     ir.VariableDeclaration variable = node.positionalParameters[position];
-    f(variable,
-        isOptional: position >= parameterStructure.requiredPositionalParameters,
-        isElided: position >= parameterStructure.positionalParameters);
+    f(
+      variable,
+      isOptional: position >= parameterStructure.requiredPositionalParameters,
+      isElided: position >= parameterStructure.positionalParameters,
+    );
   }
 
   if (node.namedParameters.isEmpty) {
@@ -588,21 +624,26 @@ void forEachOrderedParameterByFunctionNode(
     namedParameters.sort(namedOrdering);
   }
   for (ir.VariableDeclaration variable in namedParameters) {
-    f(variable,
-        isOptional: true,
-        isElided: !parameterStructure.namedParameters.contains(variable.name));
+    f(
+      variable,
+      isOptional: true,
+      isElided: !parameterStructure.namedParameters.contains(variable.name),
+    );
   }
 }
 
 void forEachOrderedParameter(
-    JsToElementMap elementMap,
-    FunctionEntity function,
-    void Function(ir.VariableDeclaration parameter, {required bool isElided})
-        f) {
+  JsToElementMap elementMap,
+  FunctionEntity function,
+  void Function(ir.VariableDeclaration parameter, {required bool isElided}) f,
+) {
   ParameterStructure parameterStructure = function.parameterStructure;
 
-  void handleParameter(ir.VariableDeclaration parameter,
-      {required bool isOptional, required bool isElided}) {
+  void handleParameter(
+    ir.VariableDeclaration parameter, {
+    required bool isOptional,
+    required bool isElided,
+  }) {
     f(parameter, isElided: isElided);
   }
 
@@ -612,7 +653,10 @@ void forEachOrderedParameter(
       ir.Node node = definition.node;
       if (node is ir.Procedure) {
         forEachOrderedParameterByFunctionNode(
-            node.function, parameterStructure, handleParameter);
+          node.function,
+          parameterStructure,
+          handleParameter,
+        );
         return;
       }
       break;
@@ -621,18 +665,27 @@ void forEachOrderedParameter(
       ir.Node node = definition.node;
       if (node is ir.Procedure) {
         forEachOrderedParameterByFunctionNode(
-            node.function, parameterStructure, handleParameter);
+          node.function,
+          parameterStructure,
+          handleParameter,
+        );
         return;
       } else if (node is ir.Constructor) {
         forEachOrderedParameterByFunctionNode(
-            node.function, parameterStructure, handleParameter);
+          node.function,
+          parameterStructure,
+          handleParameter,
+        );
         return;
       }
       break;
     case MemberKind.closureCall:
       final node = definition.node as ir.LocalFunction;
       forEachOrderedParameterByFunctionNode(
-          node.function, parameterStructure, handleParameter);
+        node.function,
+        parameterStructure,
+        handleParameter,
+      );
       return;
     case MemberKind.closureField:
     case MemberKind.generatorBody:
@@ -717,7 +770,8 @@ class RegularClassDefinition implements ClassDefinition {
   ClassKind get kind => ClassKind.regular;
 
   @override
-  String toString() => 'RegularClassDefinition(kind:$kind,'
+  String toString() =>
+      'RegularClassDefinition(kind:$kind,'
       'node:$node,location:$location)';
 }
 
@@ -768,7 +822,8 @@ class ContextContainerDefinition implements ClassDefinition {
   ContextContainerDefinition(this.location);
 
   factory ContextContainerDefinition.readFromDataSource(
-      DataSourceReader source) {
+    DataSourceReader source,
+  ) {
     source.begin(tag);
     SourceSpan location = source.readSourceSpan();
     source.end(tag);

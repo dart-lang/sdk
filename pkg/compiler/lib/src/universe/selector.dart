@@ -21,8 +21,7 @@ enum SelectorKind {
   call('call'),
   operator('operator'),
   index_('index'),
-  special('special'),
-  ;
+  special('special');
 
   final String name;
   const SelectorKind(this.name);
@@ -60,27 +59,40 @@ class Selector {
   }
 
   Selector.internal(
-      this.kind, this.memberName, this.callStructure, this.hashCode) {
+    this.kind,
+    this.memberName,
+    this.callStructure,
+    this.hashCode,
+  ) {
     assert(
-        kind == SelectorKind.index_ ||
-            (memberName != Names.indexName && memberName != Names.indexSetName),
-        failedAt(noLocationSpannable,
-            "kind=$kind,memberName=$memberName,callStructure:$callStructure"));
+      kind == SelectorKind.index_ ||
+          (memberName != Names.indexName && memberName != Names.indexSetName),
+      failedAt(
+        noLocationSpannable,
+        "kind=$kind,memberName=$memberName,callStructure:$callStructure",
+      ),
+    );
     assert(
-        kind == SelectorKind.operator ||
-            kind == SelectorKind.index_ ||
-            !isOperatorName(memberName.text) ||
-            memberName.text == '??',
-        failedAt(noLocationSpannable,
-            "kind=$kind,memberName=$memberName,callStructure:$callStructure"));
+      kind == SelectorKind.operator ||
+          kind == SelectorKind.index_ ||
+          !isOperatorName(memberName.text) ||
+          memberName.text == '??',
+      failedAt(
+        noLocationSpannable,
+        "kind=$kind,memberName=$memberName,callStructure:$callStructure",
+      ),
+    );
     assert(
-        kind == SelectorKind.call ||
-            kind == SelectorKind.getter ||
-            kind == SelectorKind.setter ||
-            isOperatorName(memberName.text) ||
-            memberName.text == '??',
-        failedAt(noLocationSpannable,
-            "kind=$kind,memberName=$memberName,callStructure:$callStructure"));
+      kind == SelectorKind.call ||
+          kind == SelectorKind.getter ||
+          kind == SelectorKind.setter ||
+          isOperatorName(memberName.text) ||
+          memberName.text == '??',
+      failedAt(
+        noLocationSpannable,
+        "kind=$kind,memberName=$memberName,callStructure:$callStructure",
+      ),
+    );
   }
 
   // TODO(johnniwinther): Extract caching.
@@ -139,14 +151,16 @@ class Selector {
       Selector(SelectorKind.setter, name.setter, CallStructure.oneArg);
 
   factory Selector.unaryOperator(String name) => Selector(
-      SelectorKind.operator,
-      PublicName(utils.constructOperatorName(name, true)),
-      CallStructure.noArgs);
+    SelectorKind.operator,
+    PublicName(utils.constructOperatorName(name, true)),
+    CallStructure.noArgs,
+  );
 
   factory Selector.binaryOperator(String name) => Selector(
-      SelectorKind.operator,
-      PublicName(utils.constructOperatorName(name, false)),
-      CallStructure.oneArg);
+    SelectorKind.operator,
+    PublicName(utils.constructOperatorName(name, false)),
+    CallStructure.oneArg,
+  );
 
   factory Selector.index() =>
       Selector(SelectorKind.index_, Names.indexName, CallStructure.oneArg);
@@ -157,26 +171,34 @@ class Selector {
   factory Selector.call(Name name, CallStructure callStructure) =>
       Selector(SelectorKind.call, name, callStructure);
 
-  factory Selector.callClosure(int arity,
-          [List<String>? namedArguments, int typeArgumentCount = 0]) =>
-      Selector(SelectorKind.call, Names.call,
-          CallStructure(arity, namedArguments, typeArgumentCount));
+  factory Selector.callClosure(
+    int arity, [
+    List<String>? namedArguments,
+    int typeArgumentCount = 0,
+  ]) => Selector(
+    SelectorKind.call,
+    Names.call,
+    CallStructure(arity, namedArguments, typeArgumentCount),
+  );
 
   factory Selector.callClosureFrom(Selector selector) =>
       Selector(SelectorKind.call, Names.call, selector.callStructure);
 
-  factory Selector.callConstructor(Name name,
-          [int arity = 0, List<String>? namedArguments]) =>
-      Selector(SelectorKind.call, name, CallStructure(arity, namedArguments));
+  factory Selector.callConstructor(
+    Name name, [
+    int arity = 0,
+    List<String>? namedArguments,
+  ]) => Selector(SelectorKind.call, name, CallStructure(arity, namedArguments));
 
   factory Selector.callDefaultConstructor() =>
       Selector(SelectorKind.call, const PublicName(''), CallStructure.noArgs);
 
   // TODO(31953): Remove this if we can implement via static calls.
   factory Selector.genericInstantiation(int typeArguments) => Selector(
-      SelectorKind.special,
-      Names.genericInstantiation,
-      CallStructure(0, null, typeArguments));
+    SelectorKind.special,
+    Names.genericInstantiation,
+    CallStructure(0, null, typeArguments),
+  );
 
   /// Deserializes a [Selector] object from [source].
   factory Selector.readFromDataSource(DataSourceReader source) {
@@ -285,7 +307,10 @@ class Selector {
   }
 
   static int computeHashCode(
-      SelectorKind kind, Name name, CallStructure callStructure) {
+    SelectorKind kind,
+    Name name,
+    CallStructure callStructure,
+  ) {
     // Add bits from name and kind.
     int hash = Hashing.mixHashCodeBits(name.hashCode, kind.hashCode);
     // Add bits from the call structure.
@@ -302,9 +327,10 @@ class Selector {
   /// A selector is normalized if its call structure is normalized.
   // TODO(johnniwinther): Use normalized selectors as much as possible,
   // especially where selectors are used in sets or as keys in maps.
-  Selector toNormalized() => callStructure.isNormalized
-      ? this
-      : Selector(kind, memberName, callStructure.toNormalized());
+  Selector toNormalized() =>
+      callStructure.isNormalized
+          ? this
+          : Selector(kind, memberName, callStructure.toNormalized());
 
   Selector toCallSelector() => Selector.callClosureFrom(this);
 

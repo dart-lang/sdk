@@ -308,8 +308,10 @@ class _GridItemParser extends _Parser {
     } else {
       int? edge = list!.lineNames[name];
       if (edge == null) {
-        _error('row/column name "$name" not found in the parent\'s '
-            ' grid-row/grid-columns properties');
+        _error(
+          'row/column name "$name" not found in the parent\'s '
+          ' grid-row/grid-columns properties',
+        );
       }
       return edge;
     }
@@ -326,9 +328,9 @@ class _GridTrackParser extends _Parser {
   final Map<String?, int> _lineNames;
 
   _GridTrackParser._internal(String src)
-      : _tracks = <GridTrack>[],
-        _lineNames = <String?, int>{},
-        super(src);
+    : _tracks = <GridTrack>[],
+      _lineNames = <String?, int>{},
+      super(src);
 
   /// Parses the grid-rows and grid-columns CSS properties into object form. */
   static GridTrackList? parse(String? str) {

@@ -20,7 +20,10 @@ class ClassInfo {
   final int strictSubclassBits;
 
   const ClassInfo(
-      this.exactBits, this.strictSubtypeBits, this.strictSubclassBits);
+    this.exactBits,
+    this.strictSubtypeBits,
+    this.strictSubclassBits,
+  );
 }
 
 /// This class is used as an API by the powerset abstract value domain to help
@@ -54,7 +57,7 @@ class PowersetBitsDomain {
     'other',
     'interceptor',
     'notInterceptor',
-    'null'
+    'null',
   ];
 
   PowersetBitsDomain(this._closedWorld);
@@ -72,7 +75,9 @@ class PowersetBitsDomain {
   int get nullOrOtherMask => nullMask | otherMask;
   int get boolNullOtherMask => boolOrNullMask | otherMask;
   int get preciseMask => _singletonIndices.fold(
-      powersetBottom, (mask, index) => mask | 1 << index);
+    powersetBottom,
+    (mask, index) => mask | 1 << index,
+  );
 
   int get interceptorMask => 1 << _interceptorIndex;
   int get notInterceptorMask => 1 << _notInterceptorIndex;
@@ -162,8 +167,10 @@ class PowersetBitsDomain {
       AbstractBool.maybe;
 
   AbstractBool isTargetingMember(
-          int receiver, MemberEntity member, Name name) =>
-      AbstractBool.maybe;
+    int receiver,
+    MemberEntity member,
+    Name name,
+  ) => AbstractBool.maybe;
 
   int computeReceiver(Iterable<MemberEntity> members) {
     return powersetTop;
@@ -299,9 +306,12 @@ class PowersetBitsDomain {
   AbstractBool isPrimitive(int value) =>
       AbstractBool.trueOrMaybe(isSingleton(value));
 
-  AbstractBool isNull(int value) => isDefinitelyNull(value)
-      ? AbstractBool.true_
-      : (isPotentiallyNull(value) ? AbstractBool.maybe : AbstractBool.false_);
+  AbstractBool isNull(int value) =>
+      isDefinitelyNull(value)
+          ? AbstractBool.true_
+          : (isPotentiallyNull(value)
+              ? AbstractBool.maybe
+              : AbstractBool.false_);
 
   // TODO(fishythefish): Support tracking late sentinels in the powerset domain.
   AbstractBool isLateSentinel(int value) => AbstractBool.maybe;
@@ -381,8 +391,10 @@ class PowersetBitsDomain {
     // Compute interceptor and notInterceptor bits first
     int interceptorBits = powersetBottom;
     if (_closedWorld.classHierarchy.isInstantiated(cls)) {
-      if (_closedWorld.classHierarchy
-          .isSubclassOf(cls, commonElements.jsInterceptorClass)) {
+      if (_closedWorld.classHierarchy.isSubclassOf(
+        cls,
+        commonElements.jsInterceptorClass,
+      )) {
         interceptorBits |= interceptorMask;
       } else {
         interceptorBits |= notInterceptorMask;
@@ -396,8 +408,8 @@ class PowersetBitsDomain {
     }
 
     int strictSubtypeBits = powersetBottom;
-    for (ClassEntity strictSubtype
-        in _closedWorld.classHierarchy.strictSubtypesOf(cls)) {
+    for (ClassEntity strictSubtype in _closedWorld.classHierarchy
+        .strictSubtypesOf(cls)) {
       // Currently null is a subtype of Object in the class hierarchy but we don't
       // want to consider it as a subtype of a nonnull class
       if (!_isNullSubtype(strictSubtype)) {
@@ -406,8 +418,8 @@ class PowersetBitsDomain {
     }
 
     int strictSubclassBits = powersetBottom;
-    for (ClassEntity strictSubclass
-        in _closedWorld.classHierarchy.strictSubclassesOf(cls)) {
+    for (ClassEntity strictSubclass in _closedWorld.classHierarchy
+        .strictSubclassesOf(cls)) {
       // Currently null is a subtype of Object in the class hierarchy but we don't
       // want to consider it as a subtype of a nonnull class
       if (!_isNullSubtype(strictSubclass)) {
@@ -488,8 +500,9 @@ class PowersetBitsDomain {
     bool isPrecise = true;
     while (type is TypeVariableType) {
       TypeVariableType typeVariable = type;
-      type = _closedWorld.elementEnvironment
-          .getTypeVariableBound(typeVariable.element);
+      type = _closedWorld.elementEnvironment.getTypeVariableBound(
+        typeVariable.element,
+      );
       isPrecise = false;
       if (type is NullableType) {
         // <A extends B?, B extends num>  ...  null is A --> can be `true`.
@@ -556,22 +569,27 @@ class PowersetBitsDomain {
 
   int get emptyType => powersetBottom;
 
-  late final int constMapType =
-      createNonNullSubtype(commonElements.constMapLiteralClass);
+  late final int constMapType = createNonNullSubtype(
+    commonElements.constMapLiteralClass,
+  );
 
   int get constSetType => otherValue;
 
-  late final int constListType =
-      createNonNullExact(commonElements.jsUnmodifiableArrayClass);
+  late final int constListType = createNonNullExact(
+    commonElements.jsUnmodifiableArrayClass,
+  );
 
-  late final int fixedListType =
-      createNonNullExact(commonElements.jsFixedArrayClass);
+  late final int fixedListType = createNonNullExact(
+    commonElements.jsFixedArrayClass,
+  );
 
-  late final int growableListType =
-      createNonNullExact(commonElements.jsExtendableArrayClass);
+  late final int growableListType = createNonNullExact(
+    commonElements.jsExtendableArrayClass,
+  );
 
-  late final int mutableArrayType =
-      createNonNullSubtype(commonElements.jsMutableArrayClass);
+  late final int mutableArrayType = createNonNullSubtype(
+    commonElements.jsMutableArrayClass,
+  );
 
   int get nullType => nullValue;
 
@@ -586,13 +604,15 @@ class PowersetBitsDomain {
 
   late final int listType = createNonNullExact(commonElements.jsArrayClass);
 
-  late final int stringType =
-      createNonNullSubtype(commonElements.jsStringClass);
+  late final int stringType = createNonNullSubtype(
+    commonElements.jsStringClass,
+  );
 
   late final int numType = createNonNullSubclass(commonElements.jsNumberClass);
 
-  late final int numNotIntType =
-      createNonNullExact(commonElements.jsNumNotIntClass);
+  late final int numNotIntType = createNonNullExact(
+    commonElements.jsNumNotIntClass,
+  );
 
   late final int intType = createNonNullSubtype(commonElements.jsIntClass);
 
@@ -602,8 +622,9 @@ class PowersetBitsDomain {
 
   int get boolType => boolValue;
 
-  late final int functionType =
-      createNonNullSubtype(commonElements.functionClass);
+  late final int functionType = createNonNullSubtype(
+    commonElements.functionClass,
+  );
 
   late final int recordType = createNonNullSubtype(commonElements.recordClass);
   int get typeType => otherValue;

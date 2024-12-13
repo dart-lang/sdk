@@ -17,28 +17,33 @@ void main(List<String> args) {
     args = args.sublist(1);
   }
   if (maxCount == null) {
-    print("Running indefinitely.\n"
-        "Use '$iterationsFlagPrefix<count>' to set a repetition count"
-        " (as first flag).");
+    print(
+      "Running indefinitely.\n"
+      "Use '$iterationsFlagPrefix<count>' to set a repetition count"
+      " (as first flag).",
+    );
   }
   args = [
     "--suppress-warnings",
     "--suppress-hints",
     "--libraries-spec="
         "${Platform.script.resolve('../../../sdk/lib/libraries.json').toFilePath()}",
-    ...args
+    ...args,
   ];
   void iterate() {
     count++;
     sw.reset();
     sw.start();
-    dart2js.internalMain(args).then((_) {
-      print("$count: ${sw.elapsedMilliseconds}ms");
-    }).then((_) {
-      if (maxCount == null || count < maxCount) {
-        iterate();
-      }
-    });
+    dart2js
+        .internalMain(args)
+        .then((_) {
+          print("$count: ${sw.elapsedMilliseconds}ms");
+        })
+        .then((_) {
+          if (maxCount == null || count < maxCount) {
+            iterate();
+          }
+        });
   }
 
   iterate();

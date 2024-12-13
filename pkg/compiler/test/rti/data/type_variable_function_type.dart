@@ -16,7 +16,8 @@ class Foo<S> {
 /*class: Bar:needsArgs*/
 class Bar<T> {
   f() {
-    /*needsSignature*/ T? local() => null;
+    /*needsSignature*/
+    T? local() => null;
     return local;
   }
 }

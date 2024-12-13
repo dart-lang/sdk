@@ -48,15 +48,18 @@ class InfiniteScroller {
   Element? _bottomDiv;
   Element? _bottomLoadingDiv;
 
-  InfiniteScroller(Scroller scroller, Function onTopScroll,
-      Function onBottomScroll, double offsetTop,
-      [double? offsetBottom])
-      : _scroller = scroller,
-        _onTopScroll = onTopScroll,
-        _onBottomScroll = onBottomScroll,
-        _offsetTop = offsetTop,
-        _offsetBottom = offsetBottom ?? offsetTop,
-        _lastScrollY = 0.0;
+  InfiniteScroller(
+    Scroller scroller,
+    Function onTopScroll,
+    Function onBottomScroll,
+    double offsetTop, [
+    double? offsetBottom,
+  ]) : _scroller = scroller,
+       _onTopScroll = onTopScroll,
+       _onBottomScroll = onBottomScroll,
+       _offsetTop = offsetTop,
+       _offsetBottom = offsetBottom ?? offsetTop,
+       _lastScrollY = 0.0;
 
   /// Adds the loading divs.
   /// [topDiv] The div usually shown at the top.
@@ -65,11 +68,12 @@ class InfiniteScroller {
   /// [bottomDiv] is the div usually shown at the bottom.
   /// [bottomLoadingDiv] is the div to show at the bottom when waiting for more
   /// content to load at the end of the page.
-  void addLoadingDivs(
-      [Element? topDiv,
-      Element? topLoadingDiv,
-      Element? bottomDiv,
-      Element? bottomLoadingDiv]) {
+  void addLoadingDivs([
+    Element? topDiv,
+    Element? topLoadingDiv,
+    Element? bottomDiv,
+    Element? bottomLoadingDiv,
+  ]) {
     _topDiv = topDiv;
     _topLoadingDiv = topLoadingDiv;
     _bottomDiv = bottomDiv;
@@ -122,7 +126,10 @@ class InfiniteScroller {
 
   /// Hides one div and shows another.
   void _updateVisibility(
-      bool isLoading, Element? element, Element? loadingElement) {
+    bool isLoading,
+    Element? element,
+    Element? loadingElement,
+  ) {
     if (element != null) {
       element.style.display = isLoading ? "none" : "";
     }

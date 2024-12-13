@@ -41,18 +41,19 @@ class Collector {
   final List<ClassEntity> nativeClassesAndSubclasses = [];
 
   Collector(
-      this._commonElements,
-      this._elementEnvironment,
-      this._outputUnitData,
-      this._codegenWorld,
-      this._emitter,
-      this._nativeData,
-      this._interceptorData,
-      this._oneShotInterceptorData,
-      this._closedWorld,
-      this._rtiNeededClasses,
-      this._generatedCode,
-      this._sorter);
+    this._commonElements,
+    this._elementEnvironment,
+    this._outputUnitData,
+    this._codegenWorld,
+    this._emitter,
+    this._nativeData,
+    this._interceptorData,
+    this._oneShotInterceptorData,
+    this._closedWorld,
+    this._rtiNeededClasses,
+    this._generatedCode,
+    this._sorter,
+  );
 
   Set<ClassEntity> computeInterceptorsReferencedFromConstants() {
     Set<ClassEntity> classes = {};
@@ -69,7 +70,8 @@ class Collector {
   /// Return a function that returns true if its argument is a class
   /// that needs to be emitted.
   bool Function(ClassEntity cls) computeClassFilter(
-      Iterable<ClassEntity> backendTypeHelpers) {
+    Iterable<ClassEntity> backendTypeHelpers,
+  ) {
     Set<ClassEntity> unneededClasses = {};
     // The [Bool] class is not marked as abstract, but has a factory
     // constructor that always throws. We never need to emit it.
@@ -102,7 +104,8 @@ class Collector {
 
   // Return the classes that are just helpers for the backend's type system.
   static Iterable<ClassEntity> getBackendTypeHelpers(
-      JCommonElements commonElements) {
+    JCommonElements commonElements,
+  ) {
     return [
       commonElements.jsMutableArrayClass,
       commonElements.jsFixedArrayClass,
@@ -111,14 +114,15 @@ class Collector {
       //commonElements.jsUnmodifiableArrayClass,
       commonElements.jsUInt32Class,
       commonElements.jsUInt31Class,
-      commonElements.jsPositiveIntClass
+      commonElements.jsPositiveIntClass,
     ];
   }
 
   /// Compute all the constants that must be emitted.
   void computeNeededConstants() {
-    Iterable<ConstantValue> constants =
-        _codegenWorld.getConstantsForEmission(_emitter.compareConstants);
+    Iterable<ConstantValue> constants = _codegenWorld.getConstantsForEmission(
+      _emitter.compareConstants,
+    );
     for (ConstantValue constant in constants) {
       if (_emitter.isConstantInlinedOrAlreadyEmitted(constant)) continue;
 
@@ -139,9 +143,10 @@ class Collector {
 
     // Compute needed classes.
     Set<ClassEntity> instantiatedClasses =
-        // TODO(johnniwinther): This should be accessed from a codegen closed
-        // world.
-        _codegenWorld.directlyInstantiatedClasses
+            // TODO(johnniwinther): This should be accessed from a codegen closed
+            // world.
+            _codegenWorld
+            .directlyInstantiatedClasses
             .where(computeClassFilter(backendTypeHelpers))
             .toSet();
 
@@ -149,7 +154,9 @@ class Collector {
       for (ClassEntity cls in classes) {
         neededClasses.add(cls);
         _elementEnvironment.forEachSuperClass(
-            cls, (superClass) => neededClasses.add(superClass));
+          cls,
+          (superClass) => neededClasses.add(superClass),
+        );
       }
     }
 
@@ -157,10 +164,11 @@ class Collector {
     addClassesWithSuperclasses(instantiatedClasses);
 
     // 2. Add all classes used as mixins.
-    Set<ClassEntity> mixinClasses = neededClasses
-        .map(_elementEnvironment.getEffectiveMixinClass)
-        .whereType<ClassEntity>()
-        .toSet();
+    Set<ClassEntity> mixinClasses =
+        neededClasses
+            .map(_elementEnvironment.getEffectiveMixinClass)
+            .whereType<ClassEntity>()
+            .toSet();
     neededClasses.addAll(mixinClasses);
 
     // 3. Add classes only needed for their constructors.
@@ -206,12 +214,15 @@ class Collector {
     bool isStaticFunction(MemberEntity element) =>
         !element.isInstanceMember && element is! FieldEntity;
 
-    Iterable<MemberEntity> elements =
-        _generatedCode.keys.where(isStaticFunction);
+    Iterable<MemberEntity> elements = _generatedCode.keys.where(
+      isStaticFunction,
+    );
 
     for (MemberEntity member in _sorter.sortMembers(elements)) {
       List<MemberEntity> list = outputStaticLists.putIfAbsent(
-          _outputUnitData.outputUnitForMember(member), () => []);
+        _outputUnitData.outputUnitForMember(member),
+        () => [],
+      );
       list.add(member);
     }
   }
@@ -219,7 +230,9 @@ class Collector {
   void computeNeededStaticNonFinalFields() {
     void addToOutputUnit(FieldEntity element) {
       List<FieldEntity> list = outputStaticNonFinalFieldLists.putIfAbsent(
-          _outputUnitData.outputUnitForMember(element), () => []);
+        _outputUnitData.outputUnitForMember(element),
+        () => [],
+      );
       list.add(element);
     }
 
@@ -231,10 +244,12 @@ class Collector {
     });
 
     eagerFields.sort((FieldEntity a, FieldEntity b) {
-      FieldAnalysisData aFieldData =
-          _closedWorld.fieldAnalysis.getFieldData(a as JField);
-      FieldAnalysisData bFieldData =
-          _closedWorld.fieldAnalysis.getFieldData(b as JField);
+      FieldAnalysisData aFieldData = _closedWorld.fieldAnalysis.getFieldData(
+        a as JField,
+      );
+      FieldAnalysisData bFieldData = _closedWorld.fieldAnalysis.getFieldData(
+        b as JField,
+      );
       final aIndex = aFieldData.eagerCreationIndex;
       final bIndex = bFieldData.eagerCreationIndex;
       if (aIndex != null && bIndex != null) {

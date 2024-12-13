@@ -50,10 +50,11 @@ SourceSpan computeSourceSpanFromTreeNode(ir.TreeNode node) {
 
 RecordShape recordShapeOfRecordType(ir.RecordType node) {
   return RecordShape(
-      node.positional.length,
-      node.named.isEmpty
-          ? const []
-          : node.named.map((n) => n.name).toList(growable: false));
+    node.positional.length,
+    node.named.isEmpty
+        ? const []
+        : node.named.map((n) => n.name).toList(growable: false),
+  );
 }
 
 /// Computes `recordShapeOfRecordType(node).indexOfFieldName(name)` without
@@ -225,7 +226,8 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   @override
   bool visitAuxiliaryType(ir.AuxiliaryType node) {
     throw UnsupportedError(
-        'Unsupported auxiliary type $node (${node.runtimeType}).');
+      'Unsupported auxiliary type $node (${node.runtimeType}).',
+    );
   }
 }
 
@@ -246,8 +248,9 @@ bool _isWebLibrary(Uri importUri) =>
             importUri.path == 'web_gl' ||
             importUri.path == 'web_sql' ||
             importUri.path == 'html_common') ||
-    // Mock web library path for testing.
-    importUri.path
+        // Mock web library path for testing.
+        importUri
+        .path
         .contains('native_null_assertions/web_library_interfaces.dart');
 
 bool nodeIsInWebLibrary(ir.TreeNode? node) {

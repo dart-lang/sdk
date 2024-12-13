@@ -50,8 +50,13 @@ class Input {
   /// This is used for testing.
   final bool forceSerialization;
 
-  Input(this.options, this.compilerInput, this.reporter,
-      this.initializedCompilerState, this.forceSerialization);
+  Input(
+    this.options,
+    this.compilerInput,
+    this.reporter,
+    this.initializedCompilerState,
+    this.forceSerialization,
+  );
 }
 
 /// Result of invoking the CFE to produce the kernel IR.
@@ -74,13 +79,18 @@ class Output {
   Output withNewComponent(ir.Component component) =>
       Output(component, rootLibraryUri, libraries, initializedCompilerState);
 
-  Output(this.component, this.rootLibraryUri, this.libraries,
-      this.initializedCompilerState);
+  Output(
+    this.component,
+    this.rootLibraryUri,
+    this.libraries,
+    this.initializedCompilerState,
+  );
 }
 
 Library _findEntryLibrary(Component component, Uri entryUri) {
-  final entryLibrary =
-      component.libraries.firstWhereOrNull((l) => l.fileUri == entryUri);
+  final entryLibrary = component.libraries.firstWhereOrNull(
+    (l) => l.fileUri == entryUri,
+  );
   if (entryLibrary == null) {
     throw ArgumentError('Entry uri $entryUri not found in dill.');
   }
@@ -88,22 +98,25 @@ Library _findEntryLibrary(Component component, Uri entryUri) {
 }
 
 ir.Reference _findMainMethod(Library entryLibrary) {
-  var mainMethod =
-      entryLibrary.procedures.firstWhereOrNull((p) => p.name.text == 'main');
+  var mainMethod = entryLibrary.procedures.firstWhereOrNull(
+    (p) => p.name.text == 'main',
+  );
 
   // In some cases, a main method is defined in another file, and then
   // exported. In these cases, we search for the main method in
   // [additionalExports].
   ir.Reference? mainMethodReference;
   if (mainMethod == null) {
-    mainMethodReference = entryLibrary.additionalExports
-        .firstWhereOrNull((p) => p.canonicalName?.name == 'main');
+    mainMethodReference = entryLibrary.additionalExports.firstWhereOrNull(
+      (p) => p.canonicalName?.name == 'main',
+    );
   } else {
     mainMethodReference = mainMethod.reference;
   }
   if (mainMethodReference == null) {
     throw ArgumentError(
-        'Entry uri ${entryLibrary.fileUri} has no main method.');
+      'Entry uri ${entryLibrary.fileUri} has no main method.',
+    );
   }
   return mainMethodReference;
 }
@@ -120,10 +133,16 @@ class _LoadFromKernelResult {
   _LoadFromKernelResult(this.component, this.entryLibrary);
 }
 
-void _simplifyConstConditionals(ir.Component component, CompilerOptions options,
-    ir.ClassHierarchy classHierarchy, DiagnosticReporter reporter) {
+void _simplifyConstConditionals(
+  ir.Component component,
+  CompilerOptions options,
+  ir.ClassHierarchy classHierarchy,
+  DiagnosticReporter reporter,
+) {
   void reportMessage(
-      fe.LocatedMessage message, List<fe.LocatedMessage>? context) {
+    fe.LocatedMessage message,
+    List<fe.LocatedMessage>? context,
+  ) {
     reportLocatedMessage(reporter, message, context);
   }
 
@@ -132,65 +151,84 @@ void _simplifyConstConditionals(ir.Component component, CompilerOptions options,
       return false;
     }
     return computePragmaAnnotationDataFromIr(node).any(
-        (PragmaAnnotationData pragma) =>
-            pragma == const PragmaAnnotationData('noInline') ||
-            pragma == const PragmaAnnotationData('never-inline'));
+      (PragmaAnnotationData pragma) =>
+          pragma == const PragmaAnnotationData('noInline') ||
+          pragma == const PragmaAnnotationData('never-inline'),
+    );
   }
 
   fe.ConstConditionalSimplifier(
-          const Dart2jsDartLibrarySupport(),
-          const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
-          component,
-          reportMessage,
-          environmentDefines: options.environment,
-          classHierarchy: classHierarchy,
-          evaluationMode: options.useLegacySubtyping
-              ? fe.EvaluationMode.weak
-              : fe.EvaluationMode.strong,
-          shouldNotInline: shouldNotInline,
-          removeAsserts: !options.enableUserAssertions)
-      .run();
+    const Dart2jsDartLibrarySupport(),
+    const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
+    component,
+    reportMessage,
+    environmentDefines: options.environment,
+    classHierarchy: classHierarchy,
+    evaluationMode:
+        options.useLegacySubtyping
+            ? fe.EvaluationMode.weak
+            : fe.EvaluationMode.strong,
+    shouldNotInline: shouldNotInline,
+    removeAsserts: !options.enableUserAssertions,
+  ).run();
 }
 
 // Perform any backend-specific transforms here that can be done on both
 // serialized components and components from source.
 void _doTransformsOnKernelLoad(
-    Component component, CompilerOptions options, DiagnosticReporter reporter) {
+  Component component,
+  CompilerOptions options,
+  DiagnosticReporter reporter,
+) {
   if (options.stage.shouldRunGlobalTransforms) {
     ir.CoreTypes coreTypes = ir.CoreTypes(component);
     // Ignore ambiguous supertypes.
-    final classHierarchy = ir.ClassHierarchy(component, coreTypes,
-        onAmbiguousSupertypes: (_, __, ___) {});
-    ir.TypeEnvironment typeEnvironment =
-        ir.TypeEnvironment(coreTypes, classHierarchy);
+    final classHierarchy = ir.ClassHierarchy(
+      component,
+      coreTypes,
+      onAmbiguousSupertypes: (_, __, ___) {},
+    );
+    ir.TypeEnvironment typeEnvironment = ir.TypeEnvironment(
+      coreTypes,
+      classHierarchy,
+    );
     final constantsEvaluator = Dart2jsConstantEvaluator(
-        component,
-        typeEnvironment,
-        (fe.LocatedMessage message, List<fe.LocatedMessage>? context) =>
-            reportLocatedMessage(reporter, message, context),
-        environment: Environment(options.environment),
-        evaluationMode: options.useLegacySubtyping
-            ? fe.EvaluationMode.weak
-            : fe.EvaluationMode.strong);
+      component,
+      typeEnvironment,
+      (fe.LocatedMessage message, List<fe.LocatedMessage>? context) =>
+          reportLocatedMessage(reporter, message, context),
+      environment: Environment(options.environment),
+      evaluationMode:
+          options.useLegacySubtyping
+              ? fe.EvaluationMode.weak
+              : fe.EvaluationMode.strong,
+    );
     StaticInteropClassEraser(coreTypes).visitComponent(component);
     global_transforms.transformLibraries(
-        component.libraries, constantsEvaluator, coreTypes, options);
+      component.libraries,
+      constantsEvaluator,
+      coreTypes,
+      options,
+    );
     _simplifyConstConditionals(component, options, classHierarchy, reporter);
   }
 }
 
 Future<_LoadFromKernelResult> _loadFromKernel(
-    CompilerOptions options,
-    api.CompilerInput compilerInput,
-    String targetName,
-    DiagnosticReporter reporter) async {
+  CompilerOptions options,
+  api.CompilerInput compilerInput,
+  String targetName,
+  DiagnosticReporter reporter,
+) async {
   Library? entryLibrary;
   var resolvedUri = options.compilationTarget;
   ir.Component component = ir.Component();
 
   Future<void> read(Uri uri) async {
-    api.Input<Uint8List> input =
-        await compilerInput.readFromUri(uri, inputKind: api.InputKind.binary);
+    api.Input<Uint8List> input = await compilerInput.readFromUri(
+      uri,
+      inputKind: api.InputKind.binary,
+    );
     BinaryBuilder(input.data).readComponent(component);
   }
 
@@ -203,14 +241,17 @@ Future<_LoadFromKernelResult> _loadFromKernel(
   if (options.nullSafetyMode == incompatibleNullSafetyMode) {
     var dillMode = isStrongDill ? 'sound' : 'unsound';
     var option = isStrongDill ? Flags.noSoundNullSafety : Flags.soundNullSafety;
-    throw ArgumentError("$resolvedUri was compiled with $dillMode null "
-        "safety and is incompatible with the '$option' option");
+    throw ArgumentError(
+      "$resolvedUri was compiled with $dillMode null "
+      "safety and is incompatible with the '$option' option",
+    );
   }
 
   if (options.platformBinaries != null &&
       options.stage.shouldReadPlatformBinaries) {
-    var platformUri = options.platformBinaries
-        ?.resolve(_getPlatformFilename(options, targetName));
+    var platformUri = options.platformBinaries?.resolve(
+      _getPlatformFilename(options, targetName),
+    );
     // TODO(joshualitt): Change how we detect this case so it is less
     // brittle.
     if (platformUri != resolvedUri) await read(platformUri!);
@@ -242,20 +283,23 @@ class _LoadFromSourceResult {
 }
 
 Future<_LoadFromSourceResult> _loadFromSource(
-    CompilerOptions options,
-    api.CompilerInput compilerInput,
-    DiagnosticReporter reporter,
-    fe.InitializedCompilerState? initializedCompilerState,
-    String targetName) async {
+  CompilerOptions options,
+  api.CompilerInput compilerInput,
+  DiagnosticReporter reporter,
+  fe.InitializedCompilerState? initializedCompilerState,
+  String targetName,
+) async {
   bool verbose = false;
   bool cfeConstants = options.features.cfeConstants.isEnabled;
   Map<String, String>? environment = cfeConstants ? options.environment : null;
   Target target = Dart2jsTarget(
-      targetName,
-      TargetFlags(
-          soundNullSafety: options.nullSafetyMode == NullSafetyMode.sound),
-      options: options,
-      supportsUnevaluatedConstants: !cfeConstants);
+    targetName,
+    TargetFlags(
+      soundNullSafety: options.nullSafetyMode == NullSafetyMode.sound,
+    ),
+    options: options,
+    supportsUnevaluatedConstants: !cfeConstants,
+  );
   fe.FileSystem fileSystem = CompilerFileSystem(compilerInput);
   fe.Verbosity verbosity = options.verbosity;
   void onDiagnostic(fe.DiagnosticMessage message) {
@@ -266,21 +310,23 @@ Future<_LoadFromSourceResult> _loadFromSource(
 
   List<Uri> sources = [options.compilationTarget];
 
-  fe.CompilerOptions feOptions = fe.CompilerOptions()
-    ..target = target
-    ..librariesSpecificationUri = options.librariesSpecificationUri
-    ..packagesFileUri = options.packageConfig
-    ..explicitExperimentalFlags = options.explicitExperimentalFlags
-    ..environmentDefines = environment
-    ..verbose = verbose
-    ..fileSystem = fileSystem
-    ..onDiagnostic = onDiagnostic
-    ..verbosity = verbosity;
+  fe.CompilerOptions feOptions =
+      fe.CompilerOptions()
+        ..target = target
+        ..librariesSpecificationUri = options.librariesSpecificationUri
+        ..packagesFileUri = options.packageConfig
+        ..explicitExperimentalFlags = options.explicitExperimentalFlags
+        ..environmentDefines = environment
+        ..verbose = verbose
+        ..fileSystem = fileSystem
+        ..onDiagnostic = onDiagnostic
+        ..verbosity = verbosity;
   Uri resolvedUri = options.compilationTarget;
   bool isLegacy = await fe.uriUsesLegacyLanguageVersion(resolvedUri, feOptions);
   if (isLegacy && options.experimentNullSafetyChecks) {
     reporter.reportErrorMessage(noLocationSpannable, MessageKind.generic, {
-      'text': 'The ${Flags.experimentNullSafetyChecks} option may be used '
+      'text':
+          'The ${Flags.experimentNullSafetyChecks} option may be used '
           'only after all libraries have been migrated to null safety. Some '
           'libraries reached from $resolvedUri are still opted out of null '
           'safety. Please migrate these libraries before passing '
@@ -289,42 +335,55 @@ Future<_LoadFromSourceResult> _loadFromSource(
   }
   if (isLegacy && options.nullSafetyMode == NullSafetyMode.sound) {
     reporter.reportErrorMessage(noLocationSpannable, MessageKind.generic, {
-      'text': "Starting with Dart 3.0, `dart compile js` expects programs to "
+      'text':
+          "Starting with Dart 3.0, `dart compile js` expects programs to "
           "be null-safe by default. Some libraries reached from $resolvedUri "
           "are opted out of null safety. You can temporarily compile this "
           "application using the deprecated '${Flags.noSoundNullSafety}' "
-          "option."
+          "option.",
     });
   }
 
   List<Uri> dependencies = [];
   if (options.platformBinaries != null) {
-    dependencies.add(options.platformBinaries!
-        .resolve(_getPlatformFilename(options, targetName)));
+    dependencies.add(
+      options.platformBinaries!.resolve(
+        _getPlatformFilename(options, targetName),
+      ),
+    );
   }
   if (options.dillDependencies != null) {
     dependencies.addAll(options.dillDependencies!);
   }
 
   initializedCompilerState = fe.initializeCompiler(
-      initializedCompilerState,
-      target,
-      options.librariesSpecificationUri,
-      dependencies,
-      options.packageConfig,
-      explicitExperimentalFlags: options.explicitExperimentalFlags,
-      environmentDefines: environment,
-      nnbdMode:
-          options.useLegacySubtyping ? fe.NnbdMode.Weak : fe.NnbdMode.Strong,
-      invocationModes: options.cfeInvocationModes,
-      verbosity: verbosity);
+    initializedCompilerState,
+    target,
+    options.librariesSpecificationUri,
+    dependencies,
+    options.packageConfig,
+    explicitExperimentalFlags: options.explicitExperimentalFlags,
+    environmentDefines: environment,
+    nnbdMode:
+        options.useLegacySubtyping ? fe.NnbdMode.Weak : fe.NnbdMode.Strong,
+    invocationModes: options.cfeInvocationModes,
+    verbosity: verbosity,
+  );
   ir.Component? component = await fe.compile(
-      initializedCompilerState, verbose, fileSystem, onDiagnostic, sources);
+    initializedCompilerState,
+    verbose,
+    fileSystem,
+    onDiagnostic,
+    sources,
+  );
 
   if (component != null) {
     assert(() {
       verifyComponent(
-          target, VerificationStage.afterModularTransformations, component);
+        target,
+        VerificationStage.afterModularTransformations,
+        component,
+      );
       return true;
     }());
 
@@ -337,18 +396,22 @@ Future<_LoadFromSourceResult> _loadFromSource(
 }
 
 Output _createOutput(
-    CompilerOptions options,
-    DiagnosticReporter reporter,
-    Library? entryLibrary,
-    ir.Component component,
-    fe.InitializedCompilerState? initializedCompilerState) {
+  CompilerOptions options,
+  DiagnosticReporter reporter,
+  Library? entryLibrary,
+  ir.Component component,
+  fe.InitializedCompilerState? initializedCompilerState,
+) {
   Uri? rootLibraryUri;
   Iterable<ir.Library> libraries = component.libraries;
   if (component.mainMethod == null) {
     // TODO(sigmund): move this so that we use the same error template
     // from the CFE.
-    reporter.reportError(reporter.createMessage(noLocationSpannable,
-        MessageKind.generic, {'text': "No 'main' method found."}));
+    reporter.reportError(
+      reporter.createMessage(noLocationSpannable, MessageKind.generic, {
+        'text': "No 'main' method found.",
+      }),
+    );
   }
 
   // If we are building from dill and are passed an [entryUri], then we use
@@ -390,8 +453,12 @@ Output _createOutput(
   }
 
   libraries = libraries.where(seen.contains);
-  return Output(component, rootLibraryUri,
-      libraries.map((lib) => lib.importUri).toList(), initializedCompilerState);
+  return Output(
+    component,
+    rootLibraryUri,
+    libraries.map((lib) => lib.importUri).toList(),
+    initializedCompilerState,
+  );
 }
 
 /// Loads an entire Kernel [Component] from a file on disk.
@@ -407,13 +474,22 @@ Future<Output?> run(Input input) async {
   fe.InitializedCompilerState? initializedCompilerState =
       input.initializedCompilerState;
   if (options.shouldLoadFromDill) {
-    _LoadFromKernelResult result =
-        await _loadFromKernel(options, compilerInput, targetName, reporter);
+    _LoadFromKernelResult result = await _loadFromKernel(
+      options,
+      compilerInput,
+      targetName,
+      reporter,
+    );
     component = result.component;
     entryLibrary = result.entryLibrary;
   } else {
-    _LoadFromSourceResult result = await _loadFromSource(options, compilerInput,
-        reporter, input.initializedCompilerState, targetName);
+    _LoadFromSourceResult result = await _loadFromSource(
+      options,
+      compilerInput,
+      reporter,
+      input.initializedCompilerState,
+      targetName,
+    );
     component = result.component;
     initializedCompilerState = result.initializedCompilerState;
   }
@@ -427,7 +503,12 @@ Future<Output?> run(Input input) async {
     entryLibrary = _findEntryLibrary(component, options.entryUri!);
   }
   return _createOutput(
-      options, reporter, entryLibrary, component, initializedCompilerState);
+    options,
+    reporter,
+    entryLibrary,
+    component,
+    initializedCompilerState,
+  );
 }
 
 /// Registers with the dart2js compiler all sources embedded in a kernel

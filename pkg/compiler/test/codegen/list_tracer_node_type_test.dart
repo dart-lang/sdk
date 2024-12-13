@@ -70,39 +70,45 @@ main() {
   runTests() async {
     String generated1 = await compile(TEST1, disableTypeInference: false);
     Expect.isTrue(
-        generated1.contains('if (typeof t1'),
-        "Code pattern 'if (typeof t1' not found in\n$generated1\n"
-        "for source\n$TEST1");
+      generated1.contains('if (typeof t1'),
+      "Code pattern 'if (typeof t1' not found in\n$generated1\n"
+      "for source\n$TEST1",
+    );
 
     String generated2 = await compile(TEST2, disableTypeInference: false);
     Expect.isTrue(
-        generated2.contains('if (typeof t1'),
-        "Code pattern 'if (typeof t1' not found in\n$generated2\n"
-        "for source\n$TEST2");
+      generated2.contains('if (typeof t1'),
+      "Code pattern 'if (typeof t1' not found in\n$generated2\n"
+      "for source\n$TEST2",
+    );
 
     String generated3 = await compile(TEST3, disableTypeInference: false);
     Expect.isTrue(
-        generated3.contains('if (typeof t1'),
-        "Code pattern 'if (typeof t1' not found in\n$generated3\n"
-        "for source\n$TEST3");
+      generated3.contains('if (typeof t1'),
+      "Code pattern 'if (typeof t1' not found in\n$generated3\n"
+      "for source\n$TEST3",
+    );
 
     String generated4 = await compile(TEST4, disableTypeInference: false);
     Expect.isTrue(
-        generated4.contains('if (typeof t1'),
-        "Code pattern 'if (typeof t1' not found in\n$generated4\n"
-        "for source\n$TEST4");
+      generated4.contains('if (typeof t1'),
+      "Code pattern 'if (typeof t1' not found in\n$generated4\n"
+      "for source\n$TEST4",
+    );
 
     String generated5 = await compile(TEST5, disableTypeInference: false);
     Expect.isFalse(
-        generated5.contains('iae'),
-        "Code pattern 'iae' found in\n$generated5\n"
-        "for source\n$TEST5");
+      generated5.contains('iae'),
+      "Code pattern 'iae' found in\n$generated5\n"
+      "for source\n$TEST5",
+    );
 
     String generated6 = await compile(TEST6, disableTypeInference: false);
     Expect.isFalse(
-        generated6.contains('iae'),
-        "Code pattern 'iae' found in\n$generated6\n"
-        "for source\n$TEST6");
+      generated6.contains('iae'),
+      "Code pattern 'iae' found in\n$generated6\n"
+      "for source\n$TEST6",
+    );
 
     var memberInvocations = const <String>[
       'first',
@@ -114,20 +120,25 @@ main() {
       'removeLast()',
     ];
     for (String member in memberInvocations) {
-      String generated =
-          await compile(generateTest('$member'), disableTypeInference: false);
+      String generated = await compile(
+        generateTest('$member'),
+        disableTypeInference: false,
+      );
       Expect.isTrue(
-          generated.contains('+ 42'),
-          "Missing '+ 42' code for invocation '$member':\n"
-          "$generated");
+        generated.contains('+ 42'),
+        "Missing '+ 42' code for invocation '$member':\n"
+        "$generated",
+      );
       Expect.isFalse(
-          generated.contains('if (typeof t1'),
-          "Unexpected 'if (typeof t1' code for invocation '$member':\n"
-          "$generated");
+        generated.contains('if (typeof t1'),
+        "Unexpected 'if (typeof t1' code for invocation '$member':\n"
+        "$generated",
+      );
       Expect.isFalse(
-          generated.contains('if (t1 == null)'),
-          "Unexpected 'if (t1 == null)' code for invocation '$member':\n"
-          "$generated");
+        generated.contains('if (t1 == null)'),
+        "Unexpected 'if (t1 == null)' code for invocation '$member':\n"
+        "$generated",
+      );
     }
   }
 

@@ -34,25 +34,31 @@ main() {
     for (FunctionTypeData data in signatures) {
       DartType functionType = env.getElementType('t${data.name}');
       Expect.isTrue(
-          functionType is! LegacyType || env.options.useLegacySubtyping);
+        functionType is! LegacyType || env.options.useLegacySubtyping,
+      );
       functionType = functionType.withoutNullability;
       final method = env.getElement('m${data.name}') as FunctionEntity;
       final methodType = env.getElementType('m${data.name}') as FunctionType;
       ParameterStructure parameterStructure = method.parameterStructure;
       Expect.equals(functionType, methodType, "Type mismatch on $data");
       Expect.equals(
-          parameterStructure.typeParameters,
-          methodType.typeVariables.length,
-          "Type parameter mismatch on $data with $parameterStructure.");
+        parameterStructure.typeParameters,
+        methodType.typeVariables.length,
+        "Type parameter mismatch on $data with $parameterStructure.",
+      );
       CallStructure callStructure = parameterStructure.callStructure;
       Expect.isTrue(callStructure.signatureApplies(parameterStructure));
       CallStructure noTypeArguments = CallStructure(
-          callStructure.argumentCount, callStructure.namedArguments, 0);
+        callStructure.argumentCount,
+        callStructure.namedArguments,
+        0,
+      );
       Expect.isTrue(noTypeArguments.signatureApplies(parameterStructure));
       CallStructure tooManyTypeArguments = CallStructure(
-          callStructure.argumentCount,
-          callStructure.namedArguments,
-          callStructure.typeArgumentCount + 1);
+        callStructure.argumentCount,
+        callStructure.namedArguments,
+        callStructure.typeArgumentCount + 1,
+      );
       Expect.isFalse(tooManyTypeArguments.signatureApplies(parameterStructure));
     }
   });

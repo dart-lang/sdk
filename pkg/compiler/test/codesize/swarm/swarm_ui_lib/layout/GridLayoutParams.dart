@@ -24,11 +24,13 @@ class GridLayoutParams extends LayoutParams {
   GridItemAlignment columnAlign;
 
   GridLayoutParams(Positionable view, GridLayout layout)
-      : rowAlign =
-            GridItemAlignment.fromString(view.customStyle['grid-row-align']),
-        columnAlign =
-            GridItemAlignment.fromString(view.customStyle['grid-column-align']),
-        super(view.node) {
+    : rowAlign = GridItemAlignment.fromString(
+        view.customStyle['grid-row-align'],
+      ),
+      columnAlign = GridItemAlignment.fromString(
+        view.customStyle['grid-column-align'],
+      ),
+      super(view.node) {
     // TODO(jmesserly): this can be cleaned up a lot by just passing "view"
     // into the parsers.
     layer = StringUtils.parseInt(view.customStyle['grid-layer'], 0);
@@ -42,21 +44,25 @@ class GridLayoutParams extends LayoutParams {
       if (line.length != null) {
         if (rowSpan != null) {
           throw UnsupportedError(
-              'grid-row-span cannot be with grid-row that defines an end');
+            'grid-row-span cannot be with grid-row that defines an end',
+          );
         }
         rowSpan = line.length;
       }
     }
 
-    line =
-        _GridItemParser.parse(view.customStyle['grid-column'], layout.columns);
+    line = _GridItemParser.parse(
+      view.customStyle['grid-column'],
+      layout.columns,
+    );
 
     if (line != null) {
       column = line.start;
       if (line.length != null) {
         if (columnSpan != null) {
           throw UnsupportedError(
-              'grid-column-span cannot be with grid-column that defines an end');
+            'grid-column-span cannot be with grid-column that defines an end',
+          );
         }
         columnSpan = line.length;
       }
@@ -73,12 +79,14 @@ class GridLayoutParams extends LayoutParams {
           rowSpan != null ||
           columnSpan != null) {
         throw UnsupportedError(
-            'grid-cell cannot be used with grid-row and grid-column');
+          'grid-cell cannot be used with grid-row and grid-column',
+        );
       }
 
       if (layout.template == null) {
         throw UnsupportedError(
-            'grid-cell requires that grid-template is set on the parent');
+          'grid-cell requires that grid-template is set on the parent',
+        );
       }
 
       final rect = layout.template!.lookupCell(cell);
@@ -92,8 +100,10 @@ class GridLayoutParams extends LayoutParams {
       columnSpan ??= 1;
 
       if (row == null && column == null) {
-        throw UnsupportedError('grid-flow is not implemented'
-            ' so at least one row or one column must be defined');
+        throw UnsupportedError(
+          'grid-flow is not implemented'
+          ' so at least one row or one column must be defined',
+        );
       }
 
       row ??= 1;

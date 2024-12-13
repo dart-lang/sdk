@@ -109,9 +109,10 @@ infoTest(String program, bool useBinary, InfoCheck check) async {
   if (useBinary) options.add("${Flags.dumpInfo}=binary");
   var collector = OutputCollector();
   var result = await runCompiler(
-      memorySourceFiles: {'main.dart': program},
-      options: options,
-      outputProvider: collector);
+    memorySourceFiles: {'main.dart': program},
+    options: options,
+    outputProvider: collector,
+  );
   var compiler = result.compiler!;
   Expect.isFalse(compiler.compilationFailed);
   AllInfo info;
@@ -120,7 +121,8 @@ infoTest(String program, bool useBinary, InfoCheck check) async {
     info = binary.decode(sink.list);
   } else {
     info = AllInfoJsonCodec().decode(
-        json.decode(collector.getOutput("out.js", api.OutputType.dumpInfo)!));
+      json.decode(collector.getOutput("out.js", api.OutputType.dumpInfo)!),
+    );
   }
   check(info);
 }
@@ -143,28 +145,38 @@ runTests({bool useBinary = false}) async {
   });
 
   await infoTest(TEST_CLOSURES, useBinary, (info) {
-    Expect.isTrue(info.functions.any((fn) {
-      return fn.name == 'bar' && fn.closures.length == 11;
-    }));
-    Expect.isTrue(info.functions.any((fn) {
-      return fn.name == 'foo' && fn.closures.length == 10;
-    }));
+    Expect.isTrue(
+      info.functions.any((fn) {
+        return fn.name == 'bar' && fn.closures.length == 11;
+      }),
+    );
+    Expect.isTrue(
+      info.functions.any((fn) {
+        return fn.name == 'foo' && fn.closures.length == 10;
+      }),
+    );
   });
 
   await infoTest(TEST_STATICS, useBinary, (info) {
     Expect.isTrue(info.functions.any((fn) => fn.name == 'does_something'));
-    Expect.isTrue(info.classes.any((cls) {
-      return cls.name == 'ContainsStatics' && cls.functions.length >= 1;
-    }));
+    Expect.isTrue(
+      info.classes.any((cls) {
+        return cls.name == 'ContainsStatics' && cls.functions.length >= 1;
+      }),
+    );
   });
 
   await infoTest(TEST_INLINED_1, useBinary, (info) {
-    Expect.isTrue(info.functions.any((fn) {
-      return fn.name == 'double' && fn.inlinedCount == 1;
-    }));
-    Expect.isTrue(info.classes.any((cls) {
-      return cls.name == 'Doubler' && cls.functions.length >= 1;
-    }));
+    Expect.isTrue(
+      info.functions.any((fn) {
+        return fn.name == 'double' && fn.inlinedCount == 1;
+      }),
+    );
+    Expect.isTrue(
+      info.classes.any((cls) {
+        return cls.name == 'Doubler' && cls.functions.length >= 1;
+      }),
+    );
   });
 
   await infoTest(TEST_INLINED_2, useBinary, (info) {

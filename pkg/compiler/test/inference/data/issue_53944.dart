@@ -25,24 +25,30 @@ void testLast2(/*[exact=JSBool]*/ x) {}
 /*member: main:[null]*/
 main() {
   final List<Object> x = [true, true];
-  testFirst1(x
-      . /*Container([exact=JSExtendableArray], element: [exact=JSBool], length: 2)*/ first);
+  testFirst1(
+    x. /*Container([exact=JSExtendableArray], element: [exact=JSBool], length: 2)*/ first,
+  );
   x. /*update: Container([exact=JSExtendableArray], element: [exact=JSBool], length: 2)*/ first =
       false;
-  testFirst2(x
-      . /*Container([exact=JSExtendableArray], element: [exact=JSBool], length: 2)*/ first);
+  testFirst2(
+    x. /*Container([exact=JSExtendableArray], element: [exact=JSBool], length: 2)*/ first,
+  );
 
   final List<Object> y = [true, true];
-  testLast1(y
-      . /*Container([exact=JSExtendableArray], element: [exact=JSBool], length: 2)*/ first);
+  testLast1(
+    y. /*Container([exact=JSExtendableArray], element: [exact=JSBool], length: 2)*/ first,
+  );
   y. /*update: Container([exact=JSExtendableArray], element: [exact=JSBool], length: 2)*/ last =
       false;
-  testLast2(y
-      . /*Container([exact=JSExtendableArray], element: [exact=JSBool], length: 2)*/ first);
+  testLast2(
+    y. /*Container([exact=JSExtendableArray], element: [exact=JSBool], length: 2)*/ first,
+  );
 
   final List<Object> z = [true, true];
-  testUnchangedFirst(z
-      . /*Container([exact=JSExtendableArray], element: Value([exact=JSBool], value: true), length: 2)*/ first);
-  testUnchangedLast(z
-      . /*Container([exact=JSExtendableArray], element: Value([exact=JSBool], value: true), length: 2)*/ last);
+  testUnchangedFirst(
+    z. /*Container([exact=JSExtendableArray], element: Value([exact=JSBool], value: true), length: 2)*/ first,
+  );
+  testUnchangedLast(
+    z. /*Container([exact=JSExtendableArray], element: Value([exact=JSBool], value: true), length: 2)*/ last,
+  );
 }

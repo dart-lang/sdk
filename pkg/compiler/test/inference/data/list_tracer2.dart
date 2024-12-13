@@ -13,6 +13,6 @@ main() {
   /// ignore: unused_local_variable
   var a = List.filled(42, null);
   return myList
-      /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
-      [0];
+  /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
+  [0];
 }

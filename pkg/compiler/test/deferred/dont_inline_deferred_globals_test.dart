@@ -18,10 +18,9 @@ void main() {
           {'lib1'},
     };
 
-    await run(
-        MEMORY_SOURCE_FILES,
-        const [OutputUnitDescriptor('memory:lib1.dart', 'finalVar', 'lib1')],
-        expectedOutputUnits);
+    await run(MEMORY_SOURCE_FILES, const [
+      OutputUnitDescriptor('memory:lib1.dart', 'finalVar', 'lib1'),
+    ], expectedOutputUnits);
   }
 
   asyncTest(() async {
@@ -56,5 +55,5 @@ class C {
 
 final finalVar = const C("string1");
 dynamic globalVar = const C("string2");
-"""
+""",
 };

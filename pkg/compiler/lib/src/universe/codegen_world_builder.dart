@@ -50,16 +50,16 @@ abstract class CodegenWorld extends BuiltWorld {
   Iterable<Selector>? setterInvocationsByName(String name);
 
   void forEachInvokedName(
-      void Function(String name, Map<Selector, SelectorConstraints> selectors)
-          f);
+    void Function(String name, Map<Selector, SelectorConstraints> selectors) f,
+  );
 
   void forEachInvokedGetter(
-      void Function(String name, Map<Selector, SelectorConstraints> selectors)
-          f);
+    void Function(String name, Map<Selector, SelectorConstraints> selectors) f,
+  );
 
   void forEachInvokedSetter(
-      void Function(String name, Map<Selector, SelectorConstraints> selectors)
-          f);
+    void Function(String name, Map<Selector, SelectorConstraints> selectors) f,
+  );
 
   /// All directly instantiated classes, that is, classes with a generative
   /// constructor that has been called directly and not only through a
@@ -89,8 +89,9 @@ abstract class CodegenWorld extends BuiltWorld {
   /// [preSortCompare] is a comparator function that gives the constants a
   /// consistent order prior to the topological sort which gives the constants
   /// an ordering that is less sensitive to perturbations in the source code.
-  Iterable<ConstantValue> getConstantsForEmission(
-      [Comparator<ConstantValue>? preSortCompare]);
+  Iterable<ConstantValue> getConstantsForEmission([
+    Comparator<ConstantValue>? preSortCompare,
+  ]);
 
   /// Returns `true` if [member] is called from a subclass via `super`.
   bool isAliasedSuperMember(MemberEntity member);
@@ -165,15 +166,20 @@ class CodegenWorldBuilder extends WorldBuilder {
 
   final Map<FunctionEntity, List<JParameterStub>> _parameterStubs = {};
 
-  CodegenWorldBuilder(this._closedWorld, this._inferredData,
-      this._selectorConstraintsStrategy, this._oneShotInterceptorData);
+  CodegenWorldBuilder(
+    this._closedWorld,
+    this._inferredData,
+    this._selectorConstraintsStrategy,
+    this._oneShotInterceptorData,
+  );
 
   ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
 
   NativeBasicData get _nativeBasicData => _closedWorld.nativeData;
 
-  Iterable<ClassEntity> get instantiatedClasses => _processedClasses.keys
-      .where((cls) => _processedClasses[cls]!.isInstantiated);
+  Iterable<ClassEntity> get instantiatedClasses => _processedClasses.keys.where(
+    (cls) => _processedClasses[cls]!.isInstantiated,
+  );
 
   // TODO(johnniwinther): Improve semantic precision.
   Iterable<ClassEntity> get directlyInstantiatedClasses {
@@ -185,7 +191,9 @@ class CodegenWorldBuilder extends WorldBuilder {
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
   void registerTypeInstantiation(
-      InterfaceType type, ClassUsedCallback classUsed) {
+    InterfaceType type,
+    ClassUsedCallback classUsed,
+  ) {
     ClassEntity cls = type.element;
     bool isNative = _nativeBasicData.isNativeClass(cls);
     _instantiatedTypes.add(type);
@@ -205,14 +213,19 @@ class CodegenWorldBuilder extends WorldBuilder {
       _elementEnvironment.forEachSupertype(cls, (InterfaceType supertype) {
         if (_implementedClasses.add(supertype.element)) {
           classUsed(
-              supertype.element, _getClassUsage(supertype.element).implement());
+            supertype.element,
+            _getClassUsage(supertype.element).implement(),
+          );
         }
       });
     }
   }
 
-  bool _hasMatchingSelector(Map<Selector, SelectorConstraints>? selectors,
-      MemberEntity member, JClosedWorld world) {
+  bool _hasMatchingSelector(
+    Map<Selector, SelectorConstraints>? selectors,
+    MemberEntity member,
+    JClosedWorld world,
+  ) {
     if (selectors == null) return false;
     for (Selector selector in selectors.keys) {
       if (selector.appliesUnnamed(member)) {
@@ -226,7 +239,9 @@ class CodegenWorldBuilder extends WorldBuilder {
   }
 
   Iterable<CallStructure> _getMatchingCallStructures(
-      Map<Selector, SelectorConstraints>? selectors, MemberEntity member) {
+    Map<Selector, SelectorConstraints>? selectors,
+    MemberEntity member,
+  ) {
     if (selectors == null) return const [];
     Set<CallStructure>? callStructures;
     for (Selector selector in selectors.keys) {
@@ -247,27 +262,39 @@ class CodegenWorldBuilder extends WorldBuilder {
 
   bool _hasInvokedGetter(MemberEntity member) {
     return _hasMatchingSelector(
-        _invokedGetters[member.name], member, _closedWorld);
+      _invokedGetters[member.name],
+      member,
+      _closedWorld,
+    );
   }
 
   bool _hasInvokedSetter(MemberEntity member) {
     return _hasMatchingSelector(
-        _invokedSetters[member.name], member, _closedWorld);
+      _invokedSetters[member.name],
+      member,
+      _closedWorld,
+    );
   }
 
   void registerDynamicUse(
-      DynamicUse dynamicUse, MemberUsedCallback memberUsed) {
+    DynamicUse dynamicUse,
+    MemberUsedCallback memberUsed,
+  ) {
     Selector selector = dynamicUse.selector;
     String methodName = selector.name;
 
     void process(
-        Map<String, Set<MemberUsage>> memberMap,
-        EnumSet<MemberUse> Function(MemberUsage usage) action,
-        bool Function(MemberUsage usage) shouldBeRemoved) {
+      Map<String, Set<MemberUsage>> memberMap,
+      EnumSet<MemberUse> Function(MemberUsage usage) action,
+      bool Function(MemberUsage usage) shouldBeRemoved,
+    ) {
       _processSet(memberMap, methodName, (MemberUsage usage) {
         // Strategy will check both that selector applies and constraint is met.
         if (_selectorConstraintsStrategy.appliedUnnamed(
-            dynamicUse, usage.entity, _closedWorld)) {
+          dynamicUse,
+          usage.entity,
+          _closedWorld,
+        )) {
           memberUsed(usage.entity, action(usage));
           return shouldBeRemoved(usage);
         }
@@ -278,37 +305,44 @@ class CodegenWorldBuilder extends WorldBuilder {
     switch (dynamicUse.kind) {
       case DynamicUseKind.invoke:
         registerDynamicInvocation(
-            dynamicUse.selector, dynamicUse.typeArguments);
+          dynamicUse.selector,
+          dynamicUse.typeArguments,
+        );
         if (_registerNewSelector(dynamicUse, _invokedNames)) {
           process(
-              _invokableInstanceMembersByName,
-              (m) => m.invoke(Accesses.dynamicAccess, selector.callStructure),
-              // If not all optional parameters have been passed in invocations
-              // we must keep the member in [_invokableInstanceMembersByName].
-              (u) => !u.hasPendingDynamicInvoke);
+            _invokableInstanceMembersByName,
+            (m) => m.invoke(Accesses.dynamicAccess, selector.callStructure),
+            // If not all optional parameters have been passed in invocations
+            // we must keep the member in [_invokableInstanceMembersByName].
+            (u) => !u.hasPendingDynamicInvoke,
+          );
         }
         break;
       case DynamicUseKind.get:
         if (_registerNewSelector(dynamicUse, _invokedGetters)) {
           process(
-              _readableInstanceMembersByName,
-              (m) => m.read(Accesses.dynamicAccess),
-              (u) => !u.hasPendingDynamicRead);
+            _readableInstanceMembersByName,
+            (m) => m.read(Accesses.dynamicAccess),
+            (u) => !u.hasPendingDynamicRead,
+          );
         }
         break;
       case DynamicUseKind.set:
         if (_registerNewSelector(dynamicUse, _invokedSetters)) {
           process(
-              _writableInstanceMembersByName,
-              (m) => m.write(Accesses.dynamicAccess),
-              (u) => !u.hasPendingDynamicWrite);
+            _writableInstanceMembersByName,
+            (m) => m.write(Accesses.dynamicAccess),
+            (u) => !u.hasPendingDynamicWrite,
+          );
         }
         break;
     }
   }
 
-  bool _registerNewSelector(DynamicUse dynamicUse,
-      Map<String, Map<Selector, SelectorConstraints>> selectorMap) {
+  bool _registerNewSelector(
+    DynamicUse dynamicUse,
+    Map<String, Map<Selector, SelectorConstraints>> selectorMap,
+  ) {
     Selector selector = dynamicUse.selector;
     String name = selector.name;
     Object? constraint = dynamicUse.receiverConstraint;
@@ -350,12 +384,14 @@ class CodegenWorldBuilder extends WorldBuilder {
       case StaticUseKind.superInvoke:
         registerStaticInvocation(staticUse);
         useSet = useSet.union(
-            usage.invoke(Accesses.superAccess, staticUse.callStructure!));
+          usage.invoke(Accesses.superAccess, staticUse.callStructure!),
+        );
         break;
       case StaticUseKind.staticInvoke:
         registerStaticInvocation(staticUse);
         useSet = useSet.union(
-            usage.invoke(Accesses.staticAccess, staticUse.callStructure!));
+          usage.invoke(Accesses.staticAccess, staticUse.callStructure!),
+        );
         break;
       case StaticUseKind.superFieldSet:
         useSet = useSet.union(usage.write(Accesses.superAccess));
@@ -386,17 +422,20 @@ class CodegenWorldBuilder extends WorldBuilder {
         // We don't track parameters in the codegen world builder, so we
         // pass `null` instead of the concrete call structure.
         useSet = useSet.union(
-            usage.invoke(Accesses.staticAccess, staticUse.callStructure!));
+          usage.invoke(Accesses.staticAccess, staticUse.callStructure!),
+        );
         break;
       case StaticUseKind.directInvoke:
         // We don't track parameters in the codegen world builder, so we
         // pass `null` instead of the concrete call structure.
         useSet = useSet.union(
-            usage.invoke(Accesses.staticAccess, staticUse.callStructure!));
+          usage.invoke(Accesses.staticAccess, staticUse.callStructure!),
+        );
         if (staticUse.typeArguments?.isNotEmpty ?? false) {
           registerDynamicInvocation(
-              Selector.call(element.memberName, staticUse.callStructure!),
-              staticUse.typeArguments!);
+            Selector.call(element.memberName, staticUse.callStructure!),
+            staticUse.typeArguments!,
+          );
         }
         break;
       case StaticUseKind.inlining:
@@ -405,40 +444,58 @@ class CodegenWorldBuilder extends WorldBuilder {
       case StaticUseKind.closure:
       case StaticUseKind.closureCall:
       case StaticUseKind.weakStaticTearOff:
-        failedAt(currentElementSpannable,
-            "Static use ${staticUse.kind} is not supported during codegen.");
+        failedAt(
+          currentElementSpannable,
+          "Static use ${staticUse.kind} is not supported during codegen.",
+        );
     }
     if (useSet.isNotEmpty) {
       memberUsed(usage.entity, useSet);
     }
   }
 
-  void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed,
-      {bool checkEnqueuerConsistency = false}) {
-    _elementEnvironment.forEachClassMember(cls,
-        (ClassEntity cls, MemberEntity member) {
-      _processInstantiatedClassMember(cls, member, memberUsed,
-          checkEnqueuerConsistency: checkEnqueuerConsistency);
+  void processClassMembers(
+    ClassEntity cls,
+    MemberUsedCallback memberUsed, {
+    bool checkEnqueuerConsistency = false,
+  }) {
+    _elementEnvironment.forEachClassMember(cls, (
+      ClassEntity cls,
+      MemberEntity member,
+    ) {
+      _processInstantiatedClassMember(
+        cls,
+        member,
+        memberUsed,
+        checkEnqueuerConsistency: checkEnqueuerConsistency,
+      );
     });
   }
 
   void _processInstantiatedClassMember(
-      ClassEntity cls, MemberEntity member, MemberUsedCallback memberUsed,
-      {bool checkEnqueuerConsistency = false}) {
+    ClassEntity cls,
+    MemberEntity member,
+    MemberUsedCallback memberUsed, {
+    bool checkEnqueuerConsistency = false,
+  }) {
     if (!member.isInstanceMember) return;
     var (usage, useSet) = _getMemberUsage(member);
     if (useSet.isNotEmpty) {
       if (checkEnqueuerConsistency) {
-        throw SpannableAssertionFailure(member,
-            'Unenqueued usage of $member: \nbefore: <none>\nafter : $usage');
+        throw SpannableAssertionFailure(
+          member,
+          'Unenqueued usage of $member: \nbefore: <none>\nafter : $usage',
+        );
       } else {
         memberUsed(member, useSet);
       }
     }
   }
 
-  (MemberUsage, EnumSet<MemberUse>) _getMemberUsage(MemberEntity member,
-      {bool checkEnqueuerConsistency = false}) {
+  (MemberUsage, EnumSet<MemberUse>) _getMemberUsage(
+    MemberEntity member, {
+    bool checkEnqueuerConsistency = false,
+  }) {
     EnumSet<MemberUse> useSet = EnumSet.empty();
     // TODO(johnniwinther): Change [TypeMask] to not apply to a superclass
     // member unless the class has been instantiated. Similar to
@@ -459,7 +516,8 @@ class CodegenWorldBuilder extends WorldBuilder {
           // being optimized away.
           // TODO(johnniwinther): Make this a part of the regular enqueueing.
           useSet = useSet.union(
-              usage.invoke(Accesses.dynamicAccess, CallStructure.noArgs));
+            usage.invoke(Accesses.dynamicAccess, CallStructure.noArgs),
+          );
         }
 
         if (usage.hasPendingDynamicRead && _hasInvokedGetter(member)) {
@@ -469,11 +527,13 @@ class CodegenWorldBuilder extends WorldBuilder {
           useSet = useSet.union(usage.write(Accesses.dynamicAccess));
         }
         if (usage.hasPendingDynamicInvoke) {
-          Iterable<CallStructure> callStructures =
-              _getInvocationCallStructures(member);
+          Iterable<CallStructure> callStructures = _getInvocationCallStructures(
+            member,
+          );
           for (CallStructure callStructure in callStructures) {
-            useSet = useSet
-                .union(usage.invoke(Accesses.dynamicAccess, callStructure));
+            useSet = useSet.union(
+              usage.invoke(Accesses.dynamicAccess, callStructure),
+            );
             if (!usage.hasPendingDynamicInvoke) {
               break;
             }
@@ -514,8 +574,11 @@ class CodegenWorldBuilder extends WorldBuilder {
     return (usage, useSet);
   }
 
-  void _processSet(Map<String, Set<MemberUsage>> map, String memberName,
-      bool Function(MemberUsage e) f) {
+  void _processSet(
+    Map<String, Set<MemberUsage>> map,
+    String memberName,
+    bool Function(MemberUsage e) f,
+  ) {
     Set<MemberUsage>? members = map[memberName];
     if (members == null) return;
     // [f] might add elements to [: map[memberName] :] during the loop below
@@ -619,12 +682,12 @@ class CodegenWorldBuilder extends WorldBuilder {
       final Map<Selector, SelectorConstraints> liveSelectors =
           // Only instance members (not static methods) need stubs.
           (member.isInstanceMember ? _invokedNames[member.name!] : const {}) ??
-              const {};
+          const {};
       final Map<Selector, SelectorConstraints> callSelectors =
           (_canTearOffFunction(member, usage)
-                  ? _invokedNames[Identifiers.call]
-                  : const {}) ??
-              const {};
+              ? _invokedNames[Identifiers.call]
+              : const {}) ??
+          const {};
 
       bool canBeApplied = _methodCanBeApplied(member);
       int memberTypeParameters = member.parameterStructure.typeParameters;
@@ -645,15 +708,25 @@ class CodegenWorldBuilder extends WorldBuilder {
 
       Set<Selector> stubSelectors = {};
 
-      void createStub(FunctionEntity member, Selector selector,
-          {Selector? callSelector, required bool needsSuper}) {
-        if (_parameterStubs[member]?.any((e) =>
-                e.parameterStructure.callStructure == selector.callStructure) ??
+      void createStub(
+        FunctionEntity member,
+        Selector selector, {
+        Selector? callSelector,
+        required bool needsSuper,
+      }) {
+        if (_parameterStubs[member]?.any(
+              (e) =>
+                  e.parameterStructure.callStructure == selector.callStructure,
+            ) ??
             false) {
           return;
         }
-        final stub = _generateParameterStub(member, selector,
-            callSelector: callSelector, needsSuper: needsSuper);
+        final stub = _generateParameterStub(
+          member,
+          selector,
+          callSelector: callSelector,
+          needsSuper: needsSuper,
+        );
         if (stub == null) return;
 
         newStubs.add(stub);
@@ -663,8 +736,10 @@ class CodegenWorldBuilder extends WorldBuilder {
           // have a pending super invoke. This ensures that the emitter uses the
           // aliased name for this super invocation.
           usage.invoke(
-              Accesses.superAccess, member.parameterStructure.callStructure,
-              forceAccesses: true);
+            Accesses.superAccess,
+            member.parameterStructure.callStructure,
+            forceAccesses: true,
+          );
         }
       }
 
@@ -681,13 +756,19 @@ class CodegenWorldBuilder extends WorldBuilder {
 
         renamedCallSelectors.add(namedSelector);
         stubSelectors.add(namedSelector);
-        createStub(member, namedSelector,
-            callSelector: closureSelector, needsSuper: needsSuper);
+        createStub(
+          member,
+          namedSelector,
+          callSelector: closureSelector,
+          needsSuper: needsSuper,
+        );
       }
 
       for (Selector selector in callSelectors.keys) {
-        Selector renamedSelector =
-            Selector.call(member.memberName, selector.callStructure);
+        Selector renamedSelector = Selector.call(
+          member.memberName,
+          selector.callStructure,
+        );
         renamedCallSelectors.add(renamedSelector);
 
         if (!renamedSelector.appliesUnnamed(member)) {
@@ -695,8 +776,12 @@ class CodegenWorldBuilder extends WorldBuilder {
         }
 
         if (stubSelectors.add(renamedSelector)) {
-          createStub(member, renamedSelector,
-              callSelector: selector, needsSuper: needsSuper);
+          createStub(
+            member,
+            renamedSelector,
+            callSelector: selector,
+            needsSuper: needsSuper,
+          );
         }
 
         // A generic method might need to support `call<T>(x)` for a generic
@@ -708,16 +793,23 @@ class CodegenWorldBuilder extends WorldBuilder {
         if (selector.callStructure.typeArgumentCount == 0) {
           if (memberTypeParameters > 0) {
             Selector renamedSelectorWithTypeArguments = Selector.call(
-                member.memberName,
-                selector.callStructure
-                    .withTypeArgumentCount(memberTypeParameters));
+              member.memberName,
+              selector.callStructure.withTypeArgumentCount(
+                memberTypeParameters,
+              ),
+            );
             renamedCallSelectors.add(renamedSelectorWithTypeArguments);
 
             if (stubSelectors.add(renamedSelectorWithTypeArguments)) {
-              Selector closureSelector =
-                  Selector.callClosureFrom(renamedSelectorWithTypeArguments);
-              createStub(member, renamedSelectorWithTypeArguments,
-                  callSelector: closureSelector, needsSuper: needsSuper);
+              Selector closureSelector = Selector.callClosureFrom(
+                renamedSelectorWithTypeArguments,
+              );
+              createStub(
+                member,
+                renamedSelectorWithTypeArguments,
+                callSelector: closureSelector,
+                needsSuper: needsSuper,
+              );
             }
           }
         }
@@ -729,8 +821,11 @@ class CodegenWorldBuilder extends WorldBuilder {
       for (Selector selector in liveSelectors.keys) {
         if (renamedCallSelectors.contains(selector)) continue;
         if (!selector.appliesUnnamed(member)) continue;
-        if (!liveSelectors[selector]!
-            .canHit(member, selector.memberName, _closedWorld)) {
+        if (!liveSelectors[selector]!.canHit(
+          member,
+          selector.memberName,
+          _closedWorld,
+        )) {
           continue;
         }
 
@@ -743,8 +838,11 @@ class CodegenWorldBuilder extends WorldBuilder {
   }
 
   JParameterStub? _generateParameterStub(
-      FunctionEntity member, Selector selector,
-      {Selector? callSelector, required bool needsSuper}) {
+    FunctionEntity member,
+    Selector selector, {
+    Selector? callSelector,
+    required bool needsSuper,
+  }) {
     ParameterStructure parameterStructure = member.parameterStructure;
     final callStructure = selector.callStructure;
     int positionalArgumentCount = callStructure.positionalArgumentCount;
@@ -762,8 +860,11 @@ class CodegenWorldBuilder extends WorldBuilder {
       }
     }
     return _closedWorld.elementMap.createParameterStub(
-        member as JFunction, selector,
-        callSelector: callSelector, needsSuper: needsSuper);
+      member as JFunction,
+      selector,
+      callSelector: callSelector,
+      needsSuper: needsSuper,
+    );
   }
 
   CodegenWorld close() {
@@ -773,24 +874,28 @@ class CodegenWorldBuilder extends WorldBuilder {
         liveMemberUsage[member] = usage;
       }
     });
-    return CodegenWorldImpl(_closedWorld, liveMemberUsage, processedEntities,
-        constTypeLiterals: _constTypeLiterals,
-        constructorReferences: _constructorReferences,
-        directlyInstantiatedClasses: directlyInstantiatedClasses,
-        typeVariableTypeLiterals: typeVariableTypeLiterals,
-        instantiatedClasses: instantiatedClasses,
-        isChecks: _isChecks,
-        namedTypeVariablesNewRti: _namedTypeVariablesNewRti,
-        instantiatedTypes: _instantiatedTypes,
-        liveTypeArguments: _liveTypeArguments,
-        compiledConstants: _compiledConstants,
-        invokedNames: _invokedNames,
-        invokedGetters: _invokedGetters,
-        invokedSetters: _invokedSetters,
-        staticTypeArgumentDependencies: staticTypeArgumentDependencies,
-        dynamicTypeArgumentDependencies: dynamicTypeArgumentDependencies,
-        oneShotInterceptorData: _oneShotInterceptorData,
-        parameterStubs: _parameterStubs);
+    return CodegenWorldImpl(
+      _closedWorld,
+      liveMemberUsage,
+      processedEntities,
+      constTypeLiterals: _constTypeLiterals,
+      constructorReferences: _constructorReferences,
+      directlyInstantiatedClasses: directlyInstantiatedClasses,
+      typeVariableTypeLiterals: typeVariableTypeLiterals,
+      instantiatedClasses: instantiatedClasses,
+      isChecks: _isChecks,
+      namedTypeVariablesNewRti: _namedTypeVariablesNewRti,
+      instantiatedTypes: _instantiatedTypes,
+      liveTypeArguments: _liveTypeArguments,
+      compiledConstants: _compiledConstants,
+      invokedNames: _invokedNames,
+      invokedGetters: _invokedGetters,
+      invokedSetters: _invokedSetters,
+      staticTypeArgumentDependencies: staticTypeArgumentDependencies,
+      dynamicTypeArgumentDependencies: dynamicTypeArgumentDependencies,
+      oneShotInterceptorData: _oneShotInterceptorData,
+      parameterStubs: _parameterStubs,
+    );
   }
 }
 
@@ -844,35 +949,38 @@ class CodegenWorldImpl implements CodegenWorld {
   @override
   final OneShotInterceptorData oneShotInterceptorData;
 
-  CodegenWorldImpl(this._closedWorld, this._liveMemberUsage,
-      Iterable<MemberEntity> processedEntities,
-      {required this.constTypeLiterals,
-      required this.constructorReferences,
-      required this.directlyInstantiatedClasses,
-      required this.typeVariableTypeLiterals,
-      required this.instantiatedClasses,
-      required this.isChecks,
-      required this.namedTypeVariablesNewRti,
-      required this.instantiatedTypes,
-      required this.liveTypeArguments,
-      required Map<FunctionEntity, List<JParameterStub>> parameterStubs,
-      required Iterable<ConstantValue> compiledConstants,
-      required Map<String, Map<Selector, SelectorConstraints>> invokedNames,
-      required Map<String, Map<Selector, SelectorConstraints>> invokedGetters,
-      required Map<String, Map<Selector, SelectorConstraints>> invokedSetters,
-      required Map<Entity, Set<DartType>> staticTypeArgumentDependencies,
-      required Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies,
-      required this.oneShotInterceptorData})
-      : _parameterStubs = parameterStubs,
-        _reachableLazyMemberBodies = processedEntities
-            .where((e) => e is JGeneratorBody || e is JConstructorBody)
-            .toSet(),
-        _compiledConstants = compiledConstants,
-        _invokedNames = invokedNames,
-        _invokedGetters = invokedGetters,
-        _invokedSetters = invokedSetters,
-        _staticTypeArgumentDependencies = staticTypeArgumentDependencies,
-        _dynamicTypeArgumentDependencies = dynamicTypeArgumentDependencies;
+  CodegenWorldImpl(
+    this._closedWorld,
+    this._liveMemberUsage,
+    Iterable<MemberEntity> processedEntities, {
+    required this.constTypeLiterals,
+    required this.constructorReferences,
+    required this.directlyInstantiatedClasses,
+    required this.typeVariableTypeLiterals,
+    required this.instantiatedClasses,
+    required this.isChecks,
+    required this.namedTypeVariablesNewRti,
+    required this.instantiatedTypes,
+    required this.liveTypeArguments,
+    required Map<FunctionEntity, List<JParameterStub>> parameterStubs,
+    required Iterable<ConstantValue> compiledConstants,
+    required Map<String, Map<Selector, SelectorConstraints>> invokedNames,
+    required Map<String, Map<Selector, SelectorConstraints>> invokedGetters,
+    required Map<String, Map<Selector, SelectorConstraints>> invokedSetters,
+    required Map<Entity, Set<DartType>> staticTypeArgumentDependencies,
+    required Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies,
+    required this.oneShotInterceptorData,
+  }) : _parameterStubs = parameterStubs,
+       _reachableLazyMemberBodies =
+           processedEntities
+               .where((e) => e is JGeneratorBody || e is JConstructorBody)
+               .toSet(),
+       _compiledConstants = compiledConstants,
+       _invokedNames = invokedNames,
+       _invokedGetters = invokedGetters,
+       _invokedSetters = invokedSetters,
+       _staticTypeArgumentDependencies = staticTypeArgumentDependencies,
+       _dynamicTypeArgumentDependencies = dynamicTypeArgumentDependencies;
 
   @override
   AnnotationsData get annotationsData => _closedWorld.annotationsData;
@@ -935,8 +1043,9 @@ class CodegenWorldImpl implements CodegenWorld {
       if (member is FunctionEntity &&
           member.isInstanceMember &&
           member.name == Identifiers.noSuchMethod_ &&
-          !_closedWorld.commonElements
-              .isDefaultNoSuchMethodImplementation(member))
+          !_closedWorld.commonElements.isDefaultNoSuchMethodImplementation(
+            member,
+          ))
         member,
   ];
 
@@ -944,92 +1053,102 @@ class CodegenWorldImpl implements CodegenWorld {
   Iterable<Local> get genericLocalFunctions => const [];
 
   @override
-  late final Iterable<FunctionEntity> closurizedMembers = (() {
-    final result = <FunctionEntity>{};
-    _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
-      if ((member.isFunction || member is JGeneratorBody) &&
-          member.isInstanceMember &&
-          usage.hasRead) {
-        result.add(member as FunctionEntity);
-      }
-    });
-    return result;
-  })();
+  late final Iterable<FunctionEntity> closurizedMembers =
+      (() {
+        final result = <FunctionEntity>{};
+        _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+          if ((member.isFunction || member is JGeneratorBody) &&
+              member.isInstanceMember &&
+              usage.hasRead) {
+            result.add(member as FunctionEntity);
+          }
+        });
+        return result;
+      })();
 
   @override
-  late final Iterable<FunctionEntity> closurizedStatics = (() {
-    final result = <FunctionEntity>{};
-    _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
-      if (member.isFunction &&
-          (member.isStatic || member.isTopLevel) &&
-          usage.hasRead) {
-        result.add(member as FunctionEntity);
-      }
-    });
-    return result;
-  })();
+  late final Iterable<FunctionEntity> closurizedStatics =
+      (() {
+        final result = <FunctionEntity>{};
+        _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+          if (member.isFunction &&
+              (member.isStatic || member.isTopLevel) &&
+              usage.hasRead) {
+            result.add(member as FunctionEntity);
+          }
+        });
+        return result;
+      })();
 
   @override
-  late final Map<MemberEntity, DartType> genericCallableProperties = (() {
-    final result = <MemberEntity, DartType>{};
-    _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
-      if (usage.hasRead) {
-        DartType? type;
-        if (member is FieldEntity) {
-          type = _closedWorld.elementEnvironment.getFieldType(member);
-        } else if (member.isGetter) {
-          type = _closedWorld.elementEnvironment
-              .getFunctionType(member as FunctionEntity)
-              .returnType;
-        }
-        if (type == null) return;
-        if (_closedWorld.dartTypes.canAssignGenericFunctionTo(type)) {
-          result[member] = type;
-        } else {
-          type = type.withoutNullability;
-          if (type is InterfaceType) {
-            FunctionType? callType = _closedWorld.dartTypes.getCallType(type);
-            if (callType != null &&
-                _closedWorld.dartTypes.canAssignGenericFunctionTo(callType)) {
-              result[member] = callType;
+  late final Map<MemberEntity, DartType> genericCallableProperties =
+      (() {
+        final result = <MemberEntity, DartType>{};
+        _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+          if (usage.hasRead) {
+            DartType? type;
+            if (member is FieldEntity) {
+              type = _closedWorld.elementEnvironment.getFieldType(member);
+            } else if (member.isGetter) {
+              type =
+                  _closedWorld.elementEnvironment
+                      .getFunctionType(member as FunctionEntity)
+                      .returnType;
+            }
+            if (type == null) return;
+            if (_closedWorld.dartTypes.canAssignGenericFunctionTo(type)) {
+              result[member] = type;
+            } else {
+              type = type.withoutNullability;
+              if (type is InterfaceType) {
+                FunctionType? callType = _closedWorld.dartTypes.getCallType(
+                  type,
+                );
+                if (callType != null &&
+                    _closedWorld.dartTypes.canAssignGenericFunctionTo(
+                      callType,
+                    )) {
+                  result[member] = callType;
+                }
+              }
             }
           }
-        }
-      }
-    });
-    return result;
-  })();
+        });
+        return result;
+      })();
 
   @override
   void forEachStaticTypeArgument(
-      void Function(Entity function, Set<DartType> typeArguments) f) {
+    void Function(Entity function, Set<DartType> typeArguments) f,
+  ) {
     _staticTypeArgumentDependencies.forEach(f);
   }
 
   @override
   void forEachDynamicTypeArgument(
-      void Function(Selector selector, Set<DartType> typeArguments) f) {
+    void Function(Selector selector, Set<DartType> typeArguments) f,
+  ) {
     _dynamicTypeArgumentDependencies.forEach(f);
   }
 
   @override
   void forEachInvokedName(
-      void Function(String name, Map<Selector, SelectorConstraints> selectors)
-          f) {
+    void Function(String name, Map<Selector, SelectorConstraints> selectors) f,
+  ) {
     _invokedNames.forEach(f);
   }
 
   @override
   void forEachInvokedGetter(
-      void Function(String name, Map<Selector, SelectorConstraints> selectors)
-          f) {
+    void Function(String name, Map<Selector, SelectorConstraints> selectors) f,
+  ) {
     _invokedGetters.forEach(f);
   }
 
   @override
   void forEachInvokedSetter(
-      void Function(String name, Map<Selector, SelectorConstraints> selectors)
-          f) {
+    void Function(String name, Map<Selector, SelectorConstraints> selectors) f,
+  ) {
     _invokedSetters.forEach(f);
   }
 
@@ -1055,7 +1174,8 @@ class CodegenWorldImpl implements CodegenWorld {
   }
 
   Map<Selector, SelectorConstraints>? _asUnmodifiable(
-      Map<Selector, SelectorConstraints>? map) {
+    Map<Selector, SelectorConstraints>? map,
+  ) {
     if (map == null) return null;
     return UnmodifiableMapView(map);
   }
@@ -1076,8 +1196,9 @@ class CodegenWorldImpl implements CodegenWorld {
   }
 
   @override
-  Iterable<ConstantValue> getConstantsForEmission(
-      [Comparator<ConstantValue>? preSortCompare]) {
+  Iterable<ConstantValue> getConstantsForEmission([
+    Comparator<ConstantValue>? preSortCompare,
+  ]) {
     // We must emit dependencies before their uses.
     Set<ConstantValue> seenConstants = {};
     List<ConstantValue> result = [];

@@ -57,7 +57,11 @@ class EntityDataInfoBuilder {
   final EntityDataRegistry registry;
 
   EntityDataInfoBuilder(
-      this.closedWorld, this.elementMap, this.compiler, this.registry);
+    this.closedWorld,
+    this.elementMap,
+    this.compiler,
+    this.registry,
+  );
 
   Map<Entity, WorldImpact> get impactCache => compiler.impactCache;
   KElementEnvironment get elementEnvironment =>
@@ -98,8 +102,10 @@ class EntityDataInfoBuilder {
   }
 
   /// Recursively collects all the dependencies of [types].
-  void addTypeListDependencies(Iterable<DartType>? types,
-      [ImportEntity? import]) {
+  void addTypeListDependencies(
+    Iterable<DartType>? types, [
+    ImportEntity? import,
+  ]) {
     if (types == null) return;
     TypeEntityDataVisitor(this, import, commonElements).visitIterable(types);
   }
@@ -124,8 +130,10 @@ class EntityDataInfoBuilder {
       if (usedEntity is MemberEntity) {
         addMember(usedEntity, import: staticUse.deferredImport);
       } else {
-        assert(usedEntity is JLocalFunction,
-            failedAt(usedEntity, "Unexpected static use $staticUse."));
+        assert(
+          usedEntity is JLocalFunction,
+          failedAt(usedEntity, "Unexpected static use $staticUse."),
+        );
         var localFunction = usedEntity as JLocalFunction;
         // TODO(sra): Consult KClosedWorld to see if signature is needed.
         addTypeDependencies(localFunction.functionType);
@@ -254,7 +262,8 @@ class EntityDataInfoBuilder {
     // TODO(johnniwinther): Use rti need data to skip unneeded type
     // arguments.
     worldImpact.forEachDynamicUse(
-        (_, use) => addTypeListDependencies(use.typeArguments));
+      (_, use) => addTypeListDependencies(use.typeArguments),
+    );
   }
 
   /// Extract any dependencies that are known from the impact of [element].
@@ -303,8 +312,9 @@ class EntityDataInfoVisitor extends EntityDataVisitor {
     });
     elementEnvironment.forEachSuperClass(cls, (superClass) {
       addClassAndMaybeAddEffectiveMixinClass(superClass);
-      infoBuilder
-          .addTypeDependencies(elementEnvironment.getThisType(superClass));
+      infoBuilder.addTypeDependencies(
+        elementEnvironment.getThisType(superClass),
+      );
     });
     addClassAndMaybeAddEffectiveMixinClass(cls);
   }
@@ -321,8 +331,9 @@ class EntityDataInfoVisitor extends EntityDataVisitor {
   @override
   void visitMemberEntityData(MemberEntity element) {
     if (element is FunctionEntity) {
-      infoBuilder
-          .addTypeDependencies(elementEnvironment.getFunctionType(element));
+      infoBuilder.addTypeDependencies(
+        elementEnvironment.getFunctionType(element),
+      );
     }
     if (element.isStatic ||
         element.isTopLevel ||
@@ -466,8 +477,11 @@ class ConstantCollector extends ir.RecursiveVisitor {
   CommonElements get commonElements => elementMap.commonElements;
 
   /// Extract the set of constants that are used in the body of [member].
-  static void collect(KernelToElementMap elementMap, MemberEntity member,
-      EntityDataInfoBuilder infoBuilder) {
+  static void collect(
+    KernelToElementMap elementMap,
+    MemberEntity member,
+    EntityDataInfoBuilder infoBuilder,
+  ) {
     ir.Member node = elementMap.getMemberNode(member);
 
     // Fetch the internal node in order to skip annotations on the member.
@@ -488,11 +502,15 @@ class ConstantCollector extends ir.RecursiveVisitor {
   }
 
   void add(ir.Expression node, {bool requireConstant = true}) {
-    ConstantValue? constant =
-        elementMap.getConstantValue(node, requireConstant: requireConstant);
+    ConstantValue? constant = elementMap.getConstantValue(
+      node,
+      requireConstant: requireConstant,
+    );
     if (constant != null) {
-      infoBuilder.addConstant(constant,
-          import: elementMap.getImport(getDeferredImport(node)));
+      infoBuilder.addConstant(
+        constant,
+        import: elementMap.getImport(getDeferredImport(node)),
+      );
     }
   }
 

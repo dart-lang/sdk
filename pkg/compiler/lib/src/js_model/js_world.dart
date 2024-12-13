@@ -51,8 +51,9 @@ class JClosedWorld implements World {
 
   // [_allFunctions] is created lazily because it is not used when we switch
   // from a frontend to a backend model before inference.
-  late final FunctionSet _allFunctions =
-      FunctionSet(liveInstanceMembers.followedBy(recordData.allGetters));
+  late final FunctionSet _allFunctions = FunctionSet(
+    liveInstanceMembers.followedBy(recordData.allGetters),
+  );
 
   final Map<ClassEntity, Set<ClassEntity>> mixinUses;
 
@@ -119,57 +120,75 @@ class JClosedWorld implements World {
   final Map<MemberEntity, MemberAccess> memberAccess;
 
   JClosedWorld(
-      this.elementMap,
-      this.nativeData,
-      this.interceptorData,
-      this.backendUsage,
-      this.rtiNeed,
-      this.fieldAnalysis,
-      this.noSuchMethodData,
-      this.implementedClasses,
-      this.liveNativeClasses,
-      this.liveInstanceMembers,
-      this.liveAbstractInstanceMembers,
-      this.assignedInstanceMembers,
-      this.processedMembers,
-      this.extractTypeArgumentsInterfacesNewRti,
-      this.mixinUses,
-      this.typesImplementedBySubclasses,
-      this.classHierarchy,
-      AbstractValueStrategy abstractValueStrategy,
-      this.annotationsData,
-      this.closureDataLookup,
-      this.recordData,
-      this.outputUnitData,
-      this.memberAccess) {
+    this.elementMap,
+    this.nativeData,
+    this.interceptorData,
+    this.backendUsage,
+    this.rtiNeed,
+    this.fieldAnalysis,
+    this.noSuchMethodData,
+    this.implementedClasses,
+    this.liveNativeClasses,
+    this.liveInstanceMembers,
+    this.liveAbstractInstanceMembers,
+    this.assignedInstanceMembers,
+    this.processedMembers,
+    this.extractTypeArgumentsInterfacesNewRti,
+    this.mixinUses,
+    this.typesImplementedBySubclasses,
+    this.classHierarchy,
+    AbstractValueStrategy abstractValueStrategy,
+    this.annotationsData,
+    this.closureDataLookup,
+    this.recordData,
+    this.outputUnitData,
+    this.memberAccess,
+  ) {
     _abstractValueDomain = abstractValueStrategy.createDomain(this);
   }
 
   /// Deserializes a [JClosedWorld] object from [source].
   factory JClosedWorld.readFromDataSource(
-      CompilerOptions options,
-      DiagnosticReporter reporter,
-      AbstractValueStrategy abstractValueStrategy,
-      ir.Component component,
-      DataSourceReader source) {
+    CompilerOptions options,
+    DiagnosticReporter reporter,
+    AbstractValueStrategy abstractValueStrategy,
+    ir.Component component,
+    DataSourceReader source,
+  ) {
     source.begin(tag);
 
     JsKernelToElementMap elementMap = JsKernelToElementMap.readFromDataSource(
-        options, reporter, component, source);
-    ClassHierarchy classHierarchy =
-        ClassHierarchy.readFromDataSource(source, elementMap.commonElements);
-    NativeData nativeData =
-        NativeData.readFromDataSource(source, elementMap.elementEnvironment);
+      options,
+      reporter,
+      component,
+      source,
+    );
+    ClassHierarchy classHierarchy = ClassHierarchy.readFromDataSource(
+      source,
+      elementMap.commonElements,
+    );
+    NativeData nativeData = NativeData.readFromDataSource(
+      source,
+      elementMap.elementEnvironment,
+    );
     elementMap.nativeData = nativeData;
     InterceptorData interceptorData = InterceptorData.readFromDataSource(
-        source, nativeData, elementMap.commonElements);
+      source,
+      nativeData,
+      elementMap.commonElements,
+    );
     BackendUsage backendUsage = BackendUsage.readFromDataSource(source);
     RuntimeTypesNeed rtiNeed = RuntimeTypesNeed.readFromDataSource(
-        source, elementMap.elementEnvironment);
-    JFieldAnalysis allocatorAnalysis =
-        JFieldAnalysis.readFromDataSource(source, options);
-    NoSuchMethodData noSuchMethodData =
-        NoSuchMethodData.readFromDataSource(source);
+      source,
+      elementMap.elementEnvironment,
+    );
+    JFieldAnalysis allocatorAnalysis = JFieldAnalysis.readFromDataSource(
+      source,
+      options,
+    );
+    NoSuchMethodData noSuchMethodData = NoSuchMethodData.readFromDataSource(
+      source,
+    );
 
     Set<ClassEntity> implementedClasses = source.readClasses().toSet();
     Set<ClassEntity> liveNativeClasses = source.readClasses().toSet();
@@ -180,51 +199,60 @@ class JClosedWorld implements World {
         source.readMembers().toSet();
     Set<MemberEntity> assignedInstanceMembers = source.readMembers().toSet();
     Set<MemberEntity> processedMembers = source.readMembers().toSet();
-    Map<ClassEntity, Set<ClassEntity>> mixinUses =
-        source.readClassMap(() => source.readClasses().toSet());
-    Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
-        source.readClassMap(() => source.readClasses().toSet());
+    Map<ClassEntity, Set<ClassEntity>> mixinUses = source.readClassMap(
+      () => source.readClasses().toSet(),
+    );
+    Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses = source
+        .readClassMap(() => source.readClasses().toSet());
 
-    AnnotationsData annotationsData =
-        AnnotationsData.readFromDataSource(options, reporter, source);
+    AnnotationsData annotationsData = AnnotationsData.readFromDataSource(
+      options,
+      reporter,
+      source,
+    );
 
-    ClosureData closureData =
-        ClosureData.readFromDataSource(elementMap, source);
+    ClosureData closureData = ClosureData.readFromDataSource(
+      elementMap,
+      source,
+    );
     RecordData recordData = RecordData.readFromDataSource(elementMap, source);
 
     OutputUnitData outputUnitData = OutputUnitData.readFromDataSource(source);
-    elementMap.lateOutputUnitDataBuilder =
-        LateOutputUnitDataBuilder(outputUnitData);
+    elementMap.lateOutputUnitDataBuilder = LateOutputUnitDataBuilder(
+      outputUnitData,
+    );
 
     Map<MemberEntity, MemberAccess> memberAccess = source.readMemberMap(
-        (MemberEntity member) => MemberAccess.readFromDataSource(source));
+      (MemberEntity member) => MemberAccess.readFromDataSource(source),
+    );
 
     source.end(tag);
 
     return JClosedWorld(
-        elementMap,
-        nativeData,
-        interceptorData,
-        backendUsage,
-        rtiNeed,
-        allocatorAnalysis,
-        noSuchMethodData,
-        implementedClasses,
-        liveNativeClasses,
-        liveInstanceMembers,
-        liveAbstractInstanceMembers,
-        assignedInstanceMembers,
-        processedMembers,
-        extractTypeArgumentsInterfacesNewRti,
-        mixinUses,
-        typesImplementedBySubclasses,
-        classHierarchy,
-        abstractValueStrategy,
-        annotationsData,
-        closureData,
-        recordData,
-        outputUnitData,
-        memberAccess);
+      elementMap,
+      nativeData,
+      interceptorData,
+      backendUsage,
+      rtiNeed,
+      allocatorAnalysis,
+      noSuchMethodData,
+      implementedClasses,
+      liveNativeClasses,
+      liveInstanceMembers,
+      liveAbstractInstanceMembers,
+      assignedInstanceMembers,
+      processedMembers,
+      extractTypeArgumentsInterfacesNewRti,
+      mixinUses,
+      typesImplementedBySubclasses,
+      classHierarchy,
+      abstractValueStrategy,
+      annotationsData,
+      closureData,
+      recordData,
+      outputUnitData,
+      memberAccess,
+    );
   }
 
   /// Serializes this [JClosedWorld] to [sink].
@@ -246,17 +274,22 @@ class JClosedWorld implements World {
     sink.writeMembers(assignedInstanceMembers);
     sink.writeMembers(processedMembers);
     sink.writeClassMap(
-        mixinUses, (Set<ClassEntity> set) => sink.writeClasses(set));
-    sink.writeClassMap(typesImplementedBySubclasses,
-        (Set<ClassEntity> set) => sink.writeClasses(set));
+      mixinUses,
+      (Set<ClassEntity> set) => sink.writeClasses(set),
+    );
+    sink.writeClassMap(
+      typesImplementedBySubclasses,
+      (Set<ClassEntity> set) => sink.writeClasses(set),
+    );
     annotationsData.writeToDataSink(sink);
     closureDataLookup.writeToDataSink(sink);
     recordData.writeToDataSink(sink);
     outputUnitData.writeToDataSink(sink);
     sink.writeMemberMap(
-        memberAccess,
-        (MemberEntity member, MemberAccess access) =>
-            access.writeToDataSink(sink));
+      memberAccess,
+      (MemberEntity member, MemberAccess access) =>
+          access.writeToDataSink(sink),
+    );
     sink.end(tag);
   }
 
@@ -277,7 +310,8 @@ class JClosedWorld implements World {
   ClassEntity? getLubOfInstantiatedSubclasses(ClassEntity cls) {
     if (nativeData.isJsInteropClass(cls)) {
       return getLubOfInstantiatedSubclasses(
-          commonElements.jsLegacyJavaScriptObjectClass);
+        commonElements.jsLegacyJavaScriptObjectClass,
+      );
     }
     ClassHierarchyNode hierarchy = classHierarchy.getClassHierarchyNode(cls);
     return hierarchy.getLubOfInstantiatedSubclasses();
@@ -289,7 +323,8 @@ class JClosedWorld implements World {
   ClassEntity? getLubOfInstantiatedSubtypes(ClassEntity cls) {
     if (nativeData.isJsInteropClass(cls)) {
       return getLubOfInstantiatedSubtypes(
-          commonElements.jsLegacyJavaScriptObjectClass);
+        commonElements.jsLegacyJavaScriptObjectClass,
+      );
     }
     ClassSet classSet = classHierarchy.getClassSet(cls);
     return classSet.getLubOfInstantiatedSubtypes();
@@ -302,19 +337,25 @@ class JClosedWorld implements World {
 
   /// Returns `true` if any live class that mixes in [cls] implements [type].
   bool hasAnySubclassOfMixinUseThatImplements(
-      ClassEntity cls, ClassEntity type) {
-    return mixinUsesOf(cls)
-        .any((use) => hasAnySubclassThatImplements(use, type));
+    ClassEntity cls,
+    ClassEntity type,
+  ) {
+    return mixinUsesOf(
+      cls,
+    ).any((use) => hasAnySubclassThatImplements(use, type));
   }
 
   /// Returns `true` if every subtype of [x] is a subclass of [y] or a subclass
   /// of a mixin application of [y].
   bool everySubtypeIsSubclassOfOrMixinUseOf(ClassEntity x, ClassEntity y) {
     Map<ClassEntity, bool> secondMap = _subtypeCoveredByCache[x] ??= {};
-    return secondMap[y] ??= classHierarchy.subtypesOf(x).every(
-        (ClassEntity cls) =>
-            classHierarchy.isSubclassOf(cls, y) ||
-            isSubclassOfMixinUseOf(cls, y));
+    return secondMap[y] ??= classHierarchy
+        .subtypesOf(x)
+        .every(
+          (ClassEntity cls) =>
+              classHierarchy.isSubclassOf(cls, y) ||
+              isSubclassOfMixinUseOf(cls, y),
+        );
   }
 
   /// Returns `true` if any subclass of [superclass] implements [type].
@@ -364,7 +405,10 @@ class JClosedWorld implements World {
   /// If we're calling bar on an object of type A we do need the handler because
   /// we may have to call B.noSuchMethod since B does not implement bar.
   bool needsNoSuchMethod(
-      ClassEntity base, Selector selector, ClassQuery query) {
+    ClassEntity base,
+    Selector selector,
+    ClassQuery query,
+  ) {
     /// Returns `true` if subclasses in the [rootNode] tree needs noSuchMethod
     /// handling.
     bool subclassesNeedNoSuchMethod(ClassHierarchyNode rootNode) {
@@ -382,16 +426,23 @@ class JClosedWorld implements World {
         // The root class need noSuchMethod handling.
         return true;
       }
-      IterationStep result = rootNode.forEachSubclass((ClassEntity subclass) {
-        if (_hasConcreteMatch(subclass, selector,
-            stopAtSuperclass: rootClass)) {
-          // Found a match - skip all subclasses.
-          return IterationStep.skipSubclasses;
-        } else {
-          // Stop fast - we found a need for noSuchMethod handling.
-          return IterationStep.stop;
-        }
-      }, ClassHierarchyNode.explicitlyInstantiated, strict: true);
+      IterationStep result = rootNode.forEachSubclass(
+        (ClassEntity subclass) {
+          if (_hasConcreteMatch(
+            subclass,
+            selector,
+            stopAtSuperclass: rootClass,
+          )) {
+            // Found a match - skip all subclasses.
+            return IterationStep.skipSubclasses;
+          } else {
+            // Stop fast - we found a need for noSuchMethod handling.
+            return IterationStep.stop;
+          }
+        },
+        ClassHierarchyNode.explicitlyInstantiated,
+        strict: true,
+      );
       // We stopped fast so we need noSuchMethod handling.
       return result == IterationStep.stop;
     }
@@ -425,8 +476,9 @@ class JClosedWorld implements World {
     Link<OrderedTypeSet> otherTypeSets = const Link<OrderedTypeSet>();
     do {
       ClassEntity otherClass = iterator.current;
-      OrderedTypeSet otherTypeSet =
-          elementMap.getOrderedTypeSet(otherClass as JClass);
+      OrderedTypeSet otherTypeSet = elementMap.getOrderedTypeSet(
+        otherClass as JClass,
+      );
       otherTypeSets = otherTypeSets.prepend(otherTypeSet);
       if (otherTypeSet.maxDepth < depth) {
         depth = otherTypeSet.maxDepth;
@@ -435,15 +487,21 @@ class JClosedWorld implements World {
 
     List<ClassEntity> commonSupertypes = <ClassEntity>[];
     OUTER:
-    for (Link<InterfaceType> link = typeSet[depth];
-        link.head.element != commonElements.objectClass;
-        link = link.tail!) {
+    for (
+      Link<InterfaceType> link = typeSet[depth];
+      link.head.element != commonElements.objectClass;
+      link = link.tail!
+    ) {
       ClassEntity cls = link.head.element;
-      for (Link<OrderedTypeSet> link = otherTypeSets;
-          link.isNotEmpty;
-          link = link.tail!) {
+      for (
+        Link<OrderedTypeSet> link = otherTypeSets;
+        link.isNotEmpty;
+        link = link.tail!
+      ) {
         if (link.head.asInstanceOf(
-                cls, elementMap.getHierarchyDepth(cls as JClass)) ==
+              cls,
+              elementMap.getHierarchyDepth(cls as JClass),
+            ) ==
             null) {
           continue OUTER;
         }
@@ -472,8 +530,9 @@ class JClosedWorld implements World {
     if (isUsedAsMixin(mixin)) {
       ClassEntity? current = cls;
       while (current != null) {
-        ClassEntity? currentMixin =
-            elementMap.getAppliedMixin(current as JClass);
+        ClassEntity? currentMixin = elementMap.getAppliedMixin(
+          current as JClass,
+        );
         if (currentMixin == mixin) return true;
         current = elementEnvironment.getSuperClass(current);
       }
@@ -490,25 +549,28 @@ class JClosedWorld implements World {
   /// Every implementation of `Closure` has a 'call' method with its own
   /// signature so it cannot be modelled by a [FunctionEntity]. Also,
   /// call-methods for tear-off are not part of the element model.
-  bool includesClosureCallInDomain(Selector selector, AbstractValue? receiver,
-      AbstractValueDomain abstractValueDomain) {
+  bool includesClosureCallInDomain(
+    Selector selector,
+    AbstractValue? receiver,
+    AbstractValueDomain abstractValueDomain,
+  ) {
     return selector.name == Identifiers.call &&
         (receiver == null ||
-            // This is logically equivalent to the former implementation using
-            // `abstractValueDomain.contains` (which wrapped `containsMask`).
-            // The switch to `abstractValueDomain.containsType` is because
-            // `contains` was generally unsound but happened to work correctly
-            // here. See https://dart-review.googlesource.com/c/sdk/+/130565
-            // for further discussion.
-            //
-            // This checks if the receiver mask contains the entire type cone
-            // originating from [_functionLub] and may therefore be unsound if
-            // the receiver mask contains only part of the type cone. (Is this
-            // possible?)
-            //
-            // TODO(fishythefish): Use `isDisjoint` or equivalent instead of
-            // `containsType` once we can ensure it's fast enough.
-            abstractValueDomain
+                // This is logically equivalent to the former implementation using
+                // `abstractValueDomain.contains` (which wrapped `containsMask`).
+                // The switch to `abstractValueDomain.containsType` is because
+                // `contains` was generally unsound but happened to work correctly
+                // here. See https://dart-review.googlesource.com/c/sdk/+/130565
+                // for further discussion.
+                //
+                // This checks if the receiver mask contains the entire type cone
+                // originating from [_functionLub] and may therefore be unsound if
+                // the receiver mask contains only part of the type cone. (Is this
+                // possible?)
+                //
+                // TODO(fishythefish): Use `isDisjoint` or equivalent instead of
+                // `containsType` once we can ensure it's fast enough.
+                abstractValueDomain
                 .containsType(receiver, _functionLub)
                 .isPotentiallyTrue);
   }
@@ -529,8 +591,11 @@ class JClosedWorld implements World {
   /// on the given [receiver] using the [abstractValueDomain]. The returned elements may include noSuchMethod
   /// handlers that are potential targets indirectly through the noSuchMethod
   /// mechanism.
-  Iterable<MemberEntity> locateMembersInDomain(Selector selector,
-      AbstractValue? receiver, AbstractValueDomain abstractValueDomain) {
+  Iterable<MemberEntity> locateMembersInDomain(
+    Selector selector,
+    AbstractValue? receiver,
+    AbstractValueDomain abstractValueDomain,
+  ) {
     return _allFunctions.filter(selector, receiver, abstractValueDomain);
   }
 
@@ -539,7 +604,9 @@ class JClosedWorld implements World {
   /// handlers that are potential targets indirectly through the noSuchMethod
   /// mechanism.
   Iterable<MemberEntity> locateMembers(
-      Selector selector, AbstractValue? receiver) {
+    Selector selector,
+    AbstractValue? receiver,
+  ) {
     return locateMembersInDomain(selector, receiver, abstractValueDomain);
   }
 
@@ -585,8 +652,10 @@ class JClosedWorld implements World {
   bool hasElementIn(ClassEntity cls, Name name, Entity element) {
     ClassEntity? current = cls;
     while (current != null) {
-      MemberEntity? member =
-          elementEnvironment.lookupLocalClassMember(current, name);
+      MemberEntity? member = elementEnvironment.lookupLocalClassMember(
+        current,
+        name,
+      );
       if (member != null && !member.isAbstract) {
         return member == element;
       }
@@ -597,18 +666,27 @@ class JClosedWorld implements World {
 
   /// Returns whether a [selector] call on an instance of [cls]
   /// will hit a method at runtime, and not go through [noSuchMethod].
-  bool _hasConcreteMatch(ClassEntity cls, Selector selector,
-      {ClassEntity? stopAtSuperclass}) {
-    assert(classHierarchy.isInstantiated(cls),
-        failedAt(cls, '$cls has not been instantiated.'));
-    MemberEntity? element =
-        elementEnvironment.lookupClassMember(cls, selector.memberName);
+  bool _hasConcreteMatch(
+    ClassEntity cls,
+    Selector selector, {
+    ClassEntity? stopAtSuperclass,
+  }) {
+    assert(
+      classHierarchy.isInstantiated(cls),
+      failedAt(cls, '$cls has not been instantiated.'),
+    );
+    MemberEntity? element = elementEnvironment.lookupClassMember(
+      cls,
+      selector.memberName,
+    );
     if (element == null) return false;
 
     if (element.isAbstract) {
       ClassEntity enclosingClass = element.enclosingClass!;
       return _hasConcreteMatch(
-          elementEnvironment.getSuperClass(enclosingClass)!, selector);
+        elementEnvironment.getSuperClass(enclosingClass)!,
+        selector,
+      );
     }
     return selector.appliesUnnamed(element);
   }
@@ -632,7 +710,7 @@ class JClosedWorld implements World {
   late final Set<ClassEntity> _defaultSuperclasses = {
     commonElements.objectClass,
     commonElements.jsLegacyJavaScriptObjectClass,
-    commonElements.jsInterceptorClass
+    commonElements.jsInterceptorClass,
   };
 
   /// Returns true if [cls] acts as a default superclass to some subset of
@@ -654,8 +732,12 @@ class KernelSorter implements Sorter {
   /// different entities with the same name and position, which happens for some
   /// code generated by transforms, e.g. late instance field getters and
   /// setters.
-  int _compareByLocationThenName(Entity entity1, SourceSpan sourceSpan1,
-      Entity entity2, SourceSpan sourceSpan2) {
+  int _compareByLocationThenName(
+    Entity entity1,
+    SourceSpan sourceSpan1,
+    Entity entity2,
+    SourceSpan sourceSpan2,
+  ) {
     int r = utils.compareSourceUris(sourceSpan1.uri, sourceSpan2.uri);
     if (r != 0) return r;
 
@@ -691,14 +773,19 @@ class KernelSorter implements Sorter {
       }
     }
     mergeSort(regularClasses, compare: compareClassesByLocation);
-    mergeSort(unnamedMixins, compare: (ClassEntity a, ClassEntity b) {
-      int result = _compareLibraries(a.library, b.library);
-      if (result != 0) return result;
-      result = a.name.compareTo(b.name);
-      assert(result != 0,
-          failedAt(a, "Multiple mixins named ${a.name}: $a vs $b."));
-      return result;
-    });
+    mergeSort(
+      unnamedMixins,
+      compare: (ClassEntity a, ClassEntity b) {
+        int result = _compareLibraries(a.library, b.library);
+        if (result != 0) return result;
+        result = a.name.compareTo(b.name);
+        assert(
+          result != 0,
+          failedAt(a, "Multiple mixins named ${a.name}: $a vs $b."),
+        );
+        return result;
+      },
+    );
     return [...regularClasses, ...unnamedMixins];
   }
 
@@ -715,7 +802,11 @@ class KernelSorter implements Sorter {
     ClassDefinition definition1 = elementMap.getClassDefinition(a);
     ClassDefinition definition2 = elementMap.getClassDefinition(b);
     return _compareByLocationThenName(
-        a, definition1.location, b, definition2.location);
+      a,
+      definition1.location,
+      b,
+      definition2.location,
+    );
   }
 
   @override
@@ -726,6 +817,10 @@ class KernelSorter implements Sorter {
     MemberDefinition definition1 = elementMap.getMemberDefinition(a);
     MemberDefinition definition2 = elementMap.getMemberDefinition(b);
     return _compareByLocationThenName(
-        a, definition1.location, b, definition2.location);
+      a,
+      definition1.location,
+      b,
+      definition2.location,
+    );
   }
 }

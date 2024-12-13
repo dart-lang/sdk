@@ -56,12 +56,16 @@ main() {
 
     await compileAndDoNotMatch(BAR, 'bar', RegExp("isLeaf"));
 
-    await compile(TEST, entry: 'foo', check: (String generated) {
-      Expect.isFalse(generated.contains('else'));
-      // Regression check to ensure that there is no floating variable
-      // expression.
-      Expect.isFalse(new RegExp('^[ ]*a;').hasMatch(generated));
-    });
+    await compile(
+      TEST,
+      entry: 'foo',
+      check: (String generated) {
+        Expect.isFalse(generated.contains('else'));
+        // Regression check to ensure that there is no floating variable
+        // expression.
+        Expect.isFalse(new RegExp('^[ ]*a;').hasMatch(generated));
+      },
+    );
   }
 
   asyncTest(() async {

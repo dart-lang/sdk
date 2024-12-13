@@ -16,8 +16,9 @@ import 'class_set.dart';
 abstract class ClassHierarchy {
   /// Deserializes a [ClassHierarchy] object from [source].
   factory ClassHierarchy.readFromDataSource(
-          DataSourceReader source, CommonElements commonElements) =
-      ClassHierarchyImpl.readFromDataSource;
+    DataSourceReader source,
+    CommonElements commonElements,
+  ) = ClassHierarchyImpl.readFromDataSource;
 
   /// Serializes this [ClassHierarchy] to [sink].
   void writeToDataSink(DataSinkWriter sink);
@@ -71,12 +72,16 @@ abstract class ClassHierarchy {
   /// Applies [f] to each live class that extend [cls] _not_ including [cls]
   /// itself.
   void forEachStrictSubclassOf(
-      ClassEntity cls, IterationStep Function(ClassEntity cls) f);
+    ClassEntity cls,
+    IterationStep Function(ClassEntity cls) f,
+  );
 
   /// Returns `true` if [predicate] applies to any live class that extend [cls]
   /// _not_ including [cls] itself.
   bool anyStrictSubclassOf(
-      ClassEntity cls, bool Function(ClassEntity cls) predicate);
+    ClassEntity cls,
+    bool Function(ClassEntity cls) predicate,
+  );
 
   /// Returns an iterable over the directly instantiated that implement [cls]
   /// possibly including [cls] itself, if it is live.
@@ -97,12 +102,16 @@ abstract class ClassHierarchy {
   /// Applies [f] to each live class that implements [cls] _not_ including [cls]
   /// itself.
   void forEachStrictSubtypeOf(
-      ClassEntity cls, IterationStep Function(ClassEntity cls) f);
+    ClassEntity cls,
+    IterationStep Function(ClassEntity cls) f,
+  );
 
   /// Returns `true` if [predicate] applies to any live class that implements
   /// [cls] _not_ including [cls] itself.
   bool anyStrictSubtypeOf(
-      ClassEntity cls, bool Function(ClassEntity cls) predicate);
+    ClassEntity cls,
+    bool Function(ClassEntity cls) predicate,
+  );
 
   /// Returns `true` if [a] and [b] have any known common subtypes.
   bool haveAnyCommonSubtypes(ClassEntity a, ClassEntity b);
@@ -138,7 +147,11 @@ abstract class ClassHierarchy {
   ///
   /// return the set {C} because [D] is implied by [C].
   SubclassResult commonSubclasses(
-      ClassEntity cls1, ClassQuery query1, ClassEntity cls2, ClassQuery query2);
+    ClassEntity cls1,
+    ClassQuery query1,
+    ClassEntity cls2,
+    ClassQuery query2,
+  );
 
   /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
   /// of known classes.
@@ -170,23 +183,32 @@ class ClassHierarchyImpl implements ClassHierarchy {
   final Map<ClassEntity, ClassSet> _classSets;
 
   ClassHierarchyImpl(
-      this._commonElements, this._classHierarchyNodes, this._classSets);
+    this._commonElements,
+    this._classHierarchyNodes,
+    this._classSets,
+  );
 
   factory ClassHierarchyImpl.readFromDataSource(
-      DataSourceReader source, CommonElements commonElements) {
+    DataSourceReader source,
+    CommonElements commonElements,
+  ) {
     source.begin(tag);
     Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes =
         ClassHierarchyNodesMap();
     int classCount = source.readInt();
     for (int i = 0; i < classCount; i++) {
-      ClassHierarchyNode node =
-          ClassHierarchyNode.readFromDataSource(source, classHierarchyNodes);
+      ClassHierarchyNode node = ClassHierarchyNode.readFromDataSource(
+        source,
+        classHierarchyNodes,
+      );
       classHierarchyNodes[node.cls] = node;
     }
     Map<ClassEntity, ClassSet> classSets = {};
     for (int i = 0; i < classCount; i++) {
-      ClassSet classSet =
-          ClassSet.readFromDataSource(source, classHierarchyNodes);
+      ClassSet classSet = ClassSet.readFromDataSource(
+        source,
+        classHierarchyNodes,
+      );
       classSets[classSet.cls] = classSet;
     }
 
@@ -198,8 +220,9 @@ class ClassHierarchyImpl implements ClassHierarchy {
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeInt(_classSets.length);
-    ClassHierarchyNode node =
-        getClassHierarchyNode(_commonElements.objectClass);
+    ClassHierarchyNode node = getClassHierarchyNode(
+      _commonElements.objectClass,
+    );
     node.forEachSubclass((ClassEntity cls) {
       getClassHierarchyNode(cls).writeToDataSink(sink);
       return IterationStep.continue_;
@@ -244,12 +267,15 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   @override
   bool isSubtypeOf(ClassEntity x, ClassEntity y) {
-    ClassSet classSet = _classSets[y] ??
+    ClassSet classSet =
+        _classSets[y] ??
         failedAt(
-            y,
-            "No ClassSet for $y (${y.runtimeType}): "
-            "${dump(y)} : $_classSets");
-    ClassHierarchyNode classHierarchyNode = _classHierarchyNodes[x] ??
+          y,
+          "No ClassSet for $y (${y.runtimeType}): "
+          "${dump(y)} : $_classSets",
+        );
+    ClassHierarchyNode classHierarchyNode =
+        _classHierarchyNodes[x] ??
         failedAt(x, "No ClassHierarchyNode for $x: ${dump(x)}");
     return classSet.hasSubtype(classHierarchyNode);
   }
@@ -263,8 +289,9 @@ class ClassHierarchyImpl implements ClassHierarchy {
   Iterable<ClassEntity> subclassesOf(ClassEntity cls) {
     ClassHierarchyNode? hierarchy = _classHierarchyNodes[cls];
     if (hierarchy == null) return const [];
-    return hierarchy
-        .subclassesByMask(ClassHierarchyNode.explicitlyInstantiated);
+    return hierarchy.subclassesByMask(
+      ClassHierarchyNode.explicitlyInstantiated,
+    );
   }
 
   @override
@@ -272,8 +299,9 @@ class ClassHierarchyImpl implements ClassHierarchy {
     ClassHierarchyNode? subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return const [];
     return subclasses.subclassesByMask(
-        ClassHierarchyNode.explicitlyInstantiated,
-        strict: true);
+      ClassHierarchyNode.explicitlyInstantiated,
+      strict: true,
+    );
   }
 
   @override
@@ -285,21 +313,30 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   @override
   void forEachStrictSubclassOf(
-      ClassEntity cls, IterationStep Function(ClassEntity cls) f) {
+    ClassEntity cls,
+    IterationStep Function(ClassEntity cls) f,
+  ) {
     ClassHierarchyNode? subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return;
-    subclasses.forEachSubclass(f, ClassHierarchyNode.explicitlyInstantiated,
-        strict: true);
+    subclasses.forEachSubclass(
+      f,
+      ClassHierarchyNode.explicitlyInstantiated,
+      strict: true,
+    );
   }
 
   @override
   bool anyStrictSubclassOf(
-      ClassEntity cls, bool Function(ClassEntity cls) predicate) {
+    ClassEntity cls,
+    bool Function(ClassEntity cls) predicate,
+  ) {
     ClassHierarchyNode? subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return false;
     return subclasses.anySubclass(
-        predicate, ClassHierarchyNode.explicitlyInstantiated,
-        strict: true);
+      predicate,
+      ClassHierarchyNode.explicitlyInstantiated,
+      strict: true,
+    );
   }
 
   @override
@@ -318,8 +355,10 @@ class ClassHierarchyImpl implements ClassHierarchy {
     if (classSet == null) {
       return const [];
     } else {
-      return classSet.subtypesByMask(ClassHierarchyNode.explicitlyInstantiated,
-          strict: true);
+      return classSet.subtypesByMask(
+        ClassHierarchyNode.explicitlyInstantiated,
+        strict: true,
+      );
     }
   }
 
@@ -342,21 +381,30 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   @override
   void forEachStrictSubtypeOf(
-      ClassEntity cls, IterationStep Function(ClassEntity cls) f) {
+    ClassEntity cls,
+    IterationStep Function(ClassEntity cls) f,
+  ) {
     ClassSet? classSet = _classSets[cls];
     if (classSet == null) return;
-    classSet.forEachSubtype(f, ClassHierarchyNode.explicitlyInstantiated,
-        strict: true);
+    classSet.forEachSubtype(
+      f,
+      ClassHierarchyNode.explicitlyInstantiated,
+      strict: true,
+    );
   }
 
   @override
   bool anyStrictSubtypeOf(
-      ClassEntity cls, bool Function(ClassEntity cls) predicate) {
+    ClassEntity cls,
+    bool Function(ClassEntity cls) predicate,
+  ) {
     ClassSet? classSet = _classSets[cls];
     if (classSet == null) return false;
     return classSet.anySubtype(
-        predicate, ClassHierarchyNode.explicitlyInstantiated,
-        strict: true);
+      predicate,
+      ClassHierarchyNode.explicitlyInstantiated,
+      strict: true,
+    );
   }
 
   @override
@@ -399,8 +447,12 @@ class ClassHierarchyImpl implements ClassHierarchy {
   }
 
   @override
-  SubclassResult commonSubclasses(ClassEntity cls1, ClassQuery query1,
-      ClassEntity cls2, ClassQuery query2) {
+  SubclassResult commonSubclasses(
+    ClassEntity cls1,
+    ClassQuery query1,
+    ClassEntity cls2,
+    ClassQuery query2,
+  ) {
     if (query1 == ClassQuery.exact && query2 == ClassQuery.exact) {
       // Exact classes [cls1] and [cls2] must be identical to have any classes
       // in common.
@@ -562,8 +614,9 @@ class ClassHierarchyImpl implements ClassHierarchy {
     } else {
       sb.write("Instantiated classes in the closed world:\n");
     }
-    getClassHierarchyNode(_commonElements.objectClass)
-        .printOn(sb, ' ', instantiatedOnly: cls == null, withRespectTo: cls);
+    getClassHierarchyNode(
+      _commonElements.objectClass,
+    ).printOn(sb, ' ', instantiatedOnly: cls == null, withRespectTo: cls);
     return sb.toString();
   }
 }
@@ -582,12 +635,16 @@ class ClassHierarchyBuilder {
 
   ClassHierarchy close() {
     assert(
-        _classHierarchyNodes.length == _classSets.length,
-        "ClassHierarchyNode/ClassSet mismatch: "
-        "$_classHierarchyNodes vs "
-        "$_classSets");
+      _classHierarchyNodes.length == _classSets.length,
+      "ClassHierarchyNode/ClassSet mismatch: "
+      "$_classHierarchyNodes vs "
+      "$_classSets",
+    );
     return ClassHierarchyImpl(
-        _commonElements, _classHierarchyNodes, _classSets);
+      _commonElements,
+      _classHierarchyNodes,
+      _classSets,
+    );
   }
 
   /// Returns true if [cls] is not extended by any other class and is it not
@@ -617,7 +674,10 @@ class ClassHierarchyBuilder {
         parentNode = _ensureClassHierarchyNode(superclass);
       }
       return ClassHierarchyNode(
-          parentNode, cls, _elementMap.getHierarchyDepth(cls));
+        parentNode,
+        cls,
+        _elementMap.getHierarchyDepth(cls),
+      );
     });
   }
 
@@ -670,9 +730,11 @@ class ClassHierarchyBuilder {
     }
   }
 
-  void updateClassHierarchyNodeForClass(ClassEntity cls,
-      {bool directlyInstantiated = false,
-      bool abstractlyInstantiated = false}) {
+  void updateClassHierarchyNodeForClass(
+    ClassEntity cls, {
+    bool directlyInstantiated = false,
+    bool abstractlyInstantiated = false,
+  }) {
     ClassHierarchyNode node = _ensureClassSet(cls).node;
     _updateSuperClassHierarchyNodeForClass(node);
     if (directlyInstantiated) {
@@ -691,9 +753,12 @@ class ClassHierarchyBuilder {
   }
 
   bool _isSubtypeOf(ClassEntity x, ClassEntity y) {
-    assert(_classSets.containsKey(x),
-        "ClassSet for $x has not been computed yet.");
-    ClassSet classSet = _classSets[y] ??
+    assert(
+      _classSets.containsKey(x),
+      "ClassSet for $x has not been computed yet.",
+    );
+    ClassSet classSet =
+        _classSets[y] ??
         failedAt(y, "No ClassSet for $y (${y.runtimeType}): $_classSets");
     ClassHierarchyNode classHierarchyNode =
         _classHierarchyNodes[x] ?? failedAt(x, "No ClassHierarchyNode for $x");
@@ -703,7 +768,9 @@ class ClassHierarchyBuilder {
   /// Returns `true` if a dynamic access on an instance of [exactClass] can
   /// target a member declared in [memberHoldingClass].
   bool isInheritedInExactClass(
-      ClassEntity memberHoldingClass, ClassEntity exactClass) {
+    ClassEntity memberHoldingClass,
+    ClassEntity exactClass,
+  ) {
     ClassHierarchyNode exactClassNode = _classHierarchyNodes[exactClass]!;
     if (!exactClassNode.isAbstractlyInstantiated &&
         !exactClassNode.isDirectlyInstantiated) {
@@ -726,12 +793,14 @@ class ClassHierarchyBuilder {
   }
 
   final Map<ClassEntity, _InheritedInThisClassCache>
-      _inheritedInThisClassCacheMap = {};
+  _inheritedInThisClassCacheMap = {};
 
   /// Returns `true` if a `this` expression in [thisClass] can target a member
   /// declared in [memberHoldingClass].
   bool isInheritedInThisClass(
-      ClassEntity memberHoldingClass, ClassEntity thisClass) {
+    ClassEntity memberHoldingClass,
+    ClassEntity thisClass,
+  ) {
     _InheritedInThisClassCache cache =
         _inheritedInThisClassCacheMap[memberHoldingClass] ??=
             _InheritedInThisClassCache();
@@ -759,32 +828,50 @@ class _InheritedInThisClassCache {
 
   /// Returns `true` if members of [memberHoldingClass] can be inherited into
   /// a live class that can be the target of a `this` expression in [thisClass].
-  bool isInheritedInThisClassOf(ClassHierarchyBuilder builder,
-      ClassEntity memberHoldingClass, ClassEntity thisClass) {
+  bool isInheritedInThisClassOf(
+    ClassHierarchyBuilder builder,
+    ClassEntity memberHoldingClass,
+    ClassEntity thisClass,
+  ) {
     _LiveSet? set;
     if (_map == null) {
       _map = {};
     } else {
       set = _map![thisClass];
     }
-    set ??= _map![thisClass] = _computeInheritingInThisClassSet(
-        builder, memberHoldingClass, thisClass);
+    set ??=
+        _map![thisClass] = _computeInheritingInThisClassSet(
+          builder,
+          memberHoldingClass,
+          thisClass,
+        );
     return set.hasLiveClass(builder);
   }
 
-  _LiveSet _computeInheritingInThisClassSet(ClassHierarchyBuilder builder,
-      ClassEntity memberHoldingClass, ClassEntity thisClass) {
+  _LiveSet _computeInheritingInThisClassSet(
+    ClassHierarchyBuilder builder,
+    ClassEntity memberHoldingClass,
+    ClassEntity thisClass,
+  ) {
     ClassHierarchyNode memberHoldingClassNode =
         builder._classHierarchyNodes[memberHoldingClass]!;
 
     if (_inheritingClasses == null) {
       _inheritingClasses = {};
-      _inheritingClasses!.addAll(memberHoldingClassNode
-          .subclassesByMask(ClassHierarchyNode.all, strict: false));
+      _inheritingClasses!.addAll(
+        memberHoldingClassNode.subclassesByMask(
+          ClassHierarchyNode.all,
+          strict: false,
+        ),
+      );
       for (ClassHierarchyNode mixinApplication
           in builder._classSets[memberHoldingClass]!.mixinApplicationNodes) {
-        _inheritingClasses!.addAll(mixinApplication
-            .subclassesByMask(ClassHierarchyNode.all, strict: false));
+        _inheritingClasses!.addAll(
+          mixinApplication.subclassesByMask(
+            ClassHierarchyNode.all,
+            strict: false,
+          ),
+        );
       }
     }
 
@@ -829,7 +916,10 @@ class _InheritedInSubtypeCache {
   /// Returns whether a live class currently known to inherit from [x] and
   /// implement [y].
   bool isInheritedInSubtypeOf(
-      ClassHierarchyBuilder builder, ClassEntity x, ClassEntity y) {
+    ClassHierarchyBuilder builder,
+    ClassEntity x,
+    ClassEntity y,
+  ) {
     _LiveSet? set;
     if (_map == null) {
       _map = {};
@@ -843,7 +933,10 @@ class _InheritedInSubtypeCache {
   /// Creates an [_LiveSet] of classes that inherit members of a class [x]
   /// while implementing class [y].
   _LiveSet _computeInheritingInSubtypeSet(
-      ClassHierarchyBuilder builder, ClassEntity x, ClassEntity y) {
+    ClassHierarchyBuilder builder,
+    ClassEntity x,
+    ClassEntity y,
+  ) {
     ClassSet classSet = builder._classSets[x]!;
 
     Set<ClassEntity> classes = {};
@@ -855,12 +948,16 @@ class _InheritedInSubtypeCache {
 
     /// Add subclasses of [node] that implement [y].
     void subclassImplements(ClassHierarchyNode node, {required bool strict}) {
-      node.forEachSubclass((ClassEntity z) {
-        if (builder._isSubtypeOf(z, y)) {
-          classes.add(z);
-        }
-        return IterationStep.continue_;
-      }, ClassHierarchyNode.all, strict: strict);
+      node.forEachSubclass(
+        (ClassEntity z) {
+          if (builder._isSubtypeOf(z, y)) {
+            classes.add(z);
+          }
+          return IterationStep.continue_;
+        },
+        ClassHierarchyNode.all,
+        strict: strict,
+      );
     }
 
     // A subclasses of [x] that implement [y].
@@ -891,8 +988,8 @@ class _LiveSet {
   Set<ClassEntity>? _classes;
 
   _LiveSet(Set<ClassEntity> classes)
-      : _result = classes.isEmpty ? false : null,
-        _classes = classes.isNotEmpty ? classes : null;
+    : _result = classes.isEmpty ? false : null,
+      _classes = classes.isNotEmpty ? classes : null;
 
   /// Returns whether the set of classes is currently known to contain a live
   /// classes.

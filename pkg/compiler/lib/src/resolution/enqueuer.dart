@@ -51,9 +51,15 @@ class ResolutionEnqueuer extends Enqueuer {
   // applying additional impacts before re-emptying the queue.
   void Function()? onEmptyForTesting;
 
-  ResolutionEnqueuer(this.task, this._reporter, this.listener,
-      this.worldBuilder, this._workItemBuilder, this._annotationsData,
-      [this.name = 'resolution enqueuer']);
+  ResolutionEnqueuer(
+    this.task,
+    this._reporter,
+    this.listener,
+    this.worldBuilder,
+    this._workItemBuilder,
+    this._annotationsData, [
+    this.name = 'resolution enqueuer',
+  ]);
 
   @override
   Iterable<ClassEntity> get directlyInstantiatedClasses =>
@@ -69,32 +75,45 @@ class ResolutionEnqueuer extends Enqueuer {
     }
   }
 
-  void _registerInstantiatedType(InterfaceType type,
-      {ConstructorEntity? constructor,
-      bool nativeUsage = false,
-      bool globalDependency = false}) {
+  void _registerInstantiatedType(
+    InterfaceType type, {
+    ConstructorEntity? constructor,
+    bool nativeUsage = false,
+    bool globalDependency = false,
+  }) {
     task.measureSubtask('resolution.typeUse', () {
-      worldBuilder.registerTypeInstantiation(type, _applyClassUse,
-          constructor: constructor);
-      listener.registerInstantiatedType(type,
-          isGlobal: globalDependency, nativeUsage: nativeUsage);
+      worldBuilder.registerTypeInstantiation(
+        type,
+        _applyClassUse,
+        constructor: constructor,
+      );
+      listener.registerInstantiatedType(
+        type,
+        isGlobal: globalDependency,
+        nativeUsage: nativeUsage,
+      );
     });
   }
 
   @override
   bool checkNoEnqueuedInvokedInstanceMethods(
-      ElementEnvironment elementEnvironment) {
+    ElementEnvironment elementEnvironment,
+  ) {
     if (Enqueuer.skipEnqueuerCheckForTesting) return true;
     return checkEnqueuerConsistency(elementEnvironment);
   }
 
   @override
   void checkClass(ClassEntity cls) {
-    worldBuilder.processClassMembers(cls,
-        (MemberEntity member, EnumSet<MemberUse> useSet) {
+    worldBuilder.processClassMembers(cls, (
+      MemberEntity member,
+      EnumSet<MemberUse> useSet,
+    ) {
       if (useSet.isNotEmpty) {
-        _reporter.internalError(member,
-            'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}');
+        _reporter.internalError(
+          member,
+          'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}',
+        );
       }
     }, checkEnqueuerConsistency: true);
   }
@@ -156,9 +175,11 @@ class ResolutionEnqueuer extends Enqueuer {
       switch (staticUse.kind) {
         case StaticUseKind.constructorInvoke:
         case StaticUseKind.constConstructorInvoke:
-          _registerInstantiatedType(staticUse.type!,
-              constructor: staticUse.element as ConstructorEntity?,
-              globalDependency: false);
+          _registerInstantiatedType(
+            staticUse.type!,
+            constructor: staticUse.element as ConstructorEntity?,
+            globalDependency: false,
+          );
           break;
         case StaticUseKind.staticTearOff:
         case StaticUseKind.superTearOff:
@@ -191,12 +212,17 @@ class ResolutionEnqueuer extends Enqueuer {
     switch (typeUse.kind) {
       case TypeUseKind.instantiation:
       case TypeUseKind.constInstantiation:
-        _registerInstantiatedType(type as InterfaceType,
-            globalDependency: false);
+        _registerInstantiatedType(
+          type as InterfaceType,
+          globalDependency: false,
+        );
         break;
       case TypeUseKind.nativeInstantiation:
-        _registerInstantiatedType(type as InterfaceType,
-            nativeUsage: true, globalDependency: true);
+        _registerInstantiatedType(
+          type as InterfaceType,
+          nativeUsage: true,
+          globalDependency: true,
+        );
         break;
       case TypeUseKind.recordInstantiation:
         _registerInstantiatedRecordType(type as RecordType);
@@ -270,8 +296,9 @@ class ResolutionEnqueuer extends Enqueuer {
       if (!_onQueueEmpty(recents)) {
         _recentClasses.addAll(recents);
       }
-    } while (
-        _queue.isNotEmpty || _recentClasses.isNotEmpty || _recentConstants);
+    } while (_queue.isNotEmpty ||
+        _recentClasses.isNotEmpty ||
+        _recentConstants);
   }
 
   @override
@@ -318,7 +345,9 @@ class ResolutionEnqueuer extends Enqueuer {
 
     if (queueIsClosed) {
       failedAt(
-          entity, "Resolution work list is closed. Trying to add $entity.");
+        entity,
+        "Resolution work list is closed. Trying to add $entity.",
+      );
     }
 
     applyImpact(listener.registerUsedElement(entity));

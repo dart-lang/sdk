@@ -29,8 +29,12 @@ class MinifyNamer extends Namer
   /// [sanitizeForNatives] and [sanitizeForAnnotations] are ignored because the
   /// minified names will always avoid clashing with annotated names or natives.
   @override
-  String _generateFreshStringForName(String proposedName, NamingScope scope,
-      {bool sanitizeForNatives = false, bool sanitizeForAnnotations = false}) {
+  String _generateFreshStringForName(
+    String proposedName,
+    NamingScope scope, {
+    bool sanitizeForNatives = false,
+    bool sanitizeForAnnotations = false,
+  }) {
     String freshName;
     final suggestion = scope.suggestName(proposedName);
     if (suggestion != null && scope.isUnused(suggestion)) {
@@ -159,7 +163,7 @@ class MinifyNamer extends Namer
       r'$not',
       r'$mod',
       r'$tdiv',
-      r'toString$0'
+      r'toString$0',
     ]);
 
     _populateSuggestedNames(globalScope, const [
@@ -199,7 +203,7 @@ class MinifyNamer extends Namer
       r'createInvocationMirror',
       r'String',
       r'setArrayType',
-      r'createRuntimeType'
+      r'createRuntimeType',
     ]);
   }
 
@@ -328,38 +332,46 @@ class _ConstructorBodyNamingScope {
   int get numberOfConstructors => _constructors.length;
 
   _ConstructorBodyNamingScope.rootScope(
-      ClassEntity cls, ElementEnvironment environment)
-      : _startIndex = 0,
-        _constructors = _getConstructorList(cls, environment);
+    ClassEntity cls,
+    ElementEnvironment environment,
+  ) : _startIndex = 0,
+      _constructors = _getConstructorList(cls, environment);
 
-  _ConstructorBodyNamingScope.forClass(ClassEntity cls,
-      _ConstructorBodyNamingScope superScope, ElementEnvironment environment)
-      : _startIndex = superScope._startIndex + superScope.numberOfConstructors,
-        _constructors = _getConstructorList(cls, environment);
+  _ConstructorBodyNamingScope.forClass(
+    ClassEntity cls,
+    _ConstructorBodyNamingScope superScope,
+    ElementEnvironment environment,
+  ) : _startIndex = superScope._startIndex + superScope.numberOfConstructors,
+      _constructors = _getConstructorList(cls, environment);
 
   // Mixin Applications have constructors but we never generate code for them,
   // so they do not count in the inheritance chain.
   _ConstructorBodyNamingScope.forMixinApplication(
-      ClassEntity cls, _ConstructorBodyNamingScope superScope)
-      : _startIndex = superScope._startIndex + superScope.numberOfConstructors,
-        _constructors = const [];
+    ClassEntity cls,
+    _ConstructorBodyNamingScope superScope,
+  ) : _startIndex = superScope._startIndex + superScope.numberOfConstructors,
+      _constructors = const [];
 
   factory _ConstructorBodyNamingScope(
-      ClassEntity cls,
-      Map<ClassEntity, _ConstructorBodyNamingScope> registry,
-      ElementEnvironment environment) {
+    ClassEntity cls,
+    Map<ClassEntity, _ConstructorBodyNamingScope> registry,
+    ElementEnvironment environment,
+  ) {
     return registry.putIfAbsent(cls, () {
       final superclass = environment.getSuperClass(cls);
       if (superclass == null) {
         return _ConstructorBodyNamingScope.rootScope(cls, environment);
       } else if (environment.isMixinApplication(cls)) {
-        return _ConstructorBodyNamingScope.forMixinApplication(cls,
-            _ConstructorBodyNamingScope(superclass, registry, environment));
+        return _ConstructorBodyNamingScope.forMixinApplication(
+          cls,
+          _ConstructorBodyNamingScope(superclass, registry, environment),
+        );
       } else {
         return _ConstructorBodyNamingScope.forClass(
-            cls,
-            _ConstructorBodyNamingScope(superclass, registry, environment),
-            environment);
+          cls,
+          _ConstructorBodyNamingScope(superclass, registry, environment),
+          environment,
+        );
       }
     });
   }
@@ -371,7 +383,9 @@ class _ConstructorBodyNamingScope {
   }
 
   static List<ConstructorEntity> _getConstructorList(
-      ClassEntity cls, ElementEnvironment environment) {
+    ClassEntity cls,
+    ElementEnvironment environment,
+  ) {
     var result = <ConstructorEntity>[];
     environment.forEachConstructor(cls, result.add);
     return result;
@@ -385,10 +399,15 @@ mixin _MinifyConstructorBodyNamer implements Namer {
   @override
   js_ast.Name constructorBodyName(ConstructorBodyEntity method) {
     _ConstructorBodyNamingScope scope = _ConstructorBodyNamingScope(
-        method.enclosingClass!, _constructorBodyScopes, _elementEnvironment);
+      method.enclosingClass!,
+      _constructorBodyScopes,
+      _elementEnvironment,
+    );
     String key = scope.constructorBodyKeyFor(method);
     return _disambiguateMemberByKey(
-        key, () => _proposeNameForConstructorBody(method));
+      key,
+      () => _proposeNameForConstructorBody(method),
+    );
   }
 }
 
@@ -397,20 +416,28 @@ mixin _MinifiedOneShotInterceptorNamer implements Namer {
   /// [selector] and return-type specialization.
   @override
   js_ast.Name nameForOneShotInterceptor(
-      Selector selector, Iterable<ClassEntity> classes) {
-    final root = selector.isOperator
-        ? operatorNameToIdentifier(selector.name)
-        : privateName(selector.memberName);
-    String prefix = selector.isGetter
-        ? r"$get"
-        : selector.isSetter
+    Selector selector,
+    Iterable<ClassEntity> classes,
+  ) {
+    final root =
+        selector.isOperator
+            ? operatorNameToIdentifier(selector.name)
+            : privateName(selector.memberName);
+    String prefix =
+        selector.isGetter
+            ? r"$get"
+            : selector.isSetter
             ? r"$set"
             : "";
-    String callSuffix = selector.isCall
-        ? callSuffixForStructure(selector.callStructure).join()
-        : "";
-    String suffix =
-        suffixForGetInterceptor(_commonElements, _nativeData, classes);
+    String callSuffix =
+        selector.isCall
+            ? callSuffixForStructure(selector.callStructure).join()
+            : "";
+    String suffix = suffixForGetInterceptor(
+      _commonElements,
+      _nativeData,
+      classes,
+    );
     String fullName = "\$intercepted$prefix\$$root$callSuffix\$$suffix";
     return _disambiguateInternalGlobal(fullName);
   }

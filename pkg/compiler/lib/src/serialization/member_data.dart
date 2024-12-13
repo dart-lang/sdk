@@ -34,10 +34,11 @@ class ComponentLookup {
 String computeMemberName(ir.Member member) {
   // This should mostly be empty except when serializing the name of nSM
   // forwarders (see dartbug.com/33732).
-  String libraryPrefix = member.name.isPrivate &&
-          member.name.libraryReference != member.enclosingLibrary.reference
-      ? '${member.name.libraryReference?.canonicalName?.name}:'
-      : '';
+  String libraryPrefix =
+      member.name.isPrivate &&
+              member.name.libraryReference != member.enclosingLibrary.reference
+          ? '${member.name.libraryReference?.canonicalName?.name}:'
+          : '';
   String name = member.name.text;
   if (member is ir.Constructor) {
     name = '.$name';
@@ -66,7 +67,7 @@ class LibraryData {
   /// Cache of [ir.ExtensionTypeDeclaration] nodes for extension type
   /// declarations in this library.
   late final Map<String, ir.ExtensionTypeDeclaration>
-      _extensionTypeDeclarations = _initializeExtensionTypeDeclarations();
+  _extensionTypeDeclarations = _initializeExtensionTypeDeclarations();
 
   /// Cache of [MemberData] for members in this library.
   Map<String, MemberData>? _membersByName;
@@ -78,24 +79,26 @@ class LibraryData {
     final typedefs = <String, ir.Typedef>{};
     for (ir.Typedef typedef in node.typedefs) {
       assert(
-          !typedefs.containsKey(typedef.name),
-          "Duplicate typedef '${typedef.name}' in $typedefs "
-          "trying to add $typedef.");
+        !typedefs.containsKey(typedef.name),
+        "Duplicate typedef '${typedef.name}' in $typedefs "
+        "trying to add $typedef.",
+      );
       typedefs[typedef.name] = typedef;
     }
     return typedefs;
   }
 
   Map<String, ir.ExtensionTypeDeclaration>
-      _initializeExtensionTypeDeclarations() {
+  _initializeExtensionTypeDeclarations() {
     final extensionTypeDeclarations = <String, ir.ExtensionTypeDeclaration>{};
     for (ir.ExtensionTypeDeclaration extensionTypeDeclaration
         in node.extensionTypeDeclarations) {
       assert(
-          !extensionTypeDeclarations.containsKey(extensionTypeDeclaration.name),
-          "Duplicate extension type declaration "
-          "'${extensionTypeDeclaration.name}' in  $extensionTypeDeclarations "
-          "trying to add $extensionTypeDeclaration.");
+        !extensionTypeDeclarations.containsKey(extensionTypeDeclaration.name),
+        "Duplicate extension type declaration "
+        "'${extensionTypeDeclaration.name}' in  $extensionTypeDeclarations "
+        "trying to add $extensionTypeDeclaration.",
+      );
       extensionTypeDeclarations[extensionTypeDeclaration.name] =
           extensionTypeDeclaration;
     }
@@ -108,13 +111,15 @@ class LibraryData {
       final classesByNode = _classesByNode = {};
       for (ir.Class cls in node.classes) {
         assert(
-            !classesByName.containsKey(cls.name),
-            "Duplicate class '${cls.name}' in $classesByName "
-            "trying to add $cls.");
+          !classesByName.containsKey(cls.name),
+          "Duplicate class '${cls.name}' in $classesByName "
+          "trying to add $cls.",
+        );
         assert(
-            !classesByNode.containsKey(cls),
-            "Duplicate class '${cls.name}' in $classesByNode "
-            "trying to add $cls.");
+          !classesByNode.containsKey(cls),
+          "Duplicate class '${cls.name}' in $classesByNode "
+          "trying to add $cls.",
+        );
         classesByNode[cls] = classesByName[cls.name] = ClassData(cls);
       }
     }
@@ -149,13 +154,15 @@ class LibraryData {
       for (ir.Member member in node.members) {
         String name = computeMemberName(member);
         assert(
-            !membersByName.containsKey(name),
-            "Duplicate member '$name' in $membersByName "
-            "trying to add $member.");
+          !membersByName.containsKey(name),
+          "Duplicate member '$name' in $membersByName "
+          "trying to add $member.",
+        );
         assert(
-            !membersByNode.containsKey(member),
-            "Duplicate member '$name' in $membersByNode "
-            "trying to add $member.");
+          !membersByNode.containsKey(member),
+          "Duplicate member '$name' in $membersByNode "
+          "trying to add $member.",
+        );
         membersByNode[member] = membersByName[name] = MemberData(member);
       }
     }
@@ -196,13 +203,15 @@ class ClassData {
       for (ir.Member member in node.members) {
         String name = computeMemberName(member);
         assert(
-            !membersByName.containsKey(name),
-            "Duplicate member '$name' in $membersByName "
-            "trying to add $member.");
+          !membersByName.containsKey(name),
+          "Duplicate member '$name' in $membersByName "
+          "trying to add $member.",
+        );
         assert(
-            !membersByNode.containsKey(member),
-            "Duplicate member '$name' in $membersByNode "
-            "trying to add $member.");
+          !membersByNode.containsKey(member),
+          "Duplicate member '$name' in $membersByNode "
+          "trying to add $member.",
+        );
         membersByNode[member] = membersByName[name] = MemberData(member);
       }
     }
@@ -241,7 +250,7 @@ class MemberData {
   /// Cached [ir.ConstantExpression] to [ConstantNodeIndexerVisitor] map used
   /// for fast serialization/deserialization of constant references.
   late final Map<ir.ConstantExpression, ConstantNodeIndexerVisitor>
-      _constantIndexMap = {};
+  _constantIndexMap = {};
 
   MemberData(this.node);
 
@@ -254,7 +263,8 @@ class MemberData {
   }
 
   ConstantNodeIndexerVisitor _createConstantIndexer(
-      ir.ConstantExpression node) {
+    ir.ConstantExpression node,
+  ) {
     ConstantNodeIndexerVisitor indexer = ConstantNodeIndexerVisitor();
     node.constant.accept(indexer);
     return indexer;
@@ -283,7 +293,8 @@ class MemberData {
     _ensureMaps();
     return _nodeToIndexMap![node] ??
         (throw StateError(
-            'getIndexByTreeNode ${node.runtimeType} in member ${this.node}'));
+          'getIndexByTreeNode ${node.runtimeType} in member ${this.node}',
+        ));
   }
 
   @override

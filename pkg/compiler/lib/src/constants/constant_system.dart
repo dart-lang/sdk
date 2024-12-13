@@ -91,8 +91,11 @@ BoolConstantValue createBool(bool value) => BoolConstantValue(value);
 
 NullConstantValue createNull() => NullConstantValue();
 
-ListConstantValue createList(CommonElements commonElements,
-    InterfaceType sourceType, List<ConstantValue> values) {
+ListConstantValue createList(
+  CommonElements commonElements,
+  InterfaceType sourceType,
+  List<ConstantValue> values,
+) {
   InterfaceType type = commonElements.getConstantListTypeFor(sourceType);
   return ListConstantValue(type, values);
 }
@@ -141,33 +144,48 @@ bool isSubtype(DartTypes types, DartType s, DartType t) {
   return types.isSubtype(s, t);
 }
 
-SetConstantValue createSet(CommonElements commonElements,
-    InterfaceType sourceType, List<ConstantValue> values) {
+SetConstantValue createSet(
+  CommonElements commonElements,
+  InterfaceType sourceType,
+  List<ConstantValue> values,
+) {
   JavaScriptObjectConstantValue? indexObject = _makeStringIndex(values);
-  InterfaceType type = commonElements.getConstantSetTypeFor(sourceType,
-      onlyStringKeys: indexObject != null);
+  InterfaceType type = commonElements.getConstantSetTypeFor(
+    sourceType,
+    onlyStringKeys: indexObject != null,
+  );
   return JavaScriptSetConstant(type, values, indexObject);
 }
 
 MapConstantValue createMap(
-    CommonElements commonElements,
-    InterfaceType sourceType,
-    List<ConstantValue> keys,
-    List<ConstantValue> values) {
+  CommonElements commonElements,
+  InterfaceType sourceType,
+  List<ConstantValue> keys,
+  List<ConstantValue> values,
+) {
   final JavaScriptObjectConstantValue? indexObject = _makeStringIndex(keys);
   final onlyStringKeys = indexObject != null;
-  InterfaceType keysType =
-      commonElements.listType(sourceType.typeArguments.first);
-  InterfaceType valuesType =
-      commonElements.listType(sourceType.typeArguments.last);
+  InterfaceType keysType = commonElements.listType(
+    sourceType.typeArguments.first,
+  );
+  InterfaceType valuesType = commonElements.listType(
+    sourceType.typeArguments.last,
+  );
   ListConstantValue keysList = createList(commonElements, keysType, keys);
   ListConstantValue valuesList = createList(commonElements, valuesType, values);
 
-  InterfaceType type = commonElements.getConstantMapTypeFor(sourceType,
-      onlyStringKeys: onlyStringKeys);
+  InterfaceType type = commonElements.getConstantMapTypeFor(
+    sourceType,
+    onlyStringKeys: onlyStringKeys,
+  );
 
   return JavaScriptMapConstant(
-      type, keysList, valuesList, onlyStringKeys, indexObject);
+    type,
+    keysList,
+    valuesList,
+    onlyStringKeys,
+    indexObject,
+  );
 }
 
 JavaScriptObjectConstantValue? _makeStringIndex(List<ConstantValue> keys) {
@@ -185,7 +203,9 @@ JavaScriptObjectConstantValue? _makeStringIndex(List<ConstantValue> keys) {
   if (!_valuesInObjectPropertyOrder(keys)) return null;
 
   return JavaScriptObjectConstantValue(
-      keys, List.generate(keys.length, createIntFromInt));
+    keys,
+    List.generate(keys.length, createIntFromInt),
+  );
 }
 
 final _numberRegExp = RegExp(r'^0$|^[1-9][0-9]*$');
@@ -225,7 +245,9 @@ bool _valuesInObjectPropertyOrder(List<ConstantValue> keys) {
 }
 
 ConstructedConstantValue createSymbol(
-    CommonElements commonElements, String text) {
+  CommonElements commonElements,
+  String text,
+) {
   InterfaceType type = commonElements.symbolImplementationType;
   FieldEntity field = commonElements.symbolField;
   ConstantValue argument = createString(text);
@@ -821,7 +843,8 @@ class RoundOperation implements UnaryOperation {
       double rounded2 = (value * (1.0 - severalULP)).roundToDouble();
       if (rounded != rounded1 || rounded != rounded2) return null;
       return _convertToJavaScriptConstant(
-          IntConstantValue(BigInt.from(value.round())));
+        IntConstantValue(BigInt.from(value.round())),
+      );
     }
 
     if (constant is IntConstantValue) {
@@ -952,9 +975,13 @@ class JavaScriptMapConstant extends MapConstantValue {
   final bool onlyStringKeys;
   final JavaScriptObjectConstantValue? indexObject;
 
-  JavaScriptMapConstant(InterfaceType type, this.keyList, this.valueList,
-      this.onlyStringKeys, this.indexObject)
-      : super(type, keyList.entries, valueList.entries);
+  JavaScriptMapConstant(
+    InterfaceType type,
+    this.keyList,
+    this.valueList,
+    this.onlyStringKeys,
+    this.indexObject,
+  ) : super(type, keyList.entries, valueList.entries);
 
   @override
   List<ConstantValue> getDependencies() {

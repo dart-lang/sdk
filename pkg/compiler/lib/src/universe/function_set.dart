@@ -40,12 +40,18 @@ class FunctionSet {
   /// noSuchMethod handlers that are potential targets indirectly through the
   /// noSuchMethod mechanism.
   Iterable<MemberEntity> filter(
-      Selector selector, AbstractValue? receiver, AbstractValueDomain domain) {
+    Selector selector,
+    AbstractValue? receiver,
+    AbstractValueDomain domain,
+  ) {
     return query(selector, receiver, domain).functions;
   }
 
   SelectorMask _createSelectorMask(
-      Selector selector, AbstractValue? receiver, AbstractValueDomain domain) {
+    Selector selector,
+    AbstractValue? receiver,
+    AbstractValueDomain domain,
+  ) {
     return receiver != null
         ? SelectorMask(selector, receiver)
         : SelectorMask(selector, domain.dynamicType);
@@ -55,11 +61,16 @@ class FunctionSet {
   /// [selector] on a receiver constrained by [constraint] including
   /// 'noSuchMethod' methods where applicable.
   FunctionSetQuery query(
-      Selector selector, AbstractValue? receiver, AbstractValueDomain domain) {
+    Selector selector,
+    AbstractValue? receiver,
+    AbstractValueDomain domain,
+  ) {
     Name name = selector.memberName;
     SelectorMask selectorMask = _createSelectorMask(selector, receiver, domain);
-    SelectorMask noSuchMethodMask =
-        SelectorMask(Selectors.noSuchMethod_, selectorMask.receiver);
+    SelectorMask noSuchMethodMask = SelectorMask(
+      Selectors.noSuchMethod_,
+      selectorMask.receiver,
+    );
     FunctionSetNode? node;
     if (name.isPrivate) {
       final forUri = _privateNodes[name.uri];
@@ -89,8 +100,7 @@ class SelectorMask {
   final int hashCode;
 
   SelectorMask(this.selector, this.receiver)
-      : hashCode =
-            Hashing.mixHashCodeBits(selector.hashCode, receiver.hashCode);
+    : hashCode = Hashing.mixHashCodeBits(selector.hashCode, receiver.hashCode);
 
   String get name => selector.name;
 
@@ -189,8 +199,12 @@ class FunctionSetNode {
 
   /// Returns the set of functions that can be the target of [selectorMask]
   /// including no such method handling where applicable.
-  FunctionSetQuery query(SelectorMask selectorMask, AbstractValueDomain domain,
-      [FunctionSetNode? noSuchMethods, SelectorMask? noSuchMethodMask]) {
+  FunctionSetQuery query(
+    SelectorMask selectorMask,
+    AbstractValueDomain domain, [
+    FunctionSetNode? noSuchMethods,
+    SelectorMask? noSuchMethodMask,
+  ]) {
     FunctionSetQuery? result = cache[selectorMask];
     if (result != null) return result;
 
@@ -212,16 +226,20 @@ class FunctionSetNode {
         selectorMask.needsNoSuchMethodHandling(domain)) {
       // If [noSuchMethods] was provided then [noSuchMethodMask] should also
       // have been provided.
-      FunctionSetQuery noSuchMethodQuery =
-          noSuchMethods.query(noSuchMethodMask!, domain);
+      FunctionSetQuery noSuchMethodQuery = noSuchMethods.query(
+        noSuchMethodMask!,
+        domain,
+      );
       if (noSuchMethodQuery.functions.isNotEmpty) {
         functions ??= Setlet();
         functions.addAll(noSuchMethodQuery.functions);
       }
     }
-    cache[selectorMask] = result = (functions != null)
-        ? FullFunctionSetQuery(functions)
-        : const EmptyFunctionSetQuery();
+    cache[selectorMask] =
+        result =
+            (functions != null)
+                ? FullFunctionSetQuery(functions)
+                : const EmptyFunctionSetQuery();
     return result;
   }
 

@@ -40,8 +40,11 @@ class LocationCollector extends CodeOutputListener implements LocationProvider {
   @override
   Location getLocation(int offset) {
     RangeError.checkValueInInterval(offset, 0, length, 'offset');
-    return Source.emptySource(lineStarts, null, null)
-        .getLocation(_dummyFile, offset);
+    return Source.emptySource(
+      lineStarts,
+      null,
+      null,
+    ).getLocation(_dummyFile, offset);
   }
 
   // TODO(48820): Pass file Uri in to Constructor.

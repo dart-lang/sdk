@@ -49,24 +49,40 @@ abstract class ConstantValueVisitor<R, A> {
   R visitSet(covariant SetConstantValue constant, covariant A arg);
   R visitMap(covariant MapConstantValue constant, covariant A arg);
   R visitConstructed(
-      covariant ConstructedConstantValue constant, covariant A arg);
+    covariant ConstructedConstantValue constant,
+    covariant A arg,
+  );
   R visitRecord(covariant RecordConstantValue constant, covariant A arg);
   R visitType(covariant TypeConstantValue constant, covariant A arg);
   R visitInterceptor(
-      covariant InterceptorConstantValue constant, covariant A arg);
+    covariant InterceptorConstantValue constant,
+    covariant A arg,
+  );
   R visitJavaScriptObject(
-      covariant JavaScriptObjectConstantValue constant, covariant A arg);
+    covariant JavaScriptObjectConstantValue constant,
+    covariant A arg,
+  );
   R visitDummyInterceptor(
-      covariant DummyInterceptorConstantValue constant, covariant A arg);
+    covariant DummyInterceptorConstantValue constant,
+    covariant A arg,
+  );
   R visitLateSentinel(
-      covariant LateSentinelConstantValue constant, covariant A arg);
+    covariant LateSentinelConstantValue constant,
+    covariant A arg,
+  );
   R visitUnreachable(
-      covariant UnreachableConstantValue constant, covariant A arg);
+    covariant UnreachableConstantValue constant,
+    covariant A arg,
+  );
   R visitJsName(covariant JsNameConstantValue constant, covariant A arg);
   R visitDeferredGlobal(
-      covariant DeferredGlobalConstantValue constant, covariant A arg);
+    covariant DeferredGlobalConstantValue constant,
+    covariant A arg,
+  );
   R visitInstantiation(
-      covariant InstantiationConstantValue constant, covariant A arg);
+    covariant InstantiationConstantValue constant,
+    covariant A arg,
+  );
 }
 
 abstract class ConstantValue {
@@ -109,9 +125,11 @@ abstract class ConstantValue {
 
   @override
   String toString() {
-    assertDebugMode("Use ConstantValue.toDartText() or "
-        "ConstantValue.toStructuredText() "
-        "instead of ConstantValue.toString().");
+    assertDebugMode(
+      "Use ConstantValue.toDartText() or "
+      "ConstantValue.toStructuredText() "
+      "instead of ConstantValue.toString().",
+    );
     return toStructuredText(null);
   }
 }
@@ -443,8 +461,8 @@ class StringConstantValue extends PrimitiveConstantValue {
 
   // TODO(floitsch): cache StringConstants.
   StringConstantValue(String value)
-      : stringValue = value,
-        hashCode = value.hashCode;
+    : stringValue = value,
+      hashCode = value.hashCode;
 
   @override
   DartType getType(CommonElements types) => types.stringType;
@@ -534,7 +552,7 @@ class ListConstantValue extends ObjectConstantValue {
   final int hashCode;
 
   ListConstantValue(super.type, this.entries)
-      : hashCode = Hashing.listHash(entries, Hashing.objectHash(type));
+    : hashCode = Hashing.listHash(entries, Hashing.objectHash(type));
 
   @override
   bool operator ==(var other) {
@@ -596,7 +614,7 @@ abstract class SetConstantValue extends ObjectConstantValue {
   final int hashCode;
 
   SetConstantValue(super.type, this.values)
-      : hashCode = Hashing.listHash(values, Hashing.objectHash(type));
+    : hashCode = Hashing.listHash(values, Hashing.objectHash(type));
 
   @override
   bool operator ==(var other) {
@@ -637,11 +655,7 @@ abstract class SetConstantValue extends ObjectConstantValue {
     sb.write('SetConstant(');
     _unparseTypeArguments(dartTypes, sb);
     sb.write('{');
-    sb.writeAll(
-        values.map((v) => v.toStructuredText(
-              dartTypes,
-            )),
-        ', ');
+    sb.writeAll(values.map((v) => v.toStructuredText(dartTypes)), ', ');
     sb.write('})');
     return sb.toString();
   }
@@ -658,8 +672,10 @@ abstract class MapConstantValue extends ObjectConstantValue {
   Map<ConstantValue, ConstantValue>? _lookupMap;
 
   MapConstantValue(super.type, this.keys, this.values)
-      : hashCode = Hashing.listHash(
-            values, Hashing.listHash(keys, Hashing.objectHash(type))) {
+    : hashCode = Hashing.listHash(
+        values,
+        Hashing.listHash(keys, Hashing.objectHash(type)),
+      ) {
     assert(keys.length == values.length);
   }
 
@@ -910,7 +926,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
   final int hashCode;
 
   ConstructedConstantValue(super.type, this.fields)
-      : hashCode = Hashing.unorderedMapHash(fields, Hashing.objectHash(type));
+    : hashCode = Hashing.unorderedMapHash(fields, Hashing.objectHash(type));
 
   @override
   bool operator ==(var other) {
@@ -986,8 +1002,8 @@ class RecordConstantValue extends ConstantValue {
   final int hashCode;
 
   RecordConstantValue(this.shape, this.values)
-      : assert(shape.fieldCount == values.length),
-        hashCode = Hashing.objectHash(shape, Hashing.listHash(values));
+    : assert(shape.fieldCount == values.length),
+      hashCode = Hashing.objectHash(shape, Hashing.listHash(values));
 
   @override
   bool operator ==(Object other) {
@@ -1000,7 +1016,9 @@ class RecordConstantValue extends ConstantValue {
   @override
   DartType getType(CommonElements types) {
     return types.dartTypes.recordType(
-        shape, values.map((value) => value.getType(types)).toList());
+      shape,
+      values.map((value) => value.getType(types)).toList(),
+    );
   }
 
   @override
@@ -1113,7 +1131,9 @@ class JavaScriptObjectConstantValue extends ConstantValue {
   }
 
   static bool _equals(
-      JavaScriptObjectConstantValue a, JavaScriptObjectConstantValue b) {
+    JavaScriptObjectConstantValue a,
+    JavaScriptObjectConstantValue b,
+  ) {
     if (a.hashCode != b.hashCode) return false;
     if (a.length != b.length) return false;
     if (!_listsEqual(a.keys, b.keys)) return false;

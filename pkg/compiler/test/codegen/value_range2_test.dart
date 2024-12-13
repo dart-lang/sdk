@@ -37,18 +37,24 @@ Range createSingleInstructionRange() => createSingleRange(instructionValue);
 Range createSingleLengthRange() => createSingleRange(lengthValue);
 
 Range createIntRange(int lower, int upper) {
-  return info.newNormalizedRange(info.newIntValue(new BigInt.from(lower)),
-      info.newIntValue(new BigInt.from(upper)));
+  return info.newNormalizedRange(
+    info.newIntValue(new BigInt.from(lower)),
+    info.newIntValue(new BigInt.from(upper)),
+  );
 }
 
 Range createLengthRange(int lower) {
   return info.newNormalizedRange(
-      info.newIntValue(new BigInt.from(lower)), lengthValue);
+    info.newIntValue(new BigInt.from(lower)),
+    lengthValue,
+  );
 }
 
 Range createInstructionRange(int lower) {
   return info.newNormalizedRange(
-      info.newIntValue(new BigInt.from(lower)), instructionValue);
+    info.newIntValue(new BigInt.from(lower)),
+    instructionValue,
+  );
 }
 
 Range instruction = createSingleInstructionRange();

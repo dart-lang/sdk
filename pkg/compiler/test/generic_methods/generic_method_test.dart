@@ -175,36 +175,54 @@ noSuchMethod: Class2.method6<int>
 
 main(List<String> args) {
   asyncTest(() async {
-    D8Result result = await runWithD8(memorySourceFiles: {
-      'main.dart': SOURCE
-    }, options: [
-      Flags.disableRtiOptimization,
-      '--libraries-spec=$sdkLibrariesSpecificationUri',
-    ], expectedOutput: OUTPUT, printJs: args.contains('-v'));
+    D8Result result = await runWithD8(
+      memorySourceFiles: {'main.dart': SOURCE},
+      options: [
+        Flags.disableRtiOptimization,
+        '--libraries-spec=$sdkLibrariesSpecificationUri',
+      ],
+      expectedOutput: OUTPUT,
+      printJs: args.contains('-v'),
+    );
     Compiler compiler = result.compilationResult.compiler!;
     JsBackendStrategy backendStrategy = compiler.backendStrategy;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
-    void checkMethod(String methodName,
-        {String? className, required int expectedParameterCount}) {
+    void checkMethod(
+      String methodName, {
+      String? className,
+      required int expectedParameterCount,
+    }) {
       FunctionEntity? method;
       if (className != null) {
         ClassEntity? cls = elementEnvironment.lookupClass(
-            elementEnvironment.mainLibrary!, className);
+          elementEnvironment.mainLibrary!,
+          className,
+        );
         Expect.isNotNull(cls, "Class '$className' not found.");
-        method = elementEnvironment.lookupClassMember(
-                cls!, Name(methodName, cls.library.canonicalUri))
-            as FunctionEntity?;
+        method =
+            elementEnvironment.lookupClassMember(
+                  cls!,
+                  Name(methodName, cls.library.canonicalUri),
+                )
+                as FunctionEntity?;
         Expect.isNotNull(method, "Method '$methodName' not found in $cls.");
       } else {
-        method = elementEnvironment.lookupLibraryMember(
-            elementEnvironment.mainLibrary!, methodName) as FunctionEntity?;
+        method =
+            elementEnvironment.lookupLibraryMember(
+                  elementEnvironment.mainLibrary!,
+                  methodName,
+                )
+                as FunctionEntity?;
         Expect.isNotNull(method, "Method '$methodName' not found.");
       }
       js.Fun fun = backendStrategy.generatedCode[method] as js.Fun;
-      Expect.equals(expectedParameterCount, fun.params.length,
-          "Unexpected parameter count for $method:\n${js.nodeToString(fun)}");
+      Expect.equals(
+        expectedParameterCount,
+        fun.params.length,
+        "Unexpected parameter count for $method:\n${js.nodeToString(fun)}",
+      );
     }
 
     checkMethod('method1', expectedParameterCount: 2);

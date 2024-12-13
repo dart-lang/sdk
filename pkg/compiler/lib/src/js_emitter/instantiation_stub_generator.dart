@@ -29,8 +29,13 @@ class InstantiationStubGenerator {
   // ignore: UNUSED_FIELD
   final SourceInformationStrategy _sourceInformationStrategy;
 
-  InstantiationStubGenerator(this._emitterTask, this._namer, this._closedWorld,
-      this._codegenWorld, this._sourceInformationStrategy);
+  InstantiationStubGenerator(
+    this._emitterTask,
+    this._namer,
+    this._closedWorld,
+    this._codegenWorld,
+    this._sourceInformationStrategy,
+  );
 
   Emitter get _emitter => _emitterTask.emitter;
 
@@ -45,10 +50,11 @@ class InstantiationStubGenerator {
   /// [callSelector] is the selector with no type arguments. [targetSelector] is
   /// the selector accepting the type arguments.
   ParameterStubMethod _generateStub(
-      ClassEntity instantiationClass,
-      FieldEntity functionField,
-      Selector callSelector,
-      Selector targetSelector) {
+    ClassEntity instantiationClass,
+    FieldEntity functionField,
+    Selector callSelector,
+    Selector targetSelector,
+  ) {
     // TODO(sra): Generate source information for stub that has no member.
     //
     //SourceInformationBuilder sourceInformationBuilder =
@@ -79,19 +85,23 @@ class InstantiationStubGenerator {
     }
 
     for (int i = 0; i < targetSelector.typeArgumentCount; i++) {
-      arguments.add(js('this.#.#[#]', [
-        _namer.rtiFieldJsName,
-        _namer.instanceFieldPropertyName(_commonElements.rtiRestField),
-        js.number(i)
-      ]));
+      arguments.add(
+        js('this.#.#[#]', [
+          _namer.rtiFieldJsName,
+          _namer.instanceFieldPropertyName(_commonElements.rtiRestField),
+          js.number(i),
+        ]),
+      );
     }
 
-    js_ast.Fun function = js('function(#) { return this.#.#(#); }', [
-      parameters,
-      _namer.instanceFieldPropertyName(functionField),
-      _namer.invocationName(targetSelector),
-      arguments,
-    ]) as js_ast.Fun;
+    js_ast.Fun function =
+        js('function(#) { return this.#.#(#); }', [
+              parameters,
+              _namer.instanceFieldPropertyName(functionField),
+              _namer.invocationName(targetSelector),
+              arguments,
+            ])
+            as js_ast.Fun;
     // TODO(sra): .withSourceInformation(sourceInformation);
 
     js_ast.Name name = _namer.invocationName(callSelector);
@@ -110,42 +120,54 @@ class InstantiationStubGenerator {
   /// }
   /// ```
   ParameterStubMethod _generateSignatureStub(FieldEntity functionField) {
-    js_ast.Name operatorSignature =
-        _namer.asName(_namer.fixedNames.operatorSignature);
+    js_ast.Name operatorSignature = _namer.asName(
+      _namer.fixedNames.operatorSignature,
+    );
 
     js_ast.Fun function = _generateSignatureNewRti(functionField);
 
     // TODO(sra): Generate source information for stub that has no member.
     // TODO(sra): .withSourceInformation(sourceInformation);
 
-    return ParameterStubMethod(operatorSignature, null, function,
-        element: functionField);
+    return ParameterStubMethod(
+      operatorSignature,
+      null,
+      function,
+      element: functionField,
+    );
   }
 
   js_ast.Fun _generateSignatureNewRti(FieldEntity functionField) =>
       js('function() { return #(#(this.#), this.#); }', [
-        _emitter.staticFunctionAccess(
-            _commonElements.instantiatedGenericFunctionTypeNewRti),
-        _emitter.staticFunctionAccess(_commonElements.closureFunctionType),
-        _namer.instanceFieldPropertyName(functionField),
-        _namer.rtiFieldJsName,
-      ]) as js_ast.Fun;
+            _emitter.staticFunctionAccess(
+              _commonElements.instantiatedGenericFunctionTypeNewRti,
+            ),
+            _emitter.staticFunctionAccess(_commonElements.closureFunctionType),
+            _namer.instanceFieldPropertyName(functionField),
+            _namer.rtiFieldJsName,
+          ])
+          as js_ast.Fun;
 
   // Returns all stubs for an instantiation class.
   //
   List<StubMethod> generateStubs(
-      ClassEntity instantiationClass, FunctionEntity? member) {
+    ClassEntity instantiationClass,
+    FunctionEntity? member,
+  ) {
     // 1. Find the number of type parameters in [instantiationClass].
-    int typeArgumentCount = _closedWorld.dartTypes
-        .getThisType(instantiationClass)
-        .typeArguments
-        .length;
+    int typeArgumentCount =
+        _closedWorld.dartTypes
+            .getThisType(instantiationClass)
+            .typeArguments
+            .length;
     assert(typeArgumentCount > 0);
 
     // 2. Find the function field access path.
     late FieldEntity functionField;
-    _elementEnvironment.forEachInstanceField(instantiationClass,
-        (ClassEntity enclosing, FieldEntity field) {
+    _elementEnvironment.forEachInstanceField(instantiationClass, (
+      ClassEntity enclosing,
+      FieldEntity field,
+    ) {
       if (_closedWorld.fieldAnalysis.getFieldData(field as JField).isElided) {
         return;
       }
@@ -153,8 +175,8 @@ class InstantiationStubGenerator {
     });
 
     String call = _namer.closureInvocationSelectorName;
-    Map<Selector, SelectorConstraints>? callSelectors =
-        _codegenWorld.invocationsByName(call);
+    Map<Selector, SelectorConstraints>? callSelectors = _codegenWorld
+        .invocationsByName(call);
 
     Set<ParameterStructure> computeLiveParameterStructures() {
       Set<ParameterStructure> parameterStructures = {};
@@ -182,15 +204,23 @@ class InstantiationStubGenerator {
       for (Selector selector in callSelectors.keys) {
         CallStructure callStructure = selector.callStructure;
         if (callStructure.typeArgumentCount != 0) continue;
-        CallStructure genericCallStructure =
-            callStructure.withTypeArgumentCount(typeArgumentCount);
+        CallStructure genericCallStructure = callStructure
+            .withTypeArgumentCount(typeArgumentCount);
         parameterStructures ??= computeLiveParameterStructures();
         for (ParameterStructure parameterStructure in parameterStructures) {
           if (genericCallStructure.signatureApplies(parameterStructure)) {
-            Selector genericSelector =
-                Selector.call(selector.memberName, genericCallStructure);
-            stubs.add(_generateStub(
-                instantiationClass, functionField, selector, genericSelector));
+            Selector genericSelector = Selector.call(
+              selector.memberName,
+              genericCallStructure,
+            );
+            stubs.add(
+              _generateStub(
+                instantiationClass,
+                functionField,
+                selector,
+                genericSelector,
+              ),
+            );
             break;
           }
         }

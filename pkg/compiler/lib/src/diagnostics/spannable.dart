@@ -32,6 +32,7 @@ class SpannableAssertionFailure {
   SpannableAssertionFailure(this.node, this.message);
 
   @override
-  String toString() => 'Assertion failure'
+  String toString() =>
+      'Assertion failure'
       '${message != null ? ': $message' : ''}';
 }

@@ -56,29 +56,40 @@ class CallStructure {
 
   const CallStructure._(this.argumentCount, [this.typeArgumentCount = 0]);
 
-  factory CallStructure.unnamed(int argumentCount,
-      [int typeArgumentCount = 0]) {
+  factory CallStructure.unnamed(
+    int argumentCount, [
+    int typeArgumentCount = 0,
+  ]) {
     // This simple canonicalization of common call structures greatly reduces
     // the number of allocations of CallStructure objects.
     if (argumentCount < _common.length) {
       final row = _common[argumentCount];
       if (typeArgumentCount < row.length) {
         final result = row[typeArgumentCount];
-        assert(result.argumentCount == argumentCount &&
-            result.typeArgumentCount == typeArgumentCount);
+        assert(
+          result.argumentCount == argumentCount &&
+              result.typeArgumentCount == typeArgumentCount,
+        );
         return result;
       }
     }
     return CallStructure._(argumentCount, typeArgumentCount);
   }
 
-  factory CallStructure(int argumentCount,
-      [List<String>? namedArguments, int typeArgumentCount = 0]) {
+  factory CallStructure(
+    int argumentCount, [
+    List<String>? namedArguments,
+    int typeArgumentCount = 0,
+  ]) {
     if (namedArguments == null || namedArguments.isEmpty) {
       return CallStructure.unnamed(argumentCount, typeArgumentCount);
     }
     return _NamedCallStructure(
-        argumentCount, namedArguments, typeArgumentCount, null);
+      argumentCount,
+      namedArguments,
+      typeArgumentCount,
+      null,
+    );
   }
 
   /// Deserializes a [CallStructure] object from [source].
@@ -124,9 +135,10 @@ class CallStructure {
   /// The names of the named arguments in canonicalized order.
   List<String> getOrderedNamedArguments() => const [];
 
-  CallStructure get nonGeneric => typeArgumentCount == 0
-      ? this
-      : CallStructure(argumentCount, namedArguments);
+  CallStructure get nonGeneric =>
+      typeArgumentCount == 0
+          ? this
+          : CallStructure(argumentCount, namedArguments);
 
   /// Short textual representation use for testing.
   String get shortText {
@@ -168,9 +180,12 @@ class CallStructure {
   @override
   int get hashCode {
     return Hashing.listHash(
-        namedArguments,
-        Hashing.objectHash(argumentCount,
-            Hashing.objectHash(typeArgumentCount, namedArguments.length)));
+      namedArguments,
+      Hashing.objectHash(
+        argumentCount,
+        Hashing.objectHash(typeArgumentCount, namedArguments.length),
+      ),
+    );
   }
 
   @override
@@ -247,10 +262,13 @@ class _NamedCallStructure extends CallStructure {
   /// The list of ordered named arguments is computed lazily. Initially `null`.
   List<String>? _orderedNamedArguments;
 
-  _NamedCallStructure(int argumentCount, this.namedArguments,
-      int typeArgumentCount, this._orderedNamedArguments)
-      : assert(namedArguments.isNotEmpty),
-        super._(argumentCount, typeArgumentCount);
+  _NamedCallStructure(
+    int argumentCount,
+    this.namedArguments,
+    int typeArgumentCount,
+    this._orderedNamedArguments,
+  ) : assert(namedArguments.isNotEmpty),
+      super._(argumentCount, typeArgumentCount);
 
   @override
   bool get isNamed => true;
@@ -269,10 +287,15 @@ class _NamedCallStructure extends CallStructure {
       identical(namedArguments, getOrderedNamedArguments());
 
   @override
-  CallStructure toNormalized() => isNormalized
-      ? this
-      : _NamedCallStructure(argumentCount, getOrderedNamedArguments(),
-          typeArgumentCount, getOrderedNamedArguments());
+  CallStructure toNormalized() =>
+      isNormalized
+          ? this
+          : _NamedCallStructure(
+            argumentCount,
+            getOrderedNamedArguments(),
+            typeArgumentCount,
+            getOrderedNamedArguments(),
+          );
 
   @override
   List<String> getOrderedNamedArguments() {

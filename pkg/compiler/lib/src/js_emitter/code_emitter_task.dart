@@ -56,7 +56,7 @@ class CodeEmitterTask extends CompilerTask {
   Metrics get metrics => _emitterMetrics ?? Metrics.none();
 
   CodeEmitterTask(this._compiler, this._generateSourceMap)
-      : super(_compiler.measurer);
+    : super(_compiler.measurer);
 
   @override
   String get name => 'Code emitter';
@@ -64,70 +64,83 @@ class CodeEmitterTask extends CompilerTask {
   void _finalizeRti(CodegenInputs codegen, CodegenWorld codegenWorld) {
     // Compute the required type checks to know which classes need a
     // 'is$' method.
-    _rtiChecks = _backendStrategy.rtiChecksBuilder
-        .computeRequiredChecks(codegenWorld, options);
+    _rtiChecks = _backendStrategy.rtiChecksBuilder.computeRequiredChecks(
+      codegenWorld,
+      options,
+    );
   }
 
   /// Creates the [Emitter] for this task.
   void createEmitter(
-      Namer namer, CodegenInputs codegen, JClosedWorld closedWorld) {
+    Namer namer,
+    CodegenInputs codegen,
+    JClosedWorld closedWorld,
+  ) {
     measure(() {
-      nativeEmitter =
-          NativeEmitter(closedWorld, _backendStrategy.nativeCodegenEnqueuer);
+      nativeEmitter = NativeEmitter(
+        closedWorld,
+        _backendStrategy.nativeCodegenEnqueuer,
+      );
       emitter = startup_js_emitter.EmitterImpl(
-          _compiler.options,
-          _compiler.reporter,
-          _compiler.outputProvider,
-          _compiler.dumpInfoRegistry,
-          namer,
-          closedWorld,
-          codegen.rtiRecipeEncoder,
-          nativeEmitter,
-          _backendStrategy.sourceInformationStrategy,
-          this,
-          _generateSourceMap);
+        _compiler.options,
+        _compiler.reporter,
+        _compiler.outputProvider,
+        _compiler.dumpInfoRegistry,
+        namer,
+        closedWorld,
+        codegen.rtiRecipeEncoder,
+        nativeEmitter,
+        _backendStrategy.sourceInformationStrategy,
+        this,
+        _generateSourceMap,
+      );
       metadataCollector = MetadataCollector(
-          _compiler.reporter, emitter, codegen.rtiRecipeEncoder);
+        _compiler.reporter,
+        emitter,
+        codegen.rtiRecipeEncoder,
+      );
     });
   }
 
   int assembleProgram(
-      Namer namer,
-      JClosedWorld closedWorld,
-      InferredData inferredData,
-      CodegenInputs codegenInputs,
-      CodegenWorld codegenWorld) {
+    Namer namer,
+    JClosedWorld closedWorld,
+    InferredData inferredData,
+    CodegenInputs codegenInputs,
+    CodegenWorld codegenWorld,
+  ) {
     return measure(() {
       measureSubtask('finalize rti', () {
         _finalizeRti(codegenInputs, codegenWorld);
       });
       ProgramBuilder programBuilder = ProgramBuilder(
-          _compiler.options,
-          closedWorld.elementEnvironment,
-          closedWorld.commonElements,
-          closedWorld.outputUnitData,
-          codegenWorld,
-          _backendStrategy.nativeCodegenEnqueuer,
-          closedWorld.backendUsage,
-          closedWorld.nativeData,
-          closedWorld.rtiNeed,
-          closedWorld.interceptorData,
-          _rtiChecks,
-          codegenInputs.rtiRecipeEncoder,
-          codegenWorld.oneShotInterceptorData,
-          _backendStrategy.customElementsCodegenAnalysis,
-          _backendStrategy.recordsCodegen,
-          _backendStrategy.generatedCode,
-          namer,
-          this,
-          closedWorld,
-          closedWorld.fieldAnalysis,
-          closedWorld.recordData,
-          inferredData,
-          _backendStrategy.sourceInformationStrategy,
-          closedWorld.sorter,
-          _rtiChecks.requiredClasses,
-          closedWorld.elementEnvironment.mainFunction!);
+        _compiler.options,
+        closedWorld.elementEnvironment,
+        closedWorld.commonElements,
+        closedWorld.outputUnitData,
+        codegenWorld,
+        _backendStrategy.nativeCodegenEnqueuer,
+        closedWorld.backendUsage,
+        closedWorld.nativeData,
+        closedWorld.rtiNeed,
+        closedWorld.interceptorData,
+        _rtiChecks,
+        codegenInputs.rtiRecipeEncoder,
+        codegenWorld.oneShotInterceptorData,
+        _backendStrategy.customElementsCodegenAnalysis,
+        _backendStrategy.recordsCodegen,
+        _backendStrategy.generatedCode,
+        namer,
+        this,
+        closedWorld,
+        closedWorld.fieldAnalysis,
+        closedWorld.recordData,
+        inferredData,
+        _backendStrategy.sourceInformationStrategy,
+        closedWorld.sorter,
+        _rtiChecks.requiredClasses,
+        closedWorld.elementEnvironment.mainFunction!,
+      );
       int size = emitter.emitProgram(programBuilder, codegenWorld);
       neededClasses = programBuilder.collector.neededClasses;
       neededClassTypes = programBuilder.collector.neededClassTypes;

@@ -161,9 +161,10 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
           // We also leave HIf nodes in place when one branch is dead.
           HInstruction condition = current.inputs.first;
           if (condition is HConstant) {
-            successor = condition.constant is TrueConstantValue
-                ? current.thenBlock
-                : current.elseBlock;
+            successor =
+                condition.constant is TrueConstantValue
+                    ? current.thenBlock
+                    : current.elseBlock;
           }
         }
         if (successor != null && successor.id > current.block!.id) {
@@ -223,9 +224,10 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
   // ToPrimitive conversions of an object occur when the other operand is a
   // primitive (Number, String, Symbol and, indirectly, Boolean). We use
   // 'intercepted' types as a proxy for all the primitive types.
-  bool _intercepted(AbstractValue type) => _abstractValueDomain
-      .isInterceptor(_abstractValueDomain.excludeNull(type))
-      .isPotentiallyTrue;
+  bool _intercepted(AbstractValue type) =>
+      _abstractValueDomain
+          .isInterceptor(_abstractValueDomain.excludeNull(type))
+          .isPotentiallyTrue;
 
   @override
   HBinaryBitOp visitBinaryBitOp(HBinaryBitOp node) {
@@ -275,14 +277,17 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
     }
 
     // For instructions other than constants the width is cached.
-    return (_bitWidthCache ??= {})[instruction] ??=
-        _computeBitWidth(instruction);
+    return (_bitWidthCache ??= {})[instruction] ??= _computeBitWidth(
+      instruction,
+    );
   }
 
   int _computeBitWidth(HInstruction instruction) {
     if (instruction is HBitAnd) {
       return math.min(
-          _bitWidth(instruction.left), _bitWidth(instruction.right));
+        _bitWidth(instruction.left),
+        _bitWidth(instruction.right),
+      );
     }
     if (instruction is HBitOr) {
       int leftWidth = _bitWidth(instruction.left);
@@ -312,10 +317,9 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
     }
     if (instruction is HAdd) {
       return math.min(
-          1 +
-              math.max(
-                  _bitWidth(instruction.left), _bitWidth(instruction.right)),
-          _max);
+        1 + math.max(_bitWidth(instruction.left), _bitWidth(instruction.right)),
+        _max,
+      );
     }
     if (instruction.isUInt31(_abstractValueDomain).isDefinitelyTrue) return 31;
     return _max;
@@ -384,24 +388,41 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
       return null;
     }
 
-    HInstruction? plusOrMinus(String assignOp, String incrementOp,
-        HInstruction left, HInstruction right) {
+    HInstruction? plusOrMinus(
+      String assignOp,
+      String incrementOp,
+      HInstruction left,
+      HInstruction right,
+    ) {
       if (isMatchingRead(left)) {
         if (left.usedBy.length == 1) {
           if (right is HConstant && right.constant.isOne) {
             HInstruction rmw = HReadModifyWrite.preOp(
-                node.element, incrementOp, receiver, op.instructionType);
+              node.element,
+              incrementOp,
+              receiver,
+              op.instructionType,
+            );
             return replaceOp(rmw, left);
           } else {
             HInstruction rmw = HReadModifyWrite.assignOp(
-                node.element, assignOp, receiver, right, op.instructionType);
+              node.element,
+              assignOp,
+              receiver,
+              right,
+              op.instructionType,
+            );
             return replaceOp(rmw, left);
           }
         } else if (op.usedBy.length == 1 &&
             right is HConstant &&
             right.constant.isOne) {
           HInstruction rmw = HReadModifyWrite.postOp(
-              node.element, incrementOp, receiver, op.instructionType);
+            node.element,
+            incrementOp,
+            receiver,
+            op.instructionType,
+          );
           block.addAfter(left, rmw);
           block.remove(node);
           block.remove(op);
@@ -414,11 +435,19 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
     }
 
     HInstruction? simple(
-        String assignOp, HInstruction left, HInstruction right) {
+      String assignOp,
+      HInstruction left,
+      HInstruction right,
+    ) {
       if (isMatchingRead(left)) {
         if (left.usedBy.length == 1) {
           HInstruction rmw = HReadModifyWrite.assignOp(
-              node.element, assignOp, receiver, right, op.instructionType);
+            node.element,
+            assignOp,
+            receiver,
+            right,
+            op.instructionType,
+          );
           return replaceOp(rmw, left);
         }
       }
@@ -677,7 +706,7 @@ class SsaAssignmentChaining extends HBaseVisitor<HInstruction?>
     // the number of references to [value].
     HInstruction chain = setter;
     setter.instructionType = value.instructionType;
-    for (HInstruction? current = setter.next;;) {
+    for (HInstruction? current = setter.next; ;) {
       if (current is HFieldSet) {
         HFieldSet nextSetter = current;
         if (nextSetter.value == value && nextSetter.receiver != value) {
@@ -1102,9 +1131,11 @@ class SsaInstructionMerger extends HBaseVisitor<void> implements CodegenPhase {
     }
 
     block.last!.accept(this);
-    for (HInstruction? instruction = block.last!.previous;
-        instruction != null;
-        instruction = instruction.previous) {
+    for (
+      HInstruction? instruction = block.last!.previous;
+      instruction != null;
+      instruction = instruction.previous
+    ) {
       if (generateAtUseSite.contains(instruction)) {
         continue;
       }
@@ -1170,7 +1201,10 @@ class SsaInstructionMerger extends HBaseVisitor<void> implements CodegenPhase {
             List<HInstruction> newInputs = expectedInputs.sublist(oldLength);
             int newCount = newInputs.length;
             expectedInputs.setRange(
-                newCount, newCount + oldLength, expectedInputs);
+              newCount,
+              newCount + oldLength,
+              expectedInputs,
+            );
             expectedInputs.setRange(0, newCount, newInputs);
           }
         }
@@ -1241,9 +1275,11 @@ class SsaConditionMerger extends HGraphVisitor implements CodegenPhase {
     // statement for it.
     // TODO(ngeoffray): we could generate a comma separated
     // list of expressions.
-    for (HInstruction? temp = block.first;
-        !identical(temp, instruction);
-        temp = temp!.next) {
+    for (
+      HInstruction? temp = block.first;
+      !identical(temp, instruction);
+      temp = temp!.next
+    ) {
       if (!generateAtUseSite.contains(temp)) return true;
     }
 
@@ -1579,13 +1615,18 @@ class SsaShareRegionConstants extends HBaseVisitor<void>
   // Not all occurrences should be replaced with a local variable cache, so we
   // filter the uses.
   int _countCacheableUses(
-      HInstruction node, bool Function(HInstruction) cacheable) {
+    HInstruction node,
+    bool Function(HInstruction) cacheable,
+  ) {
     return node.usedBy.where(cacheable).length;
   }
 
   // Replace cacheable uses with a reference to a HLateValue node.
   void _cache(
-      HInstruction node, bool Function(HInstruction) cacheable, String name) {
+    HInstruction node,
+    bool Function(HInstruction) cacheable,
+    String name,
+  ) {
     var users = node.usedBy.toList();
     var reference = HLateValue(node);
     // TODO(sra): The sourceInformation should really be from the function

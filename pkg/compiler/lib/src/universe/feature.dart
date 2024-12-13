@@ -228,7 +228,8 @@ class RuntimeTypeUse {
   }
 
   @override
-  String toString() => 'RuntimeTypeUse(kind=$kind,receiver=$receiverType'
+  String toString() =>
+      'RuntimeTypeUse(kind=$kind,receiver=$receiverType'
       ',argument=$argumentType)';
 }
 
@@ -274,9 +275,10 @@ class GenericInstantiation {
     if (functionType == other.functionType &&
         equalElements(typeArguments, other.typeArguments)) {
       assert(
-          hashCode == other.hashCode,
-          '\nthis:  $hashCode  $this'
-          '\nthis:  ${other.hashCode}  $other');
+        hashCode == other.hashCode,
+        '\nthis:  $hashCode  $this'
+        '\nthis:  ${other.hashCode}  $other',
+      );
       return true;
     } else {
       return false;

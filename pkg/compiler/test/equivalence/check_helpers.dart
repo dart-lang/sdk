@@ -20,9 +20,15 @@ class Check {
   final Object? value2;
   final Function? toStringFunc;
 
-  Check(this.parent, this.object1, this.object2, this.property, this.value1,
-      this.value2,
-      [this.toStringFunc]);
+  Check(
+    this.parent,
+    this.object1,
+    this.object2,
+    this.property,
+    this.value1,
+    this.value2, [
+    this.toStringFunc,
+  ]);
 
   String printOn(StringBuffer sb, String indent) {
     if (parent != null) {
@@ -66,10 +72,24 @@ bool equality(a, b) => a == b;
 
 /// Check that the values [property] of [object1] and [object2], [value1] and
 /// [value2] respectively, are equal and throw otherwise.
-bool check<T>(var object1, var object2, String property, T value1, T value2,
-    [bool equivalence(T a, T b) = equality, String toString(T a)?]) {
-  currentCheck =
-      Check(currentCheck, object1, object2, property, value1, value2, toString);
+bool check<T>(
+  var object1,
+  var object2,
+  String property,
+  T value1,
+  T value2, [
+  bool equivalence(T a, T b) = equality,
+  String toString(T a)?,
+]) {
+  currentCheck = Check(
+    currentCheck,
+    object1,
+    object2,
+    property,
+    value1,
+    value2,
+    toString,
+  );
   if (!equivalence(value1, value2)) {
     throw currentCheck!;
   }
@@ -82,16 +102,22 @@ bool check<T>(var object1, var object2, String property, T value1, T value2,
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
 bool checkListEquivalence<T>(
-    Object object1,
-    Object object2,
-    String property,
-    Iterable<T> list1,
-    Iterable<T> list2,
-    void checkEquivalence(Object o1, Object o2, String property, T a, T b)) {
+  Object object1,
+  Object object2,
+  String property,
+  Iterable<T> list1,
+  Iterable<T> list2,
+  void checkEquivalence(Object o1, Object o2, String property, T a, T b),
+) {
   currentCheck = Check(currentCheck, object1, object2, property, list1, list2);
   for (int i = 0; i < list1.length && i < list2.length; i++) {
     checkEquivalence(
-        object1, object2, property, list1.elementAt(i), list2.elementAt(i));
+      object1,
+      object2,
+      property,
+      list1.elementAt(i),
+      list2.elementAt(i),
+    );
   }
   if (list1.length < list2.length) {
     throw 'Missing equivalent for element '
@@ -118,8 +144,13 @@ bool checkListEquivalence<T>(
 /// but not in [set2] are added to [unfound], and the set of elements in [set2]
 /// but not in [set1] are returned.
 Set<E> computeSetDifference<E>(
-    Iterable<E> set1, Iterable<E> set2, List<List<E>> common, List<E> unfound,
-    {bool sameElement(E a, E b) = equality, void checkElements(E a, E b)?}) {
+  Iterable<E> set1,
+  Iterable<E> set2,
+  List<List<E>> common,
+  List<E> unfound, {
+  bool sameElement(E a, E b) = equality,
+  void checkElements(E a, E b)?,
+}) {
   // TODO(johnniwinther): Avoid the quadratic cost here. Some ideas:
   // - convert each set to a list and sort it first, then compare by walking
   // both lists in parallel
@@ -154,15 +185,28 @@ Set<E> computeSetDifference<E>(
 /// [elementEquivalence] to compute the pair-wise equivalence.
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkSetEquivalence<E>(var object1, var object2, String property,
-    Iterable<E> set1, Iterable<E> set2, bool sameElement(E a, E b),
-    {void onSameElement(E a, E b)?}) {
+bool checkSetEquivalence<E>(
+  var object1,
+  var object2,
+  String property,
+  Iterable<E> set1,
+  Iterable<E> set2,
+  bool sameElement(E a, E b), {
+  void onSameElement(E a, E b)?,
+}) {
   var common = <List<E>>[];
   var unfound = <E>[];
-  Set<E> remaining = computeSetDifference(set1, set2, common, unfound,
-      sameElement: sameElement, checkElements: onSameElement);
+  Set<E> remaining = computeSetDifference(
+    set1,
+    set2,
+    common,
+    unfound,
+    sameElement: sameElement,
+    checkElements: onSameElement,
+  );
   if (unfound.isNotEmpty || remaining.isNotEmpty) {
-    String message = "Set mismatch for `$property` on\n"
+    String message =
+        "Set mismatch for `$property` on\n"
         "$object1\n vs\n$object2:\n"
         "Common:\n ${common.join('\n ')}\n"
         "Unfound:\n ${unfound.join('\n ')}\n"
@@ -177,18 +221,24 @@ bool checkSetEquivalence<E>(var object1, var object2, String property,
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
 bool checkMapEquivalence<K, V>(
-    var object1,
-    var object2,
-    String property,
-    Map<K, V> map1,
-    Map<K, V> map2,
-    bool sameKey(K a, K b),
-    bool sameValue(V? a, V? b),
-    {bool allowExtra = false}) {
+  var object1,
+  var object2,
+  String property,
+  Map<K, V> map1,
+  Map<K, V> map2,
+  bool sameKey(K a, K b),
+  bool sameValue(V? a, V? b), {
+  bool allowExtra = false,
+}) {
   var common = <List<K>>[];
   var unfound = <K>[];
-  var extra = computeSetDifference(map1.keys, map2.keys, common, unfound,
-      sameElement: sameKey);
+  var extra = computeSetDifference(
+    map1.keys,
+    map2.keys,
+    common,
+    unfound,
+    sameElement: sameKey,
+  );
   if (unfound.isNotEmpty || (!allowExtra && extra.isNotEmpty)) {
     String message =
         "Map key mismatch for `$property` on $object1 vs $object2: \n"
@@ -198,20 +248,30 @@ bool checkMapEquivalence<K, V>(
     throw message;
   }
   for (List pair in common) {
-    check(pair[0], pair[1], 'Map value for `$property`', map1[pair[0]],
-        map2[pair[1]], sameValue);
+    check(
+      pair[0],
+      pair[1],
+      'Map value for `$property`',
+      map1[pair[0]],
+      map2[pair[1]],
+      sameValue,
+    );
   }
   return true;
 }
 
-void checkLists<T>(List<T> list1, List<T> list2, String messagePrefix,
-    bool sameElement(T a, T b),
-    {bool verbose = false,
-    void onSameElement(T a, T b)?,
-    void onDifferentElements(T a, T b)?,
-    void onUnfoundElement(T a)?,
-    void onExtraElement(T b)?,
-    String elementToString(key) = defaultToString}) {
+void checkLists<T>(
+  List<T> list1,
+  List<T> list2,
+  String messagePrefix,
+  bool sameElement(T a, T b), {
+  bool verbose = false,
+  void onSameElement(T a, T b)?,
+  void onDifferentElements(T a, T b)?,
+  void onUnfoundElement(T a)?,
+  void onExtraElement(T b)?,
+  String elementToString(key) = defaultToString,
+}) {
   List<List> common = <List>[];
   List mismatch = [];
   List unfound = [];
@@ -255,13 +315,17 @@ void checkLists<T>(List<T> list1, List<T> list2, String messagePrefix,
     for (List pair in common) {
       var element1 = pair[0];
       var element2 = pair[1];
-      sb.write("  [${elementToString(element1)},"
-          "${elementToString(element2)}]\n");
+      sb.write(
+        "  [${elementToString(element1)},"
+        "${elementToString(element2)}]\n",
+      );
     }
   }
   if (mismatch.isNotEmpty) {
-    sb.write("\n Mismatch @ $index:\n  "
-        "${mismatch.map(elementToString).join('\n  ')}");
+    sb.write(
+      "\n Mismatch @ $index:\n  "
+      "${mismatch.map(elementToString).join('\n  ')}",
+    );
   }
 
   if (unfound.isNotEmpty || verbose) {
@@ -278,17 +342,21 @@ void checkLists<T>(List<T> list1, List<T> list2, String messagePrefix,
   }
 }
 
-void checkSets<E>(Iterable<E> set1, Iterable<E> set2, String messagePrefix,
-    bool sameElement(E a, E b),
-    {bool failOnUnfound = true,
-    bool failOnExtra = true,
-    bool verbose = false,
-    void onSameElement(E a, E b)?,
-    void onUnfoundElement(E a)?,
-    void onExtraElement(E b)?,
-    bool elementFilter(E element)?,
-    E elementConverter(E element)?,
-    String elementToString(E key) = defaultToString}) {
+void checkSets<E>(
+  Iterable<E> set1,
+  Iterable<E> set2,
+  String messagePrefix,
+  bool sameElement(E a, E b), {
+  bool failOnUnfound = true,
+  bool failOnExtra = true,
+  bool verbose = false,
+  void onSameElement(E a, E b)?,
+  void onUnfoundElement(E a)?,
+  void onExtraElement(E b)?,
+  bool elementFilter(E element)?,
+  E elementConverter(E element)?,
+  String elementToString(E key) = defaultToString,
+}) {
   if (elementFilter != null) {
     set1 = set1.where(elementFilter);
     set2 = set2.where(elementFilter);
@@ -299,8 +367,14 @@ void checkSets<E>(Iterable<E> set1, Iterable<E> set2, String messagePrefix,
   }
   var common = <List<E>>[];
   var unfound = <E>[];
-  var remaining = computeSetDifference(set1, set2, common, unfound,
-      sameElement: sameElement, checkElements: onSameElement);
+  var remaining = computeSetDifference(
+    set1,
+    set2,
+    common,
+    unfound,
+    sameElement: sameElement,
+    checkElements: onSameElement,
+  );
   if (onUnfoundElement != null) {
     unfound.forEach(onUnfoundElement);
   }
@@ -314,8 +388,10 @@ void checkSets<E>(Iterable<E> set1, Iterable<E> set2, String messagePrefix,
     for (List pair in common) {
       var element1 = pair[0];
       var element2 = pair[1];
-      sb.write("  [${elementToString(element1)},"
-          "${elementToString(element2)}]\n");
+      sb.write(
+        "  [${elementToString(element1)},"
+        "${elementToString(element2)}]\n",
+      );
     }
   }
   if (unfound.isNotEmpty || verbose) {
@@ -339,14 +415,19 @@ void checkSets<E>(Iterable<E> set1, Iterable<E> set2, String messagePrefix,
 
 String defaultToString(obj) => '$obj';
 
-void checkMaps<K, V>(Map<K, V> map1, Map<K, V> map2, String messagePrefix,
-    bool sameKey(K a, K b), bool sameValue(V? a, V? b),
-    {bool failOnUnfound = true,
-    bool failOnMismatch = true,
-    bool keyFilter(K key)?,
-    bool verbose = false,
-    String keyToString(K key) = defaultToString,
-    String valueToString(V key) = defaultToString}) {
+void checkMaps<K, V>(
+  Map<K, V> map1,
+  Map<K, V> map2,
+  String messagePrefix,
+  bool sameKey(K a, K b),
+  bool sameValue(V? a, V? b), {
+  bool failOnUnfound = true,
+  bool failOnMismatch = true,
+  bool keyFilter(K key)?,
+  bool verbose = false,
+  String keyToString(K key) = defaultToString,
+  String valueToString(V key) = defaultToString,
+}) {
   var common = <List<K>>[];
   var unfound = <K>[];
   var mismatch = <List<K>>[];
@@ -357,14 +438,20 @@ void checkMaps<K, V>(Map<K, V> map1, Map<K, V> map2, String messagePrefix,
     keys1 = keys1.where(keyFilter);
     keys2 = keys2.where(keyFilter);
   }
-  var remaining = computeSetDifference(keys1, keys2, common, unfound,
-      sameElement: sameKey, checkElements: (K k1, K k2) {
-    var v1 = map1[k1];
-    var v2 = map2[k2];
-    if (!sameValue(v1, v2)) {
-      mismatch.add([k1, k2]);
-    }
-  });
+  var remaining = computeSetDifference(
+    keys1,
+    keys2,
+    common,
+    unfound,
+    sameElement: sameKey,
+    checkElements: (K k1, K k2) {
+      var v1 = map1[k1];
+      var v2 = map2[k2];
+      if (!sameValue(v1, v2)) {
+        mismatch.add([k1, k2]);
+      }
+    },
+  );
   StringBuffer sb = StringBuffer();
   sb.write("$messagePrefix:");
   if (verbose) {

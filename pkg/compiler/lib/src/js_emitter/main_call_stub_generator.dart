@@ -16,14 +16,15 @@ import 'js_emitter.dart' show Emitter;
 
 class MainCallStubGenerator {
   static js_ast.Statement generateInvokeMain(
-      CommonElements commonElements,
-      Emitter emitter,
-      FunctionEntity main,
-      bool requiresStartupMetrics,
-      CompilerOptions options) {
+    CommonElements commonElements,
+    Emitter emitter,
+    FunctionEntity main,
+    bool requiresStartupMetrics,
+    CompilerOptions options,
+  ) {
     js_ast.Expression mainAccess = emitter.staticFunctionAccess(main);
-    js_ast.Expression currentScriptAccess =
-        emitter.generateEmbeddedGlobalAccess(embedded_names.CURRENT_SCRIPT);
+    js_ast.Expression currentScriptAccess = emitter
+        .generateEmbeddedGlobalAccess(embedded_names.CURRENT_SCRIPT);
 
     // TODO(https://github.com/dart-lang/language/issues/1120#issuecomment-670802088):
     // Validate constraints on `main()` in resolution for dart2js, and in DDC.
@@ -48,8 +49,9 @@ class MainCallStubGenerator {
         mainCallClosure = js(r'''function() { return #(); }''', mainAccess);
       }
     } else {
-      js_ast.Expression convertArgumentList =
-          emitter.staticFunctionAccess(commonElements.convertMainArgumentList);
+      js_ast.Expression convertArgumentList = emitter.staticFunctionAccess(
+        commonElements.convertMainArgumentList,
+      );
       if (positionalParameters == 1) {
         // e.g. `void main(List<String> args)`,  `main([args])`.
         mainCallClosure = js(
@@ -70,7 +72,8 @@ class MainCallStubGenerator {
     // onload event of all script tags and getting the first script which
     // finishes. Since onload is called immediately after execution this should
     // not substantially change execution order.
-    return js.statement('''
+    return js.statement(
+      '''
       (function (callback) {
         if (typeof document === "undefined") {
           callback(null);
@@ -109,14 +112,16 @@ class MainCallStubGenerator {
         } else {
           callMain([]);
         }
-      })''', {
-      'currentScript': currentScriptAccess,
-      'mainCallClosure': mainCallClosure,
-      'isCollectingRuntimeMetrics': options.experimentalTrackAllocations,
-      'runtimeMetricsContainer': embedded_names.RUNTIME_METRICS_CONTAINER,
-      'runtimeMetricsEmbeddedGlobal': embedded_names.RUNTIME_METRICS,
-      'startupMetrics': requiresStartupMetrics,
-      'startupMetricsEmbeddedGlobal': embedded_names.STARTUP_METRICS,
-    });
+      })''',
+      {
+        'currentScript': currentScriptAccess,
+        'mainCallClosure': mainCallClosure,
+        'isCollectingRuntimeMetrics': options.experimentalTrackAllocations,
+        'runtimeMetricsContainer': embedded_names.RUNTIME_METRICS_CONTAINER,
+        'runtimeMetricsEmbeddedGlobal': embedded_names.RUNTIME_METRICS,
+        'startupMetrics': requiresStartupMetrics,
+        'startupMetricsEmbeddedGlobal': embedded_names.STARTUP_METRICS,
+      },
+    );
   }
 }

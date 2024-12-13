@@ -8,11 +8,12 @@ void main() {
 testList() {
   dynamic list = [];
   final rec = (list, 3);
-  final myList = rec
-      . /*[Record(RecordShape(2), [Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null), [exact=JSUInt31]])]*/ $1;
+  final myList =
+      rec. /*[Record(RecordShape(2), [Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null), [exact=JSUInt31]])]*/ $1;
   myList
       . /*invoke: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/ add(
-          1);
+        1,
+      );
   return list;
 }
 

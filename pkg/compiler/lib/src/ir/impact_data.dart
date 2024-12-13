@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore: implementation_imports
-import 'package:front_end/src/api_prototype/static_weak_references.dart' as ir
+import 'package:front_end/src/api_prototype/static_weak_references.dart'
+    as ir
     show StaticWeakReferences;
 // ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' show Operator;
@@ -29,7 +30,9 @@ import 'util.dart';
 /// Checks [node] against available [ConditionalImpactHandler] to see if any
 /// are applicable to it. Returns null if there is no matching handler.
 ConditionalImpactHandler? _getConditionalImpactHandler(
-    KernelToElementMap elementMap, ir.Member node) {
+  KernelToElementMap elementMap,
+  ir.Member node,
+) {
   return ProtobufImpactHandler.createIfApplicable(elementMap, node);
 }
 
@@ -49,8 +52,10 @@ class _ConditionalImpactBuilder extends ImpactBuilder {
   final ConditionalImpactHandler _conditionalHandler;
 
   _ConditionalImpactBuilder._(
-      super.elementMap, super.node, this._conditionalHandler)
-      : super._();
+    super.elementMap,
+    super.node,
+    this._conditionalHandler,
+  ) : super._();
 
   @override
   void visitInstanceInvocation(ir.InstanceInvocation node) {
@@ -91,8 +96,10 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   }
 
   ImpactBuilder._(this._elementMap, this.node)
-      : staticTypeContext =
-            ir.StaticTypeContext(node, _elementMap.typeEnvironment);
+    : staticTypeContext = ir.StaticTypeContext(
+        node,
+        _elementMap.typeEnvironment,
+      );
 
   CommonElements get _commonElements => _elementMap.commonElements;
   DiagnosticReporter get _reporter => _elementMap.reporter;
@@ -114,13 +121,17 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
 
   @override
   void visitBlock(ir.Block node) {
-    assert(_pendingRuntimeTypeUseData.isEmpty,
-        "Incomplete RuntimeTypeUseData: $_pendingRuntimeTypeUseData");
+    assert(
+      _pendingRuntimeTypeUseData.isEmpty,
+      "Incomplete RuntimeTypeUseData: $_pendingRuntimeTypeUseData",
+    );
     for (var e in node.statements) {
       e.accept(this);
     }
-    assert(_pendingRuntimeTypeUseData.isEmpty,
-        "Incomplete RuntimeTypeUseData: $_pendingRuntimeTypeUseData");
+    assert(
+      _pendingRuntimeTypeUseData.isEmpty,
+      "Incomplete RuntimeTypeUseData: $_pendingRuntimeTypeUseData",
+    );
   }
 
   @override
@@ -155,8 +166,11 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
 
   @override
   void visitListLiteral(ir.ListLiteral node) {
-    registerListLiteral(node.typeArgument,
-        isConst: node.isConst, isEmpty: node.expressions.isEmpty);
+    registerListLiteral(
+      node.typeArgument,
+      isConst: node.isConst,
+      isEmpty: node.expressions.isEmpty,
+    );
     for (var e in node.expressions) {
       e.accept(this);
     }
@@ -164,8 +178,11 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
 
   @override
   void visitSetLiteral(ir.SetLiteral node) {
-    registerSetLiteral(node.typeArgument,
-        isConst: node.isConst, isEmpty: node.expressions.isEmpty);
+    registerSetLiteral(
+      node.typeArgument,
+      isConst: node.isConst,
+      isEmpty: node.expressions.isEmpty,
+    );
     for (var e in node.expressions) {
       e.accept(this);
     }
@@ -173,8 +190,12 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
 
   @override
   void visitMapLiteral(ir.MapLiteral node) {
-    registerMapLiteral(node.keyType, node.valueType,
-        isConst: node.isConst, isEmpty: node.entries.isEmpty);
+    registerMapLiteral(
+      node.keyType,
+      node.valueType,
+      isConst: node.isConst,
+      isEmpty: node.entries.isEmpty,
+    );
     for (var e in node.entries) {
       e.accept(this);
     }
@@ -217,8 +238,9 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   @override
   void visitInstantiation(ir.Instantiation node) {
     registerGenericInstantiation(
-        node.expression.getStaticType(staticTypeContext) as ir.FunctionType,
-        node.typeArguments);
+      node.expression.getStaticType(staticTypeContext) as ir.FunctionType,
+      node.typeArguments,
+    );
     node.expression.accept(this);
   }
 
@@ -281,7 +303,10 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   void visitAsExpression(ir.AsExpression node) {
     final operandType = node.operand.getStaticType(staticTypeContext);
     final isCalculatedTypeSubtype = typeEnvironment.isSubtypeOf(
-        operandType, node.type, ir.SubtypeCheckMode.withNullabilities);
+      operandType,
+      node.type,
+      ir.SubtypeCheckMode.withNullabilities,
+    );
     if (!isCalculatedTypeSubtype) {
       // Only register needed cast.
       if (node.isTypeError) {
@@ -319,31 +344,36 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
     ir.InterfaceType? iterableInterfaceType = getInterfaceTypeOf(iterableType);
     if (iterableInterfaceType != null) {
       if (node.isAsync) {
-        List<ir.DartType>? typeArguments =
-            typeEnvironment.getTypeArgumentsAsInstanceOf(
-                iterableInterfaceType, typeEnvironment.coreTypes.streamClass);
+        List<ir.DartType>? typeArguments = typeEnvironment
+            .getTypeArgumentsAsInstanceOf(
+              iterableInterfaceType,
+              typeEnvironment.coreTypes.streamClass,
+            );
         if (typeArguments != null) {
           iteratorType = ir.InterfaceType(
-              typeEnvironment.coreTypes.streamIteratorClass,
-              ir.Nullability.nonNullable,
-              typeArguments);
+            typeEnvironment.coreTypes.streamIteratorClass,
+            ir.Nullability.nonNullable,
+            typeArguments,
+          );
         }
       } else {
         ir.Member? member = classHierarchy.getInterfaceMember(
-            iterableInterfaceType.classNode, ir.Name(Identifiers.iterator));
+          iterableInterfaceType.classNode,
+          ir.Name(Identifiers.iterator),
+        );
         if (member != null) {
           iteratorType = ir.Substitution.fromTypeDeclarationType(
-                  typeEnvironment.getTypeAsInstanceOf(iterableInterfaceType,
-                      member.enclosingClass!, typeEnvironment.coreTypes)!)
-              .substituteType(member.getterType);
+            typeEnvironment.getTypeAsInstanceOf(
+              iterableInterfaceType,
+              member.enclosingClass!,
+              typeEnvironment.coreTypes,
+            )!,
+          ).substituteType(member.getterType);
         }
       }
     }
     if (node.isAsync) {
-      registerAsyncForIn(
-        iterableType,
-        iteratorType,
-      );
+      registerAsyncForIn(iterableType, iteratorType);
     } else {
       registerSyncForIn(iterableType, iteratorType);
     }
@@ -383,10 +413,11 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   @override
   void visitRedirectingInitializer(ir.RedirectingInitializer node) {
     registerRedirectingInitializer(
-        node.target,
-        node.arguments.positional.length,
-        _getNamedArguments(node.arguments),
-        node.arguments.types);
+      node.target,
+      node.arguments.positional.length,
+      _getNamedArguments(node.arguments),
+      node.arguments.types,
+    );
     node.arguments.accept(this);
   }
 
@@ -451,12 +482,16 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
     ConstructorEntity constructor = _elementMap.getConstructor(node.target);
     if (_commonElements.isSymbolConstructor(constructor)) {
       DartType argumentType = _elementMap.getDartType(
-          node.arguments.positional.first.getStaticType(staticTypeContext));
+        node.arguments.positional.first.getStaticType(staticTypeContext),
+      );
       // TODO(joshualitt): Does the CFE check this for us?
       if (argumentType != _commonElements.stringType) {
         // TODO(het): Get the actual span for the Symbol constructor argument
-        _reporter.reportErrorMessage(currentElementSpannable,
-            MessageKind.stringExpected, {'type': _typeToString(argumentType)});
+        _reporter.reportErrorMessage(
+          currentElementSpannable,
+          MessageKind.stringExpected,
+          {'type': _typeToString(argumentType)},
+        );
         return;
       }
       registerConstSymbolConstructorInvocationNode();
@@ -466,13 +501,14 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   @override
   void visitConstructorInvocation(ir.ConstructorInvocation node) {
     registerNew(
-        node.target,
-        node.constructedType,
-        node.arguments.positional.length,
-        _getNamedArguments(node.arguments),
-        node.arguments.types,
-        getDeferredImport(node),
-        isConst: node.isConst);
+      node.target,
+      node.constructedType,
+      node.arguments.positional.length,
+      _getNamedArguments(node.arguments),
+      node.arguments.types,
+      getDeferredImport(node),
+      isConst: node.isConst,
+    );
     if (node.isConst) {
       _handleConstConstructorInvocation(node);
     }
@@ -483,9 +519,11 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   void visitStaticInvocation(ir.StaticInvocation node) {
     if (ir.StaticWeakReferences.isWeakReference(node)) {
       registerWeakStaticTearOff(
-          ir.StaticWeakReferences.getWeakReferenceTarget(node),
-          getDeferredImport(
-              ir.StaticWeakReferences.getWeakReferenceArgument(node)));
+        ir.StaticWeakReferences.getWeakReferenceTarget(node),
+        getDeferredImport(
+          ir.StaticWeakReferences.getWeakReferenceArgument(node),
+        ),
+      );
       // We don't explicitly visit the argument for weak references.
     } else {
       int positionArguments = node.arguments.positional.length;
@@ -515,17 +553,26 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
         // A<String> as instantiated. We should instead register that A.T is
         // instantiated as int and String.
         registerNew(
-            node.target,
-            ir.InterfaceType(node.target.enclosingClass!,
-                node.target.enclosingLibrary.nonNullable, typeArguments),
-            positionArguments,
-            namedArguments,
-            node.arguments.types,
-            getDeferredImport(node),
-            isConst: node.isConst);
+          node.target,
+          ir.InterfaceType(
+            node.target.enclosingClass!,
+            node.target.enclosingLibrary.nonNullable,
+            typeArguments,
+          ),
+          positionArguments,
+          namedArguments,
+          node.arguments.types,
+          getDeferredImport(node),
+          isConst: node.isConst,
+        );
       } else {
-        registerStaticInvocation(node.target, positionArguments, namedArguments,
-            typeArguments, getDeferredImport(node));
+        registerStaticInvocation(
+          node.target,
+          positionArguments,
+          namedArguments,
+          typeArguments,
+          getDeferredImport(node),
+        );
       }
       // TODO(sigmund): consider using `_elementMap.getForeignKind` here. We
       // currently don't use it because when this step is run modularly we try
@@ -547,13 +594,22 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
     List<String> namedArguments = _getNamedArguments(node.arguments);
     List<ir.DartType> typeArguments = node.arguments.types;
     final receiverType = node.receiver.getStaticType(staticTypeContext);
-    registerDynamicInvocation(receiverType, node.name, positionArguments,
-        namedArguments, typeArguments);
+    registerDynamicInvocation(
+      receiverType,
+      node.name,
+      positionArguments,
+      namedArguments,
+      typeArguments,
+    );
     if (Operator.fromText(node.name.text) == null &&
         receiverType is ir.DynamicType) {
       // We might implicitly call a getter that returns a function.
-      registerFunctionInvocation(const ir.DynamicType(), positionArguments,
-          namedArguments, typeArguments);
+      registerFunctionInvocation(
+        const ir.DynamicType(),
+        positionArguments,
+        namedArguments,
+        typeArguments,
+      );
     }
     node.arguments.accept(this);
     node.receiver.accept(this);
@@ -566,7 +622,11 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
     List<ir.DartType> typeArguments = node.arguments.types;
     final receiverType = node.receiver.getStaticType(staticTypeContext);
     registerFunctionInvocation(
-        receiverType, positionArguments, namedArguments, typeArguments);
+      receiverType,
+      positionArguments,
+      namedArguments,
+      typeArguments,
+    );
     node.arguments.accept(this);
     node.receiver.accept(this);
   }
@@ -580,13 +640,27 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
     final interfaceTarget = node.interfaceTarget;
 
     if (interfaceTarget.kind == ir.ProcedureKind.Getter) {
-      registerInstanceInvocation(receiverType, interfaceTarget,
-          positionArguments, namedArguments, typeArguments);
-      registerFunctionInvocation(interfaceTarget.getterType, positionArguments,
-          namedArguments, typeArguments);
+      registerInstanceInvocation(
+        receiverType,
+        interfaceTarget,
+        positionArguments,
+        namedArguments,
+        typeArguments,
+      );
+      registerFunctionInvocation(
+        interfaceTarget.getterType,
+        positionArguments,
+        namedArguments,
+        typeArguments,
+      );
     } else {
-      registerInstanceInvocation(receiverType, interfaceTarget,
-          positionArguments, namedArguments, typeArguments);
+      registerInstanceInvocation(
+        receiverType,
+        interfaceTarget,
+        positionArguments,
+        namedArguments,
+        typeArguments,
+      );
     }
     node.arguments.accept(this);
     node.receiver.accept(this);
@@ -598,15 +672,24 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
     List<String> namedArguments = _getNamedArguments(node.arguments);
     List<ir.DartType> typeArguments = node.arguments.types;
     registerLocalFunctionInvocation(
-        node.localFunction, positionArguments, namedArguments, typeArguments);
+      node.localFunction,
+      positionArguments,
+      namedArguments,
+      typeArguments,
+    );
     node.arguments.accept(this);
   }
 
   @override
   void visitEqualsCall(ir.EqualsCall node) {
     final leftType = node.left.getStaticType(staticTypeContext);
-    registerInstanceInvocation(leftType, node.interfaceTarget, 1,
-        const <String>[], const <ir.DartType>[]);
+    registerInstanceInvocation(
+      leftType,
+      node.interfaceTarget,
+      1,
+      const <String>[],
+      const <ir.DartType>[],
+    );
     node.left.accept(this);
     node.right.accept(this);
   }
@@ -640,8 +723,10 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   void visitInstanceTearOff(ir.InstanceTearOff node) {
     final receiverType = node.receiver.getStaticType(staticTypeContext);
     registerInstanceGet(receiverType, node.interfaceTarget);
-    assert(node.name.text != Identifiers.runtimeType_,
-        "Unexpected .runtimeType instance tear-off.");
+    assert(
+      node.name.text != Identifiers.runtimeType_,
+      "Unexpected .runtimeType instance tear-off.",
+    );
     node.receiver.accept(this);
   }
 
@@ -663,13 +748,27 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
     if (interfaceTarget is ir.Field ||
         (interfaceTarget is ir.Procedure &&
             interfaceTarget.kind == ir.ProcedureKind.Getter)) {
-      registerInstanceInvocation(receiverType, interfaceTarget,
-          positionArguments, namedArguments, typeArguments);
-      registerFunctionInvocation(interfaceTarget.getterType, positionArguments,
-          namedArguments, typeArguments);
+      registerInstanceInvocation(
+        receiverType,
+        interfaceTarget,
+        positionArguments,
+        namedArguments,
+        typeArguments,
+      );
+      registerFunctionInvocation(
+        interfaceTarget.getterType,
+        positionArguments,
+        namedArguments,
+        typeArguments,
+      );
     } else {
-      registerInstanceInvocation(receiverType, interfaceTarget,
-          positionArguments, namedArguments, typeArguments);
+      registerInstanceInvocation(
+        receiverType,
+        interfaceTarget,
+        positionArguments,
+        namedArguments,
+        typeArguments,
+      );
     }
     node.receiver.accept(this);
     node.arguments.accept(this);
@@ -694,10 +793,11 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   @override
   void visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
     registerSuperInvocation(
-        getEffectiveSuperTarget(node.interfaceTarget),
-        node.arguments.positional.length,
-        _getNamedArguments(node.arguments),
-        node.arguments.types);
+      getEffectiveSuperTarget(node.interfaceTarget),
+      node.arguments.positional.length,
+      _getNamedArguments(node.arguments),
+      node.arguments.types,
+    );
     node.arguments.accept(this);
   }
 
@@ -715,19 +815,22 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   @override
   void visitSuperInitializer(ir.SuperInitializer node) {
     registerSuperInitializer(
-        node.parent as ir.Constructor,
-        node.target,
-        node.arguments.positional.length,
-        _getNamedArguments(node.arguments),
-        node.arguments.types);
+      node.parent as ir.Constructor,
+      node.target,
+      node.arguments.positional.length,
+      _getNamedArguments(node.arguments),
+      node.arguments.types,
+    );
     node.arguments.accept(this);
   }
 
   final Map<ir.InstanceGet, RuntimeTypeUseData> _pendingRuntimeTypeUseData = {};
 
   void handleRuntimeTypeGet(ir.DartType receiverType, ir.InstanceGet node) {
-    RuntimeTypeUseData data =
-        computeRuntimeTypeUse(_pendingRuntimeTypeUseData, node);
+    RuntimeTypeUseData data = computeRuntimeTypeUse(
+      _pendingRuntimeTypeUseData,
+      node,
+    );
     if (data.leftRuntimeTypeExpression == node) {
       // [node] is the left (or single) occurrence of `.runtimeType` so we
       // can set the static type of the receiver expression.
@@ -735,8 +838,10 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
     } else {
       // [node] is the right occurrence of `.runtimeType` so we
       // can set the static type of the argument expression.
-      assert(data.rightRuntimeTypeExpression == node,
-          "Unexpected RuntimeTypeUseData for $node: $data");
+      assert(
+        data.rightRuntimeTypeExpression == node,
+        "Unexpected RuntimeTypeUseData for $node: $data",
+      );
       data.argumentType = receiverType;
     }
     if (data.isComplete) {
@@ -747,20 +852,30 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
         _pendingRuntimeTypeUseData.remove(data.rightRuntimeTypeExpression);
       }
       handleRuntimeTypeUse(
-          node, data.kind, data.receiverType!, data.argumentType);
+        node,
+        data.kind,
+        data.receiverType!,
+        data.argumentType,
+      );
     }
   }
 
-  void handleRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
-      ir.DartType receiverType, ir.DartType? argumentType) {
+  void handleRuntimeTypeUse(
+    ir.Expression node,
+    RuntimeTypeUseKind kind,
+    ir.DartType receiverType,
+    ir.DartType? argumentType,
+  ) {
     if (_options.omitImplicitChecks) {
       switch (kind) {
         case RuntimeTypeUseKind.string:
           if (!_options.laxRuntimeTypeToString &&
               // Silent on Golem to avoid excessive compiler diagnostics.
               !_options.benchmarkingProduction) {
-            _reporter.reportHintMessage(computeSourceSpanFromTreeNode(node),
-                MessageKind.runtimeTypeToString);
+            _reporter.reportHintMessage(
+              computeSourceSpanFromTreeNode(node),
+              MessageKind.runtimeTypeToString,
+            );
           }
           break;
         case RuntimeTypeUseKind.equals:
@@ -775,8 +890,12 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   void visitConstantExpression(ir.ConstantExpression node) {
     assert(node.constant is! ir.UnevaluatedConstant);
     ir.LibraryDependency? import = getDeferredImport(node);
-    ConstantImpactVisitor(this, import, node, staticTypeContext)
-        .visitConstant(node.constant);
+    ConstantImpactVisitor(
+      this,
+      import,
+      node,
+      staticTypeContext,
+    ).visitConstant(node.constant);
   }
 
   void _registerFeature(_Feature feature) {
@@ -789,14 +908,18 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
 
   @override
   void registerSuperInitializer(
-      ir.Constructor source,
-      ir.Constructor target,
-      int positionalArguments,
-      List<String> namedArguments,
-      List<ir.DartType> typeArguments) {
+    ir.Constructor source,
+    ir.Constructor target,
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+  ) {
     (_data._superInitializers ??= []).add(
-      _SuperInitializer(source, target,
-          _CallStructure(positionalArguments, namedArguments, typeArguments)),
+      _SuperInitializer(
+        source,
+        target,
+        _CallStructure(positionalArguments, namedArguments, typeArguments),
+      ),
     );
   }
 
@@ -811,10 +934,18 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerSuperInvocation(ir.Member target, int positionalArguments,
-      List<String> namedArguments, List<ir.DartType> typeArguments) {
-    (_data._superInvocations ??= []).add(_SuperInvocation(target,
-        _CallStructure(positionalArguments, namedArguments, typeArguments)));
+  void registerSuperInvocation(
+    ir.Member target,
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+  ) {
+    (_data._superInvocations ??= []).add(
+      _SuperInvocation(
+        target,
+        _CallStructure(positionalArguments, namedArguments, typeArguments),
+      ),
+    );
   }
 
   @override
@@ -839,86 +970,115 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
 
   @override
   void registerFunctionInvocation(
-      ir.DartType receiverType,
-      int positionalArguments,
-      List<String> namedArguments,
-      List<ir.DartType> typeArguments) {
-    (_data._functionInvocations ??= []).add(_FunctionInvocation(receiverType,
-        _CallStructure(positionalArguments, namedArguments, typeArguments)));
+    ir.DartType receiverType,
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+  ) {
+    (_data._functionInvocations ??= []).add(
+      _FunctionInvocation(
+        receiverType,
+        _CallStructure(positionalArguments, namedArguments, typeArguments),
+      ),
+    );
   }
 
   @override
   void registerInstanceInvocation(
-      ir.DartType receiverType,
-      ir.Member target,
-      int positionalArguments,
-      List<String> namedArguments,
-      List<ir.DartType> typeArguments) {
-    (_data._instanceInvocations ??= []).add(_InstanceInvocation(
+    ir.DartType receiverType,
+    ir.Member target,
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+  ) {
+    (_data._instanceInvocations ??= []).add(
+      _InstanceInvocation(
         receiverType,
         target,
-        _CallStructure(positionalArguments, namedArguments, typeArguments)));
+        _CallStructure(positionalArguments, namedArguments, typeArguments),
+      ),
+    );
   }
 
   @override
   void registerDynamicInvocation(
-      ir.DartType receiverType,
-      ir.Name name,
-      int positionalArguments,
-      List<String> namedArguments,
-      List<ir.DartType> typeArguments) {
-    (_data._dynamicInvocations ??= []).add(_DynamicInvocation(
+    ir.DartType receiverType,
+    ir.Name name,
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+  ) {
+    (_data._dynamicInvocations ??= []).add(
+      _DynamicInvocation(
         receiverType,
         name,
-        _CallStructure(positionalArguments, namedArguments, typeArguments)));
+        _CallStructure(positionalArguments, namedArguments, typeArguments),
+      ),
+    );
   }
 
   @override
   void registerLocalFunctionInvocation(
-      ir.FunctionDeclaration localFunction,
-      int positionalArguments,
-      List<String> namedArguments,
-      List<ir.DartType> typeArguments) {
-    (_data._localFunctionInvocations ??= []).add(_LocalFunctionInvocation(
+    ir.FunctionDeclaration localFunction,
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+  ) {
+    (_data._localFunctionInvocations ??= []).add(
+      _LocalFunctionInvocation(
         localFunction,
-        _CallStructure(positionalArguments, namedArguments, typeArguments)));
+        _CallStructure(positionalArguments, namedArguments, typeArguments),
+      ),
+    );
   }
 
   @override
   void registerStaticInvocation(
-      ir.Procedure target,
-      int positionalArguments,
-      List<String> namedArguments,
-      List<ir.DartType> typeArguments,
-      ir.LibraryDependency? import) {
-    (_data._staticInvocations ??= []).add(_StaticInvocation(
+    ir.Procedure target,
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+    ir.LibraryDependency? import,
+  ) {
+    (_data._staticInvocations ??= []).add(
+      _StaticInvocation(
         target,
         _CallStructure(positionalArguments, namedArguments, typeArguments),
-        import));
+        import,
+      ),
+    );
   }
 
   @override
   void registerNew(
-      ir.Member constructor,
-      ir.InterfaceType type,
-      int positionalArguments,
-      List<String> namedArguments,
-      List<ir.DartType> typeArguments,
-      ir.LibraryDependency? import,
-      {required bool isConst}) {
-    (_data._constructorInvocations ??= []).add(_ConstructorInvocation(
+    ir.Member constructor,
+    ir.InterfaceType type,
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+    ir.LibraryDependency? import, {
+    required bool isConst,
+  }) {
+    (_data._constructorInvocations ??= []).add(
+      _ConstructorInvocation(
         constructor,
         type,
         _CallStructure(positionalArguments, namedArguments, typeArguments),
         import,
-        isConst: isConst));
+        isConst: isConst,
+      ),
+    );
   }
 
   @override
-  void registerConstInstantiation(ir.Class cls, List<ir.DartType> typeArguments,
-      ir.LibraryDependency? import) {
-    (_data._constInstantiations ??= [])
-        .add(_ConstInstantiation(cls, typeArguments, import));
+  void registerConstInstantiation(
+    ir.Class cls,
+    List<ir.DartType> typeArguments,
+    ir.LibraryDependency? import,
+  ) {
+    (_data._constInstantiations ??= []).add(
+      _ConstInstantiation(cls, typeArguments, import),
+    );
   }
 
   @override
@@ -933,13 +1093,17 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
 
   @override
   void registerRedirectingInitializer(
-      ir.Constructor constructor,
-      int positionalArguments,
-      List<String> namedArguments,
-      List<ir.DartType> typeArguments) {
-    (_data._redirectingInitializers ??= []).add(_RedirectingInitializer(
+    ir.Constructor constructor,
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+  ) {
+    (_data._redirectingInitializers ??= []).add(
+      _RedirectingInitializer(
         constructor,
-        _CallStructure(positionalArguments, namedArguments, typeArguments)));
+        _CallStructure(positionalArguments, namedArguments, typeArguments),
+      ),
+    );
   }
 
   @override
@@ -954,7 +1118,9 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
 
   @override
   void registerFieldConstantInitialization(
-      ir.Field node, ConstantReference constant) {
+    ir.Field node,
+    ConstantReference constant,
+  ) {
     (_data._fieldConstantInitializers ??= {})
         .putIfAbsent(node, () => [])
         .add(constant);
@@ -982,14 +1148,16 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
 
   @override
   void registerAsyncForIn(ir.DartType iterableType, ir.DartType iteratorType) {
-    (_data._forInData ??= [])
-        .add(_ForInData(iterableType, iteratorType, isAsync: true));
+    (_data._forInData ??= []).add(
+      _ForInData(iterableType, iteratorType, isAsync: true),
+    );
   }
 
   @override
   void registerSyncForIn(ir.DartType iterableType, ir.DartType iteratorType) {
-    (_data._forInData ??= [])
-        .add(_ForInData(iterableType, iteratorType, isAsync: false));
+    (_data._forInData ??= []).add(
+      _ForInData(iterableType, iteratorType, isAsync: false),
+    );
   }
 
   @override
@@ -1044,16 +1212,19 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
 
   @override
   void registerGenericInstantiation(
-      ir.FunctionType expressionType, List<ir.DartType> typeArguments) {
-    (_data._genericInstantiations ??= [])
-        .add(_GenericInstantiation(expressionType, typeArguments));
+    ir.FunctionType expressionType,
+    List<ir.DartType> typeArguments,
+  ) {
+    (_data._genericInstantiations ??= []).add(
+      _GenericInstantiation(expressionType, typeArguments),
+    );
   }
 
   @override
   void registerAssert({required bool withMessage}) {
-    _registerFeature(withMessage
-        ? _Feature.assertWithMessage
-        : _Feature.assertWithoutMessage);
+    _registerFeature(
+      withMessage ? _Feature.assertWithMessage : _Feature.assertWithoutMessage,
+    );
   }
 
   @override
@@ -1068,42 +1239,62 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
 
   @override
   void registerStaticTearOff(
-      ir.Procedure procedure, ir.LibraryDependency? import) {
+    ir.Procedure procedure,
+    ir.LibraryDependency? import,
+  ) {
     (_data._staticTearOffs ??= []).add(_StaticAccess(procedure, import));
   }
 
   @override
   void registerWeakStaticTearOff(
-      ir.Procedure procedure, ir.LibraryDependency? import) {
+    ir.Procedure procedure,
+    ir.LibraryDependency? import,
+  ) {
     (_data._weakStaticTearOffs ??= []).add(_StaticAccess(procedure, import));
   }
 
   @override
-  void registerMapLiteral(ir.DartType keyType, ir.DartType valueType,
-      {required bool isConst, required bool isEmpty}) {
+  void registerMapLiteral(
+    ir.DartType keyType,
+    ir.DartType valueType, {
+    required bool isConst,
+    required bool isEmpty,
+  }) {
     (_data._mapLiterals ??= []).add(
-        _MapLiteral(keyType, valueType, isConst: isConst, isEmpty: isEmpty));
+      _MapLiteral(keyType, valueType, isConst: isConst, isEmpty: isEmpty),
+    );
   }
 
   @override
-  void registerListLiteral(ir.DartType elementType,
-      {required bool isConst, required bool isEmpty}) {
+  void registerListLiteral(
+    ir.DartType elementType, {
+    required bool isConst,
+    required bool isEmpty,
+  }) {
     (_data._listLiterals ??= []).add(
-        _ContainerLiteral(elementType, isConst: isConst, isEmpty: isEmpty));
+      _ContainerLiteral(elementType, isConst: isConst, isEmpty: isEmpty),
+    );
   }
 
   @override
-  void registerSetLiteral(ir.DartType elementType,
-      {required bool isConst, required bool isEmpty}) {
+  void registerSetLiteral(
+    ir.DartType elementType, {
+    required bool isConst,
+    required bool isEmpty,
+  }) {
     (_data._setLiterals ??= []).add(
-        _ContainerLiteral(elementType, isConst: isConst, isEmpty: isEmpty));
+      _ContainerLiteral(elementType, isConst: isConst, isEmpty: isEmpty),
+    );
   }
 
   @override
-  void registerRecordLiteral(ir.RecordType recordType,
-      {required bool isConst}) {
-    (_data._recordLiterals ??= [])
-        .add(_RecordLiteral(recordType, isConst: isConst));
+  void registerRecordLiteral(
+    ir.RecordType recordType, {
+    required bool isConst,
+  }) {
+    (_data._recordLiterals ??= []).add(
+      _RecordLiteral(recordType, isConst: isConst),
+    );
   }
 
   @override
@@ -1137,10 +1328,14 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerRuntimeTypeUse(RuntimeTypeUseKind kind, ir.DartType receiverType,
-      ir.DartType? argumentType) {
-    (_data._runtimeTypeUses ??= [])
-        .add(_RuntimeTypeUse(kind, receiverType, argumentType));
+  void registerRuntimeTypeUse(
+    RuntimeTypeUseKind kind,
+    ir.DartType receiverType,
+    ir.DartType? argumentType,
+  ) {
+    (_data._runtimeTypeUses ??= []).add(
+      _RuntimeTypeUse(kind, receiverType, argumentType),
+    );
   }
 
   @override
@@ -1182,8 +1377,12 @@ class ConditionalImpactData {
   final ImpactData impactData;
   late ImpactData replacementImpactData;
 
-  ConditionalImpactData(this.originalConditions, this.impactData,
-      {this.original, this.replacement});
+  ConditionalImpactData(
+    this.originalConditions,
+    this.impactData, {
+    this.original,
+    this.replacement,
+  });
 }
 
 /// Data object that contains the world impact data derived purely from kernel.
@@ -1242,11 +1441,12 @@ class ImpactData {
     if (_superInitializers != null) {
       for (_SuperInitializer data in _superInitializers!) {
         registry.registerSuperInitializer(
-            data.source,
-            data.target,
-            data.callStructure.positionalArguments,
-            data.callStructure.namedArguments,
-            data.callStructure.typeArguments);
+          data.source,
+          data.target,
+          data.callStructure.positionalArguments,
+          data.callStructure.namedArguments,
+          data.callStructure.typeArguments,
+        );
       }
     }
     if (_superSets != null) {
@@ -1262,10 +1462,11 @@ class ImpactData {
     if (_superInvocations != null) {
       for (_SuperInvocation data in _superInvocations!) {
         registry.registerSuperInvocation(
-            data.target,
-            data.callStructure.positionalArguments,
-            data.callStructure.namedArguments,
-            data.callStructure.typeArguments);
+          data.target,
+          data.callStructure.positionalArguments,
+          data.callStructure.namedArguments,
+          data.callStructure.typeArguments,
+        );
       }
     }
     if (_instanceSets != null) {
@@ -1291,67 +1492,76 @@ class ImpactData {
     if (_functionInvocations != null) {
       for (_FunctionInvocation data in _functionInvocations!) {
         registry.registerFunctionInvocation(
-            data.receiverType,
-            data.callStructure.positionalArguments,
-            data.callStructure.namedArguments,
-            data.callStructure.typeArguments);
+          data.receiverType,
+          data.callStructure.positionalArguments,
+          data.callStructure.namedArguments,
+          data.callStructure.typeArguments,
+        );
       }
     }
     if (_instanceInvocations != null) {
       for (_InstanceInvocation data in _instanceInvocations!) {
         registry.registerInstanceInvocation(
-            data.receiverType,
-            data.target,
-            data.callStructure.positionalArguments,
-            data.callStructure.namedArguments,
-            data.callStructure.typeArguments);
+          data.receiverType,
+          data.target,
+          data.callStructure.positionalArguments,
+          data.callStructure.namedArguments,
+          data.callStructure.typeArguments,
+        );
       }
     }
     if (_dynamicInvocations != null) {
       for (_DynamicInvocation data in _dynamicInvocations!) {
         registry.registerDynamicInvocation(
-            data.receiverType,
-            data.name,
-            data.callStructure.positionalArguments,
-            data.callStructure.namedArguments,
-            data.callStructure.typeArguments);
+          data.receiverType,
+          data.name,
+          data.callStructure.positionalArguments,
+          data.callStructure.namedArguments,
+          data.callStructure.typeArguments,
+        );
       }
     }
     if (_localFunctionInvocations != null) {
       for (_LocalFunctionInvocation data in _localFunctionInvocations!) {
         registry.registerLocalFunctionInvocation(
-            data.localFunction,
-            data.callStructure.positionalArguments,
-            data.callStructure.namedArguments,
-            data.callStructure.typeArguments);
+          data.localFunction,
+          data.callStructure.positionalArguments,
+          data.callStructure.namedArguments,
+          data.callStructure.typeArguments,
+        );
       }
     }
     if (_staticInvocations != null) {
       for (_StaticInvocation data in _staticInvocations!) {
         registry.registerStaticInvocation(
-            data.target,
-            data.callStructure.positionalArguments,
-            data.callStructure.namedArguments,
-            data.callStructure.typeArguments,
-            data.import);
+          data.target,
+          data.callStructure.positionalArguments,
+          data.callStructure.namedArguments,
+          data.callStructure.typeArguments,
+          data.import,
+        );
       }
     }
     if (_constructorInvocations != null) {
       for (_ConstructorInvocation data in _constructorInvocations!) {
         registry.registerNew(
-            data.constructor,
-            data.type,
-            data.callStructure.positionalArguments,
-            data.callStructure.namedArguments,
-            data.callStructure.typeArguments,
-            data.import,
-            isConst: data.isConst);
+          data.constructor,
+          data.type,
+          data.callStructure.positionalArguments,
+          data.callStructure.namedArguments,
+          data.callStructure.typeArguments,
+          data.import,
+          isConst: data.isConst,
+        );
       }
     }
     if (_constInstantiations != null) {
       for (_ConstInstantiation data in _constInstantiations!) {
         registry.registerConstInstantiation(
-            data.cls, data.typeArguments, data.import);
+          data.cls,
+          data.typeArguments,
+          data.import,
+        );
       }
     }
     if (_features.isNotEmpty) {
@@ -1438,10 +1648,11 @@ class ImpactData {
     if (_redirectingInitializers != null) {
       for (_RedirectingInitializer data in _redirectingInitializers!) {
         registry.registerRedirectingInitializer(
-            data.constructor,
-            data.callStructure.positionalArguments,
-            data.callStructure.namedArguments,
-            data.callStructure.typeArguments);
+          data.constructor,
+          data.callStructure.positionalArguments,
+          data.callStructure.namedArguments,
+          data.callStructure.typeArguments,
+        );
       }
     }
     if (_fieldInitializers != null) {
@@ -1450,8 +1661,10 @@ class ImpactData {
       }
     }
     if (_fieldConstantInitializers != null) {
-      _fieldConstantInitializers!
-          .forEach((ir.Field field, List<ConstantReference> constants) {
+      _fieldConstantInitializers!.forEach((
+        ir.Field field,
+        List<ConstantReference> constants,
+      ) {
         for (ConstantReference constant in constants) {
           registry.registerFieldConstantInitialization(field, constant);
         }
@@ -1470,7 +1683,9 @@ class ImpactData {
     if (_genericInstantiations != null) {
       for (_GenericInstantiation data in _genericInstantiations!) {
         registry.registerGenericInstantiation(
-            data.expressionType, data.typeArguments);
+          data.expressionType,
+          data.typeArguments,
+        );
       }
     }
     if (_staticSets != null) {
@@ -1486,31 +1701,45 @@ class ImpactData {
     if (_staticTearOffs != null) {
       for (_StaticAccess data in _staticTearOffs!) {
         registry.registerStaticTearOff(
-            data.target as ir.Procedure, data.import);
+          data.target as ir.Procedure,
+          data.import,
+        );
       }
     }
     if (_weakStaticTearOffs != null) {
       for (_StaticAccess data in _weakStaticTearOffs!) {
         registry.registerWeakStaticTearOff(
-            data.target as ir.Procedure, data.import);
+          data.target as ir.Procedure,
+          data.import,
+        );
       }
     }
     if (_mapLiterals != null) {
       for (_MapLiteral data in _mapLiterals!) {
-        registry.registerMapLiteral(data.keyType, data.valueType,
-            isConst: data.isConst, isEmpty: data.isEmpty);
+        registry.registerMapLiteral(
+          data.keyType,
+          data.valueType,
+          isConst: data.isConst,
+          isEmpty: data.isEmpty,
+        );
       }
     }
     if (_listLiterals != null) {
       for (_ContainerLiteral data in _listLiterals!) {
-        registry.registerListLiteral(data.elementType,
-            isConst: data.isConst, isEmpty: data.isEmpty);
+        registry.registerListLiteral(
+          data.elementType,
+          isConst: data.isConst,
+          isEmpty: data.isEmpty,
+        );
       }
     }
     if (_setLiterals != null) {
       for (_ContainerLiteral data in _setLiterals!) {
-        registry.registerSetLiteral(data.elementType,
-            isConst: data.isConst, isEmpty: data.isEmpty);
+        registry.registerSetLiteral(
+          data.elementType,
+          isConst: data.isConst,
+          isEmpty: data.isEmpty,
+        );
       }
     }
     if (_recordLiterals != null) {
@@ -1521,7 +1750,10 @@ class ImpactData {
     if (_runtimeTypeUses != null) {
       for (_RuntimeTypeUse data in _runtimeTypeUses!) {
         registry.registerRuntimeTypeUse(
-            data.kind, data.receiverType, data.argumentType);
+          data.kind,
+          data.receiverType,
+          data.argumentType,
+        );
       }
     }
     if (_forInData != null) {
@@ -1569,12 +1801,21 @@ class _CallStructure {
   final List<String> namedArguments;
 
   _CallStructure.internal(
-      this.typeArguments, this.positionalArguments, this.namedArguments);
+    this.typeArguments,
+    this.positionalArguments,
+    this.namedArguments,
+  );
 
-  factory _CallStructure(int positionalArguments, List<String> namedArguments,
-      List<ir.DartType> typeArguments) {
+  factory _CallStructure(
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+  ) {
     return _CallStructure.internal(
-        typeArguments, positionalArguments, namedArguments);
+      typeArguments,
+      positionalArguments,
+      namedArguments,
+    );
   }
 }
 
@@ -1653,8 +1894,12 @@ class _ConstructorInvocation {
   final bool isConst;
 
   _ConstructorInvocation(
-      this.constructor, this.type, this.callStructure, this.import,
-      {required this.isConst});
+    this.constructor,
+    this.type,
+    this.callStructure,
+    this.import, {
+    required this.isConst,
+  });
 }
 
 class _ConstInstantiation {
@@ -1735,8 +1980,12 @@ class _MapLiteral {
   final bool isConst;
   final bool isEmpty;
 
-  _MapLiteral(this.keyType, this.valueType,
-      {required this.isConst, required this.isEmpty});
+  _MapLiteral(
+    this.keyType,
+    this.valueType, {
+    required this.isConst,
+    required this.isEmpty,
+  });
 }
 
 class _ContainerLiteral {
@@ -1744,8 +1993,11 @@ class _ContainerLiteral {
   final bool isConst;
   final bool isEmpty;
 
-  _ContainerLiteral(this.elementType,
-      {required this.isConst, required this.isEmpty});
+  _ContainerLiteral(
+    this.elementType, {
+    required this.isConst,
+    required this.isEmpty,
+  });
 }
 
 class _RecordLiteral {

@@ -92,7 +92,9 @@ class OutputCollector implements api.CompilerOutput {
   @override
   api.BinaryOutputSink createBinarySink(Uri uri) {
     return binaryOutputMap.putIfAbsent(
-        uri, () => BufferedBinaryOutputSink(uri));
+      uri,
+      () => BufferedBinaryOutputSink(uri),
+    );
   }
 
   /// `true` if any output has been collected.
@@ -110,16 +112,23 @@ class OutputCollector implements api.CompilerOutput {
 
   @override
   api.OutputSink createOutputSink(
-      String name, String extension, api.OutputType type) {
-    Map<String, BufferedOutputSink> sinkMap =
-        outputMap.putIfAbsent(type, () => {});
+    String name,
+    String extension,
+    api.OutputType type,
+  ) {
+    Map<String, BufferedOutputSink> sinkMap = outputMap.putIfAbsent(
+      type,
+      () => {},
+    );
     return sinkMap.putIfAbsent(name, () => BufferedOutputSink());
   }
 
   Map<api.OutputType, Map<String, String>> clear() {
     Map<api.OutputType, Map<String, String>> outputMapResult = {};
-    outputMap.forEach(
-        (api.OutputType outputType, Map<String, BufferedOutputSink> sinkMap) {
+    outputMap.forEach((
+      api.OutputType outputType,
+      Map<String, BufferedOutputSink> sinkMap,
+    ) {
       Map<String, String> sinkMapResult = outputMapResult[outputType] = {};
       sinkMap.forEach((String name, BufferedOutputSink sink) {
         sinkMapResult[name] = sink.toString();

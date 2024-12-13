@@ -56,8 +56,10 @@ class HValidator extends HInstructionVisitor {
     }
     if ((node.last is HReturn || node.last is HThrow) &&
         (node.successors.length != 1 || !node.successors[0].isExitBlock())) {
-      markInvalid("Return or throw node with > 1 successor "
-          "or not going to exit-block");
+      markInvalid(
+        "Return or throw node with > 1 successor "
+        "or not going to exit-block",
+      );
     }
     if (node.last is HExit && node.successors.isNotEmpty) {
       markInvalid("Exit block with successor");
@@ -142,7 +144,10 @@ class HValidator extends HInstructionVisitor {
 
   /// Verifies [instruction] is contained in [instructions] [count] times.
   static bool checkInstructionCount(
-      List<HInstruction> instructions, HInstruction instruction, int count) {
+    List<HInstruction> instructions,
+    HInstruction instruction,
+    int count,
+  ) {
     if (instructions.length > kMaxValidatedInstructionListLength) return true;
     int result = 0;
     for (int i = 0; i < instructions.length; i++) {
@@ -155,7 +160,9 @@ class HValidator extends HInstructionVisitor {
   /// list. The argument to [f] is an instruction with the count of how often
   /// it appeared in the list [instructions].
   static bool everyInstruction(
-      List<HInstruction> instructions, bool Function(HInstruction, int) f) {
+    List<HInstruction> instructions,
+    bool Function(HInstruction, int) f,
+  ) {
     if (instructions.length > kMaxValidatedInstructionListLength) return true;
     var copy = List<HInstruction?>.from(instructions);
     // TODO(floitsch): there is currently no way to sort HInstructions before

@@ -16,13 +16,16 @@ class ClosureTracerVisitor extends TracerVisitor {
   final List<CallSiteTypeInformation> _callsToAnalyze =
       <CallSiteTypeInformation>[];
 
-  ClosureTracerVisitor(this.tracedElements, ApplyableTypeInformation tracedType,
-      InferrerEngine inferrer)
-      : super(tracedType, inferrer) {
+  ClosureTracerVisitor(
+    this.tracedElements,
+    ApplyableTypeInformation tracedType,
+    InferrerEngine inferrer,
+  ) : super(tracedType, inferrer) {
     assert(
-        tracedElements.every((f) => !f.isAbstract),
-        "Tracing abstract methods: "
-        "${tracedElements.where((f) => f.isAbstract)}");
+      tracedElements.every((f) => !f.isAbstract),
+      "Tracing abstract methods: "
+      "${tracedElements.where((f) => f.isAbstract)}",
+    );
   }
 
   @override
@@ -35,8 +38,9 @@ class ClosureTracerVisitor extends TracerVisitor {
     _callsToAnalyze.forEach(_analyzeCall);
     for (FunctionEntity element in tracedElements) {
       inferrer.types.strategy.forEachParameter(element, (Local parameter) {
-        ElementTypeInformation info =
-            inferrer.types.getInferredTypeOfParameter(parameter);
+        ElementTypeInformation info = inferrer.types.getInferredTypeOfParameter(
+          parameter,
+        );
         info.disableInferenceForClosures = false;
       });
     }
@@ -56,19 +60,26 @@ class ClosureTracerVisitor extends TracerVisitor {
   void _analyzeCall(CallSiteTypeInformation info) {
     final selector = info.selector!;
     for (var functionElement in tracedElements) {
-      if (!selector.callStructure
-          .signatureApplies(functionElement.parameterStructure)) {
+      if (!selector.callStructure.signatureApplies(
+        functionElement.parameterStructure,
+      )) {
         continue;
       }
       inferrer.updateParameterInputs(
-          info, functionElement, info.arguments, selector,
-          remove: false, addToQueue: false);
+        info,
+        functionElement,
+        info.arguments,
+        selector,
+        remove: false,
+        addToQueue: false,
+      );
     }
   }
 
   @override
   void visitClosureCallSiteTypeInformation(
-      ClosureCallSiteTypeInformation info) {
+    ClosureCallSiteTypeInformation info,
+  ) {
     super.visitClosureCallSiteTypeInformation(info);
     if (info.closure == currentUser) {
       _registerCallForLaterAnalysis(info);
@@ -114,7 +125,8 @@ class ClosureTracerVisitor extends TracerVisitor {
 
   @override
   void visitDynamicCallSiteTypeInformation(
-      DynamicCallSiteTypeInformation info) {
+    DynamicCallSiteTypeInformation info,
+  ) {
     super.visitDynamicCallSiteTypeInformation(info);
     final selector = info.selector!;
     final user = currentUser;
@@ -123,16 +135,23 @@ class ClosureTracerVisitor extends TracerVisitor {
         if (info.hasClosureCallTargets || dynamicCallTargetsNonFunction(info)) {
           bailout('Passed to a closure');
         }
-        if (info.targets.any((target) => inferrer.memberHierarchyBuilder
-            .anyTargetMember(target, _checkIfFunctionApply))) {
+        if (info.targets.any(
+          (target) => inferrer.memberHierarchyBuilder.anyTargetMember(
+            target,
+            _checkIfFunctionApply,
+          ),
+        )) {
           _tagAsFunctionApplyTarget("dynamic call");
         }
       } else {
         if (user is MemberTypeInformation) {
           final currentUserMember = user.member;
-          if (info.targets.any((target) => inferrer.memberHierarchyBuilder
-              .anyTargetMember(
-                  target, (element) => element == currentUserMember))) {
+          if (info.targets.any(
+            (target) => inferrer.memberHierarchyBuilder.anyTargetMember(
+              target,
+              (element) => element == currentUserMember,
+            ),
+          )) {
             _registerCallForLaterAnalysis(info);
           }
         }
@@ -145,9 +164,11 @@ class ClosureTracerVisitor extends TracerVisitor {
 }
 
 class StaticTearOffClosureTracerVisitor extends ClosureTracerVisitor {
-  StaticTearOffClosureTracerVisitor(FunctionEntity tracedElement,
-      ApplyableTypeInformation tracedType, InferrerEngine inferrer)
-      : super([tracedElement], tracedType, inferrer);
+  StaticTearOffClosureTracerVisitor(
+    FunctionEntity tracedElement,
+    ApplyableTypeInformation tracedType,
+    InferrerEngine inferrer,
+  ) : super([tracedElement], tracedType, inferrer);
 
   @override
   void visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {

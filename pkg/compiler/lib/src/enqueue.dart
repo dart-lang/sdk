@@ -16,8 +16,11 @@ import 'universe/world_impact.dart' show WorldImpact;
 
 abstract class EnqueuerListener {
   /// Called to instruct to the backend that [type] has been instantiated.
-  void registerInstantiatedType(InterfaceType type,
-      {bool isGlobal = false, bool nativeUsage = false});
+  void registerInstantiatedType(
+    InterfaceType type, {
+    bool isGlobal = false,
+    bool nativeUsage = false,
+  });
 
   /// Called to notify to the backend that a class is being instantiated. Any
   /// backend specific [WorldImpact] of this is returned.
@@ -50,7 +53,10 @@ abstract class EnqueuerListener {
   WorldImpact registerUsedConstant(ConstantValue value);
 
   void onQueueOpen(
-      Enqueuer enqueuer, FunctionEntity? mainMethod, Iterable<Uri> libraries);
+    Enqueuer enqueuer,
+    FunctionEntity? mainMethod,
+    Iterable<Uri> libraries,
+  );
 
   /// Called when [enqueuer]'s queue is empty, but before it is closed.
   ///
@@ -104,7 +110,8 @@ abstract class Enqueuer {
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods(
-      ElementEnvironment elementEnvironment);
+    ElementEnvironment elementEnvironment,
+  );
 
   /// Check the enqueuer queue is empty or fail otherwise.
   void checkQueueIsEmpty();
@@ -136,9 +143,11 @@ abstract class Enqueuer {
     task.measureSubtask('resolution.check', () {
       // Run through the classes and see if we need to enqueue more methods.
       for (ClassEntity classElement in directlyInstantiatedClasses) {
-        for (ClassEntity? currentClass = classElement;
-            currentClass != null;
-            currentClass = elementEnvironment.getSuperClass(currentClass)) {
+        for (
+          ClassEntity? currentClass = classElement;
+          currentClass != null;
+          currentClass = elementEnvironment.getSuperClass(currentClass)
+        ) {
           checkClass(currentClass);
         }
       }

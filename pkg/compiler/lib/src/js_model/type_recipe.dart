@@ -30,15 +30,21 @@ abstract class TypeRecipeDomain {
   // TODO(sra): Consider extending TypeEnvironmentStructure to encode when the
   // classType is an exact type. Then the [classEntity] parameter would not be
   // needed.
-  bool isReconstruction(ClassEntity classEntity,
-      TypeEnvironmentStructure environmentStructure, TypeRecipe recipe);
+  bool isReconstruction(
+    ClassEntity classEntity,
+    TypeEnvironmentStructure environmentStructure,
+    TypeRecipe recipe,
+  );
 
   /// Tries to evaluate [recipe] against a fixed environment [environmentRecipe]
   /// having structure [environmentStructure].
   ///
   /// May return `null` if the evaluation is too complex.
-  TypeRecipe? foldLoadEval(TypeRecipe environmentRecipe,
-      TypeEnvironmentStructure environmentStructure, TypeRecipe recipe);
+  TypeRecipe? foldLoadEval(
+    TypeRecipe environmentRecipe,
+    TypeEnvironmentStructure environmentStructure,
+    TypeRecipe recipe,
+  );
 
   /// Partial constant folding of a type expression when the environment is
   /// created by binding a ground term.
@@ -74,9 +80,10 @@ abstract class TypeRecipeDomain {
   ///
   /// May return `null`.
   TypeRecipeAndEnvironmentStructure? foldEvalBindEvalWithSharedEnvironment(
-      TypeEnvironmentStructure environmentStructure,
-      TypeRecipe recipe1,
-      TypeRecipe recipe2);
+    TypeEnvironmentStructure environmentStructure,
+    TypeRecipe recipe1,
+    TypeRecipe recipe2,
+  );
 }
 
 /// A type recipe and the structure of the type environment against which it is
@@ -104,11 +111,15 @@ abstract class TypeEnvironmentStructure {
       return false;
     }
     return _sameFullStructure(
-        a as FullTypeEnvironmentStructure, b as FullTypeEnvironmentStructure);
+      a as FullTypeEnvironmentStructure,
+      b as FullTypeEnvironmentStructure,
+    );
   }
 
   static bool _sameFullStructure(
-      FullTypeEnvironmentStructure a, FullTypeEnvironmentStructure b) {
+    FullTypeEnvironmentStructure a,
+    FullTypeEnvironmentStructure b,
+  ) {
     if (a.classType != b.classType) return false;
     List<TypeVariableType> aBindings = a.bindings;
     List<TypeVariableType> bBindings = b.bindings;
@@ -184,10 +195,11 @@ abstract class TypeRecipe {
   /// [structureB] gives the same type as [recipeA] evaluated in environment
   /// described by [structureA].
   static bool yieldsSameType(
-      TypeRecipe recipeA,
-      TypeEnvironmentStructure structureA,
-      TypeRecipe recipeB,
-      TypeEnvironmentStructure structureB) {
+    TypeRecipe recipeA,
+    TypeEnvironmentStructure structureA,
+    TypeRecipe recipeB,
+    TypeEnvironmentStructure structureB,
+  ) {
     if (recipeA == recipeB &&
         TypeEnvironmentStructure.same(structureA, structureB)) {
       return true;
@@ -242,7 +254,8 @@ class SingletonTypeEnvironmentRecipe extends TypeEnvironmentRecipe {
   SingletonTypeEnvironmentRecipe(this.type);
 
   static SingletonTypeEnvironmentRecipe _readFromDataSource(
-      DataSourceReader source) {
+    DataSourceReader source,
+  ) {
     return SingletonTypeEnvironmentRecipe(source.readDartType());
   }
 
@@ -283,7 +296,8 @@ class FullTypeEnvironmentRecipe extends TypeEnvironmentRecipe {
   FullTypeEnvironmentRecipe({this.classType, this.types = const []});
 
   static FullTypeEnvironmentRecipe _readFromDataSource(
-      DataSourceReader source) {
+    DataSourceReader source,
+  ) {
     final classType = source.readDartTypeOrNull() as InterfaceType?;
     List<DartType> types = source.readDartTypes();
     return FullTypeEnvironmentRecipe(classType: classType, types: types);
@@ -299,8 +313,10 @@ class FullTypeEnvironmentRecipe extends TypeEnvironmentRecipe {
   }
 
   @override
-  late final int hashCode =
-      Hashing.listHash(types, Hashing.objectHash(classType, 0));
+  late final int hashCode = Hashing.listHash(
+    types,
+    Hashing.objectHash(classType, 0),
+  );
 
   @override
   bool operator ==(other) {
@@ -337,8 +353,11 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
   }
 
   @override
-  bool isReconstruction(ClassEntity classEntity,
-      TypeEnvironmentStructure environmentStructure, TypeRecipe recipe) {
+  bool isReconstruction(
+    ClassEntity classEntity,
+    TypeEnvironmentStructure environmentStructure,
+    TypeRecipe recipe,
+  ) {
     if (environmentStructure is FullTypeEnvironmentStructure &&
         environmentStructure.bindings.isEmpty) {
       InterfaceType classType = environmentStructure.classType!;
@@ -352,26 +371,40 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
   }
 
   @override
-  TypeRecipe? foldLoadEval(TypeRecipe environmentRecipe,
-      TypeEnvironmentStructure environmentStructure, TypeRecipe recipe) {
+  TypeRecipe? foldLoadEval(
+    TypeRecipe environmentRecipe,
+    TypeEnvironmentStructure environmentStructure,
+    TypeRecipe recipe,
+  ) {
     if (environmentStructure is SingletonTypeEnvironmentStructure) {
       if (environmentRecipe is TypeExpressionRecipe) {
         List<TypeVariableType> variables = [environmentStructure.variable];
         List<DartType> replacements = [environmentRecipe.type];
-        return _Substitution(_dartTypes, null, null, variables, replacements)
-            .substituteRecipe(recipe);
+        return _Substitution(
+          _dartTypes,
+          null,
+          null,
+          variables,
+          replacements,
+        ).substituteRecipe(recipe);
       }
-      failedAt(currentElementSpannable,
-          'Expected a TypeExpressionRecipe: $environmentRecipe');
+      failedAt(
+        currentElementSpannable,
+        'Expected a TypeExpressionRecipe: $environmentRecipe',
+      );
     }
 
     if (environmentStructure is FullTypeEnvironmentStructure) {
       if (environmentStructure.classType != null) {
         if (environmentRecipe is TypeExpressionRecipe) {
           assert(environmentStructure.bindings.isEmpty);
-          return _Substitution(_dartTypes, environmentStructure.classType,
-                  environmentRecipe.type as InterfaceType, null, null)
-              .substituteRecipe(recipe);
+          return _Substitution(
+            _dartTypes,
+            environmentStructure.classType,
+            environmentRecipe.type as InterfaceType,
+            null,
+            null,
+          ).substituteRecipe(recipe);
         }
         return null;
       }
@@ -381,23 +414,28 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
       }
       if (environmentRecipe is FullTypeEnvironmentRecipe) {
         return _Substitution(
-                _dartTypes,
-                environmentStructure.classType,
-                environmentRecipe.classType,
-                environmentStructure.bindings,
-                environmentRecipe.types)
-            .substituteRecipe(recipe);
+          _dartTypes,
+          environmentStructure.classType,
+          environmentRecipe.classType,
+          environmentStructure.bindings,
+          environmentRecipe.types,
+        ).substituteRecipe(recipe);
       }
       return null;
     }
 
-    failedAt(currentElementSpannable,
-        'Unknown environmentStructure: $environmentStructure');
+    failedAt(
+      currentElementSpannable,
+      'Unknown environmentStructure: $environmentStructure',
+    );
   }
 
   @override
-  TypeRecipeAndEnvironmentStructure? foldBindLoadEval(TypeRecipe bindArgument,
-      TypeEnvironmentStructure environmentStructure, TypeRecipe recipe) {
+  TypeRecipeAndEnvironmentStructure? foldBindLoadEval(
+    TypeRecipe bindArgument,
+    TypeEnvironmentStructure environmentStructure,
+    TypeRecipe recipe,
+  ) {
     // 'Bind' adds variables to the environment. We fold 'bind' of a ground type
     // by removing the added variables and replacing them in the recipe with the
     // constant type values.
@@ -411,74 +449,93 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
         replacements = bindArgument.types;
       } else {
         failedAt(
-            currentElementSpannable, 'Unexpected bindArgument: $bindArgument');
+          currentElementSpannable,
+          'Unexpected bindArgument: $bindArgument',
+        );
       }
       List<TypeVariableType> bindings = environmentStructure.bindings;
       int index = bindings.length - replacements.length;
       List<TypeVariableType> replacedVariables = bindings.sublist(index);
       List<TypeVariableType> remainingVariables = bindings.sublist(0, index);
-      TypeRecipe? newRecipe =
-          _Substitution(_dartTypes, null, null, replacedVariables, replacements)
-              .substituteRecipe(recipe);
+      TypeRecipe? newRecipe = _Substitution(
+        _dartTypes,
+        null,
+        null,
+        replacedVariables,
+        replacements,
+      ).substituteRecipe(recipe);
       if (newRecipe == null) return null;
       TypeEnvironmentStructure newEnvironmentStructure =
           FullTypeEnvironmentStructure(
-              classType: environmentStructure.classType,
-              bindings: remainingVariables);
+            classType: environmentStructure.classType,
+            bindings: remainingVariables,
+          );
       return TypeRecipeAndEnvironmentStructure(
-          newRecipe, newEnvironmentStructure);
+        newRecipe,
+        newEnvironmentStructure,
+      );
     }
 
-    failedAt(currentElementSpannable,
-        'unexpected bind on environment with structure $environmentStructure');
+    failedAt(
+      currentElementSpannable,
+      'unexpected bind on environment with structure $environmentStructure',
+    );
   }
 
   @override
   TypeRecipeAndEnvironmentStructure? foldEvalEval(
-      TypeEnvironmentStructure environmentStructure1,
-      TypeRecipe recipe1,
-      TypeEnvironmentStructure environmentStructure2,
-      TypeRecipe recipe2) {
+    TypeEnvironmentStructure environmentStructure1,
+    TypeRecipe recipe1,
+    TypeEnvironmentStructure environmentStructure2,
+    TypeRecipe recipe2,
+  ) {
     if (environmentStructure2 is SingletonTypeEnvironmentStructure &&
         recipe1 is TypeExpressionRecipe) {
       TypeRecipe? newRecipe = _Substitution(
-          _dartTypes,
-          null,
-          null,
-          [environmentStructure2.variable],
-          [recipe1.type]).substituteRecipe(recipe2);
+        _dartTypes,
+        null,
+        null,
+        [environmentStructure2.variable],
+        [recipe1.type],
+      ).substituteRecipe(recipe2);
       if (newRecipe == null) return null;
       return TypeRecipeAndEnvironmentStructure(
-          newRecipe, environmentStructure1);
+        newRecipe,
+        environmentStructure1,
+      );
     }
 
     if (environmentStructure2 is FullTypeEnvironmentStructure &&
         recipe1 is TypeExpressionRecipe) {
       assert(environmentStructure2.bindings.isEmpty);
       TypeRecipe? newRecipe = _Substitution(
-              _dartTypes,
-              environmentStructure2.classType,
-              recipe1.type as InterfaceType,
-              null,
-              null)
-          .substituteRecipe(recipe2);
+        _dartTypes,
+        environmentStructure2.classType,
+        recipe1.type as InterfaceType,
+        null,
+        null,
+      ).substituteRecipe(recipe2);
       if (newRecipe == null) return null;
       return TypeRecipeAndEnvironmentStructure(
-          newRecipe, environmentStructure1);
+        newRecipe,
+        environmentStructure1,
+      );
     }
 
     if (environmentStructure2 is FullTypeEnvironmentStructure &&
         recipe1 is FullTypeEnvironmentRecipe) {
       TypeRecipe? newRecipe = _Substitution(
-              _dartTypes,
-              environmentStructure2.classType,
-              recipe1.classType,
-              environmentStructure2.bindings,
-              recipe1.types)
-          .substituteRecipe(recipe2);
+        _dartTypes,
+        environmentStructure2.classType,
+        recipe1.classType,
+        environmentStructure2.bindings,
+        recipe1.types,
+      ).substituteRecipe(recipe2);
       if (newRecipe == null) return null;
       return TypeRecipeAndEnvironmentStructure(
-          newRecipe, environmentStructure1);
+        newRecipe,
+        environmentStructure1,
+      );
     }
 
     return null;
@@ -486,16 +543,19 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
 
   @override
   TypeRecipeAndEnvironmentStructure? foldEvalBindEvalWithSharedEnvironment(
-      TypeEnvironmentStructure environmentStructure,
-      TypeRecipe recipe1,
-      TypeRecipe recipe2) {
+    TypeEnvironmentStructure environmentStructure,
+    TypeRecipe recipe1,
+    TypeRecipe recipe2,
+  ) {
     if (recipe1 is FullTypeEnvironmentRecipe &&
         recipe2 is TypeExpressionRecipe) {
       return TypeRecipeAndEnvironmentStructure(
-          FullTypeEnvironmentRecipe(
-              classType: recipe1.classType,
-              types: [...recipe1.types, recipe2.type]),
-          environmentStructure);
+        FullTypeEnvironmentRecipe(
+          classType: recipe1.classType,
+          types: [...recipe1.types, recipe2.type],
+        ),
+        environmentStructure,
+      );
     }
     return null;
   }
@@ -523,9 +583,13 @@ class _Substitution extends DartTypeSubstitutionVisitor<Null> {
   final List<TypeVariableType>? _variables;
   final List<DartType>? _replacements;
 
-  _Substitution(this.dartTypes, this._classEnvironment, this._classValue,
-      this._variables, this._replacements)
-      : assert(_variables?.length == _replacements?.length);
+  _Substitution(
+    this.dartTypes,
+    this._classEnvironment,
+    this._classValue,
+    this._variables,
+    this._replacements,
+  ) : assert(_variables?.length == _replacements?.length);
 
   // Returns `null` if declined.
   TypeRecipe? substituteRecipe(TypeRecipe recipe) {
@@ -571,7 +635,10 @@ class _Substitution extends DartTypeSubstitutionVisitor<Null> {
 
   @override
   DartType substituteTypeVariableType(
-      TypeVariableType variable, Null argument, bool freshReference) {
+    TypeVariableType variable,
+    Null argument,
+    bool freshReference,
+  ) {
     DartType? replacement =
         _lookupCache[variable] ??= _lookupTypeVariableType(variable);
     if (replacement == null) return variable; // not substituted.

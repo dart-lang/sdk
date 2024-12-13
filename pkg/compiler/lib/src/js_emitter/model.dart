@@ -28,10 +28,14 @@ class Program {
   final MetadataCollector _metadataCollector;
   final Iterable<js.TokenFinalizer> finalizers;
 
-  Program(this.fragments, this.typeToInterceptorMap, this._metadataCollector,
-      this.finalizers,
-      {required this.needsNativeSupport,
-      required this.outputContainsConstantList});
+  Program(
+    this.fragments,
+    this.typeToInterceptorMap,
+    this._metadataCollector,
+    this.finalizers, {
+    required this.needsNativeSupport,
+    required this.outputContainsConstantList,
+  });
 
   void mergeOutputUnitMetadata(OutputUnit target, OutputUnit source) {
     _metadataCollector.mergeOutputUnitMetadata(target, source);
@@ -75,12 +79,13 @@ abstract class Fragment {
   final String outputFileName;
 
   Fragment(
-      this.outputUnit,
-      this.outputFileName,
-      this.libraries,
-      this.staticNonFinalFields,
-      this.staticLazilyInitializedFields,
-      this.constants);
+    this.outputUnit,
+    this.outputFileName,
+    this.libraries,
+    this.staticNonFinalFields,
+    this.staticLazilyInitializedFields,
+    this.constants,
+  );
 
   bool get isMainFragment;
 }
@@ -98,16 +103,22 @@ class MainFragment extends Fragment {
   final js.Expression? recordTypeStubs;
 
   MainFragment(
-      OutputUnit outputUnit,
-      String outputFileName,
-      this.invokeMain,
-      this.recordTypeStubs,
-      List<Library> libraries,
-      List<StaticField> staticNonFinalFields,
-      List<StaticField> staticLazilyInitializedFields,
-      List<Constant> constants)
-      : super(outputUnit, outputFileName, libraries, staticNonFinalFields,
-            staticLazilyInitializedFields, constants);
+    OutputUnit outputUnit,
+    String outputFileName,
+    this.invokeMain,
+    this.recordTypeStubs,
+    List<Library> libraries,
+    List<StaticField> staticNonFinalFields,
+    List<StaticField> staticLazilyInitializedFields,
+    List<Constant> constants,
+  ) : super(
+        outputUnit,
+        outputFileName,
+        libraries,
+        staticNonFinalFields,
+        staticLazilyInitializedFields,
+        constants,
+      );
 
   @override
   bool get isMainFragment => true;
@@ -123,15 +134,21 @@ class DeferredFragment extends Fragment {
   final String name;
 
   DeferredFragment(
-      OutputUnit outputUnit,
-      String outputFileName,
-      this.name,
-      List<Library> libraries,
-      List<StaticField> staticNonFinalFields,
-      List<StaticField> staticLazilyInitializedFields,
-      List<Constant> constants)
-      : super(outputUnit, outputFileName, libraries, staticNonFinalFields,
-            staticLazilyInitializedFields, constants);
+    OutputUnit outputUnit,
+    String outputFileName,
+    this.name,
+    List<Library> libraries,
+    List<StaticField> staticNonFinalFields,
+    List<StaticField> staticLazilyInitializedFields,
+    List<Constant> constants,
+  ) : super(
+        outputUnit,
+        outputFileName,
+        libraries,
+        staticNonFinalFields,
+        staticLazilyInitializedFields,
+        constants,
+      );
 
   @override
   bool get isMainFragment => false;
@@ -165,7 +182,12 @@ class Library {
   final List<ClassTypeData> classTypeData;
 
   Library(
-      this.element, this.uri, this.statics, this.classes, this.classTypeData);
+    this.element,
+    this.uri,
+    this.statics,
+    this.classes,
+    this.classTypeData,
+  );
 
   @override
   String toString() {
@@ -188,10 +210,15 @@ class StaticField {
   final bool isLazy;
   final bool isInitializedByConstant;
 
-  StaticField(this.element, this.name, this.getterName, this.code,
-      {required this.isFinal,
-      required this.isLazy,
-      this.isInitializedByConstant = false});
+  StaticField(
+    this.element,
+    this.name,
+    this.getterName,
+    this.code, {
+    required this.isFinal,
+    required this.isLazy,
+    this.isInitializedByConstant = false,
+  });
 
   @override
   String toString() {
@@ -210,8 +237,10 @@ class ClassTypeData {
   ClassTypeData(this.element, this.classChecks);
 
   bool isTriviallyChecked(CommonElements commonElements) =>
-      classChecks.checks.every((TypeCheck check) =>
-          check.cls == commonElements.objectClass || check.cls == element);
+      classChecks.checks.every(
+        (TypeCheck check) =>
+            check.cls == commonElements.objectClass || check.cls == element,
+      );
 }
 
 // TODO(sra): There are a lot of fields here that apply in limited cases
@@ -278,27 +307,28 @@ class Class {
   List<Class>? nativeExtensions;
 
   Class(
-      this.element,
-      this.typeData,
-      this.name,
-      this.methods,
-      this.fields,
-      this.callStubs,
-      this.noSuchMethodStubs,
-      this.checkedSetters,
-      this.gettersSetters,
-      this.isChecks,
-      this.functionTypeIndex,
-      {required this.hasRtiField,
-      required this.onlyForRti,
-      required this.onlyForConstructor,
-      required this.isDirectlyInstantiated,
-      required this.isNative,
-      required this.isClosureBaseClass,
-      this.sharedClosureApplyMetadata,
-      required this.isMixinApplicationWithMembers,
-      this.recordShapeRecipe,
-      this.recordShapeTag});
+    this.element,
+    this.typeData,
+    this.name,
+    this.methods,
+    this.fields,
+    this.callStubs,
+    this.noSuchMethodStubs,
+    this.checkedSetters,
+    this.gettersSetters,
+    this.isChecks,
+    this.functionTypeIndex, {
+    required this.hasRtiField,
+    required this.onlyForRti,
+    required this.onlyForConstructor,
+    required this.isDirectlyInstantiated,
+    required this.isNative,
+    required this.isClosureBaseClass,
+    this.sharedClosureApplyMetadata,
+    required this.isMixinApplicationWithMembers,
+    this.recordShapeRecipe,
+    this.recordShapeTag,
+  });
 
   bool get isSimpleMixinApplication => false;
 
@@ -310,34 +340,35 @@ class Class {
 
 class MixinApplication extends Class {
   MixinApplication(
-      ClassEntity element,
-      ClassTypeData typeData,
-      js.Name name,
-      List<Field> instanceFields,
-      List<StubMethod> callStubs,
-      List<StubMethod> checkedSetters,
-      List<StubMethod> gettersSetters,
-      List<StubMethod> isChecks,
-      js.Expression? functionTypeIndex,
-      {required super.hasRtiField,
-      required super.onlyForRti,
-      required super.onlyForConstructor,
-      required super.isDirectlyInstantiated})
-      : super(
-            element,
-            typeData,
-            name,
-            const <Method>[],
-            instanceFields,
-            callStubs,
-            const <StubMethod>[],
-            checkedSetters,
-            gettersSetters,
-            isChecks,
-            functionTypeIndex,
-            isNative: false,
-            isClosureBaseClass: false,
-            isMixinApplicationWithMembers: false);
+    ClassEntity element,
+    ClassTypeData typeData,
+    js.Name name,
+    List<Field> instanceFields,
+    List<StubMethod> callStubs,
+    List<StubMethod> checkedSetters,
+    List<StubMethod> gettersSetters,
+    List<StubMethod> isChecks,
+    js.Expression? functionTypeIndex, {
+    required super.hasRtiField,
+    required super.onlyForRti,
+    required super.onlyForConstructor,
+    required super.isDirectlyInstantiated,
+  }) : super(
+         element,
+         typeData,
+         name,
+         const <Method>[],
+         instanceFields,
+         callStubs,
+         const <StubMethod>[],
+         checkedSetters,
+         gettersSetters,
+         isChecks,
+         functionTypeIndex,
+         isNative: false,
+         isClosureBaseClass: false,
+         isMixinApplicationWithMembers: false,
+       );
 
   @override
   bool get isSimpleMixinApplication => true;
@@ -380,15 +411,16 @@ class Field {
 
   // TODO(floitsch): support renamed fields.
   Field(
-      this.element,
-      this.name,
-      this.accessorName,
-      this.getterFlags,
-      this.setterFlags,
-      this.needsCheckedSetter,
-      this.initializerInAllocator,
-      this.constantValue,
-      this.isElided);
+    this.element,
+    this.name,
+    this.accessorName,
+    this.getterFlags,
+    this.setterFlags,
+    this.needsCheckedSetter,
+    this.initializerInAllocator,
+    this.constantValue,
+    this.isElided,
+  );
 
   bool get needsGetter => getterFlags != 0;
   bool get needsUncheckedSetter => setterFlags != 0;
@@ -448,15 +480,20 @@ abstract class DartMethod extends Method {
   // `call$1$name` (in unminified mode).
   final js.Name? callName;
 
-  DartMethod(FunctionEntity super.element, super.name, super.code,
-      this.parameterStubs, this.callName,
-      {required this.needsTearOff,
-      this.tearOffName,
-      required this.canBeApplied,
-      required this.requiredParameterCount,
-      this.optionalParameterDefaultValues,
-      this.functionType,
-      required this.applyIndex}) {
+  DartMethod(
+    FunctionEntity super.element,
+    super.name,
+    super.code,
+    this.parameterStubs,
+    this.callName, {
+    required this.needsTearOff,
+    this.tearOffName,
+    required this.canBeApplied,
+    required this.requiredParameterCount,
+    this.optionalParameterDefaultValues,
+    this.functionType,
+    required this.applyIndex,
+  }) {
     assert(!needsTearOff || tearOffName != null);
     assert(!canBeApplied || optionalParameterDefaultValues != null);
   }
@@ -527,7 +564,7 @@ class InstanceMethod extends DartMethod {
 /// stubs and stubs to dispatch calls to methods with optional parameters.
 class StubMethod extends Method {
   StubMethod(js.Name? name, js.Expression code, {MemberEntity? element})
-      : super(element, name, code);
+    : super(element, name, code);
 
   @override
   String toString() {
@@ -553,8 +590,12 @@ class ParameterStubMethod extends StubMethod {
   /// If a stub's member can not be torn off, the [callName] is `null`.
   js.Name? callName;
 
-  ParameterStubMethod(super.name, this.callName, super.code,
-      {required super.element});
+  ParameterStubMethod(
+    super.name,
+    this.callName,
+    super.code, {
+    required super.element,
+  });
 
   @override
   String toString() {
@@ -567,15 +608,20 @@ class ParameterStubMethod extends StubMethod {
 abstract class StaticMethod implements Method {}
 
 class StaticDartMethod extends DartMethod implements StaticMethod {
-  StaticDartMethod(super.element, super.name, super.code, super.parameterStubs,
-      super.callName,
-      {required super.needsTearOff,
-      super.tearOffName,
-      required super.canBeApplied,
-      required super.requiredParameterCount,
-      /* List | Map */ super.optionalParameterDefaultValues,
-      super.functionType,
-      required super.applyIndex});
+  StaticDartMethod(
+    super.element,
+    super.name,
+    super.code,
+    super.parameterStubs,
+    super.callName, {
+    required super.needsTearOff,
+    super.tearOffName,
+    required super.canBeApplied,
+    required super.requiredParameterCount,
+    /* List | Map */ super.optionalParameterDefaultValues,
+    super.functionType,
+    required super.applyIndex,
+  });
 
   @override
   bool get isStatic => true;
@@ -590,7 +636,7 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
 class StaticStubMethod extends StubMethod implements StaticMethod {
   LibraryEntity library;
   StaticStubMethod(this.library, js.Name name, js.Expression code)
-      : super(name, code);
+    : super(name, code);
 
   @override
   String toString() {

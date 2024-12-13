@@ -14,10 +14,11 @@ import 'constant_transformer.dart';
 import 'js_get_flag_lowering.dart';
 
 void transformLibraries(
-    List<Library> libraries,
-    TryConstantEvaluator constantEvaluator,
-    CoreTypes coreTypes,
-    CompilerOptions options) {
+  List<Library> libraries,
+  TryConstantEvaluator constantEvaluator,
+  CoreTypes coreTypes,
+  CompilerOptions options,
+) {
   final transformer = _GlobalTransformer(constantEvaluator, coreTypes, options);
   libraries.forEach(transformer.visitLibrary);
 }
@@ -35,8 +36,10 @@ class _GlobalTransformer extends ConstantTransformer {
   final JsGetFlagLowering _jsGetFlagLowering;
 
   _GlobalTransformer(
-      super.constantEvaluator, CoreTypes coreTypes, super.options)
-      : _jsGetFlagLowering = JsGetFlagLowering(coreTypes, options);
+    super.constantEvaluator,
+    CoreTypes coreTypes,
+    super.options,
+  ) : _jsGetFlagLowering = JsGetFlagLowering(coreTypes, options);
 
   @override
   TreeNode visitClass(Class node) {

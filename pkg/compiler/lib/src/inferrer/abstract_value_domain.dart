@@ -23,8 +23,7 @@ enum AbstractBool {
   true_,
 
   /// Used when the property might or might not be true.
-  maybe,
-  ;
+  maybe;
 
   bool get isDefinitelyTrue => this == true_;
 
@@ -237,8 +236,10 @@ mixin AbstractValueDomain {
   /// [nullable] determines if the type in weak or legacy mode should be
   /// interpreted as nullable. This is passed as `false` for is-tests and `true`
   /// for as-checks and other contexts (e.g. parameter checks).
-  AbstractValueWithPrecision createFromStaticType(DartType type,
-      {required bool nullable});
+  AbstractValueWithPrecision createFromStaticType(
+    DartType type, {
+    required bool nullable,
+  });
 
   /// Creates an [AbstractValue] for a non-null exact instance of [cls].
   AbstractValue createNonNullExact(ClassEntity cls);
@@ -422,12 +423,16 @@ mixin AbstractValueDomain {
   /// Returns [AbstractValue] for the runtime values that [a] and [b] have in
   /// common.
   AbstractValue intersection(
-      covariant AbstractValue a, covariant AbstractValue b);
+    covariant AbstractValue a,
+    covariant AbstractValue b,
+  );
 
   /// Returns an [AbstractBool] that describes whether [a] and [b] have no
   /// runtime values in common.
   AbstractBool areDisjoint(
-      covariant AbstractValue a, covariant AbstractValue b);
+    covariant AbstractValue a,
+    covariant AbstractValue b,
+  );
 
   /// Returns an [AbstractBool] that describes whether [a] contains all non-null
   /// runtime values.
@@ -445,11 +450,12 @@ mixin AbstractValueDomain {
   /// The [allocationNode] is used to identify this particular map allocation.
   /// The [allocationElement] is used only for debugging.
   AbstractValue createContainerValue(
-      AbstractValue? originalValue,
-      Object? allocationNode,
-      MemberEntity? allocationElement,
-      AbstractValue elementType,
-      int? length);
+    AbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    AbstractValue elementType,
+    int? length,
+  );
 
   /// Returns the element type of [value] if it represents a container value
   /// at runtime. Returns [dynamicType] otherwise.
@@ -469,10 +475,11 @@ mixin AbstractValueDomain {
   /// The [allocationNode] is used to identify this particular set allocation.
   /// The [allocationElement] is used only for debugging.
   AbstractValue createSetValue(
-      AbstractValue? originalValue,
-      Object? allocationNode,
-      MemberEntity? allocationElement,
-      AbstractValue elementType);
+    AbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    AbstractValue elementType,
+  );
 
   /// Returns the element type of [value] if it represents a set value at
   /// runtime. Returns [dynamicType] otherwise.
@@ -487,11 +494,12 @@ mixin AbstractValueDomain {
   /// The [allocationNode] is used to identify this particular map allocation.
   /// The [allocationElement] is used only for debugging.
   AbstractValue createMapValue(
-      AbstractValue? originalValue,
-      Object? allocationNode,
-      MemberEntity? allocationElement,
-      AbstractValue key,
-      AbstractValue value);
+    AbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    AbstractValue key,
+    AbstractValue value,
+  );
 
   /// Returns the key type of [value] if it represents a map value at runtime.
   /// Returns [dynamicType] otherwise.
@@ -511,12 +519,13 @@ mixin AbstractValueDomain {
   /// The [allocationNode] is used to identify this particular map allocation.
   /// The [allocationElement] is used only for debugging.
   AbstractValue createDictionaryValue(
-      AbstractValue? originalValue,
-      Object? allocationNode,
-      MemberEntity? allocationElement,
-      AbstractValue key,
-      AbstractValue value,
-      Map<String, AbstractValue> mappings);
+    AbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    AbstractValue key,
+    AbstractValue value,
+    Map<String, AbstractValue> mappings,
+  );
 
   /// Returns `true` if [value] is a dictionary value which contains [key] as
   /// a key.
@@ -547,7 +556,9 @@ mixin AbstractValueDomain {
   /// Specializations are created through [createPrimitiveValue],
   /// [createMapValue], [createDictionaryValue] and [createContainerValue].
   bool isSpecializationOf(
-      AbstractValue specialization, AbstractValue generalization);
+    AbstractValue specialization,
+    AbstractValue generalization,
+  );
 
   /// Returns the value of which [value] is a specialization. Return `null` if
   /// [value] is not a specialization.
@@ -576,7 +587,9 @@ mixin AbstractValueDomain {
   /// Creates a primitive value specialization of [originalValue] with the
   /// inferred primitive constant [value].
   AbstractValue createPrimitiveValue(
-      AbstractValue originalValue, PrimitiveConstantValue value);
+    AbstractValue originalValue,
+    PrimitiveConstantValue value,
+  );
 
   /// Returns the primitive JavaScript value of [value] if it represents a
   /// primitive JavaScript value at runtime, value at runtime. Returns `null`
@@ -590,12 +603,17 @@ mixin AbstractValueDomain {
   /// target when being invoked on a [receiver]. [name] is used to ensure
   /// library privacy is taken into account.
   AbstractBool isTargetingMember(
-      AbstractValue receiver, MemberEntity member, Name name);
+    AbstractValue receiver,
+    MemberEntity member,
+    Name name,
+  );
 
   /// Returns an [AbstractBool] that describes whether [selector] invoked on a
   /// [receiver] can hit a [noSuchMethod].
   AbstractBool needsNoSuchMethodHandling(
-      AbstractValue receiver, Selector selector);
+    AbstractValue receiver,
+    Selector selector,
+  );
 
   /// Returns the [AbstractValue] for the [parameterType] of a native
   /// method. May return `null`, for example, if [parameterType] is not modelled
@@ -633,8 +651,11 @@ mixin AbstractValueDomain {
   /// Returns a set of members that are ancestors of all possible targets for
   /// a call targeting [selector] on an entity with type represented by
   /// [receiver].
-  Iterable<DynamicCallTarget> findRootsOfTargets(AbstractValue receiver,
-      Selector selector, MemberHierarchyBuilder memberHierarchyBuilder);
+  Iterable<DynamicCallTarget> findRootsOfTargets(
+    AbstractValue receiver,
+    Selector selector,
+    MemberHierarchyBuilder memberHierarchyBuilder,
+  );
 
   /// Deserializes an [AbstractValue] for this domain from [source].
   AbstractValue readAbstractValueFromDataSource(DataSourceReader source);

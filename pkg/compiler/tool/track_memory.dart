@@ -35,11 +35,13 @@ Future<void> main(List<String> args) async {
   } catch (e) {
     // TODO(sigmund): add better error messages, maybe option to retry.
     print('\n${_red}error$_none: $e');
-    print('usage:\n'
-        '  Start a Dart process with the --observe flag (and optionally '
-        'the --pause_isolates_on_start flag), then invoke:\n'
-        '      dart tool/track_memory.dart [<port>]\n'
-        '  by default port is 8181');
+    print(
+      'usage:\n'
+      '  Start a Dart process with the --observe flag (and optionally '
+      'the --pause_isolates_on_start flag), then invoke:\n'
+      '      dart tool/track_memory.dart [<port>]\n'
+      '  by default port is 8181',
+    );
   }
 }
 
@@ -65,17 +67,21 @@ Future<void> _resumeMainIsolateIfPaused() async {
 }
 
 /// Send a message to the vm service.
-Future<dynamic> _sendMessage(String method,
-    [Map<String, dynamic> args = const {}]) {
+Future<dynamic> _sendMessage(
+  String method, [
+  Map<String, dynamic> args = const {},
+]) {
   var id = _requestId++;
   final completer = Completer<dynamic>();
   _pendingResponses[id] = completer;
-  socket.add(jsonEncode({
-    'jsonrpc': '2.0',
-    'id': '$id',
-    'method': method,
-    'params': args,
-  }));
+  socket.add(
+    jsonEncode({
+      'jsonrpc': '2.0',
+      'id': '$id',
+      'method': method,
+      'params': args,
+    }),
+  );
   return completer.future;
 }
 
@@ -151,8 +157,12 @@ void _showProgress(int newUsed, int newCapacity, int oldUsed, int oldCapacity) {
 
   sb.write(' | ');
   _writeNumber(sb, lastNewUsed + lastOldUsed, newUsed + oldUsed);
-  _writeNumber(sb, lastNewCapacity + lastOldCapacity, newCapacity + oldCapacity,
-      color: true);
+  _writeNumber(
+    sb,
+    lastNewCapacity + lastOldCapacity,
+    newCapacity + oldCapacity,
+    color: true,
+  );
 
   sb.write(' | ');
   int maxUsed = max(lastMaxUsed, newUsed + oldUsed);
@@ -172,11 +182,13 @@ void _showProgress(int newUsed, int newCapacity, int oldUsed, int oldCapacity) {
 const mega = 1024 * 1024;
 bool _writeNumber(StringBuffer sb, int before, int now, {bool color = false}) {
   if (color) {
-    sb.write(before < now
-        ? _red
-        : before > now
-            ? _green
-            : '');
+    sb.write(
+      before < now
+          ? _red
+          : before > now
+          ? _green
+          : '',
+    );
   }
   String string;
   if (now < 1024) {

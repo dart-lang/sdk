@@ -78,8 +78,10 @@ Future runTest(String code) async {
   // TODO(sigmund): add support for "other" when we encode symbol information
   // directly for each field and local variable.
   const validKinds = const ['global', 'instance'];
-  Expect.isTrue(validKinds.contains(kind),
-      "Invalid kind: $kind, please use one of $validKinds");
+  Expect.isTrue(
+    validKinds.contains(kind),
+    "Invalid kind: $kind, please use one of $validKinds",
+  );
 
   var nameMatch = _nameMatcher.firstMatch(code);
   Expect.isNotNull(nameMatch, "Could not find the expected deobfuscated name.");
@@ -98,7 +100,9 @@ checkExpectation(MinifiedNameTest test, bool minified) async {
     if (minified) Flags.minify,
   ];
   D8Result result = await runWithD8(
-      memorySourceFiles: {'main.dart': test.code}, options: options);
+    memorySourceFiles: {'main.dart': test.code},
+    options: options,
+  );
   String stdout = result.runResult.stdout;
   String? error = _extractError(stdout);
   print('   error: $error');
@@ -106,9 +110,10 @@ checkExpectation(MinifiedNameTest test, bool minified) async {
 
   var match = test.pattern.firstMatch(error!);
   Expect.isNotNull(
-      match,
-      'Error didn\'t match the test pattern'
-      '\nerror: $error\npattern:${test.pattern}');
+    match,
+    'Error didn\'t match the test pattern'
+    '\nerror: $error\npattern:${test.pattern}',
+  );
   var name = match!.group(1)!;
   print('   obfuscated-name: $name');
   Expect.isNotNull(name, 'Error didn\'t contain a name\nerror: $error');
@@ -121,8 +126,10 @@ checkExpectation(MinifiedNameTest test, bool minified) async {
   var json = jsonDecode(await File(sourceMap).readAsString());
 
   var mapping = Dart2jsMapping.json(json);
-  Expect.isTrue(mapping.globalNames.isNotEmpty,
-      "Source-map doesn't contain minified-names");
+  Expect.isTrue(
+    mapping.globalNames.isNotEmpty,
+    "Source-map doesn't contain minified-names",
+  );
 
   var actualName;
   if (test.isGlobal) {

@@ -226,11 +226,17 @@ void main() {
     // Test empty literal map
     await doTest('<dynamic, dynamic>{}');
     // Test preset map of <String,uint32>
-    await doTest('<dynamic, dynamic>{presetKey : anInt}',
-        keyElementName: "presetKey", valueElementName: "anInt");
+    await doTest(
+      '<dynamic, dynamic>{presetKey : anInt}',
+      keyElementName: "presetKey",
+      valueElementName: "anInt",
+    );
     // Test preset map of <Double,uint32>
-    await doTest('<dynamic, dynamic>{aDouble : anInt}',
-        keyElementName: "aDouble", valueElementName: "anInt");
+    await doTest(
+      '<dynamic, dynamic>{aDouble : anInt}',
+      keyElementName: "aDouble",
+      valueElementName: "anInt",
+    );
   }
 
   asyncTest(() async {
@@ -238,8 +244,11 @@ void main() {
   });
 }
 
-doTest(String allocation,
-    {String? keyElementName, String? valueElementName}) async {
+doTest(
+  String allocation, {
+  String? keyElementName,
+  String? valueElementName,
+}) async {
   String source = generateTest(allocation);
   var result = await runCompiler(memorySourceFiles: {'main.dart': source});
   Expect.isTrue(result.isSuccess);
@@ -283,41 +292,77 @@ doTest(String allocation,
   checkType('mapPassedToSelector', K(aKeyType), V(commonMasks.numType));
   checkType('mapReturnedFromSelector', K(aKeyType), V(commonMasks.numType));
   checkType(
-      'mapUsedWithConstraint', K(aKeyType), V(commonMasks.positiveIntType));
+    'mapUsedWithConstraint',
+    K(aKeyType),
+    V(commonMasks.positiveIntType),
+  );
   checkType('mapEscapingFromSetter', K(aKeyType), V(commonMasks.numType));
   checkType('mapUsedInLocal', K(aKeyType), V(commonMasks.numType));
   checkType('mapEscapingInSetterValue', K(aKeyType), V(commonMasks.numType));
   checkType('mapEscapingInIndex', K(aKeyType), V(commonMasks.numType));
   checkType(
-      'mapEscapingInIndexSet', K(aKeyType), V(commonMasks.positiveIntType));
+    'mapEscapingInIndexSet',
+    K(aKeyType),
+    V(commonMasks.positiveIntType),
+  );
   // TODO(johnniwinther): Reenable this when we don't bail out due to
   // (benign) JS calls.
   //checkType('mapEscapingTwiceInIndexSet', K(aKeyType), V(commonMasks.numType));
   checkType('mapSetInNonFinalField', K(aKeyType), V(commonMasks.numType));
 
-  checkType('mapPassedToClosure', K(commonMasks.dynamicType),
-      V(commonMasks.dynamicType));
-  checkType('mapReturnedFromClosure', K(commonMasks.dynamicType),
-      V(commonMasks.dynamicType));
-  checkType('mapUsedWithNonOkSelector', K(commonMasks.dynamicType),
-      V(commonMasks.dynamicType));
   checkType(
-      'mapPassedAsOptionalParameter', K(aKeyType), V(commonMasks.numType));
+    'mapPassedToClosure',
+    K(commonMasks.dynamicType),
+    V(commonMasks.dynamicType),
+  );
+  checkType(
+    'mapReturnedFromClosure',
+    K(commonMasks.dynamicType),
+    V(commonMasks.dynamicType),
+  );
+  checkType(
+    'mapUsedWithNonOkSelector',
+    K(commonMasks.dynamicType),
+    V(commonMasks.dynamicType),
+  );
+  checkType(
+    'mapPassedAsOptionalParameter',
+    K(aKeyType),
+    V(commonMasks.numType),
+  );
   checkType('mapPassedAsNamedParameter', K(aKeyType), V(commonMasks.numType));
   checkType('mapStoredInList', K(aKeyType), V(commonMasks.uint31Type));
-  checkType('mapStoredInListButEscapes', K(commonMasks.dynamicType),
-      V(commonMasks.dynamicType));
+  checkType(
+    'mapStoredInListButEscapes',
+    K(commonMasks.dynamicType),
+    V(commonMasks.dynamicType),
+  );
   checkType('mapStoredInMap', K(aKeyType), V(commonMasks.uint31Type));
-  checkType('mapStoredInMapButEscapes', K(commonMasks.dynamicType),
-      V(commonMasks.dynamicType));
   checkType(
-      'mapStoredInRecordWithIndexAccess', K(aKeyType), V(commonMasks.numType));
+    'mapStoredInMapButEscapes',
+    K(commonMasks.dynamicType),
+    V(commonMasks.dynamicType),
+  );
   checkType(
-      'mapStoredInRecordWithNameAccess', K(aKeyType), V(commonMasks.numType));
-  checkType('mapStoredInRecordWithDynamicAccess', K(aKeyType),
-      V(commonMasks.numType));
-  checkType('mapStoredInRecordWithoutAccess', K(aKeyType),
-      V(commonMasks.positiveIntType));
+    'mapStoredInRecordWithIndexAccess',
+    K(aKeyType),
+    V(commonMasks.numType),
+  );
+  checkType(
+    'mapStoredInRecordWithNameAccess',
+    K(aKeyType),
+    V(commonMasks.numType),
+  );
+  checkType(
+    'mapStoredInRecordWithDynamicAccess',
+    K(aKeyType),
+    V(commonMasks.numType),
+  );
+  checkType(
+    'mapStoredInRecordWithoutAccess',
+    K(aKeyType),
+    V(commonMasks.positiveIntType),
+  );
 
   checkType('mapUnset', K(emptyType), V(emptyType));
   checkType('mapOnlySetWithConstraint', K(aKeyType), V(emptyType));

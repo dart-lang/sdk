@@ -23,11 +23,11 @@ import 'namer.dart';
 import 'runtime_types_new.dart' show RecipeEncoder;
 import 'runtime_types_resolution.dart';
 
-typedef _ConstantReferenceGenerator = js_ast.Expression Function(
-    ConstantValue constant);
+typedef _ConstantReferenceGenerator =
+    js_ast.Expression Function(ConstantValue constant);
 
-typedef _ConstantListGenerator = js_ast.Expression Function(
-    js_ast.Expression array);
+typedef _ConstantListGenerator =
+    js_ast.Expression Function(js_ast.Expression array);
 
 /// Visitor that creates [js_ast.Expression]s for constants that are inlined
 /// and therefore can be created during modular code generation.
@@ -51,8 +51,10 @@ class ModularConstantEmitter
 
   @override
   js_ast.Expression visitFunction(FunctionConstantValue constant, [_]) {
-    throw failedAt(noLocationSpannable,
-        "The function constant does not need specific JS code.");
+    throw failedAt(
+      noLocationSpannable,
+      "The function constant does not need specific JS code.",
+    );
   }
 
   @override
@@ -60,12 +62,14 @@ class ModularConstantEmitter
     return js_ast.LiteralNull();
   }
 
-  static final _exponentialRE = RegExp('^'
-      '([-+]?)' // 1: sign
-      '([0-9]+)' // 2: leading digit(s)
-      '(.([0-9]*))?' // 4: fraction digits
-      'e([-+]?[0-9]+)' // 5: exponent with sign
-      r'$');
+  static final _exponentialRE = RegExp(
+    '^'
+    '([-+]?)' // 1: sign
+    '([0-9]+)' // 2: leading digit(s)
+    '(.([0-9]*))?' // 4: fraction digits
+    'e([-+]?[0-9]+)' // 5: exponent with sign
+    r'$',
+  );
 
   /// Reduces the size of exponential representations when minification is
   /// enabled.
@@ -101,7 +105,8 @@ class ModularConstantEmitter
     int cutoff = _options.enableMinification ? 10000 : 1e10.toInt();
     if (value.abs() >= BigInt.from(cutoff)) {
       alternative = _shortenExponentialRepresentation(
-          value.toDouble().toStringAsExponential());
+        value.toDouble().toStringAsExponential(),
+      );
     }
     if (alternative != null && alternative.length < representation.length) {
       representation = alternative;
@@ -155,15 +160,17 @@ class ModularConstantEmitter
 
   @override
   js_ast.Expression visitDummyInterceptor(
-      DummyInterceptorConstantValue constant,
-      [_]) {
+    DummyInterceptorConstantValue constant, [
+    _,
+  ]) {
     return js_ast.LiteralNumber('0');
   }
 
   @override
-  js_ast.Expression visitLateSentinel(LateSentinelConstantValue constant,
-          [_]) =>
-      _namer.globalObjectForStaticState();
+  js_ast.Expression visitLateSentinel(
+    LateSentinelConstantValue constant, [
+    _,
+  ]) => _namer.globalObjectForStaticState();
 
   @override
   js_ast.Expression visitUnreachable(UnreachableConstantValue constant, [_]) {
@@ -178,14 +185,16 @@ class ModularConstantEmitter
   }
 
   @override
-  js_ast.Expression? visitInstantiation(InstantiationConstantValue constant,
-          [_]) =>
-      null;
+  js_ast.Expression? visitInstantiation(
+    InstantiationConstantValue constant, [
+    _,
+  ]) => null;
 
   @override
-  js_ast.Expression? visitDeferredGlobal(DeferredGlobalConstantValue constant,
-          [_]) =>
-      null;
+  js_ast.Expression? visitDeferredGlobal(
+    DeferredGlobalConstantValue constant, [
+    _,
+  ]) => null;
 
   @override
   js_ast.Expression? visitInterceptor(InterceptorConstantValue constant, [_]) =>
@@ -212,9 +221,9 @@ class ModularConstantEmitter
 
   @override
   js_ast.Expression? visitJavaScriptObject(
-          JavaScriptObjectConstantValue constant,
-          [_]) =>
-      null;
+    JavaScriptObjectConstantValue constant, [
+    _,
+  ]) => null;
 }
 
 /// Generates the JavaScript expressions for constants.
@@ -225,8 +234,10 @@ class ModularConstantEmitter
 class ConstantEmitter extends ModularConstantEmitter {
   // Matches blank lines, comment lines and trailing comments that can't be part
   // of a string.
-  static final RegExp commentRE =
-      RegExp(r'''^ *(//.*)?\n|  *//[^''"\n]*$''', multiLine: true);
+  static final RegExp commentRE = RegExp(
+    r'''^ *(//.*)?\n|  *//[^''"\n]*$''',
+    multiLine: true,
+  );
 
   final JCommonElements _commonElements;
   final JElementEnvironment _elementEnvironment;
@@ -242,17 +253,18 @@ class ConstantEmitter extends ModularConstantEmitter {
   /// constant, either return a reference or return its literal expression if it
   /// can be inlined.
   ConstantEmitter(
-      super.options,
-      super._namer,
-      this._commonElements,
-      this._elementEnvironment,
-      this._rtiNeed,
-      this._rtiRecipeEncoder,
-      this._fieldAnalysis,
-      this._recordData,
-      this._emitter,
-      this._constantReferenceGenerator,
-      this._makeConstantList);
+    super.options,
+    super._namer,
+    this._commonElements,
+    this._elementEnvironment,
+    this._rtiNeed,
+    this._rtiRecipeEncoder,
+    this._fieldAnalysis,
+    this._recordData,
+    this._emitter,
+    this._constantReferenceGenerator,
+    this._makeConstantList,
+  );
 
   @override
   js_ast.Expression visitList(ListConstantValue constant, [_]) {
@@ -265,16 +277,20 @@ class ConstantEmitter extends ModularConstantEmitter {
   }
 
   @override
-  js_ast.Expression visitSet(constant_system.JavaScriptSetConstant constant,
-      [_]) {
+  js_ast.Expression visitSet(
+    constant_system.JavaScriptSetConstant constant, [
+    _,
+  ]) {
     InterfaceType sourceType = constant.type;
     ClassEntity classElement = sourceType.element;
     String className = classElement.name;
 
     if (constant.indexObject != null) {
       if (!identical(classElement, _commonElements.constantStringSetClass)) {
-        failedAt(classElement,
-            "Compiler encountered unexpected set class $className");
+        failedAt(
+          classElement,
+          "Compiler encountered unexpected set class $className",
+        );
       }
       List<js_ast.Expression> arguments = [
         _constantReferenceGenerator(constant.indexObject!),
@@ -286,13 +302,15 @@ class ConstantEmitter extends ModularConstantEmitter {
       return js_ast.New(constructor, arguments);
     } else {
       if (!identical(classElement, _commonElements.generalConstantSetClass)) {
-        failedAt(classElement,
-            "Compiler encountered unexpected set class $className");
+        failedAt(
+          classElement,
+          "Compiler encountered unexpected set class $className",
+        );
       }
       List<js_ast.Expression> arguments = [
         js_ast.ArrayInitializer([
           for (final value in constant.values)
-            _constantReferenceGenerator(value)
+            _constantReferenceGenerator(value),
         ]),
         if (_rtiNeed.classNeedsTypeArguments(classElement))
           _reifiedTypeNewRti(sourceType),
@@ -303,8 +321,10 @@ class ConstantEmitter extends ModularConstantEmitter {
   }
 
   @override
-  js_ast.Expression visitMap(constant_system.JavaScriptMapConstant constant,
-      [_]) {
+  js_ast.Expression visitMap(
+    constant_system.JavaScriptMapConstant constant, [
+    _,
+  ]) {
     js_ast.Expression jsMap() {
       List<js_ast.Property> properties = [];
       for (int i = 0; i < constant.length; i++) {
@@ -316,8 +336,9 @@ class ConstantEmitter extends ModularConstantEmitter {
 
         // Keys in literal maps must be emitted in place.
         js_ast.Literal keyExpression = js.string(key.stringValue);
-        js_ast.Expression valueExpression =
-            _constantReferenceGenerator(constant.values[i]);
+        js_ast.Expression valueExpression = _constantReferenceGenerator(
+          constant.values[i],
+        );
         properties.add(js_ast.Property(keyExpression, valueExpression));
       }
       return js_ast.ObjectInitializer(properties);
@@ -326,10 +347,12 @@ class ConstantEmitter extends ModularConstantEmitter {
     js_ast.Expression jsGeneralMap() {
       List<js_ast.Expression> data = [];
       for (int i = 0; i < constant.keys.length; i++) {
-        js_ast.Expression keyExpression =
-            _constantReferenceGenerator(constant.keys[i]);
-        js_ast.Expression valueExpression =
-            _constantReferenceGenerator(constant.values[i]);
+        js_ast.Expression keyExpression = _constantReferenceGenerator(
+          constant.keys[i],
+        );
+        js_ast.Expression valueExpression = _constantReferenceGenerator(
+          constant.values[i],
+        );
         data.add(keyExpression);
         data.add(valueExpression);
       }
@@ -338,7 +361,7 @@ class ConstantEmitter extends ModularConstantEmitter {
 
     js_ast.Expression jsValuesArray() {
       return js_ast.ArrayInitializer([
-        for (final value in constant.values) _constantReferenceGenerator(value)
+        for (final value in constant.values) _constantReferenceGenerator(value),
       ]);
     }
 
@@ -350,13 +373,16 @@ class ConstantEmitter extends ModularConstantEmitter {
     // The arguments of the JavaScript constructor for any given Dart class
     // are in the same order as the members of the class element.
     int emittedArgumentCount = 0;
-    _elementEnvironment.forEachInstanceField(classElement,
-        (ClassEntity enclosing, FieldEntity field) {
+    _elementEnvironment.forEachInstanceField(classElement, (
+      ClassEntity enclosing,
+      FieldEntity field,
+    ) {
       if (_fieldAnalysis.getFieldData(field as JField).isElided) return;
       final name = field.name;
       if (name == constant_system.JavaScriptMapConstant.lengthName) {
-        arguments
-            .add(js_ast.LiteralNumber('${constant.keyList.entries.length}'));
+        arguments.add(
+          js_ast.LiteralNumber('${constant.keyList.entries.length}'),
+        );
       } else if (name == constant_system.JavaScriptMapConstant.jsObjectName) {
         arguments.add(jsMap());
       } else if (name == constant_system.JavaScriptMapConstant.keysName) {
@@ -368,8 +394,10 @@ class ConstantEmitter extends ModularConstantEmitter {
       } else if (name == constant_system.JavaScriptMapConstant.jsIndexName) {
         arguments.add(_constantReferenceGenerator(constant.indexObject!));
       } else {
-        failedAt(field,
-            "Compiler has unexpected field ${field.name} for $className.");
+        failedAt(
+          field,
+          "Compiler has unexpected field ${field.name} for $className.",
+        );
       }
       emittedArgumentCount++;
     });
@@ -377,8 +405,10 @@ class ConstantEmitter extends ModularConstantEmitter {
             emittedArgumentCount != 2) ||
         (className == constant_system.JavaScriptMapConstant.dartGeneralClass &&
             emittedArgumentCount != 1)) {
-      failedAt(classElement,
-          "Compiler and $className disagree on number of fields.");
+      failedAt(
+        classElement,
+        "Compiler and $className disagree on number of fields.",
+      );
     }
 
     if (_rtiNeed.classNeedsTypeArguments(classElement)) {
@@ -396,13 +426,17 @@ class ConstantEmitter extends ModularConstantEmitter {
 
   @override
   js_ast.Expression visitJavaScriptObject(
-      JavaScriptObjectConstantValue constant,
-      [_]) {
+    JavaScriptObjectConstantValue constant, [
+    _,
+  ]) {
     final List<js_ast.Property> properties = [];
     for (int i = 0; i < constant.keys.length; i++) {
-      properties.add(js_ast.Property(
+      properties.add(
+        js_ast.Property(
           _constantReferenceGenerator(constant.keys[i]),
-          _constantReferenceGenerator(constant.values[i])));
+          _constantReferenceGenerator(constant.values[i]),
+        ),
+      );
     }
     return js_ast.ObjectInitializer(properties);
   }
@@ -414,15 +448,19 @@ class ConstantEmitter extends ModularConstantEmitter {
     assert(!type.containsTypeVariables);
 
     js_ast.Expression recipe = _rtiRecipeEncoder.encodeGroundRecipe(
-        _emitter, TypeExpressionRecipe(type));
+      _emitter,
+      TypeExpressionRecipe(type),
+    );
 
     // Generate  `typeLiteral(recipe)`.
 
     // TODO(sra): `typeLiteral(r)` calls `createRuntimeType(findType(r))`.
     // Find a way to share the `findType` call with methods that also use the
     // type.
-    return js(
-        '#(#)', [getHelperProperty(_commonElements.typeLiteralMaker), recipe]);
+    return js('#(#)', [
+      getHelperProperty(_commonElements.typeLiteralMaker),
+      recipe,
+    ]);
   }
 
   @override
@@ -439,12 +477,14 @@ class ConstantEmitter extends ModularConstantEmitter {
       String value = str.stringValue;
       return js_ast.LiteralExpression(stripComments(value));
     }
-    js_ast.Expression constructor =
-        _emitter.constructorAccess(constant.type.element);
+    js_ast.Expression constructor = _emitter.constructorAccess(
+      constant.type.element,
+    );
     List<js_ast.Expression> fields = [];
     _elementEnvironment.forEachInstanceField(element, (_, FieldEntity field) {
-      FieldAnalysisData fieldData =
-          _fieldAnalysis.getFieldData(field as JField);
+      FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(
+        field as JField,
+      );
       if (fieldData.isElided) return;
       if (!fieldData.isInitializedInAllocator) {
         fields.add(_constantReferenceGenerator(constant.fields[field]!));
@@ -459,12 +499,12 @@ class ConstantEmitter extends ModularConstantEmitter {
   @override
   js_ast.Expression visitRecord(RecordConstantValue constant, [_]) {
     RecordType recordType = constant.getType(_commonElements) as RecordType;
-    RecordRepresentation representation =
-        _recordData.representationForStaticType(recordType);
+    RecordRepresentation representation = _recordData
+        .representationForStaticType(recordType);
     ClassEntity cls = representation.cls;
     js_ast.Expression constructor = _emitter.constructorAccess(cls);
     List<js_ast.Expression> fields = [
-      for (final value in constant.values) _constantReferenceGenerator(value)
+      for (final value in constant.values) _constantReferenceGenerator(value),
     ];
     // TODO(50081): We just trust that the field order is correct. It would be
     // more secure to invert the access paths and use that to look up the slot
@@ -476,15 +516,21 @@ class ConstantEmitter extends ModularConstantEmitter {
   }
 
   @override
-  js_ast.Expression visitInstantiation(InstantiationConstantValue constant,
-      [_]) {
-    ClassEntity cls =
-        _commonElements.getInstantiationClass(constant.typeArguments.length);
+  js_ast.Expression visitInstantiation(
+    InstantiationConstantValue constant, [
+    _,
+  ]) {
+    ClassEntity cls = _commonElements.getInstantiationClass(
+      constant.typeArguments.length,
+    );
     List<js_ast.Expression> fields = [
-      _constantReferenceGenerator(constant.function)
+      _constantReferenceGenerator(constant.function),
     ];
-    fields.add(_reifiedTypeNewRti(
-        _commonElements.dartTypes.interfaceType(cls, constant.typeArguments)));
+    fields.add(
+      _reifiedTypeNewRti(
+        _commonElements.dartTypes.interfaceType(cls, constant.typeArguments),
+      ),
+    );
     js_ast.Expression constructor = _emitter.constructorAccess(cls);
     return js_ast.New(constructor, fields);
   }
@@ -494,11 +540,16 @@ class ConstantEmitter extends ModularConstantEmitter {
   }
 
   js_ast.Expression maybeAddListTypeArgumentsNewRti(
-      ConstantValue constant, InterfaceType type, js_ast.Expression value) {
+    ConstantValue constant,
+    InterfaceType type,
+    js_ast.Expression value,
+  ) {
     assert(type.element == _commonElements.jsArrayClass);
     if (_rtiNeed.classNeedsTypeArguments(type.element)) {
-      return js_ast.Call(getHelperProperty(_commonElements.setArrayType),
-          [value, _reifiedTypeNewRti(type)]);
+      return js_ast.Call(getHelperProperty(_commonElements.setArrayType), [
+        value,
+        _reifiedTypeNewRti(type),
+      ]);
     }
     return value;
   }
@@ -509,8 +560,10 @@ class ConstantEmitter extends ModularConstantEmitter {
   }
 
   @override
-  js_ast.Expression visitDeferredGlobal(DeferredGlobalConstantValue constant,
-      [_]) {
+  js_ast.Expression visitDeferredGlobal(
+    DeferredGlobalConstantValue constant, [
+    _,
+  ]) {
     return _constantReferenceGenerator(constant.referenced);
   }
 }

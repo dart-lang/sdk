@@ -93,15 +93,14 @@ int foo(int param) {
 }
   """,
 
-// TODO(sra): shift-shift reduction.
-//  r"""
-//// shift-shift-reduction
-//int foo(int param) {
-//  return param >>> 1 >>> 2;
-//  // present: 'return param >>> 3'
-//}
-//""",
-
+  // TODO(sra): shift-shift reduction.
+  //  r"""
+  //// shift-shift-reduction
+  //int foo(int param) {
+  //  return param >>> 1 >>> 2;
+  //  // present: 'return param >>> 3'
+  //}
+  //""",
   r"""
 // mask-shift to shift-mask reduction
 int foo(int param) {
@@ -126,11 +125,13 @@ main() {
       if (!test.contains('callFoo')) {
         program += 'int callFoo(int a, int b, int c) => foo(a);\n';
       }
-      return compile(program,
-          entry: 'main',
-          methodName: 'foo',
-          disableTypeInference: false,
-          check: checkerForAbsentPresent(test));
+      return compile(
+        program,
+        entry: 'main',
+        methodName: 'foo',
+        disableTypeInference: false,
+        check: checkerForAbsentPresent(test),
+      );
     }
 
     for (final test in tests) {

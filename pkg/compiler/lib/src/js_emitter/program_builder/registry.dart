@@ -63,9 +63,14 @@ class LibrariesMap {
       _mapping.entries;
 
   void forEach(
-      void Function(LibraryEntity library, List<ClassEntity> classes,
-              List<MemberEntity> members, List<ClassEntity> classTypeData)
-          f) {
+    void Function(
+      LibraryEntity library,
+      List<ClassEntity> classes,
+      List<MemberEntity> members,
+      List<ClassEntity> classTypeData,
+    )
+    f,
+  ) {
     _mapping.forEach((LibraryEntity library, LibraryContents mapping) {
       f(library, mapping.classes, mapping.members, mapping.classTypes);
     });
@@ -100,9 +105,10 @@ class Registry {
   LibrariesMap _mapUnitToLibrariesMap(OutputUnit targetUnit) {
     if (targetUnit == _lastOutputUnit) return _lastLibrariesMap;
 
-    final result = (targetUnit == _mainOutputUnit)
-        ? mainLibrariesMap
-        : _deferredLibrariesMap[targetUnit]!;
+    final result =
+        (targetUnit == _mainOutputUnit)
+            ? mainLibrariesMap
+            : _deferredLibrariesMap[targetUnit]!;
 
     _lastOutputUnit = targetUnit;
     _lastLibrariesMap = result;
@@ -115,8 +121,10 @@ class Registry {
     } else {
       assert(!_deferredLibrariesMap.containsKey(outputUnit));
       String name = outputUnit.name;
-      _deferredLibrariesMap[outputUnit] =
-          LibrariesMap.deferred(outputUnit, name);
+      _deferredLibrariesMap[outputUnit] = LibrariesMap.deferred(
+        outputUnit,
+        name,
+      );
     }
   }
 
@@ -132,7 +140,9 @@ class Registry {
   /// Adds all elements to their respective libraries in the correct
   /// libraries map.
   void registerClassTypes(
-      OutputUnit outputUnit, Iterable<ClassEntity> elements) {
+    OutputUnit outputUnit,
+    Iterable<ClassEntity> elements,
+  ) {
     LibrariesMap targetLibrariesMap = _mapUnitToLibrariesMap(outputUnit);
     for (ClassEntity element in _sorter.sortClasses(elements)) {
       targetLibrariesMap.addClassType(element.library, element);

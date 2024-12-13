@@ -55,7 +55,11 @@ String passThroughNameFunc(List<int> l, int i) => l[i].toString();
 
 /// Generates all permutations of bits recursively.
 void generatePermutedNames(
-    Map<int, List<List<int>>> names, int maxBit, List<int> bits, int bit) {
+  Map<int, List<List<int>>> names,
+  int maxBit,
+  List<int> bits,
+  int bit,
+) {
   if (bit == maxBit) {
     for (int i = 0; i < bits.length; i++) {
       if (bits[i] == 1) {
@@ -73,7 +77,9 @@ void generatePermutedNames(
 
 /// A helper function to generate names from lists of strings of bits.
 int namesFromGraphFileLines(
-    List<String> lines, Map<int, List<List<int>>> names) {
+  List<String> lines,
+  Map<int, List<List<int>>> names,
+) {
   int maxBit = 0;
   for (var line in lines) {
     List<int> name = [];
@@ -146,10 +152,13 @@ class GraphIsomorphizer {
   // A bool to generate simple code within test files.
   final bool simple;
 
-  GraphIsomorphizer(this.names, this.maxBit,
-      {this.outDirectory = '.',
-      this.skipCopyright = false,
-      this.simple = false});
+  GraphIsomorphizer(
+    this.names,
+    this.maxBit, {
+    this.outDirectory = '.',
+    this.skipCopyright = false,
+    this.simple = false,
+  });
 
   void noInlineDecorator(StringBuffer out) {
     out.write("@pragma('dart2js:noInline')\n");
@@ -185,10 +194,12 @@ class GraphIsomorphizer {
     // We verify that each function in libImport is invoked only once from each
     // mixerLib and that only the correct functions are called, ie for lib_001,
     // only functions with XX1 are invoked.
-    out.write('void v(Set<String> u, String name, int bit) {\n'
-        '  Expect.isTrue(u.add(name));\n'
-        "  Expect.equals(name[bit], '1');\n"
-        '}\n\n');
+    out.write(
+      'void v(Set<String> u, String name, int bit) {\n'
+      '  Expect.isTrue(u.add(name));\n'
+      "  Expect.equals(name[bit], '1');\n"
+      '}\n\n',
+    );
 
     // Sort the names to ensure they are in a canonical order.
     var nameKeys = names.keys.toList();
@@ -263,7 +274,8 @@ class GraphIsomorphizer {
               String className = '${baseName}_class_$count';
               out.write('class $className extends $cls with $mixinString ');
               out.write(
-                  'implements $classImplementsString { const $className(); }\n');
+                'implements $classImplementsString { const $className(); }\n',
+              );
               out.write('const $className i$className = const $className();\n');
               out.write('closure$className(foo) => ($className unused) ');
               out.write('=> i$className.toString() == foo.toString();\n');
@@ -296,7 +308,8 @@ class GraphIsomorphizer {
           noInlineDecorator(out);
           var stringBits = generateBitString(bits, withStops: false);
           out.write(
-              "f$name(Set<String> u, int b) => v(u, '$stringBits', b);\n");
+            "f$name(Set<String> u, int b) => v(u, '$stringBits', b);\n",
+          );
         }
       }
     }
@@ -304,7 +317,12 @@ class GraphIsomorphizer {
 
   /// Generates a mixerLib which will be loaded as a deferred library from an entryLib.
   void generateMixerLib(
-      String name, StringBuffer out, String import, List<int> bits, int bit) {
+    String name,
+    StringBuffer out,
+    String import,
+    List<int> bits,
+    int bit,
+  ) {
     generateHeader(out);
     importExpect(out);
     out.write("import '$import';\n\n");
@@ -341,7 +359,8 @@ class GraphIsomorphizer {
       // Verify the runtimeTypes of the closures haven't been mangled.
       for (var cls in mixerClassNames[bit]!) {
         out.write(
-            '  Expect.equals(closure$cls($cls()).runtimeType.toString(), ');
+          '  Expect.equals(closure$cls($cls()).runtimeType.toString(), ',
+        );
         out.write("'($cls) => bool');\n");
       }
     }
@@ -356,8 +375,10 @@ class GraphIsomorphizer {
       count++;
     }
 
-    out.write('  Set<String> uniques = {};\n\n'
-        '  // f${generateCommentName(bits, bit)};\n');
+    out.write(
+      '  Set<String> uniques = {};\n\n'
+      '  // f${generateCommentName(bits, bit)};\n',
+    );
 
     namesBits.sort();
     for (var name in namesBits) {
@@ -365,14 +386,19 @@ class GraphIsomorphizer {
     }
 
     // We expect 'count' unique strings added to be added to 'uniques'.
-    out.write("  Expect.equals($count, uniques.length);\n"
-        '}\n');
+    out.write(
+      "  Expect.equals($count, uniques.length);\n"
+      '}\n',
+    );
   }
 
   /// Generates a string of bits, with optional parameters to control how the
   /// bits print.
-  String generateBitString(List<int> bits,
-      {NameFunc f = passThroughNameFunc, bool withStops = true}) {
+  String generateBitString(
+    List<int> bits, {
+    NameFunc f = passThroughNameFunc,
+    bool withStops = true,
+  }) {
     int stop = 0;
     StringBuffer sb = StringBuffer();
     for (int i = 0; i < bits.length; i++) {
@@ -386,20 +412,29 @@ class GraphIsomorphizer {
 
   /// Generates a pretty bit string for use in comments.
   String generateCommentName(List<int> bits, int fixBit) {
-    return generateBitString(bits,
-        f: (List<int> bits, int bit) => bit == fixBit ? '1' : '*');
+    return generateBitString(
+      bits,
+      f: (List<int> bits, int bit) => bit == fixBit ? '1' : '*',
+    );
   }
 
   /// Generates an entryLib file.
-  void generateEntryLib(StringBuffer out, String mainName, String funcName,
-      String import, int bit) {
+  void generateEntryLib(
+    StringBuffer out,
+    String mainName,
+    String funcName,
+    String import,
+    int bit,
+  ) {
     generateHeader(out);
     var name = 'b$bit';
-    out.write("import '$import' deferred as $name;\n\n"
-        '$mainName async {\n'
-        '  await $name.loadLibrary();\n'
-        '  $name.g$funcName();\n'
-        '}\n');
+    out.write(
+      "import '$import' deferred as $name;\n\n"
+      '$mainName async {\n'
+      '  await $name.loadLibrary();\n'
+      '  $name.g$funcName();\n'
+      '}\n',
+    );
   }
 
   /// Generates entry and mixer libs for the supplied names.
@@ -441,8 +476,10 @@ class GraphIsomorphizer {
     for (var data in importData) {
       out.write("import '${data.import}';\n");
     }
-    out.write('\n'
-        'main() {\n');
+    out.write(
+      '\n'
+      'main() {\n',
+    );
     for (var data in importData) {
       out.write('  ${data.entryPoint};\n');
     }
@@ -462,8 +499,10 @@ class GraphIsomorphizer {
     file.createSync(recursive: true);
     var sink = file.openWrite();
     sink.write(
-        DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
-            .format(contents.toString()));
+      DartFormatter(
+        languageVersion: DartFormatter.latestLanguageVersion,
+      ).format(contents.toString()),
+    );
     sink.close();
   }
 
@@ -513,8 +552,12 @@ GraphIsomorphizer createGraphIsomorphizer(List<String> args) {
   } else {
     maxBit = namesFromGraphFile(graphFile, names);
   }
-  return GraphIsomorphizer(names, maxBit,
-      outDirectory: outDirectory, simple: simple);
+  return GraphIsomorphizer(
+    names,
+    maxBit,
+    outDirectory: outDirectory,
+    simple: simple,
+  );
 }
 
 void main(List<String> args) {

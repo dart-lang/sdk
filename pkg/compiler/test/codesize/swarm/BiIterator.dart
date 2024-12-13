@@ -11,7 +11,7 @@ class BiIterator<E> {
   List<E> list;
 
   BiIterator(this.list, [List<ChangeListener>? oldListeners])
-      : currentIndex = ObservableValue<int>(0) {
+    : currentIndex = ObservableValue<int>(0) {
     if (oldListeners != null) {
       currentIndex.listeners = oldListeners;
     }

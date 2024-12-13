@@ -20,19 +20,24 @@ class NativeGenerator {
   /// Independently Dart programs on the same page must not interfere and
   /// this code sets up the variables needed to guarantee that behavior.
   static js_ast.Statement generateIsolateAffinityTagInitialization(
-      BackendUsage backendUsage,
-      js_ast.Expression Function(String global) generateEmbeddedGlobalAccess,
-      js_ast.Expression internStringFunction) {
+    BackendUsage backendUsage,
+    js_ast.Expression Function(String global) generateEmbeddedGlobalAccess,
+    js_ast.Expression internStringFunction,
+  ) {
     assert(backendUsage.needToInitializeIsolateAffinityTag);
 
-    js_ast.Expression getIsolateTagAccess =
-        generateEmbeddedGlobalAccess(embedded_names.GET_ISOLATE_TAG);
-    js_ast.Expression isolateTagAccess =
-        generateEmbeddedGlobalAccess(embedded_names.ISOLATE_TAG);
-    js_ast.Expression dispatchPropertyNameAccess =
-        generateEmbeddedGlobalAccess(embedded_names.DISPATCH_PROPERTY_NAME);
+    js_ast.Expression getIsolateTagAccess = generateEmbeddedGlobalAccess(
+      embedded_names.GET_ISOLATE_TAG,
+    );
+    js_ast.Expression isolateTagAccess = generateEmbeddedGlobalAccess(
+      embedded_names.ISOLATE_TAG,
+    );
+    js_ast.Expression dispatchPropertyNameAccess = generateEmbeddedGlobalAccess(
+      embedded_names.DISPATCH_PROPERTY_NAME,
+    );
 
-    return js.statement('''
+    return js.statement(
+      '''
       !function() {
         var intern = #internStringFunction;
 
@@ -60,14 +65,16 @@ class NativeGenerator {
           #dispatchPropertyName = #getIsolateTag("dispatch_record");
         }
       }();
-    ''', {
-      'initializeDispatchProperty':
-          backendUsage.needToInitializeDispatchProperty,
-      'internStringFunction': internStringFunction,
-      'getIsolateTag': getIsolateTagAccess,
-      'isolateTag': isolateTagAccess,
-      'dispatchPropertyName': dispatchPropertyNameAccess
-    });
+    ''',
+      {
+        'initializeDispatchProperty':
+            backendUsage.needToInitializeDispatchProperty,
+        'internStringFunction': internStringFunction,
+        'getIsolateTag': getIsolateTagAccess,
+        'isolateTag': isolateTagAccess,
+        'dispatchPropertyName': dispatchPropertyNameAccess,
+      },
+    );
   }
 
   static String generateIsolateTagRoot() {

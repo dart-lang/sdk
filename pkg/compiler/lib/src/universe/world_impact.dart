@@ -56,8 +56,8 @@ class WorldImpact {
   void forEachConstantUse(void Function(MemberEntity?, ConstantUse) visitUse) =>
       _forEach(constantUses, visitUse);
   void forEachConditionalUse(
-          void Function(MemberEntity?, ConditionalUse) visitUse) =>
-      _forEach(conditionalUses, visitUse);
+    void Function(MemberEntity?, ConditionalUse) visitUse,
+  ) => _forEach(conditionalUses, visitUse);
 
   bool get isEmpty => true;
 
@@ -113,8 +113,12 @@ class WorldImpactBuilderImpl extends WorldImpactBuilder {
   WorldImpactBuilderImpl([this.member]);
 
   WorldImpactBuilderImpl.internal(
-      this._dynamicUses, this._staticUses, this._typeUses, this._constantUses,
-      {this.member});
+    this._dynamicUses,
+    this._staticUses,
+    this._typeUses,
+    this._constantUses, {
+    this.member,
+  });
 
   @override
   bool get isEmpty =>

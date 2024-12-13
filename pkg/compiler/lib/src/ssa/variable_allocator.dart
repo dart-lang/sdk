@@ -26,15 +26,13 @@ class LiveInterval {
   /// The id where the instruction is defined.
   int start;
   final List<LiveRange> ranges;
-  LiveInterval()
-      : start = -1,
-        ranges = [];
+  LiveInterval() : start = -1, ranges = [];
 
   // We want [HCheck] instructions to have the same name as the
   // instruction it checks, so both instructions should share the same
   // live ranges.
   LiveInterval.forCheck(this.start, LiveInterval checkedInterval)
-      : ranges = checkedInterval.ranges;
+    : ranges = checkedInterval.ranges;
 
   /// Update all ranges that are contained in [from, to[ to
   /// die at [to].
@@ -101,8 +99,10 @@ class LiveEnvironment {
   /// updates the live interval of [instruction] to contain the new
   /// range: [id, / id contained in [liveInstructions] /].
   void remove(HInstruction instruction, int id) {
-    LiveInterval interval =
-        liveIntervals.putIfAbsent(instruction, () => LiveInterval());
+    LiveInterval interval = liveIntervals.putIfAbsent(
+      instruction,
+      () => LiveInterval(),
+    );
     int? lastId = liveInstructions[instruction];
     // If [lastId] is null, then this instruction is not being used.
     interval.add(LiveRange(id, lastId ?? id));
@@ -129,8 +129,10 @@ class LiveEnvironment {
       // else block have the same end id for an instruction that is
       // being used in the join block and defined before the if/else.
       if (existingId == endId) return;
-      LiveInterval range =
-          liveIntervals.putIfAbsent(instruction, () => LiveInterval());
+      LiveInterval range = liveIntervals.putIfAbsent(
+        instruction,
+        () => LiveInterval(),
+      );
       range.add(LiveRange(other.startId, existingId));
       liveInstructions[instruction] = endId;
     });
@@ -199,7 +201,9 @@ class SsaLiveIntervalBuilder extends HBaseVisitor<void> with CodegenPhase {
   }
 
   void markInputsAsLiveInEnvironment(
-      HInstruction instruction, LiveEnvironment environment) {
+    HInstruction instruction,
+    LiveEnvironment environment,
+  ) {
     if (instruction is HPhi) {
       HInstruction? condition = _phiToCondition[instruction];
       if (condition != null) {
@@ -228,7 +232,8 @@ class SsaLiveIntervalBuilder extends HBaseVisitor<void> with CodegenPhase {
   // When looking for the checkedInstructionOrNonGenerateAtUseSite of t3 we must
   // return t2.
   HInstruction checkedInstructionOrNonGenerateAtUseSite(
-      HOutputConstrainedToAnInput check) {
+    HOutputConstrainedToAnInput check,
+  ) {
     HInstruction constraint = check.constrainedInput;
     while (constraint is HOutputConstrainedToAnInput) {
       HInstruction next = constraint.constrainedInput;
@@ -239,7 +244,9 @@ class SsaLiveIntervalBuilder extends HBaseVisitor<void> with CodegenPhase {
   }
 
   void markAsLiveInEnvironment(
-      HInstruction instruction, LiveEnvironment environment) {
+    HInstruction instruction,
+    LiveEnvironment environment,
+  ) {
     if (generateAtUseSite.contains(instruction)) {
       markInputsAsLiveInEnvironment(instruction, environment);
     } else {
@@ -248,8 +255,9 @@ class SsaLiveIntervalBuilder extends HBaseVisitor<void> with CodegenPhase {
       // checked instruction live. The checked instruction and the
       // [HCheck] will share the same live ranges.
       if (instruction is HOutputConstrainedToAnInput) {
-        HInstruction constraint =
-            checkedInstructionOrNonGenerateAtUseSite(instruction);
+        HInstruction constraint = checkedInstructionOrNonGenerateAtUseSite(
+          instruction,
+        );
         if (!generateAtUseSite.contains(constraint)) {
           environment.add(constraint, instructionId);
         }
@@ -258,19 +266,24 @@ class SsaLiveIntervalBuilder extends HBaseVisitor<void> with CodegenPhase {
   }
 
   void removeFromEnvironment(
-      HInstruction instruction, LiveEnvironment environment) {
+    HInstruction instruction,
+    LiveEnvironment environment,
+  ) {
     environment.remove(instruction, instructionId);
     // Special case the HCheck instruction to have the same live
     // interval as the instruction it is checking.
     if (instruction is HOutputConstrainedToAnInput) {
-      HInstruction constraint =
-          checkedInstructionOrNonGenerateAtUseSite(instruction);
+      HInstruction constraint = checkedInstructionOrNonGenerateAtUseSite(
+        instruction,
+      );
       if (!generateAtUseSite.contains(constraint)) {
         liveIntervals.putIfAbsent(constraint, () => LiveInterval());
         // Unconditionally force the live ranges of the HCheck to
         // be the live ranges of the instruction it is checking.
-        liveIntervals[instruction] =
-            LiveInterval.forCheck(instructionId, liveIntervals[constraint]!);
+        liveIntervals[instruction] = LiveInterval.forCheck(
+          instructionId,
+          liveIntervals[constraint]!,
+        );
       }
     }
   }
@@ -335,8 +348,10 @@ class SsaLiveIntervalBuilder extends HBaseVisitor<void> with CodegenPhase {
     // Update all instructions that are liveIns in [header] to have a
     // range that covers the loop.
     env.liveInstructions.forEach((HInstruction instruction, int id) {
-      LiveInterval range =
-          env.liveIntervals.putIfAbsent(instruction, () => LiveInterval());
+      LiveInterval range = env.liveIntervals.putIfAbsent(
+        instruction,
+        () => LiveInterval(),
+      );
       range.loopUpdate(env.startId, lastId);
       env.liveInstructions[instruction] = lastId;
     });
@@ -575,9 +590,12 @@ class SsaVariableAllocator extends HBaseVisitor<void> implements CodegenPhase {
 
   final VariableNames names;
 
-  SsaVariableAllocator(this._namer, this.liveInstructions, this.liveIntervals,
-      this.generateAtUseSite)
-      : names = VariableNames();
+  SsaVariableAllocator(
+    this._namer,
+    this.liveInstructions,
+    this.liveIntervals,
+    this.generateAtUseSite,
+  ) : names = VariableNames();
 
   @override
   void visitGraph(HGraph graph) {
@@ -586,8 +604,11 @@ class SsaVariableAllocator extends HBaseVisitor<void> implements CodegenPhase {
 
   @override
   void visitBasicBlock(HBasicBlock node) {
-    VariableNamer variableNamer =
-        VariableNamer(liveInstructions[node]!, names, _namer);
+    VariableNamer variableNamer = VariableNamer(
+      liveInstructions[node]!,
+      names,
+      _namer,
+    );
 
     node.forEachPhi((HPhi phi) {
       handlePhi(phi, variableNamer);
@@ -617,7 +638,10 @@ class SsaVariableAllocator extends HBaseVisitor<void> implements CodegenPhase {
   }
 
   void freeUsedNamesAt(
-      HInstruction instruction, HInstruction at, VariableNamer namer) {
+    HInstruction instruction,
+    HInstruction at,
+    VariableNamer namer,
+  ) {
     if (needsName(instruction)) {
       if (diesAt(instruction, at)) {
         namer.freeName(instruction);

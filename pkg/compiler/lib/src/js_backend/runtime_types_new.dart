@@ -547,131 +547,120 @@ class RulesetEncoder {
 
   js_ast.StringConcatenation _encodeRedirection(
     MapEntry<ClassEntity, ClassEntity> redirection,
-  ) =>
-      js.concatenateStrings([
-        _doubleQuote,
-        _emitter.typeAccessNewRti(redirection.key),
-        _doubleQuote,
-        _colon,
-        _doubleQuote,
-        _emitter.typeAccessNewRti(redirection.value),
-        _doubleQuote,
-      ]);
+  ) => js.concatenateStrings([
+    _doubleQuote,
+    _emitter.typeAccessNewRti(redirection.key),
+    _doubleQuote,
+    _colon,
+    _doubleQuote,
+    _emitter.typeAccessNewRti(redirection.value),
+    _doubleQuote,
+  ]);
 
   js_ast.StringConcatenation _encodeEntry(
     MapEntry<InterfaceType, _RulesetEntry> entry,
-  ) =>
-      js.concatenateStrings([
-        _doubleQuote,
-        _emitter.typeAccessNewRti(entry.key.element),
-        _doubleQuote,
-        _colon,
-        _leftBrace,
-        ...js.joinLiterals([
-          ...entry.value._supertypes.map(
-            (InterfaceType supertype) => _encodeSupertype(entry.key, supertype),
-          ),
-          ...entry.value._typeVariables.entries.map(
-            (mapEntry) =>
-                _encodeTypeVariable(entry.key, mapEntry.key, mapEntry.value),
-          ),
-        ], _comma),
-        _rightBrace,
-      ]);
+  ) => js.concatenateStrings([
+    _doubleQuote,
+    _emitter.typeAccessNewRti(entry.key.element),
+    _doubleQuote,
+    _colon,
+    _leftBrace,
+    ...js.joinLiterals([
+      ...entry.value._supertypes.map(
+        (InterfaceType supertype) => _encodeSupertype(entry.key, supertype),
+      ),
+      ...entry.value._typeVariables.entries.map(
+        (mapEntry) =>
+            _encodeTypeVariable(entry.key, mapEntry.key, mapEntry.value),
+      ),
+    ], _comma),
+    _rightBrace,
+  ]);
 
   js_ast.StringConcatenation _encodeSupertype(
     InterfaceType targetType,
     InterfaceType supertype,
-  ) =>
-      js.concatenateStrings([
-        _doubleQuote,
-        _emitter.typeAccessNewRti(supertype.element),
-        _doubleQuote,
-        _colon,
-        _leftBracket,
-        ...js.joinLiterals(
-          supertype.typeArguments.map(
-            (DartType supertypeArgument) =>
-                _encodeSupertypeArgument(targetType, supertypeArgument),
-          ),
-          _comma,
-        ),
-        _rightBracket,
-      ]);
+  ) => js.concatenateStrings([
+    _doubleQuote,
+    _emitter.typeAccessNewRti(supertype.element),
+    _doubleQuote,
+    _colon,
+    _leftBracket,
+    ...js.joinLiterals(
+      supertype.typeArguments.map(
+        (DartType supertypeArgument) =>
+            _encodeSupertypeArgument(targetType, supertypeArgument),
+      ),
+      _comma,
+    ),
+    _rightBracket,
+  ]);
 
   js_ast.StringConcatenation _encodeTypeVariable(
     InterfaceType targetType,
     TypeVariableType typeVariable,
     DartType supertypeArgument,
-  ) =>
-      js.concatenateStrings([
-        _doubleQuote,
-        _emitter.typeVariableAccessNewRti(typeVariable.element),
-        _doubleQuote,
-        _colon,
-        _encodeSupertypeArgument(targetType, supertypeArgument),
-      ]);
+  ) => js.concatenateStrings([
+    _doubleQuote,
+    _emitter.typeVariableAccessNewRti(typeVariable.element),
+    _doubleQuote,
+    _colon,
+    _encodeSupertypeArgument(targetType, supertypeArgument),
+  ]);
 
   js_ast.Literal _encodeSupertypeArgument(
     InterfaceType targetType,
     DartType supertypeArgument,
-  ) =>
-      js.concatenateStrings([
-        _doubleQuote,
-        _recipeEncoder.encodeMetadataRecipe(
-          _emitter,
-          targetType,
-          supertypeArgument,
-        ),
-        _doubleQuote,
-      ]);
+  ) => js.concatenateStrings([
+    _doubleQuote,
+    _recipeEncoder.encodeMetadataRecipe(
+      _emitter,
+      targetType,
+      supertypeArgument,
+    ),
+    _doubleQuote,
+  ]);
 
   js_ast.StringConcatenation encodeErasedTypes(
     Map<ClassEntity, int> erasedTypes,
-  ) =>
-      js.concatenateStrings([
-        _leftBrace,
-        ...js.joinLiterals(erasedTypes.entries.map(encodeErasedType), _comma),
-        _rightBrace,
-      ]);
+  ) => js.concatenateStrings([
+    _leftBrace,
+    ...js.joinLiterals(erasedTypes.entries.map(encodeErasedType), _comma),
+    _rightBrace,
+  ]);
 
   js_ast.StringConcatenation encodeErasedType(
     MapEntry<ClassEntity, int> entry,
-  ) =>
-      js.concatenateStrings([
-        _doubleQuote,
-        _emitter.typeAccessNewRti(entry.key),
-        _doubleQuote,
-        _colon,
-        js.number(entry.value),
-      ]);
+  ) => js.concatenateStrings([
+    _doubleQuote,
+    _emitter.typeAccessNewRti(entry.key),
+    _doubleQuote,
+    _colon,
+    js.number(entry.value),
+  ]);
 
   js_ast.StringConcatenation encodeTypeParameterVariances(
     Map<ClassEntity, List<Variance>> typeParameterVariances,
-  ) =>
-      js.concatenateStrings([
-        _leftBrace,
-        ...js.joinLiterals(
-          typeParameterVariances.entries
-              .map(_encodeTypeParameterVariancesForClass),
-          _comma,
-        ),
-        _rightBrace,
-      ]);
+  ) => js.concatenateStrings([
+    _leftBrace,
+    ...js.joinLiterals(
+      typeParameterVariances.entries.map(_encodeTypeParameterVariancesForClass),
+      _comma,
+    ),
+    _rightBrace,
+  ]);
 
   js_ast.StringConcatenation _encodeTypeParameterVariancesForClass(
     MapEntry<ClassEntity, List<Variance>> classEntry,
-  ) =>
-      js.concatenateStrings([
-        _doubleQuote,
-        _emitter.typeAccessNewRti(classEntry.key),
-        _doubleQuote,
-        _colon,
-        _leftBracket,
-        ...js.joinLiterals(
-            classEntry.value.map((v) => js.number(v.index)), _comma),
-        _rightBracket,
-      ]);
+  ) => js.concatenateStrings([
+    _doubleQuote,
+    _emitter.typeAccessNewRti(classEntry.key),
+    _doubleQuote,
+    _colon,
+    _leftBracket,
+    ...js.joinLiterals(classEntry.value.map((v) => js.number(v.index)), _comma),
+    _rightBracket,
+  ]);
 }
 
 class RecipeEncoding {
@@ -710,9 +699,10 @@ int? indexTypeVariable(
   // index, even though in the general case it is not at a specific index.
 
   ClassHierarchy classHierarchy = world.classHierarchy;
-  var test = mustCheckAllSubtypes(world, cls)
-      ? classHierarchy.anyStrictSubtypeOf
-      : classHierarchy.anyStrictSubclassOf;
+  var test =
+      mustCheckAllSubtypes(world, cls)
+          ? classHierarchy.anyStrictSubtypeOf
+          : classHierarchy.anyStrictSubclassOf;
   if (test(cls, (ClassEntity subclass) {
     return !rtiSubstitutions.isTrivialSubstitution(subclass, cls);
   })) {

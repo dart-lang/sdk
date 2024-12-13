@@ -18,22 +18,37 @@ class DictionaryTypeMask extends MapTypeMask {
   // The underlying key/value map of this dictionary.
   final Map<String, TypeMask> _typeMap;
 
-  const DictionaryTypeMask(super.forwardTo, super._allocationNode,
-      super.allocationElement, super.keyType, super.valueType, this._typeMap);
+  const DictionaryTypeMask(
+    super.forwardTo,
+    super._allocationNode,
+    super.allocationElement,
+    super.keyType,
+    super.valueType,
+    this._typeMap,
+  );
 
   /// Deserializes a [DictionaryTypeMask] object from [source].
   factory DictionaryTypeMask.readFromDataSource(
-      DataSourceReader source, CommonMasks domain) {
+    DataSourceReader source,
+    CommonMasks domain,
+  ) {
     source.begin(tag);
     final forwardTo = TypeMask.readFromDataSource(source, domain);
     final allocationElement = source.readMemberOrNull();
     final keyType = TypeMask.readFromDataSource(source, domain);
     final valueType = TypeMask.readFromDataSource(source, domain);
-    final typeMap =
-        source.readStringMap(() => TypeMask.readFromDataSource(source, domain));
+    final typeMap = source.readStringMap(
+      () => TypeMask.readFromDataSource(source, domain),
+    );
     source.end(tag);
     return DictionaryTypeMask(
-        forwardTo, null, allocationElement, keyType, valueType, typeMap);
+      forwardTo,
+      null,
+      allocationElement,
+      keyType,
+      valueType,
+      typeMap,
+    );
   }
 
   /// Serializes this [DictionaryTypeMask] to [sink].
@@ -52,8 +67,10 @@ class DictionaryTypeMask extends MapTypeMask {
   }
 
   @override
-  DictionaryTypeMask withSpecialValues(
-      {bool? isNullable, bool? hasLateSentinel}) {
+  DictionaryTypeMask withSpecialValues({
+    bool? isNullable,
+    bool? hasLateSentinel,
+  }) {
     isNullable ??= this.isNullable;
     hasLateSentinel ??= this.hasLateSentinel;
     if (isNullable == this.isNullable &&
@@ -61,13 +78,16 @@ class DictionaryTypeMask extends MapTypeMask {
       return this;
     }
     return DictionaryTypeMask(
-        forwardTo.withSpecialValues(
-            isNullable: isNullable, hasLateSentinel: hasLateSentinel),
-        allocationNode,
-        allocationElement,
-        keyType,
-        valueType,
-        _typeMap);
+      forwardTo.withSpecialValues(
+        isNullable: isNullable,
+        hasLateSentinel: hasLateSentinel,
+      ),
+      allocationNode,
+      allocationElement,
+      keyType,
+      valueType,
+      _typeMap,
+    );
   }
 
   @override
@@ -78,8 +98,12 @@ class DictionaryTypeMask extends MapTypeMask {
   TypeMask? getValueForKey(String key) => _typeMap[key];
 
   @override
-  TypeMask? _unionSpecialCases(TypeMask other, CommonMasks domain,
-      {required bool isNullable, required bool hasLateSentinel}) {
+  TypeMask? _unionSpecialCases(
+    TypeMask other,
+    CommonMasks domain, {
+    required bool isNullable,
+    required bool hasLateSentinel,
+  }) {
     if (other is DictionaryTypeMask) {
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
       TypeMask newKeyType = keyType.union(other.keyType, domain);
@@ -98,7 +122,13 @@ class DictionaryTypeMask extends MapTypeMask {
         }
       });
       return DictionaryTypeMask(
-          newForwardTo, null, null, newKeyType, newValueType, mappings);
+        newForwardTo,
+        null,
+        null,
+        newKeyType,
+        newValueType,
+        mappings,
+      );
     }
     if (other is MapTypeMask) {
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
@@ -116,7 +146,8 @@ class DictionaryTypeMask extends MapTypeMask {
     return super == other &&
         _typeMap.keys.every((k) => other._typeMap.containsKey(k)) &&
         other._typeMap.keys.every(
-            (k) => _typeMap.containsKey(k) && _typeMap[k] == other._typeMap[k]);
+          (k) => _typeMap.containsKey(k) && _typeMap[k] == other._typeMap[k],
+        );
   }
 
   @override

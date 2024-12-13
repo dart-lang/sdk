@@ -60,7 +60,7 @@ class GridItemAlignment {
 
   // 'start' | 'end' | 'center' | 'stretch'
   GridItemAlignment.fromString(String? value)
-      : value = (value == null) ? 'stretch' : value {
+    : value = (value == null) ? 'stretch' : value {
     switch (this.value) {
       case 'start':
       case 'end':
@@ -97,8 +97,8 @@ class GridTemplate {
   final int _numRows;
 
   GridTemplate(List<String?> rows)
-      : _rects = <int, _GridTemplateRect>{},
-        _numRows = rows.length {
+    : _rects = <int, _GridTemplateRect>{},
+      _numRows = rows.length {
     _buildRects(rows);
   }
 
@@ -127,12 +127,14 @@ class GridTemplate {
   _GridTemplateRect lookupCell(String cell) {
     if (cell.length != 1) {
       throw UnsupportedError(
-          'grid-cell "$cell" must be a one character string');
+        'grid-cell "$cell" must be a one character string',
+      );
     }
     final rect = _rects[cell.codeUnitAt(0)];
     if (rect == null) {
       throw UnsupportedError(
-          'grid-cell "$cell" not found in parent\'s grid-template');
+        'grid-cell "$cell" not found in parent\'s grid-template',
+      );
     }
     return rect;
   }
@@ -142,9 +144,9 @@ class GridTemplate {
 class _GridTemplateRect {
   int row, column, rowSpan, columnSpan, _count, _char;
   _GridTemplateRect(this._char, this.row, this.column)
-      : rowSpan = 1,
-        columnSpan = 1,
-        _count = 1;
+    : rowSpan = 1,
+      columnSpan = 1,
+      _count = 1;
 
   void add(int r, int c) {
     assert(r >= row && c >= column);
@@ -159,8 +161,10 @@ class _GridTemplateRect {
       // TODO(jmesserly): not sure if we should throw here, due to CSS's
       // permissiveness. At the moment we're noisy about errors.
       String cell = String.fromCharCodes([_char]);
-      throw UnsupportedError('grid-template "$cell"'
-          ' is not square, expected $expected cells but got $_count');
+      throw UnsupportedError(
+        'grid-template "$cell"'
+        ' is not square, expected $expected cells but got $_count',
+      );
     }
   }
 }

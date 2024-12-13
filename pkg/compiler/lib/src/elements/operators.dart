@@ -11,10 +11,7 @@ const Set<String> instanceMethodOperatorNames = {
   ..._binaryOperatorNames,
 };
 
-const Set<String> _unaryOperatorNames = {
-  '~',
-  'unary-',
-};
+const Set<String> _unaryOperatorNames = {'~', 'unary-'};
 
 const Set<String> _binaryOperatorNames = {
   '==',

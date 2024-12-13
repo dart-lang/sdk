@@ -28,12 +28,18 @@ class TargetChecks {
   static final TargetChecks none = const TargetChecks._(false, false, false);
 
   // Typical of closure calls and dynamic calls.
-  static final TargetChecks dynamicChecks =
-      const TargetChecks._(true, true, true);
+  static final TargetChecks dynamicChecks = const TargetChecks._(
+    true,
+    true,
+    true,
+  );
 
   // Typical of method calls.
-  static final TargetChecks covariantChecks =
-      const TargetChecks._(false, true, false);
+  static final TargetChecks covariantChecks = const TargetChecks._(
+    false,
+    true,
+    false,
+  );
 
   // TODO(sra): This can be more fine-grained, talking about individual
   // parameters.

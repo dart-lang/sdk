@@ -69,7 +69,8 @@ class FieldNamingRegistry {
       if (index < MinifyNamer._reservedNativeProperties.length &&
           MinifyNamer._reservedNativeProperties[index].length <= 2) {
         nameStore.add(
-            StringBackedName(MinifyNamer._reservedNativeProperties[index]));
+          StringBackedName(MinifyNamer._reservedNativeProperties[index]),
+        );
       } else {
         nameStore.add(namer.getFreshName(namer.instanceScope, "field$index"));
       }
@@ -112,7 +113,10 @@ class _FieldNamingScope {
   }
 
   factory _FieldNamingScope.forClass(
-      ClassEntity cls, JClosedWorld world, FieldNamingRegistry registry) {
+    ClassEntity cls,
+    JClosedWorld world,
+    FieldNamingRegistry registry,
+  ) {
     _FieldNamingScope? result = registry._scopes[cls];
     if (result != null) return result;
 
@@ -123,8 +127,11 @@ class _FieldNamingScope {
       if (superclass == null) {
         result = _FieldNamingScope.rootScope(cls, registry);
       } else {
-        _FieldNamingScope superScope =
-            _FieldNamingScope.forClass(superclass, world, registry);
+        _FieldNamingScope superScope = _FieldNamingScope.forClass(
+          superclass,
+          world,
+          registry,
+        );
         if (world.elementEnvironment.isMixinApplication(cls)) {
           result = _MixinFieldNamingScope.mixedIn(cls, superScope, registry);
         } else {
@@ -133,8 +140,10 @@ class _FieldNamingScope {
       }
     }
 
-    world.elementEnvironment.forEachClassMember(cls,
-        (ClassEntity declarer, MemberEntity member) {
+    world.elementEnvironment.forEachClassMember(cls, (
+      ClassEntity declarer,
+      MemberEntity member,
+    ) {
       // TODO(sra): Don't add elided names.
       if (member is FieldEntity && member.isInstanceMember) result!.add(member);
     });
@@ -144,17 +153,21 @@ class _FieldNamingScope {
   }
 
   factory _FieldNamingScope.forBox(Local box, FieldNamingRegistry registry) {
-    return registry._scopes
-        .putIfAbsent(box, () => _BoxFieldNamingScope(box, registry));
+    return registry._scopes.putIfAbsent(
+      box,
+      () => _BoxFieldNamingScope(box, registry),
+    );
   }
 
   _FieldNamingScope.rootScope(this.container, this.registry)
-      : superScope = null,
-        _fieldNameCounter = 0;
+    : superScope = null,
+      _fieldNameCounter = 0;
 
   _FieldNamingScope.inherit(
-      this.container, _FieldNamingScope this.superScope, this.registry)
-      : _fieldNameCounter = superScope.inheritanceBasedFieldNameCounter;
+    this.container,
+    _FieldNamingScope this.superScope,
+    this.registry,
+  ) : _fieldNameCounter = superScope.inheritanceBasedFieldNameCounter;
 
   /// Checks whether [name] is already used in the current scope chain.
   bool _isNameUnused(js_ast.Name name) {
@@ -202,8 +215,10 @@ class _MixinFieldNamingScope extends _FieldNamingScope {
   _MixinFieldNamingScope.mixin(super.cls, super.registry) : super.rootScope();
 
   _MixinFieldNamingScope.mixedIn(
-      super.container, super.superScope, super.registry)
-      : super.inherit();
+    super.container,
+    super.superScope,
+    super.registry,
+  ) : super.inherit();
 
   @override
   js_ast.Name _nextName() {

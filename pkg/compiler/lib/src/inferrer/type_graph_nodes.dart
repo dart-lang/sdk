@@ -41,41 +41,31 @@ enum _Flag {
   doNotEnqueue, // 2
 
   isStable, // 3
-
   // ---Flags for [ElementTypeInformation]---
   enableInferenceForClosures, // 4
-
   // ---Flags for [ParameterTypeInformation]---
   isInstanceMemberParameter, // 5
   isClosureParameter, // 6
   isInitializingFormal, // 7
   isVirtual, // 8
-
   // ---Flags for [CallSiteTypeInformation]---
   inLoop, // 9
-
   // ---Flags for [DynamicCallSiteTypeInformation]---
   isConditional, // 10
   hasClosureCallTargets, // 11
   targetsIncludeComplexNoSuchMethod, // 12
   hasTargetsIncludeComplexNoSuchMethod, // 13
-
   // ---Flags for [PhiElementTypeInformation]---
   isTry, // 14
-
   // ---Flags for [ValueInMapTypeInformation]---
   valueInMapNonNull, // 15
-
   // ---Flags for [MemberTypeInformation]---
   isCalled, // 16
   isCalledMoreThanOnce, // 17
-
   // ---Flags for [ApplyableTypeInformation]---
   mightBePassedToFunctionApply, // 18
-
   // ---Flags for [InferredTypeInformation]---
   inferred, // 19
-
   // ---Flags for [TracedTypeInformation]---
   notBailedOut, // 20
   analyzed, // 21
@@ -142,20 +132,20 @@ abstract class TypeInformation {
   bool get isConcrete => false;
 
   TypeInformation(this.type, this.context)
-      : _inputs = _BasicParameterInputs([]),
-        users = Setlet<TypeInformation>();
+    : _inputs = _BasicParameterInputs([]),
+      users = Setlet<TypeInformation>();
 
   TypeInformation.noInputs(this.type, this.context)
-      : _inputs = const _BasicParameterInputs([]),
-        users = Setlet<TypeInformation>();
+    : _inputs = const _BasicParameterInputs([]),
+      users = Setlet<TypeInformation>();
 
   TypeInformation.untracked(this.type)
-      : _inputs = const _BasicParameterInputs([]),
-        users = const {},
-        context = null;
+    : _inputs = const _BasicParameterInputs([]),
+      users = const {},
+      context = null;
 
   TypeInformation.withInputs(this.type, this.context, this._inputs)
-      : users = Setlet<TypeInformation>();
+    : users = Setlet<TypeInformation>();
 
   EnumSet<_Flag> _flags = EnumSet.empty();
 
@@ -165,8 +155,10 @@ abstract class TypeInformation {
   void incrementRefineCount() =>
       _flags = EnumSet.fromRawBits(_flags.mask.bits + (1 << numTypeInfoFlags));
 
-  void clearRefineCount() => _flags =
-      EnumSet.fromRawBits(_flags.mask.bits & ((1 << numTypeInfoFlags) - 1));
+  void clearRefineCount() =>
+      _flags = EnumSet.fromRawBits(
+        _flags.mask.bits & ((1 << numTypeInfoFlags) - 1),
+      );
 
   void addUser(TypeInformation user) {
     assert(!user.isConcrete);
@@ -297,7 +289,10 @@ abstract class TypeInformation {
   }
 
   void _toStructuredText(
-      StringBuffer sb, String indent, Set<TypeInformation> seen) {
+    StringBuffer sb,
+    String indent,
+    Set<TypeInformation> seen,
+  ) {
     sb.write(toString());
   }
 }
@@ -317,8 +312,9 @@ mixin ApplyableTypeInformation implements TypeInformation {
 /// [getDefaultTypeOfParameter] and [setDefaultTypeOfParameter] for details.
 class PlaceholderTypeInformation extends TypeInformation {
   PlaceholderTypeInformation(
-      AbstractValueDomain abstractValueDomain, MemberTypeInformation? context)
-      : super(abstractValueDomain.uncomputedType, context);
+    AbstractValueDomain abstractValueDomain,
+    MemberTypeInformation? context,
+  ) : super(abstractValueDomain.uncomputedType, context);
 
   @override
   Never accept<T>(TypeInformationVisitor<T> visitor) {
@@ -454,12 +450,15 @@ abstract class ElementTypeInformation extends TypeInformation {
       _flags = _flags.update(_Flag.enableInferenceForClosures, !value);
 
   ElementTypeInformation._internal(
-      AbstractValueDomain abstractValueDomain, MemberTypeInformation? context)
-      : super(abstractValueDomain.uncomputedType, context);
+    AbstractValueDomain abstractValueDomain,
+    MemberTypeInformation? context,
+  ) : super(abstractValueDomain.uncomputedType, context);
 
-  ElementTypeInformation._withInputs(AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation? context, ParameterInputs inputs)
-      : super.withInputs(abstractValueDomain.uncomputedType, context, inputs);
+  ElementTypeInformation._withInputs(
+    AbstractValueDomain abstractValueDomain,
+    MemberTypeInformation? context,
+    ParameterInputs inputs,
+  ) : super.withInputs(abstractValueDomain.uncomputedType, context, inputs);
 
   String getInferredSignature(TypeSystem types);
 
@@ -489,8 +488,9 @@ abstract class MemberTypeInformation extends ElementTypeInformation
       !_flags.contains(_Flag.isCalledMoreThanOnce);
 
   MemberTypeInformation._internal(
-      AbstractValueDomain abstractValueDomain, this._member)
-      : super._internal(abstractValueDomain, null);
+    AbstractValueDomain abstractValueDomain,
+    this._member,
+  ) : super._internal(abstractValueDomain, null);
 
   MemberEntity get member => _member;
 
@@ -519,7 +519,9 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   AbstractValue? handleSpecialCases(InferrerEngine inferrer);
 
   AbstractValue? _handleFunctionCase(
-      FunctionEntity function, InferrerEngine inferrer) {
+    FunctionEntity function,
+    InferrerEngine inferrer,
+  ) {
     if (inferrer.closedWorld.nativeData.isNativeMember(function)) {
       // Use the type annotation as the type for native elements. We
       // also give up on inferring to make sure this element never
@@ -527,7 +529,8 @@ abstract class MemberTypeInformation extends ElementTypeInformation
       giveUp(inferrer);
       return inferrer
           .typeOfNativeBehavior(
-              inferrer.closedWorld.nativeData.getNativeMethodBehavior(function))
+            inferrer.closedWorld.nativeData.getNativeMethodBehavior(function),
+          )
           .type;
     }
 
@@ -546,19 +549,25 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   }
 
   AbstractValue potentiallyNarrowType(
-      AbstractValue mask, InferrerEngine inferrer) {
+    AbstractValue mask,
+    InferrerEngine inferrer,
+  ) {
     return _potentiallyNarrowType(mask, inferrer);
   }
 
   AbstractValue _potentiallyNarrowType(
-      AbstractValue mask, InferrerEngine inferrer);
+    AbstractValue mask,
+    InferrerEngine inferrer,
+  );
 
   @override
   AbstractValue computeType(InferrerEngine inferrer) {
     final special = handleSpecialCases(inferrer);
     if (special != null) return potentiallyNarrowType(special, inferrer);
     return potentiallyNarrowType(
-        inferrer.types.computeTypeMask(inputs), inferrer);
+      inferrer.types.computeTypeMask(inputs),
+      inferrer,
+    );
   }
 
   @override
@@ -582,16 +591,18 @@ abstract class MemberTypeInformation extends ElementTypeInformation
 
 class FieldTypeInformation extends MemberTypeInformation {
   @override
-  // ignore: overridden_fields
-  final FieldEntity _member;
+  final FieldEntity _member; // ignore: overridden_fields
   final AbstractValue _type;
 
   FieldTypeInformation(
-      AbstractValueDomain abstractValueDomain, this._member, DartType type)
-      : _type = abstractValueDomain
-            .createFromStaticType(type, nullable: true)
-            .abstractValue,
-        super._internal(abstractValueDomain, _member);
+    AbstractValueDomain abstractValueDomain,
+    this._member,
+    DartType type,
+  ) : _type =
+          abstractValueDomain
+              .createFromStaticType(type, nullable: true)
+              .abstractValue,
+      super._internal(abstractValueDomain, _member);
 
   @override
   AbstractValue? handleSpecialCases(InferrerEngine inferrer) {
@@ -609,8 +620,9 @@ class FieldTypeInformation extends MemberTypeInformation {
       // goes in the work queue.
       giveUp(inferrer);
       return inferrer
-          .typeOfNativeBehavior(inferrer.closedWorld.nativeData
-              .getNativeFieldLoadBehavior(_member))
+          .typeOfNativeBehavior(
+            inferrer.closedWorld.nativeData.getNativeFieldLoadBehavior(_member),
+          )
           .type;
     }
     return null;
@@ -618,7 +630,9 @@ class FieldTypeInformation extends MemberTypeInformation {
 
   @override
   AbstractValue _potentiallyNarrowType(
-      AbstractValue mask, InferrerEngine inferrer) {
+    AbstractValue mask,
+    InferrerEngine inferrer,
+  ) {
     return _narrowType(inferrer.abstractValueDomain, mask, _type);
   }
 
@@ -635,16 +649,18 @@ class FieldTypeInformation extends MemberTypeInformation {
 
 class GetterTypeInformation extends MemberTypeInformation {
   @override
-  // ignore: overridden_fields
-  final FunctionEntity _member;
+  final FunctionEntity _member; // ignore: overridden_fields
   final AbstractValue _type;
 
   GetterTypeInformation(
-      AbstractValueDomain abstractValueDomain, this._member, FunctionType type)
-      : _type = abstractValueDomain
-            .createFromStaticType(type.returnType, nullable: true)
-            .abstractValue,
-        super._internal(abstractValueDomain, _member);
+    AbstractValueDomain abstractValueDomain,
+    this._member,
+    FunctionType type,
+  ) : _type =
+          abstractValueDomain
+              .createFromStaticType(type.returnType, nullable: true)
+              .abstractValue,
+      super._internal(abstractValueDomain, _member);
 
   @override
   AbstractValue? handleSpecialCases(InferrerEngine inferrer) {
@@ -653,18 +669,19 @@ class GetterTypeInformation extends MemberTypeInformation {
 
   @override
   AbstractValue _potentiallyNarrowType(
-      AbstractValue mask, InferrerEngine inferrer) {
+    AbstractValue mask,
+    InferrerEngine inferrer,
+  ) {
     return _narrowType(inferrer.abstractValueDomain, mask, _type);
   }
 }
 
 class SetterTypeInformation extends MemberTypeInformation {
   @override
-  // ignore: overridden_fields
-  final FunctionEntity _member;
+  final FunctionEntity _member; // ignore: overridden_fields
 
   SetterTypeInformation(AbstractValueDomain abstractValueDomain, this._member)
-      : super._internal(abstractValueDomain, _member);
+    : super._internal(abstractValueDomain, _member);
 
   @override
   AbstractValue? handleSpecialCases(InferrerEngine inferrer) {
@@ -673,23 +690,27 @@ class SetterTypeInformation extends MemberTypeInformation {
 
   @override
   AbstractValue _potentiallyNarrowType(
-      AbstractValue mask, InferrerEngine inferrer) {
+    AbstractValue mask,
+    InferrerEngine inferrer,
+  ) {
     return mask;
   }
 }
 
 class MethodTypeInformation extends MemberTypeInformation {
   @override
-  // ignore: overridden_fields
-  final FunctionEntity _member;
+  final FunctionEntity _member; // ignore: overridden_fields
   final AbstractValue _type;
 
   MethodTypeInformation(
-      AbstractValueDomain abstractValueDomain, this._member, FunctionType type)
-      : _type = abstractValueDomain
-            .createFromStaticType(type.returnType, nullable: true)
-            .abstractValue,
-        super._internal(abstractValueDomain, _member);
+    AbstractValueDomain abstractValueDomain,
+    this._member,
+    FunctionType type,
+  ) : _type =
+          abstractValueDomain
+              .createFromStaticType(type.returnType, nullable: true)
+              .abstractValue,
+      super._internal(abstractValueDomain, _member);
 
   @override
   AbstractValue? handleSpecialCases(InferrerEngine inferrer) {
@@ -698,7 +719,9 @@ class MethodTypeInformation extends MemberTypeInformation {
 
   @override
   AbstractValue _potentiallyNarrowType(
-      AbstractValue mask, InferrerEngine inferrer) {
+    AbstractValue mask,
+    InferrerEngine inferrer,
+  ) {
     if (inferrer.commonElements.isLateReadCheck(_member)) {
       mask = inferrer.abstractValueDomain.excludeLateSentinel(mask);
     }
@@ -711,16 +734,18 @@ class MethodTypeInformation extends MemberTypeInformation {
 
 class FactoryConstructorTypeInformation extends MemberTypeInformation {
   @override
-  // ignore: overridden_fields
-  final ConstructorEntity _member;
+  final ConstructorEntity _member; // ignore: overridden_fields
   final AbstractValue _type;
 
   FactoryConstructorTypeInformation(
-      AbstractValueDomain abstractValueDomain, this._member, FunctionType type)
-      : _type = abstractValueDomain
-            .createFromStaticType(type.returnType, nullable: true)
-            .abstractValue,
-        super._internal(abstractValueDomain, _member);
+    AbstractValueDomain abstractValueDomain,
+    this._member,
+    FunctionType type,
+  ) : _type =
+          abstractValueDomain
+              .createFromStaticType(type.returnType, nullable: true)
+              .abstractValue,
+      super._internal(abstractValueDomain, _member);
 
   @override
   AbstractValue? handleSpecialCases(InferrerEngine inferrer) {
@@ -743,20 +768,22 @@ class FactoryConstructorTypeInformation extends MemberTypeInformation {
 
   @override
   AbstractValue _potentiallyNarrowType(
-      AbstractValue mask, InferrerEngine inferrer) {
+    AbstractValue mask,
+    InferrerEngine inferrer,
+  ) {
     return _narrowType(inferrer.abstractValueDomain, mask, _type);
   }
 }
 
 class GenerativeConstructorTypeInformation extends MemberTypeInformation {
   @override
-  // ignore: overridden_fields
-  final FunctionEntity _member;
+  final FunctionEntity _member; // ignore: overridden_fields
   AbstractValue? _baseType;
 
   GenerativeConstructorTypeInformation(
-      AbstractValueDomain abstractValueDomain, this._member)
-      : super._internal(abstractValueDomain, _member);
+    AbstractValueDomain abstractValueDomain,
+    this._member,
+  ) : super._internal(abstractValueDomain, _member);
 
   @override
   AbstractValue? handleSpecialCases(InferrerEngine inferrer) {
@@ -765,14 +792,17 @@ class GenerativeConstructorTypeInformation extends MemberTypeInformation {
 
   @override
   AbstractValue _potentiallyNarrowType(
-      AbstractValue mask, InferrerEngine inferrer) {
+    AbstractValue mask,
+    InferrerEngine inferrer,
+  ) {
     final cls = _member.enclosingClass!;
     return _narrowType(
       inferrer.abstractValueDomain,
       mask,
-      _baseType ??= cls.isAbstract
-          ? inferrer.abstractValueDomain.createNonNullSubclass(cls)
-          : inferrer.abstractValueDomain.createNonNullExact(cls),
+      _baseType ??=
+          cls.isAbstract
+              ? inferrer.abstractValueDomain.createNonNullSubclass(cls)
+              : inferrer.abstractValueDomain.createNonNullExact(cls),
     );
   }
 }
@@ -802,44 +832,61 @@ class ParameterTypeInformation extends ElementTypeInformation {
   bool _isTearOffClosureParameter = false;
   bool get _isVirtual => _flags.contains(_Flag.isVirtual);
 
-  ParameterTypeInformation.localFunction(super.abstractValueDomain,
-      super.context, this._parameter, DartType type, this._method)
-      : _type = abstractValueDomain
-            .createFromStaticType(type, nullable: true)
-            .abstractValue,
-        _inputType = abstractValueDomain.uncomputedType,
-        super._internal() {
+  ParameterTypeInformation.localFunction(
+    super.abstractValueDomain,
+    super.context,
+    this._parameter,
+    DartType type,
+    this._method,
+  ) : _type =
+          abstractValueDomain
+              .createFromStaticType(type, nullable: true)
+              .abstractValue,
+      _inputType = abstractValueDomain.uncomputedType,
+      super._internal() {
     _flags = _flags.add(_Flag.isClosureParameter);
   }
 
   ParameterTypeInformation.static(
-      super.abstractValueDomain,
-      MemberTypeInformation super.context,
-      this._parameter,
-      DartType type,
-      this._method,
-      {bool isInitializingFormal = false})
-      : _type = abstractValueDomain
-            .createFromStaticType(type, nullable: true)
-            .abstractValue,
-        _inputType = abstractValueDomain.uncomputedType,
-        super._internal() {
+    super.abstractValueDomain,
+    MemberTypeInformation super.context,
+    this._parameter,
+    DartType type,
+    this._method, {
+    bool isInitializingFormal = false,
+  }) : _type =
+           abstractValueDomain
+               .createFromStaticType(type, nullable: true)
+               .abstractValue,
+       _inputType = abstractValueDomain.uncomputedType,
+       super._internal() {
     _flags = _flags.update(_Flag.isInitializingFormal, isInitializingFormal);
   }
 
-  ParameterTypeInformation.instanceMember(super.abstractValueDomain,
-      super.context, this._parameter, DartType type, this._method, super.inputs,
-      {required bool isVirtual})
-      : _type =
-            _createInstanceMemberStaticType(abstractValueDomain, type, _method),
-        _inputType = abstractValueDomain.uncomputedType,
-        super._withInputs() {
+  ParameterTypeInformation.instanceMember(
+    super.abstractValueDomain,
+    super.context,
+    this._parameter,
+    DartType type,
+    this._method,
+    super.inputs, {
+    required bool isVirtual,
+  }) : _type = _createInstanceMemberStaticType(
+         abstractValueDomain,
+         type,
+         _method,
+       ),
+       _inputType = abstractValueDomain.uncomputedType,
+       super._withInputs() {
     _flags = _flags.add(_Flag.isInstanceMemberParameter);
     _flags = _flags.update(_Flag.isVirtual, isVirtual);
   }
 
   static AbstractValue _createInstanceMemberStaticType(
-      AbstractValueDomain domain, DartType type, FunctionEntity method) {
+    AbstractValueDomain domain,
+    DartType type,
+    FunctionEntity method,
+  ) {
     final staticType =
         domain.createFromStaticType(type, nullable: true).abstractValue;
     // We include null in the type of `==` because it usually does not already
@@ -898,8 +945,9 @@ class ParameterTypeInformation extends ElementTypeInformation {
       giveUp(inferrer);
       return safeType(inferrer);
     }
-    if (inferrer.inferredDataBuilder
-        .getCurrentlyKnownMightBePassedToApply(_method)) {
+    if (inferrer.inferredDataBuilder.getCurrentlyKnownMightBePassedToApply(
+      _method,
+    )) {
       giveUp(inferrer);
       return safeType(inferrer);
     }
@@ -917,7 +965,9 @@ class ParameterTypeInformation extends ElementTypeInformation {
   }
 
   AbstractValue potentiallyNarrowType(
-      AbstractValue mask, InferrerEngine inferrer) {
+    AbstractValue mask,
+    InferrerEngine inferrer,
+  ) {
     return _narrowType(inferrer.abstractValueDomain, mask, _type);
   }
 
@@ -999,10 +1049,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
   }
 }
 
-enum CallType {
-  access,
-  forIn,
-}
+enum CallType { access, forIn }
 
 bool validCallType(CallType callType, ir.Node? call) {
   switch (callType) {
@@ -1030,14 +1077,14 @@ abstract class CallSiteTypeInformation extends TypeInformation
   bool get inLoop => _flags.contains(_Flag.inLoop);
 
   CallSiteTypeInformation(
-      AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation? context,
-      this.callNode,
-      this.caller,
-      this.selector,
-      this.arguments,
-      bool inLoop)
-      : super.noInputs(abstractValueDomain.uncomputedType, context) {
+    AbstractValueDomain abstractValueDomain,
+    MemberTypeInformation? context,
+    this.callNode,
+    this.caller,
+    this.selector,
+    this.arguments,
+    bool inLoop,
+  ) : super.noInputs(abstractValueDomain.uncomputedType, context) {
     _flags = _flags.update(_Flag.inLoop, inLoop);
   }
 
@@ -1055,14 +1102,15 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   final MemberEntity calledElement;
 
   StaticCallSiteTypeInformation(
-      super.abstractValueDomain,
-      super.context,
-      super.callNode,
-      super.enclosing,
-      this.calledElement,
-      super.selector,
-      super.arguments,
-      super.inLoop);
+    super.abstractValueDomain,
+    super.context,
+    super.callNode,
+    super.enclosing,
+    this.calledElement,
+    super.selector,
+    super.arguments,
+    super.inLoop,
+  );
 
   ir.StaticInvocation get invocationNode => callNode as ir.StaticInvocation;
 
@@ -1079,8 +1127,14 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
         info.addUser(this);
       }
     }
-    inferrer.updateParameterInputs(this, calledElement, arguments, selector,
-        remove: false, addToQueue: false);
+    inferrer.updateParameterInputs(
+      this,
+      calledElement,
+      arguments,
+      selector,
+      remove: false,
+      addToQueue: false,
+    );
   }
 
   bool get isSynthesized {
@@ -1092,8 +1146,11 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 
   TypeInformation _getCalledTypeInfoWithSelector(InferrerEngine inferrer) {
-    return inferrer.typeOfMemberWithSelector(calledElement, selector,
-        isVirtual: false);
+    return inferrer.typeOfMemberWithSelector(
+      calledElement,
+      selector,
+      isVirtual: false,
+    );
   }
 
   @override
@@ -1151,23 +1208,28 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
       _flags.contains(_Flag.hasTargetsIncludeComplexNoSuchMethod);
 
   DynamicCallSiteTypeInformation(
-      super.abstractValueDomain,
-      super.context,
-      this._callType,
-      super.callNode,
-      super.enclosing,
-      super.selector,
-      this.mask,
-      this.receiver,
-      super.arguments,
-      super.inLoop,
-      bool isConditional) {
+    super.abstractValueDomain,
+    super.context,
+    this._callType,
+    super.callNode,
+    super.enclosing,
+    super.selector,
+    this.mask,
+    this.receiver,
+    super.arguments,
+    super.inLoop,
+    bool isConditional,
+  ) {
     _flags = _flags.update(_Flag.isConditional, isConditional);
     assert(validCallType(_callType, callNode));
   }
 
-  void _handleCalledTarget(DynamicCallTarget target, InferrerEngine inferrer,
-      {required bool addToQueue, required bool remove}) {
+  void _handleCalledTarget(
+    DynamicCallTarget target,
+    InferrerEngine inferrer, {
+    required bool addToQueue,
+    required bool remove,
+  }) {
     MemberTypeInformation targetType = inferrer.inferredTypeOfTarget(target);
     if (remove) {
       targetType.removeUser(this);
@@ -1175,17 +1237,29 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
       targetType.addUser(this);
     }
     final member = target.member;
-    inferrer.updateParameterInputs(this, member, arguments, selector,
-        addToQueue: addToQueue, remove: remove, virtualCall: target.isVirtual);
+    inferrer.updateParameterInputs(
+      this,
+      member,
+      arguments,
+      selector,
+      addToQueue: addToQueue,
+      remove: remove,
+      virtualCall: target.isVirtual,
+    );
   }
 
   @override
   void addToGraph(InferrerEngine inferrer) {
     final typeMask = computeTypedSelector(inferrer);
-    _hasClosureCallTargets =
-        inferrer.closedWorld.includesClosureCall(selector!, typeMask);
-    final targets = _targets =
-        inferrer.memberHierarchyBuilder.rootsForCall(typeMask, selector!);
+    _hasClosureCallTargets = inferrer.closedWorld.includesClosureCall(
+      selector!,
+      typeMask,
+    );
+    final targets =
+        _targets = inferrer.memberHierarchyBuilder.rootsForCall(
+          typeMask,
+          selector!,
+        );
     invalidateTargetsIncludeComplexNoSuchMethod();
     receiver.addUser(this);
     if (arguments != null) {
@@ -1211,7 +1285,9 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   Iterable<DynamicCallTarget> get targets => _targets!;
 
   void forEachConcreteTarget(
-      MemberHierarchyBuilder builder, bool Function(MemberEntity member) f) {
+    MemberHierarchyBuilder builder,
+    bool Function(MemberEntity member) f,
+  ) {
     for (final target in targets) {
       builder.forEachTargetMember(target, f);
     }
@@ -1235,13 +1311,16 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   bool targetsIncludeComplexNoSuchMethod(InferrerEngine inferrer) {
     if (!_hasTargetsIncludeComplexNoSuchMethod) {
       _flags = _flags.add(_Flag.hasTargetsIncludeComplexNoSuchMethod);
-      final value = targets.any((target) => inferrer.memberHierarchyBuilder
-              .anyTargetMember(target, (MemberEntity e) {
-            return e.isFunction &&
-                e.isInstanceMember &&
-                e.name == Identifiers.noSuchMethod_ &&
-                inferrer.noSuchMethodData.isComplex(e as FunctionEntity);
-          }));
+      final value = targets.any(
+        (target) => inferrer.memberHierarchyBuilder.anyTargetMember(target, (
+          MemberEntity e,
+        ) {
+          return e.isFunction &&
+              e.isInstanceMember &&
+              e.name == Identifiers.noSuchMethod_ &&
+              inferrer.noSuchMethodData.isComplex(e as FunctionEntity);
+        }),
+      );
       _flags = _flags.update(_Flag.targetsIncludeComplexNoSuchMethod, value);
       return value;
     }
@@ -1256,7 +1335,10 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   /// Returns the more precise TypeInformation, or `null` to defer to the
   /// library code.
   TypeInformation? handleIntrinsifiedSelector(
-      Selector selector, AbstractValue? mask, InferrerEngine inferrer) {
+    Selector selector,
+    AbstractValue? mask,
+    InferrerEngine inferrer,
+  ) {
     AbstractValueDomain abstractValueDomain = inferrer.abstractValueDomain;
     if (mask == null) return null;
     if (abstractValueDomain.isIntegerOrNull(mask).isPotentiallyFalse) {
@@ -1271,9 +1353,10 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
         abstractValueDomain.isIntegerOrNull(info.type).isDefinitelyTrue;
     bool isEmpty(TypeInformation info) =>
         abstractValueDomain.isEmpty(info.type).isDefinitelyTrue;
-    bool isUInt31(TypeInformation info) => abstractValueDomain
-        .isUInt31(abstractValueDomain.excludeNull(info.type))
-        .isDefinitelyTrue;
+    bool isUInt31(TypeInformation info) =>
+        abstractValueDomain
+            .isUInt31(abstractValueDomain.excludeNull(info.type))
+            .isDefinitelyTrue;
     bool isPositiveInt(TypeInformation info) =>
         abstractValueDomain.isPositiveIntegerOrNull(info.type).isDefinitelyTrue;
 
@@ -1363,27 +1446,38 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     final typeMask = computeTypedSelector(inferrer);
     final localSelector = selector!;
     inferrer.updateSelectorInMember(
-        caller, _callType, callNode as ir.TreeNode, localSelector, typeMask);
+      caller,
+      _callType,
+      callNode as ir.TreeNode,
+      localSelector,
+      typeMask,
+    );
 
-    final includesClosureCall = _hasClosureCallTargets =
-        closedWorld.includesClosureCall(localSelector, typeMask);
-    final targets = _targets =
-        inferrer.memberHierarchyBuilder.rootsForCall(typeMask, localSelector);
+    final includesClosureCall =
+        _hasClosureCallTargets = closedWorld.includesClosureCall(
+          localSelector,
+          typeMask,
+        );
+    final targets =
+        _targets = inferrer.memberHierarchyBuilder.rootsForCall(
+          typeMask,
+          localSelector,
+        );
 
     // Update the call graph if the targets could have changed.
     if (!identical(targets, oldTargets)) {
       invalidateTargetsIncludeComplexNoSuchMethod();
       // Add calls to new targets to the graph.
-      targets
-          .where((target) => !oldTargets.contains(target))
-          .forEach((DynamicCallTarget target) {
+      targets.where((target) => !oldTargets.contains(target)).forEach((
+        DynamicCallTarget target,
+      ) {
         _handleCalledTarget(target, inferrer, addToQueue: true, remove: false);
       });
 
       // Walk over the old targets, and remove calls that cannot happen anymore.
-      oldTargets
-          .where((target) => !targets.contains(target))
-          .forEach((DynamicCallTarget target) {
+      oldTargets.where((target) => !targets.contains(target)).forEach((
+        DynamicCallTarget target,
+      ) {
         _handleCalledTarget(target, inferrer, addToQueue: true, remove: true);
       });
     }
@@ -1394,57 +1488,75 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     if (includesClosureCall) {
       result = abstractValueDomain.dynamicType;
     } else {
-      result =
-          inferrer.types.joinTypeMasks(targets.map((DynamicCallTarget target) {
-        final element = target.member;
-        if (typeMask != null &&
-            inferrer.returnsListElementType(localSelector, typeMask)) {
-          return abstractValueDomain.getContainerElementType(receiver.type);
-        } else if (typeMask != null &&
-            inferrer.returnsMapValueType(localSelector, typeMask)) {
-          if (abstractValueDomain.isDictionary(typeMask)) {
-            AbstractValue arg = arguments!.positional[0].type;
-            final value = abstractValueDomain.getPrimitiveValue(arg);
-            if (value is StringConstantValue) {
-              String key = value.stringValue;
-              if (abstractValueDomain.containsDictionaryKey(typeMask, key)) {
-                if (debug.verbose) {
-                  print("Dictionary lookup for $key yields "
-                      "${abstractValueDomain.getDictionaryValueForKey(typeMask, key)}.");
+      result = inferrer.types.joinTypeMasks(
+        targets.map((DynamicCallTarget target) {
+          final element = target.member;
+          if (typeMask != null &&
+              inferrer.returnsListElementType(localSelector, typeMask)) {
+            return abstractValueDomain.getContainerElementType(receiver.type);
+          } else if (typeMask != null &&
+              inferrer.returnsMapValueType(localSelector, typeMask)) {
+            if (abstractValueDomain.isDictionary(typeMask)) {
+              AbstractValue arg = arguments!.positional[0].type;
+              final value = abstractValueDomain.getPrimitiveValue(arg);
+              if (value is StringConstantValue) {
+                String key = value.stringValue;
+                if (abstractValueDomain.containsDictionaryKey(typeMask, key)) {
+                  if (debug.verbose) {
+                    print(
+                      "Dictionary lookup for $key yields "
+                      "${abstractValueDomain.getDictionaryValueForKey(typeMask, key)}.",
+                    );
+                  }
+                  return abstractValueDomain.getDictionaryValueForKey(
+                    typeMask,
+                    key,
+                  );
+                } else {
+                  // The typeMap is precise, so if we do not find the key, the
+                  // lookup will be [null] at runtime.
+                  if (debug.verbose) {
+                    print("Dictionary lookup for $key yields [null].");
+                  }
+                  return inferrer.types.nullType.type;
                 }
-                return abstractValueDomain.getDictionaryValueForKey(
-                    typeMask, key);
-              } else {
-                // The typeMap is precise, so if we do not find the key, the
-                // lookup will be [null] at runtime.
-                if (debug.verbose) {
-                  print("Dictionary lookup for $key yields [null].");
-                }
-                return inferrer.types.nullType.type;
               }
             }
+            assert(abstractValueDomain.isMap(typeMask));
+            if (debug.verbose) {
+              print(
+                "Map lookup for $selector yields "
+                "${abstractValueDomain.getMapValueType(typeMask)}.",
+              );
+            }
+            return abstractValueDomain.getMapValueType(typeMask);
+          } else if (typeMask != null &&
+              localSelector.isGetter &&
+              abstractValueDomain.recordHasGetter(
+                typeMask,
+                localSelector.name,
+              )) {
+            return abstractValueDomain.getGetterTypeInRecord(
+              typeMask,
+              localSelector.name,
+            );
+          } else {
+            final info = handleIntrinsifiedSelector(
+              localSelector,
+              typeMask,
+              inferrer,
+            );
+            if (info != null) return info.type;
+            return inferrer
+                .typeOfMemberWithSelector(
+                  element,
+                  selector,
+                  isVirtual: target.isVirtual,
+                )
+                .type;
           }
-          assert(abstractValueDomain.isMap(typeMask));
-          if (debug.verbose) {
-            print("Map lookup for $selector yields "
-                "${abstractValueDomain.getMapValueType(typeMask)}.");
-          }
-          return abstractValueDomain.getMapValueType(typeMask);
-        } else if (typeMask != null &&
-            localSelector.isGetter &&
-            abstractValueDomain.recordHasGetter(typeMask, localSelector.name)) {
-          return abstractValueDomain.getGetterTypeInRecord(
-              typeMask, localSelector.name);
-        } else {
-          final info =
-              handleIntrinsifiedSelector(localSelector, typeMask, inferrer);
-          if (info != null) return info.type;
-          return inferrer
-              .typeOfMemberWithSelector(element, selector,
-                  isVirtual: target.isVirtual)
-              .type;
-        }
-      }));
+        }),
+      );
     }
     if (isConditional &&
         abstractValueDomain.isNull(receiver.type).isPotentiallyTrue) {
@@ -1459,18 +1571,32 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   void giveUp(InferrerEngine inferrer, {bool clearInputs = true}) {
     if (!abandonInferencing) {
       inferrer.updateSelectorInMember(
-          caller, _callType, callNode as ir.TreeNode, selector, mask);
+        caller,
+        _callType,
+        callNode as ir.TreeNode,
+        selector,
+        mask,
+      );
       final oldTargets = targets;
       final localSelector = selector!;
-      _hasClosureCallTargets =
-          inferrer.closedWorld.includesClosureCall(localSelector, mask);
-      final newTargets = _targets =
-          inferrer.memberHierarchyBuilder.rootsForCall(mask, localSelector);
+      _hasClosureCallTargets = inferrer.closedWorld.includesClosureCall(
+        localSelector,
+        mask,
+      );
+      final newTargets =
+          _targets = inferrer.memberHierarchyBuilder.rootsForCall(
+            mask,
+            localSelector,
+          );
       invalidateTargetsIncludeComplexNoSuchMethod();
       for (final target in newTargets) {
         if (!oldTargets.contains(target)) {
-          _handleCalledTarget(target, inferrer,
-              addToQueue: true, remove: false);
+          _handleCalledTarget(
+            target,
+            inferrer,
+            addToQueue: true,
+            remove: false,
+          );
         }
       }
     }
@@ -1480,8 +1606,9 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   @override
   void removeAndClearReferences(InferrerEngine inferrer) {
     forEachConcreteTarget(inferrer.memberHierarchyBuilder, (element) {
-      MemberTypeInformation callee =
-          inferrer.types.getInferredTypeOfMember(element);
+      MemberTypeInformation callee = inferrer.types.getInferredTypeOfMember(
+        element,
+      );
       callee.removeUser(this);
       return true;
     });
@@ -1504,12 +1631,13 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   @override
   bool hasStableType(InferrerEngine inferrer) {
     return receiver.isStable &&
-        targets.every((target) => inferrer.memberHierarchyBuilder
-            .anyTargetMember(
-                target,
-                (MemberEntity element) => inferrer.types
-                    .getInferredTypeOfMember(element)
-                    .isStable)) &&
+        targets.every(
+          (target) => inferrer.memberHierarchyBuilder.anyTargetMember(
+            target,
+            (MemberEntity element) =>
+                inferrer.types.getInferredTypeOfMember(element).isStable,
+          ),
+        ) &&
         (arguments == null || arguments!.every((info) => info.isStable)) &&
         super.hasStableType(inferrer);
   }
@@ -1519,14 +1647,15 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
   final TypeInformation closure;
 
   ClosureCallSiteTypeInformation(
-      super.abstractValueDomain,
-      super.context,
-      super.callNode,
-      super.enclosing,
-      super.selector,
-      this.closure,
-      super.arguments,
-      super.inLoop);
+    super.abstractValueDomain,
+    super.context,
+    super.callNode,
+    super.enclosing,
+    super.selector,
+    this.closure,
+    super.arguments,
+    super.inLoop,
+  );
 
   @override
   void addToGraph(InferrerEngine inferrer) {
@@ -1637,9 +1766,15 @@ class StringLiteralTypeInformation extends ConcreteTypeInformation {
   final String value;
 
   StringLiteralTypeInformation(
-      AbstractValueDomain abstractValueDomain, this.value, AbstractValue mask)
-      : super(abstractValueDomain.createPrimitiveValue(
-            mask, StringConstantValue(value)));
+    AbstractValueDomain abstractValueDomain,
+    this.value,
+    AbstractValue mask,
+  ) : super(
+        abstractValueDomain.createPrimitiveValue(
+          mask,
+          StringConstantValue(value),
+        ),
+      );
 
   String asString() => value;
   @override
@@ -1655,9 +1790,15 @@ class BoolLiteralTypeInformation extends ConcreteTypeInformation {
   final bool value;
 
   BoolLiteralTypeInformation(
-      AbstractValueDomain abstractValueDomain, this.value, AbstractValue mask)
-      : super(abstractValueDomain.createPrimitiveValue(
-            mask, value ? TrueConstantValue() : FalseConstantValue()));
+    AbstractValueDomain abstractValueDomain,
+    this.value,
+    AbstractValue mask,
+  ) : super(
+        abstractValueDomain.createPrimitiveValue(
+          mask,
+          value ? TrueConstantValue() : FalseConstantValue(),
+        ),
+      );
 
   @override
   String toString() => 'Type $type value $value';
@@ -1688,9 +1829,11 @@ class BoolLiteralTypeInformation extends ConcreteTypeInformation {
 class NarrowTypeInformation extends TypeInformation {
   final AbstractValue typeAnnotation;
 
-  NarrowTypeInformation(AbstractValueDomain abstractValueDomain,
-      TypeInformation narrowedType, this.typeAnnotation)
-      : super(abstractValueDomain.uncomputedType, narrowedType.context) {
+  NarrowTypeInformation(
+    AbstractValueDomain abstractValueDomain,
+    TypeInformation narrowedType,
+    this.typeAnnotation,
+  ) : super(abstractValueDomain.uncomputedType, narrowedType.context) {
     addInput(narrowedType);
   }
 
@@ -1704,8 +1847,10 @@ class NarrowTypeInformation extends TypeInformation {
   AbstractValue computeType(InferrerEngine inferrer) {
     AbstractValueDomain abstractValueDomain = inferrer.abstractValueDomain;
     AbstractValue input = inputs.first.type;
-    AbstractValue intersection =
-        abstractValueDomain.intersection(input, typeAnnotation);
+    AbstractValue intersection = abstractValueDomain.intersection(
+      input,
+      typeAnnotation,
+    );
     return intersection;
   }
 
@@ -1729,9 +1874,11 @@ abstract class InferredTypeInformation extends TypeInformation {
   bool get inferred => _flags.contains(_Flag.inferred);
   set inferred(bool value) => _flags = _flags.update(_Flag.inferred, value);
 
-  InferredTypeInformation(AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation? context, TypeInformation? parentType)
-      : super(abstractValueDomain.uncomputedType, context) {
+  InferredTypeInformation(
+    AbstractValueDomain abstractValueDomain,
+    MemberTypeInformation? context,
+    TypeInformation? parentType,
+  ) : super(abstractValueDomain.uncomputedType, context) {
     if (parentType != null) addInput(parentType);
   }
 
@@ -1762,12 +1909,12 @@ class ListTypeInformation extends TypeInformation with TracedTypeInformation {
   int? inferredLength;
 
   ListTypeInformation(
-      AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation? context,
-      this.originalType,
-      this.elementType,
-      this.originalLength)
-      : super(originalType, context) {
+    AbstractValueDomain abstractValueDomain,
+    MemberTypeInformation? context,
+    this.originalType,
+    this.elementType,
+    this.originalLength,
+  ) : super(originalType, context) {
     inferredLength = abstractValueDomain.getContainerLength(originalType);
     elementType.addUser(this);
   }
@@ -1793,11 +1940,12 @@ class ListTypeInformation extends TypeInformation with TracedTypeInformation {
         abstractValueDomain.getContainerElementType(type) != elementType.type ||
         abstractValueDomain.getContainerLength(type) != inferredLength) {
       return abstractValueDomain.createContainerValue(
-          abstractValueDomain.getGeneralization(originalType),
-          abstractValueDomain.getAllocationNode(originalType),
-          abstractValueDomain.getAllocationElement(originalType),
-          elementType.type,
-          inferredLength);
+        abstractValueDomain.getGeneralization(originalType),
+        abstractValueDomain.getAllocationNode(originalType),
+        abstractValueDomain.getAllocationElement(originalType),
+        elementType.type,
+        inferredLength,
+      );
     }
     return mask;
   }
@@ -1817,7 +1965,10 @@ class ListTypeInformation extends TypeInformation with TracedTypeInformation {
 /// elements in a [ListTypeInformation].
 class ElementInContainerTypeInformation extends InferredTypeInformation {
   ElementInContainerTypeInformation(
-      super.abstractValueDomain, super.context, super.elementType);
+    super.abstractValueDomain,
+    super.context,
+    super.elementType,
+  );
 
   @override
   String toString() => 'Element in container $type';
@@ -1835,8 +1986,10 @@ class SetTypeInformation extends TypeInformation with TracedTypeInformation {
   final AbstractValue originalType;
 
   SetTypeInformation(
-      MemberTypeInformation? context, this.originalType, this.elementType)
-      : super(originalType, context) {
+    MemberTypeInformation? context,
+    this.originalType,
+    this.elementType,
+  ) : super(originalType, context) {
     elementType.addUser(this);
   }
 
@@ -1855,10 +2008,11 @@ class SetTypeInformation extends TypeInformation with TracedTypeInformation {
     if (!abstractValueDomain.isSet(type) ||
         abstractValueDomain.getSetElementType(type) != elementType.type) {
       return abstractValueDomain.createSetValue(
-          abstractValueDomain.getGeneralization(originalType),
-          abstractValueDomain.getAllocationNode(originalType),
-          abstractValueDomain.getAllocationElement(originalType),
-          elementType.type);
+        abstractValueDomain.getGeneralization(originalType),
+        abstractValueDomain.getAllocationNode(originalType),
+        abstractValueDomain.getAllocationElement(originalType),
+        elementType.type,
+      );
     }
     return mask;
   }
@@ -1883,7 +2037,10 @@ class SetTypeInformation extends TypeInformation with TracedTypeInformation {
 /// [SetTypeInformation].
 class ElementInSetTypeInformation extends InferredTypeInformation {
   ElementInSetTypeInformation(
-      super.abstractValueDomain, super.context, super.elementType);
+    super.abstractValueDomain,
+    super.context,
+    super.elementType,
+  );
 
   @override
   String toString() => 'Element in set $type';
@@ -1910,22 +2067,33 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
 
   bool get inDictionaryMode => !bailedOut && _allKeysAreStrings;
 
-  MapTypeInformation(MemberTypeInformation? context, this.originalType,
-      this.keyType, this.valueType)
-      : super(originalType, context) {
+  MapTypeInformation(
+    MemberTypeInformation? context,
+    this.originalType,
+    this.keyType,
+    this.valueType,
+  ) : super(originalType, context) {
     keyType.addUser(this);
     valueType.addUser(this);
   }
 
-  TypeInformation? addEntryInput(AbstractValueDomain abstractValueDomain,
-      TypeInformation key, TypeInformation value,
-      [bool nonNull = false]) {
+  TypeInformation? addEntryInput(
+    AbstractValueDomain abstractValueDomain,
+    TypeInformation key,
+    TypeInformation value, [
+    bool nonNull = false,
+  ]) {
     ValueInMapTypeInformation? newInfo;
     if (_allKeysAreStrings && key is StringLiteralTypeInformation) {
       String keyString = key.asString();
       typeInfoMap.putIfAbsent(keyString, () {
         newInfo = ValueInMapTypeInformation(
-            abstractValueDomain, context, null, valueType.staticType, nonNull);
+          abstractValueDomain,
+          context,
+          null,
+          valueType.staticType,
+          nonNull,
+        );
         return newInfo!;
       });
       typeInfoMap[keyString]!.addInput(value);
@@ -1941,13 +2109,20 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
   }
 
   List<TypeInformation> addMapInput(
-      AbstractValueDomain abstractValueDomain, MapTypeInformation other) {
+    AbstractValueDomain abstractValueDomain,
+    MapTypeInformation other,
+  ) {
     List<TypeInformation> newInfos = <TypeInformation>[];
     if (_allKeysAreStrings && other.inDictionaryMode) {
       other.typeInfoMap.forEach((keyString, value) {
         typeInfoMap.putIfAbsent(keyString, () {
           final newInfo = ValueInMapTypeInformation(
-              abstractValueDomain, context, null, valueType.staticType, false);
+            abstractValueDomain,
+            context,
+            null,
+            valueType.staticType,
+            false,
+          );
           newInfos.add(newInfo);
           return newInfo;
         });
@@ -1988,19 +2163,21 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
         mappings[key] = typeInfoMap[key]!.type;
       }
       return inferrer.abstractValueDomain.createDictionaryValue(
-          abstractValueDomain.getGeneralization(originalType),
-          abstractValueDomain.getAllocationNode(originalType),
-          abstractValueDomain.getAllocationElement(originalType),
-          keyType.type,
-          valueType.type,
-          mappings);
+        abstractValueDomain.getGeneralization(originalType),
+        abstractValueDomain.getAllocationNode(originalType),
+        abstractValueDomain.getAllocationElement(originalType),
+        keyType.type,
+        valueType.type,
+        mappings,
+      );
     } else {
       return inferrer.abstractValueDomain.createMapValue(
-          abstractValueDomain.getGeneralization(originalType),
-          abstractValueDomain.getAllocationNode(originalType),
-          abstractValueDomain.getAllocationElement(originalType),
-          keyType.type,
-          valueType.type);
+        abstractValueDomain.getGeneralization(originalType),
+        abstractValueDomain.getAllocationNode(originalType),
+        abstractValueDomain.getAllocationElement(originalType),
+        keyType.type,
+        valueType.type,
+      );
     }
   }
 
@@ -2068,7 +2245,11 @@ class KeyInMapTypeInformation extends InferredTypeInformation {
   final AbstractValue staticType;
 
   KeyInMapTypeInformation(
-      super.abstractValueDomain, super.context, super.keyType, this.staticType);
+    super.abstractValueDomain,
+    super.context,
+    super.keyType,
+    this.staticType,
+  );
 
   @override
   T accept<T>(TypeInformationVisitor<T> visitor) {
@@ -2077,8 +2258,10 @@ class KeyInMapTypeInformation extends InferredTypeInformation {
 
   @override
   AbstractValue computeType(InferrerEngine inferrer) {
-    return inferrer.abstractValueDomain
-        .intersection(super.computeType(inferrer), staticType);
+    return inferrer.abstractValueDomain.intersection(
+      super.computeType(inferrer),
+      staticType,
+    );
   }
 
   @override
@@ -2094,9 +2277,13 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
   bool get nonNull => _flags.contains(_Flag.valueInMapNonNull);
   final AbstractValue staticType;
 
-  ValueInMapTypeInformation(super.abstractValueDomain, super.context,
-      super.valueType, this.staticType,
-      [bool nonNull = false]) {
+  ValueInMapTypeInformation(
+    super.abstractValueDomain,
+    super.context,
+    super.valueType,
+    this.staticType, [
+    bool nonNull = false,
+  ]) {
     _flags = _flags.update(_Flag.valueInMapNonNull, nonNull);
   }
 
@@ -2107,8 +2294,10 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
 
   @override
   AbstractValue computeType(InferrerEngine inferrer) {
-    final valueType = inferrer.abstractValueDomain
-        .intersection(super.computeType(inferrer), staticType);
+    final valueType = inferrer.abstractValueDomain.intersection(
+      super.computeType(inferrer),
+      staticType,
+    );
     return nonNull
         ? valueType
         : inferrer.abstractValueDomain.includeNull(valueType);
@@ -2125,8 +2314,11 @@ class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
   final List<TypeInformation> fieldTypes;
 
   RecordTypeInformation(
-      super.type, super.context, this.recordShape, this.fieldTypes)
-      : super.noInputs() {
+    super.type,
+    super.context,
+    this.recordShape,
+    this.fieldTypes,
+  ) : super.noInputs() {
     for (final fieldType in fieldTypes) {
       fieldType.addUser(this);
     }
@@ -2144,7 +2336,9 @@ class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
 
   AbstractValue toTypeMask(InferrerEngine inferrer) {
     return inferrer.abstractValueDomain.createRecordValue(
-        recordShape, fieldTypes.map((e) => e.type).toList(growable: false));
+      recordShape,
+      fieldTypes.map((e) => e.type).toList(growable: false),
+    );
   }
 
   @override
@@ -2154,9 +2348,10 @@ class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
 
   @override
   AbstractValue safeType(InferrerEngine inferrer) {
-    final shapeClass = inferrer.closedWorld.recordData
-        .representationForShape(recordShape)
-        ?.cls;
+    final shapeClass =
+        inferrer.closedWorld.recordData
+            .representationForShape(recordShape)
+            ?.cls;
     return shapeClass != null
         ? inferrer.abstractValueDomain.createNonNullSubtype(shapeClass)
         : inferrer.abstractValueDomain.recordType;
@@ -2192,9 +2387,14 @@ class RecordFieldAccessTypeInformation extends TypeInformation {
   final TypeInformation receiver;
   final ir.TreeNode node;
 
-  RecordFieldAccessTypeInformation(AbstractValueDomain domain, this.caller,
-      this.getterName, this.node, this.receiver, MemberTypeInformation? context)
-      : super(domain.uncomputedType, context) {
+  RecordFieldAccessTypeInformation(
+    AbstractValueDomain domain,
+    this.caller,
+    this.getterName,
+    this.node,
+    this.receiver,
+    MemberTypeInformation? context,
+  ) : super(domain.uncomputedType, context) {
     receiver.addUser(this);
   }
 
@@ -2219,8 +2419,10 @@ class RecordFieldAccessTypeInformation extends TypeInformation {
     } else if (!inferrer.abstractValueDomain.isRecord(recordType)) {
       return safeType(inferrer);
     }
-    final getterType = inferrer.abstractValueDomain
-        .getGetterTypeInRecord(recordType, getterName);
+    final getterType = inferrer.abstractValueDomain.getGetterTypeInRecord(
+      recordType,
+      getterName,
+    );
     return getterType;
   }
 }
@@ -2232,10 +2434,13 @@ class PhiElementTypeInformation extends TypeInformation {
   final Local? variable;
   bool get isTry => _flags.contains(_Flag.isTry);
 
-  PhiElementTypeInformation(AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation? context, this.branchNode, this.variable,
-      {required bool isTry})
-      : super(abstractValueDomain.uncomputedType, context) {
+  PhiElementTypeInformation(
+    AbstractValueDomain abstractValueDomain,
+    MemberTypeInformation? context,
+    this.branchNode,
+    this.variable, {
+    required bool isTry,
+  }) : super(abstractValueDomain.uncomputedType, context) {
     _flags = _flags.update(_Flag.isTry, isTry);
   }
 
@@ -2249,7 +2454,10 @@ class PhiElementTypeInformation extends TypeInformation {
 
   @override
   void _toStructuredText(
-      StringBuffer sb, String indent, Set<TypeInformation> seen) {
+    StringBuffer sb,
+    String indent,
+    Set<TypeInformation> seen,
+  ) {
     if (seen.add(this)) {
       sb.write('${toString()} [');
       for (TypeInformation assignment in inputs) {
@@ -2272,9 +2480,11 @@ class ClosureTypeInformation extends TypeInformation
     with ApplyableTypeInformation {
   final FunctionEntity _element;
 
-  ClosureTypeInformation(AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation? context, this._element)
-      : super(abstractValueDomain.uncomputedType, context);
+  ClosureTypeInformation(
+    AbstractValueDomain abstractValueDomain,
+    MemberTypeInformation? context,
+    this._element,
+  ) : super(abstractValueDomain.uncomputedType, context);
 
   FunctionEntity get closure => _element;
 
@@ -2341,15 +2551,22 @@ class AwaitTypeInformation extends TypeInformation {
 
   AbstractValue? _computedType;
 
-  AwaitTypeInformation(AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation context, this._node)
-      : super(abstractValueDomain.uncomputedType, context);
+  AwaitTypeInformation(
+    AbstractValueDomain abstractValueDomain,
+    MemberTypeInformation context,
+    this._node,
+  ) : super(abstractValueDomain.uncomputedType, context);
 
   AbstractValue _computeType(InferrerEngine inferrer) {
     final elementMap = inferrer.closedWorld.elementMap;
-    final staticType = elementMap.getDartType(_node.getStaticType(
-        ir.StaticTypeContext(elementMap.getMemberContextNode(contextMember!)!,
-            elementMap.typeEnvironment)));
+    final staticType = elementMap.getDartType(
+      _node.getStaticType(
+        ir.StaticTypeContext(
+          elementMap.getMemberContextNode(contextMember!)!,
+          elementMap.typeEnvironment,
+        ),
+      ),
+    );
     return inferrer.abstractValueDomain
         .createFromStaticType(staticType, nullable: true)
         .abstractValue;
@@ -2374,9 +2591,11 @@ class AwaitTypeInformation extends TypeInformation {
 class YieldTypeInformation extends TypeInformation {
   final ir.Node _node;
 
-  YieldTypeInformation(AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation? context, this._node)
-      : super(abstractValueDomain.uncomputedType, context);
+  YieldTypeInformation(
+    AbstractValueDomain abstractValueDomain,
+    MemberTypeInformation? context,
+    this._node,
+  ) : super(abstractValueDomain.uncomputedType, context);
 
   @override
   AbstractValue computeType(InferrerEngine inferrer) => safeType(inferrer);
@@ -2396,12 +2615,14 @@ abstract class TypeInformationVisitor<T> {
   T visitNarrowTypeInformation(NarrowTypeInformation info);
   T visitPhiElementTypeInformation(PhiElementTypeInformation info);
   T visitElementInContainerTypeInformation(
-      ElementInContainerTypeInformation info);
+    ElementInContainerTypeInformation info,
+  );
   T visitElementInSetTypeInformation(ElementInSetTypeInformation info);
   T visitKeyInMapTypeInformation(KeyInMapTypeInformation info);
   T visitValueInMapTypeInformation(ValueInMapTypeInformation info);
   T visitRecordFieldAccessTypeInformation(
-      RecordFieldAccessTypeInformation info);
+    RecordFieldAccessTypeInformation info,
+  );
   T visitListTypeInformation(ListTypeInformation info);
   T visitSetTypeInformation(SetTypeInformation info);
   T visitMapTypeInformation(MapTypeInformation info);
@@ -2419,8 +2640,11 @@ abstract class TypeInformationVisitor<T> {
   T visitYieldTypeInformation(YieldTypeInformation info);
 }
 
-AbstractValue _narrowType(AbstractValueDomain abstractValueDomain,
-    AbstractValue type, AbstractValue annotation) {
+AbstractValue _narrowType(
+  AbstractValueDomain abstractValueDomain,
+  AbstractValue type,
+  AbstractValue annotation,
+) {
   final narrowType = abstractValueDomain.intersection(type, annotation);
   return abstractValueDomain.isLateSentinel(type).isPotentiallyTrue
       ? abstractValueDomain.includeLateSentinel(narrowType)

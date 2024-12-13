@@ -23,11 +23,7 @@ closurizedCallToString() {
   var local = c. /*[exact=Class]*/ method;
   local. /*invoke: [subclass=Closure]*/ toString();
   local();
-  local
-      . /*invoke: [subclass=Closure]*/
-      toString();
+  local. /*invoke: [subclass=Closure]*/ toString();
   local.call();
-  return local
-      . /*invoke: [subclass=Closure]*/
-      toString();
+  return local. /*invoke: [subclass=Closure]*/ toString();
 }

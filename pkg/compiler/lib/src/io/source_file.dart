@@ -28,9 +28,12 @@ abstract class SourceFile implements api.Input<Uint8List>, LocationProvider {
   kernel.Source get kernelSource {
     // TODO(johnniwinther): Instead of creating a new Source object,
     // we should use the one provided by the front-end.
-    return _cachedKernelSource ??= kernel.Source(lineStarts, utf8Bytes(),
-        uri /* TODO(jensj): What is the import URI? */, uri)
-      ..cachedText = slowText();
+    return _cachedKernelSource ??= kernel.Source(
+      lineStarts,
+      utf8Bytes(),
+      uri /* TODO(jensj): What is the import URI? */,
+      uri,
+    )..cachedText = slowText();
   }
 
   /// The name of the file.
@@ -100,8 +103,13 @@ abstract class SourceFile implements api.Input<Uint8List>, LocationProvider {
   ///
   /// Use [colorize] to wrap source code text and marker characters in color
   /// escape codes.
-  String getLocationMessage(String message, int start, int end,
-      {bool includeSourceLine = true, String Function(String text)? colorize}) {
+  String getLocationMessage(
+    String message,
+    int start,
+    int end, {
+    bool includeSourceLine = true,
+    String Function(String text)? colorize,
+  }) {
     colorize ??= (text) => text;
 
     kernel.Location startLocation = kernelSource.getLocation(uri, start);
@@ -218,10 +226,10 @@ class StringSourceFile extends SourceFile {
   StringSourceFile(this.uri, this.filename, this.text);
 
   StringSourceFile.fromUri(Uri uri, String text)
-      : this(uri, uri.toString(), text);
+    : this(uri, uri.toString(), text);
 
   StringSourceFile.fromName(String filename, String text)
-      : this(Uri(path: filename), filename, text);
+    : this(Uri(path: filename), filename, text);
 
   @override
   Uint8List get data => utf8.encode(text);

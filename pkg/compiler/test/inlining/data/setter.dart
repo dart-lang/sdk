@@ -9,7 +9,7 @@ main() {
 
 class Class1 {
   var field;
-/*member: Class1.:[]*/
+  /*member: Class1.:[]*/
   @pragma('dart2js:noInline')
   Class1();
   /*member: Class1.setter=:[inlineSetter]*/

@@ -168,7 +168,10 @@ class Namer extends ModularNamer {
   final Map<String, js_ast.Name> internalGlobals = {};
 
   void _registerName(
-      Map<String, String> map, js_ast.Name jsName, String originalName) {
+    Map<String, String> map,
+    js_ast.Name jsName,
+    String originalName,
+  ) {
     // Non-finalized names are not present in the output program
     if (jsName is TokenName && !jsName.isFinalized) return;
     map[jsName.name] = originalName;
@@ -233,8 +236,10 @@ class Namer extends ModularNamer {
 
   final Map<ConstantValue, js_ast.Name> _constantNames = {};
   final Map<ConstantValue, String> _constantLongNames = {};
-  late final ConstantCanonicalHasher _constantHasher =
-      ConstantCanonicalHasher(this, _closedWorld);
+  late final ConstantCanonicalHasher _constantHasher = ConstantCanonicalHasher(
+    this,
+    _closedWorld,
+  );
 
   /// Maps private names to a library that may use that name without prefixing
   /// itself. Used for building proposed names.
@@ -244,8 +249,8 @@ class Namer extends ModularNamer {
       _TypeConstantRepresentationVisitor(this);
 
   Namer(this._closedWorld, this.fixedNames)
-      : _literalGetterPrefix = StringBackedName(fixedNames.getterPrefix),
-        _literalSetterPrefix = StringBackedName(fixedNames.setterPrefix);
+    : _literalGetterPrefix = StringBackedName(fixedNames.getterPrefix),
+      _literalSetterPrefix = StringBackedName(fixedNames.setterPrefix);
 
   JElementEnvironment get _elementEnvironment =>
       _closedWorld.elementEnvironment;
@@ -261,7 +266,9 @@ class Namer extends ModularNamer {
 
   NamingScope _getPrivateScopeFor(PrivatelyNamedJSEntity entity) {
     return _privateNamingScopes.putIfAbsent(
-        entity.rootOfScope, () => NamingScope());
+      entity.rootOfScope,
+      () => NamingScope(),
+    );
   }
 
   /// Disambiguated name for [constant].
@@ -285,8 +292,11 @@ class Namer extends ModularNamer {
   String constantLongName(ConstantValue constant) {
     String? longName = _constantLongNames[constant];
     if (longName == null) {
-      longName = ConstantNamingVisitor(this, _closedWorld, _constantHasher)
-          .getName(constant);
+      longName = ConstantNamingVisitor(
+        this,
+        _closedWorld,
+        _constantHasher,
+      ).getName(constant);
       _constantLongNames[constant] = longName;
     }
     return longName;
@@ -311,8 +321,10 @@ class Namer extends ModularNamer {
         _elementEnvironment.lookupLibrary(originalName.uri!, required: true)!;
 
     // The first library asking for a short private name wins.
-    LibraryEntity owner =
-        shortPrivateNameOwners.putIfAbsent(text, () => library);
+    LibraryEntity owner = shortPrivateNameOwners.putIfAbsent(
+      text,
+      () => library,
+    );
 
     if (owner == library) {
       return text;
@@ -339,7 +351,9 @@ class Namer extends ModularNamer {
   /// Name for a constructor body.
   js_ast.Name constructorBodyName(ConstructorBodyEntity ctor) {
     return _disambiguateInternalMember(
-        ctor, () => _proposeNameForConstructorBody(ctor));
+      ctor,
+      () => _proposeNameForConstructorBody(ctor),
+    );
   }
 
   /// Name for a generator body.
@@ -352,8 +366,9 @@ class Namer extends ModularNamer {
       String invocationName = operatorNameToIdentifier(function.name)!;
       // TODO(sra): If the generator is for a closure's 'call' method, we don't
       // need to incorporate the enclosing class.
-      String className =
-          replaceNonIdentifierCharacters(method.enclosingClass!.name);
+      String className = replaceNonIdentifierCharacters(
+        method.enclosingClass!.name,
+      );
       return '$invocationName\$body\$$className';
     });
   }
@@ -400,20 +415,23 @@ class Namer extends ModularNamer {
   js_ast.Name invocationName(Selector selector) {
     switch (selector.kind) {
       case SelectorKind.getter:
-        js_ast.Name disambiguatedName =
-            _disambiguateMember(selector.memberName);
+        js_ast.Name disambiguatedName = _disambiguateMember(
+          selector.memberName,
+        );
         return deriveGetterName(disambiguatedName);
 
       case SelectorKind.setter:
-        js_ast.Name disambiguatedName =
-            _disambiguateMember(selector.memberName);
+        js_ast.Name disambiguatedName = _disambiguateMember(
+          selector.memberName,
+        );
         return deriveSetterName(disambiguatedName);
 
       case SelectorKind.operator:
       case SelectorKind.index_:
         String operatorIdentifier = operatorNameToIdentifier(selector.name)!;
-        js_ast.Name disambiguatedName =
-            _disambiguateOperator(operatorIdentifier);
+        js_ast.Name disambiguatedName = _disambiguateOperator(
+          operatorIdentifier,
+        );
         return disambiguatedName; // Operators are not annotated.
 
       case SelectorKind.call:
@@ -422,8 +440,10 @@ class Namer extends ModularNamer {
           // Derive the annotated name for this variant of 'call'.
           return deriveCallMethodName(suffix);
         }
-        js_ast.Name disambiguatedName =
-            _disambiguateMember(selector.memberName, suffix);
+        js_ast.Name disambiguatedName = _disambiguateMember(
+          selector.memberName,
+          suffix,
+        );
         return disambiguatedName; // Methods other than call are not annotated.
 
       case SelectorKind.special:
@@ -434,12 +454,16 @@ class Namer extends ModularNamer {
   js_ast.Name specialSelectorName(Selector selector) {
     assert(selector.kind == SelectorKind.special);
     if (selector.memberName == Names.genericInstantiation) {
-      return StringBackedName('$genericInstantiationPrefix'
-          '${selector.callStructure.typeArgumentCount}');
+      return StringBackedName(
+        '$genericInstantiationPrefix'
+        '${selector.callStructure.typeArgumentCount}',
+      );
     }
 
     throw failedAt(
-        currentElementSpannable, 'Unexpected special selector: $selector');
+      currentElementSpannable,
+      'Unexpected special selector: $selector',
+    );
   }
 
   /// Returns the internal name used for an invocation mirror of this selector.
@@ -463,8 +487,9 @@ class Namer extends ModularNamer {
 
   @override
   js_ast.Name globalNameForInterfaceTypeVariable(TypeVariableEntity element) {
-    return _typeVariableNames[element] ??=
-        _globalNameForInterfaceTypeVariable(element);
+    return _typeVariableNames[element] ??= _globalNameForInterfaceTypeVariable(
+      element,
+    );
   }
 
   js_ast.Name _globalNameForInterfaceTypeVariable(TypeVariableEntity element) {
@@ -480,7 +505,7 @@ class Namer extends ModularNamer {
     return CompoundName([
       globalPropertyNameForClass(element.typeDeclaration as ClassEntity)
           as _NamerName,
-      StringBackedName('.$name')
+      StringBackedName('.$name'),
     ]);
   }
 
@@ -503,9 +528,10 @@ class Namer extends ModularNamer {
     // apply. So we can directly grab a name.
     if (element is JSEntity) {
       return _disambiguateInternalMember(
-          element,
-          () => replaceNonIdentifierCharacters(
-              (element as JSEntity).declaredName));
+        element,
+        () =>
+            replaceNonIdentifierCharacters((element as JSEntity).declaredName),
+      );
     }
 
     // If the name of the field might clash with another field,
@@ -519,7 +545,8 @@ class Namer extends ModularNamer {
         _isShadowingSuperField(element) ||
         _isUserClassExtendingNative(enclosingClass)) {
       String proposeName() => replaceNonIdentifierCharacters(
-          '${enclosingClass.name}_${element.name}');
+        '${enclosingClass.name}_${element.name}',
+      );
       return _disambiguateInternalMember(element, proposeName);
     }
 
@@ -527,17 +554,21 @@ class Namer extends ModularNamer {
     // use it for this field. This generates nicer field names since otherwise
     // the field name would have to be mangled.
     return _disambiguateMember(
-        Name(element.name!, element.library.canonicalUri));
+      Name(element.name!, element.library.canonicalUri),
+    );
   }
 
   bool _isShadowingSuperField(FieldEntity element) {
     Name fieldName = element.memberName;
     LibraryEntity memberLibrary = element.library;
-    ClassEntity? lookupClass =
-        _elementEnvironment.getSuperClass(element.enclosingClass!);
+    ClassEntity? lookupClass = _elementEnvironment.getSuperClass(
+      element.enclosingClass!,
+    );
     while (lookupClass != null) {
-      MemberEntity? foundMember =
-          _elementEnvironment.lookupLocalClassMember(lookupClass, fieldName);
+      MemberEntity? foundMember = _elementEnvironment.lookupLocalClassMember(
+        lookupClass,
+        fieldName,
+      );
       if (foundMember != null) {
         if (foundMember is FieldEntity) {
           if (!fieldName.isPrivate || memberLibrary == foundMember.library) {
@@ -570,16 +601,20 @@ class Namer extends ModularNamer {
   js_ast.Name deriveSetterName(js_ast.Name disambiguatedName) {
     // We dynamically create setters from the field-name. The setter name must
     // therefore be derived from the instance field-name.
-    return userSetters[disambiguatedName] ??=
-        SetterName(_literalSetterPrefix, disambiguatedName);
+    return userSetters[disambiguatedName] ??= SetterName(
+      _literalSetterPrefix,
+      disambiguatedName,
+    );
   }
 
   /// Annotated name for the setter of any member with [disambiguatedName].
   js_ast.Name deriveGetterName(js_ast.Name disambiguatedName) {
     // We dynamically create getters from the field-name. The getter name must
     // therefore be derived from the instance field-name.
-    return userGetters[disambiguatedName] ??=
-        GetterName(_literalGetterPrefix, disambiguatedName);
+    return userGetters[disambiguatedName] ??= GetterName(
+      _literalGetterPrefix,
+      disambiguatedName,
+    );
   }
 
   /// Annotated name for the getter of [element].
@@ -619,7 +654,10 @@ class Namer extends ModularNamer {
 
   js_ast.Name _disambiguateGlobalMember(MemberEntity element) {
     return _disambiguateGlobal<MemberEntity>(
-        element, _proposeNameForMember, userGlobals);
+      element,
+      _proposeNameForMember,
+      userGlobals,
+    );
   }
 
   js_ast.Name _disambiguateGlobalType(Entity element) {
@@ -630,9 +668,10 @@ class Namer extends ModularNamer {
   ///
   /// The resulting name is unique within the global-member namespace.
   js_ast.Name _disambiguateGlobal<T extends Entity>(
-      T element,
-      String Function(T element) proposeName,
-      Map<Entity, js_ast.Name> globals) {
+    T element,
+    String Function(T element) proposeName,
+    Map<Entity, js_ast.Name> globals,
+  ) {
     // TODO(asgerf): We can reuse more short names if we disambiguate with
     // a separate namespace for each of the global holder objects.
     js_ast.Name? newName = globals[element];
@@ -660,14 +699,20 @@ class Namer extends ModularNamer {
   /// The resulting name, and its associated annotated names, are unique
   /// to the ([originalName], [suffixes]) pair within the instance-member
   /// namespace.
-  js_ast.Name _disambiguateMember(Name originalName,
-      [List<String> suffixes = const []]) {
+  js_ast.Name _disambiguateMember(
+    Name originalName, [
+    List<String> suffixes = const [],
+  ]) {
     // Build a string encoding the library name, if the name is private.
-    String libraryKey = originalName.isPrivate
-        ? _generateLibraryKey(_elementEnvironment
-                .lookupLibrary(originalName.uri!, required: true)!)
-            .toString()
-        : '';
+    String libraryKey =
+        originalName.isPrivate
+            ? _generateLibraryKey(
+              _elementEnvironment.lookupLibrary(
+                originalName.uri!,
+                required: true,
+              )!,
+            ).toString()
+            : '';
 
     // In the unique key, separate the name parts by '@'.
     // This avoids clashes since the original names cannot contain that symbol.
@@ -680,8 +725,11 @@ class Namer extends ModularNamer {
         // proposed name must be a valid identifier, but not necessarily unique.
         proposedName += r'$' + suffixes.join(r'$');
       }
-      newName = getFreshName(instanceScope, proposedName,
-          sanitizeForAnnotations: true);
+      newName = getFreshName(
+        instanceScope,
+        proposedName,
+        sanitizeForAnnotations: true,
+      );
       userInstanceMembers[key] = newName;
       userInstanceMembersOriginalName[key] = '$originalName';
     }
@@ -701,7 +749,9 @@ class Namer extends ModularNamer {
   /// achieved by using at least one character in [key] that is not valid in
   /// identifiers, for example the @ symbol.
   js_ast.Name _disambiguateMemberByKey(
-      String key, String Function() proposeName) {
+    String key,
+    String Function() proposeName,
+  ) {
     js_ast.Name? newName = userInstanceMembers[key];
     if (newName == null) {
       String name = proposeName();
@@ -740,21 +790,32 @@ class Namer extends ModularNamer {
   ///
   /// The resulting name is unique within the instance-member namespace.
   js_ast.Name _disambiguateInternalMember(
-      MemberEntity element, String Function() proposeName) {
+    MemberEntity element,
+    String Function() proposeName,
+  ) {
     js_ast.Name? newName = internalInstanceMembers[element];
     if (newName == null) {
       String name = proposeName();
 
       if (element is PrivatelyNamedJSEntity) {
         NamingScope scope = _getPrivateScopeFor(element);
-        newName = getFreshName(scope, name,
-            sanitizeForAnnotations: true, sanitizeForNatives: false);
+        newName = getFreshName(
+          scope,
+          name,
+          sanitizeForAnnotations: true,
+          sanitizeForNatives: false,
+        );
         internalInstanceMembers[element] = newName;
       } else {
-        bool mayClashNative =
-            _isUserClassExtendingNative(element.enclosingClass!);
-        newName = getFreshName(instanceScope, name,
-            sanitizeForAnnotations: true, sanitizeForNatives: mayClashNative);
+        bool mayClashNative = _isUserClassExtendingNative(
+          element.enclosingClass!,
+        );
+        newName = getFreshName(
+          instanceScope,
+          name,
+          sanitizeForAnnotations: true,
+          sanitizeForNatives: mayClashNative,
+        );
         internalInstanceMembers[element] = newName;
       }
     }
@@ -776,8 +837,12 @@ class Namer extends ModularNamer {
     return newName;
   }
 
-  String _generateFreshStringForName(String proposedName, NamingScope scope,
-      {bool sanitizeForAnnotations = false, bool sanitizeForNatives = false}) {
+  String _generateFreshStringForName(
+    String proposedName,
+    NamingScope scope, {
+    bool sanitizeForAnnotations = false,
+    bool sanitizeForNatives = false,
+  }) {
     if (sanitizeForAnnotations) {
       proposedName = _sanitizeForAnnotations(proposedName);
     }
@@ -813,11 +878,18 @@ class Namer extends ModularNamer {
   ///
   /// Note that [MinifyNamer] overrides this method with one that produces
   /// minified names.
-  js_ast.Name getFreshName(NamingScope scope, String proposedName,
-      {bool sanitizeForAnnotations = false, bool sanitizeForNatives = false}) {
-    String candidate = _generateFreshStringForName(proposedName, scope,
-        sanitizeForAnnotations: sanitizeForAnnotations,
-        sanitizeForNatives: sanitizeForNatives);
+  js_ast.Name getFreshName(
+    NamingScope scope,
+    String proposedName, {
+    bool sanitizeForAnnotations = false,
+    bool sanitizeForNatives = false,
+  }) {
+    String candidate = _generateFreshStringForName(
+      proposedName,
+      scope,
+      sanitizeForAnnotations: sanitizeForAnnotations,
+      sanitizeForNatives: sanitizeForNatives,
+    );
     return StringBackedName(candidate);
   }
 
@@ -876,7 +948,8 @@ class Namer extends ModularNamer {
     } else if (element.enclosingClass != null) {
       final enclosingClass = element.enclosingClass!;
       return replaceNonIdentifierCharacters(
-          '${enclosingClass.name}_${element.name}');
+        '${enclosingClass.name}_${element.name}',
+      );
     }
     return replaceNonIdentifierCharacters(element.name!);
   }
@@ -968,15 +1041,20 @@ class Namer extends ModularNamer {
 
   @override
   js_ast.Name nameForOneShotInterceptor(
-      Selector selector, Iterable<ClassEntity> classes) {
+    Selector selector,
+    Iterable<ClassEntity> classes,
+  ) {
     // The one-shot name is a global name derived from the invocation name.  To
     // avoid instability we would like the names to be unique and not clash with
     // other global names.
     final root = invocationName(selector) as _NamerName;
 
     String suffix = _getSuffixForInterceptedClasses(classes);
-    return CompoundName(
-        [root, _literalDollar as _NamerName, StringBackedName(suffix)]);
+    return CompoundName([
+      root,
+      _literalDollar as _NamerName,
+      StringBackedName(suffix),
+    ]);
   }
 
   @override
@@ -1003,7 +1081,10 @@ class Namer extends ModularNamer {
   js_ast.Name lazyInitializerName(FieldEntity element) {
     assert(element.isTopLevel || element.isStatic);
     js_ast.Name name = _disambiguateGlobal<MemberEntity>(
-        element, _proposeNameForLazyStaticGetter, userGlobalsSecondName);
+      element,
+      _proposeNameForLazyStaticGetter,
+      userGlobalsSecondName,
+    );
     return name;
   }
 
@@ -1015,12 +1096,15 @@ class Namer extends ModularNamer {
     String library = _proposeNameForLibrary(element.library);
     String name = replaceNonIdentifierCharacters(element.name!);
     return _disambiguateInternalGlobal(
-        "${library}_${enclosing}_$name\$closure");
+      "${library}_${enclosing}_$name\$closure",
+    );
   }
 
   // This name is used as part of the name of a TypeConstant
   String uniqueNameForTypeConstantElement(
-      LibraryEntity library, Entity element) {
+    LibraryEntity library,
+    Entity element,
+  ) {
     // TODO(51473): Move the library naming to be as-needed in the context of
     // the thing being named.
     String libraryName = _proposeNameForLibrary(library);
@@ -1038,7 +1122,7 @@ class Namer extends ModularNamer {
     // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
     return CompoundName([
       StringBackedName(fixedNames.operatorIsPrefix),
-      className(element) as _NamerName
+      className(element) as _NamerName,
     ]);
   }
 
@@ -1055,13 +1139,17 @@ class Namer extends ModularNamer {
   js_ast.Name asName(String name) {
     if (name.startsWith(fixedNames.getterPrefix) &&
         name.length > fixedNames.getterPrefix.length) {
-      return GetterName(_literalGetterPrefix,
-          StringBackedName(name.substring(fixedNames.getterPrefix.length)));
+      return GetterName(
+        _literalGetterPrefix,
+        StringBackedName(name.substring(fixedNames.getterPrefix.length)),
+      );
     }
     if (name.startsWith(fixedNames.setterPrefix) &&
         name.length > fixedNames.setterPrefix.length) {
-      return GetterName(_literalSetterPrefix,
-          StringBackedName(name.substring(fixedNames.setterPrefix.length)));
+      return GetterName(
+        _literalSetterPrefix,
+        StringBackedName(name.substring(fixedNames.setterPrefix.length)),
+      );
     }
 
     return StringBackedName(name);
@@ -1111,12 +1199,16 @@ class _TypeConstantRepresentationVisitor extends DartTypeVisitor<String, Null> {
   @override
   String visitInterfaceType(InterfaceType type, _) {
     String name = _namer.uniqueNameForTypeConstantElement(
-        type.element.library, type.element);
+      type.element.library,
+      type.element,
+    );
     if (type.typeArguments.isEmpty) return name;
     // TODO(51473): Use the structure of the type rather than assuming all
     // `Type` constants for interface types are top types of the interface type.
-    String arguments =
-        List.filled(type.typeArguments.length, 'dynamic').join(', ');
+    String arguments = List.filled(
+      type.typeArguments.length,
+      'dynamic',
+    ).join(', ');
     return '$name<$arguments>';
   }
 
@@ -1196,8 +1288,9 @@ class ConstantNamingVisitor implements ConstantValueVisitor<void, Null> {
     StringBuffer sb = StringBuffer();
     for (int i = 0; i < length; i++) {
       int digit = hash % 62;
-      sb.write('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'[
-          digit]);
+      sb.write(
+        '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'[digit],
+      );
       hash ~/= 62;
       if (hash == 0) break;
     }
@@ -1360,8 +1453,10 @@ class ConstantNamingVisitor implements ConstantValueVisitor<void, Null> {
     }
 
     // TODO(johnniwinther): This should be accessed from a codegen closed world.
-    _elementEnvironment.forEachInstanceField(constant.type.element,
-        (_, FieldEntity field) {
+    _elementEnvironment.forEachInstanceField(constant.type.element, (
+      _,
+      FieldEntity field,
+    ) {
       if (failed) return;
       if (_fieldAnalysis.getFieldData(field as JField).isElided) return;
       _visit(constant.fields[field]!);
@@ -1527,10 +1622,14 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitConstructed(ConstructedConstantValue constant, [_]) {
-    int hash =
-        _hashString(_HashSeed.constructed.index, constant.type.element.name);
-    _elementEnvironment.forEachInstanceField(constant.type.element,
-        (_, FieldEntity field) {
+    int hash = _hashString(
+      _HashSeed.constructed.index,
+      constant.type.element.name,
+    );
+    _elementEnvironment.forEachInstanceField(constant.type.element, (
+      _,
+      FieldEntity field,
+    ) {
       if (_fieldAnalysis.getFieldData(field as JField).isElided) return;
       hash = _combine(hash, _visit(constant.fields[field]!));
     });
@@ -1539,8 +1638,10 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitRecord(RecordConstantValue constant, [_]) {
-    int hash =
-        _combine(_HashSeed.record.index, _hashInt(constant.shape.fieldCount));
+    int hash = _combine(
+      _HashSeed.record.index,
+      _hashInt(constant.shape.fieldCount),
+    );
     for (String name in constant.shape.fieldNames) {
       hash = _hashString(hash, name);
     }
@@ -1572,32 +1673,36 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   @override
   int visitDummyInterceptor(DummyInterceptorConstantValue constant, [_]) {
     throw failedAt(
-        noLocationSpannable,
-        'DummyInterceptorConstantValue should never be named and '
-        'never be subconstant');
+      noLocationSpannable,
+      'DummyInterceptorConstantValue should never be named and '
+      'never be subconstant',
+    );
   }
 
   @override
   int visitLateSentinel(LateSentinelConstantValue constant, [_]) =>
       throw failedAt(
-          noLocationSpannable,
-          'LateSentinelConstantValue should never be named and '
-          'never be subconstant');
+        noLocationSpannable,
+        'LateSentinelConstantValue should never be named and '
+        'never be subconstant',
+      );
 
   @override
   int visitUnreachable(UnreachableConstantValue constant, [_]) {
     throw failedAt(
-        noLocationSpannable,
-        'UnreachableConstantValue should never be named and '
-        'never be subconstant');
+      noLocationSpannable,
+      'UnreachableConstantValue should never be named and '
+      'never be subconstant',
+    );
   }
 
   @override
   int visitJsName(JsNameConstantValue constant, [_]) {
     throw failedAt(
-        noLocationSpannable,
-        'JsNameConstantValue should never be named and '
-        'never be subconstant');
+      noLocationSpannable,
+      'JsNameConstantValue should never be named and '
+      'never be subconstant',
+    );
   }
 
   @override
@@ -1709,7 +1814,9 @@ abstract class ModularNamer {
   /// Returns a variable use for accessing constants.
   js_ast.Expression globalObjectForConstant(ConstantValue constant) {
     return DeferredHolderExpression(
-        DeferredHolderExpressionKind.globalObjectForConstant, constant);
+      DeferredHolderExpressionKind.globalObjectForConstant,
+      constant,
+    );
   }
 
   /// Returns a variable use for accessing static state.
@@ -1729,13 +1836,17 @@ abstract class ModularNamer {
   /// This is one of the [reservedGlobalObjectNames]
   js_ast.Expression readGlobalObjectForClass(ClassEntity element) {
     return DeferredHolderExpression(
-        DeferredHolderExpressionKind.globalObjectForClass, element);
+      DeferredHolderExpressionKind.globalObjectForClass,
+      element,
+    );
   }
 
   /// Returns a variable use for accessing the member [element].
   js_ast.Expression readGlobalObjectForMember(MemberEntity element) {
     return DeferredHolderExpression(
-        DeferredHolderExpressionKind.globalObjectForMember, element);
+      DeferredHolderExpressionKind.globalObjectForMember,
+      element,
+    );
   }
 
   /// Returns a JavaScript property name used to store the class [element] on
@@ -1758,7 +1869,8 @@ abstract class ModularNamer {
   /// The name is not necessarily a valid JavaScript identifier, so it needs to
   /// be quoted.
   js_ast.Name globalNameForInterfaceTypeVariable(
-      TypeVariableEntity typeVariable);
+    TypeVariableEntity typeVariable,
+  );
 
   /// Returns the name for the instance field that holds runtime type arguments
   /// on generic classes.
@@ -1812,7 +1924,9 @@ abstract class ModularNamer {
   /// Property name used for the one-shot interceptor method for the given
   /// [selector] and return-type specialization.
   js_ast.Name nameForOneShotInterceptor(
-      Selector selector, Set<ClassEntity> classes);
+    Selector selector,
+    Set<ClassEntity> classes,
+  );
 
   /// Property name in which to store the given static or instance [method].
   /// For instance methods, this includes the suffix encoding arity and named
@@ -1892,7 +2006,7 @@ abstract class ModularNamer {
     ...reservedGlobalSymbols,
     ...reservedGlobalObjectNames,
     ...reservedCapitalizedGlobalSymbols,
-    ...reservedGlobalHelperFunctions
+    ...reservedGlobalHelperFunctions,
   };
 
   /// Returns true if all reserved names with 2 or more characters long where
@@ -2077,41 +2191,54 @@ class ModularNamerImpl extends ModularNamer {
 
   @override
   js_ast.Name globalPropertyNameForClass(ClassEntity element) {
-    final name =
-        ModularName(ModularNameKind.globalPropertyNameForClass, data: element);
+    final name = ModularName(
+      ModularNameKind.globalPropertyNameForClass,
+      data: element,
+    );
     _registry.registerModularName(name);
     return name;
   }
 
   @override
   js_ast.Name globalPropertyNameForMember(MemberEntity element) {
-    final name =
-        ModularName(ModularNameKind.globalPropertyNameForMember, data: element);
+    final name = ModularName(
+      ModularNameKind.globalPropertyNameForMember,
+      data: element,
+    );
     _registry.registerModularName(name);
     return name;
   }
 
   @override
   js_ast.Name globalNameForInterfaceTypeVariable(TypeVariableEntity element) {
-    final name = ModularName(ModularNameKind.globalNameForInterfaceTypeVariable,
-        data: element);
+    final name = ModularName(
+      ModularNameKind.globalNameForInterfaceTypeVariable,
+      data: element,
+    );
     _registry.registerModularName(name);
     return name;
   }
 
   @override
   js_ast.Name nameForGetInterceptor(Set<ClassEntity> classes) {
-    final name =
-        ModularName(ModularNameKind.nameForGetInterceptor, set: classes);
+    final name = ModularName(
+      ModularNameKind.nameForGetInterceptor,
+      set: classes,
+    );
     _registry.registerModularName(name);
     return name;
   }
 
   @override
   js_ast.Name nameForOneShotInterceptor(
-      Selector selector, Set<ClassEntity> classes) {
-    final name = ModularName(ModularNameKind.nameForOneShotInterceptor,
-        data: selector, set: classes);
+    Selector selector,
+    Set<ClassEntity> classes,
+  ) {
+    final name = ModularName(
+      ModularNameKind.nameForOneShotInterceptor,
+      data: selector,
+      set: classes,
+    );
     _registry.registerModularName(name);
     return name;
   }
@@ -2127,8 +2254,11 @@ class ModularNamerImpl extends ModularNamer {
 /// Returns a unique suffix for an intercepted accesses to [classes]. This is
 /// used as the suffix for emitted interceptor methods and as the unique key
 /// used to distinguish equivalences of sets of intercepted classes.
-String suffixForGetInterceptor(CommonElements commonElements,
-    NativeData nativeData, Iterable<ClassEntity> classes) {
+String suffixForGetInterceptor(
+  CommonElements commonElements,
+  NativeData nativeData,
+  Iterable<ClassEntity> classes,
+) {
   String abbreviate(ClassEntity cls) {
     if (cls == commonElements.objectClass) return "o";
     if (cls == commonElements.jsStringClass) return "s";
@@ -2142,10 +2272,11 @@ String suffixForGetInterceptor(CommonElements commonElements,
     return cls.name;
   }
 
-  List<String> names = classes
-      .where((cls) => !nativeData.isNativeOrExtendsNative(cls))
-      .map(abbreviate)
-      .toList();
+  List<String> names =
+      classes
+          .where((cls) => !nativeData.isNativeOrExtendsNative(cls))
+          .map(abbreviate)
+          .toList();
   // There is one dispatch mechanism for all native classes.
   if (classes.any((cls) => nativeData.isNativeOrExtendsNative(cls))) {
     names.add("x");
@@ -2385,7 +2516,7 @@ const List<String> reservedPropertySymbols = [
   // "use strict" disallows the use of "arguments" and "eval" as
   // variable names or property names. See ECMA-262, Edition 5.1,
   // section 11.1.5 (for the property names).
-  "eval", "arguments"
+  "eval", "arguments",
 ];
 
 /// A set of all capitalized global symbols.
@@ -2567,16 +2698,15 @@ const List<String> reservedGlobalObjectNames = [
   "Z",
 ];
 
-const List<String> reservedGlobalHelperFunctions = [
-  "init",
-];
+const List<String> reservedGlobalHelperFunctions = ["init"];
 
-final List<String> userGlobalObjects = List.from(reservedGlobalObjectNames)
-  ..remove('C')
-  ..remove('H')
-  ..remove('J')
-  ..remove('P')
-  ..remove('W');
+final List<String> userGlobalObjects =
+    List.from(reservedGlobalObjectNames)
+      ..remove('C')
+      ..remove('H')
+      ..remove('J')
+      ..remove('P')
+      ..remove('W');
 
 final RegExp _identifierStartRE = RegExp(r'[A-Za-z_$]');
 final RegExp _nonIdentifierRE = RegExp(r'[^A-Za-z0-9_$]');
@@ -2602,7 +2732,7 @@ String replaceNonIdentifierCharacters(String s) =>
 /// methods.
 final Set<String> jsReserved = {
   ...javaScriptKeywords,
-  ...reservedPropertySymbols
+  ...reservedPropertySymbols,
 };
 
 final RegExp identifier = RegExp(r'^[A-Za-z_$][A-Za-z0-9_$]*$');
@@ -2624,7 +2754,7 @@ class TokenScope {
   final Set<String> illegalNames;
 
   TokenScope({this.illegalNames = const {}, this.initialChar = $a})
-      : _nextName = [initialChar];
+    : _nextName = [initialChar];
 
   /// Increments the letter at [pos] in the current name. Also takes care of
   /// overflows to the left. Returns the carry bit, i.e., it returns `true`
@@ -2667,8 +2797,8 @@ class TokenScope {
     do {
       proposal = String.fromCharCodes(_nextName);
       _incrementName();
-    } while (
-        hasBannedMinifiedPrefix(proposal) || illegalNames.contains(proposal));
+    } while (hasBannedMinifiedPrefix(proposal) ||
+        illegalNames.contains(proposal));
 
     return proposal;
   }

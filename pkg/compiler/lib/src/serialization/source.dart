@@ -98,10 +98,13 @@ class DataSourceReader {
   late int startOffset;
 
   DataSourceReader(
-      this._sourceReader, CompilerOptions options, this.importedIndices,
-      {this.useDataKinds = false,
-      this.interner,
-      this.useDeferredStrategy = false}) {
+    this._sourceReader,
+    CompilerOptions options,
+    this.importedIndices, {
+    this.useDataKinds = false,
+    this.interner,
+    this.useDeferredStrategy = false,
+  }) {
     startOffset = importedIndices.registerSource(this);
     _stringIndex = importedIndices.getIndexedSource<String>();
     _uriIndex = importedIndices.getIndexedSource<Uri>();
@@ -174,22 +177,36 @@ class DataSourceReader {
     return _sourceReader.readAtOffset(offset, f);
   }
 
-  Deferrable<E> readDeferrable<E>(E Function(DataSourceReader source) f,
-      {bool cacheData = true}) {
+  Deferrable<E> readDeferrable<E>(
+    E Function(DataSourceReader source) f, {
+    bool cacheData = true,
+  }) {
     return useDeferredStrategy
-        ? Deferrable<E>.deferred(this, f, _sourceReader.readDeferred(),
-            cacheData: cacheData)
+        ? Deferrable<E>.deferred(
+          this,
+          f,
+          _sourceReader.readDeferred(),
+          cacheData: cacheData,
+        )
         : Deferrable<E>.eager(_sourceReader.readDeferredAsEager(() => f(this)));
   }
 
   Deferrable<E> readDeferrableWithArg<E, A>(
-      E Function(DataSourceReader source, A arg) f, A arg,
-      {bool cacheData = true}) {
+    E Function(DataSourceReader source, A arg) f,
+    A arg, {
+    bool cacheData = true,
+  }) {
     return useDeferredStrategy
         ? Deferrable.deferredWithArg<E, A>(
-            this, f, arg, _sourceReader.readDeferred(), cacheData: cacheData)
+          this,
+          f,
+          arg,
+          _sourceReader.readDeferred(),
+          cacheData: cacheData,
+        )
         : Deferrable<E>.eager(
-            _sourceReader.readDeferredAsEager(() => f(this, arg)));
+          _sourceReader.readDeferredAsEager(() => f(this, arg)),
+        );
   }
 
   /// Invoke [f] in the context of [member]. This sets up support for
@@ -207,8 +224,10 @@ class DataSourceReader {
   }
 
   MemberData get currentMemberData {
-    assert(_currentMemberContext != null,
-        "DataSink has no current member context.");
+    assert(
+      _currentMemberContext != null,
+      "DataSink has no current member context.",
+    );
     return _currentMemberData ??= _getMemberData(_currentMemberContext!);
   }
 
@@ -233,8 +252,9 @@ class DataSourceReader {
   /// value has not yet been deserialized, [f] is called to deserialize the
   /// value itself.
   E? readIndexedOrNull<E extends Object>(E Function() f) {
-    IndexedSource<E> source = (_generalCaches[E] ??=
-        importedIndices.getIndexedSource<E>()) as IndexedSource<E>;
+    IndexedSource<E> source =
+        (_generalCaches[E] ??= importedIndices.getIndexedSource<E>())
+            as IndexedSource<E>;
     return source.read(this, f);
   }
 
@@ -243,8 +263,9 @@ class DataSourceReader {
   /// [readIndexedOrNull] if the value should be cached and all reads of the
   /// index should return the same object.
   E? readIndexedOrNullNoCache<E extends Object>(E Function() f) {
-    IndexedSource<E> source = (_generalCaches[E] ??=
-        importedIndices.getIndexedSource<E>()) as IndexedSource<E>;
+    IndexedSource<E> source =
+        (_generalCaches[E] ??= importedIndices.getIndexedSource<E>())
+            as IndexedSource<E>;
     return source.readWithoutCache(this, f);
   }
 
@@ -510,8 +531,11 @@ class DataSourceReader {
   List<E>? readMemberNodesOrNull<E extends ir.Member>() {
     int count = readInt();
     if (count == 0) return null;
-    return List<E>.generate(count, (_) => readMemberNode() as E,
-        growable: false);
+    return List<E>.generate(
+      count,
+      (_) => readMemberNode() as E,
+      growable: false,
+    );
   }
 
   /// Reads a map from kernel member nodes to [V] values from this data source,
@@ -573,8 +597,10 @@ class DataSourceReader {
       case _TreeNodeKind.constant:
         memberData ??= _readMemberData();
         final expression = _readTreeNode(memberData) as ir.ConstantExpression;
-        ir.Constant constant =
-            memberData.getConstantByIndex(expression, _sourceReader.readInt());
+        ir.Constant constant = memberData.getConstantByIndex(
+          expression,
+          _sourceReader.readInt(),
+        );
         return ConstantReference(expression, constant);
       case _TreeNodeKind.node:
         memberData ??= _readMemberData();
@@ -672,7 +698,8 @@ class DataSourceReader {
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeTreeNodeMapInContext].
   Map<K, V>? readTreeNodeMapInContextOrNull<K extends ir.TreeNode, V>(
-      V Function() f) {
+    V Function() f,
+  ) {
     int count = readInt();
     if (count == 0) return null;
     Map<K, V> map = {};
@@ -710,8 +737,10 @@ class DataSourceReader {
   List<ir.TypeParameter> readTypeParameterNodes() {
     int count = readInt();
     return List<ir.TypeParameter>.generate(
-        count, (index) => readTypeParameterNode(),
-        growable: false);
+      count,
+      (index) => readTypeParameterNode(),
+      growable: false,
+    );
   }
 
   /// Reads a type from this data source.
@@ -769,7 +798,8 @@ class DataSourceReader {
   }
 
   ir.DartType? _readDartTypeNode(
-      List<ir.StructuralParameter> functionTypeVariables) {
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     DartTypeNodeKind kind = readEnum(DartTypeNodeKind.values);
     switch (kind) {
       case DartTypeNodeKind.none:
@@ -783,11 +813,14 @@ class DataSourceReader {
         return ir.NeverType.fromNullability(nullability);
       case DartTypeNodeKind.typeParameterType:
         ir.TypeParameter typeParameter = readTypeParameterNode();
-        ir.Nullability typeParameterTypeNullability =
-            readEnum(ir.Nullability.values);
+        ir.Nullability typeParameterTypeNullability = readEnum(
+          ir.Nullability.values,
+        );
         ir.DartType? promotedBound = _readDartTypeNode(functionTypeVariables);
-        ir.TypeParameterType typeParameterType =
-            ir.TypeParameterType(typeParameter, typeParameterTypeNullability);
+        ir.TypeParameterType typeParameterType = ir.TypeParameterType(
+          typeParameter,
+          typeParameterTypeNullability,
+        );
         if (promotedBound == null) {
           return typeParameterType;
         } else {
@@ -796,22 +829,27 @@ class DataSourceReader {
       case DartTypeNodeKind.functionTypeVariable:
         int index = readInt();
         assert(0 <= index && index < functionTypeVariables.length);
-        ir.Nullability typeParameterTypeNullability =
-            readEnum(ir.Nullability.values);
+        ir.Nullability typeParameterTypeNullability = readEnum(
+          ir.Nullability.values,
+        );
         ir.StructuralParameterType typeParameterType =
             ir.StructuralParameterType(
-                functionTypeVariables[index], typeParameterTypeNullability);
+              functionTypeVariables[index],
+              typeParameterTypeNullability,
+            );
         return typeParameterType;
       case DartTypeNodeKind.functionType:
         begin(functionTypeNodeTag);
         int typeParameterCount = readInt();
         List<ir.StructuralParameter> typeParameters =
             List<ir.StructuralParameter>.generate(
-                typeParameterCount, (int index) => ir.StructuralParameter(),
-                growable: false);
-        functionTypeVariables =
-            List<ir.StructuralParameter>.from(functionTypeVariables)
-              ..addAll(typeParameters);
+              typeParameterCount,
+              (int index) => ir.StructuralParameter(),
+              growable: false,
+            );
+        functionTypeVariables = List<ir.StructuralParameter>.from(
+          functionTypeVariables,
+        )..addAll(typeParameters);
         for (int index = 0; index < typeParameterCount; index++) {
           typeParameters[index].name = readString();
           typeParameters[index].bound =
@@ -822,40 +860,52 @@ class DataSourceReader {
         ir.DartType returnType = _readDartTypeNode(functionTypeVariables)!;
         ir.Nullability nullability = readEnum(ir.Nullability.values);
         int requiredParameterCount = readInt();
-        List<ir.DartType> positionalParameters =
-            _readDartTypeNodes(functionTypeVariables);
+        List<ir.DartType> positionalParameters = _readDartTypeNodes(
+          functionTypeVariables,
+        );
         final namedParameters = _readNamedTypeNodes(functionTypeVariables);
         end(functionTypeNodeTag);
-        return ir.FunctionType(positionalParameters, returnType, nullability,
-            namedParameters: namedParameters,
-            typeParameters: typeParameters,
-            requiredParameterCount: requiredParameterCount);
+        return ir.FunctionType(
+          positionalParameters,
+          returnType,
+          nullability,
+          namedParameters: namedParameters,
+          typeParameters: typeParameters,
+          requiredParameterCount: requiredParameterCount,
+        );
 
       case DartTypeNodeKind.interfaceType:
         ir.Class cls = readClassNode();
         ir.Nullability nullability = readEnum(ir.Nullability.values);
-        List<ir.DartType> typeArguments =
-            _readDartTypeNodes(functionTypeVariables);
+        List<ir.DartType> typeArguments = _readDartTypeNodes(
+          functionTypeVariables,
+        );
         return ir.InterfaceType(cls, nullability, typeArguments);
       case DartTypeNodeKind.recordType:
         ir.Nullability nullability = readEnum(ir.Nullability.values);
-        List<ir.DartType> positional =
-            _readDartTypeNodes(functionTypeVariables);
+        List<ir.DartType> positional = _readDartTypeNodes(
+          functionTypeVariables,
+        );
         List<ir.NamedType> named = _readNamedTypeNodes(functionTypeVariables);
         return ir.RecordType(positional, named, nullability);
       case DartTypeNodeKind.extensionType:
         ir.ExtensionTypeDeclaration extensionTypeDeclaration =
             readExtensionTypeDeclarationNode();
         ir.Nullability nullability = readEnum(ir.Nullability.values);
-        List<ir.DartType> typeArguments =
-            _readDartTypeNodes(functionTypeVariables);
+        List<ir.DartType> typeArguments = _readDartTypeNodes(
+          functionTypeVariables,
+        );
         return ir.ExtensionType(
-            extensionTypeDeclaration, nullability, typeArguments);
+          extensionTypeDeclaration,
+          nullability,
+          typeArguments,
+        );
       case DartTypeNodeKind.typedef:
         ir.Typedef typedef = readTypedefNode();
         ir.Nullability nullability = readEnum(ir.Nullability.values);
-        List<ir.DartType> typeArguments =
-            _readDartTypeNodes(functionTypeVariables);
+        List<ir.DartType> typeArguments = _readDartTypeNodes(
+          functionTypeVariables,
+        );
         return ir.TypedefType(typedef, nullability, typeArguments);
       case DartTypeNodeKind.dynamicType:
         return const ir.DynamicType();
@@ -869,7 +919,8 @@ class DataSourceReader {
   }
 
   List<ir.NamedType> _readNamedTypeNodes(
-      List<ir.StructuralParameter> functionTypeVariables) {
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     int count = readInt();
     if (count == 0) return const [];
     return List<ir.NamedType>.generate(count, (index) {
@@ -896,17 +947,23 @@ class DataSourceReader {
   List<ir.DartType>? readDartTypeNodesOrNull() {
     int count = readInt();
     if (count == 0) return null;
-    return List<ir.DartType>.generate(count, (index) => readDartTypeNode(),
-        growable: false);
+    return List<ir.DartType>.generate(
+      count,
+      (index) => readDartTypeNode(),
+      growable: false,
+    );
   }
 
   List<ir.DartType> _readDartTypeNodes(
-      List<ir.StructuralParameter> functionTypeVariables) {
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     int count = readInt();
     if (count == 0) return emptyListOfDartTypes;
     return List<ir.DartType>.generate(
-        count, (index) => _readDartTypeNode(functionTypeVariables)!,
-        growable: false);
+      count,
+      (index) => _readDartTypeNode(functionTypeVariables)!,
+      growable: false,
+    );
   }
 
   /// Reads a source span from this data source.
@@ -991,8 +1048,11 @@ class DataSourceReader {
   List<E>? readClassesOrNull<E extends ClassEntity>() {
     int count = readInt();
     if (count == 0) return null;
-    return List<E>.generate(count, (index) => readClass() as E,
-        growable: false);
+    return List<E>.generate(
+      count,
+      (index) => readClass() as E,
+      growable: false,
+    );
   }
 
   /// Reads a map from class entities to [V] values from this data source,
@@ -1053,8 +1113,11 @@ class DataSourceReader {
   List<E>? readMembersOrNull<E extends MemberEntity>() {
     int count = readInt();
     if (count == 0) return null;
-    return List<E>.generate(count, (index) => readMember() as E,
-        growable: false);
+    return List<E>.generate(
+      count,
+      (index) => readMember() as E,
+      growable: false,
+    );
   }
 
   /// Reads a map from member entities to [V] values from this data source,
@@ -1063,7 +1126,8 @@ class DataSourceReader {
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeMemberMap].
   Map<K, V> readMemberMap<K extends MemberEntity, V>(
-      V Function(MemberEntity member) f) {
+    V Function(MemberEntity member) f,
+  ) {
     return readMemberMapOrNull<K, V>(f) ?? {};
   }
 
@@ -1074,7 +1138,8 @@ class DataSourceReader {
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeMemberMap].
   Map<K, V>? readMemberMapOrNull<K extends MemberEntity, V>(
-      V Function(MemberEntity member) f) {
+    V Function(MemberEntity member) f,
+  ) {
     int count = readInt();
     if (count == 0) return null;
     Map<K, V> map = {};
@@ -1089,7 +1154,8 @@ class DataSourceReader {
   /// Reads a reference to an type variable entity from this data source.
   TypeVariableEntity readTypeVariable() {
     return readIndexed<TypeVariableEntity>(
-        () => JTypeVariable.readFromDataSource(this));
+      () => JTypeVariable.readFromDataSource(this),
+    );
   }
 
   /// Reads a map from type variable entities to [V] values from this data
@@ -1098,7 +1164,8 @@ class DataSourceReader {
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeTypeVariableMap].
   Map<K, V> readTypeVariableMap<K extends TypeVariableEntity, V>(
-      V Function() f) {
+    V Function() f,
+  ) {
     int count = readInt();
     Map<K, V> map = {};
     for (int i = 0; i < count; i++) {
@@ -1226,16 +1293,23 @@ class DataSourceReader {
         final keyList = readConstant() as ListConstantValue;
         final valueList = readConstant() as ListConstantValue;
         bool onlyStringKeys = readBool();
-        final indexObject = onlyStringKeys
-            ? readConstant() as JavaScriptObjectConstantValue
-            : null;
+        final indexObject =
+            onlyStringKeys
+                ? readConstant() as JavaScriptObjectConstantValue
+                : null;
         return constant_system.JavaScriptMapConstant(
-            type, keyList, valueList, onlyStringKeys, indexObject);
+          type,
+          keyList,
+          valueList,
+          onlyStringKeys,
+          indexObject,
+        );
       case ConstantValueKind.constructed:
         final type = readDartType() as InterfaceType;
         Map<FieldEntity, ConstantValue> fields =
             readMemberMap<FieldEntity, ConstantValue>(
-                (MemberEntity member) => readConstant());
+              (MemberEntity member) => readConstant(),
+            );
         return ConstructedConstantValue(type, fields);
       case ConstantValueKind.record:
         final shape = RecordShape.readFromDataSource(this);
@@ -1287,8 +1361,11 @@ class DataSourceReader {
   /// [DataSinkWriter.writeConstants].
   List<E> readConstants<E extends ConstantValue>() {
     int count = readInt();
-    return List<E>.generate(count, (index) => readConstant() as E,
-        growable: false);
+    return List<E>.generate(
+      count,
+      (index) => readConstant() as E,
+      growable: false,
+    );
   }
 
   /// Reads a map from constant values to [V] values from this data source,
@@ -1389,8 +1466,11 @@ class DataSourceReader {
   List<ImportEntity>? readImportsOrNull() {
     int count = readInt();
     if (count == 0) return null;
-    return List<ImportEntity>.generate(count, (index) => readImport(),
-        growable: false);
+    return List<ImportEntity>.generate(
+      count,
+      (index) => readImport(),
+      growable: false,
+    );
   }
 
   /// Reads a map from imports to [V] values from this data source,
@@ -1423,9 +1503,10 @@ class DataSourceReader {
   /// Reads an [AbstractValue] from this data source.
   AbstractValue readAbstractValue() {
     assert(
-        _abstractValueDomain != null,
-        "Can not deserialize an AbstractValue "
-        "without a registered AbstractValueDomain.");
+      _abstractValueDomain != null,
+      "Can not deserialize an AbstractValue "
+      "without a registered AbstractValueDomain.",
+    );
     return _abstractValueDomain!.readAbstractValueFromDataSource(this);
   }
 
@@ -1454,8 +1535,9 @@ class DataSourceReader {
   }
 
   MemberData _getMemberData(ir.Member node) {
-    LibraryData libraryData =
-        componentLookup.getLibraryDataByUri(node.enclosingLibrary.importUri);
+    LibraryData libraryData = componentLookup.getLibraryDataByUri(
+      node.enclosingLibrary.importUri,
+    );
     if (node.enclosingClass != null) {
       final classData = libraryData.lookupClassByNode(node.enclosingClass!)!;
       return classData.lookupMemberDataByNode(node)!;
@@ -1488,9 +1570,10 @@ class DataSourceReader {
     if (!useDataKinds) return;
     DataKind actualKind = _sourceReader.readEnum(DataKind.values);
     assert(
-        actualKind == expectedKind,
-        "Invalid data kind. "
-        "Expected $expectedKind, "
-        "found $actualKind.${_sourceReader.errorContext}");
+      actualKind == expectedKind,
+      "Invalid data kind. "
+      "Expected $expectedKind, "
+      "found $actualKind.${_sourceReader.errorContext}",
+    );
   }
 }

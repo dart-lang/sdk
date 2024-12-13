@@ -41,8 +41,12 @@ class RecordsCodegen {
       if (representation != null) {
         _usedRecordClasses.add(cls);
         if (representation.usesList) {
-          impactBuilder.registerStaticUse(StaticUse.staticInvoke(
-              _commonElements.pairwiseIsTest, CallStructure.twoArgs));
+          impactBuilder.registerStaticUse(
+            StaticUse.staticInvoke(
+              _commonElements.pairwiseIsTest,
+              CallStructure.twoArgs,
+            ),
+          );
         }
       }
     }
@@ -82,19 +86,21 @@ class RecordsCodegen {
     Namer namer,
   ) {
     js.Expression classReference(ClassEntity cls) {
-      return js.js(
-          '#.#', [namer.readGlobalObjectForClass(cls), namer.className(cls)]);
+      return js.js('#.#', [
+        namer.readGlobalObjectForClass(cls),
+        namer.className(cls),
+      ]);
     }
 
     js.Expression staticMethodReference(FunctionEntity member) {
       return js.js('#.#', [
         namer.readGlobalObjectForMember(member),
-        namer.methodPropertyName(member)
+        namer.methodPropertyName(member),
       ]);
     }
 
     List<RecordRepresentation> representations = [
-      ..._recordData.representationsForShapes()
+      ..._recordData.representationsForShapes(),
     ];
 
     if (representations.isEmpty) return null;
@@ -140,35 +146,42 @@ class RecordsCodegen {
         final accessPath = _recordData.pathForAccess(representation.shape, 0);
         assert(accessPath.index == 0);
 
-        conjuncts.add(js.js('#(types, o.#)', [
-          staticMethodReference(_commonElements.pairwiseIsTest),
-          namer.instanceFieldPropertyName(accessPath.field)
-        ]));
+        conjuncts.add(
+          js.js('#(types, o.#)', [
+            staticMethodReference(_commonElements.pairwiseIsTest),
+            namer.instanceFieldPropertyName(accessPath.field),
+          ]),
+        );
       } else {
         for (int i = 0; i < arity; i++) {
           final parameterName = 't${i + 1}';
           parameters.add(parameterName);
           final accessPath = _recordData.pathForAccess(representation.shape, i);
           assert(accessPath.index == null);
-          final isTest =
-              namer.instanceFieldPropertyName(_commonElements.rtiIsField);
-          conjuncts.add(js.js('#[#](o.#)', [
-            parameterName,
-            isTest,
-            namer.instanceFieldPropertyName(accessPath.field)
-          ]));
+          final isTest = namer.instanceFieldPropertyName(
+            _commonElements.rtiIsField,
+          );
+          conjuncts.add(
+            js.js('#[#](o.#)', [
+              parameterName,
+              isTest,
+              namer.instanceFieldPropertyName(accessPath.field),
+            ]),
+          );
         }
       }
 
       js.Expression function;
       if (arity == 0) {
         function = js.js(
-            '(o) => #', conjuncts.reduce((a, b) => js.Binary('&&', a, b)));
-      } else {
-        function = js.js(
-          '(#) => (o) => #',
-          [parameters, conjuncts.reduce((a, b) => js.Binary('&&', a, b))],
+          '(o) => #',
+          conjuncts.reduce((a, b) => js.Binary('&&', a, b)),
         );
+      } else {
+        function = js.js('(#) => (o) => #', [
+          parameters,
+          conjuncts.reduce((a, b) => js.Binary('&&', a, b)),
+        ]);
       }
 
       String combinedTag = '${shape.fieldCount};${partialShapeTagOf(shape)}';

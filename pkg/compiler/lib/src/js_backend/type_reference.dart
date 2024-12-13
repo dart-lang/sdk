@@ -154,7 +154,8 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
 
   @override
   TypeReference withSourceInformation(
-      js.JavaScriptNodeSourceInformation? newSourceInformation) {
+    js.JavaScriptNodeSourceInformation? newSourceInformation,
+  ) {
     if (newSourceInformation == sourceInformation) return this;
     if (newSourceInformation == null) return this;
     return TypeReference._(typeRecipe, _value, newSourceInformation);
@@ -202,7 +203,8 @@ class TypeReferenceResource extends js.DeferredStatement
 
   @override
   TypeReferenceResource withSourceInformation(
-      js.JavaScriptNodeSourceInformation? newSourceInformation) {
+    js.JavaScriptNodeSourceInformation? newSourceInformation,
+  ) {
     if (newSourceInformation == sourceInformation) return this;
     if (newSourceInformation == null) return this;
     return TypeReferenceResource._(_statement, newSourceInformation);
@@ -246,7 +248,11 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
   final Map<TypeRecipe, _ReferenceSet> _referencesByRecipe = {};
 
   TypeReferenceFinalizerImpl(
-      this._emitter, this._commonElements, this._recipeEncoder, this._minify) {
+    this._emitter,
+    this._commonElements,
+    this._recipeEncoder,
+    this._minify,
+  ) {
     _visitor = _TypeReferenceCollectorVisitor(this);
   }
 
@@ -279,12 +285,15 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
   }
 
   void _updateReferences() {
-    js.Expression helperAccess =
-        _emitter.staticFunctionAccess(_commonElements.findType);
+    js.Expression helperAccess = _emitter.staticFunctionAccess(
+      _commonElements.findType,
+    );
 
     js.Expression loadTypeCall(TypeRecipe recipe, String? helperLocal) {
-      js.Expression recipeExpression =
-          _recipeEncoder.encodeGroundRecipe(_emitter, recipe);
+      js.Expression recipeExpression = _recipeEncoder.encodeGroundRecipe(
+        _emitter,
+        recipe,
+      );
       return js.js(r'#(#)', [helperLocal ?? helperAccess, recipeExpression]);
     }
 
@@ -318,8 +327,9 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
     for (_ReferenceSet referenceSet in referenceSetsUsingProperties) {
       TypeRecipe recipe = referenceSet.recipe;
       final propertyName = js.string(referenceSet.propertyName!);
-      properties
-          .add(js.Property(propertyName, loadTypeCall(recipe, helperLocal)));
+      properties.add(
+        js.Property(propertyName, loadTypeCall(recipe, helperLocal)),
+      );
       var access = js.js('#.#', [typesHolderLocalName, propertyName]);
       for (TypeReference ref in referenceSet._references) {
         ref.value = access;
@@ -329,16 +339,23 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
     if (properties.isEmpty) {
       _resource!.statement = js.Block.empty();
     } else {
-      js.Expression initializer =
-          js.ObjectInitializer(properties, isOneLiner: false);
+      js.Expression initializer = js.ObjectInitializer(
+        properties,
+        isOneLiner: false,
+      );
       if (helperLocal != null) {
         // A named IIFE helps attribute startup time in profiling.
-        var function = js.js(r'function rtii(){var # = #; return #}',
-            [js.VariableDeclaration(helperLocal), helperAccess, initializer]);
+        var function = js.js(r'function rtii(){var # = #; return #}', [
+          js.VariableDeclaration(helperLocal),
+          helperAccess,
+          initializer,
+        ]);
         initializer = js.js('#()', js.Parentheses(function));
       }
-      _resource!.statement = js.js.statement(r'var # = #',
-          [js.VariableDeclaration(typesHolderLocalName), initializer]);
+      _resource!.statement = js.js.statement(r'var # = #', [
+        js.VariableDeclaration(typesHolderLocalName),
+        initializer,
+      ]);
     }
   }
 
@@ -414,14 +431,15 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
 
     // Step 2. Sort by frequency to arrange common entries have shorter property
     // names.
-    List<_ReferenceSet> referencesByFrequency = referencesInTable.toList()
-      ..sort((a, b) {
-        assert(a.name != b.name);
-        int r = b.count.compareTo(a.count); // Decreasing frequency.
-        if (r != 0) return r;
-        return a.name!
-            .compareTo(b.name!); // Tie-break with characteristic name.
-      });
+    List<_ReferenceSet> referencesByFrequency =
+        referencesInTable.toList()..sort((a, b) {
+          assert(a.name != b.name);
+          int r = b.count.compareTo(a.count); // Decreasing frequency.
+          if (r != 0) return r;
+          return a.name!.compareTo(
+            b.name!,
+          ); // Tie-break with characteristic name.
+        });
 
     for (var referenceSet in referencesByFrequency) {
       referenceSet.hash = _hashCharacteristicString(referenceSet.name!);
@@ -439,8 +457,13 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
     }
 
     //naiveFrequencyAssignment(
-    semistableFrequencyAssignment(referencesByFrequency.length,
-        minifiedNameSequence(), hashOf, countOf, assign);
+    semistableFrequencyAssignment(
+      referencesByFrequency.length,
+      minifiedNameSequence(),
+      hashOf,
+      countOf,
+      assign,
+    );
   }
 
   static int _hashCharacteristicString(String s) {
@@ -548,8 +571,9 @@ class _TypeReferenceCollectorVisitor extends js.BaseVisitorVoid {
     } else {
       final deferredExpressionData = js.getNodeDeferredExpressionData(node);
       if (deferredExpressionData != null) {
-        deferredExpressionData.typeReferences
-            .forEach(_finalizer._registerTypeReference);
+        deferredExpressionData.typeReferences.forEach(
+          _finalizer._registerTypeReference,
+        );
       } else {
         super.visitNode(node);
       }

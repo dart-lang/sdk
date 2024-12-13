@@ -238,12 +238,16 @@ main() {
 main() {
   runTests() async {
     test(String code, Pattern expected) async {
-      String generated = await compile(code,
-          disableInlining: false, disableTypeInference: false);
+      String generated = await compile(
+        code,
+        disableInlining: false,
+        disableTypeInference: false,
+      );
       Expect.isTrue(
-          generated.contains(expected),
-          "Generated code didn't contain '$expected'.\n"
-          "Test:\n$code, Generated:\n$generated");
+        generated.contains(expected),
+        "Generated code didn't contain '$expected'.\n"
+        "Test:\n$code, Generated:\n$generated",
+      );
     }
 
     await test(TEST_1, 'return 42');
@@ -262,8 +266,10 @@ main() {
     await test(TEST_14, 'return t1[0]');
     await test(TEST_15, 'return \$.a = 42');
     await test(TEST_16, 'return \$.a');
-    await test(TEST_17,
-        RegExp(r'return (t1|\$\.x === 0 \? \$\.a = true : \$\.a = false);'));
+    await test(
+      TEST_17,
+      RegExp(r'return (t1|\$\.x === 0 \? \$\.a = true : \$\.a = false);'),
+    );
     await test(TEST_18, 'return t1');
   }
 

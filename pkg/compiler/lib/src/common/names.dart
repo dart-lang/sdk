@@ -109,8 +109,10 @@ class Names {
 /// [Selector]s commonly used.
 class Selectors {
   /// The selector for calling the cancel method on 'StreamIterator'.
-  static final Selector cancel =
-      Selector.call(const PublicName('cancel'), CallStructure.noArgs);
+  static final Selector cancel = Selector.call(
+    const PublicName('cancel'),
+    CallStructure.noArgs,
+  );
 
   /// The selector for getting the current element property used in for-each
   /// loops.
@@ -120,36 +122,48 @@ class Selectors {
   static final Selector iterator = Selector.getter(Names.iterator);
 
   /// The selector for calling the move next method used in for-each loops.
-  static final Selector moveNext =
-      Selector.call(Names.moveNext, CallStructure.noArgs);
+  static final Selector moveNext = Selector.call(
+    Names.moveNext,
+    CallStructure.noArgs,
+  );
 
   /// The selector for calling the no such method handler on 'Object'.
-  static final Selector noSuchMethod_ =
-      Selector.call(Names.noSuchMethod_, CallStructure.oneArg);
+  static final Selector noSuchMethod_ = Selector.call(
+    Names.noSuchMethod_,
+    CallStructure.oneArg,
+  );
 
   /// The selector for tearing off noSuchMethod.
-  static final Selector noSuchMethodGetter =
-      Selector.getter(Names.noSuchMethod_);
+  static final Selector noSuchMethodGetter = Selector.getter(
+    Names.noSuchMethod_,
+  );
 
   /// The selector for calling the to-string method on 'Object'.
-  static final Selector toString_ =
-      Selector.call(Names.toString_, CallStructure.noArgs);
+  static final Selector toString_ = Selector.call(
+    Names.toString_,
+    CallStructure.noArgs,
+  );
 
   /// The selector for tearing off toString.
   static final Selector toStringGetter = Selector.getter(Names.toString_);
 
-  static final Selector hashCode_ =
-      Selector.getter(const PublicName('hashCode'));
+  static final Selector hashCode_ = Selector.getter(
+    const PublicName('hashCode'),
+  );
 
-  static final Selector compareTo =
-      Selector.call(const PublicName("compareTo"), CallStructure.oneArg);
+  static final Selector compareTo = Selector.call(
+    const PublicName("compareTo"),
+    CallStructure.oneArg,
+  );
 
   static final Selector equals = Selector.binaryOperator('==');
 
   static final Selector length = Selector.getter(Names.length);
 
-  static final Selector codeUnitAt =
-      Selector.call(const PublicName('codeUnitAt'), CallStructure.oneArg);
+  static final Selector codeUnitAt = Selector.call(
+    const PublicName('codeUnitAt'),
+    CallStructure.oneArg,
+  );
 
   static final Selector index = Selector.index();
 
@@ -174,7 +188,7 @@ class Selectors {
     length,
     codeUnitAt,
     index,
-    runtimeType_
+    runtimeType_,
   ];
 
   static final List<Selector> objectSelectors = <Selector>[
@@ -182,7 +196,7 @@ class Selectors {
     toString_,
     hashCode_,
     equals,
-    runtimeType_
+    runtimeType_,
   ];
 }
 
@@ -219,8 +233,10 @@ class Uris {
   static final Uri dartInternal = Uri(scheme: 'dart', path: '_internal');
 
   /// The URI for 'dart:_native_typed_data'.
-  static final Uri dartNativeTypedData =
-      Uri(scheme: 'dart', path: '_native_typed_data');
+  static final Uri dartNativeTypedData = Uri(
+    scheme: 'dart',
+    path: '_native_typed_data',
+  );
 
   /// The URI for 'dart:typed_data'.
   static final Uri dartTypedData = Uri(scheme: 'dart', path: 'typed_data');
@@ -244,23 +260,31 @@ class Uris {
   static final Uri dartRti = Uri(scheme: 'dart', path: '_rti');
 
   /// The URI for 'dart:_interceptors'.
-  static final Uri dartInterceptors =
-      Uri(scheme: 'dart', path: '_interceptors');
+  static final Uri dartInterceptors = Uri(
+    scheme: 'dart',
+    path: '_interceptors',
+  );
 
   /// The URI for 'dart:_foreign_helper'.
-  static final Uri dartForeignHelper =
-      Uri(scheme: 'dart', path: '_foreign_helper');
+  static final Uri dartForeignHelper = Uri(
+    scheme: 'dart',
+    path: '_foreign_helper',
+  );
 
   /// The URI for 'dart:_js_names'.
   static final Uri dartJSNames = Uri(scheme: 'dart', path: '_js_names');
 
   /// The URI for 'dart:_js_embedded_names'.
-  static final Uri dartJSEmbeddedNames =
-      Uri(scheme: 'dart', path: '_js_embedded_names');
+  static final Uri dartJSEmbeddedNames = Uri(
+    scheme: 'dart',
+    path: '_js_embedded_names',
+  );
 
   /// The URI for 'dart:_js_shared_embedded_names'.
-  static final Uri dartJSSharedEmbeddedNames =
-      Uri(scheme: 'dart', path: '_js_shared_embedded_names');
+  static final Uri dartJSSharedEmbeddedNames = Uri(
+    scheme: 'dart',
+    path: '_js_shared_embedded_names',
+  );
 
   /// The URI for 'dart:js_util'.
   static final Uri dartJSUtil = Uri(scheme: 'dart', path: 'js_util');
@@ -269,13 +293,17 @@ class Uris {
   static final Uri packageJS = Uri(scheme: 'package', path: 'js/js.dart');
 
   /// The URI for 'dart:_js_annotations'.
-  static final Uri dartJSAnnotations =
-      Uri(scheme: 'dart', path: '_js_annotations');
+  static final Uri dartJSAnnotations = Uri(
+    scheme: 'dart',
+    path: '_js_annotations',
+  );
 
   /// The URI for 'dart:js_interop'.
   static final Uri dartJSInterop = Uri(scheme: 'dart', path: 'js_interop');
 
   /// The URI for 'package:meta/dart2js.dart'.
-  static final Uri packageMetaDart2js =
-      Uri(scheme: 'package', path: 'meta/dart2js.dart');
+  static final Uri packageMetaDart2js = Uri(
+    scheme: 'package',
+    path: 'meta/dart2js.dart',
+  );
 }

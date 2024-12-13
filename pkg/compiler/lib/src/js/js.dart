@@ -22,40 +22,53 @@ import 'js_source_mapping.dart';
 export 'package:js_ast/js_ast.dart';
 export 'js_debug.dart';
 
-String prettyPrint(Node node,
-    {bool enableMinification = false,
-    bool allowVariableMinification = true,
-    bool preferSemicolonToNewlineInMinifiedOutput = false}) {
+String prettyPrint(
+  Node node, {
+  bool enableMinification = false,
+  bool allowVariableMinification = true,
+  bool preferSemicolonToNewlineInMinifiedOutput = false,
+}) {
   // TODO(johnniwinther): Do we need all the options here?
   JavaScriptPrintingOptions options = JavaScriptPrintingOptions(
-      shouldCompressOutput: enableMinification,
-      minifyLocalVariables: allowVariableMinification,
-      preferSemicolonToNewlineInMinifiedOutput:
-          preferSemicolonToNewlineInMinifiedOutput);
+    shouldCompressOutput: enableMinification,
+    minifyLocalVariables: allowVariableMinification,
+    preferSemicolonToNewlineInMinifiedOutput:
+        preferSemicolonToNewlineInMinifiedOutput,
+  );
   SimpleJavaScriptPrintingContext context = SimpleJavaScriptPrintingContext();
   Printer printer = Printer(options, context);
   printer.visit(node);
   return context.getText();
 }
 
-CodeBuffer createCodeBuffer(Node node, CompilerOptions compilerOptions,
-    JavaScriptSourceInformationStrategy sourceInformationStrategy,
-    {DumpInfoJsAstRegistry? monitor,
-    JavaScriptAnnotationMonitor annotationMonitor =
-        const JavaScriptAnnotationMonitor(),
-    bool allowVariableMinification = true,
-    List<CodeOutputListener> listeners = const []}) {
+CodeBuffer createCodeBuffer(
+  Node node,
+  CompilerOptions compilerOptions,
+  JavaScriptSourceInformationStrategy sourceInformationStrategy, {
+  DumpInfoJsAstRegistry? monitor,
+  JavaScriptAnnotationMonitor annotationMonitor =
+      const JavaScriptAnnotationMonitor(),
+  bool allowVariableMinification = true,
+  List<CodeOutputListener> listeners = const [],
+}) {
   JavaScriptPrintingOptions options = JavaScriptPrintingOptions(
-      utf8: compilerOptions.features.writeUtf8.isEnabled,
-      shouldCompressOutput: compilerOptions.enableMinification,
-      minifyLocalVariables: allowVariableMinification);
+    utf8: compilerOptions.features.writeUtf8.isEnabled,
+    shouldCompressOutput: compilerOptions.enableMinification,
+    minifyLocalVariables: allowVariableMinification,
+  );
   CodeBuffer outBuffer = CodeBuffer(listeners);
   SourceInformationProcessor sourceInformationProcessor =
       sourceInformationStrategy.createProcessor(
-          SourceMapperProviderImpl(outBuffer), const SourceInformationReader());
+        SourceMapperProviderImpl(outBuffer),
+        const SourceInformationReader(),
+      );
 
   Dart2JSJavaScriptPrintingContext context = Dart2JSJavaScriptPrintingContext(
-      monitor, outBuffer, sourceInformationProcessor, annotationMonitor);
+    monitor,
+    outBuffer,
+    sourceInformationProcessor,
+    annotationMonitor,
+  );
 
   /// We defer deserialization of function bodies but deserialize bodies twice
   /// while printing. Once to collect variable declarations for hoisting and
@@ -115,8 +128,12 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
   final CodePositionListener codePositionListener;
   final JavaScriptAnnotationMonitor annotationMonitor;
 
-  Dart2JSJavaScriptPrintingContext(this.monitor, this.outBuffer,
-      this.codePositionListener, this.annotationMonitor);
+  Dart2JSJavaScriptPrintingContext(
+    this.monitor,
+    this.outBuffer,
+    this.codePositionListener,
+    this.annotationMonitor,
+  );
 
   @override
   void error(String message) {
@@ -137,10 +154,18 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
 
   @override
   void exitNode(
-      Node node, int startPosition, int endPosition, int? closingPosition) {
+    Node node,
+    int startPosition,
+    int endPosition,
+    int? closingPosition,
+  ) {
     monitor?.exitNode(node, startPosition, endPosition, closingPosition);
     codePositionListener.onPositions(
-        node, startPosition, endPosition, closingPosition);
+      node,
+      startPosition,
+      endPosition,
+      closingPosition,
+    );
     final annotations = node.annotations;
     if (annotations.isNotEmpty) {
       annotationMonitor.onAnnotations(annotations);
@@ -214,37 +239,53 @@ class DeferredExpressionRegistry {
   final List<DeferredHolderExpression> deferredHolderExpressions = [];
 
   static DeferredExpressionData readDataFromDataSource(
-      DataSourceReader source) {
+    DataSourceReader source,
+  ) {
     final modularNames =
         source.readListOrNull(() => source.readJsNode() as ModularName) ??
-            const [];
+        const [];
     final modularExpressions =
         source.readListOrNull(() => source.readJsNode() as ModularExpression) ??
-            const [];
+        const [];
     final typeReferences =
         source.readListOrNull(() => source.readJsNode() as TypeReference) ??
-            const [];
+        const [];
     final stringReferences =
         source.readListOrNull(() => source.readJsNode() as StringReference) ??
-            const [];
-    final deferredHolderExpressions = source.readListOrNull(
-            () => source.readJsNode() as DeferredHolderExpression) ??
         const [];
-    return DeferredExpressionData._(modularNames, modularExpressions,
-        typeReferences, stringReferences, deferredHolderExpressions);
+    final deferredHolderExpressions =
+        source.readListOrNull(
+          () => source.readJsNode() as DeferredHolderExpression,
+        ) ??
+        const [];
+    return DeferredExpressionData._(
+      modularNames,
+      modularExpressions,
+      typeReferences,
+      stringReferences,
+      deferredHolderExpressions,
+    );
   }
 
   void writeToDataSink(DataSinkWriter sink) {
     // Set [_serializing] so that we don't re-register nodes.
     sink.writeList(modularNames, (ModularName node) => sink.writeJsNode(node));
     sink.writeList(
-        modularExpressions, (ModularExpression node) => sink.writeJsNode(node));
+      modularExpressions,
+      (ModularExpression node) => sink.writeJsNode(node),
+    );
     sink.writeList(
-        typeReferences, (TypeReference node) => sink.writeJsNode(node));
+      typeReferences,
+      (TypeReference node) => sink.writeJsNode(node),
+    );
     sink.writeList(
-        stringReferences, (StringReference node) => sink.writeJsNode(node));
-    sink.writeList(deferredHolderExpressions,
-        (DeferredHolderExpression node) => sink.writeJsNode(node));
+      stringReferences,
+      (StringReference node) => sink.writeJsNode(node),
+    );
+    sink.writeList(
+      deferredHolderExpressions,
+      (DeferredHolderExpression node) => sink.writeJsNode(node),
+    );
   }
 
   void registerModularName(ModularName node) {
@@ -285,15 +326,16 @@ class DeferredExpressionData {
   final List<DeferredHolderExpression> deferredHolderExpressions;
 
   DeferredExpressionData(this.modularNames, this.modularExpressions)
-      : typeReferences = const [],
-        stringReferences = const [],
-        deferredHolderExpressions = const [];
+    : typeReferences = const [],
+      stringReferences = const [],
+      deferredHolderExpressions = const [];
   DeferredExpressionData._(
-      this.modularNames,
-      this.modularExpressions,
-      this.typeReferences,
-      this.stringReferences,
-      this.deferredHolderExpressions);
+    this.modularNames,
+    this.modularExpressions,
+    this.typeReferences,
+    this.stringReferences,
+    this.deferredHolderExpressions,
+  );
 }
 
 /// A code [Block] that has not been fully deserialized but instead holds a

@@ -46,38 +46,50 @@ void main(List<String> arguments) {
   asyncTest(() async {
     for (int index in indices!) {
       bool useNewSourceInfo = index % 2 == 1;
-      await runTest(index, TESTS[index ~/ 2],
-          writeJs: writeJs,
-          verbose: verbose,
-          useNewSourceInfo: useNewSourceInfo);
+      await runTest(
+        index,
+        TESTS[index ~/ 2],
+        writeJs: writeJs,
+        verbose: verbose,
+        useNewSourceInfo: useNewSourceInfo,
+      );
     }
   });
 }
 
-Future runTest(int index, String code,
-    {required bool writeJs,
-    bool verbose = false,
-    bool useNewSourceInfo = false}) async {
+Future runTest(
+  int index,
+  String code, {
+  required bool writeJs,
+  bool verbose = false,
+  bool useNewSourceInfo = false,
+}) async {
   print("--$index------------------------------------------------------------");
-  print("Compiling dart2js ${useNewSourceInfo ? Flags.useNewSourceInfo : ''}\n"
-      "${code}");
+  print(
+    "Compiling dart2js ${useNewSourceInfo ? Flags.useNewSourceInfo : ''}\n"
+    "${code}",
+  );
   OutputCollector collector = OutputCollector();
   List<String> options = <String>['--out=out.js', '--source-map=out.js.map'];
   if (useNewSourceInfo) {
     options.add(Flags.useNewSourceInfo);
   }
   CompilationResult compilationResult = await runCompiler(
-      entryPoint: Uri.parse('memory:main.dart'),
-      memorySourceFiles: {'main.dart': code},
-      outputProvider: collector,
-      options: options);
-  Expect.isTrue(compilationResult.isSuccess,
-      "Unsuccessful compilation of test:\n${code}");
+    entryPoint: Uri.parse('memory:main.dart'),
+    memorySourceFiles: {'main.dart': code},
+    outputProvider: collector,
+    options: options,
+  );
+  Expect.isTrue(
+    compilationResult.isSuccess,
+    "Unsuccessful compilation of test:\n${code}",
+  );
   String sourceMapText = collector.getOutput('', api.OutputType.sourceMap)!;
   final sourceMap = parse(sourceMapText) as SingleMapping;
   if (writeJs) {
-    File('out.js')
-        .writeAsStringSync(collector.getOutput('', api.OutputType.js)!);
+    File(
+      'out.js',
+    ).writeAsStringSync(collector.getOutput('', api.OutputType.js)!);
     File('out.js.map').writeAsStringSync(sourceMapText);
   }
   Expect.isTrue(sourceMap.lines.isNotEmpty);
@@ -85,20 +97,25 @@ Future runTest(int index, String code,
   Expect.isTrue(firstLineEntry.entries.isNotEmpty);
   TargetEntry firstEntry = firstLineEntry.entries.first;
   Expect.isNull(
-      firstEntry.sourceUrlId,
-      "Unexpected first entry: "
-      "${entryToString(firstLineEntry, firstEntry, sourceMap)}");
+    firstEntry.sourceUrlId,
+    "Unexpected first entry: "
+    "${entryToString(firstLineEntry, firstEntry, sourceMap)}",
+  );
   TargetLineEntry lastLineEntry = sourceMap.lines.last;
   Expect.isTrue(lastLineEntry.entries.isNotEmpty);
   TargetEntry lastEntry = firstLineEntry.entries.last;
   Expect.isNull(
-      lastEntry.sourceUrlId,
-      "Unexpected last entry: "
-      "${entryToString(lastLineEntry, lastEntry, sourceMap)}");
+    lastEntry.sourceUrlId,
+    "Unexpected last entry: "
+    "${entryToString(lastLineEntry, lastEntry, sourceMap)}",
+  );
 }
 
 String entryToString(
-    TargetLineEntry lineEntry, TargetEntry entry, SingleMapping mapping) {
+  TargetLineEntry lineEntry,
+  TargetEntry entry,
+  SingleMapping mapping,
+) {
   StringBuffer sb = StringBuffer();
   sb.write('[line=');
   sb.write(lineEntry.line);

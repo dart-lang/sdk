@@ -186,8 +186,7 @@ enum AsyncMarker {
   async._(AsyncModifier.Async, isAsync: true),
 
   /// The `async*` function body marker.
-  asyncStar._(AsyncModifier.AsyncStar, isAsync: true, isYielding: true),
-  ;
+  asyncStar._(AsyncModifier.AsyncStar, isAsync: true, isYielding: true);
 
   /// Is `true` if this marker defines the function body to have an
   /// asynchronous result, that is, either a [Future] or a [Stream].
@@ -199,8 +198,11 @@ enum AsyncMarker {
 
   final AsyncModifier asyncParserState;
 
-  const AsyncMarker._(this.asyncParserState,
-      {this.isAsync = false, this.isYielding = false});
+  const AsyncMarker._(
+    this.asyncParserState, {
+    this.isAsync = false,
+    this.isYielding = false,
+  });
 
   @override
   String toString() {
@@ -262,20 +264,45 @@ class ParameterStructure {
   /// The number of type parameters.
   final int typeParameters;
 
-  static const ParameterStructure getter =
-      ParameterStructure._(0, 0, [], {}, 0);
+  static const ParameterStructure getter = ParameterStructure._(
+    0,
+    0,
+    [],
+    {},
+    0,
+  );
 
-  static const ParameterStructure setter =
-      ParameterStructure._(1, 1, [], {}, 0);
+  static const ParameterStructure setter = ParameterStructure._(
+    1,
+    1,
+    [],
+    {},
+    0,
+  );
 
-  static const ParameterStructure zeroArguments =
-      ParameterStructure._(0, 0, [], {}, 0);
+  static const ParameterStructure zeroArguments = ParameterStructure._(
+    0,
+    0,
+    [],
+    {},
+    0,
+  );
 
-  static const ParameterStructure oneArgument =
-      ParameterStructure._(1, 1, [], {}, 0);
+  static const ParameterStructure oneArgument = ParameterStructure._(
+    1,
+    1,
+    [],
+    {},
+    0,
+  );
 
-  static const ParameterStructure twoArguments =
-      ParameterStructure._(2, 2, [], {}, 0);
+  static const ParameterStructure twoArguments = ParameterStructure._(
+    2,
+    2,
+    [],
+    {},
+    0,
+  );
 
   static const List<ParameterStructure> _simple = [
     ParameterStructure._(0, 0, [], {}, 0),
@@ -287,18 +314,20 @@ class ParameterStructure {
   ];
 
   const ParameterStructure._(
-      this.requiredPositionalParameters,
-      this.positionalParameters,
-      this.namedParameters,
-      this.requiredNamedParameters,
-      this.typeParameters);
+    this.requiredPositionalParameters,
+    this.positionalParameters,
+    this.namedParameters,
+    this.requiredNamedParameters,
+    this.typeParameters,
+  );
 
   factory ParameterStructure(
-      int requiredPositionalParameters,
-      int positionalParameters,
-      List<String> namedParameters,
-      Set<String> requiredNamedParameters,
-      int typeParameters) {
+    int requiredPositionalParameters,
+    int positionalParameters,
+    List<String> namedParameters,
+    Set<String> requiredNamedParameters,
+    int typeParameters,
+  ) {
     // This simple canonicalization reduces the number of ParameterStructure
     // objects by over 90%.
     if (requiredPositionalParameters == positionalParameters &&
@@ -324,11 +353,12 @@ class ParameterStructure {
 
   static ParameterStructure fromType(FunctionType type) {
     return ParameterStructure(
-        type.parameterTypes.length,
-        type.parameterTypes.length + type.optionalParameterTypes.length,
-        type.namedParameters,
-        type.requiredNamedParameters,
-        type.typeVariables.length);
+      type.parameterTypes.length,
+      type.parameterTypes.length + type.optionalParameterTypes.length,
+      type.namedParameters,
+      type.requiredNamedParameters,
+      type.typeVariables.length,
+    );
   }
 
   /// Deserializes a [ParameterStructure] object from [source].
@@ -343,11 +373,12 @@ class ParameterStructure {
     int typeParameters = source.readInt();
     source.end(tag);
     return ParameterStructure(
-        requiredPositionalParameters,
-        positionalParameters,
-        namedParameters,
-        requiredNamedParameters,
-        typeParameters);
+      requiredPositionalParameters,
+      positionalParameters,
+      namedParameters,
+      requiredNamedParameters,
+      typeParameters,
+    );
   }
 
   /// Serializes this [ParameterStructure] to [sink].
@@ -378,13 +409,18 @@ class ParameterStructure {
 
   @override
   int get hashCode => Hashing.listHash(
-      namedParameters,
-      Hashing.setHash(
-          requiredNamedParameters,
-          Hashing.objectHash(
-              positionalParameters,
-              Hashing.objectHash(requiredPositionalParameters,
-                  Hashing.objectHash(typeParameters)))));
+    namedParameters,
+    Hashing.setHash(
+      requiredNamedParameters,
+      Hashing.objectHash(
+        positionalParameters,
+        Hashing.objectHash(
+          requiredPositionalParameters,
+          Hashing.objectHash(typeParameters),
+        ),
+      ),
+    ),
+  );
 
   @override
   bool operator ==(other) {

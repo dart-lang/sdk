@@ -34,16 +34,25 @@ class FrequencyBasedNamer extends Namer
   }
 
   @override
-  js_ast.Name getFreshName(NamingScope scope, String proposedName,
-      {bool sanitizeForNatives = false, bool sanitizeForAnnotations = false}) {
+  js_ast.Name getFreshName(
+    NamingScope scope,
+    String proposedName, {
+    bool sanitizeForNatives = false,
+    bool sanitizeForAnnotations = false,
+  }) {
     // Grab the scope for this token
-    TokenScope tokenScope =
-        _tokenScopes.putIfAbsent(scope, () => newScopeFor(scope));
+    TokenScope tokenScope = _tokenScopes.putIfAbsent(
+      scope,
+      () => newScopeFor(scope),
+    );
 
     // Get the name the normal namer would use as a key.
-    String proposed = _generateFreshStringForName(proposedName, scope,
-        sanitizeForNatives: sanitizeForNatives,
-        sanitizeForAnnotations: sanitizeForAnnotations);
+    String proposed = _generateFreshStringForName(
+      proposedName,
+      scope,
+      sanitizeForNatives: sanitizeForNatives,
+      sanitizeForAnnotations: sanitizeForAnnotations,
+    );
 
     TokenName name = TokenName(tokenScope, proposed);
     tokens.add(name);

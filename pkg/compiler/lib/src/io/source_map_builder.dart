@@ -7,7 +7,8 @@ library;
 // ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' show Location;
-import '../../compiler_api.dart' as api
+import '../../compiler_api.dart'
+    as api
     show CompilerOutput, OutputSink, OutputType;
 import '../util/output_util.dart';
 import '../util/util.dart';
@@ -36,14 +37,15 @@ class SourceMapBuilder {
   final SourceLocations sourceLocations;
 
   SourceMapBuilder(
-      this.version,
-      this.sourceMapUri,
-      this.targetFileUri,
-      this.locationProvider,
-      this.minifiedGlobalNames,
-      this.minifiedInstanceNames,
-      this.sourceLocations,
-      this.outputSink);
+    this.version,
+    this.sourceMapUri,
+    this.targetFileUri,
+    this.locationProvider,
+    this.minifiedGlobalNames,
+    this.minifiedInstanceNames,
+    this.sourceLocations,
+    this.outputSink,
+  );
 
   void addMapping(int targetOffset, SourceLocation sourceLocation) {
     entries.add(SourceMapEntry(sourceLocation, targetOffset));
@@ -65,8 +67,9 @@ class SourceMapBuilder {
   void build() {
     LineColumnMap<SourceMapEntry> lineColumnMap = LineColumnMap();
     for (var sourceMapEntry in entries) {
-      Location kernelLocation =
-          locationProvider.getLocation(sourceMapEntry.targetOffset);
+      Location kernelLocation = locationProvider.getLocation(
+        sourceMapEntry.targetOffset,
+      );
       int line = kernelLocation.line - 1;
       int column = kernelLocation.column - 1;
       lineColumnMap.add(line, column, sourceMapEntry);
@@ -110,15 +113,18 @@ class SourceMapBuilder {
     outputSink.write('  "version": 3,\n');
     outputSink.write('  "engine": "$version",\n');
     if (sourceMapUri != null && targetFileUri != null) {
-      outputSink.write('  "file": '
-          '"${fe.relativizeUri(sourceMapUri!, targetFileUri!, false)}",\n');
+      outputSink.write(
+        '  "file": '
+        '"${fe.relativizeUri(sourceMapUri!, targetFileUri!, false)}",\n',
+      );
     }
     outputSink.write('  "sourceRoot": "",\n');
     outputSink.write('  "sources": ');
     Iterable<String> relativeSourceUriList = const <String>[];
     if (sourceMapUri != null) {
-      relativeSourceUriList =
-          uriMap.elements.map((u) => fe.relativizeUri(sourceMapUri!, u, false));
+      relativeSourceUriList = uriMap.elements.map(
+        (u) => fe.relativizeUri(sourceMapUri!, u, false),
+      );
     }
     printStringListOn(relativeSourceUriList);
     outputSink.write(',\n');
@@ -141,8 +147,11 @@ class SourceMapBuilder {
     outputSink.write('\n  }\n}\n');
   }
 
-  void writeEntries(LineColumnMap<SourceMapEntry> entries, IndexMap<Uri> uriMap,
-      IndexMap<String> nameMap) {
+  void writeEntries(
+    LineColumnMap<SourceMapEntry> entries,
+    IndexMap<Uri> uriMap,
+    IndexMap<String> nameMap,
+  ) {
     SourceLocation? previousSourceLocation;
     int previousTargetLine = 0;
     DeltaEncoder targetColumnEncoder = DeltaEncoder();
@@ -192,7 +201,9 @@ class SourceMapBuilder {
   }
 
   void writeMinifiedNames(
-      Map<String, String> minifiedNames, IndexMap<String> nameMap) {
+    Map<String, String> minifiedNames,
+    IndexMap<String> nameMap,
+  ) {
     bool first = true;
     outputSink.write('"');
     for (final minifiedName in List.of(minifiedNames.keys)..sort()) {
@@ -251,14 +262,15 @@ class SourceMapBuilder {
   /// files and the target [fileUri]. [name] and [outputProvider] are used to
   /// create the [api.OutputSink] for the source map text.
   static void outputSourceMap(
-      SourceLocationsProvider sourceLocationsProvider,
-      LocationProvider locationProvider,
-      Map<String, String> minifiedGlobalNames,
-      Map<String, String> minifiedInstanceNames,
-      String name,
-      Uri? sourceMapUri,
-      Uri? fileUri,
-      api.CompilerOutput compilerOutput) {
+    SourceLocationsProvider sourceLocationsProvider,
+    LocationProvider locationProvider,
+    Map<String, String> minifiedGlobalNames,
+    Map<String, String> minifiedInstanceNames,
+    String name,
+    Uri? sourceMapUri,
+    Uri? fileUri,
+    api.CompilerOutput compilerOutput,
+  ) {
     // Create a source file for the compilation output. This allows using
     // [:getLine:] to transform offsets to line numbers in [SourceMapBuilder].
     int index = 0;
@@ -272,17 +284,23 @@ class SourceMapBuilder {
           extension = 'js.map.${sourceLocations.name}';
         }
       }
-      final outputSink = BufferedStringSinkWrapper(compilerOutput
-          .createOutputSink(name, extension, api.OutputType.sourceMap));
+      final outputSink = BufferedStringSinkWrapper(
+        compilerOutput.createOutputSink(
+          name,
+          extension,
+          api.OutputType.sourceMap,
+        ),
+      );
       SourceMapBuilder sourceMapBuilder = SourceMapBuilder(
-          sourceLocations.name,
-          sourceMapUri,
-          fileUri,
-          locationProvider,
-          minifiedGlobalNames,
-          minifiedInstanceNames,
-          sourceLocations,
-          outputSink);
+        sourceLocations.name,
+        sourceMapUri,
+        fileUri,
+        locationProvider,
+        minifiedGlobalNames,
+        minifiedInstanceNames,
+        sourceLocations,
+        outputSink,
+      );
       sourceLocations.forEachSourceLocation(sourceMapBuilder.addMapping);
       sourceMapBuilder.build();
       sourceLocations.close();
@@ -312,7 +330,8 @@ class DeltaEncoder {
   static const int vlqBaseMask = (1 << 5) - 1;
   static const int vlqContinuationBit = 1 << 5;
   static const int vlqContinuationMask = 1 << 5;
-  static const String base64Digits = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn'
+  static const String base64Digits =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn'
       'opqrstuvwxyz0123456789+/';
 
   /// Writes the VLQ of delta between [value] and [offset] into [output] and

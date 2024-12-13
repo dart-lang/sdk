@@ -68,9 +68,10 @@ class NativeEmitter {
   /// [classesModifiedByEmitRTISupport] contains the list of classes that must
   /// exist, because runtime-type support adds information to the class.
   Set<Class> prepareNativeClasses(
-      List<Class> classes,
-      Set<ClassEntity> interceptorClassesNeededByConstants,
-      Iterable<ClassEntity> classesNeededForRti) {
+    List<Class> classes,
+    Set<ClassEntity> interceptorClassesNeededByConstants,
+    Iterable<ClassEntity> classesNeededForRti,
+  ) {
     hasNativeClasses = classes.isNotEmpty;
 
     // Compute a pre-order traversal of the subclass forest.  We actually want a
@@ -200,9 +201,11 @@ class NativeEmitter {
     }
 
     void fillNativeInfo(Class cls) {
-      assert(cls.nativeLeafTags == null &&
-          cls.nativeNonLeafTags == null &&
-          cls.nativeExtensions == null);
+      assert(
+        cls.nativeLeafTags == null &&
+            cls.nativeNonLeafTags == null &&
+            cls.nativeExtensions == null,
+      );
       if (leafTags[cls] != null) {
         cls.nativeLeafTags = leafTags[cls]!.toList(growable: false);
       }

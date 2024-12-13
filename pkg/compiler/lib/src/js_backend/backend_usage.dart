@@ -94,8 +94,10 @@ class BackendUsageBuilder {
   // TODO(johnniwinther): Replace this with a more precise modelling; type
   // inference of parameters of these functions is disabled.
   void registerBackendFunctionUse(FunctionEntity element) {
-    assert(_isValidBackendUse(element, element.library),
-        failedAt(element, "Backend use of $element is not allowed."));
+    assert(
+      _isValidBackendUse(element, element.library),
+      failedAt(element, "Backend use of $element is not allowed."),
+    );
     _helperFunctionsUsed.add(element);
   }
 
@@ -106,8 +108,10 @@ class BackendUsageBuilder {
   // TODO(johnniwinther): Replace this with a more precise modelling; type
   // inference of the instance fields of these classes is disabled.
   void registerBackendClassUse(ClassEntity element) {
-    assert(_isValidBackendUse(element, element.library),
-        failedAt(element, "Backend use of $element is not allowed."));
+    assert(
+      _isValidBackendUse(element, element.library),
+      failedAt(element, "Backend use of $element is not allowed."),
+    );
     _helperClassesUsed.add(element);
   }
 
@@ -146,8 +150,10 @@ class BackendUsageBuilder {
     return false;
   }
 
-  void _processBackendStaticUse(FunctionEntity element,
-      {bool isGlobal = false}) {
+  void _processBackendStaticUse(
+    FunctionEntity element, {
+    bool isGlobal = false,
+  }) {
     registerBackendFunctionUse(element);
     if (isGlobal) {
       registerGlobalFunctionDependency(element);
@@ -222,17 +228,18 @@ class BackendUsageBuilder {
 
   BackendUsage close() {
     return BackendUsageImpl(
-        globalFunctionDependencies: _globalFunctionDependencies,
-        globalClassDependencies: _globalClassDependencies,
-        helperFunctionsUsed: _helperFunctionsUsed,
-        helperClassesUsed: _helperClassesUsed,
-        needToInitializeIsolateAffinityTag: _needToInitializeIsolateAffinityTag,
-        needToInitializeDispatchProperty: _needToInitializeDispatchProperty,
-        requiresPreamble: _requiresPreamble,
-        requiresStartupMetrics: _requiresStartupMetrics,
-        runtimeTypeUses: _runtimeTypeUses,
-        isFunctionApplyUsed: _isFunctionApplyUsed,
-        isNoSuchMethodUsed: isNoSuchMethodUsed);
+      globalFunctionDependencies: _globalFunctionDependencies,
+      globalClassDependencies: _globalClassDependencies,
+      helperFunctionsUsed: _helperFunctionsUsed,
+      helperClassesUsed: _helperClassesUsed,
+      needToInitializeIsolateAffinityTag: _needToInitializeIsolateAffinityTag,
+      needToInitializeDispatchProperty: _needToInitializeDispatchProperty,
+      requiresPreamble: _requiresPreamble,
+      requiresStartupMetrics: _requiresStartupMetrics,
+      runtimeTypeUses: _runtimeTypeUses,
+      isFunctionApplyUsed: _isFunctionApplyUsed,
+      isNoSuchMethodUsed: isNoSuchMethodUsed,
+    );
   }
 }
 
@@ -270,23 +277,23 @@ class BackendUsageImpl implements BackendUsage {
   @override
   final bool isNoSuchMethodUsed;
 
-  BackendUsageImpl(
-      {required Set<FunctionEntity>? globalFunctionDependencies,
-      required Set<ClassEntity>? globalClassDependencies,
-      required Set<FunctionEntity> helperFunctionsUsed,
-      required Set<ClassEntity> helperClassesUsed,
-      required this.needToInitializeIsolateAffinityTag,
-      required this.needToInitializeDispatchProperty,
-      required this.requiresPreamble,
-      required this.requiresStartupMetrics,
-      required Set<RuntimeTypeUse> runtimeTypeUses,
-      required this.isFunctionApplyUsed,
-      required this.isNoSuchMethodUsed})
-      : _globalFunctionDependencies = globalFunctionDependencies,
-        _globalClassDependencies = globalClassDependencies,
-        _helperFunctionsUsed = helperFunctionsUsed,
-        _helperClassesUsed = helperClassesUsed,
-        _runtimeTypeUses = runtimeTypeUses;
+  BackendUsageImpl({
+    required Set<FunctionEntity>? globalFunctionDependencies,
+    required Set<ClassEntity>? globalClassDependencies,
+    required Set<FunctionEntity> helperFunctionsUsed,
+    required Set<ClassEntity> helperClassesUsed,
+    required this.needToInitializeIsolateAffinityTag,
+    required this.needToInitializeDispatchProperty,
+    required this.requiresPreamble,
+    required this.requiresStartupMetrics,
+    required Set<RuntimeTypeUse> runtimeTypeUses,
+    required this.isFunctionApplyUsed,
+    required this.isNoSuchMethodUsed,
+  }) : _globalFunctionDependencies = globalFunctionDependencies,
+       _globalClassDependencies = globalClassDependencies,
+       _helperFunctionsUsed = helperFunctionsUsed,
+       _helperClassesUsed = helperClassesUsed,
+       _runtimeTypeUses = runtimeTypeUses;
 
   factory BackendUsageImpl.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
@@ -296,12 +303,13 @@ class BackendUsageImpl implements BackendUsage {
     Set<FunctionEntity> helperFunctionsUsed =
         source.readMembers<FunctionEntity>().toSet();
     Set<ClassEntity> helperClassesUsed = source.readClasses().toSet();
-    Set<RuntimeTypeUse> runtimeTypeUses = source.readList(() {
-      RuntimeTypeUseKind kind = source.readEnum(RuntimeTypeUseKind.values);
-      DartType receiverType = source.readDartType();
-      DartType? argumentType = source.readDartTypeOrNull();
-      return RuntimeTypeUse(kind, receiverType, argumentType);
-    }).toSet();
+    Set<RuntimeTypeUse> runtimeTypeUses =
+        source.readList(() {
+          RuntimeTypeUseKind kind = source.readEnum(RuntimeTypeUseKind.values);
+          DartType receiverType = source.readDartType();
+          DartType? argumentType = source.readDartTypeOrNull();
+          return RuntimeTypeUse(kind, receiverType, argumentType);
+        }).toSet();
     bool needToInitializeIsolateAffinityTag = source.readBool();
     bool needToInitializeDispatchProperty = source.readBool();
     bool requiresPreamble = source.readBool();
@@ -310,17 +318,18 @@ class BackendUsageImpl implements BackendUsage {
     bool isNoSuchMethodUsed = source.readBool();
     source.end(tag);
     return BackendUsageImpl(
-        globalFunctionDependencies: globalFunctionDependencies,
-        globalClassDependencies: globalClassDependencies,
-        helperFunctionsUsed: helperFunctionsUsed,
-        helperClassesUsed: helperClassesUsed,
-        runtimeTypeUses: runtimeTypeUses,
-        needToInitializeIsolateAffinityTag: needToInitializeIsolateAffinityTag,
-        needToInitializeDispatchProperty: needToInitializeDispatchProperty,
-        requiresPreamble: requiresPreamble,
-        requiresStartupMetrics: requiresStartupMetrics,
-        isFunctionApplyUsed: isFunctionApplyUsed,
-        isNoSuchMethodUsed: isNoSuchMethodUsed);
+      globalFunctionDependencies: globalFunctionDependencies,
+      globalClassDependencies: globalClassDependencies,
+      helperFunctionsUsed: helperFunctionsUsed,
+      helperClassesUsed: helperClassesUsed,
+      runtimeTypeUses: runtimeTypeUses,
+      needToInitializeIsolateAffinityTag: needToInitializeIsolateAffinityTag,
+      needToInitializeDispatchProperty: needToInitializeDispatchProperty,
+      requiresPreamble: requiresPreamble,
+      requiresStartupMetrics: requiresStartupMetrics,
+      isFunctionApplyUsed: isFunctionApplyUsed,
+      isNoSuchMethodUsed: isNoSuchMethodUsed,
+    );
   }
 
   @override

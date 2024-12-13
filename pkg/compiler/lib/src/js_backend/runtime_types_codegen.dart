@@ -52,9 +52,7 @@ class ClassChecks {
 
   ClassChecks(this.functionType) : _map = {};
 
-  const ClassChecks.empty()
-      : _map = const {},
-        functionType = null;
+  const ClassChecks.empty() : _map = const {}, functionType = null;
 
   void add(TypeCheck check) {
     _map[check.cls] = check;
@@ -98,33 +96,34 @@ class Substitution {
   final int? length;
 
   const Substitution.trivial()
-      : isTrivial = true,
-        isFunction = false,
-        length = null,
-        arguments = const <DartType>[],
-        parameters = const <DartType>[];
+    : isTrivial = true,
+      isFunction = false,
+      length = null,
+      arguments = const <DartType>[],
+      parameters = const <DartType>[];
 
   Substitution.list(this.arguments)
-      : isTrivial = false,
-        isFunction = false,
-        length = null,
-        parameters = const <DartType>[];
+    : isTrivial = false,
+      isFunction = false,
+      length = null,
+      parameters = const <DartType>[];
 
   Substitution.function(this.arguments, this.parameters)
-      : isTrivial = false,
-        isFunction = true,
-        length = null;
+    : isTrivial = false,
+      isFunction = true,
+      length = null;
 
   Substitution.jsInterop(this.length)
-      : isTrivial = false,
-        isFunction = false,
-        arguments = const <DartType>[],
-        parameters = const <DartType>[];
+    : isTrivial = false,
+      isFunction = false,
+      arguments = const <DartType>[],
+      parameters = const <DartType>[];
 
   bool get isJsInterop => length != null;
 
   @override
-  String toString() => 'Substitution(isTrivial=$isTrivial,'
+  String toString() =>
+      'Substitution(isTrivial=$isTrivial,'
       'isFunction=$isFunction,isJsInterop=$isJsInterop,arguments=$arguments,'
       'parameters=$parameters,length=$length)';
 }

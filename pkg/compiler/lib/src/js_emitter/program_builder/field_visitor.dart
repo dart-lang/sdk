@@ -13,8 +13,13 @@ part of 'program_builder.dart';
 /// [needsCheckedSetter] indicates that a checked getter is needed, and in this
 /// case, [needsSetter] is always false. [needsCheckedSetter] is only true when
 /// type assertions are enabled (checked mode).
-typedef AcceptField = void Function(FieldEntity member, bool needsGetter,
-    bool needsSetter, bool needsCheckedSetter);
+typedef AcceptField =
+    void Function(
+      FieldEntity member,
+      bool needsGetter,
+      bool needsSetter,
+      bool needsCheckedSetter,
+    );
 
 class FieldVisitor {
   final JElementEnvironment _elementEnvironment;
@@ -22,8 +27,12 @@ class FieldVisitor {
   final NativeData _nativeData;
   final JClosedWorld _closedWorld;
 
-  FieldVisitor(this._elementEnvironment, this._codegenWorld, this._nativeData,
-      this._closedWorld);
+  FieldVisitor(
+    this._elementEnvironment,
+    this._codegenWorld,
+    this._nativeData,
+    this._closedWorld,
+  );
 
   /// Invokes [f] for each of the fields of [cls].
   ///
@@ -37,8 +46,8 @@ class FieldVisitor {
 
     // If the class is never instantiated we still need to set it up for
     // inheritance purposes, but we can simplify its JavaScript constructor.
-    bool isDirectlyInstantiated =
-        _codegenWorld.directlyInstantiatedClasses.contains(cls);
+    bool isDirectlyInstantiated = _codegenWorld.directlyInstantiatedClasses
+        .contains(cls);
 
     void visitField(FieldEntity field, {required ClassEntity holder}) {
       // Simple getters and setters are generated in the emitter rather than
@@ -88,8 +97,10 @@ class FieldVisitor {
       }
     }
 
-    _elementEnvironment.forEachClassMember(cls,
-        (ClassEntity holder, MemberEntity member) {
+    _elementEnvironment.forEachClassMember(cls, (
+      ClassEntity holder,
+      MemberEntity member,
+    ) {
       // Classes that are not directly instantiated do not use the JavaScript
       // constructor function to allocate and initialize an object. We don't
       // need to visit the superclasses since their fields are not used by the
@@ -115,12 +126,12 @@ class FieldVisitor {
 
   static bool fieldAccessNeverThrows(FieldEntity field) {
     return
-        // We never access a field in a closure (a captured variable) without
-        // knowing that it is there.  Therefore we don't need to use a getter
-        // (that will throw if the getter method is missing), but can always
-        // access the field directly.
-        // TODO(johnniwinther): Return `true` JClosureField.
-        false;
+    // We never access a field in a closure (a captured variable) without
+    // knowing that it is there.  Therefore we don't need to use a getter
+    // (that will throw if the getter method is missing), but can always
+    // access the field directly.
+    // TODO(johnniwinther): Return `true` JClosureField.
+    false;
   }
 
   bool _canAvoidGeneratedCheckedSetter(FieldEntity member) {

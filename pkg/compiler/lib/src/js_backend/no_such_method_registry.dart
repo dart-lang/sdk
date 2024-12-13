@@ -137,7 +137,10 @@ class NoSuchMethodRegistry {
   /// Closes the registry and returns data object used during type inference.
   NoSuchMethodData close() {
     return NoSuchMethodData(
-        _throwingImpls, _otherImpls, _forwardingSyntaxImpls);
+      _throwingImpls,
+      _otherImpls,
+      _forwardingSyntaxImpls,
+    );
   }
 }
 
@@ -165,7 +168,10 @@ class NoSuchMethodData {
   final Set<FunctionEntity> _forwardingSyntaxImpls;
 
   NoSuchMethodData(
-      this._throwingImpls, this._otherImpls, this._forwardingSyntaxImpls);
+    this._throwingImpls,
+    this._otherImpls,
+    this._forwardingSyntaxImpls,
+  );
 
   /// Deserializes a [NoSuchMethodData] object from [source].
   factory NoSuchMethodData.readFromDataSource(DataSourceReader source) {
@@ -248,8 +254,4 @@ class NoSuchMethodData {
   }
 }
 
-enum NsmCategory {
-  default_,
-  throwing,
-  other,
-}
+enum NsmCategory { default_, throwing, other }

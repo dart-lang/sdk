@@ -17,11 +17,12 @@ import 'dart:collection' show SplayTreeMap;
 ///
 /// See [semistableFrequencyAssignment] for meaning of parameters.
 void naiveFrequencyAssignment(
-    int items,
-    Iterable<String> nameSequence,
-    int Function(int) hashOf,
-    int Function(int) countOf,
-    void Function(int, String) assign) {
+  int items,
+  Iterable<String> nameSequence,
+  int Function(int) hashOf,
+  int Function(int) countOf,
+  void Function(int, String) assign,
+) {
   Iterator<String> nameIterator = nameSequence.iterator..moveNext();
 
   for (int item = 0; item < items; item++) {
@@ -47,11 +48,12 @@ void naiveFrequencyAssignment(
 ///
 /// - [assign]: Function to register the assignment of a name to item `i`.
 void semistableFrequencyAssignment(
-    int items,
-    Iterable<String> nameSequence,
-    int Function(int) hashOf,
-    int Function(int) countOf,
-    void Function(int, String) assign) {
+  int items,
+  Iterable<String> nameSequence,
+  int Function(int) hashOf,
+  int Function(int) countOf,
+  void Function(int, String) assign,
+) {
   // Overallocate 3x the number of names so that the last pool is large enough
   // to substantially reduce collisions. Round up to the next power of two so
   // that slightly changing the number of items does not usually change the size
@@ -73,9 +75,11 @@ void semistableFrequencyAssignment(
     // non-preferred slot. This should increase the number of items allocated to
     // their preferred slot.
     firstCohort = firstCohort?.skipEmpty();
-    for (var startCohort = firstCohort;
-        startCohort != null;
-        startCohort = startCohort.next) {
+    for (
+      var startCohort = firstCohort;
+      startCohort != null;
+      startCohort = startCohort.next
+    ) {
       if (pool.remaining == 0) break;
 
       // Pass 1: assign members of cohort their preferred slot if available.

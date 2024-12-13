@@ -18,8 +18,11 @@ import 'js.dart';
 import 'native_throw_behavior.dart';
 export 'native_throw_behavior.dart';
 
-typedef TypeLookup = Object? /*DartType|SpecialType*/
-    Function(String typeString, {bool required});
+typedef TypeLookup =
+    Object? /*DartType|SpecialType*/ Function(
+      String typeString, {
+      bool required,
+    });
 
 /// This class is a temporary workaround until we get a more powerful DartType.
 class SpecialType {
@@ -132,8 +135,9 @@ class NativeBehavior {
     List<Object> typesInstantiated = readTypes();
     String? codeTemplateText = source.readStringOrNull();
     SideEffects sideEffects = SideEffects.readFromDataSource(source);
-    NativeThrowBehavior throwBehavior =
-        source.readEnum(NativeThrowBehavior.values);
+    NativeThrowBehavior throwBehavior = source.readEnum(
+      NativeThrowBehavior.values,
+    );
     bool isAllocation = source.readBool();
     bool useGvn = source.readBool();
     source.end(tag);
@@ -284,24 +288,29 @@ class NativeBehavior {
   /// [nullType] define the types for `Object` and `Null`, respectively. The
   /// latter is used for the type strings of the form '' and 'var'.
   /// [validTags] can be used to restrict which tags are accepted.
-  static void processSpecString(DartTypes dartTypes,
-      DiagnosticReporter reporter, Spannable spannable, String specString,
-      {Iterable<String>? validTags,
-      required void Function(SideEffects newEffects) setSideEffects,
-      void Function(NativeThrowBehavior)? setThrows,
-      void Function(bool)? setIsAllocation,
-      void Function(bool)? setUseGvn,
-      required TypeLookup lookupType,
-      required List<Object> typesReturned,
-      required List<Object> typesInstantiated,
-      required Object objectType,
-      required Object nullType}) {
+  static void processSpecString(
+    DartTypes dartTypes,
+    DiagnosticReporter reporter,
+    Spannable spannable,
+    String specString, {
+    Iterable<String>? validTags,
+    required void Function(SideEffects newEffects) setSideEffects,
+    void Function(NativeThrowBehavior)? setThrows,
+    void Function(bool)? setIsAllocation,
+    void Function(bool)? setUseGvn,
+    required TypeLookup lookupType,
+    required List<Object> typesReturned,
+    required List<Object> typesInstantiated,
+    required Object objectType,
+    required Object nullType,
+  }) {
     bool seenError = false;
 
     void reportError(String message) {
       seenError = true;
-      reporter.reportErrorMessage(
-          spannable, MessageKind.generic, {'text': message});
+      reporter.reportErrorMessage(spannable, MessageKind.generic, {
+        'text': message,
+      });
     }
 
     const List<String> knownTags = [
@@ -311,17 +320,20 @@ class NativeBehavior {
       'effects',
       'throws',
       'gvn',
-      'new'
+      'new',
     ];
 
     /// Resolve a type string of one of the three forms:
     /// *  'void' - in which case [onVoid] is called,
     /// *  '' or 'var' - in which case [onVar] is called,
     /// *  'T1|...|Tn' - in which case [onType] is called for each resolved Ti.
-    void resolveTypesString(DartTypes dartTypes, String typesString,
-        {void Function()? onVoid,
-        void Function()? onVar,
-        required void Function(Object) onType}) {
+    void resolveTypesString(
+      DartTypes dartTypes,
+      String typesString, {
+      void Function()? onVoid,
+      void Function()? onVar,
+      required void Function(Object) onType,
+    }) {
       // Various things that are not in fact types.
       if (typesString == 'void') {
         if (onVoid != null) {
@@ -342,13 +354,18 @@ class NativeBehavior {
 
     if (!specString.contains(';') && !specString.contains(':')) {
       // Form (1), types or pseudo-types like 'void' and 'var'.
-      resolveTypesString(dartTypes, specString.trim(), onVar: () {
-        typesReturned.add(objectType);
-        typesReturned.add(nullType);
-      }, onType: (type) {
-        typesInstantiated.add(type);
-        typesReturned.add(type);
-      });
+      resolveTypesString(
+        dartTypes,
+        specString.trim(),
+        onVar: () {
+          typesReturned.add(objectType);
+          typesReturned.add(nullType);
+        },
+        onType: (type) {
+          typesInstantiated.add(type);
+          typesReturned.add(type);
+        },
+      );
       return;
     }
 
@@ -356,7 +373,8 @@ class NativeBehavior {
     if (specs.last == "") specs.removeLast(); // Allow separator to terminate.
 
     assert(
-        validTags == null || (validTags.toSet()..removeAll(validTags)).isEmpty);
+      validTags == null || (validTags.toSet()..removeAll(validTags)).isEmpty,
+    );
     validTags ??= knownTags;
 
     Map<String, String> values = {};
@@ -398,25 +416,39 @@ class NativeBehavior {
 
     String? returns = values['returns'];
     if (returns != null) {
-      resolveTypesString(dartTypes, returns, onVar: () {
-        typesReturned.add(objectType);
-        typesReturned.add(nullType);
-      }, onType: (type) {
-        typesReturned.add(type);
-      });
+      resolveTypesString(
+        dartTypes,
+        returns,
+        onVar: () {
+          typesReturned.add(objectType);
+          typesReturned.add(nullType);
+        },
+        onType: (type) {
+          typesReturned.add(type);
+        },
+      );
     }
 
     String? creates = values['creates'];
     if (creates != null) {
-      resolveTypesString(dartTypes, creates, onVoid: () {
-        reportError("Invalid type string 'creates:$creates'");
-      }, onType: (type) {
-        typesInstantiated.add(type);
-      });
+      resolveTypesString(
+        dartTypes,
+        creates,
+        onVoid: () {
+          reportError("Invalid type string 'creates:$creates'");
+        },
+        onType: (type) {
+          typesInstantiated.add(type);
+        },
+      );
     } else if (returns != null) {
-      resolveTypesString(dartTypes, returns, onType: (type) {
-        typesInstantiated.add(type);
-      });
+      resolveTypesString(
+        dartTypes,
+        returns,
+        onType: (type) {
+          typesInstantiated.add(type);
+        },
+      );
     }
 
     const throwsOption = <String, NativeThrowBehavior>{
@@ -428,8 +460,11 @@ class NativeBehavior {
 
     const boolOptions = <String, bool>{'true': true, 'false': false};
 
-    SideEffects? sideEffects =
-        processEffects(reportError, values['effects'], values['depends']);
+    SideEffects? sideEffects = processEffects(
+      reportError,
+      values['effects'],
+      values['depends'],
+    );
     NativeThrowBehavior? throwsKind = tagValueLookup('throws', throwsOption);
     bool? isAllocation = tagValueLookup('new', boolOptions);
     bool? useGvn = tagValueLookup('gvn', boolOptions);
@@ -466,8 +501,11 @@ class NativeBehavior {
     }
   }
 
-  static SideEffects? processEffects(void Function(String message) reportError,
-      String? effects, String? depends) {
+  static SideEffects? processEffects(
+    void Function(String message) reportError,
+    String? effects,
+    String? depends,
+  ) {
     if (effects == null && depends == null) return null;
 
     if (effects == null || depends == null) {
@@ -534,12 +572,13 @@ class NativeBehavior {
   /// Compute the [NativeBehavior] for a call to the 'JS' function with the
   /// given [specString] and [codeString] (first and second arguments).
   static NativeBehavior ofJsCall(
-      String specString,
-      String codeString,
-      TypeLookup lookupType,
-      Spannable spannable,
-      DiagnosticReporter reporter,
-      CommonElements commonElements) {
+    String specString,
+    String codeString,
+    TypeLookup lookupType,
+    Spannable spannable,
+    DiagnosticReporter reporter,
+    CommonElements commonElements,
+  ) {
     // The first argument of a JS-call is a string encoding various attributes
     // of the code.
     //
@@ -572,70 +611,91 @@ class NativeBehavior {
       behavior.useGvn = useGvn;
     }
 
-    processSpecString(commonElements.dartTypes, reporter, spannable, specString,
-        setSideEffects: setSideEffects,
-        setThrows: setThrows,
-        setIsAllocation: setIsAllocation,
-        setUseGvn: setUseGvn,
-        lookupType: lookupType,
-        typesReturned: behavior.typesReturned,
-        typesInstantiated: behavior.typesInstantiated,
-        objectType: commonElements.objectType,
-        nullType: commonElements.nullType);
+    processSpecString(
+      commonElements.dartTypes,
+      reporter,
+      spannable,
+      specString,
+      setSideEffects: setSideEffects,
+      setThrows: setThrows,
+      setIsAllocation: setIsAllocation,
+      setUseGvn: setUseGvn,
+      lookupType: lookupType,
+      typesReturned: behavior.typesReturned,
+      typesInstantiated: behavior.typesInstantiated,
+      objectType: commonElements.objectType,
+      nullType: commonElements.nullType,
+    );
 
     if (!sideEffectsAreEncodedInSpecString) {
-      SideEffectsVisitor(behavior.sideEffects)
-          .visit(behavior.codeTemplate!.ast);
+      SideEffectsVisitor(
+        behavior.sideEffects,
+      ).visit(behavior.codeTemplate!.ast);
     }
     if (!throwBehaviorFromSpecString) {
-      behavior.throwBehavior =
-          ThrowBehaviorVisitor().analyze(behavior.codeTemplate!.ast);
+      behavior.throwBehavior = ThrowBehaviorVisitor().analyze(
+        behavior.codeTemplate!.ast,
+      );
     }
 
     return behavior;
   }
 
   static void _fillNativeBehaviorOfBuiltinOrEmbeddedGlobal(
-      NativeBehavior behavior,
-      Spannable spannable,
-      String specString,
-      TypeLookup lookupType,
-      DiagnosticReporter reporter,
-      CommonElements commonElements,
-      {List<String>? validTags}) {
+    NativeBehavior behavior,
+    Spannable spannable,
+    String specString,
+    TypeLookup lookupType,
+    DiagnosticReporter reporter,
+    CommonElements commonElements, {
+    List<String>? validTags,
+  }) {
     void setSideEffects(SideEffects newEffects) {
       behavior.sideEffects.setTo(newEffects);
     }
 
-    processSpecString(commonElements.dartTypes, reporter, spannable, specString,
-        validTags: validTags,
-        lookupType: lookupType,
-        setSideEffects: setSideEffects,
-        typesReturned: behavior.typesReturned,
-        typesInstantiated: behavior.typesInstantiated,
-        objectType: commonElements.objectType,
-        nullType: commonElements.nullType);
+    processSpecString(
+      commonElements.dartTypes,
+      reporter,
+      spannable,
+      specString,
+      validTags: validTags,
+      lookupType: lookupType,
+      setSideEffects: setSideEffects,
+      typesReturned: behavior.typesReturned,
+      typesInstantiated: behavior.typesInstantiated,
+      objectType: commonElements.objectType,
+      nullType: commonElements.nullType,
+    );
   }
 
   static NativeBehavior ofJsBuiltinCall(
-      String specString,
-      TypeLookup lookupType,
-      Spannable spannable,
-      DiagnosticReporter reporter,
-      CommonElements commonElements) {
+    String specString,
+    TypeLookup lookupType,
+    Spannable spannable,
+    DiagnosticReporter reporter,
+    CommonElements commonElements,
+  ) {
     NativeBehavior behavior = NativeBehavior();
     behavior.sideEffects.setTo(SideEffects());
     _fillNativeBehaviorOfBuiltinOrEmbeddedGlobal(
-        behavior, spannable, specString, lookupType, reporter, commonElements);
+      behavior,
+      spannable,
+      specString,
+      lookupType,
+      reporter,
+      commonElements,
+    );
     return behavior;
   }
 
   static NativeBehavior ofJsEmbeddedGlobalCall(
-      String specString,
-      TypeLookup lookupType,
-      Spannable spannable,
-      DiagnosticReporter reporter,
-      CommonElements commonElements) {
+    String specString,
+    TypeLookup lookupType,
+    Spannable spannable,
+    DiagnosticReporter reporter,
+    CommonElements commonElements,
+  ) {
     NativeBehavior behavior = NativeBehavior();
     // TODO(sra): Allow the use site to override these defaults.
     // Embedded globals are usually pre-computed data structures or JavaScript
@@ -643,13 +703,22 @@ class NativeBehavior {
     behavior.sideEffects.setTo(SideEffects.empty());
     behavior.throwBehavior = NativeThrowBehavior.never;
     _fillNativeBehaviorOfBuiltinOrEmbeddedGlobal(
-        behavior, spannable, specString, lookupType, reporter, commonElements,
-        validTags: ['returns', 'creates']);
+      behavior,
+      spannable,
+      specString,
+      lookupType,
+      reporter,
+      commonElements,
+      validTags: ['returns', 'creates'],
+    );
     return behavior;
   }
 
   static Object /*DartType|SpecialType*/ _parseType(
-      DartTypes dartTypes, String typeString, TypeLookup lookupType) {
+    DartTypes dartTypes,
+    String typeString,
+    TypeLookup lookupType,
+  ) {
     if (typeString == '=Object') return SpecialType.jsObject;
     if (typeString == 'dynamic') {
       return dartTypes.dynamicType();
@@ -707,11 +776,19 @@ class BehaviorBuilder {
 
   late NativeBehavior _behavior;
 
-  BehaviorBuilder(this.elementEnvironment, this.commonElements,
-      this.nativeBasicData, this.reporter, this.options);
+  BehaviorBuilder(
+    this.elementEnvironment,
+    this.commonElements,
+    this.nativeBasicData,
+    this.reporter,
+    this.options,
+  );
 
-  void _overrideWithAnnotations(Iterable<String> createsAnnotations,
-      Iterable<String> returnsAnnotations, TypeLookup lookupType) {
+  void _overrideWithAnnotations(
+    Iterable<String> createsAnnotations,
+    Iterable<String> returnsAnnotations,
+    TypeLookup lookupType,
+  ) {
     if (createsAnnotations.isEmpty && returnsAnnotations.isEmpty) return;
 
     List<Object>? creates = _collect(createsAnnotations, lookupType);
@@ -737,7 +814,10 @@ class BehaviorBuilder {
     for (String specString in annotations) {
       for (final typeString in specString.split('|')) {
         var type = NativeBehavior._parseType(
-            commonElements.dartTypes, typeString, lookupType);
+          commonElements.dartTypes,
+          typeString,
+          lookupType,
+        );
         (types ??= []).add(type);
       }
     }
@@ -819,17 +899,21 @@ class BehaviorBuilder {
   }
 
   NativeBehavior buildFieldLoadBehavior(
-      DartType type,
-      Iterable<String> createsAnnotations,
-      Iterable<String> returnsAnnotations,
-      TypeLookup lookupType,
-      {required bool isJsInterop}) {
+    DartType type,
+    Iterable<String> createsAnnotations,
+    Iterable<String> returnsAnnotations,
+    TypeLookup lookupType, {
+    required bool isJsInterop,
+  }) {
     _behavior = NativeBehavior();
     // TODO(sigmund,sra): consider doing something better for numeric types.
     _addReturnType(!isJsInterop ? type : commonElements.dynamicType);
     _capture(type, isJsInterop);
     _overrideWithAnnotations(
-        createsAnnotations, returnsAnnotations, lookupType);
+      createsAnnotations,
+      returnsAnnotations,
+      lookupType,
+    );
     _handleSideEffects();
     return _behavior;
   }
@@ -844,11 +928,12 @@ class BehaviorBuilder {
   }
 
   NativeBehavior buildMethodBehavior(
-      FunctionType type,
-      Iterable<String> createAnnotations,
-      Iterable<String> returnsAnnotations,
-      TypeLookup lookupType,
-      {required bool isJsInterop}) {
+    FunctionType type,
+    Iterable<String> createAnnotations,
+    Iterable<String> returnsAnnotations,
+    TypeLookup lookupType, {
+    required bool isJsInterop,
+  }) {
     _behavior = NativeBehavior();
     DartType returnType = type.returnType;
     // Note: For dart:html and other internal libraries we maintain, we can
@@ -876,8 +961,12 @@ class BehaviorBuilder {
   }
 }
 
-List<String> _getAnnotations(DartTypes dartTypes, DiagnosticReporter reporter,
-    Iterable<ConstantValue> metadata, ClassEntity cls) {
+List<String> _getAnnotations(
+  DartTypes dartTypes,
+  DiagnosticReporter reporter,
+  Iterable<ConstantValue> metadata,
+  ClassEntity cls,
+) {
   List<String> annotations = [];
   for (ConstantValue value in metadata) {
     if (value is ConstructedConstantValue) {
@@ -894,28 +983,39 @@ List<String> _getAnnotations(DartTypes dartTypes, DiagnosticReporter reporter,
       }
 
       reporter.internalError(
-          currentElementSpannable,
-          'Annotations needs one string: '
-          '${value.toStructuredText(dartTypes)}');
+        currentElementSpannable,
+        'Annotations needs one string: '
+        '${value.toStructuredText(dartTypes)}',
+      );
     }
   }
   return annotations;
 }
 
 List<String> getCreatesAnnotations(
-    DartTypes dartTypes,
-    DiagnosticReporter reporter,
-    CommonElements commonElements,
-    Iterable<ConstantValue> metadata) {
+  DartTypes dartTypes,
+  DiagnosticReporter reporter,
+  CommonElements commonElements,
+  Iterable<ConstantValue> metadata,
+) {
   return _getAnnotations(
-      dartTypes, reporter, metadata, commonElements.annotationCreatesClass);
+    dartTypes,
+    reporter,
+    metadata,
+    commonElements.annotationCreatesClass,
+  );
 }
 
 List<String> getReturnsAnnotations(
-    DartTypes dartTypes,
-    DiagnosticReporter reporter,
-    CommonElements commonElements,
-    Iterable<ConstantValue> metadata) {
+  DartTypes dartTypes,
+  DiagnosticReporter reporter,
+  CommonElements commonElements,
+  Iterable<ConstantValue> metadata,
+) {
   return _getAnnotations(
-      dartTypes, reporter, metadata, commonElements.annotationReturnsClass);
+    dartTypes,
+    reporter,
+    metadata,
+    commonElements.annotationReturnsClass,
+  );
 }
