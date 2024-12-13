@@ -1026,6 +1026,15 @@ class CompileTimeErrorCode extends ErrorCode {
     "Methods can't be invoked in constant expressions.",
   );
 
+  ///  See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+  ///  for text about "An expression of the form e1 == e2".
+  static const CompileTimeErrorCode CONST_EVAL_PRIMITIVE_EQUALITY =
+      CompileTimeErrorCode(
+    'CONST_EVAL_PRIMITIVE_EQUALITY',
+    "In constant expressions, operands of the equality operator must have "
+        "primitive equality.",
+  );
+
   ///  Parameters:
   ///  0: the name of the property being accessed
   ///  1: the type with the property being accessed

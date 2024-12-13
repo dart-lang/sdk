@@ -1871,6 +1871,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           // the extension type.
           for (MapEntry<String, DartType> def
               in foundScope.definitions.entries) {
+            if (!usedDefinitions.containsKey(def.key)) continue;
             if (_ExtensionTypeFinder.isOrContainsExtensionType(def.value)) {
               usedDefinitions[def.key] = def.value;
             }

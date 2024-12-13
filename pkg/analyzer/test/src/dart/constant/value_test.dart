@@ -859,8 +859,11 @@ class DartObjectImplTest {
   }
 
   void test_identical_list_false_differentValues() {
-    _assertIdentical(_boolValue(false), _listValue(_typeProvider.intType, []),
-        _listValue(_typeProvider.intType, [_intValue(3)]));
+    _assertIdentical(
+      _boolValue(false),
+      _listValue(_typeProvider.intType, []),
+      _listValue(_typeProvider.intType, [_intValue(3)]),
+    );
   }
 
   void test_identical_list_false_equalTypes_differentValues() {

@@ -134,6 +134,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD,
   CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT,
   CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION,
+  CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY,
   CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
   CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
   CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE,
