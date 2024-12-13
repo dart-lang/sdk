@@ -7,9 +7,7 @@
 
 class A {
   A.a() : this.b();
-  A.b()
-
-  ;
+  A.b();
   A.c() : this.b();
 }
 

@@ -65,11 +65,10 @@ class SimpleImplementApplication = Object
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'SimpleImplementApplication' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
-    with
+        with
         _MixinOnObject
-    implements
-        BaseMixin;
-//      ^^^^^^^^^
+    implements BaseMixin;
+//             ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
@@ -81,14 +80,13 @@ base class BaseImplementApplication = Object
 // [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
 interface class InterfaceImplementApplication = Object
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'InterfaceImplementApplication' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
-    with
+        //      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+        // [cfe] The type 'InterfaceImplementApplication' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
+        with
         _MixinOnObject
-    implements
-        BaseMixin;
-//      ^^^^^^^^^
+    implements BaseMixin;
+//             ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
@@ -150,7 +148,7 @@ class SimpleMixinClassApplySimpleBase extends Object
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'SimpleMixinClassApplySimpleBase' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
-    with
+        with
         _MixinOnObject,
         BaseMixin {}
 
@@ -158,7 +156,7 @@ class SimpleMixinClassApplyBaseSimple extends Object
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'SimpleMixinClassApplyBaseSimple' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
-    with
+        with
         BaseMixin,
         _MixinOnObject {}
 
@@ -168,18 +166,18 @@ interface class InterfaceMixinClassApply extends Object with BaseMixin {}
 // [cfe] The type 'InterfaceMixinClassApply' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
 
 interface class InterfaceMixinClassApplySimpleBase extends Object
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'InterfaceMixinClassApplySimpleBase' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
-    with
+        //      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+        // [cfe] The type 'InterfaceMixinClassApplySimpleBase' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
+        with
         _MixinOnObject,
         BaseMixin {}
 
 interface class InterfaceMixinClassApplyBaseSimple extends Object
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'InterfaceMixinClassApplyBaseSimple' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
-    with
+        //      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+        // [cfe] The type 'InterfaceMixinClassApplyBaseSimple' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
+        with
         BaseMixin,
         _MixinOnObject {}
 
@@ -203,10 +201,10 @@ base class BaseBaseMixinApplyImplement implements BaseMixinApply {}
 // [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
 interface class InterfaceBaseMixinApplyImplement
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'InterfaceBaseMixinApplyImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinApply' is 'base'.
-    implements
+        //      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+        // [cfe] The type 'InterfaceBaseMixinApplyImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinApply' is 'base'.
+        implements
         BaseMixinApply {}
 //      ^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
@@ -253,10 +251,10 @@ base class BaseFinalMixinApplyImplement implements FinalMixinApply {}
 // [cfe] The mixin 'BaseMixin' can't be implemented outside of its library because it's a base mixin.
 
 interface class InterfaceFinalMixinApplyImplement
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'InterfaceFinalMixinApplyImplement' must be 'base', 'final' or 'sealed' because the supertype 'FinalMixinApply' is 'final'.
-    implements
+        //      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+        // [cfe] The type 'InterfaceFinalMixinApplyImplement' must be 'base', 'final' or 'sealed' because the supertype 'FinalMixinApply' is 'final'.
+        implements
         FinalMixinApply {}
 //      ^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
@@ -338,7 +336,7 @@ class SimpleMixinClassApplicationSimpleBase extends Object
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'SimpleMixinClassApplicationSimpleBase' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
-    with
+        with
         _MixinOnObject,
         BaseMixin {}
 
@@ -346,7 +344,7 @@ class SimpleMixinClassApplicationBaseSimple extends Object
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'SimpleMixinClassApplicationBaseSimple' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
-    with
+        with
         BaseMixin,
         _MixinOnObject {}
 
@@ -356,18 +354,18 @@ interface class InterfaceMixinClassApplication extends Object with BaseMixin {}
 // [cfe] The type 'InterfaceMixinClassApplication' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
 
 interface class InterfaceMixinClassApplicationSimpleBase extends Object
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'InterfaceMixinClassApplicationSimpleBase' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
-    with
+        //      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+        // [cfe] The type 'InterfaceMixinClassApplicationSimpleBase' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
+        with
         _MixinOnObject,
         BaseMixin {}
 
 interface class InterfaceMixinClassApplicationBaseSimple extends Object
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'InterfaceMixinClassApplicationBaseSimple' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
-    with
+        //      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+        // [cfe] The type 'InterfaceMixinClassApplicationBaseSimple' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
+        with
         BaseMixin,
         _MixinOnObject {}
 

@@ -52,10 +52,10 @@ base class BaseExtendWith extends InterfaceClass with _MixinOnObject {}
 // [cfe] The class 'InterfaceClass' can't be extended outside of its library because it's an interface class.
 
 interface class InterfaceExtendWith extends InterfaceClass
-//                                          ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] The class 'InterfaceClass' can't be extended outside of its library because it's an interface class.
-    with
+        //                                  ^^^^^^^^^^^^^^
+        // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+        // [cfe] The class 'InterfaceClass' can't be extended outside of its library because it's an interface class.
+        with
         _MixinOnObject {}
 
 final class FinalExtendWith extends InterfaceClass with _MixinOnObject {}

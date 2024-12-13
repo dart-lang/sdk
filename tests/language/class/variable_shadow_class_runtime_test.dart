@@ -15,7 +15,6 @@ class Test {
 
 main() {
   {
-
     // Now this refers to the variable.
     var i = new Test.named(10);
     Expect.equals(10, i.field);

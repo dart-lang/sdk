@@ -7,9 +7,7 @@
 
 // Test that const instance fields are compile-time errors.
 
-class C {
-
-}
+class C {}
 
 void main() {
   new C();

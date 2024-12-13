@@ -14,8 +14,8 @@ main() {
   Expect.equals(42, (const A<int>.named()).x);
   Expect.equals(42, (new A<int>.named()).x);
   const A<int>();
-//^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONST
-//      ^
-// [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
+  // [error column 3, length 5]
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONST
+  //    ^
+  // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
 }

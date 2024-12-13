@@ -80,7 +80,8 @@ testReturnOfFunctionType() {
   FnChecks<dynamic> cDyn = cInt;
   Expect.throwsTypeError(() => cDyn.setterForT());
   Expect.throwsTypeError(
-      () => (cDyn as dynamic).setterForT()('hi')); // dcall throws
+    () => (cDyn as dynamic).setterForT()('hi'),
+  ); // dcall throws
   cInt.setterForT()(42);
   Expect.equals(cObj.getT(), 42);
 }
@@ -90,7 +91,9 @@ testTearoffReturningFunctionType() {
   FnChecks<Object> cObj = cInt;
 
   Expect.throwsTypeError(
-      () => cObj.setterForT, 'unsound tear-off throws at runtime');
+    () => cObj.setterForT,
+    'unsound tear-off throws at runtime',
+  );
   Expect.equals(cInt.setterForT, cInt.setterForT, 'sound tear-off works');
 }
 
@@ -113,8 +116,8 @@ testFieldOfFunctionType() {
 }
 
 testFieldOfGenericFunctionType() {
-  FnChecks<Object> c = new FnChecks<num>()
-    ..g = <S extends num>(S s) => s.isNegative;
+  FnChecks<Object> c =
+      new FnChecks<num>()..g = <S extends num>(S s) => s.isNegative;
 
   Expect.throwsTypeError(() {
     G<Object> g = c.g;
@@ -224,8 +227,11 @@ typedef F3 = dynamic Function(dynamic Function(int Function()));
 typedef F4 = dynamic Function(dynamic Function(int) Function());
 
 testTearOffRuntimeType() {
-  expectRTTI(tearoff, type) => Expect.equals(tearoff.runtimeType, type,
-      'covariant params should reify with Object? as their type');
+  expectRTTI(tearoff, type) => Expect.equals(
+    tearoff.runtimeType,
+    type,
+    'covariant params should reify with Object? as their type',
+  );
 
   TearOff<num> t = new TearOff<int>();
   expectRTTI(t.method1, F1);

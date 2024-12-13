@@ -32,8 +32,12 @@ class B<Z, P> {
   final List barTypeArguments = [];
 
   void foo<Q, Q1 extends P, Q2 extends Q1, Q3 extends Z>() {
-    void bar<T1 extends Map<Q1, T2>, T2 extends List<Q1>, T3 extends Z,
-        T4 extends Q>(Map<T1, T2>? arg) {
+    void bar<
+      T1 extends Map<Q1, T2>,
+      T2 extends List<Q1>,
+      T3 extends Z,
+      T4 extends Q
+    >(Map<T1, T2>? arg) {
       barTypeArguments
         ..add(T1)
         ..add(T2)
@@ -73,14 +77,26 @@ abstract class MyIterable implements Iterable {}
 main() {
   final a = new A<num>();
   a.foo<Iterable, int, List, double, MyIterable>();
-  Expect.listEquals(
-      [int, List, num, Iterable, double, MyIterable], a.barTypeArguments);
+  Expect.listEquals([
+    int,
+    List,
+    num,
+    Iterable,
+    double,
+    MyIterable,
+  ], a.barTypeArguments);
 
   // Test instantiation to bounds in the enclosing method.
   dynamic b = new A<int>();
   b.foo();
-  Expect.listEquals(
-      [int, dynamic, int, dynamic, int, dynamic], b.barTypeArguments);
+  Expect.listEquals([
+    int,
+    dynamic,
+    int,
+    dynamic,
+    int,
+    dynamic,
+  ], b.barTypeArguments);
 
   final c = new B<String, num>();
   c.foo<Iterable, num, int, String>();

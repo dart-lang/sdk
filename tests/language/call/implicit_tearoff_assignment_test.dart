@@ -48,8 +48,9 @@ class Derived extends Base {
   }
 
   void testSuperPropertySet() {
-    Expect.type<void Function()>((super.baseProperty = C())
-      ..expectStaticType<Exactly<void Function()>>());
+    Expect.type<void Function()>(
+      (super.baseProperty = C())..expectStaticType<Exactly<void Function()>>(),
+    );
     Expect.type<void Function()>(super._basePropertySetValue);
   }
 }
@@ -72,56 +73,64 @@ extension on Extended {
 void testExtensionIndexSet() {
   Extended e = Extended();
   Expect.type<void Function()>(
-      (e[0] = C())..expectStaticType<Exactly<void Function()>>());
+    (e[0] = C())..expectStaticType<Exactly<void Function()>>(),
+  );
   Expect.type<void Function()>(e._extensionIndexSetValue);
 }
 
 void testExtensionSet() {
   Extended e = Extended();
-  Expect.type<void Function()>((e.extensionProperty = C())
-    ..expectStaticType<Exactly<void Function()>>());
+  Expect.type<void Function()>(
+    (e.extensionProperty = C())..expectStaticType<Exactly<void Function()>>(),
+  );
   Expect.type<void Function()>(e._extensionPropertySetValue);
 }
 
 void testIndexSet() {
   Derived d = Derived();
   Expect.type<void Function()>(
-      (d[0] = C())..expectStaticType<Exactly<void Function()>>());
+    (d[0] = C())..expectStaticType<Exactly<void Function()>>(),
+  );
   Expect.type<void Function()>(d._indexSetValue);
 }
 
 void testInstanceSet() {
   Derived d = Derived();
   Expect.type<void Function()>(
-      (d.instanceProperty = C())..expectStaticType<Exactly<void Function()>>());
+    (d.instanceProperty = C())..expectStaticType<Exactly<void Function()>>(),
+  );
   Expect.type<void Function()>(d._instanceSetValue);
 }
 
 void testNullAwarePropertySet() {
   Derived? d = Derived() as Derived?; // ignore: unnecessary_cast
-  Expect.type<void Function()>((d?.instanceProperty = C())
-    ..expectStaticType<Exactly<void Function()?>>());
+  Expect.type<void Function()>(
+    (d?.instanceProperty = C())..expectStaticType<Exactly<void Function()?>>(),
+  );
   Expect.type<void Function()>(d!._instanceSetValue);
 }
 
 void testStaticSet() {
   C._staticPropertySetValue = null;
   Expect.type<void Function()>(
-      (C.staticProperty = C())..expectStaticType<Exactly<void Function()>>());
+    (C.staticProperty = C())..expectStaticType<Exactly<void Function()>>(),
+  );
   Expect.type<void Function()>(C._staticPropertySetValue);
 }
 
 void testTopLevelSet() {
   _topLevelPropertySetValue = null;
   Expect.type<void Function()>(
-      (topLevelProperty = C())..expectStaticType<Exactly<void Function()>>());
+    (topLevelProperty = C())..expectStaticType<Exactly<void Function()>>(),
+  );
   Expect.type<void Function()>(_topLevelPropertySetValue);
 }
 
 void testVariableSet() {
   void Function() f;
   Expect.type<void Function()>(
-      (f = C())..expectStaticType<Exactly<void Function()>>());
+    (f = C())..expectStaticType<Exactly<void Function()>>(),
+  );
   Expect.type<void Function()>(f);
 }
 

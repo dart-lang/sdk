@@ -6,8 +6,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-
-
   var c1 = const C1();
 
   var c3 = const C3();
@@ -23,7 +21,6 @@ class C0 implements I0 {
 
 class C1 {
   const C1();
-
 }
 
 class C2 {
@@ -31,8 +28,6 @@ class C2 {
 }
 
 class C3 {
-  const C3()
-
-  ;
+  const C3();
   final field = null;
 }

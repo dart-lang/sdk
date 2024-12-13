@@ -13,7 +13,4 @@ class C {
 
 main() {
   var f = new C().foo;
-
-
-
 }

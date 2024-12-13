@@ -14,8 +14,7 @@ const d = dynamic;
 const i = int;
 
 void main() {
-
   // Duplicate key error.
 
-  Expect.equals(2, const { d: 1, i: 2 }.length);
+  Expect.equals(2, const {d: 1, i: 2}.length);
 }

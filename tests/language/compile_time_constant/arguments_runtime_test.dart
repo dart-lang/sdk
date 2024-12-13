@@ -14,12 +14,8 @@ class A {
 main() {
   const A(1);
 
-
   const A.named();
-
-
 
   const A.optional();
   const A.optional(42);
-
 }

@@ -40,3 +40,4 @@ class OutsideG with AbstractClass {}
 //                  ^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 // [cfe] The class 'AbstractClass' can't be used as a mixin because it isn't a mixin class nor a mixin.
+

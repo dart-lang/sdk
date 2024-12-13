@@ -20,8 +20,10 @@ void main() {
   // Wrong element type.
   Expect.throwsTypeError(() => <int>[for (var i = 0; i < 1; i++) nonInt]);
   Expect.throwsTypeError(
-      () => <int, int>{for (var i = 0; i < 1; i++) nonInt: 1});
+    () => <int, int>{for (var i = 0; i < 1; i++) nonInt: 1},
+  );
   Expect.throwsTypeError(
-      () => <int, int>{for (var i = 0; i < 1; i++) 1: nonInt});
+    () => <int, int>{for (var i = 0; i < 1; i++) 1: nonInt},
+  );
   Expect.throwsTypeError(() => <int>{for (var i = 0; i < 1; i++) nonInt});
 }

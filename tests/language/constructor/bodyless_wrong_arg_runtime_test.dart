@@ -12,12 +12,10 @@ class Base {
 
 class C extends Base {
   const C(String s)
-      : super(
+    : super(
         // Call super constructor with wrong argument count.
-
-        s
-
-        );
+        s,
+      );
 }
 
 main() {

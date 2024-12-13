@@ -86,7 +86,6 @@ main() {
   // ^
   // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
   // [cfe] Expected an identifier, but got ''.
-  // ^
   // [cfe] Expected an identifier, but got '('.
   a..37;
   // ^^

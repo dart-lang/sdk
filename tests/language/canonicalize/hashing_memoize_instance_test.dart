@@ -214,7 +214,11 @@ const box2_98 = Box(box2_97, box2_97);
 const box2_99 = Box(box2_98, box2_98);
 
 confuse(x) {
-  try { throw x; } catch (e) { return e; }
+  try {
+    throw x;
+  } catch (e) {
+    return e;
+  }
 }
 
 main() {

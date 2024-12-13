@@ -8,7 +8,10 @@ environment:
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   analyzer: any
+  dart_style: any
+  package_config: any
   path: any
+  pub_semver: any
   test: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.

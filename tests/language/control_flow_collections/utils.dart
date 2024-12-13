@@ -88,8 +88,10 @@ void _expectTypeArguments(String typeArguments, Object object) {
   }
 
   if (!typeName.contains("<$typeArguments>")) {
-    Expect.fail("Object should have had generic type '<$typeArguments>', "
-        "but was '$typeName'.");
+    Expect.fail(
+      "Object should have had generic type '<$typeArguments>', "
+      "but was '$typeName'.",
+    );
   }
 }
 

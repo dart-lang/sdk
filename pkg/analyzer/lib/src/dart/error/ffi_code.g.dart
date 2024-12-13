@@ -181,7 +181,8 @@ class FfiCode extends ErrorCode {
 
   ///  No parameters.
   static const FfiCode
-  FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER = FfiCode(
+      FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER =
+      FfiCode(
     'FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER',
     "Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.",
     correctionMessage: "Pass as Handle instead.",
@@ -202,7 +203,7 @@ class FfiCode extends ErrorCode {
   ///  0: the expected number of parameters
   ///  1: the actual number of parameters
   static const FfiCode
-  FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER = FfiCode(
+      FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER = FfiCode(
     'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER',
     "Unexpected number of Native annotation parameters. Expected {0} but has "
         "{1}. Native instance method annotation must have receiver as first "
@@ -518,10 +519,10 @@ class FfiCode extends ErrorCode {
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-         name: name,
-         problemMessage: problemMessage,
-         uniqueName: 'FfiCode.${uniqueName ?? name}',
-       );
+          name: name,
+          problemMessage: problemMessage,
+          uniqueName: 'FfiCode.${uniqueName ?? name}',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorType.COMPILE_TIME_ERROR.severity;

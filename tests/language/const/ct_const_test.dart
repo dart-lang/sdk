@@ -23,12 +23,8 @@ class Point {
   static const origin = const Point(0, 0);
   static const origin2 = const Point(zero, Roman.IV - 4);
 
-  const Point(x, y)
-      : x_ = x,
-        y_ = y;
-  const Point.X(x)
-      : x_ = x,
-        y_ = Roman.V - Roman.II - 3;
+  const Point(x, y) : x_ = x, y_ = y;
+  const Point.X(x) : x_ = x, y_ = Roman.V - Roman.II - 3;
 
   bool operator ==(final dynamic other) {
     return (this.x_ == other.x_) && (this.y_ == other.y_);
@@ -38,9 +34,7 @@ class Point {
 }
 
 class Line {
-  const Line(Point begin, Point end)
-      : beg_ = begin,
-        end_ = end;
+  const Line(Point begin, Point end) : beg_ = begin, end_ = end;
   final Point beg_;
   final Point end_;
 }
@@ -74,11 +68,15 @@ class CTConstTest {
     final evenNumbers = const <int>[2, 2 * 2, 2 * 3, 2 * 4, 2 * 5];
     Expect.equals(true, identical(evenNumbers, const <int>[2, 4, 6, 8, 10]));
     Expect.equals(
-        true, !identical(evenNumbers, const <dynamic>[2, 4, 6, 8, 10]));
+      true,
+      !identical(evenNumbers, const <dynamic>[2, 4, 6, 8, 10]),
+    );
 
     final c11dGermany1 = const {"black": 1, "red": 2, "yellow": 3};
-    Expect.equals(true,
-        identical(c11dGermany1, const {"black": 1, "red": 2, "yellow": 3}));
+    Expect.equals(
+      true,
+      identical(c11dGermany1, const {"black": 1, "red": 2, "yellow": 3}),
+    );
 
     final c11dGermany2 = const {"black": 1, "red": 2, "yellow": 3};
     Expect.equals(true, identical(c11dGermany1, c11dGermany2));
@@ -89,7 +87,9 @@ class CTConstTest {
 
     final c11dItaly = const {"green": 1, "red": 3, "white": 2};
     Expect.equals(
-        true, identical(c11dItaly, const {"green": 1, "red": 3, "white": 2}));
+      true,
+      identical(c11dItaly, const {"green": 1, "red": 3, "white": 2}),
+    );
     Expect.equals(true, identical(c11dItaly, Roman.VivaItalia));
 
     Expect.equals(3, c11dItaly.length);

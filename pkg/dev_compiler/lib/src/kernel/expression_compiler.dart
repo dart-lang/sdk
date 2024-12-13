@@ -155,7 +155,6 @@ class ExpressionCompiler {
         // '$36' in JS. We do a similar expansion here to normalize the names.
         final jsNamePrefix =
             js_ast.toJSIdentifier(dartName).replaceAll('\$', '\\\$');
-        print(jsNamePrefix);
         final regexp = RegExp(r'^' + jsNamePrefix + r'(\$[0-9]*)?$');
         for (var i = 0; i < jsNames.length; i++) {
           final jsName = jsNames[i];
