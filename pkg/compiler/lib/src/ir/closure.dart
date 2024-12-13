@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+// ignore: implementation_imports
 import 'package:kernel/src/printer.dart' as ir;
 import 'package:kernel/text/ast_to_text.dart' as ir show debugNodeToString;
 
@@ -37,7 +38,7 @@ class KernelScopeInfo {
   /// this scope. The items in this set are either of type VariableDeclaration
   /// or TypeParameterTypeWithContext.
   Set<ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ >
-      freeVariables = Set<ir.Node>();
+      freeVariables = <ir.Node>{};
 
   /// A set of type parameters that are defined in another scope and are only
   /// used if runtime type information is checked. If runtime type information
@@ -57,11 +58,11 @@ class KernelScopeInfo {
   /// performing runtime type checks. It is stored
   /// separately from [thisUsedAsFreeVariable] because we don't know at this
   /// stage if we will be needing type checks for this scope.
-  Set<VariableUse> thisUsedAsFreeVariableIfNeedsRti = Set<VariableUse>();
+  Set<VariableUse> thisUsedAsFreeVariableIfNeedsRti = <VariableUse>{};
 
   KernelScopeInfo(this.hasThisLocal)
-      : localsUsedInTryOrSync = Set<ir.VariableDeclaration>(),
-        boxedVariables = Set<ir.VariableDeclaration>(),
+      : localsUsedInTryOrSync = <ir.VariableDeclaration>{},
+        boxedVariables = <ir.VariableDeclaration>{},
         capturedVariablesAccessor = null;
 
   KernelScopeInfo.from(this.hasThisLocal, KernelScopeInfo info)
@@ -123,7 +124,7 @@ class KernelCapturedScope extends KernelScopeInfo {
             scope.hasThisLocal);
 
   // Silly hack because we don't have const sets.
-  static final Set<ir.VariableDeclaration> _empty = Set();
+  static final Set<ir.VariableDeclaration> _empty = {};
 
   bool get requiresContextBox => boxedVariables.isNotEmpty;
 }

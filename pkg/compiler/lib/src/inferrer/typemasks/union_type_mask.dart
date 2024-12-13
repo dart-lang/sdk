@@ -9,12 +9,12 @@ class UnionTypeMask extends TypeMask {
   /// debugging data stream.
   static const String tag = 'union-type-mask';
 
-  static const int MAX_UNION_LENGTH = 4;
+  static const int maxUnionLength = 4;
 
   // Set this flag to `true` to perform a set-membership based containment check
   // instead of relying on normalized types. This is quite slow but can be
   // helpful in debugging.
-  static const bool PERFORM_EXTRA_CONTAINS_CHECK = false;
+  static const bool performExtraContainsCheck = false;
 
   /// Components of the union, none of which is itself a union or nullable.
   final List<FlatTypeMask> disjointMasks;
@@ -79,7 +79,7 @@ class UnionTypeMask extends TypeMask {
           ? TypeMask.empty(hasLateSentinel: hasLateSentinel)
           : TypeMask.nonNullEmpty(hasLateSentinel: hasLateSentinel);
     }
-    if (disjoint.length > MAX_UNION_LENGTH) {
+    if (disjoint.length > maxUnionLength) {
       return flatten(disjoint, domain,
           includeNull: isNullable, includeLateSentinel: hasLateSentinel);
     }
@@ -350,7 +350,7 @@ class UnionTypeMask extends TypeMask {
       assert(flat.isSubtype);
       members = closedWorld.classHierarchy.strictSubtypesOf(flat.base!);
     }
-    return members.every((ClassEntity cls) => this.contains(cls, closedWorld));
+    return members.every((ClassEntity cls) => contains(cls, closedWorld));
   }
 
   @override
@@ -363,7 +363,7 @@ class UnionTypeMask extends TypeMask {
       return disjointMasks.every((FlatTypeMask disjointMask) {
         bool contained = union.disjointMasks.any((FlatTypeMask other) =>
             other.containsMask(disjointMask, closedWorld));
-        if (PERFORM_EXTRA_CONTAINS_CHECK &&
+        if (performExtraContainsCheck &&
             !contained &&
             union._slowContainsCheck(disjointMask, closedWorld)) {
           throw "TypeMask based containment check failed for $this and $other.";
@@ -383,7 +383,7 @@ class UnionTypeMask extends TypeMask {
     other = other.withoutSpecialValues();
     bool contained =
         disjointMasks.any((mask) => mask.containsMask(other, closedWorld));
-    if (PERFORM_EXTRA_CONTAINS_CHECK &&
+    if (performExtraContainsCheck &&
         !contained &&
         _slowContainsCheck(other, closedWorld)) {
       throw "TypeMask based containment check failed for $this and $other.";

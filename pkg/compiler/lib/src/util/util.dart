@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.util;
+library;
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show $BACKSLASH, $CR, $DEL, $DQ, $LF, $LS, $PS, $TAB;
 
@@ -14,7 +15,7 @@ export 'setlet.dart';
 class Hashing {
   /// If an integer is masked by this constant, the result is guaranteed to be
   /// in Smi range.
-  static const int SMI_MASK = 0x3fffffff;
+  static const int smiMask = 0x3fffffff;
 
   /// Mix the bits of [value] and merge them with [existing].
   static int mixHashCodeBits(int existing, int value) {
@@ -30,7 +31,7 @@ class Hashing {
     // Combine the two hash values.
     int high = existing >> 15;
     int low = existing & 0x7fff;
-    return ((high * 13) ^ (low * 997) ^ h) & SMI_MASK;
+    return ((high * 13) ^ (low * 997) ^ h) & smiMask;
   }
 
   /// Returns a hash value computed from all the characters in the string.
@@ -78,7 +79,7 @@ class Hashing {
         h += objectsHash(e);
       }
     }
-    return h & SMI_MASK;
+    return h & smiMask;
   }
 
   /// Mix the bits of the hash codes of the unordered key/value from [map] with
@@ -151,7 +152,7 @@ bool equalMaps<K, V>(Map<K, V>? a, Map<K, V>? b) {
 
 /// File name prefix used to shorten the file name in stack traces printed by
 /// [trace].
-String? stackTraceFilePrefix = null;
+String? stackTraceFilePrefix;
 
 /// Writes the characters of [string] on [buffer].  The characters
 /// are escaped as suitable for JavaScript and JSON.  [buffer] is

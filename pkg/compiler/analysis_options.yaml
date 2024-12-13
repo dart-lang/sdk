@@ -12,16 +12,10 @@ analyzer:
     strict-inference: true
     strict-raw-types: true
 
-include: package:lints/core.yaml
+include: package:lints/recommended.yaml
 
 linter:
   rules:
     - always_declare_return_types
-    - annotate_overrides
     - avoid_dynamic_calls
-    - prefer_final_fields
-    - prefer_if_null_operators
-    - prefer_null_aware_operators
-    - use_super_parameters
-    - exhaustive_cases
     - no_default_cases

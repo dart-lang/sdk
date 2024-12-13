@@ -243,9 +243,9 @@ class MemberHierarchyBuilder {
       final match = findSuperclassTarget(entity, selector);
       if (match.isNotEmpty) {
         results.addAll(match);
-        return IterationStep.SKIP_SUBCLASSES;
+        return IterationStep.skipSubclasses;
       }
-      return IterationStep.CONTINUE;
+      return IterationStep.continue_;
     }
 
     if (isSubtype) {
@@ -397,7 +397,7 @@ class MemberHierarchyBuilder {
     closedWorld.classHierarchy.getClassSet(cls).forEachSubtype((subtype) {
       final override = elementEnv.lookupClassMember(subtype, name);
       if (override != null) addParent(override, member);
-      return IterationStep.CONTINUE;
+      return IterationStep.continue_;
     }, ClassHierarchyNode.instantiated, strict: true);
 
     if (!foundSuperclass) {
@@ -472,18 +472,19 @@ class MemberHierarchyBuilder {
   }
 
   void dumpRoots([String? selectorName]) {
-    (_dynamicRoots.entries
-            .where((e) => selectorName == null || e.key.name == selectorName)
-            .map((e) {
+    for (var e in (_dynamicRoots.entries
+        .where((e) => selectorName == null || e.key.name == selectorName)
+        .map((e) {
       final members = e.value.map((m) => m).toList();
       members.sort((a, b) => a.toString().compareTo(b.toString()));
       return MapEntry(e.key, members.join(', '));
     }).toList()
-          ..sort((a, b) {
-            final keyComp = a.key.toString().compareTo(b.key.toString());
-            return keyComp != 0 ? keyComp : a.value.compareTo(b.value);
-          }))
-        .forEach((e) => print('${e.key}: ${e.value}'));
+      ..sort((a, b) {
+        final keyComp = a.key.toString().compareTo(b.key.toString());
+        return keyComp != 0 ? keyComp : a.value.compareTo(b.value);
+      }))) {
+      print('${e.key}: ${e.value}');
+    }
   }
 
   void dumpCache({String? selectorName, String? receiverString}) {

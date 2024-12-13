@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library masks;
+library;
 
 import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -62,7 +62,7 @@ class CommonMasks with AbstractValueDomain {
   /// Return the cached mask for [base] with the given special values, or
   /// calls [createMask] to create the mask and cache it.
   T getCachedMask<T extends TypeMask>(ClassEntity? base, FlatTypeMaskKind kind,
-      EnumSet<TypeMaskSpecialValue> specialValues, T createMask()) {
+      EnumSet<TypeMaskSpecialValue> specialValues, T Function() createMask) {
     final key = (kind.index << _numSpecialValues) | specialValues.mask.bits;
     // `null` is a valid base so we allow it as a key in the map.
     final Map<ClassEntity?, TypeMask> cachedMasks =
@@ -422,11 +422,11 @@ class CommonMasks with AbstractValueDomain {
         ? nullType
         : createNonNullSubtype(cls);
     if (expressionMask.union(typeMask, this) == typeMask) {
-      return AbstractBool.True;
+      return AbstractBool.true_;
     } else if (expressionMask.isDisjoint(typeMask, _closedWorld)) {
-      return AbstractBool.False;
+      return AbstractBool.false_;
     } else {
-      return AbstractBool.Maybe;
+      return AbstractBool.maybe;
     }
   }
 
@@ -463,11 +463,11 @@ class CommonMasks with AbstractValueDomain {
   @override
   AbstractBool isNull(TypeMask value) {
     if (value.isNull) {
-      return AbstractBool.True;
+      return AbstractBool.true_;
     } else if (value.isNullable) {
-      return AbstractBool.Maybe;
+      return AbstractBool.maybe;
     } else {
-      return AbstractBool.False;
+      return AbstractBool.false_;
     }
   }
 
@@ -636,11 +636,11 @@ class CommonMasks with AbstractValueDomain {
     if (value is ValueTypeMask && !value.isNullable && !value.hasLateSentinel) {
       PrimitiveConstantValue constant = value.value;
       if (constant is BoolConstantValue) {
-        return constant.boolValue ? AbstractBool.True : AbstractBool.False;
+        return constant.boolValue ? AbstractBool.true_ : AbstractBool.false_;
       }
     }
     // TODO(sra): Non-intercepted types are generally JavaScript falsy values.
-    return AbstractBool.Maybe;
+    return AbstractBool.maybe;
   }
 
   @override
@@ -735,7 +735,7 @@ class CommonMasks with AbstractValueDomain {
     return TypeMask.unionOf(
         members.expand((MemberEntity element) {
           final cls = element.enclosingClass!;
-          return [cls]..addAll(_closedWorld.mixinUsesOf(cls));
+          return [cls, ..._closedWorld.mixinUsesOf(cls)];
         }).map((cls) {
           if (_closedWorld.commonElements.jsNullClass == cls) {
             return TypeMask.empty();
@@ -793,7 +793,7 @@ class CommonMasks with AbstractValueDomain {
   AbstractBool isFixedLengthJsIndexable(covariant TypeMask mask) {
     if (mask is ContainerTypeMask && mask.length != null) {
       // A container on which we have inferred the length.
-      return AbstractBool.True;
+      return AbstractBool.true_;
     }
     // TODO(sra): Recognize any combination of fixed length indexables.
     if (mask.containsOnly(_closedWorld.commonElements.jsFixedArrayClass) ||
@@ -801,9 +801,9 @@ class CommonMasks with AbstractValueDomain {
             _closedWorld.commonElements.jsUnmodifiableArrayClass) ||
         mask.containsOnlyString(_closedWorld) ||
         isTypedArray(mask).isDefinitelyTrue) {
-      return AbstractBool.True;
+      return AbstractBool.true_;
     }
-    return AbstractBool.Maybe;
+    return AbstractBool.maybe;
   }
 
   @override

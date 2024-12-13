@@ -24,7 +24,7 @@ class KernelStringBuilder extends ir.VisitorDefault<void>
 
   @override
   void defaultNode(ir.Node node) {
-    failedAt(CURRENT_ELEMENT_SPANNABLE, 'Unexpected node: $node');
+    failedAt(currentElementSpannable, 'Unexpected node: $node');
   }
 
   @override

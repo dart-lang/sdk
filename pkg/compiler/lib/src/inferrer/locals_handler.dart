@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library locals_handler;
+library;
 
 import 'dart:collection' show IterableMixin;
 import 'package:kernel/ast.dart' as ir;
@@ -34,14 +34,14 @@ class VariableScope {
   final VariableScope? copyOf;
 
   VariableScope({this.parent})
-      : this.variables = null,
-        this.copyOf = null,
-        this.tryBlock = null,
+      : variables = null,
+        copyOf = null,
+        tryBlock = null,
         _level = (parent?._level ?? -1) + 1;
 
   VariableScope.tryBlock(this.tryBlock, {this.parent})
-      : this.variables = null,
-        this.copyOf = null,
+      : variables = null,
+        copyOf = null,
         _level = (parent?._level ?? -1) + 1 {
     assert(tryBlock is ir.TryCatch || tryBlock is ir.TryFinally,
         "Unexpected block $tryBlock for VariableScope.tryBlock");
@@ -96,14 +96,14 @@ class VariableScope {
 
   /// Calls [f] for all variables in this and parent scopes until and including
   /// [scope]. [f] is called at most once for each variable.
-  void forEachLocalUntilScope(
-      VariableScope? scope, void f(Local variable, TypeInformation type)) {
+  void forEachLocalUntilScope(VariableScope? scope,
+      void Function(Local variable, TypeInformation type) f) {
     _forEachLocalUntilScope(scope, f, Setlet<Local>(), this);
   }
 
   void _forEachLocalUntilScope(
       VariableScope? scope,
-      void f(Local variable, TypeInformation type),
+      void Function(Local variable, TypeInformation type) f,
       Setlet<Local> seenLocals,
       VariableScope origin) {
     if (variables != null) {
@@ -127,7 +127,7 @@ class VariableScope {
     }
   }
 
-  void forEachLocal(void f(Local variable, TypeInformation type)) {
+  void forEachLocal(void Function(Local variable, TypeInformation type) f) {
     forEachLocalUntilScope(null, f);
   }
 
@@ -144,23 +144,23 @@ class VariableScope {
 
   void _toStructuredText(StringBuffer sb, String indent) {
     sb.write('VariableScope($hashCode) [');
-    sb.write('\n${indent}  level:$_level');
+    sb.write('\n$indent  level:$_level');
     if (copyOf != null) {
-      sb.write('\n${indent}  copyOf:VariableScope(${copyOf.hashCode})');
+      sb.write('\n$indent  copyOf:VariableScope(${copyOf.hashCode})');
     }
     if (tryBlock != null) {
-      sb.write('\n${indent}  tryBlock: ${nodeToDebugString(tryBlock!)}');
+      sb.write('\n$indent  tryBlock: ${nodeToDebugString(tryBlock!)}');
     }
     if (variables != null) {
-      sb.write('\n${indent}  variables:');
+      sb.write('\n$indent  variables:');
       variables!.forEach((Local local, TypeInformation type) {
-        sb.write('\n${indent}    $local: ');
-        sb.write(type.toStructuredText('${indent}      '));
+        sb.write('\n$indent    $local: ');
+        sb.write(type.toStructuredText('$indent      '));
       });
     }
     if (parent != null) {
-      sb.write('\n${indent}  parent:');
-      parent!._toStructuredText(sb, '${indent}     ');
+      sb.write('\n$indent  parent:');
+      parent!._toStructuredText(sb, '$indent     ');
     }
     sb.write(']');
   }
@@ -204,7 +204,7 @@ class FieldInitializationScope {
     return fields == null ? null : fields![field];
   }
 
-  void forEach(void f(FieldEntity element, TypeInformation type)) {
+  void forEach(void Function(FieldEntity element, TypeInformation type) f) {
     fields?.forEach(f);
   }
 
@@ -238,7 +238,7 @@ class ArgumentsTypes extends IterableMixin<TypeInformation> {
   final Map<String, TypeInformation> named;
 
   ArgumentsTypes(this.positional, Map<String, TypeInformation>? named)
-      : this.named = (named == null || named.isEmpty) ? const {} : named;
+      : named = (named == null || named.isEmpty) ? const {} : named;
 
   ArgumentsTypes.empty()
       : positional = const [],
@@ -274,19 +274,19 @@ class ArgumentsTypes extends IterableMixin<TypeInformation> {
   bool hasNoArguments() => positional.isEmpty && named.isEmpty;
 
   @override
-  void forEach(void f(TypeInformation type)) {
-    positional.forEach(f);
-    named.values.forEach(f);
+  void forEach(void Function(TypeInformation type) action) {
+    positional.forEach(action);
+    named.values.forEach(action);
   }
 
   @override
-  bool every(bool f(TypeInformation type)) {
-    return positional.every(f) && named.values.every(f);
+  bool every(bool Function(TypeInformation type) test) {
+    return positional.every(test) && named.values.every(test);
   }
 
   @override
-  bool contains(Object? type) {
-    return positional.contains(type) || named.containsValue(type);
+  bool contains(Object? element) {
+    return positional.contains(element) || named.containsValue(element);
   }
 }
 
@@ -528,7 +528,7 @@ class LocalsHandler {
   /// Returns whether a local in this handler has changed.
   bool mergeAll(InferrerEngine inferrer, Iterable<LocalsHandler> handlers) {
     bool changed = false;
-    handlers.forEach((LocalsHandler other) {
+    for (var other in handlers) {
       final common = _locals.commonParent(other._locals);
       assert(
           common != null,
@@ -551,7 +551,7 @@ class LocalsHandler {
           _locals[local] = newType;
         }
       });
-    });
+    }
     return changed;
   }
 
@@ -583,8 +583,8 @@ class LocalsHandler {
 
   void _toStructuredText(StringBuffer sb, String indent) {
     sb.write('LocalsHandler($hashCode) [');
-    sb.write('\n${indent}  locals:');
-    _locals._toStructuredText(sb, '${indent}    ');
+    sb.write('\n$indent  locals:');
+    _locals._toStructuredText(sb, '$indent    ');
     sb.write('\n]');
   }
 

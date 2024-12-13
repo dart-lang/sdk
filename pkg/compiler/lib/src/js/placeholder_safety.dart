@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js.safety;
+library;
 
 import 'package:js_ast/js_ast.dart' as js;
 
@@ -28,8 +28,8 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
   // exceptions. The possible values of expressions are represented by
   // integers. Small non-negative integers 0, 1, 2, ... represent the values of
   // the placeholders. Other values are:
-  static const int NONNULL_VALUE = -1; // Unknown but not null.
-  static const int UNKNOWN_VALUE = -2; // Unknown and might be null.
+  static const int nonNullValue = -1; // Unknown but not null.
+  static const int unknownValue = -2; // Unknown and might be null.
 
   PlaceholderSafetyAnalysis._(this.isNullableInput);
 
@@ -46,8 +46,8 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
   }
 
   bool canBeNull(int value) {
-    if (value == NONNULL_VALUE) return false;
-    if (value == UNKNOWN_VALUE) return true;
+    if (value == nonNullValue) return false;
+    if (value == unknownValue) return true;
     return isNullableInput(value);
   }
 
@@ -64,22 +64,22 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
   int visitNode(js.Node node) {
     safe = false;
     node.visitChildren(this);
-    return UNKNOWN_VALUE;
+    return unknownValue;
   }
 
   @override
   int visitComment(js.Comment node) {
-    return UNKNOWN_VALUE;
+    return unknownValue;
   }
 
   @override
   int visitLiteralNull(js.LiteralNull node) {
-    return UNKNOWN_VALUE;
+    return unknownValue;
   }
 
   @override
   int visitLiteral(js.Literal node) {
-    return NONNULL_VALUE;
+    return nonNullValue;
   }
 
   int handleInterpolatedNode(js.InterpolatedNode node) {
@@ -119,25 +119,25 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
     for (js.Property property in node.properties) {
       visit(property);
     }
-    return NONNULL_VALUE;
+    return nonNullValue;
   }
 
   @override
   int visitProperty(js.Property node) {
     visit(node.name);
     visit(node.value);
-    return UNKNOWN_VALUE;
+    return unknownValue;
   }
 
   @override
   int visitArrayInitializer(js.ArrayInitializer node) {
     node.elements.forEach(visit);
-    return NONNULL_VALUE;
+    return nonNullValue;
   }
 
   @override
   int visitArrayHole(js.ArrayHole node) {
-    return UNKNOWN_VALUE;
+    return unknownValue;
   }
 
   @override
@@ -146,7 +146,7 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
     visit(node.selector);
     // TODO(sra): If the JS is annotated as never throwing, we can avoid this.
     if (canBeNull(first)) safe = false;
-    return UNKNOWN_VALUE;
+    return unknownValue;
   }
 
   @override
@@ -157,7 +157,7 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
     int leftToRight() {
       visit(left);
       visit(right);
-      return UNKNOWN_VALUE;
+      return unknownValue;
     }
 
     if (left is js.InterpolatedNode) {
@@ -205,7 +205,7 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
     if (right != null) {
       return visit(right);
     }
-    return UNKNOWN_VALUE;
+    return unknownValue;
   }
 
   @override
@@ -214,14 +214,14 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
     // 'Object.prototype.hasOwnProperty.call'.
     visit(node.target);
     node.arguments.forEach(visit);
-    return unsafe(UNKNOWN_VALUE);
+    return unsafe(unknownValue);
   }
 
   @override
   int visitNew(js.New node) {
     visit(node.target);
     node.arguments.forEach(visit);
-    return unsafe(NONNULL_VALUE);
+    return unsafe(nonNullValue);
   }
 
   @override
@@ -251,7 +251,7 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
       case "|":
         visit(node.left);
         visit(node.right);
-        return NONNULL_VALUE; // Number, String, Boolean.
+        return nonNullValue; // Number, String, Boolean.
 
       case ',':
         visit(node.left);
@@ -264,16 +264,16 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
         // TODO(sra): Might be safe, e.g.  "x || 0".
         safe = false;
         visit(node.right);
-        return UNKNOWN_VALUE;
+        return unknownValue;
 
       case "instanceof":
       case "in":
         visit(node.left);
         visit(node.right);
-        return UNKNOWN_VALUE;
+        return unknownValue;
 
       default:
-        return unsafe(UNKNOWN_VALUE);
+        return unsafe(unknownValue);
     }
   }
 
@@ -284,13 +284,13 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
     safe = false;
     visit(node.then);
     visit(node.otherwise);
-    return UNKNOWN_VALUE;
+    return unknownValue;
   }
 
   @override
   int visitThrow(js.Throw node) {
     visit(node.expression);
-    return unsafe(UNKNOWN_VALUE);
+    return unsafe(unknownValue);
   }
 
   @override
@@ -299,7 +299,7 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
       // "typeof a" first evaluates to a Reference. If the Reference is to a
       // variable that is not present, "undefined" is returned without
       // dereferencing.
-      if (node.argument is js.VariableUse) return NONNULL_VALUE; // A string.
+      if (node.argument is js.VariableUse) return nonNullValue; // A string.
     }
 
     visit(node.argument);
@@ -311,21 +311,21 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
       case '~':
         // Non-conservative assumption that these operators are used on values
         // that do not call arbitrary code via valueOf() or toString().
-        return NONNULL_VALUE;
+        return nonNullValue;
 
       case 'typeof':
-        return NONNULL_VALUE; // Always a string.
+        return nonNullValue; // Always a string.
 
       case 'void':
-        return UNKNOWN_VALUE;
+        return unknownValue;
 
       case '--':
       case '++':
-        return NONNULL_VALUE; // Always a number.
+        return nonNullValue; // Always a number.
 
       default:
         safe = false;
-        return UNKNOWN_VALUE;
+        return unknownValue;
     }
   }
 
@@ -333,7 +333,7 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
   int visitPostfix(js.Postfix node) {
     assert(node.op == '--' || node.op == '++');
     visit(node.argument);
-    return NONNULL_VALUE; // Always a number, even for "(a=null, a++)".
+    return nonNullValue; // Always a number, even for "(a=null, a++)".
   }
 
   @override
@@ -353,9 +353,9 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
       case 'String':
       case 'self':
       case 'window':
-        return NONNULL_VALUE;
+        return nonNullValue;
       default:
-        return unsafe(UNKNOWN_VALUE);
+        return unsafe(unknownValue);
     }
   }
 
@@ -367,6 +367,6 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
     // Creating a function has no effect on order unless there are embedded
     // placeholders.
     safe = (nextPosition == oldNextPosition) && oldSafe;
-    return NONNULL_VALUE;
+    return nonNullValue;
   }
 }

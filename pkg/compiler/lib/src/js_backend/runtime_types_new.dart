@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js_backend.runtime_types_new;
+library;
 
 import 'package:js_shared/synced/recipe_syntax.dart';
 import 'package:js_shared/variance.dart';
@@ -10,7 +10,7 @@ import 'package:js_shared/variance.dart';
 import '../common/elements.dart' show CommonElements, JCommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../js/js.dart' as jsAst;
+import '../js/js.dart' as js_ast;
 import '../js/js.dart' show js;
 import '../js_model/js_world.dart';
 import '../js_model/type_recipe.dart';
@@ -30,22 +30,22 @@ abstract class RecipeEncoder {
     TypeRecipe recipe,
   );
 
-  jsAst.Literal encodeGroundRecipe(ModularEmitter emitter, TypeRecipe recipe);
+  js_ast.Literal encodeGroundRecipe(ModularEmitter emitter, TypeRecipe recipe);
 
-  /// Returns a [jsAst.Literal] representing [supertypeArgument] to be evaluated
+  /// Returns a [js_ast.Literal] representing [supertypeArgument] to be evaluated
   /// against a [FullTypeEnvironmentStructure] representing [declaringType]. Any
   /// [TypeVariableType]s appearing in [supertypeArgument] which are declared by
   /// [declaringType] are always encoded as indices and type variables are
   /// assumed to never be erased.
-  jsAst.Literal encodeMetadataRecipe(
+  js_ast.Literal encodeMetadataRecipe(
     ModularEmitter emitter,
     InterfaceType declaringType,
     DartType supertypeArgument,
   );
 
-  /// Returns a [jsAst.Literal] representing the recipe for converting a binding
+  /// Returns a [js_ast.Literal] representing the recipe for converting a binding
   /// Rti with N bindings into a record Rti for a record shape with N fields.
-  jsAst.Literal encodeRecordFromBindingRecipe(RecordShape shape);
+  js_ast.Literal encodeRecordFromBindingRecipe(RecordShape shape);
 }
 
 class RecipeEncoderImpl implements RecipeEncoder {
@@ -71,12 +71,12 @@ class RecipeEncoderImpl implements RecipeEncoder {
   }
 
   @override
-  jsAst.Literal encodeGroundRecipe(ModularEmitter emitter, TypeRecipe recipe) {
+  js_ast.Literal encodeGroundRecipe(ModularEmitter emitter, TypeRecipe recipe) {
     return _RecipeGenerator(this, emitter, null, recipe).run().recipe;
   }
 
   @override
-  jsAst.Literal encodeMetadataRecipe(
+  js_ast.Literal encodeMetadataRecipe(
     ModularEmitter emitter,
     InterfaceType declaringType,
     DartType supertypeArgument,
@@ -91,7 +91,7 @@ class RecipeEncoderImpl implements RecipeEncoder {
   }
 
   @override
-  jsAst.Literal encodeRecordFromBindingRecipe(RecordShape shape) {
+  js_ast.Literal encodeRecordFromBindingRecipe(RecordShape shape) {
     final sb = StringBuffer();
     sb.write(Recipe.startRecordString);
     // Partial shape tag. The full shape is this plus the number of fields.
@@ -117,7 +117,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   final Set<TypeVariableType> typeVariables = {};
 
   // Accumulated recipe.
-  final List<jsAst.Literal> _fragments = [];
+  final List<js_ast.Literal> _fragments = [];
   final List<int> _codes = [];
 
   _RecipeGenerator(
@@ -132,7 +132,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   NativeBasicData get _nativeData => _encoder._nativeData;
   RuntimeTypesSubstitutions get _rtiSubstitutions => _encoder._rtiSubstitutions;
 
-  RecipeEncoding _finishEncoding(jsAst.Literal literal) =>
+  RecipeEncoding _finishEncoding(js_ast.Literal literal) =>
       RecipeEncoding(literal, typeVariables);
 
   RecipeEncoding run() {
@@ -142,7 +142,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
       return _finishEncoding(js.string(String.fromCharCodes(_codes)));
     }
     _flushCodes();
-    return _finishEncoding(jsAst.StringConcatenation(_fragments));
+    return _finishEncoding(js_ast.StringConcatenation(_fragments));
   }
 
   void _start(TypeRecipe recipe) {
@@ -210,7 +210,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
     }
   }
 
-  void _emitName(jsAst.Name name) {
+  void _emitName(js_ast.Name name) {
     if (_fragments.isNotEmpty && _codes.isEmpty) {
       _emitCode(Recipe.separator);
     }
@@ -265,7 +265,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
         return;
       }
 
-      jsAst.Name name = _emitter.typeVariableAccessNewRti(type.element);
+      js_ast.Name name = _emitter.typeVariableAccessNewRti(type.element);
       _emitName(name);
       typeVariables.add(type);
       return;
@@ -301,7 +301,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
 
   @override
   void visitInterfaceType(InterfaceType type, _) {
-    jsAst.Name name = _emitter.typeAccessNewRti(type.element);
+    js_ast.Name name = _emitter.typeAccessNewRti(type.element);
     if (type.typeArguments.isEmpty) {
       // Push the name, which is later converted by an implicit toType
       // operation.
@@ -535,7 +535,7 @@ class RulesetEncoder {
   // TODO(fishythefish): Common substring elimination.
 
   /// Produces a string readable by `JSON.parse()`.
-  jsAst.StringConcatenation encodeRuleset(Ruleset ruleset) =>
+  js_ast.StringConcatenation encodeRuleset(Ruleset ruleset) =>
       js.concatenateStrings([
         _leftBrace,
         ...js.joinLiterals([
@@ -545,7 +545,7 @@ class RulesetEncoder {
         _rightBrace,
       ]);
 
-  jsAst.StringConcatenation _encodeRedirection(
+  js_ast.StringConcatenation _encodeRedirection(
     MapEntry<ClassEntity, ClassEntity> redirection,
   ) =>
       js.concatenateStrings([
@@ -558,7 +558,7 @@ class RulesetEncoder {
         _doubleQuote,
       ]);
 
-  jsAst.StringConcatenation _encodeEntry(
+  js_ast.StringConcatenation _encodeEntry(
     MapEntry<InterfaceType, _RulesetEntry> entry,
   ) =>
       js.concatenateStrings([
@@ -579,7 +579,7 @@ class RulesetEncoder {
         _rightBrace,
       ]);
 
-  jsAst.StringConcatenation _encodeSupertype(
+  js_ast.StringConcatenation _encodeSupertype(
     InterfaceType targetType,
     InterfaceType supertype,
   ) =>
@@ -599,7 +599,7 @@ class RulesetEncoder {
         _rightBracket,
       ]);
 
-  jsAst.StringConcatenation _encodeTypeVariable(
+  js_ast.StringConcatenation _encodeTypeVariable(
     InterfaceType targetType,
     TypeVariableType typeVariable,
     DartType supertypeArgument,
@@ -612,7 +612,7 @@ class RulesetEncoder {
         _encodeSupertypeArgument(targetType, supertypeArgument),
       ]);
 
-  jsAst.Literal _encodeSupertypeArgument(
+  js_ast.Literal _encodeSupertypeArgument(
     InterfaceType targetType,
     DartType supertypeArgument,
   ) =>
@@ -626,7 +626,7 @@ class RulesetEncoder {
         _doubleQuote,
       ]);
 
-  jsAst.StringConcatenation encodeErasedTypes(
+  js_ast.StringConcatenation encodeErasedTypes(
     Map<ClassEntity, int> erasedTypes,
   ) =>
       js.concatenateStrings([
@@ -635,7 +635,7 @@ class RulesetEncoder {
         _rightBrace,
       ]);
 
-  jsAst.StringConcatenation encodeErasedType(
+  js_ast.StringConcatenation encodeErasedType(
     MapEntry<ClassEntity, int> entry,
   ) =>
       js.concatenateStrings([
@@ -646,7 +646,7 @@ class RulesetEncoder {
         js.number(entry.value),
       ]);
 
-  jsAst.StringConcatenation encodeTypeParameterVariances(
+  js_ast.StringConcatenation encodeTypeParameterVariances(
     Map<ClassEntity, List<Variance>> typeParameterVariances,
   ) =>
       js.concatenateStrings([
@@ -659,7 +659,7 @@ class RulesetEncoder {
         _rightBrace,
       ]);
 
-  jsAst.StringConcatenation _encodeTypeParameterVariancesForClass(
+  js_ast.StringConcatenation _encodeTypeParameterVariancesForClass(
     MapEntry<ClassEntity, List<Variance>> classEntry,
   ) =>
       js.concatenateStrings([
@@ -675,7 +675,7 @@ class RulesetEncoder {
 }
 
 class RecipeEncoding {
-  final jsAst.Literal recipe;
+  final js_ast.Literal recipe;
   final Set<TypeVariableType> typeVariables;
 
   const RecipeEncoding(this.recipe, this.typeVariables);

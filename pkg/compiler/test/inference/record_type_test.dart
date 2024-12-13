@@ -424,15 +424,15 @@ main() {
     Expect.isFalse(recordAFooStringMask.needsNoSuchMethodHandling(
         Selector.getter(fooGetterName), world));
     Expect.isFalse(recordAStringMask.needsNoSuchMethodHandling(
-        Selector.call(position1GetterName, CallStructure.NO_ARGS), world));
+        Selector.call(position1GetterName, CallStructure.noArgs), world));
     Expect.isFalse(recordAStringMask.needsNoSuchMethodHandling(
-        Selector.call(position2GetterName, CallStructure.NO_ARGS), world));
+        Selector.call(position2GetterName, CallStructure.noArgs), world));
     Expect.isTrue(recordAStringMask.needsNoSuchMethodHandling(
-        Selector.call(Name('\$3', null), CallStructure.NO_ARGS), world));
+        Selector.call(Name('\$3', null), CallStructure.noArgs), world));
     Expect.isTrue(recordAStringMask.needsNoSuchMethodHandling(
-        Selector.call(fooGetterName, CallStructure.NO_ARGS), world));
+        Selector.call(fooGetterName, CallStructure.noArgs), world));
     Expect.isFalse(recordAFooStringMask.needsNoSuchMethodHandling(
-        Selector.call(fooGetterName, CallStructure.NO_ARGS), world));
+        Selector.call(fooGetterName, CallStructure.noArgs), world));
     Expect.isTrue(recordAStringMask.needsNoSuchMethodHandling(
         Selector.setter(position1GetterName), world));
     Expect.isTrue(recordAStringMask.needsNoSuchMethodHandling(
@@ -733,7 +733,7 @@ main() {
 
     void expectCallMember(TypeMask mask, Name name, ClassEntity cls) {
       expectSingleMember(
-          mask, name, cls, Selector.call(name, CallStructure.NO_ARGS));
+          mask, name, cls, Selector.call(name, CallStructure.noArgs));
     }
 
     void expectNoMember(TypeMask mask, Name name) {
@@ -815,11 +815,11 @@ main() {
     Expect.isFalse(recordAMask.isEmptyOrSpecial);
 
     // ---isLateSentinel tests---
-    Expect.equals(AbstractBool.False, recordAMask.isLateSentinel);
-    Expect.equals(AbstractBool.Maybe,
+    Expect.equals(AbstractBool.false_, recordAMask.isLateSentinel);
+    Expect.equals(AbstractBool.maybe,
         recordAMask.withSpecialValues(hasLateSentinel: true).isLateSentinel);
     Expect.equals(
-        AbstractBool.Maybe,
+        AbstractBool.maybe,
         recordAMask
             .withSpecialValues(isNullable: true, hasLateSentinel: true)
             .isLateSentinel);

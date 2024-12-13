@@ -500,8 +500,8 @@ class JsScopeInfo extends ScopeInfo {
 
   JsScopeInfo.from(
       this._boxedVariables, KernelScopeInfo info, ClassEntity? enclosingClass)
-      : this.thisLocal = info.hasThisLocal ? ThisLocal(enclosingClass!) : null,
-        this._localsUsedInTryOrSync = info.localsUsedInTryOrSync;
+      : thisLocal = info.hasThisLocal ? ThisLocal(enclosingClass!) : null,
+        _localsUsedInTryOrSync = info.localsUsedInTryOrSync;
 
   void _ensureBoxedVariableCache(KernelToLocalsMap localsMap) {
     if (_boxedVariablesCache == null) {
@@ -519,8 +519,8 @@ class JsScopeInfo extends ScopeInfo {
   }
 
   @override
-  void forEachBoxedVariable(
-      KernelToLocalsMap localsMap, void f(Local local, FieldEntity field)) {
+  void forEachBoxedVariable(KernelToLocalsMap localsMap,
+      void Function(Local local, FieldEntity field) f) {
     _ensureBoxedVariableCache(localsMap);
     _boxedVariablesCache!.forEach(f);
   }
@@ -593,7 +593,7 @@ class JsCapturedScope extends JsScopeInfo implements CapturedScope {
 
   JsCapturedScope.from(
       super.boxedVariables, super.capturedScope, super.enclosingClass)
-      : this.contextBox =
+      : contextBox =
             boxedVariables.isNotEmpty ? boxedVariables.values.first.box : null,
         super.from();
 
@@ -639,7 +639,7 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
 
   JsCapturedLoopScope.from(super.boxedVariables,
       KernelCapturedLoopScope super.capturedScope, super.enclosingClass)
-      : this._boxedLoopVariables = capturedScope.boxedLoopVariables,
+      : _boxedLoopVariables = capturedScope.boxedLoopVariables,
         super.from();
 
   @override
@@ -705,9 +705,6 @@ class JsClosureClassInfo extends JsScopeInfo
   final ir.VariableDeclaration? _closureEntityVariable;
 
   @override
-  final Local? thisLocal;
-
-  @override
   final JClass closureClassEntity;
 
   final Map<ir.VariableDeclaration, JField> _variableToFieldMap;
@@ -716,9 +713,9 @@ class JsClosureClassInfo extends JsScopeInfo
   Map<JField, Local>? _fieldToLocalsMap;
 
   JsClosureClassInfo.internal(
-      Iterable<ir.VariableDeclaration> localsUsedInTryOrSync,
-      this.thisLocal,
-      Map<ir.VariableDeclaration, JContextField> boxedVariables,
+      super.localsUsedInTryOrSync,
+      super.thisLocal,
+      super.boxedVariables,
       this.callMethod,
       this.signatureMethod,
       this._closureEntity,
@@ -727,7 +724,7 @@ class JsClosureClassInfo extends JsScopeInfo
       this._variableToFieldMap,
       this._typeVariableToFieldMap,
       this._localToFieldMap)
-      : super.internal(localsUsedInTryOrSync, thisLocal, boxedVariables);
+      : super.internal();
 
   JsClosureClassInfo.fromScopeInfo(
       this.closureClassEntity,
@@ -736,8 +733,7 @@ class JsClosureClassInfo extends JsScopeInfo
       KernelScopeInfo info,
       ClassEntity? enclosingClass,
       this._closureEntity,
-      this._closureEntityVariable,
-      this.thisLocal)
+      this._closureEntityVariable)
       : _variableToFieldMap = {},
         _typeVariableToFieldMap = {},
         _localToFieldMap = {},
@@ -857,8 +853,8 @@ class JsClosureClassInfo extends JsScopeInfo
   FieldEntity? get thisFieldEntity => _localToFieldMap[thisLocal];
 
   @override
-  void forEachFreeVariable(
-      KernelToLocalsMap localsMap, void f(Local variable, JField field)) {
+  void forEachFreeVariable(KernelToLocalsMap localsMap,
+      void Function(Local variable, JField field) f) {
     _ensureFieldToLocalsMap(localsMap);
     _ensureBoxedVariableCache(localsMap);
     _fieldToLocalsMap!.forEach((JField field, Local local) {
@@ -1308,7 +1304,7 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
     } else {
       failedAt(
           definition.location,
-          'Unexpected node type ${sourceNode} in '
+          'Unexpected node type $sourceNode in '
           'ClosureFieldData.getFieldType');
     }
     return _type = elementMap.getDartType(type);

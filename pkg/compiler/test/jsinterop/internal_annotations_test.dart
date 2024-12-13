@@ -165,13 +165,13 @@ $mainSource
             "Expected $name to be abstractly instantiated in `${mainSource}`:"
             "\n${world.classHierarchy.dump(cls)}");
         Expect.isTrue(
-            world.needsNoSuchMethod(cls, nonExisting, ClassQuery.EXACT),
+            world.needsNoSuchMethod(cls, nonExisting, ClassQuery.exact),
             "Expected $name to need noSuchMethod for $nonExisting.");
         Expect.isTrue(
-            world.needsNoSuchMethod(cls, nonExisting, ClassQuery.SUBCLASS),
+            world.needsNoSuchMethod(cls, nonExisting, ClassQuery.subclass),
             "Expected $name to need noSuchMethod for $nonExisting.");
         Expect.isTrue(
-            world.needsNoSuchMethod(cls, nonExisting, ClassQuery.SUBTYPE),
+            world.needsNoSuchMethod(cls, nonExisting, ClassQuery.subtype),
             "Expected $name to need noSuchMethod for $nonExisting.");
       }
       if (indirectlyInstantiated.contains(name)) {

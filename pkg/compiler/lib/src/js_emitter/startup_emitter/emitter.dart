@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_emitter.startup_emitter;
+library;
 
 import '../../../compiler_api.dart' as api;
 import '../../common.dart';
@@ -192,9 +192,9 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
       omittedOutputUnits = _emitter.omittedOutputUnits;
       finalizedFragmentsToLoad = _emitter.finalizedFragmentsToLoad;
       fragmentMerger = _emitter.fragmentMerger;
-      finalizedFragmentsToLoad.values.forEach((fragments) {
+      for (var fragments in finalizedFragmentsToLoad.values) {
         _task.emitterMetrics.hunkListElements.add(fragments.length);
-      });
+      }
       if (retainDataForTesting) {
         preDeferredFragmentsForTesting =
             _emitter.preDeferredFragmentsForTesting;
@@ -245,8 +245,9 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
     _emitter.emittedOutputSizes.forEach((outputUnit, dataLength) {
       mappedSizes[outputUnit] = dataLength;
     });
-    _emitter.omittedOutputUnits
-        .forEach((outputUnit) => mappedSizes[outputUnit] = 0);
+    for (var outputUnit in _emitter.omittedOutputUnits) {
+      mappedSizes[outputUnit] = 0;
+    }
     return mappedSizes;
   }
 }

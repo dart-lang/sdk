@@ -74,7 +74,7 @@ class InliningIrComputer extends IrDataExtractor<String> {
       _backendStrategy.codegenImpactsForTesting!
           .forEach((MemberEntity user, WorldImpact impact) {
         for (StaticUse use in impact.staticUses) {
-          if (use.kind == StaticUseKind.INLINING) {
+          if (use.kind == StaticUseKind.inlining) {
             if (use.element == member) {
               if (use.type != null) {
                 inlinedIn.add('${user.name}:${use.type}');

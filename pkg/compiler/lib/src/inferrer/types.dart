@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library types;
+library;
 
 import 'package:kernel/ast.dart' as ir;
 import '../common.dart' show failedAt, retainDataForTesting;
@@ -172,9 +172,7 @@ class GlobalTypeInferenceTask extends CompilerTask {
 
   Metrics _metrics = Metrics.none();
 
-  GlobalTypeInferenceTask(Compiler compiler)
-      : compiler = compiler,
-        super(compiler.measurer);
+  GlobalTypeInferenceTask(this.compiler) : super(compiler.measurer);
 
   @override
   Metrics get metrics => _metrics;
@@ -603,8 +601,8 @@ class DeadFieldGlobalTypeInferenceResult
   final AbstractValue emptyType;
 
   DeadFieldGlobalTypeInferenceResult(AbstractValueDomain domain)
-      : this.dynamicType = domain.dynamicType,
-        this.emptyType = domain.emptyType;
+      : dynamicType = domain.dynamicType,
+        emptyType = domain.emptyType;
 
   @override
   AbstractValue get type => emptyType;
@@ -644,8 +642,8 @@ class DeadMethodGlobalTypeInferenceResult
   final AbstractValue functionType;
 
   DeadMethodGlobalTypeInferenceResult(AbstractValueDomain domain)
-      : this.functionType = domain.functionType,
-        this.emptyType = domain.emptyType;
+      : functionType = domain.functionType,
+        emptyType = domain.emptyType;
 
   @override
   AbstractValue get type => functionType;

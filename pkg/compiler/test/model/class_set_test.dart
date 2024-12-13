@@ -201,8 +201,8 @@ testIterators() async {
   iterator = ClassHierarchyNodeIterable(
       world.classHierarchy.getClassHierarchyNode(B),
       EnumSet<Instantiation>.fromValues(<Instantiation>[
-        Instantiation.DIRECTLY_INSTANTIATED,
-        Instantiation.UNINSTANTIATED,
+        Instantiation.directlyInstantiated,
+        Instantiation.uninstantiated,
       ])).iterator;
   checkState(B, currentNode: null, stack: null);
   Expect.isTrue(iterator.moveNext());
@@ -254,8 +254,8 @@ testIterators() async {
   iterator = ClassHierarchyNodeIterable(
       world.classHierarchy.getClassHierarchyNode(A),
       EnumSet<Instantiation>.fromValues(<Instantiation>[
-        Instantiation.DIRECTLY_INSTANTIATED,
-        Instantiation.UNINSTANTIATED,
+        Instantiation.directlyInstantiated,
+        Instantiation.uninstantiated,
       ])).iterator;
   checkState(A, currentNode: null, stack: null);
   Expect.isTrue(iterator.moveNext());
@@ -276,8 +276,8 @@ testIterators() async {
   iterator = ClassHierarchyNodeIterable(
           world.classHierarchy.getClassHierarchyNode(A),
           EnumSet<Instantiation>.fromValues(<Instantiation>[
-            Instantiation.DIRECTLY_INSTANTIATED,
-            Instantiation.UNINSTANTIATED,
+            Instantiation.directlyInstantiated,
+            Instantiation.uninstantiated,
           ]),
           includeRoot: false)
       .iterator;
@@ -346,7 +346,7 @@ testForEach() async {
     List<ClassEntity> visited = <ClassEntity>[];
     classSet.forEachSubclass((cls) {
       visited.add(cls);
-      return IterationStep.CONTINUE;
+      return IterationStep.continue_;
     }, ClassHierarchyNode.all);
 
     Expect.listEquals(
@@ -358,7 +358,7 @@ testForEach() async {
     visited = <ClassEntity>[];
     classSet.forEachSubclass((cls) {
       visited.add(cls);
-      return IterationStep.CONTINUE;
+      return IterationStep.continue_;
     }, ClassHierarchyNode.all);
 
     Expect.listEquals(
@@ -384,7 +384,7 @@ testForEach() async {
     List<ClassEntity> visited = <ClassEntity>[];
     classSet.forEachSubtype((cls) {
       visited.add(cls);
-      return IterationStep.CONTINUE;
+      return IterationStep.continue_;
     }, ClassHierarchyNode.all);
 
     Expect.listEquals(
@@ -396,7 +396,7 @@ testForEach() async {
     visited = <ClassEntity>[];
     classSet.forEachSubtype((cls) {
       visited.add(cls);
-      return IterationStep.CONTINUE;
+      return IterationStep.continue_;
     }, ClassHierarchyNode.all);
 
     Expect.listEquals(
@@ -433,11 +433,11 @@ testForEach() async {
       ClassEntity cls = _cls;
       visited.add(cls);
       if (cls == stop) {
-        return IterationStep.STOP;
+        return IterationStep.stop;
       } else if (skipSubclasses.contains(cls)) {
-        return IterationStep.SKIP_SUBCLASSES;
+        return IterationStep.skipSubclasses;
       }
-      return IterationStep.CONTINUE;
+      return IterationStep.continue_;
     }
 
     if (forEachSubtype) {
@@ -558,7 +558,7 @@ testClosures() async {
         world.classHierarchy.isSubtypeOf(cls, functionClass),
         "Expected $cls ${expected ? '' : 'not '}to be a subtype "
         "of $functionClass.");
-    return IterationStep.CONTINUE;
+    return IterationStep.continue_;
   }
 
   checkIsFunction(A, expected: false);

@@ -43,7 +43,7 @@ class AbstractValueFactory {
     // [type] is either an instance of [DartType] or special objects
     // like [native.SpecialType.JsObject].
     AbstractValue fromNativeType(Object type) {
-      if (type == SpecialType.JsObject) {
+      if (type == SpecialType.jsObject) {
         return abstractValueDomain
             .createNonNullExact(commonElements.objectClass);
       }

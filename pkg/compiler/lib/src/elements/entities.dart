@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library entities;
+library;
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' show AsyncModifier;
 
 import '../common.dart' show Spannable;
@@ -176,16 +177,16 @@ abstract class FunctionEntity extends MemberEntity {
 /// Enum for the synchronous/asynchronous function body modifiers.
 enum AsyncMarker {
   /// The default function body marker.
-  SYNC._(AsyncModifier.Sync),
+  sync._(AsyncModifier.Sync),
 
   /// The `sync*` function body marker.
-  SYNC_STAR._(AsyncModifier.SyncStar, isYielding: true),
+  syncStar._(AsyncModifier.SyncStar, isYielding: true),
 
   /// The `async` function body marker.
-  ASYNC._(AsyncModifier.Async, isAsync: true),
+  async._(AsyncModifier.Async, isAsync: true),
 
   /// The `async*` function body marker.
-  ASYNC_STAR._(AsyncModifier.AsyncStar, isAsync: true, isYielding: true),
+  asyncStar._(AsyncModifier.AsyncStar, isAsync: true, isYielding: true),
   ;
 
   /// Is `true` if this marker defines the function body to have an

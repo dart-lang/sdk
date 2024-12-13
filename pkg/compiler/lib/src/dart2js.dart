@@ -2,19 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.cmdline;
+library;
 
 import 'dart:async' show Future, StreamSubscription;
 import 'dart:convert' show utf8, LineSplitter;
 import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
 import 'dart:isolate' show Isolate;
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../compiler_api.dart' as api;
 import 'commandline_options.dart';
 import 'common/ram_usage.dart';
-import 'compiler.dart' as defaultCompiler show Compiler;
+import 'compiler.dart' as default_compiler show Compiler;
 import 'io/mapped_file.dart';
 import 'options.dart' show CompilerOptions, CompilerStage, FeatureOptions;
 import 'source_file_provider.dart';
@@ -22,7 +23,7 @@ import 'util/command_line.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
 
 const String _defaultSpecificationUri = '../../../../sdk/lib/libraries.json';
-const String OUTPUT_LANGUAGE_DART = 'Dart';
+const String outputLanguageDart = 'Dart';
 
 /// A string to identify the revision or build.
 ///
@@ -158,7 +159,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   bool? enableColors;
   int? optimizationLevel;
   Uri? platformBinaries;
-  Map<String, String> environment = Map<String, String>();
+  Map<String, String> environment = <String, String>{};
   FeatureOptions features = FeatureOptions();
   String? invoker;
 
@@ -243,7 +244,7 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setBazelPaths(String argument) {
     String paths = extractParameter(argument);
-    bazelPaths = <String>[]..addAll(paths.split(','));
+    bazelPaths = <String>[...paths.split(',')];
   }
 
   void setMultiRoots(String argument) {
@@ -321,7 +322,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     String list = extractParameter(argument);
     List<Uri> uris = list.split(',').map(fe.nativeToUri).toList();
     String uriList = uris.map((uri) => '$uri').join(',');
-    options.add('${flag}=${uriList}');
+    options.add('$flag=$uriList');
     return uris;
   }
 
@@ -796,7 +797,7 @@ Future<api.CompilationResult> compile(List<String> argv,
             compilerOptions.dataUriForStage(CompilerStage.codegenSharded),
             Platform.isWindows);
         summary = 'Data files $input, $worldInput, $dataInput and '
-            '${codeInput}[0-${compilerOptions.codegenShards! - 1}] ';
+            '$codeInput[0-${compilerOptions.codegenShards! - 1}] ';
         break;
     }
 
@@ -812,14 +813,14 @@ Future<api.CompilationResult> compile(List<String> argv,
         primaryOutputSize = outputProvider.totalCharactersWrittenPrimary;
         String output = fe.relativizeUri(
             Uri.base, out ?? Uri.parse('out.js'), Platform.isWindows);
-        summary += 'compiled to JavaScript: ${output}';
+        summary += 'compiled to JavaScript: $output';
         break;
       case CompilerStage.cfe:
         processName = 'Compiled';
         outputName = 'kernel bytes';
         outputSize = outputProvider.totalDataWritten;
         String output = fe.relativizeUri(Uri.base, out!, Platform.isWindows);
-        summary += 'compiled to dill: ${output}.';
+        summary += 'compiled to dill: $output.';
         break;
       case CompilerStage.closedWorld:
         processName = 'Serialized';
@@ -845,7 +846,7 @@ Future<api.CompilationResult> compile(List<String> argv,
             Uri.base,
             compilerOptions.dataUriForStage(compilerOptions.stage),
             Platform.isWindows);
-        summary += 'mapped to: ${dataOutput}.';
+        summary += 'mapped to: $dataOutput.';
         break;
       case CompilerStage.globalInference:
         processName = 'Serialized';
@@ -855,7 +856,7 @@ Future<api.CompilationResult> compile(List<String> argv,
             Uri.base,
             compilerOptions.dataUriForStage(compilerOptions.stage),
             Platform.isWindows);
-        summary += 'serialized to data: ${dataOutput}.';
+        summary += 'serialized to data: $dataOutput.';
         break;
       case CompilerStage.codegenSharded:
         processName = 'Serialized';
@@ -866,7 +867,7 @@ Future<api.CompilationResult> compile(List<String> argv,
             compilerOptions.dataUriForStage(compilerOptions.stage),
             Platform.isWindows);
         summary += 'serialized to codegen data: '
-            '${codeOutput}${compilerOptions.codegenShard}.';
+            '$codeOutput${compilerOptions.codegenShard}.';
         break;
     }
 
@@ -950,8 +951,10 @@ Future<api.CompilationResult> compilerMain(List<String> arguments,
       script = (await Isolate.resolvePackageUri(script))!;
     }
     Uri librariesJson = script.resolve(_defaultSpecificationUri);
-    arguments = <String>['--libraries-spec=${librariesJson.toFilePath()}']
-      ..addAll(arguments);
+    arguments = <String>[
+      '--libraries-spec=${librariesJson.toFilePath()}',
+      ...arguments
+    ];
   }
   return compile(arguments,
       kernelInitializedCompilerState: kernelInitializedCompilerState);
@@ -1232,7 +1235,7 @@ Future<String?> bazelMain(List<String> arguments) async {
     arguments = arguments.take(arguments.length - 1).followedBy(extra).toList();
   }
   final compiler = (await internalMain(arguments)).compiler;
-  if (compiler is defaultCompiler.Compiler) {
+  if (compiler is default_compiler.Compiler) {
     final buffer = StringBuffer();
     compiler.collectMetrics(buffer);
     return buffer.toString();
@@ -1264,7 +1267,7 @@ Future<api.CompilationResult> internalMain(List<String> arguments,
     {fe.InitializedCompilerState? kernelInitializedCompilerState}) {
   Future<api.CompilationResult> onError(Object exception, StackTrace? trace) {
     // If we are already trying to exit, just continue exiting.
-    if (exception == _EXIT_SIGNAL) throw exception;
+    if (exception == _exitSignal) throw exception;
 
     try {
       print('The compiler crashed: $exception');
@@ -1294,7 +1297,7 @@ class _ExitSignal {
   const _ExitSignal();
 }
 
-const _EXIT_SIGNAL = _ExitSignal();
+const _exitSignal = _ExitSignal();
 
 void batchMain(List<String> batchArguments) {
   int? exitCode;
@@ -1304,7 +1307,7 @@ void batchMain(List<String> batchArguments) {
     if (exitCode == 0) {
       exitCode = errorCode;
     }
-    throw _EXIT_SIGNAL;
+    throw _exitSignal;
   };
 
   var stream = stdin.transform(utf8.decoder).transform(LineSplitter());
@@ -1341,7 +1344,7 @@ void batchMain(List<String> batchArguments) {
         kernelInitializedCompilerState = result.kernelInitializedCompilerState;
       }
     }).catchError((Object exception, StackTrace trace) {
-      if (!identical(exception, _EXIT_SIGNAL)) {
+      if (!identical(exception, _exitSignal)) {
         exitCode = 253;
       }
     }).whenComplete(() {

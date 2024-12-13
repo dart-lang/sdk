@@ -4,7 +4,7 @@
 
 // Output provider that collects the output in string buffers.
 
-library output_collector;
+library;
 
 import 'package:compiler/compiler_api.dart' as api;
 
@@ -57,12 +57,16 @@ class CloningOutputSink implements api.OutputSink {
 
   @override
   void add(String event) {
-    sinks.forEach((api.OutputSink sink) => sink.add(event));
+    for (var sink in sinks) {
+      sink.add(event);
+    }
   }
 
   @override
   void close() {
-    sinks.forEach((api.OutputSink sink) => sink.close());
+    for (var sink in sinks) {
+      sink.close();
+    }
   }
 }
 

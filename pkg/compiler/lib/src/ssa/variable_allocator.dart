@@ -194,7 +194,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor<void> with CodegenPhase {
   void visitGraph(HGraph graph) {
     visitPostDominatorTree(graph);
     if (!liveInstructions[graph.entry]!.isEmpty) {
-      failedAt(CURRENT_ELEMENT_SPANNABLE, 'LiveIntervalBuilder.');
+      failedAt(currentElementSpannable, 'LiveIntervalBuilder.');
     }
   }
 
@@ -276,13 +276,13 @@ class SsaLiveIntervalBuilder extends HBaseVisitor<void> with CodegenPhase {
   }
 
   @override
-  void visitBasicBlock(HBasicBlock block) {
+  void visitBasicBlock(HBasicBlock node) {
     LiveEnvironment environment = LiveEnvironment(liveIntervals, instructionId);
 
     // Add to the environment the liveIn of its successor, as well as
     // the inputs of the phis of the successor that flow from this block.
-    for (int i = 0; i < block.successors.length; i++) {
-      HBasicBlock successor = block.successors[i];
+    for (int i = 0; i < node.successors.length; i++) {
+      HBasicBlock successor = node.successors[i];
       LiveEnvironment? successorEnv = liveInstructions[successor];
       if (successorEnv != null) {
         environment.mergeWith(successorEnv);
@@ -290,7 +290,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor<void> with CodegenPhase {
         environment.addLoopMarker(successor, instructionId);
       }
 
-      int index = successor.predecessors.indexOf(block);
+      int index = successor.predecessors.indexOf(node);
       for (var phi = successor.phis.first; phi != null; phi = phi.next) {
         markAsLiveInEnvironment(phi.inputs[index], environment);
       }
@@ -298,7 +298,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor<void> with CodegenPhase {
 
     // Iterate over all instructions to remove an instruction from the
     // environment and add its inputs.
-    HInstruction? instruction = block.last;
+    HInstruction? instruction = node.last;
     while (instruction != null) {
       if (!generateAtUseSite.contains(instruction)) {
         removeFromEnvironment(instruction, environment);
@@ -310,7 +310,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor<void> with CodegenPhase {
 
     // We just remove the phis from the environment. The inputs of the
     // phis will be put in the environment of the predecessors.
-    for (var phi = block.phis.first; phi != null; phi = phi.next) {
+    for (var phi = node.phis.first; phi != null; phi = phi.next) {
       if (!generateAtUseSite.contains(phi)) {
         environment.remove(phi, instructionId);
       }
@@ -318,14 +318,14 @@ class SsaLiveIntervalBuilder extends HBaseVisitor<void> with CodegenPhase {
 
     // Save the liveInstructions of that block.
     environment.startId = instructionId + 1;
-    liveInstructions[block] = environment;
+    liveInstructions[node] = environment;
 
     // If the block is a loop header, we can remove the loop marker,
     // because it will just recompute the loop phis.
     // We also check if this loop header has any back edges. If not,
     // we know there is no loop marker for it.
-    if (block.isLoopHeader() && block.predecessors.length > 1) {
-      updateLoopMarker(block);
+    if (node.isLoopHeader() && node.predecessors.length > 1) {
+      updateLoopMarker(node);
     }
   }
 
@@ -577,7 +577,7 @@ class SsaVariableAllocator extends HBaseVisitor<void> implements CodegenPhase {
 
   SsaVariableAllocator(this._namer, this.liveInstructions, this.liveIntervals,
       this.generateAtUseSite)
-      : this.names = VariableNames();
+      : names = VariableNames();
 
   @override
   void visitGraph(HGraph graph) {
@@ -585,15 +585,15 @@ class SsaVariableAllocator extends HBaseVisitor<void> implements CodegenPhase {
   }
 
   @override
-  void visitBasicBlock(HBasicBlock block) {
+  void visitBasicBlock(HBasicBlock node) {
     VariableNamer variableNamer =
-        VariableNamer(liveInstructions[block]!, names, _namer);
+        VariableNamer(liveInstructions[node]!, names, _namer);
 
-    block.forEachPhi((HPhi phi) {
+    node.forEachPhi((HPhi phi) {
       handlePhi(phi, variableNamer);
     });
 
-    block.forEachInstruction((HInstruction instruction) {
+    node.forEachInstruction((HInstruction instruction) {
       handleInstruction(instruction, variableNamer);
     });
   }

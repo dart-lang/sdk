@@ -200,7 +200,7 @@ abstract class TypeBuilder {
     // Split the type variables into class-scope and function-scope(s).
     bool usesInstanceParameters = false;
     InterfaceType? interfaceType;
-    Set<TypeVariableType> parameters = Set();
+    Set<TypeVariableType> parameters = {};
 
     void processTypeVariable(TypeVariableType type) {
       ClassTypeVariableAccess typeVariableAccess;

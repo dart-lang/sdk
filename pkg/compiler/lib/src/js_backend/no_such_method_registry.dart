@@ -96,17 +96,17 @@ class NoSuchMethodRegistry {
     assert(element.name == Identifiers.noSuchMethod_);
     assert(!element.isAbstract);
     if (_defaultImpls.contains(element)) {
-      return NsmCategory.DEFAULT;
+      return NsmCategory.default_;
     }
     if (_throwingImpls.contains(element)) {
-      return NsmCategory.THROWING;
+      return NsmCategory.throwing;
     }
     if (_otherImpls.contains(element)) {
-      return NsmCategory.OTHER;
+      return NsmCategory.other;
     }
     if (_commonElements.isDefaultNoSuchMethodImplementation(element)) {
       _defaultImpls.add(element);
-      return NsmCategory.DEFAULT;
+      return NsmCategory.default_;
     } else if (_resolver.hasForwardingSyntax(element as JFunction)) {
       _forwardingSyntaxImpls.add(element);
       // If the implementation is 'noSuchMethod(x) => super.noSuchMethod(x);'
@@ -114,23 +114,23 @@ class NoSuchMethodRegistry {
       FunctionEntity superCall = _resolver.getSuperNoSuchMethod(element);
       NsmCategory category = _categorizeImpl(superCall);
       switch (category) {
-        case NsmCategory.DEFAULT:
+        case NsmCategory.default_:
           _defaultImpls.add(element);
           break;
-        case NsmCategory.THROWING:
+        case NsmCategory.throwing:
           _throwingImpls.add(element);
           break;
-        case NsmCategory.OTHER:
+        case NsmCategory.other:
           _otherImpls.add(element);
           break;
       }
       return category;
     } else if (_resolver.hasThrowingSyntax(element)) {
       _throwingImpls.add(element);
-      return NsmCategory.THROWING;
+      return NsmCategory.throwing;
     } else {
       _otherImpls.add(element);
-      return NsmCategory.OTHER;
+      return NsmCategory.other;
     }
   }
 
@@ -211,32 +211,32 @@ class NoSuchMethodData {
   /// subcategories: C1, those that have no return type, and C2, those
   /// that have a return type.
   void categorizeComplexImplementations(GlobalTypeInferenceResults results) {
-    _otherImpls.forEach((FunctionEntity element) {
+    for (var element in _otherImpls) {
       if (results.resultOfMember(element).throwsAlways) {
         _complexNoReturnImpls.add(element);
       } else {
         _complexReturningImpls.add(element);
       }
-    });
+    }
   }
 
   /// Emits a diagnostic about methods in categories `B`, `C1` and `C2`.
   void emitDiagnostic(DiagnosticReporter reporter) {
-    _throwingImpls.forEach((e) {
+    for (var e in _throwingImpls) {
       if (!_forwardingSyntaxImpls.contains(e)) {
-        reporter.reportHintMessage(e, MessageKind.DIRECTLY_THROWING_NSM);
+        reporter.reportHintMessage(e, MessageKind.directlyThrowingNsm);
       }
-    });
-    _complexNoReturnImpls.forEach((e) {
+    }
+    for (var e in _complexNoReturnImpls) {
       if (!_forwardingSyntaxImpls.contains(e)) {
-        reporter.reportHintMessage(e, MessageKind.COMPLEX_THROWING_NSM);
+        reporter.reportHintMessage(e, MessageKind.complexThrowingNsm);
       }
-    });
-    _complexReturningImpls.forEach((e) {
+    }
+    for (var e in _complexReturningImpls) {
       if (!_forwardingSyntaxImpls.contains(e)) {
-        reporter.reportHintMessage(e, MessageKind.COMPLEX_RETURNING_NSM);
+        reporter.reportHintMessage(e, MessageKind.complexReturningNsm);
       }
-    });
+    }
   }
 
   /// Returns [true] if the given element is a complex [noSuchMethod]
@@ -249,7 +249,7 @@ class NoSuchMethodData {
 }
 
 enum NsmCategory {
-  DEFAULT,
-  THROWING,
-  OTHER,
+  default_,
+  throwing,
+  other,
 }

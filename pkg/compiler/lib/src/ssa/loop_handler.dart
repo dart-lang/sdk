@@ -27,10 +27,10 @@ abstract class LoopHandler {
       ir.TreeNode loop,
       CapturedLoopScope loopClosureInfo,
       JumpTarget? jumpTarget,
-      void initialize(),
-      HInstruction condition(),
-      void update(),
-      void body(),
+      void Function() initialize,
+      HInstruction Function() condition,
+      void Function() update,
+      void Function() body,
       SourceInformation? sourceInformation) {
     // Generate:
     //  <initializer>

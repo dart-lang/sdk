@@ -594,7 +594,7 @@ class CodePointComputer extends TraceListener {
   /// [offset] when the generated JavaScript code.
   @override
   void onStep(js.Node node, Offset offset, StepKind kind) {
-    if (kind == StepKind.ACCESS) return;
+    if (kind == StepKind.access) return;
     register(kind, node);
   }
 

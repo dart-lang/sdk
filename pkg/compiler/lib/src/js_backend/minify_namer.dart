@@ -15,13 +15,13 @@ class MinifyNamer extends Namer
   }
 
   @override
-  late _FieldNamingRegistry fieldRegistry = _FieldNamingRegistry(this);
+  late FieldNamingRegistry fieldRegistry = FieldNamingRegistry(this);
 
   @override
   String get genericInstantiationPrefix => r'$I';
 
-  static const ALPHABET_CHARACTERS = 52; // a-zA-Z.
-  static const ALPHANUMERIC_CHARACTERS = 62; // a-zA-Z0-9.
+  static const alphabetCharacters = 52; // a-zA-Z.
+  static const alphanumericCharacters = 62; // a-zA-Z0-9.
 
   /// You can pass an invalid identifier to this and unlike its non-minifying
   /// counterpart it will never return the proposedName as the new fresh name.
@@ -235,10 +235,10 @@ class MinifyNamer extends Namer
       int h = hash;
       while (h > 10) {
         List<int> codes = [_letterNumber(h)];
-        int h2 = h ~/ ALPHABET_CHARACTERS;
+        int h2 = h ~/ alphabetCharacters;
         for (int i = 1; i < n; i++) {
           codes.add(_alphaNumericNumber(h2));
-          h2 ~/= ALPHANUMERIC_CHARACTERS;
+          h2 ~/= alphanumericCharacters;
         }
         final candidate = String.fromCharCodes(codes);
         if (scope.isUnused(candidate) &&
@@ -290,20 +290,20 @@ class MinifyNamer extends Namer
   }
 
   int _letterNumber(int x) {
-    if (x >= ALPHABET_CHARACTERS) x %= ALPHABET_CHARACTERS;
+    if (x >= alphabetCharacters) x %= alphabetCharacters;
     if (x < 26) return $a + x;
     return $A + x - 26;
   }
 
   int _alphaNumericNumber(int x) {
-    if (x >= ALPHANUMERIC_CHARACTERS) x %= ALPHANUMERIC_CHARACTERS;
+    if (x >= alphanumericCharacters) x %= alphanumericCharacters;
     if (x < 26) return $a + x;
     if (x < 52) return $A + x - 26;
     return $0 + x - 52;
   }
 
   @override
-  jsAst.Name instanceFieldPropertyName(FieldEntity element) {
+  js_ast.Name instanceFieldPropertyName(FieldEntity element) {
     final proposed = _minifiedInstanceFieldPropertyName(element);
     if (proposed != null) {
       return proposed;
@@ -383,7 +383,7 @@ mixin _MinifyConstructorBodyNamer implements Namer {
       {};
 
   @override
-  jsAst.Name constructorBodyName(ConstructorBodyEntity method) {
+  js_ast.Name constructorBodyName(ConstructorBodyEntity method) {
     _ConstructorBodyNamingScope scope = _ConstructorBodyNamingScope(
         method.enclosingClass!, _constructorBodyScopes, _elementEnvironment);
     String key = scope.constructorBodyKeyFor(method);
@@ -396,7 +396,7 @@ mixin _MinifiedOneShotInterceptorNamer implements Namer {
   /// Property name used for the one-shot interceptor method for the given
   /// [selector] and return-type specialization.
   @override
-  jsAst.Name nameForOneShotInterceptor(
+  js_ast.Name nameForOneShotInterceptor(
       Selector selector, Iterable<ClassEntity> classes) {
     final root = selector.isOperator
         ? operatorNameToIdentifier(selector.name)

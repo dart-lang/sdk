@@ -146,11 +146,11 @@ class PowersetBitsDomain {
 
   AbstractBool _isIn(int subset, int superset) {
     if (union(subset, superset) == superset) {
-      if (isPrecise(superset)) return AbstractBool.True;
+      if (isPrecise(superset)) return AbstractBool.true_;
     } else {
-      if (isPrecise(subset)) return AbstractBool.False;
+      if (isPrecise(subset)) return AbstractBool.false_;
     }
-    return AbstractBool.Maybe;
+    return AbstractBool.maybe;
   }
 
   AbstractBool isIn(int subset, int superset) {
@@ -159,11 +159,11 @@ class PowersetBitsDomain {
   }
 
   AbstractBool needsNoSuchMethodHandling(int receiver, Selector selector) =>
-      AbstractBool.Maybe;
+      AbstractBool.maybe;
 
   AbstractBool isTargetingMember(
           int receiver, MemberEntity member, Name name) =>
-      AbstractBool.Maybe;
+      AbstractBool.maybe;
 
   int computeReceiver(Iterable<MemberEntity> members) {
     return powersetTop;
@@ -212,11 +212,13 @@ class PowersetBitsDomain {
   AbstractBool areDisjoint(int a, int b) {
     int overlap = intersection(a, b);
     if (overlap & interceptorDomainMask == powersetBottom) {
-      return AbstractBool.True;
+      return AbstractBool.true_;
     }
-    if (overlap & boolNullOtherMask == powersetBottom) return AbstractBool.True;
-    if (isPrecise(overlap)) return AbstractBool.False;
-    return AbstractBool.Maybe;
+    if (overlap & boolNullOtherMask == powersetBottom) {
+      return AbstractBool.true_;
+    }
+    if (isPrecise(overlap)) return AbstractBool.false_;
+    return AbstractBool.maybe;
   }
 
   int intersection(int a, int b) {
@@ -236,15 +238,15 @@ class PowersetBitsDomain {
   AbstractBool isBooleanOrNull(int value) => isBoolean(excludeNull(value));
 
   AbstractBool isBoolean(int value) {
-    if (!isPotentiallyBoolean(value)) return AbstractBool.False;
-    if (value & ~boolMask == 0) return AbstractBool.True;
-    return AbstractBool.Maybe;
+    if (!isPotentiallyBoolean(value)) return AbstractBool.false_;
+    if (value & ~boolMask == 0) return AbstractBool.true_;
+    return AbstractBool.maybe;
   }
 
   AbstractBool isTruthy(int value) {
-    if (value & ~trueMask == 0) return AbstractBool.True;
-    if (value & ~(falseMask | nullMask) == 0) return AbstractBool.False;
-    return AbstractBool.Maybe;
+    if (value & ~trueMask == 0) return AbstractBool.true_;
+    if (value & ~(falseMask | nullMask) == 0) return AbstractBool.false_;
+    return AbstractBool.maybe;
   }
 
   AbstractBool isNumberOrNull(int value) => isNumber(excludeNull(value));
@@ -265,9 +267,9 @@ class PowersetBitsDomain {
   AbstractBool isInteger(int value) => isOther(value);
 
   AbstractBool isInterceptor(int value) {
-    if (!isPotentiallyInterceptor(value)) return AbstractBool.False;
-    if (isPotentiallyNotInterceptor(value)) return AbstractBool.Maybe;
-    return AbstractBool.True;
+    if (!isPotentiallyInterceptor(value)) return AbstractBool.false_;
+    if (isPotentiallyNotInterceptor(value)) return AbstractBool.maybe;
+    return AbstractBool.true_;
   }
 
   AbstractBool isPrimitiveString(int value) => isOther(value);
@@ -286,10 +288,10 @@ class PowersetBitsDomain {
 
   AbstractBool isPrimitiveBoolean(int value) {
     if (isDefinitelyTrue(value) || isDefinitelyFalse(value)) {
-      return AbstractBool.True;
+      return AbstractBool.true_;
     }
-    if (!isPotentiallyBoolean(value)) return AbstractBool.False;
-    return AbstractBool.Maybe;
+    if (!isPotentiallyBoolean(value)) return AbstractBool.false_;
+    return AbstractBool.maybe;
   }
 
   AbstractBool isPrimitiveNumber(int value) => isOther(value);
@@ -298,35 +300,35 @@ class PowersetBitsDomain {
       AbstractBool.trueOrMaybe(isSingleton(value));
 
   AbstractBool isNull(int value) => isDefinitelyNull(value)
-      ? AbstractBool.True
-      : (isPotentiallyNull(value) ? AbstractBool.Maybe : AbstractBool.False);
+      ? AbstractBool.true_
+      : (isPotentiallyNull(value) ? AbstractBool.maybe : AbstractBool.false_);
 
   // TODO(fishythefish): Support tracking late sentinels in the powerset domain.
-  AbstractBool isLateSentinel(int value) => AbstractBool.Maybe;
+  AbstractBool isLateSentinel(int value) => AbstractBool.maybe;
 
-  AbstractBool isExact(int value) => AbstractBool.Maybe;
+  AbstractBool isExact(int value) => AbstractBool.maybe;
 
   AbstractBool isEmpty(int value) {
     if (value & interceptorDomainMask == powersetBottom) {
-      return AbstractBool.True;
+      return AbstractBool.true_;
     }
-    if (value & boolNullOtherMask == powersetBottom) return AbstractBool.True;
-    if (isPrecise(value)) return AbstractBool.False;
-    return AbstractBool.Maybe;
+    if (value & boolNullOtherMask == powersetBottom) return AbstractBool.true_;
+    if (isPrecise(value)) return AbstractBool.false_;
+    return AbstractBool.maybe;
   }
 
-  AbstractBool isInstanceOf(int value, ClassEntity cls) => AbstractBool.Maybe;
+  AbstractBool isInstanceOf(int value, ClassEntity cls) => AbstractBool.maybe;
 
   AbstractBool isInstanceOfOrNull(int value, ClassEntity cls) =>
-      AbstractBool.Maybe;
+      AbstractBool.maybe;
 
   AbstractBool containsAll(int value) =>
       AbstractBool.maybeOrFalse(value == powersetTop);
 
   AbstractBool containsOnlyType(int value, ClassEntity cls) =>
-      AbstractBool.Maybe;
+      AbstractBool.maybe;
 
-  AbstractBool containsType(int value, ClassEntity cls) => AbstractBool.Maybe;
+  AbstractBool containsType(int value, ClassEntity cls) => AbstractBool.maybe;
 
   int includeNull(int value) {
     return value | nullValue;
@@ -344,7 +346,7 @@ class PowersetBitsDomain {
 
   AbstractBool couldBeTypedArray(int value) => isOther(value);
 
-  AbstractBool isTypedArray(int value) => AbstractBool.Maybe;
+  AbstractBool isTypedArray(int value) => AbstractBool.maybe;
 
   bool _isBoolSubtype(ClassEntity cls) {
     return cls == commonElements.jsBoolClass || cls == commonElements.boolClass;

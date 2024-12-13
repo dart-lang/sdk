@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
+// ignore: implementation_imports
 import 'package:front_end/src/api_prototype/static_weak_references.dart' as ir
     show StaticWeakReferences;
 
@@ -72,7 +73,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   /// This used for when the most recently visited node is not a boolean
   /// expression and there for also resets [_stateAfterWhenTrue] and
   /// [_stateAfterWhenFalse] to the same value.
-  void set _state(LocalState value) {
+  set _state(LocalState value) {
     _stateInternal = value;
     _stateAfterWhenTrueInternal = _stateAfterWhenFalseInternal = null;
   }
@@ -116,7 +117,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   final Map<JumpTarget, List<LocalState>> _continuesFor =
       <JumpTarget, List<LocalState>>{};
   TypeInformation? _returnType;
-  final Set<Local> _capturedVariables = Set<Local>();
+  final Set<Local> _capturedVariables = <Local>{};
   final Map<Local, FieldEntity> _capturedAndBoxed;
 
   /// Whether we currently taken the boolean result of is-checks or null-checks
@@ -134,16 +135,16 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
       this._memberHierarchyBuilder,
       [LocalState? previousState,
       Map<Local, FieldEntity>? capturedAndBoxed])
-      : this._types = _inferrer.types,
-        this._memberData = _inferrer.dataOfMember(_analyzedMember),
+      : _types = _inferrer.types,
+        _memberData = _inferrer.dataOfMember(_analyzedMember),
         // TODO(johnniwinther): Should side effects also be tracked for field
         // initializers?
-        this._sideEffectsBuilder = _analyzedMember is FunctionEntity
+        _sideEffectsBuilder = _analyzedMember is FunctionEntity
             ? _inferrer.inferredDataBuilder
                 .getSideEffectsBuilder(_analyzedMember)
             : SideEffectsBuilder.free(_analyzedMember),
-        this._inGenerativeConstructor = _analyzedNode is ir.Constructor,
-        this._capturedAndBoxed = capturedAndBoxed != null
+        _inGenerativeConstructor = _analyzedNode is ir.Constructor,
+        _capturedAndBoxed = capturedAndBoxed != null
             ? Map<Local, FieldEntity>.from(capturedAndBoxed)
             : <Local, FieldEntity>{},
         _stateInternal = previousState ??
@@ -346,7 +347,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   Null visitSuperInitializer(ir.SuperInitializer node) {
     ConstructorEntity constructor = _elementMap.getConstructor(node.target);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
-    Selector selector = Selector(SelectorKind.CALL, constructor.memberName,
+    Selector selector = Selector(SelectorKind.call, constructor.memberName,
         _elementMap.getCallStructure(node.arguments));
     handleConstructorInvoke(
         node, node.arguments, selector, constructor, arguments);
@@ -362,7 +363,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   Null visitRedirectingInitializer(ir.RedirectingInitializer node) {
     ConstructorEntity constructor = _elementMap.getConstructor(node.target);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
-    Selector selector = Selector(SelectorKind.CALL, constructor.memberName,
+    Selector selector = Selector(SelectorKind.call, constructor.memberName,
         _elementMap.getCallStructure(node.arguments));
     handleConstructorInvoke(
         node, node.arguments, selector, constructor, arguments);
@@ -456,17 +457,17 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   @override
   TypeInformation defaultExpression(ir.Expression node) {
     throw UnimplementedError(
-        'Unhandled expression: ${node} (${node.runtimeType})');
+        'Unhandled expression: $node (${node.runtimeType})');
   }
 
   @override
   Never defaultStatement(ir.Statement node) {
     throw UnimplementedError(
-        'Unhandled statement: ${node} (${node.runtimeType})');
+        'Unhandled statement: $node (${node.runtimeType})');
   }
 
   @override
-  TypeInformation visitNullLiteral(ir.NullLiteral literal) {
+  TypeInformation visitNullLiteral(ir.NullLiteral node) {
     return createNullTypeInformation();
   }
 
@@ -475,8 +476,8 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  Null visitBlock(ir.Block block) {
-    for (ir.Statement statement in block.statements) {
+  Null visitBlock(ir.Block node) {
+    for (ir.Statement statement in node.statements) {
       visit(statement);
       if (_state.aborts) break;
     }
@@ -1250,7 +1251,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     return list..addAll(_continuesFor[target]!);
   }
 
-  Null handleLoop(ir.Node node, JumpTarget? target, void logic()) {
+  Null handleLoop(ir.Node node, JumpTarget? target, void Function() logic) {
     _loopLevel++;
     bool changed = false;
     final stateBefore = _state;
@@ -1472,7 +1473,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
       // We have something like `Uint32List(len)`.
       final length = _findLength(arguments);
       final member = _elementMap.elementEnvironment
-          .lookupClassMember(constructor.enclosingClass, Names.INDEX_NAME)!;
+          .lookupClassMember(constructor.enclosingClass, Names.indexName)!;
       TypeInformation elementType = _inferrer.returnTypeOfMember(member);
       return _inferrer.concreteTypes.putIfAbsent(
           node,
@@ -1497,22 +1498,22 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
       FunctionEntity function, ArgumentsTypes arguments, Selector selector) {
     final name = function.name;
     handleStaticInvoke(node, selector, function, arguments);
-    if (name == Identifiers.JS) {
+    if (name == Identifiers.js) {
       NativeBehavior nativeBehavior =
           _elementMap.getNativeBehaviorForJsCall(node);
       _sideEffectsBuilder.add(nativeBehavior.sideEffects);
       return _inferrer.typeOfNativeBehavior(nativeBehavior);
-    } else if (name == Identifiers.JS_EMBEDDED_GLOBAL) {
+    } else if (name == Identifiers.jsEmbeddedGlobal) {
       NativeBehavior nativeBehavior =
           _elementMap.getNativeBehaviorForJsEmbeddedGlobalCall(node);
       _sideEffectsBuilder.add(nativeBehavior.sideEffects);
       return _inferrer.typeOfNativeBehavior(nativeBehavior);
-    } else if (name == Identifiers.JS_BUILTIN) {
+    } else if (name == Identifiers.jsBuiltin) {
       NativeBehavior nativeBehavior =
           _elementMap.getNativeBehaviorForJsBuiltinCall(node);
       _sideEffectsBuilder.add(nativeBehavior.sideEffects);
       return _inferrer.typeOfNativeBehavior(nativeBehavior);
-    } else if (name == Identifiers.JS_STRING_CONCAT) {
+    } else if (name == Identifiers.jsStringConcat) {
       return _types.stringType;
     } else if (_closedWorld.commonElements.isCreateJsSentinel(function)) {
       return _types.lateSentinelType;
@@ -1883,7 +1884,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
       // TODO(sra): Add a selector/mux node to improve precision.
       return _types.boolType;
     }
-    failedAt(CURRENT_ELEMENT_SPANNABLE,
+    failedAt(currentElementSpannable,
         "Unexpected logical operator '${node.operatorEnum}'.");
   }
 
@@ -2261,7 +2262,7 @@ class TypeInformationConstantVisitor
 
   static Never _unexpectedConstant(ir.Constant node) {
     throw UnsupportedError("Unexpected constant: "
-        "${node} (${node.runtimeType})");
+        "$node (${node.runtimeType})");
   }
 
   @override
@@ -2587,8 +2588,8 @@ class LocalState {
 
   void _toStructuredText(StringBuffer sb, String indent) {
     sb.write('LocalState($hashCode) [');
-    sb.write('\n${indent}  locals:');
-    sb.write(_locals.toStructuredText('${indent}    '));
+    sb.write('\n$indent  locals:');
+    sb.write(_locals.toStructuredText('$indent    '));
     sb.write('\n]');
   }
 

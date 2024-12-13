@@ -36,7 +36,7 @@ class SsaBranchBuilder {
   }
 
   void buildCondition(
-      void visitCondition(),
+      void Function() visitCondition,
       SsaBranch conditionBranch,
       SsaBranch thenBranch,
       SsaBranch elseBranch,
@@ -86,7 +86,7 @@ class SsaBranchBuilder {
     builder.open(branch.block);
   }
 
-  HInstruction? buildBranch(SsaBranch branch, void visitBranch(),
+  HInstruction? buildBranch(SsaBranch branch, void Function() visitBranch,
       SsaBranch joinBranch, bool isExpression) {
     startBranch(branch);
     visitBranch();
@@ -103,28 +103,22 @@ class SsaBranchBuilder {
     return null;
   }
 
-  void handleIf(void visitCondition(), void visitThen(), void visitElse()?,
+  void handleIf(void Function() visitCondition, void Function() visitThen,
+      void Function()? visitElse,
       {SourceInformation? sourceInformation}) {
-    if (visitElse == null) {
-      // Make sure to have an else part to avoid a critical edge. A
-      // critical edge is an edge that connects a block with multiple
-      // successors to a block with multiple predecessors. We avoid
-      // such edges because they prevent inserting copies during code
-      // generation of phi instructions.
-      visitElse = () {};
-    }
+    visitElse ??= () {};
 
     _handleDiamondBranch(visitCondition, visitThen, visitElse,
         isExpression: false, sourceInformation: sourceInformation);
   }
 
-  void handleConditional(
-      void visitCondition(), void visitThen(), void visitElse()) {
+  void handleConditional(void Function() visitCondition,
+      void Function() visitThen, void Function() visitElse) {
     _handleDiamondBranch(visitCondition, visitThen, visitElse,
         isExpression: true);
   }
 
-  void handleIfNull(void left(), void right()) {
+  void handleIfNull(void Function() left, void Function() right) {
     // x ?? y is transformed into: x == null ? y : x
     late final HInstruction leftExpression;
     handleConditional(() {
@@ -151,8 +145,8 @@ class SsaBranchBuilder {
   ///       t1 = boolify(y);
   ///     }
   ///     result = phi(t1, true);
-  void handleLogicalBinary(
-      void left(), void right(), SourceInformation? sourceInformation,
+  void handleLogicalBinary(void Function() left, void Function() right,
+      SourceInformation? sourceInformation,
       {required bool isAnd}) {
     late HInstruction boolifiedLeft;
     late HInstruction boolifiedRight;
@@ -183,8 +177,8 @@ class SsaBranchBuilder {
     builder.stack.add(result);
   }
 
-  void _handleDiamondBranch(
-      void visitCondition(), void visitThen(), void visitElse(),
+  void _handleDiamondBranch(void Function() visitCondition,
+      void Function() visitThen, void Function() visitElse,
       {required bool isExpression, SourceInformation? sourceInformation}) {
     SsaBranch conditionBranch = SsaBranch(this);
     SsaBranch thenBranch = SsaBranch(this);

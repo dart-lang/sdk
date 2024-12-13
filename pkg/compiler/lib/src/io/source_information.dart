@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.source_information;
+library;
 
 import 'package:kernel/ast.dart' as ir;
 import '../common.dart';
@@ -356,7 +356,7 @@ abstract class SourceLocation {
   String get shortText => '${sourceUri?.pathSegments.last}:[$line,$column]';
 
   @override
-  String toString() => '${sourceUri}:[${line},${column}]';
+  String toString() => '$sourceUri:[$line,$column]';
 }
 
 /// A location in a source file encoded as a kernel [ir.Source] object and a
@@ -387,7 +387,7 @@ class _ConcreteSourceLocation extends SourceLocation {
   String get shortText => '${sourceUri.pathSegments.last}:[$line,$column]';
 
   @override
-  String toString() => '${sourceUri}:[$line,$column]';
+  String toString() => '$sourceUri:[$line,$column]';
 }
 
 /// Compute the source map name for [element]. If [callStructure] is non-null

@@ -113,11 +113,11 @@ class ImportSetLattice {
   /// Builds a list of [ImportSetTransition]s which should be applied
   /// before finalizing [ImportSet]s.
   void buildSetTransitions(List<psc.SetTransition> setTransitions) {
-    setTransitions.forEach((setTransition) {
+    for (var setTransition in setTransitions) {
       importSetTransitions.add(ImportSetTransition(
           setOfImportsToImportSet(setTransition.source),
           setOfImportsToImportSet(setTransition.transitions)));
-    });
+    }
   }
 
   /// Get the import set that includes the union of [a] and [b].
@@ -229,14 +229,14 @@ abstract class ImportSet {
   int get length;
 
   /// Returns an iterable over the imports in this set in canonical order.
-  Iterable<_DeferredImport> collectImports() {
+  Iterable<_DeferredImport> _collectImports() {
     List<_DeferredImport> result = [];
     ImportSet current = this;
     while (current is _NonEmptyImportSet) {
       result.add(current._import);
       current = current._previous;
     }
-    assert(result.length == this.length);
+    assert(result.length == length);
     return result.reversed;
   }
 
@@ -274,7 +274,7 @@ abstract class ImportSet {
   String toString() {
     StringBuffer sb = StringBuffer();
     sb.write('ImportSet(size: $length, ');
-    for (var import in collectImports()) {
+    for (var import in _collectImports()) {
       sb.write('${import.declaration.name} ');
     }
     sb.write(')');
@@ -284,7 +284,7 @@ abstract class ImportSet {
   /// Converts an [ImportSet] to a [Set<ImportEntity].
   /// Note: Not for performance sensitive code.
   Set<ImportEntity> toSet() =>
-      collectImports().map((i) => i.declaration).toSet();
+      _collectImports().map((i) => i.declaration).toSet();
 }
 
 class _NonEmptyImportSet extends ImportSet {

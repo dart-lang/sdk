@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.kernel.env;
+library;
 
 import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -52,7 +52,7 @@ class KProgramEnv {
   KLibraryEnv? lookupLibrary(Uri uri) => _libraryMap[uri];
 
   /// Calls [f] for each library in this environment.
-  void forEachLibrary(void f(KLibraryEnv library)) {
+  void forEachLibrary(void Function(KLibraryEnv library) f) {
     _libraryMap.values.forEach(f);
   }
 
@@ -80,7 +80,7 @@ class KLibraryEnv {
   KClassEnv? lookupClass(String name) => _classMap[name];
 
   /// Calls [f] for each class in this library.
-  void forEachClass(void f(KClassEnv cls)) {
+  void forEachClass(void Function(KClassEnv cls) f) {
     _classMap.values.forEach(f);
   }
 
@@ -102,7 +102,7 @@ class KLibraryEnv {
           }
         } else {
           failedAt(
-              NO_LOCATION_SPANNABLE, "Unexpected library member node: $member");
+              noLocationSpannable, "Unexpected library member node: $member");
         }
       }
     }
@@ -114,7 +114,7 @@ class KLibraryEnv {
     return setter ? _setterMap![name] : _memberMap![name];
   }
 
-  void forEachMember(void f(ir.Member member)) {
+  void forEachMember(void Function(ir.Member member) f) {
     _ensureMemberMaps();
     _memberMap!.values.forEach(f);
     for (ir.Member member in _setterMap!.values) {
@@ -177,14 +177,14 @@ class KLibraryData {
         imports = const <ir.LibraryDependency, ImportEntity>{};
       } else {
         imports = <ir.LibraryDependency, ImportEntity>{};
-        dependencies.forEach((ir.LibraryDependency node) {
-          if (node.isExport) return;
+        for (var node in dependencies) {
+          if (node.isExport) continue;
           imports![node] = ImportEntity(
               node.isDeferred,
               node.name,
               node.targetLibrary.importUri,
               elementMap.getLibrary(node.enclosingLibrary).canonicalUri);
-        });
+        }
       }
     }
     return imports!.values;
@@ -331,11 +331,12 @@ class KClassEnv {
     return member != null ? elementMap.getMember(member) : null;
   }
 
-  void forEachMember(IrToElementMap elementMap, void f(MemberEntity member)) {
+  void forEachMember(
+      IrToElementMap elementMap, void Function(MemberEntity member) f) {
     _ensureMaps(elementMap as KernelToElementMap);
-    _members!.forEach((ir.Member member) {
+    for (var member in _members!) {
       f(elementMap.getMember(member));
-    });
+    }
   }
 
   ConstructorEntity? lookupConstructor(
@@ -345,12 +346,12 @@ class KClassEnv {
     return constructor != null ? elementMap.getConstructor(constructor) : null;
   }
 
-  void forEachConstructor(
-      IrToElementMap elementMap, void f(ConstructorEntity constructor)) {
+  void forEachConstructor(IrToElementMap elementMap,
+      void Function(ConstructorEntity constructor) f) {
     _ensureMaps(elementMap as KernelToElementMap);
-    _constructorMap!.values.forEach((ir.Member constructor) {
+    for (var constructor in _constructorMap!.values) {
       f(elementMap.getConstructor(constructor));
-    });
+    }
   }
 
   void addConstructorBody(ConstructorBodyEntity constructorBody) {
@@ -358,7 +359,8 @@ class KClassEnv {
     _constructorBodyList!.add(constructorBody);
   }
 
-  void forEachConstructorBody(void f(ConstructorBodyEntity constructor)) {
+  void forEachConstructorBody(
+      void Function(ConstructorBodyEntity constructor) f) {
     _constructorBodyList?.forEach(f);
   }
 
@@ -398,13 +400,13 @@ class KClassEnv {
       members = const <ir.Member>[];
     } else {
       members = <ir.Member>[];
-      _members!.forEach((ir.Member node) {
+      for (var node in _members!) {
         MemberEntity member = kElementMap.getMember(node);
         if (liveMemberUsage.containsKey(member) ||
             liveAbstractMembers.contains(member)) {
           members.add(node);
         }
-      });
+      }
     }
     return JClassEnvImpl(cls, constructorMap, memberMap, members,
         _isMixinApplicationWithMembers ?? false);
@@ -483,8 +485,10 @@ class KFunctionData extends KMemberData {
     return _type ??= elementMap.getFunctionType(functionNode);
   }
 
-  void forEachParameter(JsToElementMap elementMap,
-      void f(DartType type, String? name, ConstantValue? defaultValue)) {
+  void forEachParameter(
+      JsToElementMap elementMap,
+      void Function(DartType type, String? name, ConstantValue? defaultValue)
+          f) {
     void handleParameter(ir.VariableDeclaration parameter,
         {bool isOptional = true}) {
       DartType type = elementMap.getDartType(parameter.type);

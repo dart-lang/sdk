@@ -4,12 +4,12 @@
 
 part of 'namer.dart';
 
-abstract class _NamerName extends jsAst.Name {
+abstract class _NamerName extends js_ast.Name {
   int get _kind;
 
   @override
   _NamerName withSourceInformation(
-      jsAst.JavaScriptNodeSourceInformation? newSourceInformation) {
+      js_ast.JavaScriptNodeSourceInformation? newSourceInformation) {
     if (sourceInformation == newSourceInformation) return this;
     final name = this; // Variable needed for type promotion in next line.
     final underlying = name is _NameReference ? name._target : this;
@@ -27,11 +27,11 @@ abstract class _NamerName extends jsAst.Name {
   }
 }
 
-enum _NamerNameKinds { StringBacked, Getter, Setter, Async, Compound, Token }
+enum _NamerNameKinds { stringBacked, getter, setter, async, compound, token }
 
 /// An arbitrary but stable sorting comparison method.
-int compareNames(jsAst.Name aName, jsAst.Name bName) {
-  _NamerName dereference(jsAst.Name name) {
+int compareNames(js_ast.Name aName, js_ast.Name bName) {
+  _NamerName dereference(js_ast.Name name) {
     if (name is ModularName) return dereference(name.value);
     if (name is _NameReference) return dereference(name._target);
     if (name is _NamerName) return name;
@@ -51,7 +51,7 @@ class StringBackedName extends _NamerName {
   @override
   final String name;
   @override
-  int get _kind => _NamerNameKinds.StringBacked.index;
+  int get _kind => _NamerNameKinds.stringBacked.index;
 
   StringBackedName(this.name);
 
@@ -74,14 +74,14 @@ class StringBackedName extends _NamerName {
   }
 }
 
-abstract class _PrefixedName extends _NamerName implements jsAst.AstContainer {
-  final jsAst.Name prefix;
-  final jsAst.Name base;
+abstract class _PrefixedName extends _NamerName implements js_ast.AstContainer {
+  final js_ast.Name prefix;
+  final js_ast.Name base;
   @override
   int get _kind;
 
   @override
-  Iterable<jsAst.Node> get containedNodes => [prefix, base];
+  Iterable<js_ast.Node> get containedNodes => [prefix, base];
 
   _PrefixedName(this.prefix, this.base);
 
@@ -118,21 +118,21 @@ abstract class _PrefixedName extends _NamerName implements jsAst.AstContainer {
 
 class GetterName extends _PrefixedName {
   @override
-  int get _kind => _NamerNameKinds.Getter.index;
+  int get _kind => _NamerNameKinds.getter.index;
 
   GetterName(super.prefix, super.base);
 }
 
 class SetterName extends _PrefixedName {
   @override
-  int get _kind => _NamerNameKinds.Setter.index;
+  int get _kind => _NamerNameKinds.setter.index;
 
   SetterName(super.prefix, super.base);
 }
 
 class AsyncName extends _PrefixedName {
   @override
-  int get _kind => _NamerNameKinds.Async.index;
+  int get _kind => _NamerNameKinds.async.index;
 
   AsyncName(super.prefix, super.base);
 
@@ -140,24 +140,22 @@ class AsyncName extends _PrefixedName {
   bool get allowRename => true;
 }
 
-class CompoundName extends _NamerName implements jsAst.AstContainer {
+class CompoundName extends _NamerName implements js_ast.AstContainer {
   final List<_NamerName> _parts;
   @override
-  int get _kind => _NamerNameKinds.Compound.index;
+  int get _kind => _NamerNameKinds.compound.index;
   int _cachedHashCode = -1;
 
   @override
-  Iterable<jsAst.Node> get containedNodes => _parts;
+  Iterable<js_ast.Node> get containedNodes => _parts;
 
   CompoundName(this._parts);
-
-  CompoundName.from(List<_NamerName> parts) : this([...parts]);
 
   @override
   bool get isFinalized => _parts.every((name) => name.isFinalized);
 
   @override
-  late final String name = _parts.map((jsAst.Name name) => name.name).join();
+  late final String name = _parts.map((js_ast.Name name) => name.name).join();
 
   @override
   String get key => _parts.map((_NamerName name) => name.key).join();
@@ -180,7 +178,7 @@ class CompoundName extends _NamerName implements jsAst.AstContainer {
   int get hashCode {
     if (_cachedHashCode < 0) {
       _cachedHashCode = 0;
-      for (jsAst.Name name in _parts) {
+      for (js_ast.Name name in _parts) {
         _cachedHashCode = (_cachedHashCode * 17 + name.hashCode) & 0x7fffffff;
       }
     }
@@ -197,9 +195,9 @@ class CompoundName extends _NamerName implements jsAst.AstContainer {
   }
 }
 
-class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
+class TokenName extends _NamerName implements js_ast.ReferenceCountedAstNode {
   @override
-  int get _kind => _NamerNameKinds.Token.index;
+  int get _kind => _NamerNameKinds.token.index;
   String? _name;
   @override
   final String key;
@@ -220,7 +218,7 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
   }
 
   @override
-  void markSeen(jsAst.TokenCounter counter) => _rc++;
+  void markSeen(js_ast.TokenCounter counter) => _rc++;
 
   @override
   // ignore: hash_and_equals
@@ -233,7 +231,7 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
   void finalize() {
     assert(
         !isFinalized,
-        failedAt(NO_LOCATION_SPANNABLE,
+        failedAt(noLocationSpannable,
             "TokenName($key)=$_name has already been finalized."));
     _name = _scope.getNextName();
   }
@@ -242,14 +240,14 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
 /// A [_NameReference] behaves like the underlying (target) [_NamerName] but
 /// carries its own [JavaScriptNodeSourceInformation].
 // TODO(sra): See if this functionality can be moved into js_ast.
-class _NameReference extends _NamerName implements jsAst.AstContainer {
+class _NameReference extends _NamerName implements js_ast.AstContainer {
   final _NamerName _target;
-  final jsAst.JavaScriptNodeSourceInformation? _sourceInformation;
+  final js_ast.JavaScriptNodeSourceInformation? _sourceInformation;
 
   _NameReference(this._target, this._sourceInformation);
 
   @override
-  jsAst.JavaScriptNodeSourceInformation? get sourceInformation =>
+  js_ast.JavaScriptNodeSourceInformation? get sourceInformation =>
       _sourceInformation;
 
   @override
@@ -258,7 +256,7 @@ class _NameReference extends _NamerName implements jsAst.AstContainer {
   String get key => _target.key;
 
   @override
-  Iterable<jsAst.Node> get containedNodes => [_target];
+  Iterable<js_ast.Node> get containedNodes => [_target];
 
   @override
   String get name => _target.name;

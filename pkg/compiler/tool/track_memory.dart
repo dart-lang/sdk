@@ -10,7 +10,7 @@
 ///     DART_VM_OPTIONS=--observe dart2js ...
 ///
 /// and run this script immediately after.
-library compiler.tool.track_memory;
+library;
 
 import 'dart:math' show max;
 import 'dart:io';
@@ -34,7 +34,7 @@ Future<void> main(List<String> args) async {
     _streamListen('Debug');
   } catch (e) {
     // TODO(sigmund): add better error messages, maybe option to retry.
-    print('\n${_RED}error${_NONE}: $e');
+    print('\n${_red}error$_none: $e');
     print('usage:\n'
         '  Start a Dart process with the --observe flag (and optionally '
         'the --pause_isolates_on_start flag), then invoke:\n'
@@ -49,11 +49,11 @@ Map<int, Completer<dynamic>> _pendingResponses = {};
 
 /// Subscribe to listen to a vm service data stream.
 Future<void> _streamListen(String streamId) =>
-    _sendMessage('streamListen', {'streamId': '$streamId'});
+    _sendMessage('streamListen', {'streamId': streamId});
 
 /// Tell the vm service to resume a specific isolate.
 Future<void> _resumeIsolate(String isolateId) =>
-    _sendMessage('resume', {'isolateId': '$isolateId'});
+    _sendMessage('resume', {'isolateId': isolateId});
 
 /// Resumes the main isolate if it was paused on start.
 Future<void> _resumeMainIsolateIfPaused() async {
@@ -68,12 +68,12 @@ Future<void> _resumeMainIsolateIfPaused() async {
 Future<dynamic> _sendMessage(String method,
     [Map<String, dynamic> args = const {}]) {
   var id = _requestId++;
-  final completer = new Completer<dynamic>();
+  final completer = Completer<dynamic>();
   _pendingResponses[id] = completer;
   socket.add(jsonEncode({
     'jsonrpc': '2.0',
     'id': '$id',
-    'method': '$method',
+    'method': method,
     'params': args,
   }));
   return completer.future;
@@ -140,7 +140,7 @@ int lastMaxCapacity = 0;
 /// Shows a status line with use/capacity numbers for new/old/total/max,
 /// highlighting in red when capacity increases, and in green when it decreases.
 void _showProgress(int newUsed, int newCapacity, int oldUsed, int oldCapacity) {
-  var sb = new StringBuffer();
+  var sb = StringBuffer();
   sb.write('\r '); // replace the status-line in place
   _writeNumber(sb, lastNewUsed, newUsed);
   _writeNumber(sb, lastNewCapacity, newCapacity, color: true);
@@ -173,9 +173,9 @@ const mega = 1024 * 1024;
 bool _writeNumber(StringBuffer sb, int before, int now, {bool color = false}) {
   if (color) {
     sb.write(before < now
-        ? _RED
+        ? _red
         : before > now
-            ? _GREEN
+            ? _green
             : '');
   }
   String string;
@@ -188,7 +188,7 @@ bool _writeNumber(StringBuffer sb, int before, int now, {bool color = false}) {
   }
   if (string.length < 10) string = '${' ' * (8 - string.length)}$string';
   sb.write(string);
-  if (color) sb.write(before != now ? _NONE : '');
+  if (color) sb.write(before != now ? _none : '');
   return before > now;
 }
 
@@ -199,6 +199,6 @@ Memory usage:
   in-use/capacity |  in-use/capacity |  in-use/capacity |  in-use/capacity ''');
 }
 
-const _RED = '\x1b[31m';
-const _GREEN = '\x1b[32m';
-const _NONE = '\x1b[0m';
+const _red = '\x1b[31m';
+const _green = '\x1b[32m';
+const _none = '\x1b[0m';

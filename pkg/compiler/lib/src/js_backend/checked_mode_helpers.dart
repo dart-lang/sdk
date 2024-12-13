@@ -12,7 +12,7 @@ import '../universe/use.dart' show StaticUse;
 class CheckedModeHelper {
   final String name;
 
-  const CheckedModeHelper(String this.name);
+  const CheckedModeHelper(this.name);
 
   StaticUse getStaticUse(CommonElements commonElements) {
     // TODO(johnniwinther): Refactor this to avoid looking up directly in the
@@ -21,7 +21,7 @@ class CheckedModeHelper {
         commonElements.findHelperFunction(name), callStructure);
   }
 
-  CallStructure get callStructure => CallStructure.ONE_ARG;
+  CallStructure get callStructure => CallStructure.oneArg;
 }
 
 class CheckedModeHelpers {

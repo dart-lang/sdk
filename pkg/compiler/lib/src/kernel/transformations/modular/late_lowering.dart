@@ -165,10 +165,10 @@ class LateLowering {
       ..fileOffset = fileOffset;
   }
 
-  InstanceSet _callSetter(Procedure _setter, Expression receiver,
+  InstanceSet _callSetter(Procedure setter, Expression receiver,
           Expression value, int fileOffset) =>
-      InstanceSet(InstanceAccessKind.Instance, receiver, _setter.name, value,
-          interfaceTarget: _setter)
+      InstanceSet(InstanceAccessKind.Instance, receiver, setter.name, value,
+          interfaceTarget: setter)
         ..fileOffset = fileOffset;
 
   StaticInvocation _callIsSentinel(Expression value, int fileOffset) =>

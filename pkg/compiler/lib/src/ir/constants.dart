@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
+// ignore: implementation_imports
 import 'package:kernel/src/printer.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 

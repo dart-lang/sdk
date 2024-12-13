@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library compiler.src.inferrer.type_graph_nodes;
+library;
 
 import 'dart:collection' show IterableBase;
 
@@ -264,9 +264,9 @@ abstract class TypeInformation {
   }
 
   void removeAndClearReferences(InferrerEngine inferrer) {
-    inputs.forEach((info) {
+    for (var info in inputs) {
       info.removeUser(this);
-    });
+    }
   }
 
   void stabilize(InferrerEngine inferrer) {
@@ -292,7 +292,7 @@ abstract class TypeInformation {
 
   String toStructuredText(String indent) {
     StringBuffer sb = StringBuffer();
-    _toStructuredText(sb, indent, Set<TypeInformation>());
+    _toStructuredText(sb, indent, <TypeInformation>{});
     return sb.toString();
   }
 
@@ -373,7 +373,7 @@ class _BasicParameterInputs extends IterableBase<TypeInformation>
 /// called.
 class _InstanceMemberParameterInputs extends IterableBase<TypeInformation>
     implements ParameterInputs {
-  final Map<TypeInformation, int> _inputs = Map<TypeInformation, int>();
+  final Map<TypeInformation, int> _inputs = <TypeInformation, int>{};
 
   @override
   void remove(TypeInformation info) {
@@ -582,6 +582,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
 
 class FieldTypeInformation extends MemberTypeInformation {
   @override
+  // ignore: overridden_fields
   final FieldEntity _member;
   final AbstractValue _type;
 
@@ -634,6 +635,7 @@ class FieldTypeInformation extends MemberTypeInformation {
 
 class GetterTypeInformation extends MemberTypeInformation {
   @override
+  // ignore: overridden_fields
   final FunctionEntity _member;
   final AbstractValue _type;
 
@@ -658,6 +660,7 @@ class GetterTypeInformation extends MemberTypeInformation {
 
 class SetterTypeInformation extends MemberTypeInformation {
   @override
+  // ignore: overridden_fields
   final FunctionEntity _member;
 
   SetterTypeInformation(AbstractValueDomain abstractValueDomain, this._member)
@@ -677,6 +680,7 @@ class SetterTypeInformation extends MemberTypeInformation {
 
 class MethodTypeInformation extends MemberTypeInformation {
   @override
+  // ignore: overridden_fields
   final FunctionEntity _member;
   final AbstractValue _type;
 
@@ -707,6 +711,7 @@ class MethodTypeInformation extends MemberTypeInformation {
 
 class FactoryConstructorTypeInformation extends MemberTypeInformation {
   @override
+  // ignore: overridden_fields
   final ConstructorEntity _member;
   final AbstractValue _type;
 
@@ -745,6 +750,7 @@ class FactoryConstructorTypeInformation extends MemberTypeInformation {
 
 class GenerativeConstructorTypeInformation extends MemberTypeInformation {
   @override
+  // ignore: overridden_fields
   final FunctionEntity _member;
   AbstractValue? _baseType;
 
@@ -1069,7 +1075,9 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
     MemberTypeInformation callee = _getCalledTypeInfo(inferrer);
     callee.addUser(this);
     if (arguments != null) {
-      arguments!.forEach((info) => info.addUser(this));
+      for (var info in arguments!) {
+        info.addUser(this);
+      }
     }
     inferrer.updateParameterInputs(this, calledElement, arguments, selector,
         remove: false, addToQueue: false);
@@ -1116,7 +1124,9 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
     ElementTypeInformation callee = _getCalledTypeInfo(inferrer);
     callee.removeUser(this);
     if (arguments != null) {
-      arguments!.forEach((info) => info.removeUser(this));
+      for (var info in arguments!) {
+        info.removeUser(this);
+      }
     }
     super.removeAndClearReferences(inferrer);
   }
@@ -1179,7 +1189,9 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     invalidateTargetsIncludeComplexNoSuchMethod();
     receiver.addUser(this);
     if (arguments != null) {
-      arguments!.forEach((info) => info.addUser(this));
+      for (var info in arguments!) {
+        info.addUser(this);
+      }
     }
     for (final target in targets) {
       _handleCalledTarget(target, inferrer, addToQueue: false, remove: false);
@@ -1396,7 +1408,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
             if (value is StringConstantValue) {
               String key = value.stringValue;
               if (abstractValueDomain.containsDictionaryKey(typeMask, key)) {
-                if (debug.VERBOSE) {
+                if (debug.verbose) {
                   print("Dictionary lookup for $key yields "
                       "${abstractValueDomain.getDictionaryValueForKey(typeMask, key)}.");
                 }
@@ -1405,7 +1417,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
               } else {
                 // The typeMap is precise, so if we do not find the key, the
                 // lookup will be [null] at runtime.
-                if (debug.VERBOSE) {
+                if (debug.verbose) {
                   print("Dictionary lookup for $key yields [null].");
                 }
                 return inferrer.types.nullType.type;
@@ -1413,7 +1425,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
             }
           }
           assert(abstractValueDomain.isMap(typeMask));
-          if (debug.VERBOSE) {
+          if (debug.verbose) {
             print("Map lookup for $selector yields "
                 "${abstractValueDomain.getMapValueType(typeMask)}.");
           }
@@ -1474,7 +1486,9 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
       return true;
     });
     if (arguments != null) {
-      arguments!.forEach((info) => info.removeUser(this));
+      for (var info in arguments!) {
+        info.removeUser(this);
+      }
     }
     super.removeAndClearReferences(inferrer);
   }
@@ -1516,7 +1530,9 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
 
   @override
   void addToGraph(InferrerEngine inferrer) {
-    arguments!.forEach((info) => info.addUser(this));
+    for (var info in arguments!) {
+      info.addUser(this);
+    }
     closure.addUser(this);
   }
 
@@ -1588,12 +1604,12 @@ class ConcreteTypeInformation extends TypeInformation {
   void removeUser(TypeInformation user) {}
 
   @override
-  void addInput(TypeInformation assignment) {
+  void addInput(TypeInformation input) {
     throw "Not supported";
   }
 
   @override
-  void removeInput(TypeInformation assignment) {
+  void removeInput(TypeInformation input) {
     throw "Not supported";
   }
 
@@ -1627,7 +1643,7 @@ class StringLiteralTypeInformation extends ConcreteTypeInformation {
 
   String asString() => value;
   @override
-  String toString() => 'Type $type value ${value}';
+  String toString() => 'Type $type value $value';
 
   @override
   T accept<T>(TypeInformationVisitor<T> visitor) {
@@ -1644,7 +1660,7 @@ class BoolLiteralTypeInformation extends ConcreteTypeInformation {
             mask, value ? TrueConstantValue() : FalseConstantValue()));
 
   @override
-  String toString() => 'Type $type value ${value}';
+  String toString() => 'Type $type value $value';
 
   @override
   T accept<T>(TypeInformationVisitor<T> visitor) {
@@ -1679,8 +1695,8 @@ class NarrowTypeInformation extends TypeInformation {
   }
 
   @override
-  void addInput(TypeInformation info) {
-    super.addInput(info);
+  void addInput(TypeInformation input) {
+    super.addInput(input);
     assert(inputs.length == 1);
   }
 
@@ -1904,7 +1920,7 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
   TypeInformation? addEntryInput(AbstractValueDomain abstractValueDomain,
       TypeInformation key, TypeInformation value,
       [bool nonNull = false]) {
-    ValueInMapTypeInformation? newInfo = null;
+    ValueInMapTypeInformation? newInfo;
     if (_allKeysAreStrings && key is StringLiteralTypeInformation) {
       String keyString = key.asString();
       typeInfoMap.putIfAbsent(keyString, () {
@@ -1949,11 +1965,13 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
 
   void markAsInferred() {
     keyType.inferred = valueType.inferred = true;
-    typeInfoMap.values.forEach((v) => v.inferred = true);
+    for (var v in typeInfoMap.values) {
+      v.inferred = true;
+    }
   }
 
   @override
-  Never addInput(TypeInformation other) {
+  Never addInput(TypeInformation input) {
     throw "not supported";
   }
 
@@ -1965,7 +1983,7 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
   AbstractValue toTypeMask(InferrerEngine inferrer) {
     AbstractValueDomain abstractValueDomain = inferrer.abstractValueDomain;
     if (inDictionaryMode) {
-      Map<String, AbstractValue> mappings = Map<String, AbstractValue>();
+      Map<String, AbstractValue> mappings = <String, AbstractValue>{};
       for (var key in typeInfoMap.keys) {
         mappings[key] = typeInfoMap[key]!.type;
       }
@@ -2115,7 +2133,7 @@ class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
   }
 
   @override
-  void addInput(TypeInformation other) {
+  void addInput(TypeInformation input) {
     throw UnsupportedError('addInput');
   }
 

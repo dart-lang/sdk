@@ -50,13 +50,16 @@ abstract class CodegenWorld extends BuiltWorld {
   Iterable<Selector>? setterInvocationsByName(String name);
 
   void forEachInvokedName(
-      void f(String name, Map<Selector, SelectorConstraints> selectors));
+      void Function(String name, Map<Selector, SelectorConstraints> selectors)
+          f);
 
   void forEachInvokedGetter(
-      void f(String name, Map<Selector, SelectorConstraints> selectors));
+      void Function(String name, Map<Selector, SelectorConstraints> selectors)
+          f);
 
   void forEachInvokedSetter(
-      void f(String name, Map<Selector, SelectorConstraints> selectors));
+      void Function(String name, Map<Selector, SelectorConstraints> selectors)
+          f);
 
   /// All directly instantiated classes, that is, classes with a generative
   /// constructor that has been called directly and not only through a
@@ -257,10 +260,10 @@ class CodegenWorldBuilder extends WorldBuilder {
     Selector selector = dynamicUse.selector;
     String methodName = selector.name;
 
-    void _process(
+    void process(
         Map<String, Set<MemberUsage>> memberMap,
-        EnumSet<MemberUse> action(MemberUsage usage),
-        bool shouldBeRemoved(MemberUsage usage)) {
+        EnumSet<MemberUse> Function(MemberUsage usage) action,
+        bool Function(MemberUsage usage) shouldBeRemoved) {
       _processSet(memberMap, methodName, (MemberUsage usage) {
         // Strategy will check both that selector applies and constraint is met.
         if (_selectorConstraintsStrategy.appliedUnnamed(
@@ -273,11 +276,11 @@ class CodegenWorldBuilder extends WorldBuilder {
     }
 
     switch (dynamicUse.kind) {
-      case DynamicUseKind.INVOKE:
+      case DynamicUseKind.invoke:
         registerDynamicInvocation(
             dynamicUse.selector, dynamicUse.typeArguments);
         if (_registerNewSelector(dynamicUse, _invokedNames)) {
-          _process(
+          process(
               _invokableInstanceMembersByName,
               (m) => m.invoke(Accesses.dynamicAccess, selector.callStructure),
               // If not all optional parameters have been passed in invocations
@@ -285,17 +288,17 @@ class CodegenWorldBuilder extends WorldBuilder {
               (u) => !u.hasPendingDynamicInvoke);
         }
         break;
-      case DynamicUseKind.GET:
+      case DynamicUseKind.get:
         if (_registerNewSelector(dynamicUse, _invokedGetters)) {
-          _process(
+          process(
               _readableInstanceMembersByName,
               (m) => m.read(Accesses.dynamicAccess),
               (u) => !u.hasPendingDynamicRead);
         }
         break;
-      case DynamicUseKind.SET:
+      case DynamicUseKind.set:
         if (_registerNewSelector(dynamicUse, _invokedSetters)) {
-          _process(
+          process(
               _writableInstanceMembersByName,
               (m) => m.write(Accesses.dynamicAccess),
               (u) => !u.hasPendingDynamicWrite);
@@ -333,59 +336,59 @@ class CodegenWorldBuilder extends WorldBuilder {
     MemberEntity element = staticUse.element as MemberEntity;
     var (usage, useSet) = _getMemberUsage(element);
     switch (staticUse.kind) {
-      case StaticUseKind.STATIC_TEAR_OFF:
+      case StaticUseKind.staticTearOff:
         useSet = useSet.union(usage.read(Accesses.staticAccess));
         break;
-      case StaticUseKind.INSTANCE_FIELD_GET:
-      case StaticUseKind.INSTANCE_FIELD_SET:
-      case StaticUseKind.CALL_METHOD:
+      case StaticUseKind.instanceFieldGet:
+      case StaticUseKind.instanceFieldSet:
+      case StaticUseKind.callMethod:
         // TODO(johnniwinther): Avoid this. Currently [FIELD_GET] and
         // [FIELD_SET] contains [BoxFieldElement]s which we cannot enqueue.
         // Also [CLOSURE] contains [LocalFunctionElement] which we cannot
         // enqueue.
         break;
-      case StaticUseKind.SUPER_INVOKE:
+      case StaticUseKind.superInvoke:
         registerStaticInvocation(staticUse);
         useSet = useSet.union(
             usage.invoke(Accesses.superAccess, staticUse.callStructure!));
         break;
-      case StaticUseKind.STATIC_INVOKE:
+      case StaticUseKind.staticInvoke:
         registerStaticInvocation(staticUse);
         useSet = useSet.union(
             usage.invoke(Accesses.staticAccess, staticUse.callStructure!));
         break;
-      case StaticUseKind.SUPER_FIELD_SET:
+      case StaticUseKind.superFieldSet:
         useSet = useSet.union(usage.write(Accesses.superAccess));
         break;
-      case StaticUseKind.SUPER_SETTER_SET:
+      case StaticUseKind.superSetterSet:
         useSet = useSet.union(usage.write(Accesses.superAccess));
         break;
-      case StaticUseKind.STATIC_SET:
+      case StaticUseKind.staticSet:
         useSet = useSet.union(usage.write(Accesses.staticAccess));
         break;
-      case StaticUseKind.SUPER_TEAR_OFF:
+      case StaticUseKind.superTearOff:
         useSet = useSet.union(usage.read(Accesses.superAccess));
         break;
-      case StaticUseKind.SUPER_GET:
+      case StaticUseKind.superGet:
         useSet = useSet.union(usage.read(Accesses.superAccess));
         break;
-      case StaticUseKind.STATIC_GET:
+      case StaticUseKind.staticGet:
         useSet = useSet.union(usage.read(Accesses.staticAccess));
         break;
-      case StaticUseKind.FIELD_INIT:
+      case StaticUseKind.fieldInit:
         useSet = useSet.union(usage.init());
         break;
-      case StaticUseKind.FIELD_CONSTANT_INIT:
+      case StaticUseKind.fieldConstantInit:
         useSet = useSet.union(usage.constantInit(staticUse.constant!));
         break;
-      case StaticUseKind.CONSTRUCTOR_INVOKE:
-      case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+      case StaticUseKind.constructorInvoke:
+      case StaticUseKind.constConstructorInvoke:
         // We don't track parameters in the codegen world builder, so we
         // pass `null` instead of the concrete call structure.
         useSet = useSet.union(
             usage.invoke(Accesses.staticAccess, staticUse.callStructure!));
         break;
-      case StaticUseKind.DIRECT_INVOKE:
+      case StaticUseKind.directInvoke:
         // We don't track parameters in the codegen world builder, so we
         // pass `null` instead of the concrete call structure.
         useSet = useSet.union(
@@ -396,13 +399,13 @@ class CodegenWorldBuilder extends WorldBuilder {
               staticUse.typeArguments!);
         }
         break;
-      case StaticUseKind.INLINING:
+      case StaticUseKind.inlining:
         registerStaticInvocation(staticUse);
         break;
-      case StaticUseKind.CLOSURE:
-      case StaticUseKind.CLOSURE_CALL:
-      case StaticUseKind.WEAK_STATIC_TEAR_OFF:
-        failedAt(CURRENT_ELEMENT_SPANNABLE,
+      case StaticUseKind.closure:
+      case StaticUseKind.closureCall:
+      case StaticUseKind.weakStaticTearOff:
+        failedAt(currentElementSpannable,
             "Static use ${staticUse.kind} is not supported during codegen.");
     }
     if (useSet.isNotEmpty) {
@@ -456,7 +459,7 @@ class CodegenWorldBuilder extends WorldBuilder {
           // being optimized away.
           // TODO(johnniwinther): Make this a part of the regular enqueueing.
           useSet = useSet.union(
-              usage.invoke(Accesses.dynamicAccess, CallStructure.NO_ARGS));
+              usage.invoke(Accesses.dynamicAccess, CallStructure.noArgs));
         }
 
         if (usage.hasPendingDynamicRead && _hasInvokedGetter(member)) {
@@ -512,7 +515,7 @@ class CodegenWorldBuilder extends WorldBuilder {
   }
 
   void _processSet(Map<String, Set<MemberUsage>> map, String memberName,
-      bool f(MemberUsage e)) {
+      bool Function(MemberUsage e) f) {
     Set<MemberUsage>? members = map[memberName];
     if (members == null) return;
     // [f] might add elements to [: map[memberName] :] during the loop below
@@ -999,31 +1002,34 @@ class CodegenWorldImpl implements CodegenWorld {
 
   @override
   void forEachStaticTypeArgument(
-      void f(Entity function, Set<DartType> typeArguments)) {
+      void Function(Entity function, Set<DartType> typeArguments) f) {
     _staticTypeArgumentDependencies.forEach(f);
   }
 
   @override
   void forEachDynamicTypeArgument(
-      void f(Selector selector, Set<DartType> typeArguments)) {
+      void Function(Selector selector, Set<DartType> typeArguments) f) {
     _dynamicTypeArgumentDependencies.forEach(f);
   }
 
   @override
   void forEachInvokedName(
-      void f(String name, Map<Selector, SelectorConstraints> selectors)) {
+      void Function(String name, Map<Selector, SelectorConstraints> selectors)
+          f) {
     _invokedNames.forEach(f);
   }
 
   @override
   void forEachInvokedGetter(
-      void f(String name, Map<Selector, SelectorConstraints> selectors)) {
+      void Function(String name, Map<Selector, SelectorConstraints> selectors)
+          f) {
     _invokedGetters.forEach(f);
   }
 
   @override
   void forEachInvokedSetter(
-      void f(String name, Map<Selector, SelectorConstraints> selectors)) {
+      void Function(String name, Map<Selector, SelectorConstraints> selectors)
+          f) {
     _invokedSetters.forEach(f);
   }
 

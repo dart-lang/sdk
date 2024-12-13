@@ -211,7 +211,7 @@ class SerializationTask extends CompilerTask {
       api.BinaryOutputSink dataOutput = _outputProvider.createBinarySink(uri);
       DataSinkWriter sink =
           DataSinkWriter(BinaryDataSink(dataOutput), _options, indices);
-      _reporter.log('Writing data to ${uri}');
+      _reporter.log('Writing data to $uri');
       sink.writeMembers(lazyMemberBodies);
       sink.registerAbstractValueDomain(domain);
       sink.writeMemberMap(results, (MemberEntity member, CodegenResult result) {
@@ -234,7 +234,7 @@ class SerializationTask extends CompilerTask {
       Uri uri = Uri.parse(
           '${_options.dataUriForStage(CompilerStage.codegenSharded)}$shard');
       await measureIoSubtask('deserialize codegen', () async {
-        _reporter.log('Reading data from ${uri}');
+        _reporter.log('Reading data from $uri');
         api.Input<Uint8List> dataInput =
             await _provider.readFromUri(uri, inputKind: api.InputKind.binary);
         // TODO(36983): This code is extracted because there appeared to be a
@@ -273,7 +273,7 @@ class SerializationTask extends CompilerTask {
       return source.readDeferrable(CodegenResult.readFromDataSource,
           cacheData: false);
     });
-    _reporter.log('Read ${codegenResults.length} members from ${uri}');
+    _reporter.log('Read ${codegenResults.length} members from $uri');
     results.addAll(codegenResults);
   }
 

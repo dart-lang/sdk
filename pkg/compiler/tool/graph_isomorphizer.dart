@@ -185,9 +185,9 @@ class GraphIsomorphizer {
     // We verify that each function in libImport is invoked only once from each
     // mixerLib and that only the correct functions are called, ie for lib_001,
     // only functions with XX1 are invoked.
-    out.write('void v(Set<String> u, String name, int bit) {\n' +
-        '  Expect.isTrue(u.add(name));\n' +
-        "  Expect.equals(name[bit], '1');\n" +
+    out.write('void v(Set<String> u, String name, int bit) {\n'
+        '  Expect.isTrue(u.add(name));\n'
+        "  Expect.equals(name[bit], '1');\n"
         '}\n\n');
 
     // Sort the names to ensure they are in a canonical order.
@@ -260,7 +260,7 @@ class GraphIsomorphizer {
                 typeImpls.addAll(types.sublist(i + 1));
               }
               var classImplementsString = classImpls.join(', ');
-              String className = '${baseName}_class_${count}';
+              String className = '${baseName}_class_$count';
               out.write('class $className extends $cls with $mixinString ');
               out.write(
                   'implements $classImplementsString { const $className(); }\n');
@@ -269,7 +269,7 @@ class GraphIsomorphizer {
               out.write('=> i$className.toString() == foo.toString();\n');
 
               var typeImplementsString = typeImpls.join(', ');
-              String typeName = 'T${name}_type__${count}';
+              String typeName = 'T${name}_type__$count';
               out.write('class $typeName extends $type with $mixinString ');
               out.write('implements $typeImplementsString {}\n');
               for (int i = 0; i < bits.length; i++) {
@@ -350,11 +350,11 @@ class GraphIsomorphizer {
     // Collect the names so we can sort them and put them in a canonical order.
     int count = 0;
     List<String> namesBits = [];
-    names[bit]!.forEach((nameBits) {
+    for (var nameBits in names[bit]!) {
       var nameString = generateBitString(nameBits);
       namesBits.add(nameString);
       count++;
-    });
+    }
 
     out.write('  Set<String> uniques = {};\n\n'
         '  // f${generateCommentName(bits, bit)};\n');
@@ -458,7 +458,7 @@ class GraphIsomorphizer {
 
   /// Helper to dump contents to file.
   void writeToFile(String filename, StringBuffer contents) {
-    var file = File(this.outDirectory + '/' + filename);
+    var file = File('$outDirectory/$filename');
     file.createSync(recursive: true);
     var sink = file.openWrite();
     sink.write(

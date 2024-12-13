@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_emitter.code_emitter_task;
+library;
 
 import '../common/metrics.dart' show Metric, Metrics, CountMetric;
 import '../common/tasks.dart' show CompilerTask;
@@ -10,7 +10,7 @@ import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../elements/entities.dart';
-import '../js/js.dart' as jsAst;
+import '../js/js.dart' as js_ast;
 import '../js_backend/codegen_inputs.dart' show CodegenInputs;
 import '../js_backend/inferred_data.dart';
 import '../js_backend/namer.dart' show Namer;
@@ -50,8 +50,8 @@ class CodeEmitterTask extends CompilerTask {
   /// See [neededClasses] but for class types.
   late final Set<ClassEntity> neededClassTypes;
 
-  _EmitterMetrics? _emitterMetrics;
-  _EmitterMetrics get emitterMetrics => _emitterMetrics ??= _EmitterMetrics();
+  EmitterMetrics? _emitterMetrics;
+  EmitterMetrics get emitterMetrics => _emitterMetrics ??= EmitterMetrics();
   @override
   Metrics get metrics => _emitterMetrics ?? Metrics.none();
 
@@ -143,38 +143,38 @@ class CodeEmitterTask extends CompilerTask {
 /// the closed world computed by the codegen enqueuer.
 abstract class ModularEmitter {
   /// Returns the JS prototype of the given class [e].
-  jsAst.Expression prototypeAccess(ClassEntity e);
+  js_ast.Expression prototypeAccess(ClassEntity e);
 
   /// Returns the JS function representing the given function.
   ///
   /// The function must be invoked and can not be used as closure.
-  jsAst.Expression staticFunctionAccess(FunctionEntity element);
+  js_ast.Expression staticFunctionAccess(FunctionEntity element);
 
-  jsAst.Expression staticFieldAccess(FieldEntity element);
+  js_ast.Expression staticFieldAccess(FieldEntity element);
 
   /// Returns the JS function that must be invoked to get the value of the
   /// lazily initialized static.
-  jsAst.Expression isolateLazyInitializerAccess(covariant FieldEntity element);
+  js_ast.Expression isolateLazyInitializerAccess(covariant FieldEntity element);
 
   /// Returns the closure expression of a static function.
-  jsAst.Expression staticClosureAccess(covariant FunctionEntity element);
+  js_ast.Expression staticClosureAccess(covariant FunctionEntity element);
 
   /// Returns the JS constructor of the given element.
   ///
   /// The returned expression must only be used in a JS `new` expression.
-  jsAst.Expression constructorAccess(ClassEntity e);
+  js_ast.Expression constructorAccess(ClassEntity e);
 
   /// Returns the JS name representing the type [e].
-  jsAst.Name typeAccessNewRti(ClassEntity e);
+  js_ast.Name typeAccessNewRti(ClassEntity e);
 
   /// Returns the JS name representing the type variable [e].
-  jsAst.Name typeVariableAccessNewRti(TypeVariableEntity e);
+  js_ast.Name typeVariableAccessNewRti(TypeVariableEntity e);
 
   /// Returns the JS code for accessing the embedded [global].
-  jsAst.Expression generateEmbeddedGlobalAccess(String global);
+  js_ast.Expression generateEmbeddedGlobalAccess(String global);
 
   /// Returns the JS code for accessing the given [constant].
-  jsAst.Expression constantReference(ConstantValue constant);
+  js_ast.Expression constantReference(ConstantValue constant);
 
   /// Returns the JS code for accessing the global property [global].
   String generateEmbeddedGlobalAccessString(String global);
@@ -203,13 +203,13 @@ abstract class Emitter implements ModularEmitter {
   int emitProgram(ProgramBuilder programBuilder, CodegenWorld codegenWorld);
 
   /// Returns the JS prototype of the given interceptor class [e].
-  jsAst.Expression interceptorPrototypeAccess(ClassEntity e);
+  js_ast.Expression interceptorPrototypeAccess(ClassEntity e);
 
   /// Returns the JS constructor of the given interceptor class [e].
-  jsAst.Expression interceptorClassAccess(ClassEntity e);
+  js_ast.Expression interceptorClassAccess(ClassEntity e);
 
   /// Returns the JS expression representing a function that returns 'null'
-  jsAst.Expression generateFunctionThatReturnsNull();
+  js_ast.Expression generateFunctionThatReturnsNull();
 
   int compareConstants(ConstantValue a, ConstantValue b);
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant);
@@ -218,7 +218,7 @@ abstract class Emitter implements ModularEmitter {
   Map<OutputUnit, int> get generatedSizes;
 }
 
-class _EmitterMetrics implements Metrics {
+class EmitterMetrics implements Metrics {
   @override
   String get namespace => 'emitter';
 

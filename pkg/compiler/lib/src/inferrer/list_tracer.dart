@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library compiler.src.inferrer.list_tracer;
+library;
 
 import '../common/names.dart';
 import '../elements/entities.dart';
@@ -14,8 +14,7 @@ import 'type_graph_nodes.dart';
 /// A set of selector names that [List] implements, that we know do not
 /// change the element type of the list, or let the list escape to code
 /// that might change the element type.
-Set<String> elementTypePreservingSelectorNames =
-    Set<String>.from(const <String>[
+Set<String> elementTypePreservingSelectorNames = <String>{
   // From Object.
   '==',
   'hashCode',
@@ -52,7 +51,6 @@ Set<String> elementTypePreservingSelectorNames =
 
   // From List.
   '[]',
-  'length', // set:length is almost safe and handled specially
   'reversed',
   'sort',
   'indexOf',
@@ -71,9 +69,9 @@ Set<String> elementTypePreservingSelectorNames =
   // From JSArray.
   'checkMutable',
   'checkGrowable',
-]);
+};
 
-Set<String> lengthPreservingSelectorNames = Set<String>.from(const <String>[
+Set<String> lengthPreservingSelectorNames = <String>{
   // From Object.
   '==',
   'hashCode',
@@ -123,7 +121,7 @@ Set<String> lengthPreservingSelectorNames = Set<String>.from(const <String>[
   // From JSArray.
   'checkMutable',
   'checkGrowable',
-]);
+};
 
 class ListTracerVisitor extends TracerVisitor {
   // The [Set] of found assignments to the list.
@@ -162,7 +160,7 @@ class ListTracerVisitor extends TracerVisitor {
     super.visitStaticCallSiteTypeInformation(info);
     final commonElements = inferrer.closedWorld.commonElements;
     MemberEntity called = info.calledElement;
-    if (commonElements.isForeign(called) && called.name == Identifiers.JS) {
+    if (commonElements.isForeign(called) && called.name == Identifiers.js) {
       NativeBehavior nativeBehavior = inferrer.closedWorld.elementMap
           .getNativeBehaviorForJsCall(info.invocationNode);
       // Assume side-effects means that the list has escaped to some unknown

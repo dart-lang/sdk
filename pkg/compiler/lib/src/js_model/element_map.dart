@@ -564,8 +564,9 @@ class RecordGetterDefinition implements MemberDefinition {
 void forEachOrderedParameterByFunctionNode(
     ir.FunctionNode node,
     ParameterStructure parameterStructure,
-    void f(ir.VariableDeclaration parameter,
-        {required bool isOptional, required bool isElided}),
+    void Function(ir.VariableDeclaration parameter,
+            {required bool isOptional, required bool isElided})
+        f,
     {bool useNativeOrdering = false}) {
   for (int position = 0;
       position < node.positionalParameters.length;
@@ -593,8 +594,11 @@ void forEachOrderedParameterByFunctionNode(
   }
 }
 
-void forEachOrderedParameter(JsToElementMap elementMap, FunctionEntity function,
-    void f(ir.VariableDeclaration parameter, {required bool isElided})) {
+void forEachOrderedParameter(
+    JsToElementMap elementMap,
+    FunctionEntity function,
+    void Function(ir.VariableDeclaration parameter, {required bool isElided})
+        f) {
   ParameterStructure parameterStructure = function.parameterStructure;
 
   void handleParameter(ir.VariableDeclaration parameter,

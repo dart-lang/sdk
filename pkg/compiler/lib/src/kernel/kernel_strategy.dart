@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.kernel.frontend_strategy;
+library;
 
 import 'package:kernel/ast.dart' as ir;
 
@@ -124,7 +124,7 @@ class KernelFrontendStrategy {
           interceptorMember.enclosingClass == interceptorClass,
           failedAt(
               interceptorMember,
-              "Member ${member.name} not overridden in ${interceptorClass}. "
+              "Member ${member.name} not overridden in $interceptorClass. "
               "Found $interceptorMember from "
               "${interceptorMember.enclosingClass}."));
     });

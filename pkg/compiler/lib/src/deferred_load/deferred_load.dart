@@ -266,7 +266,7 @@
 // TODO(sigmund): investigate different heuristics for how to select the next
 // work item (e.g. we might converge faster if we pick first the update that
 // contains a bigger delta.)
-library deferred_load;
+library;
 
 import 'dart:convert';
 
@@ -290,7 +290,7 @@ import 'import_set.dart';
 import 'output_unit.dart';
 import 'program_split_constraints/builder.dart' as psc show Builder;
 
-class _DeferredLoadTaskMetrics implements Metrics {
+class DeferredLoadTaskMetrics implements Metrics {
   @override
   String get namespace => 'deferred_load';
 
@@ -347,9 +347,9 @@ class DeferredLoadTask extends CompilerTask {
 
   final KernelToElementMap _elementMap;
 
-  _DeferredLoadTaskMetrics? _deferredLoadMetrics;
-  _DeferredLoadTaskMetrics get deferredLoadMetrics =>
-      _deferredLoadMetrics ??= _DeferredLoadTaskMetrics();
+  DeferredLoadTaskMetrics? _deferredLoadMetrics;
+  DeferredLoadTaskMetrics get deferredLoadMetrics =>
+      _deferredLoadMetrics ??= DeferredLoadTaskMetrics();
   @override
   Metrics get metrics => _deferredLoadMetrics ?? Metrics.none();
 
@@ -519,8 +519,8 @@ class DeferredLoadTask extends CompilerTask {
     algorithmState = null;
     importSets = null;
     return OutputUnitData(
-        this.isProgramSplit && !disableProgramSplit,
-        this._mainOutputUnit,
+        isProgramSplit && !disableProgramSplit,
+        _mainOutputUnit,
         classMap,
         classTypeMap,
         memberMap,

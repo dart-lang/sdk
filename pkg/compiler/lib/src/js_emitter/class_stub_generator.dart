@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_emitter.class_stub_generator;
+library;
 
 import 'package:js_runtime/synced/embedded_names.dart'
     show TearOffParametersPropertyNames;
@@ -10,7 +10,7 @@ import 'package:js_runtime/synced/embedded_names.dart'
 import '../common/elements.dart' show CommonElements;
 import '../common/names.dart' show Identifiers, Selectors;
 import '../elements/entities.dart';
-import '../js/js.dart' as jsAst;
+import '../js/js.dart' as js_ast;
 import '../js/js.dart' show js;
 import '../js_backend/field_analysis.dart';
 import '../js_backend/namer.dart' show Namer;
@@ -42,7 +42,7 @@ class ClassStubGenerator {
   /// Documentation wanted -- johnniwinther
   ///
   /// Invariant: [member] must be a declaration element.
-  Map<jsAst.Name, jsAst.Expression> generateCallStubsForGetter(
+  Map<js_ast.Name, js_ast.Expression> generateCallStubsForGetter(
       MemberEntity member, Map<Selector, SelectorConstraints> selectors) {
     // If the method is intercepted, the stub gets the
     // receiver explicitly and we need to pass it to the getter call.
@@ -52,11 +52,11 @@ class ClassStubGenerator {
 
     const String receiverArgumentName = r'$receiver';
 
-    jsAst.Expression buildGetter() {
-      jsAst.Expression receiver =
+    js_ast.Expression buildGetter() {
+      js_ast.Expression receiver =
           js(isInterceptedClass ? receiverArgumentName : 'this');
       if (member.isGetter) {
-        jsAst.Name getterName = _namer.getterForElement(member);
+        js_ast.Name getterName = _namer.getterForElement(member);
         if (isInterceptedMethod) {
           return js('this.#(#)', [getterName, receiver]);
         }
@@ -67,13 +67,13 @@ class ClassStubGenerator {
         if (fieldData.isEffectivelyConstant) {
           return _emitter.constantReference(fieldData.constantValue!);
         } else {
-          jsAst.Name fieldName = _namer.instanceFieldPropertyName(member);
+          js_ast.Name fieldName = _namer.instanceFieldPropertyName(member);
           return js('#.#', [receiver, fieldName]);
         }
       }
     }
 
-    Map<jsAst.Name, jsAst.Expression> generatedStubs = {};
+    Map<js_ast.Name, js_ast.Expression> generatedStubs = {};
 
     // Two selectors may match but differ only in type.  To avoid generating
     // identical stubs for each we track untyped selectors which already have
@@ -86,25 +86,25 @@ class ClassStubGenerator {
           .canHit(member, selector.memberName, _closedWorld)) {
         generatedSelectors.add(selector);
 
-        jsAst.Name invocationName = _namer.invocationName(selector);
+        js_ast.Name invocationName = _namer.invocationName(selector);
         Selector callSelector = Selector.callClosureFrom(selector);
-        jsAst.Name closureCallName = _namer.invocationName(callSelector);
+        js_ast.Name closureCallName = _namer.invocationName(callSelector);
 
-        List<jsAst.Parameter> parameters = [];
-        List<jsAst.Expression> arguments = [];
+        List<js_ast.Parameter> parameters = [];
+        List<js_ast.Expression> arguments = [];
         if (isInterceptedMethod) {
-          parameters.add(jsAst.Parameter(receiverArgumentName));
+          parameters.add(js_ast.Parameter(receiverArgumentName));
         }
 
         for (int i = 0; i < selector.argumentCount; i++) {
           String name = 'arg$i';
-          parameters.add(jsAst.Parameter(name));
+          parameters.add(js_ast.Parameter(name));
           arguments.add(js('#', name));
         }
 
         for (int i = 0; i < selector.typeArgumentCount; i++) {
           String name = '\$T${i + 1}';
-          parameters.add(jsAst.Parameter(name));
+          parameters.add(js_ast.Parameter(name));
           arguments.add(js('#', name));
         }
 
@@ -113,7 +113,7 @@ class ClassStubGenerator {
           buildGetter(),
           closureCallName,
           arguments
-        ]) as jsAst.Fun;
+        ]) as js_ast.Fun;
 
         generatedStubs[invocationName] = function;
       }
@@ -122,8 +122,8 @@ class ClassStubGenerator {
     return generatedStubs;
   }
 
-  Map<jsAst.Name, Selector> computeSelectorsForNsmHandlers() {
-    Map<jsAst.Name, Selector> jsNames = {};
+  Map<js_ast.Name, Selector> computeSelectorsForNsmHandlers() {
+    Map<js_ast.Name, Selector> jsNames = {};
 
     // Do not generate no such method handlers if there is no class.
     if (_codegenWorld.directlyInstantiatedClasses.isEmpty) {
@@ -145,7 +145,7 @@ class ClassStubGenerator {
 
         SelectorConstraints maskSet = selectors[selector]!;
         if (maskSet.needsNoSuchMethodHandling(selector, _closedWorld)) {
-          jsAst.Name jsName = _namer.invocationMirrorInternalName(selector);
+          js_ast.Name jsName = _namer.invocationMirrorInternalName(selector);
           jsNames[jsName] = selector;
         }
       }
@@ -157,23 +157,23 @@ class ClassStubGenerator {
     return jsNames;
   }
 
-  StubMethod generateStubForNoSuchMethod(jsAst.Name name, Selector selector) {
+  StubMethod generateStubForNoSuchMethod(js_ast.Name name, Selector selector) {
     int type = selector.invocationMirrorKind.value;
     List<String> parameterNames =
         List.generate(selector.argumentCount, (i) => '\$$i') +
             List.generate(selector.typeArgumentCount, (i) => '\$T${i + 1}');
 
-    List<jsAst.Expression> argNames = selector.callStructure
+    List<js_ast.Expression> argNames = selector.callStructure
         .getOrderedNamedArguments()
         .map((String name) => js.string(name))
         .toList();
 
-    jsAst.Name methodName = _namer.asName(selector.invocationMirrorMemberName);
-    jsAst.Name internalName = _namer.invocationMirrorInternalName(selector);
+    js_ast.Name methodName = _namer.asName(selector.invocationMirrorMemberName);
+    js_ast.Name internalName = _namer.invocationMirrorInternalName(selector);
 
     assert(_interceptorData.isInterceptedName(Identifiers.noSuchMethod_));
     bool isIntercepted = _interceptorData.isInterceptedName(selector.name);
-    jsAst.Expression expression = js('''this.#noSuchMethodName(#receiver,
+    js_ast.Expression expression = js('''this.#noSuchMethodName(#receiver,
                     #createInvocationMirror(#methodName,
                                             #internalName,
                                             #type,
@@ -187,13 +187,13 @@ class ClassStubGenerator {
       'methodName': js.quoteName(methodName),
       'internalName': js.quoteName(internalName),
       'type': js.number(type),
-      'arguments': jsAst.ArrayInitializer(
-          parameterNames.map<jsAst.Expression>(js.call).toList()),
-      'namedArguments': jsAst.ArrayInitializer(argNames),
+      'arguments': js_ast.ArrayInitializer(
+          parameterNames.map<js_ast.Expression>(js.call).toList()),
+      'namedArguments': js_ast.ArrayInitializer(argNames),
       'typeArgumentCount': js.number(selector.typeArgumentCount)
     });
 
-    jsAst.Expression function;
+    js_ast.Expression function;
     if (isIntercepted) {
       function = js(
           r'function($receiver, #) { return # }', [parameterNames, expression]);
@@ -207,7 +207,7 @@ class ClassStubGenerator {
   Method generateGetter(Field field) {
     assert(field.needsGetter);
 
-    jsAst.Expression code;
+    js_ast.Expression code;
     if (field.isElided) {
       code = js("function() { return #; }",
           _emitter.constantReference(field.constantValue!));
@@ -221,10 +221,10 @@ class ClassStubGenerator {
         assert(!field.needsInterceptedGetter);
         template = "function() { return this[#]; }";
       }
-      jsAst.Expression fieldName = js.quoteName(field.name);
+      js_ast.Expression fieldName = js.quoteName(field.name);
       code = js(template, fieldName);
     }
-    jsAst.Name getterName = _namer.deriveGetterName(field.accessorName);
+    js_ast.Name getterName = _namer.deriveGetterName(field.accessorName);
     return StubMethod(getterName, code, element: field.element);
   }
 
@@ -233,7 +233,7 @@ class ClassStubGenerator {
     assert(field.needsUncheckedSetter);
 
     String template;
-    jsAst.Expression code;
+    js_ast.Expression code;
     if (field.isElided) {
       code = js("function() { }");
     } else {
@@ -245,11 +245,11 @@ class ClassStubGenerator {
         assert(!field.needsInterceptedSetter);
         template = "function(val) { return this[#] = val; }";
       }
-      jsAst.Expression fieldName = js.quoteName(field.name);
+      js_ast.Expression fieldName = js.quoteName(field.name);
       code = js(template, fieldName);
     }
 
-    jsAst.Name setterName = _namer.deriveSetterName(field.accessorName);
+    js_ast.Name setterName = _namer.deriveSetterName(field.accessorName);
     return StubMethod(setterName, code, element: field.element);
   }
 }
@@ -270,14 +270,14 @@ class ClassStubGenerator {
 ///   * `isStatic`.
 ///   * `name`.
 ///   * `isIntercepted.
-List<jsAst.Statement> buildTearOffCode(
+List<js_ast.Statement> buildTearOffCode(
     CompilerOptions options, Emitter emitter, CommonElements commonElements) {
   FunctionEntity closureFromTearOff = commonElements.closureFromTearOff;
 
-  jsAst.Expression closureFromTearOffAccessExpression =
+  js_ast.Expression closureFromTearOffAccessExpression =
       emitter.staticFunctionAccess(closureFromTearOff);
 
-  jsAst.Statement instanceTearOffGetter;
+  js_ast.Statement instanceTearOffGetter;
   if (options.features.useContentSecurityPolicy.isEnabled) {
     instanceTearOffGetter = js.statement(
       '''
@@ -342,7 +342,7 @@ function instanceTearOffGetter(isIntercepted, parameters) {
     );
   }
 
-  jsAst.Statement staticTearOffGetter = js.statement(
+  js_ast.Statement staticTearOffGetter = js.statement(
     '''
 function staticTearOffGetter(parameters) {
   var cache = null;

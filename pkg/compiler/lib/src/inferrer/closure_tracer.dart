@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library compiler.src.inferrer.closure_tracer;
+library;
 
 import '../common/names.dart' show Identifiers, Names;
 import '../elements/entities.dart';
@@ -44,7 +44,7 @@ class ClosureTracerVisitor extends TracerVisitor {
 
   void _tagAsFunctionApplyTarget([String? reason]) {
     tracedType.mightBePassedToFunctionApply = true;
-    if (debug.VERBOSE) {
+    if (debug.verbose) {
       print("Closure $tracedType might be passed to apply: $reason");
     }
   }
@@ -55,15 +55,15 @@ class ClosureTracerVisitor extends TracerVisitor {
 
   void _analyzeCall(CallSiteTypeInformation info) {
     final selector = info.selector!;
-    tracedElements.forEach((FunctionEntity functionElement) {
+    for (var functionElement in tracedElements) {
       if (!selector.callStructure
           .signatureApplies(functionElement.parameterStructure)) {
-        return;
+        continue;
       }
       inferrer.updateParameterInputs(
           info, functionElement, info.arguments, selector,
           remove: false, addToQueue: false);
-    });
+    }
   }
 
   @override
@@ -83,9 +83,9 @@ class ClosureTracerVisitor extends TracerVisitor {
     MemberEntity called = info.calledElement;
     if (inferrer.closedWorld.commonElements.isForeign(called)) {
       final name = called.name!;
-      if (name == Identifiers.JS || name == Identifiers.DART_CLOSURE_TO_JS) {
+      if (name == Identifiers.js || name == Identifiers.dartClosureToJS) {
         bailout('Used in JS ${info.debugName}');
-      } else if (name == Identifiers.RAW_DART_FUNCTION_REF) {
+      } else if (name == Identifiers.rawDartFunctionRef) {
         bailout('Escaped raw function reference');
       }
     }

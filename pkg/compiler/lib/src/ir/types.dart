@@ -59,8 +59,9 @@ class KernelDartTypes extends DartTypes {
       T context,
       List<DartType> typeArguments,
       List<DartType> typeVariables,
-      void checkTypeVariableBound(T context, DartType typeArgument,
-          TypeVariableType typeVariable, DartType bound)) {
+      void Function(T context, DartType typeArgument,
+              TypeVariableType typeVariable, DartType bound)
+          checkTypeVariableBound) {
     assert(typeVariables.length == typeArguments.length);
     for (int index = 0; index < typeArguments.length; index++) {
       DartType typeArgument = typeArguments[index];

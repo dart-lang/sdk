@@ -301,7 +301,7 @@ abstract class TypeMask implements AbstractValue {
   static bool assertIsNormalized(TypeMask mask, JClosedWorld closedWorld) {
     final reason = getNotNormalizedReason(mask, closedWorld);
     assert(reason == null,
-        failedAt(NO_LOCATION_SPANNABLE, '$mask is not normalized: $reason'));
+        failedAt(noLocationSpannable, '$mask is not normalized: $reason'));
     return true;
   }
 
@@ -397,13 +397,13 @@ abstract class TypeMask implements AbstractValue {
 
   /// If this returns `true`, [other] is guaranteed to be a supertype of this
   /// mask, i.e., this mask is in [other]. However, the inverse does not hold.
-  /// Enable [UnionTypeMask.PERFORM_EXTRA_CONTAINS_CHECK] to be notified of
+  /// Enable [UnionTypeMask.performExtraContainsCheck] to be notified of
   /// false negatives.
   bool isInMask(TypeMask other, JClosedWorld closedWorld);
 
   /// If this returns `true`, [other] is guaranteed to be a subtype of this
   /// mask, i.e. this mask contains [other]. However, the inverse does not hold.
-  /// Enable [UnionTypeMask.PERFORM_EXTRA_CONTAINS_CHECK] to be notified of
+  /// Enable [UnionTypeMask.performExtraContainsCheck] to be notified of
   /// false negatives.
   bool containsMask(TypeMask other, JClosedWorld closedWorld);
 

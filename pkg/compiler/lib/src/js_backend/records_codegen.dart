@@ -42,7 +42,7 @@ class RecordsCodegen {
         _usedRecordClasses.add(cls);
         if (representation.usesList) {
           impactBuilder.registerStaticUse(StaticUse.staticInvoke(
-              _commonElements.pairwiseIsTest, CallStructure.TWO_ARGS));
+              _commonElements.pairwiseIsTest, CallStructure.twoArgs));
         }
       }
     }

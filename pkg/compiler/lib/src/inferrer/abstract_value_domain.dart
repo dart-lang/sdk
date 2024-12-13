@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.abstract_value_domain;
+library;
 
 import '../common/metrics.dart';
 import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
@@ -17,52 +17,52 @@ import '../universe/selector.dart';
 /// Abstract booleans used for reporting known and unknown truth values.
 enum AbstractBool {
   /// Used when the property is known _never_ to be true.
-  False,
+  false_,
 
   /// Used when the property is known _always_ to be true.
-  True,
+  true_,
 
   /// Used when the property might or might not be true.
-  Maybe,
+  maybe,
   ;
 
-  bool get isDefinitelyTrue => this == True;
+  bool get isDefinitelyTrue => this == true_;
 
-  bool get isPotentiallyTrue => this != False;
+  bool get isPotentiallyTrue => this != false_;
 
-  bool get isDefinitelyFalse => this == False;
+  bool get isDefinitelyFalse => this == false_;
 
-  bool get isPotentiallyFalse => this != True;
+  bool get isPotentiallyFalse => this != true_;
 
-  static AbstractBool trueOrMaybe(bool value) => value ? True : Maybe;
+  static AbstractBool trueOrMaybe(bool value) => value ? true_ : maybe;
 
-  static AbstractBool trueOrFalse(bool value) => value ? True : False;
+  static AbstractBool trueOrFalse(bool value) => value ? true_ : false_;
 
-  static AbstractBool maybeOrFalse(bool value) => value ? Maybe : False;
+  static AbstractBool maybeOrFalse(bool value) => value ? maybe : false_;
 
   static AbstractBool strengthen(AbstractBool a, AbstractBool b) {
     //TODO(coam): Assert arguments a and b are consistent
-    return a.isDefinitelyTrue ? True : (a.isDefinitelyFalse ? False : b);
+    return a.isDefinitelyTrue ? true_ : (a.isDefinitelyFalse ? false_ : b);
   }
 
   AbstractBool operator &(AbstractBool other) {
     if (isDefinitelyTrue) return other;
     if (other.isDefinitelyTrue) return this;
-    if (isDefinitelyFalse || other.isDefinitelyFalse) return False;
-    return Maybe;
+    if (isDefinitelyFalse || other.isDefinitelyFalse) return false_;
+    return maybe;
   }
 
   AbstractBool operator |(AbstractBool other) {
     if (isDefinitelyFalse) return other;
     if (other.isDefinitelyFalse) return this;
-    if (isDefinitelyTrue || other.isDefinitelyTrue) return True;
-    return Maybe;
+    if (isDefinitelyTrue || other.isDefinitelyTrue) return true_;
+    return maybe;
   }
 
   AbstractBool operator ~() {
-    if (isDefinitelyTrue) return AbstractBool.False;
-    if (isDefinitelyFalse) return AbstractBool.True;
-    return AbstractBool.Maybe;
+    if (isDefinitelyTrue) return AbstractBool.false_;
+    if (isDefinitelyFalse) return AbstractBool.true_;
+    return AbstractBool.maybe;
   }
 }
 

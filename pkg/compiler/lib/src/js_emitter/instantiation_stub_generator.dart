@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_emitter.instantiation_stub_generator;
+library;
 
 import '../common/elements.dart' show JCommonElements, JElementEnvironment;
 import '../elements/entities.dart';
 import '../io/source_information.dart';
-import '../js/js.dart' as jsAst;
+import '../js/js.dart' as js_ast;
 import '../js/js.dart' show js;
 import '../js_backend/namer.dart' show Namer;
 import '../js_model/elements.dart' show JField;
@@ -69,13 +69,13 @@ class InstantiationStubGenerator {
     // }
     // ```
 
-    List<jsAst.Parameter> parameters = [];
-    List<jsAst.Expression> arguments = [];
+    List<js_ast.Parameter> parameters = [];
+    List<js_ast.Expression> arguments = [];
 
     for (int i = 0; i < callSelector.argumentCount; i++) {
       String jsName = 'a$i';
       arguments.add(js('#', jsName));
-      parameters.add(jsAst.Parameter(jsName));
+      parameters.add(js_ast.Parameter(jsName));
     }
 
     for (int i = 0; i < targetSelector.typeArgumentCount; i++) {
@@ -86,15 +86,15 @@ class InstantiationStubGenerator {
       ]));
     }
 
-    jsAst.Fun function = js('function(#) { return this.#.#(#); }', [
+    js_ast.Fun function = js('function(#) { return this.#.#(#); }', [
       parameters,
       _namer.instanceFieldPropertyName(functionField),
       _namer.invocationName(targetSelector),
       arguments,
-    ]) as jsAst.Fun;
+    ]) as js_ast.Fun;
     // TODO(sra): .withSourceInformation(sourceInformation);
 
-    jsAst.Name name = _namer.invocationName(callSelector);
+    js_ast.Name name = _namer.invocationName(callSelector);
     return ParameterStubMethod(name, null, function, element: functionField);
   }
 
@@ -110,10 +110,10 @@ class InstantiationStubGenerator {
   /// }
   /// ```
   ParameterStubMethod _generateSignatureStub(FieldEntity functionField) {
-    jsAst.Name operatorSignature =
+    js_ast.Name operatorSignature =
         _namer.asName(_namer.fixedNames.operatorSignature);
 
-    jsAst.Fun function = _generateSignatureNewRti(functionField);
+    js_ast.Fun function = _generateSignatureNewRti(functionField);
 
     // TODO(sra): Generate source information for stub that has no member.
     // TODO(sra): .withSourceInformation(sourceInformation);
@@ -122,14 +122,14 @@ class InstantiationStubGenerator {
         element: functionField);
   }
 
-  jsAst.Fun _generateSignatureNewRti(FieldEntity functionField) =>
+  js_ast.Fun _generateSignatureNewRti(FieldEntity functionField) =>
       js('function() { return #(#(this.#), this.#); }', [
         _emitter.staticFunctionAccess(
             _commonElements.instantiatedGenericFunctionTypeNewRti),
         _emitter.staticFunctionAccess(_commonElements.closureFunctionType),
         _namer.instanceFieldPropertyName(functionField),
         _namer.rtiFieldJsName,
-      ]) as jsAst.Fun;
+      ]) as js_ast.Fun;
 
   // Returns all stubs for an instantiation class.
   //

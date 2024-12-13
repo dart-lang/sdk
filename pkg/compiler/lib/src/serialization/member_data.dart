@@ -48,7 +48,7 @@ String computeMemberName(ir.Member member) {
       name += "=";
     }
   }
-  return '${libraryPrefix}${name}';
+  return '$libraryPrefix$name';
 }
 
 /// Helper for looking up classes and members from an [ir.Library] node.

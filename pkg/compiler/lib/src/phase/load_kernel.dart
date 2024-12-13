@@ -5,8 +5,10 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+// ignore: implementation_imports
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 import 'package:collection/collection.dart';
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
@@ -31,7 +33,7 @@ import '../kernel/dart2js_target.dart'
         Dart2jsTarget,
         implicitlyUsedLibraries;
 import '../kernel/front_end_adapter.dart';
-import '../kernel/transformations/global/transform.dart' as globalTransforms;
+import '../kernel/transformations/global/transform.dart' as global_transforms;
 import '../options.dart';
 
 class Input {
@@ -171,7 +173,7 @@ void _doTransformsOnKernelLoad(
             ? fe.EvaluationMode.weak
             : fe.EvaluationMode.strong);
     StaticInteropClassEraser(coreTypes).visitComponent(component);
-    globalTransforms.transformLibraries(
+    global_transforms.transformLibraries(
         component.libraries, constantsEvaluator, coreTypes, options);
     _simplifyConstConditionals(component, options, classHierarchy, reporter);
   }
@@ -256,11 +258,11 @@ Future<_LoadFromSourceResult> _loadFromSource(
       supportsUnevaluatedConstants: !cfeConstants);
   fe.FileSystem fileSystem = CompilerFileSystem(compilerInput);
   fe.Verbosity verbosity = options.verbosity;
-  fe.DiagnosticMessageHandler onDiagnostic = (fe.DiagnosticMessage message) {
+  void onDiagnostic(fe.DiagnosticMessage message) {
     if (fe.Verbosity.shouldPrint(verbosity, message)) {
       reportFrontEndMessage(reporter, message);
     }
-  };
+  }
 
   List<Uri> sources = [options.compilationTarget];
 
@@ -277,7 +279,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
   Uri resolvedUri = options.compilationTarget;
   bool isLegacy = await fe.uriUsesLegacyLanguageVersion(resolvedUri, feOptions);
   if (isLegacy && options.experimentNullSafetyChecks) {
-    reporter.reportErrorMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+    reporter.reportErrorMessage(noLocationSpannable, MessageKind.generic, {
       'text': 'The ${Flags.experimentNullSafetyChecks} option may be used '
           'only after all libraries have been migrated to null safety. Some '
           'libraries reached from $resolvedUri are still opted out of null '
@@ -286,7 +288,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
     });
   }
   if (isLegacy && options.nullSafetyMode == NullSafetyMode.sound) {
-    reporter.reportErrorMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+    reporter.reportErrorMessage(noLocationSpannable, MessageKind.generic, {
       'text': "Starting with Dart 3.0, `dart compile js` expects programs to "
           "be null-safe by default. Some libraries reached from $resolvedUri "
           "are opted out of null safety. You can temporarily compile this "
@@ -340,13 +342,13 @@ Output _createOutput(
     Library? entryLibrary,
     ir.Component component,
     fe.InitializedCompilerState? initializedCompilerState) {
-  Uri? rootLibraryUri = null;
+  Uri? rootLibraryUri;
   Iterable<ir.Library> libraries = component.libraries;
   if (component.mainMethod == null) {
     // TODO(sigmund): move this so that we use the same error template
     // from the CFE.
-    reporter.reportError(reporter.createMessage(NO_LOCATION_SPANNABLE,
-        MessageKind.GENERIC, {'text': "No 'main' method found."}));
+    reporter.reportError(reporter.createMessage(noLocationSpannable,
+        MessageKind.generic, {'text': "No 'main' method found."}));
   }
 
   // If we are building from dill and are passed an [entryUri], then we use
@@ -362,7 +364,7 @@ Output _createOutput(
   // entire SDK libraries, not all of them are used. We include anything
   // that is reachable from `main`. Note that all internal libraries that
   // the compiler relies on are reachable from `dart:core`.
-  var seen = Set<Library>();
+  var seen = <Library>{};
   void search(ir.Library current) {
     if (!seen.add(current)) return;
     for (ir.LibraryDependency dep in current.dependencies) {

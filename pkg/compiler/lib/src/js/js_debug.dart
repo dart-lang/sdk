@@ -4,7 +4,7 @@
 
 /// Helper for debug JS nodes.
 
-library js.debug;
+library;
 
 import 'package:js_ast/js_ast.dart';
 import 'package:kernel/text/indentation.dart' show Indentation, Tagging;
@@ -22,9 +22,6 @@ String nodeToString(Node node, {bool pretty = false}) {
 /// Visitor that creates an XML-like representation of the structure of a
 /// JavaScript [Node].
 class DebugPrinter extends BaseVisitorVoid with Indentation, Tagging<Node> {
-  @override
-  StringBuffer sb = StringBuffer();
-
   void visitNodeWithChildren(Node node, String type,
       [Map<Object?, Object?>? params]) {
     openNode(node, type, params);

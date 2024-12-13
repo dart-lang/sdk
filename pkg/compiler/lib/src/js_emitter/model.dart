@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.new_js_emitter.model;
+library;
 
 import '../common/elements.dart';
 import '../constants/values.dart' show ConstantValue;
@@ -138,7 +138,7 @@ class DeferredFragment extends Fragment {
 
   @override
   String toString() {
-    return 'DeferredFragment(name=${name})';
+    return 'DeferredFragment(name=$name)';
   }
 }
 
@@ -169,7 +169,7 @@ class Library {
 
   @override
   String toString() {
-    return 'Library(uri=${uri},element=${element})';
+    return 'Library(uri=$uri,element=$element)';
   }
 }
 
@@ -195,7 +195,7 @@ class StaticField {
 
   @override
   String toString() {
-    return 'StaticField(name=${name.key},element=${element})';
+    return 'StaticField(name=${name.key},element=$element)';
   }
 }
 
@@ -404,7 +404,7 @@ class Field {
 
   @override
   String toString() {
-    return 'Field(name=${name.key},element=${element})';
+    return 'Field(name=${name.key},element=$element)';
   }
 }
 
@@ -517,7 +517,7 @@ class InstanceMethod extends DartMethod {
 
   @override
   String toString() {
-    return 'InstanceMethod(name=${name!.key},element=${element}'
+    return 'InstanceMethod(name=${name!.key},element=$element'
         ',code=${js.nodeToString(code)})';
   }
 }
@@ -531,7 +531,7 @@ class StubMethod extends Method {
 
   @override
   String toString() {
-    return 'StubMethod(name=${name!.key},element=${element}'
+    return 'StubMethod(name=${name!.key},element=$element'
         ',code=${js.nodeToString(code)})';
   }
 }
@@ -559,7 +559,7 @@ class ParameterStubMethod extends StubMethod {
   @override
   String toString() {
     return 'ParameterStubMethod(name=${name!.key}, callName=${callName?.key}'
-        ', element=${element}'
+        ', element=$element'
         ', code=${js.nodeToString(code)})';
   }
 }
@@ -582,7 +582,7 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
 
   @override
   String toString() {
-    return 'StaticDartMethod(name=${name!.key},element=${element}'
+    return 'StaticDartMethod(name=${name!.key},element=$element'
         ',code=${js.nodeToString(code)})';
   }
 }
@@ -594,7 +594,7 @@ class StaticStubMethod extends StubMethod implements StaticMethod {
 
   @override
   String toString() {
-    return 'StaticStubMethod(name=${name!.key},element=${element}}'
+    return 'StaticStubMethod(name=${name!.key},element=$element}'
         ',code=${js.nodeToString(code)})';
   }
 }

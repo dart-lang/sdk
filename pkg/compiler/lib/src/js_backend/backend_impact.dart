@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_helpers.impact;
+library;
 
 import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../common/names.dart';
@@ -41,7 +41,7 @@ class BackendImpact {
       this.globalClasses = const [],
       this.otherImpacts = const [],
       EnumSet<BackendFeature> features = const EnumSet.empty()})
-      : this._features = features;
+      : _features = features;
 
   Iterable<BackendFeature> get features =>
       _features.iterable(BackendFeature.values);

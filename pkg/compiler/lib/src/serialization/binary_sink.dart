@@ -66,7 +66,7 @@ class BinaryDataSink implements DataSink {
   }
 
   @override
-  void writeDeferred(void writer()) {
+  void writeDeferred(void Function() writer) {
     final indexOffset = _length;
     writeInt(0); // Padding so the offset won't collide with a nested write.
     final dataStartOffset = _length;

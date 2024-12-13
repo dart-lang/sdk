@@ -70,7 +70,7 @@ class JClosedWorldBuilder {
     InterceptorData interceptorData = _convertInterceptorData(
         map, nativeData, closedWorld.interceptorData as InterceptorDataImpl);
 
-    Set<ClassEntity> implementedClasses = Set<ClassEntity>();
+    Set<ClassEntity> implementedClasses = <ClassEntity>{};
 
     /// Converts [node] from the frontend world to the corresponding
     /// [ClassHierarchyNode] for the backend world.
@@ -110,7 +110,7 @@ class JClosedWorldBuilder {
         .getClassHierarchyNode(closedWorld.commonElements.objectClass)
         .forEachSubclass((ClassEntity cls) {
       convertClassSet(closedWorld.classHierarchy.getClassSet(cls));
-      return IterationStep.CONTINUE;
+      return IterationStep.continue_;
     }, ClassHierarchyNode.all);
 
     Set<MemberEntity> liveInstanceMembers =
@@ -153,14 +153,14 @@ class JClosedWorldBuilder {
       RuntimeTypesNeedImpl kernelRtiNeed =
           closedWorld.rtiNeed as RuntimeTypesNeedImpl;
       Set<ir.LocalFunction> localFunctionsNodesNeedingSignature =
-          Set<ir.LocalFunction>();
+          <ir.LocalFunction>{};
       for (Local localFunction
           in kernelRtiNeed.localFunctionsNeedingSignature) {
         ir.LocalFunction node = (localFunction as JLocalFunction).node;
         localFunctionsNodesNeedingSignature.add(node);
       }
       Set<ir.LocalFunction> localFunctionsNodesNeedingTypeArguments =
-          Set<ir.LocalFunction>();
+          <ir.LocalFunction>{};
       for (Local localFunction
           in kernelRtiNeed.localFunctionsNeedingTypeArguments) {
         ir.LocalFunction node = (localFunction as JLocalFunction).node;

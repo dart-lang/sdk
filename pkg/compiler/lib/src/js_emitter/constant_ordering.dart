@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_emitter.constant_ordering;
+library;
 
 import '../constants/values.dart';
 import '../elements/entities.dart' show ClassEntity, FieldEntity, MemberEntity;
@@ -36,7 +36,8 @@ class _ConstantOrdering
     return a.accept(this, b);
   }
 
-  static int compareLists<T>(int compare(T a, T b), List<T> a, List<T> b) {
+  static int compareLists<T>(
+      int Function(T a, T b) compare, List<T> a, List<T> b) {
     int r = a.length.compareTo(b.length);
     if (r != 0) return r;
     for (int i = 0; i < a.length; i++) {

@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.compiler_base;
+library;
 
 import 'dart:async' show Future;
 import 'dart:convert' show jsonEncode;
 import 'dart:typed_data';
 
 import 'package:compiler/src/universe/use.dart' show StaticUse;
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' as ir;
 
@@ -272,7 +273,7 @@ class Compiler {
       ..add(jsonLibraries)
       ..close();
     reporter.reportInfo(
-        reporter.createMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+        reporter.createMessage(noLocationSpannable, MessageKind.generic, {
       'text': "${unusedLibraries.length} unused libraries out of "
           "${component.libraries.length}. Dumping to JSON."
     }));
@@ -747,7 +748,8 @@ class Compiler {
   }
 
   /// Empty the [enqueuer] queue.
-  void emptyQueue(Enqueuer enqueuer, {void onProgress(Enqueuer enqueuer)?}) {
+  void emptyQueue(Enqueuer enqueuer,
+      {void Function(Enqueuer enqueuer)? onProgress}) {
     selfTask.measureSubtask("emptyQueue", () {
       enqueuer.forEach((WorkItem work) {
         if (onProgress != null) {
@@ -765,7 +767,7 @@ class Compiler {
 
   void processQueue(ElementEnvironment elementEnvironment, Enqueuer enqueuer,
       FunctionEntity? mainMethod,
-      {void onProgress(Enqueuer enqueuer)?}) {
+      {void Function(Enqueuer enqueuer)? onProgress}) {
     selfTask.measureSubtask("processQueue", () {
       enqueuer.open(
           mainMethod,
@@ -855,9 +857,9 @@ class Compiler {
 
   /// Messages for which compile-time errors are reported but compilation
   /// continues regardless.
-  static const List<MessageKind> BENIGN_ERRORS = <MessageKind>[
-    MessageKind.INVALID_METADATA,
-    MessageKind.INVALID_METADATA_GENERIC,
+  static const List<MessageKind> benignErrors = <MessageKind>[
+    MessageKind.invalidMetadata,
+    MessageKind.invalidMetadataGeneric,
   ];
 
   bool markCompilationAsFailed(DiagnosticMessage message, api.Diagnostic kind) {
@@ -868,7 +870,7 @@ class Compiler {
     if (reporter.options.fatalWarnings) {
       return true;
     }
-    return !BENIGN_ERRORS.contains(message.message.kind);
+    return !benignErrors.contains(message.message.kind);
   }
 
   void fatalDiagnosticReported(DiagnosticMessage message,
@@ -934,7 +936,7 @@ class Compiler {
   }
 
   String _formatMs(int ms) {
-    return (ms / 1000).toStringAsFixed(3) + 's';
+    return '${(ms / 1000).toStringAsFixed(3)}s';
   }
 
   void computeTimings(Duration setupDuration, StringBuffer timings) {
@@ -992,8 +994,7 @@ class Compiler {
             task.name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
       }
       void report(Metric metric) {
-        buffer
-            .writeln('  ${namespace}.${metric.name}: ${metric.formatValue()}');
+        buffer.writeln('  $namespace.${metric.name}: ${metric.formatValue()}');
       }
 
       for (final metric in metrics.primary) {
@@ -1013,7 +1014,7 @@ class _CompilerOutput implements api.CompilerOutput {
   final api.CompilerOutput _userOutput;
 
   _CompilerOutput(this._compiler, api.CompilerOutput? output)
-      : this._userOutput = output ?? const NullCompilerOutput();
+      : _userOutput = output ?? const NullCompilerOutput();
 
   @override
   api.OutputSink createOutputSink(

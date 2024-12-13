@@ -397,25 +397,25 @@ class KernelImpactConverter implements ImpactRegistry {
   @override
   void registerForeignStaticInvocationNode(ir.StaticInvocation node) {
     switch (elementMap.getForeignKind(node)) {
-      case ForeignKind.JS:
+      case ForeignKind.js:
         registerNativeImpact(elementMap.getNativeBehaviorForJsCall(node));
         break;
-      case ForeignKind.JS_BUILTIN:
+      case ForeignKind.jsBuiltin:
         registerNativeImpact(
             elementMap.getNativeBehaviorForJsBuiltinCall(node));
         break;
-      case ForeignKind.JS_EMBEDDED_GLOBAL:
+      case ForeignKind.jsEmbeddedGlobal:
         registerNativeImpact(
             elementMap.getNativeBehaviorForJsEmbeddedGlobalCall(node));
         break;
-      case ForeignKind.JS_INTERCEPTOR_CONSTANT:
+      case ForeignKind.jsInterceptorConstant:
         InterfaceType? type =
             elementMap.getInterfaceTypeForJsInterceptorCall(node);
         if (type != null) {
           impactBuilder.registerTypeUse(TypeUse.instantiation(type));
         }
         break;
-      case ForeignKind.NONE:
+      case ForeignKind.none:
         break;
     }
   }
@@ -781,7 +781,7 @@ class KernelImpactConverter implements ImpactRegistry {
   @override
   void registerLoadLibrary() {
     impactBuilder.registerStaticUse(StaticUse.staticInvoke(
-        commonElements.loadDeferredLibrary, CallStructure.ONE_ARG));
+        commonElements.loadDeferredLibrary, CallStructure.oneArg));
     registerBackendImpact(_impacts.loadLibrary);
   }
 

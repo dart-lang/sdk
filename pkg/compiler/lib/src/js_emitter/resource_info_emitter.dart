@@ -63,11 +63,12 @@
 /// double, String, bool, null. Other constants (e.g. enums, const objects) will
 /// simply be missing as though they were not constants.
 
-library js_emitter.resource_info_emitter;
+library;
 
 import 'dart:convert' show jsonDecode;
 import 'dart:io' show Platform;
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../js/js.dart' as js;

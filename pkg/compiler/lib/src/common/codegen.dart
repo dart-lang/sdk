@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.common.codegen;
+library;
 
+// ignore: implementation_imports
 import 'package:js_ast/src/precedence.dart' as js show Precedence;
 
 import '../common/elements.dart';
@@ -69,8 +70,6 @@ class CodegenImpact extends WorldImpact {
 class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   static const String tag = 'codegen-impact';
 
-  @override
-  final MemberEntity member;
   Set<(DartType, DartType)>? _typeVariableBoundsSubtypeChecks;
   Set<String>? _constSymbols;
   List<Set<ClassEntity>>? _specializedGetInterceptors;
@@ -81,14 +80,14 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   Set<FunctionEntity>? _nativeMethods;
   Set<Selector>? _oneShotInterceptors;
 
-  _CodegenImpact(this.member);
+  _CodegenImpact(MemberEntity super.member);
 
   _CodegenImpact.internal(
-      this.member,
-      Set<DynamicUse>? dynamicUses,
-      Set<StaticUse>? staticUses,
-      Set<TypeUse>? typeUses,
-      Set<ConstantUse>? constantUses,
+      MemberEntity member,
+      super.dynamicUses,
+      super.staticUses,
+      super.typeUses,
+      super.constantUses,
       this._typeVariableBoundsSubtypeChecks,
       this._constSymbols,
       this._specializedGetInterceptors,
@@ -98,7 +97,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
       this._nativeBehaviors,
       this._nativeMethods,
       this._oneShotInterceptors)
-      : super.internal(dynamicUses, staticUses, typeUses, constantUses);
+      : super.internal(member: member);
 
   factory _CodegenImpact.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
@@ -181,6 +180,9 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
         (Selector selector) => selector.writeToDataSink(sink));
     sink.end(tag);
   }
+
+  @override
+  MemberEntity get member => super.member!;
 
   void registerTypeVariableBoundsSubtypeCheck(
       DartType subtype, DartType supertype) {
@@ -273,7 +275,9 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     void add(String title, Iterable<Object?> iterable) {
       if (iterable.isNotEmpty) {
         sb.write('\n $title:');
-        iterable.forEach((e) => sb.write('\n  $e'));
+        for (var e in iterable) {
+          sb.write('\n  $e');
+        }
       }
     }
 
@@ -303,7 +307,7 @@ class CodegenRegistry {
   late final List<ModularExpression> _expressions = [];
 
   CodegenRegistry(this._elementEnvironment, this._currentElement)
-      : this._worldImpact = _CodegenImpact(_currentElement);
+      : _worldImpact = _CodegenImpact(_currentElement);
 
   @override
   String toString() => 'CodegenRegistry for $_currentElement';
@@ -587,7 +591,7 @@ class ModularExpression extends js.DeferredExpression
     return _value!;
   }
 
-  void set value(js.Expression node) {
+  set value(js.Expression node) {
     assert(!isFinalized);
     _value = node.withSourceInformation(sourceInformation);
   }
@@ -2085,7 +2089,7 @@ class ModularName extends js.Name implements js.AstContainer {
     return _value!;
   }
 
-  void set value(js.Name node) {
+  set value(js.Name node) {
     assert(!isFinalized);
     _value = node.withSourceInformation(sourceInformation) as js.Name;
   }

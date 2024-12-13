@@ -196,7 +196,7 @@ main() {}
         elementEnvironment.mainLibrary!, className)!;
     Selector selector = Selector.call(
         Name(methodName, elementEnvironment.mainLibrary!.canonicalUri),
-        CallStructure.NO_ARGS);
+        CallStructure.noArgs);
     WorldImpact impact = WorldImpactBuilderImpl()
       ..registerDynamicUse(
           DynamicUse(selector, createConstraint(cls), const <DartType>[]));

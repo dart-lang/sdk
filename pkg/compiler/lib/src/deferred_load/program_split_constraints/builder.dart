@@ -35,8 +35,8 @@ class Constraint {
   }
 
   Constraint(this.name, this.imports, this.combinerType) {
-    assert((this.imports.length == 1 && combinerType == null) ||
-        (this.imports.length > 1 && combinerType != null));
+    assert((imports.length == 1 && combinerType == null) ||
+        (imports.length > 1 && combinerType != null));
   }
 
   @override
@@ -86,7 +86,7 @@ class Builder {
 
     // A helper function for looking up an [ImportEntity] from a
     // [ReferenceNode].
-    ImportEntity _lookupReference(ReferenceNode node) {
+    ImportEntity lookupReference(ReferenceNode node) {
       var uri = node.uri;
       if (!importsByUriAndPrefix.containsKey(uri)) {
         throw 'Uri for constraint not found $uri';
@@ -102,14 +102,14 @@ class Builder {
     // index each [Constraint] by [NamedNode].
     Map<NamedNode, Constraint> nodeToConstraintMap = {};
     for (var constraint in nodes.named) {
-      CombinerType? combinerType = null;
+      CombinerType? combinerType;
       Set<ImportEntity> imports = {};
       if (constraint is ReferenceNode) {
-        imports.add(_lookupReference(constraint));
+        imports.add(lookupReference(constraint));
       } else if (constraint is CombinerNode) {
         combinerType = constraint.type;
         for (var child in constraint.nodes) {
-          imports.add(_lookupReference(child));
+          imports.add(lookupReference(child));
         }
       } else {
         throw 'Unexpected Node Type $constraint';

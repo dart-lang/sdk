@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_model.type_recipe;
+library;
 
 import '../elements/entities.dart' show ClassEntity;
 import '../elements/types.dart';
 import '../diagnostics/invariant.dart';
-import '../diagnostics/spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
+import '../diagnostics/spannable.dart' show currentElementSpannable;
 import '../serialization/serialization.dart';
 import '../util/util.dart' show Hashing;
 
@@ -361,7 +361,7 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
         return _Substitution(_dartTypes, null, null, variables, replacements)
             .substituteRecipe(recipe);
       }
-      failedAt(CURRENT_ELEMENT_SPANNABLE,
+      failedAt(currentElementSpannable,
           'Expected a TypeExpressionRecipe: $environmentRecipe');
     }
 
@@ -391,7 +391,7 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
       return null;
     }
 
-    failedAt(CURRENT_ELEMENT_SPANNABLE,
+    failedAt(currentElementSpannable,
         'Unknown environmentStructure: $environmentStructure');
   }
 
@@ -410,8 +410,8 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
       } else if (bindArgument is FullTypeEnvironmentRecipe) {
         replacements = bindArgument.types;
       } else {
-        failedAt(CURRENT_ELEMENT_SPANNABLE,
-            'Unexpected bindArgument: $bindArgument');
+        failedAt(
+            currentElementSpannable, 'Unexpected bindArgument: $bindArgument');
       }
       List<TypeVariableType> bindings = environmentStructure.bindings;
       int index = bindings.length - replacements.length;
@@ -429,7 +429,7 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
           newRecipe, newEnvironmentStructure);
     }
 
-    failedAt(CURRENT_ELEMENT_SPANNABLE,
+    failedAt(currentElementSpannable,
         'unexpected bind on environment with structure $environmentStructure');
   }
 
@@ -542,7 +542,7 @@ class _Substitution extends DartTypeSubstitutionVisitor<Null> {
       return FullTypeEnvironmentRecipe(classType: newClass, types: newTypes);
     }
 
-    failedAt(CURRENT_ELEMENT_SPANNABLE, 'Unexpected recipe: $recipe');
+    failedAt(currentElementSpannable, 'Unexpected recipe: $recipe');
   }
 
   DartType _substituteType(DartType type) => visit(type, null);

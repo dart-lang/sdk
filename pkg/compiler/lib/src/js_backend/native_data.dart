@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js_backend.native_data;
+library;
 
 import 'package:kernel/ast.dart' as ir;
 
@@ -515,7 +515,7 @@ class NativeDataBuilder {
         final canCheckInCallee = members.every((FunctionEntity member) =>
             returnTypeIsNonNullable(member,
                 callthrough:
-                    member.isGetter && selector.kind == SelectorKind.CALL));
+                    member.isGetter && selector.kind == SelectorKind.call));
         data.interopNullChecks[selector] = canCheckInCallee
             ? InteropNullCheckKind.calleeCheck
             : InteropNullCheckKind.callerCheck;
@@ -934,12 +934,12 @@ class NativeData implements NativeBasicData {
         nativeMethodBehavior[backendMethod] = behavior.convert(map);
       }
     });
-    NativeBehavior _convertNativeBehavior(NativeBehavior behavior) =>
+    NativeBehavior convertNativeBehavior(NativeBehavior behavior) =>
         behavior.convert(map);
-    Map<MemberEntity, NativeBehavior> nativeFieldLoadBehavior = map
-        .toBackendMemberMap(_nativeFieldLoadBehavior, _convertNativeBehavior);
+    Map<MemberEntity, NativeBehavior> nativeFieldLoadBehavior =
+        map.toBackendMemberMap(_nativeFieldLoadBehavior, convertNativeBehavior);
     Map<MemberEntity, NativeBehavior> nativeFieldStoreBehavior = map
-        .toBackendMemberMap(_nativeFieldStoreBehavior, _convertNativeBehavior);
+        .toBackendMemberMap(_nativeFieldStoreBehavior, convertNativeBehavior);
     return NativeData(nativeBasicData, nativeMemberName, nativeMethodBehavior,
         nativeFieldLoadBehavior, nativeFieldStoreBehavior, interopNullChecks);
   }

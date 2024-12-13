@@ -179,19 +179,15 @@ abstract class CommonElements {
     if (_computedSymbolConstructorDependencies) return;
     _computedSymbolConstructorDependencies = true;
     if (_symbolConstructorTarget == null) {
-      if (_symbolImplementationClass == null) {
-        _symbolImplementationClass =
-            _findClassOrNull(internalLibrary, 'Symbol');
-      }
+      _symbolImplementationClass ??=
+          _findClassOrNull(internalLibrary, 'Symbol');
       if (_symbolImplementationClass != null) {
         _symbolConstructorTarget = _env.lookupConstructor(
             _symbolImplementationClass!, '',
             required: false);
       }
     }
-    if (_symbolClass == null) {
-      _symbolClass = _findClassOrNull(coreLibrary, 'Symbol');
-    }
+    _symbolClass ??= _findClassOrNull(coreLibrary, 'Symbol');
     if (_symbolClass == null) {
       return;
     }
@@ -293,8 +289,8 @@ abstract class CommonElements {
       return _getRawType(mapClass);
     } else if (keyType == null) {
       keyType = dynamicType;
-    } else if (valueType == null) {
-      valueType = dynamicType;
+    } else {
+      valueType ??= dynamicType;
     }
     return _createInterfaceType(mapClass, [keyType, valueType!]);
   }
@@ -412,9 +408,7 @@ abstract class CommonElements {
   ClassEntity get mapLiteralClass {
     if (_mapLiteralClass == null) {
       _mapLiteralClass = _env.lookupClass(coreLibrary, 'LinkedHashMap');
-      if (_mapLiteralClass == null) {
-        _mapLiteralClass = _findClass(collectionLibrary, 'LinkedHashMap');
-      }
+      _mapLiteralClass ??= _findClass(collectionLibrary, 'LinkedHashMap');
     }
     return _mapLiteralClass!;
   }
@@ -696,19 +690,19 @@ abstract class CommonElements {
       _findHelperClass('_StackTrace');
 
   late final ClassEntity constantMapClass =
-      _findHelperClass(constant_system.JavaScriptMapConstant.DART_CLASS);
+      _findHelperClass(constant_system.JavaScriptMapConstant.dartClass);
 
   late final ClassEntity constantStringMapClass =
-      _findHelperClass(constant_system.JavaScriptMapConstant.DART_STRING_CLASS);
+      _findHelperClass(constant_system.JavaScriptMapConstant.dartStringClass);
 
-  late final ClassEntity generalConstantMapClass = _findHelperClass(
-      constant_system.JavaScriptMapConstant.DART_GENERAL_CLASS);
+  late final ClassEntity generalConstantMapClass =
+      _findHelperClass(constant_system.JavaScriptMapConstant.dartGeneralClass);
 
   late final ClassEntity constantStringSetClass =
-      _findHelperClass(constant_system.JavaScriptSetConstant.DART_STRING_CLASS);
+      _findHelperClass(constant_system.JavaScriptSetConstant.dartStringClass);
 
-  late final ClassEntity generalConstantSetClass = _findHelperClass(
-      constant_system.JavaScriptSetConstant.DART_GENERAL_CLASS);
+  late final ClassEntity generalConstantSetClass =
+      _findHelperClass(constant_system.JavaScriptSetConstant.dartGeneralClass);
 
   late final ClassEntity annotationCreatesClass = _findHelperClass('Creates');
 
@@ -853,9 +847,9 @@ abstract class CommonElements {
     assert(typeArgumentCount > 0);
     if (typeArgumentCount > 20) {
       failedAt(
-          NO_LOCATION_SPANNABLE,
+          noLocationSpannable,
           "Unsupported instantiation argument count: "
-          "${typeArgumentCount}");
+          "$typeArgumentCount");
     }
   }
 
@@ -1317,7 +1311,7 @@ abstract class ElementEnvironment {
   LibraryEntity? lookupLibrary(Uri uri, {bool required = false});
 
   /// Calls [f] for every class declared in [library].
-  void forEachClass(LibraryEntity library, void f(ClassEntity cls));
+  void forEachClass(LibraryEntity library, void Function(ClassEntity cls) f);
 
   /// Lookup the class [name] in [library], fail if the class is missing and
   /// [required].
@@ -1325,7 +1319,8 @@ abstract class ElementEnvironment {
       {bool required = false});
 
   /// Calls [f] for every top level member in [library].
-  void forEachLibraryMember(LibraryEntity library, void f(MemberEntity member));
+  void forEachLibraryMember(
+      LibraryEntity library, void Function(MemberEntity member) f);
 
   /// Lookup the member [name] in [library], fail if the class is missing and
   /// [required].
@@ -1357,22 +1352,23 @@ abstract class ElementEnvironment {
       {bool required = false});
 
   /// Calls [f] for each class member declared in [cls].
-  void forEachLocalClassMember(ClassEntity cls, void f(MemberEntity member));
+  void forEachLocalClassMember(
+      ClassEntity cls, void Function(MemberEntity member) f);
 
   /// Calls [f] for each class member declared or inherited in [cls] together
   /// with the class that declared the member.
   ///
   /// TODO(johnniwinther): This should not include static members of
   /// superclasses.
-  void forEachClassMember(
-      ClassEntity cls, void f(ClassEntity declarer, MemberEntity member));
+  void forEachClassMember(ClassEntity cls,
+      void Function(ClassEntity declarer, MemberEntity member) f);
 
   /// Calls [f] for every constructor declared in [cls].
   ///
   /// Will ensure that the class and all constructors are resolved if
   /// [ensureResolved] is `true`.
   void forEachConstructor(
-      ClassEntity cls, void f(ConstructorEntity constructor));
+      ClassEntity cls, void Function(ConstructorEntity constructor) f);
 
   /// Returns the superclass of [cls].
   ///
@@ -1391,10 +1387,12 @@ abstract class ElementEnvironment {
       {bool skipUnnamedMixinApplications = false});
 
   /// Calls [f] for each supertype of [cls].
-  void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype));
+  void forEachSupertype(
+      ClassEntity cls, void Function(InterfaceType supertype) f);
 
   /// Calls [f] for each SuperClass of [cls].
-  void forEachSuperClass(ClassEntity cls, void f(ClassEntity superClass)) {
+  void forEachSuperClass(
+      ClassEntity cls, void Function(ClassEntity superClass) f) {
     for (var superClass = getSuperClass(cls);
         superClass != null;
         superClass = getSuperClass(superClass)) {
@@ -1477,7 +1475,7 @@ abstract class ElementEnvironment {
 abstract class KElementEnvironment extends ElementEnvironment {
   /// Calls [f] for each class that is mixed into [cls] or one of its
   /// superclasses.
-  void forEachMixin(ClassEntity cls, void f(ClassEntity mixin));
+  void forEachMixin(ClassEntity cls, void Function(ClassEntity mixin) f);
 
   /// Returns the imports seen in [library]
   Iterable<ImportEntity> getImports(LibraryEntity library);
@@ -1497,15 +1495,16 @@ abstract class KElementEnvironment extends ElementEnvironment {
 
 abstract class JElementEnvironment extends ElementEnvironment {
   /// Calls [f] for each class member added to [cls] during compilation.
-  void forEachInjectedClassMember(ClassEntity cls, void f(MemberEntity member));
+  void forEachInjectedClassMember(
+      ClassEntity cls, void Function(MemberEntity member) f);
 
   /// Calls [f] for every constructor body in [cls].
   void forEachConstructorBody(
-      ClassEntity cls, void f(ConstructorBodyEntity constructorBody));
+      ClassEntity cls, void Function(ConstructorBodyEntity constructorBody) f);
 
   /// Calls [f] for each nested closure in [member].
   void forEachNestedClosure(
-      MemberEntity member, void f(FunctionEntity closure));
+      MemberEntity member, void Function(FunctionEntity closure) f);
 
   /// Returns `true` if [cls] is a mixin application with its own members.
   ///
@@ -1535,8 +1534,8 @@ abstract class JElementEnvironment extends ElementEnvironment {
   ///
   /// If [isElided] is `true`, the field is not read and should therefore not
   /// be emitted.
-  void forEachInstanceField(
-      ClassEntity cls, void f(ClassEntity declarer, FieldEntity field));
+  void forEachInstanceField(ClassEntity cls,
+      void Function(ClassEntity declarer, FieldEntity field) f);
 
   /// Calls [f] with every instance field declared directly in class [cls]
   /// (i.e. no inherited fields). Fields are presented in initialization
@@ -1544,14 +1543,17 @@ abstract class JElementEnvironment extends ElementEnvironment {
   ///
   /// If [isElided] is `true`, the field is not read and should therefore not
   /// be emitted.
-  void forEachDirectInstanceField(ClassEntity cls, void f(FieldEntity field));
+  void forEachDirectInstanceField(
+      ClassEntity cls, void Function(FieldEntity field) f);
 
   /// Calls [f] for each parameter of [function] providing the type and name of
   /// the parameter and the [defaultValue] if the parameter is optional.
-  void forEachParameter(covariant FunctionEntity function,
-      void f(DartType type, String? name, ConstantValue? defaultValue));
+  void forEachParameter(
+      covariant FunctionEntity function,
+      void Function(DartType type, String? name, ConstantValue? defaultValue)
+          f);
 
   /// Calls [f] for each parameter - given as a [Local] - of [function].
   void forEachParameterAsLocal(GlobalLocalsMap globalLocalsMap,
-      FunctionEntity function, void f(Local parameter));
+      FunctionEntity function, void Function(Local parameter) f);
 }

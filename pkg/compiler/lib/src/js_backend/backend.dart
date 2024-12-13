@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js_backend.backend;
+library;
 
 import '../common.dart';
 import '../common/codegen.dart';
@@ -42,7 +42,7 @@ class FunctionInlineCache {
 
   final Map<FunctionEntity, _Decision> _cachedDecisions = {};
 
-  FunctionInlineCache(this._annotationsData) {}
+  FunctionInlineCache(this._annotationsData);
 
   /// Checks that [method] is the canonical representative for this method.
   ///

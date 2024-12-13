@@ -46,8 +46,8 @@ class SsaLateFieldOptimizer extends HBaseVisitor<void>
   bool validPostcondition(HGraph graph) => true;
 
   @override
-  void visitBasicBlock(HBasicBlock block) {
-    HInstruction? instruction = block.first;
+  void visitBasicBlock(HBasicBlock node) {
+    HInstruction? instruction = node.first;
     while (instruction != null) {
       HInstruction? next = instruction.next;
       instruction.accept(this);

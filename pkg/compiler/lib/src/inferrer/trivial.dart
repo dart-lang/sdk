@@ -46,14 +46,14 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractBool isFixedLengthJsIndexable(AbstractValue value) =>
-      AbstractBool.Maybe;
+      AbstractBool.maybe;
 
   @override
   AbstractBool isJsIndexableAndIterable(AbstractValue value) =>
-      AbstractBool.Maybe;
+      AbstractBool.maybe;
 
   @override
-  AbstractBool isJsIndexable(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isJsIndexable(AbstractValue value) => AbstractBool.maybe;
 
   @override
   MemberEntity? locateSingleMember(AbstractValue receiver, Selector selector) =>
@@ -61,17 +61,17 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractBool isIn(AbstractValue subset, AbstractValue superset) =>
-      AbstractBool.Maybe;
+      AbstractBool.maybe;
 
   @override
   AbstractBool needsNoSuchMethodHandling(
           AbstractValue receiver, Selector selector) =>
-      AbstractBool.Maybe;
+      AbstractBool.maybe;
 
   @override
   AbstractBool isTargetingMember(
           AbstractValue receiver, MemberEntity member, Name name) =>
-      AbstractBool.Maybe;
+      AbstractBool.maybe;
 
   @override
   AbstractValue computeReceiver(Iterable<MemberEntity> members) =>
@@ -210,11 +210,11 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
       null;
 
   @override
-  AbstractBool containsAll(AbstractValue a) => AbstractBool.Maybe;
+  AbstractBool containsAll(AbstractValue a) => AbstractBool.maybe;
 
   @override
   AbstractBool areDisjoint(AbstractValue a, AbstractValue b) =>
-      AbstractBool.Maybe;
+      AbstractBool.maybe;
 
   @override
   AbstractValue intersection(AbstractValue a, AbstractValue b) =>
@@ -229,107 +229,107 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
       const TrivialAbstractValue();
 
   @override
-  AbstractBool isPrimitiveOrNull(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isPrimitiveOrNull(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isStringOrNull(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isStringOrNull(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isString(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isString(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isBooleanOrNull(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isBooleanOrNull(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isBoolean(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isBoolean(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isTruthy(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isTruthy(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isNumberOrNull(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isNumberOrNull(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isNumber(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isNumber(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isIntegerOrNull(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isIntegerOrNull(AbstractValue value) => AbstractBool.maybe;
 
   @override
   AbstractBool isPositiveIntegerOrNull(AbstractValue value) =>
-      AbstractBool.Maybe;
+      AbstractBool.maybe;
 
   @override
-  AbstractBool isPositiveInteger(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isPositiveInteger(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isUInt31(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isUInt31(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isUInt32(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isUInt32(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isInteger(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isInteger(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isInterceptor(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isInterceptor(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isPrimitiveString(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isPrimitiveString(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isArray(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isArray(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isMutableIndexable(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isMutableIndexable(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isMutableArray(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isMutableArray(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isExtendableArray(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isExtendableArray(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isFixedArray(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isFixedArray(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isIndexablePrimitive(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isIndexablePrimitive(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isPrimitiveBoolean(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isPrimitiveBoolean(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isPrimitiveNumber(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isPrimitiveNumber(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isPrimitive(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isPrimitive(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isNull(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isNull(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isLateSentinel(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isLateSentinel(AbstractValue value) => AbstractBool.maybe;
 
   @override
   ClassEntity? getExactClass(AbstractValue value) => null;
 
   @override
-  AbstractBool isExact(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isExact(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isEmpty(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isEmpty(AbstractValue value) => AbstractBool.maybe;
 
   @override
   AbstractBool isInstanceOf(AbstractValue value, ClassEntity cls) =>
-      AbstractBool.Maybe;
+      AbstractBool.maybe;
 
   @override
   AbstractBool containsOnlyType(AbstractValue value, ClassEntity cls) =>
-      AbstractBool.Maybe;
+      AbstractBool.maybe;
 
   @override
   AbstractBool containsType(AbstractValue value, ClassEntity cls) =>
-      AbstractBool.Maybe;
+      AbstractBool.maybe;
 
   @override
   AbstractValue includeNull(AbstractValue value) =>
@@ -348,10 +348,10 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
       const TrivialAbstractValue();
 
   @override
-  AbstractBool couldBeTypedArray(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool couldBeTypedArray(AbstractValue value) => AbstractBool.maybe;
 
   @override
-  AbstractBool isTypedArray(AbstractValue value) => AbstractBool.Maybe;
+  AbstractBool isTypedArray(AbstractValue value) => AbstractBool.maybe;
 
   @override
   AbstractValue createNullableSubtype(ClassEntity cls) =>

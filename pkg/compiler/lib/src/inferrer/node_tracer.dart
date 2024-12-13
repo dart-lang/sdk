@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library compiler.src.inferrer.node_tracer;
+library;
 
 import '../common/names.dart' show Identifiers;
 import '../elements/entities.dart';
@@ -14,7 +14,7 @@ import 'type_graph_nodes.dart';
 
 // A set of selectors we know do not escape the elements inside the
 // list.
-Set<String> doesNotEscapeListSet = Set<String>.from(const <String>[
+Set<String> doesNotEscapeListSet = <String>{
   // From Object.
   '==',
   'hashCode',
@@ -49,9 +49,9 @@ Set<String> doesNotEscapeListSet = Set<String>.from(const <String>[
   // From JSArray.
   'checkMutable',
   'checkGrowable',
-]);
+};
 
-Set<String> doesNotEscapeSetSet = Set<String>.from(const <String>[
+Set<String> doesNotEscapeSetSet = <String>{
   // From Object.
   '==',
   'hashCode',
@@ -74,9 +74,9 @@ Set<String> doesNotEscapeSetSet = Set<String>.from(const <String>[
   'remove',
   'removeAll',
   'retainAll',
-]);
+};
 
-Set<String> doesNotEscapeMapSet = Set<String>.from(const <String>[
+Set<String> doesNotEscapeMapSet = <String>{
   // From Object.
   '==',
   'hashCode',
@@ -93,14 +93,14 @@ Set<String> doesNotEscapeMapSet = Set<String>.from(const <String>[
   '[]=',
   // [keys] only allows key values to escape, which we do not track.
   'keys'
-]);
+};
 
 /// Common logic to trace a value through the type inference graph nodes.
 abstract class TracerVisitor implements TypeInformationVisitor<void> {
   final TypeInformation tracedType;
   final InferrerEngine inferrer;
 
-  static const int MAX_ANALYSIS_COUNT =
+  static const int maxAnalysisCount =
       int.fromEnvironment('dart2js.tracing.limit', defaultValue: 32);
   // TODO(natebiggs): We allow null here to maintain current functionality
   // but we should verify we actually need to allow it.
@@ -146,12 +146,12 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
 
   bool _wouldBeTooManyUsers(Set<TypeInformation> users) {
     int seenSoFar = analyzedElements.length;
-    if (seenSoFar + users.length <= MAX_ANALYSIS_COUNT) return false;
+    if (seenSoFar + users.length <= maxAnalysisCount) return false;
     int actualWork = 0;
     for (TypeInformation user in users) {
       if (!analyzedElements.contains(user.owner)) {
         actualWork++;
-        if (actualWork > MAX_ANALYSIS_COUNT - seenSoFar) return true;
+        if (actualWork > maxAnalysisCount - seenSoFar) return true;
       }
     }
     return false;
@@ -188,7 +188,7 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
   }
 
   void bailout(String reason) {
-    if (debug.VERBOSE) {
+    if (debug.verbose) {
       print('Bailing out on $tracedType because: $reason');
     }
     continueAnalyzing = false;
@@ -294,18 +294,18 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
     if (list.bailedOut) {
       bailout('Stored in a list that bailed out');
     } else {
-      list.flowsInto.forEach((TypeInformation flow) {
-        flow.users.forEach((TypeInformation user) {
+      for (var flow in list.flowsInto) {
+        for (var user in flow.users) {
           if (user is DynamicCallSiteTypeInformation) {
-            if (user.receiver != flow) return;
+            if (user.receiver != flow) continue;
             if (inferrer.returnsListElementTypeSet.contains(user.selector)) {
               addNewEscapeInformation(user);
             } else if (!doesNotEscapeListSet.contains(user.selector?.name)) {
               bailout('Escape from a list via [${user.selector?.name}]');
             }
           }
-        });
-      });
+        }
+      }
     }
   }
 
@@ -314,10 +314,10 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
     if (set.bailedOut) {
       bailout('Stored in a set that bailed out');
     } else {
-      set.flowsInto.forEach((TypeInformation flow) {
-        flow.users.forEach((TypeInformation user) {
+      for (var flow in set.flowsInto) {
+        for (var user in flow.users) {
           if (user is DynamicCallSiteTypeInformation) {
-            if (user.receiver != flow) return;
+            if (user.receiver != flow) continue;
             final selector = user.selector!;
             if (selector.isIndex) {
               addNewEscapeInformation(user);
@@ -325,8 +325,8 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
               bailout('Escape from a set via [${selector.name}]');
             }
           }
-        });
-      });
+        }
+      }
     }
   }
 
@@ -335,10 +335,10 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
     if (map.bailedOut) {
       bailout('Stored in a map that bailed out');
     } else {
-      map.flowsInto.forEach((TypeInformation flow) {
-        flow.users.forEach((TypeInformation user) {
+      for (var flow in map.flowsInto) {
+        for (var user in flow.users) {
           if (user is DynamicCallSiteTypeInformation) {
-            if (user.receiver != flow) return;
+            if (user.receiver != flow) continue;
             final selector = user.selector!;
             if (selector.isIndex) {
               addNewEscapeInformation(user);
@@ -346,8 +346,8 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
               bailout('Escape from a map via [${selector.name}]');
             }
           }
-        });
-      });
+        }
+      }
     }
   }
 
@@ -356,8 +356,8 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
     if (record.bailedOut) {
       bailout('Stored in a record that bailed out');
     } else {
-      record.flowsInto.forEach((TypeInformation flow) {
-        flow.users.forEach((TypeInformation user) {
+      for (var flow in record.flowsInto) {
+        for (var user in flow.users) {
           if (user is RecordFieldAccessTypeInformation) {
             final getterIndex =
                 record.recordShape.indexOfGetterName(user.getterName);
@@ -368,8 +368,8 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
               addNewEscapeInformation(user);
             }
           }
-        });
-      });
+        }
+      }
     }
   }
 
@@ -413,7 +413,7 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
     return isIndexSetArgument(info, 1);
   }
 
-  void bailoutIfReaches(bool predicate(ParameterTypeInformation e)) {
+  void bailoutIfReaches(bool Function(ParameterTypeInformation e) predicate) {
     for (var user in currentUser!.users) {
       if (user is ParameterTypeInformation) {
         if (predicate(user)) {
@@ -568,7 +568,7 @@ abstract class TracerVisitor implements TypeInformationVisitor<void> {
   }
 
   bool isAsync(MemberEntity element) =>
-      element is FunctionEntity && element.asyncMarker == AsyncMarker.ASYNC;
+      element is FunctionEntity && element.asyncMarker == AsyncMarker.async;
 
   @override
   void visitMemberTypeInformation(MemberTypeInformation info) {

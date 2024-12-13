@@ -83,7 +83,7 @@ class ScopeInfo {
 
   /// Serializes this [ScopeInfo] to [sink].
   void writeToDataSink(DataSinkWriter sink) {
-    throw UnsupportedError('${runtimeType}.writeToDataSink');
+    throw UnsupportedError('$runtimeType.writeToDataSink');
   }
 
   /// Convenience reference pointer to the element representing `this`.
@@ -113,8 +113,8 @@ class ScopeInfo {
   /// In the case of loops, this is the set of iteration variables (or any
   /// variables declared in the for loop expression (`for (...here...)`) that
   /// need to be boxed to snapshot their value.
-  void forEachBoxedVariable(
-      KernelToLocalsMap localsMap, void f(Local local, FieldEntity field)) {}
+  void forEachBoxedVariable(KernelToLocalsMap localsMap,
+      void Function(Local local, FieldEntity field) f) {}
 
   /// True if [variable] has been mutated and is also used in another scope.
   bool isBoxedVariable(KernelToLocalsMap localsMap, Local variable) => false;
@@ -292,14 +292,14 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// strictly variables defined in this closure, unlike the behavior in
   /// the superclass ScopeInfo.
   @override
-  void forEachBoxedVariable(
-      KernelToLocalsMap localsMap, void f(Local local, FieldEntity field)) {}
+  void forEachBoxedVariable(KernelToLocalsMap localsMap,
+      void Function(Local local, FieldEntity field) f) {}
 
   /// Loop through each free variable in this closure. Free variables are the
   /// variables that have been captured *just* in this closure, not in nested
   /// scopes.
-  void forEachFreeVariable(
-      KernelToLocalsMap localsMap, void f(Local variable, FieldEntity field)) {}
+  void forEachFreeVariable(KernelToLocalsMap localsMap,
+      void Function(Local variable, FieldEntity field) f) {}
 
   // TODO(efortuna): Remove this method. The old system was using
   // ClosureClassMaps for situations other than closure class maps, and that's

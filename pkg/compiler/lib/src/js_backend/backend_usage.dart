@@ -282,11 +282,11 @@ class BackendUsageImpl implements BackendUsage {
       required Set<RuntimeTypeUse> runtimeTypeUses,
       required this.isFunctionApplyUsed,
       required this.isNoSuchMethodUsed})
-      : this._globalFunctionDependencies = globalFunctionDependencies,
-        this._globalClassDependencies = globalClassDependencies,
-        this._helperFunctionsUsed = helperFunctionsUsed,
-        this._helperClassesUsed = helperClassesUsed,
-        this._runtimeTypeUses = runtimeTypeUses;
+      : _globalFunctionDependencies = globalFunctionDependencies,
+        _globalClassDependencies = globalClassDependencies,
+        _helperFunctionsUsed = helperFunctionsUsed,
+        _helperClassesUsed = helperClassesUsed,
+        _runtimeTypeUses = runtimeTypeUses;
 
   factory BackendUsageImpl.readFromDataSource(DataSourceReader source) {
     source.begin(tag);

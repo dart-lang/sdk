@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js_backend.interceptor_data;
+library;
 
 import '../common/elements.dart'
     show CommonElements, KCommonElements, KElementEnvironment;
@@ -10,7 +10,7 @@ import '../common/names.dart' show Identifiers;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
-import '../js/js.dart' as jsAst;
+import '../js/js.dart' as js_ast;
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../serialization/serialization.dart';
 import '../universe/class_set.dart';
@@ -241,7 +241,7 @@ class InterceptorDataImpl implements InterceptorData {
         if (_nativeData.isNativeOrExtendsNative(subclass)) {
           (result ??= {}).add(subclass);
         }
-        return IterationStep.CONTINUE;
+        return IterationStep.continue_;
       });
     }
     return result;
@@ -367,7 +367,7 @@ class OneShotInterceptorData {
 
   final Map<String, SpecializedGetInterceptor> _specializedGetInterceptors = {};
 
-  jsAst.Name registerOneShotInterceptor(
+  js_ast.Name registerOneShotInterceptor(
       Selector selector, ModularNamer namer, JClosedWorld closedWorld) {
     selector = selector.toNormalized();
     Set<ClassEntity> classes =

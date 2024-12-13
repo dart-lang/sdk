@@ -42,7 +42,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor<bool>
 
   @override
   void visitGraph(HGraph graph) {
-    this._graph = graph;
+    _graph = graph;
     visitDominatorTree(graph);
   }
 
@@ -68,9 +68,9 @@ class SsaSimplifyInterceptors extends HBaseVisitor<bool>
   bool visitInstruction(HInstruction instruction) => false;
 
   @override
-  bool visitInvoke(HInvoke invoke) {
-    if (!invoke.isInterceptedCall) return false;
-    dynamic interceptor = invoke.inputs[0];
+  bool visitInvoke(HInvoke node) {
+    if (!node.isInterceptedCall) return false;
+    dynamic interceptor = node.inputs[0];
     if (interceptor is! HInterceptor) return false;
 
     // TODO(sra): Move this per-call code to visitInterceptor.
@@ -82,9 +82,9 @@ class SsaSimplifyInterceptors extends HBaseVisitor<bool>
     // possible that all uses can be rewritten to use different constants.
 
     HInstruction? constant = tryComputeConstantInterceptor(
-        invoke.inputs[1], interceptor.interceptedClasses);
+        node.inputs[1], interceptor.interceptedClasses);
     if (constant != null) {
-      invoke.changeUse(interceptor, constant);
+      node.changeUse(interceptor, constant);
     }
     return false;
   }

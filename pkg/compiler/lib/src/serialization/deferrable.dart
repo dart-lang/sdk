@@ -74,14 +74,14 @@ import 'package:compiler/src/serialization/serialization.dart';
 abstract class Deferrable<E> {
   E loaded();
 
-  factory Deferrable.deferred(
-          DataSourceReader reader, E f(DataSourceReader source), int offset,
+  factory Deferrable.deferred(DataSourceReader reader,
+          E Function(DataSourceReader source) f, int offset,
           {bool cacheData = true}) =>
       cacheData
           ? _DeferredCache(reader, f, offset)
           : _Deferred(reader, f, offset);
   static Deferrable<E> deferredWithArg<E, A>(DataSourceReader reader,
-          E f(DataSourceReader source, A arg), A arg, int offset,
+          E Function(DataSourceReader source, A arg) f, A arg, int offset,
           {bool cacheData = true}) =>
       cacheData
           ? _DeferredCacheWithArg(reader, f, arg, offset)
@@ -200,7 +200,7 @@ class DeferrableValueMap<K, V> with MapMixin<K, V> {
   }
 
   @override
-  V putIfAbsent(K key, V ifAbsent()) {
+  V putIfAbsent(K key, V Function() ifAbsent) {
     return _map.putIfAbsent(key, () => Deferrable.eager(ifAbsent())).loaded();
   }
 }

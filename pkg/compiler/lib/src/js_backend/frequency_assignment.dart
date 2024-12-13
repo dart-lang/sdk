@@ -179,7 +179,7 @@ class _Pool {
 class _Cohort {
   _Cohort? next; // Next cohort in decreasing frequency.
   final int count; // This is the cohort of items occurring [count] times.
-  Set<int> unassigned = Set();
+  Set<int> unassigned = {};
 
   _Cohort(this.count);
 

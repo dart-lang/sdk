@@ -14,9 +14,9 @@ import '../universe/record_shape.dart';
 String nodeToDebugString(ir.Node node, [int textLength = 40]) {
   String blockText = node.toString().replaceAll('\n', ' ');
   if (blockText.length > textLength) {
-    blockText = blockText.substring(0, textLength - 3) + '...';
+    blockText = '${blockText.substring(0, textLength - 3)}...';
   }
-  return '(${node.runtimeType}:${node.hashCode})${blockText}';
+  return '(${node.runtimeType}:${node.hashCode})$blockText';
 }
 
 /// Comparator for the canonical order for named parameters.
@@ -70,13 +70,13 @@ int indexOfNameInRecordShapeOfRecordType(ir.RecordType node, String name) {
 AsyncMarker getAsyncMarker(ir.FunctionNode node) {
   switch (node.asyncMarker) {
     case ir.AsyncMarker.Async:
-      return AsyncMarker.ASYNC;
+      return AsyncMarker.async;
     case ir.AsyncMarker.AsyncStar:
-      return AsyncMarker.ASYNC_STAR;
+      return AsyncMarker.asyncStar;
     case ir.AsyncMarker.Sync:
-      return AsyncMarker.SYNC;
+      return AsyncMarker.sync;
     case ir.AsyncMarker.SyncStar:
-      return AsyncMarker.SYNC_STAR;
+      return AsyncMarker.syncStar;
   }
 }
 

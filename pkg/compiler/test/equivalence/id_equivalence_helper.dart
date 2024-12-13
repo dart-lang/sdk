@@ -114,7 +114,7 @@ const String stopAfterTypeInference = 'stopAfterTypeInference';
 void reportError(
     DiagnosticReporter reporter, Spannable spannable, String message) {
   reporter
-      .reportErrorMessage(spannable, MessageKind.GENERIC, {'text': message});
+      .reportErrorMessage(spannable, MessageKind.generic, {'text': message});
 }
 
 /// Compute actual data for all members defined in the program with the
@@ -377,7 +377,7 @@ class Dart2jsCompiledData<T> extends CompiledData<T> {
       {bool succinct = false}) {
     compiler.reporter.reportErrorMessage(
         computeSourceSpanFromUriOffset(uri, offset),
-        MessageKind.GENERIC,
+        MessageKind.generic,
         {'text': message});
   }
 }
@@ -544,7 +544,7 @@ Spannable computeSpannable(
     if (elementEnvironment == null) {
       // If compilation resulted in error we might not have an
       // element environment.
-      return NO_LOCATION_SPANNABLE;
+      return noLocationSpannable;
     }
     String memberName = id.memberName;
     bool isSetter = false;
@@ -558,7 +558,7 @@ Spannable computeSpannable(
       if (cls == null) {
         // Constant expression in CFE might remove inlined parts of sources.
         print("No class '${id.className}' in $mainUri.");
-        return NO_LOCATION_SPANNABLE;
+        return noLocationSpannable;
       }
       MemberEntity? member = elementEnvironment.lookupClassMember(
           cls, Name(memberName, cls.library.canonicalUri, isSetter: isSetter));
@@ -568,7 +568,7 @@ Spannable computeSpannable(
         if (constructor == null) {
           // Constant expression in CFE might remove inlined parts of sources.
           print("No class member '${memberName}' in $cls.");
-          return NO_LOCATION_SPANNABLE;
+          return noLocationSpannable;
         }
         return constructor;
       }
@@ -579,7 +579,7 @@ Spannable computeSpannable(
       if (member == null) {
         // Constant expression in CFE might remove inlined parts of sources.
         print("No member '${memberName}' in $mainUri.");
-        return NO_LOCATION_SPANNABLE;
+        return noLocationSpannable;
       }
       return member;
     }
@@ -589,7 +589,7 @@ Spannable computeSpannable(
     if (cls == null) {
       // Constant expression in CFE might remove inlined parts of sources.
       print("No class '${id.className}' in $mainUri.");
-      return NO_LOCATION_SPANNABLE;
+      return noLocationSpannable;
     }
     return cls;
   } else if (id is LibraryId) {

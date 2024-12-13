@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library universe.function_set;
+library;
 
 import '../common/names.dart' show Identifiers, Selectors;
 import '../elements/entities.dart';
@@ -89,7 +89,7 @@ class SelectorMask {
   final int hashCode;
 
   SelectorMask(this.selector, this.receiver)
-      : this.hashCode =
+      : hashCode =
             Hashing.mixHashCodeBits(selector.hashCode, receiver.hashCode);
 
   String get name => selector.name;
@@ -132,7 +132,7 @@ class FunctionSetNode {
   // Initially, we keep the elements in a list because it is more
   // compact than a hash set. Once we get enough elements, we change
   // the representation to be a set to get faster contains checks.
-  static const int MAX_ELEMENTS_IN_LIST = 8;
+  static const int maxElementsInList = 8;
   Iterable<MemberEntity> elements = [];
   bool isList = true;
 
@@ -143,7 +143,7 @@ class FunctionSetNode {
     // reason we keep the explicit contains check even though the add
     // method ends up doing the work again (for sets).
     if (!elements.contains(element)) {
-      if (isList && elements.length >= MAX_ELEMENTS_IN_LIST) {
+      if (isList && elements.length >= maxElementsInList) {
         elements = elements.toSet();
         isList = false;
       }
@@ -183,7 +183,7 @@ class FunctionSetNode {
     return elements.contains(element);
   }
 
-  void forEach(void action(MemberEntity member)) {
+  void forEach(void Function(MemberEntity member) action) {
     elements.forEach(action);
   }
 

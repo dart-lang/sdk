@@ -196,7 +196,7 @@ class DynamicVisitor extends ir.RecursiveVisitor {
         actualMessagesMap
             .forEach((String message, List<DiagnosticMessage> actualMessages) {
           for (DiagnosticMessage message in actualMessages) {
-            reporter.reportErrorMessage(message.sourceSpan, MessageKind.GENERIC,
+            reporter.reportErrorMessage(message.sourceSpan, MessageKind.generic,
                 {'text': '${message.message} (allowed)'});
           }
         });
@@ -275,7 +275,7 @@ class DynamicVisitor extends ir.RecursiveVisitor {
           Uri.base.resolve(uri.path.substring(1)), span.begin, span.end);
     }
     DiagnosticMessage diagnosticMessage =
-        reporter.createMessage(span, MessageKind.GENERIC, {'text': message});
+        reporter.createMessage(span, MessageKind.generic, {'text': message});
     reporter.reportError(diagnosticMessage);
     return message;
   }
@@ -291,7 +291,7 @@ class DynamicVisitor extends ir.RecursiveVisitor {
           Uri.base.resolve(uri.path.substring(1)), span.begin, span.end);
     }
     DiagnosticMessage diagnosticMessage =
-        reporter.createMessage(span, MessageKind.GENERIC, {'text': message});
+        reporter.createMessage(span, MessageKind.generic, {'text': message});
     actualMap
         .putIfAbsent(message, () => <DiagnosticMessage>[])
         .add(diagnosticMessage);

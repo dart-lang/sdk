@@ -27,7 +27,7 @@ class SpecialType {
   const SpecialType._(this.name);
 
   /// The type Object, but no subtypes:
-  static const JsObject = SpecialType._('=Object');
+  static const jsObject = SpecialType._('=Object');
 
   @override
   bool operator ==(other) =>
@@ -41,7 +41,7 @@ class SpecialType {
 
   static SpecialType fromName(String name) {
     if (name == '=Object') {
-      return JsObject;
+      return jsObject;
     } else {
       throw UnsupportedError("Unknown SpecialType '$name'.");
     }
@@ -185,10 +185,10 @@ class NativeBehavior {
   @override
   String toString() {
     return 'NativeBehavior('
-        'returns: ${typesReturned}'
-        ', creates: ${typesInstantiated}'
-        ', sideEffects: ${sideEffects}'
-        ', throws: ${throwBehavior}'
+        'returns: $typesReturned'
+        ', creates: $typesInstantiated'
+        ', sideEffects: $sideEffects'
+        ', throws: $throwBehavior'
         '${isAllocation ? ", isAllocation" : ""}'
         '${useGvn ? ", useGvn" : ""}'
         ')';
@@ -287,7 +287,7 @@ class NativeBehavior {
   static void processSpecString(DartTypes dartTypes,
       DiagnosticReporter reporter, Spannable spannable, String specString,
       {Iterable<String>? validTags,
-      required void setSideEffects(SideEffects newEffects),
+      required void Function(SideEffects newEffects) setSideEffects,
       void Function(NativeThrowBehavior)? setThrows,
       void Function(bool)? setIsAllocation,
       void Function(bool)? setUseGvn,
@@ -301,7 +301,7 @@ class NativeBehavior {
     void reportError(String message) {
       seenError = true;
       reporter.reportErrorMessage(
-          spannable, MessageKind.GENERIC, {'text': message});
+          spannable, MessageKind.generic, {'text': message});
     }
 
     const List<String> knownTags = [
@@ -357,7 +357,7 @@ class NativeBehavior {
 
     assert(
         validTags == null || (validTags.toSet()..removeAll(validTags)).isEmpty);
-    if (validTags == null) validTags = knownTags;
+    validTags ??= knownTags;
 
     Map<String, String> values = {};
 
@@ -466,8 +466,8 @@ class NativeBehavior {
     }
   }
 
-  static SideEffects? processEffects(
-      void reportError(String message), String? effects, String? depends) {
+  static SideEffects? processEffects(void Function(String message) reportError,
+      String? effects, String? depends) {
     if (effects == null && depends == null) return null;
 
     if (effects == null || depends == null) {
@@ -650,7 +650,7 @@ class NativeBehavior {
 
   static Object /*DartType|SpecialType*/ _parseType(
       DartTypes dartTypes, String typeString, TypeLookup lookupType) {
-    if (typeString == '=Object') return SpecialType.JsObject;
+    if (typeString == '=Object') return SpecialType.jsObject;
     if (typeString == 'dynamic') {
       return dartTypes.dynamicType();
     }
@@ -733,7 +733,7 @@ class BehaviorBuilder {
   /// [annotationClass].
   /// Returns `null` if no constraints.
   List<Object>? _collect(Iterable<String> annotations, TypeLookup lookupType) {
-    List<Object>? types = null;
+    List<Object>? types;
     for (String specString in annotations) {
       for (final typeString in specString.split('|')) {
         var type = NativeBehavior._parseType(
@@ -894,7 +894,7 @@ List<String> _getAnnotations(DartTypes dartTypes, DiagnosticReporter reporter,
       }
 
       reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE,
+          currentElementSpannable,
           'Annotations needs one string: '
           '${value.toStructuredText(dartTypes)}');
     }

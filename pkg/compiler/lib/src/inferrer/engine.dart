@@ -51,16 +51,16 @@ import 'work_queue.dart';
 class InferrerEngine {
   /// A set of selector names that [List] implements, that we know return their
   /// element type.
-  final Set<Selector> returnsListElementTypeSet = Set<Selector>.from(<Selector>[
+  final Set<Selector> returnsListElementTypeSet = <Selector>{
     Selector.getter(const PublicName('first')),
     Selector.getter(const PublicName('last')),
     Selector.getter(const PublicName('single')),
-    Selector.call(const PublicName('singleWhere'), CallStructure.ONE_ARG),
-    Selector.call(const PublicName('elementAt'), CallStructure.ONE_ARG),
+    Selector.call(const PublicName('singleWhere'), CallStructure.oneArg),
+    Selector.call(const PublicName('elementAt'), CallStructure.oneArg),
     Selector.index(),
-    Selector.call(const PublicName('removeAt'), CallStructure.ONE_ARG),
-    Selector.call(const PublicName('removeLast'), CallStructure.NO_ARGS)
-  ]);
+    Selector.call(const PublicName('removeAt'), CallStructure.oneArg),
+    Selector.call(const PublicName('removeLast'), CallStructure.noArgs)
+  };
 
   /// The [JClosedWorld] on which inference reasoning is based.
   final JClosedWorld closedWorld;
@@ -76,8 +76,8 @@ class InferrerEngine {
 
   final WorkQueue _workQueue = WorkQueue();
 
-  late final _InferrerEngineMetrics metrics =
-      _InferrerEngineMetrics(closedWorld.abstractValueDomain.metrics);
+  late final InferrerEngineMetrics metrics =
+      InferrerEngineMetrics(closedWorld.abstractValueDomain.metrics);
 
   final Set<MemberEntity> _analyzedElements = {};
 
@@ -90,7 +90,7 @@ class InferrerEngine {
   /// Note: Due to the encoding to track refine count for a given node this
   /// value must be less than 2^(64-N) where N is the number of values in the
   /// TypeInformation flags enum.
-  static const int _MAX_CHANGE_COUNT = 1000;
+  static const int _maxChangeCount = 1000;
 
   int _overallRefineCount = 0;
   int _addedInGraph = 0;
@@ -101,12 +101,12 @@ class InferrerEngine {
   final api.CompilerOutput _compilerOutput;
 
   final Set<ConstructorEntity> _generativeConstructorsExposingThis =
-      Set<ConstructorEntity>();
+      <ConstructorEntity>{};
 
   /// Data computed internally within elements, like the type-mask of a send a
   /// list allocation, or a for-in loop.
   final Map<MemberEntity, KernelGlobalTypeInferenceElementData> _memberData =
-      Map<MemberEntity, KernelGlobalTypeInferenceElementData>();
+      <MemberEntity, KernelGlobalTypeInferenceElementData>{};
 
   ElementEnvironment get _elementEnvironment => closedWorld.elementEnvironment;
 
@@ -128,17 +128,17 @@ class InferrerEngine {
       this.mainElement,
       this.globalLocalsMap,
       this.inferredDataBuilder)
-      : this.types = TypeSystem(closedWorld,
+      : types = TypeSystem(closedWorld,
             KernelTypeSystemStrategy(closedWorld, globalLocalsMap)),
         memberHierarchyBuilder = MemberHierarchyBuilder(closedWorld),
         // Ensure `_MAX_CHANGE_COUNT` conforms to TypeInformation flag encoding.
-        assert(_MAX_CHANGE_COUNT.bitLength <
-            64 - TypeInformation.numTypeInfoFlags);
+        assert(
+            _maxChangeCount.bitLength < 64 - TypeInformation.numTypeInfoFlags);
 
   /// Applies [f] to all elements in the universe that match [selector] and
   /// [mask]. If [f] returns false, aborts the iteration.
-  void forEachElementMatching(
-      Selector selector, AbstractValue? mask, bool f(MemberEntity element)) {
+  void forEachElementMatching(Selector selector, AbstractValue? mask,
+      bool Function(MemberEntity element) f) {
     final targets = memberHierarchyBuilder.rootsForCall(mask, selector);
     for (final target in targets) {
       memberHierarchyBuilder.forEachTargetMember(
@@ -189,7 +189,7 @@ class InferrerEngine {
     TypeInformation? returnType;
     for (var type in typesReturned) {
       TypeInformation? mappedType;
-      if (type == SpecialType.JsObject) {
+      if (type == SpecialType.jsObject) {
         mappedType = types.nonNullExact(commonElements.objectClass);
       } else if (type == commonElements.stringType) {
         mappedType = types.stringType;
@@ -353,32 +353,32 @@ class InferrerEngine {
 
     metrics.trace.measure(() {
       // Try to infer element types of lists and compute their escape information.
-      types.allocatedLists.values.forEach((ListTypeInformation info) {
+      for (var info in types.allocatedLists.values) {
         analyzeListAndEnqueue(info);
-      });
+      }
 
       // Try to infer element types of sets and compute their escape information.
-      types.allocatedSets.values.forEach((SetTypeInformation info) {
+      for (var info in types.allocatedSets.values) {
         analyzeSetAndEnqueue(info);
-      });
+      }
 
       // Try to infer the key and value types for maps and compute the values'
       // escape information.
-      types.allocatedMaps.values.forEach((MapTypeInformation info) {
+      for (var info in types.allocatedMaps.values) {
         analyzeMapAndEnqueue(info);
-      });
+      }
 
-      Set<FunctionEntity> bailedOutOn = Set<FunctionEntity>();
+      Set<FunctionEntity> bailedOutOn = <FunctionEntity>{};
 
       // Trace closures to potentially infer argument types.
-      types.allocatedClosures.forEach((dynamic info) {
+      for (var info in types.allocatedClosures) {
         void trace(
             Iterable<FunctionEntity> elements, ClosureTracerVisitor tracer) {
           tracer.run();
           if (!tracer.continueAnalyzing) {
-            elements.forEach((FunctionEntity element) {
+            for (var element in elements) {
               inferredDataBuilder.registerMightBePassedToApply(element);
-              if (debug.VERBOSE) {
+              if (debug.verbose) {
                 print("traced closure $element as ${true} (bail)");
               }
               types.strategy.forEachParameter(element, (Local parameter) {
@@ -386,7 +386,7 @@ class InferrerEngine {
                     .getInferredTypeOfParameter(parameter)
                     .giveUp(this, clearInputs: false);
               });
-            });
+            }
             bailedOutOn.addAll(elements);
             return;
           }
@@ -402,7 +402,7 @@ class InferrerEngine {
             if (tracer.tracedType.mightBePassedToFunctionApply) {
               inferredDataBuilder.registerMightBePassedToApply(element);
             }
-            if (debug.VERBOSE) {
+            if (debug.verbose) {
               print("traced closure $element as "
                   "${inferredDataBuilder.getCurrentlyKnownMightBePassedToApply(element)}");
             }
@@ -450,10 +450,10 @@ class InferrerEngine {
           trace(
               [member], StaticTearOffClosureTracerVisitor(member, info, this));
         } else if (info is ParameterTypeInformation) {
-          failedAt(NO_LOCATION_SPANNABLE,
-              'Unexpected closure allocation info $info');
+          failedAt(
+              noLocationSpannable, 'Unexpected closure allocation info $info');
         }
-      });
+      }
     });
 
     dump?.beforeTracing();
@@ -461,7 +461,7 @@ class InferrerEngine {
     // Reset all nodes that use lists/maps that have been inferred, as well
     // as nodes that use elements fetched from these lists/maps. The
     // workset for a new run of the analysis will be these nodes.
-    Set<TypeInformation> seenTypes = Set<TypeInformation>();
+    Set<TypeInformation> seenTypes = <TypeInformation>{};
     while (!_workQueue.isEmpty) {
       TypeInformation info = _workQueue.remove();
       if (seenTypes.contains(info)) continue;
@@ -478,27 +478,24 @@ class InferrerEngine {
     // marking targeted members as called.
     _processCalledTargets(shouldMarkCalled: true);
 
-    if (debug.PRINT_SUMMARY) {
+    if (debug.printSummary) {
       void printSorted(Iterable<String> toSort) {
         print(toSort.sorted((a, b) => a.compareTo(b)).join('\n'));
       }
 
-      printSorted(types.allocatedLists.values.map((_info) {
-        ListTypeInformation info = _info;
+      printSorted(types.allocatedLists.values.map((info) {
         return '${info.type} '
             'for ${abstractValueDomain.getAllocationNode(info.originalType)} '
             'at ${abstractValueDomain.getAllocationElement(info.originalType)}'
             'after ${info.refineCount}';
       }));
-      printSorted(types.allocatedSets.values.map((_info) {
-        SetTypeInformation info = _info;
+      printSorted(types.allocatedSets.values.map((info) {
         return ('${info.type} '
             'for ${abstractValueDomain.getAllocationNode(info.originalType)} '
             'at ${abstractValueDomain.getAllocationElement(info.originalType)} '
             'after ${info.refineCount}');
       }));
-      printSorted(types.allocatedMaps.values.map((_info) {
-        MapTypeInformation info = _info;
+      printSorted(types.allocatedMaps.values.map((info) {
         return '${info.type} '
             'for ${abstractValueDomain.getAllocationNode(info.originalType)} '
             'at ${abstractValueDomain.getAllocationElement(info.originalType)}'
@@ -519,10 +516,10 @@ class InferrerEngine {
           info.forEachConcreteTarget(memberHierarchyBuilder, (member) {
             if (member is FunctionEntity) {
               str += '${types.getInferredSignatureOfMethod(member)} '
-                  'for ${member}';
+                  'for $member';
             } else {
               str += '${types.getInferredTypeOfMember(member).type} '
-                  'for ${member}';
+                  'for $member';
             }
             return true;
           });
@@ -530,14 +527,14 @@ class InferrerEngine {
         } else if (info is StaticCallSiteTypeInformation) {
           final cls = info.calledElement.enclosingClass!;
           final callMethod = _lookupCallMethod(cls)!;
-          return '${types.getInferredSignatureOfMethod(callMethod)} for ${cls}';
+          return '${types.getInferredSignatureOfMethod(callMethod)} for $cls';
         } else {
           return '${info.type} for some unknown kind of closure';
         }
       }));
       printSorted(_analyzedElements.map((MemberEntity elem) {
         TypeInformation type = types.getInferredTypeOfMember(elem);
-        return '${elem} :: ${type} from ${type.inputs} ';
+        return '$elem :: $type from ${type.inputs} ';
       }));
     }
     dump?.afterAnalysis();
@@ -555,13 +552,13 @@ class InferrerEngine {
       ...closedWorld.processedMembers,
       ...closedWorld.liveAbstractInstanceMembers
     };
-    toProcess.forEach((MemberEntity member) {
+    for (var member in toProcess) {
       _progress.showProgress(
           'Added ', _addedInGraph, ' elements in inferencing graph.');
       // This also forces the creation of the [ElementTypeInformation] to ensure
       // it is in the graph.
       types.withMember(member, () => analyze(member));
-    });
+    }
     metrics.elementsInGraph.add(_addedInGraph);
     _reporter.log('Added $_addedInGraph elements in inferencing graph.');
     metrics.allTypesCount.add(types.allTypes.length);
@@ -755,11 +752,11 @@ class InferrerEngine {
   }
 
   void _processLoopInformation() {
-    types.allocatedCalls.forEach((CallSiteTypeInformation info) {
-      if (!info.inLoop) return;
+    for (var info in types.allocatedCalls) {
+      if (!info.inLoop) continue;
       // We can't compute the callees of closures, no new information to add.
       if (info is ClosureCallSiteTypeInformation) {
-        return;
+        continue;
       }
       if (info is StaticCallSiteTypeInformation) {
         MemberEntity member = info.calledElement;
@@ -777,7 +774,7 @@ class InferrerEngine {
           return true;
         });
       }
-    });
+    }
   }
 
   void _refine() {
@@ -803,9 +800,9 @@ class InferrerEngine {
       if ((info.type = newType) != oldType) {
         _overallRefineCount++;
         info.incrementRefineCount();
-        if (info.refineCount > _MAX_CHANGE_COUNT) {
+        if (info.refineCount > _maxChangeCount) {
           metrics.exceededMaxChangeCount.add();
-          if (debug.ANOMALY_WARN) {
+          if (debug.anomalyWarn) {
             print("ANOMALY WARNING: max refinement reached for $info");
           }
           info.giveUp(this);
@@ -873,7 +870,7 @@ class InferrerEngine {
         } else if (parameterIndex < localArguments.positional.length) {
           type = localArguments.positional[parameterIndex];
         }
-        if (type == null) type = getDefaultTypeOfParameter(parameter);
+        type ??= getDefaultTypeOfParameter(parameter);
         TypeInformation info =
             types.getInferredTypeOfParameter(parameter, isVirtual: virtualCall);
         if (remove) {
@@ -1463,7 +1460,7 @@ class InferrerEngine {
   }
 }
 
-class _InferrerEngineMetrics extends MetricsBase {
+class InferrerEngineMetrics extends MetricsBase {
   final time = DurationMetric('time');
   final analyze = DurationMetric('time.analyze');
   final memberHierarchy = DurationMetric('time.memberHierarchy');
@@ -1475,7 +1472,7 @@ class _InferrerEngineMetrics extends MetricsBase {
   final exceededMaxChangeCount = CountMetric('count.exceededMaxChange');
   final overallRefineCount = CountMetric('count.overallRefines');
 
-  _InferrerEngineMetrics(Metrics subMetrics) {
+  InferrerEngineMetrics(Metrics subMetrics) {
     primary = [time, ...subMetrics.primary];
     secondary = [
       analyze,
@@ -1521,7 +1518,8 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
       node == null || node is ir.TryCatch || node is ir.TryFinally;
 
   @override
-  void forEachParameter(FunctionEntity function, void f(Local parameter)) {
+  void forEachParameter(
+      FunctionEntity function, void Function(Local parameter) f) {
     forEachOrderedParameterAsLocal(
         _globalLocalsMap, _closedWorld.elementMap, function, (Local parameter,
             {required bool isElided}) {

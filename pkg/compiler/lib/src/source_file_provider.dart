@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library source_file_provider;
+library;
 
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../compiler_api.dart' as api;
@@ -49,7 +50,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
   api.Input<Uint8List> _sourceToFile(
       Uri resourceUri, Uint8List source, api.InputKind inputKind) {
     switch (inputKind) {
-      case api.InputKind.UTF8:
+      case api.InputKind.utf8:
         return Utf8BytesSourceFile(resourceUri, source);
       case api.InputKind.binary:
         return Binary(resourceUri, source);
@@ -110,7 +111,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
   /// returned.
   api.Input<Uint8List>? readUtf8FromFileSyncForTesting(Uri resourceUri) {
     try {
-      return _readFromFileSync(resourceUri, api.InputKind.UTF8);
+      return _readFromFileSync(resourceUri, api.InputKind.utf8);
     } catch (e) {
       // Silence the error. The [resourceUri] was not requested by the user and
       // was only needed to give better error messages.
@@ -137,10 +138,10 @@ abstract class SourceFileProvider implements api.CompilerInput {
 
     if (_byteCache.containsKey(resourceUri)) {
       return _sourceToFile(
-          resourceUri, _byteCache[resourceUri]!, api.InputKind.UTF8);
+          resourceUri, _byteCache[resourceUri]!, api.InputKind.utf8);
     }
     return resourceUri.isScheme('file')
-        ? _readFromFileSyncOrNull(resourceUri, api.InputKind.UTF8)
+        ? _readFromFileSyncOrNull(resourceUri, api.InputKind.utf8)
         : null;
   }
 
@@ -172,7 +173,7 @@ class CompilerSourceFileProvider extends SourceFileProvider {
 
   @override
   Future<api.Input<Uint8List>> readFromUri(Uri uri,
-          {api.InputKind inputKind = api.InputKind.UTF8}) =>
+          {api.InputKind inputKind = api.InputKind.utf8}) =>
       readBytesFromUri(uri, inputKind);
 }
 
@@ -185,7 +186,7 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
   bool enableColors = false;
   bool throwOnError = false;
   int throwOnErrorCount = 0;
-  api.Diagnostic? lastKind = null;
+  api.Diagnostic? lastKind;
   int fatalCount = 0;
 
   final int fatalCode =
@@ -272,7 +273,7 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
       color = (String x) => x;
     }
     if (uri == null) {
-      print('${color(message)}');
+      print(color(message));
     } else {
       api.Input<Uint8List>? file = provider.getUtf8SourceFile(uri);
       if (file is SourceFile && begin != null && end != null) {
@@ -494,7 +495,7 @@ class BazelInputProvider extends SourceFileProvider {
 
   @override
   Future<api.Input<Uint8List>> readFromUri(Uri uri,
-      {api.InputKind inputKind = api.InputKind.UTF8}) async {
+      {api.InputKind inputKind = api.InputKind.utf8}) async {
     var resolvedUri = uri;
     var path = uri.path;
     if (path.startsWith('/bazel-root')) {
@@ -539,7 +540,7 @@ class MultiRootInputProvider extends SourceFileProvider {
 
   @override
   Future<api.Input<Uint8List>> readFromUri(Uri uri,
-      {api.InputKind inputKind = api.InputKind.UTF8}) async {
+      {api.InputKind inputKind = api.InputKind.utf8}) async {
     var resolvedUri = uri;
     if (resolvedUri.isScheme(markerScheme)) {
       var path = resolvedUri.path;

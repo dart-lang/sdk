@@ -5,7 +5,7 @@
 /// Source information system mapping that attempts a semantic mapping between
 /// offsets of JavaScript code points to offsets of Dart code points.
 
-library dart2js.source_information.kernel;
+library;
 
 import 'package:kernel/ast.dart' as ir;
 import '../elements/entities.dart';
@@ -160,7 +160,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
       return PositionSourceInformation(
           _getSourceLocation(name, node),
           _getSourceLocation(name, functionNode, functionNode.fileEndOffset),
-          this.inliningContext);
+          inliningContext);
     }
     return _buildTreeNode(node);
   }
@@ -212,7 +212,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
       return PositionSourceInformation(
           _getSourceLocation(_name, functionNode, functionNode.fileEndOffset),
           null,
-          this.inliningContext);
+          inliningContext);
     }
     return _buildTreeNode(node);
   }

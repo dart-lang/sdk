@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.diagnostics.invariant;
+library;
 
 import 'spannable.dart';
 
@@ -17,7 +17,7 @@ bool debugMode = false;
 /// error message.
 void assertDebugMode(String message) {
   assert(debugMode,
-      failedAt(NO_LOCATION_SPANNABLE, 'Debug mode is not enabled: $message'));
+      failedAt(noLocationSpannable, 'Debug mode is not enabled: $message'));
 }
 
 /// Throws a [SpannableAssertionFailure].

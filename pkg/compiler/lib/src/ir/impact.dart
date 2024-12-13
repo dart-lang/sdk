@@ -199,8 +199,7 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
       this.registry, this.import, this.expression, this.staticTypeContext);
 
   static Never _unexpectedConstant(ir.Constant node) {
-    throw UnsupportedError(
-        "Unexpected constant ${node} (${node.runtimeType}).");
+    throw UnsupportedError("Unexpected constant $node (${node.runtimeType}).");
   }
 
   @override

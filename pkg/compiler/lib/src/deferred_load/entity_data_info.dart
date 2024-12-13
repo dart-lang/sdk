@@ -134,8 +134,8 @@ class EntityDataInfoBuilder {
     }
 
     switch (staticUse.kind) {
-      case StaticUseKind.CONSTRUCTOR_INVOKE:
-      case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+      case StaticUseKind.constructorInvoke:
+      case StaticUseKind.constConstructorInvoke:
         // The receiver type of generative constructors is a entityData of
         // the constructor (handled by `addMember` above) and not a
         // entityData at the call site.
@@ -146,34 +146,34 @@ class EntityDataInfoBuilder {
         addTypeListDependencies(staticUse.type!.typeArguments);
         processEntity();
         break;
-      case StaticUseKind.STATIC_INVOKE:
-      case StaticUseKind.CLOSURE_CALL:
-      case StaticUseKind.DIRECT_INVOKE:
+      case StaticUseKind.staticInvoke:
+      case StaticUseKind.closureCall:
+      case StaticUseKind.directInvoke:
         // TODO(johnniwinther): Use rti need data to skip unneeded type
         // arguments.
         addTypeListDependencies(staticUse.typeArguments);
         processEntity();
         break;
-      case StaticUseKind.STATIC_TEAR_OFF:
-      case StaticUseKind.CLOSURE:
-      case StaticUseKind.STATIC_GET:
-      case StaticUseKind.STATIC_SET:
-      case StaticUseKind.WEAK_STATIC_TEAR_OFF:
+      case StaticUseKind.staticTearOff:
+      case StaticUseKind.closure:
+      case StaticUseKind.staticGet:
+      case StaticUseKind.staticSet:
+      case StaticUseKind.weakStaticTearOff:
         processEntity();
         break;
-      case StaticUseKind.SUPER_TEAR_OFF:
-      case StaticUseKind.SUPER_FIELD_SET:
-      case StaticUseKind.SUPER_GET:
-      case StaticUseKind.SUPER_SETTER_SET:
-      case StaticUseKind.SUPER_INVOKE:
-      case StaticUseKind.INSTANCE_FIELD_GET:
-      case StaticUseKind.INSTANCE_FIELD_SET:
-      case StaticUseKind.FIELD_INIT:
-      case StaticUseKind.FIELD_CONSTANT_INIT:
+      case StaticUseKind.superTearOff:
+      case StaticUseKind.superFieldSet:
+      case StaticUseKind.superGet:
+      case StaticUseKind.superSetterSet:
+      case StaticUseKind.superInvoke:
+      case StaticUseKind.instanceFieldGet:
+      case StaticUseKind.instanceFieldSet:
+      case StaticUseKind.fieldInit:
+      case StaticUseKind.fieldConstantInit:
         // These static uses are not relevant for this algorithm.
         break;
-      case StaticUseKind.CALL_METHOD:
-      case StaticUseKind.INLINING:
+      case StaticUseKind.callMethod:
+      case StaticUseKind.inlining:
         failedAt(parent!, "Unexpected static use: $staticUse.");
     }
   }
@@ -188,49 +188,49 @@ class EntityDataInfoBuilder {
 
     DartType type = typeUse.type;
     switch (typeUse.kind) {
-      case TypeUseKind.TYPE_LITERAL:
+      case TypeUseKind.typeLiteral:
         addTypeDependencies(type, typeUse.deferredImport);
         break;
-      case TypeUseKind.CONST_INSTANTIATION:
+      case TypeUseKind.constInstantiation:
         addClassIfInterfaceType(type, typeUse.deferredImport);
         addTypeDependencies(type, typeUse.deferredImport);
         break;
-      case TypeUseKind.INSTANTIATION:
-      case TypeUseKind.NATIVE_INSTANTIATION:
-      case TypeUseKind.RECORD_INSTANTIATION:
+      case TypeUseKind.instantiation:
+      case TypeUseKind.nativeInstantiation:
+      case TypeUseKind.recordInstantiation:
         addClassIfInterfaceType(type);
         addTypeDependencies(type);
         break;
-      case TypeUseKind.IS_CHECK:
-      case TypeUseKind.CATCH_TYPE:
+      case TypeUseKind.isCheck:
+      case TypeUseKind.catchType:
         addTypeDependencies(type);
         break;
-      case TypeUseKind.AS_CAST:
+      case TypeUseKind.asCast:
         if (closedWorld.annotationsData
             .getExplicitCastCheckPolicy(parent)
             .isEmitted) {
           addTypeDependencies(type);
         }
         break;
-      case TypeUseKind.IMPLICIT_CAST:
+      case TypeUseKind.implicitCast:
         if (closedWorld.annotationsData
             .getImplicitDowncastCheckPolicy(parent)
             .isEmitted) {
           addTypeDependencies(type);
         }
         break;
-      case TypeUseKind.PARAMETER_CHECK:
-      case TypeUseKind.TYPE_VARIABLE_BOUND_CHECK:
+      case TypeUseKind.parameterCheck:
+      case TypeUseKind.typeVariableBoundCheck:
         if (closedWorld.annotationsData
             .getParameterCheckPolicy(parent)
             .isEmitted) {
           addTypeDependencies(type);
         }
         break;
-      case TypeUseKind.RTI_VALUE:
-      case TypeUseKind.TYPE_ARGUMENT:
-      case TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI:
-      case TypeUseKind.CONSTRUCTOR_REFERENCE:
+      case TypeUseKind.rtiValue:
+      case TypeUseKind.typeArgument:
+      case TypeUseKind.namedTypeVariableNewRti:
+      case TypeUseKind.constructorReference:
         failedAt(parent!, "Unexpected type use: $typeUse.");
     }
   }
@@ -480,7 +480,9 @@ class ConstantCollector extends ir.RecursiveVisitor {
     }
 
     if (node is ir.Constructor) {
-      node.initializers.forEach((i) => i.accept(visitor));
+      for (var i in node.initializers) {
+        i.accept(visitor);
+      }
     }
     node.function?.accept(visitor);
   }
@@ -495,56 +497,56 @@ class ConstantCollector extends ir.RecursiveVisitor {
   }
 
   @override
-  void visitIntLiteral(ir.IntLiteral literal) {}
+  void visitIntLiteral(ir.IntLiteral node) {}
 
   @override
-  void visitDoubleLiteral(ir.DoubleLiteral literal) {}
+  void visitDoubleLiteral(ir.DoubleLiteral node) {}
 
   @override
-  void visitBoolLiteral(ir.BoolLiteral literal) {}
+  void visitBoolLiteral(ir.BoolLiteral node) {}
 
   @override
-  void visitStringLiteral(ir.StringLiteral literal) {}
+  void visitStringLiteral(ir.StringLiteral node) {}
 
   @override
-  void visitSymbolLiteral(ir.SymbolLiteral literal) => add(literal);
+  void visitSymbolLiteral(ir.SymbolLiteral node) => add(node);
 
   @override
-  void visitNullLiteral(ir.NullLiteral literal) {}
+  void visitNullLiteral(ir.NullLiteral node) {}
 
   @override
-  void visitListLiteral(ir.ListLiteral literal) {
-    if (literal.isConst) {
-      add(literal);
+  void visitListLiteral(ir.ListLiteral node) {
+    if (node.isConst) {
+      add(node);
     } else {
-      super.visitListLiteral(literal);
+      super.visitListLiteral(node);
     }
   }
 
   @override
-  void visitSetLiteral(ir.SetLiteral literal) {
-    if (literal.isConst) {
-      add(literal);
+  void visitSetLiteral(ir.SetLiteral node) {
+    if (node.isConst) {
+      add(node);
     } else {
-      super.visitSetLiteral(literal);
+      super.visitSetLiteral(node);
     }
   }
 
   @override
-  void visitMapLiteral(ir.MapLiteral literal) {
-    if (literal.isConst) {
-      add(literal);
+  void visitMapLiteral(ir.MapLiteral node) {
+    if (node.isConst) {
+      add(node);
     } else {
-      super.visitMapLiteral(literal);
+      super.visitMapLiteral(node);
     }
   }
 
   @override
-  void visitRecordLiteral(ir.RecordLiteral literal) {
-    if (literal.isConst) {
-      add(literal);
+  void visitRecordLiteral(ir.RecordLiteral node) {
+    if (node.isConst) {
+      add(node);
     } else {
-      super.visitRecordLiteral(literal);
+      super.visitRecordLiteral(node);
     }
   }
 

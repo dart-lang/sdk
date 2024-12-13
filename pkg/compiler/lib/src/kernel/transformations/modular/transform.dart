@@ -32,12 +32,12 @@ class _ModularTransformer extends Transformer {
   Member? _currentMember;
 
   _ModularTransformer(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, CompilerOptions? _options)
+      CoreTypes coreTypes, ClassHierarchy hierarchy, CompilerOptions? options)
       : factorySpecializer = FactorySpecializer(coreTypes, hierarchy),
-        _lateLowering = LateLowering(coreTypes, _options),
+        _lateLowering = LateLowering(coreTypes, options),
         _awaitLowering = AwaitLowering(coreTypes),
         _asyncLowering =
-            (_options?.features.simpleAsyncToFuture.isEnabled ?? false)
+            (options?.features.simpleAsyncToFuture.isEnabled ?? false)
                 ? AsyncLowering(coreTypes)
                 : null;
 

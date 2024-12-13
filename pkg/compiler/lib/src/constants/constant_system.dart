@@ -4,7 +4,7 @@
 
 /// Constant system following the semantics for Dart code that has been
 /// compiled to JavaScript.
-library dart2js.constant_system;
+library;
 
 import '../common/elements.dart' show CommonElements;
 import '../elements/entities.dart';
@@ -173,7 +173,7 @@ MapConstantValue createMap(
 JavaScriptObjectConstantValue? _makeStringIndex(List<ConstantValue> keys) {
   for (final key in keys) {
     if (key is! StringConstantValue) return null;
-    if (key.stringValue == JavaScriptMapConstant.PROTO_PROPERTY) return null;
+    if (key.stringValue == JavaScriptMapConstant.protoProperty) return null;
   }
 
   // If we generate a JavaScript Object initializer with the keys in order, are
@@ -277,7 +277,7 @@ class NegateOperation implements UnaryOperation {
 
   @override
   NumConstantValue? fold(ConstantValue constant) {
-    NumConstantValue? _fold(ConstantValue constant) {
+    NumConstantValue? fold(ConstantValue constant) {
       if (constant is IntConstantValue) {
         return createInt(-constant.intValue);
       }
@@ -292,7 +292,7 @@ class NegateOperation implements UnaryOperation {
         return createDouble(-0.0);
       }
     }
-    return _fold(constant);
+    return fold(constant);
   }
 }
 
@@ -317,7 +317,7 @@ abstract class BinaryBitOperation implements BinaryOperation {
 
   @override
   IntConstantValue? fold(ConstantValue left, ConstantValue right) {
-    IntConstantValue? _fold(ConstantValue left, ConstantValue right) {
+    IntConstantValue? fold(ConstantValue left, ConstantValue right) {
       if (left is IntConstantValue && right is IntConstantValue) {
         BigInt? resultValue = foldInts(left.intValue, right.intValue);
         if (resultValue == null) return null;
@@ -333,7 +333,7 @@ abstract class BinaryBitOperation implements BinaryOperation {
     if (right.isMinusZero) {
       right = createInt(BigInt.zero);
     }
-    IntConstantValue? result = _fold(left, right);
+    IntConstantValue? result = fold(left, right);
     if (result != null) {
       // We convert the result of bit-operations to 32 bit unsigned integers.
       return _createInt32(result.intValue);
@@ -472,7 +472,7 @@ abstract class ArithmeticNumOperation implements BinaryOperation {
 
   @override
   NumConstantValue? fold(ConstantValue left, ConstantValue right) {
-    NumConstantValue? _fold(ConstantValue left, ConstantValue right) {
+    NumConstantValue? fold(ConstantValue left, ConstantValue right) {
       if (left is NumConstantValue && right is NumConstantValue) {
         Object? foldedValue;
         if (left is IntConstantValue && right is IntConstantValue) {
@@ -494,7 +494,7 @@ abstract class ArithmeticNumOperation implements BinaryOperation {
       return null;
     }
 
-    NumConstantValue? result = _fold(left, right);
+    NumConstantValue? result = fold(left, right);
     if (result == null) return result;
     return _convertToJavaScriptConstant(result);
   }
@@ -610,7 +610,7 @@ class AddOperation implements BinaryOperation {
 
   @override
   ConstantValue? fold(ConstantValue left, ConstantValue right) {
-    ConstantValue? _fold(ConstantValue left, ConstantValue right) {
+    ConstantValue? fold(ConstantValue left, ConstantValue right) {
       if (left is IntConstantValue && right is IntConstantValue) {
         BigInt result = left.intValue + right.intValue;
         return createInt(result);
@@ -625,7 +625,7 @@ class AddOperation implements BinaryOperation {
       }
     }
 
-    ConstantValue? result = _fold(left, right);
+    ConstantValue? result = fold(left, right);
     if (result is NumConstantValue) {
       return _convertToJavaScriptConstant(result);
     }
@@ -909,8 +909,8 @@ class UnfoldedUnaryOperation implements UnaryOperation {
 }
 
 class JavaScriptSetConstant extends SetConstantValue {
-  static const String DART_STRING_CLASS = "ConstantStringSet";
-  static const String DART_GENERAL_CLASS = "GeneralConstantSet";
+  static const String dartStringClass = "ConstantStringSet";
+  static const String dartGeneralClass = "GeneralConstantSet";
 
   /// Index for all-string Sets.
   final JavaScriptObjectConstantValue? indexObject;
@@ -930,22 +930,22 @@ class JavaScriptSetConstant extends SetConstantValue {
 }
 
 class JavaScriptMapConstant extends MapConstantValue {
-  /// The [PROTO_PROPERTY] must not be used as normal property in any JavaScript
+  /// The [protoProperty] must not be used as normal property in any JavaScript
   /// object. It would change the prototype chain.
-  static const String PROTO_PROPERTY = "__proto__";
+  static const String protoProperty = "__proto__";
 
   /// The dart class implementing constant map literals.
-  static const String DART_CLASS = "ConstantMap";
-  static const String DART_STRING_CLASS = "ConstantStringMap";
-  static const String DART_GENERAL_CLASS = "GeneralConstantMap";
+  static const String dartClass = "ConstantMap";
+  static const String dartStringClass = "ConstantStringMap";
+  static const String dartGeneralClass = "GeneralConstantMap";
 
-  static const String LENGTH_NAME = "_length";
-  static const String JS_OBJECT_NAME = "_jsObject";
-  static const String KEYS_NAME = "_keys";
-  static const String JS_DATA_NAME = "_jsData";
+  static const String lengthName = "_length";
+  static const String jsObjectName = "_jsObject";
+  static const String keysName = "_keys";
+  static const String jsDataName = "_jsData";
 
-  static const String JS_INDEX_NAME = '_jsIndex';
-  static const String VALUES_NAME = '_values';
+  static const String jsIndexName = '_jsIndex';
+  static const String valuesName = '_values';
 
   final ListConstantValue keyList;
   final ListConstantValue valueList;

@@ -59,7 +59,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
   /// mutated or not.
   final Set<
           ir.Node /* ir.VariableDeclaration | TypeParameterTypeWithContext */ >
-      _capturedVariables = Set<ir.Node>();
+      _capturedVariables = <ir.Node>{};
 
   /// If true, the visitor is currently traversing some nodes that are inside a
   /// try block.
@@ -184,7 +184,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
   /// this node if any variables are captured.
   void attachCapturedScopeVariables(ir.TreeNode node) {
     Set<ir.VariableDeclaration> capturedVariablesForScope =
-        Set<ir.VariableDeclaration>();
+        <ir.VariableDeclaration>{};
 
     for (ir.Node variable in _scopeVariables) {
       // No need to box non-assignable elements.
@@ -247,7 +247,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
 
   /// Perform book-keeping with the current set of local variables that have
   /// been seen thus far before entering this new scope.
-  void enterNewScope(ir.TreeNode node, void visitNewScope()) {
+  void enterNewScope(ir.TreeNode node, void Function() visitNewScope) {
     List<ir.Node> oldScopeVariables = _scopeVariables;
     _scopeVariables = <ir.Node>[];
     visitNewScope();
@@ -342,8 +342,8 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
         _currentScopeInfo.freeVariables.add(variable);
       } else {
         _currentScopeInfo.freeVariablesForRti
-            .putIfAbsent(variable as TypeVariableTypeWithContext,
-                () => Set<VariableUse>())
+            .putIfAbsent(
+                variable as TypeVariableTypeWithContext, () => <VariableUse>{})
             .add(usage);
       }
     }
@@ -353,7 +353,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
   }
 
   @override
-  EvaluationComplexity visitThisExpression(ir.ThisExpression thisExpression) {
+  EvaluationComplexity visitThisExpression(ir.ThisExpression node) {
     if (_hasThisLocal) {
       _registerNeedsThis(SimpleVariableUse.explicit);
     }
@@ -361,15 +361,15 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
   }
 
   @override
-  EvaluationComplexity visitTypeParameter(ir.TypeParameter typeParameter) {
+  EvaluationComplexity visitTypeParameter(ir.TypeParameter node) {
     TypeVariableTypeWithContext typeVariable(ir.Library library) =>
         TypeVariableTypeWithContext(
             ir.TypeParameterType.withDefaultNullabilityForLibrary(
-                typeParameter, library),
+                node, library),
             // If this typeParameter is part of a function type then its
             // declaration is null because it has no context. Just pass in null
             // for the context in that case.
-            typeParameter.declaration);
+            node.declaration);
 
     ir.TreeNode? context = _executableContext;
     if (_isInsideClosure && context is ir.Procedure && context.isFactory) {
@@ -395,17 +395,16 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
       }
     }
 
-    visitNode(typeParameter.bound);
+    visitNode(node.bound);
 
     return const EvaluationComplexity.constant();
   }
 
   @override
-  EvaluationComplexity visitStructuralParameter(
-      ir.StructuralParameter typeParameter) {
+  EvaluationComplexity visitStructuralParameter(ir.StructuralParameter node) {
     // Visit the default type to register any necessary type parameters that RTI
     // might need if the associated function is used as a generic tear off.
-    visitNode(typeParameter.defaultType);
+    visitNode(node.defaultType);
     return const EvaluationComplexity.constant();
   }
 
@@ -562,7 +561,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
     return const EvaluationComplexity.lazy();
   }
 
-  void visitInvokable(ir.TreeNode node, void f()) {
+  void visitInvokable(ir.TreeNode node, void Function() f) {
     assert(node is ir.Member || node is ir.LocalFunction);
     bool oldIsInsideClosure = _isInsideClosure;
     ir.TreeNode? oldExecutableContext = _executableContext;
@@ -753,8 +752,8 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
   }
 
   @override
-  EvaluationComplexity visitExtensionType(ir.ExtensionType type) {
-    return visitNode(type.extensionTypeErasure);
+  EvaluationComplexity visitExtensionType(ir.ExtensionType node) {
+    return visitNode(node.extensionTypeErasure);
   }
 
   EvaluationComplexity visitInContext(ir.Node node, VariableUse use) {
@@ -1086,7 +1085,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
       assert(
           !(receiver is ir.VariableGet &&
               receiver.variable.parent is ir.LocalFunction),
-          "Unexpected local function invocation ${node} "
+          "Unexpected local function invocation $node "
           "(${node.runtimeType}).");
       final usage = InstanceTypeArgumentVariableUse(node);
       visitNodesInContext(node.arguments.types, usage);
@@ -1113,7 +1112,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
       assert(
           !(receiver is ir.VariableGet &&
               receiver.variable.parent is ir.LocalFunction),
-          "Unexpected local function invocation ${node} "
+          "Unexpected local function invocation $node "
           "(${node.runtimeType}).");
       final usage = InstanceTypeArgumentVariableUse(node);
       visitNodesInContext(node.arguments.types, usage);
@@ -1130,7 +1129,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
       assert(
           !(receiver is ir.VariableGet &&
               receiver.variable.parent is ir.LocalFunction),
-          "Unexpected local function invocation ${node} "
+          "Unexpected local function invocation $node "
           "(${node.runtimeType}).");
       final usage = InstanceTypeArgumentVariableUse(node);
       visitNodesInContext(node.arguments.types, usage);
@@ -1147,7 +1146,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
           !(node.receiver is ir.VariableGet &&
               ((node.receiver as ir.VariableGet).variable.parent
                   is ir.LocalFunction)),
-          "Unexpected local function invocation ${node} "
+          "Unexpected local function invocation $node "
           "(${node.runtimeType}).");
       final usage = InstanceTypeArgumentVariableUse(node);
       visitNodesInContext(node.arguments.types, usage);

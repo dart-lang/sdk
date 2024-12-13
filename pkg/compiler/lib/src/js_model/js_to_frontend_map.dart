@@ -115,25 +115,25 @@ class JsToFrontendMap {
   }
 
   Map<LibraryEntity, V> toBackendLibraryMap<V>(
-      Map<LibraryEntity, V> map, V convert(V value)) {
+      Map<LibraryEntity, V> map, V Function(V value) convert) {
     return convertMap(map, toBackendLibrary, convert);
   }
 
   Map<ClassEntity, V> toBackendClassMap<V>(
-      Map<ClassEntity, V> map, V convert(V value)) {
+      Map<ClassEntity, V> map, V Function(V value) convert) {
     return convertMap(map, toBackendClass, convert);
   }
 
   Map<MemberEntity, V2> toBackendMemberMap<V1, V2>(
-      Map<MemberEntity, V1> map, V2 convert(V1 value)) {
+      Map<MemberEntity, V1> map, V2 Function(V1 value) convert) {
     return convertMap(map, toBackendMember, convert);
   }
 }
 
 E identity<E>(E element) => element;
 
-Map<K, V2> convertMap<K, V1, V2>(
-    Map<K, V1> map, K? convertKey(K key), V2 convertValue(V1 value)) {
+Map<K, V2> convertMap<K, V1, V2>(Map<K, V1> map, K? Function(K key) convertKey,
+    V2 Function(V1 value) convertValue) {
   Map<K, V2> newMap = {};
   map.forEach((K key, V1 value) {
     K? newKey = convertKey(key);
@@ -251,7 +251,7 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
       return type;
     }
     if (result == null) {
-      throw failedAt(CURRENT_ELEMENT_SPANNABLE,
+      throw failedAt(currentElementSpannable,
           "Function type variable $type not found in $_functionTypeVariables");
     }
     return result;

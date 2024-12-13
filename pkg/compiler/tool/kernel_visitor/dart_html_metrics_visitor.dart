@@ -134,7 +134,7 @@ class MetricsVisitor extends RecursiveVisitor {
   // Passes through the aggregated data and processes,
   // adding child classes and overridden methods from parent.
   void _processData() {
-    classInfo.keys.forEach((className) {
+    for (var className in classInfo.keys) {
       var parentName = classInfo[className]!.parent;
       if (classInfo[parentName] != null) {
         classInfo[parentName]!.inheritedBy.add(className);
@@ -143,14 +143,14 @@ class MetricsVisitor extends RecursiveVisitor {
         var parentMethods = classInfo[parentName]!.methods.map((m) => m.name);
         var classMethods = classInfo[className]!.methods.map((m) => m.name);
 
-        parentMethods.forEach((method) {
+        for (var method in parentMethods) {
           if (!classMethods.contains(method)) notOverridden.add(method);
-        });
+        }
 
         // Update Method Info.
         classInfo[className]!.notOverriddenMethods = notOverridden;
       }
-    });
+    }
   }
 
   // Saves the data to file.
@@ -162,7 +162,7 @@ class MetricsVisitor extends RecursiveVisitor {
 
   // Converts the passed Map to a pretty print JSON string.
   String jsonFormat(Map<String, ClassMetrics> info) {
-    JsonEncoder encoder = new JsonEncoder.withIndent("  ");
+    JsonEncoder encoder = JsonEncoder.withIndent("  ");
     return encoder.convert(info);
   }
 }
@@ -187,11 +187,11 @@ class ClassMetrics {
       List<String>? notOverridden,
       List<String>? implementedTypes,
       List<String>? inheritedBy})
-      : this.methods = methods ?? [],
-        this.mixins = mixins ?? [],
-        this.notOverriddenMethods = notOverridden ?? [],
-        this.implementedTypes = implementedTypes ?? [],
-        this.inheritedBy = inheritedBy ?? [];
+      : methods = methods ?? [],
+        mixins = mixins ?? [],
+        notOverriddenMethods = notOverridden ?? [],
+        implementedTypes = implementedTypes ?? [],
+        inheritedBy = inheritedBy ?? [];
 
   bool get invokesSuper {
     if (methods.isNotEmpty) {

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.enqueue;
+library;
 
 import 'common/elements.dart' show ElementEnvironment;
 import 'common/tasks.dart' show CompilerTask;
@@ -74,7 +74,7 @@ abstract class EnqueuerListener {
   void onQueueClosed();
 
   /// Called after the queue has been emptied.
-  void logSummary(void log(String message));
+  void logSummary(void Function(String message) log);
 }
 
 abstract class Enqueuer {
@@ -91,7 +91,7 @@ abstract class Enqueuer {
 
   bool get queueIsEmpty;
 
-  void forEach(void f(WorkItem work));
+  void forEach(void Function(WorkItem work) f);
 
   /// Apply the [worldImpact] to this enqueuer.
   void applyImpact(WorldImpact worldImpact) {
@@ -108,7 +108,7 @@ abstract class Enqueuer {
 
   /// Check the enqueuer queue is empty or fail otherwise.
   void checkQueueIsEmpty();
-  void logSummary(void log(String message));
+  void logSummary(void Function(String message) log);
 
   Iterable<MemberEntity> get processedEntities;
 

@@ -723,7 +723,7 @@ class FragmentEmitter {
       'variances': emitVariances(fragment),
       'sharedTypeRtis': TypeReferenceResource(),
       'nativeSupport': emitNativeSupport(fragment),
-      'jsInteropSupport': jsInteropAnalysis.buildJsInteropBootstrap(
+      'jsInteropSupport': js_interop_analysis.buildJsInteropBootstrap(
               _codegenWorld, _closedWorld.nativeData, _namer) ??
           js.EmptyStatement(),
       'invokeMain': fragment.invokeMain,
@@ -822,11 +822,11 @@ class FragmentEmitter {
     // per output unit, the holderFinalizer is a whole-program finalizer,
     // which collects deferred [Node]s from each call to `finalizeCode`
     // before begin finalized once for the last (main) unit.
-    void _addCode(js.Node code) {
+    void addCode(js.Node code) {
       _holderFinalizer.addCode(resourceName, code);
     }
 
-    addCodeToFinalizer(_addCode, code, holderCode);
+    addCodeToFinalizer(addCode, code, holderCode);
     if (finalizeHolders) {
       _holderFinalizer.finalize();
     }
@@ -1033,7 +1033,7 @@ class FragmentEmitter {
       properties.add(js.Property(_namer.operatorIs(cls.element), js.number(1)));
     }
 
-    allMethods.forEach((Method method) {
+    for (var method in allMethods) {
       emitInstanceMethod(method)
           .forEach((js.Expression name, js.Expression code) {
         js.Property property = code is js.Fun
@@ -1042,7 +1042,7 @@ class FragmentEmitter {
         registerEntityAst(method.element, property);
         properties.add(property);
       });
-    });
+    }
 
     // Closures have metadata that is often the same. We avoid repeated metadata
     // by putting it on a shared superclass. It is overridden in the subclass if
@@ -1135,13 +1135,13 @@ class FragmentEmitter {
     // local caches of functions to allow minification of function name in call.
     LocalAliases locals = LocalAliases();
 
-    Set<Class> classesInFragment = Set();
+    Set<Class> classesInFragment = {};
     for (Library library in fragment.libraries) {
       classesInFragment.addAll(library.classes);
     }
 
     Map<Class?, List<Class>> subclasses = {};
-    Set<Class> seen = Set();
+    Set<Class> seen = {};
 
     void collect(Class? cls) {
       if (cls == null || seen.contains(cls)) return;
@@ -1385,7 +1385,7 @@ class FragmentEmitter {
           js.Statement finish(int arity) {
             // Short form for exactly 0/1/2 arguments.
             var install =
-                locals.find('_static_${arity}', 'hunkHelpers._static_${arity}');
+                locals.find('_static_$arity', 'hunkHelpers._static_$arity');
             return js.js.statement('''
                 #install(#container, #getterName, #name, #funType)''', {
               "install": install,
@@ -1429,8 +1429,8 @@ class FragmentEmitter {
           js.Statement finish(int arity) {
             // Short form for exactly 0/1/2 arguments.
             String isInterceptedTag = isIntercepted ? 'i' : 'u';
-            var install = locals.find('_instance_${arity}_${isInterceptedTag}',
-                'hunkHelpers._instance_${arity}${isInterceptedTag}');
+            var install = locals.find('_instance_${arity}_$isInterceptedTag',
+                'hunkHelpers._instance_$arity$isInterceptedTag');
             return js.js.statement('''
                 #install(#container, #getterName, #name, #funType)''', {
               "install": install,
@@ -1902,7 +1902,7 @@ class FragmentEmitter {
     Map<ClassEntity, int> erasedTypes = {};
     Iterable<ClassTypeData> classTypeData =
         fragment.libraries.expand((Library library) => library.classTypeData);
-    classTypeData.forEach((ClassTypeData typeData) {
+    for (var typeData in classTypeData) {
       ClassEntity element = typeData.element;
       InterfaceType targetType = _elementEnvironment.getThisType(element);
 
@@ -1940,7 +1940,7 @@ class FragmentEmitter {
         }
         ruleset.addEntry(targetType, supertypes, typeVariables);
       }
-    });
+    }
 
     // We add native redirections only to the main fragment in order to avoid
     // duplicating them in multiple deferred units.
@@ -1983,7 +1983,7 @@ class FragmentEmitter {
     Map<ClassEntity, List<Variance>> typeParameterVariances = {};
     Iterable<Class> classes =
         fragment.libraries.expand((Library library) => library.classes);
-    classes.forEach((Class cls) {
+    for (var cls in classes) {
       ClassEntity element = cls.element;
       List<Variance> classVariances =
           _elementEnvironment.getTypeVariableVariances(element);
@@ -1995,7 +1995,7 @@ class FragmentEmitter {
       if (!hasOnlyLegacyVariance) {
         typeParameterVariances[element] = classVariances;
       }
-    });
+    }
 
     if (typeParameterVariances.isNotEmpty) {
       FunctionEntity addVariances =
@@ -2134,7 +2134,7 @@ class DeferredPrimaryExpression extends js.DeferredExpression {
   ///
   /// Ensure this is called exactly once before calling the [value] getter.
   void setValue(js.Expression value) {
-    assert(value.precedenceLevel == this.precedenceLevel);
+    assert(value.precedenceLevel == precedenceLevel);
     _value = value;
   }
 

@@ -12,36 +12,36 @@
 /// message. For example, consider duplicated elements. First report a WARNING
 /// or ERROR about the duplicated element, and then report an INFO about the
 /// location of the existing element.
-library dart2js.messages;
+library;
 
 import '../commandline_options.dart';
 import '../options.dart';
 import 'invariant.dart' show failedAt;
-import 'spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
+import 'spannable.dart' show currentElementSpannable;
 
 /// Keys for the [MessageTemplate]s.
 enum MessageKind {
-  COMPILER_CRASHED,
-  COMPLEX_RETURNING_NSM,
-  COMPLEX_THROWING_NSM,
-  DIRECTLY_THROWING_NSM,
-  GENERIC,
-  HIDDEN_HINTS,
-  HIDDEN_WARNINGS,
-  HIDDEN_WARNINGS_HINTS,
-  INVALID_METADATA,
-  INVALID_METADATA_GENERIC,
-  JS_PLACEHOLDER_CAPTURE,
-  NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS,
-  NON_NATIVE_EXTERNAL,
-  PLEASE_REPORT_THE_CRASH,
-  PREAMBLE,
-  RUNTIME_TYPE_TO_STRING,
-  STRING_EXPECTED,
-  WRONG_ARGUMENT_FOR_JS,
-  WRONG_ARGUMENT_FOR_JS_FIRST,
-  WRONG_ARGUMENT_FOR_JS_SECOND,
-  WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT,
+  compilerCrashed,
+  complexReturningNsm,
+  complexThrowingNsm,
+  directlyThrowingNsm,
+  generic,
+  hiddenHints,
+  hiddenWarnings,
+  hiddenWarningsHints,
+  invalidMetadata,
+  invalidMetadataGeneric,
+  jsPlaceholderCapture,
+  nativeNonInstanceInNonNativeClass,
+  nonNativeExternal,
+  pleaseReportTheCrash,
+  preamble,
+  runtimeTypeToString,
+  stringExpected,
+  wrongArgumentForJS,
+  wrongArgumentForJSFirst,
+  wrongArgumentForJSSecond,
+  wrongArgumentForJSInterceptorConstant,
 }
 
 /// A message template for an error, warning, hint or info message generated
@@ -74,38 +74,38 @@ class MessageTemplate {
   ///
   /// The map is complete mapping from [MessageKind] to their corresponding
   /// [MessageTemplate].
-  static const Map<MessageKind, MessageTemplate> TEMPLATES = {
+  static const Map<MessageKind, MessageTemplate> templates = {
     /// Do not use this. It is here for legacy and debugging. It violates item
     /// 4 of the guide lines for error messages in the beginning of the file.
-    MessageKind.GENERIC: MessageTemplate(MessageKind.GENERIC, '#{text}'),
+    MessageKind.generic: MessageTemplate(MessageKind.generic, '#{text}'),
 
-    MessageKind.STRING_EXPECTED: MessageTemplate(MessageKind.STRING_EXPECTED,
+    MessageKind.stringExpected: MessageTemplate(MessageKind.stringExpected,
         "Expected a 'String', but got an instance of '#{type}'."),
 
-    MessageKind.JS_PLACEHOLDER_CAPTURE: MessageTemplate(
-        MessageKind.JS_PLACEHOLDER_CAPTURE,
+    MessageKind.jsPlaceholderCapture: MessageTemplate(
+        MessageKind.jsPlaceholderCapture,
         "JS code must not use '#' placeholders inside functions.",
         howToFix: "Use an immediately called JavaScript function to capture the"
             " the placeholder values as JavaScript function parameters."),
 
-    MessageKind.WRONG_ARGUMENT_FOR_JS: MessageTemplate(
-        MessageKind.WRONG_ARGUMENT_FOR_JS,
+    MessageKind.wrongArgumentForJS: MessageTemplate(
+        MessageKind.wrongArgumentForJS,
         "JS expression must take two or more arguments."),
 
-    MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST: MessageTemplate(
-        MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST,
+    MessageKind.wrongArgumentForJSFirst: MessageTemplate(
+        MessageKind.wrongArgumentForJSFirst,
         "JS expression must take two or more arguments."),
 
-    MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND: MessageTemplate(
-        MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND,
+    MessageKind.wrongArgumentForJSSecond: MessageTemplate(
+        MessageKind.wrongArgumentForJSSecond,
         "JS second argument must be a string literal."),
 
-    MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT: MessageTemplate(
-        MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT,
+    MessageKind.wrongArgumentForJSInterceptorConstant: MessageTemplate(
+        MessageKind.wrongArgumentForJSInterceptorConstant,
         "Argument for 'JS_INTERCEPTOR_CONSTANT' must be a type constant."),
 
-    MessageKind.INVALID_METADATA: MessageTemplate(
-        MessageKind.INVALID_METADATA,
+    MessageKind.invalidMetadata: MessageTemplate(
+        MessageKind.invalidMetadata,
         "A metadata annotation must be either a reference to a compile-time "
         "constant variable or a call to a constant constructor.",
         howToFix:
@@ -113,8 +113,8 @@ class MessageTemplate {
             "constant variable.",
         examples: ['@Object main() {}', '@print main() {}']),
 
-    MessageKind.INVALID_METADATA_GENERIC: MessageTemplate(
-        MessageKind.INVALID_METADATA_GENERIC,
+    MessageKind.invalidMetadataGeneric: MessageTemplate(
+        MessageKind.invalidMetadataGeneric,
         "A metadata annotation using a constant constructor cannot use type "
         "arguments.",
         howToFix: "Try removing the type arguments or referencing the constant "
@@ -128,11 +128,11 @@ class C<T> {
 '''
         ]),
 
-    MessageKind.COMPILER_CRASHED: MessageTemplate(MessageKind.COMPILER_CRASHED,
+    MessageKind.compilerCrashed: MessageTemplate(MessageKind.compilerCrashed,
         "The compiler crashed when compiling this element."),
 
-    MessageKind.PLEASE_REPORT_THE_CRASH:
-        MessageTemplate(MessageKind.PLEASE_REPORT_THE_CRASH, '''
+    MessageKind.pleaseReportTheCrash:
+        MessageTemplate(MessageKind.pleaseReportTheCrash, '''
 The compiler is broken.
 
 When compiling the above element, the compiler crashed. It is not
@@ -152,46 +152,46 @@ Please include the following information:
   below as well as the source location above).
 '''),
 
-    MessageKind.HIDDEN_WARNINGS_HINTS: MessageTemplate(
-        MessageKind.HIDDEN_WARNINGS_HINTS,
+    MessageKind.hiddenWarningsHints: MessageTemplate(
+        MessageKind.hiddenWarningsHints,
         "#{warnings} warning(s) and #{hints} hint(s) suppressed in #{uri}."),
 
-    MessageKind.HIDDEN_WARNINGS: MessageTemplate(MessageKind.HIDDEN_WARNINGS,
+    MessageKind.hiddenWarnings: MessageTemplate(MessageKind.hiddenWarnings,
         "#{warnings} warning(s) suppressed in #{uri}."),
 
-    MessageKind.HIDDEN_HINTS: MessageTemplate(
-        MessageKind.HIDDEN_HINTS, "#{hints} hint(s) suppressed in #{uri}."),
+    MessageKind.hiddenHints: MessageTemplate(
+        MessageKind.hiddenHints, "#{hints} hint(s) suppressed in #{uri}."),
 
-    MessageKind.PREAMBLE: MessageTemplate(
-        MessageKind.PREAMBLE,
+    MessageKind.preamble: MessageTemplate(
+        MessageKind.preamble,
         "When run on the command-line, the compiled output might"
         " require a preamble file located in:\n"
         "  <sdk>/lib/_internal/js_runtime/lib/preambles."),
 
-    MessageKind.DIRECTLY_THROWING_NSM: MessageTemplate(
-        MessageKind.DIRECTLY_THROWING_NSM,
+    MessageKind.directlyThrowingNsm: MessageTemplate(
+        MessageKind.directlyThrowingNsm,
         "This 'noSuchMethod' implementation is guaranteed to throw an "
         "exception. The generated code will be smaller if it is "
         "rewritten.",
         howToFix: "Rewrite to "
             "'noSuchMethod(Invocation i) => super.noSuchMethod(i);'."),
 
-    MessageKind.COMPLEX_THROWING_NSM: MessageTemplate(
-        MessageKind.COMPLEX_THROWING_NSM,
+    MessageKind.complexThrowingNsm: MessageTemplate(
+        MessageKind.complexThrowingNsm,
         "This 'noSuchMethod' implementation is guaranteed to throw an "
         "exception. The generated code will be smaller and the compiler "
         "will be able to perform more optimizations if it is rewritten.",
         howToFix: "Rewrite to "
             "'noSuchMethod(Invocation i) => super.noSuchMethod(i);'."),
 
-    MessageKind.COMPLEX_RETURNING_NSM: MessageTemplate(
-        MessageKind.COMPLEX_RETURNING_NSM,
+    MessageKind.complexReturningNsm: MessageTemplate(
+        MessageKind.complexReturningNsm,
         "Overriding 'noSuchMethod' causes the compiler to generate "
         "more code and prevents the compiler from doing some optimizations.",
         howToFix: "Consider removing this 'noSuchMethod' implementation."),
 
-    MessageKind.RUNTIME_TYPE_TO_STRING: MessageTemplate(
-        MessageKind.RUNTIME_TYPE_TO_STRING,
+    MessageKind.runtimeTypeToString: MessageTemplate(
+        MessageKind.runtimeTypeToString,
         "Using '.runtimeType.toString()' causes the compiler to generate "
         "more code because it needs to preserve type arguments on "
         "generic classes, even if they are not necessary elsewhere.",
@@ -199,14 +199,14 @@ Please include the following information:
             "${Flags.laxRuntimeTypeToString} to reduce the code size "
             "impact."),
 
-    MessageKind.NON_NATIVE_EXTERNAL: MessageTemplate(
-        MessageKind.NON_NATIVE_EXTERNAL,
+    MessageKind.nonNativeExternal: MessageTemplate(
+        MessageKind.nonNativeExternal,
         "Non-native external members must be js-interop.",
         howToFix: "Try removing the 'external' keyword, making it 'native', or "
             "annotating the function as a js-interop function."),
 
-    MessageKind.NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS: MessageTemplate(
-        MessageKind.NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS,
+    MessageKind.nativeNonInstanceInNonNativeClass: MessageTemplate(
+        MessageKind.nativeNonInstanceInNonNativeClass,
         "Native non-instance members are only allowed in native classes."),
   }; // End of TEMPLATES.
 
@@ -242,8 +242,8 @@ class Message {
       message = message.replaceAll('#{$key}', value);
     });
     assert(
-        kind == MessageKind.GENERIC || !message.contains(RegExp(r'#\{.+\}')),
-        failedAt(CURRENT_ELEMENT_SPANNABLE,
+        kind == MessageKind.generic || !message.contains(RegExp(r'#\{.+\}')),
+        failedAt(currentElementSpannable,
             'Missing arguments in error message: "$message"'));
     if (!terse && template.hasHowToFix) {
       String howToFix = template.howToFix!;

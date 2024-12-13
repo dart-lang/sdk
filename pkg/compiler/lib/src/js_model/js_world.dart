@@ -4,6 +4,7 @@
 
 import 'package:collection/collection.dart' show mergeSort;
 import 'package:kernel/ast.dart' as ir;
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../closure.dart';
@@ -56,7 +57,7 @@ class JClosedWorld implements World {
   final Map<ClassEntity, Set<ClassEntity>> mixinUses;
 
   late final Map<ClassEntity, List<ClassEntity>> _liveMixinUses = () {
-    final result = Map<ClassEntity, List<ClassEntity>>();
+    final result = <ClassEntity, List<ClassEntity>>{};
     for (ClassEntity mixin in mixinUses.keys) {
       List<ClassEntity> uses = <ClassEntity>[];
 
@@ -385,22 +386,22 @@ class JClosedWorld implements World {
         if (_hasConcreteMatch(subclass, selector,
             stopAtSuperclass: rootClass)) {
           // Found a match - skip all subclasses.
-          return IterationStep.SKIP_SUBCLASSES;
+          return IterationStep.skipSubclasses;
         } else {
           // Stop fast - we found a need for noSuchMethod handling.
-          return IterationStep.STOP;
+          return IterationStep.stop;
         }
       }, ClassHierarchyNode.explicitlyInstantiated, strict: true);
       // We stopped fast so we need noSuchMethod handling.
-      return result == IterationStep.STOP;
+      return result == IterationStep.stop;
     }
 
     ClassSet classSet = classHierarchy.getClassSet(base);
     ClassHierarchyNode node = classSet.node;
-    if (query == ClassQuery.EXACT) {
+    if (query == ClassQuery.exact) {
       return node.isExplicitlyInstantiated &&
           !_hasConcreteMatch(base, selector);
-    } else if (query == ClassQuery.SUBCLASS) {
+    } else if (query == ClassQuery.subclass) {
       return subclassesNeedNoSuchMethod(node);
     } else {
       if (subclassesNeedNoSuchMethod(node)) return true;

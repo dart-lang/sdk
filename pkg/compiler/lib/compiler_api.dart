@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library compiler;
+library;
 
 import 'dart:async';
 import 'dart:typed_data';
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import 'src/compiler.dart';
@@ -58,7 +59,7 @@ enum Diagnostic {
 
   /// An [int] representation of this kind. The ordinals are designed
   /// to be used as bitsets.
-  int get ordinal => 2 << this.index;
+  int get ordinal => 2 << index;
 
   /// The name of this kind.
   final String name;
@@ -76,7 +77,7 @@ enum Diagnostic {
 enum InputKind {
   /// Data is read as UTF8 either as a [String] or a zero-terminated
   /// `List<int>`.
-  UTF8,
+  utf8,
 
   /// Data is read as bytes in a `List<int>`.
   binary,
@@ -109,7 +110,7 @@ abstract class CompilerInput {
   /// `InputKind.binary` the resulting list is the raw bytes from the input
   /// source.
   Future<Input<Uint8List>> readFromUri(Uri uri,
-      {InputKind inputKind = InputKind.UTF8});
+      {InputKind inputKind = InputKind.utf8});
 
   /// Register that [uri] should be an `InputKind.UTF8` input with the
   /// given [source] of contents.

@@ -267,21 +267,21 @@ class Collector {
   }
 
   void computeNeededLibraries() {
-    _generatedCode.keys.forEach((MemberEntity element) {
+    for (var element in _generatedCode.keys) {
       OutputUnit unit = _outputUnitData.outputUnitForMember(element);
       LibraryEntity library = element.library;
       outputLibraryLists.putIfAbsent(unit, () => {}).add(library);
-    });
-    neededClasses.forEach((ClassEntity element) {
+    }
+    for (var element in neededClasses) {
       OutputUnit unit = _outputUnitData.outputUnitForClass(element);
       LibraryEntity library = element.library;
       outputLibraryLists.putIfAbsent(unit, () => {}).add(library);
-    });
-    neededClassTypes.forEach((ClassEntity element) {
+    }
+    for (var element in neededClassTypes) {
       OutputUnit unit = _outputUnitData.outputUnitForClassType(element);
       LibraryEntity library = element.library;
       outputLibraryLists.putIfAbsent(unit, () => {}).add(library);
-    });
+    }
   }
 
   void collect() {

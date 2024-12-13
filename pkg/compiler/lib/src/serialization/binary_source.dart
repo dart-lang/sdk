@@ -78,7 +78,7 @@ class BinaryDataSource implements DataSource {
   }
 
   @override
-  E readAtOffset<E>(int offset, E reader()) {
+  E readAtOffset<E>(int offset, E Function() reader) {
     final offsetBefore = _byteOffset;
     _byteOffset = offset;
     final value = reader();
@@ -105,7 +105,7 @@ class BinaryDataSource implements DataSource {
   }
 
   @override
-  E readDeferredAsEager<E>(E reader()) {
+  E readDeferredAsEager<E>(E Function() reader) {
     readInt(); // Read collision padding.
     return reader();
   }

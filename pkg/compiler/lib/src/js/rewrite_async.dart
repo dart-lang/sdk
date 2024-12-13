@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library rewrite_async;
+library;
 
-import 'dart:collection';
 import 'dart:math' show max;
 
 import 'package:js_shared/synced/async_status_codes.dart' as status_codes;
@@ -162,7 +161,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
 
   final DiagnosticReporter reporter;
   // For error reporting only.
-  Spannable get spannable => _spannable ?? NO_LOCATION_SPANNABLE;
+  Spannable get spannable => _spannable ?? noLocationSpannable;
   final Spannable? _spannable;
 
   int _currentLabel = 0;
@@ -255,7 +254,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   ///
   /// The order is important due to fall-through control flow, therefore the
   /// type is explicitly LinkedHashMap.
-  Map<int, List<js.Statement>> labelledParts = LinkedHashMap();
+  Map<int, List<js.Statement>> labelledParts = {};
 
   /// Description of each label for readability of the non-minified output.
   Map<int, String> labelComments = {};
@@ -418,7 +417,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
 
   // TODO(sra): Many calls to this method use `store: false`, and could be
   // replaced with calls to `visitExpression`.
-  T withExpression<T>(js.Expression node, T fn(js.Expression result),
+  T withExpression<T>(js.Expression node, T Function(js.Expression result) fn,
       {required bool store}) {
     int oldTempVarIndex = currentTempVarIndex;
     js.Expression visited = visitExpression(node);
@@ -448,7 +447,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   ///     temp.m();
   ///
   js.Expression withCallTargetExpression(
-      js.Expression node, js.Expression fn(js.Expression result),
+      js.Expression node, js.Expression Function(js.Expression result) fn,
       {required bool store}) {
     int oldTempVarIndex = currentTempVarIndex;
     js.Expression visited = visitExpression(node);
@@ -484,7 +483,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   /// an expression, visiting node2 it will output statements that
   /// might have an influence on the value of node1.
   js.Expression withExpression2(js.Expression node1, js.Expression node2,
-      js.Expression fn(js.Expression result1, js.Expression result2)) {
+      js.Expression Function(js.Expression result1, js.Expression result2) fn) {
     int oldTempVarIndex = currentTempVarIndex;
     js.Expression r1 = visitExpression(node1);
     if (shouldTransform(node2)) {
@@ -503,7 +502,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   ///
   /// See more explanation on [withExpression2].
   T withExpressions<T>(
-      List<js.Expression> nodes, T fn(List<js.Expression> results)) {
+      List<js.Expression> nodes, T Function(List<js.Expression> results) fn) {
     int oldTempVarIndex = currentTempVarIndex;
     List<js.Expression> visited = [];
     _collectVisited(nodes, visited);
@@ -515,7 +514,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   /// Like [withExpressions], but permitting `null` nodes. If any of the nodes
   /// are null, they are ignored, and a null is passed to [fn] in that place.
   T withNullableExpressions<T>(
-      List<js.Expression?> nodes, T fn(List<js.Expression?> results)) {
+      List<js.Expression?> nodes, T Function(List<js.Expression?> results) fn) {
     int oldTempVarIndex = currentTempVarIndex;
     List<js.Expression?> visited = [];
     _collectVisited(nodes, visited);
@@ -1448,7 +1447,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
     bool anyCaseExpressionTransformed = node.cases.any(
         (js.SwitchClause x) => x is js.Case && shouldTransform(x.expression));
     if (anyCaseExpressionTransformed) {
-      int? defaultIndex = null; // Null means no default was found.
+      int? defaultIndex; // Null means no default was found.
       // If there is an await in one of the keys, a chain of ifs has to be used.
 
       withExpression(node.key, (js.Expression key) {
@@ -1830,7 +1829,7 @@ class AsyncRewriter extends AsyncRewriterBase {
       required this.completerFactory,
       required this.completerFactoryTypeArguments,
       required this.wrapBody,
-      required String safeVariableName(String proposedName),
+      required String Function(String proposedName) safeVariableName,
       required js.Name bodyName})
       : super(reporter, spannable, safeVariableName, bodyName);
 
@@ -2012,7 +2011,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
       {required this.iteratorCurrentValueProperty,
       required this.iteratorDatumProperty,
       required this.yieldStarSelector,
-      required String safeVariableName(String proposedName),
+      required String Function(String proposedName) safeVariableName,
       required js.Name bodyName})
       : super(diagnosticListener, spannable, safeVariableName, bodyName);
 
@@ -2248,7 +2247,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
       required this.yieldExpression,
       required this.yieldStarExpression,
       required this.wrapBody,
-      required String safeVariableName(String proposedName),
+      required String Function(String proposedName) safeVariableName,
       required js.Name bodyName})
       : super(reporter, spannable, safeVariableName, bodyName);
 

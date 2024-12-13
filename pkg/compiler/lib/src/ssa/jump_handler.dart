@@ -28,9 +28,10 @@ abstract class JumpHandler {
       [LabelDefinition? label]);
   void generateContinue(SourceInformation? sourceInformation,
       [LabelDefinition? label]);
-  void forEachBreak(void action(HBreak instruction, LocalsHandler locals));
+  void forEachBreak(
+      void Function(HBreak instruction, LocalsHandler locals) action);
   void forEachContinue(
-      void action(HContinue instruction, LocalsHandler locals));
+      void Function(HContinue instruction, LocalsHandler locals) action);
   bool hasAnyContinue();
   bool hasAnyBreak();
   void close();
@@ -49,14 +50,14 @@ class NullJumpHandler implements JumpHandler {
   @override
   void generateBreak(SourceInformation? sourceInformation,
       [LabelDefinition? label]) {
-    reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
+    reporter.internalError(currentElementSpannable,
         'NullJumpHandler.generateBreak should not be called.');
   }
 
   @override
   void generateContinue(SourceInformation? sourceInformation,
       [LabelDefinition? label]) {
-    reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
+    reporter.internalError(currentElementSpannable,
         'NullJumpHandler.generateContinue should not be called.');
   }
 
@@ -85,7 +86,7 @@ class TargetJumpHandler implements JumpHandler {
   final KernelSsaGraphBuilder builder;
   @override
   final JumpTarget target;
-  final List<_JumpHandlerEntry> jumps = [];
+  final List<_JumpHandlerEntry> _jumps = [];
 
   TargetJumpHandler(this.builder, this.target) {
     assert(builder.jumpTargets[target] == null);
@@ -103,7 +104,7 @@ class TargetJumpHandler implements JumpHandler {
     }
     LocalsHandler locals = LocalsHandler.from(builder.localsHandler);
     builder.close(breakInstruction as HJump);
-    jumps.add(_JumpHandlerEntry(breakInstruction, locals));
+    _jumps.add(_JumpHandlerEntry(breakInstruction, locals));
   }
 
   @override
@@ -120,13 +121,13 @@ class TargetJumpHandler implements JumpHandler {
     }
     LocalsHandler locals = LocalsHandler.from(builder.localsHandler);
     builder.close(continueInstruction as HJump);
-    jumps.add(_JumpHandlerEntry(continueInstruction, locals));
+    _jumps.add(_JumpHandlerEntry(continueInstruction, locals));
   }
 
   @override
   void forEachBreak(
       void Function(HBreak instruction, LocalsHandler locals) action) {
-    for (_JumpHandlerEntry entry in jumps) {
+    for (_JumpHandlerEntry entry in _jumps) {
       final jumpInstruction = entry.jumpInstruction;
       if (jumpInstruction is HBreak) action(jumpInstruction, entry.locals);
     }
@@ -135,7 +136,7 @@ class TargetJumpHandler implements JumpHandler {
   @override
   void forEachContinue(
       void Function(HContinue instruction, LocalsHandler locals) action) {
-    for (_JumpHandlerEntry entry in jumps) {
+    for (_JumpHandlerEntry entry in _jumps) {
       final jumpInstruction = entry.jumpInstruction;
       if (jumpInstruction is HContinue) action(jumpInstruction, entry.locals);
     }
@@ -143,7 +144,7 @@ class TargetJumpHandler implements JumpHandler {
 
   @override
   bool hasAnyContinue() {
-    for (_JumpHandlerEntry entry in jumps) {
+    for (_JumpHandlerEntry entry in _jumps) {
       if (entry.isContinue()) return true;
     }
     return false;
@@ -151,7 +152,7 @@ class TargetJumpHandler implements JumpHandler {
 
   @override
   bool hasAnyBreak() {
-    for (_JumpHandlerEntry entry in jumps) {
+    for (_JumpHandlerEntry entry in _jumps) {
       if (entry.isBreak()) return true;
     }
     return false;
@@ -195,7 +196,7 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
           HBreak(target, sourceInformation, breakSwitchContinueLoop: true);
       LocalsHandler locals = LocalsHandler.from(builder.localsHandler);
       builder.close(breakInstruction as HJump);
-      jumps.add(_JumpHandlerEntry(breakInstruction, locals));
+      _jumps.add(_JumpHandlerEntry(breakInstruction, locals));
     } else {
       super.generateBreak(sourceInformation, label);
     }
@@ -221,7 +222,7 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
       HInstruction continueInstruction = HContinue(target, sourceInformation);
       LocalsHandler locals = LocalsHandler.from(builder.localsHandler);
       builder.close(continueInstruction as HJump);
-      jumps.add(_JumpHandlerEntry(continueInstruction, locals));
+      _jumps.add(_JumpHandlerEntry(continueInstruction, locals));
     } else {
       super.generateContinue(sourceInformation, label);
     }

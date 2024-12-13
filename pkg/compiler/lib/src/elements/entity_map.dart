@@ -41,7 +41,7 @@ class EntityDataMap<K extends EntityMapKey, V extends Object> {
   }
 
   /// Calls [f] for each non-null entity with its corresponding data object.
-  void forEach(void f(K entity, V data)) {
+  void forEach(void Function(K entity, V data) f) {
     // Copy the length in case the list is modified during the loop.
     int length = _list.length;
     for (int i = 0; i < length; i++) {
@@ -94,7 +94,7 @@ class EntityDataEnvMap<K extends EntityMapKey, V extends Object,
 
   /// Calls [f] for each non-null entity with its corresponding data object and
   /// environment.
-  void forEach(void f(K entity, V data, Env env)) {
+  void forEach(void Function(K entity, V data, Env env) f) {
     // Copy the length in case the list is modified during the loop.
     int length = _list.length;
     for (int i = 0; i < length; i++) {

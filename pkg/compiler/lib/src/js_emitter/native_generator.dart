@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_emitter.native_generator;
+library;
 
-import 'package:js_runtime/synced/embedded_names.dart' as embeddedNames;
+import 'package:js_runtime/synced/embedded_names.dart' as embedded_names;
 
-import '../js/js.dart' as jsAst;
+import '../js/js.dart' as js_ast;
 import '../js/js.dart' show js;
 import '../js_backend/backend_usage.dart' show BackendUsage;
 
@@ -19,18 +19,18 @@ class NativeGenerator {
   ///
   /// Independently Dart programs on the same page must not interfere and
   /// this code sets up the variables needed to guarantee that behavior.
-  static jsAst.Statement generateIsolateAffinityTagInitialization(
+  static js_ast.Statement generateIsolateAffinityTagInitialization(
       BackendUsage backendUsage,
-      jsAst.Expression generateEmbeddedGlobalAccess(String global),
-      jsAst.Expression internStringFunction) {
+      js_ast.Expression Function(String global) generateEmbeddedGlobalAccess,
+      js_ast.Expression internStringFunction) {
     assert(backendUsage.needToInitializeIsolateAffinityTag);
 
-    jsAst.Expression getIsolateTagAccess =
-        generateEmbeddedGlobalAccess(embeddedNames.GET_ISOLATE_TAG);
-    jsAst.Expression isolateTagAccess =
-        generateEmbeddedGlobalAccess(embeddedNames.ISOLATE_TAG);
-    jsAst.Expression dispatchPropertyNameAccess =
-        generateEmbeddedGlobalAccess(embeddedNames.DISPATCH_PROPERTY_NAME);
+    js_ast.Expression getIsolateTagAccess =
+        generateEmbeddedGlobalAccess(embedded_names.GET_ISOLATE_TAG);
+    js_ast.Expression isolateTagAccess =
+        generateEmbeddedGlobalAccess(embedded_names.ISOLATE_TAG);
+    js_ast.Expression dispatchPropertyNameAccess =
+        generateEmbeddedGlobalAccess(embedded_names.DISPATCH_PROPERTY_NAME);
 
     return js.statement('''
       !function() {

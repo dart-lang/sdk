@@ -5,6 +5,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir
     show serializeComponent, ByteSink;
 import 'package:kernel/ast.dart' as ir;

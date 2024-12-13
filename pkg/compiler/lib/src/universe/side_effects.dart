@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library universe.side_effects;
+library;
 
 import '../elements/entities.dart';
 import '../serialization/serialization.dart';

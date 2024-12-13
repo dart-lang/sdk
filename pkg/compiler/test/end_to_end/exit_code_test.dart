@@ -69,20 +69,20 @@ class TestCompiler extends Compiler {
           break;
         case 'failedAt':
           onTest(testMarker, testType);
-          failedAt(NO_LOCATION_SPANNABLE, marker);
+          failedAt(noLocationSpannable, marker);
         case 'warning':
           onTest(testMarker, testType);
           reporter.reportWarningMessage(
-              NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {'text': marker});
+              noLocationSpannable, MessageKind.generic, {'text': marker});
           break;
         case 'error':
           onTest(testMarker, testType);
           reporter.reportErrorMessage(
-              NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {'text': marker});
+              noLocationSpannable, MessageKind.generic, {'text': marker});
           break;
         case 'internalError':
           onTest(testMarker, testType);
-          reporter.internalError(NO_LOCATION_SPANNABLE, marker);
+          reporter.internalError(noLocationSpannable, marker);
         case 'NoSuchMethodError':
           onTest(testMarker, testType);
           dynamic n;

@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library entity_utils;
+library;
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show isUserDefinableOperator, isMinusOperator;
 
@@ -60,7 +61,7 @@ int compareSourceUris(Uri uri1, Uri uri2) {
   // Compilation units are compared only within the same library so we expect
   // the Uris to usually be clustered together with a common scheme and path
   // prefix.
-  return '${uri1}'.compareTo('${uri2}');
+  return '$uri1'.compareTo('$uri2');
 }
 
 String reconstructConstructorName(FunctionEntity element) {

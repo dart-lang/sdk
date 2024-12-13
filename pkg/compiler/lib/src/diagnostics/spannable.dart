@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.diagnostics.spannable;
+library;
 
 /// Tagging interface for classes from which source spans can be generated.
 abstract class Spannable {}
@@ -19,13 +19,12 @@ class _SpannableSentinel implements Spannable {
 /// Sentinel spannable used to mark that diagnostics should point to the
 /// current element. Note that the diagnostic reporting will fail if the current
 /// element is `null`.
-const Spannable CURRENT_ELEMENT_SPANNABLE =
-    _SpannableSentinel("Current element");
+const Spannable currentElementSpannable = _SpannableSentinel("Current element");
 
 /// Sentinel spannable used to mark that there might be no location for the
 /// diagnostic. Use this only when it is not an error not to have a current
 /// element.
-const Spannable NO_LOCATION_SPANNABLE = _SpannableSentinel("No location");
+const Spannable noLocationSpannable = _SpannableSentinel("No location");
 
 class SpannableAssertionFailure {
   final Spannable node;

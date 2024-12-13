@@ -631,7 +631,7 @@ class ShardDataId implements DataId {
   }
 
   @override
-  String get name => '${dataId.name}${shard}';
+  String get name => '${dataId.name}$shard';
 
   @override
   String toString() => name;

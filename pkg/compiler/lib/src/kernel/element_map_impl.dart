@@ -7,6 +7,7 @@ import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
+// ignore: implementation_imports
 import 'package:kernel/src/bounds_checks.dart' as ir;
 import 'package:kernel/text/debug_printer.dart';
 import 'package:kernel/type_environment.dart' as ir;
@@ -179,7 +180,8 @@ class KernelToElementMap implements IrToElementMap {
     return member != null ? getMember(member) : null;
   }
 
-  void _forEachLibraryMember(JLibrary library, void f(MemberEntity member)) {
+  void _forEachLibraryMember(
+      JLibrary library, void Function(MemberEntity member) f) {
     KLibraryEnv libraryEnv = libraries.getEnv(library);
     libraryEnv.forEachMember((ir.Member node) {
       f(getMember(node));
@@ -195,7 +197,7 @@ class KernelToElementMap implements IrToElementMap {
     return null;
   }
 
-  void _forEachClass(JLibrary library, void f(ClassEntity cls)) {
+  void _forEachClass(JLibrary library, void Function(ClassEntity cls) f) {
     KLibraryEnv libraryEnv = libraries.getEnv(library);
     libraryEnv.forEachClass((KClassEnv classEnv) {
       if (!classEnv.isUnnamedMixinApplication) {
@@ -411,9 +413,9 @@ class KernelToElementMap implements IrToElementMap {
         } else {
           data.isMixinApplication = false;
         }
-        node.implementedTypes.forEach((ir.Supertype supertype) {
+        for (var supertype in node.implementedTypes) {
           interfaces.add(processSupertype(supertype));
-        });
+        }
         OrderedTypeSetBuilder setBuilder =
             KernelOrderedTypeSetBuilder(this, cls);
         data.orderedTypeSet =
@@ -502,9 +504,9 @@ class KernelToElementMap implements IrToElementMap {
 
   List<DartType> getDartTypes(List<ir.DartType> types) {
     List<DartType> list = <DartType>[];
-    types.forEach((ir.DartType type) {
+    for (var type in types) {
       list.add(getDartType(type));
-    });
+    }
     return list;
   }
 
@@ -687,13 +689,13 @@ class KernelToElementMap implements IrToElementMap {
     return env.isUnnamedMixinApplication;
   }
 
-  void _forEachSupertype(JClass cls, void f(InterfaceType supertype)) {
+  void _forEachSupertype(JClass cls, void Function(InterfaceType supertype) f) {
     KClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
     data.orderedTypeSet!.supertypes!.forEach(f);
   }
 
-  void _forEachMixin(JClass? cls, void f(ClassEntity mixin)) {
+  void _forEachMixin(JClass? cls, void Function(ClassEntity mixin) f) {
     while (cls != null) {
       KClassData data = classes.getData(cls);
       _ensureSupertypes(cls, data);
@@ -704,25 +706,28 @@ class KernelToElementMap implements IrToElementMap {
     }
   }
 
-  void _forEachConstructor(JClass cls, void f(ConstructorEntity member)) {
+  void _forEachConstructor(
+      JClass cls, void Function(ConstructorEntity member) f) {
     KClassEnv env = classes.getEnv(cls);
     env.forEachConstructor(this, f);
   }
 
-  void _forEachLocalClassMember(JClass cls, void f(MemberEntity member)) {
+  void _forEachLocalClassMember(
+      JClass cls, void Function(MemberEntity member) f) {
     KClassEnv env = classes.getEnv(cls);
     env.forEachMember(this, (MemberEntity member) {
       f(member);
     });
   }
 
-  void forEachInjectedClassMember(JClass cls, void f(MemberEntity member)) {
+  void forEachInjectedClassMember(
+      JClass cls, void Function(MemberEntity member) f) {
     throw UnsupportedError(
         'KernelToElementMapBase._forEachInjectedClassMember');
   }
 
   void _forEachClassMember(
-      JClass cls, void f(ClassEntity cls, MemberEntity member)) {
+      JClass cls, void Function(ClassEntity cls, MemberEntity member) f) {
     KClassEnv env = classes.getEnv(cls);
     env.forEachMember(this, (MemberEntity member) {
       f(cls, member);
@@ -852,13 +857,13 @@ class KernelToElementMap implements IrToElementMap {
     Name name = getName(irName);
     SelectorKind kind;
     if (Selector.isOperatorName(name.text)) {
-      if (name == Names.INDEX_NAME || name == Names.INDEX_SET_NAME) {
-        kind = SelectorKind.INDEX;
+      if (name == Names.indexName || name == Names.indexSetName) {
+        kind = SelectorKind.index_;
       } else {
-        kind = SelectorKind.OPERATOR;
+        kind = SelectorKind.operator;
       }
     } else {
-      kind = SelectorKind.CALL;
+      kind = SelectorKind.call;
     }
 
     CallStructure callStructure = CallStructure(
@@ -939,8 +944,8 @@ class KernelToElementMap implements IrToElementMap {
       type ??= findIn(Uris.dartRti);
       type ??= findIn(Uris.dartMirrors);
       if (type == null && required!) {
-        reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
-            MessageKind.GENERIC, {'text': "Type '$typeName' not found."});
+        reporter.reportErrorMessage(currentElementSpannable,
+            MessageKind.generic, {'text': "Type '$typeName' not found."});
       }
       return type!;
     }
@@ -958,20 +963,20 @@ class KernelToElementMap implements IrToElementMap {
     if (node.arguments.positional.length < 2 ||
         node.arguments.named.isNotEmpty) {
       reporter.reportErrorMessage(
-          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS);
+          currentElementSpannable, MessageKind.wrongArgumentForJS);
       return NativeBehavior();
     }
     String? specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.reportErrorMessage(
-          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST);
+          currentElementSpannable, MessageKind.wrongArgumentForJSFirst);
       return NativeBehavior();
     }
 
     String? codeString = _getStringArgument(node, 1);
     if (codeString == null) {
       reporter.reportErrorMessage(
-          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND);
+          currentElementSpannable, MessageKind.wrongArgumentForJSSecond);
       return NativeBehavior();
     }
 
@@ -979,7 +984,7 @@ class KernelToElementMap implements IrToElementMap {
         specString,
         codeString,
         typeLookup(resolveAsRaw: true),
-        CURRENT_ELEMENT_SPANNABLE,
+        currentElementSpannable,
         reporter,
         commonElements);
   }
@@ -990,21 +995,21 @@ class KernelToElementMap implements IrToElementMap {
   NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node) {
     if (node.arguments.positional.isEmpty) {
       reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "JS builtin expression has no type.");
+          currentElementSpannable, "JS builtin expression has no type.");
     }
     if (node.arguments.positional.length < 2) {
       reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "JS builtin is missing name.");
+          currentElementSpannable, "JS builtin is missing name.");
     }
     String? specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
+          currentElementSpannable, "Unexpected first argument.");
     }
     return NativeBehavior.ofJsBuiltinCall(
         specString,
         typeLookup(resolveAsRaw: true),
-        CURRENT_ELEMENT_SPANNABLE,
+        currentElementSpannable,
         reporter,
         commonElements);
   }
@@ -1015,27 +1020,27 @@ class KernelToElementMap implements IrToElementMap {
   NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node) {
     if (node.arguments.positional.isEmpty) {
-      reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
+      reporter.internalError(currentElementSpannable,
           "JS embedded global expression has no type.");
     }
     if (node.arguments.positional.length < 2) {
       reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "JS embedded global is missing name.");
+          currentElementSpannable, "JS embedded global is missing name.");
     }
     if (node.arguments.positional.length > 2 ||
         node.arguments.named.isNotEmpty) {
-      reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
+      reporter.internalError(currentElementSpannable,
           "JS embedded global has more than 2 arguments.");
     }
     String? specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
+          currentElementSpannable, "Unexpected first argument.");
     }
     return NativeBehavior.ofJsEmbeddedGlobalCall(
         specString,
         typeLookup(resolveAsRaw: true),
-        CURRENT_ELEMENT_SPANNABLE,
+        currentElementSpannable,
         reporter,
         commonElements);
   }
@@ -1046,7 +1051,7 @@ class KernelToElementMap implements IrToElementMap {
         constant, commonElements.jsGetNameEnum);
     if (index == null) return null;
     return namer.getNameForJsGetName(
-        CURRENT_ELEMENT_SPANNABLE, JsGetName.values[index]);
+        currentElementSpannable, JsGetName.values[index]);
   }
 
   int? extractEnumIndexFromConstantValue(
@@ -1070,8 +1075,7 @@ class KernelToElementMap implements IrToElementMap {
       bool checkCasts = true}) {
     if (node == null) {
       if (!implicitNull) {
-        throw failedAt(
-            CURRENT_ELEMENT_SPANNABLE, 'No expression for constant.');
+        throw failedAt(currentElementSpannable, 'No expression for constant.');
       }
       return NullConstantValue();
     }
@@ -1096,11 +1100,11 @@ class KernelToElementMap implements IrToElementMap {
   List<ConstantValue> getMetadata(List<ir.Expression> annotations) {
     if (annotations.isEmpty) return const <ConstantValue>[];
     List<ConstantValue> metadata = <ConstantValue>[];
-    annotations.forEach((ir.Expression node) {
+    for (var node in annotations) {
       // We skip the implicit cast checks for metadata to avoid circular
       // dependencies in the js-interop class registration.
       metadata.add(getConstantValue(node, checkCasts: false)!);
-    });
+    }
     return metadata;
   }
 
@@ -1169,9 +1173,7 @@ class KernelToElementMap implements IrToElementMap {
         "Environment of $this is closed. Trying to create "
         "class for $node.");
     JLibrary library = getLibraryInternal(node.enclosingLibrary);
-    if (classEnv == null) {
-      classEnv = libraries.getEnv(library).lookupClass(node.name)!;
-    }
+    classEnv ??= libraries.getEnv(library).lookupClass(node.name)!;
     JClass cls = createClass(library, node.name, isAbstract: node.isAbstract);
     return classes.register(cls, KClassData(node), classEnv);
   }
@@ -1247,7 +1249,7 @@ class KernelToElementMap implements IrToElementMap {
     } else {
       // TODO(johnniwinther): Convert `node.location` to a [SourceSpan].
       throw failedAt(
-          NO_LOCATION_SPANNABLE, "Unexpected constructor node: ${node}.");
+          noLocationSpannable, "Unexpected constructor node: $node.");
     }
     return members.register<JConstructor, KConstructorData>(
         constructor, KConstructorData(node, functionNode));
@@ -1292,7 +1294,7 @@ class KernelToElementMap implements IrToElementMap {
             isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
         break;
       case ir.ProcedureKind.Setter:
-        assert(asyncMarker == AsyncMarker.SYNC);
+        assert(asyncMarker == AsyncMarker.sync);
         function = createSetter(library, enclosingClass, name.setter,
             isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
         break;
@@ -1353,7 +1355,7 @@ class KernelToElementMap implements IrToElementMap {
           _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);
       assert(
           _nativeBasicData != null,
-          failedAt(NO_LOCATION_SPANNABLE,
+          failedAt(noLocationSpannable,
               "NativeBasicData has not been computed yet."));
     }
     return data;
@@ -1484,7 +1486,7 @@ class KernelToElementMap implements IrToElementMap {
     if (commonElements.isForeignHelper(getMember(node.target))) {
       return getForeignKindFromName(node.target.name.text);
     }
-    return ForeignKind.NONE;
+    return ForeignKind.none;
   }
 
   /// Computes the [InterfaceType] referenced by a call to the
@@ -1493,8 +1495,8 @@ class KernelToElementMap implements IrToElementMap {
       ir.StaticInvocation node) {
     if (node.arguments.positional.length != 1 ||
         node.arguments.named.isNotEmpty) {
-      reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
-          MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
+      reporter.reportErrorMessage(currentElementSpannable,
+          MessageKind.wrongArgumentForJSInterceptorConstant);
     }
     ir.Node argument = node.arguments.positional.first;
     if (argument is ir.TypeLiteral && argument.type is ir.InterfaceType) {
@@ -1540,7 +1542,7 @@ class KernelToElementMap implements IrToElementMap {
     } else if (member is ir.Constructor) {
       type = getFunctionType(member.function);
     } else {
-      failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected method node $member.");
+      failedAt(currentElementSpannable, "Unexpected method node $member.");
     }
     return nativeBehaviorBuilder.buildMethodBehavior(type as FunctionType,
         createsAnnotations, returnsAnnotations, typeLookup(resolveAsRaw: false),
@@ -1719,7 +1721,7 @@ class KernelElementEnvironment extends ElementEnvironment
         elementMap.lookupConstructor(cls as JClass, name);
     if (constructor == null && required) {
       throw failedAt(
-          CURRENT_ELEMENT_SPANNABLE,
+          currentElementSpannable,
           "The constructor '$name' was not found in class '${cls.name}' "
           "in library ${cls.library.canonicalUri}.");
     }
@@ -1731,7 +1733,7 @@ class KernelElementEnvironment extends ElementEnvironment
       {bool required = false}) {
     MemberEntity? member = elementMap.lookupClassMember(cls as JClass, name);
     if (member == null && required) {
-      throw failedAt(CURRENT_ELEMENT_SPANNABLE,
+      throw failedAt(currentElementSpannable,
           "The member '$name' was not found in ${cls.name}.");
     }
     return member;
@@ -1751,35 +1753,37 @@ class KernelElementEnvironment extends ElementEnvironment
   }
 
   @override
-  void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype)) {
+  void forEachSupertype(
+      ClassEntity cls, void Function(InterfaceType supertype) f) {
     elementMap._forEachSupertype(cls as JClass, f);
   }
 
   @override
-  void forEachMixin(ClassEntity cls, void f(ClassEntity mixin)) {
+  void forEachMixin(ClassEntity cls, void Function(ClassEntity mixin) f) {
     elementMap._forEachMixin(cls as JClass, f);
   }
 
   @override
-  void forEachLocalClassMember(ClassEntity cls, void f(MemberEntity member)) {
+  void forEachLocalClassMember(
+      ClassEntity cls, void Function(MemberEntity member) f) {
     elementMap._forEachLocalClassMember(cls as JClass, f);
   }
 
   @override
-  void forEachClassMember(
-      ClassEntity cls, void f(ClassEntity declarer, MemberEntity member)) {
+  void forEachClassMember(ClassEntity cls,
+      void Function(ClassEntity declarer, MemberEntity member) f) {
     elementMap._forEachClassMember(cls as JClass, f);
   }
 
   @override
   void forEachConstructor(
-      ClassEntity cls, void f(ConstructorEntity constructor)) {
+      ClassEntity cls, void Function(ConstructorEntity constructor) f) {
     elementMap._forEachConstructor(cls as JClass, f);
   }
 
   @override
   void forEachLibraryMember(
-      LibraryEntity library, void f(MemberEntity member)) {
+      LibraryEntity library, void Function(MemberEntity member) f) {
     elementMap._forEachLibraryMember(library as JLibrary, f);
   }
 
@@ -1789,8 +1793,8 @@ class KernelElementEnvironment extends ElementEnvironment
     MemberEntity? member = elementMap
         .lookupLibraryMember(library as JLibrary, name, setter: setter);
     if (member == null && required) {
-      failedAt(CURRENT_ELEMENT_SPANNABLE,
-          "The member '${name}' was not found in library '${library.name}'.");
+      failedAt(currentElementSpannable,
+          "The member '$name' was not found in library '${library.name}'.");
     }
     return member;
   }
@@ -1800,14 +1804,14 @@ class KernelElementEnvironment extends ElementEnvironment
       {bool required = false}) {
     ClassEntity? cls = elementMap.lookupClass(library as JLibrary, name);
     if (cls == null && required) {
-      failedAt(CURRENT_ELEMENT_SPANNABLE,
+      failedAt(currentElementSpannable,
           "The class '$name'  was not found in library '${library.name}'.");
     }
     return cls;
   }
 
   @override
-  void forEachClass(LibraryEntity library, void f(ClassEntity cls)) {
+  void forEachClass(LibraryEntity library, void Function(ClassEntity cls) f) {
     elementMap._forEachClass(library as JLibrary, f);
   }
 
@@ -1815,7 +1819,7 @@ class KernelElementEnvironment extends ElementEnvironment
   LibraryEntity? lookupLibrary(Uri uri, {bool required = false}) {
     LibraryEntity? library = elementMap.lookupLibrary(uri);
     if (library == null && required) {
-      failedAt(CURRENT_ELEMENT_SPANNABLE, "The library '$uri' was not found.");
+      failedAt(currentElementSpannable, "The library '$uri' was not found.");
     }
     return library;
   }
@@ -1935,7 +1939,7 @@ class KernelNativeMemberResolver {
             .isNativeClass(_elementMap.getClass(node.enclosingClass!))) {
           _elementMap.reporter.reportErrorMessage(
               computeSourceSpanFromTreeNode(node),
-              MessageKind.NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS);
+              MessageKind.nativeNonInstanceInNonNativeClass);
           return false;
         }
         _setNativeNameForStaticMethod(node, annotationData);
@@ -2035,7 +2039,7 @@ class KernelNativeMemberResolver {
       // TODO(johnniwinther): Should we change dart:html and friends to use
       //  `external` instead of the native body syntax?
       _elementMap.reporter.reportErrorMessage(
-          computeSourceSpanFromTreeNode(node), MessageKind.NON_NATIVE_EXTERNAL);
+          computeSourceSpanFromTreeNode(node), MessageKind.nonNativeExternal);
     }
     return hasNativeBody;
   }
@@ -2047,15 +2051,15 @@ class KernelNativeMemberResolver {
 
 ForeignKind getForeignKindFromName(String name) {
   switch (name) {
-    case Identifiers.JS:
-      return ForeignKind.JS;
-    case Identifiers.JS_BUILTIN:
-      return ForeignKind.JS_BUILTIN;
-    case Identifiers.JS_EMBEDDED_GLOBAL:
-      return ForeignKind.JS_EMBEDDED_GLOBAL;
-    case Identifiers.JS_INTERCEPTOR_CONSTANT:
-      return ForeignKind.JS_INTERCEPTOR_CONSTANT;
+    case Identifiers.js:
+      return ForeignKind.js;
+    case Identifiers.jsBuiltin:
+      return ForeignKind.jsBuiltin;
+    case Identifiers.jsEmbeddedGlobal:
+      return ForeignKind.jsEmbeddedGlobal;
+    case Identifiers.jsInterceptorConstant:
+      return ForeignKind.jsInterceptorConstant;
     default:
-      return ForeignKind.NONE;
+      return ForeignKind.none;
   }
 }

@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js.size_estimator;
+library;
 
 import 'package:js_ast/js_ast.dart';
-import 'package:js_ast/src/characters.dart' as charCodes;
+// ignore: implementation_imports
+import 'package:js_ast/src/characters.dart' as char_codes;
+// ignore: implementation_imports
 import 'package:js_ast/src/precedence.dart';
 
 import '../js_backend/deferred_holder_expression.dart';
@@ -689,7 +691,7 @@ class SizeEstimator implements NodeVisitor<void> {
         out('$op '); // '$op '
         break;
       default:
-        out('$op'); // '$op'
+        out(op); // '$op'
     }
     visitNestedExpression(unary.argument, Precedence.unary,
         newInForInit: inForInit, newAtStatementBegin: false);
@@ -730,7 +732,7 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   bool isDigit(int charCode) {
-    return charCodes.$0 <= charCode && charCode <= charCodes.$9;
+    return char_codes.$0 <= charCode && charCode <= char_codes.$9;
   }
 
   bool isValidJavaScriptId(String field) {
@@ -739,10 +741,10 @@ class SizeEstimator implements NodeVisitor<void> {
     for (int i = 0; i < field.length; i++) {
       // TODO(floitsch): allow more characters.
       int charCode = field.codeUnitAt(i);
-      if (!(charCodes.$a <= charCode && charCode <= charCodes.$z ||
-          charCodes.$A <= charCode && charCode <= charCodes.$Z ||
-          charCode == charCodes.$$ ||
-          charCode == charCodes.$_ ||
+      if (!(char_codes.$a <= charCode && charCode <= char_codes.$z ||
+          char_codes.$A <= charCode && charCode <= char_codes.$Z ||
+          charCode == char_codes.$$ ||
+          charCode == char_codes.$_ ||
           i > 0 && isDigit(charCode))) {
         return false;
       }
@@ -866,7 +868,7 @@ class SizeEstimator implements NodeVisitor<void> {
 
   void outputNumberWithRequiredWhitespace(String number) {
     int charCode = number.codeUnitAt(0);
-    if (charCode == charCodes.$MINUS) {
+    if (charCode == char_codes.$MINUS) {
       // We can eliminate the space in some cases, but for simplicity we
       // always assume it is necessary.
       out(' ');

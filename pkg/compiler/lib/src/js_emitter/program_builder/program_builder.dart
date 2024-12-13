@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_emitter.program_builder;
+library;
 
 import '../../common.dart';
 import '../../common/elements.dart' show JCommonElements, JElementEnvironment;
@@ -28,7 +28,7 @@ import '../../js_backend/runtime_types.dart' show RuntimeTypesChecks;
 import '../../js_backend/runtime_types_codegen.dart' show TypeCheck;
 import '../../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoding;
-import '../../js_backend/runtime_types_new.dart' as newRti;
+import '../../js_backend/runtime_types_new.dart' as new_rti;
 import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_model/elements.dart'
     show JField, JParameterStub, JSignatureMethod;
@@ -133,7 +133,7 @@ class ProgramBuilder {
       this._sorter,
       this._rtiNeededClasses,
       this._mainFunction)
-      : this.collector = Collector(
+      : collector = Collector(
             _commonElements,
             _elementEnvironment,
             _outputUnitData,
@@ -146,7 +146,7 @@ class ProgramBuilder {
             _rtiNeededClasses,
             _generatedCode,
             _sorter),
-        this._registry = Registry(_outputUnitData.mainOutputUnit, _sorter);
+        _registry = Registry(_outputUnitData.mainOutputUnit, _sorter);
 
   /// Mapping from [ClassEntity] to constructed [Class]. We need this to
   /// update the superclass in the [Class].
@@ -174,7 +174,7 @@ class ProgramBuilder {
   Program buildProgram({bool storeFunctionTypesInMetadata = false}) {
     collector.collect();
 
-    this._storeFunctionTypesInMetadata = storeFunctionTypesInMetadata;
+    _storeFunctionTypesInMetadata = storeFunctionTypesInMetadata;
     // Note: In rare cases (mostly tests) output units can be empty. This
     // happens when the deferred code is dead-code eliminated but we still need
     // to check that the library has been loaded.
@@ -208,7 +208,7 @@ class ProgramBuilder {
             failedAt(
                 cls,
                 "No Class for has been created for superclass "
-                "${superclass} of $c."));
+                "$superclass of $c."));
       }
       if (c.isSimpleMixinApplication || c.isMixinApplicationWithMembers) {
         final effectiveMixinClass =
@@ -218,7 +218,7 @@ class ProgramBuilder {
             c.mixinClass != null,
             failedAt(
                 cls,
-                "No class for effective mixin ${effectiveMixinClass} on "
+                "No class for effective mixin $effectiveMixinClass on "
                 "$cls."));
       }
     });
@@ -431,7 +431,7 @@ class ProgramBuilder {
 
     Set<String> stubNames = {};
     librariesMap.forEach((LibraryEntity library,
-        List<ClassEntity> classElements, _memberElement, _typeElement) {
+        List<ClassEntity> classElements, memberElement, typeElement) {
       for (ClassEntity cls in classElements) {
         if (_nativeData.isJsInteropClass(cls)) {
           _elementEnvironment.forEachLocalClassMember(cls,
@@ -475,7 +475,7 @@ class ProgramBuilder {
             // Generating stubs for direct calls and stubs for call-through
             // of getters that happen to be functions.
             bool isFunctionLike = false;
-            FunctionType? functionType = null;
+            FunctionType? functionType;
 
             if (member.isFunction) {
               final fn = member as FunctionEntity;
@@ -801,7 +801,7 @@ class ProgramBuilder {
         .union(_lateNamedTypeVariablesNewRti)) {
       final declaration = typeVariable.element.typeDeclaration as ClassEntity;
       Iterable<ClassEntity> subtypes =
-          newRti.mustCheckAllSubtypes(_closedWorld, declaration)
+          new_rti.mustCheckAllSubtypes(_closedWorld, declaration)
               ? _classHierarchy.subtypesOf(declaration)
               : _classHierarchy.subclassesOf(declaration);
       for (ClassEntity entity in subtypes) {
@@ -823,7 +823,7 @@ class ProgramBuilder {
     Object? /* Map | List */ optionalParameterDefaultValues;
     ParameterStructure parameterStructure = method.parameterStructure;
     if (parameterStructure.namedParameters.isNotEmpty) {
-      final defaults = Map<String, ConstantValue>();
+      final defaults = <String, ConstantValue>{};
       _elementEnvironment.forEachParameter(method,
           (DartType type, String? name, ConstantValue? defaultValue) {
         if (parameterStructure.namedParameters.contains(name)) {
@@ -1025,7 +1025,7 @@ class ProgramBuilder {
       assert(
           !interceptorMap.containsKey(name),
           "Duplicate specialized get interceptor for $name: Existing: "
-          "${interceptorMap[name]}, new ${interceptor}.");
+          "${interceptorMap[name]}, new $interceptor.");
       interceptorMap[name] = interceptor;
     }
     names.sort(compareNames);
@@ -1123,7 +1123,7 @@ class ProgramBuilder {
       assert(
           !interceptorMap.containsKey(name),
           "Duplicate specialized get interceptor for $name: Existing: "
-          "${interceptorMap[name]}, new ${interceptor}.");
+          "${interceptorMap[name]}, new $interceptor.");
       interceptorMap[name] = interceptor;
     }
     names.sort(compareNames);

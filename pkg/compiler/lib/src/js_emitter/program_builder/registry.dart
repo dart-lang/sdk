@@ -63,8 +63,9 @@ class LibrariesMap {
       _mapping.entries;
 
   void forEach(
-      void f(LibraryEntity library, List<ClassEntity> classes,
-          List<MemberEntity> members, List<ClassEntity> classTypeData)) {
+      void Function(LibraryEntity library, List<ClassEntity> classes,
+              List<MemberEntity> members, List<ClassEntity> classTypeData)
+          f) {
     _mapping.forEach((LibraryEntity library, LibraryContents mapping) {
       f(library, mapping.classes, mapping.members, mapping.classTypes);
     });

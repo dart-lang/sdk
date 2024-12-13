@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.src.options;
+library;
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import 'commandline_options.dart' show Flags;
@@ -120,7 +121,7 @@ enum CompilerStage {
         return stage;
       }
     }
-    throw ArgumentError('Invalid stage: ${stageFlag}. '
+    throw ArgumentError('Invalid stage: $stageFlag. '
         'Supported values are: $validFlagValuesString');
   }
 }
@@ -146,12 +147,12 @@ class FeatureOption {
   bool? _state;
   bool get isEnabled => _state!;
   bool get isDisabled => !isEnabled;
-  void set state(bool value) {
+  set state(bool value) {
     assert(_state == null);
     _state = value;
   }
 
-  void set override(bool value) {
+  set override(bool value) {
     assert(_state != null);
     _state = value;
   }
@@ -224,19 +225,19 @@ class FeatureOptions {
 
   /// Returns a list of enabled features as a comma separated string.
   String flavorString() {
-    bool _shouldPrint(FeatureOption feature) {
+    bool shouldPrint(FeatureOption feature) {
       return feature.isNegativeFlag ? feature.isDisabled : feature.isEnabled;
     }
 
-    String _toString(FeatureOption feature) {
+    String toString(FeatureOption feature) {
       return feature.isNegativeFlag ? 'no-${feature.flag}' : feature.flag;
     }
 
-    Iterable<String> _listToString(List<FeatureOption> options) {
-      return options.where(_shouldPrint).map(_toString);
+    Iterable<String> listToString(List<FeatureOption> options) {
+      return options.where(shouldPrint).map(toString);
     }
 
-    return _listToString(shipping).followedBy(_listToString(canary)).join(', ');
+    return listToString(shipping).followedBy(listToString(canary)).join(', ');
   }
 
   /// Parses a [List<String>] and enables / disables features as necessary.
@@ -365,11 +366,11 @@ class CompilerOptions implements DiagnosticOptions {
   bool benchmarkingExperiment = false;
 
   /// ID associated with this sdk build.
-  String buildId = _UNDETERMINED_BUILD_ID;
+  String buildId = _undeterminedBuildID;
 
   /// Whether there is a build-id available so we can use it on error messages
   /// and in the emitted output of the compiler.
-  bool get hasBuildId => buildId != _UNDETERMINED_BUILD_ID;
+  bool get hasBuildId => buildId != _undeterminedBuildID;
 
   /// Whether to compile for the server category. This is used to compile to JS
   /// that is intended to be run on server-side VMs like nodejs.
@@ -393,7 +394,7 @@ class CompilerOptions implements DiagnosticOptions {
   /// will not merge fragments with unrelated dependencies and thus we may
   /// generate more fragments than the 'mergeFragmentsThreshold' under some
   /// situations.
-  int? mergeFragmentsThreshold = null; // default value, no max.
+  int? mergeFragmentsThreshold; // default value, no max.
   int? _mergeFragmentsThreshold;
 
   /// Whether to disable inlining during the backend optimizations.
@@ -458,7 +459,7 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// If set, SSA intermediate form is dumped for methods with names matching
   /// this RegExp pattern.
-  String? dumpSsaPattern = null;
+  String? dumpSsaPattern;
 
   /// Whether to generate a `.resources.json` file detailing the use of resource
   /// identifiers.
@@ -657,7 +658,7 @@ class CompilerOptions implements DiagnosticOptions {
   }
 
   /// If specified, a bundle of optimizations to enable (or disable).
-  int? optimizationLevel = null;
+  int? optimizationLevel;
 
   /// The shard to serialize when using [Flags.writeCodegen].
   int? codegenShard;
@@ -811,7 +812,7 @@ class CompilerOptions implements DiagnosticOptions {
       bool useDefaultOutputUri = false,
       void Function(String)? onError,
       void Function(String)? onWarning}) {
-    if (featureOptions == null) featureOptions = FeatureOptions();
+    featureOptions ??= FeatureOptions();
     featureOptions.parse(options);
     Map<fe.ExperimentalFlag, bool> explicitExperimentalFlags =
         _extractExperiments(options, onError: onError, onWarning: onWarning);
@@ -830,7 +831,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..benchmarkingExperiment =
           _hasOption(options, Flags.benchmarkingExperiment)
       ..buildId =
-          _extractStringOption(options, '--build-id=', _UNDETERMINED_BUILD_ID)!
+          _extractStringOption(options, '--build-id=', _undeterminedBuildID)!
       ..compileForServer = _hasOption(options, Flags.serverMode)
       ..deferredMapUri = _extractUriOption(options, '--deferred-map=')
       .._deferredLoadIdMapUri =
@@ -909,7 +910,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..reportSecondaryMetrics = _hasOption(options, Flags.reportAllMetrics)
       ..showInternalProgress = _hasOption(options, Flags.progress)
       ..dillDependencies =
-          _extractUriListOption(options, '${Flags.dillDependencies}')
+          _extractUriListOption(options, Flags.dillDependencies)
       ..readProgramSplit =
           _extractUriOption(options, '${Flags.readProgramSplit}=')
       .._globalInferenceUri =
@@ -1182,7 +1183,7 @@ int? _extractIntOption(List<String> options, String prefix) {
 }
 
 bool _hasOption(List<String> options, String option) {
-  return options.indexOf(option) >= 0;
+  return options.contains(option);
 }
 
 /// Extract list of comma separated values provided for [flag]. Returns an
@@ -1226,7 +1227,7 @@ void _extractFeatures(
   bool hasNoShippingFlag = _hasOption(options, Flags.noShipping);
   for (var feature in features) {
     String featureFlag = feature.flag;
-    String enableFeatureFlag = '--${featureFlag}';
+    String enableFeatureFlag = '--$featureFlag';
     String disableFeatureFlag = '--no-$featureFlag';
     bool enableFeature = _hasOption(options, enableFeatureFlag);
     bool disableFeature = _hasOption(options, disableFeatureFlag);
@@ -1265,4 +1266,4 @@ void _verifyShippedFeatures(
   }
 }
 
-const String _UNDETERMINED_BUILD_ID = "build number could not be determined";
+const String _undeterminedBuildID = "build number could not be determined";

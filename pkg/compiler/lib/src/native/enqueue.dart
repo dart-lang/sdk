@@ -78,7 +78,7 @@ abstract class NativeEnqueuer {
     Set<ClassEntity> matchingClasses = {};
     for (var type in behavior.typesInstantiated) {
       if (type is SpecialType) {
-        if (type == SpecialType.JsObject) {
+        if (type == SpecialType.jsObject) {
           registerInstantiation(_commonElements.objectType);
         }
         continue;
@@ -138,7 +138,7 @@ abstract class NativeEnqueuer {
   }
 
   Iterable<ClassEntity> _findUnusedClassesMatching(
-      bool predicate(ClassEntity classElement)) {
+      bool Function(ClassEntity classElement) predicate) {
     return _unusedClasses.where(predicate);
   }
 
@@ -157,7 +157,7 @@ abstract class NativeEnqueuer {
   }
 
   /// Emits a summary information using the [log] function.
-  void logSummary(void log(String message)) {
+  void logSummary(void Function(String message) log) {
     if (_allUsedMessage != null) {
       log(_allUsedMessage!);
     }
@@ -194,7 +194,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuer {
   }
 
   @override
-  void logSummary(void log(String message)) {
+  void logSummary(void Function(String message) log) {
     super.logSummary(log);
     log('Resolved ${_registeredClasses.length} native elements used, '
         '${_unusedClasses.length} native elements dead.');
@@ -285,7 +285,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuer {
   }
 
   @override
-  void logSummary(void log(String message)) {
+  void logSummary(void Function(String message) log) {
     super.logSummary(log);
     log('Compiled ${_registeredClasses.length} native classes, '
         '${_unusedClasses.length} native classes omitted.');

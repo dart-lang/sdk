@@ -21,8 +21,10 @@ class NativeClassFinder {
   /// Returns the set of all native classes declared in [libraries].
   Iterable<ClassEntity> computeNativeClasses(Iterable<Uri> libraries) {
     Set<ClassEntity> nativeClasses = {};
-    libraries.forEach((uri) => _processNativeClassesInLibrary(
-        _elementEnvironment.lookupLibrary(uri)!, nativeClasses));
+    for (var uri in libraries) {
+      _processNativeClassesInLibrary(
+          _elementEnvironment.lookupLibrary(uri)!, nativeClasses);
+    }
     _processSubclassesOfNativeClasses(libraries, nativeClasses);
     return nativeClasses;
   }
@@ -79,7 +81,7 @@ class NativeClassFinder {
 
     Map<String, Set<ClassEntity>> potentialExtends = {};
 
-    libraries.forEach((Uri uri) {
+    for (var uri in libraries) {
       LibraryEntity library = _elementEnvironment.lookupLibrary(uri)!;
       _elementEnvironment.forEachClass(library, (ClassEntity cls) {
         String? extendsName = _findExtendsNameOfClass(cls);
@@ -89,7 +91,7 @@ class NativeClassFinder {
           potentialSubclasses.add(cls);
         }
       });
-    });
+    }
 
     // Resolve all the native classes and any classes that might extend them in
     // [potentialExtends], and then check that the properly resolved class is in

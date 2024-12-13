@@ -46,58 +46,58 @@ class StepTraceListener extends TraceListener
   @override
   void onStep(js.Node node, Offset offset, StepKind kind) {
     SourceInformation? sourceInformation = computeSourceInformation(node);
-    SourcePositionKind sourcePositionKind = SourcePositionKind.START;
+    SourcePositionKind sourcePositionKind = SourcePositionKind.start;
     List text = [node];
     switch (kind) {
-      case StepKind.FUN_ENTRY:
+      case StepKind.funEntry:
         text = ['<entry>'];
         break;
-      case StepKind.FUN_EXIT:
-        sourcePositionKind = SourcePositionKind.INNER;
+      case StepKind.funExit:
+        sourcePositionKind = SourcePositionKind.inner;
         text = ['<exit>'];
         break;
-      case StepKind.CALL:
+      case StepKind.call:
         CallPosition callPosition =
             CallPosition.getSemanticPositionForCall(node as js.Call);
         sourcePositionKind = callPosition.sourcePositionKind;
         break;
-      case StepKind.ACCESS:
-      case StepKind.NEW:
-      case StepKind.RETURN:
-      case StepKind.BREAK:
-      case StepKind.CONTINUE:
-      case StepKind.THROW:
-      case StepKind.EXPRESSION_STATEMENT:
+      case StepKind.access:
+      case StepKind.new_:
+      case StepKind.return_:
+      case StepKind.break_:
+      case StepKind.continue_:
+      case StepKind.throw_:
+      case StepKind.expressionStatement:
         break;
-      case StepKind.IF_CONDITION:
+      case StepKind.ifCondition:
         final ifNode = node as js.If;
         text = ['if(', ifNode.condition, ') ...'];
         break;
-      case StepKind.FOR_INITIALIZER:
+      case StepKind.forInitializer:
         final forNode = node as js.For;
         text = ['for(', forNode.init, '; ...) ...'];
         break;
-      case StepKind.FOR_CONDITION:
+      case StepKind.forCondition:
         final forNode = node as js.For;
         text = ['for(...;', forNode.condition, '; ...) ...'];
         break;
-      case StepKind.FOR_UPDATE:
+      case StepKind.forUpdate:
         final forNode = node as js.For;
         text = ['for(...; ...', forNode.update, ') ...'];
         break;
-      case StepKind.WHILE_CONDITION:
+      case StepKind.whileCondition:
         final whileNode = node as js.While;
         text = ['while(', whileNode.condition, ') ...'];
         break;
-      case StepKind.DO_CONDITION:
+      case StepKind.doCondition:
         final doNode = node as js.Do;
         text = ['do {... } (', doNode.condition, ')'];
         break;
-      case StepKind.SWITCH_EXPRESSION:
+      case StepKind.switchExpression:
         final switchNode = node as js.Switch;
         text = ['switch(', switchNode.key, ') ...'];
         break;
-      case StepKind.NO_INFO:
+      case StepKind.noInfo:
         break;
     }
     createTraceStep(kind, node,
@@ -128,19 +128,19 @@ class StepTraceListener extends TraceListener
   void pushBranch(BranchKind kind, [int? value]) {
     var branch;
     switch (kind) {
-      case BranchKind.CONDITION:
+      case BranchKind.condition:
         branch = value == 1 ? 't' : 'f';
         break;
-      case BranchKind.LOOP:
+      case BranchKind.loop:
         branch = 'l';
         break;
-      case BranchKind.CATCH:
+      case BranchKind.catch_:
         branch = 'c';
         break;
-      case BranchKind.FINALLY:
+      case BranchKind.finally_:
         branch = 'F';
         break;
-      case BranchKind.CASE:
+      case BranchKind.case_:
         branch = '$value';
         break;
     }

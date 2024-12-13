@@ -58,8 +58,9 @@
 ///
 /// In minified mode, the properties (`A_very`) can be replaced by shorter
 /// names.
-library js_backend.string_reference;
+library;
 
+// ignore: implementation_imports
 import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../constants/values.dart' show StringConstantValue;
@@ -378,7 +379,7 @@ class StringReferenceFinalizerImpl implements StringReferenceFinalizer {
         referencesByFrequency[index].propertyName = name;
       } else {
         var refSet = referencesByFrequency[index];
-        refSet.propertyName = name + '_' + refSet.name!;
+        refSet.propertyName = '${name}_${refSet.name!}';
       }
     }
 

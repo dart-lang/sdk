@@ -4,6 +4,7 @@
 
 import 'dart:collection' show Queue;
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../common.dart';
@@ -11,7 +12,7 @@ import '../common/elements.dart' show JCommonElements;
 import '../common/metrics.dart';
 import '../common/names.dart';
 import '../common/codegen.dart' show CodegenRegistry;
-import '../common/tasks.dart' show Measurer, CompilerTask;
+import '../common/tasks.dart' show CompilerTask;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../elements/entities.dart';
@@ -54,11 +55,11 @@ mixin CodegenPhase {
 class SsaCodeGeneratorTask extends CompilerTask {
   final CompilerOptions _options;
   final SourceInformationStrategy sourceInformationStrategy;
-  _CodegenMetrics? _codegenMetrics;
-  _CodegenMetrics get codegenMetrics => _codegenMetrics ??= _CodegenMetrics();
+  CodegenMetrics? _codegenMetrics;
+  CodegenMetrics get codegenMetrics => _codegenMetrics ??= CodegenMetrics();
 
   SsaCodeGeneratorTask(
-      Measurer super.measurer, this._options, this.sourceInformationStrategy);
+      super.measurer, this._options, this.sourceInformationStrategy);
 
   @override
   String get name => 'SSA code generator';
@@ -149,7 +150,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       ModularNamer namer,
       ModularEmitter emitter) {
     return measure(() {
-      if (method.asyncMarker != AsyncMarker.SYNC) {
+      if (method.asyncMarker != AsyncMarker.sync) {
         registry.registerAsyncMarker(method.asyncMarker);
       }
       SsaCodeGenerator codeGenerator = SsaCodeGenerator(
@@ -171,7 +172,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 }
 
-class _CodegenMetrics extends MetricsBase {
+class CodegenMetrics extends MetricsBase {
   int countHIf = 0;
   int countHIfConstant = 0;
   int countHIsTest = 0;
@@ -187,7 +188,7 @@ class _CodegenMetrics extends MetricsBase {
   final countHInterceptorConditionalConstant =
       CountMetric('count.HInterceptor.conditionalConstant');
 
-  _CodegenMetrics();
+  CodegenMetrics();
 
   @override
   String get namespace => 'codegen';
@@ -245,7 +246,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   final Tracer _tracer;
   final JClosedWorld _closedWorld;
   final CodegenRegistry _registry;
-  final _CodegenMetrics _metrics;
+  final CodegenMetrics _metrics;
 
   final Set<HInstruction> generateAtUseSite = {};
   final Set<HIf> controlFlowOperators = {};
@@ -537,7 +538,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     } else if (block is HSubExpressionBlockInformation) {
       visitSubGraph(block.subExpression);
     } else {
-      failedAt(CURRENT_ELEMENT_SPANNABLE, 'Unexpected block: $block');
+      failedAt(currentElementSpannable, 'Unexpected block: $block');
     }
   }
 
@@ -593,9 +594,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     }
   }
 
-  /// Only visits the arguments starting at inputs[HInvoke.ARGUMENTS_OFFSET].
+  /// Only visits the arguments starting at inputs[HInvoke.argumentsOffset].
   List<js.Expression> visitArguments(List<HInstruction> inputs,
-      {int start = HInvoke.ARGUMENTS_OFFSET}) {
+      {int start = HInvoke.argumentsOffset}) {
     assert(inputs.length >= start);
     return List.generate(inputs.length - start, (i) {
       use(inputs[i + start]);
@@ -897,8 +898,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   @override
   bool visitTryInfo(HTryBlockInformation info) {
     js.Block body = generateStatementsInNewBlock(info.body);
-    js.Catch? catchPart = null;
-    js.Block? finallyPart = null;
+    js.Catch? catchPart;
+    js.Block? finallyPart;
     if (info.catchBlock != null) {
       void register(ClassEntity classElement) {
         _registry
@@ -971,7 +972,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
             isJSExpression(info.updates!)) {
           // If we have an updates graph, and it's expressible as an
           // expression, generate a for-loop.
-          js.Expression? jsInitialization = null;
+          js.Expression? jsInitialization;
           if (initialization != null) {
             int delayedVariablesCount = collectedVariableDeclarations.length;
             jsInitialization = generateExpression(initialization);
@@ -1313,8 +1314,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   void sequentializeCopies(
       Iterable<Copy<HInstruction>> instructionCopies,
       String tempName,
-      void doAssignment(
-          String target, String source, SourceInformation? sourceInformation)) {
+      void Function(String target, String source,
+              SourceInformation? sourceInformation)
+          doAssignment) {
     Map<String, SourceInformation?> sourceInformationMap = {};
 
     // Map the instructions to strings.
@@ -1480,7 +1482,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       push(js.Binary(mapRelationalOperator(op, inverse), jsLeft, pop())
           .withSourceInformation(sourceInformation));
     } else {
-      assert(NullConstantValue.JsNull == 'null');
+      assert(NullConstantValue.jsNull == 'null');
       use(left);
       js.Binary leftEqualsNull = js.Binary("==", pop(), js.LiteralNull());
       use(right);
@@ -2100,7 +2102,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       FunctionEntity throwFunction =
           _commonElements.throwConcurrentModificationError;
       _registry.registerStaticUse(
-          StaticUse.staticInvoke(throwFunction, CallStructure.ONE_ARG));
+          StaticUse.staticInvoke(throwFunction, CallStructure.oneArg));
 
       // Calling using `(0, #)(#)` instead of `#(#)` separates the property load
       // of the static function access from the call.  For some reason this
@@ -2914,7 +2916,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       FunctionEntity convertToString =
           _commonElements.stringInterpolationHelper;
       _registry.registerStaticUse(
-          StaticUse.staticInvoke(convertToString, CallStructure.ONE_ARG));
+          StaticUse.staticInvoke(convertToString, CallStructure.oneArg));
       js.Expression jsHelper = _emitter.staticFunctionAccess(convertToString);
       use(input);
       push(js.Call(jsHelper, [pop()],
@@ -3198,7 +3200,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
     js.Expression isTest(FunctionEntity helper) {
       _registry.registerStaticUse(
-          StaticUse.staticInvoke(helper, CallStructure.ONE_ARG));
+          StaticUse.staticInvoke(helper, CallStructure.oneArg));
       js.Expression test =
           js.Call(_emitter.staticFunctionAccess(helper), [value]);
       return handleNegative(test);
@@ -3260,7 +3262,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     use(node.checkedInput);
     FunctionEntity method = node.method;
     _registry.registerStaticUse(
-        StaticUse.staticInvoke(method, CallStructure.ONE_ARG));
+        StaticUse.staticInvoke(method, CallStructure.oneArg));
     js.Expression methodAccess = _emitter.staticFunctionAccess(method);
     push(js.js(r'#(#)', [methodAccess, pop()]).withSourceInformation(
         node.sourceInformation));
@@ -3274,8 +3276,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   @override
   void visitLoadType(HLoadType node) {
     // 'findType' will be called somewhere to initialize the type reference.
-    _registry.registerStaticUse(StaticUse.staticInvoke(
-        _commonElements.findType, CallStructure.ONE_ARG));
+    _registry.registerStaticUse(
+        StaticUse.staticInvoke(_commonElements.findType, CallStructure.oneArg));
     TypeReference reference = TypeReference(node.typeExpression);
     reference.forLazyInitializer = currentGraph.isLazyInitializer;
     push(reference);
@@ -3293,7 +3295,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
     void useHelper(FunctionEntity helper) {
       _registry.registerStaticUse(
-          StaticUse.staticInvoke(helper, CallStructure.ONE_ARG));
+          StaticUse.staticInvoke(helper, CallStructure.oneArg));
       js.Expression helperAccess = _emitter.staticFunctionAccess(helper);
       push(js.js(r'#(#)', [helperAccess, receiver]).withSourceInformation(
           node.sourceInformation));

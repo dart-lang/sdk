@@ -168,12 +168,12 @@ class CustomElementsAnalysisJoin {
   CustomElementsAnalysisJoin(
       this._elementEnvironment, this._commonElements, this._nativeData,
       {BackendUsageBuilder? backendUsageBuilder})
-      : this._backendUsageBuilder = backendUsageBuilder;
+      : _backendUsageBuilder = backendUsageBuilder;
 
   WorldImpact flush() {
     if (!demanded) return const WorldImpact();
     final impactBuilder = WorldImpactBuilderImpl();
-    var newActiveClasses = Set<ClassEntity>();
+    var newActiveClasses = <ClassEntity>{};
     for (ClassEntity cls in instantiatedClasses) {
       bool isNative = _nativeData.isNativeClass(cls);
       bool isExtension = !isNative && _nativeData.isNativeOrExtendsNative(cls);
@@ -187,7 +187,7 @@ class CustomElementsAnalysisJoin {
             computeEscapingConstructors(cls);
         for (ConstructorEntity constructor in escapingConstructors) {
           impactBuilder.registerStaticUse(
-              StaticUse.constructorInvoke(constructor, CallStructure.NO_ARGS));
+              StaticUse.constructorInvoke(constructor, CallStructure.noArgs));
         }
         if (_backendUsageBuilder != null) {
           escapingConstructors

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_emitter.startup_emitter.model_emitter;
+library;
 
 import 'dart:convert' show JsonEncoder;
 
@@ -40,6 +40,7 @@ import 'package:js_shared/synced/embedded_names.dart'
 
 import 'package:js_shared/variance.dart';
 
+// ignore: implementation_imports
 import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../../../compiler_api.dart' as api;
@@ -61,7 +62,7 @@ import '../../js/js_source_mapping.dart';
 import '../../js/size_estimator.dart';
 import '../../js_backend/js_backend.dart'
     show Namer, ConstantEmitter, StringBackedName;
-import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
+import '../../js_backend/js_interop_analysis.dart' as js_interop_analysis;
 import '../../js_backend/runtime_types.dart';
 import '../../js_backend/runtime_types_codegen.dart';
 import '../../js_backend/runtime_types_new.dart' show RecipeEncoder;
@@ -180,7 +181,7 @@ class ModelEmitter {
         _closedWorld.fieldAnalysis,
         _closedWorld.recordData,
         _emitter,
-        this.generateConstantReference,
+        generateConstantReference,
         constantListGenerator);
   }
 
@@ -329,7 +330,9 @@ class ModelEmitter {
     }
     counter.countTokens(mainCode);
 
-    program.finalizers.forEach((js.TokenFinalizer f) => f.finalizeTokens());
+    for (var f in program.finalizers) {
+      f.finalizeTokens();
+    }
 
     // TODO(sra): This is where we know if the types (and potentially other
     // deferred ASTs inside the parts) have any contents. We should wait until
@@ -352,7 +355,7 @@ class ModelEmitter {
 
     if (_closedWorld.backendUsage.requiresPreamble &&
         _options.compileForServer) {
-      _reporter.reportHintMessage(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
+      _reporter.reportHintMessage(noLocationSpannable, MessageKind.preamble);
     }
 
     if (_options.deferredMapUri != null) {
@@ -400,7 +403,7 @@ class ModelEmitter {
     // e.g. as a parameter of the IIFE. It is OK to use a top-level variable,
     // since the IIFE immediately reads the variable.
     return js.js.statement('''
-var ${startupMetricsGlobal} =
+var $startupMetricsGlobal =
 (function(){
   // The timestamp metrics use `performance.now()`. We feature-detect and
   // fall back on `Date.now()` for JavaScript run in a non-browser environment.
@@ -440,7 +443,7 @@ var ${startupMetricsGlobal} =
 
     js.Program program = js.Program([
       buildGeneratedBy(),
-      js.Comment(HOOKS_API_USAGE),
+      js.Comment(hooksApiUsage),
       if (isSplit) buildDeferredInitializerGlobal(js.string('main')),
       if (_closedWorld.backendUsage.requiresStartupMetrics)
         buildStartupMetrics(),
@@ -524,7 +527,7 @@ var ${startupMetricsGlobal} =
         String hunkFileName = "$outputFileName.$deferredExtension";
 
         if (sourceMapUri != null) {
-          String mapFileName = hunkFileName + ".map";
+          String mapFileName = "$hunkFileName.map";
           List<String> mapSegments = sourceMapUri.pathSegments.toList();
           mapSegments[mapSegments.length - 1] = mapFileName;
           mapUri = _options.sourceMapUri!.replace(pathSegments: mapSegments);

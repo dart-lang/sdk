@@ -35,11 +35,11 @@ abstract class DataSource {
   int readDeferred();
 
   /// Eagerly reads and returns the value for a deferred entity.
-  E readDeferredAsEager<E>(E reader());
+  E readDeferredAsEager<E>(E Function() reader);
 
   /// Calls [reader] to read a value at the provided offset in the underlying
   /// data stream. Use with [readDeferred] to read a deferred value.
-  E readAtOffset<E>(int offset, E reader());
+  E readAtOffset<E>(int offset, E Function() reader);
 
   /// The length of the underlying data source.
   int get length;
@@ -153,7 +153,7 @@ class DataSourceReader {
   /// Evaluates [f] with [DataSource] for the provided [source] as the
   /// temporary [DataSource] for this object. Allows deferred data to be read
   /// from a file other than the one currently being read from.
-  E readWithSource<E>(DataSourceReader source, E f()) {
+  E readWithSource<E>(DataSourceReader source, E Function() f) {
     final lastSource = _sourceReader;
     final lastComponentLookup = _componentLookup;
     final lastStartOffset = startOffset;
@@ -170,11 +170,11 @@ class DataSourceReader {
     return value;
   }
 
-  E readWithOffset<E>(int offset, E f()) {
+  E readWithOffset<E>(int offset, E Function() f) {
     return _sourceReader.readAtOffset(offset, f);
   }
 
-  Deferrable<E> readDeferrable<E>(E f(DataSourceReader source),
+  Deferrable<E> readDeferrable<E>(E Function(DataSourceReader source) f,
       {bool cacheData = true}) {
     return useDeferredStrategy
         ? Deferrable<E>.deferred(this, f, _sourceReader.readDeferred(),
@@ -183,7 +183,7 @@ class DataSourceReader {
   }
 
   Deferrable<E> readDeferrableWithArg<E, A>(
-      E f(DataSourceReader source, A arg), A arg,
+      E Function(DataSourceReader source, A arg) f, A arg,
       {bool cacheData = true}) {
     return useDeferredStrategy
         ? Deferrable.deferredWithArg<E, A>(
@@ -195,7 +195,7 @@ class DataSourceReader {
   /// Invoke [f] in the context of [member]. This sets up support for
   /// deserialization of `ir.TreeNode`s using the `readTreeNode*InContext`
   /// methods.
-  T inMemberContext<T>(ir.Member? context, T f()) {
+  T inMemberContext<T>(ir.Member? context, T Function() f) {
     ir.Member? oldMemberContext = _currentMemberContext;
     MemberData? oldMemberData = _currentMemberData;
     _currentMemberContext = context;
@@ -214,7 +214,7 @@ class DataSourceReader {
 
   /// Reads a reference to an [E] value from this data source. If the value has
   /// not yet been deserialized, [f] is called to deserialize the value itself.
-  E readIndexed<E extends Object>(E f()) {
+  E readIndexed<E extends Object>(E Function() f) {
     E? value = readIndexedOrNull(f);
     if (value == null) throw StateError("Unexpected 'null' for $E");
     return value;
@@ -223,7 +223,7 @@ class DataSourceReader {
   /// Reads a reference to an [E] value from this data source. [f] is called to
   /// deserialize the value at the relevant index. Use [readIndexed] if the value
   /// should be cached and all reads of the index should return the same object.
-  E readIndexedNoCache<E extends Object>(E f()) {
+  E readIndexedNoCache<E extends Object>(E Function() f) {
     E? value = readIndexedOrNullNoCache(f);
     if (value == null) throw StateError("Unexpected 'null' for $E");
     return value;
@@ -232,7 +232,7 @@ class DataSourceReader {
   /// Reads a reference to a nullable [E] value from this data source. If the
   /// value has not yet been deserialized, [f] is called to deserialize the
   /// value itself.
-  E? readIndexedOrNull<E extends Object>(E f()) {
+  E? readIndexedOrNull<E extends Object>(E Function() f) {
     IndexedSource<E> source = (_generalCaches[E] ??=
         importedIndices.getIndexedSource<E>()) as IndexedSource<E>;
     return source.read(this, f);
@@ -242,7 +242,7 @@ class DataSourceReader {
   /// called to deserialize the value at the relevant index. Use
   /// [readIndexedOrNull] if the value should be cached and all reads of the
   /// index should return the same object.
-  E? readIndexedOrNullNoCache<E extends Object>(E f()) {
+  E? readIndexedOrNullNoCache<E extends Object>(E Function() f) {
     IndexedSource<E> source = (_generalCaches[E] ??=
         importedIndices.getIndexedSource<E>()) as IndexedSource<E>;
     return source.readWithoutCache(this, f);
@@ -253,7 +253,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeValueOrNull].
-  E? readValueOrNull<E>(E f()) {
+  E? readValueOrNull<E>(E Function() f) {
     bool hasValue = readBool();
     if (hasValue) {
       return f();
@@ -265,7 +265,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeList].
-  List<E> readList<E>(E f()) {
+  List<E> readList<E>(E Function() f) {
     return readListOrNull<E>(f) ?? List<E>.empty();
   }
 
@@ -274,7 +274,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeList].
-  List<E>? readListOrNull<E>(E f()) {
+  List<E>? readListOrNull<E>(E Function() f) {
     int count = readInt();
     if (count == 0) return null;
     return List<E>.generate(count, (_) => f(), growable: false);
@@ -366,7 +366,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeNameMap].
-  Map<Name, V> readNameMap<V>(V f()) {
+  Map<Name, V> readNameMap<V>(V Function() f) {
     int count = readInt();
     Map<Name, V> map = {};
     for (int i = 0; i < count; i++) {
@@ -382,7 +382,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeStringMap].
-  Map<String, V> readStringMap<V>(V f()) {
+  Map<String, V> readStringMap<V>(V Function() f) {
     int count = readInt();
     if (count == 0) return {};
     Map<String, V> map = {};
@@ -519,7 +519,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeMemberNodeMap].
-  Map<K, V> readMemberNodeMap<K extends ir.Member, V>(V f()) {
+  Map<K, V> readMemberNodeMap<K extends ir.Member, V>(V Function() f) {
     return readMemberNodeMapOrNull<K, V>(f) ?? {};
   }
 
@@ -529,7 +529,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeMemberNodeMap].
-  Map<K, V>? readMemberNodeMapOrNull<K extends ir.Member, V>(V f()) {
+  Map<K, V>? readMemberNodeMapOrNull<K extends ir.Member, V>(V Function() f) {
     int count = readInt();
     if (count == 0) return null;
     Map<K, V> map = {};
@@ -618,11 +618,11 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeTreeNodeMap].
-  Map<K, V> readTreeNodeMap<K extends ir.TreeNode, V>(V f()) {
+  Map<K, V> readTreeNodeMap<K extends ir.TreeNode, V>(V Function() f) {
     return readTreeNodeMapOrNull(f) ?? <K, V>{};
   }
 
-  Map<K, V>? readTreeNodeMapOrNull<K extends ir.TreeNode, V>(V f()) {
+  Map<K, V>? readTreeNodeMapOrNull<K extends ir.TreeNode, V>(V Function() f) {
     int count = readInt();
     if (count == 0) return null;
     Map<K, V> map = {};
@@ -661,7 +661,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeTreeNodeMapInContext].
-  Map<K, V> readTreeNodeMapInContext<K extends ir.TreeNode, V>(V f()) {
+  Map<K, V> readTreeNodeMapInContext<K extends ir.TreeNode, V>(V Function() f) {
     return readTreeNodeMapInContextOrNull<K, V>(f) ?? {};
   }
 
@@ -671,7 +671,8 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeTreeNodeMapInContext].
-  Map<K, V>? readTreeNodeMapInContextOrNull<K extends ir.TreeNode, V>(V f()) {
+  Map<K, V>? readTreeNodeMapInContextOrNull<K extends ir.TreeNode, V>(
+      V Function() f) {
     int count = readInt();
     if (count == 0) return null;
     Map<K, V> map = {};
@@ -937,7 +938,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeLibraryMap].
-  Map<K, V> readLibraryMap<K extends LibraryEntity, V>(V f()) {
+  Map<K, V> readLibraryMap<K extends LibraryEntity, V>(V Function() f) {
     return readLibraryMapOrNull<K, V>(f) ?? {};
   }
 
@@ -947,7 +948,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeLibraryMap].
-  Map<K, V>? readLibraryMapOrNull<K extends LibraryEntity, V>(V f()) {
+  Map<K, V>? readLibraryMapOrNull<K extends LibraryEntity, V>(V Function() f) {
     int count = readInt();
     if (count == 0) return null;
     Map<K, V> map = {};
@@ -999,7 +1000,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeClassMap].
-  Map<K, V> readClassMap<K extends ClassEntity, V>(V f()) {
+  Map<K, V> readClassMap<K extends ClassEntity, V>(V Function() f) {
     return readClassMapOrNull<K, V>(f) ?? {};
   }
 
@@ -1009,7 +1010,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeClassMap].
-  Map<K, V>? readClassMapOrNull<K extends ClassEntity, V>(V f()) {
+  Map<K, V>? readClassMapOrNull<K extends ClassEntity, V>(V Function() f) {
     int count = readInt();
     if (count == 0) return null;
     Map<K, V> map = {};
@@ -1061,7 +1062,8 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeMemberMap].
-  Map<K, V> readMemberMap<K extends MemberEntity, V>(V f(MemberEntity member)) {
+  Map<K, V> readMemberMap<K extends MemberEntity, V>(
+      V Function(MemberEntity member) f) {
     return readMemberMapOrNull<K, V>(f) ?? {};
   }
 
@@ -1072,7 +1074,7 @@ class DataSourceReader {
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeMemberMap].
   Map<K, V>? readMemberMapOrNull<K extends MemberEntity, V>(
-      V f(MemberEntity member)) {
+      V Function(MemberEntity member) f) {
     int count = readInt();
     if (count == 0) return null;
     Map<K, V> map = {};
@@ -1095,7 +1097,8 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeTypeVariableMap].
-  Map<K, V> readTypeVariableMap<K extends TypeVariableEntity, V>(V f()) {
+  Map<K, V> readTypeVariableMap<K extends TypeVariableEntity, V>(
+      V Function() f) {
     int count = readInt();
     Map<K, V> map = {};
     for (int i = 0; i < count; i++) {
@@ -1141,7 +1144,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeLocalMap].
-  Map<K, V> readLocalMap<K extends Local, V>(V f()) {
+  Map<K, V> readLocalMap<K extends Local, V>(V Function() f) {
     int count = readInt();
     Map<K, V> map = {};
     for (int i = 0; i < count; i++) {
@@ -1157,7 +1160,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeSelectorMap].
-  Map<Selector, V> readSelectorMap<V>(V f(Selector selector)) =>
+  Map<Selector, V> readSelectorMap<V>(V Function(Selector selector) f) =>
       readSelectorMapOrNull<V>(f) ?? {};
 
   /// Reads a map from selectors to [V] values from this data source, calling
@@ -1166,7 +1169,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeSelectorMap].
-  Map<Selector, V>? readSelectorMapOrNull<V>(V f(Selector selector)) {
+  Map<Selector, V>? readSelectorMapOrNull<V>(V Function(Selector selector) f) {
     int count = readInt();
     if (count == 0) return null;
     Map<Selector, V> map = {};
@@ -1190,35 +1193,35 @@ class DataSourceReader {
   ConstantValue _readConstantInternal() {
     ConstantValueKind kind = _sourceReader.readEnum(ConstantValueKind.values);
     switch (kind) {
-      case ConstantValueKind.BOOL:
+      case ConstantValueKind.bool:
         bool value = readBool();
         return BoolConstantValue(value);
-      case ConstantValueKind.INT:
+      case ConstantValueKind.int:
         BigInt value = _readBigInt();
         return IntConstantValue(value);
-      case ConstantValueKind.DOUBLE:
+      case ConstantValueKind.double:
         double value = _readDoubleValue();
         return DoubleConstantValue(value);
-      case ConstantValueKind.STRING:
+      case ConstantValueKind.string:
         String value = readString();
         return StringConstantValue(value);
-      case ConstantValueKind.NULL:
+      case ConstantValueKind.null_:
         return const NullConstantValue();
-      case ConstantValueKind.FUNCTION:
+      case ConstantValueKind.function:
         final function = readMember() as FunctionEntity;
         final type = readDartType() as FunctionType;
         return FunctionConstantValue(function, type);
-      case ConstantValueKind.LIST:
+      case ConstantValueKind.list:
         final type = readDartType() as InterfaceType;
         final entries = readConstants();
         return ListConstantValue(type, entries);
-      case ConstantValueKind.SET:
+      case ConstantValueKind.set:
         final type = readDartType() as InterfaceType;
         final values = readConstants();
         final indexObject =
             readConstantOrNull() as JavaScriptObjectConstantValue?;
         return constant_system.JavaScriptSetConstant(type, values, indexObject);
-      case ConstantValueKind.MAP:
+      case ConstantValueKind.map:
         final type = readDartType() as InterfaceType;
         final keyList = readConstant() as ListConstantValue;
         final valueList = readConstant() as ListConstantValue;
@@ -1228,42 +1231,42 @@ class DataSourceReader {
             : null;
         return constant_system.JavaScriptMapConstant(
             type, keyList, valueList, onlyStringKeys, indexObject);
-      case ConstantValueKind.CONSTRUCTED:
+      case ConstantValueKind.constructed:
         final type = readDartType() as InterfaceType;
         Map<FieldEntity, ConstantValue> fields =
             readMemberMap<FieldEntity, ConstantValue>(
                 (MemberEntity member) => readConstant());
         return ConstructedConstantValue(type, fields);
-      case ConstantValueKind.RECORD:
+      case ConstantValueKind.record:
         final shape = RecordShape.readFromDataSource(this);
         final values = readConstants();
         return RecordConstantValue(shape, values);
-      case ConstantValueKind.TYPE:
+      case ConstantValueKind.type:
         final representedType = readDartType();
         final type = readDartType() as InterfaceType;
         return TypeConstantValue(representedType, type);
-      case ConstantValueKind.INSTANTIATION:
+      case ConstantValueKind.instantiation:
         List<DartType> typeArguments = readDartTypes();
         final function = readConstant() as FunctionConstantValue;
         return InstantiationConstantValue(typeArguments, function);
-      case ConstantValueKind.INTERCEPTOR:
+      case ConstantValueKind.interceptor:
         ClassEntity cls = readClass();
         return InterceptorConstantValue(cls);
-      case ConstantValueKind.JAVASCRIPT_OBJECT:
+      case ConstantValueKind.javaScriptObject:
         final keys = readConstants();
         final values = readConstants();
         return JavaScriptObjectConstantValue(keys, values);
-      case ConstantValueKind.DEFERRED_GLOBAL:
+      case ConstantValueKind.deferredGlobal:
         ConstantValue constant = readConstant();
         OutputUnit unit = readOutputUnitReference();
         return DeferredGlobalConstantValue(constant, unit);
-      case ConstantValueKind.DUMMY_INTERCEPTOR:
+      case ConstantValueKind.dummyInterceptor:
         return DummyInterceptorConstantValue();
-      case ConstantValueKind.LATE_SENTINEL:
+      case ConstantValueKind.lateSentinel:
         return LateSentinelConstantValue();
-      case ConstantValueKind.UNREACHABLE:
+      case ConstantValueKind.unreachable:
         return UnreachableConstantValue();
-      case ConstantValueKind.JS_NAME:
+      case ConstantValueKind.jsName:
         final name = readJsNode() as js.LiteralString;
         return JsNameConstantValue(name);
     }
@@ -1293,7 +1296,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeConstantMap].
-  Map<K, V> readConstantMap<K extends ConstantValue, V>(V f()) {
+  Map<K, V> readConstantMap<K extends ConstantValue, V>(V Function() f) {
     return readConstantMapOrNull<K, V>(f) ?? {};
   }
 
@@ -1303,7 +1306,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeConstantMap].
-  Map<K, V>? readConstantMapOrNull<K extends ConstantValue, V>(V f()) {
+  Map<K, V>? readConstantMapOrNull<K extends ConstantValue, V>(V Function() f) {
     int count = readInt();
     if (count == 0) return null;
     Map<K, V> map = {};
@@ -1395,7 +1398,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeImportMap].
-  Map<ImportEntity, V> readImportMap<V>(V f()) {
+  Map<ImportEntity, V> readImportMap<V>(V Function() f) {
     return readImportMapOrNull<V>(f) ?? {};
   }
 
@@ -1405,7 +1408,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeImportMap].
-  Map<ImportEntity, V>? readImportMapOrNull<V>(V f()) {
+  Map<ImportEntity, V>? readImportMapOrNull<V>(V Function() f) {
     int count = readInt();
     if (count == 0) return null;
     Map<ImportEntity, V> map = {};

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library ssa.tracer;
+library;
 
 import '../../compiler_api.dart' as api show OutputSink;
 import '../diagnostics/invariant.dart' show debugMode;
@@ -150,7 +150,7 @@ class HInstructionStringifier implements HVisitor<String> {
       closedWorld.abstractValueDomain;
 
   String visit(HInstruction node) => node is HControlFlow
-      ? '${node.accept(this)}'
+      ? node.accept(this)
       : '${node.accept(this)} ${node.instructionType}';
 
   String temporaryId(HInstruction instruction) {
@@ -276,7 +276,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   @override
   String visitCreate(HCreate node) {
-    return handleGenericInvoke("Create", "${node.element.name}", node.inputs);
+    return handleGenericInvoke("Create", node.element.name, node.inputs);
   }
 
   @override
@@ -397,7 +397,7 @@ class HInstructionStringifier implements HVisitor<String> {
     if (node.interceptedClasses != null) {
       String cls = suffixForGetInterceptor(closedWorld.commonElements,
           closedWorld.nativeData, node.interceptedClasses!);
-      return "Interceptor (${cls}): $value";
+      return "Interceptor ($cls): $value";
     }
     return "Interceptor: $value";
   }
@@ -410,7 +410,7 @@ class HInstructionStringifier implements HVisitor<String> {
     String receiver = temporaryId(invoke.receiver);
     String name = invoke.selector.name;
     String target = '$receiver.$name';
-    int offset = HInvoke.ARGUMENTS_OFFSET;
+    int offset = HInvoke.argumentsOffset;
     List<HInstruction> arguments = invoke.inputs.sublist(offset);
     final attributes = {
       if (invoke.isInvariant) 'Invariant',
@@ -418,9 +418,7 @@ class HInstructionStringifier implements HVisitor<String> {
     };
     String attributesText = attributes.isEmpty ? '' : ' $attributes';
 
-    return handleGenericInvoke(kind, target, arguments) +
-        "(${invoke.receiverType})" +
-        attributesText;
+    return "${handleGenericInvoke(kind, target, arguments)}(${invoke.receiverType})$attributesText";
   }
 
   @override
@@ -463,7 +461,7 @@ class HInstructionStringifier implements HVisitor<String> {
     var inputs = node.inputs;
     String? targetString;
     if (target.isInstanceMember) {
-      targetString = temporaryId(inputs.first) + '.${target.name}';
+      targetString = '${temporaryId(inputs.first)}.${target.name}';
       inputs = inputs.sublist(1);
     } else {
       targetString = target.name;

@@ -59,11 +59,13 @@
 ///
 /// In minified mode, the properties `int` and `X_String` can be replaced by
 /// shorter names.
-library js_backend.type_reference;
+library;
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show $0, $9, $A, $Z, $_, $a, $z;
 
+// ignore: implementation_imports
 import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../common/elements.dart' show CommonElements;
@@ -432,7 +434,7 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
         referencesByFrequency[index].propertyName = name;
       } else {
         var refSet = referencesByFrequency[index];
-        refSet.propertyName = name + '_' + refSet.name!;
+        refSet.propertyName = '${name}_${refSet.name!}';
       }
     }
 
@@ -608,7 +610,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
       int index = 0;
       for (DartType type in recipe.types) {
         ++index;
-        _add('${index}');
+        _add('$index');
         _visit(type);
       }
     } else {
@@ -616,7 +618,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
     }
     String result = _fragments.join('_');
     if (namer.startsWithIdentifierCharacter(result)) return result;
-    return 'z' + result;
+    return 'z$result';
   }
 
   void _add(String text) {
@@ -682,7 +684,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
   @override
   void visitFunctionTypeVariable(covariant FunctionTypeVariable type, _) {
     int index = type.index;
-    String name = index < 26 ? String.fromCharCode($A + index) : 'v\$${index}';
+    String name = index < 26 ? String.fromCharCode($A + index) : 'v\$$index';
     _add(name);
   }
 

@@ -181,8 +181,8 @@ class FlatTypeMask extends TypeMask {
   Bitset get _powerset => _powersetDomains.restrict(flags);
 
   ClassQuery get _classQuery => isExact
-      ? ClassQuery.EXACT
-      : (isSubclass ? ClassQuery.SUBCLASS : ClassQuery.SUBTYPE);
+      ? ClassQuery.exact
+      : (isSubclass ? ClassQuery.subclass : ClassQuery.subtype);
 
   @override
   bool get isEmpty => isEmptyOrSpecial && _specialValueDomain.isEmpty(flags);
@@ -199,12 +199,12 @@ class FlatTypeMask extends TypeMask {
   bool get hasLateSentinel => _hasLateSentinelFlag(flags);
   @override
   AbstractBool get isLateSentinel {
-    if (!hasLateSentinel) return AbstractBool.False;
+    if (!hasLateSentinel) return AbstractBool.false_;
     if (isEmptyOrSpecial &&
         _specialValueDomain.restrict(flags) == _lateSentinelBit) {
-      return AbstractBool.True;
+      return AbstractBool.true_;
     }
-    return AbstractBool.Maybe;
+    return AbstractBool.maybe;
   }
 
   // TODO(kasperl): Get rid of these. They should not be a visible
@@ -552,7 +552,7 @@ class FlatTypeMask extends TypeMask {
 
         List<FlatTypeMask> masks = List.from(classes.map((ClassEntity cls) =>
             TypeMask.nonNullSubclass(cls, domain._closedWorld)));
-        if (masks.length > UnionTypeMask.MAX_UNION_LENGTH) {
+        if (masks.length > UnionTypeMask.maxUnionLength) {
           return UnionTypeMask.flatten(masks, domain,
               includeNull: includeNull,
               includeLateSentinel: includeLateSentinel);

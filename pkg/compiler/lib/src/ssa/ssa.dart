@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library ssa;
+library;
 
 import 'package:compiler/src/ssa/metrics.dart';
 
@@ -144,14 +144,14 @@ class SsaFunctionCompiler implements FunctionCompiler {
       DartType? asyncTypeParameter,
       SourceInformation? bodySourceInformation,
       SourceInformation? exitSourceInformation) {
-    if (element.asyncMarker == AsyncMarker.SYNC) return code;
+    if (element.asyncMarker == AsyncMarker.sync) return code;
 
     late final AsyncRewriterBase rewriter;
     js.Name name = namer.methodPropertyName(
         element is JGeneratorBody ? element.function : element);
 
     switch (element.asyncMarker) {
-      case AsyncMarker.ASYNC:
+      case AsyncMarker.async:
         rewriter = _makeAsyncRewriter(
             codegen,
             commonElements,
@@ -164,7 +164,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
             asyncTypeParameter,
             name);
         break;
-      case AsyncMarker.SYNC_STAR:
+      case AsyncMarker.syncStar:
         rewriter = _makeSyncStarRewriter(
             codegen,
             commonElements,
@@ -177,7 +177,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
             asyncTypeParameter,
             name);
         break;
-      case AsyncMarker.ASYNC_STAR:
+      case AsyncMarker.asyncStar:
         rewriter = _makeAsyncStarRewriter(
             codegen,
             commonElements,
@@ -190,7 +190,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
             asyncTypeParameter,
             name);
         break;
-      case AsyncMarker.SYNC:
+      case AsyncMarker.sync:
         throw StateError('Cannot rewrite sync method as async.');
     }
     return rewriter.rewrite(
@@ -206,7 +206,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
       CommonElements commonElements, CodegenRegistry registry, DartType? type) {
     if (type == null) return null;
     registry.registerStaticUse(
-        StaticUse.staticInvoke(commonElements.findType, CallStructure.ONE_ARG));
+        StaticUse.staticInvoke(commonElements.findType, CallStructure.oneArg));
     return [TypeReference(TypeExpressionRecipe(type))];
   }
 
@@ -345,9 +345,9 @@ class SsaBuilderTask extends CompilerTask {
   @override
   String get name => 'SSA builder';
 
-  void onCodegenStart(JClosedWorld _closedWorld) {
+  void onCodegenStart(JClosedWorld closedWorld) {
     _builder = _backendStrategy.createSsaBuilder(
-        this, _closedWorld, _sourceInformationFactory);
+        this, closedWorld, _sourceInformationFactory);
     metrics = _ssaMetrics;
   }
 

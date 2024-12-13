@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show $0, $9, $A, $Z, $a, $z;
 
@@ -146,9 +147,9 @@ Map<int, String> _discriminators(List<int> keys, bool atStart) {
       if (escapeToUnderscore) {
         encoding[key] = '_';
       } else if (key < 256) {
-        encoding[key] = 'x' + key.toRadixString(16).padLeft(2, '0');
+        encoding[key] = 'x${key.toRadixString(16).padLeft(2, '0')}';
       } else {
-        encoding[key] = 'u' + key.toRadixString(16).padLeft(4, '0');
+        encoding[key] = 'u${key.toRadixString(16).padLeft(4, '0')}';
       }
     }
   }

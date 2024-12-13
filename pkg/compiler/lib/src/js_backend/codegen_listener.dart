@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js_backend.backend.codegen_listener;
+library;
 
 import 'dart:collection';
 
@@ -104,7 +104,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       mainImpact.registerStaticUse(StaticUse.staticGet(mainMethod));
     } else {
       mainImpact.registerStaticUse(
-          StaticUse.staticInvoke(mainMethod, CallStructure.NO_ARGS));
+          StaticUse.staticInvoke(mainMethod, CallStructure.noArgs));
     }
     return mainImpact;
   }
@@ -139,13 +139,13 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     if (!_isNewRtiUsed) {
       WorldImpactBuilderImpl newRtiImpact = WorldImpactBuilderImpl();
       newRtiImpact.registerStaticUse(StaticUse.staticInvoke(
-          _commonElements.rtiAddRulesMethod, CallStructure.TWO_ARGS));
+          _commonElements.rtiAddRulesMethod, CallStructure.twoArgs));
       newRtiImpact.registerStaticUse(StaticUse.staticInvoke(
-          _commonElements.rtiAddErasedTypesMethod, CallStructure.TWO_ARGS));
+          _commonElements.rtiAddErasedTypesMethod, CallStructure.twoArgs));
       if (_options.enableVariance) {
         newRtiImpact.registerStaticUse(StaticUse.staticInvoke(
             _commonElements.rtiAddTypeParameterVariancesMethod,
-            CallStructure.TWO_ARGS));
+            CallStructure.twoArgs));
       }
       enqueuer.applyImpact(newRtiImpact);
       _isNewRtiUsed = true;
@@ -214,9 +214,9 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
       impactBuilder.registerStaticUse(StaticUse.staticInvoke(
           _commonElements.instantiatedGenericFunctionTypeNewRti,
-          CallStructure.TWO_ARGS));
+          CallStructure.twoArgs));
       impactBuilder.registerStaticUse(StaticUse.staticInvoke(
-          _commonElements.closureFunctionType, CallStructure.ONE_ARG));
+          _commonElements.closureFunctionType, CallStructure.oneArg));
     }
   }
 
@@ -352,7 +352,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   }
 
   @override
-  void logSummary(void log(String message)) {
+  void logSummary(void Function(String message) log) {
     _nativeEnqueuer.logSummary(log);
   }
 

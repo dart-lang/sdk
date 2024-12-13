@@ -4,12 +4,15 @@
 
 // TODO(johnniwinther): Add a test that ensure that this library doesn't depend
 // on the dart2js internals.
-library compiler.src.kernel.dart2js_target;
+library;
 
+// ignore: implementation_imports
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
+// ignore: implementation_imports
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
+// ignore: implementation_imports
 import 'package:_js_interop_checks/src/transformations/shared_interop_transformer.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart';
@@ -21,7 +24,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../options.dart';
 import 'invocation_mirror.dart';
-import 'transformations/modular/transform.dart' as modularTransforms;
+import 'transformations/modular/transform.dart' as modular_transforms;
 
 const Iterable<String> _allowedDartSchemePaths = [
   'async',
@@ -170,7 +173,7 @@ class Dart2jsTarget extends Target {
         jsUtilOptimizer.visitLibrary(library);
       }
     }
-    modularTransforms.transformLibraries(
+    modular_transforms.transformLibraries(
         libraries, coreTypes, hierarchy, options);
     logger?.call("Modular transformations performed");
   }

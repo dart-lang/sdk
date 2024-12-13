@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dump_info;
+library;
 
 import 'dart:convert' show JsonEncoder, JsonDecoder;
 
@@ -28,7 +28,7 @@ import 'elements/names.dart';
 import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/types.dart'
     show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
-import 'js/js.dart' as jsAst;
+import 'js/js.dart' as js_ast;
 import 'js_emitter/code_emitter_task.dart';
 import 'js_model/elements.dart';
 import 'js_model/js_world.dart' show JClosedWorld;
@@ -64,8 +64,8 @@ class DumpInfoJsAstRegistry {
 
   // Temporary structures used to collect data during the visit process with a
   // low memory footprint.
-  final Map<jsAst.Node, ConstantValue> _constantRegistry = {};
-  final Map<jsAst.Node, List<Entity>> _entityRegistry = {};
+  final Map<js_ast.Node, ConstantValue> _constantRegistry = {};
+  final Map<js_ast.Node, List<Entity>> _entityRegistry = {};
   final List<CodeSpan> _stack = [];
   DataSinkWriter? _dataSinkWriter;
   int _impactCount = 0;
@@ -76,14 +76,14 @@ class DumpInfoJsAstRegistry {
 
   bool get useBinaryFormat => options.useDumpInfoBinaryFormat;
 
-  void registerEntityAst(Entity? entity, jsAst.Node code) {
+  void registerEntityAst(Entity? entity, js_ast.Node code) {
     if (_disabled) return;
     if (entity != null) {
       (_entityRegistry[code] ??= []).add(entity);
     }
   }
 
-  void registerConstantAst(ConstantValue constant, jsAst.Node code) {
+  void registerConstantAst(ConstantValue constant, js_ast.Node code) {
     if (_disabled) return;
     assert(!_constantRegistry.containsValue(constant) ||
         _constantRegistry[code] == constant);
@@ -114,7 +114,7 @@ class DumpInfoJsAstRegistry {
 
   bool get shouldEmitText => !useBinaryFormat;
 
-  void enterNode(jsAst.Node node, int start) {
+  void enterNode(js_ast.Node node, int start) {
     if (_disabled) return;
     if (!_entityRegistry.containsKey(node) &&
         !_constantRegistry.containsKey(node)) {
@@ -130,11 +130,13 @@ class DumpInfoJsAstRegistry {
       // Note: historically we emitted the full body of classes and methods, so
       // instance methods ended up emitted twice.  Once we use a different
       // encoding of dump info, we also plan to remove this duplication.
-      _stack.forEach((f) => (f as _CodeData)._text.write(string));
+      for (var f in _stack) {
+        (f as _CodeData)._text.write(string);
+      }
     }
   }
 
-  void exitNode(jsAst.Node node, int start, int end, int? closing) {
+  void exitNode(js_ast.Node node, int start, int end, int? closing) {
     if (_disabled) return;
     final entities = _entityRegistry.remove(node);
     final constant = _constantRegistry.remove(node);
@@ -142,7 +144,9 @@ class DumpInfoJsAstRegistry {
     final data = _stack.removeLast();
     data.end = end;
     if (entities != null) {
-      entities.forEach((e) => (_entityCode[e] ??= []).add(data));
+      for (var e in entities) {
+        (_entityCode[e] ??= []).add(data);
+      }
     }
     if (constant != null) {
       _constantCode[constant] = data;
@@ -629,7 +633,7 @@ class ElementInfoCollector {
 
     if (function is ConstructorEntity) {
       name = name == ""
-          ? "${function.enclosingClass.name}"
+          ? function.enclosingClass.name
           : "${function.enclosingClass.name}.${function.name}";
       kind = FunctionInfo.CONSTRUCTOR_FUNCTION_KIND;
     }
@@ -654,7 +658,7 @@ class ElementInfoCollector {
     closedWorld.elementEnvironment.forEachParameter(function, (type, name, _) {
       // Synthesized parameters have no name. This can happen on parameters of
       // setters derived from lowering late fields.
-      parameters.add(ParameterInfo(name ?? '#t${parameterIndex}',
+      parameters.add(ParameterInfo(name ?? '#t$parameterIndex',
           inferredParameterTypes[parameterIndex++], '$type'));
     });
 
@@ -767,7 +771,7 @@ class KernelInfoCollector {
 
   KernelInfoCollector(
       this.component, this.options, this.dumpInfoTask, this.closedWorld)
-      : this.coreTypes = ir.CoreTypes(component);
+      : coreTypes = ir.CoreTypes(component);
 
   void run() {
     // TODO(markzipan): Add CFE constants to `state.info.constants`.
@@ -784,10 +788,10 @@ class KernelInfoCollector {
     }
     LibraryInfo info = LibraryInfo(libname, lib.importUri, null, 0);
 
-    lib.members.forEach((ir.Member member) {
+    for (var member in lib.members) {
       final memberEntity =
           environment.lookupLibraryMember(libEntity, member.name.text);
-      if (memberEntity == null) return;
+      if (memberEntity == null) continue;
       final function = member.function;
       if (function != null) {
         final functionInfo = visitFunction(function,
@@ -804,11 +808,11 @@ class KernelInfoCollector {
           fieldInfo.parent = info;
         }
       }
-    });
+    }
 
-    lib.classes.forEach((ir.Class clazz) {
+    for (var clazz in lib.classes) {
       final classEntity = environment.lookupClass(libEntity, clazz.name);
-      if (classEntity == null) return;
+      if (classEntity == null) continue;
 
       final classTypeInfo = visitClassType(clazz);
       if (classTypeInfo != null) {
@@ -821,7 +825,7 @@ class KernelInfoCollector {
         info.classes.add(classInfo);
         classInfo.parent = info;
       }
-    });
+    }
 
     state.info.libraries.add(info);
     return info;
@@ -859,26 +863,26 @@ class KernelInfoCollector {
     }
 
     final supers = <ClassInfo>[];
-    clazz.supers.forEach((supertype) {
+    for (var supertype in clazz.supers) {
       final superclass = supertype.classNode;
       // Ignore 'Object' to reduce overhead.
       if (superclass == coreTypes.objectClass) {
-        return;
+        continue;
       }
       final superclassLibrary =
           environment.lookupLibrary(superclass.enclosingLibrary.importUri)!;
       final superclassEntity =
           environment.lookupClass(superclassLibrary, superclass.name);
-      if (superclassEntity == null) return;
+      if (superclassEntity == null) continue;
       final classInfo = visitClass(superclass, classEntity: superclassEntity);
       if (classInfo != null) supers.add(classInfo);
-    });
+    }
 
     ClassInfo classInfo = ClassInfo.fromKernel(
         name: clazz.name, isAbstract: clazz.isAbstract, supers: supers);
     state.entityToInfo[classEntity] = classInfo;
 
-    clazz.members.forEach((ir.Member member) {
+    for (var member in clazz.members) {
       final isSetter = member is ir.Procedure && member.isSetter;
       // clazz.members includes constructors
       final name = Name(member.name.text,
@@ -887,7 +891,7 @@ class KernelInfoCollector {
       final memberEntity =
           environment.lookupLocalClassMember(classEntity, name) ??
               environment.lookupConstructor(classEntity, member.name.text);
-      if (memberEntity == null) return;
+      if (memberEntity == null) continue;
 
       final function = member.function;
       if (function != null) {
@@ -910,7 +914,7 @@ class KernelInfoCollector {
           fieldInfo.parent = classInfo;
         }
       }
-    });
+    }
 
     state.info.classes.add(classInfo);
     return classInfo;
@@ -949,7 +953,7 @@ class KernelInfoCollector {
     if (isConstructor || isFactory) {
       kind = FunctionInfo.CONSTRUCTOR_FUNCTION_KIND;
       String functionName = function.toStringInternal();
-      name = functionName.isEmpty ? '$name' : '$name$functionName';
+      name = functionName.isEmpty ? name : '$name$functionName';
     } else {
       if (parent!.parent is ir.Class && name.contains('.')) {
         name = name.split('.')[1];
@@ -1056,8 +1060,7 @@ class EntityDisambiguator {
     final entityName = entity.name!;
     nameFrequencies[entityName] = (nameFrequencies[entityName] ?? -1) + 1;
     final order = nameFrequencies[entityName]!;
-    entityNames[entity] =
-        order == 0 ? entityName : '${entityName}%${order - 1}';
+    entityNames[entity] = order == 0 ? entityName : '$entityName%${order - 1}';
 
     return entityNames[entity]!;
   }
@@ -1332,7 +1335,7 @@ class DumpInfoAnnotator {
     var compareName = function.name;
     if (function is ConstructorEntity) {
       compareName = compareName == ""
-          ? "${function.enclosingClass.name}"
+          ? function.enclosingClass.name
           : "${function.enclosingClass.name}.${function.name}";
     }
 
@@ -1366,7 +1369,7 @@ class DumpInfoAnnotator {
     closedWorld.elementEnvironment.forEachParameter(function, (type, name, _) {
       // Synthesized parameters have no name. This can happen on parameters of
       // setters derived from lowering late fields.
-      parameters.add(ParameterInfo(name ?? '#t${parameterIndex}',
+      parameters.add(ParameterInfo(name ?? '#t$parameterIndex',
           inferredParameterTypes[parameterIndex++], '$type'));
     });
 
@@ -1588,8 +1591,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
           KernelInfoCollector(component, options, this, closedWorld)..run();
 
       DumpInfoAnnotator(kernelInfoCollector, options, this, closedWorld,
-          globalInferenceResults)
-        ..run();
+              globalInferenceResults)
+          .run();
 
       dumpInfoState =
           await buildDumpInfoDataNew(closedWorld, kernelInfoCollector);
@@ -1612,18 +1615,18 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     final sink =
         encoder.startChunkedConversion(_BufferedStringOutputSink(outputSink));
     sink.add(AllInfoJsonCodec(isBackwardCompatible: true).encode(data));
-    reporter.reportInfoMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+    reporter.reportInfoMessage(noLocationSpannable, MessageKind.generic, {
       'text': 'Learn how to process the dumped .info.json file at '
           'https://dart.dev/go/dart2js-info'
     });
   }
 
   void dumpInfoBinary(AllInfo data) {
-    final name = (options.outputUri?.pathSegments.last ?? 'out') + ".info.data";
+    final name = "${options.outputUri?.pathSegments.last ?? 'out'}.info.data";
     Sink<List<int>> sink =
         outputProvider.createBinarySink(options.outputUri!.resolve(name));
     dump_info.encode(data, sink);
-    reporter.reportInfoMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+    reporter.reportInfoMessage(noLocationSpannable, MessageKind.generic, {
       'text': 'Learn how to parse and process the dumped .info.data file at '
           'https://dart.dev/go/dart2js-info'
     });
@@ -1693,7 +1696,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         compilationMoment: DateTime.now(),
         compilationDuration: measurer.elapsedWallClock,
         toJsonDuration: Duration(milliseconds: stopwatch.elapsedMilliseconds),
-        dumpInfoDuration: Duration(milliseconds: this.timing),
+        dumpInfoDuration: Duration(milliseconds: timing),
         noSuchMethodEnabled: closedWorld.backendUsage.isNoSuchMethodUsed,
         isRuntimeTypeUsed: closedWorld.backendUsage.isRuntimeTypeUsed,
         isIsolateInUse: false,
@@ -1770,7 +1773,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         compilationMoment: DateTime.now(),
         compilationDuration: measurer.elapsedWallClock,
         toJsonDuration: Duration(milliseconds: stopwatch.elapsedMilliseconds),
-        dumpInfoDuration: Duration(milliseconds: this.timing),
+        dumpInfoDuration: Duration(milliseconds: timing),
         noSuchMethodEnabled: closedWorld.backendUsage.isNoSuchMethodUsed,
         isRuntimeTypeUsed: closedWorld.backendUsage.isRuntimeTypeUsed,
         isIsolateInUse: false,

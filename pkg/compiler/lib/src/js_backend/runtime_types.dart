@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js_backend.runtime_types;
+library;
 
 import '../common.dart';
 import '../common/elements.dart'
@@ -10,7 +10,7 @@ import '../common/elements.dart'
 import '../common/names.dart' show Names;
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../js/js.dart' as jsAst;
+import '../js/js.dart' as js_ast;
 import '../js_model/js_world.dart';
 import '../options.dart';
 import '../universe/codegen_world_builder.dart';
@@ -18,7 +18,7 @@ import '../universe/feature.dart';
 import 'runtime_types_codegen.dart';
 import 'runtime_types_resolution.dart';
 
-typedef OnVariableCallback = jsAst.Expression Function(
+typedef OnVariableCallback = js_ast.Expression Function(
     TypeVariableType variable);
 
 /// Interface for the needed runtime type checks.
@@ -595,13 +595,13 @@ class RuntimeTypesImpl
         },
         instantiateTypeVariable: instantiateTypeVariable);
 
-    codegenWorld.instantiatedClasses.forEach((ClassEntity cls) {
+    for (var cls in codegenWorld.instantiatedClasses) {
       ClassUse classUse = classUseMap.putIfAbsent(cls, () => ClassUse());
       classUse.instance = true;
-    });
+    }
 
     Set<ClassEntity> visitedSuperClasses = {};
-    codegenWorld.instantiatedTypes.forEach((InterfaceType type) {
+    for (var type in codegenWorld.instantiatedTypes) {
       liveTypeVisitor.visitType(type, TypeVisitorState.direct);
       ClassUse classUse =
           classUseMap.putIfAbsent(type.element, () => ClassUse());
@@ -632,7 +632,7 @@ class RuntimeTypesImpl
         visitedSuperClasses.add(supertype.element);
         liveTypeVisitor.visitType(supertype, TypeVisitorState.direct);
       }
-    });
+    }
 
     for (FunctionEntity element in codegenWorld.closurizedStatics) {
       FunctionType functionType = _elementEnvironment.getFunctionType(element);
@@ -653,12 +653,12 @@ class RuntimeTypesImpl
 
     codegenWorld.forEachStaticTypeArgument(processMethodTypeArguments);
     codegenWorld.forEachDynamicTypeArgument(processMethodTypeArguments);
-    codegenWorld.liveTypeArguments.forEach((DartType type) {
+    for (var type in codegenWorld.liveTypeArguments) {
       liveTypeVisitor.visitType(type, TypeVisitorState.covariantTypeArgument);
-    });
-    codegenWorld.constTypeLiterals.forEach((DartType type) {
+    }
+    for (var type in codegenWorld.constTypeLiterals) {
       liveTypeVisitor.visitType(type, TypeVisitorState.typeLiteral);
-    });
+    }
 
     bool isFunctionChecked = false;
 

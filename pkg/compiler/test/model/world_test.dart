@@ -101,7 +101,7 @@ testClassSets() async {
       List<ClassEntity> visited = <ClassEntity>[];
       forEach(cls, (ClassEntity c) {
         visited.add(c);
-        return IterationStep.CONTINUE;
+        return IterationStep.continue_;
       });
       checkClasses('forEach($property)', cls, visited, expectedClasses,
           exact: exact);
@@ -428,7 +428,7 @@ testNativeClasses() async {
       if (allClasses.contains(other)) {
         strictSubclasses.add(other);
       }
-      return IterationStep.CONTINUE;
+      return IterationStep.continue_;
     });
     Expect.setEquals(subclasses, strictSubclasses,
         "Unexpected strict subclasses of $cls: ${strictSubclasses}.");
@@ -438,7 +438,7 @@ testNativeClasses() async {
       if (allClasses.contains(other)) {
         strictSubtypes.add(other);
       }
-      return IterationStep.CONTINUE;
+      return IterationStep.continue_;
     });
     Expect.setEquals(subtypes, strictSubtypes,
         "Unexpected strict subtypes of $cls: $strictSubtypes.");
@@ -575,17 +575,17 @@ testCommonSubclasses() async {
       case SimpleSubclassResult.empty:
         return null;
       case SimpleSubclassResult.exact1:
-        return ClassQuery.EXACT;
+        return ClassQuery.exact;
       case SimpleSubclassResult.exact2:
-        return ClassQuery.EXACT;
+        return ClassQuery.exact;
       case SimpleSubclassResult.subclass1:
-        return ClassQuery.SUBCLASS;
+        return ClassQuery.subclass;
       case SimpleSubclassResult.subclass2:
-        return ClassQuery.SUBCLASS;
+        return ClassQuery.subclass;
       case SimpleSubclassResult.subtype1:
-        return ClassQuery.SUBTYPE;
+        return ClassQuery.subtype;
       case SimpleSubclassResult.subtype2:
-        return ClassQuery.SUBTYPE;
+        return ClassQuery.subtype;
       case SetSubclassResult():
         return null;
     }
@@ -654,61 +654,61 @@ testCommonSubclasses() async {
     }
   }
 
-  check(A, ClassQuery.EXACT, A, ClassQuery.EXACT, SimpleSubclassResult.exact1);
+  check(A, ClassQuery.exact, A, ClassQuery.exact, SimpleSubclassResult.exact1);
   check(
-      A, ClassQuery.EXACT, A, ClassQuery.SUBCLASS, SimpleSubclassResult.exact1);
+      A, ClassQuery.exact, A, ClassQuery.subclass, SimpleSubclassResult.exact1);
   check(
-      A, ClassQuery.EXACT, A, ClassQuery.SUBTYPE, SimpleSubclassResult.exact1);
-  check(A, ClassQuery.SUBCLASS, A, ClassQuery.SUBCLASS,
+      A, ClassQuery.exact, A, ClassQuery.subtype, SimpleSubclassResult.exact1);
+  check(A, ClassQuery.subclass, A, ClassQuery.subclass,
       SimpleSubclassResult.subclass1);
-  check(A, ClassQuery.SUBCLASS, A, ClassQuery.SUBTYPE,
+  check(A, ClassQuery.subclass, A, ClassQuery.subtype,
       SimpleSubclassResult.subclass1);
-  check(A, ClassQuery.SUBTYPE, A, ClassQuery.SUBTYPE,
+  check(A, ClassQuery.subtype, A, ClassQuery.subtype,
       SimpleSubclassResult.subtype1);
 
-  check(A, ClassQuery.EXACT, B, ClassQuery.EXACT, SimpleSubclassResult.empty);
+  check(A, ClassQuery.exact, B, ClassQuery.exact, SimpleSubclassResult.empty);
   check(
-      A, ClassQuery.EXACT, B, ClassQuery.SUBCLASS, SimpleSubclassResult.empty);
+      A, ClassQuery.exact, B, ClassQuery.subclass, SimpleSubclassResult.empty);
   check(
-      A, ClassQuery.SUBCLASS, B, ClassQuery.EXACT, SimpleSubclassResult.empty);
-  check(A, ClassQuery.EXACT, B, ClassQuery.SUBTYPE, SimpleSubclassResult.empty);
-  check(A, ClassQuery.SUBTYPE, B, ClassQuery.EXACT, SimpleSubclassResult.empty);
-  check(A, ClassQuery.SUBCLASS, B, ClassQuery.SUBCLASS,
+      A, ClassQuery.subclass, B, ClassQuery.exact, SimpleSubclassResult.empty);
+  check(A, ClassQuery.exact, B, ClassQuery.subtype, SimpleSubclassResult.empty);
+  check(A, ClassQuery.subtype, B, ClassQuery.exact, SimpleSubclassResult.empty);
+  check(A, ClassQuery.subclass, B, ClassQuery.subclass,
       SimpleSubclassResult.empty);
-  check(A, ClassQuery.SUBCLASS, B, ClassQuery.SUBTYPE, SetSubclassResult([G]));
-  check(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBCLASS, SetSubclassResult([J]));
-  check(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBTYPE,
+  check(A, ClassQuery.subclass, B, ClassQuery.subtype, SetSubclassResult([G]));
+  check(A, ClassQuery.subtype, B, ClassQuery.subclass, SetSubclassResult([J]));
+  check(A, ClassQuery.subtype, B, ClassQuery.subtype,
       SetSubclassResult([F, G, I, J]));
 
-  check(A, ClassQuery.EXACT, C, ClassQuery.EXACT, SimpleSubclassResult.empty);
+  check(A, ClassQuery.exact, C, ClassQuery.exact, SimpleSubclassResult.empty);
   check(
-      A, ClassQuery.EXACT, C, ClassQuery.SUBCLASS, SimpleSubclassResult.empty);
+      A, ClassQuery.exact, C, ClassQuery.subclass, SimpleSubclassResult.empty);
   check(
-      A, ClassQuery.SUBCLASS, C, ClassQuery.EXACT, SimpleSubclassResult.exact2);
-  check(A, ClassQuery.EXACT, C, ClassQuery.SUBTYPE, SimpleSubclassResult.empty);
+      A, ClassQuery.subclass, C, ClassQuery.exact, SimpleSubclassResult.exact2);
+  check(A, ClassQuery.exact, C, ClassQuery.subtype, SimpleSubclassResult.empty);
   check(
-      A, ClassQuery.SUBTYPE, C, ClassQuery.EXACT, SimpleSubclassResult.exact2);
-  check(A, ClassQuery.SUBCLASS, C, ClassQuery.SUBCLASS,
+      A, ClassQuery.subtype, C, ClassQuery.exact, SimpleSubclassResult.exact2);
+  check(A, ClassQuery.subclass, C, ClassQuery.subclass,
       SimpleSubclassResult.subclass2);
-  check(A, ClassQuery.SUBCLASS, C, ClassQuery.SUBTYPE, SetSubclassResult([C]));
-  check(A, ClassQuery.SUBTYPE, C, ClassQuery.SUBCLASS,
+  check(A, ClassQuery.subclass, C, ClassQuery.subtype, SetSubclassResult([C]));
+  check(A, ClassQuery.subtype, C, ClassQuery.subclass,
       SimpleSubclassResult.subclass2);
-  check(A, ClassQuery.SUBTYPE, C, ClassQuery.SUBTYPE,
+  check(A, ClassQuery.subtype, C, ClassQuery.subtype,
       SimpleSubclassResult.subtype2);
 
-  check(B, ClassQuery.EXACT, C, ClassQuery.EXACT, SimpleSubclassResult.empty);
+  check(B, ClassQuery.exact, C, ClassQuery.exact, SimpleSubclassResult.empty);
   check(
-      B, ClassQuery.EXACT, C, ClassQuery.SUBCLASS, SimpleSubclassResult.empty);
+      B, ClassQuery.exact, C, ClassQuery.subclass, SimpleSubclassResult.empty);
   check(
-      B, ClassQuery.SUBCLASS, C, ClassQuery.EXACT, SimpleSubclassResult.empty);
-  check(B, ClassQuery.EXACT, C, ClassQuery.SUBTYPE, SimpleSubclassResult.empty);
-  check(B, ClassQuery.SUBTYPE, C, ClassQuery.EXACT, SimpleSubclassResult.empty);
-  check(B, ClassQuery.SUBCLASS, C, ClassQuery.SUBCLASS,
+      B, ClassQuery.subclass, C, ClassQuery.exact, SimpleSubclassResult.empty);
+  check(B, ClassQuery.exact, C, ClassQuery.subtype, SimpleSubclassResult.empty);
+  check(B, ClassQuery.subtype, C, ClassQuery.exact, SimpleSubclassResult.empty);
+  check(B, ClassQuery.subclass, C, ClassQuery.subclass,
       SimpleSubclassResult.empty);
-  check(B, ClassQuery.SUBCLASS, C, ClassQuery.SUBTYPE, SetSubclassResult([]));
-  check(B, ClassQuery.SUBTYPE, C, ClassQuery.SUBCLASS, SetSubclassResult([G]));
+  check(B, ClassQuery.subclass, C, ClassQuery.subtype, SetSubclassResult([]));
+  check(B, ClassQuery.subtype, C, ClassQuery.subclass, SetSubclassResult([G]));
   check(
-      B, ClassQuery.SUBTYPE, C, ClassQuery.SUBTYPE, SetSubclassResult([F, G]));
+      B, ClassQuery.subtype, C, ClassQuery.subtype, SetSubclassResult([F, G]));
 }
 
 testLiveMembers() async {

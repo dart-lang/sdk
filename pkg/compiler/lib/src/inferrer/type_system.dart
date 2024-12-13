@@ -26,7 +26,8 @@ abstract class TypeSystemStrategy {
       {required bool isVirtual});
 
   /// Calls [f] for each parameter in [function].
-  void forEachParameter(FunctionEntity function, void f(Local parameter));
+  void forEachParameter(
+      FunctionEntity function, void Function(Local parameter) f);
 
   /// Returns whether [node] is valid as a general phi node.
   bool checkPhiNode(ir.Node? node);
@@ -80,7 +81,7 @@ class TypeSystem {
   final Map<ir.TreeNode, RecordTypeInformation> allocatedRecords = {};
 
   /// Closures found during the analysis.
-  final Set<TypeInformation> allocatedClosures = Set<TypeInformation>();
+  final Set<TypeInformation> allocatedClosures = <TypeInformation>{};
 
   /// Cache of [ConcreteTypeInformation].
   final Map<AbstractValue, ConcreteTypeInformation> concreteTypes = {};
@@ -121,10 +122,10 @@ class TypeSystem {
 
   /// Used to group [TypeInformation] nodes by the element that triggered their
   /// creation.
-  MemberTypeInformation? _currentMember = null;
+  MemberTypeInformation? _currentMember;
   MemberTypeInformation? get currentMember => _currentMember;
 
-  void withMember(MemberEntity element, void action()) {
+  void withMember(MemberEntity element, void Function() action) {
     assert(_currentMember == null,
         failedAt(element, "Already constructing graph for $_currentMember."));
     _currentMember = getInferredTypeOfMember(element);
@@ -277,7 +278,7 @@ class TypeSystem {
       bool excludeLateSentinel = false}) {
     AbstractValue inferredType = type.type;
 
-    TypeInformation _excludeLateSentinel() {
+    TypeInformation excludeLateSentinel0() {
       if (!excludeLateSentinel) return type;
       final newType = NarrowTypeInformation(
           _abstractValueDomain, type, _abstractValueDomain.dynamicType);
@@ -288,7 +289,7 @@ class TypeSystem {
     // Avoid refining an input with an exact type, since we are almost always
     // adding a narrowing to a subtype of the same class or a superclass.
     if (_abstractValueDomain.isExact(inferredType).isDefinitelyTrue) {
-      return _excludeLateSentinel();
+      return excludeLateSentinel0();
     }
 
     AbstractValue narrowing = _abstractValueDomain
@@ -309,11 +310,11 @@ class TypeSystem {
     if (_abstractValueDomain.containsAll(narrowing).isPotentiallyTrue) {
       // Top, or non-nullable Top.
       if (_abstractValueDomain.isNull(narrowing).isPotentiallyTrue) {
-        return _excludeLateSentinel();
+        return excludeLateSentinel0();
       }
       // If the input is already narrowed to be non-null, there is no value in
       // adding another non-null narrowing node.
-      if (_isNonNullNarrow(type)) return _excludeLateSentinel();
+      if (_isNonNullNarrow(type)) return excludeLateSentinel0();
     }
 
     TypeInformation newType =
@@ -337,7 +338,8 @@ class TypeSystem {
   }
 
   void forEachParameterType(
-      void f(Local parameter, ParameterTypeInformation typeInformation)) {
+      void Function(Local parameter, ParameterTypeInformation typeInformation)
+          f) {
     parameterTypeInformations.forEach(f);
   }
 
@@ -353,7 +355,8 @@ class TypeSystem {
   }
 
   void forEachMemberType(
-      void f(MemberEntity member, MemberTypeInformation typeInformation)) {
+      void Function(MemberEntity member, MemberTypeInformation typeInformation)
+          f) {
     memberTypeInformations.forEach(f);
   }
 

@@ -41,7 +41,7 @@ class Listener implements DiagnosticReporter {
   DiagnosticMessage createMessage(spannable, messageKind,
       [arguments = const {}]) {
     return DiagnosticMessage(SourceSpan.unknown(), spannable,
-        MessageTemplate.TEMPLATES[messageKind]!.message(arguments, null));
+        MessageTemplate.templates[messageKind]!.message(arguments, null));
   }
 
   @override
@@ -65,7 +65,7 @@ void test(DartTypes dartTypes, String specString,
   Listener listener = Listener();
   try {
     NativeBehavior.processSpecString(
-        dartTypes, listener, NO_LOCATION_SPANNABLE, specString,
+        dartTypes, listener, noLocationSpannable, specString,
         setSideEffects: (effects) => actualSideEffects = effects,
         setThrows: (b) => actualThrows = b,
         setIsAllocation: (b) => actualNew = b,

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js_backend.backend.resolution_listener;
+library;
 
 import '../common/elements.dart' show KCommonElements, KElementEnvironment;
 import '../common/names.dart' show Identifiers, Names;
@@ -128,7 +128,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       mainImpact.registerStaticUse(StaticUse.staticGet(mainMethod));
     } else {
       mainImpact.registerStaticUse(
-          StaticUse.staticInvoke(mainMethod, CallStructure.NO_ARGS));
+          StaticUse.staticInvoke(mainMethod, CallStructure.noArgs));
     }
     return mainImpact;
   }
@@ -499,7 +499,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   }
 
   @override
-  void logSummary(void log(String message)) {
+  void logSummary(void Function(String message) log) {
     _nativeEnqueuer.logSummary(log);
   }
 

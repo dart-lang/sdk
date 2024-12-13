@@ -466,7 +466,7 @@ class JFieldAnalysis {
         // dependencies but only hold these when [retainDataForTesting] is
         // `true`.
         List<FieldEntity>? eagerFieldDependencies;
-        int? creationIndex = null;
+        int? creationIndex;
 
         if (isElided) {
           // If the field is elided it needs no initializer and is therefore
@@ -614,8 +614,8 @@ class FieldAnalysisData {
       this.isAssignedOnce = false,
       this.isLateBackingField = false,
       this.isEager = false,
-      this.eagerCreationIndex = null,
-      this.eagerFieldDependenciesForTesting = null});
+      this.eagerCreationIndex,
+      this.eagerFieldDependenciesForTesting});
 
   factory FieldAnalysisData.fromDataSource(DataSourceReader source) {
     source.begin(tag);

@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library ordered_typeset;
+library;
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show Link, LinkBuilder, LinkEntry;
 
@@ -135,7 +136,7 @@ class OrderedTypeSet {
     return offsets;
   }
 
-  void forEach(int level, void f(InterfaceType type)) {
+  void forEach(int level, void Function(InterfaceType type) f) {
     if (level < levels) {
       Link<InterfaceType> pointer = _levels[level];
       Link<InterfaceType> end =
@@ -191,7 +192,7 @@ abstract class OrderedTypeSetBuilder {
 }
 
 abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
-  Map<int, LinkEntry<InterfaceType>> map = Map<int, LinkEntry<InterfaceType>>();
+  Map<int, LinkEntry<InterfaceType>> map = <int, LinkEntry<InterfaceType>>{};
   int maxDepth = -1;
 
   final ClassEntity cls;

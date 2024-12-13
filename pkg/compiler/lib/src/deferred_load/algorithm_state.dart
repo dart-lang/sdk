@@ -71,7 +71,7 @@ class AlgorithmState {
           // Invariant: we must mark main before we mark any deferred import.
           newSet != importSets.mainSet || oldSet != importSets.emptySet,
           failedAt(
-              NO_LOCATION_SPANNABLE,
+              noLocationSpannable,
               "Tried to assign to the main output unit, but it was assigned "
               "to $currentSet."));
       queue.addEntityData(entityData, newSet);

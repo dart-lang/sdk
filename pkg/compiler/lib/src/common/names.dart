@@ -4,7 +4,7 @@
 
 /// Library containing identifier, names, and selectors commonly used through
 /// the compiler.
-library dart2js.common.names;
+library;
 
 import '../elements/names.dart' show Name, PublicName;
 import '../universe/call_structure.dart' show CallStructure;
@@ -45,25 +45,25 @@ class Identifiers {
   static const String signature = ':signature';
 
   /// The name of the 'JS' foreign function.
-  static const String JS = 'JS';
+  static const String js = 'JS';
 
   /// The name of the 'JS_BUILTIN' foreign function.
-  static const String JS_BUILTIN = 'JS_BUILTIN';
+  static const String jsBuiltin = 'JS_BUILTIN';
 
   /// The name of the 'JS_EMBEDDED_GLOBAL' foreign function.
-  static const String JS_EMBEDDED_GLOBAL = 'JS_EMBEDDED_GLOBAL';
+  static const String jsEmbeddedGlobal = 'JS_EMBEDDED_GLOBAL';
 
   /// The name of the 'JS_INTERCEPTOR_CONSTANT' foreign function.
-  static const String JS_INTERCEPTOR_CONSTANT = 'JS_INTERCEPTOR_CONSTANT';
+  static const String jsInterceptorConstant = 'JS_INTERCEPTOR_CONSTANT';
 
   /// The name of the 'JS_STRING_CONCAT' foreign function.
-  static const String JS_STRING_CONCAT = 'JS_STRING_CONCAT';
+  static const String jsStringConcat = 'JS_STRING_CONCAT';
 
   /// The name of the 'DART_CLOSURE_TO_JS' foreign function.
-  static const String DART_CLOSURE_TO_JS = 'DART_CLOSURE_TO_JS';
+  static const String dartClosureToJS = 'DART_CLOSURE_TO_JS';
 
   /// The name of the 'RAW_DART_FUNCTION_REF' foreign function.
-  static const String RAW_DART_FUNCTION_REF = 'RAW_DART_FUNCTION_REF';
+  static const String rawDartFunctionRef = 'RAW_DART_FUNCTION_REF';
 }
 
 /// [Name]s commonly used.
@@ -78,7 +78,7 @@ class Names {
   /// The name of the dynamic type.
   static const Name dynamic_ = PublicName('dynamic');
 
-  static const Name EQUALS_NAME = PublicName("==");
+  static const Name equalsName = PublicName("==");
 
   /// The name of the iterator property used in for-each loops.
   static const Name iterator = PublicName(Identifiers.iterator);
@@ -92,9 +92,9 @@ class Names {
   /// The name of the to-string method on 'Object'.
   static const Name toString_ = PublicName('toString');
 
-  static const Name INDEX_NAME = PublicName("[]");
-  static const Name INDEX_SET_NAME = PublicName("[]=");
-  static const Name CALL_NAME = Names.call;
+  static const Name indexName = PublicName("[]");
+  static const Name indexSetName = PublicName("[]=");
+  static const Name callName = Names.call;
 
   static const Name length = PublicName(Identifiers.length);
 
@@ -110,7 +110,7 @@ class Names {
 class Selectors {
   /// The selector for calling the cancel method on 'StreamIterator'.
   static final Selector cancel =
-      Selector.call(const PublicName('cancel'), CallStructure.NO_ARGS);
+      Selector.call(const PublicName('cancel'), CallStructure.noArgs);
 
   /// The selector for getting the current element property used in for-each
   /// loops.
@@ -121,11 +121,11 @@ class Selectors {
 
   /// The selector for calling the move next method used in for-each loops.
   static final Selector moveNext =
-      Selector.call(Names.moveNext, CallStructure.NO_ARGS);
+      Selector.call(Names.moveNext, CallStructure.noArgs);
 
   /// The selector for calling the no such method handler on 'Object'.
   static final Selector noSuchMethod_ =
-      Selector.call(Names.noSuchMethod_, CallStructure.ONE_ARG);
+      Selector.call(Names.noSuchMethod_, CallStructure.oneArg);
 
   /// The selector for tearing off noSuchMethod.
   static final Selector noSuchMethodGetter =
@@ -133,7 +133,7 @@ class Selectors {
 
   /// The selector for calling the to-string method on 'Object'.
   static final Selector toString_ =
-      Selector.call(Names.toString_, CallStructure.NO_ARGS);
+      Selector.call(Names.toString_, CallStructure.noArgs);
 
   /// The selector for tearing off toString.
   static final Selector toStringGetter = Selector.getter(Names.toString_);
@@ -142,14 +142,14 @@ class Selectors {
       Selector.getter(const PublicName('hashCode'));
 
   static final Selector compareTo =
-      Selector.call(const PublicName("compareTo"), CallStructure.ONE_ARG);
+      Selector.call(const PublicName("compareTo"), CallStructure.oneArg);
 
   static final Selector equals = Selector.binaryOperator('==');
 
   static final Selector length = Selector.getter(Names.length);
 
   static final Selector codeUnitAt =
-      Selector.call(const PublicName('codeUnitAt'), CallStructure.ONE_ARG);
+      Selector.call(const PublicName('codeUnitAt'), CallStructure.oneArg);
 
   static final Selector index = Selector.index();
 

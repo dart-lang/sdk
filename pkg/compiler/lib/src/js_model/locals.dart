@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_model.locals;
+library;
 
 import 'package:kernel/ast.dart' as ir;
 
@@ -41,19 +41,19 @@ class GlobalLocalsMap {
       MemberEntity Function(MemberEntity) localMapKeyLookup,
       DataSourceReader source) {
     source.begin(tag);
-    Map<MemberEntity, Deferrable<KernelToLocalsMap>> _localsMaps = {};
+    Map<MemberEntity, Deferrable<KernelToLocalsMap>> localsMaps = {};
     int mapCount = source.readInt();
     for (int i = 0; i < mapCount; i++) {
       Deferrable<KernelToLocalsMap> localsMap =
           source.readDeferrable(KernelToLocalsMapImpl.readFromDataSource);
       List<MemberEntity> members = source.readMembers();
       for (MemberEntity member in members) {
-        _localsMaps[member] = localsMap;
+        localsMaps[member] = localsMap;
       }
     }
     source.end(tag);
     return GlobalLocalsMap.internal(
-        localMapKeyLookup, DeferrableValueMap(_localsMaps));
+        localMapKeyLookup, DeferrableValueMap(localsMaps));
   }
 
   /// Serializes this [GlobalLocalsMap] to [sink].
@@ -671,7 +671,7 @@ void forEachOrderedParameterAsLocal(
     GlobalLocalsMap globalLocalsMap,
     JsToElementMap elementMap,
     FunctionEntity function,
-    void f(Local parameter, {required bool isElided})) {
+    void Function(Local parameter, {required bool isElided}) f) {
   KernelToLocalsMap localsMap = globalLocalsMap.getLocalsMap(function);
   forEachOrderedParameter(elementMap, function,
       (ir.VariableDeclaration variable, {required bool isElided}) {

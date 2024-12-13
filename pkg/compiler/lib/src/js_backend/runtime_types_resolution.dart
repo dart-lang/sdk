@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js_backend.runtime_types_resolution;
+library;
 
 import '../common.dart';
 import '../common/elements.dart' show CommonElements, ElementEnvironment;
@@ -244,14 +244,16 @@ class TypeVariableTests {
   }
 
   /// Calls [f] for each selector that applies to generic [targets].
-  void forEachAppliedSelector(void f(Selector selector, Set<Entity> targets)) {
+  void forEachAppliedSelector(
+      void Function(Selector selector, Set<Entity> targets) f) {
     _appliedSelectorMap.forEach(f);
   }
 
   /// Calls [f] for each generic instantiation that applies to generic
   /// closurized [targets].
   void forEachInstantiatedEntity(
-      void f(Entity target, Set<GenericInstantiation> instantiations)) {
+      void Function(Entity target, Set<GenericInstantiation> instantiations)
+          f) {
     _instantiationMap.forEach(f);
   }
 
@@ -298,16 +300,16 @@ class TypeVariableTests {
         ParameterStructure parameterStructure =
             ParameterStructure.fromType(functionType);
         node = MethodNode(function, parameterStructure, isCallTarget: true);
-        functionType.typeVariables.forEach((typeVariable) {
+        for (var typeVariable in functionType.typeVariables) {
           boundTypes.add(typeVariable.bound);
-        });
+        }
       }
 
       // Add dependencies to any type variables in the function's parameter
       // bounds. Usages of this function's type parameter implies potential
       // usage of the bound type parameters. Deeply nested scopes are explored
       // recursively via _getMethodNode and _getClassNode.
-      boundTypes.forEach((DartType bound) {
+      for (var bound in boundTypes) {
         bound.forEachTypeVariable((boundTypeVariable) {
           final boundTypeEntity = boundTypeVariable.element.typeDeclaration;
           if (boundTypeEntity == function) return;
@@ -317,7 +319,7 @@ class TypeVariableTests {
             node.addDependency(_getMethodNode(boundTypeEntity));
           }
         });
-      });
+      }
 
       return node;
     });
@@ -419,13 +421,13 @@ class TypeVariableTests {
 
     _world.isChecks.forEach(processCheckedType);
 
-    _world.instantiatedTypes.forEach((InterfaceType type) {
+    for (var type in _world.instantiatedTypes) {
       // Register that if [cls] needs type arguments then so do the entities
       // that declare type variables occurring in [type].
       ClassEntity cls = type.element;
       registerDependencies(_getClassNode(cls), type);
       _classInstantiationMap.putIfAbsent(cls, () => {}).add(type);
-    });
+    }
 
     _world.forEachStaticTypeArgument(
         (Entity entity, Iterable<DartType> typeArguments) {
@@ -534,7 +536,9 @@ class TypeVariableTests {
         }
         if (node.dependencies.isNotEmpty || verbose) {
           sb.writeln(':');
-          node.dependencies.forEach((n) => sb.writeln('  $n'));
+          for (var n in node.dependencies) {
+            sb.writeln('  $n');
+          }
         } else {
           sb.writeln();
         }
@@ -583,12 +587,12 @@ class TypeVariableTests {
     List<DartType> newChecks = [];
     // Add any new types to [implicitIsChecks] before recursing to avoid each
     // one growing the call stack.
-    types.forEach((type) {
+    for (var type in types) {
       var typeWithoutNullability = type.withoutNullability;
       if (implicitIsChecks.add(typeWithoutNullability)) {
         newChecks.add(typeWithoutNullability);
       }
-    });
+    }
     newChecks.forEach(_addImpliedChecks);
   }
 
@@ -620,9 +624,9 @@ class TypeVariableTests {
   }
 
   void _collectResults() {
-    _world.isChecks.forEach((DartType type) {
+    for (var type in _world.isChecks) {
       _addImpliedChecks(type.withoutNullability);
-    });
+    }
 
     // Compute type arguments of classes that use one of their type variables in
     // is-checks and add the is-checks that they imply.
@@ -1049,7 +1053,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
         closedWorld.classHierarchy.forEachStrictSubtypeOf(cls,
             (ClassEntity sub) {
           potentiallyNeedTypeArguments(sub);
-          return IterationStep.CONTINUE;
+          return IterationStep.continue_;
         });
       } else if (entity is FunctionEntity) {
         methodsNeedingTypeArguments.add(entity);
@@ -1061,9 +1065,9 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
 
       Iterable<Entity> dependencies =
           typeVariableTests.getTypeArgumentDependencies(entity);
-      dependencies.forEach((Entity other) {
+      for (var other in dependencies) {
         potentiallyNeedTypeArguments(other);
-      });
+      }
     }
 
     Set<Local> localFunctions = closedWorld.localFunctions.toSet();
@@ -1126,7 +1130,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
     // information.
 
     void processChecks(Set<DartType> checks) {
-      checks.forEach((DartType type) {
+      for (var type in checks) {
         type = type.withoutNullability;
         if (type is InterfaceType) {
           InterfaceType itf = type;
@@ -1148,7 +1152,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
                 closedWorld.commonElements.futureClass);
           }
         }
-      });
+      }
     }
 
     processChecks(typeVariableTests.explicitIsChecks);
@@ -1273,8 +1277,8 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
             for (ClassEntity argumentClass in argumentClasses) {
               // TODO(johnniwinther): Special case use of `this.runtimeType`.
               SubclassResult result = closedWorld.classHierarchy
-                  .commonSubclasses(receiverClass, ClassQuery.SUBTYPE,
-                      argumentClass, ClassQuery.SUBTYPE);
+                  .commonSubclasses(receiverClass, ClassQuery.subtype,
+                      argumentClass, ClassQuery.subtype);
               switch (result) {
                 case SimpleSubclassResult.empty:
                   break;

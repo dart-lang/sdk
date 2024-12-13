@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js_backend.backend.annotations;
+library;
 
 import 'package:kernel/ast.dart' as ir;
 
@@ -158,13 +158,13 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
       if (data.options != null && !annotation.hasOption) {
         reporter.reportErrorMessage(
             computeSourceSpanFromTreeNode(node),
-            MessageKind.GENERIC,
+            MessageKind.generic,
             {'text': "@pragma('$name') annotation does not take options"});
       }
       if (annotation.forFunctionsOnly) {
         if (node is! ir.Procedure && node is! ir.Constructor) {
           reporter.reportErrorMessage(
-              computeSourceSpanFromTreeNode(node), MessageKind.GENERIC, {
+              computeSourceSpanFromTreeNode(node), MessageKind.generic, {
             'text': "@pragma('$name') annotation is only supported "
                 "for methods and constructors."
           });
@@ -173,13 +173,13 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
       if (annotation.internalOnly && !platformAnnotationsAllowed) {
         reporter.reportErrorMessage(
             computeSourceSpanFromTreeNode(node),
-            MessageKind.GENERIC,
+            MessageKind.generic,
             {'text': "Unrecognized dart2js pragma @pragma('$name')"});
       }
     } else {
       reporter.reportErrorMessage(
           computeSourceSpanFromTreeNode(node),
-          MessageKind.GENERIC,
+          MessageKind.generic,
           {'text': "Unknown dart2js pragma @pragma('$name')"});
     }
   }
@@ -192,7 +192,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
       for (PragmaAnnotation other in implies) {
         if (annotations.contains(other)) {
           reporter.reportHintMessage(
-              computeSourceSpanFromTreeNode(node), MessageKind.GENERIC, {
+              computeSourceSpanFromTreeNode(node), MessageKind.generic, {
             'text': "@pragma('dart2js:${annotation.name}') implies "
                 "@pragma('dart2js:${other.name}')."
           });
@@ -205,7 +205,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
         if (annotations.contains(other) &&
             !(reportedExclusions[other]?.contains(annotation) ?? false)) {
           reporter.reportErrorMessage(
-              computeSourceSpanFromTreeNode(node), MessageKind.GENERIC, {
+              computeSourceSpanFromTreeNode(node), MessageKind.generic, {
             'text': "@pragma('dart2js:${annotation.name}') must not be used "
                 "with @pragma('dart2js:${other.name}')."
           });
@@ -220,7 +220,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
       for (PragmaAnnotation other in requires) {
         if (!annotations.contains(other)) {
           reporter.reportErrorMessage(
-              computeSourceSpanFromTreeNode(node), MessageKind.GENERIC, {
+              computeSourceSpanFromTreeNode(node), MessageKind.generic, {
             'text': "@pragma('dart2js:${annotation.name}') should always be "
                 "combined with @pragma('dart2js:${other.name}')."
           });
@@ -357,17 +357,16 @@ class AnnotationsDataImpl implements AnnotationsData {
 
   AnnotationsDataImpl(
       CompilerOptions options, this._reporter, this.pragmaAnnotations)
-      : this._options = options,
-        this._defaultParameterCheckPolicy = options.defaultParameterCheckPolicy,
-        this._defaultImplicitDowncastCheckPolicy =
+      : _options = options,
+        _defaultParameterCheckPolicy = options.defaultParameterCheckPolicy,
+        _defaultImplicitDowncastCheckPolicy =
             options.defaultImplicitDowncastCheckPolicy,
-        this._defaultConditionCheckPolicy = options.defaultConditionCheckPolicy,
-        this._defaultExplicitCastCheckPolicy =
+        _defaultConditionCheckPolicy = options.defaultConditionCheckPolicy,
+        _defaultExplicitCastCheckPolicy =
             options.defaultExplicitCastCheckPolicy,
-        this._defaultIndexBoundsCheckPolicy =
-            options.defaultIndexBoundsCheckPolicy,
-        this._defaultLateVariableCheckPolicy = CheckPolicy.checked,
-        this._defaultDisableInlining = options.disableInlining;
+        _defaultIndexBoundsCheckPolicy = options.defaultIndexBoundsCheckPolicy,
+        _defaultLateVariableCheckPolicy = CheckPolicy.checked,
+        _defaultDisableInlining = options.disableInlining;
 
   factory AnnotationsDataImpl.readFromDataSource(CompilerOptions options,
       DiagnosticReporter reporter, DataSourceReader source) {
@@ -555,7 +554,7 @@ class AnnotationsDataImpl implements AnnotationsData {
 
   @override
   String getLoadLibraryPriority(ir.LoadLibrary node) {
-    String? _getPragmaOptionForNode(ir.TreeNode node) {
+    String? getPragmaOptionForNode(ir.TreeNode node) {
       ir.Annotatable? contextNode = _getContextNode(node);
       if (contextNode == null) return null;
       if (!_hasLoadLibraryPriority(_getContext(contextNode))) return null;
@@ -569,8 +568,8 @@ class AnnotationsDataImpl implements AnnotationsData {
     }
 
     // Annotation may be on enclosing declaration or on the import.
-    return _getPragmaOptionForNode(node) ??
-        _getPragmaOptionForNode(node.import) ??
+    return getPragmaOptionForNode(node) ??
+        getPragmaOptionForNode(node.import) ??
         '';
   }
 

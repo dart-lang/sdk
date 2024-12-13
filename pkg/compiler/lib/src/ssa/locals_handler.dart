@@ -290,10 +290,7 @@ class LocalsHandler {
       HParameterValue value = HParameterValue(parameter, getTypeOfThis());
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAfter(directLocals[scopeInfo!.thisLocal], value);
-      if (builder.lastAddedParameter == null) {
-        // If this is the first parameter inserted, make sure it stays first.
-        builder.lastAddedParameter = value;
-      }
+      builder.lastAddedParameter ??= value;
       directLocals[scopeInfo.thisLocal!] = value;
     } else if (isNativeUpgradeFactory) {
       SyntheticLocal parameter = createLocal('receiver');
@@ -303,10 +300,7 @@ class LocalsHandler {
           _closedWorld.abstractValueDomain.createNullableExact(cls!));
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAtEntry(value);
-      if (builder.lastAddedParameter == null) {
-        // If this is the first parameter inserted, make sure it stays first.
-        builder.lastAddedParameter = value;
-      }
+      builder.lastAddedParameter ??= value;
     }
   }
 
@@ -344,7 +338,7 @@ class LocalsHandler {
       if (value == null) {
         if (local is TypeVariableLocal) {
           failedAt(
-              CURRENT_ELEMENT_SPANNABLE,
+              currentElementSpannable,
               "Runtime type information not available for $local "
               "in ${directLocals.keys} for $executableContext.");
         } else {
@@ -613,7 +607,7 @@ class LocalsHandler {
     assert(localsHandlers.isNotEmpty);
     if (localsHandlers.length == 1) return localsHandlers.single;
     Map<Local, HInstruction> joinedLocals = {};
-    HInstruction? thisValue = null;
+    HInstruction? thisValue;
     directLocals.forEach((Local local, HInstruction instruction) {
       if (local != _scopeInfo!.thisLocal) {
         HPhi phi = HPhi.noInputs(local, _abstractValueDomain.dynamicType);

@@ -87,8 +87,8 @@ void main() async {
   var result = await Process.run(Platform.resolvedExecutable, [
     compilePath,
     "--target=dartdevc",
-    "--platform=${ddcOutlinePath}",
-    "-o=${dillPath}",
+    "--platform=$ddcOutlinePath",
+    "-o=$dillPath",
     testClassesPath
   ]);
 
@@ -98,7 +98,7 @@ void main() async {
 
   // Dill compiled from test_classes.dart using ddc.
   var component = loadComponentFromBinary(dillPath);
-  var visitor = MetricsVisitor(["file:${testClassesPath}"]);
+  var visitor = MetricsVisitor(["file:$testClassesPath"]);
 
   component.accept(visitor);
 

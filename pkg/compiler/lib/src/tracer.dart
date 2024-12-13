@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library tracer;
+library;
 
 import 'package:kernel/text/indentation.dart' show Indentation;
 
@@ -87,13 +87,13 @@ mixin TracerUtil {
 
   String formatPrty(Object? x) {
     if (x is num) {
-      return '${x}';
+      return '$x';
     } else if (x is String) {
-      return '"${x}"';
+      return '"$x"';
     } else if (x is Iterable) {
       return x.map((s) => formatPrty(s)).join(' ');
     } else {
-      throw "invalid property type: ${x}";
+      throw "invalid property type: $x";
     }
   }
 

@@ -62,7 +62,7 @@ class ValueSet {
       }
     }
     // Kill in the collisions list.
-    ValueSetNode? previous = null;
+    ValueSetNode? previous;
     ValueSetNode? current = collisions;
     while (current != null) {
       ValueSetNode? next = current.next;

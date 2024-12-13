@@ -107,16 +107,16 @@ main() {
     for (TypeUse typeUse in typeUses) {
       String type = printType(typeUse.type);
       switch (typeUse.kind) {
-        case TypeUseKind.AS_CAST:
+        case TypeUseKind.asCast:
           Expect.isTrue(asCasts.contains(type), "Extra $typeUse $context");
           asCasts.remove(type);
           break;
-        case TypeUseKind.IMPLICIT_CAST:
+        case TypeUseKind.implicitCast:
           Expect.isTrue(
               implicitCasts.contains(type), "Extra $typeUse $context");
           implicitCasts.remove(type);
           break;
-        case TypeUseKind.PARAMETER_CHECK:
+        case TypeUseKind.parameterCheck:
           Expect.isTrue(
               parameterChecks.contains(type), "Extra $typeUse $context");
           parameterChecks.remove(type);

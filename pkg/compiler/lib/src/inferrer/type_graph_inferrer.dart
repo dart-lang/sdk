@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library type_graph_inferrer;
+library;
 
 import 'package:kernel/ast.dart' as ir;
 import '../closure.dart';
@@ -98,7 +98,7 @@ class TypeGraphInferrer implements TypesInferrer {
           throwsAlways: throwsAlways, isCalledOnce: isCalledOnce);
     }
 
-    Set<FieldEntity> freeVariables = Set<FieldEntity>();
+    Set<FieldEntity> freeVariables = <FieldEntity>{};
     inferrer.types.forEachMemberType(
         (MemberEntity member, MemberTypeInformation typeInformation) {
       createMemberResults(member, typeInformation);

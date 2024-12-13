@@ -6,11 +6,12 @@ import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
+// ignore: implementation_imports
 import 'package:kernel/src/bounds_checks.dart' as ir;
 import 'package:kernel/text/debug_printer.dart';
 import 'package:kernel/type_environment.dart' as ir;
 
-import '../closure.dart' show BoxLocal, ThisLocal;
+import '../closure.dart' show BoxLocal;
 import '../common.dart';
 import '../common/elements.dart';
 import '../common/names.dart';
@@ -120,7 +121,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       Map<MemberEntity, MemberUsage> liveMemberUsage,
       Iterable<MemberEntity> liveAbstractMembers,
       AnnotationsData annotations)
-      : this.options = _elementMap.options {
+      : options = _elementMap.options {
     _elementEnvironment = JsElementEnvironment(this);
     _typeConverter = DartTypeConverter(this);
     _types = KernelDartTypes(this, options);
@@ -337,7 +338,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         lazyMemberBodies
             .add(getConstructorBody(data.definition.node as ir.Constructor));
       }
-      if (member is JFunction && member.asyncMarker != AsyncMarker.SYNC) {
+      if (member is JFunction && member.asyncMarker != AsyncMarker.sync) {
         lazyMemberBodies.add(getGeneratorBody(member));
       }
     });
@@ -345,7 +346,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   void registerLazyMemberBodies(List<MemberEntity> lazyMemberBodies) {
-    lazyMemberBodies.forEach((member) {
+    for (var member in lazyMemberBodies) {
       if (member is JConstructorBody) {
         final constructor = member.constructor;
         final data = members.getData(constructor) as JConstructorData;
@@ -369,7 +370,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           members.markAsCopy(original: generatorBody, copy: member);
         }
       }
-    });
+    }
   }
 
   /// Serializes this [JsToElementMap] to [sink].
@@ -483,7 +484,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     return member != null ? getMember(member) : null;
   }
 
-  void _forEachLibraryMember(JLibrary library, void f(MemberEntity member)) {
+  void _forEachLibraryMember(
+      JLibrary library, void Function(MemberEntity member) f) {
     assert(checkFamily(library));
     JLibraryEnv libraryEnv = libraries.getEnv(library);
     libraryEnv.forEachMember((ir.Member node) {
@@ -501,7 +503,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     return null;
   }
 
-  void _forEachClass(JLibrary library, void f(ClassEntity cls)) {
+  void _forEachClass(JLibrary library, void Function(ClassEntity cls) f) {
     assert(checkFamily(library));
     JLibraryEnv libraryEnv = libraries.getEnv(library);
     libraryEnv.forEachClass((JClassEnv classEnv) {
@@ -702,9 +704,9 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         } else {
           data.isMixinApplication = false;
         }
-        node.implementedTypes.forEach((ir.Supertype supertype) {
+        for (var supertype in node.implementedTypes) {
           interfaces.add(processSupertype(supertype));
-        });
+        }
         OrderedTypeSetBuilder setBuilder =
             KernelOrderedTypeSetBuilder(this, cls);
         data.orderedTypeSet =
@@ -765,9 +767,9 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   @override
   List<DartType> getDartTypes(List<ir.DartType> types) {
     List<DartType> list = <DartType>[];
-    types.forEach((ir.DartType type) {
+    for (var type in types) {
       list.add(getDartType(type));
-    });
+    }
     return list;
   }
 
@@ -968,20 +970,22 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     return env.isMixinApplicationWithMembers;
   }
 
-  void _forEachSupertype(JClass cls, void f(InterfaceType supertype)) {
+  void _forEachSupertype(JClass cls, void Function(InterfaceType supertype) f) {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
     data.orderedTypeSet!.supertypes!.forEach(f);
   }
 
-  void _forEachConstructor(JClass cls, void f(ConstructorEntity member)) {
+  void _forEachConstructor(
+      JClass cls, void Function(ConstructorEntity member) f) {
     assert(checkFamily(cls));
     JClassEnv env = classes.getEnv(cls);
     env.forEachConstructor(this, f);
   }
 
-  void _forEachLocalClassMember(JClass cls, void f(MemberEntity member)) {
+  void _forEachLocalClassMember(
+      JClass cls, void Function(MemberEntity member) f) {
     assert(checkFamily(cls));
     JClassEnv env = classes.getEnv(cls);
     env.forEachMember(this, (MemberEntity member) {
@@ -990,7 +994,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   void _forEachClassMember(
-      JClass cls, void f(ClassEntity cls, MemberEntity member)) {
+      JClass cls, void Function(ClassEntity cls, MemberEntity member) f) {
     assert(checkFamily(cls));
     JClassEnv env = classes.getEnv(cls);
     env.forEachMember(this, (MemberEntity member) {
@@ -1112,22 +1116,22 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       return getInvocationSelector(node);
     }
     throw failedAt(
-        CURRENT_ELEMENT_SPANNABLE,
+        currentElementSpannable,
         "Can only get the selector for a property get or an invocation: "
-        "${node}");
+        "$node");
   }
 
   Selector getInvocationSelector(ir.InvocationExpression invocation) {
     Name name = getName(invocation.name);
     SelectorKind kind;
     if (Selector.isOperatorName(name.text)) {
-      if (name == Names.INDEX_NAME || name == Names.INDEX_SET_NAME) {
-        kind = SelectorKind.INDEX;
+      if (name == Names.indexName || name == Names.indexSetName) {
+        kind = SelectorKind.index_;
       } else {
-        kind = SelectorKind.OPERATOR;
+        kind = SelectorKind.operator;
       }
     } else {
-      kind = SelectorKind.CALL;
+      kind = SelectorKind.call;
     }
 
     CallStructure callStructure = getCallStructure(invocation.arguments);
@@ -1206,8 +1210,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       type ??= findIn(Uris.dartRti);
       type ??= findIn(Uris.dartMirrors);
       if (type == null && required) {
-        reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
-            MessageKind.GENERIC, {'text': "Type '$typeName' not found."});
+        reporter.reportErrorMessage(currentElementSpannable,
+            MessageKind.generic, {'text': "Type '$typeName' not found."});
       }
       return type;
     }
@@ -1225,20 +1229,20 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     if (node.arguments.positional.length < 2 ||
         node.arguments.named.isNotEmpty) {
       reporter.reportErrorMessage(
-          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS);
+          currentElementSpannable, MessageKind.wrongArgumentForJS);
       return NativeBehavior();
     }
     String? specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.reportErrorMessage(
-          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST);
+          currentElementSpannable, MessageKind.wrongArgumentForJSFirst);
       return NativeBehavior();
     }
 
     String? codeString = _getStringArgument(node, 1);
     if (codeString == null) {
       reporter.reportErrorMessage(
-          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND);
+          currentElementSpannable, MessageKind.wrongArgumentForJSSecond);
       return NativeBehavior();
     }
 
@@ -1246,7 +1250,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         specString,
         codeString,
         typeLookup(resolveAsRaw: true),
-        CURRENT_ELEMENT_SPANNABLE,
+        currentElementSpannable,
         reporter,
         commonElements);
   }
@@ -1256,21 +1260,21 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node) {
     if (node.arguments.positional.isEmpty) {
       reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "JS builtin expression has no type.");
+          currentElementSpannable, "JS builtin expression has no type.");
     }
     if (node.arguments.positional.length < 2) {
       reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "JS builtin is missing name.");
+          currentElementSpannable, "JS builtin is missing name.");
     }
     String? specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
+          currentElementSpannable, "Unexpected first argument.");
     }
     return NativeBehavior.ofJsBuiltinCall(
         specString,
         typeLookup(resolveAsRaw: true),
-        CURRENT_ELEMENT_SPANNABLE,
+        currentElementSpannable,
         reporter,
         commonElements);
   }
@@ -1280,27 +1284,27 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node) {
     if (node.arguments.positional.isEmpty) {
-      reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
+      reporter.internalError(currentElementSpannable,
           "JS embedded global expression has no type.");
     }
     if (node.arguments.positional.length < 2) {
       reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "JS embedded global is missing name.");
+          currentElementSpannable, "JS embedded global is missing name.");
     }
     if (node.arguments.positional.length > 2 ||
         node.arguments.named.isNotEmpty) {
-      reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
+      reporter.internalError(currentElementSpannable,
           "JS embedded global has more than 2 arguments.");
     }
     String? specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
+          currentElementSpannable, "Unexpected first argument.");
     }
     return NativeBehavior.ofJsEmbeddedGlobalCall(
         specString,
         typeLookup(resolveAsRaw: true),
-        CURRENT_ELEMENT_SPANNABLE,
+        currentElementSpannable,
         reporter,
         commonElements);
   }
@@ -1310,8 +1314,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       {bool requireConstant = true, bool implicitNull = false}) {
     if (node == null) {
       if (!implicitNull) {
-        throw failedAt(
-            CURRENT_ELEMENT_SPANNABLE, 'No expression for constant.');
+        throw failedAt(currentElementSpannable, 'No expression for constant.');
       }
       return NullConstantValue();
     } else if (node is ir.ConstantExpression) {
@@ -1345,7 +1348,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   void forEachNestedClosure(
-      MemberEntity member, void f(FunctionEntity closure)) {
+      MemberEntity member, void Function(FunctionEntity closure) f) {
     assert(checkFamily(member));
     _nestedClosureMap[member]?.forEach(f);
   }
@@ -1407,7 +1410,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     }
     if (typeVariable == null) {
       throw failedAt(
-          CURRENT_ELEMENT_SPANNABLE,
+          currentElementSpannable,
           "No type variable entity for $node on "
           "${node.declaration}");
     }
@@ -1494,7 +1497,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   /// Calls [f] for each parameter of [function] providing the type and name of
   /// the parameter and the [defaultValue] if the parameter is optional.
   void forEachParameter(JFunction function,
-      void f(DartType type, String? name, ConstantValue? defaultValue),
+      void Function(DartType type, String? name, ConstantValue? defaultValue) f,
       {bool isNative = false}) {
     final data = members.getData(function) as FunctionData;
     data.forEachParameter(this, function.parameterStructure, f,
@@ -1502,12 +1505,13 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   void forEachConstructorBody(
-      JClass cls, void f(ConstructorBodyEntity member)) {
+      JClass cls, void Function(ConstructorBodyEntity member) f) {
     JClassEnv env = classes.getEnv(cls);
     env.forEachConstructorBody(f);
   }
 
-  void forEachInjectedClassMember(JClass cls, void f(MemberEntity member)) {
+  void forEachInjectedClassMember(
+      JClass cls, void Function(MemberEntity member) f) {
     _injectedClassMembers[cls]?.forEach(f);
   }
 
@@ -1652,8 +1656,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         info,
         member.enclosingClass,
         closureEntity,
-        closureEntityNode,
-        info.hasThisLocal ? ThisLocal(member.enclosingClass!) : null);
+        closureEntityNode);
     _buildClosureClassFields(closureClassInfo, member, memberThisType, info,
         contextFieldsVisibleInScope, memberMap);
 
@@ -2187,11 +2190,11 @@ class JsElementEnvironment extends ElementEnvironment
       FunctionEntity function, DartType returnType) {
     final asyncMarker = function.asyncMarker;
     switch (asyncMarker) {
-      case AsyncMarker.SYNC:
+      case AsyncMarker.sync:
         return returnType;
-      case AsyncMarker.SYNC_STAR:
-      case AsyncMarker.ASYNC:
-      case AsyncMarker.ASYNC_STAR:
+      case AsyncMarker.syncStar:
+      case AsyncMarker.async:
+      case AsyncMarker.asyncStar:
         return elementMap.getDartType(
             getFunctionNode(elementMap, function)!.emittedValueType!);
     }
@@ -2214,7 +2217,7 @@ class JsElementEnvironment extends ElementEnvironment
         elementMap.lookupConstructor(cls as JClass, name);
     if (constructor == null && required) {
       throw failedAt(
-          CURRENT_ELEMENT_SPANNABLE,
+          currentElementSpannable,
           "The constructor '$name' was not found in class '${cls.name}' "
           "in library ${cls.library.canonicalUri}.");
     }
@@ -2226,7 +2229,7 @@ class JsElementEnvironment extends ElementEnvironment
       {bool required = false}) {
     MemberEntity? member = elementMap.lookupClassMember(cls as JClass, name);
     if (member == null && required) {
-      throw failedAt(CURRENT_ELEMENT_SPANNABLE,
+      throw failedAt(currentElementSpannable,
           "The member '$name' was not found in ${cls.name}.");
     }
     return member;
@@ -2248,48 +2251,50 @@ class JsElementEnvironment extends ElementEnvironment
   }
 
   @override
-  void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype)) {
+  void forEachSupertype(
+      ClassEntity cls, void Function(InterfaceType supertype) f) {
     elementMap._forEachSupertype(cls as JClass, f);
   }
 
   @override
-  void forEachLocalClassMember(ClassEntity cls, void f(MemberEntity member)) {
+  void forEachLocalClassMember(
+      ClassEntity cls, void Function(MemberEntity member) f) {
     elementMap._forEachLocalClassMember(cls as JClass, f);
   }
 
   @override
   void forEachInjectedClassMember(
-      ClassEntity cls, void f(MemberEntity member)) {
+      ClassEntity cls, void Function(MemberEntity member) f) {
     elementMap.forEachInjectedClassMember(cls as JClass, f);
   }
 
   @override
-  void forEachClassMember(
-      ClassEntity cls, void f(ClassEntity declarer, MemberEntity member)) {
+  void forEachClassMember(ClassEntity cls,
+      void Function(ClassEntity declarer, MemberEntity member) f) {
     elementMap._forEachClassMember(cls as JClass, f);
   }
 
   @override
   void forEachConstructor(
-      ClassEntity cls, void f(ConstructorEntity constructor)) {
+      ClassEntity cls, void Function(ConstructorEntity constructor) f) {
     elementMap._forEachConstructor(cls as JClass, f);
   }
 
   @override
   void forEachConstructorBody(
-      ClassEntity cls, void f(ConstructorBodyEntity constructor)) {
+      ClassEntity cls, void Function(ConstructorBodyEntity constructor) f) {
     elementMap.forEachConstructorBody(cls as JClass, f);
   }
 
   @override
   void forEachNestedClosure(
-      MemberEntity member, void f(FunctionEntity closure)) {
+      MemberEntity member, void Function(FunctionEntity closure) f) {
     elementMap.forEachNestedClosure(member, f);
   }
 
   @override
   void forEachLibraryMember(
-      LibraryEntity library, void f(MemberEntity member)) {
+      LibraryEntity library, void Function(MemberEntity member) f) {
     elementMap._forEachLibraryMember(library as JLibrary, f);
   }
 
@@ -2299,8 +2304,8 @@ class JsElementEnvironment extends ElementEnvironment
     MemberEntity? member = elementMap
         .lookupLibraryMember(library as JLibrary, name, setter: setter);
     if (member == null && required) {
-      failedAt(CURRENT_ELEMENT_SPANNABLE,
-          "The member '${name}' was not found in library '${library.name}'.");
+      failedAt(currentElementSpannable,
+          "The member '$name' was not found in library '${library.name}'.");
     }
     return member;
   }
@@ -2310,14 +2315,14 @@ class JsElementEnvironment extends ElementEnvironment
       {bool required = false}) {
     ClassEntity? cls = elementMap.lookupClass(library as JLibrary, name);
     if (cls == null && required) {
-      failedAt(CURRENT_ELEMENT_SPANNABLE,
+      failedAt(currentElementSpannable,
           "The class '$name'  was not found in library '${library.name}'.");
     }
     return cls;
   }
 
   @override
-  void forEachClass(LibraryEntity library, void f(ClassEntity cls)) {
+  void forEachClass(LibraryEntity library, void Function(ClassEntity cls) f) {
     elementMap._forEachClass(library as JLibrary, f);
   }
 
@@ -2325,7 +2330,7 @@ class JsElementEnvironment extends ElementEnvironment
   LibraryEntity? lookupLibrary(Uri uri, {bool required = false}) {
     LibraryEntity? library = elementMap.lookupLibrary(uri);
     if (library == null && required) {
-      failedAt(CURRENT_ELEMENT_SPANNABLE, "The library '$uri' was not found.");
+      failedAt(currentElementSpannable, "The library '$uri' was not found.");
     }
     return library;
   }
@@ -2338,15 +2343,17 @@ class JsElementEnvironment extends ElementEnvironment
   }
 
   @override
-  void forEachParameter(FunctionEntity function,
-      void f(DartType type, String? name, ConstantValue? defaultValue)) {
+  void forEachParameter(
+      FunctionEntity function,
+      void Function(DartType type, String? name, ConstantValue? defaultValue)
+          f) {
     elementMap.forEachParameter(function as JFunction, f,
         isNative: elementMap.nativeData.isNativeMember(function));
   }
 
   @override
   void forEachParameterAsLocal(GlobalLocalsMap globalLocalsMap,
-      FunctionEntity function, void f(Local parameter)) {
+      FunctionEntity function, void Function(Local parameter) f) {
     forEachOrderedParameterAsLocal(globalLocalsMap, elementMap, function,
         (Local parameter, {required bool isElided}) {
       if (!isElided) {
@@ -2356,8 +2363,8 @@ class JsElementEnvironment extends ElementEnvironment
   }
 
   @override
-  void forEachInstanceField(
-      ClassEntity cls, void f(ClassEntity declarer, FieldEntity field)) {
+  void forEachInstanceField(ClassEntity cls,
+      void Function(ClassEntity declarer, FieldEntity field) f) {
     forEachClassMember(cls, (ClassEntity declarer, MemberEntity member) {
       if (member is FieldEntity && member.isInstanceMember) {
         f(declarer, member);
@@ -2366,7 +2373,8 @@ class JsElementEnvironment extends ElementEnvironment
   }
 
   @override
-  void forEachDirectInstanceField(ClassEntity cls, void f(FieldEntity field)) {
+  void forEachDirectInstanceField(
+      ClassEntity cls, void Function(FieldEntity field) f) {
     // TODO(sra): Add ElementEnvironment.forEachDirectInstanceField or
     // parameterize [forEachInstanceField] to filter members to avoid a
     // potentially O(n^2) scan of the superclasses.

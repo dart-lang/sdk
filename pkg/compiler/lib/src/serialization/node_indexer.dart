@@ -418,6 +418,6 @@ class ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
   @override
   void visitAuxiliaryConstant(ir.AuxiliaryConstant node) {
     throw UnsupportedError(
-        "Unsupported auxiliary constant ${node} (${node.runtimeType}).");
+        "Unsupported auxiliary constant $node (${node.runtimeType}).");
   }
 }

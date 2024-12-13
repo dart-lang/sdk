@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js;
+library;
 
 import 'package:compiler/src/common/codegen.dart';
 import 'package:js_ast/js_ast.dart';
@@ -80,7 +80,9 @@ class _CollectDeferredBlocksAndSetCaches extends BaseVisitorVoid {
   }
 
   void clearCache() {
-    _blocks.forEach((block) => block._clearCache());
+    for (var block in _blocks) {
+      block._clearCache();
+    }
     _blocks.clear();
   }
 
@@ -118,7 +120,7 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
 
   @override
   void error(String message) {
-    failedAt(NO_LOCATION_SPANNABLE, message);
+    failedAt(noLocationSpannable, message);
   }
 
   @override

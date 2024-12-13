@@ -60,5 +60,5 @@ abstract class IrDataExtractor<T> extends DataExtractor<T>
 void reportHere(
     DiagnosticReporter reporter, Spannable node, String debugMessage) {
   reporter.reportInfoMessage(
-      node, MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
+      node, MessageKind.generic, {'text': 'HERE: $debugMessage'});
 }

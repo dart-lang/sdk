@@ -27,7 +27,7 @@
 /// classes and specialization classes.
 ///
 /// (Specialization classes have not yet been implemented).
-library dart2js.js_model.records;
+library;
 
 import 'package:js_shared/variance.dart';
 
@@ -395,7 +395,7 @@ class JRecordGetter extends JFunction {
 
   JRecordGetter(JClass enclosingClass, Name name)
       : super(enclosingClass.library, enclosingClass, name,
-            ParameterStructure.getter, AsyncMarker.SYNC,
+            ParameterStructure.getter, AsyncMarker.sync,
             isStatic: false, isExternal: false);
 
   factory JRecordGetter.readFromDataSource(DataSourceReader source) {
@@ -486,7 +486,7 @@ class RecordGetterData extends RecordMemberData implements FunctionData {
   void forEachParameter(
       JsToElementMap elementMap,
       ParameterStructure parameterStructure,
-      void f(DartType type, String? name, ConstantValue? defaultValue),
+      void Function(DartType type, String? name, ConstantValue? defaultValue) f,
       {bool isNative = false}) {}
 
   @override

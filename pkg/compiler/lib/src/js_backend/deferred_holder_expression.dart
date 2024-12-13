@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore: implementation_imports
 import 'package:js_ast/src/precedence.dart' as js show Precedence;
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' show $A;
 
 import '../common/elements.dart' show JCommonElements;
@@ -281,8 +283,8 @@ class DeferredHolderResource extends js.DeferredStatement
       js.JavaScriptNodeSourceInformation? newSourceInformation) {
     if (newSourceInformation == sourceInformation) return this;
     if (newSourceInformation == null) return this;
-    return DeferredHolderResource._(kind, this.name, this.fragments, holderCode,
-        _statement, newSourceInformation);
+    return DeferredHolderResource._(
+        kind, name, fragments, holderCode, _statement, newSourceInformation);
   }
 
   @override
@@ -356,8 +358,8 @@ class Holder {
   }
 
   @override
-  bool operator ==(that) {
-    return that is Holder && key == that.key;
+  bool operator ==(other) {
+    return other is Holder && key == other.key;
   }
 }
 
@@ -678,28 +680,28 @@ class DeferredHolderExpressionFinalizerImpl
   /// Initializes [Holder] objects with their default names and sets up maps of
   /// [Entity] / [ConstantValue] to [Holder].
   void initializeHolders() {
-    void _addMembers(Holder holder, List<Method> methods) {
+    void addMembers(Holder holder, List<Method> methods) {
       for (var method in methods) {
         final element = method.element;
         if (element == null) continue;
         memberEntityMap[element] = holder;
         if (method is DartMethod) {
-          _addMembers(holder, method.parameterStubs);
+          addMembers(holder, method.parameterStubs);
         }
       }
     }
 
-    void _addClass(Holder holder, Class cls) {
+    void addClass(Holder holder, Class cls) {
       classEntityMap[cls.element] = holder;
-      _addMembers(holder, cls.methods);
-      _addMembers(holder, cls.isChecks);
-      _addMembers(holder, cls.checkedSetters);
-      _addMembers(holder, cls.gettersSetters);
-      _addMembers(holder, cls.callStubs);
-      _addMembers(holder, cls.noSuchMethodStubs);
+      addMembers(holder, cls.methods);
+      addMembers(holder, cls.isChecks);
+      addMembers(holder, cls.checkedSetters);
+      addMembers(holder, cls.gettersSetters);
+      addMembers(holder, cls.callStubs);
+      addMembers(holder, cls.noSuchMethodStubs);
       if (cls.nativeExtensions != null) {
         for (var extClass in cls.nativeExtensions!) {
-          _addClass(holder, extClass);
+          addClass(holder, extClass);
         }
       }
     }
@@ -727,7 +729,7 @@ class DeferredHolderExpressionFinalizerImpl
         }
         for (var library in fragment.libraries) {
           for (var cls in library.classes) {
-            _addClass(holder, cls);
+            addClass(holder, cls);
           }
           for (var staticMethod in library.statics) {
             final element = staticMethod.element;
@@ -819,8 +821,9 @@ class _DeferredHolderExpressionCollectorVisitor extends js.BaseVisitorVoid {
     } else {
       final deferredExpressionData = js.getNodeDeferredExpressionData(node);
       if (deferredExpressionData != null) {
-        deferredExpressionData.deferredHolderExpressions.forEach((e) =>
-            _finalizer.registerDeferredHolderExpression(resourceName!, e));
+        for (var e in deferredExpressionData.deferredHolderExpressions) {
+          _finalizer.registerDeferredHolderExpression(resourceName!, e);
+        }
         deferredExpressionData.modularNames.forEach(visitNode);
         deferredExpressionData.modularExpressions.forEach(visitNode);
         deferredExpressionData.stringReferences.forEach(visitNode);

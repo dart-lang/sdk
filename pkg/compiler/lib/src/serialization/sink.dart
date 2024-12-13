@@ -32,7 +32,7 @@ abstract class DataSink {
 
   /// Writes a deferred entity which can be skipped when reading and read later
   /// via an offset read.
-  void writeDeferred(void writer());
+  void writeDeferred(void Function() writer);
 
   /// Begins a block of data that can later be read as a deferred block.
   /// [endDeferred] must eventually be called to end the block. This creates a
@@ -143,7 +143,7 @@ class DataSinkWriter {
     }
   }
 
-  void writeDeferrable(void f()) {
+  void writeDeferrable(void Function() f) {
     _sinkWriter.writeDeferred(f);
   }
 
@@ -160,7 +160,7 @@ class DataSinkWriter {
   /// [identity] is true then the cache is backed by a [Map] created using
   /// [Map.identity]. (i.e. comparisons are done using [identical] rather than
   /// `==`)
-  void writeIndexed<E extends Object>(E? value, void f(E value),
+  void writeIndexed<E extends Object>(E? value, void Function(E value) f,
       {bool identity = false}) {
     IndexedSink<E> sink = (_generalCaches[E] ??=
             importedIndices.getIndexedSink<E>(identity: identity))
@@ -173,7 +173,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readValueOrNull].
-  void writeValueOrNull<E>(E? value, void f(E value)) {
+  void writeValueOrNull<E>(E? value, void Function(E value) f) {
     writeBool(value != null);
     if (value != null) {
       f(value);
@@ -185,7 +185,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readList].
-  void writeList<E>(Iterable<E> values, void f(E value)) {
+  void writeList<E>(Iterable<E> values, void Function(E value) f) {
     writeInt(values.length);
     values.forEach(f);
   }
@@ -195,13 +195,14 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readListOrNull].
-  void writeListOrNull<E>(Iterable<E>? values, void f(E value)) {
+  void writeListOrNull<E>(Iterable<E>? values, void Function(E value) f) {
     writeList<E>(values ?? const [], f);
   }
 
   /// Writes the [map] to this data sink calling [k] to write each key and [v]
   /// to write each value to the data sink.
-  void writeMap<K, V>(Map<K, V> map, void k(K key), void v(V value)) {
+  void writeMap<K, V>(
+      Map<K, V> map, void Function(K key) k, void Function(V value) v) {
     writeInt(map.length);
     map.forEach((K key, V value) {
       k(key);
@@ -212,7 +213,8 @@ class DataSinkWriter {
   /// Writes the [map] to this data sink calling [k] to write each key and [v]
   /// to write each value to the data sink. Treats a null [map] as an empty
   /// map.
-  void writeMapOrNull<K, V>(Map<K, V>? map, void k(K key), void v(V value)) {
+  void writeMapOrNull<K, V>(
+      Map<K, V>? map, void Function(K key) k, void Function(V value) v) {
     writeMap<K, V>(map ?? const {}, k, v);
   }
 
@@ -277,7 +279,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readStringMap].
-  void writeStringMap<V>(Map<String, V> map, void f(V value)) {
+  void writeStringMap<V>(Map<String, V> map, void Function(V value) f) {
     writeMap(map, writeString, f);
   }
 
@@ -287,7 +289,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readStringMapOrNull].
-  void writeStringMapOrNull<V>(Map<String, V>? map, void f(V value)) {
+  void writeStringMapOrNull<V>(Map<String, V>? map, void Function(V value) f) {
     writeMapOrNull(map, writeString, f);
   }
 
@@ -296,7 +298,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readNameMap].
-  void writeNameMap<V>(Map<Name, V> map, void f(V value)) {
+  void writeNameMap<V>(Map<Name, V> map, void Function(V value) f) {
     writeMap(map, writeMemberName, f);
   }
 
@@ -426,7 +428,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readMemberNodeMap].
-  void writeMemberNodeMap<V>(Map<ir.Member, V> map, void f(V value)) {
+  void writeMemberNodeMap<V>(Map<ir.Member, V> map, void Function(V value) f) {
     writeMap(map, writeMemberNode, f);
   }
 
@@ -436,7 +438,8 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readMemberNodeMapOrNull].
-  void writeMemberNodeMapOrNull<V>(Map<ir.Member, V>? map, void f(V value)) {
+  void writeMemberNodeMapOrNull<V>(
+      Map<ir.Member, V>? map, void Function(V value) f) {
     writeMapOrNull(map, writeMemberNode, f);
   }
 
@@ -519,7 +522,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readTreeNodeMap].
-  void writeTreeNodeMap<V>(Map<ir.TreeNode, V> map, void f(V value)) {
+  void writeTreeNodeMap<V>(Map<ir.TreeNode, V> map, void Function(V value) f) {
     writeMap(map, writeTreeNode, f);
   }
 
@@ -553,7 +556,8 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readTreeNodeMapInContext].
-  void writeTreeNodeMapInContext<V>(Map<ir.TreeNode, V> map, void f(V value)) {
+  void writeTreeNodeMapInContext<V>(
+      Map<ir.TreeNode, V> map, void Function(V value) f) {
     writeMap(map, writeTreeNodeInContext, f);
   }
 
@@ -564,7 +568,7 @@ class DataSinkWriter {
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readTreeNodeMapInContextOrNull].
   void writeTreeNodeMapInContextOrNull<V>(
-      Map<ir.TreeNode, V>? map, void f(V value)) {
+      Map<ir.TreeNode, V>? map, void Function(V value) f) {
     writeMapOrNull(map, writeTreeNodeInContext, f);
   }
 
@@ -709,7 +713,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readLibraryMap].
-  void writeLibraryMap<V>(Map<LibraryEntity, V> map, void f(V value)) {
+  void writeLibraryMap<V>(Map<LibraryEntity, V> map, void Function(V value) f) {
     writeMap(map, writeLibrary, f);
   }
 
@@ -756,7 +760,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readClassMap].
-  void writeClassMap<V>(Map<ClassEntity, V> map, void f(V value)) {
+  void writeClassMap<V>(Map<ClassEntity, V> map, void Function(V value) f) {
     writeMap(map, writeClass, f);
   }
 
@@ -804,7 +808,7 @@ class DataSinkWriter {
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readMemberMap].
   void writeMemberMap<V>(
-      Map<MemberEntity, V> map, void f(MemberEntity member, V value)) {
+      Map<MemberEntity, V> map, void Function(MemberEntity member, V value) f) {
     writeInt(map.length);
     map.forEach((MemberEntity member, V value) {
       writeMember(member);
@@ -829,7 +833,7 @@ class DataSinkWriter {
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readTypeVariableMap].
   void writeTypeVariableMap<V>(
-      Map<TypeVariableEntity, V> map, void f(V value)) {
+      Map<TypeVariableEntity, V> map, void Function(V value) f) {
     writeMap(map, writeTypeVariable, f);
   }
 
@@ -872,7 +876,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readLocalMap].
-  void writeLocalMap<V>(Map<Local, V> map, void f(V value)) {
+  void writeLocalMap<V>(Map<Local, V> map, void Function(V value) f) {
     writeMap(map, writeLocal, f);
   }
 
@@ -881,7 +885,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readSelectorMap].
-  void writeSelectorMap<V>(Map<Selector, V> map, void f(V value)) {
+  void writeSelectorMap<V>(Map<Selector, V> map, void Function(V value) f) {
     writeMap(map, (Selector selector) {
       selector.writeToDataSink(this);
     }, f);
@@ -900,41 +904,41 @@ class DataSinkWriter {
   void _writeConstantInternal(ConstantValue value) {
     _sinkWriter.writeEnum(value.kind);
     switch (value.kind) {
-      case ConstantValueKind.BOOL:
+      case ConstantValueKind.bool:
         final constant = value as BoolConstantValue;
         writeBool(constant.boolValue);
         break;
-      case ConstantValueKind.INT:
+      case ConstantValueKind.int:
         final constant = value as IntConstantValue;
         _writeBigInt(constant.intValue);
         break;
-      case ConstantValueKind.DOUBLE:
+      case ConstantValueKind.double:
         final constant = value as DoubleConstantValue;
         _writeDoubleValue(constant.doubleValue);
         break;
-      case ConstantValueKind.STRING:
+      case ConstantValueKind.string:
         final constant = value as StringConstantValue;
         writeString(constant.stringValue);
         break;
-      case ConstantValueKind.NULL:
+      case ConstantValueKind.null_:
         break;
-      case ConstantValueKind.FUNCTION:
+      case ConstantValueKind.function:
         final constant = value as FunctionConstantValue;
         writeMember(constant.element);
         writeDartType(constant.type);
         break;
-      case ConstantValueKind.LIST:
+      case ConstantValueKind.list:
         final constant = value as ListConstantValue;
         writeDartType(constant.type);
         writeConstants(constant.entries);
         break;
-      case ConstantValueKind.SET:
+      case ConstantValueKind.set:
         final constant = value as constant_system.JavaScriptSetConstant;
         writeDartType(constant.type);
         writeConstants(constant.values);
         writeConstantOrNull(constant.indexObject);
         break;
-      case ConstantValueKind.MAP:
+      case ConstantValueKind.map:
         final constant = value as constant_system.JavaScriptMapConstant;
         writeDartType(constant.type);
         writeConstant(constant.keyList);
@@ -942,48 +946,48 @@ class DataSinkWriter {
         writeBool(constant.onlyStringKeys);
         if (constant.onlyStringKeys) writeConstant(constant.indexObject!);
         break;
-      case ConstantValueKind.CONSTRUCTED:
+      case ConstantValueKind.constructed:
         final constant = value as ConstructedConstantValue;
         writeDartType(constant.type);
         writeMemberMap(constant.fields,
             (MemberEntity member, ConstantValue value) => writeConstant(value));
         break;
-      case ConstantValueKind.RECORD:
+      case ConstantValueKind.record:
         final constant = value as RecordConstantValue;
         constant.shape.writeToDataSink(this);
         writeConstants(constant.values);
         break;
-      case ConstantValueKind.TYPE:
+      case ConstantValueKind.type:
         final constant = value as TypeConstantValue;
         writeDartType(constant.representedType);
         writeDartType(constant.type);
         break;
-      case ConstantValueKind.INSTANTIATION:
+      case ConstantValueKind.instantiation:
         final constant = value as InstantiationConstantValue;
         writeDartTypes(constant.typeArguments);
         writeConstant(constant.function);
         break;
-      case ConstantValueKind.INTERCEPTOR:
+      case ConstantValueKind.interceptor:
         final constant = value as InterceptorConstantValue;
         writeClass(constant.cls);
         break;
-      case ConstantValueKind.JAVASCRIPT_OBJECT:
+      case ConstantValueKind.javaScriptObject:
         final constant = value as JavaScriptObjectConstantValue;
         writeConstants(constant.keys);
         writeConstants(constant.values);
         break;
-      case ConstantValueKind.DEFERRED_GLOBAL:
+      case ConstantValueKind.deferredGlobal:
         final constant = value as DeferredGlobalConstantValue;
         writeConstant(constant.referenced);
         writeOutputUnitReference(constant.unit);
         break;
-      case ConstantValueKind.DUMMY_INTERCEPTOR:
+      case ConstantValueKind.dummyInterceptor:
         break;
-      case ConstantValueKind.LATE_SENTINEL:
+      case ConstantValueKind.lateSentinel:
         break;
-      case ConstantValueKind.UNREACHABLE:
+      case ConstantValueKind.unreachable:
         break;
-      case ConstantValueKind.JS_NAME:
+      case ConstantValueKind.jsName:
         final constant = value as JsNameConstantValue;
         writeJsNode(constant.name);
         break;
@@ -1011,7 +1015,8 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readConstantMap].
-  void writeConstantMap<V>(Map<ConstantValue, V> map, void f(V value)) {
+  void writeConstantMap<V>(
+      Map<ConstantValue, V> map, void Function(V value) f) {
     writeMap(map, writeConstant, f);
   }
 
@@ -1082,7 +1087,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readImportMap].
-  void writeImportMap<V>(Map<ImportEntity, V> map, void f(V value)) {
+  void writeImportMap<V>(Map<ImportEntity, V> map, void Function(V value) f) {
     writeMap(map, writeImport, f);
   }
 
@@ -1133,7 +1138,7 @@ class DataSinkWriter {
   /// Invoke [f] in the context of [member]. This sets up support for
   /// serialization of `ir.TreeNode`s using the `writeTreeNode*InContext`
   /// methods.
-  void inMemberContext(ir.Member? context, void f()) {
+  void inMemberContext(ir.Member? context, void Function() f) {
     ir.Member? oldMemberContext = _currentMemberContext;
     MemberData? oldMemberData = _currentMemberData;
     _currentMemberContext = context;

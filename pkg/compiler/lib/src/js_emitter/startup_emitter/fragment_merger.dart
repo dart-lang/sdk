@@ -178,23 +178,23 @@ class PreFragment {
 
   PreFragment mergeAfter(PreFragment that) {
     assert(this != that);
-    this.emittedOutputUnits.addAll(that.emittedOutputUnits);
-    this.successors.remove(that);
-    this.predecessors.remove(that);
-    that.successors.forEach((fragment) {
-      if (fragment == this) return;
-      this.successors.add(fragment);
+    emittedOutputUnits.addAll(that.emittedOutputUnits);
+    successors.remove(that);
+    predecessors.remove(that);
+    for (var fragment in that.successors) {
+      if (fragment == this) continue;
+      successors.add(fragment);
       fragment.predecessors.remove(that);
       fragment.predecessors.add(this);
-    });
-    that.predecessors.forEach((fragment) {
-      if (fragment == this) return;
-      this.predecessors.add(fragment);
+    }
+    for (var fragment in that.predecessors) {
+      if (fragment == this) continue;
+      predecessors.add(fragment);
       fragment.successors.remove(that);
       fragment.successors.add(this);
-    });
+    }
     that.clearAll();
-    this.size += that.size;
+    size += that.size;
     return this;
   }
 
@@ -278,12 +278,12 @@ class PreFragment {
         ? [interleaveEmittedOutputUnits(program)]
         : bundleEmittedOutputUnits(program);
     finalizedFragment = FinalizedFragment(outputFileName, codeFragments);
-    codeFragments.forEach((codeFragment) {
+    for (var codeFragment in codeFragments) {
       codeFragmentMap[codeFragment] = finalizedFragment;
-      codeFragment.outputUnits.forEach((outputUnit) {
+      for (var outputUnit in codeFragment.outputUnits) {
         outputUnitMap[outputUnit] = codeFragment;
-      });
-    });
+      }
+    }
     return finalizedFragment;
   }
 
@@ -308,7 +308,7 @@ class PreFragment {
       }
       outputUnitStrings.add('{${importString.join(', ')}}');
     }
-    return "${outputUnitStrings.join('+')}";
+    return outputUnitStrings.join('+');
   }
 
   /// Clears all [PreFragment] data structure and zeros out the size. Should be
@@ -661,8 +661,7 @@ class FragmentMerger {
       Map<String, List<FinalizedFragment>> fragmentsToLoad) {
     Map<String, Map<String, dynamic>> mapping = {};
 
-    outputUnitData.deferredImportDescriptions.keys
-        .forEach((ImportEntity import) {
+    for (var import in outputUnitData.deferredImportDescriptions.keys) {
       var importDeferName = outputUnitData.importDeferName[import]!;
       final fragments = fragmentsToLoad[importDeferName]!;
       final description = outputUnitData.deferredImportDescriptions[import]!;
@@ -687,7 +686,7 @@ class FragmentMerger {
           partFileNames;
       (libraryMap['importPrefixToLoadId']
           as Map<String, String>)[import.name!] = importDeferName;
-    });
+    }
     return mapping;
   }
 }

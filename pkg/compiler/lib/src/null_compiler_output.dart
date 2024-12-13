@@ -4,7 +4,7 @@
 
 /// Null pattern implementation of the [api.CompilerOutput] interface.
 
-library compiler.null_api;
+library;
 
 import '../compiler_api.dart' as api;
 

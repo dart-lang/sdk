@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_model.env;
+library;
 
 import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -55,7 +55,7 @@ class JProgramEnv {
   }
 
   /// Calls [f] for each library in this environment.
-  void forEachLibrary(void f(JLibraryEnv library)) {
+  void forEachLibrary(void Function(JLibraryEnv library) f) {
     _libraryMap.values.forEach(f);
   }
 
@@ -109,7 +109,7 @@ class JLibraryEnv {
   }
 
   /// Calls [f] for each class in this library.
-  void forEachClass(void f(JClassEnv cls)) {
+  void forEachClass(void Function(JClassEnv cls) f) {
     _classMap.values.forEach(f);
   }
 
@@ -118,7 +118,7 @@ class JLibraryEnv {
     return setter ? _setterMap[name] : _memberMap[name];
   }
 
-  void forEachMember(void f(ir.Member member)) {
+  void forEachMember(void Function(ir.Member member) f) {
     _memberMap.values.forEach(f);
     for (ir.Member member in _setterMap.values) {
       if (member is ir.Procedure) {
@@ -219,18 +219,20 @@ abstract class JClassEnv {
   MemberEntity? lookupMember(IrToElementMap elementMap, Name name);
 
   /// Calls [f] for each member of [cls].
-  void forEachMember(IrToElementMap elementMap, void f(MemberEntity member));
+  void forEachMember(
+      IrToElementMap elementMap, void Function(MemberEntity member) f);
 
   /// Return the [ConstructorEntity] for the constructor [name] in [cls].
   ConstructorEntity? lookupConstructor(IrToElementMap elementMap, String name);
 
   /// Calls [f] for each constructor of [cls].
-  void forEachConstructor(
-      IrToElementMap elementMap, void f(ConstructorEntity constructor));
+  void forEachConstructor(IrToElementMap elementMap,
+      void Function(ConstructorEntity constructor) f);
 
   /// Calls [f] for each constructor body for the live constructors in the
   /// class.
-  void forEachConstructorBody(void f(ConstructorBodyEntity constructor));
+  void forEachConstructorBody(
+      void Function(ConstructorBodyEntity constructor) f);
 }
 
 /// Environment for fast lookup of class members.
@@ -288,10 +290,11 @@ class JClassEnvImpl implements JClassEnv {
   }
 
   @override
-  void forEachMember(IrToElementMap elementMap, void f(MemberEntity member)) {
-    _members.forEach((ir.Member member) {
+  void forEachMember(
+      IrToElementMap elementMap, void Function(MemberEntity member) f) {
+    for (var member in _members) {
       f(elementMap.getMember(member));
-    });
+    }
   }
 
   @override
@@ -301,11 +304,11 @@ class JClassEnvImpl implements JClassEnv {
   }
 
   @override
-  void forEachConstructor(
-      IrToElementMap elementMap, void f(ConstructorEntity constructor)) {
-    _constructorMap.values.forEach((ir.Member constructor) {
+  void forEachConstructor(IrToElementMap elementMap,
+      void Function(ConstructorEntity constructor) f) {
+    for (var constructor in _constructorMap.values) {
       f(elementMap.getConstructor(constructor));
-    });
+    }
   }
 
   void addConstructorBody(ConstructorBodyEntity constructorBody) {
@@ -313,7 +316,8 @@ class JClassEnvImpl implements JClassEnv {
   }
 
   @override
-  void forEachConstructorBody(void f(ConstructorBodyEntity constructor)) {
+  void forEachConstructorBody(
+      void Function(ConstructorBodyEntity constructor) f) {
     _constructorBodyList?.forEach(f);
   }
 }
@@ -329,10 +333,10 @@ class ContextEnv implements JClassEnv {
 
   factory ContextEnv.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    Map<Name, MemberEntity> _memberMap =
+    Map<Name, MemberEntity> memberMap =
         source.readNameMap(() => source.readMember());
     source.end(tag);
-    return ContextEnv(_memberMap);
+    return ContextEnv(memberMap);
   }
 
   @override
@@ -344,13 +348,14 @@ class ContextEnv implements JClassEnv {
   }
 
   @override
-  void forEachConstructorBody(void f(ConstructorBodyEntity constructor)) {
+  void forEachConstructorBody(
+      void Function(ConstructorBodyEntity constructor) f) {
     // We do not create constructor bodies for containers.
   }
 
   @override
-  void forEachConstructor(
-      IrToElementMap elementMap, void f(ConstructorEntity constructor)) {
+  void forEachConstructor(IrToElementMap elementMap,
+      void Function(ConstructorEntity constructor) f) {
     // We do not create constructors for containers.
   }
 
@@ -361,7 +366,8 @@ class ContextEnv implements JClassEnv {
   }
 
   @override
-  void forEachMember(IrToElementMap elementMap, void f(MemberEntity member)) {
+  void forEachMember(
+      IrToElementMap elementMap, void Function(MemberEntity member) f) {
     _memberMap.values.forEach(f);
   }
 
@@ -389,10 +395,10 @@ class ClosureClassEnv extends ContextEnv {
 
   factory ClosureClassEnv.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    Map<Name, MemberEntity> _memberMap =
+    Map<Name, MemberEntity> memberMap =
         source.readNameMap(() => source.readMember());
     source.end(tag);
-    return ClosureClassEnv(_memberMap);
+    return ClosureClassEnv(memberMap);
   }
 
   @override
@@ -415,10 +421,10 @@ class RecordClassEnv implements JClassEnv {
 
   factory RecordClassEnv.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    Map<Name, MemberEntity> _memberMap =
+    Map<Name, MemberEntity> memberMap =
         source.readNameMap(() => source.readMember());
     source.end(tag);
-    return RecordClassEnv(_memberMap);
+    return RecordClassEnv(memberMap);
   }
 
   @override
@@ -430,13 +436,14 @@ class RecordClassEnv implements JClassEnv {
   }
 
   @override
-  void forEachConstructorBody(void f(ConstructorBodyEntity constructor)) {
+  void forEachConstructorBody(
+      void Function(ConstructorBodyEntity constructor) f) {
     // We do not create constructor bodies for containers.
   }
 
   @override
-  void forEachConstructor(
-      IrToElementMap elementMap, void f(ConstructorEntity constructor)) {
+  void forEachConstructor(IrToElementMap elementMap,
+      void Function(ConstructorEntity constructor) f) {
     // We do not create constructors for containers.
   }
 
@@ -447,7 +454,8 @@ class RecordClassEnv implements JClassEnv {
   }
 
   @override
-  void forEachMember(IrToElementMap elementMap, void f(MemberEntity member)) {
+  void forEachMember(
+      IrToElementMap elementMap, void Function(MemberEntity member) f) {
     _memberMap.values.forEach(f);
   }
 
@@ -647,7 +655,7 @@ abstract class FunctionData implements JMemberData {
   void forEachParameter(
       JsToElementMap elementMap,
       ParameterStructure parameterStructure,
-      void f(DartType type, String? name, ConstantValue? defaultValue),
+      void Function(DartType type, String? name, ConstantValue? defaultValue) f,
       {bool isNative = false});
 }
 
@@ -689,7 +697,7 @@ mixin FunctionDataForEachParameterMixin implements FunctionData {
   void forEachParameter(
       JsToElementMap elementMap,
       ParameterStructure parameterStructure,
-      void f(DartType type, String? name, ConstantValue? defaultValue),
+      void Function(DartType type, String? name, ConstantValue? defaultValue) f,
       {bool isNative = false}) {
     void handleParameter(ir.VariableDeclaration parameter,
         {bool isOptional = true}) {
@@ -849,7 +857,7 @@ class SignatureFunctionData implements FunctionData {
   void forEachParameter(
       JsToElementMap elementMap,
       ParameterStructure parameterStructure,
-      void f(DartType type, String? name, ConstantValue? defaultValue),
+      void Function(DartType type, String? name, ConstantValue? defaultValue) f,
       {bool isNative = false}) {
     throw UnimplementedError('SignatureData.forEachParameter');
   }
@@ -877,7 +885,7 @@ abstract class DelegatedFunctionData implements FunctionData {
   void forEachParameter(
       JsToElementMap elementMap,
       ParameterStructure parameterStructure,
-      void f(DartType type, String? name, ConstantValue? defaultValue),
+      void Function(DartType type, String? name, ConstantValue? defaultValue) f,
       {bool isNative = false}) {
     return baseData.forEachParameter(elementMap, parameterStructure, f,
         isNative: isNative);

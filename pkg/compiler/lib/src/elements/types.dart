@@ -121,7 +121,7 @@ abstract class DartType {
 
   /// Applies [f] to each occurrence of a [TypeVariableType] within this
   /// type. This excludes function type variables, whether free or bound.
-  void forEachTypeVariable(void f(TypeVariableType variable)) {}
+  void forEachTypeVariable(void Function(TypeVariableType variable) f) {}
 
   /// Calls the visit method on [visitor] corresponding to this type.
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument);
@@ -236,7 +236,7 @@ class LegacyType extends DartType {
   bool get containsTypeVariables => baseType.containsTypeVariables;
 
   @override
-  void forEachTypeVariable(void f(TypeVariableType variable)) {
+  void forEachTypeVariable(void Function(TypeVariableType variable) f) {
     baseType.forEachTypeVariable(f);
   }
 
@@ -291,7 +291,7 @@ class NullableType extends DartType {
   bool get containsTypeVariables => baseType.containsTypeVariables;
 
   @override
-  void forEachTypeVariable(void f(TypeVariableType variable)) {
+  void forEachTypeVariable(void Function(TypeVariableType variable) f) {
     baseType.forEachTypeVariable(f);
   }
 
@@ -359,8 +359,10 @@ class InterfaceType extends DartType {
       typeArguments.any((type) => type.containsTypeVariables);
 
   @override
-  void forEachTypeVariable(void f(TypeVariableType variable)) {
-    typeArguments.forEach((type) => type.forEachTypeVariable(f));
+  void forEachTypeVariable(void Function(TypeVariableType variable) f) {
+    for (var type in typeArguments) {
+      type.forEachTypeVariable(f);
+    }
   }
 
   @override
@@ -400,7 +402,7 @@ class RecordType extends DartType {
   final RecordShape shape;
   final List<DartType> fields;
 
-  static late final _emptyRecordType =
+  static final _emptyRecordType =
       RecordType._allocate(RecordShape(0, const []), const []);
 
   RecordType._allocate(this.shape, this.fields);
@@ -432,8 +434,10 @@ class RecordType extends DartType {
   }
 
   @override
-  void forEachTypeVariable(void f(TypeVariableType variable)) {
-    fields.forEach((type) => type.forEachTypeVariable(f));
+  void forEachTypeVariable(void Function(TypeVariableType variable) f) {
+    for (var type in fields) {
+      type.forEachTypeVariable(f);
+    }
   }
 
   @override
@@ -491,7 +495,7 @@ class TypeVariableType extends DartType {
   bool get containsTypeVariables => true;
 
   @override
-  void forEachTypeVariable(void f(TypeVariableType variable)) {
+  void forEachTypeVariable(void Function(TypeVariableType variable) f) {
     f(this);
   }
 
@@ -835,12 +839,20 @@ class FunctionType extends DartType {
   }
 
   @override
-  void forEachTypeVariable(void f(TypeVariableType variable)) {
-    typeVariables.forEach((type) => type.bound.forEachTypeVariable(f));
+  void forEachTypeVariable(void Function(TypeVariableType variable) f) {
+    for (var type in typeVariables) {
+      type.bound.forEachTypeVariable(f);
+    }
     returnType.forEachTypeVariable(f);
-    parameterTypes.forEach((type) => type.forEachTypeVariable(f));
-    optionalParameterTypes.forEach((type) => type.forEachTypeVariable(f));
-    namedParameterTypes.forEach((type) => type.forEachTypeVariable(f));
+    for (var type in parameterTypes) {
+      type.forEachTypeVariable(f);
+    }
+    for (var type in optionalParameterTypes) {
+      type.forEachTypeVariable(f);
+    }
+    for (var type in namedParameterTypes) {
+      type.forEachTypeVariable(f);
+    }
   }
 
   @override
@@ -931,7 +943,7 @@ class FutureOrType extends DartType {
   bool get containsTypeVariables => typeArgument.containsTypeVariables;
 
   @override
-  void forEachTypeVariable(void f(TypeVariableType variable)) {
+  void forEachTypeVariable(void Function(TypeVariableType variable) f) {
     typeArgument.forEachTypeVariable(f);
   }
 
@@ -1432,7 +1444,7 @@ abstract class DartTypeStructuralPredicateVisitor
   @override
   bool visitFunctionTypeVariable(
       FunctionTypeVariable type, List<FunctionTypeVariable>? bindings) {
-    return bindings != null && bindings.indexOf(type) >= 0
+    return bindings != null && bindings.contains(type)
         ? handleBoundFunctionTypeVariable(type)
         : handleFreeFunctionTypeVariable(type);
   }
@@ -1536,7 +1548,7 @@ class SimpleDartTypeSubstitutionVisitor
 
   @override
   DartType substituteFunctionTypeVariable(
-      covariant FunctionTypeVariable type, Null _, bool freshReference) {
+      covariant FunctionTypeVariable type, Null argument, bool freshReference) {
     int index = parameters.indexOf(type);
     if (index != -1) {
       return arguments[index];
@@ -1829,19 +1841,19 @@ abstract class DartTypes {
   }
 
   DartType nullableType(DartType baseType) {
-    bool _isNullable(DartType t) =>
+    bool isNullable(DartType t) =>
         // Note that we can assume null safety is enabled here.
         t.isNull ||
         t is NullableType ||
-        t is LegacyType && _isNullable(t.baseType) ||
-        t is FutureOrType && _isNullable(t.typeArgument) ||
+        t is LegacyType && isNullable(t.baseType) ||
+        t is FutureOrType && isNullable(t.typeArgument) ||
         isStrongTopType(t);
 
     DartType result;
     if (isStrongTopType(baseType) ||
         baseType.isNull ||
         baseType is NullableType ||
-        baseType is FutureOrType && _isNullable(baseType.typeArgument)) {
+        baseType is FutureOrType && isNullable(baseType.typeArgument)) {
       result = baseType;
     } else if (baseType is NeverType) {
       result = commonElements.nullType;
@@ -1850,7 +1862,7 @@ abstract class DartTypes {
       if (legacyBaseType is NeverType) {
         result = commonElements.nullType;
       } else if (legacyBaseType is FutureOrType &&
-          _isNullable(legacyBaseType.typeArgument)) {
+          isNullable(legacyBaseType.typeArgument)) {
         result = legacyBaseType;
       } else {
         result = nullableType(legacyBaseType);
@@ -1952,13 +1964,14 @@ abstract class DartTypes {
   DartType instantiate(FunctionType t, List<DartType> arguments) {
     assert(arguments.length == t.typeVariables.length,
         'Generic function type instantiation is all-or-none');
-    DartType _subst(DartType type) => subst(arguments, t.typeVariables, type);
-    DartType returnType = _subst(t.returnType);
-    List<DartType> parameterTypes = t.parameterTypes.map(_subst).toList();
+    DartType substType(DartType type) =>
+        subst(arguments, t.typeVariables, type);
+    DartType returnType = substType(t.returnType);
+    List<DartType> parameterTypes = t.parameterTypes.map(substType).toList();
     List<DartType> optionalParameterTypes =
-        t.optionalParameterTypes.map(_subst).toList();
+        t.optionalParameterTypes.map(substType).toList();
     List<DartType> namedParameterTypes =
-        t.namedParameterTypes.map(_subst).toList();
+        t.namedParameterTypes.map(substType).toList();
     return functionType(
         returnType,
         parameterTypes,
@@ -2023,7 +2036,7 @@ abstract class DartTypes {
     /// Based on
     /// https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md.
     /// See also [_isSubtype] in `dart:_rti`.
-    bool _isSubtype(DartType s, DartType t, _Assumptions? env) {
+    bool isSubtype(DartType s, DartType t, _Assumptions? env) {
       // Reflexivity:
       if (s == t) return true;
       if (env != null &&
@@ -2046,10 +2059,10 @@ abstract class DartTypes {
 
       // Left Type Variable Bound 1:
       if (s is TypeVariableType) {
-        if (_isSubtype(getTypeVariableBound(s.element), t, env)) return true;
+        if (isSubtype(getTypeVariableBound(s.element), t, env)) return true;
       }
       if (s is FunctionTypeVariable) {
-        if (_isSubtype(s.bound, t, env)) return true;
+        if (isSubtype(s.bound, t, env)) return true;
       }
 
       // Left Null:
@@ -2057,7 +2070,7 @@ abstract class DartTypes {
       // reduce casework.
       if (!useLegacySubtyping && s.isNull) {
         if (t is FutureOrType) {
-          return _isSubtype(s, t.typeArgument, env);
+          return isSubtype(s, t.typeArgument, env);
         }
         return t.isNull || t is LegacyType || t is NullableType;
       }
@@ -2065,39 +2078,39 @@ abstract class DartTypes {
       // Right Object:
       if (!useLegacySubtyping && t.isObject) {
         if (s is FutureOrType) {
-          return _isSubtype(s.typeArgument, t, env);
+          return isSubtype(s.typeArgument, t, env);
         }
         if (s is LegacyType) {
-          return _isSubtype(s.baseType, t, env);
+          return isSubtype(s.baseType, t, env);
         }
         return s is! NullableType;
       }
 
       // Left Legacy:
       if (s is LegacyType) {
-        return _isSubtype(s.baseType, t, env);
+        return isSubtype(s.baseType, t, env);
       }
 
       // Right Legacy:
       if (t is LegacyType) {
         // Note that to convert `T*` to `T?`, we can't just say `t._toNullable`.
         // The resulting type `T?` may be normalizable (e.g. if `T` is `Never`).
-        return _isSubtype(
+        return isSubtype(
             s, useLegacySubtyping ? t.baseType : nullableType(t), env);
       }
 
       // Left FutureOr:
       if (s is FutureOrType) {
         DartType typeArgument = s.typeArgument;
-        return _isSubtype(typeArgument, t, env) &&
-            _isSubtype(commonElements.futureType(typeArgument), t, env);
+        return isSubtype(typeArgument, t, env) &&
+            isSubtype(commonElements.futureType(typeArgument), t, env);
       }
 
       // Left Nullable:
       if (s is NullableType) {
         return (useLegacySubtyping ||
-                _isSubtype(commonElements.nullType, t, env)) &&
-            _isSubtype(s.baseType, t, env);
+                isSubtype(commonElements.nullType, t, env)) &&
+            isSubtype(s.baseType, t, env);
       }
 
       // Type Variable Reflexivity 1 is subsumed by Reflexivity and therefore
@@ -2110,15 +2123,15 @@ abstract class DartTypes {
       // Right FutureOr:
       if (t is FutureOrType) {
         DartType typeArgument = t.typeArgument;
-        return _isSubtype(s, typeArgument, env) ||
-            _isSubtype(s, commonElements.futureType(typeArgument), env);
+        return isSubtype(s, typeArgument, env) ||
+            isSubtype(s, commonElements.futureType(typeArgument), env);
       }
 
       // Right Nullable:
       if (t is NullableType) {
         return (!useLegacySubtyping &&
-                _isSubtype(s, commonElements.nullType, env)) ||
-            _isSubtype(s, t.baseType, env);
+                isSubtype(s, commonElements.nullType, env)) ||
+            isSubtype(s, t.baseType, env);
       }
 
       // Left Promoted Variable does not apply because we do not represent
@@ -2150,13 +2163,13 @@ abstract class DartTypes {
             for (int i = 0; i < length; i++) {
               DartType sBound = sTypeVariables[i].bound;
               DartType tBound = tTypeVariables[i].bound;
-              if (!_isSubtype(sBound, tBound, env) ||
-                  !_isSubtype(tBound, sBound, env)) {
+              if (!isSubtype(sBound, tBound, env) ||
+                  !isSubtype(tBound, sBound, env)) {
                 return false;
               }
             }
 
-            if (!_isSubtype(s.returnType, t.returnType, env)) return false;
+            if (!isSubtype(s.returnType, t.returnType, env)) return false;
 
             List<DartType> sRequiredPositional = s.parameterTypes;
             List<DartType> tRequiredPositional = t.parameterTypes;
@@ -2178,23 +2191,21 @@ abstract class DartTypes {
             }
 
             for (int i = 0; i < sRequiredPositionalLength; i++) {
-              if (!_isSubtype(
+              if (!isSubtype(
                   tRequiredPositional[i], sRequiredPositional[i], env)) {
                 return false;
               }
             }
 
             for (int i = 0; i < requiredPositionalDelta; i++) {
-              if (!_isSubtype(
-                  tRequiredPositional[sRequiredPositionalLength + i],
-                  sOptionalPositional[i],
-                  env)) {
+              if (!isSubtype(tRequiredPositional[sRequiredPositionalLength + i],
+                  sOptionalPositional[i], env)) {
                 return false;
               }
             }
 
             for (int i = 0; i < tOptionalPositionalLength; i++) {
-              if (!_isSubtype(tOptionalPositional[i],
+              if (!isSubtype(tOptionalPositional[i],
                   sOptionalPositional[requiredPositionalDelta + i], env)) {
                 return false;
               }
@@ -2226,7 +2237,7 @@ abstract class DartTypes {
                 bool tIsRequired =
                     !useLegacySubtyping && tRequiredNamed.contains(tName);
                 if (sIsRequired && !tIsRequired) return false;
-                if (!_isSubtype(
+                if (!isSubtype(
                     tNamedTypes[tIndex], sNamedTypes[sIndex - 1], env)) {
                   return false;
                 }
@@ -2261,14 +2272,14 @@ abstract class DartTypes {
             switch (variances[i]) {
               case Variance.legacyCovariant:
               case Variance.covariant:
-                if (!_isSubtype(sArgs[i], tArgs[i], env)) return false;
+                if (!isSubtype(sArgs[i], tArgs[i], env)) return false;
                 break;
               case Variance.contravariant:
-                if (!_isSubtype(tArgs[i], sArgs[i], env)) return false;
+                if (!isSubtype(tArgs[i], sArgs[i], env)) return false;
                 break;
               case Variance.invariant:
-                if (!_isSubtype(sArgs[i], tArgs[i], env) ||
-                    !_isSubtype(tArgs[i], sArgs[i], env)) {
+                if (!isSubtype(sArgs[i], tArgs[i], env) ||
+                    !isSubtype(tArgs[i], sArgs[i], env)) {
                   return false;
                 }
                 break;
@@ -2294,7 +2305,7 @@ abstract class DartTypes {
         List<DartType> tFields = t.fields;
         assert(sFields.length == tFields.length); // Guaranteed by shape.
         for (int i = 0; i < sFields.length; i++) {
-          if (!_isSubtype(sFields[i], tFields[i], env)) return false;
+          if (!isSubtype(sFields[i], tFields[i], env)) return false;
         }
         return true;
       }
@@ -2302,7 +2313,7 @@ abstract class DartTypes {
       return false;
     }
 
-    return _isSubtype(s, t, null);
+    return isSubtype(s, t, null);
   }
 
   /// Returns [type] as an instance of [cls] or `null` if [type] is not a
@@ -2347,8 +2358,9 @@ abstract class DartTypes {
       T context,
       List<DartType> typeArguments,
       List<DartType> typeVariables,
-      void checkTypeVariableBound(T context, DartType typeArgument,
-          TypeVariableType typeVariable, DartType bound));
+      void Function(T context, DartType typeArgument,
+              TypeVariableType typeVariable, DartType bound)
+          checkTypeVariableBound);
 
   /// Returns the [ClassEntity] which declares the type variables occurring in
   // [type], or `null` if [type] does not contain class type variables.

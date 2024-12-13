@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_model.elements;
+library;
 
 import 'package:kernel/ast.dart' as ir show LocalFunction;
 
@@ -128,7 +128,7 @@ enum JMemberKind {
 }
 
 @override
-String _membertoString(JMember member) => '${jsElementPrefix}${member._kind}'
+String _membertoString(JMember member) => '$jsElementPrefix${member._kind}'
     '(${member.enclosingClass != null ? '${member.enclosingClass!.name}.' : ''}'
     '${member.name})';
 
@@ -237,15 +237,16 @@ abstract class JFunction extends JMember implements FunctionEntity {
 abstract class JConstructor extends JFunction implements ConstructorEntity {
   @override
   final bool isConst;
-  @override
-  final JClass enclosingClass;
 
   JConstructor(
-      this.enclosingClass, Name name, ParameterStructure parameterStructure,
+      JClass enclosingClass, Name name, ParameterStructure parameterStructure,
       {required bool isExternal, required this.isConst})
       : super(enclosingClass.library, enclosingClass, name, parameterStructure,
-            AsyncMarker.SYNC,
+            AsyncMarker.sync,
             isExternal: isExternal);
+
+  @override
+  JClass get enclosingClass => super.enclosingClass!;
 
   @override
   bool get isInstanceMember => false;
@@ -366,7 +367,7 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
 
   JConstructorBody(this.constructor, ParameterStructure parameterStructure)
       : super(constructor.library, constructor.enclosingClass,
-            constructor.memberName, parameterStructure, AsyncMarker.SYNC,
+            constructor.memberName, parameterStructure, AsyncMarker.sync,
             isStatic: false, isExternal: constructor.isExternal);
 
   factory JConstructorBody.readFromDataSource(DataSourceReader source) {
@@ -688,7 +689,7 @@ class JSetter extends JFunction {
       required bool isExternal,
       required this.isAbstract})
       : super(library, enclosingClass, name, ParameterStructure.setter,
-            AsyncMarker.SYNC,
+            AsyncMarker.sync,
             isStatic: isStatic, isExternal: isExternal);
 
   factory JSetter.readFromDataSource(DataSourceReader source) {
@@ -846,7 +847,7 @@ class JSignatureMethod extends JMethod {
 
   JSignatureMethod(ClassEntity enclosingClass)
       : super(enclosingClass.library as JLibrary, enclosingClass as JClass,
-            Names.signature, ParameterStructure.zeroArguments, AsyncMarker.SYNC,
+            Names.signature, ParameterStructure.zeroArguments, AsyncMarker.sync,
             isStatic: false, isExternal: false, isAbstract: false);
 
   factory JSignatureMethod.readFromDataSource(DataSourceReader source) {

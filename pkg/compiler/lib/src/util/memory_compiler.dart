@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.test.memory_compiler;
+library;
 
 import 'dart:async';
 
@@ -14,6 +14,7 @@ import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/diagnostics/messages.dart' show Message;
 import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
 import 'package:compiler/src/options.dart' show CompilerOptions;
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import 'memory_source_file_helper.dart';
@@ -72,8 +73,8 @@ api.CompilerDiagnostics createCompilerDiagnostics(
         ..registerFileProvider(provider);
       diagnostics = MultiDiagnostics([diagnostics, formattingHandler]);
     }
-  } else if (diagnostics == null) {
-    diagnostics = MultiDiagnostics();
+  } else {
+    diagnostics ??= MultiDiagnostics();
   }
   return diagnostics;
 }
@@ -96,10 +97,8 @@ Future<api.CompilationResult> runCompiler(
     Uri? platformBinaries,
     Uri? packageConfig,
     bool skipPackageConfig = false,
-    void beforeRun(Compiler compiler)?}) async {
-  if (entryPoint == null) {
-    entryPoint = Uri.parse('memory:main.dart');
-  }
+    void Function(Compiler compiler)? beforeRun}) async {
+  entryPoint ??= Uri.parse('memory:main.dart');
   Compiler compiler = compilerFor(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
@@ -156,9 +155,7 @@ Compiler compilerFor(
       showDiagnostics: showDiagnostics,
       verbose: options.contains('-v') || options.contains('--verbose'));
 
-  if (outputProvider == null) {
-    outputProvider = const NullCompilerOutput();
-  }
+  outputProvider ??= const NullCompilerOutput();
 
   options = [...options, '${Flags.entryUri}=$entryPoint'];
 

@@ -56,11 +56,11 @@ class Instance {
   String toString() {
     StringBuffer sb = StringBuffer();
     sb.write(type);
-    if (kind == Instantiation.DIRECTLY_INSTANTIATED) {
+    if (kind == Instantiation.directlyInstantiated) {
       sb.write(' directly');
-    } else if (kind == Instantiation.ABSTRACTLY_INSTANTIATED) {
+    } else if (kind == Instantiation.abstractlyInstantiated) {
       sb.write(' abstractly');
-    } else if (kind == Instantiation.UNINSTANTIATED) {
+    } else if (kind == Instantiation.uninstantiated) {
       sb.write(' none');
     }
     return sb.toString();
@@ -135,18 +135,18 @@ class InstantiationInfo {
   void addInstantiation(
       ConstructorEntity? constructor, InterfaceType type, Instantiation kind) {
     (instantiationMap ??= {})
-        .putIfAbsent(constructor, () => Set<Instance>())
+        .putIfAbsent(constructor, () => <Instance>{})
         .add(Instance(type, kind));
     switch (kind) {
-      case Instantiation.DIRECTLY_INSTANTIATED:
+      case Instantiation.directlyInstantiated:
         isDirectlyInstantiated = true;
         break;
-      case Instantiation.ABSTRACTLY_INSTANTIATED:
+      case Instantiation.abstractlyInstantiated:
         isAbstractlyInstantiated = true;
         break;
-      case Instantiation.UNINSTANTIATED:
+      case Instantiation.uninstantiated:
         break;
-      case Instantiation.INDIRECTLY_INSTANTIATED:
+      case Instantiation.indirectlyInstantiated:
         throw StateError("Instantiation $kind is not allowed.");
     }
   }
@@ -318,7 +318,7 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
   KClosedWorld? get closedWorldForTesting {
     if (!_closed) {
       failedAt(
-          NO_LOCATION_SPANNABLE, "The world builder has not yet been closed.");
+          noLocationSpannable, "The world builder has not yet been closed.");
     }
     return _closedWorldCache;
   }
@@ -353,7 +353,7 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
     ClassEntity cls = type.element;
     InstantiationInfo info =
         _instantiationInfo.putIfAbsent(cls, () => InstantiationInfo());
-    Instantiation kind = Instantiation.UNINSTANTIATED;
+    Instantiation kind = Instantiation.uninstantiated;
     bool isNative = _nativeBasicData.isNativeClass(cls);
     // We can't use the closed-world assumption with native abstract
     // classes; a native abstract class may have non-abstract subclasses
@@ -361,13 +361,13 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
     // indistinguishable from the abstract class.
     if (!cls.isAbstract || isNative) {
       if (isNative) {
-        kind = Instantiation.ABSTRACTLY_INSTANTIATED;
+        kind = Instantiation.abstractlyInstantiated;
       } else {
-        kind = Instantiation.DIRECTLY_INSTANTIATED;
+        kind = Instantiation.directlyInstantiated;
       }
     }
     info.addInstantiation(constructor, type, kind);
-    if (kind != Instantiation.UNINSTANTIATED) {
+    if (kind != Instantiation.uninstantiated) {
       classHierarchyBuilder.updateClassHierarchyNodeForClass(cls,
           directlyInstantiated: info.isDirectlyInstantiated,
           abstractlyInstantiated: info.isAbstractlyInstantiated);
@@ -445,10 +445,10 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
     Selector selector = dynamicUse.selector;
     String methodName = selector.name;
 
-    void _process(
+    void process(
         Map<String, Set<MemberUsage>> memberMap,
-        EnumSet<MemberUse> action(MemberUsage usage),
-        bool shouldBeRemoved(MemberUsage usage)) {
+        EnumSet<MemberUse> Function(MemberUsage usage) action,
+        bool Function(MemberUsage usage) shouldBeRemoved) {
       _processSet(memberMap, methodName, (MemberUsage usage) {
         if (usage.entity.isAbstract ||
             selector.appliesUnnamed(usage.entity) &&
@@ -462,11 +462,11 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
     }
 
     switch (dynamicUse.kind) {
-      case DynamicUseKind.INVOKE:
+      case DynamicUseKind.invoke:
         registerDynamicInvocation(
             dynamicUse.selector, dynamicUse.typeArguments);
         if (_registerNewSelector(dynamicUse, _invokedNames)) {
-          _process(
+          process(
               _invokableInstanceMembersByName,
               (m) => m.invoke(
                   Accesses.dynamicAccess, dynamicUse.selector.callStructure),
@@ -477,9 +477,9 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
               (u) => !u.hasPendingDynamicInvoke);
         }
         break;
-      case DynamicUseKind.GET:
+      case DynamicUseKind.get:
         if (_registerNewSelector(dynamicUse, _invokedGetters)) {
-          _process(
+          process(
               _readableInstanceMembersByName,
               (m) => m.read(Accesses.dynamicAccess),
               // TODO(johnniwinther): Members cannot be partially read so
@@ -489,9 +489,9 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
               (u) => !u.hasPendingDynamicRead);
         }
         break;
-      case DynamicUseKind.SET:
+      case DynamicUseKind.set:
         if (_registerNewSelector(dynamicUse, _invokedSetters)) {
-          _process(
+          process(
               _writableInstanceMembersByName,
               (m) => m.write(Accesses.dynamicAccess),
               // TODO(johnniwinther): Members cannot be partially written so
@@ -537,7 +537,7 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
   /// Applies the [staticUse] to applicable members. Calls [membersUsed] with
   /// the usage changes for each member.
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
-    if (staticUse.kind == StaticUseKind.CLOSURE) {
+    if (staticUse.kind == StaticUseKind.closure) {
       Local localFunction = staticUse.element as Local;
       FunctionType type =
           elementEnvironment.getLocalFunctionType(localFunction);
@@ -546,7 +546,7 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
       }
       _localFunctions.add(localFunction);
       return;
-    } else if (staticUse.kind == StaticUseKind.CLOSURE_CALL) {
+    } else if (staticUse.kind == StaticUseKind.closureCall) {
       final typeArguments = staticUse.typeArguments;
       if (typeArguments != null && typeArguments.isNotEmpty) {
         registerDynamicInvocation(
@@ -567,57 +567,57 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
     // enqueue.
 
     switch (staticUse.kind) {
-      case StaticUseKind.INSTANCE_FIELD_GET:
+      case StaticUseKind.instanceFieldGet:
         break;
-      case StaticUseKind.INSTANCE_FIELD_SET:
+      case StaticUseKind.instanceFieldSet:
         _fieldSetters.add(staticUse.element as FieldEntity);
         break;
-      case StaticUseKind.CLOSURE:
-      case StaticUseKind.CLOSURE_CALL:
+      case StaticUseKind.closure:
+      case StaticUseKind.closureCall:
         // Already handled above.
         break;
-      case StaticUseKind.SUPER_TEAR_OFF:
+      case StaticUseKind.superTearOff:
         useSet = useSet.union(usage.read(Accesses.superAccess));
         _methodsNeedingSuperGetter.add(staticUse.element as FunctionEntity);
         break;
-      case StaticUseKind.SUPER_FIELD_SET:
+      case StaticUseKind.superFieldSet:
         _fieldSetters.add(staticUse.element as FieldEntity);
         useSet = useSet.union(usage.write(Accesses.superAccess));
         break;
-      case StaticUseKind.SUPER_GET:
+      case StaticUseKind.superGet:
         useSet = useSet.union(usage.read(Accesses.superAccess));
         break;
-      case StaticUseKind.STATIC_GET:
+      case StaticUseKind.staticGet:
         useSet = useSet.union(usage.read(Accesses.staticAccess));
         break;
-      case StaticUseKind.STATIC_TEAR_OFF:
+      case StaticUseKind.staticTearOff:
         useSet = useSet.union(usage.read(Accesses.staticAccess));
         break;
-      case StaticUseKind.WEAK_STATIC_TEAR_OFF:
+      case StaticUseKind.weakStaticTearOff:
         if (usage.hasUse) {
           useSet = useSet.union(usage.read(Accesses.staticAccess));
         } else {
           _pendingWeakTearOffs.add(element);
         }
         break;
-      case StaticUseKind.SUPER_SETTER_SET:
+      case StaticUseKind.superSetterSet:
         useSet = useSet.union(usage.write(Accesses.superAccess));
         break;
-      case StaticUseKind.STATIC_SET:
+      case StaticUseKind.staticSet:
         useSet = useSet.union(usage.write(Accesses.staticAccess));
         break;
-      case StaticUseKind.FIELD_INIT:
+      case StaticUseKind.fieldInit:
         useSet = useSet.union(usage.init());
         break;
-      case StaticUseKind.FIELD_CONSTANT_INIT:
+      case StaticUseKind.fieldConstantInit:
         useSet = useSet.union(usage.constantInit(staticUse.constant!));
         break;
-      case StaticUseKind.SUPER_INVOKE:
+      case StaticUseKind.superInvoke:
         registerStaticInvocation(staticUse);
         useSet = useSet.union(
             usage.invoke(Accesses.superAccess, staticUse.callStructure!));
         break;
-      case StaticUseKind.STATIC_INVOKE:
+      case StaticUseKind.staticInvoke:
         registerStaticInvocation(staticUse);
         useSet = useSet.union(
             usage.invoke(Accesses.staticAccess, staticUse.callStructure!));
@@ -625,16 +625,16 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
           useSet = useSet.union(usage.read(Accesses.staticAccess));
         }
         break;
-      case StaticUseKind.CONSTRUCTOR_INVOKE:
-      case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+      case StaticUseKind.constructorInvoke:
+      case StaticUseKind.constConstructorInvoke:
         useSet = useSet.union(
             usage.invoke(Accesses.staticAccess, staticUse.callStructure!));
         break;
-      case StaticUseKind.DIRECT_INVOKE:
+      case StaticUseKind.directInvoke:
         failedAt(element, 'Direct static use is not supported for resolution.');
-      case StaticUseKind.INLINING:
-      case StaticUseKind.CALL_METHOD:
-        failedAt(CURRENT_ELEMENT_SPANNABLE,
+      case StaticUseKind.inlining:
+      case StaticUseKind.callMethod:
+        failedAt(currentElementSpannable,
             "Static use ${staticUse.kind} is not supported during resolution.");
     }
     if (useSet.isNotEmpty) {
@@ -704,7 +704,7 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
   /// [memberName]. If [updateUsage] returns `true` the usage is removed from
   /// the set.
   void _processSet(Map<String, Set<MemberUsage>> map, String memberName,
-      bool updateUsage(MemberUsage e)) {
+      bool Function(MemberUsage e) updateUsage) {
     Set<MemberUsage>? members = map[memberName];
     if (members == null) return;
     // [f] might add elements to [: map[memberName] :] during the loop below

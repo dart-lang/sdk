@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.inferrer.type_graph_dump;
+library;
 
 import '../../compiler_api.dart' as api;
 import '../elements/entities.dart';
@@ -37,7 +37,7 @@ class TypeGraphDump {
       <TypeInformation, Set<TypeInformation>>{};
   final Map<TypeInformation, Set<TypeInformation>> assignmentsBeforeTracing =
       <TypeInformation, Set<TypeInformation>>{};
-  final Set<String> usedFilenames = Set<String>();
+  final Set<String> usedFilenames = <String>{};
 
   TypeGraphDump(this.compilerOutput, this.inferrer);
 
@@ -135,7 +135,7 @@ class TypeGraphDump {
 /// Builds the Graphviz Dot file for one function body.
 class _GraphGenerator extends TypeInformationVisitor<void> {
   final TypeGraphDump global;
-  final Set<TypeInformation> seen = Set<TypeInformation>();
+  final Set<TypeInformation> seen = <TypeInformation>{};
   final List<TypeInformation> worklist = <TypeInformation>[];
   final Map<TypeInformation, int> nodeId = <TypeInformation, int>{};
   final String Function(AbstractValue) formatType;
@@ -179,7 +179,7 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
 
   String shorten(String text) {
     if (text.length > 40) {
-      return text.substring(0, 19) + '...' + text.substring(text.length - 18);
+      return '${text.substring(0, 19)}...${text.substring(text.length - 18)}';
     }
     return text;
   }
@@ -220,7 +220,7 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
       // graph with very long hard-to-follow edges. Copy the concrete nodes
       // for every use to enhance readability.
       int id = getFreshId();
-      String type = escapeLabel('${formatType(src.type)}');
+      String type = escapeLabel(formatType(src.type));
       String text = 'Concrete';
       String label = '{$text|<returnType> $type}';
       append('$id [shape=record,style=dotted,label="$label"]');
@@ -400,7 +400,7 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
 
   void handleCall(CallSiteTypeInformation info, String text,
       Map<String, TypeInformation> inputs) {
-    String sourceCode = shorten('${info.debugName}');
+    String sourceCode = shorten(info.debugName);
     text = '$text\n$sourceCode';
     final arguments = info.arguments;
     if (arguments != null) {
@@ -443,19 +443,19 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
 
   @override
   void visitClosureTypeInformation(ClosureTypeInformation info) {
-    String text = shorten('${info.debugName}');
+    String text = shorten(info.debugName);
     addNode(info, 'Closure\n$text');
   }
 
   @override
   void visitAwaitTypeInformation(AwaitTypeInformation info) {
-    String text = shorten('${info.debugName}');
+    String text = shorten(info.debugName);
     addNode(info, 'Await\n$text');
   }
 
   @override
   void visitYieldTypeInformation(YieldTypeInformation info) {
-    String text = shorten('${info.debugName}');
+    String text = shorten(info.debugName);
     addNode(info, 'Yield\n$text');
   }
 }

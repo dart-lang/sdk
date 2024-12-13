@@ -21,69 +21,69 @@ class HValidator extends HInstructionVisitor {
   // Note that during construction of the Ssa graph the basic blocks are
   // not required to be valid yet.
   @override
-  void visitBasicBlock(HBasicBlock block) {
-    currentBlock = block;
+  void visitBasicBlock(HBasicBlock node) {
+    currentBlock = node;
     if (!isValid) return; // Don't need to continue if we are already invalid.
 
     // Test that the last instruction is a branching instruction and that the
     // basic block contains the branch-target.
-    if (block.first == null || block.last == null) {
+    if (node.first == null || node.last == null) {
       markInvalid("empty block");
     }
-    if (block.last is! HControlFlow) {
+    if (node.last is! HControlFlow) {
       markInvalid("block ends with non-tail node.");
     }
-    if (block.last is HIf && block.successors.length != 2) {
+    if (node.last is HIf && node.successors.length != 2) {
       markInvalid("If node without two successors");
     }
-    if (block.last is HConditionalBranch && block.successors.length != 2) {
+    if (node.last is HConditionalBranch && node.successors.length != 2) {
       markInvalid("Conditional node without two successors");
     }
-    if (block.last is HLoopBranch) {
+    if (node.last is HLoopBranch) {
       // Assert that the block we inserted to avoid critical edges satisfies
       // our assumptions. That is, it must not contain any instructions
       // (although it may contain phi-updates).
-      HBasicBlock avoidCriticalEdgeBlock = block.successors.last;
+      HBasicBlock avoidCriticalEdgeBlock = node.successors.last;
       if (avoidCriticalEdgeBlock.first is! HGoto) {
         markInvalid("Critical edge block contains instructions");
       }
     }
-    if (block.last is HGoto && block.successors.length != 1) {
+    if (node.last is HGoto && node.successors.length != 1) {
       markInvalid("Goto node with not exactly one successor");
     }
-    if (block.last is HJump && block.successors.length != 1) {
+    if (node.last is HJump && node.successors.length != 1) {
       markInvalid("Break or continue node without one successor");
     }
-    if ((block.last is HReturn || block.last is HThrow) &&
-        (block.successors.length != 1 || !block.successors[0].isExitBlock())) {
+    if ((node.last is HReturn || node.last is HThrow) &&
+        (node.successors.length != 1 || !node.successors[0].isExitBlock())) {
       markInvalid("Return or throw node with > 1 successor "
           "or not going to exit-block");
     }
-    if (block.last is HExit && block.successors.isNotEmpty) {
+    if (node.last is HExit && node.successors.isNotEmpty) {
       markInvalid("Exit block with successor");
     }
 
-    if (block.successors.isEmpty && !block.isExitBlock()) {
+    if (node.successors.isEmpty && !node.isExitBlock()) {
       markInvalid("Non-exit block without successor");
     }
 
     // Check that successors ids are always higher than the current one.
     // TODO(floitsch): this is, of course, not true for back-branches.
-    if (block.id < 0) markInvalid("block without id");
-    for (HBasicBlock successor in block.successors) {
+    if (node.id < 0) markInvalid("block without id");
+    for (HBasicBlock successor in node.successors) {
       if (!isValid) break;
       if (successor.id < 0) markInvalid("successor without id");
-      if (successor.id <= block.id && !successor.isLoopHeader()) {
+      if (successor.id <= node.id && !successor.isLoopHeader()) {
         markInvalid("successor with lower id, but not a loop-header");
       }
     }
     // Make sure we don't have a critical edge.
     if (isValid &&
-        block.successors.length > 1 &&
-        block.last is! HTry &&
-        block.last is! HExitTry &&
-        block.last is! HSwitch) {
-      for (HBasicBlock successor in block.successors) {
+        node.successors.length > 1 &&
+        node.last is! HTry &&
+        node.last is! HExitTry &&
+        node.last is! HSwitch) {
+      for (HBasicBlock successor in node.successors) {
         if (!isValid) break;
         if (successor.predecessors.length >= 2) {
           markInvalid("SSA graph contains critical edge.");
@@ -93,9 +93,9 @@ class HValidator extends HInstructionVisitor {
 
     // Check that the entries in the dominated-list are sorted.
     int lastId = 0;
-    for (HBasicBlock dominated in block.dominatedBlocks) {
+    for (HBasicBlock dominated in node.dominatedBlocks) {
       if (!isValid) break;
-      if (!identical(dominated.dominator, block)) {
+      if (!identical(dominated.dominator, node)) {
         markInvalid("dominated block not pointing back");
       }
       if (dominated.id == -1 || dominated.id <= lastId) {
@@ -105,16 +105,16 @@ class HValidator extends HInstructionVisitor {
     }
 
     if (!isValid) return;
-    block.forEachPhi(visitInstruction);
+    node.forEachPhi(visitInstruction);
 
     // Check that the blocks of the parameters of a phi are dominating the
     // corresponding predecessor block. Note that a block dominates
     // itself.
-    block.forEachPhi((HPhi phi) {
-      assert(phi.inputs.length <= block.predecessors.length);
+    node.forEachPhi((HPhi phi) {
+      assert(phi.inputs.length <= node.predecessors.length);
       for (int i = 0; i < phi.inputs.length; i++) {
         HInstruction input = phi.inputs[i];
-        if (!input.block!.dominates(block.predecessors[i])) {
+        if (!input.block!.dominates(node.predecessors[i])) {
           markInvalid("Definition does not dominate use");
         }
       }
@@ -122,15 +122,15 @@ class HValidator extends HInstructionVisitor {
 
     // Check that the blocks of the inputs of an instruction dominate the
     // instruction's block.
-    block.forEachInstruction((HInstruction instruction) {
+    node.forEachInstruction((HInstruction instruction) {
       for (HInstruction input in instruction.inputs) {
-        if (!input.block!.dominates(block)) {
+        if (!input.block!.dominates(node)) {
           markInvalid("Definition does not dominate use");
         }
       }
     });
 
-    super.visitBasicBlock(block);
+    super.visitBasicBlock(node);
   }
 
   // Limit for the size of `inputs` and `usedBy` lists. We assume lists longer

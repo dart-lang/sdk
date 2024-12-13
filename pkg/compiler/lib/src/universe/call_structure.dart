@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.call_structure;
+library;
 
 import '../common/names.dart' show Names;
 import '../elements/entities.dart' show ParameterStructure;
@@ -24,14 +24,14 @@ class CallStructure {
   /// data stream.
   static const String tag = 'call-structure';
 
-  static const CallStructure NO_ARGS = CallStructure._(0);
-  static const CallStructure ONE_ARG = CallStructure._(1);
-  static const CallStructure TWO_ARGS = CallStructure._(2);
+  static const CallStructure noArgs = CallStructure._(0);
+  static const CallStructure oneArg = CallStructure._(1);
+  static const CallStructure twoArgs = CallStructure._(2);
 
   static const List<List<CallStructure>> _common = [
-    [NO_ARGS, CallStructure._(0, 1), CallStructure._(0, 2)],
-    [ONE_ARG, CallStructure._(1, 1), CallStructure._(1, 2)],
-    [TWO_ARGS, CallStructure._(2, 1), CallStructure._(2, 2)],
+    [noArgs, CallStructure._(0, 1), CallStructure._(0, 2)],
+    [oneArg, CallStructure._(1, 1), CallStructure._(1, 2)],
+    [twoArgs, CallStructure._(2, 1), CallStructure._(2, 2)],
     [CallStructure._(3), CallStructure._(3, 1), CallStructure._(3, 2)],
     [CallStructure._(4), CallStructure._(4, 1), CallStructure._(4, 2)],
     [CallStructure._(5), CallStructure._(5, 1), CallStructure._(5, 2)],
@@ -158,10 +158,10 @@ class CallStructure {
 
   bool match(CallStructure other) {
     if (identical(this, other)) return true;
-    return this.argumentCount == other.argumentCount &&
-        this.namedArgumentCount == other.namedArgumentCount &&
-        this.typeArgumentCount == other.typeArgumentCount &&
-        _sameNames(this.namedArguments, other.namedArguments);
+    return argumentCount == other.argumentCount &&
+        namedArgumentCount == other.namedArgumentCount &&
+        typeArgumentCount == other.typeArgumentCount &&
+        _sameNames(namedArguments, other.namedArguments);
   }
 
   // TODO(johnniwinther): Cache hash code?

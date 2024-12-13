@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_model.strategy;
+library;
 
 import 'package:kernel/ast.dart' as ir;
 
@@ -157,7 +157,7 @@ class JsBackendStrategy {
   RuntimeTypesChecksBuilder get rtiChecksBuilder {
     assert(
         !_rtiChecksBuilder.rtiChecksBuilderClosed,
-        failedAt(NO_LOCATION_SPANNABLE,
+        failedAt(noLocationSpannable,
             "RuntimeTypesChecks has already been computed."));
     return _rtiChecksBuilder;
   }

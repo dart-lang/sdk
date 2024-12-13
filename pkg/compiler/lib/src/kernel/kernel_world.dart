@@ -153,13 +153,13 @@ class KClosedWorld implements BuiltWorld {
 
   @override
   void forEachStaticTypeArgument(
-      void f(Entity function, Set<DartType> typeArguments)) {
+      void Function(Entity function, Set<DartType> typeArguments) f) {
     staticTypeArgumentDependencies.forEach(f);
   }
 
   @override
   void forEachDynamicTypeArgument(
-      void f(Selector selector, Set<DartType> typeArguments)) {
+      void Function(Selector selector, Set<DartType> typeArguments) f) {
     dynamicTypeArgumentDependencies.forEach(f);
   }
 

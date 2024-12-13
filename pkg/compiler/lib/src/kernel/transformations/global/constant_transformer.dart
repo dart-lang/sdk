@@ -1,3 +1,4 @@
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show TryConstantEvaluator;
 import 'package:kernel/ast.dart';

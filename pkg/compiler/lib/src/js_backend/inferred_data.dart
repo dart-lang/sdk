@@ -216,13 +216,13 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
   InferredData close(JClosedWorld closedWorld) {
     assert(_sideEffectsBuilders != null,
         "Inferred data has already been computed.");
-    Map<FunctionEntity, SideEffects> _sideEffects = {};
+    Map<FunctionEntity, SideEffects> sideEffects = {};
     Iterable<SideEffectsBuilder> sideEffectsBuilders =
         _sideEffectsBuilders!.values;
     emptyWorkList(sideEffectsBuilders);
     for (SideEffectsBuilder builder in sideEffectsBuilders) {
       final function = builder.member as FunctionEntity;
-      _sideEffects[function] = builder.sideEffects;
+      sideEffects[function] = builder.sideEffects;
 
       // TODO(sra): We should also infer whether the function cannot throw. This
       // might be conveniently computed with the closure of the side effects
@@ -234,7 +234,7 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
     _sideEffectsBuilders = null;
     _annotationsData = null;
 
-    return InferredDataImpl(closedWorld, _functionsCalledInLoop, _sideEffects,
+    return InferredDataImpl(closedWorld, _functionsCalledInLoop, sideEffects,
         _elementsThatCannotThrow, _functionsThatMightBePassedToApply);
   }
 

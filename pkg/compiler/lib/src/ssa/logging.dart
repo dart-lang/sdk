@@ -4,6 +4,7 @@
 
 import '../elements/entities.dart';
 import '../elements/types.dart';
+// ignore: implementation_imports
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'nodes.dart';
 
@@ -18,7 +19,7 @@ class OptimizationTestLog {
   late final Map<String, Set<HInstruction>> _unconverted = {};
 
   Features? _register(String tag, HInstruction original,
-      HInstruction? converted, void f(Features features)) {
+      HInstruction? converted, void Function(Features features) f) {
     if (converted == null) {
       Set<HInstruction> set = _unconverted[tag] ??= {};
       if (!set.add(original)) {
