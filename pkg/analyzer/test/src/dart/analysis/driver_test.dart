@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
@@ -14,7 +15,6 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_event.dart' as driver_events;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -1421,10 +1421,10 @@ import 'c.dart';
 
     var driver = driverFor(testFile);
 
-    Future<LibraryElementImpl> getLibrary(String shortName) async {
+    Future<LibraryElement2> getLibrary(String shortName) async {
       var uriStr = 'package:test/$shortName';
       var result = await driver.getLibraryByUriValid(uriStr);
-      return result.element as LibraryElementImpl;
+      return result.element2;
     }
 
     var a_element = await getLibrary('a.dart');
@@ -1500,10 +1500,10 @@ import 'b.dart';
 
     var driver = driverFor(testFile);
 
-    Future<LibraryElementImpl> getLibrary(String shortName) async {
+    Future<LibraryElement2> getLibrary(String shortName) async {
       var uriStr = 'package:test/$shortName';
       var result = await driver.getLibraryByUriValid(uriStr);
-      return result.element as LibraryElementImpl;
+      return result.element2;
     }
 
     var b_element = await getLibrary('b.dart');
@@ -1572,21 +1572,18 @@ final B1 = A1;
     driver.addFile2(a);
     driver.addFile2(b);
 
-    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
-        (result) {
-      switch (result.uriStr) {
-        case 'package:test/a.dart':
-          return [
-            result.findElement.topVar('A1'),
-            result.findElement.topVar('A2'),
-          ];
-        case 'package:test/b.dart':
-          return [
-            result.findElement.topVar('B1'),
-          ];
-        default:
-          return [];
-      }
+    configuration.libraryConfiguration.unitConfiguration
+        .variableTypesSelector2 = (result) {
+      return switch (result.uriStr) {
+        'package:test/a.dart' => [
+            result.findElement2.topVar('A1'),
+            result.findElement2.topVar('A2'),
+          ],
+        'package:test/b.dart' => [
+            result.findElement2.topVar('B1'),
+          ],
+        _ => []
+      };
     };
 
     // We have results for both "a" and "b".
@@ -1662,12 +1659,12 @@ final A2 = B1;
     driver.addFile2(a);
     driver.priorityFiles2 = [a];
 
-    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
-        (result) {
+    configuration.libraryConfiguration.unitConfiguration
+        .variableTypesSelector2 = (result) {
       switch (result.uriStr) {
         case 'package:test/a.dart':
           return [
-            result.findElement.topVar('V'),
+            result.findElement2.topVar('V'),
           ];
         default:
           return [];
@@ -2470,8 +2467,8 @@ class B {}
 
     var result = await driver.getLibraryByUri(aUriStr);
     result as LibraryElementResult;
-    expect(result.element.getClass('A'), isNotNull);
-    expect(result.element.getClass('B'), isNotNull);
+    expect(result.element2.getClass2('A'), isNotNull);
+    expect(result.element2.getClass2('B'), isNotNull);
 
     // It is an error to ask for a library when we know that it is a part.
     expect(
@@ -3359,10 +3356,10 @@ final foo = 0;
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
-        (result) {
+    configuration.libraryConfiguration.unitConfiguration
+        .variableTypesSelector2 = (result) {
       return [
-        result.findElement.topVar('foo'),
+        result.findElement2.topVar('foo'),
       ];
     };
 
@@ -3696,8 +3693,10 @@ void bar() {}
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    configuration.unitElementConfiguration.elementSelector = (unitElement) {
-      return unitElement.functions;
+    configuration.unitElementConfiguration.elementSelector2 = (unitFragment) {
+      return unitFragment.functions2
+          .map((fragment) => fragment.element)
+          .toList();
     };
 
     collector.getUnitElement('A1', a);
@@ -3709,8 +3708,8 @@ void bar() {}
   flags: isLibrary
   enclosing: <null>
   selectedElements
-    package:test/a.dart::<fragment>::@function::foo
-    package:test/a.dart::<fragment>::@function::bar
+    package:test/a.dart::@function::foo
+    package:test/a.dart::@function::bar
 [status] idle
 ''');
   }
@@ -3781,8 +3780,8 @@ class A {}
     collector.getUnitElement('AM1', a_macro);
     await collector.nextStatusIdle();
 
-    configuration.unitElementConfiguration.elementSelector = (unitElement) {
-      return unitElement.classes;
+    configuration.unitElementConfiguration.elementSelector2 = (fragment) {
+      return fragment.classes2.map((fragment) => fragment.element).toList();
     };
 
     // The enclosing element is an augmentation library, in a library.
@@ -3795,7 +3794,7 @@ class A {}
   flags: isMacroPart isPart
   enclosing: package:test/a.dart::<fragment>
   selectedElements
-    package:test/a.dart::@fragment::package:test/a.macro.dart::@class::B
+    package:test/a.dart::@class::B
 [status] idle
 ''');
   }
@@ -3814,12 +3813,12 @@ final B = A;
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
-        (result) {
+    configuration.libraryConfiguration.unitConfiguration
+        .variableTypesSelector2 = (result) {
       switch (result.uriStr) {
         case 'package:test/b.dart':
           return [
-            result.findElement.topVar('B'),
+            result.findElement2.topVar('B'),
           ];
         default:
           return [];
@@ -5324,16 +5323,16 @@ final B = 0;
     driver.addFile2(a);
     driver.addFile2(b);
 
-    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
-        (result) {
+    configuration.libraryConfiguration.unitConfiguration
+        .variableTypesSelector2 = (result) {
       switch (result.uriStr) {
         case 'package:test/a.dart':
           return [
-            result.findElement.topVar('A'),
+            result.findElement2.topVar('A'),
           ];
         case 'package:test/b.dart':
           return [
-            result.findElement.topVar('B'),
+            result.findElement2.topVar('B'),
           ];
         default:
           return [];

@@ -337,6 +337,14 @@ class NullSafetyDeadCodeVerifier {
     _firstDeadNode = null;
   }
 
+  /// Rewites [_firstDeadNode] if it is equal to [oldNode], as [oldNode] is
+  /// being rewritten into [newNode] in the syntax tree.
+  void maybeRewriteFirstDeadNode(AstNode oldNode, AstNode newNode) {
+    if (_firstDeadNode == oldNode) {
+      _firstDeadNode = newNode;
+    }
+  }
+
   void tryStatementEnter(TryStatement node) {
     var verifier = _CatchClausesVerifier(
       _typeSystem,

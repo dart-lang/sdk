@@ -1389,6 +1389,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     inferenceLogWriter?.recordExpressionRewrite(
         oldExpression: oldNode, newExpression: newNode);
     NodeReplacer.replace(oldNode, newNode, parent: parent);
+    nullSafetyDeadCodeVerifier.maybeRewriteFirstDeadNode(oldNode, newNode);
   }
 
   PatternResult<DartType> resolveAssignedVariablePattern({
