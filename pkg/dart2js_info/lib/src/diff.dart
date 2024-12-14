@@ -25,7 +25,7 @@ class SizeDiff extends Diff {
 class DeferredStatusDiff extends Diff {
   final bool wasDeferredBefore;
   DeferredStatusDiff(BasicInfo info, this.wasDeferredBefore)
-      : super(info, DiffKind.deferred);
+    : super(info, DiffKind.deferred);
 }
 
 List<Diff> diff(AllInfo oldInfo, AllInfo newInfo) {

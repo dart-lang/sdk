@@ -37,29 +37,43 @@ main() async {
 
 runTest(List<String> options, {bool trust = true}) async {
   CompilationResult result = await runCompiler(
-      memorySourceFiles: {'main.dart': source}, options: options);
+    memorySourceFiles: {'main.dart': source},
+    options: options,
+  );
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler!;
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity helperLibrary =
-      elementEnvironment.lookupLibrary(Uris.dart__js_helper)!;
-  final loadDeferredLibrary = elementEnvironment.lookupLibraryMember(
-      helperLibrary, 'loadDeferredLibrary') as FunctionEntity;
+      elementEnvironment.lookupLibrary(Uris.dartJSHelper)!;
+  final loadDeferredLibrary =
+      elementEnvironment.lookupLibraryMember(
+            helperLibrary,
+            'loadDeferredLibrary',
+          )
+          as FunctionEntity;
   TypeMask typeMask;
 
   KernelToLocalsMap localsMap = compiler
-      .globalInference.resultsForTesting!.globalLocalsMap
+      .globalInference
+      .resultsForTesting!
+      .globalLocalsMap
       .getLocalsMap(loadDeferredLibrary);
-  MemberDefinition definition =
-      closedWorld.elementMap.getMemberDefinition(loadDeferredLibrary);
+  MemberDefinition definition = closedWorld.elementMap.getMemberDefinition(
+    loadDeferredLibrary,
+  );
   final procedure = definition.node as ir.Procedure;
-  typeMask = compiler.globalInference.resultsForTesting!.resultOfParameter(
-      localsMap.getLocalVariable(
-          procedure.function.positionalParameters.first)) as TypeMask;
+  typeMask =
+      compiler.globalInference.resultsForTesting!.resultOfParameter(
+            localsMap.getLocalVariable(
+              procedure.function.positionalParameters.first,
+            ),
+          )
+          as TypeMask;
 
   Expect.equals(
-      trust ? abstractValueDomain.stringType : abstractValueDomain.dynamicType,
-      typeMask);
+    trust ? abstractValueDomain.stringType : abstractValueDomain.dynamicType,
+    typeMask,
+  );
 }

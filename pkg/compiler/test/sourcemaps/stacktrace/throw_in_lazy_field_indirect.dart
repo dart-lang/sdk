@@ -10,6 +10,7 @@ class Class {
   static dynamic field = /*2:Class.field*/ test();
   @pragma('dart2js:noInline')
   static test() {
-    /*3:Class.test*/ throw '>ExceptionMarker<';
+    /*3:Class.test*/
+    throw '>ExceptionMarker<';
   }
 }

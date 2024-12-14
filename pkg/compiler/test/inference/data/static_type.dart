@@ -17,12 +17,14 @@ class C<T> {
 
   /*member: C.:[exact=C]*/
   C(this. /*Union([exact=JSString], [exact=JSUInt31])*/ field) {
-    /*update: [subclass=C]*/ functionField =
+    /*update: [subclass=C]*/
+    functionField =
         /*Union([exact=JSString], [exact=JSUInt31])*/
         () => /*[subclass=C]*/ field;
     /*Union([exact=JSString], [exact=JSUInt31])*/
     S local<S>(S /*Union([exact=JSString], [exact=JSUInt31])*/ s) => s;
-    /*update: [subclass=C]*/ genericFunctionField = local;
+    /*update: [subclass=C]*/
+    genericFunctionField = local;
   }
 
   /*member: C.method:Union([exact=JSString], [exact=JSUInt31])*/

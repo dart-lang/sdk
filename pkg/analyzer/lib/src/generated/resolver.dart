@@ -476,6 +476,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return _thisType;
   }
 
+  @override
+  SharedTypeView<DartType> analyzeExpression(
+      Expression node, SharedTypeSchemaView<DartType> schema,
+      {bool continueNullShorting = false}) {
+    inferenceLogWriter?.setExpressionVisitCodePath(
+        node, ExpressionVisitCodePath.analyzeExpression);
+    return super.analyzeExpression(node, schema,
+        continueNullShorting: continueNullShorting);
+  }
+
   List<SharedPatternField> buildSharedPatternFields(
     List<PatternFieldImpl> fields, {
     required bool mustBeNamed,
@@ -779,7 +789,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         shouldHaveType = false;
       } else if (replacementExpression is IdentifierImpl) {
         var element = replacementExpression.staticElement;
-        if (element is ExtensionElement || element is InterfaceElement) {
+        if (element is ExtensionElement ||
+            element is InterfaceElement ||
+            element is PrefixElement ||
+            element is TypeAliasElement) {
           shouldHaveType = false;
         }
       }
@@ -1471,7 +1484,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       return result;
     } else if (node is PrefixedIdentifierImpl) {
       var prefix = node.prefix;
-      prefix.accept(this);
+      analyzeExpression(prefix, operations.unknownType);
+      popRewrite();
 
       // TODO(scheglov): It would be nice to rewrite all such cases.
       if (prefix.staticType is RecordType) {
@@ -1493,7 +1507,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         hasWrite: true,
       );
     } else if (node is PropertyAccess) {
-      node.target?.accept(this);
+      if (node.target case var target?) {
+        analyzeExpression(target, operations.unknownType);
+        popRewrite();
+      }
       if (node.isNullAware) {
         _startNullAwareAccess(node, node.target);
       }
@@ -1808,7 +1825,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       {DartType contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    for (var string in node.strings) {
+      analyzeExpression(string, operations.unknownType);
+      popRewrite();
+    }
     typeAnalyzer.visitAdjacentStrings(node as AdjacentStringsImpl);
     inferenceLogWriter?.exitExpression(node);
   }
@@ -1889,7 +1909,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(node.condition),
     );
     flowAnalysis.flow?.assert_afterCondition(node.condition);
-    node.message?.accept(this);
+    if (node.message case var message?) {
+      analyzeExpression(message, operations.unknownType);
+      popRewrite();
+    }
     flowAnalysis.flow?.assert_end();
   }
 
@@ -1907,7 +1930,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(node.condition),
     );
     flowAnalysis.flow?.assert_afterCondition(node.condition);
-    node.message?.accept(this);
+    if (node.message case var message?) {
+      analyzeExpression(message, operations.unknownType);
+      popRewrite();
+    }
     flowAnalysis.flow?.assert_end();
     inferenceLogWriter?.exitStatement(node);
   }
@@ -2150,7 +2176,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       _unfinishedNullShorts.add(node.nullShortingTermination);
     }
 
-    node.cascadeSections.accept(this);
+    for (var cascadeSection in node.cascadeSections) {
+      analyzeExpression(cascadeSection, operations.unknownType);
+      popRewrite();
+    }
 
     typeAnalyzer.visitCascadeExpression(node);
 
@@ -2620,7 +2649,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitExpressionStatement(ExpressionStatement node) {
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    analyzeExpression(node.expression, operations.unknownType);
+    popRewrite();
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -3063,7 +3093,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    analyzeExpression(node.expression, operations.unknownType);
+    popRewrite();
   }
 
   @override
@@ -3207,8 +3238,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var whyNotPromotedArguments =
         <Map<SharedTypeView<DartType>, NonPromotionReason> Function()>[];
     var target = node.target;
-    target?.accept(this);
-    target = node.target;
+    if (target != null) {
+      analyzeExpression(target, operations.unknownType);
+      target = popRewrite();
+    }
 
     if (node.isNullAware) {
       _startNullAwareAccess(node, target);
@@ -3297,7 +3330,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   DartType visitNativeFunctionBody(NativeFunctionBody node,
       {DartType? imposedType}) {
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    if (node.stringLiteral case var stringLiteral?) {
+      analyzeExpression(stringLiteral, operations.unknownType);
+      popRewrite();
+    }
     return imposedType ?? typeProvider.dynamicType;
   }
 

@@ -18,7 +18,11 @@ const cfeFilename = 'cfe.dill';
 const shardCount = 3;
 
 void mainHelper(
-    String testGroup, int shard, List<String> flags, List<String> args) {
+  String testGroup,
+  int shard,
+  List<String> flags,
+  List<String> args,
+) {
   if (shard < 0 || shard > shardCount) throw 'Invalid shard $shard.';
   final generateGoldens = args.contains('-g');
   asyncTest(() async {
@@ -26,11 +30,16 @@ void mainHelper(
   });
 }
 
-Future<void> runTest(String testGroup, int shard, List<String> options,
-    {required bool generateGoldens}) async {
+Future<void> runTest(
+  String testGroup,
+  int shard,
+  List<String> options, {
+  required bool generateGoldens,
+}) async {
   Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
   Directory goldensDir = Directory.fromUri(
-      Platform.script.resolve('load_id_map_goldens/').resolve(testGroup));
+    Platform.script.resolve('load_id_map_goldens/').resolve(testGroup),
+  );
   final goldenFiles = goldensDir.listSync();
   int counter = 0;
   for (final testDir in dataDir.listSync()) {
@@ -47,33 +56,34 @@ Future<void> runTest(String testGroup, int shard, List<String> options,
     }
     final cfeCollector = OutputCollector();
     await runCompiler(
-        memorySourceFiles: sourceFiles,
-        options: [
-          '${Flags.stage}=cfe',
-          '--out=$cfeFilename',
-          ...options,
-        ],
-        outputProvider: cfeCollector,
-        beforeRun: (c) => compiler = c);
-    final cfeDill =
-        Uint8List.fromList(cfeCollector.binaryOutputMap.values.first.list);
+      memorySourceFiles: sourceFiles,
+      options: ['${Flags.stage}=cfe', '--out=$cfeFilename', ...options],
+      outputProvider: cfeCollector,
+      beforeRun: (c) => compiler = c,
+    );
+    final cfeDill = Uint8List.fromList(
+      cfeCollector.binaryOutputMap.values.first.list,
+    );
     final dillInputFiles = {cfeFilename: cfeDill};
     final resultCollector = OutputCollector();
     final compilerResult = await runCompiler(
-        memorySourceFiles: dillInputFiles,
-        outputProvider: resultCollector,
-        options: [
-          '${Flags.stage}=deferred-load-ids',
-          '${Flags.deferredLoadIdMapUri}=$resultFilename',
-          '${Flags.stage}=deferred-load-ids',
-          '--input-dill=memory:$cfeFilename',
-          ...options,
-        ],
-        beforeRun: (c) => compiler = c);
+      memorySourceFiles: dillInputFiles,
+      outputProvider: resultCollector,
+      options: [
+        '${Flags.stage}=deferred-load-ids',
+        '${Flags.deferredLoadIdMapUri}=$resultFilename',
+        '${Flags.stage}=deferred-load-ids',
+        '--input-dill=memory:$cfeFilename',
+        ...options,
+      ],
+      beforeRun: (c) => compiler = c,
+    );
     Expect.isTrue(compilerResult.isSuccess);
     Expect.isNull(compiler.globalInference.resultsForTesting);
-    final result =
-        resultCollector.getOutput(resultFilename, OutputType.deferredLoadIds);
+    final result = resultCollector.getOutput(
+      resultFilename,
+      OutputType.deferredLoadIds,
+    );
     Expect.isNotNull(result);
 
     final goldenUri = goldensDir.uri.resolve('$testName.golden');
@@ -81,9 +91,10 @@ Future<void> runTest(String testGroup, int shard, List<String> options,
       File.fromUri(goldenUri).writeAsString(result.toString());
       print('-- Updated golden for: $testName ($testGroup) --');
     } else {
-      final expectedOutput = await (goldenFiles
-              .firstWhere((e) => e.path == goldenUri.path) as File)
-          .readAsString();
+      final expectedOutput =
+          await (goldenFiles.firstWhere((e) => e.path == goldenUri.path)
+                  as File)
+              .readAsString();
       Expect.equals(expectedOutput, result.toString());
     }
   }

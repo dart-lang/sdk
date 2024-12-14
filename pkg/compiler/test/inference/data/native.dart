@@ -9,5 +9,5 @@ main() {
 
 /*member: nativeMethod:[null|subclass=Object]*/
 nativeMethod()
-    // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
-    native;
+// ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
+native;

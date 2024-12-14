@@ -9,14 +9,16 @@ class A<T> {
   /*member: A.method:hasThis*/
   @pragma('dart2js:noInline')
   method() {
-    /*fields=[this],free=[this],hasThis*/ dynamic local() => <T>[];
+    /*fields=[this],free=[this],hasThis*/
+    dynamic local() => <T>[];
     return local;
   }
 
   /*member: A.methodNullable:hasThis*/
   @pragma('dart2js:noInline')
   methodNullable() {
-    /*fields=[this],free=[this],hasThis*/ dynamic local() => <T?>[];
+    /*fields=[this],free=[this],hasThis*/
+    dynamic local() => <T?>[];
     return local;
   }
 }

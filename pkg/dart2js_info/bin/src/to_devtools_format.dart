@@ -26,8 +26,11 @@ class DevtoolsFormatCommand extends Command<void> with PrintUsageException {
       "app size analysis panel.";
 
   DevtoolsFormatCommand() {
-    argParser.addOption('out',
-        abbr: 'o', help: 'Output treemap.json file (defaults to stdout');
+    argParser.addOption(
+      'out',
+      abbr: 'o',
+      help: 'Output treemap.json file (defaults to stdout',
+    );
   }
 
   @override
@@ -73,8 +76,10 @@ class DevtoolsFormatCommand extends Command<void> with PrintUsageException {
     }
 
     if (outputUnits.length == 1) {
-      vm.ProgramInfo programInfoTree =
-          builder.build(allInfo, outputUnits.keys.first);
+      vm.ProgramInfo programInfoTree = builder.build(
+        allInfo,
+        outputUnits.keys.first,
+      );
       Map<String, dynamic> treeMap = treemapFromInfo(programInfoTree);
       output = treeMap;
       output['n'] = 'Root';
@@ -162,20 +167,26 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode?> {
     vm.ProgramInfoNode? packageInfoNode = infoNodesByName[compositePackageName];
     if (packageInfoNode == null) {
       vm.ProgramInfoNode newPackage = outputUnit.makeNode(
-          name: packageName,
-          parent: outputUnit.root,
-          type: vm.NodeType.packageNode);
+        name: packageName,
+        parent: outputUnit.root,
+        type: vm.NodeType.packageNode,
+      );
       newPackage.size = 0;
       outputUnit.root.children[compositePackageName] = newPackage;
       var packageNode = infoNodesByName[compositePackageName];
-      assert(packageNode == null,
-          "encountered package with duplicated name: $compositePackageName");
+      assert(
+        packageNode == null,
+        "encountered package with duplicated name: $compositePackageName",
+      );
       infoNodesByName[compositePackageName] = newPackage;
 
       /// Add the corresponding [PackageInfo] node in the [AllInfo] tree.
       OutputUnitInfo packageUnit = outputUnitInfos[outputUnitName]!;
-      PackageInfo newPackageInfo =
-          PackageInfo(packageName, packageUnit, newPackage.size!);
+      PackageInfo newPackageInfo = PackageInfo(
+        packageName,
+        packageUnit,
+        newPackage.size!,
+      );
       newPackageInfo.libraries.add(libraryInfo);
       info.packages.add(newPackageInfo);
     }
@@ -184,7 +195,9 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode?> {
   /// Aggregates the size of a library [vm.ProgramInfoNode] from the sizes of
   /// its top level children in the same output unit.
   int collectSizesForOutputUnit(
-      Iterable<BasicInfo> infos, String outputUnitName) {
+    Iterable<BasicInfo> infos,
+    String outputUnitName,
+  ) {
     int sizes = 0;
     for (var info in infos) {
       if (info.outputUnit!.filename == outputUnitName) {
@@ -206,21 +219,31 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode?> {
     vm.ProgramInfoNode parentNode = infoNodesByName[compositePackageName]!;
     String compositeLibraryName = compositeName(libraryName, outputUnitName);
     vm.ProgramInfoNode newLibrary = outputUnit.makeNode(
-        name: libraryName, parent: parentNode, type: vm.NodeType.libraryNode);
+      name: libraryName,
+      parent: parentNode,
+      type: vm.NodeType.libraryNode,
+    );
     newLibrary.size = 0;
-    newLibrary.size = (newLibrary.size ?? 0) +
+    newLibrary.size =
+        (newLibrary.size ?? 0) +
         collectSizesForOutputUnit(
-            libraryInfo.topLevelFunctions, outputUnitName) +
+          libraryInfo.topLevelFunctions,
+          outputUnitName,
+        ) +
         collectSizesForOutputUnit(
-            libraryInfo.topLevelVariables, outputUnitName) +
+          libraryInfo.topLevelVariables,
+          outputUnitName,
+        ) +
         collectSizesForOutputUnit(libraryInfo.classes, outputUnitName) +
         collectSizesForOutputUnit(libraryInfo.classTypes, outputUnitName) +
         collectSizesForOutputUnit(libraryInfo.typedefs, outputUnitName);
     parentNode.children[newLibrary.name] = newLibrary;
     parentNode.size = (parentNode.size ?? 0) + newLibrary.size!;
     vm.ProgramInfoNode? libraryNode = infoNodesByName[compositeLibraryName];
-    assert(libraryNode == null,
-        "encountered library with duplicated name: $compositeLibraryName");
+    assert(
+      libraryNode == null,
+      "encountered library with duplicated name: $compositeLibraryName",
+    );
     infoNodesByName[compositeLibraryName] = newLibrary;
   }
 
@@ -233,8 +256,10 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode?> {
       vm.ProgramInfoNode parentNode;
       if (parent.kind == kindFromString('library')) {
         if (parent.name == "<unnamed>") {
-          var tempName =
-              compositeName(unnamedLibraries[parent]!, outputUnitName);
+          var tempName = compositeName(
+            unnamedLibraries[parent]!,
+            outputUnitName,
+          );
           parentNode = infoNodesByName[tempName]!;
         } else {
           parentNode =
@@ -244,14 +269,17 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode?> {
         parentNode = infoNodesByName[parent.name]!;
       }
       vm.ProgramInfoNode newFunction = outputUnit.makeNode(
-          name: functionInfo.name,
-          parent: parentNode,
-          type: vm.NodeType.functionNode);
+        name: functionInfo.name,
+        parent: parentNode,
+        type: vm.NodeType.functionNode,
+      );
       newFunction.size = functionInfo.size;
       parentNode.children[newFunction.name] = newFunction;
       vm.ProgramInfoNode? functionNode = infoNodesByName[newFunction.name];
-      assert(functionNode == null,
-          "encountered function with duplicated name: $newFunction.name");
+      assert(
+        functionNode == null,
+        "encountered function with duplicated name: $newFunction.name",
+      );
       infoNodesByName[newFunction.name] = newFunction;
     }
   }
@@ -264,8 +292,10 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode?> {
       vm.ProgramInfoNode parentNode;
       if (parent.kind == kindFromString('library')) {
         if (parent.name == "<unnamed>") {
-          var tempName =
-              compositeName(unnamedLibraries[parent]!, outputUnitName);
+          var tempName = compositeName(
+            unnamedLibraries[parent]!,
+            outputUnitName,
+          );
           parentNode = infoNodesByName[tempName]!;
         } else {
           parentNode =
@@ -275,14 +305,17 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode?> {
         parentNode = infoNodesByName[parent.name]!;
       }
       vm.ProgramInfoNode newClass = outputUnit.makeNode(
-          name: classInfo.name,
-          parent: parentNode,
-          type: vm.NodeType.classNode);
+        name: classInfo.name,
+        parent: parentNode,
+        type: vm.NodeType.classNode,
+      );
       newClass.size = classInfo.size;
       parentNode.children[newClass.name] = newClass;
       vm.ProgramInfoNode? classNode = infoNodesByName[newClass.name];
-      assert(classNode == null,
-          "encountered class with duplicated name: $newClass.name");
+      assert(
+        classNode == null,
+        "encountered class with duplicated name: $newClass.name",
+      );
       infoNodesByName[newClass.name] = newClass;
     }
   }
@@ -300,8 +333,10 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode?> {
       vm.ProgramInfoNode parentNode;
       if (parent.kind == kindFromString('library')) {
         if (parent.name == "<unnamed>") {
-          var tempName =
-              compositeName(unnamedLibraries[parent]!, outputUnitName);
+          var tempName = compositeName(
+            unnamedLibraries[parent]!,
+            outputUnitName,
+          );
           parentNode = infoNodesByName[tempName]!;
         } else {
           parentNode =
@@ -311,28 +346,39 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode?> {
         parentNode = infoNodesByName[parent.name]!;
       }
       vm.ProgramInfoNode newField = outputUnit.makeNode(
-          name: fieldInfo.name, parent: parentNode, type: vm.NodeType.other);
+        name: fieldInfo.name,
+        parent: parentNode,
+        type: vm.NodeType.other,
+      );
       newField.size = fieldInfo.size;
       parentNode.children[newField.name] = newField;
       vm.ProgramInfoNode? fieldNode = infoNodesByName[newField.name];
-      assert(fieldNode == null,
-          "encountered field with duplicated name: $newField.name");
+      assert(
+        fieldNode == null,
+        "encountered field with duplicated name: $newField.name",
+      );
       infoNodesByName[newField.name] = newField;
     }
   }
 
   void makeConstant(ConstantInfo constantInfo) {
-    String? constantName = constantInfo.code.first.text ??
+    String? constantName =
+        constantInfo.code.first.text ??
         "${constantInfo.code.first.start}/${constantInfo.code.first.end}";
     String outputUnitName = constantInfo.outputUnit!.filename;
     vm.ProgramInfo? outputUnit = outputUnits[outputUnitName];
     vm.ProgramInfoNode newConstant = outputUnit!.makeNode(
-        name: constantName, parent: outputUnit.root, type: vm.NodeType.other);
+      name: constantName,
+      parent: outputUnit.root,
+      type: vm.NodeType.other,
+    );
     newConstant.size = constantInfo.size;
     outputUnit.root.children[newConstant.name] = newConstant;
     vm.ProgramInfoNode? constantNode = infoNodesByName[newConstant.name];
-    assert(constantNode == null,
-        "encountered constant with duplicated name: $newConstant.name");
+    assert(
+      constantNode == null,
+      "encountered constant with duplicated name: $newConstant.name",
+    );
     infoNodesByName[newConstant.name] = newConstant;
   }
 
@@ -340,13 +386,16 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode?> {
     String outputUnitName = typedefInfo.outputUnit!.filename;
     vm.ProgramInfo? outputUnit = outputUnits[outputUnitName];
     vm.ProgramInfoNode newTypedef = outputUnit!.makeNode(
-        name: typedefInfo.name,
-        parent: outputUnit.root,
-        type: vm.NodeType.other);
+      name: typedefInfo.name,
+      parent: outputUnit.root,
+      type: vm.NodeType.other,
+    );
     newTypedef.size = typedefInfo.size;
     vm.ProgramInfoNode? typedefNode = infoNodesByName[newTypedef.name];
-    assert(typedefNode == null,
-        "encountered constant with duplicated name: $newTypedef.name");
+    assert(
+      typedefNode == null,
+      "encountered constant with duplicated name: $newTypedef.name",
+    );
   }
 
   void makeClassType(ClassTypeInfo classTypeInfo) {
@@ -364,13 +413,16 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode?> {
             infoNodesByName[compositeName(parent.name, outputUnitName)]!;
       }
       vm.ProgramInfoNode newClassType = outputUnit.makeNode(
-          name: classTypeInfo.name,
-          parent: parentNode,
-          type: vm.NodeType.other);
+        name: classTypeInfo.name,
+        parent: parentNode,
+        type: vm.NodeType.other,
+      );
       newClassType.size = classTypeInfo.size;
       vm.ProgramInfoNode? classTypeNode = infoNodesByName[newClassType.name];
-      assert(classTypeNode == null,
-          "encountered classType with duplicated name: $newClassType.name");
+      assert(
+        classTypeNode == null,
+        "encountered classType with duplicated name: $newClassType.name",
+      );
       infoNodesByName[newClassType.name] = newClassType;
     }
   }
@@ -383,8 +435,10 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode?> {
       vm.ProgramInfoNode parentNode;
       if (parent.kind == kindFromString('library')) {
         if (parent.name == "<unnamed>") {
-          var tempName =
-              compositeName(unnamedLibraries[parent]!, outputUnitName);
+          var tempName = compositeName(
+            unnamedLibraries[parent]!,
+            outputUnitName,
+          );
           parentNode = infoNodesByName[tempName]!;
         } else {
           parentNode =
@@ -394,15 +448,18 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode?> {
         parentNode = infoNodesByName[parent.name]!;
       }
       vm.ProgramInfoNode newClosure = outputUnit.makeNode(
-          name: closureInfo.name,
-          parent: parentNode,
-          // ProgramInfo trees consider closures and functions to both be of the functionNode type.
-          type: vm.NodeType.functionNode);
+        name: closureInfo.name,
+        parent: parentNode,
+        // ProgramInfo trees consider closures and functions to both be of the functionNode type.
+        type: vm.NodeType.functionNode,
+      );
       newClosure.size = closureInfo.size;
       parentNode.children[newClosure.name] = newClosure;
       vm.ProgramInfoNode? closureNode = infoNodesByName[newClosure.name];
-      assert(closureNode == null,
-          "encountered closure with duplicated name: $newClosure.name");
+      assert(
+        closureNode == null,
+        "encountered closure with duplicated name: $newClosure.name",
+      );
       infoNodesByName[newClosure.name] = newClosure;
     }
   }
@@ -456,8 +513,10 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode?> {
     info.typedefs.forEach(visitTypedef);
     vm.ProgramInfoNode currentLibrary =
         infoNodesByName[compositeName(info.name, outputUnitName)] ??
-            infoNodesByName[
-                compositeName(unnamedLibraries[info]!, outputUnitName)]!;
+        infoNodesByName[compositeName(
+          unnamedLibraries[info]!,
+          outputUnitName,
+        )]!;
     return currentLibrary;
   }
 

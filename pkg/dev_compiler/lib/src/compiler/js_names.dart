@@ -23,23 +23,30 @@ abstract class FixedNames {
   static const rtiIsField = '_is';
 }
 
-/// Unique instance for temporary variables. Will be renamed consistently
-/// across the entire file. Instances with different IDs will be named
-/// differently even if they have the same name, this makes it safe to use in
-/// code generation without needing global knowledge. See [TemporaryNamer].
-// TODO(jmesserly): move into js_ast? add a boolean to Identifier?
-class TemporaryId extends Identifier {
+/// Identifier tagged with a value shared by other instances representing the
+/// same variable.
+///
+/// When printed will be renamed consistently across the entire
+/// file. Instances with different IDs will be named differently even if they
+/// have the same name, this makes it safe to use in code generation without
+/// needing global knowledge. See [ScopedNamer].
+class ScopedId extends Identifier {
   final int _id;
 
+  /// If true, this variable can be used across different async scopes and must
+  /// therefore be specially captured.
+  final bool needsCapture;
+
   @override
-  TemporaryId withSourceInformation(dynamic sourceInformation) =>
-      TemporaryId.from(this)..sourceInformation = sourceInformation;
+  ScopedId withSourceInformation(dynamic sourceInformation) =>
+      ScopedId.from(this)..sourceInformation = sourceInformation;
 
   static int _idCounter = 0;
 
-  TemporaryId(super.name) : _id = _idCounter++;
-  TemporaryId.from(TemporaryId other)
+  ScopedId(super.name, {this.needsCapture = false}) : _id = _idCounter++;
+  ScopedId.from(ScopedId other)
       : _id = other._id,
+        needsCapture = other.needsCapture,
         super(other.name);
 
   @override
@@ -47,7 +54,7 @@ class TemporaryId extends Identifier {
 
   @override
   bool operator ==(Object other) {
-    return other is TemporaryId && other._id == _id;
+    return other is ScopedId && other._id == _id;
   }
 }
 
@@ -102,12 +109,12 @@ class NameListener {
 /// * rename temporary variables to avoid colliding with user-specified names,
 ///   or other temporaries
 ///
-/// Each instance of [TemporaryId] is treated as a unique variable, with its
+/// Each instance of [ScopedId] is treated as a unique variable, with its
 /// `name` field simply the suggestion of what name to use. By contrast
-/// [Identifiers] are never renamed unless they are an invalid identifier, like
+/// [Identifier]s are never renamed unless they are an invalid identifier, like
 /// `function` or `instanceof`, and their `name` field controls whether they
 /// refer to the same variable.
-class TemporaryNamer extends LocalNamer {
+class ScopedNamer extends LocalNamer {
   _FunctionScope? _scope;
 
   /// Listener to be notified when a name is selected (rename or not) for an
@@ -116,7 +123,7 @@ class TemporaryNamer extends LocalNamer {
   /// Can be `null` when there is no listener attached.
   final NameListener? _nameListener;
 
-  TemporaryNamer(Node node, [this._nameListener])
+  ScopedNamer(Node node, [this._nameListener])
       : _scope = _RenameVisitor.build(node).rootScope;
 
   @override
@@ -183,7 +190,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
     var notAlreadyDeclared = scope!.declared.add(id);
     // Normal identifiers can be declared multiple times, because we don't
     // implement block scope yet. However temps should only be declared once.
-    assert(notAlreadyDeclared || node is! TemporaryId);
+    assert(notAlreadyDeclared || node is! ScopedId);
     _markUsed(node, id, scope!);
   }
 
@@ -260,7 +267,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
   static String _findName(Object id, Set<_FunctionScope> scopes) {
     String name;
     bool valid;
-    if (id is TemporaryId) {
+    if (id is ScopedId) {
       name = id.name;
       valid = !invalidVariableName(name);
     } else {
@@ -289,10 +296,10 @@ class _RenameVisitor extends VariableDeclarationVisitor {
 }
 
 bool needsRename(Identifier node) =>
-    node is TemporaryId || node.allowRename && invalidVariableName(node.name);
+    node is ScopedId || node.allowRename && invalidVariableName(node.name);
 
-Object /*String|TemporaryId*/ identifierKey(Identifier node) =>
-    node is TemporaryId ? node : node.name;
+Object /*String|ScopedId*/ identifierKey(Identifier node) =>
+    node is ScopedId ? node : node.name;
 
 /// Returns true for invalid JS variable names, such as keywords.
 /// Also handles invalid variable names in strict mode, like "arguments".

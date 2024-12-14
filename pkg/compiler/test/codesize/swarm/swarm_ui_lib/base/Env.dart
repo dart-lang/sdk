@@ -16,10 +16,16 @@ class Env {
   /// occurs at or after [minTime].  If [minTime] is not specified, the first
   /// available animation frame is used.  Returns an id that can be used to
   /// cancel the pending callback.
-  static int requestAnimationFrame(AnimationCallback callback,
-      [Element? element, num? minTime]) {
+  static int requestAnimationFrame(
+    AnimationCallback callback, [
+    Element? element,
+    num? minTime,
+  ]) {
     return _animationScheduler.requestAnimationFrame(
-        callback, element, minTime);
+      callback,
+      element,
+      minTime,
+    );
   }
 
   /// Cancel the pending callback matching the specified [id].

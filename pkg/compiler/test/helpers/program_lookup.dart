@@ -13,8 +13,10 @@ import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:expect/expect.dart';
 
 ClassEntity lookupClass(JElementEnvironment elementEnvironment, String name) {
-  ClassEntity? cls =
-      elementEnvironment.lookupClass(elementEnvironment.mainLibrary!, name);
+  ClassEntity? cls = elementEnvironment.lookupClass(
+    elementEnvironment.mainLibrary!,
+    name,
+  );
   Expect.isNotNull(cls, "No class '$name' found in the main library.");
   return cls!;
 }
@@ -26,15 +28,21 @@ MemberEntity lookupMember(ElementEnvironment elementEnvironment, String name) {
     String className = name.substring(0, dotIndex);
     name = name.substring(dotIndex + 1);
     ClassEntity? cls = elementEnvironment.lookupClass(
-        elementEnvironment.mainLibrary!, className);
+      elementEnvironment.mainLibrary!,
+      className,
+    );
     Expect.isNotNull(cls, "No class '$className' found in the main library.");
     member = elementEnvironment.lookupClassMember(
-        cls!, Name(name, cls.library.canonicalUri));
+      cls!,
+      Name(name, cls.library.canonicalUri),
+    );
     member ??= elementEnvironment.lookupConstructor(cls, name);
     Expect.isNotNull(member, "No member '$name' found in $cls");
   } else {
     member = elementEnvironment.lookupLibraryMember(
-        elementEnvironment.mainLibrary!, name);
+      elementEnvironment.mainLibrary!,
+      name,
+    );
     Expect.isNotNull(member, "No member '$name' found in the main library.");
   }
   return member!;
@@ -45,8 +53,8 @@ class ProgramLookup {
   final Namer namer;
 
   ProgramLookup(JsBackendStrategy backendStrategy)
-      : this.program = backendStrategy.emitterTask.emitter.programForTesting!,
-        this.namer = backendStrategy.namerForTesting;
+    : this.program = backendStrategy.emitterTask.emitter.programForTesting!,
+      this.namer = backendStrategy.namerForTesting;
 
   Fragment? getFragment(OutputUnit outputUnit) {
     for (Fragment fragment in program.fragments) {
@@ -124,8 +132,10 @@ class LibraryData {
     for (StaticMethod method in library.statics) {
       ClassEntity? enclosingClass = method.element?.enclosingClass;
       if (enclosingClass != null) {
-        ClassData data =
-            _classMap.putIfAbsent(enclosingClass, () => ClassData(null));
+        ClassData data = _classMap.putIfAbsent(
+          enclosingClass,
+          () => ClassData(null),
+        );
         assert(!data._methodMap.containsKey(method.element));
         data._methodMap[method.element as FunctionEntity] = method;
       } else if (method.element != null) {
@@ -137,8 +147,10 @@ class LibraryData {
     void addStaticField(StaticField field) {
       ClassEntity? enclosingClass = field.element.enclosingClass;
       if (enclosingClass != null) {
-        ClassData data =
-            _classMap.putIfAbsent(enclosingClass, () => ClassData(null));
+        ClassData data = _classMap.putIfAbsent(
+          enclosingClass,
+          () => ClassData(null),
+        );
         assert(!data._fieldMap.containsKey(field.element));
         data._staticFieldMap[field.element] = field;
       } else {
@@ -172,7 +184,8 @@ class LibraryData {
   }
 
   @override
-  String toString() => 'LibraryData(library=$library,_classMap=$_classMap,'
+  String toString() =>
+      'LibraryData(library=$library,_classMap=$_classMap,'
       '_methodMap=$_methodMap,_fieldMap=$_fieldMap)';
 }
 
@@ -217,20 +230,24 @@ class ClassData {
   }
 
   @override
-  String toString() => 'ClassData(cls=$cls,'
+  String toString() =>
+      'ClassData(cls=$cls,'
       '_methodMap=$_methodMap,_fieldMap=$_fieldMap)';
 }
 
-void forEachNode(js.Node root,
-    {void Function(js.Call)? onCall,
-    void Function(js.PropertyAccess)? onPropertyAccess,
-    void Function(js.Assignment)? onAssignment,
-    void Function(js.Switch)? onSwitch}) {
+void forEachNode(
+  js.Node root, {
+  void Function(js.Call)? onCall,
+  void Function(js.PropertyAccess)? onPropertyAccess,
+  void Function(js.Assignment)? onAssignment,
+  void Function(js.Switch)? onSwitch,
+}) {
   CallbackVisitor visitor = CallbackVisitor(
-      onCall: onCall,
-      onPropertyAccess: onPropertyAccess,
-      onAssignment: onAssignment,
-      onSwitch: onSwitch);
+    onCall: onCall,
+    onPropertyAccess: onPropertyAccess,
+    onAssignment: onAssignment,
+    onSwitch: onSwitch,
+  );
   root.accept(visitor);
 }
 
@@ -240,8 +257,12 @@ class CallbackVisitor extends js.BaseVisitorVoid {
   final void Function(js.Assignment)? onAssignment;
   final void Function(js.Switch)? onSwitch;
 
-  CallbackVisitor(
-      {this.onCall, this.onPropertyAccess, this.onAssignment, this.onSwitch});
+  CallbackVisitor({
+    this.onCall,
+    this.onPropertyAccess,
+    this.onAssignment,
+    this.onSwitch,
+  });
 
   @override
   void visitCall(js.Call node) {

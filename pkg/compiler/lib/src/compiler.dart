@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.compiler_base;
+library;
 
 import 'dart:async' show Future;
 import 'dart:convert' show jsonEncode;
 import 'dart:typed_data';
 
 import 'package:compiler/src/universe/use.dart' show StaticUse;
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' as ir;
 
@@ -23,7 +24,8 @@ import 'common/tasks.dart'
 import 'common/work.dart' show WorkItem;
 import 'deferred_load/deferred_load.dart' show DeferredLoadTask;
 import 'deferred_load/output_unit.dart' show OutputUnitData;
-import 'deferred_load/program_split_constraints/nodes.dart' as psc
+import 'deferred_load/program_split_constraints/nodes.dart'
+    as psc
     show ConstraintData;
 import 'deferred_load/program_split_constraints/parser.dart' as psc show Parser;
 import 'diagnostics/diagnostic_listener.dart';
@@ -69,11 +71,7 @@ import 'universe/codegen_world_builder.dart';
 import 'universe/resolution_world_builder.dart';
 import 'universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 
-enum _ResolutionStatus {
-  resolving,
-  doneResolving,
-  compiling,
-}
+enum _ResolutionStatus { resolving, doneResolving, compiling }
 
 /// Implementation of the compiler using a [api.CompilerInput] for supplying
 /// the sources.
@@ -149,28 +147,35 @@ class Compiler {
   // Callback function used for testing codegen enqueuing.
   void Function()? onCodegenQueueEmptyForTesting;
 
-  Compiler(this.provider, api.CompilerOutput outputProvider, this.handler,
-      this.options)
-      // NOTE: allocating measurer is done upfront to ensure the wallclock is
-      // started before other computations.
-      : measurer = Measurer(enableTaskMeasurements: options.verbose),
-        dumpInfoRegistry = DumpInfoJsAstRegistry(options) {
+  Compiler(
+    this.provider,
+    api.CompilerOutput outputProvider,
+    this.handler,
+    this.options,
+  )
+    // NOTE: allocating measurer is done upfront to ensure the wallclock is
+    // started before other computations.
+    : measurer = Measurer(enableTaskMeasurements: options.verbose),
+      dumpInfoRegistry = DumpInfoJsAstRegistry(options) {
     options.deriveOptions();
     options.validate();
     environment = Environment(options.environment);
 
-    abstractValueStrategy = options.useTrivialAbstractValueDomain
-        ? const TrivialAbstractValueStrategy()
-        : const TypeMaskStrategy();
+    abstractValueStrategy =
+        options.useTrivialAbstractValueDomain
+            ? const TrivialAbstractValueStrategy()
+            : const TypeMaskStrategy();
     if (options.experimentalWrapped || options.testMode) {
-      abstractValueStrategy =
-          WrappedAbstractValueStrategy(abstractValueStrategy);
+      abstractValueStrategy = WrappedAbstractValueStrategy(
+        abstractValueStrategy,
+      );
     } else if (options.experimentalPowersets) {
       abstractValueStrategy = PowersetStrategy(abstractValueStrategy);
     }
     if (options.debugGlobalInference) {
-      abstractValueStrategy =
-          ComputableAbstractValueStrategy(abstractValueStrategy);
+      abstractValueStrategy = ComputableAbstractValueStrategy(
+        abstractValueStrategy,
+      );
     }
 
     CompilerTask kernelFrontEndTask;
@@ -178,8 +183,11 @@ class Compiler {
     _outputProvider = _CompilerOutput(this, outputProvider);
     _reporter = DiagnosticReporter(this);
     kernelFrontEndTask = GenericTask('Front end', measurer);
-    frontendStrategy =
-        KernelFrontendStrategy(kernelFrontEndTask, options, reporter);
+    frontendStrategy = KernelFrontendStrategy(
+      kernelFrontEndTask,
+      options,
+      reporter,
+    );
     backendStrategy = createBackendStrategy();
     _impactCache = <Entity, WorldImpact>{};
 
@@ -198,10 +206,15 @@ class Compiler {
       dumpInfoTask = DumpInfoTask(options, measurer, _outputProvider, reporter),
       selfTask,
       serializationTask = SerializationTask(
-          options, reporter, provider, outputProvider, measurer),
+        options,
+        reporter,
+        provider,
+        outputProvider,
+        measurer,
+      ),
       ...backendStrategy.tasks,
       userHandlerTask = GenericTask('Diagnostic handler', measurer),
-      userProviderTask = GenericTask('Input provider', measurer)
+      userProviderTask = GenericTask('Input provider', measurer),
     ];
 
     initializedCompilerState = options.kernelInitializedCompilerState;
@@ -231,28 +244,28 @@ class Compiler {
   // The resulting future will complete with true if the compilation
   // succeeded.
   Future<bool> run() => selfTask.measureSubtask("run", () async {
-        measurer.startWallClock();
-        var setupDuration = measurer.elapsedWallClock;
-        try {
-          await runInternal();
-        } catch (error, stackTrace) {
-          await _reporter.onError(options.compilationTarget, error, stackTrace);
-        } finally {
-          measurer.stopWallClock();
-        }
-        dataReadMetrics.addDataRead(provider);
-        if (options.verbose) {
-          var timings = StringBuffer();
-          computeTimings(setupDuration, timings);
-          logVerbose('$timings');
-        }
-        if (options.reportPrimaryMetrics || options.reportSecondaryMetrics) {
-          var metrics = StringBuffer();
-          collectMetrics(metrics);
-          logInfo('$metrics');
-        }
-        return !compilationFailed;
-      });
+    measurer.startWallClock();
+    var setupDuration = measurer.elapsedWallClock;
+    try {
+      await runInternal();
+    } catch (error, stackTrace) {
+      await _reporter.onError(options.compilationTarget, error, stackTrace);
+    } finally {
+      measurer.stopWallClock();
+    }
+    dataReadMetrics.addDataRead(provider);
+    if (options.verbose) {
+      var timings = StringBuffer();
+      computeTimings(setupDuration, timings);
+      logVerbose('$timings');
+    }
+    if (options.reportPrimaryMetrics || options.reportSecondaryMetrics) {
+      var metrics = StringBuffer();
+      collectMetrics(metrics);
+      logInfo('$metrics');
+    }
+    return !compilationFailed;
+  });
 
   /// Dumps a list of unused [ir.Library]'s in the [KernelResult]. This *must*
   /// be called before [setMainAndTrimComponent], because that method will
@@ -267,20 +280,27 @@ class Compiler {
         component.libraries.where(isUnused).map(libraryString).toList();
     unusedLibraries.sort();
     var jsonLibraries = jsonEncode(unusedLibraries);
-    outputProvider.createOutputSink(options.outputUri!.pathSegments.last,
-        'unused.json', api.OutputType.dumpUnusedLibraries)
+    outputProvider.createOutputSink(
+        options.outputUri!.pathSegments.last,
+        'unused.json',
+        api.OutputType.dumpUnusedLibraries,
+      )
       ..add(jsonLibraries)
       ..close();
     reporter.reportInfo(
-        reporter.createMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
-      'text': "${unusedLibraries.length} unused libraries out of "
-          "${component.libraries.length}. Dumping to JSON."
-    }));
+      reporter.createMessage(noLocationSpannable, MessageKind.generic, {
+        'text':
+            "${unusedLibraries.length} unused libraries out of "
+            "${component.libraries.length}. Dumping to JSON.",
+      }),
+    );
   }
 
   /// Trims a component down to only the provided library uris.
   ir.Component trimComponent(
-      ir.Component component, Set<Uri> librariesToInclude) {
+    ir.Component component,
+    Set<Uri> librariesToInclude,
+  ) {
     var irLibraryMap = <Uri, ir.Library>{};
     var irLibraries = <ir.Library>[];
     for (var library in component.libraries) {
@@ -292,9 +312,10 @@ class Compiler {
     var mainMethod = component.mainMethodName;
     var componentMode = component.mode;
     final trimmedComponent = ir.Component(
-        libraries: irLibraries,
-        uriToSource: component.uriToSource,
-        nameRoot: component.root);
+      libraries: irLibraries,
+      uriToSource: component.uriToSource,
+      nameRoot: component.root,
+    );
     trimmedComponent.setMainMethodAndMode(mainMethod, true, componentMode);
     return trimmedComponent;
   }
@@ -307,9 +328,10 @@ class Compiler {
     if (options.readProgramSplit != null) {
       var constraintUri = options.readProgramSplit;
       var constraintParser = psc.Parser();
-      var programSplitJson = await CompilerFileSystem(provider)
-          .entityForUri(constraintUri!)
-          .readAsString();
+      var programSplitJson =
+          await CompilerFileSystem(
+            provider,
+          ).entityForUri(constraintUri!).readAsString();
       programSplitConstraintsData = constraintParser.read(programSplitJson);
     }
 
@@ -328,7 +350,7 @@ class Compiler {
     StaticUse.clearCache();
 
     // The selector objects held in static fields must remain canonical.
-    for (Selector selector in Selectors.ALL) {
+    for (Selector selector in Selectors.all) {
       Selector.canonicalizedValues
           .putIfAbsent(selector.hashCode, () => <Selector>[])
           .add(selector);
@@ -336,7 +358,10 @@ class Compiler {
   }
 
   JClosedWorld? computeClosedWorld(
-      ir.Component component, Uri rootLibraryUri, List<Uri> libraries) {
+    ir.Component component,
+    Uri rootLibraryUri,
+    List<Uri> libraries,
+  ) {
     frontendStrategy.registerLoadedLibraries(component, libraries);
     ResolutionEnqueuer resolutionEnqueuer = frontendStrategy
         .createResolutionEnqueuer(enqueueTask, this)
@@ -348,8 +373,9 @@ class Compiler {
     frontendStrategy.onResolutionStart();
     for (LibraryEntity library
         in frontendStrategy.elementEnvironment.libraries) {
-      frontendStrategy.elementEnvironment.forEachClass(library,
-          (ClassEntity cls) {
+      frontendStrategy.elementEnvironment.forEachClass(library, (
+        ClassEntity cls,
+      ) {
         // Register all classes eagerly to optimize closed world computation in
         // `ClassWorldBuilder.isInheritedInSubtypeOf`.
         resolutionEnqueuer.worldBuilder.registerClass(cls);
@@ -369,8 +395,11 @@ class Compiler {
     if (options.showInternalProgress) reporter.log('Computing closed world');
 
     processQueue(
-        frontendStrategy.elementEnvironment, resolutionEnqueuer, mainFunction,
-        onProgress: showResolutionProgress);
+      frontendStrategy.elementEnvironment,
+      resolutionEnqueuer,
+      mainFunction,
+      onProgress: showResolutionProgress,
+    );
     resolutionEnqueuer.logSummary(reporter.log);
 
     _reporter.reportSuppressedMessagesSummary();
@@ -381,16 +410,24 @@ class Compiler {
 
     checkQueue(resolutionEnqueuer);
 
-    JClosedWorld? closedWorld =
-        closeResolution(mainFunction!, resolutionEnqueuer.worldBuilder);
+    JClosedWorld? closedWorld = closeResolution(
+      mainFunction!,
+      resolutionEnqueuer.worldBuilder,
+    );
     return closedWorld;
   }
 
   Future<load_kernel.Output?> loadKernel() async {
-    final input = load_kernel.Input(options, provider, reporter,
-        initializedCompilerState, forceSerializationForTesting);
-    load_kernel.Output? output =
-        await loadKernelTask.measure(() async => load_kernel.run(input));
+    final input = load_kernel.Input(
+      options,
+      provider,
+      reporter,
+      initializedCompilerState,
+      forceSerializationForTesting,
+    );
+    load_kernel.Output? output = await loadKernelTask.measure(
+      () async => load_kernel.run(input),
+    );
     reporter.log("Kernel load complete");
     return output;
   }
@@ -421,8 +458,10 @@ class Compiler {
             component = trimComponent(component, includedLibraries);
           }
         }
-        serializationTask.serializeComponent(component,
-            includeSourceBytes: false);
+        serializationTask.serializeComponent(
+          component,
+          includeSourceBytes: false,
+        );
       }
       return output.withNewComponent(component);
     } else {
@@ -439,31 +478,39 @@ class Compiler {
       output == null || compilationFailed || stage.shouldOnlyComputeDill;
 
   GlobalTypeInferenceResults performGlobalTypeInference(
-      JClosedWorld closedWorld) {
+    JClosedWorld closedWorld,
+  ) {
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction!;
     reporter.log('Performing global type inference');
-    GlobalLocalsMap globalLocalsMap =
-        GlobalLocalsMap(closedWorld.closureDataLookup.getEnclosingMember);
-    InferredDataBuilder inferredDataBuilder =
-        InferredDataBuilderImpl(closedWorld.annotationsData);
+    GlobalLocalsMap globalLocalsMap = GlobalLocalsMap(
+      closedWorld.closureDataLookup.getEnclosingMember,
+    );
+    InferredDataBuilder inferredDataBuilder = InferredDataBuilderImpl(
+      closedWorld.annotationsData,
+    );
     return globalInference.runGlobalTypeInference(
-        mainFunction, closedWorld, globalLocalsMap, inferredDataBuilder);
+      mainFunction,
+      closedWorld,
+      globalLocalsMap,
+      inferredDataBuilder,
+    );
   }
 
   int runCodegenEnqueuer(
-      CodegenResults codegenResults,
-      InferredData inferredData,
-      SourceLookup sourceLookup,
-      JClosedWorld closedWorld) {
+    CodegenResults codegenResults,
+    InferredData inferredData,
+    SourceLookup sourceLookup,
+    JClosedWorld closedWorld,
+  ) {
     CodegenInputs codegenInputs = codegenResults.codegenInputs;
     CodegenEnqueuer codegenEnqueuer = backendStrategy.createCodegenEnqueuer(
-        enqueueTask,
-        closedWorld,
-        inferredData,
-        codegenInputs,
-        codegenResults,
-        sourceLookup)
-      ..onEmptyForTesting = onCodegenQueueEmptyForTesting;
+      enqueueTask,
+      closedWorld,
+      inferredData,
+      codegenInputs,
+      codegenResults,
+      sourceLookup,
+    )..onEmptyForTesting = onCodegenQueueEmptyForTesting;
     if (retainDataForTesting) {
       codegenEnqueuerForTesting = codegenEnqueuer;
     }
@@ -471,8 +518,12 @@ class Compiler {
 
     reporter.log('Compiling methods');
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction!;
-    processQueue(closedWorld.elementEnvironment, codegenEnqueuer, mainFunction,
-        onProgress: showCodegenProgress);
+    processQueue(
+      closedWorld.elementEnvironment,
+      codegenEnqueuer,
+      mainFunction,
+      onProgress: showCodegenProgress,
+    );
     codegenEnqueuer.logSummary(reporter.log);
     CodegenWorld codegenWorld = codegenWorldBuilder.close();
     if (retainDataForTesting) {
@@ -480,7 +531,11 @@ class Compiler {
     }
     reporter.log('Emitting JavaScript');
     int programSize = backendStrategy.assembleProgram(
-        closedWorld, inferredData, codegenInputs, codegenWorld);
+      closedWorld,
+      inferredData,
+      codegenInputs,
+      codegenWorld,
+    );
 
     backendStrategy.onCodegenEnd(codegenInputs);
 
@@ -490,42 +545,57 @@ class Compiler {
 
   JClosedWorld closedWorldTestMode(JClosedWorld closedWorld) {
     SerializationIndices indices = SerializationIndices(testMode: true);
-    final strategy =
-        const BytesInMemorySerializationStrategy(useDataKinds: true);
+    final strategy = const BytesInMemorySerializationStrategy(
+      useDataKinds: true,
+    );
     // TODO(natebiggs): Add when kernel offsets are consistent across
     //   serialization layer.
     // List<int> irData = strategy
     //     .serializeComponent(closedWorld.elementMap.programEnv.mainComponent);
     // final component = strategy.deserializeComponent(irData);
-    List<int> closedWorldData =
-        strategy.serializeClosedWorld(closedWorld, options, indices);
+    List<int> closedWorldData = strategy.serializeClosedWorld(
+      closedWorld,
+      options,
+      indices,
+    );
     final component = closedWorld.elementMap.programEnv.mainComponent;
-    return strategy.deserializeClosedWorld(options, reporter,
-        abstractValueStrategy, component, closedWorldData, indices);
+    return strategy.deserializeClosedWorld(
+      options,
+      reporter,
+      abstractValueStrategy,
+      component,
+      closedWorldData,
+      indices,
+    );
   }
 
   GlobalTypeInferenceResults globalTypeInferenceResultsTestMode(
-      GlobalTypeInferenceResults results) {
+    GlobalTypeInferenceResults results,
+  ) {
     SerializationIndices indices = SerializationIndices(testMode: true);
-    final strategy =
-        const BytesInMemorySerializationStrategy(useDataKinds: true);
+    final strategy = const BytesInMemorySerializationStrategy(
+      useDataKinds: true,
+    );
     final closedWorld = results.closedWorld;
     final component = closedWorld.elementMap.programEnv.mainComponent;
-    List<int> globalTypeInferenceResultsData =
-        strategy.serializeGlobalTypeInferenceResults(results, options, indices);
+    List<int> globalTypeInferenceResultsData = strategy
+        .serializeGlobalTypeInferenceResults(results, options, indices);
     return strategy.deserializeGlobalTypeInferenceResults(
-        options,
-        reporter,
-        environment,
-        abstractValueStrategy,
-        component,
-        closedWorld,
-        globalTypeInferenceResultsData,
-        indices);
+      options,
+      reporter,
+      environment,
+      abstractValueStrategy,
+      component,
+      closedWorld,
+      globalTypeInferenceResultsData,
+      indices,
+    );
   }
 
   Future<JClosedWorld?> produceClosedWorld(
-      load_kernel.Output output, SerializationIndices indices) async {
+    load_kernel.Output output,
+    SerializationIndices indices,
+  ) async {
     ir.Component component = output.component;
     JClosedWorld? closedWorld;
     if (!stage.shouldReadClosedWorld) {
@@ -535,8 +605,10 @@ class Compiler {
       if (stage.shouldWriteClosedWorld && closedWorld != null) {
         serializationTask.serializeClosedWorld(closedWorld, indices);
         if (options.producesModifiedDill) {
-          serializationTask.serializeComponent(component,
-              includeSourceBytes: false);
+          serializationTask.serializeComponent(
+            component,
+            includeSourceBytes: false,
+          );
         }
       } else if (options.testMode && closedWorld != null) {
         closedWorld = closedWorldTestMode(closedWorld);
@@ -544,7 +616,11 @@ class Compiler {
       }
     } else {
       closedWorld = await serializationTask.deserializeClosedWorld(
-          abstractValueStrategy, component, useDeferredSourceReads, indices);
+        abstractValueStrategy,
+        component,
+        useDeferredSourceReads,
+        indices,
+      );
     }
     if (retainDataForTesting) {
       backendClosedWorldForTesting = closedWorld;
@@ -559,28 +635,33 @@ class Compiler {
       stopAfterClosedWorldForTesting;
 
   Future<GlobalTypeInferenceResults> produceGlobalTypeInferenceResults(
-      JClosedWorld closedWorld,
-      ir.Component component,
-      SerializationIndices indices) async {
+    JClosedWorld closedWorld,
+    ir.Component component,
+    SerializationIndices indices,
+  ) async {
     GlobalTypeInferenceResults globalTypeInferenceResults;
     if (!stage.shouldReadGlobalInference) {
       globalTypeInferenceResults = performGlobalTypeInference(closedWorld);
       if (stage.shouldWriteGlobalInference) {
         serializationTask.serializeGlobalTypeInference(
-            globalTypeInferenceResults, indices);
+          globalTypeInferenceResults,
+          indices,
+        );
       } else if (options.testMode) {
-        globalTypeInferenceResults =
-            globalTypeInferenceResultsTestMode(globalTypeInferenceResults);
+        globalTypeInferenceResults = globalTypeInferenceResultsTestMode(
+          globalTypeInferenceResults,
+        );
       }
     } else {
-      globalTypeInferenceResults =
-          await serializationTask.deserializeGlobalTypeInferenceResults(
-              environment,
-              abstractValueStrategy,
-              closedWorld.elementMap.programEnv.mainComponent,
-              closedWorld,
-              useDeferredSourceReads,
-              indices);
+      globalTypeInferenceResults = await serializationTask
+          .deserializeGlobalTypeInferenceResults(
+            environment,
+            abstractValueStrategy,
+            closedWorld.elementMap.programEnv.mainComponent,
+            closedWorld,
+            useDeferredSourceReads,
+            indices,
+          );
     }
     return globalTypeInferenceResults;
   }
@@ -590,36 +671,43 @@ class Compiler {
       stopAfterGlobalTypeInferenceForTesting;
 
   CodegenInputs initializeCodegen(
-      GlobalTypeInferenceResults globalTypeInferenceResults) {
-    backendStrategy
-        .registerJClosedWorld(globalTypeInferenceResults.closedWorld);
+    GlobalTypeInferenceResults globalTypeInferenceResults,
+  ) {
+    backendStrategy.registerJClosedWorld(
+      globalTypeInferenceResults.closedWorld,
+    );
     _resolutionStatus = _ResolutionStatus.compiling;
     return backendStrategy.onCodegenStart(globalTypeInferenceResults);
   }
 
   Future<CodegenResults> produceCodegenResults(
-      GlobalTypeInferenceResults globalTypeInferenceResults,
-      SourceLookup sourceLookup,
-      SerializationIndices indices) async {
+    GlobalTypeInferenceResults globalTypeInferenceResults,
+    SourceLookup sourceLookup,
+    SerializationIndices indices,
+  ) async {
     CodegenInputs codegenInputs = initializeCodegen(globalTypeInferenceResults);
     CodegenResults codegenResults;
     if (stage.shouldReadCodegenShards && options.codegenShards != null) {
       codegenResults = await serializationTask.deserializeCodegen(
-          backendStrategy,
-          globalTypeInferenceResults.closedWorld,
-          codegenInputs,
-          useDeferredSourceReads,
-          sourceLookup,
-          indices);
+        backendStrategy,
+        globalTypeInferenceResults.closedWorld,
+        codegenInputs,
+        useDeferredSourceReads,
+        sourceLookup,
+        indices,
+      );
     } else {
       codegenResults = OnDemandCodegenResults(
-          codegenInputs, backendStrategy.functionCompiler);
+        codegenInputs,
+        backendStrategy.functionCompiler,
+      );
       if (stage.shouldWriteCodegen) {
         serializationTask.serializeCodegen(
-            backendStrategy,
-            globalTypeInferenceResults.closedWorld.abstractValueDomain,
-            codegenResults,
-            indices);
+          backendStrategy,
+          globalTypeInferenceResults.closedWorld.abstractValueDomain,
+          codegenResults,
+          indices,
+        );
       }
     }
     return codegenResults;
@@ -643,7 +731,10 @@ class Compiler {
     // Run global analysis.
     GlobalTypeInferenceResults globalTypeInferenceResults =
         await produceGlobalTypeInferenceResults(
-            closedWorld!, output.component, indices);
+          closedWorld!,
+          output.component,
+          indices,
+        );
     if (shouldStopAfterGlobalTypeInference) return;
     closedWorld = globalTypeInferenceResults.closedWorld;
 
@@ -661,52 +752,74 @@ class Compiler {
       indicesForDumpInfo = indices;
     } else if (stage.shouldWriteDumpInfoData) {
       sinkForDumpInfo = serializationTask.dataSinkWriterForDumpInfo(
-          closedWorld.abstractValueDomain, indices);
+        closedWorld.abstractValueDomain,
+        indices,
+      );
       dumpInfoRegistry.registerDataSinkWriter(sinkForDumpInfo);
     }
 
     // Run codegen.
     final sourceLookup = SourceLookup(output.component);
     CodegenResults codegenResults = await produceCodegenResults(
-        globalTypeInferenceResults, sourceLookup, indices);
+      globalTypeInferenceResults,
+      sourceLookup,
+      indices,
+    );
     if (shouldStopAfterCodegen) return;
     final inferredData = globalTypeInferenceResults.inferredData;
 
     if (stage.shouldReadDumpInfoData) {
-      final dumpInfoData =
-          await serializationTask.deserializeDumpInfoProgramData(
-              backendStrategy,
-              abstractValueDomainForDumpInfo!,
-              outputUnitDataForDumpInfo!,
-              indicesForDumpInfo!);
+      final dumpInfoData = await serializationTask
+          .deserializeDumpInfoProgramData(
+            backendStrategy,
+            abstractValueDomainForDumpInfo!,
+            outputUnitDataForDumpInfo!,
+            indicesForDumpInfo!,
+          );
       await runDumpInfo(
-          codegenResults, globalTypeInferenceResultsForDumpInfo!, dumpInfoData);
+        codegenResults,
+        globalTypeInferenceResultsForDumpInfo!,
+        dumpInfoData,
+      );
     } else {
       // Link.
       final programSize = runCodegenEnqueuer(
-          codegenResults, inferredData, sourceLookup, closedWorld);
+        codegenResults,
+        inferredData,
+        sourceLookup,
+        closedWorld,
+      );
       if (stage.emitsDumpInfo || stage.shouldWriteDumpInfoData) {
         final dumpInfoData = DumpInfoProgramData.fromEmitterResults(
-            backendStrategy.emitterTask,
-            dumpInfoRegistry,
-            codegenResults,
-            programSize);
+          backendStrategy.emitterTask,
+          dumpInfoRegistry,
+          codegenResults,
+          programSize,
+        );
         dumpInfoRegistry.close();
         if (stage.shouldWriteDumpInfoData) {
-          serializationTask.serializeDumpInfoProgramData(sinkForDumpInfo!,
-              backendStrategy, dumpInfoData, dumpInfoRegistry);
+          serializationTask.serializeDumpInfoProgramData(
+            sinkForDumpInfo!,
+            backendStrategy,
+            dumpInfoData,
+            dumpInfoRegistry,
+          );
         } else {
-          await runDumpInfo(codegenResults,
-              globalTypeInferenceResultsForDumpInfo!, dumpInfoData);
+          await runDumpInfo(
+            codegenResults,
+            globalTypeInferenceResultsForDumpInfo!,
+            dumpInfoData,
+          );
         }
       }
     }
   }
 
   Future<void> runDumpInfo(
-      CodegenResults codegenResults,
-      GlobalTypeInferenceResults globalTypeInferenceResults,
-      DumpInfoProgramData dumpInfoProgramData) async {
+    CodegenResults codegenResults,
+    GlobalTypeInferenceResults globalTypeInferenceResults,
+    DumpInfoProgramData dumpInfoProgramData,
+  ) async {
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
 
     DumpInfoStateData dumpInfoState;
@@ -714,14 +827,19 @@ class Compiler {
     if (options.features.newDumpInfo.isEnabled) {
       untrimmedComponentForDumpInfo ??= (await produceKernel())!.component;
       dumpInfoState = await dumpInfoTask.dumpInfoNew(
-          untrimmedComponentForDumpInfo!,
-          closedWorld,
-          globalTypeInferenceResults,
-          codegenResults,
-          backendStrategy);
+        untrimmedComponentForDumpInfo!,
+        closedWorld,
+        globalTypeInferenceResults,
+        codegenResults,
+        backendStrategy,
+      );
     } else {
-      dumpInfoState = await dumpInfoTask.dumpInfo(closedWorld,
-          globalTypeInferenceResults, codegenResults, backendStrategy);
+      dumpInfoState = await dumpInfoTask.dumpInfo(
+        closedWorld,
+        globalTypeInferenceResults,
+        codegenResults,
+        backendStrategy,
+      );
     }
     if (retainDataForTesting) {
       dumpInfoStateForTesting = dumpInfoState;
@@ -729,8 +847,10 @@ class Compiler {
   }
 
   /// Perform the steps needed to fully end the resolution phase.
-  JClosedWorld? closeResolution(FunctionEntity mainFunction,
-      ResolutionWorldBuilder resolutionWorldBuilder) {
+  JClosedWorld? closeResolution(
+    FunctionEntity mainFunction,
+    ResolutionWorldBuilder resolutionWorldBuilder,
+  ) {
     _resolutionStatus = _ResolutionStatus.doneResolving;
 
     KClosedWorld kClosedWorld = resolutionWorldBuilder.closeWorld(reporter);
@@ -741,42 +861,56 @@ class Compiler {
     if (!retainDataForTesting) {
       _impactCache.clear();
     }
-    JClosedWorld jClosedWorld =
-        backendStrategy.createJClosedWorld(kClosedWorld, result);
+    JClosedWorld jClosedWorld = backendStrategy.createJClosedWorld(
+      kClosedWorld,
+      result,
+    );
     return jClosedWorld;
   }
 
   /// Empty the [enqueuer] queue.
-  void emptyQueue(Enqueuer enqueuer, {void onProgress(Enqueuer enqueuer)?}) {
+  void emptyQueue(
+    Enqueuer enqueuer, {
+    void Function(Enqueuer enqueuer)? onProgress,
+  }) {
     selfTask.measureSubtask("emptyQueue", () {
       enqueuer.forEach((WorkItem work) {
         if (onProgress != null) {
           onProgress(enqueuer);
         }
         reporter.withCurrentElement(
-            work.element,
-            () => selfTask.measureSubtask("applyImpact", () {
-                  enqueuer.applyImpact(
-                      selfTask.measureSubtask("work.run", () => work.run()));
-                }));
+          work.element,
+          () => selfTask.measureSubtask("applyImpact", () {
+            enqueuer.applyImpact(
+              selfTask.measureSubtask("work.run", () => work.run()),
+            );
+          }),
+        );
       });
     });
   }
 
-  void processQueue(ElementEnvironment elementEnvironment, Enqueuer enqueuer,
-      FunctionEntity? mainMethod,
-      {void onProgress(Enqueuer enqueuer)?}) {
+  void processQueue(
+    ElementEnvironment elementEnvironment,
+    Enqueuer enqueuer,
+    FunctionEntity? mainMethod, {
+    void Function(Enqueuer enqueuer)? onProgress,
+  }) {
     selfTask.measureSubtask("processQueue", () {
       enqueuer.open(
-          mainMethod,
-          elementEnvironment.libraries
-              .map((LibraryEntity library) => library.canonicalUri));
+        mainMethod,
+        elementEnvironment.libraries.map(
+          (LibraryEntity library) => library.canonicalUri,
+        ),
+      );
       progress.startPhase();
       emptyQueue(enqueuer, onProgress: onProgress);
       enqueuer.queueIsClosed = true;
       enqueuer.close();
-      assert(compilationFailed ||
-          enqueuer.checkNoEnqueuedInvokedInstanceMethods(elementEnvironment));
+      assert(
+        compilationFailed ||
+            enqueuer.checkNoEnqueuedInvokedInstanceMethods(elementEnvironment),
+      );
     });
   }
 
@@ -788,19 +922,30 @@ class Compiler {
   }
 
   void showResolutionProgress(Enqueuer enqueuer) {
-    assert(_resolutionStatus == _ResolutionStatus.resolving,
-        'Unexpected phase: $_resolutionStatus');
+    assert(
+      _resolutionStatus == _ResolutionStatus.resolving,
+      'Unexpected phase: $_resolutionStatus',
+    );
     progress.showProgress(
-        'Resolved ', enqueuer.processedEntities.length, ' elements.');
+      'Resolved ',
+      enqueuer.processedEntities.length,
+      ' elements.',
+    );
   }
 
   void showCodegenProgress(Enqueuer enqueuer) {
     progress.showProgress(
-        'Compiled ', enqueuer.processedEntities.length, ' methods.');
+      'Compiled ',
+      enqueuer.processedEntities.length,
+      ' methods.',
+    );
   }
 
-  void reportDiagnostic(DiagnosticMessage message,
-      List<DiagnosticMessage> infos, api.Diagnostic kind) {
+  void reportDiagnostic(
+    DiagnosticMessage message,
+    List<DiagnosticMessage> infos,
+    api.Diagnostic kind,
+  ) {
     _reportDiagnosticMessage(message, kind);
     for (DiagnosticMessage info in infos) {
       _reportDiagnosticMessage(info, api.Diagnostic.context);
@@ -808,7 +953,9 @@ class Compiler {
   }
 
   void _reportDiagnosticMessage(
-      DiagnosticMessage diagnosticMessage, api.Diagnostic kind) {
+    DiagnosticMessage diagnosticMessage,
+    api.Diagnostic kind,
+  ) {
     var span = diagnosticMessage.sourceSpan;
     var message = diagnosticMessage.message;
     // If the message came from the CFE use the message code as the text
@@ -821,12 +968,24 @@ class Compiler {
       callUserHandler(message, null, null, null, messageText, kind);
     } else {
       callUserHandler(
-          message, span.uri, span.begin, span.end, messageText, kind);
+        message,
+        span.uri,
+        span.begin,
+        span.end,
+        messageText,
+        kind,
+      );
     }
   }
 
-  void callUserHandler(Message? message, Uri? uri, int? begin, int? end,
-      String text, api.Diagnostic kind) {
+  void callUserHandler(
+    Message? message,
+    Uri? uri,
+    int? begin,
+    int? end,
+    String text,
+    api.Diagnostic kind,
+  ) {
     try {
       userHandlerTask.measure(() {
         handler.report(message, uri, begin, end, text, kind);
@@ -838,10 +997,13 @@ class Compiler {
   }
 
   Future<api.Input<Uint8List>> callUserProvider(
-      Uri uri, api.InputKind inputKind) {
+    Uri uri,
+    api.InputKind inputKind,
+  ) {
     try {
-      return userProviderTask
-          .measureIo(() => provider.readFromUri(uri, inputKind: inputKind));
+      return userProviderTask.measureIo(
+        () => provider.readFromUri(uri, inputKind: inputKind),
+      );
     } catch (ex, s) {
       reportCrashInUserCode('Uncaught exception in input provider', ex, s);
       rethrow;
@@ -849,15 +1011,18 @@ class Compiler {
   }
 
   void reportCrashInUserCode(
-      String message, Object exception, StackTrace stackTrace) {
+    String message,
+    Object exception,
+    StackTrace stackTrace,
+  ) {
     reporter.onCrashInUserCode(message, exception, stackTrace);
   }
 
   /// Messages for which compile-time errors are reported but compilation
   /// continues regardless.
-  static const List<MessageKind> BENIGN_ERRORS = <MessageKind>[
-    MessageKind.INVALID_METADATA,
-    MessageKind.INVALID_METADATA_GENERIC,
+  static const List<MessageKind> benignErrors = <MessageKind>[
+    MessageKind.invalidMetadata,
+    MessageKind.invalidMetadataGeneric,
   ];
 
   bool markCompilationAsFailed(DiagnosticMessage message, api.Diagnostic kind) {
@@ -868,11 +1033,14 @@ class Compiler {
     if (reporter.options.fatalWarnings) {
       return true;
     }
-    return !BENIGN_ERRORS.contains(message.message.kind);
+    return !benignErrors.contains(message.message.kind);
   }
 
-  void fatalDiagnosticReported(DiagnosticMessage message,
-      List<DiagnosticMessage> infos, api.Diagnostic kind) {
+  void fatalDiagnosticReported(
+    DiagnosticMessage message,
+    List<DiagnosticMessage> infos,
+    api.Diagnostic kind,
+  ) {
     if (markCompilationAsFailed(message, kind)) {
       compilationFailed = true;
     }
@@ -930,11 +1098,17 @@ class Compiler {
 
   void logVerbose(String message) {
     callUserHandler(
-        null, null, null, null, message, api.Diagnostic.verboseInfo);
+      null,
+      null,
+      null,
+      null,
+      message,
+      api.Diagnostic.verboseInfo,
+    );
   }
 
   String _formatMs(int ms) {
-    return (ms / 1000).toStringAsFixed(3) + 's';
+    return '${(ms / 1000).toStringAsFixed(3)}s';
   }
 
   void computeTimings(Duration setupDuration, StringBuffer timings) {
@@ -949,13 +1123,23 @@ class Compiler {
       if (duration != Duration.zero) {
         cumulatedDuration += duration;
         var milliseconds = duration.inMilliseconds;
-        timingData.add(_TimingData('   $running${task.name}:', milliseconds,
-            milliseconds * 100 / totalDuration.inMilliseconds));
+        timingData.add(
+          _TimingData(
+            '   $running${task.name}:',
+            milliseconds,
+            milliseconds * 100 / totalDuration.inMilliseconds,
+          ),
+        );
         for (String subtask in task.subtasks) {
           var subtime = task.getSubtaskTime(subtask);
           var running = task.getSubtaskIsRunning(subtask) ? "*" : " ";
-          timingData.add(_TimingData('   $running${task.name} > $subtask:',
-              subtime, subtime * 100 / totalDuration.inMilliseconds));
+          timingData.add(
+            _TimingData(
+              '   $running${task.name} > $subtask:',
+              subtime,
+              subtime * 100 / totalDuration.inMilliseconds,
+            ),
+          );
         }
       }
     }
@@ -967,19 +1151,22 @@ class Compiler {
       var padding =
           " " * (longestDescription + 10 - data.description.length - ms.length);
       var percentPadding = data.percent < 10 ? " " : "";
-      timings.writeln('${data.description}$padding $ms '
-          '$percentPadding(${data.percent.toStringAsFixed(1)}%)');
+      timings.writeln(
+        '${data.description}$padding $ms '
+        '$percentPadding(${data.percent.toStringAsFixed(1)}%)',
+      );
     }
     var unaccountedDuration =
         totalDuration - cumulatedDuration - setupDuration - asyncDuration;
     var percent =
         unaccountedDuration.inMilliseconds * 100 / totalDuration.inMilliseconds;
     timings.write(
-        '    Total compile-time ${_formatMs(totalDuration.inMilliseconds)};'
-        ' setup ${_formatMs(setupDuration.inMilliseconds)};'
-        ' async ${_formatMs(asyncDuration.inMilliseconds)};'
-        ' unaccounted ${_formatMs(unaccountedDuration.inMilliseconds)}'
-        ' (${percent.toStringAsFixed(2)}%)');
+      '    Total compile-time ${_formatMs(totalDuration.inMilliseconds)};'
+      ' setup ${_formatMs(setupDuration.inMilliseconds)};'
+      ' async ${_formatMs(asyncDuration.inMilliseconds)};'
+      ' unaccounted ${_formatMs(unaccountedDuration.inMilliseconds)}'
+      ' (${percent.toStringAsFixed(2)}%)',
+    );
   }
 
   void collectMetrics(StringBuffer buffer) {
@@ -988,12 +1175,13 @@ class Compiler {
       var metrics = task.metrics;
       var namespace = metrics.namespace;
       if (namespace == '') {
-        namespace =
-            task.name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+        namespace = task.name.toLowerCase().replaceAll(
+          RegExp(r'[^a-z0-9]+'),
+          '_',
+        );
       }
       void report(Metric metric) {
-        buffer
-            .writeln('  ${namespace}.${metric.name}: ${metric.formatValue()}');
+        buffer.writeln('  $namespace.${metric.name}: ${metric.formatValue()}');
       }
 
       for (final metric in metrics.primary) {
@@ -1013,11 +1201,14 @@ class _CompilerOutput implements api.CompilerOutput {
   final api.CompilerOutput _userOutput;
 
   _CompilerOutput(this._compiler, api.CompilerOutput? output)
-      : this._userOutput = output ?? const NullCompilerOutput();
+    : _userOutput = output ?? const NullCompilerOutput();
 
   @override
   api.OutputSink createOutputSink(
-      String name, String extension, api.OutputType type) {
+    String name,
+    String extension,
+    api.OutputType type,
+  ) {
     if (_compiler.compilationFailed) {
       // Ensure that we don't emit output when the compilation has failed.
       return const NullCompilerOutput().createOutputSink(name, extension, type);
@@ -1092,14 +1283,15 @@ class InteractiveProgress implements Progress {
     if (_stopwatchInterval.elapsedMilliseconds > 500) {
       var time = _stopwatchPhase.elapsedMilliseconds / 1000;
       var rate = count / _stopwatchPhase.elapsedMilliseconds;
-      var s = StringBuffer('\x1b[1A\x1b[K') // go up and clear the line.
-        ..write('\x1b[48;5;40m\x1b[30m==>\x1b[0m $prefix')
-        ..write(count)
-        ..write('$suffix Elapsed time: ')
-        ..write(time.toStringAsFixed(2))
-        ..write(' s. Rate: ')
-        ..write(rate.toStringAsFixed(2))
-        ..write(' units/ms');
+      var s =
+          StringBuffer('\x1b[1A\x1b[K') // go up and clear the line.
+            ..write('\x1b[48;5;40m\x1b[30m==>\x1b[0m $prefix')
+            ..write(count)
+            ..write('$suffix Elapsed time: ')
+            ..write(time.toStringAsFixed(2))
+            ..write(' s. Rate: ')
+            ..write(rate.toStringAsFixed(2))
+            ..write(' units/ms');
       print('$s');
       _stopwatchInterval.reset();
     }

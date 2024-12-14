@@ -6,8 +6,7 @@
 foo() {
   var a = [1, 2, 3];
   return a
-      . /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 3)*/
-      first;
+      . /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 3)*/ first;
 }
 
 /*member: main:[null]*/

@@ -16,7 +16,7 @@ const MEMORY_SOURCE_FILES = const {
           print(0xffffffff00000000);
           print(double.maxFinite);
           print(-22230000);
-        }'''
+        }''',
 };
 
 Future test({required bool minify}) async {
@@ -26,9 +26,10 @@ Future test({required bool minify}) async {
     options.add(Flags.minify);
   }
   await runCompiler(
-      memorySourceFiles: MEMORY_SOURCE_FILES,
-      outputProvider: collector,
-      options: options);
+    memorySourceFiles: MEMORY_SOURCE_FILES,
+    outputProvider: collector,
+    options: options,
+  );
 
   // Check that we use the shorter exponential representations.
   String jsOutput = collector.getOutput('', api.OutputType.js)!;

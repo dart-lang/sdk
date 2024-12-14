@@ -112,24 +112,48 @@ main() {
 
 main() {
   asyncTest(() async {
-    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      RegExp regexp = RegExp(r"1 \+ [a-z]+");
-      checkNumberOfMatches(regexp.allMatches(generated).iterator, 1);
-    });
-    await compile(TEST_TWO, entry: 'foo', check: (String generated) {
-      checkNumberOfMatches(RegExp("length").allMatches(generated).iterator, 1);
-    });
-    await compile(TEST_THREE, entry: 'foo', check: (String generated) {
-      checkNumberOfMatches(RegExp("number").allMatches(generated).iterator, 1);
-    });
-    await compile(TEST_FOUR, entry: 'foo', check: (String generated) {
-      checkNumberOfMatches(RegExp("shr").allMatches(generated).iterator, 1);
-    });
+    await compile(
+      TEST_ONE,
+      entry: 'foo',
+      check: (String generated) {
+        RegExp regexp = RegExp(r"1 \+ [a-z]+");
+        checkNumberOfMatches(regexp.allMatches(generated).iterator, 1);
+      },
+    );
+    await compile(
+      TEST_TWO,
+      entry: 'foo',
+      check: (String generated) {
+        checkNumberOfMatches(
+          RegExp("length").allMatches(generated).iterator,
+          1,
+        );
+      },
+    );
+    await compile(
+      TEST_THREE,
+      entry: 'foo',
+      check: (String generated) {
+        checkNumberOfMatches(
+          RegExp("number").allMatches(generated).iterator,
+          1,
+        );
+      },
+    );
+    await compile(
+      TEST_FOUR,
+      entry: 'foo',
+      check: (String generated) {
+        checkNumberOfMatches(RegExp("shr").allMatches(generated).iterator, 1);
+      },
+    );
 
     await compileAll(TEST_FIVE).then((generated) {
       checkNumberOfMatches(RegExp(r"\.foo;").allMatches(generated).iterator, 1);
       checkNumberOfMatches(
-          RegExp(r"get\$foo\(").allMatches(generated).iterator, 0);
+        RegExp(r"get\$foo\(").allMatches(generated).iterator,
+        0,
+      );
     });
     await compileAll(TEST_SIX).then((generated) {
       Expect.isTrue(generated.contains('for (t1 = a.field === 54; t1;)'));

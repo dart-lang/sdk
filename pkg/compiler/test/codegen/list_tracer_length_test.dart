@@ -89,15 +89,22 @@ main() {
 }
 """;
 
-checkRangeError(String test,
-    {required bool hasRangeError, String? methodName}) async {
-  String generated =
-      await compile(test, methodName: methodName, disableTypeInference: false);
+checkRangeError(
+  String test, {
+  required bool hasRangeError,
+  String? methodName,
+}) async {
+  String generated = await compile(
+    test,
+    methodName: methodName,
+    disableTypeInference: false,
+  );
   Expect.equals(
-      hasRangeError,
-      generated.contains('ioore'),
-      "Unexpected use of 'hasRangeError' for test:\n$test\n"
-      "in code\n$generated");
+    hasRangeError,
+    generated.contains('ioore'),
+    "Unexpected use of 'hasRangeError' for test:\n$test\n"
+    "in code\n$generated",
+  );
 }
 
 main() {

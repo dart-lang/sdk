@@ -27,11 +27,12 @@ void jsEquals(expected, actual, [String reason = ""]) {
 
   if (expected == 0 && actual == 0) {
     Expect.equals(
-        expected.isNegative,
-        actual.isNegative,
-        (reason == null ? "" : "$reason ") +
-            "${expected.toString()} and "
-                "${actual.toString()} have different signs.");
+      expected.isNegative,
+      actual.isNegative,
+      (reason == null ? "" : "$reason ") +
+          "${expected.toString()} and "
+              "${actual.toString()} have different signs.",
+    );
   }
 }
 
@@ -45,10 +46,16 @@ abstract class TestOp {
   /*member: TestOp.checkAll:access=[arg,expected,result],calls=[jsEquals(3),jsEquals(3),jsEquals(3)],params=1*/
   @pragma('dart2js:noInline')
   checkAll(evalResult) {
-    jsEquals(expected, result,
-        "Frontend constant evaluation does not yield expected value.");
-    jsEquals(expected, evalResult,
-        "Backend constant evaluation does not yield expected value.");
+    jsEquals(
+      expected,
+      result,
+      "Frontend constant evaluation does not yield expected value.",
+    );
+    jsEquals(
+      expected,
+      evalResult,
+      "Backend constant evaluation does not yield expected value.",
+    );
     jsEquals(expected, eval(), "eval() does not yield expected value.");
   }
 

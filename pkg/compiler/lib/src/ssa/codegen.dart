@@ -4,6 +4,7 @@
 
 import 'dart:collection' show Queue;
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../common.dart';
@@ -11,7 +12,7 @@ import '../common/elements.dart' show JCommonElements;
 import '../common/metrics.dart';
 import '../common/names.dart';
 import '../common/codegen.dart' show CodegenRegistry;
-import '../common/tasks.dart' show Measurer, CompilerTask;
+import '../common/tasks.dart' show CompilerTask;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../elements/entities.dart';
@@ -54,11 +55,14 @@ mixin CodegenPhase {
 class SsaCodeGeneratorTask extends CompilerTask {
   final CompilerOptions _options;
   final SourceInformationStrategy sourceInformationStrategy;
-  _CodegenMetrics? _codegenMetrics;
-  _CodegenMetrics get codegenMetrics => _codegenMetrics ??= _CodegenMetrics();
+  CodegenMetrics? _codegenMetrics;
+  CodegenMetrics get codegenMetrics => _codegenMetrics ??= CodegenMetrics();
 
   SsaCodeGeneratorTask(
-      Measurer super.measurer, this._options, this.sourceInformationStrategy);
+    super.measurer,
+    this._options,
+    this.sourceInformationStrategy,
+  );
 
   @override
   String get name => 'SSA code generator';
@@ -66,43 +70,70 @@ class SsaCodeGeneratorTask extends CompilerTask {
   @override
   Metrics get metrics => _codegenMetrics ?? Metrics.none();
 
-  js.Fun buildJavaScriptFunction(bool needsAsyncRewrite, FunctionEntity element,
-      List<js.Parameter> parameters, js.Block body) {
+  js.Fun buildJavaScriptFunction(
+    bool needsAsyncRewrite,
+    FunctionEntity element,
+    List<js.Parameter> parameters,
+    js.Block body,
+  ) {
     js.Fun finish(js.AsyncModifier asyncModifier) {
-      return js.Fun(parameters, body, asyncModifier: asyncModifier)
-          .withSourceInformation(sourceInformationStrategy
-              .createBuilderForContext(element)
-              .buildDeclaration(element)) as js.Fun;
+      return js.Fun(
+            parameters,
+            body,
+            asyncModifier: asyncModifier,
+          ).withSourceInformation(
+            sourceInformationStrategy
+                .createBuilderForContext(element)
+                .buildDeclaration(element),
+          )
+          as js.Fun;
     }
 
     if (needsAsyncRewrite) {
-      return finish(element.asyncMarker.isAsync
-          ? (element.asyncMarker.isYielding
-              ? js.AsyncModifier.asyncStar
-              : js.AsyncModifier.async)
-          : (element.asyncMarker.isYielding
-              ? js.AsyncModifier.syncStar
-              : js.AsyncModifier.sync));
+      return finish(
+        element.asyncMarker.isAsync
+            ? (element.asyncMarker.isYielding
+                ? js.AsyncModifier.asyncStar
+                : js.AsyncModifier.async)
+            : (element.asyncMarker.isYielding
+                ? js.AsyncModifier.syncStar
+                : js.AsyncModifier.sync),
+      );
     } else {
       return finish(js.AsyncModifier.sync);
     }
   }
 
   js.Expression generateCode(
-      MemberEntity member,
-      HGraph graph,
-      CodegenInputs codegen,
-      JClosedWorld closedWorld,
-      CodegenRegistry registry,
-      ModularNamer namer,
-      ModularEmitter emitter) {
+    MemberEntity member,
+    HGraph graph,
+    CodegenInputs codegen,
+    JClosedWorld closedWorld,
+    CodegenRegistry registry,
+    ModularNamer namer,
+    ModularEmitter emitter,
+  ) {
     js.Expression code;
     if (member is FieldEntity) {
       code = generateLazyInitializer(
-          member, graph, codegen, closedWorld, registry, namer, emitter);
+        member,
+        graph,
+        codegen,
+        closedWorld,
+        registry,
+        namer,
+        emitter,
+      );
     } else if (member is FunctionEntity) {
       code = generateMethod(
-          member, graph, codegen, closedWorld, registry, namer, emitter);
+        member,
+        graph,
+        codegen,
+        closedWorld,
+        registry,
+        namer,
+        emitter,
+      );
     } else {
       failedAt(member, 'Cannot generate JavaScript for $member');
     }
@@ -111,67 +142,77 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 
   js.Expression generateLazyInitializer(
-      FieldEntity field,
-      HGraph graph,
-      CodegenInputs codegen,
-      JClosedWorld closedWorld,
-      CodegenRegistry registry,
-      ModularNamer namer,
-      ModularEmitter emitter) {
+    FieldEntity field,
+    HGraph graph,
+    CodegenInputs codegen,
+    JClosedWorld closedWorld,
+    CodegenRegistry registry,
+    ModularNamer namer,
+    ModularEmitter emitter,
+  ) {
     return measure(() {
       SourceInformation? sourceInformation = sourceInformationStrategy
           .createBuilderForContext(field)
           .buildDeclaration(field);
       SsaCodeGenerator codeGenerator = SsaCodeGenerator(
-          this,
-          _options,
-          codegenMetrics,
-          emitter,
-          codegen.rtiSubstitutions,
-          codegen.rtiRecipeEncoder,
-          namer,
-          codegen.tracer,
-          closedWorld,
-          registry);
+        this,
+        _options,
+        codegenMetrics,
+        emitter,
+        codegen.rtiSubstitutions,
+        codegen.rtiRecipeEncoder,
+        namer,
+        codegen.tracer,
+        closedWorld,
+        registry,
+      );
       codeGenerator.visitGraph(graph);
       codegen.tracer.traceGraph("codegen", graph);
-      return js.Fun(codeGenerator.parameters, codeGenerator.body)
-          .withSourceInformation(sourceInformation);
+      return js.Fun(
+        codeGenerator.parameters,
+        codeGenerator.body,
+      ).withSourceInformation(sourceInformation);
     });
   }
 
   js.Expression generateMethod(
-      FunctionEntity method,
-      HGraph graph,
-      CodegenInputs codegen,
-      JClosedWorld closedWorld,
-      CodegenRegistry registry,
-      ModularNamer namer,
-      ModularEmitter emitter) {
+    FunctionEntity method,
+    HGraph graph,
+    CodegenInputs codegen,
+    JClosedWorld closedWorld,
+    CodegenRegistry registry,
+    ModularNamer namer,
+    ModularEmitter emitter,
+  ) {
     return measure(() {
-      if (method.asyncMarker != AsyncMarker.SYNC) {
+      if (method.asyncMarker != AsyncMarker.sync) {
         registry.registerAsyncMarker(method.asyncMarker);
       }
       SsaCodeGenerator codeGenerator = SsaCodeGenerator(
-          this,
-          _options,
-          codegenMetrics,
-          emitter,
-          codegen.rtiSubstitutions,
-          codegen.rtiRecipeEncoder,
-          namer,
-          codegen.tracer,
-          closedWorld,
-          registry);
+        this,
+        _options,
+        codegenMetrics,
+        emitter,
+        codegen.rtiSubstitutions,
+        codegen.rtiRecipeEncoder,
+        namer,
+        codegen.tracer,
+        closedWorld,
+        registry,
+      );
       codeGenerator.visitGraph(graph);
       codegen.tracer.traceGraph("codegen", graph);
-      return buildJavaScriptFunction(graph.needsAsyncRewrite, method,
-          codeGenerator.parameters, codeGenerator.body);
+      return buildJavaScriptFunction(
+        graph.needsAsyncRewrite,
+        method,
+        codeGenerator.parameters,
+        codeGenerator.body,
+      );
     });
   }
 }
 
-class _CodegenMetrics extends MetricsBase {
+class CodegenMetrics extends MetricsBase {
   int countHIf = 0;
   int countHIfConstant = 0;
   int countHIsTest = 0;
@@ -184,10 +225,11 @@ class _CodegenMetrics extends MetricsBase {
   final countHInterceptor = CountMetric('count.HInterceptor');
   final countHInterceptorGet = CountMetric('count.HInterceptor.getInterceptor');
   final countHInterceptorOneshot = CountMetric('count.HInterceptor.oneShot');
-  final countHInterceptorConditionalConstant =
-      CountMetric('count.HInterceptor.conditionalConstant');
+  final countHInterceptorConditionalConstant = CountMetric(
+    'count.HInterceptor.conditionalConstant',
+  );
 
-  _CodegenMetrics();
+  CodegenMetrics();
 
   @override
   String get namespace => 'codegen';
@@ -197,21 +239,21 @@ class _CodegenMetrics extends MetricsBase {
 
   @override
   Iterable<Metric> get secondary => [
-        CountMetric('count.HIf')..add(countHIf),
-        CountMetric('count.HIf.constant')..add(countHIfConstant),
-        CountMetric('count.HIsTest')..add(countHIsTest),
-        CountMetric('count.HIsTestSimple')..add(countHIsTestSimple),
-        CountMetric('count.HIsLateSentinel')..add(countHIsLateSentinel),
-        CountMetric('count.HGetLength')..add(countHGetLength),
-        CountMetric('count.HIndex')..add(countHIndex),
-        CountMetric('count.HFieldGet')..add(countHFieldGet),
-        CountMetric('count.SingleTargetInstance')
-          ..add(countSingleTargetInstanceCalls),
-        countHInterceptor,
-        countHInterceptorGet,
-        countHInterceptorConditionalConstant,
-        countHInterceptorOneshot
-      ];
+    CountMetric('count.HIf')..add(countHIf),
+    CountMetric('count.HIf.constant')..add(countHIfConstant),
+    CountMetric('count.HIsTest')..add(countHIsTest),
+    CountMetric('count.HIsTestSimple')..add(countHIsTestSimple),
+    CountMetric('count.HIsLateSentinel')..add(countHIsLateSentinel),
+    CountMetric('count.HGetLength')..add(countHGetLength),
+    CountMetric('count.HIndex')..add(countHIndex),
+    CountMetric('count.HFieldGet')..add(countHFieldGet),
+    CountMetric('count.SingleTargetInstance')
+      ..add(countSingleTargetInstanceCalls),
+    countHInterceptor,
+    countHInterceptorGet,
+    countHInterceptorConditionalConstant,
+    countHInterceptorOneshot,
+  ];
 }
 
 /// Returned by [_expressionType] to tell how code can be generated for
@@ -245,7 +287,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   final Tracer _tracer;
   final JClosedWorld _closedWorld;
   final CodegenRegistry _registry;
-  final _CodegenMetrics _metrics;
+  final CodegenMetrics _metrics;
 
   final Set<HInstruction> generateAtUseSite = {};
   final Set<HIf> controlFlowOperators = {};
@@ -295,16 +337,17 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   Queue<HBasicBlock>? blockQueue;
 
   SsaCodeGenerator(
-      this._codegenTask,
-      this._options,
-      this._metrics,
-      this._emitter,
-      this._rtiSubstitutions,
-      this._rtiRecipeEncoder,
-      this._namer,
-      this._tracer,
-      this._closedWorld,
-      this._registry);
+    this._codegenTask,
+    this._options,
+    this._metrics,
+    this._emitter,
+    this._rtiSubstitutions,
+    this._rtiRecipeEncoder,
+    this._namer,
+    this._tracer,
+    this._closedWorld,
+    this._registry,
+  );
 
   JCommonElements get _commonElements => _closedWorld.commonElements;
 
@@ -333,9 +376,14 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   /// If the [instruction] is not `null` it will be used to attach the position
   /// to the [expression].
   void pushExpressionAsStatement(
-      js.Expression expression, SourceInformation? sourceInformation) {
-    pushStatement(js.ExpressionStatement(expression)
-        .withSourceInformation(sourceInformation));
+    js.Expression expression,
+    SourceInformation? sourceInformation,
+  ) {
+    pushStatement(
+      js.ExpressionStatement(
+        expression,
+      ).withSourceInformation(sourceInformation),
+    );
   }
 
   /// If the [instruction] is not `null` it will be used to attach the position
@@ -369,14 +417,17 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     runPhase(SsaPhiConditioning(generateAtUseSite, controlFlowOperators));
     runPhase(SsaShareRegionConstants());
 
-    SsaLiveIntervalBuilder intervalBuilder =
-        SsaLiveIntervalBuilder(generateAtUseSite, controlFlowOperators);
+    SsaLiveIntervalBuilder intervalBuilder = SsaLiveIntervalBuilder(
+      generateAtUseSite,
+      controlFlowOperators,
+    );
     runPhase(intervalBuilder, traceGraph: false);
     SsaVariableAllocator allocator = SsaVariableAllocator(
-        _namer,
-        intervalBuilder.liveInstructions,
-        intervalBuilder.liveIntervals,
-        generateAtUseSite);
+      _namer,
+      intervalBuilder.liveInstructions,
+      intervalBuilder.liveIntervals,
+      generateAtUseSite,
+    );
     runPhase(allocator, traceGraph: false);
     variableNames = allocator.names;
     shouldGroupVarDeclarations = allocator.names.numberOfVariables > 1;
@@ -404,8 +455,10 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
             if (_safeInInitializer(value) &&
                 collectedVariableDeclarations.remove(name)) {
               var initialization = js.VariableInitialization(
-                  js.VariableDeclaration(name), value,
-                  sourceInformation: expression.sourceInformation);
+                js.VariableDeclaration(name),
+                value,
+                sourceInformation: expression.sourceInformation,
+              );
               declarations.add(initialization);
               ++nextStatement;
               continue;
@@ -418,14 +471,16 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
     List<js.VariableInitialization> uninitialized = [];
     for (String name in collectedVariableDeclarations) {
-      uninitialized
-          .add(js.VariableInitialization(js.VariableDeclaration(name), null));
+      uninitialized.add(
+        js.VariableInitialization(js.VariableDeclaration(name), null),
+      );
     }
-    var declarationList =
-        js.VariableDeclarationList(uninitialized + declarations)
-            .withSourceInformation(sourceInformation);
-    statements.replaceRange(
-        0, nextStatement, [js.ExpressionStatement(declarationList)]);
+    var declarationList = js.VariableDeclarationList(
+      uninitialized + declarations,
+    ).withSourceInformation(sourceInformation);
+    statements.replaceRange(0, nextStatement, [
+      js.ExpressionStatement(declarationList),
+    ]);
   }
 
   // An expression is safe to be pulled into a 'var' initializer if it does not
@@ -523,7 +578,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
     SubExpression? limits = info.subExpression;
     return !identical(
-            _expressionType(info), _ExpressionCodegenType.statement) &&
+          _expressionType(info),
+          _ExpressionCodegenType.statement,
+        ) &&
         (limits!.end.last is HConditionalBranch);
   }
 
@@ -537,7 +594,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     } else if (block is HSubExpressionBlockInformation) {
       visitSubGraph(block.subExpression);
     } else {
-      failedAt(CURRENT_ELEMENT_SPANNABLE, 'Unexpected block: $block');
+      failedAt(currentElementSpannable, 'Unexpected block: $block');
     }
   }
 
@@ -593,9 +650,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     }
   }
 
-  /// Only visits the arguments starting at inputs[HInvoke.ARGUMENTS_OFFSET].
-  List<js.Expression> visitArguments(List<HInstruction> inputs,
-      {int start = HInvoke.ARGUMENTS_OFFSET}) {
+  /// Only visits the arguments starting at inputs[HInvoke.argumentsOffset].
+  List<js.Expression> visitArguments(
+    List<HInstruction> inputs, {
+    int start = HInvoke.argumentsOffset,
+  }) {
     assert(inputs.length >= start);
     return List.generate(inputs.length - start, (i) {
       use(inputs[i + start]);
@@ -608,8 +667,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         collectedVariableDeclarations.contains(variableName);
   }
 
-  js.Expression generateExpressionAssignment(String variableName,
-      js.Expression value, SourceInformation? sourceInformation) {
+  js.Expression generateExpressionAssignment(
+    String variableName,
+    js.Expression value,
+    SourceInformation? sourceInformation,
+  ) {
     // TODO(johnniwinther): Introduce a DeferredVariableUse to handle this
     // in the SSA codegen or let the JS printer handle it fully and remove it
     // here.
@@ -638,12 +700,17 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         }
       }
     }
-    return js.Assignment(js.VariableUse(variableName), value)
-        .withSourceInformation(value.sourceInformation ?? sourceInformation);
+    return js.Assignment(
+      js.VariableUse(variableName),
+      value,
+    ).withSourceInformation(value.sourceInformation ?? sourceInformation);
   }
 
-  void assignVariable(String variableName, js.Expression value,
-      SourceInformation? sourceInformation) {
+  void assignVariable(
+    String variableName,
+    js.Expression value,
+    SourceInformation? sourceInformation,
+  ) {
     if (isGeneratingExpression) {
       // If we are in an expression then we can't declare the variable here.
       // We have no choice, but to use it and then declare it separately.
@@ -651,7 +718,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         collectedVariableDeclarations.add(variableName);
       }
       push(
-          generateExpressionAssignment(variableName, value, sourceInformation));
+        generateExpressionAssignment(variableName, value, sourceInformation),
+      );
       // Otherwise if we are trying to declare inline and we are in a statement
       // then we declare (unless it was already declared).
     } else if (!shouldGroupVarDeclarations &&
@@ -660,11 +728,15 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       collectedVariableDeclarations.remove(variableName);
       declaredLocals.add(variableName);
       js.VariableDeclaration decl = js.VariableDeclaration(variableName);
-      js.VariableInitialization initialization =
-          js.VariableInitialization(decl, value);
+      js.VariableInitialization initialization = js.VariableInitialization(
+        decl,
+        value,
+      );
 
       pushExpressionAsStatement(
-          js.VariableDeclarationList([initialization]), sourceInformation);
+        js.VariableDeclarationList([initialization]),
+        sourceInformation,
+      );
     } else {
       // Otherwise we are just going to use it.  If we have not already declared
       // it then we make sure we will declare it later.
@@ -672,8 +744,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         collectedVariableDeclarations.add(variableName);
       }
       pushExpressionAsStatement(
-          generateExpressionAssignment(variableName, value, sourceInformation),
-          sourceInformation);
+        generateExpressionAssignment(variableName, value, sourceInformation),
+        sourceInformation,
+      );
     }
   }
 
@@ -704,8 +777,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         !instruction.isControlFlow() &&
         variableNames.hasName(instruction)) {
       visitExpression(instruction);
-      assignVariable(variableNames.getName(instruction)!, pop(),
-          instruction.sourceInformation);
+      assignVariable(
+        variableNames.getName(instruction)!,
+        pop(),
+        instruction.sourceInformation,
+      );
       return;
     }
 
@@ -763,7 +839,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   void visitStatement(HInstruction node) {
     assert(!isGeneratingExpression);
     visit(node);
-    if (!expressionStack.isEmpty) {
+    if (expressionStack.isNotEmpty) {
       assert(expressionStack.length == 1);
       js.Expression expression = pop();
       pushExpressionAsStatement(expression, node.sourceInformation);
@@ -783,7 +859,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   }
 
   js.Statement wrapIntoLabels(
-      js.Statement result, List<LabelDefinition> labels) {
+    js.Statement result,
+    List<LabelDefinition> labels,
+  ) {
     for (LabelDefinition label in labels) {
       if (label.isTarget) {
         String breakLabelString = _namer.breakLabelName(label);
@@ -817,9 +895,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     List<HBasicBlock> successors = switchInstruction.block!.successors;
 
     js.Block oldContainer = currentContainer;
-    for (int inputIndex = 1, statementIndex = 0;
-        inputIndex < inputs.length;
-        statementIndex++) {
+    for (
+      int inputIndex = 1, statementIndex = 0;
+      inputIndex < inputs.length;
+      statementIndex++
+    ) {
       HBasicBlock successor = successors[inputIndex - 1];
       // If liveness analysis has figured out that this case is dead,
       // omit the code for it.
@@ -835,7 +915,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
             // Add `case void 0:` to catch `undefined`.
             currentContainer = js.Block.empty();
             cases.add(
-                js.Case(js.Prefix('void', js.number(0)), currentContainer));
+              js.Case(js.Prefix('void', js.number(0)), currentContainer),
+            );
           }
           inputIndex++;
         } while ((successors[inputIndex - 1] == successor) &&
@@ -872,8 +953,10 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
     currentContainer = oldContainer;
 
-    js.Statement result =
-        js.Switch(key, cases).withSourceInformation(info.sourceInformation);
+    js.Statement result = js.Switch(
+      key,
+      cases,
+    ).withSourceInformation(info.sourceInformation);
     pushStatement(wrapIntoLabels(result, info.labels));
     return true;
   }
@@ -897,13 +980,13 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   @override
   bool visitTryInfo(HTryBlockInformation info) {
     js.Block body = generateStatementsInNewBlock(info.body);
-    js.Catch? catchPart = null;
-    js.Block? finallyPart = null;
+    js.Catch? catchPart;
+    js.Block? finallyPart;
     if (info.catchBlock != null) {
       void register(ClassEntity classElement) {
         _registry
-            // ignore:deprecated_member_use_from_same_package
-            .registerInstantiatedClass(classElement);
+        // ignore:deprecated_member_use_from_same_package
+        .registerInstantiatedClass(classElement);
       }
 
       register(_commonElements.jsPlainJavaScriptObjectClass);
@@ -962,7 +1045,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         js.Block avoidContainer = js.Block.empty();
         currentContainer = avoidContainer;
         assignPhisOfSuccessors(condition!.end.successors.last);
-        bool hasPhiUpdates = !avoidContainer.statements.isEmpty;
+        bool hasPhiUpdates = avoidContainer.statements.isNotEmpty;
         currentContainer = oldContainer;
 
         if (isConditionExpression &&
@@ -971,7 +1054,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
             isJSExpression(info.updates!)) {
           // If we have an updates graph, and it's expressible as an
           // expression, generate a for-loop.
-          js.Expression? jsInitialization = null;
+          js.Expression? jsInitialization;
           if (initialization != null) {
             int delayedVariablesCount = collectedVariableDeclarations.length;
             jsInitialization = generateExpression(initialization);
@@ -1008,7 +1091,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
                   final id = (assignment.leftHandSide as js.VariableUse).name;
                   final declaration = js.VariableDeclaration(id);
                   inits.add(
-                      js.VariableInitialization(declaration, assignment.value));
+                    js.VariableInitialization(declaration, assignment.value),
+                  );
                   collectedVariableDeclarations.remove(id);
                   declaredLocals.add(id);
                 }
@@ -1028,8 +1112,12 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
           visitBodyIgnoreLabels(info);
           currentContainer = oldContainer;
           loop = js.For(
-              jsInitialization, jsCondition, jsUpdates, unwrapStatement(body),
-              sourceInformation: info.sourceInformation);
+            jsInitialization,
+            jsCondition,
+            jsUpdates,
+            unwrapStatement(body),
+            sourceInformation: info.sourceInformation,
+          );
         } else {
           // We have either no update graph, or it's too complex to
           // put in an expression.
@@ -1065,8 +1153,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
             visitBodyIgnoreLabels(info);
           }
           currentContainer = oldContainer;
-          loop = js.While(jsCondition!, unwrapStatement(body),
-              sourceInformation: info.sourceInformation);
+          loop = js.While(
+            jsCondition!,
+            unwrapStatement(body),
+            sourceInformation: info.sourceInformation,
+          );
         }
         break;
       case LoopBlockInformationKind.doWhileLoop:
@@ -1079,7 +1170,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         js.Block exitAvoidContainer = js.Block.empty();
         currentContainer = exitAvoidContainer;
         assignPhisOfSuccessors(condition!.end.successors.last);
-        bool hasExitPhiUpdates = !exitAvoidContainer.statements.isEmpty;
+        bool hasExitPhiUpdates = exitAvoidContainer.statements.isNotEmpty;
         currentContainer = oldContainer;
 
         oldContainer = currentContainer;
@@ -1099,7 +1190,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         js.Block updateBody = js.Block.empty();
         currentContainer = updateBody;
         assignPhisOfSuccessors(avoidEdge);
-        bool hasPhiUpdates = !updateBody.statements.isEmpty;
+        bool hasPhiUpdates = updateBody.statements.isNotEmpty;
         currentContainer = body;
         visitBodyIgnoreLabels(info);
         if (info.updates != null) {
@@ -1117,9 +1208,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
           // If the condition is dead code, we turn the do-while into
           // a simpler while because we will never reach the condition
           // at the end of the loop anyway.
-          loop = js.While(newLiteralBool(true, info.sourceInformation),
-              unwrapStatement(body),
-              sourceInformation: info.sourceInformation);
+          loop = js.While(
+            newLiteralBool(true, info.sourceInformation),
+            unwrapStatement(body),
+            sourceInformation: info.sourceInformation,
+          );
         } else {
           if (hasPhiUpdates || hasExitPhiUpdates) {
             updateBody.statements.add(js.Continue(null));
@@ -1134,19 +1227,25 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
             body.statements.add(js.If(jsCondition, updateBody, exitLoop));
             jsCondition = newLiteralBool(true, info.sourceInformation);
           }
-          loop = js.Do(unwrapStatement(body), jsCondition,
-              sourceInformation: info.sourceInformation);
+          loop = js.Do(
+            unwrapStatement(body),
+            jsCondition,
+            sourceInformation: info.sourceInformation,
+          );
         }
         currentContainer = oldContainer;
         break;
       case LoopBlockInformationKind.notALoop:
-        failedAt(condition!.conditionExpression!,
-            'Unexpected loop kind: ${info.kind}.');
+        failedAt(
+          condition!.conditionExpression!,
+          'Unexpected loop kind: ${info.kind}.',
+        );
     }
     js.Statement result = loop;
     if (info.kind == LoopBlockInformationKind.switchContinueLoop) {
-      String continueLabelString =
-          _namer.implicitContinueLabelName(info.target!);
+      String continueLabelString = _namer.implicitContinueLabelName(
+        info.target!,
+      );
       result = js.LabeledStatement(continueLabelString, result);
     }
     pushStatement(wrapIntoLabels(result, info.labels));
@@ -1206,7 +1305,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     generateStatements(labeledBlockInfo.body);
 
     if (labeledBlockInfo.isContinue) {
-      while (!continueOverrides.isEmpty) {
+      while (continueOverrides.isNotEmpty) {
         continueAction.remove(continueOverrides.head);
         implicitContinueAction.remove(continueOverrides.head);
         continueOverrides = continueOverrides.tail!;
@@ -1304,22 +1403,31 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   }
 
   void emitAssignment(
-      String destination, String source, SourceInformation? sourceInformation) {
+    String destination,
+    String source,
+    SourceInformation? sourceInformation,
+  ) {
     assignVariable(destination, js.VariableUse(source), sourceInformation);
   }
 
   /// Sequentialize a list of conceptually parallel copies. Parallel
   /// copies may contain cycles, that this method breaks.
   void sequentializeCopies(
-      Iterable<Copy<HInstruction>> instructionCopies,
-      String tempName,
-      void doAssignment(
-          String target, String source, SourceInformation? sourceInformation)) {
+    Iterable<Copy<HInstruction>> instructionCopies,
+    String tempName,
+    void Function(
+      String target,
+      String source,
+      SourceInformation? sourceInformation,
+    )
+    doAssignment,
+  ) {
     Map<String, SourceInformation?> sourceInformationMap = {};
 
     // Map the instructions to strings.
-    Iterable<Copy<String>> copies =
-        instructionCopies.map((Copy<HInstruction> copy) {
+    Iterable<Copy<String>> copies = instructionCopies.map((
+      Copy<HInstruction> copy,
+    ) {
       String sourceName = variableNames.getName(copy.source)!;
       sourceInformationMap[sourceName] = copy.source.sourceInformation;
       String destinationName = variableNames.getName(copy.destination)!;
@@ -1367,15 +1475,18 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       }
     }
 
-    while (!worklist.isEmpty) {
-      while (!ready.isEmpty) {
+    while (worklist.isNotEmpty) {
+      while (ready.isNotEmpty) {
         String destination = ready.removeLast();
         String source = initialValue[destination]!;
         // Since [source] might have been updated, use the current
         // location of [source]
         String copy = currentLocation[source]!;
-        doAssignment(destination, copy,
-            sourceInformationMap[copy] ?? sourceInformationMap[destination]);
+        doAssignment(
+          destination,
+          copy,
+          sourceInformationMap[copy] ?? sourceInformationMap[destination],
+        );
         // Now [destination] is the current location of [source].
         currentLocation[source] = destination;
         // If [source] hasn't been updated and needs to have a value,
@@ -1407,13 +1518,19 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     if (handler == null) return;
 
     sequentializeCopies(
-        handler.copies, variableNames.getSwapTemp(), emitAssignment);
+      handler.copies,
+      variableNames.getSwapTemp(),
+      emitAssignment,
+    );
 
     for (Copy<HInstruction> copy in handler.assignments) {
       String name = variableNames.getName(copy.destination)!;
       use(copy.source);
-      assignVariable(name, pop(),
-          copy.source.sourceInformation ?? copy.destination.sourceInformation);
+      assignVariable(
+        name,
+        pop(),
+        copy.source.sourceInformation ?? copy.destination.sourceInformation,
+      );
     }
   }
 
@@ -1430,7 +1547,10 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   }
 
   void handleInvokeBinary(
-      HInvokeBinary node, String op, SourceInformation? sourceInformation) {
+    HInvokeBinary node,
+    String op,
+    SourceInformation? sourceInformation,
+  ) {
     use(node.left);
     js.Expression jsLeft = pop();
     use(node.right);
@@ -1453,8 +1573,13 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   // We want the outcome of bit-operations to be positive. We use the unsigned
   // shift operator to achieve this.
   void convertBitOpResultToUnsigned(HInstruction node) {
-    push(js.Binary(">>>", pop(), js.LiteralNumber("0"))
-        .withSourceInformation(node.sourceInformation));
+    push(
+      js.Binary(
+        ">>>",
+        pop(),
+        js.LiteralNumber("0"),
+      ).withSourceInformation(node.sourceInformation),
+    );
   }
 
   void visitBitInvokeBinary(HBinaryBitOp node, String op) {
@@ -1468,8 +1593,10 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   }
 
   void emitIdentityComparison(
-      HIdentity instruction, SourceInformation? sourceInformation,
-      {bool inverse = false}) {
+    HIdentity instruction,
+    SourceInformation? sourceInformation, {
+    bool inverse = false,
+  }) {
     String? op = instruction.singleComparisonOp;
     HInstruction left = instruction.left;
     HInstruction right = instruction.right;
@@ -1477,22 +1604,38 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       use(left);
       js.Expression jsLeft = pop();
       use(right);
-      push(js.Binary(mapRelationalOperator(op, inverse), jsLeft, pop())
-          .withSourceInformation(sourceInformation));
+      push(
+        js.Binary(
+          mapRelationalOperator(op, inverse),
+          jsLeft,
+          pop(),
+        ).withSourceInformation(sourceInformation),
+      );
     } else {
-      assert(NullConstantValue.JsNull == 'null');
+      assert(NullConstantValue.jsNull == 'null');
       use(left);
       js.Binary leftEqualsNull = js.Binary("==", pop(), js.LiteralNull());
       use(right);
       js.Binary rightEqualsNull = js.Binary(
-          mapRelationalOperator("==", inverse), pop(), js.LiteralNull());
+        mapRelationalOperator("==", inverse),
+        pop(),
+        js.LiteralNull(),
+      );
       use(right);
       use(left);
-      js.Binary tripleEq =
-          js.Binary(mapRelationalOperator("===", inverse), pop(), pop());
+      js.Binary tripleEq = js.Binary(
+        mapRelationalOperator("===", inverse),
+        pop(),
+        pop(),
+      );
 
-      push(js.Conditional(leftEqualsNull, rightEqualsNull, tripleEq)
-          .withSourceInformation(sourceInformation));
+      push(
+        js.Conditional(
+          leftEqualsNull,
+          rightEqualsNull,
+          tripleEq,
+        ).withSourceInformation(sourceInformation),
+      );
     }
   }
 
@@ -1532,15 +1675,25 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     assert(node.isUInt31(_abstractValueDomain).isDefinitelyTrue);
     // TODO(karlklose): Enable this assertion again when type propagation is
     // fixed. Issue 23555.
-//    assert(node.left.isUInt32(compiler));
+    //    assert(node.left.isUInt32(compiler));
     assert(node.right.isPositiveInteger(_abstractValueDomain).isDefinitelyTrue);
     use(node.left);
     js.Expression jsLeft = pop();
     use(node.right);
-    push(js.Binary('/', jsLeft, pop())
-        .withSourceInformation(node.sourceInformation));
-    push(js.Binary('|', pop(), js.LiteralNumber("0"))
-        .withSourceInformation(node.sourceInformation));
+    push(
+      js.Binary(
+        '/',
+        jsLeft,
+        pop(),
+      ).withSourceInformation(node.sourceInformation),
+    );
+    push(
+      js.Binary(
+        '|',
+        pop(),
+        js.LiteralNumber("0"),
+      ).withSourceInformation(node.sourceInformation),
+    );
   }
 
   @override
@@ -1554,9 +1707,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   @override
   void visitAbs(HAbs node) {
     use(node.operand);
-    push(js
-        .js('Math.abs(#)', pop())
-        .withSourceInformation(node.sourceInformation));
+    push(
+      js.js('Math.abs(#)', pop()).withSourceInformation(node.sourceInformation),
+    );
   }
 
   @override
@@ -1615,8 +1768,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       if (breakAction.contains(label.target)) {
         implicitBreakWithLabel(label.target);
       } else {
-        pushStatement(js.Break(_namer.breakLabelName(label))
-            .withSourceInformation(node.sourceInformation));
+        pushStatement(
+          js.Break(
+            _namer.breakLabelName(label),
+          ).withSourceInformation(node.sourceInformation),
+        );
       }
     } else {
       JumpTarget target = node.target;
@@ -1624,11 +1780,15 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         implicitBreakWithLabel(target);
       } else {
         if (node.breakSwitchContinueLoop) {
-          pushStatement(js.Break(_namer.implicitContinueLabelName(target))
-              .withSourceInformation(node.sourceInformation));
+          pushStatement(
+            js.Break(
+              _namer.implicitContinueLabelName(target),
+            ).withSourceInformation(node.sourceInformation),
+          );
         } else {
           pushStatement(
-              js.Break(null).withSourceInformation(node.sourceInformation));
+            js.Break(null).withSourceInformation(node.sourceInformation),
+          );
         }
       }
     }
@@ -1643,8 +1803,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         continueAsBreak(label);
       } else {
         // TODO(floitsch): should this really be the breakLabelName?
-        pushStatement(js.Continue(_namer.breakLabelName(label))
-            .withSourceInformation(node.sourceInformation));
+        pushStatement(
+          js.Continue(
+            _namer.breakLabelName(label),
+          ).withSourceInformation(node.sourceInformation),
+        );
       }
     } else {
       JumpTarget target = node.target;
@@ -1652,11 +1815,15 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         implicitContinueAsBreak(target);
       } else {
         if (target.isSwitch) {
-          pushStatement(js.Continue(_namer.implicitContinueLabelName(target))
-              .withSourceInformation(node.sourceInformation));
+          pushStatement(
+            js.Continue(
+              _namer.implicitContinueLabelName(target),
+            ).withSourceInformation(node.sourceInformation),
+          );
         } else {
           pushStatement(
-              js.Continue(null).withSourceInformation(node.sourceInformation));
+            js.Continue(null).withSourceInformation(node.sourceInformation),
+          );
         }
       }
     }
@@ -1741,7 +1908,10 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   }
 
   js.Statement _assembleIfThenElse(
-      js.Expression test, js.Statement thenPart, js.Statement elsePart) {
+    js.Expression test,
+    js.Statement thenPart,
+    js.Statement elsePart,
+  ) {
     // Peephole rewrites:
     //
     //     if (e); else S;   -->   if (!e) S;
@@ -1764,7 +1934,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
           thenPart is js.ExpressionStatement &&
           thenPart.expression is js.Call) {
         return js.ExpressionStatement(
-            js.Binary('&&', test, thenPart.expression));
+          js.Binary('&&', test, thenPart.expression),
+        );
       }
     }
 
@@ -1829,9 +2000,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       js.Expression isolate = _namer.readGlobalObjectForInterceptors();
       use(node.receiver);
       List<js.Expression> arguments = [pop()];
-      push(js
-          .propertyCall(isolate, name, arguments)
-          .withSourceInformation(node.sourceInformation));
+      push(
+        js
+            .propertyCall(isolate, name, arguments)
+            .withSourceInformation(node.sourceInformation),
+      );
       _registry.registerUseInterceptor();
     }
   }
@@ -1856,8 +2029,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         // Split returns a List, so we make sure the backend knows the
         // list class is instantiated.
         _registry
-            // ignore:deprecated_member_use_from_same_package
-            .registerInstantiatedClass(_commonElements.listClass);
+        // ignore:deprecated_member_use_from_same_package
+        .registerInstantiatedClass(_commonElements.listClass);
       }
     }
 
@@ -1868,9 +2041,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     } else {
       methodLiteral = _namer.asName(methodName);
     }
-    push(js
-        .propertyCall(object, methodLiteral, arguments)
-        .withSourceInformation(node.sourceInformation));
+    push(
+      js
+          .propertyCall(object, methodLiteral, arguments)
+          .withSourceInformation(node.sourceInformation),
+    );
   }
 
   @override
@@ -1880,11 +2055,17 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     js.Expression object = pop();
     js.Name methodName = _namer.instanceMethodName(element);
     List<js.Expression> arguments = visitArguments(node.inputs);
-    push(js
-        .propertyCall(object, methodName, arguments)
-        .withSourceInformation(node.sourceInformation));
-    _registry.registerStaticUse(StaticUse.constructorBodyInvoke(
-        element, CallStructure.unnamed(arguments.length)));
+    push(
+      js
+          .propertyCall(object, methodName, arguments)
+          .withSourceInformation(node.sourceInformation),
+    );
+    _registry.registerStaticUse(
+      StaticUse.constructorBodyInvoke(
+        element,
+        CallStructure.unnamed(arguments.length),
+      ),
+    );
   }
 
   @override
@@ -1897,14 +2078,17 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       js.Expression object = pop();
       List<js.Expression> arguments = visitArguments(node.inputs);
       js.Name methodName = _namer.instanceMethodName(element);
-      push(js
-          .propertyCall(object, methodName, arguments)
-          .withSourceInformation(node.sourceInformation));
+      push(
+        js
+            .propertyCall(object, methodName, arguments)
+            .withSourceInformation(node.sourceInformation),
+      );
     } else {
       push(_emitter.staticFunctionAccess(element));
       List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
       push(
-          js.Call(pop(), arguments, sourceInformation: node.sourceInformation));
+        js.Call(pop(), arguments, sourceInformation: node.sourceInformation),
+      );
     }
 
     _registry.registerStaticUse(StaticUse.generatorBodyInvoke(element));
@@ -1917,13 +2101,17 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     List<js.Expression> arguments = visitArguments(node.inputs);
     js.Expression isolate = _namer.readGlobalObjectForInterceptors();
     Selector selector = node.selector;
-    Set<ClassEntity> classes =
-        _interceptorData.getInterceptedClassesOn(selector.name, _closedWorld);
+    Set<ClassEntity> classes = _interceptorData.getInterceptedClassesOn(
+      selector.name,
+      _closedWorld,
+    );
     _registry.registerOneShotInterceptor(selector);
     js.Name methodName = _namer.nameForOneShotInterceptor(selector, classes);
-    push(js
-        .propertyCall(isolate, methodName, arguments)
-        .withSourceInformation(node.sourceInformation));
+    push(
+      js
+          .propertyCall(isolate, methodName, arguments)
+          .withSourceInformation(node.sourceInformation),
+    );
     if (selector.isGetter) {
       registerGetter(node);
     } else if (selector.isSetter) {
@@ -1935,7 +2123,10 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   }
 
   AbstractValue getOptimizedSelectorFor(
-      HInvokeDynamic node, Selector selector, AbstractValue mask) {
+    HInvokeDynamic node,
+    Selector selector,
+    AbstractValue mask,
+  ) {
     if (node.element != null) {
       // Create an artificial type mask to make sure only
       // [node.element] will be enqueued. We're not using the receiver
@@ -1948,11 +2139,13 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         // The element is mixed in so a non-null subtype mask is the most
         // precise we have.
         assert(
-            _closedWorld.isUsedAsMixin(enclosing),
-            failedAt(
-                node,
-                "Element ${node.element} from $enclosing expected "
-                "to be mixed in."));
+          _closedWorld.isUsedAsMixin(enclosing),
+          failedAt(
+            node,
+            "Element ${node.element} from $enclosing expected "
+            "to be mixed in.",
+          ),
+        );
         return _abstractValueDomain.createNonNullSubtype(enclosing);
       }
     }
@@ -1984,18 +2177,31 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       // target but for some reason haven't inlined. We are _still_ accessing
       // the target dynamically but we don't need to enqueue more than target
       // for this to work.
-      assert(selector.applies(target),
-          failedAt(node, '$selector does not apply to $target'));
-      assert(!selector.isGetter && !selector.isSetter,
-          "Unexpected direct invocation selector: $selector.");
+      assert(
+        selector.applies(target),
+        failedAt(node, '$selector does not apply to $target'),
+      );
+      assert(
+        !selector.isGetter && !selector.isSetter,
+        "Unexpected direct invocation selector: $selector.",
+      );
       target as FunctionEntity; // TODO(sra): Make node.element have this type.
-      _registry.registerStaticUse(StaticUse.directInvoke(
-          target, selector.callStructure, node.typeArguments));
+      _registry.registerStaticUse(
+        StaticUse.directInvoke(
+          target,
+          selector.callStructure,
+          node.typeArguments,
+        ),
+      );
     } else {
-      AbstractValue mask =
-          getOptimizedSelectorFor(node, selector, node.receiverType);
-      _registry
-          .registerDynamicUse(DynamicUse(selector, mask, node.typeArguments));
+      AbstractValue mask = getOptimizedSelectorFor(
+        node,
+        selector,
+        node.receiverType,
+      );
+      _registry.registerDynamicUse(
+        DynamicUse(selector, mask, node.typeArguments),
+      );
     }
   }
 
@@ -2009,10 +2215,14 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       _registry.registerStaticUse(StaticUse.directSet(element));
     } else {
       Selector selector = node.selector;
-      AbstractValue mask =
-          getOptimizedSelectorFor(node, selector, node.receiverType);
-      _registry
-          .registerDynamicUse(DynamicUse(selector, mask, node.typeArguments));
+      AbstractValue mask = getOptimizedSelectorFor(
+        node,
+        selector,
+        node.receiverType,
+      );
+      _registry.registerDynamicUse(
+        DynamicUse(selector, mask, node.typeArguments),
+      );
     }
   }
 
@@ -2027,10 +2237,14 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       _registry.registerStaticUse(StaticUse.directGet(element));
     } else {
       Selector selector = node.selector;
-      AbstractValue mask =
-          getOptimizedSelectorFor(node, selector, node.receiverType);
-      _registry
-          .registerDynamicUse(DynamicUse(selector, mask, node.typeArguments));
+      AbstractValue mask = getOptimizedSelectorFor(
+        node,
+        selector,
+        node.receiverType,
+      );
+      _registry.registerDynamicUse(
+        DynamicUse(selector, mask, node.typeArguments),
+      );
     }
   }
 
@@ -2043,9 +2257,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     _updateInvokeMetrics(node);
     use(node.receiver);
     js.Name name = _namer.invocationName(node.selector);
-    push(js
-        .propertyCall(pop(), name, visitArguments(node.inputs))
-        .withSourceInformation(node.sourceInformation));
+    push(
+      js
+          .propertyCall(pop(), name, visitArguments(node.inputs))
+          .withSourceInformation(node.sourceInformation),
+    );
     registerSetter(node, needsCheck: node.needsCheck);
   }
 
@@ -2054,9 +2270,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     _updateInvokeMetrics(node);
     use(node.receiver);
     js.Name name = _namer.invocationName(node.selector);
-    push(js
-        .propertyCall(pop(), name, visitArguments(node.inputs))
-        .withSourceInformation(node.sourceInformation));
+    push(
+      js
+          .propertyCall(pop(), name, visitArguments(node.inputs))
+          .withSourceInformation(node.sourceInformation),
+    );
     registerGetter(node);
   }
 
@@ -2064,10 +2282,15 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   void visitInvokeClosure(HInvokeClosure node) {
     Selector call = Selector.callClosureFrom(node.selector);
     use(node.receiver);
-    push(js
-        .propertyCall(
-            pop(), _namer.invocationName(call), visitArguments(node.inputs))
-        .withSourceInformation(node.sourceInformation));
+    push(
+      js
+          .propertyCall(
+            pop(),
+            _namer.invocationName(call),
+            visitArguments(node.inputs),
+          )
+          .withSourceInformation(node.sourceInformation),
+    );
     // TODO(kasperl): If we have a typed selector for the call, we
     // may know something about the types of closures that need
     // the specific closure call method.
@@ -2100,7 +2323,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       FunctionEntity throwFunction =
           _commonElements.throwConcurrentModificationError;
       _registry.registerStaticUse(
-          StaticUse.staticInvoke(throwFunction, CallStructure.ONE_ARG));
+        StaticUse.staticInvoke(throwFunction, CallStructure.oneArg),
+      );
 
       // Calling using `(0, #)(#)` instead of `#(#)` separates the property load
       // of the static function access from the call.  For some reason this
@@ -2112,18 +2336,25 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
       // Create [right] as a separate JS node to give the call a source
       // location.
-      js.Expression right = js.js('(0, #)(#)', [
-        _emitter.staticFunctionAccess(throwFunction),
-        arguments[1]
-      ]).withSourceInformation(node.sourceInformation);
-      push(js.js('# || #', [arguments[0], right]).withSourceInformation(
-          node.sourceInformation));
+      js.Expression right = js
+          .js('(0, #)(#)', [
+            _emitter.staticFunctionAccess(throwFunction),
+            arguments[1],
+          ])
+          .withSourceInformation(node.sourceInformation);
+      push(
+        js
+            .js('# || #', [arguments[0], right])
+            .withSourceInformation(node.sourceInformation),
+      );
     } else {
       StaticUse staticUse;
       Object? resourceIdentifierAnnotation;
       if (element is ConstructorEntity) {
-        CallStructure callStructure =
-            CallStructure.unnamed(arguments.length, node.typeArguments.length);
+        CallStructure callStructure = CallStructure.unnamed(
+          arguments.length,
+          node.typeArguments.length,
+        );
         staticUse = StaticUse.constructorInvoke(element, callStructure);
       } else if (element.isGetter) {
         staticUse = StaticUse.staticGet(element);
@@ -2131,19 +2362,29 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         staticUse = StaticUse.staticSet(element);
       } else {
         assert(element.isFunction);
-        CallStructure callStructure =
-            CallStructure.unnamed(arguments.length, node.typeArguments.length);
-        staticUse =
-            StaticUse.staticInvoke(element, callStructure, node.typeArguments);
+        CallStructure callStructure = CallStructure.unnamed(
+          arguments.length,
+          node.typeArguments.length,
+        );
+        staticUse = StaticUse.staticInvoke(
+          element,
+          callStructure,
+          node.typeArguments,
+        );
         if (_closedWorld.annotationsData.methodIsResourceIdentifier(element)) {
           resourceIdentifierAnnotation = _methodResourceIdentifier(
-              element, callStructure, node.inputs, node.sourceInformation);
+            element,
+            callStructure,
+            node.inputs,
+            node.sourceInformation,
+          );
         }
       }
       _registry.registerStaticUse(staticUse);
       push(_emitter.staticFunctionAccess(element));
       push(
-          js.Call(pop(), arguments, sourceInformation: node.sourceInformation));
+        js.Call(pop(), arguments, sourceInformation: node.sourceInformation),
+      );
       if (resourceIdentifierAnnotation != null) {
         push(pop().withAnnotation(resourceIdentifierAnnotation));
       }
@@ -2151,12 +2392,15 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   }
 
   ResourceIdentifier _methodResourceIdentifier(
-      FunctionEntity element,
-      CallStructure callStructure,
-      List<HInstruction> arguments,
-      SourceInformation? sourceInformation) {
+    FunctionEntity element,
+    CallStructure callStructure,
+    List<HInstruction> arguments,
+    SourceInformation? sourceInformation,
+  ) {
     ConstantValue? findConstant(HInstruction node) {
-      while (node is HLateValue) node = node.target;
+      while (node is HLateValue) {
+        node = node.target;
+      }
       return node is HConstant ? node.constant : null;
     }
 
@@ -2167,7 +2411,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
     if (sourceInformation != null) {
       _addSourceInformationToResourceIdentiferBuilder(
-          builder, sourceInformation);
+        builder,
+        sourceInformation,
+      );
     }
     for (int i = 0; i < arguments.length; i++) {
       builder.add('${i + 1}', findConstant(arguments[i]));
@@ -2177,8 +2423,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   }
 
   void _addSourceInformationToResourceIdentiferBuilder(
-      ResourceIdentifierBuilder builder, SourceInformation sourceInformation) {
-    SourceLocation? location = sourceInformation.startPosition ??
+    ResourceIdentifierBuilder builder,
+    SourceInformation sourceInformation,
+  ) {
+    SourceLocation? location =
+        sourceInformation.startPosition ??
         sourceInformation.innerPosition ??
         sourceInformation.endPosition;
     if (location != null) {
@@ -2214,11 +2463,19 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     } else {
       superElement as FunctionEntity; // Not a field so must be a function.
       if (useAliasedSuper) {
-        _registry.registerStaticUse(StaticUse.superInvoke(
-            superElement, CallStructure.unnamed(node.inputs.length)));
+        _registry.registerStaticUse(
+          StaticUse.superInvoke(
+            superElement,
+            CallStructure.unnamed(node.inputs.length),
+          ),
+        );
       } else {
-        _registry.registerStaticUse(StaticUse.superInvoke(
-            superElement, CallStructure.unnamed(node.inputs.length - 1)));
+        _registry.registerStaticUse(
+          StaticUse.superInvoke(
+            superElement,
+            CallStructure.unnamed(node.inputs.length - 1),
+          ),
+        );
       }
     }
 
@@ -2226,12 +2483,20 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       // TODO(sra): We can lower these in the simplifier.
       js.Name fieldName = _namer.instanceFieldPropertyName(superElement);
       use(node.getDartReceiver(_closedWorld));
-      js.PropertyAccess access = js.PropertyAccess(pop(), fieldName)
-          .withSourceInformation(node.sourceInformation) as js.PropertyAccess;
+      js.PropertyAccess access =
+          js.PropertyAccess(
+                pop(),
+                fieldName,
+              ).withSourceInformation(node.sourceInformation)
+              as js.PropertyAccess;
       if (node.isSetter) {
         use(node.value);
-        push(js.Assignment(access, pop())
-            .withSourceInformation(node.sourceInformation));
+        push(
+          js.Assignment(
+            access,
+            pop(),
+          ).withSourceInformation(node.sourceInformation),
+        );
       } else {
         push(access);
       }
@@ -2243,42 +2508,59 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
           // will be created, and that this tear-off must bypass ordinary
           // dispatch to ensure the super method is invoked.
           FunctionEntity helper = _commonElements.closureFromTearOff;
-          _registry.registerStaticUse(StaticUse.staticInvoke(
+          _registry.registerStaticUse(
+            StaticUse.staticInvoke(
               helper,
               CallStructure.unnamed(
-                  node.inputs.length, node.typeArguments.length),
-              node.typeArguments));
+                node.inputs.length,
+                node.typeArguments.length,
+              ),
+              node.typeArguments,
+            ),
+          );
           methodName = _namer.invocationName(selector);
         } else {
           methodName = _namer.instanceMethodName(superElement);
         }
 
         ClassEntity superClass = superElement.enclosingClass!;
-        push(js.js('#.#.call(#)', [
-          _emitter.prototypeAccess(superClass),
-          methodName,
-          visitArguments(node.inputs, start: 0)
-        ]).withSourceInformation(node.sourceInformation));
+        push(
+          js
+              .js('#.#.call(#)', [
+                _emitter.prototypeAccess(superClass),
+                methodName,
+                visitArguments(node.inputs, start: 0),
+              ])
+              .withSourceInformation(node.sourceInformation),
+        );
       } else {
         use(node.receiver);
-        push(js.js('#.#(#)', [
-          pop(),
-          _namer.aliasedSuperMemberPropertyName(superElement),
-          visitArguments(node.inputs, start: 1)
-        ]) // Skip receiver argument.
-            .withSourceInformation(node.sourceInformation));
+        push(
+          js
+              .js('#.#(#)', [
+                pop(),
+                _namer.aliasedSuperMemberPropertyName(superElement),
+                visitArguments(node.inputs, start: 1),
+              ]) // Skip receiver argument.
+              .withSourceInformation(node.sourceInformation),
+        );
       }
     } else {
       failedAt(node, 'node.element must be FieldEntity or FunctionEntity');
     }
   }
 
-  js.Expression _loadField(js.Expression receiver, FieldEntity field,
-      SourceInformation? sourceInformation) {
+  js.Expression _loadField(
+    js.Expression receiver,
+    FieldEntity field,
+    SourceInformation? sourceInformation,
+  ) {
     _registry.registerStaticUse(StaticUse.fieldGet(field));
     js.Name name = _namer.instanceFieldPropertyName(field);
-    return js.PropertyAccess(receiver, name)
-        .withSourceInformation(sourceInformation);
+    return js.PropertyAccess(
+      receiver,
+      name,
+    ).withSourceInformation(sourceInformation);
   }
 
   @override
@@ -2296,19 +2578,27 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     use(node.receiver);
     js.Expression receiver = pop();
     use(node.value);
-    push(js.Assignment(
-            js.PropertyAccess(receiver, name)
-                .withSourceInformation(node.sourceInformation),
-            pop())
-        .withSourceInformation(node.sourceInformation));
+    push(
+      js.Assignment(
+        js.PropertyAccess(
+          receiver,
+          name,
+        ).withSourceInformation(node.sourceInformation),
+        pop(),
+      ).withSourceInformation(node.sourceInformation),
+    );
   }
 
   @override
   void visitGetLength(HGetLength node) {
     _metrics.countHGetLength++;
     use(node.receiver);
-    push(js.PropertyAccess.field(pop(), 'length')
-        .withSourceInformation(node.sourceInformation));
+    push(
+      js.PropertyAccess.field(
+        pop(),
+        'length',
+      ).withSourceInformation(node.sourceInformation),
+    );
   }
 
   @override
@@ -2321,15 +2611,28 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     js.Expression fieldReference = js.PropertyAccess(pop(), name);
     switch (node.opKind) {
       case ReadModifyWriteKind.prefix:
-        push(js.Prefix(node.jsOp, fieldReference)
-            .withSourceInformation(node.sourceInformation));
+        push(
+          js.Prefix(
+            node.jsOp,
+            fieldReference,
+          ).withSourceInformation(node.sourceInformation),
+        );
       case ReadModifyWriteKind.postfix:
-        push(js.Postfix(node.jsOp, fieldReference)
-            .withSourceInformation(node.sourceInformation));
+        push(
+          js.Postfix(
+            node.jsOp,
+            fieldReference,
+          ).withSourceInformation(node.sourceInformation),
+        );
       case ReadModifyWriteKind.assign:
         use(node.value);
-        push(js.Assignment.compound(fieldReference, node.jsOp, pop())
-            .withSourceInformation(node.sourceInformation));
+        push(
+          js.Assignment.compound(
+            fieldReference,
+            node.jsOp,
+            pop(),
+          ).withSourceInformation(node.sourceInformation),
+        );
     }
   }
 
@@ -2349,7 +2652,10 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   void visitLocalSet(HLocalSet node) {
     use(node.value);
     assignVariable(
-        variableNames.getName(node.receiver)!, pop(), node.sourceInformation);
+      variableNames.getName(node.receiver)!,
+      pop(),
+      node.sourceInformation,
+    );
   }
 
   @override
@@ -2359,9 +2665,10 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
     assert(_nativeData.isNativeMember(target), 'non-native target: $node');
 
-    String? targetName = _nativeData.hasFixedBackendName(target)
-        ? _nativeData.getFixedBackendName(target)
-        : target.name;
+    String? targetName =
+        _nativeData.hasFixedBackendName(target)
+            ? _nativeData.getFixedBackendName(target)
+            : target.name;
 
     void invokeWithJavaScriptReceiver(js.Expression receiverExpression) {
       // JS-interop target names can be paths ("a.b"), so we parse them to
@@ -2380,11 +2687,14 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         template = '#.$targetName = #';
         templateInputs = [receiverExpression, pop()];
       } else {
-        var arguments =
-            visitArguments(inputs, start: target.isInstanceMember ? 1 : 0);
-        template = target is ConstructorEntity
-            ? 'new #.$targetName(#)'
-            : '#.$targetName(#)';
+        var arguments = visitArguments(
+          inputs,
+          start: target.isInstanceMember ? 1 : 0,
+        );
+        template =
+            target is ConstructorEntity
+                ? 'new #.$targetName(#)'
+                : '#.$targetName(#)';
         templateInputs = [receiverExpression, arguments];
       }
       js.Expression expression = js.js
@@ -2397,8 +2707,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     if (_nativeData.isJsInteropMember(target)) {
       if (target.isStatic || target.isTopLevel || target is ConstructorEntity) {
         String path = _nativeData.getFixedBackendMethodPath(target)!;
-        js.Expression pathExpression =
-            js.js.uncachedExpressionTemplate(path).instantiateExpression([]);
+        js.Expression pathExpression = js.js
+            .uncachedExpressionTemplate(path)
+            .instantiateExpression([]);
         invokeWithJavaScriptReceiver(pathExpression);
         return;
       }
@@ -2451,18 +2762,22 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         use(inputs[i]);
         interpolatedExpressions.add(pop());
       }
-      pushStatement(node.codeTemplate
-          .instantiateStatement(interpolatedExpressions)
-          .withSourceInformation(node.sourceInformation));
+      pushStatement(
+        node.codeTemplate
+            .instantiateStatement(interpolatedExpressions)
+            .withSourceInformation(node.sourceInformation),
+      );
     } else {
       List<js.Expression> interpolatedExpressions = [];
       for (int i = 0; i < inputs.length; i++) {
         use(inputs[i]);
         interpolatedExpressions.add(pop());
       }
-      push(node.codeTemplate
-          .instantiateExpression(interpolatedExpressions)
-          .withSourceInformation(node.sourceInformation));
+      push(
+        node.codeTemplate
+            .instantiateExpression(interpolatedExpressions)
+            .withSourceInformation(node.sourceInformation),
+      );
     }
 
     // TODO(sra): Tell world.nativeEnqueuer about the types created here.
@@ -2473,20 +2788,24 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   void visitCreate(HCreate node) {
     js.Expression jsClassReference = _emitter.constructorAccess(node.element);
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
-    push(js.New(jsClassReference, arguments)
-        .withSourceInformation(node.sourceInformation));
+    push(
+      js.New(
+        jsClassReference,
+        arguments,
+      ).withSourceInformation(node.sourceInformation),
+    );
     // We also use HCreate to instantiate closure classes that belong to
     // function expressions. We have to register their use here, as otherwise
     // code for them might not be emitted.
     if (node.element.isClosure) {
       _registry
-          // ignore:deprecated_member_use_from_same_package
-          .registerInstantiatedClass(node.element);
+      // ignore:deprecated_member_use_from_same_package
+      .registerInstantiatedClass(node.element);
     }
     if (node.element is JRecordClass) {
       _registry
-          // ignore:deprecated_member_use_from_same_package
-          .registerInstantiatedClass(node.element);
+      // ignore:deprecated_member_use_from_same_package
+      .registerInstantiatedClass(node.element);
     }
     node.instantiatedTypes?.forEach(_registry.registerInstantiation);
     final callMethod = node.callMethod;
@@ -2502,18 +2821,24 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   }
 
   js.Expression newLiteralBool(
-      bool value, SourceInformation? sourceInformation) {
+    bool value,
+    SourceInformation? sourceInformation,
+  ) {
     if (_options.enableMinification) {
       // Use !0 for true, !1 for false.
-      return js.Prefix("!", js.LiteralNumber(value ? "0" : "1"))
-          .withSourceInformation(sourceInformation);
+      return js.Prefix(
+        "!",
+        js.LiteralNumber(value ? "0" : "1"),
+      ).withSourceInformation(sourceInformation);
     } else {
       return js.LiteralBool(value).withSourceInformation(sourceInformation);
     }
   }
 
   void generateConstant(
-      ConstantValue constant, SourceInformation? sourceInformation) {
+    ConstantValue constant,
+    SourceInformation? sourceInformation,
+  ) {
     js.Expression expression = _emitter.constantReference(constant);
     if (!constant.isDummy) {
       // TODO(johnniwinther): Support source information on synthetic constants.
@@ -2530,8 +2855,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     _registry.registerConstantUse(ConstantUse.literal(node.constant));
     ConstantValue constant = node.constant;
     if (constant is TypeConstantValue) {
-      _registry
-          .registerTypeUse(TypeUse.constTypeLiteral(constant.representedType));
+      _registry.registerTypeUse(
+        TypeUse.constTypeLiteral(constant.representedType),
+      );
     }
   }
 
@@ -2550,7 +2876,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       "<": ">=",
       "<=": ">",
       ">": "<=",
-      ">=": "<"
+      ">=": "<",
     };
     return inverse ? inverseOperator[op]! : op;
   }
@@ -2650,7 +2976,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     } else {
       use(node.inputs.single);
       pushStatement(
-          js.Return(pop()).withSourceInformation(node.sourceInformation));
+        js.Return(pop()).withSourceInformation(node.sourceInformation),
+      );
     }
   }
 
@@ -2667,8 +2994,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       pushStatement(js.Throw(pop()).withSourceInformation(sourceInformation));
     } else {
       use(node.inputs[0]);
-      _pushCallStatic(
-          _commonElements.wrapExceptionHelper, [pop()], sourceInformation);
+      _pushCallStatic(_commonElements.wrapExceptionHelper, [
+        pop(),
+      ], sourceInformation);
       pushStatement(js.Throw(pop()).withSourceInformation(sourceInformation));
     }
   }
@@ -2682,8 +3010,12 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   @override
   void visitYield(HYield node) {
     use(node.inputs[0]);
-    pushStatement(js.DartYield(pop(), node.hasStar)
-        .withSourceInformation(node.sourceInformation));
+    pushStatement(
+      js.DartYield(
+        pop(),
+        node.hasStar,
+      ).withSourceInformation(node.sourceInformation),
+    );
   }
 
   @override
@@ -2703,9 +3035,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     assert(node.staticChecks != StaticBoundsChecks.alwaysTrue);
 
     if (node.staticChecks == StaticBoundsChecks.alwaysFalse) {
-      _pushThrowWithHelper(_commonElements.throwIndexOutOfRangeException,
-          [node.array, node.reportedIndex],
-          sourceInformation: node.sourceInformation);
+      _pushThrowWithHelper(
+        _commonElements.throwIndexOutOfRangeException,
+        [node.array, node.reportedIndex],
+        sourceInformation: node.sourceInformation,
+      );
       return;
     }
 
@@ -2783,12 +3117,18 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     js.Block thenBody = js.Block.empty();
     js.Block oldContainer = currentContainer;
     currentContainer = thenBody;
-    _pushThrowWithHelper(_commonElements.throwIndexOutOfRangeException,
-        [node.array, node.reportedIndex],
-        sourceInformation: node.sourceInformation);
+    _pushThrowWithHelper(
+      _commonElements.throwIndexOutOfRangeException,
+      [node.array, node.reportedIndex],
+      sourceInformation: node.sourceInformation,
+    );
     currentContainer = oldContainer;
-    pushStatement(js.If.noElse(underOver, unwrapStatement(thenBody))
-        .withSourceInformation(node.sourceInformation));
+    pushStatement(
+      js.If.noElse(
+        underOver,
+        unwrapStatement(thenBody),
+      ).withSourceInformation(node.sourceInformation),
+    );
   }
 
   bool _isDefinitelyNotNaN(HInstruction node) {
@@ -2806,8 +3146,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     return false;
   }
 
-  void _pushThrowWithHelper(FunctionEntity helper, List<HInstruction> inputs,
-      {SourceInformation? sourceInformation}) {
+  void _pushThrowWithHelper(
+    FunctionEntity helper,
+    List<HInstruction> inputs, {
+    SourceInformation? sourceInformation,
+  }) {
     List<js.Expression> arguments = [];
     for (final input in inputs) {
       use(input);
@@ -2820,21 +3163,29 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     pushStatement(js.Return(pop()).withSourceInformation(sourceInformation));
   }
 
-  void _pushCallStatic(FunctionEntity target, List<js.Expression> arguments,
-      SourceInformation? sourceInformation) {
-    _registry.registerStaticUse(StaticUse.staticInvoke(
-        target, CallStructure.unnamed(arguments.length)));
+  void _pushCallStatic(
+    FunctionEntity target,
+    List<js.Expression> arguments,
+    SourceInformation? sourceInformation,
+  ) {
+    _registry.registerStaticUse(
+      StaticUse.staticInvoke(target, CallStructure.unnamed(arguments.length)),
+    );
     js.Expression jsTarget = _emitter.staticFunctionAccess(target);
-    js.Call call = js.Call(jsTarget, List.of(arguments, growable: false),
-        sourceInformation: sourceInformation);
+    js.Call call = js.Call(
+      jsTarget,
+      List.of(arguments, growable: false),
+      sourceInformation: sourceInformation,
+    );
     push(call);
   }
 
   @override
   void visitThrowExpression(HThrowExpression node) {
     use(node.inputs[0]);
-    _pushCallStatic(
-        _commonElements.throwExpressionHelper, [pop()], node.sourceInformation);
+    _pushCallStatic(_commonElements.throwExpressionHelper, [
+      pop(),
+    ], node.sourceInformation);
   }
 
   @override
@@ -2847,14 +3198,18 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     MemberEntity element = node.element;
     if (element is FunctionEntity) {
       // TODO(sra): Static tear-offs should be constants.
-      push(_emitter
-          .staticClosureAccess(element)
-          .withSourceInformation(node.sourceInformation));
+      push(
+        _emitter
+            .staticClosureAccess(element)
+            .withSourceInformation(node.sourceInformation),
+      );
       _registry.registerStaticUse(StaticUse.staticTearOff(element));
     } else if (element is FieldEntity) {
-      push(_emitter
-          .staticFieldAccess(element)
-          .withSourceInformation(node.sourceInformation));
+      push(
+        _emitter
+            .staticFieldAccess(element)
+            .withSourceInformation(node.sourceInformation),
+      );
       _registry.registerStaticUse(StaticUse.staticGet(element));
     } else {
       failedAt(node, 'HStatic must be a FieldEntity or FunctionEntity');
@@ -2866,8 +3221,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     FieldEntity element = node.element;
     _registry.registerStaticUse(StaticUse.staticInit(element));
     js.Expression lazyGetter = _emitter.isolateLazyInitializerAccess(element);
-    js.Call call =
-        js.Call(lazyGetter, [], sourceInformation: node.sourceInformation);
+    js.Call call = js.Call(
+      lazyGetter,
+      [],
+      sourceInformation: node.sourceInformation,
+    );
     push(call);
   }
 
@@ -2876,8 +3234,12 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     _registry.registerStaticUse(StaticUse.staticSet(node.element));
     js.Expression variable = _emitter.staticFieldAccess(node.element);
     use(node.inputs[0]);
-    push(js.Assignment(variable, pop())
-        .withSourceInformation(node.sourceInformation));
+    push(
+      js.Assignment(
+        variable,
+        pop(),
+      ).withSourceInformation(node.sourceInformation),
+    );
   }
 
   @override
@@ -2885,8 +3247,13 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     use(node.left);
     js.Expression jsLeft = pop();
     use(node.right);
-    push(js.Binary('+', jsLeft, pop())
-        .withSourceInformation(node.sourceInformation));
+    push(
+      js.Binary(
+        '+',
+        jsLeft,
+        pop(),
+      ).withSourceInformation(node.sourceInformation),
+    );
   }
 
   @override
@@ -2905,36 +3272,47 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         // The context is already <string> + value.
       } else {
         // Force an empty string for the first operand.
-        push(js.Binary('+', js.string(""), pop())
-            .withSourceInformation(node.sourceInformation));
+        push(
+          js.Binary(
+            '+',
+            js.string(""),
+            pop(),
+          ).withSourceInformation(node.sourceInformation),
+        );
       }
     } else {
       FunctionEntity convertToString =
           _commonElements.stringInterpolationHelper;
       _registry.registerStaticUse(
-          StaticUse.staticInvoke(convertToString, CallStructure.ONE_ARG));
+        StaticUse.staticInvoke(convertToString, CallStructure.oneArg),
+      );
       js.Expression jsHelper = _emitter.staticFunctionAccess(convertToString);
       use(input);
-      push(js.Call(jsHelper, [pop()],
-          sourceInformation: node.sourceInformation));
+      push(
+        js.Call(jsHelper, [pop()], sourceInformation: node.sourceInformation),
+      );
     }
   }
 
   @override
   void visitLiteralList(HLiteralList node) {
     _registry
-        // ignore:deprecated_member_use_from_same_package
-        .registerInstantiatedClass(_commonElements.listClass);
+    // ignore:deprecated_member_use_from_same_package
+    .registerInstantiatedClass(_commonElements.listClass);
     generateArrayLiteral(node);
   }
 
   void generateArrayLiteral(HLiteralList node) {
-    List<js.Expression> elements = node.inputs.map((HInstruction input) {
-      use(input);
-      return pop();
-    }).toList();
-    push(js.ArrayInitializer(elements)
-        .withSourceInformation(node.sourceInformation));
+    List<js.Expression> elements =
+        node.inputs.map((HInstruction input) {
+          use(input);
+          return pop();
+        }).toList();
+    push(
+      js.ArrayInitializer(
+        elements,
+      ).withSourceInformation(node.sourceInformation),
+    );
   }
 
   @override
@@ -2943,8 +3321,12 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     use(node.receiver);
     js.Expression receiver = pop();
     use(node.index);
-    push(js.PropertyAccess(receiver, pop())
-        .withSourceInformation(node.sourceInformation));
+    push(
+      js.PropertyAccess(
+        receiver,
+        pop(),
+      ).withSourceInformation(node.sourceInformation),
+    );
   }
 
   @override
@@ -2954,8 +3336,12 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     use(node.index);
     js.Expression index = pop();
     use(node.value);
-    push(js.Assignment(js.PropertyAccess(receiver, index), pop())
-        .withSourceInformation(node.sourceInformation));
+    push(
+      js.Assignment(
+        js.PropertyAccess(receiver, index),
+        pop(),
+      ).withSourceInformation(node.sourceInformation),
+    );
   }
 
   @override
@@ -2963,25 +3349,43 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     use(node.receiver);
     js.Expression receiver = pop();
     use(node.index);
-    push(js.js('#.charCodeAt(#)', [receiver, pop()]).withSourceInformation(
-        node.sourceInformation));
+    push(
+      js
+          .js('#.charCodeAt(#)', [receiver, pop()])
+          .withSourceInformation(node.sourceInformation),
+    );
   }
 
-  void checkTypeOf(HInstruction input, String cmp, String typeName,
-      SourceInformation? sourceInformation) {
+  void checkTypeOf(
+    HInstruction input,
+    String cmp,
+    String typeName,
+    SourceInformation? sourceInformation,
+  ) {
     use(input);
     js.Expression typeOf = js.Prefix("typeof", pop());
-    push(js.Binary(cmp, typeOf, js.string(typeName))
-        .withSourceInformation(sourceInformation));
+    push(
+      js.Binary(
+        cmp,
+        typeOf,
+        js.string(typeName),
+      ).withSourceInformation(sourceInformation),
+    );
   }
 
   void checkNum(
-      HInstruction input, String cmp, SourceInformation? sourceInformation) {
+    HInstruction input,
+    String cmp,
+    SourceInformation? sourceInformation,
+  ) {
     return checkTypeOf(input, cmp, 'number', sourceInformation);
   }
 
   void checkBool(
-      HInstruction input, String cmp, SourceInformation? sourceInformation) {
+    HInstruction input,
+    String cmp,
+    SourceInformation? sourceInformation,
+  ) {
     return checkTypeOf(input, cmp, 'boolean', sourceInformation);
   }
 
@@ -2994,22 +3398,27 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     switch (node.kind) {
       case PrimitiveCheckKind.argumentType:
         use(node.checkedInput);
-        _pushCallStatic(_commonElements.throwIllegalArgumentException, [pop()],
-            node.sourceInformation);
+        _pushCallStatic(_commonElements.throwIllegalArgumentException, [
+          pop(),
+        ], node.sourceInformation);
         pushStatement(
-            js.Return(pop()).withSourceInformation(sourceInformation));
+          js.Return(pop()).withSourceInformation(sourceInformation),
+        );
       case PrimitiveCheckKind.receiverType:
         use(node.checkedInput);
-        js.Name methodName =
-            _namer.invocationName(node.receiverTypeCheckSelector!);
-        js.Expression call = js.propertyCall(
-            pop(), methodName, []).withSourceInformation(sourceInformation);
+        js.Name methodName = _namer.invocationName(
+          node.receiverTypeCheckSelector!,
+        );
+        js.Expression call = js
+            .propertyCall(pop(), methodName, [])
+            .withSourceInformation(sourceInformation);
         pushStatement(js.Return(call).withSourceInformation(sourceInformation));
     }
     currentContainer = oldContainer;
     final then = unwrapStatement(body);
     pushStatement(
-        js.If.noElse(test, then).withSourceInformation(sourceInformation));
+      js.If.noElse(test, then).withSourceInformation(sourceInformation),
+    );
   }
 
   js.Expression _generateReceiverOrArgumentTypeTest(HPrimitiveCheck node) {
@@ -3042,10 +3451,12 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     _registry.registerStaticUse(staticUse);
     use(node.checkedInput);
     List<js.Expression> arguments = [pop()];
-    push(js.Call(
-            _emitter.staticFunctionAccess(staticUse.element as FunctionEntity),
-            arguments)
-        .withSourceInformation(node.sourceInformation));
+    push(
+      js.Call(
+        _emitter.staticFunctionAccess(staticUse.element as FunctionEntity),
+        arguments,
+      ).withSourceInformation(node.sourceInformation),
+    );
   }
 
   @override
@@ -3058,9 +3469,14 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     // field that could be used here to pick the 'right' field. The 'field'
     // might need to be propagated to an earlier HNullCheck. JSArray and
     // JSString have 'length'.
-    pushStatement(js.ExpressionStatement(
-        js.PropertyAccess.field(pop(), 'toString')
-            .withSourceInformation(node.sourceInformation)));
+    pushStatement(
+      js.ExpressionStatement(
+        js.PropertyAccess.field(
+          pop(),
+          'toString',
+        ).withSourceInformation(node.sourceInformation),
+      ),
+    );
   }
 
   @override
@@ -3081,16 +3497,23 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
     if (node.hasName) {
       use(node.name);
-      _pushCallStatic(
-          _commonElements.throwLateFieldNI, [pop()], sourceInformation);
+      _pushCallStatic(_commonElements.throwLateFieldNI, [
+        pop(),
+      ], sourceInformation);
     } else {
       _pushCallStatic(
-          _commonElements.throwUnnamedLateFieldNI, const [], sourceInformation);
+        _commonElements.throwUnnamedLateFieldNI,
+        const [],
+        sourceInformation,
+      );
     }
 
     // `condition && helper();` is smaller than `if (condition) helper();`.
-    pushStatement(js.js.statement('# && #;',
-        [condition, pop()]).withSourceInformation(sourceInformation));
+    pushStatement(
+      js.js
+          .statement('# && #;', [condition, pop()])
+          .withSourceInformation(sourceInformation),
+    );
   }
 
   @override
@@ -3109,16 +3532,23 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
     if (node.hasName) {
       use(node.name);
-      _pushCallStatic(
-          _commonElements.throwLateFieldAI, [pop()], sourceInformation);
+      _pushCallStatic(_commonElements.throwLateFieldAI, [
+        pop(),
+      ], sourceInformation);
     } else {
       _pushCallStatic(
-          _commonElements.throwUnnamedLateFieldAI, [], sourceInformation);
+        _commonElements.throwUnnamedLateFieldAI,
+        [],
+        sourceInformation,
+      );
     }
 
     // `condition && helper();` is smaller than `if (condition) helper();`.
-    pushStatement(js.js.statement('# && #;',
-        [condition, pop()]).withSourceInformation(sourceInformation));
+    pushStatement(
+      js.js
+          .statement('# && #;', [condition, pop()])
+          .withSourceInformation(sourceInformation),
+    );
   }
 
   @override
@@ -3137,16 +3567,23 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
     if (node.hasName) {
       use(node.name);
-      _pushCallStatic(
-          _commonElements.throwLateFieldADI, [pop()], sourceInformation);
+      _pushCallStatic(_commonElements.throwLateFieldADI, [
+        pop(),
+      ], sourceInformation);
     } else {
       _pushCallStatic(
-          _commonElements.throwUnnamedLateFieldADI, [], sourceInformation);
+        _commonElements.throwUnnamedLateFieldADI,
+        [],
+        sourceInformation,
+      );
     }
 
     // `condition && helper();` is smaller than `if (condition) helper();`.
-    pushStatement(js.js.statement('# && #;',
-        [condition, pop()]).withSourceInformation(sourceInformation));
+    pushStatement(
+      js.js
+          .statement('# && #;', [condition, pop()])
+          .withSourceInformation(sourceInformation),
+    );
   }
 
   @override
@@ -3173,8 +3610,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     FieldEntity field = _commonElements.rtiIsField;
     js.Name name = _namer.instanceFieldPropertyName(field);
 
-    push(js.js('#.#(#)', [first, name, second]).withSourceInformation(
-        node.sourceInformation));
+    push(
+      js
+          .js('#.#(#)', [first, name, second])
+          .withSourceInformation(node.sourceInformation),
+    );
   }
 
   @override
@@ -3196,9 +3636,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
     js.Expression isTest(FunctionEntity helper) {
       _registry.registerStaticUse(
-          StaticUse.staticInvoke(helper, CallStructure.ONE_ARG));
-      js.Expression test =
-          js.Call(_emitter.staticFunctionAccess(helper), [value]);
+        StaticUse.staticInvoke(helper, CallStructure.oneArg),
+      );
+      js.Expression test = js.Call(_emitter.staticFunctionAccess(helper), [
+        value,
+      ]);
       return handleNegative(test);
     }
 
@@ -3231,8 +3673,12 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
       case InstanceOfIsTestSpecialization(interfaceType: final type):
         _registry.registerTypeUse(TypeUse.constructorReference(type));
-        test = handleNegative(js.js('# instanceof #',
-            [value, _emitter.constructorAccess(type.element)]));
+        test = handleNegative(
+          js.js('# instanceof #', [
+            value,
+            _emitter.constructorAccess(type.element),
+          ]),
+        );
     }
     push(test.withSourceInformation(node.sourceInformation));
   }
@@ -3249,8 +3695,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     FieldEntity field = _commonElements.rtiAsField;
     js.Name name = _namer.instanceFieldPropertyName(field);
 
-    push(js.js('#.#(#)', [first, name, second]).withSourceInformation(
-        node.sourceInformation));
+    push(
+      js
+          .js('#.#(#)', [first, name, second])
+          .withSourceInformation(node.sourceInformation),
+    );
   }
 
   @override
@@ -3258,10 +3707,14 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     use(node.checkedInput);
     FunctionEntity method = node.method;
     _registry.registerStaticUse(
-        StaticUse.staticInvoke(method, CallStructure.ONE_ARG));
+      StaticUse.staticInvoke(method, CallStructure.oneArg),
+    );
     js.Expression methodAccess = _emitter.staticFunctionAccess(method);
-    push(js.js(r'#(#)', [methodAccess, pop()]).withSourceInformation(
-        node.sourceInformation));
+    push(
+      js
+          .js(r'#(#)', [methodAccess, pop()])
+          .withSourceInformation(node.sourceInformation),
+    );
   }
 
   @override
@@ -3272,8 +3725,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   @override
   void visitLoadType(HLoadType node) {
     // 'findType' will be called somewhere to initialize the type reference.
-    _registry.registerStaticUse(StaticUse.staticInvoke(
-        _commonElements.findType, CallStructure.ONE_ARG));
+    _registry.registerStaticUse(
+      StaticUse.staticInvoke(_commonElements.findType, CallStructure.oneArg),
+    );
     TypeReference reference = TypeReference(node.typeExpression);
     reference.forLazyInitializer = currentGraph.isLazyInitializer;
     push(reference);
@@ -3291,17 +3745,23 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
     void useHelper(FunctionEntity helper) {
       _registry.registerStaticUse(
-          StaticUse.staticInvoke(helper, CallStructure.ONE_ARG));
+        StaticUse.staticInvoke(helper, CallStructure.oneArg),
+      );
       js.Expression helperAccess = _emitter.staticFunctionAccess(helper);
-      push(js.js(r'#(#)', [helperAccess, receiver]).withSourceInformation(
-          node.sourceInformation));
+      push(
+        js
+            .js(r'#(#)', [helperAccess, receiver])
+            .withSourceInformation(node.sourceInformation),
+      );
     }
 
     // Try to use the 'rti' field, or a specialization of 'instanceType'.
     AbstractValue receiverMask = node.codegenInputType;
 
     AbstractBool isArray = _abstractValueDomain.isInstanceOf(
-        receiverMask, _commonElements.jsArrayClass);
+      receiverMask,
+      _commonElements.jsArrayClass,
+    );
 
     if (isArray.isDefinitelyTrue) {
       useHelper(_commonElements.arrayInstanceType);
@@ -3316,8 +3776,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       // in [receiverMask].
       // TODO(sra): Store the context class on the HInstanceEnvironment. This
       // would allow the subtype classes to be iterated.
-      ClassEntity? receiverClass =
-          _abstractValueDomain.getExactClass(receiverMask);
+      ClassEntity? receiverClass = _abstractValueDomain.getExactClass(
+        receiverMask,
+      );
       if (receiverClass != null) {
         if (_closedWorld.rtiNeed.classNeedsTypeArguments(receiverClass)) {
           useRtiField();
@@ -3355,7 +3816,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       final type = typeExpression.type;
       if (type is TypeVariableType) {
         int? index = indexTypeVariable(
-            _closedWorld, _rtiSubstitutions, envStructure, type);
+          _closedWorld,
+          _rtiSubstitutions,
+          envStructure,
+          type,
+        );
         if (index != null) {
           assert(index >= 1);
           List<TypeVariableType> bindings = envStructure.bindings;
@@ -3368,23 +3833,38 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
             // If the environment is an interface RTI, use precomputed fields
             // for common accesses.
             if (index == 1) {
-              push(_loadField(environment, _commonElements.rtiPrecomputed1Field,
-                  node.sourceInformation));
+              push(
+                _loadField(
+                  environment,
+                  _commonElements.rtiPrecomputed1Field,
+                  node.sourceInformation,
+                ),
+              );
               return;
             }
           }
 
-          js.Expression rest = _loadField(environment,
-              _commonElements.rtiRestField, node.sourceInformation);
-          push(js.PropertyAccess.indexed(rest, index - 1)
-              .withSourceInformation(node.sourceInformation));
+          js.Expression rest = _loadField(
+            environment,
+            _commonElements.rtiRestField,
+            node.sourceInformation,
+          );
+          push(
+            js.PropertyAccess.indexed(
+              rest,
+              index - 1,
+            ).withSourceInformation(node.sourceInformation),
+          );
           return;
         }
       }
     }
 
     RecipeEncoding encoding = _rtiRecipeEncoder.encodeRecipe(
-        _emitter, node.envStructure, node.typeExpression);
+      _emitter,
+      node.envStructure,
+      node.typeExpression,
+    );
     js.Expression recipe = encoding.recipe;
 
     for (TypeVariableType typeVariable in encoding.typeVariables) {
@@ -3394,14 +3874,15 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     final method = _commonElements.rtiEvalMethod;
     Selector selector = Selector.fromElement(method);
     js.Name methodLiteral = _namer.invocationName(selector);
-    push(js.js('#.#(#)', [
-      environment,
-      methodLiteral,
-      recipe
-    ]).withSourceInformation(node.sourceInformation));
+    push(
+      js
+          .js('#.#(#)', [environment, methodLiteral, recipe])
+          .withSourceInformation(node.sourceInformation),
+    );
 
     _registry.registerStaticUse(
-        StaticUse.directInvoke(method, selector.callStructure, null));
+      StaticUse.directInvoke(method, selector.callStructure, null),
+    );
   }
 
   @override
@@ -3416,25 +3897,34 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     final method = _commonElements.rtiBindMethod;
     Selector selector = Selector.fromElement(method);
     js.Name methodLiteral = _namer.invocationName(selector);
-    push(js.js('#.#(#)', [
-      environment,
-      methodLiteral,
-      extensions
-    ]).withSourceInformation(node.sourceInformation));
+    push(
+      js
+          .js('#.#(#)', [environment, methodLiteral, extensions])
+          .withSourceInformation(node.sourceInformation),
+    );
 
     _registry.registerStaticUse(
-        StaticUse.directInvoke(method, selector.callStructure, null));
+      StaticUse.directInvoke(method, selector.callStructure, null),
+    );
   }
 
   void _emitIsLateSentinel(
-      HInstruction input, SourceInformation? sourceInformation,
-      {bool inverse = false}) {
+    HInstruction input,
+    SourceInformation? sourceInformation, {
+    bool inverse = false,
+  }) {
     use(input);
     js.Expression value = pop();
-    js.Expression sentinel =
-        _emitter.constantReference(LateSentinelConstantValue());
-    push(js.Binary(mapRelationalOperator('===', inverse), value, sentinel)
-        .withSourceInformation(sourceInformation));
+    js.Expression sentinel = _emitter.constantReference(
+      LateSentinelConstantValue(),
+    );
+    push(
+      js.Binary(
+        mapRelationalOperator('===', inverse),
+        value,
+        sentinel,
+      ).withSourceInformation(sourceInformation),
+    );
   }
 
   @override
@@ -3447,8 +3937,10 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   void visitArrayFlagsGet(HArrayFlagsGet node) {
     use(node.inputs.single);
     js.Expression array = pop();
-    js.Expression flags =
-        js.js(r'#.#', [array, _namer.fixedNames.arrayFlagsPropertyName]);
+    js.Expression flags = js.js(r'#.#', [
+      array,
+      _namer.fixedNames.arrayFlagsPropertyName,
+    ]);
     if (isGenerateAtUseSite(node) && node.usedBy.single is HArrayFlagsCheck) {
       // The enclosing expression will be an immediate `& mask`.
       push(flags);
@@ -3465,11 +3957,15 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     js.Expression array = pop();
     use(node.inputs[1]);
     js.Expression arrayFlags = pop();
-    pushStatement(js.js.statement(r'#.# = #;', [
-      array,
-      _namer.fixedNames.arrayFlagsPropertyName,
-      arrayFlags
-    ]).withSourceInformation(node.sourceInformation));
+    pushStatement(
+      js.js
+          .statement(r'#.# = #;', [
+            array,
+            _namer.fixedNames.arrayFlagsPropertyName,
+            arrayFlags,
+          ])
+          .withSourceInformation(node.sourceInformation),
+    );
   }
 
   @override
@@ -3498,8 +3994,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       arguments.add(pop());
     }
 
-    _pushCallStatic(_commonElements.throwUnsupportedOperation, arguments,
-        node.sourceInformation);
+    _pushCallStatic(
+      _commonElements.throwUnsupportedOperation,
+      arguments,
+      node.sourceInformation,
+    );
 
     js.Statement check;
     if (test == null) {

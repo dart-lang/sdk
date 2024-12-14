@@ -343,7 +343,7 @@ class ExpressionCompiler {
 
     var tree = transformFunctionModuleFormat(imports, jsFun, _moduleFormat);
     tree.accept(
-        js_ast.Printer(opts, context, localNamer: js_ast.TemporaryNamer(tree)));
+        js_ast.Printer(opts, context, localNamer: js_ast.ScopedNamer(tree)));
 
     _log('Added imports and renamed variables for expression');
 

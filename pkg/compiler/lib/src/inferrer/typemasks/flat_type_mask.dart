@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of masks;
+part of 'masks.dart';
 
 enum FlatTypeMaskKind { empty, exact, subclass, subtype }
 
-final _specialValueDomain =
-    EnumSetDomain<TypeMaskSpecialValue>(0, TypeMaskSpecialValue.values);
+final _specialValueDomain = EnumSetDomain<TypeMaskSpecialValue>(
+  0,
+  TypeMaskSpecialValue.values,
+);
 
 final _powersetDomains = ComposedEnumSetDomains([_specialValueDomain]);
 
@@ -18,18 +20,21 @@ class FlatTypeMask extends TypeMask {
   /// debugging data stream.
   static const String tag = 'flat-type-mask';
 
-  static final Bitset _nullBit =
-      _specialValueDomain.fromValue(TypeMaskSpecialValue.null_);
-  static final Bitset _lateSentinelBit =
-      _specialValueDomain.fromValue(TypeMaskSpecialValue.lateSentinel);
+  static final Bitset _nullBit = _specialValueDomain.fromValue(
+    TypeMaskSpecialValue.null_,
+  );
+  static final Bitset _lateSentinelBit = _specialValueDomain.fromValue(
+    TypeMaskSpecialValue.lateSentinel,
+  );
 
   final ClassEntity? base;
   final Bitset flags;
 
   // TODO(fishythefish): Derive other powerset bits.
   static Bitset _computeFlags(
-          FlatTypeMaskKind kind, EnumSet<TypeMaskSpecialValue> specialValues) =>
-      _computeFlagsRaw(kind, _specialValueDomain.fromEnumSet(specialValues));
+    FlatTypeMaskKind kind,
+    EnumSet<TypeMaskSpecialValue> specialValues,
+  ) => _computeFlagsRaw(kind, _specialValueDomain.fromEnumSet(specialValues));
 
   static Bitset _computeFlagsRaw(FlatTypeMaskKind kind, Bitset powerset) =>
       Bitset(kind.index << _powersetDomains.bitWidth | powerset.bits);
@@ -43,98 +48,132 @@ class FlatTypeMask extends TypeMask {
   static bool _hasLateSentinelFlag(Bitset flags) =>
       _specialValueDomain.contains(flags, TypeMaskSpecialValue.lateSentinel);
 
-  factory FlatTypeMask.exact(ClassEntity base, JClosedWorld world,
-          {bool hasLateSentinel = false}) =>
-      FlatTypeMask._canonicalize(
-          base,
-          FlatTypeMaskKind.exact,
-          _composeSpecialValues(
-              isNullable: true, hasLateSentinel: hasLateSentinel),
-          world);
+  factory FlatTypeMask.exact(
+    ClassEntity base,
+    JClosedWorld world, {
+    bool hasLateSentinel = false,
+  }) => FlatTypeMask._canonicalize(
+    base,
+    FlatTypeMaskKind.exact,
+    _composeSpecialValues(isNullable: true, hasLateSentinel: hasLateSentinel),
+    world,
+  );
 
-  factory FlatTypeMask.subclass(ClassEntity base, JClosedWorld world,
-          {bool hasLateSentinel = false}) =>
-      FlatTypeMask._canonicalize(
-          base,
-          FlatTypeMaskKind.subclass,
-          _composeSpecialValues(
-              isNullable: true, hasLateSentinel: hasLateSentinel),
-          world);
+  factory FlatTypeMask.subclass(
+    ClassEntity base,
+    JClosedWorld world, {
+    bool hasLateSentinel = false,
+  }) => FlatTypeMask._canonicalize(
+    base,
+    FlatTypeMaskKind.subclass,
+    _composeSpecialValues(isNullable: true, hasLateSentinel: hasLateSentinel),
+    world,
+  );
 
-  factory FlatTypeMask.subtype(ClassEntity base, JClosedWorld world,
-          {bool hasLateSentinel = false}) =>
-      FlatTypeMask._canonicalize(
-          base,
-          FlatTypeMaskKind.subtype,
-          _composeSpecialValues(
-              isNullable: true, hasLateSentinel: hasLateSentinel),
-          world);
+  factory FlatTypeMask.subtype(
+    ClassEntity base,
+    JClosedWorld world, {
+    bool hasLateSentinel = false,
+  }) => FlatTypeMask._canonicalize(
+    base,
+    FlatTypeMaskKind.subtype,
+    _composeSpecialValues(isNullable: true, hasLateSentinel: hasLateSentinel),
+    world,
+  );
 
   factory FlatTypeMask.nonNullEmpty({bool hasLateSentinel = false}) =>
       hasLateSentinel
-          ? FlatTypeMask._(null,
-              _specialValueDomain.fromValue(TypeMaskSpecialValue.lateSentinel))
+          ? FlatTypeMask._(
+            null,
+            _specialValueDomain.fromValue(TypeMaskSpecialValue.lateSentinel),
+          )
           : FlatTypeMask._(null, Bitset.empty());
 
-  factory FlatTypeMask.empty({bool hasLateSentinel = false}) => hasLateSentinel
-      ? FlatTypeMask._(null, _specialValueDomain.allValues)
-      : FlatTypeMask._(
-          null, _specialValueDomain.fromValue(TypeMaskSpecialValue.null_));
+  factory FlatTypeMask.empty({bool hasLateSentinel = false}) =>
+      hasLateSentinel
+          ? FlatTypeMask._(null, _specialValueDomain.allValues)
+          : FlatTypeMask._(
+            null,
+            _specialValueDomain.fromValue(TypeMaskSpecialValue.null_),
+          );
 
-  factory FlatTypeMask.nonNullExact(ClassEntity base, JClosedWorld world,
-          {bool hasLateSentinel = false}) =>
-      FlatTypeMask._canonicalize(
-          base,
-          FlatTypeMaskKind.exact,
-          hasLateSentinel
-              ? EnumSet.fromValue(TypeMaskSpecialValue.lateSentinel)
-              : EnumSet.empty(),
-          world);
+  factory FlatTypeMask.nonNullExact(
+    ClassEntity base,
+    JClosedWorld world, {
+    bool hasLateSentinel = false,
+  }) => FlatTypeMask._canonicalize(
+    base,
+    FlatTypeMaskKind.exact,
+    hasLateSentinel
+        ? EnumSet.fromValue(TypeMaskSpecialValue.lateSentinel)
+        : EnumSet.empty(),
+    world,
+  );
 
-  factory FlatTypeMask.nonNullSubclass(ClassEntity base, JClosedWorld world,
-          {bool hasLateSentinel = false}) =>
-      FlatTypeMask._canonicalize(
-          base,
-          FlatTypeMaskKind.subclass,
-          hasLateSentinel
-              ? EnumSet.fromValue(TypeMaskSpecialValue.lateSentinel)
-              : EnumSet.empty(),
-          world);
+  factory FlatTypeMask.nonNullSubclass(
+    ClassEntity base,
+    JClosedWorld world, {
+    bool hasLateSentinel = false,
+  }) => FlatTypeMask._canonicalize(
+    base,
+    FlatTypeMaskKind.subclass,
+    hasLateSentinel
+        ? EnumSet.fromValue(TypeMaskSpecialValue.lateSentinel)
+        : EnumSet.empty(),
+    world,
+  );
 
-  factory FlatTypeMask.nonNullSubtype(ClassEntity base, JClosedWorld world,
-          {bool hasLateSentinel = false}) =>
-      FlatTypeMask._canonicalize(
-          base,
-          FlatTypeMaskKind.subtype,
-          hasLateSentinel
-              ? EnumSet.fromValue(TypeMaskSpecialValue.lateSentinel)
-              : EnumSet.empty(),
-          world);
+  factory FlatTypeMask.nonNullSubtype(
+    ClassEntity base,
+    JClosedWorld world, {
+    bool hasLateSentinel = false,
+  }) => FlatTypeMask._canonicalize(
+    base,
+    FlatTypeMaskKind.subtype,
+    hasLateSentinel
+        ? EnumSet.fromValue(TypeMaskSpecialValue.lateSentinel)
+        : EnumSet.empty(),
+    world,
+  );
 
-  factory FlatTypeMask._canonicalize(ClassEntity base, FlatTypeMaskKind kind,
-      EnumSet<TypeMaskSpecialValue> specialValues, JClosedWorld world) {
+  factory FlatTypeMask._canonicalize(
+    ClassEntity base,
+    FlatTypeMaskKind kind,
+    EnumSet<TypeMaskSpecialValue> specialValues,
+    JClosedWorld world,
+  ) {
     if (base == world.commonElements.nullClass) {
       return FlatTypeMask.empty(
-          hasLateSentinel:
-              specialValues.contains(TypeMaskSpecialValue.lateSentinel));
+        hasLateSentinel: specialValues.contains(
+          TypeMaskSpecialValue.lateSentinel,
+        ),
+      );
     }
     return FlatTypeMask._(base, _computeFlags(kind, specialValues));
   }
 
   const FlatTypeMask._(this.base, this.flags);
 
-  FlatTypeMask._internal(ClassEntity? base, FlatTypeMaskKind kind,
-      EnumSet<TypeMaskSpecialValue> specialValues)
-      : this._(base, _computeFlags(kind, specialValues));
+  FlatTypeMask._internal(
+    ClassEntity? base,
+    FlatTypeMaskKind kind,
+    EnumSet<TypeMaskSpecialValue> specialValues,
+  ) : this._(base, _computeFlags(kind, specialValues));
 
   /// Ensures that the generated mask is normalized, i.e., a call to
   /// [TypeMask.assertIsNormalized] with the factory's result returns `true`.
-  factory FlatTypeMask.normalized(ClassEntity? base, FlatTypeMaskKind kind,
-      EnumSet<TypeMaskSpecialValue> specialValues, CommonMasks domain) {
+  factory FlatTypeMask.normalized(
+    ClassEntity? base,
+    FlatTypeMaskKind kind,
+    EnumSet<TypeMaskSpecialValue> specialValues,
+    CommonMasks domain,
+  ) {
     if (base == domain.commonElements.nullClass) {
       return FlatTypeMask.empty(
-          hasLateSentinel:
-              specialValues.contains(TypeMaskSpecialValue.lateSentinel));
+        hasLateSentinel: specialValues.contains(
+          TypeMaskSpecialValue.lateSentinel,
+        ),
+      );
     }
     if (kind == FlatTypeMaskKind.empty || kind == FlatTypeMaskKind.exact) {
       return FlatTypeMask._(base, _computeFlags(kind, specialValues));
@@ -148,21 +187,32 @@ class FlatTypeMask extends TypeMask {
         !domain._closedWorld.classHierarchy.hasAnyStrictSubclass(base!)) {
       kind = FlatTypeMaskKind.exact;
     }
-    return domain.getCachedMask(base, kind, specialValues,
-        () => FlatTypeMask._(base, _computeFlags(kind, specialValues)));
+    return domain.getCachedMask(
+      base,
+      kind,
+      specialValues,
+      () => FlatTypeMask._(base, _computeFlags(kind, specialValues)),
+    );
   }
 
   /// Deserializes a [FlatTypeMask] object from [source].
   factory FlatTypeMask.readFromDataSource(
-      DataSourceReader source, CommonMasks domain) {
+    DataSourceReader source,
+    CommonMasks domain,
+  ) {
     source.begin(tag);
     final base = source.readClassOrNull();
     final kind = source.readEnum(FlatTypeMaskKind.values);
-    final specialValues =
-        EnumSet<TypeMaskSpecialValue>.fromRawBits(source.readInt());
+    final specialValues = EnumSet<TypeMaskSpecialValue>.fromRawBits(
+      source.readInt(),
+    );
     source.end(tag);
-    return domain.getCachedMask(base, kind, specialValues,
-        () => FlatTypeMask._internal(base, kind, specialValues));
+    return domain.getCachedMask(
+      base,
+      kind,
+      specialValues,
+      () => FlatTypeMask._internal(base, kind, specialValues),
+    );
   }
 
   /// Serializes this [FlatTypeMask] to [sink].
@@ -180,9 +230,10 @@ class FlatTypeMask extends TypeMask {
 
   Bitset get _powerset => _powersetDomains.restrict(flags);
 
-  ClassQuery get _classQuery => isExact
-      ? ClassQuery.EXACT
-      : (isSubclass ? ClassQuery.SUBCLASS : ClassQuery.SUBTYPE);
+  ClassQuery get _classQuery =>
+      isExact
+          ? ClassQuery.exact
+          : (isSubclass ? ClassQuery.subclass : ClassQuery.subtype);
 
   @override
   bool get isEmpty => isEmptyOrSpecial && _specialValueDomain.isEmpty(flags);
@@ -199,12 +250,12 @@ class FlatTypeMask extends TypeMask {
   bool get hasLateSentinel => _hasLateSentinelFlag(flags);
   @override
   AbstractBool get isLateSentinel {
-    if (!hasLateSentinel) return AbstractBool.False;
+    if (!hasLateSentinel) return AbstractBool.false_;
     if (isEmptyOrSpecial &&
         _specialValueDomain.restrict(flags) == _lateSentinelBit) {
-      return AbstractBool.True;
+      return AbstractBool.true_;
     }
-    return AbstractBool.Maybe;
+    return AbstractBool.maybe;
   }
 
   // TODO(kasperl): Get rid of these. They should not be a visible
@@ -216,10 +267,12 @@ class FlatTypeMask extends TypeMask {
   @override
   FlatTypeMask withSpecialValues({bool? isNullable, bool? hasLateSentinel}) {
     final newFlags = _computeFlags(
-        _kind,
-        _composeSpecialValues(
-            isNullable: isNullable ?? this.isNullable,
-            hasLateSentinel: hasLateSentinel ?? this.hasLateSentinel));
+      _kind,
+      _composeSpecialValues(
+        isNullable: isNullable ?? this.isNullable,
+        hasLateSentinel: hasLateSentinel ?? this.hasLateSentinel,
+      ),
+    );
     if (newFlags == flags) return this;
     return FlatTypeMask._(base, newFlags);
   }
@@ -293,8 +346,9 @@ class FlatTypeMask extends TypeMask {
     // TODO(herhut): Add check whether flatOther.base is superclass of
     //               all subclasses of this.base.
     if (flatOther.isSubclass) {
-      if (isSubtype)
+      if (isSubtype) {
         return (otherBase == closedWorld.commonElements.objectClass);
+      }
       return closedWorld.classHierarchy.isSubclassOf(base!, otherBase!);
     }
     assert(flatOther.isSubtype);
@@ -384,27 +438,39 @@ class FlatTypeMask extends TypeMask {
     bool hasLateSentinel = this.hasLateSentinel || flatOther.hasLateSentinel;
     if (isEmptyOrSpecial) {
       return flatOther.withSpecialValues(
-          isNullable: isNullable, hasLateSentinel: hasLateSentinel);
+        isNullable: isNullable,
+        hasLateSentinel: hasLateSentinel,
+      );
     } else if (flatOther.isEmptyOrSpecial) {
       return withSpecialValues(
-          isNullable: isNullable, hasLateSentinel: hasLateSentinel);
+        isNullable: isNullable,
+        hasLateSentinel: hasLateSentinel,
+      );
     } else if (base == flatOther.base) {
       return unionSame(flatOther, domain);
-    } else if (closedWorld.classHierarchy
-        .isSubclassOf(flatOther.base!, base!)) {
+    } else if (closedWorld.classHierarchy.isSubclassOf(
+      flatOther.base!,
+      base!,
+    )) {
       return unionStrictSubclass(flatOther, domain);
-    } else if (closedWorld.classHierarchy
-        .isSubclassOf(base!, flatOther.base!)) {
+    } else if (closedWorld.classHierarchy.isSubclassOf(
+      base!,
+      flatOther.base!,
+    )) {
       return flatOther.unionStrictSubclass(this, domain);
     } else if (closedWorld.classHierarchy.isSubtypeOf(flatOther.base!, base!)) {
       return unionStrictSubtype(flatOther, domain);
     } else if (closedWorld.classHierarchy.isSubtypeOf(base!, flatOther.base!)) {
       return flatOther.unionStrictSubtype(this, domain);
     } else {
-      return UnionTypeMask._compose([
-        withoutSpecialValues() as FlatTypeMask,
-        flatOther.withoutSpecialValues() as FlatTypeMask
-      ], isNullable: isNullable, hasLateSentinel: hasLateSentinel);
+      return UnionTypeMask._compose(
+        [
+          withoutSpecialValues() as FlatTypeMask,
+          flatOther.withoutSpecialValues() as FlatTypeMask,
+        ],
+        isNullable: isNullable,
+        hasLateSentinel: hasLateSentinel,
+      );
     }
   }
 
@@ -416,16 +482,21 @@ class FlatTypeMask extends TypeMask {
     // constraining kind (the highest) of the two. If either one of
     // the masks are nullable the result should be nullable too.
     // As both masks are normalized, the result will be, too.
-    final combined = (flags.bits > other.flags.bits)
-        ? flags.union(other._powerset)
-        : other.flags.union(_powerset);
+    final combined =
+        (flags.bits > other.flags.bits)
+            ? flags.union(other._powerset)
+            : other.flags.union(_powerset);
     if (flags == combined) {
       return this;
     } else if (other.flags == combined) {
       return other;
     } else {
-      return FlatTypeMask.normalized(base!, _lookupKind(combined),
-          _specialValueDomain.toEnumSet(combined), domain);
+      return FlatTypeMask.normalized(
+        base!,
+        _lookupKind(combined),
+        _specialValueDomain.toEnumSet(combined),
+        domain,
+      );
     }
   }
 
@@ -441,27 +512,35 @@ class FlatTypeMask extends TypeMask {
       // resulting union to be a subclass too. If either one of the
       // masks are nullable the result should be nullable too.
       combined = _computeFlagsRaw(
-          FlatTypeMaskKind.subclass, _powerset.union(other._powerset));
+        FlatTypeMaskKind.subclass,
+        _powerset.union(other._powerset),
+      );
     } else {
       // Both masks are at least subclass masks, so we pick the least
       // constraining kind (the highest) of the two. If either one of
       // the masks are nullable the result should be nullable too.
-      combined = (flags.bits > other.flags.bits)
-          ? flags.union(other._powerset)
-          : other.flags.union(_powerset);
+      combined =
+          (flags.bits > other.flags.bits)
+              ? flags.union(other._powerset)
+              : other.flags.union(_powerset);
     }
     // If we weaken the constraint on this type, we have to make sure that
     // the result is normalized.
     return flags != combined
-        ? FlatTypeMask.normalized(base, _lookupKind(combined),
-            _specialValueDomain.toEnumSet(combined), domain)
+        ? FlatTypeMask.normalized(
+          base,
+          _lookupKind(combined),
+          _specialValueDomain.toEnumSet(combined),
+          domain,
+        )
         : this;
   }
 
   TypeMask unionStrictSubtype(FlatTypeMask other, CommonMasks domain) {
     assert(base != other.base);
     assert(
-        !domain._closedWorld.classHierarchy.isSubclassOf(other.base!, base!));
+      !domain._closedWorld.classHierarchy.isSubclassOf(other.base!, base!),
+    );
     assert(domain._closedWorld.classHierarchy.isSubtypeOf(other.base!, base!));
     assert(TypeMask.assertIsNormalized(this, domain._closedWorld));
     assert(TypeMask.assertIsNormalized(other, domain._closedWorld));
@@ -469,19 +548,27 @@ class FlatTypeMask extends TypeMask {
     // resulting union to be a subtype too. If either one of the masks
     // are nullable the result should be nullable too.
     final combined = _computeFlagsRaw(
-        FlatTypeMaskKind.subtype, _powerset.union(other._powerset));
+      FlatTypeMaskKind.subtype,
+      _powerset.union(other._powerset),
+    );
     // We know there is at least one subtype, [other.base], so no need
     // to normalize.
     return flags != combined
-        ? FlatTypeMask.normalized(base, _lookupKind(combined),
-            _specialValueDomain.toEnumSet(combined), domain)
+        ? FlatTypeMask.normalized(
+          base,
+          _lookupKind(combined),
+          _specialValueDomain.toEnumSet(combined),
+          domain,
+        )
         : this;
   }
 
   @override
   TypeMask intersection(TypeMask other, CommonMasks domain) {
-    return (domain._intersectionCache[this] ??= {})[other] ??=
-        _intersection(other, domain);
+    return (domain._intersectionCache[this] ??= {})[other] ??= _intersection(
+      other,
+      domain,
+    );
   }
 
   TypeMask _intersection(TypeMask other, CommonMasks domain) {
@@ -497,14 +584,22 @@ class FlatTypeMask extends TypeMask {
 
     if (isEmptyOrSpecial) {
       return withSpecialValues(
-          isNullable: includeNull, hasLateSentinel: includeLateSentinel);
+        isNullable: includeNull,
+        hasLateSentinel: includeLateSentinel,
+      );
     } else if (flatOther.isEmptyOrSpecial) {
       return other.withSpecialValues(
-          isNullable: includeNull, hasLateSentinel: includeLateSentinel);
+        isNullable: includeNull,
+        hasLateSentinel: includeLateSentinel,
+      );
     }
 
     SubclassResult result = domain._closedWorld.classHierarchy.commonSubclasses(
-        base!, _classQuery, otherBase!, flatOther._classQuery);
+      base!,
+      _classQuery,
+      otherBase!,
+      flatOther._classQuery,
+    );
 
     switch (result) {
       case SimpleSubclassResult.empty:
@@ -514,27 +609,39 @@ class FlatTypeMask extends TypeMask {
       case SimpleSubclassResult.exact1:
         assert(isExact);
         return withSpecialValues(
-            isNullable: includeNull, hasLateSentinel: includeLateSentinel);
+          isNullable: includeNull,
+          hasLateSentinel: includeLateSentinel,
+        );
       case SimpleSubclassResult.exact2:
         assert(other.isExact);
         return other.withSpecialValues(
-            isNullable: includeNull, hasLateSentinel: includeLateSentinel);
+          isNullable: includeNull,
+          hasLateSentinel: includeLateSentinel,
+        );
       case SimpleSubclassResult.subclass1:
         assert(isSubclass);
         return withSpecialValues(
-            isNullable: includeNull, hasLateSentinel: includeLateSentinel);
+          isNullable: includeNull,
+          hasLateSentinel: includeLateSentinel,
+        );
       case SimpleSubclassResult.subclass2:
         assert(flatOther.isSubclass);
         return other.withSpecialValues(
-            isNullable: includeNull, hasLateSentinel: includeLateSentinel);
+          isNullable: includeNull,
+          hasLateSentinel: includeLateSentinel,
+        );
       case SimpleSubclassResult.subtype1:
         assert(isSubtype);
         return withSpecialValues(
-            isNullable: includeNull, hasLateSentinel: includeLateSentinel);
+          isNullable: includeNull,
+          hasLateSentinel: includeLateSentinel,
+        );
       case SimpleSubclassResult.subtype2:
         assert(flatOther.isSubtype);
         return other.withSpecialValues(
-            isNullable: includeNull, hasLateSentinel: includeLateSentinel);
+          isNullable: includeNull,
+          hasLateSentinel: includeLateSentinel,
+        );
       case SetSubclassResult(:final classes):
         if (classes.isEmpty) {
           return includeNull
@@ -543,21 +650,37 @@ class FlatTypeMask extends TypeMask {
         } else if (classes.length == 1) {
           ClassEntity cls = classes.first;
           return includeNull
-              ? TypeMask.subclass(cls, domain._closedWorld,
-                  hasLateSentinel: includeLateSentinel)
-              : TypeMask.nonNullSubclass(cls, domain._closedWorld,
-                  hasLateSentinel: includeLateSentinel);
+              ? TypeMask.subclass(
+                cls,
+                domain._closedWorld,
+                hasLateSentinel: includeLateSentinel,
+              )
+              : TypeMask.nonNullSubclass(
+                cls,
+                domain._closedWorld,
+                hasLateSentinel: includeLateSentinel,
+              );
         }
 
-        List<FlatTypeMask> masks = List.from(classes.map((ClassEntity cls) =>
-            TypeMask.nonNullSubclass(cls, domain._closedWorld)));
-        if (masks.length > UnionTypeMask.MAX_UNION_LENGTH) {
-          return UnionTypeMask.flatten(masks, domain,
-              includeNull: includeNull,
-              includeLateSentinel: includeLateSentinel);
+        List<FlatTypeMask> masks = List.from(
+          classes.map(
+            (ClassEntity cls) =>
+                TypeMask.nonNullSubclass(cls, domain._closedWorld),
+          ),
+        );
+        if (masks.length > UnionTypeMask.maxUnionLength) {
+          return UnionTypeMask.flatten(
+            masks,
+            domain,
+            includeNull: includeNull,
+            includeLateSentinel: includeLateSentinel,
+          );
         }
-        return UnionTypeMask._compose(masks,
-            isNullable: includeNull, hasLateSentinel: includeLateSentinel);
+        return UnionTypeMask._compose(
+          masks,
+          isNullable: includeNull,
+          hasLateSentinel: includeLateSentinel,
+        );
     }
   }
 
@@ -595,16 +718,20 @@ class FlatTypeMask extends TypeMask {
   }
 
   static bool _isDisjointHelper(
-      FlatTypeMask a, FlatTypeMask b, JClosedWorld closedWorld) {
+    FlatTypeMask a,
+    FlatTypeMask b,
+    JClosedWorld closedWorld,
+  ) {
     if (!a.isSubclass && b.isSubclass) {
       return _isDisjointHelper(b, a, closedWorld);
     }
     assert(a.isSubclass || a.isSubtype);
     assert(b.isSubtype);
     final aBase = a.base!;
-    var elements = a.isSubclass
-        ? closedWorld.classHierarchy.strictSubclassesOf(aBase)
-        : closedWorld.classHierarchy.strictSubtypesOf(aBase);
+    var elements =
+        a.isSubclass
+            ? closedWorld.classHierarchy.strictSubclassesOf(aBase)
+            : closedWorld.classHierarchy.strictSubtypesOf(aBase);
     for (var element in elements) {
       if (closedWorld.classHierarchy.isSubtypeOf(element, b.base!)) {
         return false;
@@ -619,17 +746,22 @@ class FlatTypeMask extends TypeMask {
     // constraining kind (the lowest) of the two. Only if both masks
     // are nullable, will the result be nullable too.
     // The result will be normalized, as the two inputs are normalized, too.
-    final combined = (flags.bits < other.flags.bits)
-        ? flags.intersection(other.flags.union(_powersetDomains.notMask))
-        : other.flags.intersection(flags.union(_powersetDomains.notMask));
+    final combined =
+        (flags.bits < other.flags.bits)
+            ? flags.intersection(other.flags.union(_powersetDomains.notMask))
+            : other.flags.intersection(flags.union(_powersetDomains.notMask));
 
     if (flags == combined) {
       return this;
     } else if (other.flags == combined) {
       return other;
     } else {
-      return FlatTypeMask.normalized(base, _lookupKind(combined),
-          _specialValueDomain.toEnumSet(combined), domain);
+      return FlatTypeMask.normalized(
+        base,
+        _lookupKind(combined),
+        _specialValueDomain.toEnumSet(combined),
+        domain,
+      );
     }
   }
 
@@ -644,13 +776,18 @@ class FlatTypeMask extends TypeMask {
     // masks are nullable, will the result be nullable too.
     // The result is guaranteed to be normalized, as the other type
     // was normalized.
-    final combined =
-        other.flags.intersection(flags.union(_powersetDomains.notMask));
+    final combined = other.flags.intersection(
+      flags.union(_powersetDomains.notMask),
+    );
     if (other.flags == combined) {
       return other;
     } else {
-      return FlatTypeMask.normalized(other.base, _lookupKind(combined),
-          _specialValueDomain.toEnumSet(combined), domain);
+      return FlatTypeMask.normalized(
+        other.base,
+        _lookupKind(combined),
+        _specialValueDomain.toEnumSet(combined),
+        domain,
+      );
     }
   }
 
@@ -683,7 +820,8 @@ class FlatTypeMask extends TypeMask {
           closedWorld.hasAnySubclassThatMixes(thisBase, other);
     } else {
       assert(isSubtype);
-      bool result = closedWorld.hasElementIn(thisBase, name, element) ||
+      bool result =
+          closedWorld.hasElementIn(thisBase, name, element) ||
           closedWorld.classHierarchy.isSubtypeOf(other!, thisBase) ||
           closedWorld.hasAnySubclassThatImplements(other, thisBase) ||
           closedWorld.hasAnySubclassOfMixinUseThatImplements(other, thisBase);
@@ -691,16 +829,20 @@ class FlatTypeMask extends TypeMask {
       // If the class is used as a mixin, we have to check if the element
       // can be hit from any of the mixin applications.
       Iterable<ClassEntity> mixinUses = closedWorld.mixinUsesOf(thisBase);
-      return mixinUses.any((mixinApplication) =>
-          closedWorld.hasElementIn(mixinApplication, name, element) ||
-          closedWorld.classHierarchy.isSubclassOf(other, mixinApplication) ||
-          closedWorld.hasAnySubclassThatMixes(mixinApplication, other));
+      return mixinUses.any(
+        (mixinApplication) =>
+            closedWorld.hasElementIn(mixinApplication, name, element) ||
+            closedWorld.classHierarchy.isSubclassOf(other, mixinApplication) ||
+            closedWorld.hasAnySubclassThatMixes(mixinApplication, other),
+      );
     }
   }
 
   @override
   bool needsNoSuchMethodHandling(
-      Selector selector, covariant JClosedWorld closedWorld) {
+    Selector selector,
+    covariant JClosedWorld closedWorld,
+  ) {
     // A call on an empty type mask is either dead code, or a call on
     // `null`.
     if (isEmptyOrSpecial) return false;
@@ -718,10 +860,14 @@ class FlatTypeMask extends TypeMask {
   MemberEntity? locateSingleMember(Selector selector, CommonMasks domain) {
     if (isEmptyOrSpecial) return null;
     JClosedWorld closedWorld = domain._closedWorld;
-    if (closedWorld.includesClosureCallInDomain(selector, this, domain))
+    if (closedWorld.includesClosureCallInDomain(selector, this, domain)) {
       return null;
-    Iterable<MemberEntity> targets =
-        closedWorld.locateMembersInDomain(selector, this, domain);
+    }
+    Iterable<MemberEntity> targets = closedWorld.locateMembersInDomain(
+      selector,
+      this,
+      domain,
+    );
     if (targets.length != 1) return null;
     MemberEntity result = targets.first;
     final enclosing = result.enclosingClass!;
@@ -733,7 +879,9 @@ class FlatTypeMask extends TypeMask {
     if (isSubtype) {
       // if (closedWorld.isUsedAsMixin(enclosing)) {
       if (closedWorld.everySubtypeIsSubclassOfOrMixinUseOf(
-          thisBase, enclosing)) {
+        thisBase,
+        enclosing,
+      )) {
         return result;
       }
       //}
@@ -742,29 +890,38 @@ class FlatTypeMask extends TypeMask {
       if (closedWorld.classHierarchy.isSubclassOf(thisBase, enclosing)) {
         return result;
       }
-      if (closedWorld.isSubclassOfMixinUseOf(thisBase, enclosing))
+      if (closedWorld.isSubclassOfMixinUseOf(thisBase, enclosing)) {
         return result;
+      }
     }
     return null;
   }
 
   @override
-  Iterable<DynamicCallTarget> findRootsOfTargets(Selector selector,
-      MemberHierarchyBuilder memberHierarchyBuilder, JClosedWorld closedWorld) {
+  Iterable<DynamicCallTarget> findRootsOfTargets(
+    Selector selector,
+    MemberHierarchyBuilder memberHierarchyBuilder,
+    JClosedWorld closedWorld,
+  ) {
     if (isEmptyOrSpecial) return const [];
     final baseClass = base!;
     if (closedWorld.isDefaultSuperclass(baseClass)) {
       // Filter roots using the mask's class since each default superclass has
       // distinct roots.
-      final results =
-          memberHierarchyBuilder.rootsForSelector(baseClass, selector);
+      final results = memberHierarchyBuilder.rootsForSelector(
+        baseClass,
+        selector,
+      );
       return results.isEmpty ? const [] : results;
     }
 
     // Try to find a superclass that contains a matching member.
     final superclassMatch = memberHierarchyBuilder.findSuperclassTarget(
-        baseClass, selector,
-        isExact: isExact, isSubclass: isSubclass);
+      baseClass,
+      selector,
+      isExact: isExact,
+      isSubclass: isSubclass,
+    );
 
     // If this mask is exact then we should have found a matching target on a
     // superclass or need noSuchMethod handling and can quit early anyway.
@@ -773,8 +930,11 @@ class FlatTypeMask extends TypeMask {
 
     // Default to a list of superclasses/supertypes that encompasses all
     // subclasses/subtypes of this type cone.
-    return memberHierarchyBuilder.findMatchingAncestors(baseClass, selector,
-        isSubtype: isSubtype);
+    return memberHierarchyBuilder.findMatchingAncestors(
+      baseClass,
+      selector,
+      isSubtype: isSubtype,
+    );
   }
 
   @override

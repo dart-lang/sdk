@@ -76,11 +76,13 @@ main() {
       if (!test.contains('callFoo')) {
         program += 'int callFoo(int a, int b, int c) => foo(a);\n';
       }
-      return compile(program,
-          entry: 'main',
-          methodName: 'foo',
-          disableTypeInference: false,
-          check: checkerForAbsentPresent(test));
+      return compile(
+        program,
+        entry: 'main',
+        methodName: 'foo',
+        disableTypeInference: false,
+        check: checkerForAbsentPresent(test),
+      );
     }
 
     await check(TEST1);

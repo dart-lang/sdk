@@ -43,14 +43,16 @@ const MEMORY_SOURCE_FILES = const {
         for (int i = 0; i < list.length; i++) {
           print(list[i].foo(i, i + 1));
         }
-      }'''
+      }''',
 };
 
 main() {
   runTest() async {
     OutputCollector collector = OutputCollector();
     await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      outputProvider: collector,
+    );
     String jsOutput = collector.getOutput('', api.OutputType.js)!;
 
     // Skip comments.

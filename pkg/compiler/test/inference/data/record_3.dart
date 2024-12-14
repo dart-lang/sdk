@@ -57,8 +57,8 @@ useRecords5(bool /*[exact=JSBool]*/ b1, bool /*[exact=JSBool]*/ b2) {
   return b1
       ? getRecord2()
       : b2
-          ? getRecord3()
-          : getRecord1();
+      ? getRecord3()
+      : getRecord1();
 }
 
 /*member: useRecords6:Union([exact=_Record_2_age_name], [exact=_Record_2_height_name])*/

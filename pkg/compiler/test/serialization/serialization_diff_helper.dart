@@ -19,10 +19,11 @@ const dumpInfoFilename = 'out.info.json';
 
 typedef CompiledOutput = Map<api.OutputType, Map<String, String>>;
 
-Future<CompiledOutput> compileWithSerialization(
-    {Uri? entryPoint,
-    required Map<String, dynamic> memorySourceFiles,
-    required List<String> options}) async {
+Future<CompiledOutput> compileWithSerialization({
+  Uri? entryPoint,
+  required Map<String, dynamic> memorySourceFiles,
+  required List<String> options,
+}) async {
   final cfeDillUri = 'memory:cfe.dill';
   final closedWorldUri = 'memory:world.data';
   final globalDataUri = 'memory:global.data';
@@ -31,10 +32,11 @@ Future<CompiledOutput> compileWithSerialization(
   Future<CompiledOutput> compile(List<String> options) async {
     final outputProvider = OutputCollector();
     CompilationResult result = await runCompiler(
-        entryPoint: entryPoint,
-        memorySourceFiles: memorySourceFiles,
-        outputProvider: outputProvider,
-        options: options);
+      entryPoint: entryPoint,
+      memorySourceFiles: memorySourceFiles,
+      outputProvider: outputProvider,
+      options: options,
+    );
     Expect.isTrue(result.isSuccess);
     outputProvider.binaryOutputMap.forEach((fileName, binarySink) {
       memorySourceFiles[fileName.path] = Uint8List.fromList(binarySink.list);
@@ -50,55 +52,68 @@ Future<CompiledOutput> compileWithSerialization(
   ];
 
   await compile(
-      [...options, '--out=$cfeDillUri', '${Flags.stage}=cfe'] + commonFlags);
-  await compile([
-        ...options,
-        '${Flags.inputDill}=$cfeDillUri',
-        '${Flags.stage}=closed-world',
-      ] +
-      commonFlags);
-  await compile([
-        ...options,
-        '${Flags.inputDill}=$cfeDillUri',
-        '${Flags.stage}=global-inference'
-      ] +
-      commonFlags);
-  await compile([
-        ...options,
-        '${Flags.inputDill}=$cfeDillUri',
-        '${Flags.stage}=codegen',
-        '${Flags.codegenShard}=0',
-      ] +
-      commonFlags);
-  await compile([
-        ...options,
-        '${Flags.inputDill}=$cfeDillUri',
-        '${Flags.stage}=codegen',
-        '${Flags.codegenShard}=1',
-      ] +
-      commonFlags);
-  final output = await compile([
-        ...options,
-        '${Flags.inputDill}=$cfeDillUri',
-        '--out=$jsOutUri',
-        '${Flags.stage}=emit-js',
-      ] +
-      commonFlags);
+    [...options, '--out=$cfeDillUri', '${Flags.stage}=cfe'] + commonFlags,
+  );
+  await compile(
+    [
+          ...options,
+          '${Flags.inputDill}=$cfeDillUri',
+          '${Flags.stage}=closed-world',
+        ] +
+        commonFlags,
+  );
+  await compile(
+    [
+          ...options,
+          '${Flags.inputDill}=$cfeDillUri',
+          '${Flags.stage}=global-inference',
+        ] +
+        commonFlags,
+  );
+  await compile(
+    [
+          ...options,
+          '${Flags.inputDill}=$cfeDillUri',
+          '${Flags.stage}=codegen',
+          '${Flags.codegenShard}=0',
+        ] +
+        commonFlags,
+  );
+  await compile(
+    [
+          ...options,
+          '${Flags.inputDill}=$cfeDillUri',
+          '${Flags.stage}=codegen',
+          '${Flags.codegenShard}=1',
+        ] +
+        commonFlags,
+  );
+  final output = await compile(
+    [
+          ...options,
+          '${Flags.inputDill}=$cfeDillUri',
+          '--out=$jsOutUri',
+          '${Flags.stage}=emit-js',
+        ] +
+        commonFlags,
+  );
   return output;
 }
 
-Future<CompiledOutput> compileWithoutSerialization(
-    {Uri? entryPoint,
-    required Map<String, dynamic> memorySourceFiles,
-    required List<String> options}) async {
+Future<CompiledOutput> compileWithoutSerialization({
+  Uri? entryPoint,
+  required Map<String, dynamic> memorySourceFiles,
+  required List<String> options,
+}) async {
   final jsOutUri = 'memory:$jsOutFilename';
   final outputProvider = OutputCollector();
 
   CompilationResult result = await runCompiler(
-      entryPoint: entryPoint,
-      memorySourceFiles: memorySourceFiles,
-      outputProvider: outputProvider,
-      options: [...options, '--out=$jsOutUri']);
+    entryPoint: entryPoint,
+    memorySourceFiles: memorySourceFiles,
+    outputProvider: outputProvider,
+    options: [...options, '--out=$jsOutUri'],
+  );
   Expect.isTrue(result.isSuccess);
 
   return outputProvider.clear();
@@ -108,8 +123,10 @@ Future<CompiledOutput> compileWithoutSerialization(
 //   without serialization.
 Set<api.OutputType> _outputTypesToIgnore = {api.OutputType.dumpInfo};
 
-Future<void> compareResults(CompiledOutput serializationResult,
-    CompiledOutput noSerializationResult) async {
+Future<void> compareResults(
+  CompiledOutput serializationResult,
+  CompiledOutput noSerializationResult,
+) async {
   serializationResult.forEach((outputType, outputs) {
     if (_outputTypesToIgnore.contains(outputType)) return;
     Expect.isTrue(noSerializationResult.containsKey(outputType));
@@ -119,8 +136,10 @@ Future<void> compareResults(CompiledOutput serializationResult,
 }
 
 Future runTests(List<String> args, int shard) async {
-  assert(shard >= 0 && shard < numShards,
-      'Shard must be between 0 and ${numShards - 1} (inclusive)');
+  assert(
+    shard >= 0 && shard < numShards,
+    'Shard must be between 0 and ${numShards - 1} (inclusive)',
+  );
 
   final libDirectory = Directory.fromUri(Platform.script.resolve('libs'));
 
@@ -155,13 +174,15 @@ Future runTests(List<String> args, int shard) async {
     }
 
     final serializationResult = await compileWithSerialization(
-        entryPoint: mainUri,
-        memorySourceFiles: memorySourceFiles,
-        options: testOptions);
+      entryPoint: mainUri,
+      memorySourceFiles: memorySourceFiles,
+      options: testOptions,
+    );
     final noSerializationResult = await compileWithoutSerialization(
-        entryPoint: mainUri,
-        memorySourceFiles: memorySourceFiles,
-        options: testOptions);
+      entryPoint: mainUri,
+      memorySourceFiles: memorySourceFiles,
+      options: testOptions,
+    );
 
     await compareResults(serializationResult, noSerializationResult);
   }

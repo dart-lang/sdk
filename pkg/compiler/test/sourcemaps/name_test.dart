@@ -78,8 +78,9 @@ main() {
 main() {
   asyncTest(() async {
     CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': SOURCE},
-        options: [Flags.disableInlining]);
+      memorySourceFiles: {'main.dart': SOURCE},
+      options: [Flags.disableInlining],
+    );
     Compiler compiler = result.compiler!;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JElementEnvironment env = closedWorld.elementEnvironment;
@@ -87,9 +88,14 @@ main() {
 
     check(MemberEntity element, String expectedName) {
       String? name = computeKernelElementNameForSourceMaps(
-          closedWorld.elementMap, element);
-      Expect.equals(expectedName, name,
-          "Unexpected name '$name' for $element, expected '$expectedName'.");
+        closedWorld.elementMap,
+        element,
+      );
+      Expect.equals(
+        expectedName,
+        name,
+        "Unexpected name '$name' for $element, expected '$expectedName'.",
+      );
     }
 
     MemberEntity lookup(String name) {
@@ -100,8 +106,11 @@ main() {
         ClassEntity? cls = env.lookupClass(mainApp, clsName);
         Expect.isNotNull(cls, "Class '$clsName' not found.");
         var subname = name.substring(dotPosition + 1);
-        element = env.lookupLocalClassMember(
-                cls!, Name(subname, cls.library.canonicalUri)) ??
+        element =
+            env.lookupLocalClassMember(
+              cls!,
+              Name(subname, cls.library.canonicalUri),
+            ) ??
             env.lookupConstructor(cls, subname);
       } else {
         element = env.lookupLibraryMember(mainApp, name);
@@ -110,8 +119,11 @@ main() {
       return element!;
     }
 
-    void checkName(String expectedName,
-        [List<String>? expectedClosureNames, String? lookupName]) {
+    void checkName(
+      String expectedName, [
+      List<String>? expectedClosureNames,
+      String? lookupName,
+    ]) {
       if (lookupName == null) {
         lookupName = expectedName;
       }
@@ -121,7 +133,9 @@ main() {
         env.forEachConstructorBody(element.enclosingClass, (body) {
           if (body.name != element.name) return;
           Expect.isNotNull(
-              body, "Constructor body '${element.name}' not found.");
+            body,
+            "Constructor body '${element.name}' not found.",
+          );
           check(body, expectedName);
         });
       }
@@ -144,8 +158,9 @@ main() {
 
     checkName('Class.staticField');
     checkName('Class.staticMethod');
-    checkName('Class.staticAnonymous',
-        ['Class.staticAnonymous.<anonymous function>']);
+    checkName('Class.staticAnonymous', [
+      'Class.staticAnonymous.<anonymous function>',
+    ]);
     checkName('Class.staticLocal', ['Class.staticLocal.localMethod']);
 
     checkName('Class', ['Class.<anonymous function>'], 'Class.');
@@ -153,13 +168,14 @@ main() {
 
     checkName('Class.instanceField');
     checkName('Class.instanceMethod');
-    checkName('Class.instanceAnonymous',
-        ['Class.instanceAnonymous.<anonymous function>']);
+    checkName('Class.instanceAnonymous', [
+      'Class.instanceAnonymous.<anonymous function>',
+    ]);
     checkName('Class.instanceLocal', ['Class.instanceLocal.localMethod']);
     checkName('Class.instanceNestedLocal', [
       'Class.instanceNestedLocal.localMethod',
       'Class.instanceNestedLocal.localMethod.<anonymous function>',
-      'Class.instanceNestedLocal.localMethod.nestedLocalMethod'
+      'Class.instanceNestedLocal.localMethod.nestedLocalMethod',
     ]);
   });
 }

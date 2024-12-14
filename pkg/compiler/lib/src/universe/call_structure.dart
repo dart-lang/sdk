@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.call_structure;
+library;
 
 import '../common/names.dart' show Names;
 import '../elements/entities.dart' show ParameterStructure;
@@ -24,14 +24,14 @@ class CallStructure {
   /// data stream.
   static const String tag = 'call-structure';
 
-  static const CallStructure NO_ARGS = CallStructure._(0);
-  static const CallStructure ONE_ARG = CallStructure._(1);
-  static const CallStructure TWO_ARGS = CallStructure._(2);
+  static const CallStructure noArgs = CallStructure._(0);
+  static const CallStructure oneArg = CallStructure._(1);
+  static const CallStructure twoArgs = CallStructure._(2);
 
   static const List<List<CallStructure>> _common = [
-    [NO_ARGS, CallStructure._(0, 1), CallStructure._(0, 2)],
-    [ONE_ARG, CallStructure._(1, 1), CallStructure._(1, 2)],
-    [TWO_ARGS, CallStructure._(2, 1), CallStructure._(2, 2)],
+    [noArgs, CallStructure._(0, 1), CallStructure._(0, 2)],
+    [oneArg, CallStructure._(1, 1), CallStructure._(1, 2)],
+    [twoArgs, CallStructure._(2, 1), CallStructure._(2, 2)],
     [CallStructure._(3), CallStructure._(3, 1), CallStructure._(3, 2)],
     [CallStructure._(4), CallStructure._(4, 1), CallStructure._(4, 2)],
     [CallStructure._(5), CallStructure._(5, 1), CallStructure._(5, 2)],
@@ -56,29 +56,40 @@ class CallStructure {
 
   const CallStructure._(this.argumentCount, [this.typeArgumentCount = 0]);
 
-  factory CallStructure.unnamed(int argumentCount,
-      [int typeArgumentCount = 0]) {
+  factory CallStructure.unnamed(
+    int argumentCount, [
+    int typeArgumentCount = 0,
+  ]) {
     // This simple canonicalization of common call structures greatly reduces
     // the number of allocations of CallStructure objects.
     if (argumentCount < _common.length) {
       final row = _common[argumentCount];
       if (typeArgumentCount < row.length) {
         final result = row[typeArgumentCount];
-        assert(result.argumentCount == argumentCount &&
-            result.typeArgumentCount == typeArgumentCount);
+        assert(
+          result.argumentCount == argumentCount &&
+              result.typeArgumentCount == typeArgumentCount,
+        );
         return result;
       }
     }
     return CallStructure._(argumentCount, typeArgumentCount);
   }
 
-  factory CallStructure(int argumentCount,
-      [List<String>? namedArguments, int typeArgumentCount = 0]) {
+  factory CallStructure(
+    int argumentCount, [
+    List<String>? namedArguments,
+    int typeArgumentCount = 0,
+  ]) {
     if (namedArguments == null || namedArguments.isEmpty) {
       return CallStructure.unnamed(argumentCount, typeArgumentCount);
     }
     return _NamedCallStructure(
-        argumentCount, namedArguments, typeArgumentCount, null);
+      argumentCount,
+      namedArguments,
+      typeArgumentCount,
+      null,
+    );
   }
 
   /// Deserializes a [CallStructure] object from [source].
@@ -124,9 +135,10 @@ class CallStructure {
   /// The names of the named arguments in canonicalized order.
   List<String> getOrderedNamedArguments() => const [];
 
-  CallStructure get nonGeneric => typeArgumentCount == 0
-      ? this
-      : CallStructure(argumentCount, namedArguments);
+  CallStructure get nonGeneric =>
+      typeArgumentCount == 0
+          ? this
+          : CallStructure(argumentCount, namedArguments);
 
   /// Short textual representation use for testing.
   String get shortText {
@@ -158,19 +170,22 @@ class CallStructure {
 
   bool match(CallStructure other) {
     if (identical(this, other)) return true;
-    return this.argumentCount == other.argumentCount &&
-        this.namedArgumentCount == other.namedArgumentCount &&
-        this.typeArgumentCount == other.typeArgumentCount &&
-        _sameNames(this.namedArguments, other.namedArguments);
+    return argumentCount == other.argumentCount &&
+        namedArgumentCount == other.namedArgumentCount &&
+        typeArgumentCount == other.typeArgumentCount &&
+        _sameNames(namedArguments, other.namedArguments);
   }
 
   // TODO(johnniwinther): Cache hash code?
   @override
   int get hashCode {
     return Hashing.listHash(
-        namedArguments,
-        Hashing.objectHash(argumentCount,
-            Hashing.objectHash(typeArgumentCount, namedArguments.length)));
+      namedArguments,
+      Hashing.objectHash(
+        argumentCount,
+        Hashing.objectHash(typeArgumentCount, namedArguments.length),
+      ),
+    );
   }
 
   @override
@@ -200,8 +215,9 @@ class CallStructure {
       if (positionalArgumentCount > requiredParameterCount) return false;
       assert(positionalArgumentCount == requiredParameterCount);
       if (namedArgumentCount >
-          optionalParameterCount + parameters.requiredNamedParameters.length)
+          optionalParameterCount + parameters.requiredNamedParameters.length) {
         return false;
+      }
 
       int nameIndex = 0;
       List<String> namedParameters = parameters.namedParameters;
@@ -213,8 +229,9 @@ class CallStructure {
         while (nameIndex < namedParameters.length) {
           String parameterName = namedParameters[nameIndex];
           if (name == parameterName) {
-            if (parameters.requiredNamedParameters.contains(name))
+            if (parameters.requiredNamedParameters.contains(name)) {
               seenRequiredNamedParameters++;
+            }
             found = true;
             break;
           }
@@ -245,10 +262,13 @@ class _NamedCallStructure extends CallStructure {
   /// The list of ordered named arguments is computed lazily. Initially `null`.
   List<String>? _orderedNamedArguments;
 
-  _NamedCallStructure(int argumentCount, this.namedArguments,
-      int typeArgumentCount, this._orderedNamedArguments)
-      : assert(namedArguments.isNotEmpty),
-        super._(argumentCount, typeArgumentCount);
+  _NamedCallStructure(
+    int argumentCount,
+    this.namedArguments,
+    int typeArgumentCount,
+    this._orderedNamedArguments,
+  ) : assert(namedArguments.isNotEmpty),
+      super._(argumentCount, typeArgumentCount);
 
   @override
   bool get isNamed => true;
@@ -267,10 +287,15 @@ class _NamedCallStructure extends CallStructure {
       identical(namedArguments, getOrderedNamedArguments());
 
   @override
-  CallStructure toNormalized() => isNormalized
-      ? this
-      : _NamedCallStructure(argumentCount, getOrderedNamedArguments(),
-          typeArgumentCount, getOrderedNamedArguments());
+  CallStructure toNormalized() =>
+      isNormalized
+          ? this
+          : _NamedCallStructure(
+            argumentCount,
+            getOrderedNamedArguments(),
+            typeArgumentCount,
+            getOrderedNamedArguments(),
+          );
 
   @override
   List<String> getOrderedNamedArguments() {

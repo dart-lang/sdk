@@ -57,17 +57,21 @@ class _SomePathQuery extends Command<void> with PrintUsageException {
   void run() async {
     var args = argResults!.rest;
     if (args.length < 3) {
-      usageException("Missing arguments for some_path, expected: "
-          "info.data <element-regexp-1> <element-regexp-2>");
+      usageException(
+        "Missing arguments for some_path, expected: "
+        "info.data <element-regexp-1> <element-regexp-2>",
+      );
     }
 
     var info = await infoFromFile(args.first);
     var graph = graphFromInfo(info);
 
-    final source =
-        info.functions.firstWhereOrNull(_longNameMatcher(RegExp(args[1])));
-    final target =
-        info.functions.firstWhereOrNull(_longNameMatcher(RegExp(args[2])));
+    final source = info.functions.firstWhereOrNull(
+      _longNameMatcher(RegExp(args[1])),
+    );
+    final target = info.functions.firstWhereOrNull(
+      _longNameMatcher(RegExp(args[2])),
+    );
     print('query: some_path');
     if (source == null) {
       usageException("source '${args[1]}' not found in '${args[0]}'");

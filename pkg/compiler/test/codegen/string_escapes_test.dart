@@ -18,81 +18,94 @@ main() {
 
     await compileExpression("''' \n\r\u2028\u2029'''").then((String generated) {
       Expect.isTrue(
-          generated.contains(r'"\n\u2028\u2029"') ||
-              generated.contains(r"'\n\u2028\u2029'"),
-          generated);
+        generated.contains(r'"\n\u2028\u2029"') ||
+            generated.contains(r"'\n\u2028\u2029'"),
+        generated,
+      );
     });
-    await compileExpression("r''' \n\r\u2028\u2029'''")
-        .then((String generated) {
+    await compileExpression("r''' \n\r\u2028\u2029'''").then((
+      String generated,
+    ) {
       Expect.isTrue(
-          generated.contains(r'"\n\u2028\u2029"') ||
-              generated.contains(r"'\n\u2028\u2029'"),
-          generated);
+        generated.contains(r'"\n\u2028\u2029"') ||
+            generated.contains(r"'\n\u2028\u2029'"),
+        generated,
+      );
     });
-    await compileExpression("r''' \r\n\u2028\u2029'''")
-        .then((String generated) {
+    await compileExpression("r''' \r\n\u2028\u2029'''").then((
+      String generated,
+    ) {
       Expect.isTrue(
-          generated.contains(r'"\u2028\u2029"') ||
-              generated.contains(r"'\u2028\u2029'"),
-          generated);
+        generated.contains(r'"\u2028\u2029"') ||
+            generated.contains(r"'\u2028\u2029'"),
+        generated,
+      );
     });
     await compileExpression("r''' \r\u2028\u2029'''").then((String generated) {
       Expect.isTrue(
-          generated.contains(r'"\u2028\u2029"') ||
-              generated.contains(r"'\u2028\u2029'"),
-          generated);
+        generated.contains(r'"\u2028\u2029"') ||
+            generated.contains(r"'\u2028\u2029'"),
+        generated,
+      );
     });
     await compileExpression("r''' \n\u2028\u2029'''").then((String generated) {
       Expect.isTrue(
-          generated.contains(r'"\u2028\u2029"') ||
-              generated.contains(r"'\u2028\u2029'"),
-          generated);
+        generated.contains(r'"\u2028\u2029"') ||
+            generated.contains(r"'\u2028\u2029'"),
+        generated,
+      );
     });
     await compileExpression(
-            "r'''\t\t      \t\t  \t\t  \t \t \n\r\u2028\u2029'''")
-        .then((String generated) {
+      "r'''\t\t      \t\t  \t\t  \t \t \n\r\u2028\u2029'''",
+    ).then((String generated) {
       Expect.isTrue(
-          generated.contains(r'"\n\u2028\u2029"') ||
-              generated.contains(r"'\n\u2028\u2029'"),
-          generated);
+        generated.contains(r'"\n\u2028\u2029"') ||
+            generated.contains(r"'\n\u2028\u2029'"),
+        generated,
+      );
     });
     await compileExpression(
-            "r'''\\\t\\\t \\   \\  \t\\\t  \t \\\n\r\u2028\u2029'''")
-        .then((String generated) {
+      "r'''\\\t\\\t \\   \\  \t\\\t  \t \\\n\r\u2028\u2029'''",
+    ).then((String generated) {
       Expect.isTrue(
-          generated.contains(r'"\n\u2028\u2029"') ||
-              generated.contains(r"'\n\u2028\u2029'"),
-          generated);
+        generated.contains(r'"\n\u2028\u2029"') ||
+            generated.contains(r"'\n\u2028\u2029'"),
+        generated,
+      );
     });
     await compileExpression(
-            "r'''\t\t      \t\t  \t\t  \t \t \\\n\r\u2028\u2029'''")
-        .then((String generated) {
+      "r'''\t\t      \t\t  \t\t  \t \t \\\n\r\u2028\u2029'''",
+    ).then((String generated) {
       Expect.isTrue(
-          generated.contains(r'"\n\u2028\u2029"') ||
-              generated.contains(r"'\n\u2028\u2029'"),
-          generated);
+        generated.contains(r'"\n\u2028\u2029"') ||
+            generated.contains(r"'\n\u2028\u2029'"),
+        generated,
+      );
     });
     await compileExpression(
-            "r'''\\\t\\\t \\   \\  \t\\\t   \\\r\n\u2028\u2029'''")
-        .then((String generated) {
+      "r'''\\\t\\\t \\   \\  \t\\\t   \\\r\n\u2028\u2029'''",
+    ).then((String generated) {
       Expect.isTrue(
-          generated.contains(r'"\u2028\u2029"') ||
-              generated.contains(r"'\u2028\u2029'"),
-          generated);
+        generated.contains(r'"\u2028\u2029"') ||
+            generated.contains(r"'\u2028\u2029'"),
+        generated,
+      );
     });
     await compileExpression(
-            "r'''\\\t\\\t \\   \\  \t\\\t   \\\r\u2028\u2029'''")
-        .then((String generated) {
+      "r'''\\\t\\\t \\   \\  \t\\\t   \\\r\u2028\u2029'''",
+    ).then((String generated) {
       Expect.isTrue(
-          generated.contains(r'"\u2028\u2029"') ||
-              generated.contains(r"'\u2028\u2029'"),
-          generated);
+        generated.contains(r'"\u2028\u2029"') ||
+            generated.contains(r"'\u2028\u2029'"),
+        generated,
+      );
     });
     await compileExpression("'\u2028\u2029'").then((String generated) {
       Expect.isTrue(
-          generated.contains(r'"\u2028\u2029"') ||
-              generated.contains(r"'\u2028\u2029'"),
-          generated);
+        generated.contains(r'"\u2028\u2029"') ||
+            generated.contains(r"'\u2028\u2029'"),
+        generated,
+      );
     });
   }
 

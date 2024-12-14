@@ -183,7 +183,9 @@ class YieldStatementResolver {
   }
 
   void _resolve_notGenerator(YieldStatement node) {
-    node.expression.accept(_resolver);
+    _resolver.analyzeExpression(
+        node.expression, _resolver.operations.unknownType);
+    _resolver.popRewrite();
 
     _errorReporter.atNode(
       node,

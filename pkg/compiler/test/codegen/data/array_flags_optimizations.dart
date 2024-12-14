@@ -13,8 +13,13 @@ import 'dart:_foreign_helper' show ArrayFlags, HArrayFlagsCheck;
   A.throwUnsupportedOperation(B.List_empty);
 }*/
 indexSetter() {
-  HArrayFlagsCheck(const [], ArrayFlags.constant, ArrayFlags.unmodifiableCheck,
-      '[]=', 'modify');
+  HArrayFlagsCheck(
+    const [],
+    ArrayFlags.constant,
+    ArrayFlags.unmodifiableCheck,
+    '[]=',
+    'modify',
+  );
 }
 
 @pragma('dart2js:never-inline')
@@ -24,8 +29,13 @@ indexSetter() {
   A.throwUnsupportedOperation(B.List_empty, 0, "change contents of");
 }*/
 indexSetterUnusualVerb() {
-  HArrayFlagsCheck(const [], ArrayFlags.constant, ArrayFlags.unmodifiableCheck,
-      '[]=', 'change contents of');
+  HArrayFlagsCheck(
+    const [],
+    ArrayFlags.constant,
+    ArrayFlags.unmodifiableCheck,
+    '[]=',
+    'change contents of',
+  );
 }
 
 @pragma('dart2js:never-inline')
@@ -34,8 +44,13 @@ indexSetterUnusualVerb() {
   A.throwUnsupportedOperation(B.List_empty, "rub");
 }*/
 unusualOperationModify() {
-  HArrayFlagsCheck(const [], ArrayFlags.constant, ArrayFlags.unmodifiableCheck,
-      'rub', 'modify');
+  HArrayFlagsCheck(
+    const [],
+    ArrayFlags.constant,
+    ArrayFlags.unmodifiableCheck,
+    'rub',
+    'modify',
+  );
 }
 
 @pragma('dart2js:never-inline')
@@ -44,8 +59,13 @@ unusualOperationModify() {
   A.throwUnsupportedOperation(B.List_empty, "rub", 1);
 }*/
 unusualOperationRemoveFrom() {
-  HArrayFlagsCheck(const [], ArrayFlags.constant, ArrayFlags.unmodifiableCheck,
-      'rub', 'remove from');
+  HArrayFlagsCheck(
+    const [],
+    ArrayFlags.constant,
+    ArrayFlags.unmodifiableCheck,
+    'rub',
+    'remove from',
+  );
 }
 
 @pragma('dart2js:never-inline')
@@ -54,8 +74,13 @@ unusualOperationRemoveFrom() {
   A.throwUnsupportedOperation(B.List_empty, "rub", "burnish");
 }*/
 unusualOperationAndVerb() {
-  HArrayFlagsCheck(const [], ArrayFlags.constant, ArrayFlags.unmodifiableCheck,
-      'rub', 'burnish');
+  HArrayFlagsCheck(
+    const [],
+    ArrayFlags.constant,
+    ArrayFlags.unmodifiableCheck,
+    'rub',
+    'burnish',
+  );
 }
 
 @pragma('dart2js:never-inline')
@@ -64,8 +89,13 @@ unusualOperationAndVerb() {
   A.throwUnsupportedOperation(B.List_empty, 10);
 }*/
 knownOperationModify() {
-  HArrayFlagsCheck(const [], ArrayFlags.constant, ArrayFlags.unmodifiableCheck,
-      'setUint16', 'modify');
+  HArrayFlagsCheck(
+    const [],
+    ArrayFlags.constant,
+    ArrayFlags.unmodifiableCheck,
+    'setUint16',
+    'modify',
+  );
 }
 
 @pragma('dart2js:never-inline')
@@ -74,8 +104,13 @@ knownOperationModify() {
   A.throwUnsupportedOperation(B.List_empty, 16);
 }*/
 knownOperationAndVerb() {
-  HArrayFlagsCheck(const [], ArrayFlags.constant, ArrayFlags.unmodifiableCheck,
-      'removeWhere', 'remove from');
+  HArrayFlagsCheck(
+    const [],
+    ArrayFlags.constant,
+    ArrayFlags.unmodifiableCheck,
+    'removeWhere',
+    'remove from',
+  );
 }
 
 /*member: main:ignore*/

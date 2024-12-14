@@ -14,9 +14,9 @@ import '../universe/record_shape.dart';
 String nodeToDebugString(ir.Node node, [int textLength = 40]) {
   String blockText = node.toString().replaceAll('\n', ' ');
   if (blockText.length > textLength) {
-    blockText = blockText.substring(0, textLength - 3) + '...';
+    blockText = '${blockText.substring(0, textLength - 3)}...';
   }
-  return '(${node.runtimeType}:${node.hashCode})${blockText}';
+  return '(${node.runtimeType}:${node.hashCode})$blockText';
 }
 
 /// Comparator for the canonical order for named parameters.
@@ -50,10 +50,11 @@ SourceSpan computeSourceSpanFromTreeNode(ir.TreeNode node) {
 
 RecordShape recordShapeOfRecordType(ir.RecordType node) {
   return RecordShape(
-      node.positional.length,
-      node.named.isEmpty
-          ? const []
-          : node.named.map((n) => n.name).toList(growable: false));
+    node.positional.length,
+    node.named.isEmpty
+        ? const []
+        : node.named.map((n) => n.name).toList(growable: false),
+  );
 }
 
 /// Computes `recordShapeOfRecordType(node).indexOfFieldName(name)` without
@@ -70,13 +71,13 @@ int indexOfNameInRecordShapeOfRecordType(ir.RecordType node, String name) {
 AsyncMarker getAsyncMarker(ir.FunctionNode node) {
   switch (node.asyncMarker) {
     case ir.AsyncMarker.Async:
-      return AsyncMarker.ASYNC;
+      return AsyncMarker.async;
     case ir.AsyncMarker.AsyncStar:
-      return AsyncMarker.ASYNC_STAR;
+      return AsyncMarker.asyncStar;
     case ir.AsyncMarker.Sync:
-      return AsyncMarker.SYNC;
+      return AsyncMarker.sync;
     case ir.AsyncMarker.SyncStar:
-      return AsyncMarker.SYNC_STAR;
+      return AsyncMarker.syncStar;
   }
 }
 
@@ -225,7 +226,8 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   @override
   bool visitAuxiliaryType(ir.AuxiliaryType node) {
     throw UnsupportedError(
-        'Unsupported auxiliary type $node (${node.runtimeType}).');
+      'Unsupported auxiliary type $node (${node.runtimeType}).',
+    );
   }
 }
 
@@ -246,8 +248,9 @@ bool _isWebLibrary(Uri importUri) =>
             importUri.path == 'web_gl' ||
             importUri.path == 'web_sql' ||
             importUri.path == 'html_common') ||
-    // Mock web library path for testing.
-    importUri.path
+        // Mock web library path for testing.
+        importUri
+        .path
         .contains('native_null_assertions/web_library_interfaces.dart');
 
 bool nodeIsInWebLibrary(ir.TreeNode? node) {

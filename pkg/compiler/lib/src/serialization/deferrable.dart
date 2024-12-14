@@ -33,6 +33,7 @@ import 'package:compiler/src/serialization/serialization.dart';
 ///
 /// Example class before:
 ///
+/// ```
 /// class Foo {
 ///   final Bar bar;
 ///   final String name;
@@ -45,9 +46,11 @@ import 'package:compiler/src/serialization/serialization.dart';
 ///     return Foo(bar, name);
 ///   }
 /// }
+/// ```
 ///
 /// After:
 ///
+/// ```
 /// class Foo {
 ///   Bar get bar => _bar.loaded();
 ///   final Deferrable<Bar> _bar;
@@ -67,18 +70,26 @@ import 'package:compiler/src/serialization/serialization.dart';
 ///     return Foo._deserialized(bar, name);
 ///   }
 /// }
+/// ```
 abstract class Deferrable<E> {
   E loaded();
 
   factory Deferrable.deferred(
-          DataSourceReader reader, E f(DataSourceReader source), int offset,
-          {bool cacheData = true}) =>
+    DataSourceReader reader,
+    E Function(DataSourceReader source) f,
+    int offset, {
+    bool cacheData = true,
+  }) =>
       cacheData
           ? _DeferredCache(reader, f, offset)
           : _Deferred(reader, f, offset);
-  static Deferrable<E> deferredWithArg<E, A>(DataSourceReader reader,
-          E f(DataSourceReader source, A arg), A arg, int offset,
-          {bool cacheData = true}) =>
+  static Deferrable<E> deferredWithArg<E, A>(
+    DataSourceReader reader,
+    E Function(DataSourceReader source, A arg) f,
+    A arg,
+    int offset, {
+    bool cacheData = true,
+  }) =>
       cacheData
           ? _DeferredCacheWithArg(reader, f, arg, offset)
           : _DeferredWithArg(reader, f, arg, offset);
@@ -119,7 +130,7 @@ class _DeferredCacheWithArg<E, A> extends Deferrable<E> {
   E _loadData() {
     final reader = _reader!;
     final dataLoader = _dataLoader!;
-    final arg = _arg!;
+    final arg = _arg as A;
     _reader = null;
     _dataLoader = null;
     _arg = null;
@@ -127,7 +138,11 @@ class _DeferredCacheWithArg<E, A> extends Deferrable<E> {
   }
 
   _DeferredCacheWithArg(
-      this._reader, this._dataLoader, this._arg, this._dataOffset);
+    this._reader,
+    this._dataLoader,
+    this._arg,
+    this._dataOffset,
+  );
 }
 
 class _Deferred<E> extends Deferrable<E> {
@@ -196,7 +211,7 @@ class DeferrableValueMap<K, V> with MapMixin<K, V> {
   }
 
   @override
-  V putIfAbsent(K key, V ifAbsent()) {
+  V putIfAbsent(K key, V Function() ifAbsent) {
     return _map.putIfAbsent(key, () => Deferrable.eager(ifAbsent())).loaded();
   }
 }

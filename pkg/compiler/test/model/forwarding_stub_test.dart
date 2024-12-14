@@ -26,18 +26,27 @@ main() {
 
 main() {
   asyncTest(() async {
-    CompilationResult result =
-        await (runCompiler(memorySourceFiles: {'main.dart': source}));
+    CompilationResult result = await (runCompiler(
+      memorySourceFiles: {'main.dart': source},
+    ));
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler!;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-    ClassEntity cls = elementEnvironment.lookupClass(
-        elementEnvironment.mainLibrary!, 'Class')!;
-    ClassEntity mixin = elementEnvironment.lookupClass(
-        elementEnvironment.mainLibrary!, 'Mixin')!;
-    final method =
-        elementEnvironment.lookupClassMember(cls, PublicName('method'));
+    ClassEntity cls =
+        elementEnvironment.lookupClass(
+          elementEnvironment.mainLibrary!,
+          'Class',
+        )!;
+    ClassEntity mixin =
+        elementEnvironment.lookupClass(
+          elementEnvironment.mainLibrary!,
+          'Mixin',
+        )!;
+    final method = elementEnvironment.lookupClassMember(
+      cls,
+      PublicName('method'),
+    );
     Expect.isNotNull(method);
     Expect.equals(mixin, method!.enclosingClass);
     Expect.isFalse(method.isAbstract);

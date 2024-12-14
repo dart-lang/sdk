@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.enqueue;
+library;
 
 import 'common/elements.dart' show ElementEnvironment;
 import 'common/tasks.dart' show CompilerTask;
@@ -16,8 +16,11 @@ import 'universe/world_impact.dart' show WorldImpact;
 
 abstract class EnqueuerListener {
   /// Called to instruct to the backend that [type] has been instantiated.
-  void registerInstantiatedType(InterfaceType type,
-      {bool isGlobal = false, bool nativeUsage = false});
+  void registerInstantiatedType(
+    InterfaceType type, {
+    bool isGlobal = false,
+    bool nativeUsage = false,
+  });
 
   /// Called to notify to the backend that a class is being instantiated. Any
   /// backend specific [WorldImpact] of this is returned.
@@ -50,7 +53,10 @@ abstract class EnqueuerListener {
   WorldImpact registerUsedConstant(ConstantValue value);
 
   void onQueueOpen(
-      Enqueuer enqueuer, FunctionEntity? mainMethod, Iterable<Uri> libraries);
+    Enqueuer enqueuer,
+    FunctionEntity? mainMethod,
+    Iterable<Uri> libraries,
+  );
 
   /// Called when [enqueuer]'s queue is empty, but before it is closed.
   ///
@@ -74,7 +80,7 @@ abstract class EnqueuerListener {
   void onQueueClosed();
 
   /// Called after the queue has been emptied.
-  void logSummary(void log(String message));
+  void logSummary(void Function(String message) log);
 }
 
 abstract class Enqueuer {
@@ -91,7 +97,7 @@ abstract class Enqueuer {
 
   bool get queueIsEmpty;
 
-  void forEach(void f(WorkItem work));
+  void forEach(void Function(WorkItem work) f);
 
   /// Apply the [worldImpact] to this enqueuer.
   void applyImpact(WorldImpact worldImpact) {
@@ -104,11 +110,12 @@ abstract class Enqueuer {
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods(
-      ElementEnvironment elementEnvironment);
+    ElementEnvironment elementEnvironment,
+  );
 
   /// Check the enqueuer queue is empty or fail otherwise.
   void checkQueueIsEmpty();
-  void logSummary(void log(String message));
+  void logSummary(void Function(String message) log);
 
   Iterable<MemberEntity> get processedEntities;
 
@@ -136,9 +143,11 @@ abstract class Enqueuer {
     task.measureSubtask('resolution.check', () {
       // Run through the classes and see if we need to enqueue more methods.
       for (ClassEntity classElement in directlyInstantiatedClasses) {
-        for (ClassEntity? currentClass = classElement;
-            currentClass != null;
-            currentClass = elementEnvironment.getSuperClass(currentClass)) {
+        for (
+          ClassEntity? currentClass = classElement;
+          currentClass != null;
+          currentClass = elementEnvironment.getSuperClass(currentClass)
+        ) {
           checkClass(currentClass);
         }
       }

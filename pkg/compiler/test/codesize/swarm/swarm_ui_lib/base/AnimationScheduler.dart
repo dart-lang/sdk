@@ -58,8 +58,11 @@ class AnimationScheduler {
   /// at or after [minTime].  If [minTime] is not specified, the first available
   /// animation frame is used.  Returns an id that can be used to cancel the
   /// pending callback.
-  int requestAnimationFrame(AnimationCallback callback,
-      [Element? element, num? minTime]) {
+  int requestAnimationFrame(
+    AnimationCallback callback, [
+    Element? element,
+    num? minTime,
+  ]) {
     final callbackData = CallbackData(callback, minTime!);
     _requestAnimationFrameHelper(callbackData);
     return callbackData.id;

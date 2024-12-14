@@ -24,10 +24,7 @@ enum _FunctionNodeKind {
 }
 
 /// Enum used for identifying [ir.TypeParameter] context in serialization.
-enum _TypeParameterKind {
-  cls,
-  functionNode,
-}
+enum _TypeParameterKind { cls, functionNode }
 
 class DartTypeNodeWriter
     extends ir.DartTypeVisitor1<void, List<ir.StructuralParameter>> {
@@ -35,8 +32,10 @@ class DartTypeNodeWriter
 
   DartTypeNodeWriter(this._sink);
 
-  void visitTypes(List<ir.DartType> types,
-      List<ir.StructuralParameter> functionTypeVariables) {
+  void visitTypes(
+    List<ir.DartType> types,
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     _sink.writeInt(types.length);
     for (ir.DartType type in types) {
       _sink._writeDartTypeNode(type, functionTypeVariables);
@@ -44,46 +43,61 @@ class DartTypeNodeWriter
   }
 
   @override
-  void visitAuxiliaryType(ir.AuxiliaryType node,
-      List<ir.StructuralParameter> functionTypeVariables) {
+  void visitAuxiliaryType(
+    ir.AuxiliaryType node,
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     throw UnsupportedError(
-        "Unsupported auxiliary type $node (${node.runtimeType}).");
+      "Unsupported auxiliary type $node (${node.runtimeType}).",
+    );
   }
 
   @override
   void visitInvalidType(
-      ir.InvalidType node, List<ir.StructuralParameter> functionTypeVariables) {
+    ir.InvalidType node,
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     _sink.writeEnum(DartTypeNodeKind.invalidType);
   }
 
   @override
   void visitDynamicType(
-      ir.DynamicType node, List<ir.StructuralParameter> functionTypeVariables) {
+    ir.DynamicType node,
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     _sink.writeEnum(DartTypeNodeKind.dynamicType);
   }
 
   @override
   void visitVoidType(
-      ir.VoidType node, List<ir.StructuralParameter> functionTypeVariables) {
+    ir.VoidType node,
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     _sink.writeEnum(DartTypeNodeKind.voidType);
   }
 
   @override
   void visitNeverType(
-      ir.NeverType node, List<ir.StructuralParameter> functionTypeVariables) {
+    ir.NeverType node,
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     _sink.writeEnum(DartTypeNodeKind.neverType);
     _sink.writeEnum(node.nullability);
   }
 
   @override
   void visitNullType(
-      ir.NullType node, List<ir.StructuralParameter> functionTypeVariables) {
+    ir.NullType node,
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     _sink.writeEnum(DartTypeNodeKind.nullType);
   }
 
   @override
-  void visitInterfaceType(ir.InterfaceType node,
-      List<ir.StructuralParameter> functionTypeVariables) {
+  void visitInterfaceType(
+    ir.InterfaceType node,
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     _sink.writeEnum(DartTypeNodeKind.interfaceType);
     _sink.writeClassNode(node.classNode);
     _sink.writeEnum(node.nullability);
@@ -92,7 +106,9 @@ class DartTypeNodeWriter
 
   @override
   void visitRecordType(
-      ir.RecordType node, List<ir.StructuralParameter> functionTypeVariables) {
+    ir.RecordType node,
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     _sink.writeEnum(DartTypeNodeKind.recordType);
     _sink.writeEnum(node.declaredNullability);
     visitTypes(node.positional, functionTypeVariables);
@@ -100,21 +116,25 @@ class DartTypeNodeWriter
   }
 
   @override
-  void visitFutureOrType(ir.FutureOrType node,
-      List<ir.StructuralParameter> functionTypeVariables) {
+  void visitFutureOrType(
+    ir.FutureOrType node,
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     _sink.writeEnum(DartTypeNodeKind.futureOrType);
     _sink.writeEnum(node.declaredNullability);
     _sink._writeDartTypeNode(node.typeArgument, functionTypeVariables);
   }
 
   @override
-  void visitFunctionType(ir.FunctionType node,
-      List<ir.StructuralParameter> functionTypeVariables) {
+  void visitFunctionType(
+    ir.FunctionType node,
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     _sink.writeEnum(DartTypeNodeKind.functionType);
     _sink.begin(functionTypeNodeTag);
-    functionTypeVariables =
-        List<ir.StructuralParameter>.from(functionTypeVariables)
-          ..addAll(node.typeParameters);
+    functionTypeVariables = List<ir.StructuralParameter>.from(
+      functionTypeVariables,
+    )..addAll(node.typeParameters);
     _sink.writeInt(node.typeParameters.length);
     for (ir.StructuralParameter parameter in node.typeParameters) {
       _sink.writeString(parameter.name!);
@@ -129,8 +149,10 @@ class DartTypeNodeWriter
     _sink.end(functionTypeNodeTag);
   }
 
-  void _visitNamedTypes(List<ir.NamedType> named,
-      List<ir.StructuralParameter> functionTypeVariables) {
+  void _visitNamedTypes(
+    List<ir.NamedType> named,
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     _sink.writeInt(named.length);
     for (ir.NamedType parameter in named) {
       _sink.writeString(parameter.name);
@@ -140,8 +162,10 @@ class DartTypeNodeWriter
   }
 
   @override
-  void visitTypeParameterType(ir.TypeParameterType node,
-      List<ir.StructuralParameter> functionTypeVariables) {
+  void visitTypeParameterType(
+    ir.TypeParameterType node,
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     _sink.writeEnum(DartTypeNodeKind.typeParameterType);
     _sink.writeTypeParameterNode(node.parameter);
     _sink.writeEnum(node.declaredNullability);
@@ -149,8 +173,10 @@ class DartTypeNodeWriter
   }
 
   @override
-  void visitStructuralParameterType(ir.StructuralParameterType node,
-      List<ir.StructuralParameter> functionTypeVariables) {
+  void visitStructuralParameterType(
+    ir.StructuralParameterType node,
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     int index = functionTypeVariables.indexOf(node.parameter);
     assert(index != -1);
     _sink.writeEnum(DartTypeNodeKind.functionTypeVariable);
@@ -159,18 +185,25 @@ class DartTypeNodeWriter
   }
 
   @override
-  void visitIntersectionType(ir.IntersectionType node,
-      List<ir.StructuralParameter> functionTypeVariables) {
+  void visitIntersectionType(
+    ir.IntersectionType node,
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     _sink.writeEnum(DartTypeNodeKind.typeParameterType);
     _sink.writeTypeParameterNode(node.left.parameter);
     _sink.writeEnum(node.declaredNullability);
-    _sink._writeDartTypeNode(node.right, functionTypeVariables,
-        allowNull: false);
+    _sink._writeDartTypeNode(
+      node.right,
+      functionTypeVariables,
+      allowNull: false,
+    );
   }
 
   @override
   void visitTypedefType(
-      ir.TypedefType node, List<ir.StructuralParameter> functionTypeVariables) {
+    ir.TypedefType node,
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     _sink.writeEnum(DartTypeNodeKind.typedef);
     _sink.writeTypedefNode(node.typedefNode);
     _sink.writeEnum(node.nullability);
@@ -178,8 +211,10 @@ class DartTypeNodeWriter
   }
 
   @override
-  void visitExtensionType(ir.ExtensionType node,
-      List<ir.StructuralParameter> functionTypeVariables) {
+  void visitExtensionType(
+    ir.ExtensionType node,
+    List<ir.StructuralParameter> functionTypeVariables,
+  ) {
     _sink.writeEnum(DartTypeNodeKind.extensionType);
     _sink.writeExtensionTypeDeclarationNode(node.extensionTypeDeclaration);
     _sink.writeEnum(node.nullability);

@@ -30,8 +30,10 @@ main() {
 void main() {
   runTest() async {
     String generated = await compileAll(TEST);
-    Expect.isTrue(generated.contains('return c + c;'),
-        "Expected generated code to contain 'return c + c;':\n$generated");
+    Expect.isTrue(
+      generated.contains('return c + c;'),
+      "Expected generated code to contain 'return c + c;':\n$generated",
+    );
   }
 
   asyncTest(() async {

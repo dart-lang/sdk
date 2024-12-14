@@ -292,7 +292,9 @@ class ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
 
   ir.Constant getConstant(int index) {
     assert(
-        _indexToNodeMap.containsKey(index), "Index without constant: $index");
+      _indexToNodeMap.containsKey(index),
+      "Index without constant: $index",
+    );
     return _indexToNodeMap[index]!;
   }
 
@@ -318,7 +320,8 @@ class ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
 
   @override
   void visitRedirectingFactoryTearOffConstant(
-      ir.RedirectingFactoryTearOffConstant node) {
+    ir.RedirectingFactoryTearOffConstant node,
+  ) {
     _register(node);
   }
 
@@ -418,6 +421,7 @@ class ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
   @override
   void visitAuxiliaryConstant(ir.AuxiliaryConstant node) {
     throw UnsupportedError(
-        "Unsupported auxiliary constant ${node} (${node.runtimeType}).");
+      "Unsupported auxiliary constant $node (${node.runtimeType}).",
+    );
   }
 }

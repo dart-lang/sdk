@@ -1,3 +1,4 @@
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show TryConstantEvaluator;
 import 'package:kernel/ast.dart';
@@ -21,16 +22,18 @@ class ConstantTransformer extends Transformer {
 
   ConstantExpression _evaluateAndWrap(Expression node) {
     return ConstantExpression(
-        _evaluate(node), node.getStaticType(_staticTypeContext))
-      ..fileOffset = node.fileOffset;
+      _evaluate(node),
+      node.getStaticType(_staticTypeContext),
+    )..fileOffset = node.fileOffset;
   }
 
   Expression _evaluateAndWrapOrNode(Expression node) {
     final constantOrNull = _evaluateOrNull(node);
     if (constantOrNull == null) return node;
     return ConstantExpression(
-        constantOrNull, node.getStaticType(_staticTypeContext))
-      ..fileOffset = node.fileOffset;
+      constantOrNull,
+      node.getStaticType(_staticTypeContext),
+    )..fileOffset = node.fileOffset;
   }
 
   bool _isConstant(Expression node) => node is ConstantExpression;
@@ -41,7 +44,9 @@ class ConstantTransformer extends Transformer {
   @override
   TreeNode visitLibrary(Library node) {
     _staticTypeContext = StaticTypeContext.forAnnotations(
-        node, constantEvaluator.typeEnvironment);
+      node,
+      constantEvaluator.typeEnvironment,
+    );
     node.transformChildren(this);
     return node;
   }
@@ -54,8 +59,10 @@ class ConstantTransformer extends Transformer {
   }
 
   void _setupTypeContextForMember(Member node) {
-    _staticTypeContext =
-        StaticTypeContext(node, constantEvaluator.typeEnvironment);
+    _staticTypeContext = StaticTypeContext(
+      node,
+      constantEvaluator.typeEnvironment,
+    );
   }
 
   @override
@@ -69,8 +76,9 @@ class ConstantTransformer extends Transformer {
       VariableDeclaration parameter = newInitializer.variable;
       final parameterInitializer = parameter.initializer;
       if (parameterInitializer != null) {
-        Expression newParameterInitializer =
-            _evaluateAndWrapOrNode(parameterInitializer);
+        Expression newParameterInitializer = _evaluateAndWrapOrNode(
+          parameterInitializer,
+        );
 
         newParameterInitializer.parent = parameter;
         parameter.initializer = newParameterInitializer;

@@ -4,7 +4,7 @@
 
 /// Null pattern implementation of the [api.CompilerOutput] interface.
 
-library compiler.null_api;
+library;
 
 import '../compiler_api.dart' as api;
 
@@ -14,7 +14,10 @@ class NullCompilerOutput implements api.CompilerOutput {
 
   @override
   api.OutputSink createOutputSink(
-      String name, String extension, api.OutputType type) {
+    String name,
+    String extension,
+    api.OutputType type,
+  ) {
     return NullSink.outputProvider(name, extension, type);
   }
 
@@ -41,7 +44,10 @@ class NullSink implements api.OutputSink {
 
   /// Convenience method for getting an [api.CompilerOutputProvider].
   static NullSink outputProvider(
-      String name, String extension, api.OutputType type) {
+    String name,
+    String extension,
+    api.OutputType type,
+  ) {
     return NullSink('$name.$extension.$type');
   }
 }

@@ -519,15 +519,13 @@ testBreak2() {
 /*member: testReturnElementOfConstList1:[exact=JSUInt31]*/
 testReturnElementOfConstList1() {
   return const [
-    42
-  ] /*Container([exact=JSUnmodifiableArray], element: [exact=JSUInt31], length: 1)*/ [
-      0];
+    42,
+  ] /*Container([exact=JSUnmodifiableArray], element: [exact=JSUInt31], length: 1)*/ [0];
 }
 
 /*member: testReturnElementOfConstList2:[exact=JSUInt31]*/
 testReturnElementOfConstList2() {
-  return topLevelConstList /*Container([exact=JSUnmodifiableArray], element: [exact=JSUInt31], length: 1)*/ [
-      0];
+  return topLevelConstList /*Container([exact=JSUnmodifiableArray], element: [exact=JSUInt31], length: 1)*/ [0];
 }
 
 /*member: testReturnItselfOrInt:[exact=JSUInt31]*/
@@ -597,8 +595,8 @@ testSpecialization2() {
   // Make [a] a captured variable. This should disable receiver
   // specialization on [a].
   (
-      /*[exact=JSString]*/
-      () => a.toString())();
+  /*[exact=JSString]*/
+  () => a.toString())();
   a - 42;
   return a;
 }
@@ -714,8 +712,9 @@ class A {
       ++this /*[subclass=A]*/ /*update: [subclass=A]*/ [0];
 
   /*member: A.returnInt6:[subclass=JSUInt32]*/
-  returnInt6() => this /*[subclass=A]*/ /*update: [subclass=A]*/ [
-      0] /*invoke: [exact=JSUInt31]*/ += 1;
+  returnInt6() =>
+      this /*[subclass=A]*/ /*update: [subclass=A]*/ [0] /*invoke: [exact=JSUInt31]*/ +=
+          1;
 
   /*member: A.myFactory:[subclass=Closure]*/
   get myFactory => /*[exact=JSUInt31]*/ () => 42;
@@ -739,8 +738,9 @@ class B extends A {
       ++new A() /*[exact=A]*/ /*update: [exact=A]*/ [0];
 
   /*member: B.returnInt4:[subclass=JSUInt32]*/
-  returnInt4() => A() /*[exact=A]*/ /*update: [exact=A]*/ [
-      0] /*invoke: [exact=JSUInt31]*/ += 42;
+  returnInt4() =>
+      A() /*[exact=A]*/ /*update: [exact=A]*/ [0] /*invoke: [exact=JSUInt31]*/ +=
+          42;
 
   /*member: B.returnInt5:[subclass=JSUInt32]*/
   returnInt5() => /*invoke: [exact=JSUInt31]*/ ++super.myField;
@@ -787,24 +787,29 @@ class C {
 
   /*member: C.[]=:[null]*/
   operator []=(
-      /*[exact=JSUInt31]*/ index, /*[subclass=JSPositiveInt]*/ value) {}
+    /*[exact=JSUInt31]*/ index,
+    /*[subclass=JSPositiveInt]*/ value,
+  ) {}
 
   /*member: C.returnInt5:[subclass=JSPositiveInt]*/
   returnInt5() => /*invoke: [subclass=JSPositiveInt]*/
       ++this /*[exact=C]*/ /*update: [exact=C]*/ [0];
 
   /*member: C.returnInt6:[subclass=JSPositiveInt]*/
-  returnInt6() => this /*[exact=C]*/ /*update: [exact=C]*/ [
-      0] /*invoke: [subclass=JSPositiveInt]*/ += 1;
+  returnInt6() =>
+      this /*[exact=C]*/ /*update: [exact=C]*/ [0] /*invoke: [subclass=JSPositiveInt]*/ +=
+          1;
 }
 
 /*member: testCascade1:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/
 testCascade1() {
   return [1, 2, 3]
-    .. /*invoke: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/
-        add(4)
-    .. /*invoke: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/
-        add(5);
+    .. /*invoke: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/ add(
+      4,
+    )
+    .. /*invoke: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/ add(
+      5,
+    );
 }
 
 /*member: testCascade2:[exact=CascadeHelper]*/
@@ -831,7 +836,8 @@ class CascadeHelper {
 /*member: main:[null]*/
 main() {
   // Ensure a function class is being instantiated.
-  /*[exact=JSUInt31]*/ () => 42;
+  /*[exact=JSUInt31]*/
+  () => 42;
   returnNum1(true);
   returnNum2(true);
   returnInt1(true);

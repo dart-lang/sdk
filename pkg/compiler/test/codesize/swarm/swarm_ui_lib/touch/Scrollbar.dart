@@ -48,10 +48,10 @@ class Scrollbar implements ScrollListener {
   bool _hovering = false;
 
   Scrollbar(Scroller scroller, [displayOnHover = true])
-      : _displayOnHover = displayOnHover,
-        _scroller = scroller,
-        _frame = scroller.getFrame(),
-        _cachedSize = <String, num>{} {
+    : _displayOnHover = displayOnHover,
+      _scroller = scroller,
+      _frame = scroller.getFrame(),
+      _cachedSize = <String, num>{} {
     _boundHideFn = () {
       _showScrollbars(false);
     };
@@ -62,9 +62,15 @@ class Scrollbar implements ScrollListener {
   set _scrollBarDragInProgress(bool value) {
     _scrollBarDragInProgressValue = value;
     _toggleClass(
-        _verticalElement, DRAG_CLASS_NAME, value && _currentScrollVertical);
+      _verticalElement,
+      DRAG_CLASS_NAME,
+      value && _currentScrollVertical,
+    );
     _toggleClass(
-        _horizontalElement, DRAG_CLASS_NAME, value && !_currentScrollVertical);
+      _horizontalElement,
+      DRAG_CLASS_NAME,
+      value && !_currentScrollVertical,
+    );
   }
 
   // TODO(jacobr): move this helper method into the DOM.
@@ -88,18 +94,32 @@ class Scrollbar implements ScrollListener {
       return;
     }
     _verticalElement = Element.html(
-        '<div class="touch-scrollbar touch-scrollbar-vertical"></div>');
+      '<div class="touch-scrollbar touch-scrollbar-vertical"></div>',
+    );
     _horizontalElement = Element.html(
-        '<div class="touch-scrollbar touch-scrollbar-horizontal"></div>');
+      '<div class="touch-scrollbar touch-scrollbar-horizontal"></div>',
+    );
     _scroller.addScrollListener(this);
 
     Element scrollerEl = _scroller.getElement();
 
     if (!Device.supportsTouch) {
       _addEventListeners(
-          _verticalElement, _onStart, _onMove, _onEnd, _onEnd, true);
+        _verticalElement,
+        _onStart,
+        _onMove,
+        _onEnd,
+        _onEnd,
+        true,
+      );
       _addEventListeners(
-          _horizontalElement, _onStart, _onMove, _onEnd, _onEnd, true);
+        _horizontalElement,
+        _onStart,
+        _onMove,
+        _onEnd,
+        _onEnd,
+        true,
+      );
     }
 
     _scroller.addScrollListener(this);
@@ -166,14 +186,17 @@ class Scrollbar implements ScrollListener {
     Size contentSize = _scroller._getAdjustedContentSize();
     if (_currentScrollVertical) {
       _refreshScrollRatioHelper(
-          _scroller._scrollSize.height, contentSize.height);
+        _scroller._scrollSize.height,
+        contentSize.height,
+      );
     } else {
       _refreshScrollRatioHelper(_scroller._scrollSize.width, contentSize.width);
     }
   }
 
   void _refreshScrollRatioHelper(num frameSize, num contentSize) {
-    num frameTravelDistance = frameSize -
+    num frameTravelDistance =
+        frameSize -
         _defaultScrollSize(frameSize, contentSize) -
         _PADDING_LENGTH * 2;
     if (frameTravelDistance < 0.001) {
@@ -236,7 +259,9 @@ class Scrollbar implements ScrollListener {
     }
     _scroller._resize(() {
       updateScrollbars(
-          _scroller.getHorizontalOffset(), _scroller.getVerticalOffset());
+        _scroller.getHorizontalOffset(),
+        _scroller.getVerticalOffset(),
+      );
     });
   }
 
@@ -244,13 +269,27 @@ class Scrollbar implements ScrollListener {
     Size contentSize = _scroller._getAdjustedContentSize();
     if (_scroller._shouldScrollHorizontally()) {
       num scrollPercentX = _scroller.getHorizontalScrollPercent(scrollX);
-      _updateScrollbar(_horizontalElement, scrollX, scrollPercentX,
-          _scroller._scrollSize.width, contentSize.width, 'right', 'width');
+      _updateScrollbar(
+        _horizontalElement,
+        scrollX,
+        scrollPercentX,
+        _scroller._scrollSize.width,
+        contentSize.width,
+        'right',
+        'width',
+      );
     }
     if (_scroller._shouldScrollVertically()) {
       num scrollPercentY = _scroller.getVerticalScrollPercent(scrollY);
-      _updateScrollbar(_verticalElement, scrollY, scrollPercentY,
-          _scroller._scrollSize.height, contentSize.height, 'bottom', 'height');
+      _updateScrollbar(
+        _verticalElement,
+        scrollY,
+        scrollPercentY,
+        _scroller._scrollSize.height,
+        contentSize.height,
+        'bottom',
+        'height',
+      );
     }
   }
 
@@ -287,17 +326,25 @@ class Scrollbar implements ScrollListener {
 
   num _defaultScrollSize(num frameSize, num contentSize) {
     return GoogleMath.clamp(
-        (frameSize - _PADDING_LENGTH * 2) * frameSize / contentSize,
-        _MIN_SIZE,
-        frameSize - _PADDING_LENGTH * 2);
+      (frameSize - _PADDING_LENGTH * 2) * frameSize / contentSize,
+      _MIN_SIZE,
+      frameSize - _PADDING_LENGTH * 2,
+    );
   }
 
   /// Update the vertical or horizontal scrollbar based on the new scroll
   /// properties. The CSS property to adjust for position (bottom|right) is
   /// specified by [cssPos]. The CSS property to adjust for size (height|width)
   /// is specified by [cssSize].
-  void _updateScrollbar(Element element, num offset, num scrollPercent,
-      num frameSize, num contentSize, String cssPos, String cssSize) {
+  void _updateScrollbar(
+    Element element,
+    num offset,
+    num scrollPercent,
+    num frameSize,
+    num contentSize,
+    String cssPos,
+    String cssSize,
+  ) {
     if (!_cachedSize.containsKey(cssSize)) {
       if (offset == null || contentSize < frameSize) {
         return;
@@ -314,7 +361,8 @@ class Scrollbar implements ScrollListener {
     num maxSize = _defaultScrollSize(frameSize, contentSize);
     num size = Math.max(_MIN_COMPRESSED_SIZE, maxSize - scrollPx);
     num maxOffset = frameSize - size - _PADDING_LENGTH * 2;
-    num pos = GoogleMath.clamp(scrollPercent * maxOffset, 0, maxOffset) +
+    num pos =
+        GoogleMath.clamp(scrollPercent * maxOffset, 0, maxOffset) +
         _PADDING_LENGTH;
     pos = pos.round();
     size = size.round();

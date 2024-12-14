@@ -30,7 +30,8 @@ class Class1 {
 
   /*member: Class1.:[exact=Class1]*/
   Class1() : field1a = 42 {
-    /*update: [exact=Class1]*/ field1b = /*[exact=Class1]*/ field1a;
+    /*update: [exact=Class1]*/
+    field1b = /*[exact=Class1]*/ field1a;
   }
 }
 
@@ -58,7 +59,8 @@ class Class2 {
 
   /*member: Class2.:[exact=Class2]*/
   Class2() : field2a = 42 {
-    /*update: [exact=Class2]*/ field2b = /*[exact=Class2]*/ field2a;
+    /*update: [exact=Class2]*/
+    field2b = /*[exact=Class2]*/ field2a;
   }
 }
 
@@ -86,7 +88,8 @@ class Class3 {
 
   /*member: Class3.:[exact=Class3]*/
   Class3() : field3a = 42 {
-    /*update: [exact=Class3]*/ field3b = /*[exact=Class3]*/ field3a;
+    /*update: [exact=Class3]*/
+    field3b = /*[exact=Class3]*/ field3a;
   }
 }
 
@@ -120,7 +123,8 @@ class Class5 extends SuperClass5 {
 
   /*member: Class5.:[exact=Class5]*/
   Class5() : field5a = 42 {
-    /*update: [exact=Class5]*/ field5b = /*[exact=Class5]*/ field5a;
+    /*update: [exact=Class5]*/
+    field5b = /*[exact=Class5]*/ field5a;
   }
 }
 
@@ -142,7 +146,8 @@ class Class4 {
 
   /*member: Class4.:[exact=Class4]*/
   Class4() : field4a = 42 {
-    /*update: [subclass=Class4]*/ field4b = /*[subclass=Class4]*/ field4a;
+    /*update: [subclass=Class4]*/
+    field4b = /*[subclass=Class4]*/ field4a;
   }
 }
 
@@ -172,7 +177,8 @@ class Class6 {
 
   /*member: Class6.:[exact=Class6]*/
   Class6() : field6a = 42 {
-    /*update: [subclass=Class6]*/ field6b = /*[subclass=Class6]*/ field6a;
+    /*update: [subclass=Class6]*/
+    field6b = /*[subclass=Class6]*/ field6a;
   }
 }
 
@@ -206,7 +212,8 @@ class Class9 {
 
   /*member: Class9.:[exact=Class9]*/
   Class9() : field9a = 42 {
-    /*update: [subclass=Class9]*/ field9b = /*[subclass=Class9]*/ field9a;
+    /*update: [subclass=Class9]*/
+    field9b = /*[subclass=Class9]*/ field9a;
   }
 }
 
@@ -271,7 +278,8 @@ abstract class Class8 {
 
   /*member: Class8.:[subclass=Class8]*/
   Class8() {
-    /*invoke: [subclass=Class8]*/ method8();
+    /*invoke: [subclass=Class8]*/
+    method8();
   }
 
   method8();
@@ -281,7 +289,8 @@ abstract class Class8 {
 class SubClass8a extends Class8 {
   /*member: SubClass8a.method8:[null]*/
   method8() {
-    /*update: [exact=SubClass8a]*/ field8 = 42;
+    /*update: [exact=SubClass8a]*/
+    field8 = 42;
   }
 }
 

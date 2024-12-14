@@ -79,8 +79,10 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
   final String description = "See breakdown of code size by library.";
 
   LibrarySizeCommand() {
-    argParser.addOption('grouping',
-        help: 'YAML file specifying how libraries should be grouped.');
+    argParser.addOption(
+      'grouping',
+      help: 'YAML file specifying how libraries should be grouped.',
+    );
   }
 
   @override
@@ -94,14 +96,16 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
     final info = await infoFromFile(args.first);
 
     final groupingFile = argRes['grouping'];
-    final groupingText = groupingFile != null
-        ? File(groupingFile).readAsStringSync()
-        : defaultGrouping;
+    final groupingText =
+        groupingFile != null
+            ? File(groupingFile).readAsStringSync()
+            : defaultGrouping;
     final groupingYaml = loadYaml(groupingText);
     final groups = [];
     for (var group in groupingYaml['groups']) {
-      groups.add(_Group(
-          group['name'], RegExp(group['regexp']), group['cluster'] ?? 0));
+      groups.add(
+        _Group(group['name'], RegExp(group['regexp']), group['cluster'] ?? 0),
+      );
     }
 
     final sizes = {};
@@ -141,11 +145,14 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
         return;
       }
 
-      var percent = row.value == realTotal
-          ? '100'
-          : (row.value * 100 / realTotal).toStringAsFixed(2);
-      print(' ${_pad(row.label, longest + 1, right: true)}'
-          ' ${_pad(row.value, 8)} ${_pad(percent, 6)}%');
+      var percent =
+          row.value == realTotal
+              ? '100'
+              : (row.value * 100 / realTotal).toStringAsFixed(2);
+      print(
+        ' ${_pad(row.label, longest + 1, right: true)}'
+        ' ${_pad(row.value, 8)} ${_pad(percent, 6)}%',
+      );
     }
 
     var lastCluster = 0;

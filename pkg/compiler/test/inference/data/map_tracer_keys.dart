@@ -20,22 +20,26 @@ dynamic aList1 = [42];
 
 /*member: consume1:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
 consume1(
-        /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/ x) =>
-    x;
+  /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/ x,
+) => x;
 
 /*member: test1:[null]*/
 test1() {
   var theMap = {'a': 2.2, 'b': 3.3, 'c': 4.4};
   theMap
       /*update: Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt], map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: [null|exact=JSNumNotInt]})*/
-      ['d'] = 5.5;
+      ['d'] =
+      5.5;
   /*iterator: [exact=LinkedHashMapKeysIterable]*/
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
-  for (var key in theMap.
-      /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt], map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: [null|exact=JSNumNotInt]})*/
-      keys) {
-    aDouble1 = theMap
+  for (var key
+      in theMap
+          .
+          /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt], map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: [null|exact=JSNumNotInt]})*/
+          keys) {
+    aDouble1 =
+        theMap
         /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt], map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: [null|exact=JSNumNotInt]})*/
         [key];
   }
@@ -51,22 +55,26 @@ dynamic aList2 = [42];
 
 /*member: consume2:Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/
 consume2(
-        /*Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/ x) =>
-    x;
+  /*Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/ x,
+) => x;
 
 /*member: test2:[null]*/
 test2() {
   dynamic theMap = {'a': 2.2, 'b': 3.3, 'c': 4.4};
   theMap
       /*update: Map([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt])*/
-      [aList2] = 5.5;
+      [aList2] =
+      5.5;
   /*iterator: [exact=LinkedHashMapKeysIterable]*/
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
-  for (var key in theMap.
-      /*Map([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt])*/
-      keys) {
-    aDouble2 = theMap
+  for (var key
+      in theMap
+          .
+          /*Map([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt])*/
+          keys) {
+    aDouble2 =
+        theMap
         /*Map([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt])*/
         [key];
   }
@@ -82,22 +90,26 @@ dynamic aList3 = [42];
 
 /*member: consume3:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
 consume3(
-        /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/ x) =>
-    x;
+  /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/ x,
+) => x;
 
 /*member: test3:[null]*/
 test3() {
   dynamic theMap = <dynamic, dynamic>{'a': 2.2, 'b': 3.3, 'c': 4.4};
   theMap
       /*update: Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt]), map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: Container([null|exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
-      ['d'] = aList3;
+      ['d'] =
+      aList3;
   /*iterator: [exact=LinkedHashMapKeysIterable]*/
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
-  for (var key in theMap.
-      /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt]), map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: Container([null|exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
-      keys) {
-    aDouble3 = theMap
+  for (var key
+      in theMap
+          .
+          /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt]), map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: Container([null|exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
+          keys) {
+    aDouble3 =
+        theMap
         /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt]), map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: Container([null|exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
         [key];
   }
@@ -113,8 +125,8 @@ dynamic aList4 = [42];
 
 /*member: consume4:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
 consume4(
-        /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/ x) =>
-    x;
+  /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/ x,
+) => x;
 
 /*member: test4:[null]*/
 test4() {
@@ -122,10 +134,13 @@ test4() {
   /*iterator: [exact=LinkedHashMapKeysIterable]*/
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
-  for (var key in theMap.
-      /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt], map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: [exact=JSNumNotInt]})*/
-      keys) {
-    aDouble4 = theMap
+  for (var key
+      in theMap
+          .
+          /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt], map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: [exact=JSNumNotInt]})*/
+          keys) {
+    aDouble4 =
+        theMap
         /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt], map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: [exact=JSNumNotInt]})*/
         [key];
   }
@@ -141,8 +156,8 @@ dynamic aList5 = [42];
 
 /*member: consume5:Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/
 consume5(
-        /*Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/ x) =>
-    x;
+  /*Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/ x,
+) => x;
 
 /*member: test5:[null]*/
 test5() {
@@ -150,10 +165,13 @@ test5() {
   /*iterator: [exact=LinkedHashMapKeysIterable]*/
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
-  for (var key in theMap.
-      /*Map([exact=JsLinkedHashMap], key: Union([exact=JSExtendableArray], [exact=JSString]), value: [null|exact=JSNumNotInt])*/
-      keys) {
-    aDouble5 = theMap
+  for (var key
+      in theMap
+          .
+          /*Map([exact=JsLinkedHashMap], key: Union([exact=JSExtendableArray], [exact=JSString]), value: [null|exact=JSNumNotInt])*/
+          keys) {
+    aDouble5 =
+        theMap
         /*Map([exact=JsLinkedHashMap], key: Union([exact=JSExtendableArray], [exact=JSString]), value: [null|exact=JSNumNotInt])*/
         [key];
   }
@@ -168,8 +186,8 @@ dynamic aList6 = [42];
 
 /*member: consume6:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
 consume6(
-        /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/ x) =>
-    x;
+  /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/ x,
+) => x;
 
 /*member: test6:[null]*/
 test6() {
@@ -177,10 +195,13 @@ test6() {
   /*iterator: [exact=LinkedHashMapKeysIterable]*/
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
-  for (var key in theMap.
-      /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt]), map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
-      keys) {
-    aDouble6 = theMap
+  for (var key
+      in theMap
+          .
+          /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt]), map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
+          keys) {
+    aDouble6 =
+        theMap
         /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt]), map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
         [key];
   }

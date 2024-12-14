@@ -25,16 +25,22 @@ class ConvertCommand extends Command<void> with PrintUsageException {
   void _addSubcommand(Command<void> command) {
     addSubcommand(command);
     command.argParser
-      ..addOption('out',
-          abbr: 'o',
-          help: 'Output file '
-              '(to_json defauts to <input>.json, to_binary defaults to\n'
-              '<input>.data, and to_proto defaults to <input>.pb)')
-      ..addFlag('inject-text',
-          negatable: false,
-          help: 'Whether to inject output code snippets.\n\n'
-              'By default dart2js produces code spans, but excludes the text. This\n'
-              'option can be used to embed the text directly in the output.\n'
-              'Note: this requires access to dart2js output files.\n');
+      ..addOption(
+        'out',
+        abbr: 'o',
+        help:
+            'Output file '
+            '(to_json defauts to <input>.json, to_binary defaults to\n'
+            '<input>.data, and to_proto defaults to <input>.pb)',
+      )
+      ..addFlag(
+        'inject-text',
+        negatable: false,
+        help:
+            'Whether to inject output code snippets.\n\n'
+            'By default dart2js produces code spans, but excludes the text. This\n'
+            'option can be used to embed the text directly in the output.\n'
+            'Note: this requires access to dart2js output files.\n',
+      );
   }
 }

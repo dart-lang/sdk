@@ -52,8 +52,12 @@ class BinaryDataSink implements DataSink {
       _bufferedSink!.addByte2((value >> 8) | 0x80, value & 0xFF);
       _length += 2;
     } else {
-      _bufferedSink!.addByte4((value >> 24) | 0xC0, (value >> 16) & 0xFF,
-          (value >> 8) & 0xFF, value & 0xFF);
+      _bufferedSink!.addByte4(
+        (value >> 24) | 0xC0,
+        (value >> 16) & 0xFF,
+        (value >> 8) & 0xFF,
+        value & 0xFF,
+      );
       _length += 4;
     }
   }
@@ -61,12 +65,16 @@ class BinaryDataSink implements DataSink {
   @override
   void writeUint32(int value) {
     _length += 4;
-    _bufferedSink!.addByte4((value >> 24) & 0xFF, (value >> 16) & 0xFF,
-        (value >> 8) & 0xFF, value & 0xFF);
+    _bufferedSink!.addByte4(
+      (value >> 24) & 0xFF,
+      (value >> 16) & 0xFF,
+      (value >> 8) & 0xFF,
+      value & 0xFF,
+    );
   }
 
   @override
-  void writeDeferred(void writer()) {
+  void writeDeferred(void Function() writer) {
     final indexOffset = _length;
     writeInt(0); // Padding so the offset won't collide with a nested write.
     final dataStartOffset = _length;

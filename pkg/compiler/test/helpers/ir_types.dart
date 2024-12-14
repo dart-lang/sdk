@@ -10,7 +10,8 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
   @override
   void visitAuxiliaryType(ir.AuxiliaryType node, StringBuffer sb) {
     throw UnsupportedError(
-        "Unsupported auxiliary type $node (${node.runtimeType}).");
+      "Unsupported auxiliary type $node (${node.runtimeType}).",
+    );
   }
 
   void writeType(ir.DartType type, StringBuffer sb) {
@@ -27,7 +28,9 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
   }
 
   void _writeTypeArguments(
-      Iterable<ir.DartType> typeArguments, StringBuffer sb) {
+    Iterable<ir.DartType> typeArguments,
+    StringBuffer sb,
+  ) {
     if (typeArguments.isNotEmpty) {
       sb.write('<');
       _writeTypes(typeArguments, sb);
@@ -48,7 +51,9 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
 
   @override
   void visitStructuralParameterType(
-      ir.StructuralParameterType node, StringBuffer sb) {
+    ir.StructuralParameterType node,
+    StringBuffer sb,
+  ) {
     sb.write(node.parameter.name);
   }
 
@@ -77,13 +82,17 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
     }
     sb.write('(');
     _writeTypes(
-        node.positionalParameters.take(node.requiredParameterCount), sb);
+      node.positionalParameters.take(node.requiredParameterCount),
+      sb,
+    );
     if (node.requiredParameterCount < node.positionalParameters.length) {
       if (node.requiredParameterCount > 0) {
         sb.write(',');
       }
       _writeTypes(
-          node.positionalParameters.skip(node.requiredParameterCount), sb);
+        node.positionalParameters.skip(node.requiredParameterCount),
+        sb,
+      );
     }
     if (node.namedParameters.isNotEmpty) {
       if (node.positionalParameters.isNotEmpty) {

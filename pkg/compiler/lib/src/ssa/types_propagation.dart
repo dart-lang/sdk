@@ -43,7 +43,11 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
   String get name => 'SsaTypePropagator';
 
   SsaTypePropagator(
-      this.results, this.commonElements, this.closedWorld, this._log);
+    this.results,
+    this.commonElements,
+    this.closedWorld,
+    this._log,
+  );
 
   AbstractValueDomain get abstractValueDomain =>
       closedWorld.abstractValueDomain;
@@ -74,9 +78,9 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
   bool validPostcondition(HGraph graph) => true;
 
   @override
-  void visitBasicBlock(HBasicBlock block) {
-    if (block.isLoopHeader()) {
-      block.forEachPhi((HPhi phi) {
+  void visitBasicBlock(HBasicBlock node) {
+    if (node.isLoopHeader()) {
+      node.forEachPhi((HPhi phi) {
         // Set the initial type for the phi. We're not using the type
         // the phi thinks it has because new optimizations may imply
         // changing it.
@@ -88,14 +92,14 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
         addToWorkList(phi);
       });
     } else {
-      block.forEachPhi((HPhi phi) {
+      node.forEachPhi((HPhi phi) {
         if (updateType(phi)) {
           addDependentInstructionsToWorkList(phi);
         }
       });
     }
 
-    HInstruction instruction = block.first!;
+    HInstruction instruction = node.first!;
     while (instruction.next != null) {
       if (updateType(instruction)) {
         addDependentInstructionsToWorkList(instruction);
@@ -107,7 +111,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
 
   void processWorklist() {
     do {
-      while (!worklist.isEmpty) {
+      while (worklist.isNotEmpty) {
         int id = worklist.removeLast();
         HInstruction instruction = workmap[id]!;
         workmap.remove(id);
@@ -120,7 +124,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
       // replaced operands, so we may need to take another stab at
       // emptying the worklist afterwards.
       processPendingOptimizations();
-    } while (!worklist.isEmpty);
+    } while (worklist.isNotEmpty);
   }
 
   void addToWorkList(HInstruction instruction) {
@@ -134,9 +138,9 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
   }
 
   @override
-  AbstractValue visitBinaryArithmetic(HBinaryArithmetic instruction) {
-    HInstruction left = instruction.left;
-    HInstruction right = instruction.right;
+  AbstractValue visitBinaryArithmetic(HBinaryArithmetic node) {
+    HInstruction left = node.left;
+    HInstruction right = node.right;
     if (left.isInteger(abstractValueDomain).isDefinitelyTrue &&
         right.isInteger(abstractValueDomain).isDefinitelyTrue) {
       return abstractValueDomain.intType;
@@ -155,48 +159,48 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
   }
 
   @override
-  AbstractValue visitMultiply(HMultiply instruction) {
-    return checkPositiveInteger(instruction);
+  AbstractValue visitMultiply(HMultiply node) {
+    return checkPositiveInteger(node);
   }
 
   @override
-  AbstractValue visitAdd(HAdd instruction) {
-    return checkPositiveInteger(instruction);
+  AbstractValue visitAdd(HAdd node) {
+    return checkPositiveInteger(node);
   }
 
   @override
-  AbstractValue visitDivide(HDivide instruction) {
+  AbstractValue visitDivide(HDivide node) {
     // Always double, as initialized.
-    return instruction.instructionType;
+    return node.instructionType;
   }
 
   @override
-  AbstractValue visitTruncatingDivide(HTruncatingDivide instruction) {
+  AbstractValue visitTruncatingDivide(HTruncatingDivide node) {
     // Always as initialized.
-    return instruction.instructionType;
+    return node.instructionType;
   }
 
   @override
-  AbstractValue visitRemainder(HRemainder instruction) {
+  AbstractValue visitRemainder(HRemainder node) {
     // Always as initialized.
-    return instruction.instructionType;
+    return node.instructionType;
   }
 
   @override
-  AbstractValue visitNegate(HNegate instruction) {
-    HInstruction operand = instruction.operand;
+  AbstractValue visitNegate(HNegate node) {
+    HInstruction operand = node.operand;
     // We have integer subclasses that represent ranges, so widen any int
     // subclass to full integer.
     if (operand.isInteger(abstractValueDomain).isDefinitelyTrue) {
       return abstractValueDomain.intType;
     }
-    return instruction.operand.instructionType;
+    return node.operand.instructionType;
   }
 
   @override
-  AbstractValue visitAbs(HAbs instruction) {
+  AbstractValue visitAbs(HAbs node) {
     // TODO(sra): Can narrow to non-negative type for integers.
-    return instruction.operand.instructionType;
+    return node.operand.instructionType;
   }
 
   @override
@@ -205,66 +209,80 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
   }
 
   @override
-  AbstractValue visitFieldSet(HFieldSet instruction) {
-    return instruction.value.instructionType;
+  AbstractValue visitFieldSet(HFieldSet node) {
+    return node.value.instructionType;
   }
 
   @override
-  AbstractValue visitIndexAssign(HIndexAssign instruction) {
-    return instruction.value.instructionType;
+  AbstractValue visitIndexAssign(HIndexAssign node) {
+    return node.value.instructionType;
   }
 
   @override
-  AbstractValue visitStaticStore(HStaticStore instruction) {
-    return instruction.value.instructionType;
+  AbstractValue visitStaticStore(HStaticStore node) {
+    return node.value.instructionType;
   }
 
   @override
-  AbstractValue visitPhi(HPhi phi) {
+  AbstractValue visitPhi(HPhi node) {
     AbstractValue candidateType = abstractValueDomain.emptyType;
-    for (int i = 0, length = phi.inputs.length; i < length; i++) {
-      AbstractValue inputType = phi.inputs[i].instructionType;
+    for (int i = 0, length = node.inputs.length; i < length; i++) {
+      AbstractValue inputType = node.inputs[i].instructionType;
       candidateType = abstractValueDomain.union(candidateType, inputType);
     }
     return candidateType;
   }
 
   @override
-  AbstractValue visitPrimitiveCheck(HPrimitiveCheck instruction) {
-    HInstruction input = instruction.checkedInput;
+  AbstractValue visitPrimitiveCheck(HPrimitiveCheck node) {
+    HInstruction input = node.checkedInput;
     AbstractValue inputType = input.instructionType;
-    AbstractValue checkedType = instruction.checkedType;
+    AbstractValue checkedType = node.checkedType;
 
-    AbstractValue outputType =
-        abstractValueDomain.intersection(checkedType, inputType);
+    AbstractValue outputType = abstractValueDomain.intersection(
+      checkedType,
+      inputType,
+    );
     if (inputType != outputType) {
       // Replace dominated uses of input with uses of this HPrimitiveCheck so
       // the uses benefit from the stronger type.
       assert(!(input is HParameterValue && input.usedAsVariable()));
-      input.replaceAllUsersDominatedBy(instruction.next!, instruction);
+      input.replaceAllUsersDominatedBy(node.next!, node);
     }
     return outputType;
   }
 
   @override
-  AbstractValue visitTypeKnown(HTypeKnown instruction) {
-    HInstruction input = instruction.checkedInput;
+  AbstractValue visitTypeKnown(HTypeKnown node) {
+    HInstruction input = node.checkedInput;
     AbstractValue inputType = input.instructionType;
-    AbstractValue outputType =
-        abstractValueDomain.intersection(instruction.knownType, inputType);
+    AbstractValue outputType = abstractValueDomain.intersection(
+      node.knownType,
+      inputType,
+    );
     if (inputType != outputType) {
-      input.replaceAllUsersDominatedBy(instruction.next!, instruction);
+      input.replaceAllUsersDominatedBy(node.next!, node);
     }
     return outputType;
   }
 
-  void convertInput(HInvokeDynamic instruction, HInstruction input,
-      AbstractValue type, PrimitiveCheckKind kind, DartType typeExpression) {
+  void convertInput(
+    HInvokeDynamic instruction,
+    HInstruction input,
+    AbstractValue type,
+    PrimitiveCheckKind kind,
+    DartType typeExpression,
+  ) {
     Selector? selector =
         (kind == PrimitiveCheckKind.receiverType) ? instruction.selector : null;
     HPrimitiveCheck converted = HPrimitiveCheck(
-        typeExpression, kind, type, input, instruction.sourceInformation,
-        receiverTypeCheckSelector: selector);
+      typeExpression,
+      kind,
+      type,
+      input,
+      instruction.sourceInformation,
+      receiverTypeCheckSelector: selector,
+    );
     instruction.block!.addBefore(instruction, converted);
     input.replaceAllUsersDominatedBy(instruction, converted);
     _log?.registerPrimitiveCheck(instruction, converted);
@@ -294,19 +312,24 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
     }
     if (receiver.isNumberOrNull(abstractValueDomain).isDefinitelyTrue) {
       convertInput(
-          instruction,
-          receiver,
-          abstractValueDomain.excludeNull(receiver.instructionType),
-          PrimitiveCheckKind.receiverType,
-          commonElements.numType);
+        instruction,
+        receiver,
+        abstractValueDomain.excludeNull(receiver.instructionType),
+        PrimitiveCheckKind.receiverType,
+        commonElements.numType,
+      );
       return true;
     } else if (instruction.element == null) {
       if (closedWorld.includesClosureCall(
-          instruction.selector, instruction.receiverType)) {
+        instruction.selector,
+        instruction.receiverType,
+      )) {
         return false;
       }
       Iterable<MemberEntity> targets = closedWorld.locateMembers(
-          instruction.selector, instruction.receiverType);
+        instruction.selector,
+        instruction.receiverType,
+      );
       if (targets.length == 1) {
         MemberEntity target = targets.first;
         ClassEntity cls = target.enclosingClass!;
@@ -322,8 +345,13 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
         }
         if (!isCheckEnoughForNsmOrAe(receiver, type)) return false;
         instruction.element = target;
-        convertInput(instruction, receiver, type,
-            PrimitiveCheckKind.receiverType, typeExpression);
+        convertInput(
+          instruction,
+          receiver,
+          type,
+          PrimitiveCheckKind.receiverType,
+          typeExpression,
+        );
         return true;
       }
     }
@@ -351,8 +379,13 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
       // variant and will do the check in their method anyway. We
       // still add a check because it allows to GVN these operations,
       // but we should find a better way.
-      convertInput(instruction, right, type, PrimitiveCheckKind.argumentType,
-          commonElements.numType);
+      convertInput(
+        instruction,
+        right,
+        type,
+        PrimitiveCheckKind.argumentType,
+        commonElements.numType,
+      );
       return true;
     }
     return false;
@@ -372,47 +405,47 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
   }
 
   void addAllUsersBut(HInvokeDynamic invoke, HInstruction instruction) {
-    instruction.usedBy.forEach((HInstruction user) {
+    for (var user in instruction.usedBy) {
       if (user != invoke) addToWorkList(user);
-    });
+    }
   }
 
   @override
-  AbstractValue visitInvokeDynamic(HInvokeDynamic instruction) {
-    if (instruction.isInterceptedCall) {
+  AbstractValue visitInvokeDynamic(HInvokeDynamic node) {
+    if (node.isInterceptedCall) {
       // We cannot do the following optimization now, because we have to wait
       // for the type propagation to be stable. The receiver of [instruction]
       // might move from number to dynamic.
       void checkInputs() {
-        Selector selector = instruction.selector;
+        Selector selector = node.selector;
         if (selector.isOperator && selector.name != '==') {
-          if (checkReceiver(instruction)) {
-            addAllUsersBut(instruction, instruction.inputs[1]);
+          if (checkReceiver(node)) {
+            addAllUsersBut(node, node.inputs[1]);
           }
-          if (!selector.isUnaryOperator && checkArgument(instruction)) {
-            addAllUsersBut(instruction, instruction.inputs[2]);
+          if (!selector.isUnaryOperator && checkArgument(node)) {
+            addAllUsersBut(node, node.inputs[2]);
           }
         } else if (selector.isCall) {
           if (selector.name == 'abs' && selector.argumentCount == 0) {
-            if (checkReceiver(instruction)) {
-              addAllUsersBut(instruction, instruction.inputs[1]);
+            if (checkReceiver(node)) {
+              addAllUsersBut(node, node.inputs[1]);
             }
           }
         }
       }
 
-      pendingOptimizations.putIfAbsent(instruction, () => checkInputs);
+      pendingOptimizations.putIfAbsent(node, () => checkInputs);
     }
 
-    HInstruction receiver = instruction.getDartReceiver(closedWorld);
+    HInstruction receiver = node.getDartReceiver(closedWorld);
     AbstractValue receiverType = receiver.instructionType;
-    instruction.updateReceiverType(abstractValueDomain, receiverType);
+    node.updateReceiverType(abstractValueDomain, receiverType);
 
     // Try to refine that the receiver is not null after this call by inserting
     // a refinement node (HTypeKnown).
-    var selector = instruction.selector;
+    var selector = node.selector;
     if (!selector.isMaybeClosureCall && !selector.appliesToNullWithoutThrow()) {
-      var next = instruction.next;
+      var next = node.next;
       if (next is HTypeKnown && next.checkedInput == receiver) {
         // On a previous pass or iteration we already refined [receiver] by
         // inserting a [HTypeKnown] instruction. That replaced several dominated
@@ -425,75 +458,91 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
           addDependentInstructionsToWorkList(next);
         }
       } else if (abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
-        DominatedUses uses =
-            DominatedUses.of(receiver, instruction, excludeDominator: true);
+        DominatedUses uses = DominatedUses.of(
+          receiver,
+          node,
+          excludeDominator: true,
+        );
         if (uses.isNotEmpty) {
           // Insert a refinement node after the call and update all users
           // dominated by the call to use that node instead of [receiver].
           AbstractValue newType = abstractValueDomain.excludeNull(receiverType);
-          HTypeKnown converted =
-              HTypeKnown.witnessed(newType, receiver, instruction);
-          instruction.block!.addBefore(instruction.next, converted);
+          HTypeKnown converted = HTypeKnown.witnessed(newType, receiver, node);
+          node.block!.addBefore(node.next, converted);
           uses.replaceWith(converted);
           addDependentInstructionsToWorkList(converted);
         }
       }
     }
 
-    var result = instruction.specializer
-        .computeTypeFromInputTypes(instruction, results, closedWorld);
-    if (instruction.staticType != null) {
-      result =
-          abstractValueDomain.intersection(result, instruction.staticType!);
+    var result = node.specializer.computeTypeFromInputTypes(
+      node,
+      results,
+      closedWorld,
+    );
+    if (node.staticType != null) {
+      result = abstractValueDomain.intersection(result, node.staticType!);
     }
     return result;
   }
 
   @override
-  AbstractValue visitNullCheck(HNullCheck instruction) {
-    HInstruction input = instruction.checkedInput;
+  AbstractValue visitNullCheck(HNullCheck node) {
+    HInstruction input = node.checkedInput;
     AbstractValue inputType = input.instructionType;
     AbstractValue outputType = abstractValueDomain.excludeNull(inputType);
     if (inputType != outputType) {
       // Replace dominated uses of input with uses of this check so the uses
       // benefit from the stronger type.
       assert(!(input is HParameterValue && input.usedAsVariable()));
-      input.replaceAllUsersDominatedBy(instruction.next!, instruction);
+      input.replaceAllUsersDominatedBy(node.next!, node);
     }
     return outputType;
   }
 
   @override
-  AbstractValue visitLateReadCheck(HLateReadCheck instruction) {
-    HInstruction input = instruction.checkedInput;
+  AbstractValue visitLateReadCheck(HLateReadCheck node) {
+    HInstruction input = node.checkedInput;
     AbstractValue inputType = input.instructionType;
-    AbstractValue outputType =
-        abstractValueDomain.excludeLateSentinel(inputType);
+    AbstractValue outputType = abstractValueDomain.excludeLateSentinel(
+      inputType,
+    );
     if (inputType != outputType) {
       // Replace dominated uses of input with uses of this check so the uses
       // benefit from the stronger type.
-      input.replaceAllUsersDominatedBy(instruction.next!, instruction);
+      input.replaceAllUsersDominatedBy(node.next!, node);
     }
     return outputType;
   }
 
   @override
-  AbstractValue visitAsCheck(HAsCheck instruction) {
-    return _narrowAsCheck(instruction, instruction.checkedInput,
-        instruction.checkedType.abstractValue);
+  AbstractValue visitAsCheck(HAsCheck node) {
+    return _narrowAsCheck(
+      node,
+      node.checkedInput,
+      node.checkedType.abstractValue,
+    );
   }
 
   @override
-  AbstractValue visitAsCheckSimple(HAsCheckSimple instruction) {
-    return _narrowAsCheck(instruction, instruction.checkedInput,
-        instruction.checkedType.abstractValue);
+  AbstractValue visitAsCheckSimple(HAsCheckSimple node) {
+    return _narrowAsCheck(
+      node,
+      node.checkedInput,
+      node.checkedType.abstractValue,
+    );
   }
 
   AbstractValue _narrowAsCheck(
-      HInstruction instruction, HInstruction input, AbstractValue checkedType) {
+    HInstruction instruction,
+    HInstruction input,
+    AbstractValue checkedType,
+  ) {
     AbstractValue inputType = input.instructionType;
-    AbstractValue outputType =
-        abstractValueDomain.intersection(checkedType, inputType);
+    AbstractValue outputType = abstractValueDomain.intersection(
+      checkedType,
+      inputType,
+    );
     if (inputType != outputType) {
       // Replace dominated uses of input with uses of this check so the uses
       // benefit from the stronger type.
@@ -504,16 +553,17 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
   }
 
   @override
-  AbstractValue visitBoolConversion(HBoolConversion instruction) {
+  AbstractValue visitBoolConversion(HBoolConversion node) {
     return abstractValueDomain.intersection(
-        abstractValueDomain.boolType, instruction.checkedInput.instructionType);
+      abstractValueDomain.boolType,
+      node.checkedInput.instructionType,
+    );
   }
 
   @override
-  AbstractValue visitArrayFlagsCheck(HArrayFlagsCheck instruction) {
-    instruction.array
-        .replaceAllUsersDominatedBy(instruction.next!, instruction);
-    AbstractValue inputType = instruction.array.instructionType;
-    return instruction.computeInstructionType(inputType, abstractValueDomain);
+  AbstractValue visitArrayFlagsCheck(HArrayFlagsCheck node) {
+    node.array.replaceAllUsersDominatedBy(node.next!, node);
+    AbstractValue inputType = node.array.instructionType;
+    return node.computeInstructionType(inputType, abstractValueDomain);
   }
 }

@@ -33,42 +33,60 @@ main(List<String> args) {
   Uri? librariesSpecificationUri = getLibrariesSpec(argResults);
   Uri? packageConfig = getPackages(argResults);
   List<String> options = getOptions(argResults);
-  run(entryPoint, null,
-      analyzedUrisFilter: (Uri uri) => !uri.isScheme('dart'),
-      librariesSpecificationUri: librariesSpecificationUri,
-      packageConfig: packageConfig,
-      options: options);
+  run(
+    entryPoint,
+    null,
+    analyzedUrisFilter: (Uri uri) => !uri.isScheme('dart'),
+    librariesSpecificationUri: librariesSpecificationUri,
+    packageConfig: packageConfig,
+    options: options,
+  );
 }
 
-run(Uri entryPoint, String? allowedListPath,
-    {Map<String, String> memorySourceFiles = const {},
-    Uri? librariesSpecificationUri,
-    Uri? packageConfig,
-    bool verbose = false,
-    bool generate = false,
-    List<String> options = const <String>[],
-    bool analyzedUrisFilter(Uri uri)?}) {
+run(
+  Uri entryPoint,
+  String? allowedListPath, {
+  Map<String, String> memorySourceFiles = const {},
+  Uri? librariesSpecificationUri,
+  Uri? packageConfig,
+  bool verbose = false,
+  bool generate = false,
+  List<String> options = const <String>[],
+  bool analyzedUrisFilter(Uri uri)?,
+}) {
   asyncTest(() async {
     Compiler compiler = await compilerFor(
-        memorySourceFiles: memorySourceFiles,
-        librariesSpecificationUri: librariesSpecificationUri,
-        packageConfig: packageConfig,
-        entryPoint: entryPoint,
-        options: options);
-    load_kernel.Output result = (await load_kernel.run(load_kernel.Input(
-        compiler.options,
-        compiler.provider,
-        compiler.reporter,
-        compiler.initializedCompilerState,
-        false)))!;
-    compiler.frontendStrategy
-        .registerLoadedLibraries(result.component, result.libraries!);
+      memorySourceFiles: memorySourceFiles,
+      librariesSpecificationUri: librariesSpecificationUri,
+      packageConfig: packageConfig,
+      entryPoint: entryPoint,
+      options: options,
+    );
+    load_kernel.Output result =
+        (await load_kernel.run(
+          load_kernel.Input(
+            compiler.options,
+            compiler.provider,
+            compiler.reporter,
+            compiler.initializedCompilerState,
+            false,
+          ),
+        ))!;
+    compiler.frontendStrategy.registerLoadedLibraries(
+      result.component,
+      result.libraries!,
+    );
     final coreTypes = ir.CoreTypes(result.component);
     final classHierarchy = ir.ClassHierarchy(result.component, coreTypes);
     final typeEnvironment = ir.TypeEnvironment(coreTypes, classHierarchy);
-    DynamicVisitor(compiler.reporter, result.component, allowedListPath,
-            analyzedUrisFilter, coreTypes, typeEnvironment)
-        .run(verbose: verbose, generate: generate);
+    DynamicVisitor(
+      compiler.reporter,
+      result.component,
+      allowedListPath,
+      analyzedUrisFilter,
+      coreTypes,
+      typeEnvironment,
+    ).run(verbose: verbose, generate: generate);
   });
 }
 
@@ -84,8 +102,14 @@ class DynamicVisitor extends ir.RecursiveVisitor {
   Map _expectedJson = {};
   final Map<String, Map<String, List<DiagnosticMessage>>> _actualMessages = {};
 
-  DynamicVisitor(this.reporter, this.component, this._allowedListPath,
-      this.analyzedUrisFilter, this.coreTypes, this.typeEnvironment);
+  DynamicVisitor(
+    this.reporter,
+    this.component,
+    this._allowedListPath,
+    this.analyzedUrisFilter,
+    this.coreTypes,
+    this.typeEnvironment,
+  );
 
   void run({bool verbose = false, bool generate = false}) {
     if (!generate && _allowedListPath != null) {
@@ -101,18 +125,23 @@ class DynamicVisitor extends ir.RecursiveVisitor {
     component.accept(this);
     if (generate && _allowedListPath != null) {
       Map<String, Map<String, int>> actualJson = SplayTreeMap();
-      _actualMessages.forEach(
-          (String uri, Map<String, List<DiagnosticMessage>> actualMessagesMap) {
+      _actualMessages.forEach((
+        String uri,
+        Map<String, List<DiagnosticMessage>> actualMessagesMap,
+      ) {
         Map<String, int> map = SplayTreeMap();
-        actualMessagesMap
-            .forEach((String message, List<DiagnosticMessage> actualMessages) {
+        actualMessagesMap.forEach((
+          String message,
+          List<DiagnosticMessage> actualMessages,
+        ) {
           map[message] = actualMessages.length;
         });
         actualJson[uri] = map;
       });
 
       File(_allowedListPath).writeAsStringSync(
-          json.JsonEncoder.withIndent('  ').convert(actualJson));
+        json.JsonEncoder.withIndent('  ').convert(actualJson),
+      );
       return;
     }
 
@@ -121,36 +150,46 @@ class DynamicVisitor extends ir.RecursiveVisitor {
       Map<String, List<DiagnosticMessage>>? actualMessagesMap =
           _actualMessages[uri];
       if (actualMessagesMap == null) {
-        print("Error: Allowed-listing of uri '$uri' isn't used. "
-            "Remove it from the allowed-list.");
+        print(
+          "Error: Allowed-listing of uri '$uri' isn't used. "
+          "Remove it from the allowed-list.",
+        );
         errorCount++;
       } else {
         expectedMessages.forEach((expectedMessage, expectedCount) {
           List<DiagnosticMessage>? actualMessages =
               actualMessagesMap[expectedMessage];
           if (actualMessages == null) {
-            print("Error: Allowed-listing of message '$expectedMessage' "
-                "in uri '$uri' isn't used. Remove it from the allowed-list.");
+            print(
+              "Error: Allowed-listing of message '$expectedMessage' "
+              "in uri '$uri' isn't used. Remove it from the allowed-list.",
+            );
             errorCount++;
           } else {
             int actualCount = actualMessages.length;
             if (actualCount != expectedCount) {
-              print("Error: Unexpected count of allowed message "
-                  "'$expectedMessage' in uri '$uri'. "
-                  "Expected $expectedCount, actual $actualCount:");
               print(
-                  '----------------------------------------------------------');
+                "Error: Unexpected count of allowed message "
+                "'$expectedMessage' in uri '$uri'. "
+                "Expected $expectedCount, actual $actualCount:",
+              );
+              print(
+                '----------------------------------------------------------',
+              );
               for (DiagnosticMessage message in actualMessages) {
                 reporter.reportError(message);
               }
               print(
-                  '----------------------------------------------------------');
+                '----------------------------------------------------------',
+              );
               errorCount++;
             }
           }
         });
-        actualMessagesMap
-            .forEach((String message, List<DiagnosticMessage> actualMessages) {
+        actualMessagesMap.forEach((
+          String message,
+          List<DiagnosticMessage> actualMessages,
+        ) {
           if (!expectedMessages.containsKey(message)) {
             for (DiagnosticMessage message in actualMessages) {
               reporter.reportError(message);
@@ -160,11 +199,15 @@ class DynamicVisitor extends ir.RecursiveVisitor {
         });
       }
     });
-    _actualMessages.forEach(
-        (String uri, Map<String, List<DiagnosticMessage>> actualMessagesMap) {
+    _actualMessages.forEach((
+      String uri,
+      Map<String, List<DiagnosticMessage>> actualMessagesMap,
+    ) {
       if (!_expectedJson.containsKey(uri)) {
-        actualMessagesMap
-            .forEach((String message, List<DiagnosticMessage> actualMessages) {
+        actualMessagesMap.forEach((
+          String message,
+          List<DiagnosticMessage> actualMessages,
+        ) {
           for (DiagnosticMessage message in actualMessages) {
             reporter.reportError(message);
             errorCount++;
@@ -191,23 +234,34 @@ class DynamicVisitor extends ir.RecursiveVisitor {
       exit(-1);
     }
     if (verbose) {
-      _actualMessages.forEach(
-          (String uri, Map<String, List<DiagnosticMessage>> actualMessagesMap) {
-        actualMessagesMap
-            .forEach((String message, List<DiagnosticMessage> actualMessages) {
+      _actualMessages.forEach((
+        String uri,
+        Map<String, List<DiagnosticMessage>> actualMessagesMap,
+      ) {
+        actualMessagesMap.forEach((
+          String message,
+          List<DiagnosticMessage> actualMessages,
+        ) {
           for (DiagnosticMessage message in actualMessages) {
-            reporter.reportErrorMessage(message.sourceSpan, MessageKind.GENERIC,
-                {'text': '${message.message} (allowed)'});
+            reporter.reportErrorMessage(
+              message.sourceSpan,
+              MessageKind.generic,
+              {'text': '${message.message} (allowed)'},
+            );
           }
         });
       });
     } else {
       int total = 0;
-      _actualMessages.forEach(
-          (String uri, Map<String, List<DiagnosticMessage>> actualMessagesMap) {
+      _actualMessages.forEach((
+        String uri,
+        Map<String, List<DiagnosticMessage>> actualMessagesMap,
+      ) {
         int count = 0;
-        actualMessagesMap
-            .forEach((String message, List<DiagnosticMessage> actualMessages) {
+        actualMessagesMap.forEach((
+          String message,
+          List<DiagnosticMessage> actualMessages,
+        ) {
           count += actualMessages.length;
         });
 
@@ -272,10 +326,16 @@ class DynamicVisitor extends ir.RecursiveVisitor {
     Uri uri = span.uri;
     if (uri.isScheme('org-dartlang-sdk')) {
       span = SourceSpan(
-          Uri.base.resolve(uri.path.substring(1)), span.begin, span.end);
+        Uri.base.resolve(uri.path.substring(1)),
+        span.begin,
+        span.end,
+      );
     }
-    DiagnosticMessage diagnosticMessage =
-        reporter.createMessage(span, MessageKind.GENERIC, {'text': message});
+    DiagnosticMessage diagnosticMessage = reporter.createMessage(
+      span,
+      MessageKind.generic,
+      {'text': message},
+    );
     reporter.reportError(diagnosticMessage);
     return message;
   }
@@ -288,10 +348,16 @@ class DynamicVisitor extends ir.RecursiveVisitor {
         .putIfAbsent(uriString, () => <String, List<DiagnosticMessage>>{});
     if (uri.isScheme('org-dartlang-sdk')) {
       span = SourceSpan(
-          Uri.base.resolve(uri.path.substring(1)), span.begin, span.end);
+        Uri.base.resolve(uri.path.substring(1)),
+        span.begin,
+        span.end,
+      );
     }
-    DiagnosticMessage diagnosticMessage =
-        reporter.createMessage(span, MessageKind.GENERIC, {'text': message});
+    DiagnosticMessage diagnosticMessage = reporter.createMessage(
+      span,
+      MessageKind.generic,
+      {'text': message},
+    );
     actualMap
         .putIfAbsent(message, () => <DiagnosticMessage>[])
         .add(diagnosticMessage);

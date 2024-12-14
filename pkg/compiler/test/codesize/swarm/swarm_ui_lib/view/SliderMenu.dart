@@ -152,7 +152,8 @@ class SliderMenu extends View {
     if (selectedItem != null) {
       // calculate where we want to put the triangle
       scheduleMicrotask(() {
-        num x = selectedItem!.offset.left +
+        num x =
+            selectedItem!.offset.left +
             selectedItem!.offset.width / 2 -
             TRIANGLE_WIDTH / 2;
         _moveIndicator(x, animate);

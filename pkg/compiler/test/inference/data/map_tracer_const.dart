@@ -4,10 +4,11 @@
 
 /*member: closure:[exact=JSUInt31]*/
 int closure(
-    int
-        /*spec.Union([exact=JSNumNotInt], [exact=JSUInt31])*/
-        /*prod.[exact=JSUInt31]*/
-        x) {
+  int
+  /*spec.Union([exact=JSNumNotInt], [exact=JSUInt31])*/
+  /*prod.[exact=JSUInt31]*/
+  x,
+) {
   return x;
 }
 
@@ -25,7 +26,7 @@ class A {
 main() {
   var a = A();
   a. /*[exact=A]*/ map
-      /*Dictionary([subclass=ConstantMap], key: Value([exact=JSString], value: "fun"), value: [null|subclass=Closure], map: {fun: [subclass=Closure]})*/
-      ['fun'](3.3);
+  /*Dictionary([subclass=ConstantMap], key: Value([exact=JSString], value: "fun"), value: [null|subclass=Closure], map: {fun: [subclass=Closure]})*/
+  ['fun'](3.3);
   print(closure(22));
 }

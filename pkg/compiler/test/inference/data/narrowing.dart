@@ -26,7 +26,8 @@ argIsNonNull2(/*[exact=JSUInt31]*/ x) {
 void nonNull2() {
   var x = 1;
   if ((x /*invoke: [subclass=JSInt]*/ == null) /*invoke: [exact=JSBool]*/ ==
-      true) return;
+      true)
+    return;
   argIsNonNull2(x);
 }
 
@@ -39,7 +40,8 @@ argIsNonNull3(/*[exact=JSUInt31]*/ x) {
 void nonNull3() {
   var x = 1;
   if ((x /*invoke: [subclass=JSInt]*/ == null) /*invoke: [exact=JSBool]*/ !=
-      false) return;
+      false)
+    return;
   argIsNonNull3(x);
 }
 
@@ -78,8 +80,10 @@ argIsNonNull6(/*[exact=JSUInt31]*/ x) {
 /*member: nonNull6:[null]*/
 void nonNull6() {
   var x = 1;
-  if ((/*[exact=JSBool]*/ (/*[exact=JSBool]*/ y) =>
-      y && false)(x /*invoke: [subclass=JSInt]*/ != null)) return;
+  if (( /*[exact=JSBool]*/ (/*[exact=JSBool]*/ y) => y && false)(
+    x /*invoke: [subclass=JSInt]*/ != null,
+  ))
+    return;
   argIsNonNull6(x);
 }
 

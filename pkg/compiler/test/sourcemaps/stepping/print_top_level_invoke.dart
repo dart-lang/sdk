@@ -7,6 +7,7 @@ main() {
 }
 
 foo() {
-  /*s:2*/ return "foo!";
-/*s:3*/
+  /*s:2*/
+  return "foo!";
+  /*s:3*/
 }

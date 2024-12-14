@@ -51,12 +51,17 @@ class LiveCodeAnalysisCommand extends Command<void> with PrintUsageException {
   @override
   final String name = "coverage_analysis";
   @override
-  final String description = "Analyze coverage data collected via the"
+  final String description =
+      "Analyze coverage data collected via the"
       " 'coverage_server' command";
 
   LiveCodeAnalysisCommand() {
-    argParser.addFlag('verbose',
-        abbr: 'v', negatable: false, help: 'Show verbose details.');
+    argParser.addFlag(
+      'verbose',
+      abbr: 'v',
+      negatable: false,
+      help: 'Show verbose details.',
+    );
   }
 
   @override
@@ -125,9 +130,11 @@ Future<void> _liveCodeAnalysis(infoFile, coverageFile, bool verbose) async {
   // TODO(sigmund): support grouping results by package.
   if (verbose) {
     print('\nDistribution of code that was not used when running the app:');
-    showCodeDistribution(info,
-        filter: (f) => !coverage.containsKey(f.coverageId) && f.size > 0,
-        showLibrarySizes: true);
+    showCodeDistribution(
+      info,
+      filter: (f) => !coverage.containsKey(f.coverageId) && f.size > 0,
+      showLibrarySizes: true,
+    );
   } else {
     print('\nUse `-v` to see details about the size of unreachable code');
   }

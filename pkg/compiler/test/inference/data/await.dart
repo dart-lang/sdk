@@ -63,8 +63,9 @@ awaitOfIntWithLocal() async {
 
 /*member: _method3:[null]*/
 _method3(
-    /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
-    o) {}
+  /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
+  o,
+) {}
 
 /*member: _method4:[null]*/
 _method4(/*[subclass=JSInt]*/ o) {}

@@ -306,8 +306,12 @@ class BinaryExpressionResolver {
   }
 
   void _resolveUnsupportedOperator(BinaryExpressionImpl node) {
-    node.leftOperand.accept(_resolver);
-    node.rightOperand.accept(_resolver);
+    _resolver.analyzeExpression(
+        node.leftOperand, _resolver.operations.unknownType);
+    _resolver.popRewrite();
+    _resolver.analyzeExpression(
+        node.rightOperand, _resolver.operations.unknownType);
+    _resolver.popRewrite();
     node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
   }
 

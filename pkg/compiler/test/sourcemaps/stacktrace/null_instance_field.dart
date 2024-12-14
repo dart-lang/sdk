@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  /*1:main*/ test(new Class());
+  /*1:main*/
+  test(new Class());
 }
 
 @pragma('dart2js:noInline')

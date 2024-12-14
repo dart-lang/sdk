@@ -27,7 +27,9 @@ main() {
   runTest() async {
     var options = [Flags.enableCheckedMode];
     var result = await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES, options: options);
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      options: options,
+    );
     var compiler = result.compiler!;
     var element =
         compiler.backendClosedWorldForTesting!.elementEnvironment.mainFunction!;

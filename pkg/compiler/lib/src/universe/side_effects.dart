@@ -2,22 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library universe.side_effects;
+library;
 
 import '../elements/entities.dart';
 import '../serialization/serialization.dart';
 import '../util/bitset.dart';
 import '../util/enumset.dart';
 
-enum SideEffectsFlag {
-  index_,
-  instanceProperty,
-  staticProperty,
-}
+enum SideEffectsFlag { index_, instanceProperty, staticProperty }
 
 final _changes = EnumSetDomain<SideEffectsFlag>(0, SideEffectsFlag.values);
-final _depends =
-    EnumSetDomain<SideEffectsFlag>(_changes.nextOffset, SideEffectsFlag.values);
+final _depends = EnumSetDomain<SideEffectsFlag>(
+  _changes.nextOffset,
+  SideEffectsFlag.values,
+);
 
 class SideEffects {
   /// Tag used for identifying serialized [SideEffects] objects in a debugging
@@ -96,8 +94,8 @@ class SideEffects {
 
   Bitset getDependsOnFlags() => _flags.intersection(allDepends);
 
-  bool hasSideEffects() => getChangesFlags() != 0;
-  bool dependsOnSomething() => getDependsOnFlags() != 0;
+  bool hasSideEffects() => getChangesFlags().isNotEmpty;
+  bool dependsOnSomething() => getDependsOnFlags().isNotEmpty;
 
   bool setAllSideEffects() {
     final before = _flags;

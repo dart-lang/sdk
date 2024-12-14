@@ -16,7 +16,7 @@ class SwitchContinueAnalysis extends ir.VisitorDefault<bool>
   }
 
   @override
-  bool visitContinueSwitchStatement(ir.ContinueSwitchStatement continueStmt) {
+  bool visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
     // TODO(efortuna): Check what the target of this continue statement actually
     // IS, because depending on where the label points if we have a nested
     // switch statement we might be able to output simpler code (not the complex
@@ -25,8 +25,8 @@ class SwitchContinueAnalysis extends ir.VisitorDefault<bool>
   }
 
   @override
-  bool visitBlock(ir.Block block) {
-    for (ir.Statement statement in block.statements) {
+  bool visitBlock(ir.Block node) {
+    for (ir.Statement statement in node.statements) {
       if (statement.accept(this)) {
         return true;
       }
@@ -35,28 +35,28 @@ class SwitchContinueAnalysis extends ir.VisitorDefault<bool>
   }
 
   @override
-  bool visitLabeledStatement(ir.LabeledStatement statement) {
-    return statement.body.accept(this);
+  bool visitLabeledStatement(ir.LabeledStatement node) {
+    return node.body.accept(this);
   }
 
   @override
-  bool visitDoStatement(ir.DoStatement doStatement) {
-    return doStatement.body.accept(this);
+  bool visitDoStatement(ir.DoStatement node) {
+    return node.body.accept(this);
   }
 
   @override
-  bool visitForStatement(ir.ForStatement forStatement) {
-    return forStatement.body.accept(this);
+  bool visitForStatement(ir.ForStatement node) {
+    return node.body.accept(this);
   }
 
   @override
-  bool visitForInStatement(ir.ForInStatement forInStatement) {
-    return forInStatement.body.accept(this);
+  bool visitForInStatement(ir.ForInStatement node) {
+    return node.body.accept(this);
   }
 
   @override
-  bool visitSwitchStatement(ir.SwitchStatement switchStatement) {
-    for (var switchCase in switchStatement.cases) {
+  bool visitSwitchStatement(ir.SwitchStatement node) {
+    for (var switchCase in node.cases) {
       if (switchCase.accept(this)) {
         return true;
       }
@@ -65,20 +65,20 @@ class SwitchContinueAnalysis extends ir.VisitorDefault<bool>
   }
 
   @override
-  bool visitSwitchCase(ir.SwitchCase switchCase) {
-    return switchCase.body.accept(this);
+  bool visitSwitchCase(ir.SwitchCase node) {
+    return node.body.accept(this);
   }
 
   @override
-  bool visitIfStatement(ir.IfStatement ifStatement) {
-    return ifStatement.then.accept(this) ||
-        (ifStatement.otherwise != null && ifStatement.otherwise!.accept(this));
+  bool visitIfStatement(ir.IfStatement node) {
+    return node.then.accept(this) ||
+        (node.otherwise != null && node.otherwise!.accept(this));
   }
 
   @override
-  bool visitTryCatch(ir.TryCatch tryCatch) {
-    if (tryCatch.body.accept(this)) {
-      for (var catchStatement in tryCatch.catches) {
+  bool visitTryCatch(ir.TryCatch node) {
+    if (node.body.accept(this)) {
+      for (var catchStatement in node.catches) {
         if (catchStatement.accept(this)) {
           return true;
         }
@@ -88,23 +88,23 @@ class SwitchContinueAnalysis extends ir.VisitorDefault<bool>
   }
 
   @override
-  bool visitWhileStatement(ir.WhileStatement statement) {
-    return statement.body.accept(this);
+  bool visitWhileStatement(ir.WhileStatement node) {
+    return node.body.accept(this);
   }
 
   @override
-  bool visitCatch(ir.Catch catchStatement) {
-    return catchStatement.body.accept(this);
+  bool visitCatch(ir.Catch node) {
+    return node.body.accept(this);
   }
 
   @override
-  bool visitTryFinally(ir.TryFinally tryFinally) {
-    return tryFinally.body.accept(this) && tryFinally.finalizer.accept(this);
+  bool visitTryFinally(ir.TryFinally node) {
+    return node.body.accept(this) && node.finalizer.accept(this);
   }
 
   @override
-  bool visitFunctionDeclaration(ir.FunctionDeclaration declaration) {
-    return declaration.function.accept(this);
+  bool visitFunctionDeclaration(ir.FunctionDeclaration node) {
+    return node.function.accept(this);
   }
 
   @override

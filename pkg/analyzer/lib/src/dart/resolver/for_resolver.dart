@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [ForStatement]s and [ForElement]s.
@@ -129,6 +130,8 @@ class ForResolver {
     } else if (forEachParts is ForEachPartsWithIdentifier) {
       identifier = forEachParts.identifier;
       // TODO(scheglov): replace with lexical lookup
+      inferenceLogWriter?.setExpressionVisitCodePath(
+          identifier, ExpressionVisitCodePath.forEachIdentifier);
       identifier.accept(_resolver);
       AssignmentExpressionShared(
         resolver: _resolver,
@@ -199,7 +202,11 @@ class ForResolver {
     if (forParts is ForPartsWithDeclarations) {
       forParts.variables.accept(_resolver);
     } else if (forParts is ForPartsWithExpression) {
-      forParts.initialization?.accept(_resolver);
+      if (forParts.initialization case var initialization?) {
+        _resolver.analyzeExpression(
+            initialization, _resolver.operations.unknownType);
+        _resolver.popRewrite();
+      }
     } else if (forParts is ForPartsWithPattern) {
       forParts.variables.accept(_resolver);
     } else {
@@ -223,7 +230,10 @@ class ForResolver {
     visitBody();
 
     _resolver.flowAnalysis.flow?.for_updaterBegin();
-    forParts.updaters.accept(_resolver);
+    for (var updater in forParts.updaters) {
+      _resolver.analyzeExpression(updater, _resolver.operations.unknownType);
+      _resolver.popRewrite();
+    }
 
     _resolver.flowAnalysis.flow?.for_end();
   }

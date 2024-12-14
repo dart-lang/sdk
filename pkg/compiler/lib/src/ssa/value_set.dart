@@ -62,7 +62,7 @@ class ValueSet {
       }
     }
     // Kill in the collisions list.
-    ValueSetNode? previous = null;
+    ValueSetNode? previous;
     ValueSetNode? current = collisions;
     while (current != null) {
       ValueSetNode? next = current.next;
@@ -103,7 +103,10 @@ class ValueSet {
   // by iterating through the hash table and the collisions list and
   // calling [:other.add:].
   static ValueSet copyTo(
-      ValueSet other, List<HInstruction?> table, ValueSetNode? collisions) {
+    ValueSet other,
+    List<HInstruction?> table,
+    ValueSetNode? collisions,
+  ) {
     // Copy elements from the hash table.
     for (final instruction in table) {
       if (instruction != null) other.add(instruction);
@@ -164,4 +167,8 @@ class ValueSetNode {
   int get hashCode => hash;
   ValueSetNode? next;
   ValueSetNode(this.value, this.hash, this.next);
+
+  @override
+  bool operator ==(other) =>
+      identical(this, other) || other is ValueSetNode && hash == other.hash;
 }

@@ -12,12 +12,14 @@ class Class1 {
   }
 
   method2() {
-    /*needsSignature*/ num? local(int n) => null;
+    /*needsSignature*/
+    num? local(int n) => null;
     return local;
   }
 
   method3() {
-    /*needsSignature*/ Object? local(num n) => null;
+    /*needsSignature*/
+    Object? local(num n) => null;
     return local;
   }
 }
@@ -45,7 +47,8 @@ class Class3<T> {
 /*prod.class: Class4:needsArgs*/
 class Class4<T> {
   method6() {
-    /*needsSignature*/ num? local(num n, T t) => null;
+    /*needsSignature*/
+    num? local(num n, T t) => null;
     return local;
   }
 }

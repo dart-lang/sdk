@@ -60,7 +60,8 @@ assignIndexPlus() {
   return i
       /*Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 1)*/
       /*update: Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 1)*/
-      [0] /*invoke: [subclass=JSPositiveInt]*/ += 42;
+      [0] /*invoke: [subclass=JSPositiveInt]*/ +=
+      42;
 }
 
 /*member: assignIndexAnd:[exact=JSUInt31]*/
@@ -69,23 +70,24 @@ assignIndexAnd() {
   return i
       /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
       /*update: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
-      [0] /*invoke: [exact=JSUInt31]*/ &= 42;
+      [0] /*invoke: [exact=JSUInt31]*/ &=
+      42;
 }
 
 /*member: assignIndexInc:[subclass=JSPositiveInt]*/
 assignIndexInc() {
   var i = [87];
   return i
-      /*Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 1)*/
-      /*update: Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 1)*/
-      [0] /*invoke: [subclass=JSPositiveInt]*/ ++;
+  /*Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 1)*/
+  /*update: Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 1)*/
+  [0] /*invoke: [subclass=JSPositiveInt]*/ ++;
 }
 
 /*member: assignIndexDec:[subclass=JSInt]*/
 assignIndexDec() {
   var i = [87];
   return /*invoke: [subclass=JSInt]*/ --i
-      /*Container([exact=JSExtendableArray], element: [subclass=JSInt], length: 1)*/
-      /*update: Container([exact=JSExtendableArray], element: [subclass=JSInt], length: 1)*/
-      [0];
+  /*Container([exact=JSExtendableArray], element: [subclass=JSInt], length: 1)*/
+  /*update: Container([exact=JSExtendableArray], element: [subclass=JSInt], length: 1)*/
+  [0];
 }

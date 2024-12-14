@@ -47,7 +47,8 @@ main() {
   /*prod.*/
   method8<T extends Class2a<num>>() => null;
 
-  /**/ method9<T>() => null;
+  /**/
+  method9<T>() => null;
 
   dynamic f1 = method1;
   dynamic f2 = method2;

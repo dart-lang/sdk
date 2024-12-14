@@ -19,11 +19,17 @@ const List<String> compilerOptions = const [];
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, const OutputUnitDataComputer(),
-        options: compilerOptions, args: args, setUpFunction: () {
-      importPrefixes.clear();
-    },
-        testedConfigs: allSpecConfigs +
-            [twoDeferredFragmentConfig, threeDeferredFragmentConfig]);
+    await checkTests(
+      dataDir,
+      const OutputUnitDataComputer(),
+      options: compilerOptions,
+      args: args,
+      setUpFunction: () {
+        importPrefixes.clear();
+      },
+      testedConfigs:
+          allSpecConfigs +
+          [twoDeferredFragmentConfig, threeDeferredFragmentConfig],
+    );
   });
 }

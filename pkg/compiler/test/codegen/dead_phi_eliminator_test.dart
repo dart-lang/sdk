@@ -19,10 +19,14 @@ void foo(bar) {
 
 main() {
   runTest() async {
-    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      RegExp regexp = RegExp("toBeRemoved");
-      Expect.isTrue(!regexp.hasMatch(generated));
-    });
+    await compile(
+      TEST_ONE,
+      entry: 'foo',
+      check: (String generated) {
+        RegExp regexp = RegExp("toBeRemoved");
+        Expect.isTrue(!regexp.hasMatch(generated));
+      },
+    );
   }
 
   asyncTest(() async {

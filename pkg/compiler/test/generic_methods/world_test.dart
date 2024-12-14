@@ -82,8 +82,9 @@ main(args) {
 
 main() {
   asyncTest(() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: {'main.dart': code});
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: {'main.dart': code},
+    );
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler!;
     CodegenWorld codegenWorld = compiler.codegenWorldForTesting!;
@@ -100,15 +101,19 @@ main() {
     }
 
     void checkInvocationsFor(
-        String methodName, List<CallStructure> expectedCallStructures) {
-      Iterable<CallStructure> actualCallStructures =
-          getCallStructures(methodName);
+      String methodName,
+      List<CallStructure> expectedCallStructures,
+    ) {
+      Iterable<CallStructure> actualCallStructures = getCallStructures(
+        methodName,
+      );
       Expect.setEquals(
-          expectedCallStructures,
-          actualCallStructures,
-          "Unexpected call structures for '$methodName'. "
-          "Expected ${expectedCallStructures}, "
-          "actual ${actualCallStructures}.");
+        expectedCallStructures,
+        actualCallStructures,
+        "Unexpected call structures for '$methodName'. "
+        "Expected ${expectedCallStructures}, "
+        "actual ${actualCallStructures}.",
+      );
     }
 
     checkInvocationsFor('method1', [noTypeArguments]);

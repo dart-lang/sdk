@@ -17,23 +17,23 @@ class A {
 
   /*member: A.:[exact=A]*/
   A()
-      : intField = 42,
-        giveUpField1 = 'foo',
-        giveUpField2 = 'foo',
-        fieldParameter = 54;
+    : intField = 42,
+      giveUpField1 = 'foo',
+      giveUpField2 = 'foo',
+      fieldParameter = 54;
 
   /*member: A.bar:[exact=A]*/
   A.bar()
-      : intField = 54,
-        giveUpField1 = 42,
-        giveUpField2 = A(),
-        fieldParameter = 87;
+    : intField = 54,
+      giveUpField1 = 42,
+      giveUpField2 = A(),
+      fieldParameter = 87;
 
   /*member: A.foo:[exact=A]*/
   A.foo(this. /*[exact=JSUInt31]*/ fieldParameter)
-      : intField = 87,
-        giveUpField1 = 42,
-        giveUpField2 = 'foo';
+    : intField = 87,
+      giveUpField1 = 42,
+      giveUpField2 = 'foo';
 }
 
 /*member: main:[null]*/

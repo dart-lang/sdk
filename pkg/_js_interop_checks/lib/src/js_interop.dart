@@ -118,8 +118,11 @@ final _jsInterop = Uri.parse('dart:js_interop');
 ///
 /// If [interopLibraries] is null, we check `package:js`,
 /// `dart:_js_annotations`, and `dart:js_interop`.
-bool _isInteropAnnotation(Expression value, String annotationClassName,
-    {Set<Uri>? interopLibraries}) {
+bool _isInteropAnnotation(
+  Expression value,
+  String annotationClassName, {
+  Set<Uri>? interopLibraries,
+}) {
   interopLibraries ??= {_packageJs, _jsAnnotations, _jsInterop};
   var c = annotationClass(value);
   if (c == null || c.name != annotationClassName) return false;
@@ -130,9 +133,11 @@ bool _isInteropAnnotation(Expression value, String annotationClassName,
 bool _isJSInteropAnnotation(Expression value) =>
     _isInteropAnnotation(value, 'JS');
 
-bool _isPackageJSAnnotation(Expression value) =>
-    _isInteropAnnotation(value, 'JS',
-        interopLibraries: {_packageJs, _jsAnnotations});
+bool _isPackageJSAnnotation(Expression value) => _isInteropAnnotation(
+  value,
+  'JS',
+  interopLibraries: {_packageJs, _jsAnnotations},
+);
 
 bool _isDartJSInteropAnnotation(Expression value) =>
     _isInteropAnnotation(value, 'JS', interopLibraries: {_jsInterop});
@@ -211,15 +216,19 @@ List<String> stringAnnotationValues(Expression node) {
         var value = constant.fieldValues.values.elementAt(0);
         if (value is StringConstant) values.addAll(value.value.split(','));
       } else if (argLength > 1) {
-        throw ArgumentError('Method expects annotation with at most one '
-            'positional argument: $node.');
+        throw ArgumentError(
+          'Method expects annotation with at most one positional argument: '
+          '$node.',
+        );
       }
     }
   } else if (node is ConstructorInvocation) {
     var argLength = node.arguments.positional.length;
     if (argLength > 1 || node.arguments.named.isNotEmpty) {
-      throw ArgumentError('Method expects annotation with at most one '
-          'positional argument: $node.');
+      throw ArgumentError(
+        'Method expects annotation with at most one positional argument: '
+        '$node.',
+      );
     } else if (argLength == 1) {
       var value = node.arguments.positional[0];
       if (value is StringLiteral) {
@@ -267,7 +276,9 @@ Library? _findJsInteropLibrary(Component component, Uri interopUri) {
 /// `calculateTransitiveImportsOfDartFfiIfUsed` in
 /// pkg/vm/lib/transformations/ffi/common.dart.
 Set<Library> calculateTransitiveImportsOfJsInteropIfUsed(
-    Component component, Uri interopUri) {
+  Component component,
+  Uri interopUri,
+) {
   // Check for the presence of [jsInteropLibrary] as a dependency of any of the
   // libraries in [component]. We use this to bypass the expensive
   // [calculateTransitiveDependenciesOf] call for cases where js interop is
@@ -275,9 +286,11 @@ Set<Library> calculateTransitiveImportsOfJsInteropIfUsed(
   Library? jsInteropLibrary = _findJsInteropLibrary(component, interopUri);
   if (jsInteropLibrary == null) return const <Library>{};
 
-  kernel_graph.LibraryGraph graph =
-      kernel_graph.LibraryGraph(component.libraries);
-  Set<Library> result =
-      kernel_graph.calculateTransitiveDependenciesOf(graph, {jsInteropLibrary});
+  kernel_graph.LibraryGraph graph = kernel_graph.LibraryGraph(
+    component.libraries,
+  );
+  Set<Library> result = kernel_graph.calculateTransitiveDependenciesOf(graph, {
+    jsInteropLibrary,
+  });
   return result;
 }

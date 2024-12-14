@@ -7,14 +7,7 @@ library enumset.test;
 import 'package:compiler/src/util/enumset.dart';
 import 'package:expect/expect.dart';
 
-enum Enum {
-  A,
-  B,
-  C,
-  D,
-  E,
-  F,
-}
+enum Enum { A, B, C, D, E, F }
 
 main() {
   testAddRemoveContains();
@@ -22,19 +15,32 @@ main() {
 }
 
 void checkEnumSet(
-    EnumSet<Enum> enumSet, int expectedValue, List<Enum> expectedValues) {
-  Expect.equals(expectedValue, enumSet.mask,
-      "Unexpected EnumSet.value for ${enumSet.iterable(Enum.values)}");
-  Expect.listEquals(expectedValues, enumSet.iterable(Enum.values).toList(),
-      "Unexpected values: ${enumSet.iterable(Enum.values)}");
-  Expect.equals(expectedValues.isEmpty, enumSet.isEmpty,
-      "Unexpected EnumSet.isEmpty for ${enumSet.iterable(Enum.values)}");
+  EnumSet<Enum> enumSet,
+  int expectedValue,
+  List<Enum> expectedValues,
+) {
+  Expect.equals(
+    expectedValue,
+    enumSet.mask,
+    "Unexpected EnumSet.value for ${enumSet.iterable(Enum.values)}",
+  );
+  Expect.listEquals(
+    expectedValues,
+    enumSet.iterable(Enum.values).toList(),
+    "Unexpected values: ${enumSet.iterable(Enum.values)}",
+  );
+  Expect.equals(
+    expectedValues.isEmpty,
+    enumSet.isEmpty,
+    "Unexpected EnumSet.isEmpty for ${enumSet.iterable(Enum.values)}",
+  );
   for (Enum value in Enum.values) {
     Expect.equals(
-        expectedValues.contains(value),
-        enumSet.contains(value),
-        "Unexpected EnumSet.contains for $value in "
-        "${enumSet.iterable(Enum.values)}");
+      expectedValues.contains(value),
+      enumSet.contains(value),
+      "Unexpected EnumSet.contains for $value in "
+      "${enumSet.iterable(Enum.values)}",
+    );
   }
 }
 
@@ -89,9 +95,15 @@ void testConstructorsIntersects() {
 
   void checkIntersects(EnumSet<Enum> a, EnumSet<Enum> b, bool expectedValue) {
     Expect.equals(
-        expectedValue, a.intersects(b), "Unexpected intersects of $a and $b");
-    Expect.equals(a.intersects(b), b.intersects(a),
-        "Unsymmetric intersects of $a and $b");
+      expectedValue,
+      a.intersects(b),
+      "Unexpected intersects of $a and $b",
+    );
+    Expect.equals(
+      a.intersects(b),
+      b.intersects(a),
+      "Unsymmetric intersects of $a and $b",
+    );
   }
 
   void check(EnumSet<Enum> a, EnumSet<Enum> b) {
@@ -121,10 +133,14 @@ void testConstructorsIntersects() {
   check(singleA, singleE);
   check(singleA, singleF);
 
-  EnumSet<Enum> multiA =
-      const EnumSet<Enum>.empty().add(Enum.A).add(Enum.D).add(Enum.F);
-  EnumSet<Enum> multiB =
-      EnumSet<Enum>.empty().add(Enum.A).add(Enum.D).add(Enum.F);
+  EnumSet<Enum> multiA = const EnumSet<Enum>.empty()
+      .add(Enum.A)
+      .add(Enum.D)
+      .add(Enum.F);
+  EnumSet<Enum> multiB = EnumSet<Enum>.empty()
+      .add(Enum.A)
+      .add(Enum.D)
+      .add(Enum.F);
   EnumSet<Enum> multiC = const EnumSet<Enum>.fromRawBits(41);
   EnumSet<Enum> multiD = EnumSet<Enum>.fromRawBits(41);
   EnumSet<Enum> multiE = EnumSet<Enum>.fromValues([Enum.F, Enum.A, Enum.D]);

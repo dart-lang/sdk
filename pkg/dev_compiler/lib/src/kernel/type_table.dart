@@ -267,7 +267,7 @@ class TypeTable {
       // TODO(40273) Remove prepended text when we have a better way to hide
       // these names from debug tools.
       _unboundTypeIds[type] =
-          js_ast.TemporaryId(escapeIdentifier('__t\$${_typeString(type)}'));
+          js_ast.ScopedId(escapeIdentifier('__t\$${_typeString(type)}'));
     }
 
     for (var free in freeVariables) {

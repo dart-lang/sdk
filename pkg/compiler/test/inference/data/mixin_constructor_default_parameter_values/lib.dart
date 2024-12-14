@@ -17,18 +17,20 @@ class C {
   final y;
 
   /*member: C.a:[exact=C]*/
-  C.a(int /*[exact=JSUInt31]*/ x,
-      [var /*Union([exact=JSString], [exact=_SECRET])*/ b = const _SECRET()])
-      : this.x = x,
-        this.y = b;
+  C.a(
+    int /*[exact=JSUInt31]*/ x, [
+    var /*Union([exact=JSString], [exact=_SECRET])*/ b = const _SECRET(),
+  ]) : this.x = x,
+       this.y = b;
 
   /*member: C.b:[exact=C]*/
-  C.b(int /*[exact=JSUInt31]*/ x,
-      {var /*Union([exact=JSString], [exact=_SECRET])*/ b = const _SECRET()})
-      : this.x = x,
-        this.y = b;
+  C.b(
+    int /*[exact=JSUInt31]*/ x, {
+    var /*Union([exact=JSString], [exact=_SECRET])*/ b = const _SECRET(),
+  }) : this.x = x,
+       this.y = b;
 
   /*member: C.toString:[exact=JSString]*/
   @override
-  String toString() => "C(${/*[exact=D]*/ x},${/*[exact=D]*/ y})";
+  String toString() => "C(${ /*[exact=D]*/ x},${ /*[exact=D]*/ y})";
 }

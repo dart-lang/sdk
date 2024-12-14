@@ -11,12 +11,15 @@ import 'package:compiler/src/util/memory_compiler.dart';
 void testLoadMap() async {
   var collector = OutputCollector();
   await runCompiler(
-      memorySourceFiles: MEMORY_SOURCE_FILES,
-      options: ['--deferred-map=deferred_map.json'],
-      outputProvider: collector);
+    memorySourceFiles: MEMORY_SOURCE_FILES,
+    options: ['--deferred-map=deferred_map.json'],
+    outputProvider: collector,
+  );
   // Ensure a mapping file is output.
-  var deferredMap =
-      collector.getOutput("deferred_map.json", api.OutputType.deferredMap);
+  var deferredMap = collector.getOutput(
+    "deferred_map.json",
+    api.OutputType.deferredMap,
+  );
   Expect.isNotNull(deferredMap);
   var mapping = jsonDecode(deferredMap!);
 
@@ -33,9 +36,10 @@ void testLoadMap() async {
 void testDumpDeferredGraph() async {
   var collector = OutputCollector();
   await runCompiler(
-      memorySourceFiles: MEMORY_SOURCE_FILES,
-      options: ['--dump-deferred-graph=deferred_graph.txt'],
-      outputProvider: collector);
+    memorySourceFiles: MEMORY_SOURCE_FILES,
+    options: ['--dump-deferred-graph=deferred_graph.txt'],
+    outputProvider: collector,
+  );
   var actual = collector
       .getOutput("deferred_graph.txt", api.OutputType.debug)!
       .split('\n');
