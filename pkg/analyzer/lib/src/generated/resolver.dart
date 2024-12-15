@@ -4261,9 +4261,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         case SimpleIdentifier(staticElement: InterfaceElement()):
           // `?.` to access static methods is equivalent to `.`, so do nothing.
           break;
-        default:
-          flow.nullAwareAccess_rightBegin(target,
-              SharedTypeView(target.staticType ?? typeProvider.dynamicType));
+        case ExtensionOverride(
+            argumentList: ArgumentList(arguments: [var expression])
+          ):
+        case var expression:
+          flow.nullAwareAccess_rightBegin(
+              expression,
+              SharedTypeView(
+                  expression.staticType ?? typeProvider.dynamicType));
           _unfinishedNullShorts.add(node.nullShortingTermination);
       }
     }
