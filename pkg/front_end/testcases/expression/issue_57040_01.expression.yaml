@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# https://github.com/dart-lang/sdk/issues/56911
+# https://github.com/dart-lang/sdk/issues/57040
 
 # Definition, offset, method etc extracted by starting the VM with
 # `-DDFE_VERBOSE=true`, e.g.
@@ -15,27 +15,33 @@
 # `DFE: request[6]: [dart:core, _OneByteString, 1, 0]` in the terminal.
 
 sources: |
+  import "dart:developer";
+
+  extension on String? {
+    bool get isNullOrEmpty {
+      var str = this;
+      return str == null || str.isEmpty;
+    }
+  }
+
   void main() {
-    List<ExtensionType> list = [new ExtensionType(0)];
-    list.forEach((ExtensionType input) {
-      print(input.value);
-    });
+    String? str = "hello";
+    debugger();
+    print(str.isNullOrEmpty);
+    str = null;
+    debugger();
+    print(str.isNullOrEmpty);
   }
 
-  extension type ExtensionType._(String s) {
-    ExtensionType(int i) : this._("$i");
-    int get value => s.codeUnitAt(0);
-  }
-
-definitions: ["input"]
+definitions: ["str"]
 # String
 definition_types: ["dart:core", "_OneByteString", "1", "0"]
 type_definitions: []
 type_bounds: []
 type_defaults: []
-method: "<anonymous closure>"
+method: "main"
 static: true
-offset: 122 # at the 'value' of 'print(input.value)' line.
+offset: 183 # at the first 'debugger' call.
 scriptUri: main.dart
 expression: |
-  input.value
+  str.isNullOrEmpty

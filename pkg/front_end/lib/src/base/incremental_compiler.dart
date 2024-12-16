@@ -27,6 +27,7 @@ import 'package:kernel/kernel.dart'
         Class,
         Component,
         DartType,
+        DynamicType,
         Expression,
         Extension,
         ExtensionType,
@@ -1868,11 +1869,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               library, scriptUriAsUri, cls, offset);
           // For now, if any definition is (or contains) an Extension Type,
           // we'll overwrite the given (runtime?) definitions so we know about
-          // the extension type.
+          // the extension type. If any definition is said to be dynamic we'll
+          // overwrite as well because that mostly means that the value is
+          // currently null. This can also mean that the VM can't send over the
+          // information - this for instance happens for function types.
           for (MapEntry<String, DartType> def
               in foundScope.definitions.entries) {
-            if (!usedDefinitions.containsKey(def.key)) continue;
-            if (_ExtensionTypeFinder.isOrContainsExtensionType(def.value)) {
+            DartType? existingType = usedDefinitions[def.key];
+            if (existingType == null) continue;
+            if (existingType is DynamicType ||
+                _ExtensionTypeFinder.isOrContainsExtensionType(def.value)) {
               usedDefinitions[def.key] = def.value;
             }
           }
