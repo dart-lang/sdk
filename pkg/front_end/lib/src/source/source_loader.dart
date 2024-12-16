@@ -1191,7 +1191,7 @@ severity: $severity
             templateUnavailableDartLibrary.withArguments(importUri);
         if (rootLibrary != null) {
           loadedLibraries ??=
-              new LoadedLibrariesImpl(rootLibrary, compilationUnits);
+              new LoadedLibrariesImpl([rootLibrary], compilationUnits);
           Set<String> importChain = computeImportChainsFor(
               rootLibrary.importUri, loadedLibraries, importUri,
               verbose: false);
