@@ -12,6 +12,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -2875,7 +2876,7 @@ class F {}
 
     // Search by 'type'.
     List<SubtypeResult> subtypes =
-        await driver.search.subtypes(SearchedFiles(), type: a);
+        await driver.search.subtypes(SearchedFiles(), type: a.asElement2);
     expect(subtypes, hasLength(3));
 
     SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
@@ -2954,7 +2955,7 @@ class A {
 
     // Search by 'type'.
     List<SubtypeResult> subtypes =
-        await driver.search.subtypes(SearchedFiles(), type: aClass);
+        await driver.search.subtypes(SearchedFiles(), type: aClass.asElement2);
     expect(subtypes, hasLength(3));
 
     SubtypeResult t1 = subtypes.singleWhere((r) => r.name == 'T1');
@@ -2996,7 +2997,7 @@ class A {
 
     var coreLibResult =
         await driver.getLibraryByUri('dart:core') as LibraryElementResult;
-    ClassElement listElement = coreLibResult.element.getClass('List')!;
+    var listElement = coreLibResult.element2.getClass2('List')!;
 
     var searchedFiles = SearchedFiles();
     var results = await driver.search.subTypes(listElement, searchedFiles);
@@ -3034,7 +3035,7 @@ class A {}
     var a = findElement.class_('A');
 
     List<SubtypeResult> subtypes =
-        await driver.search.subtypes(SearchedFiles(), type: a);
+        await driver.search.subtypes(SearchedFiles(), type: a.asElement2);
     expect(subtypes, hasLength(2));
 
     SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
@@ -3068,7 +3069,7 @@ class B extends A {
     // Search by 'type'.
     var subtypes = await driver.search.subtypes(
       SearchedFiles(),
-      type: A,
+      type: A.asElement2,
     );
     expect(subtypes, hasLength(2));
 
@@ -3103,7 +3104,7 @@ class B {}
 
     var subtypes = await driver.search.subtypes(
       SearchedFiles(),
-      type: findElement.class_('A'),
+      type: findElement.class_('A').asElement2,
     );
     expect(subtypes, hasLength(2));
 
@@ -3134,7 +3135,7 @@ extension type E2(A it) implements A {
 
     var subtypes = await driver.search.subtypes(
       SearchedFiles(),
-      type: findElement.class_('A'),
+      type: findElement.class_('A').asElement2,
     );
     expect(subtypes, hasLength(2));
 
@@ -3161,7 +3162,7 @@ extension type B(int it) implements A {
 
     var subtypes = await driver.search.subtypes(
       SearchedFiles(),
-      type: findElement.extensionType('A'),
+      type: findElement.extensionType('A').asElement2,
     );
     expect(subtypes, hasLength(1));
 
@@ -3191,7 +3192,8 @@ mixin M on A, B {
     var b = findElement.class_('B');
 
     {
-      var subtypes = await driver.search.subtypes(SearchedFiles(), type: a);
+      var subtypes =
+          await driver.search.subtypes(SearchedFiles(), type: a.asElement2);
       expect(subtypes, hasLength(1));
 
       var m = subtypes.singleWhere((r) => r.name == 'M');
@@ -3201,7 +3203,8 @@ mixin M on A, B {
     }
 
     {
-      var subtypes = await driver.search.subtypes(SearchedFiles(), type: b);
+      var subtypes =
+          await driver.search.subtypes(SearchedFiles(), type: b.asElement2);
       expect(subtypes, hasLength(1));
 
       var m = subtypes.singleWhere((r) => r.name == 'M');

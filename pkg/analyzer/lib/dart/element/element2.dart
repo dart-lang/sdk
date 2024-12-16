@@ -1743,6 +1743,9 @@ abstract class LibraryImport {
   /// an implicit import of `dart:core`.
   bool get isSynthetic;
 
+  /// The library fragment that contains this object.
+  LibraryFragment? get libraryFragment;
+
   /// The [Namespace] that this directive contributes to the containing library.
   Namespace get namespace;
 

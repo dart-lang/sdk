@@ -7200,6 +7200,9 @@ class LibraryImportElementImpl extends _ExistingElementImpl
   LibraryElementImpl get library2 => super.library2 as LibraryElementImpl;
 
   @override
+  LibraryFragment? get libraryFragment => enclosingElement3;
+
+  @override
   Namespace get namespace {
     var uri = this.uri;
     if (uri is DirectiveUriWithLibrary) {

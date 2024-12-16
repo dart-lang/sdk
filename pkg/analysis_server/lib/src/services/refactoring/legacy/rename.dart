@@ -65,7 +65,7 @@ class RenameProcessor {
   void addReferenceEdits(List<SearchMatch> matches) {
     var references = getSourceReferences(matches);
     for (var reference in references) {
-      if (!workspace.containsElement(reference.element)) {
+      if (!workspace.containsElement2(reference.element2)) {
         continue;
       }
       reference.addEdit(change, newName);
@@ -76,7 +76,7 @@ class RenameProcessor {
   Future<void> renameElement(Element element) {
     addDeclarationEdit(element);
     return workspace.searchEngine
-        .searchReferences(element)
+        .searchReferences2(element.asElement2!)
         .then(addReferenceEdits);
   }
 

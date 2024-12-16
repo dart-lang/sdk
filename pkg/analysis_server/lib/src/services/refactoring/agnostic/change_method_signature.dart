@@ -690,7 +690,7 @@ class _SignatureUpdater {
 
   /// Returns the resolved unit with [reference].
   Future<ResolvedUnitResult?> referenceUnitResult(SearchMatch reference) async {
-    var element = reference.element;
+    var element = reference.element2.asElement!;
     return await sessionHelper.getResolvedUnitByElement(element);
   }
 
@@ -970,7 +970,7 @@ class _SignatureUpdater {
     required ExecutableElement element,
     required ChangeBuilder builder,
   }) async {
-    var references = await searchEngine.searchReferences(element);
+    var references = await searchEngine.searchReferences2(element.asElement2);
     for (var reference in references) {
       var unitResult = await referenceUnitResult(reference);
       if (unitResult == null) {
