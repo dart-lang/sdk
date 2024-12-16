@@ -40,9 +40,30 @@ const b = a == A();
 ''');
   }
 
+  test_equal_list_object() async {
+    await assertNoErrorsInCode(r'''
+const a = [1, 2];
+const b = a == Object();
+''');
+  }
+
+  test_equal_map_object() async {
+    await assertNoErrorsInCode(r'''
+const a = {'x': 1, 'y': 2};
+const b = a == Object();
+''');
+  }
+
   test_equal_null_object() async {
     await assertNoErrorsInCode(r'''
 const a = null;
+const b = a == Object();
+''');
+  }
+
+  test_equal_set_object() async {
+    await assertNoErrorsInCode(r'''
+const a = {1, 2};
 const b = a == Object();
 ''');
   }

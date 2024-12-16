@@ -246,28 +246,6 @@ bool false
 ''');
   }
 
-  test_equalEqual_hasPrimitiveEquality_false() async {
-    await assertNoErrorsInCode('''
-const v = const <int>[1, 2] == const <num>[1, 2];
-''');
-    var result = _topLevelVar('v');
-    assertDartObjectText(result, '''
-bool false
-  variable: <testLibraryFragment>::@topLevelVariable::v
-''');
-  }
-
-  test_equalEqual_hasPrimitiveEquality_true() async {
-    await assertNoErrorsInCode('''
-const v = [1, 2] == [1, 2];
-''');
-    var result = _topLevelVar('v');
-    assertDartObjectText(result, '''
-bool true
-  variable: <testLibraryFragment>::@topLevelVariable::v
-''');
-  }
-
   test_equalEqual_int_int_false() async {
     await assertNoErrorsInCode('''
 const v = 1 == 2;
@@ -348,10 +326,109 @@ const v = 1 == a;
     ]);
   }
 
+  test_equalEqual_list_matchingTypeArgs_explicit() async {
+    await assertNoErrorsInCode('''
+const v = <int>[] == <int>[];
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool true
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
+  test_equalEqual_list_matchingTypeArgs_inferred() async {
+    await assertNoErrorsInCode('''
+const v = [1, 2] == [1, 2];
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool true
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
+  test_equalEqual_list_mismatchedTypeArgs() async {
+    await assertNoErrorsInCode('''
+const v = const <int>[] == const <num>[];
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool false
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
+  test_equalEqual_map_matchingTypeArgs_explicit() async {
+    await assertNoErrorsInCode('''
+const v = <String, int>{} == <String, int>{};
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool true
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
+  test_equalEqual_map_matchingTypeArgs_inferred() async {
+    await assertNoErrorsInCode('''
+const v = {'x': 1, 'y': 2} == {'x': 1, 'y': 2};
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool true
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
+  test_equalEqual_map_mismatchedTypeArgs() async {
+    await assertNoErrorsInCode('''
+const v = const <String, int>{} == const <String, num>{};
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool false
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
   test_equalEqual_null_object() async {
     await assertNoErrorsInCode('''
 const Object? a = null;
 const v = a == Object();
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool false
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
+  test_equalEqual_set_matchingTypeArgs_explicit() async {
+    await assertNoErrorsInCode('''
+const v = <int>{} == <int>{};
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool true
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
+  test_equalEqual_set_matchingTypeArgs_inferred() async {
+    await assertNoErrorsInCode('''
+const v = {1, 2} == {1, 2};
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool true
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
+  test_equalEqual_set_mismatchedTypeArgs() async {
+    await assertNoErrorsInCode('''
+const v = const <int>{} == const <num>{};
 ''');
     var result = _topLevelVar('v');
     assertDartObjectText(result, '''
