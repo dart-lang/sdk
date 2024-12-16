@@ -1489,6 +1489,31 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try adding a type annotation.",
   );
 
+  static const LintCode strict_top_level_inference_add_type = LinterLintCode(
+    LintNames.strict_top_level_inference,
+    "Missing type annotation.",
+    correctionMessage: "Try adding a type annotation.",
+    uniqueName: 'strict_top_level_inference_add_type',
+  );
+
+  static const LintCode strict_top_level_inference_replace_keyword =
+      LinterLintCode(
+    LintNames.strict_top_level_inference,
+    "Missing type annotation.",
+    correctionMessage: "Try replacing '{0}' with a type annotation.",
+    uniqueName: 'strict_top_level_inference_replace_keyword',
+  );
+
+  static const LintCode strict_top_level_inference_split_to_types =
+      LinterLintCode(
+    LintNames.strict_top_level_inference,
+    "Missing type annotation.",
+    correctionMessage:
+        "Try splitting the declaration and specify the different type "
+        "annotations.",
+    uniqueName: 'strict_top_level_inference_split_to_types',
+  );
+
   static const LintCode test_types_in_equals = LinterLintCode(
     LintNames.test_types_in_equals,
     "Missing type test for '{0}' in '=='.",

@@ -2367,6 +2367,18 @@ LintCode.specify_nonobvious_local_variable_types:
   status: hasFix
 LintCode.specify_nonobvious_property_types:
   status: hasFix
+LintCode.strict_top_level_inference_add_type:
+  status: noFix
+  notes: |-
+    There is no obvious way to pick a good candidate type.
+LintCode.strict_top_level_inference_replace_keyword:
+  status: noFix
+  notes: |-
+    There is no obvious way to pick a good candidate type.
+LintCode.strict_top_level_inference_split_to_types:
+  status: noFix
+  notes: |-
+    There is no obvious way to pick a good candidate type.
 LintCode.test_types_in_equals:
   status: noFix
 LintCode.throw_in_finally:

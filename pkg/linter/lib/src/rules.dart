@@ -188,6 +188,7 @@ import 'rules/sort_constructors_first.dart';
 import 'rules/sort_unnamed_constructors_first.dart';
 import 'rules/specify_nonobvious_local_variable_types.dart';
 import 'rules/specify_nonobvious_property_types.dart';
+import 'rules/strict_top_level_inference.dart';
 import 'rules/super_goes_last.dart';
 import 'rules/test_types_in_equals.dart';
 import 'rules/throw_in_finally.dart';
@@ -435,6 +436,7 @@ void registerLintRules() {
     ..registerLintRule(SuperGoesLast())
     ..registerLintRule(SpecifyNonObviousLocalVariableTypes())
     ..registerLintRule(SpecifyNonObviousPropertyTypes())
+    ..registerLintRule(StrictTopLevelInference())
     ..registerLintRule(TestTypesInEquals())
     ..registerLintRule(ThrowInFinally())
     ..registerLintRule(TightenTypeOfInitializingFormals())
