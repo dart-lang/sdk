@@ -182,7 +182,6 @@ test/src/dart/ast/element_locator_test.dart
 test/src/dart/constant/evaluation_test.dart
 test/src/dart/constant/has_type_parameter_reference_test.dart
 test/src/dart/constant/value_test.dart
-test/src/dart/element/class_element_test.dart
 test/src/dart/element/display_string_test.dart
 test/src/dart/element/element_test.dart
 test/src/dart/element/function_type_test.dart

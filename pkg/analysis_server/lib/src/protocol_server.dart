@@ -326,7 +326,7 @@ Location? newLocation_fromElement2(engine.Element2? element) {
 
 /// Create a Location based on an [engine.SearchMatch].
 Location newLocation_fromMatch(engine.SearchMatch match) {
-  var unitElement = _getUnitElement(match.element);
+  var unitElement = _getUnitElement(match.element2.asElement!);
   return _locationForArgs(unitElement, match.sourceRange);
 }
 
@@ -366,7 +366,7 @@ OverriddenMember newOverriddenMember_fromEngine(engine.Element2 member) {
 SearchResult newSearchResult_fromMatch(engine.SearchMatch match) {
   var kind = newSearchResultKind_fromEngine(match.kind);
   var location = newLocation_fromMatch(match);
-  var path = _computePath(match.element);
+  var path = _computePath(match.element2.asElement!);
   return SearchResult(location, kind, !match.isResolved, path);
 }
 

@@ -14,7 +14,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as path show posix, Context;
@@ -280,14 +282,12 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     }
 
     // Finally, locate all other incoming references to this file.
-    var matches = await refactoringWorkspace.searchEngine.searchReferences(
-      element,
-    );
-    var references = getSourceReferences(matches);
+    var references = await refactoringWorkspace.searchEngine
+        .searchLibraryFragmentReferences(element.asElement2);
     for (var reference in references) {
       recordReference(
         range: reference.range,
-        sourceFile: reference.file,
+        sourceFile: reference.libraryFragment.source.fullName,
         targetFile: oldPath,
         quotedUriValue: _extractUriString(reference),
       );
@@ -341,9 +341,9 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     );
   }
 
-  /// Extracts the existing URI string from a [SourceReference].
-  String _extractUriString(SourceReference reference) {
-    var source = reference.element.source!;
+  /// Extracts the existing URI string from a [LibraryFragmentSearchMatch].
+  String _extractUriString(LibraryFragmentSearchMatch reference) {
+    var source = reference.libraryFragment.source;
     return source.contents.data.substring(
       reference.range.offset,
       reference.range.end,

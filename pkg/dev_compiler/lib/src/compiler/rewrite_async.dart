@@ -2197,8 +2197,13 @@ class SyncStarRewriter extends AsyncRewriterBase {
     for (var parameter in parameters) {
       final name = parameter.parameterName;
       final renamedIdentifier = ScopedId(name);
-      final parameterRef =
-          parameter is ScopedId ? parameter : js_ast.Identifier(name);
+      final parameterRef = switch (parameter) {
+        ScopedId() => ScopedId.from(parameter),
+        js_ast.DestructuredVariable() when parameter.name is ScopedId =>
+          ScopedId.from(parameter.name as ScopedId),
+        _ => js_ast.Identifier(name)
+      };
+
       innerDeclarationsList
           .add(js_ast.VariableInitialization(parameterRef, renamedIdentifier));
       outerDeclarationsList

@@ -17,7 +17,9 @@ import 'generate_all.dart';
 import 'meta_model.dart';
 
 final formatter = DartFormatter(
-  languageVersion: DartFormatter.latestLanguageVersion,
+  // The language_server_protocol package is currently still using a lower
+  // SDK constraint so pre-commit hooks require it matches short style.
+  languageVersion: DartFormatter.latestShortStyleLanguageVersion,
 );
 
 final _canParseFunctions = SplayTreeMap<String, String>();

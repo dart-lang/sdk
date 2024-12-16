@@ -457,6 +457,8 @@ abstract final class LintNames {
   static const String specify_nonobvious_property_types =
       'specify_nonobvious_property_types';
 
+  static const String strict_top_level_inference = 'strict_top_level_inference';
+
   static const String super_goes_last = 'super_goes_last';
 
   static const String test_types_in_equals = 'test_types_in_equals';

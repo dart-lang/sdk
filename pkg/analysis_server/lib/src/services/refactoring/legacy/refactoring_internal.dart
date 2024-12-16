@@ -8,7 +8,6 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -68,8 +67,6 @@ class SourceReference {
 
   SourceReference(this._match);
 
-  Element get element => _match.element;
-
   Element2 get element2 => _match.element2;
 
   /// The full path of the file containing the match.
@@ -89,9 +86,6 @@ class SourceReference {
       _match.kind == MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS;
 
   bool get isResolved => _match.isResolved;
-
-  /// Return the [LibraryElement] for the [file].
-  LibraryElement get libraryElement => _match.libraryElement;
 
   /// Return the [LibraryElement2] for the [file].
   LibraryElement2 get libraryElement2 => _match.libraryElement2;

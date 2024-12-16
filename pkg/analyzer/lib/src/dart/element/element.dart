@@ -662,6 +662,40 @@ class ClassElementImpl2 extends InterfaceElementImpl2
   @override
   bool get isDartCoreObject => firstFragment.isDartCoreObject;
 
+  bool get isEnumLike {
+    // Must be a concrete class.
+    if (isAbstract) {
+      return false;
+    }
+
+    // With only private non-factory constructors.
+    for (var constructor in constructors) {
+      if (constructor.isPublic || constructor.isFactory) {
+        return false;
+      }
+    }
+
+    // With 2+ static const fields with the type of this class.
+    var numberOfElements = 0;
+    for (var field in fields) {
+      if (field.isStatic && field.isConst && field.type == thisType) {
+        numberOfElements++;
+      }
+    }
+    if (numberOfElements < 2) {
+      return false;
+    }
+
+    // No subclasses in the library.
+    for (var class_ in library2.classes) {
+      if (class_.supertype?.element3 == this) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   @override
   bool get isExhaustive => firstFragment.isExhaustive;
 
@@ -5724,6 +5758,10 @@ abstract class InstanceElementImpl2 extends ElementImpl2
     }
   }
 
+  Iterable<PropertyAccessorElement2> _implementationsOfGetter2(String name) {
+    return _implementationsOfGetter(name).map((e) => e.asElement2);
+  }
+
   /// Return an iterable containing all of the implementations of a method with
   /// the given [name] that are defined in this class and any superclass of this
   /// class (but not in interfaces).
@@ -5754,6 +5792,10 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       }
       augmented = augmented.firstFragment.supertype?.element.augmented;
     }
+  }
+
+  Iterable<MethodElement2> _implementationsOfMethod2(String name) {
+    return _implementationsOfMethod(name).map((e) => e.asElement2);
   }
 
   /// Return an iterable containing all of the implementations of a setter with
@@ -5787,6 +5829,10 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       }
       augmented = augmented.firstFragment.supertype?.element.augmented;
     }
+  }
+
+  Iterable<PropertyAccessorElement2> _implementationsOfSetter2(String name) {
+    return _implementationsOfSetter(name).map((e) => e.asElement2);
   }
 }
 
@@ -6357,6 +6403,41 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   }) =>
       firstFragment.instantiate(
           typeArguments: typeArguments, nullabilitySuffix: nullabilitySuffix);
+
+  PropertyAccessorElement2? lookUpInheritedConcreteGetter(
+      String getterName, LibraryElement2 library) {
+    return _implementationsOfGetter2(getterName).firstWhereOrNull((getter) =>
+        !getter.isAbstract &&
+        !getter.isStatic &&
+        getter.isAccessibleIn2(library) &&
+        getter.enclosingElement2 != this);
+  }
+
+  MethodElement2? lookUpInheritedConcreteMethod(
+      String methodName, LibraryElement2 library) {
+    return _implementationsOfMethod2(methodName).firstWhereOrNull((method) =>
+        !method.isAbstract &&
+        !method.isStatic &&
+        method.isAccessibleIn2(library) &&
+        method.enclosingElement2 != this);
+  }
+
+  PropertyAccessorElement2? lookUpInheritedConcreteSetter(
+      String setterName, LibraryElement2 library) {
+    return _implementationsOfSetter2(setterName).firstWhereOrNull((setter) =>
+        !setter.isAbstract &&
+        !setter.isStatic &&
+        setter.isAccessibleIn2(library) &&
+        setter.enclosingElement2 != this);
+  }
+
+  MethodElement2? lookUpInheritedMethod(
+      String methodName, LibraryElement2 library) {
+    return _implementationsOfMethod2(methodName).firstWhereOrNull((method) =>
+        !method.isStatic &&
+        method.isAccessibleIn2(library) &&
+        method.enclosingElement2 != this);
+  }
 
   @override
   MethodElement2? lookUpInheritedMethod2({
@@ -7198,6 +7279,9 @@ class LibraryImportElementImpl extends _ExistingElementImpl
 
   @override
   LibraryElementImpl get library2 => super.library2 as LibraryElementImpl;
+
+  @override
+  LibraryFragment? get libraryFragment => enclosingElement3;
 
   @override
   Namespace get namespace {

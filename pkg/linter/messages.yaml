@@ -10864,6 +10864,66 @@ LintCode:
       **This rule is experimental.** It is being evaluated, and it may be changed
       or removed. Feedback on its behavior is welcome! The main issue is here:
       https://github.com/dart-lang/linter/issues/5101.
+  strict_top_level_inference_add_type:
+    sharedName: strict_top_level_inference
+    problemMessage: "Missing type annotation."
+    correctionMessage: "Try adding a type annotation."
+    state:
+      stable: "3.7"
+    categories: [style]
+    deprecatedDetails: |-
+      Do type annotate top-level and class-like member declarations, where types
+      are not inferred from super-interfaces or initializers.
+
+      The lint warns about every omitted return type, parameter type, and
+      variable type of a top-level declaration or class-like-namespace-level
+      declaration (static or instance member or constructor declaration), which
+      is not given a type by inference, and which therefore defaults to dynamic.
+
+      The only omitted types that can be given a type by top-level inference,
+      are those of variable declarations with initializer expressions, and
+      return and parameter types of instance members that override a consistent
+      combined super-interface signature.
+
+      Setters do not need a return type, as it is always assumed to be `void`.
+
+      **BAD:**
+      ```dart
+      var _zeroPointCache;
+      class Point {
+        get zero => ...;
+        final x, y;
+        Point(x, y) {}
+        closest(b, c) => distance(b) <= distance(c) ? b : c;
+        distance(other) => ...;
+      }
+      _sq(v) => v * v;
+      ```
+
+      **GOOD:**
+      ```dart
+      Point? _zeroPointCache;
+      class Point {
+        Point get zero => ...;
+        final int x, y;
+        Point(int x, int y) {}
+        closest(Point b, Point c) =>
+            distance(b) <= distance(c) ? b : c;
+        distance(Point other) => ...;
+      }
+      int _sq(int v) => v * v;
+      ```
+    hasPublishedDocs: false
+  strict_top_level_inference_replace_keyword:
+    sharedName: strict_top_level_inference
+    problemMessage: "Missing type annotation."
+    correctionMessage: "Try replacing '{0}' with a type annotation."
+    hasPublishedDocs: false
+  strict_top_level_inference_split_to_types:
+    sharedName: strict_top_level_inference
+    problemMessage: "Missing type annotation."
+    correctionMessage: "Try splitting the declaration and specify the different type annotations."
+    hasPublishedDocs: false
   super_goes_last:
     state:
       stable: "2.0"

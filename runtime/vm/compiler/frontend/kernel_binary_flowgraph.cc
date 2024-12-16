@@ -5894,7 +5894,11 @@ Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration(
                                            ? helper.equals_position_
                                            : helper.position_;
   if (position != nullptr) *position = helper.position_;
-  if (NeedsDebugStepCheck(stack(), debug_position) && !helper.IsHoisted()) {
+  if (debug_position.IsDebugPause() && !helper.IsHoisted() &&
+      // We always make it possible to add a breakpoint on the equals sign if it
+      // exists.
+      (helper.equals_position_.IsReal() ||
+       NeedsDebugStepCheck(stack(), debug_position))) {
     instructions = DebugStepCheck(debug_position) + instructions;
   }
   instructions += StoreLocal(helper.position_, variable);
