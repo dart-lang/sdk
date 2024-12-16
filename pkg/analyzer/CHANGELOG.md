@@ -1,3 +1,6 @@
+## 7.1.0
+* New APIs for element model with fragments.
+
 ## 7.0.0
 * Remove deprecated `DartType.element2`.
 * Remove deprecated `DartType.isDynamic`.
