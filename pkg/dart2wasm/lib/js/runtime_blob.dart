@@ -129,6 +129,26 @@ const jsRuntimeBlobPart3 = r'''
       "fromCharCode": (i) => String.fromCharCode(i),
       "length": (s) => s.length,
       "substring": (s, a, b) => s.substring(a, b),
+      "fromCharCodeArray": (a, start, end) => {
+        if (end <= start) return '';
+
+        const read = dartInstance.exports.$wasmI16ArrayGet;
+        let result = '';
+        let index = start;
+        const chunkLength = Math.min(end - index, 500);
+        let array = new Array(chunkLength);
+        while (index < end) {
+          const newChunkLength = Math.min(end - index, 500);
+          for (let i = 0; i < newChunkLength; i++) {
+            array[i] = read(a, index++);
+          }
+          if (newChunkLength < chunkLength) {
+            array = array.slice(0, newChunkLength);
+          }
+          result += String.fromCharCode(...array);
+        }
+        return result;
+      },
     };
 
     const deferredLibraryHelper = {

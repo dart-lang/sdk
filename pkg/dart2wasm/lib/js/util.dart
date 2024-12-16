@@ -27,6 +27,8 @@ class CoreTypesUtil {
   final Procedure jsValueUnboxTarget;
   final Procedure numToIntTarget;
   final Class wasmExternRefClass;
+  final Class wasmArrayClass;
+  final Class wasmArrayRefClass;
   final Procedure wrapDartFunctionTarget;
 
   CoreTypesUtil(this.coreTypes, this._extensionIndex)
@@ -64,6 +66,9 @@ class CoreTypesUtil {
             .firstWhere((p) => p.name.text == 'unbox'),
         wasmExternRefClass =
             coreTypes.index.getClass('dart:_wasm', 'WasmExternRef'),
+        wasmArrayClass = coreTypes.index.getClass('dart:_wasm', 'WasmArray'),
+        wasmArrayRefClass =
+            coreTypes.index.getClass('dart:_wasm', 'WasmArrayRef'),
         wrapDartFunctionTarget = coreTypes.index
             .getTopLevelProcedure('dart:_js_helper', '_wrapDartFunction');
 

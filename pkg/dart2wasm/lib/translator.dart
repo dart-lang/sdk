@@ -690,7 +690,7 @@ class Translator with KernelNodes {
   /// (`anyref`, `funcref` or `externref`).
   /// This function can be called before the class info is built.
   w.ValueType translateExternalType(DartType type) {
-    bool isPotentiallyNullable = type.isPotentiallyNullable;
+    final bool isPotentiallyNullable = type.isPotentiallyNullable;
     if (type is InterfaceType) {
       Class cls = type.classNode;
       if (cls == wasmFuncRefClass || cls == wasmFunctionClass) {
@@ -698,6 +698,16 @@ class Translator with KernelNodes {
       }
       if (cls == wasmExternRefClass) {
         return w.RefType.extern(nullable: isPotentiallyNullable);
+      }
+      if (cls == wasmArrayRefClass) {
+        return w.RefType.array(nullable: isPotentiallyNullable);
+      }
+      if (cls == wasmArrayClass) {
+        final elementType =
+            translateExternalStorageType(type.typeArguments.single);
+        return w.RefType.def(
+            wasmArrayType(elementType, '$elementType', mutable: true),
+            nullable: isPotentiallyNullable);
       }
       if (!isPotentiallyNullable) {
         w.StorageType? builtin = builtinTypes[cls];
@@ -709,6 +719,22 @@ class Translator with KernelNodes {
     // TODO(joshualitt): We'd like to use the potential nullability here too,
     // but unfortunately this seems to break things.
     return w.RefType.any(nullable: true);
+  }
+
+  w.StorageType translateExternalStorageType(DartType type) {
+    if (type is InterfaceType) {
+      final cls = type.classNode;
+      if (isWasmType(cls)) {
+        final isNullable = type.isPotentiallyNullable;
+        final w.StorageType? builtin = builtinTypes[cls];
+        if (builtin != null) {
+          if (!isNullable) return builtin;
+          if (builtin.isPrimitive) throw "Wasm numeric types can't be nullable";
+          return (builtin as w.RefType).withNullability(isNullable);
+        }
+      }
+    }
+    return translateExternalType(type) as w.RefType;
   }
 
   /// Creates a global reference to [f] in [module]. [f] must also be located
