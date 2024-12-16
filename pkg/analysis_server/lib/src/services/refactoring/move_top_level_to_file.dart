@@ -153,7 +153,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
     var libraries = <LibraryElement2, Set<Element2>>{};
     for (var element2 in analyzer.movingDeclarations) {
       var element = element2;
-      var matches = await searchEngine.searchReferences2(element);
+      var matches = await searchEngine.searchReferences(element);
       for (var match in matches) {
         if (match.isResolved) {
           libraries.putIfAbsent(match.libraryElement2, () => {}).add(element2);
@@ -168,7 +168,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
       var library = entry.key;
       var prefixes = <String>{};
       for (var element in entry.value) {
-        var prefixList = await searchEngine.searchPrefixesUsedInLibrary2(
+        var prefixList = await searchEngine.searchPrefixesUsedInLibrary(
           library,
           element,
         );

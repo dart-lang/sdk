@@ -76,14 +76,14 @@ class RenameProcessor {
   Future<void> renameElement(Element element) {
     addDeclarationEdit(element);
     return workspace.searchEngine
-        .searchReferences2(element.asElement2!)
+        .searchReferences(element.asElement2!)
         .then(addReferenceEdits);
   }
 
   /// Update the [element] declaration and references to it.
   Future<void> renameElement2(Element2 element) async {
     addDeclarationEdit2(element);
-    var matches = await workspace.searchEngine.searchReferences2(element);
+    var matches = await workspace.searchEngine.searchReferences(element);
     addReferenceEdits(matches);
   }
 

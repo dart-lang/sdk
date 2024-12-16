@@ -78,7 +78,7 @@ class ImplementationHandler
     var allSubtypes = <InterfaceElement2>{};
     await performance.runAsync(
       'appendAllSubtypes',
-      (performance) => server.searchEngine.appendAllSubtypes2(
+      (performance) => server.searchEngine.appendAllSubtypes(
         interfaceElement,
         allSubtypes,
         performance,

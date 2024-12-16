@@ -82,7 +82,7 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
       if (!fieldRenamed) {
         processor.addDeclarationEdit2(element);
       }
-      var references = await searchEngine.searchReferences2(element);
+      var references = await searchEngine.searchReferences(element);
 
       // Remove references that don't have to have the same name.
 

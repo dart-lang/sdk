@@ -206,7 +206,7 @@ class _ExtensionMemberValidator {
   Future<void> _prepareReferences() async {
     if (!isRename) return;
 
-    references.addAll(await searchEngine.searchReferences2(element));
+    references.addAll(await searchEngine.searchReferences(element));
   }
 }
 

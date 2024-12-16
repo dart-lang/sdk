@@ -79,7 +79,7 @@ abstract class SearchEngine {
   ///
   /// If [allSubtypes] already contains an element it is assumed that it
   /// contains the entire subtree and the element won't be search on further.
-  Future<void> appendAllSubtypes2(
+  Future<void> appendAllSubtypes(
     InterfaceElement2 type,
     Set<InterfaceElement2> allSubtypes,
     OperationPerformanceImpl performance,
@@ -88,7 +88,7 @@ abstract class SearchEngine {
   /// If the [type] has subtypes, return the set of names of members which these
   /// subtypes declare, possibly empty.  If the [type] does not have subtypes,
   /// return `null`.
-  Future<Set<String>?> membersOfSubtypes2(InterfaceElement2 type);
+  Future<Set<String>?> membersOfSubtypes(InterfaceElement2 type);
 
   /// Returns references to the given [fragment].
   Future<List<LibraryFragmentSearchMatch>> searchLibraryFragmentReferences(
@@ -114,20 +114,20 @@ abstract class SearchEngine {
   /// Return the prefixes used to reference the [element] in any of the
   /// compilation units in the [library]. The returned set will include an empty
   /// string if the element is referenced without a prefix.
-  Future<Set<String>> searchPrefixesUsedInLibrary2(
+  Future<Set<String>> searchPrefixesUsedInLibrary(
     LibraryElement2 library,
     Element2 element,
   );
 
   /// Returns references to the given [element].
-  Future<List<SearchMatch>> searchReferences2(Element2 element);
+  Future<List<SearchMatch>> searchReferences(Element2 element);
 
   /// Returns direct subtypes of the given [type].
   ///
   /// [type] - the [InterfaceElement2] being subtyped by the found matches.
   /// [cache] - the [SearchEngineCache] used to speeding up the computation. If
   ///    empty it will be filled out and can be used on any subsequent query.
-  Future<List<SearchMatch>> searchSubtypes2(
+  Future<List<SearchMatch>> searchSubtypes(
     InterfaceElement2 type,
     SearchEngineCache cache, {
     OperationPerformanceImpl? performance,

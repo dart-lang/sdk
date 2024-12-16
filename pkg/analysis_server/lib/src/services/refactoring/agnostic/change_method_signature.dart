@@ -970,7 +970,7 @@ class _SignatureUpdater {
     required ExecutableElement element,
     required ChangeBuilder builder,
   }) async {
-    var references = await searchEngine.searchReferences2(element.asElement2);
+    var references = await searchEngine.searchReferences(element.asElement2);
     for (var reference in references) {
       var unitResult = await referenceUnitResult(reference);
       if (unitResult == null) {

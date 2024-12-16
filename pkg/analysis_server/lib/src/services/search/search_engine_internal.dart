@@ -19,7 +19,7 @@ class SearchEngineImpl implements SearchEngine {
   SearchEngineImpl(this._drivers);
 
   @override
-  Future<void> appendAllSubtypes2(
+  Future<void> appendAllSubtypes(
     InterfaceElement2 type,
     Set<InterfaceElement2> allSubtypes,
     OperationPerformanceImpl performance,
@@ -44,7 +44,7 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   @override
-  Future<Set<String>?> membersOfSubtypes2(InterfaceElement2 type) async {
+  Future<Set<String>?> membersOfSubtypes(InterfaceElement2 type) async {
     var drivers = _drivers.toList();
     var searchedFiles = _createSearchedFiles(drivers);
 
@@ -144,7 +144,7 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   @override
-  Future<Set<String>> searchPrefixesUsedInLibrary2(
+  Future<Set<String>> searchPrefixesUsedInLibrary(
     covariant LibraryElementImpl library,
     Element2 element,
   ) async {
@@ -154,7 +154,7 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   @override
-  Future<List<SearchMatch>> searchReferences2(Element2 element) async {
+  Future<List<SearchMatch>> searchReferences(Element2 element) async {
     var allResults = <SearchResult>[];
     var drivers = _drivers.toList();
     var searchedFiles = _createSearchedFiles(drivers);
@@ -166,7 +166,7 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   @override
-  Future<List<SearchMatch>> searchSubtypes2(
+  Future<List<SearchMatch>> searchSubtypes(
     InterfaceElement2 type,
     SearchEngineCache searchEngineCache, {
     OperationPerformanceImpl? performance,
