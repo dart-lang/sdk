@@ -5,10 +5,12 @@
 import 'package:benchmark_harness/benchmark_harness.dart';
 
 class IterationBenchmark extends BenchmarkBase {
-  List<int> list = List.generate(1000, (i) => i);
-  var r = 0;
+ 
+  late final List<int> list = List.generate(1000, (i) => i); 
+  int r = 0;
+  
   void fn(int i) => r = 123 * i;
-  IterationBenchmark(name) : super(name);
+  IterationBenchmark(String name) : super(name);
 }
 
 class ForLoop extends IterationBenchmark {
@@ -16,8 +18,8 @@ class ForLoop extends IterationBenchmark {
 
   @override
   void run() {
-    for (var i = 0; i < list.length; i++) {
-      fn(list[i]);
+    for (final i in list) { 
+      fn(i);
     }
   }
 }
