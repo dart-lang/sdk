@@ -1102,6 +1102,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   void checkVarianceInFunction(Procedure procedure,
       TypeEnvironment typeEnvironment, List<TypeParameter> typeParameters) {
     List<TypeParameter> functionTypeParameters =
@@ -1113,7 +1114,6 @@ class SourceClassBuilder extends ClassBuilderImpl
     DartType returnType = procedure.function.returnType;
 
     for (TypeParameter functionParameter in functionTypeParameters) {
-      // Coverage-ignore-block(suite): Not run.
       for (TypeParameter typeParameter in typeParameters) {
         Variance typeVariance = Variance.invariant
             .combine(computeVariance(typeParameter, functionParameter.bound));
@@ -1122,7 +1122,6 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
     for (VariableDeclaration formal in positionalParameters) {
-      // Coverage-ignore-block(suite): Not run.
       if (!formal.isCovariantByDeclaration) {
         for (TypeParameter typeParameter in typeParameters) {
           Variance formalVariance = Variance.contravariant
@@ -1133,7 +1132,6 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
     for (VariableDeclaration named in namedParameters) {
-      // Coverage-ignore-block(suite): Not run.
       for (TypeParameter typeParameter in typeParameters) {
         Variance namedVariance = Variance.contravariant
             .combine(computeVariance(typeParameter, named.type));

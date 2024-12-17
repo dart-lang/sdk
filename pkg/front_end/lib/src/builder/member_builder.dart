@@ -209,6 +209,7 @@ abstract class BuilderClassMember implements ClassMember {
   bool get isField => memberBuilder.isField;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isGetter => memberBuilder.isGetter;
 
   @override

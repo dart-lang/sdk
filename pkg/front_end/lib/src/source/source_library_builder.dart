@@ -74,7 +74,7 @@ import 'source_field_builder.dart';
 import 'source_loader.dart'
     show CompilationPhaseForProblemReporting, SourceLoader;
 import 'source_member_builder.dart';
-import 'source_procedure_builder.dart';
+import 'source_property_builder.dart';
 import 'source_type_alias_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
@@ -903,13 +903,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     while (extensionIterator.moveNext()) {
       SourceExtensionBuilder extension_ = extensionIterator.current;
       for (Builder member in extension_.nameSpace.localMembers) {
-        if (member is SourceProcedureBuilder &&
-            // Coverage-ignore(suite): Not run.
+        if (member is SourcePropertyBuilder &&
             !member.isStatic &&
-            // Coverage-ignore(suite): Not run.
             member.isGetter) {
-          // Coverage-ignore-block(suite): Not run.
-          individualPropertyReasons[member.procedure] =
+          individualPropertyReasons[member.readTarget!] =
               member.memberName.isPrivate
                   ? PropertyNonPromotabilityReason.isNotField
                   : PropertyNonPromotabilityReason.isNotPrivate;

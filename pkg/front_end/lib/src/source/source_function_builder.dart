@@ -294,7 +294,11 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     function.body = body;
     body?.parent = function;
     List<TypeParameter>? classTypeParameters;
-    if (!isConstructor && !isFactory && parent is ClassBuilder) {
+    if (!isConstructor &&
+        !isFactory &&
+        // Coverage-ignore(suite): Not run.
+        parent is ClassBuilder) {
+      // Coverage-ignore-block(suite): Not run.
       Class enclosingClass = classBuilder!.cls;
       classTypeParameters = enclosingClass.typeParameters;
     }

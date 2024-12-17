@@ -22,7 +22,6 @@ import '../../source/source_field_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_method_builder.dart';
-import '../../source/source_procedure_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../hierarchy/hierarchy_builder.dart';
 import 'identifiers.dart';
@@ -128,9 +127,7 @@ class MacroIntrospection {
 
   /// Creates the [macro.Declaration] corresponding to [memberBuilder].
   macro.Declaration _createMemberDeclaration(MemberBuilder memberBuilder) {
-    if (memberBuilder is SourceProcedureBuilder) {
-      return _createFunctionDeclaration(memberBuilder);
-    } else if (memberBuilder is SourceMethodBuilder) {
+    if (memberBuilder is SourceMethodBuilder) {
       return _createMethodDeclaration(memberBuilder);
     } else if (memberBuilder is SourcePropertyBuilder) {
       return _createGetterDeclaration(memberBuilder);
@@ -494,78 +491,6 @@ class MacroIntrospection {
       // TODO(johnniwinther): Support typeParameters
       typeParameters: const [],
     );
-    _declarationOffsets[declaration] =
-        new UriOffset(builder.fileUri, builder.fileOffset);
-    return declaration;
-  }
-
-  /// Creates the [macro.FunctionDeclaration] corresponding to [builder].
-  macro.FunctionDeclaration _createFunctionDeclaration(
-      SourceProcedureBuilder builder) {
-    var (
-      List<macro.FormalParameterDeclarationImpl> positionalParameters,
-      List<macro.FormalParameterDeclarationImpl> namedParameters
-    ) = _createParameters(builder.libraryBuilder, builder.formals);
-
-    macro.ParameterizedTypeDeclaration? definingTypeDeclaration = null;
-    Builder? parent = builder.parent;
-    if (parent is ClassBuilder) {
-      definingTypeDeclaration = getClassDeclaration(parent);
-    } else if (parent is ExtensionTypeDeclarationBuilder) {
-      definingTypeDeclaration = getExtensionTypeDeclaration(parent);
-    }
-    final macro.LibraryImpl library = getLibrary(builder.libraryBuilder);
-    macro.FunctionDeclaration declaration;
-    if (definingTypeDeclaration != null) {
-      // TODO(johnniwinther): Should static fields be field or variable
-      //  declarations?
-      declaration = new macro.MethodDeclarationImpl(
-          id: macro.RemoteInstance.uniqueId,
-          identifier: new MemberBuilderIdentifier(
-              memberBuilder: builder,
-              id: macro.RemoteInstance.uniqueId,
-              name: builder.name),
-          library: library,
-          // TODO(johnniwinther): Provide metadata annotations.
-          metadata: const [],
-          definingType:
-              definingTypeDeclaration.identifier as macro.IdentifierImpl,
-          // TODO(johnniwinther): Real implementation of hasBody.
-          hasBody: true,
-          hasExternal: builder.isExternal,
-          isGetter: builder.isGetter,
-          isOperator: builder.isOperator,
-          isSetter: builder.isSetter,
-          hasStatic: builder.isStatic,
-          positionalParameters: positionalParameters,
-          namedParameters: namedParameters,
-          returnType: types.getTypeAnnotation(
-              builder.libraryBuilder, builder.returnType),
-          // TODO(johnniwinther): Support typeParameters
-          typeParameters: const []);
-    } else {
-      declaration = new macro.FunctionDeclarationImpl(
-          id: macro.RemoteInstance.uniqueId,
-          identifier: new MemberBuilderIdentifier(
-              memberBuilder: builder,
-              id: macro.RemoteInstance.uniqueId,
-              name: builder.name),
-          library: library,
-          // TODO(johnniwinther): Provide metadata annotations.
-          metadata: const [],
-          // TODO(johnniwinther): Real implementation of hasBody.
-          hasBody: true,
-          hasExternal: builder.isExternal,
-          isGetter: builder.isGetter,
-          isOperator: builder.isOperator,
-          isSetter: builder.isSetter,
-          positionalParameters: positionalParameters,
-          namedParameters: namedParameters,
-          returnType: types.getTypeAnnotation(
-              builder.libraryBuilder, builder.returnType),
-          // TODO(johnniwinther): Support typeParameters
-          typeParameters: const []);
-    }
     _declarationOffsets[declaration] =
         new UriOffset(builder.fileUri, builder.fileOffset);
     return declaration;
@@ -973,8 +898,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
           classBuilder.fullMemberIterator();
       while (iterator.moveNext()) {
         SourceMemberBuilder memberBuilder = iterator.current;
-        if (memberBuilder is SourceProcedureBuilder ||
-            memberBuilder is SourceMethodBuilder ||
+        if (memberBuilder is SourceMethodBuilder ||
             memberBuilder is SourcePropertyBuilder) {
           result.add(_introspection.getMemberDeclaration(memberBuilder)
               as macro.MethodDeclaration);
@@ -987,8 +911,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
           extensionTypeDeclarationBuilder.fullMemberIterator();
       while (iterator.moveNext()) {
         SourceMemberBuilder memberBuilder = iterator.current;
-        if (memberBuilder is SourceProcedureBuilder ||
-            memberBuilder is SourceMethodBuilder ||
+        if (memberBuilder is SourceMethodBuilder ||
             memberBuilder is SourcePropertyBuilder) {
           result.add(_introspection.getMemberDeclaration(memberBuilder)
               as macro.MethodDeclaration);

@@ -240,7 +240,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/builder.dart": (
-    hitCount: 29,
+    hitCount: 30,
     missCount: 0,
   ),
   // 100.0%.
@@ -325,7 +325,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/member_builder.dart": (
-    hitCount: 100,
+    hitCount: 97,
     missCount: 0,
   ),
   // 100.0%.
@@ -565,7 +565,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/body_builder_context.dart": (
-    hitCount: 351,
+    hitCount: 346,
     missCount: 0,
   ),
   // 100.0%.
@@ -890,7 +890,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_class_builder.dart": (
-    hitCount: 1301,
+    hitCount: 1282,
     missCount: 0,
   ),
   // 100.0%.
@@ -905,7 +905,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_enum_builder.dart": (
-    hitCount: 515,
+    hitCount: 535,
     missCount: 0,
   ),
   // 100.0%.
@@ -931,12 +931,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_function_builder.dart": (
-    hitCount: 254,
+    hitCount: 249,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_library_builder.dart": (
-    hitCount: 1259,
+    hitCount: 1265,
     missCount: 0,
   ),
   // 100.0%.
@@ -955,11 +955,6 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     missCount: 0,
   ),
   // 100.0%.
-  "package:front_end/src/source/source_procedure_builder.dart": (
-    hitCount: 196,
-    missCount: 0,
-  ),
-  // 100.0%.
   "package:front_end/src/source/source_property_builder.dart": (
     hitCount: 540,
     missCount: 0,
@@ -972,6 +967,11 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   // 100.0%.
   "package:front_end/src/source/stack_listener_impl.dart": (
     hitCount: 23,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/source/synthetic_method_builder.dart": (
+    hitCount: 59,
     missCount: 0,
   ),
   // 100.0%.

@@ -13,6 +13,7 @@ import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/method_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
 import '../kernel/augmentation_lowering.dart';
@@ -27,7 +28,8 @@ import 'source_function_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 
-class SourceMethodBuilder extends SourceMemberBuilderImpl {
+class SourceMethodBuilder extends SourceMemberBuilderImpl
+    implements MethodBuilder {
   @override
   final Uri fileUri;
 
