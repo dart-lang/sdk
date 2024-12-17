@@ -3498,7 +3498,7 @@ class MoveFileOptions extends RefactoringOptions {
 class PluginErrorParams implements HasToJson {
   /// A flag indicating whether the error is a fatal error, meaning that the
   /// plugin will shutdown automatically after sending this notification. If
-  /// true, the server will not expect any other responses or notifications
+  /// `true`, the server will not expect any other responses or notifications
   /// from the plugin.
   bool isFatal;
 
@@ -3741,7 +3741,7 @@ class PluginVersionCheckParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class PluginVersionCheckResult implements ResponseResult {
   /// A flag indicating whether the plugin supports the same version of the
-  /// plugin spec as the analysis server. If the value is false, then the
+  /// plugin spec as the analysis server. If the value is `false`, then the
   /// plugin is expected to shutdown after returning the response.
   bool isCompatible;
 
@@ -3758,9 +3758,9 @@ class PluginVersionCheckResult implements ResponseResult {
   String? contactInfo;
 
   /// The glob patterns of the files for which the plugin will provide
-  /// information. This value is ignored if the isCompatible field is false.
-  /// Otherwise, it will be used to identify the files for which the plugin
-  /// should be notified of changes.
+  /// information. This value is ignored if the `isCompatible` field is
+  /// `false`. Otherwise, it will be used to identify the files for which the
+  /// plugin should be notified of changes.
   List<String> interestingFiles;
 
   PluginVersionCheckResult(

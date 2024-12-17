@@ -11,9 +11,9 @@ import 'package:analyzer_utilities/tools.dart';
 
 final RegExp whitespace = RegExp(r'\s');
 
-/// Convert the HTML in [desc] into text, word wrapping at width [width].
+/// Converts the HTML in [desc] into text, word wrapping at width [width].
 ///
-/// If [javadocStyle] is true, then the output is compatible with Javadoc,
+/// If [javadocStyle] is `true`, then the output is compatible with Javadoc,
 /// which understands certain HTML constructs.
 String nodesToText(List<dom.Node> desc, int width, bool javadocStyle,
     {bool removeTrailingNewLine = false}) {
@@ -126,13 +126,16 @@ class _TextFormatter with CodeGenerator {
             writeln('</pre>');
           }
           lineBreak(false);
+        case 'tt':
+          word += javadocStyle ? '<code>' : '`';
+          addAll(node.nodes);
+          word += javadocStyle ? '</code>' : '`';
         case 'a':
         case 'b':
         case 'body':
         case 'html':
         case 'i':
         case 'span':
-        case 'tt':
           addAll(node.nodes);
         case 'head':
           break;

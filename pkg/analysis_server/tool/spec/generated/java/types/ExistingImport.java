@@ -31,13 +31,13 @@ public class ExistingImport {
   public static final List<ExistingImport> EMPTY_LIST = List.of();
 
   /**
-   * The URI of the imported library. It is an index in the strings field, in the enclosing
-   * ExistingImports and its ImportedElementSet object.
+   * The URI of the imported library. It is an index in the <code>strings</code> field, in the
+   * enclosing <code>ExistingImports</code> and its <code>ImportedElementSet</code> object.
    */
   private final int uri;
 
   /**
-   * The list of indexes of elements, in the enclosing ExistingImports object.
+   * The list of indexes of elements, in the enclosing <code>ExistingImports</code> object.
    */
   private final int[] elements;
 
@@ -77,15 +77,15 @@ public class ExistingImport {
   }
 
   /**
-   * The list of indexes of elements, in the enclosing ExistingImports object.
+   * The list of indexes of elements, in the enclosing <code>ExistingImports</code> object.
    */
   public int[] getElements() {
     return elements;
   }
 
   /**
-   * The URI of the imported library. It is an index in the strings field, in the enclosing
-   * ExistingImports and its ImportedElementSet object.
+   * The URI of the imported library. It is an index in the <code>strings</code> field, in the
+   * enclosing <code>ExistingImports</code> and its <code>ImportedElementSet</code> object.
    */
   public int getUri() {
     return uri;

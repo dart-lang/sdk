@@ -2534,11 +2534,11 @@ class AnalysisNavigationParams implements HasToJson {
   List<NavigationRegion> regions;
 
   /// The navigation targets referenced in the file. They are referenced by
-  /// NavigationRegions by their index in this array.
+  /// `NavigationRegion`s by their index in this array.
   List<NavigationTarget> targets;
 
   /// The files containing navigation targets referenced in the file. They are
-  /// referenced by NavigationTargets by their index in this array.
+  /// referenced by `NavigationTarget`s by their index in this array.
   List<String> files;
 
   AnalysisNavigationParams(this.file, this.regions, this.targets, this.files);
@@ -5202,14 +5202,14 @@ class CompletionGetSuggestionDetails2Params implements RequestParams {
   /// The offset in the file where the completion will be inserted.
   int offset;
 
-  /// The completion from the selected CompletionSuggestion. It could be a name
-  /// of a class, or a name of a constructor in form
+  /// The `completion` from the selected `CompletionSuggestion`. It could be a
+  /// name of a class, or a name of a constructor in form
   /// "typeName.constructorName()", or an enumeration constant in form
   /// "enumName.constantName", etc.
   String completion;
 
   /// The URI of the library to import, so that the element referenced in the
-  /// completion becomes accessible.
+  /// `completion` becomes accessible.
   String libraryUri;
 
   CompletionGetSuggestionDetails2Params(
@@ -5340,8 +5340,8 @@ class CompletionGetSuggestionDetails2Params implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionDetails2Result implements ResponseResult {
   /// The full text to insert, which possibly includes now an import prefix.
-  /// The client should insert this text, not the completion from the selected
-  /// CompletionSuggestion.
+  /// The client should insert this text, not the `completion` from the
+  /// selected `CompletionSuggestion`.
   String completion;
 
   /// A change for the client to apply to make the accepted completion
@@ -5452,16 +5452,16 @@ class CompletionGetSuggestions2Params implements RequestParams {
   int offset;
 
   /// The maximum number of suggestions to return. If the number of suggestions
-  /// after filtering is greater than the maxResults, then isIncomplete is set
-  /// to true.
+  /// after filtering is greater than the `maxResults`, then `isIncomplete` is
+  /// set to `true`.
   int maxResults;
 
   /// The mode of code completion being invoked. If no value is provided,
-  /// MATCH_FIRST_CHAR will be assumed.
+  /// `MATCH_FIRST_CHAR` will be assumed.
   CompletionCaseMatchingMode? completionCaseMatchingMode;
 
-  /// The mode of code completion being invoked. If no value is provided, BASIC
-  /// will be assumed. BASIC is also the only currently supported.
+  /// The mode of code completion being invoked. If no value is provided,
+  /// `BASIC` will be assumed. `BASIC` is also the only currently supported.
   CompletionMode? completionMode;
 
   /// The number of times that the user has invoked code completion at the same
@@ -5674,18 +5674,18 @@ class CompletionGetSuggestions2Result implements ResponseResult {
 
   /// The completion suggestions being reported. This list is filtered by the
   /// already existing prefix, and sorted first by relevance, and (if the same)
-  /// by the suggestion text. The list will have at most maxResults items. If
+  /// by the suggestion text. The list will have at most `maxResults` items. If
   /// the user types a new keystroke, the client is expected to either do local
   /// filtering (when the returned list was complete), or ask the server again
-  /// (if isIncomplete was true).
+  /// (if `isIncomplete` was `true`).
   ///
   /// This list contains suggestions from both imported, and not yet imported
-  /// libraries. Items from not yet imported libraries will have isNotImported
-  /// set to true.
+  /// libraries. Items from not yet imported libraries will have
+  /// `isNotImported` set to `true`.
   List<CompletionSuggestion> suggestions;
 
   /// True if the number of suggestions after filtering was greater than the
-  /// requested maxResults.
+  /// requested `maxResults`.
   bool isIncomplete;
 
   CompletionGetSuggestions2Result(
@@ -6425,11 +6425,11 @@ class EditBulkFixesParams implements RequestParams {
   /// A list of the files and directories for which edits should be suggested.
   ///
   /// If a request is made with a path that is invalid, e.g. is not absolute
-  /// and normalized, an error of type INVALID_FILE_PATH_FORMAT will be
+  /// and normalized, an error of type `INVALID_FILE_PATH_FORMAT` will be
   /// generated. If a request is made for a file which does not exist, or which
   /// is not currently subject to analysis (e.g. because it is not associated
   /// with any analysis root specified to analysis.setAnalysisRoots), an error
-  /// of type FILE_NOT_ANALYZED will be generated.
+  /// of type `FILE_NOT_ANALYZED` will be generated.
   List<String> included;
 
   /// A flag indicating whether the bulk fixes are being run in test mode. The
@@ -6437,7 +6437,7 @@ class EditBulkFixesParams implements RequestParams {
   /// configuration file that can modify the content of the data file used to
   /// compute the fixes when data-driven fixes are being considered.
   ///
-  /// If this field is omitted the flag defaults to false.
+  /// If this field is omitted the flag defaults to `false`.
   bool? inTestMode;
 
   /// A flag indicating whether to validate that the dependencies used by the
@@ -6446,7 +6446,7 @@ class EditBulkFixesParams implements RequestParams {
   /// check to see if they are listed in the corresponding pubspec file, and
   /// compute the fixes, if any.
   ///
-  /// If this field is omitted the flag defaults to false.
+  /// If this field is omitted the flag defaults to `false`.
   bool? updatePubspec;
 
   /// A list of diagnostic codes to be fixed.
@@ -6949,8 +6949,8 @@ class EditFormatParams implements RequestParams {
   int selectionLength;
 
   /// The line length to be used by the formatter. This value is ignored if a
-  /// formatter.page_width has been configured in the relevant
-  /// analysis_options.yaml file.
+  /// `formatter.page_width` has been configured in the relevant
+  /// `analysis_options.yaml` file.
   int? lineLength;
 
   EditFormatParams(
@@ -11081,11 +11081,12 @@ class ExecutionSetSubscriptionsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExistingImport implements HasToJson {
-  /// The URI of the imported library. It is an index in the strings field, in
-  /// the enclosing ExistingImports and its ImportedElementSet object.
+  /// The URI of the imported library. It is an index in the `strings` field,
+  /// in the enclosing `ExistingImports` and its `ImportedElementSet` object.
   int uri;
 
-  /// The list of indexes of elements, in the enclosing ExistingImports object.
+  /// The list of indexes of elements, in the enclosing `ExistingImports`
+  /// object.
   List<int> elements;
 
   ExistingImport(this.uri, this.elements);
@@ -11270,8 +11271,8 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   /// The lengths of the expressions that would be replaced by a reference to
   /// the variable. The lengths correspond to the offsets. In other words, for
-  /// a given expression, if the offset of that expression is offsets[i], then
-  /// the length of that expression is lengths[i].
+  /// a given expression, if the offset of that expression is `offsets[i]`,
+  /// then the length of that expression is `lengths[i]`.
   List<int> lengths;
 
   ExtractLocalVariableFeedback(
@@ -11537,8 +11538,8 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   /// The lengths of the expressions or statements that would be replaced by an
   /// invocation of the method. The lengths correspond to the offsets. In other
   /// words, for a given expression (or block of statements), if the offset of
-  /// that expression is offsets[i], then the length of that expression is
-  /// lengths[i].
+  /// that expression is `offsets[i]`, then the length of that expression is
+  /// `lengths[i]`.
   List<int> lengths;
 
   ExtractMethodFeedback(
@@ -12147,9 +12148,9 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class FlutterGetWidgetDescriptionResult implements ResponseResult {
   /// The list of properties of the widget. Some of the properties might be
-  /// read only, when their editor is not set. This might be because they have
-  /// type that we don't know how to edit, or for compound properties that work
-  /// as containers for sub-properties.
+  /// read only, when their `editor` is not set. This might be because they
+  /// have type that we don't know how to edit, or for compound properties that
+  /// work as containers for sub-properties.
   List<FlutterWidgetProperty> properties;
 
   FlutterGetWidgetDescriptionResult(this.properties);
@@ -13085,9 +13086,9 @@ class FlutterSetSubscriptionsResult implements ResponseResult {
 /// Clients may not extend, implement or mix-in this class.
 class FlutterSetWidgetPropertyValueParams implements RequestParams {
   /// The identifier of the property, previously returned as a part of a
-  /// FlutterWidgetProperty.
+  /// `FlutterWidgetProperty`.
   ///
-  /// An error of type FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID is
+  /// An error of type `FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID` is
   /// generated if the identifier is not valid.
   int id;
 
@@ -13095,11 +13096,11 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
   ///
   /// If absent, indicates that the property should be removed. If the property
   /// corresponds to an optional parameter, the corresponding named argument is
-  /// removed. If the property isRequired is true,
-  /// FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
+  /// removed. If the property `isRequired` is true,
+  /// `FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED` error is generated.
   ///
-  /// If the expression is not a syntactically valid Dart code, then
-  /// FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
+  /// If the `expression` is not a syntactically valid Dart code, then
+  /// `FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION` is reported.
   FlutterWidgetPropertyValue? value;
 
   FlutterSetWidgetPropertyValueParams(this.id, {this.value});
@@ -13320,8 +13321,8 @@ class FlutterWidgetProperty implements HasToJson {
   String name;
 
   /// The list of children properties, if any. For example any property of type
-  /// EdgeInsets will have four children properties of type double - left / top
-  /// / right / bottom.
+  /// `EdgeInsets` will have four children properties of type `double` - left /
+  /// top / right / bottom.
   List<FlutterWidgetProperty>? children;
 
   /// The editor that should be used by the client. This field is omitted if
@@ -13628,25 +13629,25 @@ class FlutterWidgetPropertyEditor implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum FlutterWidgetPropertyEditorKind {
-  /// The editor for a property of type bool.
+  /// The editor for a property of type `bool`.
   BOOL,
 
-  /// The editor for a property of the type double.
+  /// The editor for a property of the type `double`.
   DOUBLE,
 
-  /// The editor for choosing an item of an enumeration, see the enumItems
-  /// field of FlutterWidgetPropertyEditor.
+  /// The editor for choosing an item of an enumeration, see the `enumItems`
+  /// field of `FlutterWidgetPropertyEditor`.
   ENUM,
 
   /// The editor for either choosing a pre-defined item from a list of provided
-  /// static field references (like ENUM), or specifying a free-form
+  /// static field references (like `ENUM`), or specifying a free-form
   /// expression.
   ENUM_LIKE,
 
-  /// The editor for a property of type int.
+  /// The editor for a property of type `int`.
   INT,
 
-  /// The editor for a property of the type String.
+  /// The editor for a property of the type `String`.
   STRING;
 
   factory FlutterWidgetPropertyEditorKind.fromJson(
@@ -13847,7 +13848,7 @@ class FlutterWidgetPropertyValue implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetPropertyValueEnumItem implements HasToJson {
-  /// The URI of the library containing the className. When the enum item is
+  /// The URI of the library containing the `className`. When the enum item is
   /// passed back, this will allow the server to import the corresponding
   /// library if necessary.
   String libraryUri;
@@ -14427,10 +14428,11 @@ class ImportedElementSet implements HasToJson {
   /// The list of unique strings in this object.
   List<String> strings;
 
-  /// The library URI part of the element. It is an index in the strings field.
+  /// The library URI part of the element. It is an index in the `strings`
+  /// field.
   List<int> uris;
 
-  /// The name part of a the element. It is an index in the strings field.
+  /// The name part of a the element. It is an index in the `strings` field.
   List<int> names;
 
   ImportedElementSet(this.strings, this.uris, this.names);
@@ -19106,16 +19108,16 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
   /// The following is a list of the names of the requests that can be
   /// specified:
   ///
-  /// - openUrlRequest
-  /// - showMessageRequest
+  /// - `openUrlRequest`
+  /// - `showMessageRequest`
   List<String> requests;
 
   /// True if the client supports the server sending URIs in place of file
   /// paths.
   ///
   /// In this mode, the server will use URIs in all protocol fields with the
-  /// type FilePath. Returned URIs may be `file://` URIs or custom schemes. The
-  /// client can fetch the file contents for URIs with custom schemes (and
+  /// type `FilePath`. Returned URIs may be `file://` URIs or custom schemes.
+  /// The client can fetch the file contents for URIs with custom schemes (and
   /// receive modification events) through the LSP protocol (see the "lsp"
   /// domain).
   ///

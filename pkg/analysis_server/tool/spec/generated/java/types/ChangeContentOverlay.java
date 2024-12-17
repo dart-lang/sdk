@@ -31,7 +31,7 @@ import com.google.gson.JsonPrimitive;
  * that has had its overlay removed via RemoveContentOverlay.
  *
  * If any of the edits cannot be applied due to its offset or length being out of range, an
- * INVALID_OVERLAY_CHANGE error will be reported.
+ * <code>INVALID_OVERLAY_CHANGE</code> error will be reported.
  *
  * @coverage dart.server.generated.types
  */
