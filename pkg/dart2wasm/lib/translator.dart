@@ -737,11 +737,10 @@ class Translator with KernelNodes {
     return translateExternalType(type) as w.RefType;
   }
 
-  /// Creates a global reference to [f] in [module]. [f] must also be located
-  /// in [module].
-  w.Global makeFunctionRef(w.ModuleBuilder module, w.BaseFunction f) {
+  /// Creates a global reference to [f] in its [w.BaseFunction.enclosingModule].
+  w.Global makeFunctionRef(w.BaseFunction f) {
     return functionRefCache.putIfAbsent(f, () {
-      final global = module.globals.define(
+      final global = f.enclosingModule.globals.define(
           w.GlobalType(w.RefType.def(f.type, nullable: false), mutable: false));
       global.initializer.ref_func(f);
       global.initializer.end();

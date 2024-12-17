@@ -1157,7 +1157,7 @@ class Intrinsifier {
         w.BaseFunction wasmFunction =
             translator.functions.getFunction(func.targetReference);
         return translator.globals
-            .readGlobal(b, translator.makeFunctionRef(b.module, wasmFunction));
+            .readGlobal(b, translator.makeFunctionRef(wasmFunction));
       }
 
       // Wasm(AnyRef|FuncRef|EqRef|StructRef|I32|I64|F32|F64) constructors

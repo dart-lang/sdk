@@ -36,8 +36,7 @@ mixin SyncStarCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
     } else {
       b.ref_null(w.HeapType.struct);
     }
-    translator.globals
-        .readGlobal(b, translator.makeFunctionRef(b.module, resumeFun));
+    translator.globals.readGlobal(b, translator.makeFunctionRef(resumeFun));
     b.struct_new(syncStarIterableInfo.struct);
     b.return_();
     b.end();
