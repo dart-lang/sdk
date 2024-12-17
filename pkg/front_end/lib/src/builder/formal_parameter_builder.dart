@@ -254,6 +254,7 @@ class FormalParameterBuilder extends BuilderImpl
     } else if (memberBuilder is SourceFactoryBuilder) {
       return memberBuilder.isFactory;
     } else {
+      // Coverage-ignore-block(suite): Not run.
       return memberBuilder.isClassInstanceMember;
     }
   }

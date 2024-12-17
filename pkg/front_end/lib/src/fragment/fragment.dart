@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/transformations/flags.dart';
+import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/local_scope.dart';
@@ -38,7 +39,7 @@ import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
 import '../source/source_member_builder.dart';
-import '../source/source_procedure_builder.dart';
+import '../source/source_method_builder.dart';
 import '../source/source_type_alias_builder.dart';
 import '../source/type_parameter_scope_builder.dart';
 import '../type_inference/type_inference_engine.dart';

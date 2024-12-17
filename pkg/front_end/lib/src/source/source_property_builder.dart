@@ -439,6 +439,10 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl {
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference? get invokeTargetReference => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   bool get isAssignable =>
       throw new UnsupportedError('$runtimeType.isAssignable');
 
@@ -466,8 +470,18 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl {
       isAugmenting ? _origin!.readTarget : _introductoryGetable?.readTarget;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get readTargetReference =>
+      isAugmenting ? _origin!.readTargetReference : _getterReference;
+
+  @override
   Member? get writeTarget =>
       isAugmenting ? _origin!.writeTarget : _introductorySetable?.writeTarget;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference =>
+      isAugmenting ? _origin!.writeTargetReference : _setterReference;
 
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context,

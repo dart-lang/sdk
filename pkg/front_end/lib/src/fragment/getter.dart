@@ -672,13 +672,27 @@ mixin _ExtensionInstanceGetterEncodingMixin implements _GetterEncoding {
       context.recursivelyReportGenericFunctionTypesAsBoundsForType(
           _fragment.returnType);
     }
-    int count = context.computeDefaultTypesForVariables(
-        _fragment.declaredTypeParameters,
-        inErrorRecovery: hasErrors);
-    count += context.computeDefaultTypesForVariables(
-        _clonedDeclarationTypeParameters,
-        inErrorRecovery: hasErrors);
-    return count;
+    if (_clonedDeclarationTypeParameters != null &&
+        _fragment.declaredTypeParameters != null) {
+      // Coverage-ignore-block(suite): Not run.
+      // We need to compute all default types together since they might be
+      // interdependent.
+      return context.computeDefaultTypesForVariables([
+        // TODO(johnniwinther): Ambivalent analyzer. `!` seems to be both
+        //  required and unnecessary.
+        // ignore: unnecessary_non_null_assertion
+        ..._clonedDeclarationTypeParameters!,
+        ..._fragment.declaredTypeParameters!
+      ], inErrorRecovery: hasErrors);
+    } else if (_clonedDeclarationTypeParameters != null) {
+      return context.computeDefaultTypesForVariables(
+          _clonedDeclarationTypeParameters,
+          inErrorRecovery: hasErrors);
+    } else {
+      return context.computeDefaultTypesForVariables(
+          _fragment.declaredTypeParameters,
+          inErrorRecovery: hasErrors);
+    }
   }
 
   BuiltMemberKind get _builtMemberKind;
@@ -847,6 +861,9 @@ class _GetterFragmentBodyBuilderContext extends BodyBuilderContext {
 
   @override
   FunctionNode get function => _fragment._encoding.function;
+
+  @override
+  bool get isExternalFunction => _fragment.modifiers.isExternal;
 
   @override
   void setAsyncModifier(AsyncMarker asyncModifier) {

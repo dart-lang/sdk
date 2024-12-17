@@ -373,7 +373,6 @@ abstract class BuilderFactory {
       required String name,
       required List<NominalParameterBuilder>? typeParameters,
       required List<FormalParameterBuilder>? formals,
-      required ProcedureKind kind,
       required int startOffset,
       required int nameOffset,
       required int formalsOffset,
@@ -382,7 +381,8 @@ abstract class BuilderFactory {
       required AsyncMarker asyncModifier,
       required bool isInstanceMember,
       required bool isExtensionMember,
-      required bool isExtensionTypeMember});
+      required bool isExtensionTypeMember,
+      required bool isOperator});
 
   void addGetter(
       {required OffsetMap offsetMap,

@@ -1059,7 +1059,6 @@ class SourceClassBuilder extends ClassBuilderImpl
   void checkVarianceInTypeParameters(TypeEnvironment typeEnvironment,
       List<NominalParameterBuilder>? typeParameters) {
     List<TypeParameter> classTypeParameters = cls.typeParameters;
-    // Coverage-ignore(suite): Not run.
     if (typeParameters != null && classTypeParameters.isNotEmpty) {
       for (NominalParameterBuilder nominalParameter in typeParameters) {
         for (TypeParameter classTypeParameter in classTypeParameters) {
@@ -1103,6 +1102,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   void checkVarianceInFunction(Procedure procedure,
       TypeEnvironment typeEnvironment, List<TypeParameter> typeParameters) {
     List<TypeParameter> functionTypeParameters =
@@ -2039,6 +2039,10 @@ class SourceClassBuilder extends ClassBuilderImpl
   Iterator<SourceClassBuilder> get declarationIterator =>
       new AugmentationIterator<SourceClassBuilder>(
           origin, origin._augmentations);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get reference => cls.reference;
 }
 
 /// Returns `true` if override problems should be overlooked.

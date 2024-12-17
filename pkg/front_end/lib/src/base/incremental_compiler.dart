@@ -2126,17 +2126,18 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           lastGoodKernelTarget.objectClassBuilder,
           lastGoodKernelTarget.dynamicType);
       debugLibrary.buildOutlineNodes(lastGoodKernelTarget.loader.coreLibrary);
+
+      Procedure procedure = new Procedure(
+          new Name(syntheticProcedureName), ProcedureKind.Method, parameters,
+          isStatic: isStatic, fileUri: debugLibrary.fileUri);
+
       Expression compiledExpression = await lastGoodKernelTarget.loader
           .buildExpression(
               debugLibrary,
               className ?? extensionName,
               (className != null && !isStatic) || extensionThis != null,
-              parameters,
+              procedure,
               extensionThis);
-
-      Procedure procedure = new Procedure(
-          new Name(syntheticProcedureName), ProcedureKind.Method, parameters,
-          isStatic: isStatic, fileUri: debugLibrary.fileUri);
 
       parameters.body = new ReturnStatement(compiledExpression)
         ..parent = parameters;

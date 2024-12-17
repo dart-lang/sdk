@@ -466,17 +466,17 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       }
 
       assert(
-          (declaration is ClassBuilder && node == declaration.cls) ||
+          (declaration is ClassBuilder && reference == declaration.reference) ||
               (declaration is TypeAliasBuilder &&
                   reference == declaration.reference) ||
               (declaration is MemberBuilder &&
-                  (node == declaration.readTarget ||
-                      node == declaration.invokeTarget ||
-                      node == declaration.writeTarget)) ||
+                  (reference == declaration.readTargetReference ||
+                      reference == declaration.invokeTargetReference ||
+                      reference == declaration.writeTargetReference)) ||
               (declaration is ExtensionBuilder &&
                   reference == declaration.reference) ||
               (declaration is ExtensionTypeDeclarationBuilder &&
-                  node == declaration.extensionTypeDeclaration),
+                  reference == declaration.reference),
           "Unexpected declaration ${declaration} (${declaration.runtimeType}) "
           "for node ${node} (${node.runtimeType}).");
     }

@@ -290,7 +290,7 @@ abstract class ClassMember {
 
   /// The interface member corresponding to this member.
   ///
-  /// If this member is declared on the source, the interface member is
+  /// If this member is declared in the source, the interface member is
   /// the member itself. For instance
   ///
   ///     abstract class Class {

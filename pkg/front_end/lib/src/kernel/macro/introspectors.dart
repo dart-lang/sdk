@@ -21,7 +21,7 @@ import '../../source/source_factory_builder.dart';
 import '../../source/source_field_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
-import '../../source/source_procedure_builder.dart';
+import '../../source/source_method_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../hierarchy/hierarchy_builder.dart';
 import 'identifiers.dart';
@@ -127,8 +127,8 @@ class MacroIntrospection {
 
   /// Creates the [macro.Declaration] corresponding to [memberBuilder].
   macro.Declaration _createMemberDeclaration(MemberBuilder memberBuilder) {
-    if (memberBuilder is SourceProcedureBuilder) {
-      return _createFunctionDeclaration(memberBuilder);
+    if (memberBuilder is SourceMethodBuilder) {
+      return _createMethodDeclaration(memberBuilder);
     } else if (memberBuilder is SourcePropertyBuilder) {
       return _createGetterDeclaration(memberBuilder);
     } else if (memberBuilder is SourceFieldBuilder) {
@@ -497,12 +497,12 @@ class MacroIntrospection {
   }
 
   /// Creates the [macro.FunctionDeclaration] corresponding to [builder].
-  macro.FunctionDeclaration _createFunctionDeclaration(
-      SourceProcedureBuilder builder) {
+  macro.FunctionDeclaration _createMethodDeclaration(
+      SourceMethodBuilder builder) {
     var (
       List<macro.FormalParameterDeclarationImpl> positionalParameters,
       List<macro.FormalParameterDeclarationImpl> namedParameters
-    ) = _createParameters(builder.libraryBuilder, builder.formals);
+    ) = _createParameters(builder.libraryBuilder, builder.formalsForTesting);
 
     macro.ParameterizedTypeDeclaration? definingTypeDeclaration = null;
     Builder? parent = builder.parent;
@@ -537,7 +537,7 @@ class MacroIntrospection {
           positionalParameters: positionalParameters,
           namedParameters: namedParameters,
           returnType: types.getTypeAnnotation(
-              builder.libraryBuilder, builder.returnType),
+              builder.libraryBuilder, builder.returnTypeForTesting),
           // TODO(johnniwinther): Support typeParameters
           typeParameters: const []);
     } else {
@@ -559,7 +559,7 @@ class MacroIntrospection {
           positionalParameters: positionalParameters,
           namedParameters: namedParameters,
           returnType: types.getTypeAnnotation(
-              builder.libraryBuilder, builder.returnType),
+              builder.libraryBuilder, builder.returnTypeForTesting),
           // TODO(johnniwinther): Support typeParameters
           typeParameters: const []);
     }
@@ -898,7 +898,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
           classBuilder.fullMemberIterator();
       while (iterator.moveNext()) {
         SourceMemberBuilder memberBuilder = iterator.current;
-        if (memberBuilder is SourceProcedureBuilder ||
+        if (memberBuilder is SourceMethodBuilder ||
             memberBuilder is SourcePropertyBuilder) {
           result.add(_introspection.getMemberDeclaration(memberBuilder)
               as macro.MethodDeclaration);
@@ -911,7 +911,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
           extensionTypeDeclarationBuilder.fullMemberIterator();
       while (iterator.moveNext()) {
         SourceMemberBuilder memberBuilder = iterator.current;
-        if (memberBuilder is SourceProcedureBuilder ||
+        if (memberBuilder is SourceMethodBuilder ||
             memberBuilder is SourcePropertyBuilder) {
           result.add(_introspection.getMemberDeclaration(memberBuilder)
               as macro.MethodDeclaration);

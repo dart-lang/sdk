@@ -1,0 +1,81 @@
+class A<in T> {
+  Contra<Contra<T>> method6() => (Contra<T> x) {};
+  Contravariant<Contravariant<T>> method16() => Contravariant<Contravariant<T>>();
+  Cov<Cov<T>> method7() {}
+  Cov<T> method3() {}
+  Covariant<Covariant<T>> method17() => Covariant<Covariant<T>>();
+  Covariant<T> method10() => throw "uncalled";
+  Inv<T> method8() => throw "uncalled";
+  Invariant<T> method12() => throw "uncalled";
+  T method1() => throw "uncalled";
+  void method11(Contravariant<T> x) {}
+  void method13(Invariant<T> x) {}
+  void method14(Contravariant<Covariant<T>> x) {}
+  void method15(Covariant<Contravariant<T>> x) {}
+  void method18<X extends T>() {}
+  void method19<X extends Cov<T>>() {}
+  void method2(Contra<T> x) {}
+  void method20<X extends Covariant<T>>() {}
+  void method21({required Contra<T> x}) {}
+  void method22({required Contravariant<T> x}) {}
+  void method23({required Covariant<T> x, required Contravariant<T> y}) {}
+  void method24<X extends Contra<T>>() {}
+  void method25<X extends Contravariant<T>>() {}
+  void method4(Contra<Cov<T>> x) {}
+  void method5(Cov<Contra<T>> x) {}
+  void method9(Inv<T> x) {}
+}
+
+class B<in T> {
+  Contra<A<T>> method2() {}
+  void method1(A<T> x) {}
+}
+
+class C<T> {
+  void method(T x) {}
+}
+
+class Contravariant<in T> {}
+
+class Covariant<out T> {}
+
+class D<in T> extends C<void Function(T)> {
+  @override
+  void method(void Function(T) x) {}
+}
+
+class Invariant<inout T> {}
+
+mixin BMixin<in T> {
+  Contra<Contra<T>> method6() => (Contra<T> x) {};
+  Contravariant<Contravariant<T>> method16() => Contravariant<Contravariant<T>>();
+  Cov<Cov<T>> method7() {}
+  Cov<T> method3() {}
+  Covariant<Covariant<T>> method17() => Covariant<Covariant<T>>();
+  Covariant<T> method10() => throw "uncalled";
+  Inv<T> method8() => throw "uncalled";
+  Invariant<T> method12() => throw "uncalled";
+  T method1() => throw "uncalled";
+  void method11(Contravariant<T> x) {}
+  void method13(Invariant<T> x) {}
+  void method14(Contravariant<Covariant<T>> x) {}
+  void method15(Covariant<Contravariant<T>> x) {}
+  void method18<X extends T>() {}
+  void method19<X extends Cov<T>>() {}
+  void method2(Contra<T> x) {}
+  void method20<X extends Covariant<T>>() {}
+  void method21({required Contra<T> x}) {}
+  void method22({required Contravariant<T> x}) {}
+  void method23({required Covariant<T> x, required Contravariant<T> y}) {}
+  void method24<X extends Contra<T>>() {}
+  void method25<X extends Contravariant<T>>() {}
+  void method4(Contra<Cov<T>> x) {}
+  void method5(Cov<Contra<T>> x) {}
+  void method9(Inv<T> x) {}
+}
+
+typedef Contra<T> = void Function(T);
+
+typedef Cov<T> = T Function();
+
+typedef Inv<T> = void Function<X extends T>();
