@@ -28,7 +28,7 @@ class ConstantInfo {
   bool get isLazy => function != null;
 
   void _readGlobal(Translator translator, w.InstructionsBuilder b) {
-    translator.globals.readGlobal(b, global, importNameSuffix: 'constant');
+    translator.globals.readGlobal(b, global);
   }
 
   w.ValueType readConstant(Translator translator, w.InstructionsBuilder b) {

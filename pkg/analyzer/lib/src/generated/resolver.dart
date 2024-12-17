@@ -1799,14 +1799,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
   }
 
-  /// Returns the result of an implicit `this.` lookup for the identifier string
-  /// [id] in a getter context, or `null` if no match was found.
+  /// Returns the result of an implicit `this.` lookup for the identifier [node]
+  /// in a getter context, or `null` if no match was found.
   LexicalLookupResult? thisLookupGetter(SimpleIdentifier node) {
     return ThisLookup.lookupGetter(this, node);
   }
 
-  /// Returns the result of an implicit `this.` lookup for the identifier string
-  /// [id] in a setter context, or `null` if no match was found.
+  /// Returns the result of an implicit `this.` lookup for the identifier [node]
+  /// in a setter context, or `null` if no match was found.
   LexicalLookupResult? thisLookupSetter(SimpleIdentifier node) {
     return ThisLookup.lookupSetter(this, node);
   }

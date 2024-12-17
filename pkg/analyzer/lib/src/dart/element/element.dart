@@ -1092,8 +1092,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  List<PartInclude> get partIncludes =>
-      libraryImportPrefixes.cast<PartInclude>();
+  List<PartInclude> get partIncludes => parts.cast<PartInclude>();
 
   @override
   List<PartElementImpl> get parts => _parts;

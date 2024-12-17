@@ -415,6 +415,7 @@ class LibraryAnalyzer {
       }
 
       // Run lint rules that handle specific node types.
+      context.currentUnit = currentUnit;
       unit.accept(
         AnalysisRuleVisitor(
           nodeRegistry,

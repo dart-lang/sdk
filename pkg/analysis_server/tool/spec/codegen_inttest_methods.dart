@@ -54,35 +54,23 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
   String formatArgument(TypeObjectField field) =>
       '${fieldDartType(field)} ${field.name}';
 
-  /// Figure out the appropriate Dart type for data having the given API
+  /// Figures out the appropriate Dart type for data having the given API
   /// protocol [type].
   String jsonType(TypeDecl type) {
     type = resolveTypeReferenceChain(type);
-    if (type is TypeEnum) {
-      return 'String';
-    } else if (type is TypeList) {
-      return 'List<${jsonType(type.itemType)}>';
-    } else if (type is TypeMap) {
-      return 'Map<String, ${jsonType(type.valueType)}>';
-    } else if (type is TypeObject) {
-      return 'Map<String, dynamic>';
-    } else if (type is TypeReference) {
-      switch (type.typeName) {
-        case 'String':
-        case 'int':
-        case 'bool':
-          // These types correspond exactly to Dart types
-          return type.typeName;
-        case 'object':
-          return 'Map<String, dynamic>';
-        default:
-          throw Exception(type.typeName);
-      }
-    } else if (type is TypeUnion) {
-      return 'Object';
-    } else {
-      throw Exception('Unexpected kind of TypeDecl');
-    }
+    return switch (type) {
+      TypeEnum() => 'String',
+      TypeList() => 'List<${jsonType(type.itemType)}>',
+      TypeMap() => 'Map<String, ${jsonType(type.valueType)}>',
+      TypeObject() => 'Map<String, dynamic>',
+      TypeReference() => switch (type.typeName) {
+        // These types correspond exactly to Dart types.
+        'String' || 'int' || 'bool' => type.typeName,
+        'object' => 'Map<String, dynamic>',
+        _ => throw Exception(type.typeName),
+      },
+      TypeUnion() => 'Object',
+    };
   }
 
   @override

@@ -199,11 +199,22 @@ void f() {
     await _checkRanges(content);
   }
 
-  Future<void> test_import_prefix() async {
+  Future<void> test_import_prefix_declaration() async {
     var content = '''
-imp^ort 'dart:async' as async;
+import 'dart:async' as asy^nc;
 
 /*[0*/async/*0]*/.Future<String>? f() {}
+/*[1*/async/*1]*/.Future<String>? g() {}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_import_prefix_reference() async {
+    var content = '''
+import 'dart:async' as async;
+
+/*[0*/^async/*0]*/.Future<String>? f() {}
 /*[1*/async/*1]*/.Future<String>? g() {}
 ''';
 

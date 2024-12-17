@@ -182,6 +182,16 @@ class ElementPrinter {
     });
   }
 
+  void writeFragmentReference(Fragment fragment) {
+    var referenceStr = _fragmentToReferenceString(fragment);
+    _sink.write(referenceStr);
+  }
+
+  void writelnFragmentReference(Fragment fragment) {
+    writeFragmentReference(fragment);
+    _sink.writeln();
+  }
+
   void writelnNamedElement2(String name, Element2? element) {
     _sink.writeIndentedLine(() {
       _sink.write('$name: ');
@@ -268,6 +278,33 @@ class ElementPrinter {
       ].join();
     } else {
       return '${element.name}@${element.nameOffset}';
+    }
+  }
+
+  String _fragmentToReferenceString(Fragment element) {
+    var enclosingFragment = element.enclosingFragment;
+    var reference = (element as ElementImpl).reference;
+    if (reference != null) {
+      return _referenceToString(reference);
+    } else if (element is FormalParameterFragment &&
+        enclosingFragment is! GenericFunctionTypeFragment) {
+      // Positional parameters don't have actual references.
+      // But we fabricate one to make the output better.
+      var enclosingStr = enclosingFragment != null
+          ? _fragmentToReferenceString(enclosingFragment)
+          : 'root';
+      return '$enclosingStr::@formalParameter::${element.name2}';
+    } else if (element is JoinPatternVariableElementImpl) {
+      return [
+        if (!element.isConsistent) 'notConsistent ',
+        if (element.isFinal) 'final ',
+        element.name,
+        '[',
+        element.variables.map(_elementToReferenceString).join(', '),
+        ']',
+      ].join();
+    } else {
+      return '${element.name2}@${element.nameOffset2}';
     }
   }
 

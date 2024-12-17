@@ -12,7 +12,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart'
     show SearchMatch;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -51,23 +51,11 @@ class ReferencesHandler
     );
   }
 
-  List<Location> _getDeclarations(Element element) {
-    element = element.nonSynthetic;
-    var unitElement = element.thisOrAncestorOfType<CompilationUnitElement>();
-    if (unitElement == null) {
-      return [];
-    }
-
-    return [
-      Location(
-        uri: uriConverter.toClientUri(unitElement.source.fullName),
-        range: toRange(
-          unitElement.lineInfo,
-          element.nameOffset,
-          element.nameLength,
-        ),
-      ),
-    ];
+  List<Location> _getDeclarations(Element2 element) {
+    return element.nonSynthetic2.fragments
+        .map((fragment) => fragmentToLocation(uriConverter, fragment))
+        .nonNulls
+        .toList();
   }
 
   Future<ErrorOr<List<Location>?>> _getReferences(
@@ -79,9 +67,9 @@ class ReferencesHandler
     var node = NodeLocator(offset).searchWithin(result.unit);
     node = _getReferenceTargetNode(node);
 
-    var element = switch (server.getElementOfNode(node)) {
-      FieldFormalParameterElement(:var field?) => field,
-      PropertyAccessorElement(:var variable2?) => variable2,
+    var element = switch (server.getElementOfNode2(node)) {
+      FieldFormalParameterElement2(:var field2?) => field2,
+      PropertyAccessorElement2(:var variable3?) => variable3,
       (var element) => element,
     };
 
@@ -91,17 +79,11 @@ class ReferencesHandler
 
     var computer = ElementReferencesComputer(server.searchEngine);
     var session = element.session ?? result.session;
-    var element2 =
-        element is LibraryImportElement
-            ? element.prefix?.element.asElement2
-            : element.asElement2;
-    if (element2 == null) {
-      return success(null);
-    }
+
     var results = await performance.runAsync(
       'computer.compute',
       (childPerformance) =>
-          computer.compute(element2, false, performance: childPerformance),
+          computer.compute(element, false, performance: childPerformance),
     );
 
     Location? toLocation(SearchMatch result) {

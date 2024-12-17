@@ -27,7 +27,7 @@ class UseSuperParameters extends LintRule {
       : super(
           name: LintNames.use_super_parameters,
           description: _desc,
-          state: State.experimental(),
+          state: const State.experimental(),
         );
 
   @override

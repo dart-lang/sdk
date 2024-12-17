@@ -14,83 +14,88 @@ final Version dart3 = Version(3, 0, 0);
 final Version dart3_3 = Version(3, 3, 0);
 
 /// A state that marks a lint as deprecated.
-class DeprecatedState extends State {
+final class DeprecatedState extends State {
   /// An optional lint name that replaces the rule with this state.
   final String? replacedBy;
 
   /// Initialize a newly created deprecated state with given values.
-  const DeprecatedState({super.since, this.replacedBy})
-      : super(label: 'deprecated');
+  const DeprecatedState._({super.since, this.replacedBy});
+
+  @override
+  String get label => 'deprecated';
 }
 
 /// A state that marks a lint as experimental.
-class ExperimentalState extends State {
+final class ExperimentalState extends State {
   /// Initialize a newly created experimental state with given values.
-  const ExperimentalState({super.since}) : super(label: 'experimental');
+  const ExperimentalState._({super.since});
+
+  @override
+  String get label => 'experimental';
 }
 
 /// A state that marks a lint as for internal (Dart SDK) use only.
-class InternalState extends State {
+final class InternalState extends State {
   /// Initialize a newly created internal state with given values.
-  const InternalState({super.since}) : super(label: 'internal');
+  const InternalState._({super.since});
+
+  @override
+  String get label => 'internal';
 }
 
 /// A state that identifies a lint as having been removed.
-class RemovedState extends State {
+final class RemovedState extends State {
   /// An optional lint name that replaces the rule with this state.
   final String? replacedBy;
 
   /// Initialize a newly created removed state with given values.
-  const RemovedState({super.since, this.replacedBy}) : super(label: 'removed');
+  const RemovedState._({super.since, this.replacedBy});
+
+  @override
+  String get label => 'removed';
 }
 
 /// A state that marks a lint as stable.
-class StableState extends State {
+final class StableState extends State {
   /// Initialize a newly created stable state with given values.
-  const StableState({super.since}) : super(label: 'stable');
+  const StableState._({super.since});
+
+  @override
+  String get label => 'stable';
 }
 
 /// Describes the state of a lint.
-abstract class State {
-  static const _undatedStable = StableState();
-  static const _undatedDeprecated = DeprecatedState();
-  static const _undatedExperimental = ExperimentalState();
-  static const _undatedInternal = InternalState();
-
+sealed class State {
   /// An Optional Dart language version that identifies the start of this state.
   final Version? since;
 
-  /// A short description, suitable for displaying in documentation or a
-  /// diagnostic message.
-  final String label;
-
   /// Initialize a newly created State object.
-  const State({required this.label, this.since});
+  const State({this.since});
 
   /// Initialize a newly created deprecated state with given values.
-  factory State.deprecated({Version? since, String? replacedBy}) =>
-      since == null && replacedBy == null
-          ? _undatedDeprecated
-          : DeprecatedState(since: since, replacedBy: replacedBy);
+  const factory State.deprecated({Version? since, String? replacedBy}) =
+      DeprecatedState._;
 
   /// Initialize a newly created experimental state with given values.
-  factory State.experimental({Version? since}) =>
-      since == null ? _undatedExperimental : ExperimentalState(since: since);
+  const factory State.experimental({Version? since}) = ExperimentalState._;
 
   /// Initialize a newly created internal state with given values.
-  factory State.internal({Version? since}) =>
-      since == null ? _undatedInternal : InternalState(since: since);
+  const factory State.internal({Version? since}) = InternalState._;
 
   /// Initialize a newly created removed state with given values.
-  factory State.removed({Version? since, String? replacedBy}) =>
-      RemovedState(since: since, replacedBy: replacedBy);
+  const factory State.removed({Version? since, String? replacedBy}) =
+      RemovedState._;
 
   /// Initialize a newly created stable state with given values.
-  factory State.stable({Version? since}) =>
-      since == null ? _undatedStable : StableState(since: since);
+  const factory State.stable({Version? since}) = StableState._;
+
+  /// A short description, suitable for displaying in documentation or a
+  /// diagnostic message.
+  String get label;
 
   /// An optional description that can be used in documentation or diagnostic
   /// reporting.
+  @Deprecated('Not set by any lint rule, remove any usages.')
   String? getDescription() => null;
 }
 

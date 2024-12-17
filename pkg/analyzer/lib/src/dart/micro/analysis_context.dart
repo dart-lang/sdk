@@ -19,7 +19,6 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 MicroContextObjects createMicroContextObjects({
   required FileResolver fileResolver,
@@ -163,7 +162,7 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
     var element = await analysisContext.fileResolver.getLibraryByUri2(
       uriStr: uriStr,
     );
-    return LibraryElementResultImpl(element.asElement);
+    return LibraryElementResultImpl(element);
   }
 
   @override
