@@ -11,6 +11,7 @@ enum Color { red, green, blue }
 class Integer {
   static Integer get one => Integer(1);
   static Integer get two => Integer(2);
+  static Integer? get nullable => null;
   static const Integer constOne = const Integer._(1);
   static const Integer constTwo = const Integer._(2);
   final int integer;
@@ -21,6 +22,7 @@ class Integer {
 extension type IntegerExt(int integer) {
   static IntegerExt get one => IntegerExt(1);
   static IntegerExt get two => IntegerExt(2);
+  static IntegerExt? get nullable => null;
   static const IntegerExt constOne = const IntegerExt._(1);
   static const IntegerExt constTwo = const IntegerExt._(2);
   const IntegerExt._(this.integer);
@@ -29,6 +31,7 @@ extension type IntegerExt(int integer) {
 mixin IntegerMixin on Integer {
   static IntegerMixin get mixinOne => _IntegerWithMixin(1);
   static IntegerMixin get mixinTwo => _IntegerWithMixin(2);
+  static IntegerMixin? get mixinNullable => null;
   static const IntegerMixin mixinConstOne = const _IntegerWithMixin._(1);
   static const IntegerMixin mixinConstTwo = const _IntegerWithMixin._(2);
 }
@@ -68,7 +71,9 @@ extension type ConstructorExt(int? x) {
 
 class StaticMember<T> {
   static StaticMember<int> member() => StaticMember(1);
+  static StaticMember<int>? memberNullable() => null;
   static StaticMember<U> memberType<U, V>(U u) => StaticMember(u);
+  static StaticMember<U>? memberTypeNullable<U, V>(U u) => null;
 
   final T t;
   StaticMember(this.t);
@@ -76,5 +81,7 @@ class StaticMember<T> {
 
 extension type StaticMemberExt<T>(T x) {
   static StaticMemberExt<int> member() => StaticMemberExt(1);
+  static StaticMemberExt<int>? memberNullable() => null;
   static StaticMemberExt<U> memberType<U, V>(U u) => StaticMemberExt(u);
+  static StaticMemberExt<U>? memberTypeNullable<U, V>(U u) => null;
 }
