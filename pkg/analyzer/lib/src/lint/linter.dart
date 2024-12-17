@@ -36,6 +36,12 @@ abstract class LinterContext {
   /// including the defining compilation unit, all parts, and all augmentations.
   List<LintRuleUnitContext> get allUnits;
 
+  /// The compilation unit being linted.
+  ///
+  /// `null` when a unit is not currently being linted (for example when node
+  /// processors are being registered).
+  LintRuleUnitContext? get currentUnit;
+
   /// The defining compilation unit of the library under analysis.
   LintRuleUnitContext get definingUnit;
 
@@ -81,6 +87,9 @@ final class LinterContextWithParsedResults implements LinterContext {
   final LintRuleUnitContext definingUnit;
 
   @override
+  LintRuleUnitContext? currentUnit;
+
+  @override
   final InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   LinterContextWithParsedResults(this.allUnits, this.definingUnit);
@@ -120,6 +129,9 @@ final class LinterContextWithResolvedResults implements LinterContext {
 
   @override
   final LintRuleUnitContext definingUnit;
+
+  @override
+  LintRuleUnitContext? currentUnit;
 
   @override
   final WorkspacePackage? package;

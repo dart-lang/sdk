@@ -565,6 +565,7 @@ class BulkFixProcessor {
     }
 
     // Run lints that handle specific node types.
+    context.currentUnit = currentUnit;
     currentUnit.unit.accept(AnalysisRuleVisitor(nodeRegistry));
   }
 
