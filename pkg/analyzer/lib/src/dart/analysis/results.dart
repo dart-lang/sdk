@@ -14,6 +14,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
@@ -266,12 +267,12 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
 
 class LibraryElementResultImpl implements LibraryElementResult {
   @override
-  final LibraryElement element;
+  final LibraryElementImpl element;
 
   LibraryElementResultImpl(this.element);
 
   @override
-  LibraryElement2 get element2 => element as LibraryElement2;
+  LibraryElementImpl get element2 => element;
 }
 
 class ParsedLibraryResultImpl extends AnalysisResultImpl
@@ -486,8 +487,9 @@ class ResolvedUnitResultImpl extends FileResultImpl
   bool get exists => fileState.exists;
 
   @override
-  LibraryElement get libraryElement {
-    return unit.declaredElement!.library;
+  LibraryElementImpl get libraryElement {
+    var element = unit.declaredElement as CompilationUnitElementImpl;
+    return element.library;
   }
 
   @override
@@ -500,13 +502,13 @@ class ResolvedUnitResultImpl extends FileResultImpl
   TypeProvider get typeProvider => libraryElement.typeProvider;
 
   @override
-  TypeSystemImpl get typeSystem => libraryElement.typeSystem as TypeSystemImpl;
+  TypeSystemImpl get typeSystem => libraryElement.typeSystem;
 }
 
 class UnitElementResultImpl extends FileResultImpl
     implements UnitElementResult {
   @override
-  final CompilationUnitElement element;
+  final CompilationUnitElementImpl element;
 
   UnitElementResultImpl({
     required super.session,
@@ -515,5 +517,5 @@ class UnitElementResultImpl extends FileResultImpl
   });
 
   @override
-  LibraryFragment get fragment => element as LibraryFragment;
+  LibraryFragment get fragment => element;
 }

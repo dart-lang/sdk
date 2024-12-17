@@ -1331,7 +1331,7 @@ class _FindDeclarations {
           (performance) async {
             var result = await analysisDriver.getLibraryByUri('$uri');
             if (result is LibraryElementResultImpl) {
-              return result.element as LibraryElementImpl;
+              return result.element;
             }
             return null;
           },

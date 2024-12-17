@@ -914,7 +914,7 @@ class AnalysisDriver {
         }
 
         var unitResult = await getUnitElement(file.path);
-        if (unitResult is UnitElementResult) {
+        if (unitResult is UnitElementResultImpl) {
           return LibraryElementResultImpl(unitResult.element.library);
         }
 

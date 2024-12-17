@@ -19352,7 +19352,7 @@ elementFactory
 
     // Check that it has `class B2 {}`, as requested.
     result2 as LibraryElementResultImpl;
-    _assertMacroCode(result2.element as LibraryElementImpl, r'''
+    _assertMacroCode(result2.element, r'''
 part of 'package:test/test.dart';
 
 class B2 {}
