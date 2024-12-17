@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@Deprecated('Use dart:js_interop instead')
+library;
+
 // ignore: EXPORT_INTERNAL_LIBRARY
 export 'dart:_js_annotations'
     show JS, anonymous, staticInterop, trustTypes, JSExport;
