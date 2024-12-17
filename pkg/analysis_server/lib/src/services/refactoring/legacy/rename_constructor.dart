@@ -52,7 +52,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<void> fillChange() async {
     // prepare references
-    var matches = await searchEngine.searchReferences2(element2);
+    var matches = await searchEngine.searchReferences(element2);
     var references = getSourceReferences(matches);
     // update references
     for (var reference in references) {

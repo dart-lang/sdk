@@ -195,7 +195,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
       processor.addDeclarationEdit2(element);
     }
 
-    var references = await searchEngine.searchReferences2(element);
+    var references = await searchEngine.searchReferences(element);
     processor.addReferenceEdits(references);
   }
 }

@@ -71,7 +71,7 @@ class ElementReferencesComputer {
   Future<List<SearchMatch>> _findSingleElementReferences(
     Element2 element,
   ) async {
-    return searchEngine.searchReferences2(element);
+    return searchEngine.searchReferences(element);
   }
 
   /// Returns a [Future] completing with [Element]s to search references to.

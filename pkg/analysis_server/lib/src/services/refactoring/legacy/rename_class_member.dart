@@ -111,7 +111,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
                 if (parameter is FieldFormalParameterElement2 &&
                     parameter.field2 == renameElement) {
                   await workspace.searchEngine
-                      .searchReferences2(parameter)
+                      .searchReferences(parameter)
                       .then(processor.addReferenceEdits);
                 }
               }
@@ -295,7 +295,7 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
     _checkClassAlreadyDeclares();
     // do chained computations
     var subClasses = <InterfaceElement2>{};
-    await searchEngine.appendAllSubtypes2(
+    await searchEngine.appendAllSubtypes(
       interfaceElement,
       subClasses,
       OperationPerformanceImpl('<root>'),
@@ -385,7 +385,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     // do chained computations
     await _prepareReferences();
     var subClasses = <InterfaceElement2>{};
-    await searchEngine.appendAllSubtypes2(
+    await searchEngine.appendAllSubtypes(
       interfaceElement,
       subClasses,
       OperationPerformanceImpl('<root>'),
@@ -489,7 +489,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
   Future<void> _prepareReferences() async {
     await _prepareElements();
     await Future.forEach(elements, (Element2 element) async {
-      var elementReferences = await searchEngine.searchReferences2(element);
+      var elementReferences = await searchEngine.searchReferences(element);
       references.addAll(elementReferences);
     });
   }

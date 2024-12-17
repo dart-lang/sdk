@@ -55,7 +55,7 @@ Future<Set<InterfaceElement2>> getDirectSubClasses(
   InterfaceElement2 seed,
   SearchEngineCache searchEngineCache,
 ) async {
-  var matches = await searchEngine.searchSubtypes2(seed, searchEngineCache);
+  var matches = await searchEngine.searchSubtypes(seed, searchEngineCache);
   return matches
       .map((match) => match.element2)
       .cast<InterfaceElement2>()
@@ -157,11 +157,8 @@ getHierarchyMembersAndParameters(
       // check all sub- classes
       await performance.runAsync(
         'appendAllSubtypes',
-        (performance) => searchEngine.appendAllSubtypes2(
-          superClass,
-          subClasses,
-          performance,
-        ),
+        (performance) =>
+            searchEngine.appendAllSubtypes(superClass, subClasses, performance),
       );
       subClasses.add(superClass);
     }

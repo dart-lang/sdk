@@ -138,7 +138,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
   }
 
   Future<void> _updateElementReferences(Element2 element) async {
-    var matches = await searchEngine.searchReferences2(element);
+    var matches = await searchEngine.searchReferences(element);
     var references = getSourceReferences(matches);
     for (var reference in references) {
       // Don't update references in macro-generated files.

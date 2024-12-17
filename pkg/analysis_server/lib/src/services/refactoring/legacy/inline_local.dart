@@ -88,7 +88,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
       return RefactoringStatus.fatal(message, newLocation_fromNode(node));
     }
     // prepare references
-    var references = await searchEngine.searchReferences2(element);
+    var references = await searchEngine.searchReferences(element);
     // should not have assignments
     for (var reference in references) {
       if (reference.kind != MatchKind.READ) {

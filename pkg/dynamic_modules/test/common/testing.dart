@@ -32,7 +32,9 @@ Future<Object?> load(String moduleName,
     }
     return loadModuleFromBytes(bytes);
   }
-  throw "load is not implemented for dart2wasm";
+  // Dart2wasm implementation
+  return loadModuleFromUri(
+      Uri(scheme: '', path: 'modules/${moduleName}_module1.wasm'));
 }
 
 /// Notify the test harness that the test has run to completion.

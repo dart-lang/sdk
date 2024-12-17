@@ -74,7 +74,7 @@ class ImplementedComputer {
     }
 
     // Analyze subtypes.
-    subtypeMembers = await searchEngine.membersOfSubtypes2(element);
+    subtypeMembers = await searchEngine.membersOfSubtypes(element);
     if (subtypeMembers != null) {
       _addImplementedClass(element);
       element.getters2.forEach(_addMemberIfImplemented);

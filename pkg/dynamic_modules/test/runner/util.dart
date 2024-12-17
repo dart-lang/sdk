@@ -90,6 +90,13 @@ Uri aotRuntimeBin = buildRootUri
     .resolve(useProduct ? 'dartaotruntime_product' : 'dartaotruntime');
 Uri vmPlatformDill = buildRootUri.resolve('vm_platform_strong.dill');
 
+Uri dart2wasmSnapshot =
+    _dartBin.resolve('snapshots/dart2wasm_product.snapshot');
+Uri dart2wasmPlatformDill = buildRootUri.resolve('dart2wasm_platform.dill');
+Uri dart2wasmLibrariesSpec = repoRoot.resolve('sdk/lib/libraries.json');
+Uri compileBenchmark = repoRoot.resolve('pkg/dart2wasm/tool/compile_benchmark');
+Uri runBenchmark = repoRoot.resolve('pkg/dart2wasm/tool/run_benchmark');
+
 // Encodes test results in the format expected by Dart's CI infrastructure.
 class TestResultOutcome {
   // This encoder must generate each output element on its own line.

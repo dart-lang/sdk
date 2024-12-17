@@ -312,7 +312,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     // analyze method body
     result.addStatus(_prepareMethodParts());
     // process references
-    var references = await searchEngine.searchReferences2(methodElement);
+    var references = await searchEngine.searchReferences(methodElement);
     _referenceProcessors.clear();
     for (var reference in references) {
       var processor = _ReferenceProcessor(this, reference);

@@ -53,7 +53,7 @@ class RenameTypeParameterRefactoringImpl extends RenameRefactoringImpl {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
     processor.addDeclarationEdit2(element2);
 
-    var references = await searchEngine.searchReferences2(element2);
+    var references = await searchEngine.searchReferences(element2);
     processor.addReferenceEdits(references);
   }
 }

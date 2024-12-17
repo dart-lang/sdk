@@ -248,7 +248,7 @@ class _BaseUnitMemberValidator {
     for (var declaration in declarations) {
       var member = declaration.element2;
       var declaringClass = member.enclosingElement2 as InterfaceElement2;
-      var memberReferences = await searchEngine.searchReferences2(member);
+      var memberReferences = await searchEngine.searchReferences(member);
       for (var memberReference in memberReferences) {
         var refElement = memberReference.element2;
         // cannot be shadowed if qualified
@@ -308,7 +308,7 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
 
   Future<RefactoringStatus> validate() async {
     _validateWillConflict();
-    references = await searchEngine.searchReferences2(element);
+    references = await searchEngine.searchReferences(element);
     _validateWillBeInvisible();
     _validateWillBeShadowed();
     await _validateWillShadow(element);

@@ -70,27 +70,32 @@ void testGraph(Node root) {
   List<void Function(String state)> tests = [];
 
   void explore(
-      String state,
-      Node node,
-      int sourceDepth,
-      int annotationDepth,
-      JavaScriptNodeSourceInformation? expectedSource,
-      List<Object> expectedAnnotations) {
+    String state,
+    Node node,
+    int sourceDepth,
+    int annotationDepth,
+    JavaScriptNodeSourceInformation? expectedSource,
+    List<Object> expectedAnnotations,
+  ) {
     void newCheck(String currentState) {
       if (debugging) {
-        print('In state $currentState check $state:'
-            ' source: $expectedSource, annotations: $expectedAnnotations');
+        print(
+          'In state $currentState check $state:'
+          ' source: $expectedSource, annotations: $expectedAnnotations',
+        );
       }
       Expect.equals(
-          '$expectedSource',
-          '${node.sourceInformation}',
-          ' at state $currentState for node at state $state:'
-              ' ${node.debugPrint()}');
+        '$expectedSource',
+        '${node.sourceInformation}',
+        ' at state $currentState for node at state $state:'
+            ' ${node.debugPrint()}',
+      );
       Expect.equals(
-          '$expectedAnnotations',
-          '${node.annotations}',
-          ' at state $currentState for node at state $state:'
-              ' ${node.debugPrint()}');
+        '$expectedAnnotations',
+        '${node.annotations}',
+        ' at state $currentState for node at state $state:'
+            ' ${node.debugPrint()}',
+      );
     }
 
     tests.add(newCheck);
@@ -105,8 +110,14 @@ void testGraph(Node root) {
       final newState = '$state-s$newSourceDepth';
       final newNode = node.withSourceInformation(newSource);
 
-      explore(newState, newNode, newSourceDepth, annotationDepth, newSource,
-          expectedAnnotations);
+      explore(
+        newState,
+        newNode,
+        newSourceDepth,
+        annotationDepth,
+        newSource,
+        expectedAnnotations,
+      );
     }
     if (annotationDepth < 3) {
       final newAnnotationDepth = annotationDepth + 1;
@@ -115,8 +126,14 @@ void testGraph(Node root) {
       final newState = '$state-a$newAnnotationDepth';
       final newNode = node.withAnnotation(newAnnotation);
 
-      explore(newState, newNode, sourceDepth, newAnnotationDepth,
-          expectedSource, newAnnotations);
+      explore(
+        newState,
+        newNode,
+        sourceDepth,
+        newAnnotationDepth,
+        expectedSource,
+        newAnnotations,
+      );
     }
   }
 
