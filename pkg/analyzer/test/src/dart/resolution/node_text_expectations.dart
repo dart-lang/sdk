@@ -148,6 +148,16 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'SearchTest',
+      methodName: 'assertLibraryFragmentReferencesText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'SearchTest',
+      methodName: 'assertLibraryImportReferencesText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'SearchTest',
       methodName: 'assertUnresolvedMemberReferencesText',
       argument: _ArgumentIndex(1),
     ),

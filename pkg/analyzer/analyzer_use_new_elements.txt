@@ -175,7 +175,6 @@ test/id_tests/type_constraint_generation_test.dart
 test/src/dart/analysis/index_test.dart
 test/src/dart/analysis/result_printer.dart
 test/src/dart/analysis/results/get_element_declaration_test.dart
-test/src/dart/analysis/search_test.dart
 test/src/dart/analysis/session_helper_test.dart
 test/src/dart/analysis/session_test.dart
 test/src/dart/ast/element_locator_test.dart
