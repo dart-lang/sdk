@@ -35,8 +35,8 @@ void main(List<String> arguments) {
   final packages = <Package>[];
   for (var entity in Directory('pkg').listSync()) {
     if (entity is Directory) {
-      var package = Package(entity.path);
-      if (package.hasPubspec) {
+      if (_hasPubspec(entity)) {
+        var package = Package(entity.path);
         packages.add(package);
       }
     }
@@ -81,6 +81,9 @@ void main(List<String> arguments) {
     exitCode = 1;
   }
 }
+
+bool _hasPubspec(Directory dir) =>
+    FileSystemEntity.isFileSync(path.join(dir.path, 'pubspec.yaml'));
 
 class Package implements Comparable<Package> {
   final String dir;
@@ -137,9 +140,6 @@ class Package implements Comparable<Package> {
 
   @override
   String toString() => 'Package $dirName';
-
-  bool get hasPubspec =>
-      FileSystemEntity.isFileSync(path.join(dir, 'pubspec.yaml'));
 
   @override
   int compareTo(Package other) => dir.compareTo(other.dir);
