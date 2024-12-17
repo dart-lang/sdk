@@ -17,7 +17,7 @@ class NoDefaultCases extends LintRule {
       : super(
           name: LintNames.no_default_cases,
           description: _desc,
-          state: State.experimental(),
+          state: const State.experimental(),
         );
 
   @override

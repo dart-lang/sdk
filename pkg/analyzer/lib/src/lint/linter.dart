@@ -189,8 +189,8 @@ abstract class LintRule {
     @Deprecated('Lint rule categories are no longer used. Remove the argument.')
     this.categories = const <String>{},
     required this.description,
-    State? state,
-  }) : state = state ?? State.stable();
+    this.state = const State.stable(),
+  });
 
   /// Indicates whether the lint rule can work with just the parsed information
   /// or if it requires a resolved unit.

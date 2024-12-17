@@ -26,7 +26,7 @@ class UseLateForPrivateFieldsAndVariables extends LintRule {
       : super(
           name: LintNames.use_late_for_private_fields_and_variables,
           description: _desc,
-          state: State.experimental(),
+          state: const State.experimental(),
         );
 
   @override
