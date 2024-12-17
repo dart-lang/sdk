@@ -71,9 +71,9 @@ Element convertElement2(engine.Element2 element) {
 /// Return a protocol [ElementKind] corresponding to the given
 /// [engine.ElementKind].
 ///
-/// This does not take into account that an instance of [ClassElement] can be an
-/// enum and an instance of [FieldElement] can be an enum constant.
-/// Use [convertElementToElementKind] where possible.
+/// This does not take into account that an instance of [engine.ClassElement]
+/// can be an enum and an instance of [engine.FieldElement] can be an enum
+/// constant. Use [convertElementToElementKind] where possible.
 ElementKind convertElementKind(engine.ElementKind kind) {
   if (kind == engine.ElementKind.CLASS) {
     return ElementKind.CLASS;
