@@ -68,7 +68,7 @@ class ElementHolder {
 /// 4. Resolve all [GenericFunctionType]s - set their types.
 /// 5. Rewrite AST where resolution provides a more accurate understanding.
 class ResolutionVisitor extends RecursiveAstVisitor<void> {
-  LibraryElementImpl _libraryElement;
+  final LibraryElementImpl _libraryElement;
   final TypeProvider _typeProvider;
   final CompilationUnitElementImpl _unitElement;
   final ErrorReporter _errorReporter;
