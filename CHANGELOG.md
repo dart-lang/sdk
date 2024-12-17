@@ -1,3 +1,10 @@
+## 3.6.1
+
+- Fixes crash during AOT and dart2wasm compilation which was caused by the
+  incorrect generic covariant field in a constant object (issue [#57084][]).
+
+[#57084]: https://github.com/dart-lang/sdk/issues/57084
+
 ## 3.6.0
 
 ### Language
