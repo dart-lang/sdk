@@ -237,6 +237,69 @@ class C extends B {
     );
   }
 
+  Future<void>
+  test_method_parameter_defaultValue_inNullAwareElement_inList() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  void [!foo!]([List<int> arg = const []]) {}
+}
+
+class B extends A {
+  @override
+  void foo([List<int> arg = const [?nu^ll]]) {}
+}
+'''),
+    );
+  }
+
+  Future<void>
+  test_method_parameter_defaultValue_inNullAwareElement_inSet() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  void [!foo!]([Set<int> arg = const {}]) {}
+}
+
+class B extends A {
+  @override
+  void foo([Set<int> arg = const {?nu^ll}]) {}
+}
+'''),
+    );
+  }
+
+  Future<void> test_method_parameter_defaultValue_inNullAwareKey_inMap() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  void [!foo!]([Map<int, String> arg = const {}]) {}
+}
+
+class B extends A {
+  @override
+  void foo([Map<int, String> arg = const {?nu^ll: "value"}]) {}
+}
+'''),
+    );
+  }
+
+  Future<void>
+  test_method_parameter_defaultValue_inNullAwareValue_inMap() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  void [!foo!]([Map<String, int> arg = const {}]) {}
+}
+
+class B extends A {
+  @override
+  void foo([Map<String, int> arg = const {"key": ?nu^ll}]) {}
+}
+'''),
+    );
+  }
+
   Future<void> test_methodName() async {
     await verifyGoToSuper(
       TestCode.parse('''
