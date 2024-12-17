@@ -5085,6 +5085,12 @@ class FunctionElementImpl extends ExecutableElementImpl
         return libraryFragment;
       case ExecutableFragment executableFragment:
         return executableFragment;
+      case LocalVariableFragment variableFragment:
+        return variableFragment;
+      case TopLevelVariableFragment variableFragment:
+        return variableFragment;
+      case FieldFragment fieldFragment:
+        return fieldFragment;
     }
     // Local functions cannot be augmented.
     throw UnsupportedError('This is not a fragment');
