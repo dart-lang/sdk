@@ -974,6 +974,10 @@ class SourceExtensionTypeDeclarationBuilder
           // TODO(johnniwinther): Support augmentations.
           origin,
           null);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get reference => _extensionTypeDeclaration.reference;
 }
 
 class _SourceExtensionTypeDeclarationBuilderAugmentationAccess

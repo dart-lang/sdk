@@ -193,10 +193,23 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference? get readTargetReference =>
+      (origin._factoryTearOff ?? _procedure).reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
+
+  @override
   Member? get invokeTarget => _procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get invokeTargetReference => _procedure.reference;
 
   @override
   // Coverage-ignore(suite): Not run.

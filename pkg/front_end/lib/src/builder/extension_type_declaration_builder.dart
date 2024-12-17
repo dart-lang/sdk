@@ -15,6 +15,9 @@ abstract class ExtensionTypeDeclarationBuilder
   /// Return the [ExtensionTypeDeclaration] built by this builder.
   ExtensionTypeDeclaration get extensionTypeDeclaration;
 
+  /// Reference for the extension type declaration built by this builder.
+  Reference get reference;
+
   /// Returns a list of the classes and extension types implemented by this
   /// extension type.
   List<TypeBuilder>? get interfaceBuilders;

@@ -369,6 +369,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
           ..fileOffset = fileOffset
           ..isLowered = true;
       } else {
+        // Coverage-ignore-block(suite): Not run.
         _thisVariable = function.positionalParameters.first;
       }
     }
@@ -378,6 +379,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   VariableDeclaration getFormalParameter(int index) {
     if (this is! ConstructorBuilder &&
         (isExtensionInstanceMember || isExtensionTypeInstanceMember)) {
+      // Coverage-ignore-block(suite): Not run.
       return formals![index + 1].variable!;
     } else {
       return formals![index].variable!;
@@ -424,7 +426,8 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
               ? parent as DeclarationBuilder
               : null;
       LookupScope parentScope =
-          classOrExtensionBuilder?.scope ?? libraryBuilder.scope;
+          classOrExtensionBuilder?.scope ?? // Coverage-ignore(suite): Not run.
+              libraryBuilder.scope;
       for (Annotatable annotatable in annotatables) {
         MetadataBuilder.buildAnnotations(annotatable, metadata,
             createBodyBuilderContext(), libraryBuilder, fileUri, parentScope,

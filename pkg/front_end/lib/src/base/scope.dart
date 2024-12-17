@@ -23,6 +23,7 @@ import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
+import '../source/source_method_builder.dart';
 import '../source/source_property_builder.dart';
 import 'messages.dart';
 import 'name_space.dart';
@@ -648,11 +649,23 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference? get readTargetReference => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get invokeTarget => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get invokeTargetReference => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1487,6 +1500,8 @@ extension on Builder {
     } else if (self is SourceExtensionBuilder) {
       return _hasPatchAnnotation(self.metadata);
     } else if (self is SourcePropertyBuilder) {
+      return _hasPatchAnnotation(self.metadata);
+    } else if (self is SourceMethodBuilder) {
       return _hasPatchAnnotation(self.metadata);
     } else if (self is SourceExtensionTypeDeclarationBuilder) {
       // Coverage-ignore-block(suite): Not run.

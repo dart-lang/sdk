@@ -135,7 +135,9 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     nameScheme.getProcedureMemberName(kind, name).attachMember(_procedure);
     this.asyncModifier = asyncModifier;
     if ((isExtensionInstanceMember || isExtensionTypeInstanceMember) &&
+        // Coverage-ignore(suite): Not run.
         kind == ProcedureKind.Method) {
+      // Coverage-ignore-block(suite): Not run.
       _extensionTearOff = new Procedure(
           dummyName, ProcedureKind.Method, new FunctionNode(null),
           isStatic: true,
@@ -151,10 +153,13 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get fileOffset => nameOffset;
 
   @override
-  Builder get parent => declarationBuilder ?? libraryBuilder;
+  Builder get parent =>
+      declarationBuilder ?? // Coverage-ignore(suite): Not run.
+      libraryBuilder;
 
   @override
   Name get memberName => _memberName.name;
@@ -191,8 +196,13 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   SourceProcedureBuilder get origin => _origin ?? this;
 
   @override
-  Procedure get procedure => isAugmenting ? origin.procedure : _procedure;
+  Procedure get procedure => isAugmenting
+      ?
+      // Coverage-ignore(suite): Not run.
+      origin.procedure
+      : _procedure;
 
+  // Coverage-ignore(suite): Not run.
   Procedure get actualProcedure => _procedure;
 
   Procedure? _augmentedProcedure;
@@ -244,6 +254,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     returnType.build(libraryBuilder, TypeUse.fieldType,
         hierarchy: membersBuilder.hierarchyBuilder);
     if (formals != null) {
+      // Coverage-ignore-block(suite): Not run.
       for (FormalParameterBuilder formal in formals!) {
         formal.type.build(libraryBuilder, TypeUse.parameterType,
             hierarchy: membersBuilder.hierarchyBuilder);
@@ -253,62 +264,70 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member? get readTarget {
     switch (_kind) {
       case ProcedureKind.Method:
         return extensionTearOff ?? procedure;
       case ProcedureKind.Getter:
-        // Coverage-ignore(suite): Not run.
         return procedure;
       case ProcedureKind.Factory:
-        // Coverage-ignore(suite): Not run.
         return procedure;
       case ProcedureKind.Operator:
-      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Setter:
         return null;
     }
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get readTargetReference => readTarget?.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget {
     switch (_kind) {
       case ProcedureKind.Setter:
-        // Coverage-ignore(suite): Not run.
         return procedure;
       case ProcedureKind.Method:
-      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Getter:
-      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Operator:
-      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Factory:
         return null;
     }
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => writeTarget?.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get invokeTarget {
     switch (_kind) {
       case ProcedureKind.Method:
       case ProcedureKind.Getter:
       case ProcedureKind.Operator:
-      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Factory:
         return procedure;
-      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Setter:
         return null;
     }
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get invokeTargetReference => invokeTarget?.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [procedure.reference];
 
   @override
   void buildOutlineNodes(BuildNodesCallback f) {
     _build();
     if (isExtensionMethod) {
+      // Coverage-ignore-block(suite): Not run.
       switch (_kind) {
         case ProcedureKind.Method:
           f(
@@ -317,27 +336,23 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
               kind: BuiltMemberKind.ExtensionMethod);
           break;
         case ProcedureKind.Getter:
-          // Coverage-ignore(suite): Not run.
           assert(extensionTearOff == null, "Unexpected extension tear-off.");
-          // Coverage-ignore(suite): Not run.
           f(member: _procedure, kind: BuiltMemberKind.ExtensionGetter);
           break;
         case ProcedureKind.Setter:
-          // Coverage-ignore(suite): Not run.
           assert(extensionTearOff == null, "Unexpected extension tear-off.");
-          // Coverage-ignore(suite): Not run.
           f(member: _procedure, kind: BuiltMemberKind.ExtensionSetter);
           break;
         case ProcedureKind.Operator:
           assert(extensionTearOff == null, "Unexpected extension tear-off.");
           f(member: _procedure, kind: BuiltMemberKind.ExtensionOperator);
           break;
-        // Coverage-ignore(suite): Not run.
         case ProcedureKind.Factory:
           throw new UnsupportedError(
               'Unexpected extension method kind ${_kind}');
       }
     } else if (isExtensionTypeMethod) {
+      // Coverage-ignore-block(suite): Not run.
       switch (_kind) {
         case ProcedureKind.Method:
           f(
@@ -346,22 +361,17 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
               kind: BuiltMemberKind.ExtensionTypeMethod);
           break;
         case ProcedureKind.Getter:
-          // Coverage-ignore(suite): Not run.
           assert(extensionTearOff == null, "Unexpected extension tear-off.");
-          // Coverage-ignore(suite): Not run.
           f(member: _procedure, kind: BuiltMemberKind.ExtensionTypeGetter);
           break;
         case ProcedureKind.Setter:
-          // Coverage-ignore(suite): Not run.
           assert(extensionTearOff == null, "Unexpected extension tear-off.");
-          // Coverage-ignore(suite): Not run.
           f(member: _procedure, kind: BuiltMemberKind.ExtensionTypeSetter);
           break;
         case ProcedureKind.Operator:
           assert(extensionTearOff == null, "Unexpected extension tear-off.");
           f(member: _procedure, kind: BuiltMemberKind.ExtensionTypeOperator);
           break;
-        // Coverage-ignore(suite): Not run.
         case ProcedureKind.Factory:
           f(
               member: _procedure,
@@ -382,12 +392,14 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     _procedure.isExternal = isExternal;
     _procedure.isConst = isConst;
     if (isExtensionMethod) {
+      // Coverage-ignore-block(suite): Not run.
       _procedure.isExtensionMember = true;
       _procedure.isStatic = true;
       if (isExtensionInstanceMember) {
         assert(_procedure.kind == ProcedureKind.Method);
       }
     } else if (isExtensionTypeMethod) {
+      // Coverage-ignore-block(suite): Not run.
       _procedure.isExtensionTypeMember = true;
       _procedure.isStatic = true;
       if (isExtensionTypeInstanceMember) {
@@ -397,11 +409,13 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       _procedure.isStatic = isStatic;
     }
     if (extensionTearOff != null) {
+      // Coverage-ignore-block(suite): Not run.
       _buildExtensionTearOff(
           libraryBuilder, parent as SourceDeclarationBuilderMixin);
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Creates a top level function that creates a tear off of an extension
   /// instance method.
   ///
@@ -547,6 +561,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   Procedure? get extensionTearOff => _extensionTearOff;
 
   @override
+  // Coverage-ignore(suite): Not run.
   VariableDeclaration? getTearOffParameter(int index) {
     return _extensionTearOffParameterMap?[getFormalParameter(index)];
   }
@@ -572,12 +587,14 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       : const <ClassMember>[];
 
   @override
+  // Coverage-ignore(suite): Not run.
   void becomeNative(SourceLoader loader) {
     _procedure.isExternal = true;
     super.becomeNative(loader);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void applyAugmentation(Builder augmentation) {
     if (augmentation is SourceProcedureBuilder) {
       if (checkAugmentation(
@@ -593,7 +610,6 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         (_augmentations ??= []).add(augmentation);
       }
     } else {
-      // Coverage-ignore-block(suite): Not run.
       reportAugmentationMismatch(
           originLibraryBuilder: libraryBuilder,
           origin: this,
@@ -603,13 +619,13 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
 
   Map<SourceProcedureBuilder, AugmentSuperTarget?> _augmentedProcedures = {};
 
+  // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? _createAugmentSuperTarget(
       SourceProcedureBuilder? targetBuilder) {
     if (targetBuilder == null) return null;
     Procedure declaredProcedure = targetBuilder.actualProcedure;
 
     if (declaredProcedure.isAbstract || declaredProcedure.isExternal) {
-      // Coverage-ignore-block(suite): Not run.
       return targetBuilder._augmentedBuilder != null
           ? _getAugmentSuperTarget(targetBuilder._augmentedBuilder!)
           : null;
@@ -635,21 +651,17 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         readTarget = extensionTearOff ?? augmentedProcedure;
         invokeTarget = augmentedProcedure;
         break;
-      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Getter:
         readTarget = augmentedProcedure;
         invokeTarget = augmentedProcedure;
         break;
-      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Factory:
         readTarget = augmentedProcedure;
         invokeTarget = augmentedProcedure;
         break;
-      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Operator:
         invokeTarget = augmentedProcedure;
         break;
-      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Setter:
         writeTarget = augmentedProcedure;
         break;
@@ -661,6 +673,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         writeTarget: writeTarget);
   }
 
+  // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? _getAugmentSuperTarget(
       SourceProcedureBuilder augmentation) {
     return _augmentedProcedures[augmentation] ??=
@@ -668,6 +681,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? get augmentSuperTarget =>
       origin._getAugmentSuperTarget(this);
 
@@ -675,6 +689,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   int buildBodyNodes(BuildNodesCallback f) {
     List<SourceProcedureBuilder>? augmentations = _augmentations;
     if (augmentations != null) {
+      // Coverage-ignore-block(suite): Not run.
       void addAugmentedProcedure(SourceProcedureBuilder builder) {
         Procedure? augmentedProcedure = builder._augmentedProcedure;
         if (augmentedProcedure != null) {
@@ -707,6 +722,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         procedure, typeEnvironment, sourceClassBuilder.cls.typeParameters);
     List<SourceProcedureBuilder>? augmentations = _augmentations;
     if (augmentations != null) {
+      // Coverage-ignore-block(suite): Not run.
       for (SourceProcedureBuilder augmentation in augmentations) {
         augmentation.checkVariance(sourceClassBuilder, typeEnvironment);
       }
@@ -717,6 +733,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   void checkTypes(SourceLibraryBuilder libraryBuilder, NameSpace nameSpace,
       TypeEnvironment typeEnvironment) {
     List<TypeParameterBuilder>? typeParameters = this.typeParameters;
+    // Coverage-ignore(suite): Not run.
     if (typeParameters != null && typeParameters.isNotEmpty) {
       libraryBuilder.checkTypeParameterDependencies(typeParameters);
     }
@@ -724,6 +741,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         isAbstract: isAbstract, isExternal: isExternal);
     List<SourceProcedureBuilder>? augmentations = _augmentations;
     if (augmentations != null) {
+      // Coverage-ignore-block(suite): Not run.
       for (SourceProcedureBuilder augmentation in augmentations) {
         augmentation.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
       }
@@ -850,6 +868,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   @override
   bool get isAugmented {
     if (isAugmenting) {
+      // Coverage-ignore-block(suite): Not run.
       return origin._augmentations!.last != this;
     } else {
       return _augmentations != null;
@@ -857,6 +876,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isRegularMethod => identical(ProcedureKind.Method, _kind);
 
   @override
@@ -866,12 +886,14 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   bool get isSetter => identical(ProcedureKind.Setter, _kind);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isOperator => identical(ProcedureKind.Operator, _kind);
 
   @override
   bool get isFactory => identical(ProcedureKind.Factory, _kind);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isProperty => isGetter || isSetter;
 }
 
@@ -906,6 +928,7 @@ class SourceProcedureMember extends BuilderClassMember {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member? getTearOff(ClassMembersBuilder membersBuilder) {
     // Ensure function type is computed.
     getMember(membersBuilder);
@@ -914,6 +937,7 @@ class SourceProcedureMember extends BuilderClassMember {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Covariance getCovariance(ClassMembersBuilder membersBuilder) {
     return _covariance ??= new Covariance.fromMember(getMember(membersBuilder),
         forSetter: forSetter);

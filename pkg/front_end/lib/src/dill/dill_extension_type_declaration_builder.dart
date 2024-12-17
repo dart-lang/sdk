@@ -220,4 +220,7 @@ class DillExtensionTypeDeclarationBuilder
           {Map<ExtensionTypeDeclarationBuilder, TraversalState>?
               traversalState}) =>
       _extensionTypeDeclaration.inherentNullability;
+
+  @override
+  Reference get reference => _extensionTypeDeclaration.reference;
 }

@@ -42,18 +42,44 @@ abstract class MemberBuilder implements Builder {
   /// a constructor, an operator, a factory or a setter this is `null`.
   Member? get readTarget;
 
-  /// The [Member] to use when write to this member builder.
+  /// The [Reference] to use when reading from this member builder.
+  ///
+  /// For a field, a getter or a regular method this is the member itself.
+  /// For an instance extension method this is special tear-off function. For
+  /// a constructor, an operator, a factory or a setter this is `null`.
+  // TODO(johnniwinther): A a kind to [Reference] so we can use this instead of
+  //  [readTarget].
+  Reference? get readTargetReference;
+
+  /// The [Reference] to use when write to this member builder.
   ///
   /// For an assignable field or a setter this is the member itself. For
   /// a constructor, a non-assignable field, a getter, an operator or a regular
   /// method this is `null`.
   Member? get writeTarget;
 
+  /// The [Member] to use when write to this member builder.
+  ///
+  /// For an assignable field or a setter this is the member itself. For
+  /// a constructor, a non-assignable field, a getter, an operator or a regular
+  /// method this is `null`.
+  // TODO(johnniwinther): A a kind to [Reference] so we can use this instead of
+  //  [writeTarget].
+  Reference? get writeTargetReference;
+
   /// The [Member] to use when invoking this member builder.
   ///
   /// For a constructor, a field, a regular method, a getter, an operator or
   /// a factory this is the member itself. For a setter this is `null`.
   Member? get invokeTarget;
+
+  /// The [Reference] to use when invoking this member builder.
+  ///
+  /// For a constructor, a field, a regular method, a getter, an operator or
+  /// a factory this is the member itself. For a setter this is `null`.
+  // TODO(johnniwinther): A a kind to [Reference] so we can use this instead of
+  //  [invokeTarget].
+  Reference? get invokeTargetReference;
 
   /// The references to the members from this builder that are accessible in
   /// exports through the name of the builder.
@@ -166,6 +192,7 @@ abstract class BuilderClassMember implements ClassMember {
   Name get name => memberBuilder.memberName;
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullName {
     String suffix = isSetter ? "=" : "";
     String className = declarationBuilder.fullNameForErrors;
@@ -199,6 +226,7 @@ abstract class BuilderClassMember implements ClassMember {
   bool get isAbstract => memberBuilder.isAbstract;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isSynthesized => false;
 
   @override

@@ -97,10 +97,22 @@ class DillExtensionTypeFieldBuilder extends DillExtensionTypeMemberBuilder {
   Member get readTarget => field;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference => field.getterReference;
+
+  @override
   Member? get writeTarget => isAssignable ? field : null;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => field.setterReference;
+
+  @override
   Member get invokeTarget => field;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get invokeTargetReference => field.getterReference;
 
   @override
   bool get isField => true;
@@ -136,10 +148,22 @@ class DillExtensionTypeSetterBuilder extends DillExtensionTypeMemberBuilder {
   Member? get readTarget => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get readTargetReference => null;
+
+  @override
   Member get writeTarget => procedure;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference get writeTargetReference => procedure.reference;
+
+  @override
   Member? get invokeTarget => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get invokeTargetReference => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -165,10 +189,22 @@ class DillExtensionTypeGetterBuilder extends DillExtensionTypeMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference => procedure.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
+
+  @override
   Member get invokeTarget => procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get invokeTargetReference => procedure.reference;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -194,10 +230,22 @@ class DillExtensionTypeOperatorBuilder extends DillExtensionTypeMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference? get readTargetReference => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
+
+  @override
   Member get invokeTarget => procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get invokeTargetReference => procedure.reference;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -225,10 +273,22 @@ class DillExtensionTypeStaticMethodBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference => procedure.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
+
+  @override
   Member get invokeTarget => procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get invokeTargetReference => procedure.reference;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -263,10 +323,22 @@ class DillExtensionTypeInstanceMethodBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference => _extensionTearOff.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
+
+  @override
   Member get invokeTarget => procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get invokeTargetReference => procedure.reference;
 }
 
 class DillExtensionTypeConstructorBuilder extends DillExtensionTypeMemberBuilder
@@ -299,10 +371,23 @@ class DillExtensionTypeConstructorBuilder extends DillExtensionTypeMemberBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference =>
+      (_constructorTearOff ?? constructor).reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
+
+  @override
   Procedure get invokeTarget => constructor;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get invokeTargetReference => constructor.reference;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -330,10 +415,23 @@ class DillExtensionTypeFactoryBuilder extends DillExtensionTypeMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference? get readTargetReference =>
+      (_factoryTearOff ?? _procedure).reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
+
+  @override
   Member get invokeTarget => _procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get invokeTargetReference => _procedure.reference;
 
   @override
   // Coverage-ignore(suite): Not run.

@@ -1059,7 +1059,6 @@ class SourceClassBuilder extends ClassBuilderImpl
   void checkVarianceInTypeParameters(TypeEnvironment typeEnvironment,
       List<NominalParameterBuilder>? typeParameters) {
     List<TypeParameter> classTypeParameters = cls.typeParameters;
-    // Coverage-ignore(suite): Not run.
     if (typeParameters != null && classTypeParameters.isNotEmpty) {
       for (NominalParameterBuilder nominalParameter in typeParameters) {
         for (TypeParameter classTypeParameter in classTypeParameters) {
@@ -1114,6 +1113,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     DartType returnType = procedure.function.returnType;
 
     for (TypeParameter functionParameter in functionTypeParameters) {
+      // Coverage-ignore-block(suite): Not run.
       for (TypeParameter typeParameter in typeParameters) {
         Variance typeVariance = Variance.invariant
             .combine(computeVariance(typeParameter, functionParameter.bound));
@@ -1122,6 +1122,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
     for (VariableDeclaration formal in positionalParameters) {
+      // Coverage-ignore-block(suite): Not run.
       if (!formal.isCovariantByDeclaration) {
         for (TypeParameter typeParameter in typeParameters) {
           Variance formalVariance = Variance.contravariant
@@ -1132,6 +1133,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
     for (VariableDeclaration named in namedParameters) {
+      // Coverage-ignore-block(suite): Not run.
       for (TypeParameter typeParameter in typeParameters) {
         Variance namedVariance = Variance.contravariant
             .combine(computeVariance(typeParameter, named.type));
@@ -2039,6 +2041,10 @@ class SourceClassBuilder extends ClassBuilderImpl
   Iterator<SourceClassBuilder> get declarationIterator =>
       new AugmentationIterator<SourceClassBuilder>(
           origin, origin._augmentations);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get reference => cls.reference;
 }
 
 /// Returns `true` if override problems should be overlooked.

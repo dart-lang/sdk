@@ -904,7 +904,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       SourceExtensionBuilder extension_ = extensionIterator.current;
       for (Builder member in extension_.nameSpace.localMembers) {
         if (member is SourceProcedureBuilder &&
+            // Coverage-ignore(suite): Not run.
             !member.isStatic &&
+            // Coverage-ignore(suite): Not run.
             member.isGetter) {
           // Coverage-ignore-block(suite): Not run.
           individualPropertyReasons[member.procedure] =

@@ -165,6 +165,7 @@ abstract class BodyBuilderContext {
   /// constructor declaration marked as `external`.
   bool get isExternalConstructor => false;
 
+  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the member whose body is being built is a constructor,
   /// factory, method, getter, or setter marked as `external`.
   bool get isExternalFunction => false;
@@ -718,6 +719,7 @@ mixin _MemberBodyBuilderContext<T extends SourceMemberBuilder>
   Member get _builtMember;
 
   @override
+  // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? get augmentSuperTarget {
     if (_member.isAugmentation) {
       return _member.augmentSuperTarget;
@@ -844,11 +846,13 @@ mixin _ProcedureBodyBuilderContextMixin<T extends SourceProcedureBuilder>
   T get _member;
 
   @override
+  // Coverage-ignore(suite): Not run.
   void setAsyncModifier(AsyncMarker asyncModifier) {
     _member.asyncModifier = asyncModifier;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType get returnTypeContext {
     final bool isReturnTypeUndeclared =
         _member.returnType is OmittedTypeBuilder &&
