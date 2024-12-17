@@ -10717,6 +10717,8 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
     switch (firstFragment.aliasedElement) {
       case InstanceFragment instance:
         return instance.element;
+      case GenericFunctionTypeFragment instance:
+        return instance.element;
     }
     return null;
   }
