@@ -16,7 +16,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 
 typedef StaticOptions =
     Either3<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>;
@@ -141,7 +140,7 @@ class TypeHierarchySubtypesHandler
         );
       }
 
-      var location = ElementLocationImpl.con2(data.ref);
+      var location = type_hierarchy.TypeHierarchyItemLocation.decode(data.ref);
       var calls = await computer.findSubtypes(location, server.searchEngine);
       var results = calls != null ? _convertItems(unit, calls) : null;
       return success(results);
@@ -189,7 +188,7 @@ class TypeHierarchySupertypesHandler
         );
       }
 
-      var location = ElementLocationImpl.con2(data.ref);
+      var location = type_hierarchy.TypeHierarchyItemLocation.decode(data.ref);
       var anchor = _toServerAnchor(data);
       var calls = await computer.findSupertypes(location, anchor: anchor);
       var results = calls != null ? _convertItems(unit, calls) : null;
@@ -205,7 +204,7 @@ class TypeHierarchySupertypesHandler
     var anchor = data.anchor;
     return anchor != null
         ? type_hierarchy.TypeHierarchyAnchor(
-          location: ElementLocationImpl.con2(anchor.ref),
+          location: type_hierarchy.TypeHierarchyItemLocation.decode(anchor.ref),
           path: anchor.path,
         )
         : null;

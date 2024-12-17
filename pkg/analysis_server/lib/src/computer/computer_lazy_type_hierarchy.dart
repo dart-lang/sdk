@@ -2,15 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analysis_server/src/search/type_hierarchy.dart';
+library;
+
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:collection/collection.dart';
 
 /// A lazy computer for Type Hierarchies.
 ///
@@ -34,7 +38,7 @@ class DartLazyTypeHierarchyComputer {
 
   /// Finds subtypes for [Element] at [location].
   Future<List<TypeHierarchyRelatedItem>?> findSubtypes(
-    ElementLocation location,
+    TypeHierarchyItemLocation location,
     SearchEngine searchEngine,
   ) async {
     var targetElement = await _findTargetElement(location);
@@ -54,7 +58,7 @@ class DartLazyTypeHierarchyComputer {
   /// Anchors are included in returned types (where necessary to preserve type
   /// arguments) that can be used when calling for the next level of types.
   Future<List<TypeHierarchyRelatedItem>?> findSupertypes(
-    ElementLocation location, {
+    TypeHierarchyItemLocation location, {
     TypeHierarchyAnchor? anchor,
   }) async {
     var targetElement = await _findTargetElement(location);
@@ -103,9 +107,9 @@ class DartLazyTypeHierarchyComputer {
 
   /// Locate the [Element] referenced by [location].
   Future<InterfaceElement2?> _findTargetElement(
-    ElementLocation location,
+    TypeHierarchyItemLocation location,
   ) async {
-    var element = await _result.session.locateElement2(location);
+    var element = await location._locateIn(_result.session);
     return element is InterfaceElement2 ? element : null;
   }
 
@@ -144,7 +148,7 @@ class DartLazyTypeHierarchyComputer {
         .toList();
   }
 
-  /// Gets immediate super types for the class/mixin [element].
+  /// Gets immediate super types for the class/mixin [type].
   ///
   /// Includes all elements that contribute implementation to the type
   /// such as supertypes and mixins, but not interfaces, constraints or
@@ -215,7 +219,7 @@ class DartLazyTypeHierarchyComputer {
 
 class TypeHierarchyAnchor {
   /// The location of the anchor element.
-  final ElementLocation location;
+  final TypeHierarchyItemLocation location;
 
   /// The supertype path from [location] to the target element.
   final List<int> path;
@@ -234,7 +238,7 @@ class TypeHierarchyItem {
   /// `findSubtypes`/`findSupertypes` so that if code has been modified since
   /// the `findTarget` call the element can still be located (provided the
   /// names/identifiers have not changed).
-  final ElementLocation location;
+  final TypeHierarchyItemLocation location;
 
   /// The type being displayed.
   final InterfaceType _type;
@@ -261,7 +265,7 @@ class TypeHierarchyItem {
     : this(
         type: type,
         displayName: _displayNameForType(type),
-        location: type.element3.location!,
+        location: TypeHierarchyItemLocation.forElement(type.element3),
         nameRange: _nameRangeForElement(type.element3),
         codeRange: _codeRangeForElement(type.element3),
         file: type.element3.firstFragment.libraryFragment.source.fullName,
@@ -289,6 +293,58 @@ class TypeHierarchyItem {
     return fragment.nameOffset2 == -1
         ? SourceRange(0, 0)
         : SourceRange(fragment.nameOffset2 ?? 0, fragment.name2?.length ?? 0);
+  }
+}
+
+/// Represents the location of an item that can appear in Type Hierarchy that
+/// can be encoded to/from a [String] for round-tripping to the client.
+class TypeHierarchyItemLocation {
+  /// The URI of the Library that contains this type.
+  final String _libraryUri;
+
+  /// The [Element2.name3] for this type.
+  final String _name;
+
+  factory TypeHierarchyItemLocation.decode(String encoded) {
+    var parts = encoded.split(';');
+    if (parts.length != 2) {
+      throw ArgumentError(
+        "Encoded string should be in format 'libraryUri;name' encoded",
+      );
+    }
+    return TypeHierarchyItemLocation._(libraryUri: parts[0], name: parts[1]);
+  }
+
+  factory TypeHierarchyItemLocation.forElement(InterfaceElement2 element) {
+    var name = element.name3;
+
+    if (name == null) {
+      throw ArgumentError(
+        'Cannot create TypeHierarchyItemLocation for an element with no name: $element',
+      );
+    }
+
+    return TypeHierarchyItemLocation._(
+      libraryUri: element.library2.uri.toString(),
+      name: name,
+    );
+  }
+
+  TypeHierarchyItemLocation._({
+    required String libraryUri,
+    required String name,
+  }) : _name = name,
+       _libraryUri = libraryUri;
+
+  String get encoding => '$_libraryUri;$_name';
+
+  Future<InterfaceElement2?> _locateIn(AnalysisSession session) async {
+    var result = await session.getLibraryByUri(_libraryUri);
+    return result is LibraryElementResult
+        ? result.element2.children2
+            .whereType<InterfaceElement2>()
+            .firstWhereOrNull((element2) => element2.name3 == _name)
+        : null;
   }
 }
 
