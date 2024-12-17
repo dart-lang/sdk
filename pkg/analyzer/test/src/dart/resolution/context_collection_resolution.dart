@@ -308,7 +308,7 @@ abstract class ContextResolutionTest
     var uriStr = uri.toString();
     var libraryResult = await analysisSession.getLibraryByUri(uriStr);
     libraryResult as LibraryElementResultImpl;
-    return libraryResult.element as LibraryElementImpl;
+    return libraryResult.element2 as LibraryElementImpl;
   }
 
   @override

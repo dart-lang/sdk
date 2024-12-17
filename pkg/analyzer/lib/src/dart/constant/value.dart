@@ -211,8 +211,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   /// Create an object to represent an unknown value.
   factory DartObjectImpl.validWithUnknownValue(
-      TypeSystemImpl typeSystem, DartType type,
-      {DartType? listElementType}) {
+      TypeSystemImpl typeSystem, DartType type) {
     if (type.isDartCoreBool) {
       return DartObjectImpl(typeSystem, type, BoolState.UNKNOWN_VALUE);
     } else if (type.isDartCoreDouble) {
@@ -220,15 +219,18 @@ class DartObjectImpl implements DartObject, Constant {
     } else if (type.isDartCoreInt) {
       return DartObjectImpl(typeSystem, type, IntState.UNKNOWN_VALUE);
     } else if (type.isDartCoreList) {
-      return DartObjectImpl(
-          typeSystem,
-          type,
-          ListState.unknown(
-              listElementType ?? typeSystem.typeProvider.dynamicType));
+      return DartObjectImpl(typeSystem, type,
+          ListState.unknown(typeSystem.typeProvider.dynamicType));
     } else if (type.isDartCoreMap) {
-      return DartObjectImpl(typeSystem, type, MapState.UNKNOWN);
+      return DartObjectImpl(
+        typeSystem,
+        type,
+        MapState.unknown(typeSystem.typeProvider.dynamicType,
+            typeSystem.typeProvider.dynamicType),
+      );
     } else if (type.isDartCoreSet) {
-      return DartObjectImpl(typeSystem, type, SetState.UNKNOWN);
+      return DartObjectImpl(typeSystem, type,
+          SetState.unknown(typeSystem.typeProvider.dynamicType));
     } else if (type.isDartCoreString) {
       return DartObjectImpl(typeSystem, type, StringState.UNKNOWN_VALUE);
     }
@@ -2529,28 +2531,15 @@ class ListState extends InstanceState {
   @override
   final bool isUnknown;
 
-  factory ListState({
+  ListState({
     required DartType elementType,
-    required List<DartObjectImpl> elements,
-    bool isUnknown = false,
-  }) {
-    elementType = elementType.extensionTypeErasure;
-    return ListState._(
-      elementType: elementType,
-      elements: elements,
-      isUnknown: isUnknown,
-    );
-  }
+    required this.elements,
+    this.isUnknown = false,
+  }) : elementType = elementType.extensionTypeErasure;
 
   /// Creates a state that represents a list whose value is not known.
   factory ListState.unknown(DartType elementType) =>
       ListState(elementType: elementType, elements: [], isUnknown: true);
-
-  ListState._({
-    required this.elementType,
-    required this.elements,
-    required this.isUnknown,
-  });
 
   @override
   int get hashCode {
@@ -2629,8 +2618,9 @@ class ListState extends InstanceState {
 
 /// The state of an object representing a map.
 class MapState extends InstanceState {
-  /// A state that represents a map whose value is not known.
-  static MapState UNKNOWN = MapState({}, isUnknown: true);
+  final DartType _keyType;
+
+  final DartType _valueType;
 
   /// The entries in the map.
   final Map<DartObjectImpl, DartObjectImpl> entries;
@@ -2638,9 +2628,20 @@ class MapState extends InstanceState {
   /// Whether the map contains an entry that has an unknown value.
   final bool _isUnknown;
 
-  /// Initializes a newly created state to represent a map with the given
+  /// Initializes a newly created state to represent a set with the given
   /// [entries].
-  MapState(this.entries, {bool isUnknown = false}) : _isUnknown = isUnknown;
+  MapState({
+    required DartType keyType,
+    required DartType valueType,
+    required this.entries,
+    bool isUnknown = false,
+  })  : _keyType = keyType.extensionTypeErasure,
+        _valueType = valueType.extensionTypeErasure,
+        _isUnknown = isUnknown;
+
+  /// Creates a state that represents a map whose value is not known.
+  factory MapState.unknown(DartType keyType, DartType valueType) => MapState(
+      keyType: keyType, valueType: valueType, entries: {}, isUnknown: true);
 
   @override
   int get hashCode {
@@ -2695,7 +2696,14 @@ class MapState extends InstanceState {
     if (isUnknown || rightOperand.isUnknown) {
       return BoolState.UNKNOWN_VALUE;
     }
-    return BoolState.from(this == rightOperand);
+    if (rightOperand is! MapState) {
+      return BoolState.FALSE_STATE;
+    }
+    return BoolState.from(typeSystem.normalize(_keyType) ==
+            typeSystem.normalize(rightOperand._keyType) &&
+        typeSystem.normalize(_valueType) ==
+            typeSystem.normalize(rightOperand._valueType) &&
+        this == rightOperand);
   }
 
   @override
@@ -2913,8 +2921,7 @@ class RecordState extends InstanceState {
 
 /// The state of an object representing a set.
 class SetState extends InstanceState {
-  /// A state that represents a set whose value is not known.
-  static SetState UNKNOWN = SetState({}, isUnknown: true);
+  final DartType _elementType;
 
   /// The elements of the set.
   final Set<DartObjectImpl> elements;
@@ -2924,7 +2931,16 @@ class SetState extends InstanceState {
 
   /// Initializes a newly created state to represent a set with the given
   /// [elements].
-  SetState(this.elements, {bool isUnknown = false}) : _isUnknown = isUnknown;
+  SetState({
+    required DartType elementType,
+    required this.elements,
+    bool isUnknown = false,
+  })  : _elementType = elementType.extensionTypeErasure,
+        _isUnknown = isUnknown;
+
+  /// Creates a state that represents a list whose value is not known.
+  factory SetState.unknown(DartType elementType) =>
+      SetState(elementType: elementType, elements: {}, isUnknown: true);
 
   @override
   int get hashCode {
@@ -2978,7 +2994,12 @@ class SetState extends InstanceState {
     if (isUnknown || rightOperand.isUnknown) {
       return BoolState.UNKNOWN_VALUE;
     }
-    return BoolState.from(this == rightOperand);
+    if (rightOperand is! SetState) {
+      return BoolState.FALSE_STATE;
+    }
+    return BoolState.from(typeSystem.normalize(_elementType) ==
+            typeSystem.normalize(rightOperand._elementType) &&
+        this == rightOperand);
   }
 
   @override

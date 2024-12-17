@@ -1013,13 +1013,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             : _typeProvider.dynamicType;
     var listType = _typeProvider.listType(elementType);
     var list = <DartObjectImpl>[];
-    return _buildListConstant(
-      list,
-      node.elements,
-      typeSystem,
-      listType,
-      elementType,
-    );
+    return _buildListConstant(list, node.elements, typeSystem, listType);
   }
 
   @override
@@ -1364,8 +1358,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     List<DartObjectImpl> list,
     List<CollectionElement> elements,
     TypeSystemImpl typeSystem,
-    DartType listType,
-    DartType elementType,
+    InterfaceType listType,
   ) {
     for (var element in elements) {
       switch (element) {
@@ -1388,11 +1381,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             case DartObjectImpl():
               // If the condition is unknown, we mark this list as unknown.
               if (condition.isUnknown) {
-                return DartObjectImpl.validWithUnknownValue(
-                  typeSystem,
-                  listType,
-                  listElementType: elementType,
-                );
+                var elementType = listType.typeArguments.first;
+                return DartObjectImpl(
+                    typeSystem, listType, ListState.unknown(elementType));
               }
               var conditionValue = condition.toBoolValue();
               Constant? branchResult;
@@ -1401,20 +1392,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
                     CompileTimeErrorCode.NON_BOOL_CONDITION);
               } else if (conditionValue) {
                 branchResult = _buildListConstant(
-                  list,
-                  [element.thenElement],
-                  typeSystem,
-                  listType,
-                  elementType,
-                );
+                    list, [element.thenElement], typeSystem, listType);
               } else if (element.elseElement != null) {
                 branchResult = _buildListConstant(
-                  list,
-                  [element.elseElement!],
-                  typeSystem,
-                  listType,
-                  elementType,
-                );
+                    list, [element.elseElement!], typeSystem, listType);
               }
               if (branchResult is InvalidConstant) {
                 return branchResult;
@@ -1450,25 +1431,15 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
                 continue;
               }
               var result = _buildListConstant(
-                list,
-                [element.value],
-                typeSystem,
-                listType,
-                elementType,
-              );
+                  list, [element.value], typeSystem, listType);
               return result;
           }
       }
     }
 
-    return DartObjectImpl(
-      typeSystem,
-      listType,
-      ListState(
-        elementType: elementType,
-        elements: list,
-      ),
-    );
+    var elementType = listType.typeArguments.first;
+    return DartObjectImpl(typeSystem, listType,
+        ListState(elementType: elementType, elements: list));
   }
 
   /// Builds a map constant by adding the evaluated entries of [elements] to
@@ -1478,10 +1449,11 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   /// We return an [InvalidConstant] if the evaluation of any of the elements
   /// failed.
   Constant _buildMapConstant(
-      Map<DartObjectImpl, DartObjectImpl> map,
-      List<CollectionElement> elements,
-      TypeSystemImpl typeSystem,
-      DartType mapType) {
+    Map<DartObjectImpl, DartObjectImpl> map,
+    List<CollectionElement> elements,
+    TypeSystemImpl typeSystem,
+    InterfaceType mapType,
+  ) {
     for (var element in elements) {
       switch (element) {
         case Expression():
@@ -1498,8 +1470,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             case DartObjectImpl():
               // If the condition is unknown, we mark this map as unknown.
               if (condition.isUnknown) {
-                return DartObjectImpl.validWithUnknownValue(
-                    typeSystem, mapType);
+                var keyType = mapType.typeArguments[0];
+                var valueType = mapType.typeArguments[1];
+                return DartObjectImpl(
+                    typeSystem, mapType, MapState.unknown(keyType, valueType));
               }
               Constant? branchResult;
               var conditionValue = condition.toBoolValue();
@@ -1556,7 +1530,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       }
     }
 
-    return DartObjectImpl(typeSystem, mapType, MapState(map));
+    var keyType = mapType.typeArguments[0];
+    var valueType = mapType.typeArguments[1];
+    return DartObjectImpl(typeSystem, mapType,
+        MapState(keyType: keyType, valueType: valueType, entries: map));
   }
 
   /// Builds a set constant by adding the evaluated entries of [elements] to
@@ -1566,10 +1543,11 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   /// We return an [InvalidConstant] if the evaluation of any of the elements
   /// failed.
   Constant _buildSetConstant(
-      Set<DartObjectImpl> set,
-      List<CollectionElement> elements,
-      TypeSystemImpl typeSystem,
-      DartType setType) {
+    Set<DartObjectImpl> set,
+    List<CollectionElement> elements,
+    TypeSystemImpl typeSystem,
+    InterfaceType setType,
+  ) {
     for (var element in elements) {
       switch (element) {
         case Expression():
@@ -1591,8 +1569,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             case DartObjectImpl():
               // If the condition is unknown, we mark this set as unknown.
               if (condition.isUnknown) {
-                return DartObjectImpl.validWithUnknownValue(
-                    typeSystem, setType);
+                var elementType = setType.typeArguments.first;
+                return DartObjectImpl(
+                    typeSystem, setType, SetState.unknown(elementType));
               }
               Constant? branchResult;
               var conditionValue = condition.toBoolValue();
@@ -1646,7 +1625,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       }
     }
 
-    return DartObjectImpl(typeSystem, setType, SetState(set));
+    var elementType = setType.typeArguments.first;
+    return DartObjectImpl(
+        typeSystem, setType, SetState(elementType: elementType, elements: set));
   }
 
   /// Returns the result of concatenating [astNodes].
