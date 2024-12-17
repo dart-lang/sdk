@@ -12,7 +12,6 @@ extendable:
 callable:
     # TODO(sigmund): This should be included by default
   - library: 'dart:core'
-    class: 'Object'
   - library: 'dart:core'
     class: 'pragma'
     member: '_'
