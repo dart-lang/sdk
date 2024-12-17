@@ -14,7 +14,7 @@ namespace dart {
 ThreadStackResource::~ThreadStackResource() {
 #if defined(DEBUG)
   if (thread() != nullptr) {
-    BaseIsolate::AssertCurrent(reinterpret_cast<BaseIsolate*>(isolate()));
+    ASSERT(isolate() == Isolate::Current());
   }
 #endif
 }
