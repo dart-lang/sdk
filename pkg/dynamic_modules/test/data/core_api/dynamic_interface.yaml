@@ -33,7 +33,6 @@ callable:
     member: 'get:current'
   - library: 'dart:core'
     class: 'Iterator'
-  - library: 'dart:core'
 
   # Needed to support creating list literals
   - library: 'dart:core'
