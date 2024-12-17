@@ -166,6 +166,30 @@ class C {
     ]);
   }
 
+  test_functionExpressionInvocation() async {
+    await assertErrorsInCode(r'''
+void f() {
+  (<T extends num>() {})<String>();
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 36, 6),
+    ]);
+  }
+
+  test_functionExpressionInvocation_implicitCall() async {
+    await assertErrorsInCode(r'''
+class C {
+  void call<T extends num>() {}
+}
+
+void f(C c) {
+  c<String>();
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 63, 6),
+    ]);
+  }
+
   test_functionReference() async {
     await assertErrorsInCode('''
 void foo<T extends num>(T a) {}

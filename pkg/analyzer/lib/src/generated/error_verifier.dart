@@ -1011,16 +1011,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    Expression functionExpression = node.function;
+    var functionExpression = node.function;
 
     if (functionExpression is ExtensionOverride) {
       return super.visitFunctionExpressionInvocation(node);
     }
 
-    DartType expressionType = functionExpression.typeOrThrow;
-    if (expressionType is FunctionType) {
-      _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
-    }
+    _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
     _requiredParametersVerifier.visitFunctionExpressionInvocation(node);
     _constArgumentsVerifier.visitFunctionExpressionInvocation(node);
     _checkUseVerifier.checkFunctionExpressionInvocation(node);
