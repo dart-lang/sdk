@@ -485,6 +485,17 @@ class Translator with KernelNodes {
     return function.type.outputs;
   }
 
+  void callDispatchTable(w.InstructionsBuilder b, SelectorInfo selector) {
+    // TODO(natebiggs): Handle dispatch to dynamic module overrideable members.
+    b.struct_get(topInfo.struct, FieldIndex.classId);
+    if (selector.offset! != 0) {
+      b.i32_const(selector.offset!);
+      b.i32_add();
+    }
+    b.call_indirect(selector.signature, dispatchTable.getWasmTable(b.module));
+    functions.recordSelectorUse(selector);
+  }
+
   Class classForType(DartType type) {
     return type is InterfaceType
         ? type.classNode
@@ -2000,12 +2011,7 @@ class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
         b.local_get(paramLocals[i]);
       }
       b.local_get(paramLocals[0]);
-      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-      b.i32_const(selector.offset!);
-      b.i32_add();
-      b.call_indirect(
-          signature, translator.dispatchTable.getWasmTable(b.module));
-      translator.functions.recordSelectorUse(selector);
+      translator.callDispatchTable(b, selector);
     }
 
     b.local_get(paramLocals[0]);

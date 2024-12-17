@@ -773,16 +773,7 @@ void generateNoSuchMethodCall(
 
   // Get class id for virtual call
   pushReceiver();
-  b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-
-  // Virtual call to noSuchMethod
-  int selectorOffset = noSuchMethodSelector.offset!;
-  if (selectorOffset != 0) {
-    b.i32_const(selectorOffset);
-    b.i32_add();
-  }
-
-  b.call_indirect(noSuchMethodWasmFunctionType);
+  translator.callDispatchTable(b, noSuchMethodSelector);
 }
 
 class ClassIdRange {
