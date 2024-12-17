@@ -478,12 +478,11 @@ w.FunctionType _makeFunctionType(
     final isGetter = target.isImplicitGetter;
     final isSetter = target.isImplicitSetter;
     if (isGetter || isSetter) {
-      final global = translator.globals.getGlobalForStaticField(member);
-      final globalType = global.type.type;
+      final fieldType = translator.translateTypeOfField(member);
       if (isGetter) {
-        return translator.typesBuilder.defineFunction(const [], [globalType]);
+        return translator.typesBuilder.defineFunction(const [], [fieldType]);
       }
-      return translator.typesBuilder.defineFunction([globalType], const []);
+      return translator.typesBuilder.defineFunction([fieldType], const []);
     }
   }
 
