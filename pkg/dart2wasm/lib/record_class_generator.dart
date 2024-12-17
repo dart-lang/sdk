@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
 import 'records.dart';
+import 'util.dart';
 
 /// Generates a class extending `Record` for each record shape in the
 /// [Component].
@@ -189,14 +190,6 @@ class _RecordClassGenerator {
     classes.putIfAbsent(shape, () => _generateClass(shape, id));
   }
 
-  /// Add a `@pragma('wasm:entry-point')` annotation to an annotatable.
-  T _addWasmEntryPointPragma<T extends Annotatable>(T node) => node
-    ..addAnnotation(ConstantExpression(
-        InstanceConstant(coreTypes.pragmaClass.reference, [], {
-      coreTypes.pragmaName.fieldReference: StringConstant("wasm:entry-point"),
-      coreTypes.pragmaOptions.fieldReference: NullConstant(),
-    })));
-
   Class _generateClass(RecordShape shape, int id) {
     final fields = _generateFields(shape);
 
@@ -205,19 +198,22 @@ class _RecordClassGenerator {
       className = '${className}_${shape.names.join('_')}';
     }
 
-    final cls = _addWasmEntryPointPragma(Class(
-      name: className,
-      isAbstract: false,
-      isAnonymousMixin: false,
-      supertype: Supertype(coreTypes.recordClass, []),
-      constructors: [_generateConstructor(shape, fields)],
-      procedures: [
-        _generateHashCode(fields, id),
-        _generateToString(shape, fields),
-      ],
-      fields: fields,
-      fileUri: library.fileUri,
-    ));
+    final cls = addWasmEntryPointPragma(
+        Class(
+          name: className,
+          isAbstract: false,
+          isAnonymousMixin: false,
+          supertype: Supertype(coreTypes.recordClass, []),
+          constructors: [_generateConstructor(shape, fields)],
+          procedures: [
+            _generateHashCode(fields, id),
+            _generateToString(shape, fields),
+          ],
+          fields: fields,
+          fileUri: library.fileUri,
+        ),
+        coreTypes);
+
     library.addClass(cls);
     cls.addProcedure(_generateEquals(shape, fields, cls));
     cls.addProcedure(_generateCheckRecordType(shape, fields));
@@ -230,19 +226,23 @@ class _RecordClassGenerator {
     final List<Field> fields = [];
 
     for (int i = 0; i < shape.positionals; i += 1) {
-      fields.add(_addWasmEntryPointPragma(Field.immutable(
-        Name('\$${i + 1}', library),
-        isFinal: true,
-        fileUri: library.fileUri,
-      )));
+      fields.add(addWasmEntryPointPragma(
+          Field.immutable(
+            Name('\$${i + 1}', library),
+            isFinal: true,
+            fileUri: library.fileUri,
+          ),
+          coreTypes));
     }
 
     for (String name in shape.names) {
-      fields.add(_addWasmEntryPointPragma(Field.immutable(
-        Name(name, library),
-        isFinal: true,
-        fileUri: library.fileUri,
-      )));
+      fields.add(addWasmEntryPointPragma(
+          Field.immutable(
+            Name(name, library),
+            isFinal: true,
+            fileUri: library.fileUri,
+          ),
+          coreTypes));
     }
 
     return fields;
@@ -263,11 +263,13 @@ class _RecordClassGenerator {
     final function =
         FunctionNode(null, positionalParameters: positionalParameters);
 
-    return _addWasmEntryPointPragma(Constructor(function,
-        name: Name('_', library),
-        isConst: true,
-        initializers: initializers,
-        fileUri: library.fileUri));
+    return addWasmEntryPointPragma(
+        Constructor(function,
+            name: Name('_', library),
+            isConst: true,
+            initializers: initializers,
+            fileUri: library.fileUri),
+        coreTypes);
   }
 
   /// Generate `int get hashCode` member.
@@ -295,12 +297,14 @@ class _RecordClassGenerator {
       }
     }
 
-    return _addWasmEntryPointPragma(Procedure(
-      Name('hashCode', library),
-      ProcedureKind.Getter,
-      FunctionNode(ReturnStatement(returnValue), returnType: intType),
-      fileUri: library.fileUri,
-    ));
+    return addWasmEntryPointPragma(
+        Procedure(
+          Name('hashCode', library),
+          ProcedureKind.Getter,
+          FunctionNode(ReturnStatement(returnValue), returnType: intType),
+          fileUri: library.fileUri,
+        ),
+        coreTypes);
   }
 
   /// Generate `String toString()` member.
@@ -357,12 +361,14 @@ class _RecordClassGenerator {
               ),
             ));
 
-    return _addWasmEntryPointPragma(Procedure(
-      Name('toString', library),
-      ProcedureKind.Method,
-      FunctionNode(ReturnStatement(stringExpression)),
-      fileUri: library.fileUri,
-    ));
+    return addWasmEntryPointPragma(
+        Procedure(
+          Name('toString', library),
+          ProcedureKind.Method,
+          FunctionNode(ReturnStatement(stringExpression)),
+          fileUri: library.fileUri,
+        ),
+        coreTypes);
   }
 
   /// Generate `bool operator ==` member.
@@ -410,12 +416,14 @@ class _RecordClassGenerator {
       returnType: boolType,
     );
 
-    return _addWasmEntryPointPragma(Procedure(
-      Name('==', library),
-      ProcedureKind.Operator,
-      function,
-      fileUri: library.fileUri,
-    ));
+    return addWasmEntryPointPragma(
+        Procedure(
+          Name('==', library),
+          ProcedureKind.Operator,
+          function,
+          fileUri: library.fileUri,
+        ),
+        coreTypes);
   }
 
   /// Generate `_checkRecordType` member.
@@ -485,12 +493,14 @@ class _RecordClassGenerator {
       returnType: boolType,
     );
 
-    return _addWasmEntryPointPragma(Procedure(
-      Name('_checkRecordType', library),
-      ProcedureKind.Method,
-      function,
-      fileUri: library.fileUri,
-    ));
+    return addWasmEntryPointPragma(
+        Procedure(
+          Name('_checkRecordType', library),
+          ProcedureKind.Method,
+          function,
+          fileUri: library.fileUri,
+        ),
+        coreTypes);
   }
 
   /// Generate `_Type get _recordRuntimeType` member.
@@ -547,12 +557,14 @@ class _RecordClassGenerator {
           InterfaceType(recordRuntimeTypeClass, Nullability.nonNullable),
     );
 
-    return _addWasmEntryPointPragma(Procedure(
-      Name(name, library),
-      ProcedureKind.Getter,
-      function,
-      fileUri: library.fileUri,
-    ));
+    return addWasmEntryPointPragma(
+        Procedure(
+          Name(name, library),
+          ProcedureKind.Getter,
+          function,
+          fileUri: library.fileUri,
+        ),
+        coreTypes);
   }
 
   Constant _fieldNamesConstant(RecordShape shape) {
