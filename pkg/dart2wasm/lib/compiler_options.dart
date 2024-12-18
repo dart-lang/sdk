@@ -16,6 +16,9 @@ class WasmCompilerOptions {
   String outputFile;
   String? depFile;
   String? outputJSRuntimeFile;
+  Uri? dynamicModuleMainUri;
+  Uri? dynamicInterfaceUri;
+  Uri? dynamicModuleMetadataFile;
   Map<String, String> environment = {};
   Map<fe.ExperimentalFlag, bool> feExperimentalFlags = const {};
   String? multiRootScheme;
