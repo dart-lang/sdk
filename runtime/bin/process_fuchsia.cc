@@ -511,7 +511,7 @@ class ProcessStarter {
  public:
   ProcessStarter(Namespace* namespc,
                  const char* path,
-                 char* arguments[],
+                 const char* arguments[],
                  intptr_t arguments_length,
                  const char* working_directory,
                  char* environment[],
@@ -540,7 +540,7 @@ class ProcessStarter {
     read_err_ = -1;
     write_out_ = -1;
 
-    program_arguments_ = reinterpret_cast<char**>(Dart_ScopeAllocate(
+    program_arguments_ = reinterpret_cast<const char**>(Dart_ScopeAllocate(
         (arguments_length + 2) * sizeof(*program_arguments_)));
     program_arguments_[0] = const_cast<char*>(path_);
     for (int i = 0; i < arguments_length; i++) {
@@ -795,7 +795,7 @@ class ProcessStarter {
   int read_err_;   // Pipe for stderr to child process.
   int write_out_;  // Pipe for stdin to child process.
 
-  char** program_arguments_;
+  const char** program_arguments_;
   char** program_environment_;
 
   Namespace* namespc_;
@@ -815,7 +815,7 @@ class ProcessStarter {
 
 int Process::Start(Namespace* namespc,
                    const char* path,
-                   char* arguments[],
+                   const char* arguments[],
                    intptr_t arguments_length,
                    const char* working_directory,
                    char* environment[],
@@ -836,6 +836,20 @@ int Process::Start(Namespace* namespc,
                          working_directory, environment, environment_length,
                          mode, in, out, err, id, exit_event, os_error_message);
   return starter.Start();
+}
+
+// The command line dart utility does not run on Fuchsia, this functionality
+// is not supported on that platform.
+int Process::Exec(Namespace* namespc,
+                  const char* path,
+                  const char** arguments,
+                  intptr_t arguments_length,
+                  const char* working_directory,
+                  char* errmsg,
+                  intptr_t errmsg_len) {
+  snprintf(errmsg, errmsg_len,
+           "Process::Exec is not supported on this platform");
+  return -1;
 }
 
 intptr_t Process::SetSignalHandler(intptr_t signal) {

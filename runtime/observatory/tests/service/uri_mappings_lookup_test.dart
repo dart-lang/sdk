@@ -30,7 +30,7 @@ final tests = <IsolateTest>[
     expect(uris[0], isNull);
     expect(uris[1], 'org-dartlang-sdk:///sdk/lib/io/io.dart');
     expect(uris[2], startsWith('file:///'));
-    expect(uris[2], endsWith('third_party/pkg/pool/lib/pool.dart'));
+    expect(uris[2], endsWith('pool/lib/pool.dart'));
     expect(uris[3], scriptUri);
     if (Platform.isWindows || Platform.isMacOS) {
       expect(uris[4], scriptUri);

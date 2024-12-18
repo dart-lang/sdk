@@ -2001,9 +2001,10 @@ abstract class AstCodeGenerator
   w.ValueType visitStaticSet(StaticSet node, w.ValueType expectedType) {
     bool preserved = expectedType != voidMarker;
     Member target = node.target;
-    w.ValueType paramType = target is Field
-        ? translator.globals.getGlobalForStaticField(target).type.type
-        : translator.signatureForDirectCall(target.reference).inputs.single;
+    final reference =
+        target is Field ? target.setterReference! : target.reference;
+    w.ValueType paramType =
+        translator.signatureForDirectCall(reference).inputs.single;
     translateExpression(node.value, paramType);
     if (!preserved) {
       call(node.targetReference);
@@ -2012,7 +2013,7 @@ abstract class AstCodeGenerator
     w.Local temp = addLocal(paramType);
     b.local_tee(temp);
 
-    call(node.targetReference);
+    call(reference);
     b.local_get(temp);
     return temp.type;
   }

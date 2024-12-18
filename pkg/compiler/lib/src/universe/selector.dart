@@ -43,8 +43,7 @@ class Selector {
   final int hashCode;
 
   @override
-  bool operator ==(other) =>
-      identical(this, other) || other is Selector && hashCode == other.hashCode;
+  bool operator ==(other) => identical(this, other);
 
   int get argumentCount => callStructure.argumentCount;
   int get namedArgumentCount => callStructure.namedArgumentCount;
