@@ -655,6 +655,7 @@ class _TopLevelBodyBuilderDeclarationContext
       : super._(libraryBuilder);
 
   @override
+  // Coverage-ignore(suite): Not run.
   Builder? lookupLocalMember(String name, {bool required = false}) {
     return _libraryBuilder.lookupLocalMember(name, required: required);
   }

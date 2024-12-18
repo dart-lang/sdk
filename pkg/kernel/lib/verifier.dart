@@ -428,14 +428,16 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       for (Extension extension in library.extensions) {
         for (ExtensionMemberDescriptor descriptor
             in extension.memberDescriptors) {
-          Reference memberReference = descriptor.memberReference;
-          map[memberReference] = descriptor;
-          Member member = memberReference.asMember;
-          if (!member.isExtensionMember) {
-            problem(
-                member,
-                "Member $member (${descriptor}) from $extension is not marked "
-                "as an extension member.");
+          Reference? memberReference = descriptor.memberReference;
+          if (memberReference != null) {
+            map[memberReference] = descriptor;
+            Member member = memberReference.asMember;
+            if (!member.isExtensionMember) {
+              problem(
+                  member,
+                  "Member $member (${descriptor}) from $extension is not "
+                  " marked as an extension member.");
+            }
           }
           Reference? tearOffReference = descriptor.tearOffReference;
           if (tearOffReference != null) {
@@ -447,6 +449,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
                   "Tear-off $tearOff (${descriptor}) from $extension is not "
                   "marked as an extension member.");
             }
+          }
+          if (memberReference == null && tearOffReference == null) {
+            problem(
+                extension,
+                "Both member and tear-off references are null in "
+                "the descriptor $descriptor from $extension.");
           }
         }
       }
@@ -463,14 +471,17 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           in library.extensionTypeDeclarations) {
         for (ExtensionTypeMemberDescriptor descriptor
             in extensionTypeDeclaration.memberDescriptors) {
-          Reference memberReference = descriptor.memberReference;
-          map[memberReference] = descriptor;
-          Member member = memberReference.asMember;
-          if (!member.isExtensionTypeMember) {
-            problem(
-                member,
-                "Member $member (${descriptor}) from $extensionTypeDeclaration "
-                "is not marked as an extension type member.");
+          Reference? memberReference = descriptor.memberReference;
+          if (memberReference != null) {
+            map[memberReference] = descriptor;
+            Member member = memberReference.asMember;
+            if (!member.isExtensionTypeMember) {
+              problem(
+                  member,
+                  "Member $member (${descriptor}) from "
+                  "$extensionTypeDeclaration is not marked as an extension "
+                  "type member.");
+            }
           }
           Reference? tearOffReference = descriptor.tearOffReference;
           if (tearOffReference != null) {
@@ -483,6 +494,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
                   "$extensionTypeDeclaration is not marked as an extension "
                   "type member.");
             }
+          }
+          if (memberReference == null && tearOffReference == null) {
+            problem(
+                extensionTypeDeclaration,
+                "Both member and tear-off references are null in "
+                "the descriptor $descriptor from $extensionTypeDeclaration.");
           }
         }
       }

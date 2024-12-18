@@ -199,7 +199,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
             fieldTypes[new NameKey(descriptor.name.text)] =
                 functionType.returnType;
           case ExtensionTypeMemberKind.Getter:
-            Procedure member = descriptor.memberReference.asProcedure;
+            Procedure member = descriptor.memberReference!.asProcedure;
             FunctionType functionType = member.getterType as FunctionType;
             if (extensionTypeDeclaration.typeParameters.isNotEmpty) {
               functionType = FunctionTypeInstantiator.instantiate(

@@ -222,7 +222,7 @@ class StaticInteropMockValidator {
   // setters return their return and parameter types, respectively.
   DartType _getTypeOfDescriptor(ExtensionMemberDescriptor interopDescriptor) {
     // CFE creates static procedures for each extension member.
-    var interopMember = interopDescriptor.memberReference.asProcedure;
+    var interopMember = interopDescriptor.memberReference!.asProcedure;
 
     if (interopDescriptor.isGetter) {
       return interopMember.function.returnType;
@@ -365,7 +365,7 @@ class StaticInteropMockValidator {
               _descriptorToExtensionName[descriptor] =
                   extension.isUnnamedExtension ? '<unnamed>' : extension.name;
               var name = js_interop.getJSName(
-                descriptor.memberReference.asMember,
+                descriptor.memberReference!.asMember,
               );
               if (name.isEmpty) name = descriptor.name.text;
               exportNameToDescriptors!

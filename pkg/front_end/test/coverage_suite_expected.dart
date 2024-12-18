@@ -560,12 +560,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/body_builder.dart": (
-    hitCount: 7196,
+    hitCount: 7180,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/kernel/body_builder_context.dart": (
-    hitCount: 346,
+    hitCount: 343,
     missCount: 0,
   ),
   // 100.0%.
@@ -850,7 +850,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/diet_listener.dart": (
-    hitCount: 657,
+    hitCount: 659,
     missCount: 0,
   ),
   // 100.0%.

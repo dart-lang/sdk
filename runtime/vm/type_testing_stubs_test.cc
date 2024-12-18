@@ -865,20 +865,35 @@ const char* kSubtypeRangeCheckScript =
 
       genericFun<A, B>() {}
 
+      @pragma("vm:entry-point", "call")
       createI() => I<int, String>();
+      @pragma("vm:entry-point", "call")
       createI2() => I2();
+      @pragma("vm:entry-point", "call")
       createBaseInt() => Base<int>();
+      @pragma("vm:entry-point", "call")
       createBaseNull() => Base<Null>();
+      @pragma("vm:entry-point", "call")
       createBaseNever() => Base<Never>();
+      @pragma("vm:entry-point", "call")
       createA() => A();
+      @pragma("vm:entry-point", "call")
       createA1() => A1();
+      @pragma("vm:entry-point", "call")
       createA2() => A2<int>();
+      @pragma("vm:entry-point", "call")
       createB() => B();
+      @pragma("vm:entry-point", "call")
       createB1() => B1();
+      @pragma("vm:entry-point", "call")
       createB2() => B2<int>();
+      @pragma("vm:entry-point", "call")
       createBaseIStringDouble() => Base<I<String, double>>();
+      @pragma("vm:entry-point", "call")
       createBaseA2Int() => Base<A2<int>>();
+      @pragma("vm:entry-point", "call")
       createBaseA2A1() => Base<A2<A1>>();
+      @pragma("vm:entry-point", "call")
       createBaseB2Int() => Base<B2<int>>();
 )";
 
@@ -1218,17 +1233,28 @@ const char* kRecordSubtypeRangeCheckScript =
       class D<T> {}
 
       getType<T>() => T;
+      @pragma("vm:entry-point", "call")
       getRecordType1() => getType<(int, A)>();
+      @pragma("vm:entry-point", "call")
       getRecordType2() => getType<(A, int, String)>();
+      @pragma("vm:entry-point", "call")
       getRecordType3() => getType<(int, D)>();
 
+      @pragma("vm:entry-point", "call")
       createObj1() => (1, B());
+      @pragma("vm:entry-point", "call")
       createObj2() => (1, 'bye');
+      @pragma("vm:entry-point", "call")
       createObj3() => (1, foo: B());
+      @pragma("vm:entry-point", "call")
       createObj4() => (1, B(), 2);
+      @pragma("vm:entry-point", "call")
       createObj5() => (C(), 2, 'hi');
+      @pragma("vm:entry-point", "call")
       createObj6() => (D(), 2, 'hi');
+      @pragma("vm:entry-point", "call")
       createObj7() => (3, D<int>());
+      @pragma("vm:entry-point", "call")
       createObj8() => (D<int>(), 3);
 )";
 
@@ -1280,6 +1306,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Generic_Implements_Instantiated_Interface) {
       abstract class I<T> {}
       class B<R> implements I<String> {}
 
+      @pragma("vm:entry-point", "call")
       createBInt() => B<int>();
 )";
 
@@ -1308,8 +1335,11 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
       R"(
       import "dart:async";
 
+      @pragma("vm:entry-point", "call")
       Future<int> createFutureInt() async => 3;
+      @pragma("vm:entry-point", "call")
       Future<int Function()> createFutureFunction() async => () => 3;
+      @pragma("vm:entry-point", "call")
       Future<int Function()?> createFutureNullableFunction() async =>
           (() => 3) as int Function()?;
 )";
@@ -1689,8 +1719,11 @@ ISOLATE_UNIT_TEST_CASE(TTS_Regress40964) {
           class B<T> {}
           class C<T> {}
 
+          @pragma("vm:entry-point", "call")
           createACint() => A<C<int>>();
+          @pragma("vm:entry-point", "call")
           createBCint() => B<C<int>>();
+          @pragma("vm:entry-point", "call")
           createBCnum() => B<C<num>>();
   )";
 
@@ -1726,7 +1759,9 @@ ISOLATE_UNIT_TEST_CASE(TTS_TypeParameter) {
           }
           H genericFun<H>(dynamic x) => x as H;
 
+          @pragma("vm:entry-point", "call")
           createAInt() => A<int>();
+          @pragma("vm:entry-point", "call")
           createAString() => A<String>();
   )";
 
@@ -1859,11 +1894,16 @@ ISOLATE_UNIT_TEST_CASE(TTS_Function) {
       R"(
           class A<T> {}
 
+          @pragma("vm:entry-point", "call")
           createF() => (){};
+          @pragma("vm:entry-point", "call")
           createG() => () => 3;
+          @pragma("vm:entry-point", "call")
           createH() => (int x, String y, {int z = 0}) =>  x + z;
 
+          @pragma("vm:entry-point", "call")
           createAInt() => A<int>();
+          @pragma("vm:entry-point", "call")
           createAFunction() => A<Function>();
   )";
 
@@ -1904,9 +1944,13 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial) {
       class E extends D {}
 
       F<A>() {}
+      @pragma("vm:entry-point", "call")
       createBE() => B<E>();
+      @pragma("vm:entry-point", "call")
       createBENullable() => B<E?>();
+      @pragma("vm:entry-point", "call")
       createBNull() => B<Null>();
+      @pragma("vm:entry-point", "call")
       createBNever() => B<Never>();
 )";
 
@@ -2021,6 +2065,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Incremental) {
   const char* kFirstScript =
       R"(
       class B<T> {}
+      @pragma("vm:entry-point", "call")
       createB() => B<int>();
 )";
 
@@ -2030,6 +2075,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Incremental) {
       R"(
       import ")" FIRST_PARTIAL_LIBRARY_NAME R"(";
       class B2<T> extends B<T> {}
+      @pragma("vm:entry-point", "call")
       createB2() => B2<int>();
 )";
 
@@ -2038,6 +2084,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Incremental) {
       R"(
       import ")" FIRST_PARTIAL_LIBRARY_NAME R"(";
       class B3<T> extends B<T> {}
+      @pragma("vm:entry-point", "call")
       createB3() => B3<int>();
 )";
 
@@ -2201,11 +2248,16 @@ static const char* kLoadedScript =
     R"(
           class A<T> {}
 
+          @pragma("vm:entry-point", "call")
           createAInt() => A<int>();
+          @pragma("vm:entry-point", "call")
           createAString() => A<String>();
 
+          @pragma("vm:entry-point", "call")
           (int, int) createRecordIntInt() => (1, 2);
+          @pragma("vm:entry-point", "call")
           (String, int) createRecordStringInt() => ("foo", 2);
+          @pragma("vm:entry-point", "call")
           (int, String) createRecordIntString() => (1, "bar");
   )";
 
@@ -2214,13 +2266,20 @@ static const char* kReloadedScript =
           class A<T> {}
           class A2<T> extends A<T> {}
 
+          @pragma("vm:entry-point", "call")
           createAInt() => A<int>();
+          @pragma("vm:entry-point", "call")
           createAString() => A<String>();
+          @pragma("vm:entry-point", "call")
           createA2Int() => A2<int>();
+          @pragma("vm:entry-point", "call")
           createA2String() => A2<String>();
 
+          @pragma("vm:entry-point", "call")
           (int, int) createRecordIntInt() => (1, 2);
+          @pragma("vm:entry-point", "call")
           (String, int) createRecordStringInt() => ("foo", 2);
+          @pragma("vm:entry-point", "call")
           (int, String) createRecordIntString() => (1, "bar");
   )";
 
@@ -2426,6 +2485,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Regress_CidRangeChecks) {
         final x = 1;
       }
 
+      @pragma("vm:entry-point", "call")
       createI() => I();
 )");
 
@@ -2470,10 +2530,14 @@ struct STCTestResults {
 static STCTestResults SubtypeTestCacheTest(Thread* thread,
                                            intptr_t num_classes) {
   TextBuffer buffer(MB);
-  buffer.AddString("class D<S> {}\n");
-  buffer.AddString("D<int> Function() createClosureD() => () => D<int>();\n");
+  buffer.AddString(R"(
+    class D<S> {}
+    @pragma('vm:entry-point', 'call')
+    D<int> Function() createClosureD() => () => D<int>();
+    )");
   for (intptr_t i = 0; i < num_classes; i++) {
     buffer.Printf(R"(class C%)" Pd R"(<S> extends D<S> {}
+        @pragma('vm:entry-point', 'call')
         C%)" Pd R"(<int> Function() createClosureC%)" Pd R"(() => () => C%)" Pd
                   R"(<int>();
 )",
