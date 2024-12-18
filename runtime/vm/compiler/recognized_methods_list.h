@@ -101,6 +101,10 @@ namespace dart {
     ImmutableLinkedHashBase_getIndex, 0xfe7649ae)                              \
   V(CompactHashLibrary, _HashVMImmutableBase, set:_index,                      \
     ImmutableLinkedHashBase_setIndexStoreRelease, 0xcf36944c)                  \
+  V(CompactHashLibrary, ::, get:_uninitializedIndex,                           \
+    CompactHash_uninitializedIndex, 0xa25a79e6)                                \
+  V(CompactHashLibrary, ::, get:_uninitializedData,                            \
+    CompactHash_uninitializedData, 0x06a56b3b)                                 \
   V(DeveloperLibrary, ::, get:extensionStreamHasListener,                      \
     ExtensionStreamHasListener, 0xfa975305)                                    \
   V(DeveloperLibrary, ::, debugger, Debugger, 0xf0aaff14)                      \

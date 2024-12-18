@@ -306,6 +306,7 @@ class FlowGraphSerializer : public ValueObject {
   bool can_write_refs() const { return can_write_refs_; }
 
  private:
+  void AddBaseObject(const Object& x);
   void WriteObjectImpl(const Object& x, intptr_t cid, intptr_t object_index);
   bool IsWritten(const Object& obj);
   bool HasEnclosingTypes(const Object& obj);
@@ -499,6 +500,7 @@ class FlowGraphDeserializer : public ValueObject {
   }
 
  private:
+  void AddBaseObject(const Object& x);
   ClassPtr GetClassById(classid_t id) const;
   const Object& ReadObjectImpl(intptr_t cid, intptr_t object_index);
   void SetObjectAt(intptr_t object_index, const Object& object);
