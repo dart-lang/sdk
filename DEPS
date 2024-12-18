@@ -130,7 +130,7 @@ vars = {
   #   and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
-  "dart_style_rev": "1de89eb3bd340315f9ff5f2afc319cc1d6131b8d", # disable tools/rev_sdk_deps.dart
+  "dart_style_rev": "21de99ec0ff8ace4d946a746fb427fffd6afa535", # disable tools/rev_sdk_deps.dart
   "dartdoc_rev": "c7f11603effa88ddacabfd555993f322fca8b3fe",
   "ecosystem_rev": "b4b2a438ff40cbbdf245b2854567316c1d24a394",
   "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
