@@ -92,6 +92,7 @@ import '../codes/cfe_codes.dart'
 import '../codes/cfe_codes.dart' as cfe;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../source/diet_parser.dart';
+import '../source/offset_map.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
@@ -965,7 +966,7 @@ class BodyBuilder extends StackListenerImpl
     assert(checkState(beginToken, [ValueKinds.Integer]));
   }
 
-  void finishFields() {
+  void finishFields(OffsetMap offsetMap) {
     debugEvent("finishFields");
     assert(checkState(null, [/*field count*/ ValueKinds.Integer]));
     int count = pop() as int;
@@ -976,27 +977,7 @@ class BodyBuilder extends StackListenerImpl
       ]));
       Expression? initializer = pop() as Expression?;
       Identifier identifier = pop() as Identifier;
-      String name = identifier.name;
-      Builder declaration = _context.lookupLocalMember(name, required: true)!;
-      int fileOffset = identifier.nameOffset;
-      while (declaration.next != null) {
-        // If we have duplicates, we try to find the right declaration.
-        if (declaration.fileUri == uri &&
-            declaration.fileOffset == fileOffset) {
-          break;
-        }
-        declaration = declaration.next!;
-      }
-      if (declaration.fileUri != uri || declaration.fileOffset != fileOffset) {
-        // If we don't have the right declaration, skip the initializer.
-        continue;
-      }
-      SourceFieldBuilder fieldBuilder;
-      if (declaration.isField) {
-        fieldBuilder = declaration as SourceFieldBuilder;
-      } else {
-        continue;
-      }
+      SourceFieldBuilder fieldBuilder = offsetMap.lookupField(identifier);
       if (initializer != null) {
         if (!fieldBuilder.hasBodyBeenBuilt) {
           initializer = typeInferrer

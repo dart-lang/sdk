@@ -936,6 +936,7 @@ class DietListener extends StackListenerImpl {
     // TODO(paulberry): don't re-parse the field if we've already parsed it
     // for type inference.
     _parseFields(
+        _offsetMap,
         createListener(declaration.createBodyBuilderContext(), memberScope,
             inferenceDataForTesting: declaration
                 .dataForTesting
@@ -1297,8 +1298,8 @@ class DietListener extends StackListenerImpl {
     }
   }
 
-  void _parseFields(BodyBuilder bodyBuilder, Token startToken, Token? metadata,
-      bool isTopLevel) {
+  void _parseFields(OffsetMap offsetMap, BodyBuilder bodyBuilder,
+      Token startToken, Token? metadata, bool isTopLevel) {
     Token token = startToken;
     Parser parser = new Parser(bodyBuilder,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
@@ -1309,7 +1310,7 @@ class DietListener extends StackListenerImpl {
       // TODO(danrubel): disambiguate between class/mixin/extension members
       token = parser.parseClassMember(metadata ?? token, null).next!;
     }
-    bodyBuilder.finishFields();
+    bodyBuilder.finishFields(_offsetMap);
 
     bodyBuilder.checkEmpty(token.charOffset);
   }
