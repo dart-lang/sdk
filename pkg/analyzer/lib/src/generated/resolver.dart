@@ -98,7 +98,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 bool Function(Source) inferenceLoggingPredicate = (_) => false;
 
 typedef SharedMatchContext = shared.MatchContext<AstNode, Expression,
-    DartPattern, SharedTypeView<DartType>, PromotableElement>;
+    DartPattern, SharedTypeView<DartType>, PromotableElement2>;
 
 typedef SharedPatternField
     = shared.RecordPatternField<PatternFieldImpl, DartPatternImpl>;
@@ -125,7 +125,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             AstNode,
             Statement,
             Expression,
-            PromotableElement,
+            PromotableElement2,
             DartPattern,
             void,
             TypeParameterElement,
@@ -437,7 +437,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ExecutableElement? get enclosingFunction => _enclosingFunction;
 
   @override
-  FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
+  FlowAnalysis<AstNode, Statement, Expression, PromotableElement2,
       SharedTypeView<DartType>> get flow => flowAnalysis.flow!;
 
   bool get isConstructorTearoffsEnabled =>
@@ -454,7 +454,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   shared.TypeAnalyzerOperations<
       DartType,
-      PromotableElement,
+      PromotableElement2,
       TypeParameterElement,
       InterfaceType,
       InterfaceElement> get operations => flowAnalysis.typeOperations;
@@ -658,7 +658,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   void checkReadOfNotAssignedLocalVariable(
     SimpleIdentifier node,
-    Element? element,
+    Element2? element,
   ) {
     if (flowAnalysis.flow == null) {
       return;
@@ -668,9 +668,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       return;
     }
 
-    if (element is VariableElement) {
-      var assigned =
-          flowAnalysis.isDefinitelyAssigned(node, element as PromotableElement);
+    if (element is VariableElement2) {
+      var assigned = flowAnalysis.isDefinitelyAssigned(
+          node, element as PromotableElement2);
       var unassigned = flowAnalysis.isDefinitelyUnassigned(node, element);
 
       if (element.isLate) {
@@ -896,7 +896,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void finishJoinedPatternVariable(
-    covariant JoinPatternVariableElementImpl variable, {
+    covariant JoinPatternVariableElementImpl2 variable, {
     required JoinedPatternVariableLocation location,
     required shared.JoinedPatternVariableInconsistency inconsistency,
     required bool isFinal,
@@ -914,14 +914,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             reference,
             CompileTimeErrorCode
                 .PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
-            arguments: [variable.name],
+            arguments: [variable.name3!],
           );
         } else if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.sharedCaseHasLabel) {
           errorReporter.atNode(
             reference,
             CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
-            arguments: [variable.name],
+            arguments: [variable.name3!],
           );
         } else if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.differentFinalityOrType) {
@@ -929,7 +929,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             reference,
             CompileTimeErrorCode
                 .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
-            arguments: [variable.name],
+            arguments: [variable.name3!],
           );
         }
       }
@@ -978,7 +978,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SwitchExpressionMemberInfo<AstNode, Expression, PromotableElement>
+  SwitchExpressionMemberInfo<AstNode, Expression, PromotableElement2>
       getSwitchExpressionMemberInfo(
     covariant SwitchExpressionImpl node,
     int index,
@@ -996,12 +996,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SwitchStatementMemberInfo<AstNode, Statement, Expression, PromotableElement>
+  SwitchStatementMemberInfo<AstNode, Statement, Expression, PromotableElement2>
       getSwitchStatementMemberInfo(
     covariant SwitchStatementImpl node,
     int index,
   ) {
-    CaseHeadOrDefaultInfo<AstNode, Expression, PromotableElement> ofMember(
+    CaseHeadOrDefaultInfo<AstNode, Expression, PromotableElement2> ofMember(
       SwitchMemberImpl member,
     ) {
       if (member is SwitchCaseImpl) {
@@ -1086,7 +1086,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void handleCase_afterCaseHeads(
-      AstNode node, int caseIndex, Iterable<PromotableElement> variables) {}
+      AstNode node, int caseIndex, Iterable<PromotableElement2> variables) {}
 
   @override
   void handleCaseHead(
@@ -1396,8 +1396,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required AssignedVariablePatternImpl node,
     required SharedMatchContext context,
   }) {
-    var element = node.element;
-    if (element is! PromotableElement) {
+    var element = node.element2;
+    if (element is! PromotableElement2) {
       return PatternResult(
           matchedValueType: SharedTypeView(InvalidTypeImpl.instance));
     }
@@ -1736,8 +1736,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void setVariableType(
-      PromotableElement variable, SharedTypeView<DartType> type) {
-    if (variable is LocalVariableElementImpl) {
+      PromotableElement2 variable, SharedTypeView<DartType> type) {
+    if (variable is LocalVariableElementImpl2) {
       variable.type = type.unwrapTypeView();
     } else {
       throw UnimplementedError('TODO(paulberry)');
@@ -1882,8 +1882,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var staticType = node.staticType;
     if (staticType != null && expression is SimpleIdentifier) {
       var simpleIdentifier = expression as SimpleIdentifier;
-      var element = simpleIdentifier.staticElement;
-      if (element is PromotableElement &&
+      var element = simpleIdentifier.element;
+      if (element is PromotableElement2 &&
           !expression.typeOrThrow.isDartCoreNull &&
           typeSystem.isNullable(element.type) &&
           typeSystem.isNonNullable(staticType) &&
@@ -3820,8 +3820,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         var catchClause = catchClauses[i];
         nullSafetyDeadCodeVerifier.verifyCatchClause(catchClause);
         flow.tryCatchStatement_catchBegin(
-          catchClause.exceptionParameter?.declaredElement,
-          catchClause.stackTraceParameter?.declaredElement,
+          catchClause.exceptionParameter?.declaredElement2,
+          catchClause.stackTraceParameter?.declaredElement2,
         );
         catchClause.accept(this);
         flow.tryCatchStatement_catchEnd();
@@ -3890,7 +3890,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var parent = node.parent as VariableDeclarationList;
       var declaredType = parent.type;
       var initializerStaticType = initializer.typeOrThrow;
-      flowAnalysis.flow?.initialize(element as PromotableElement,
+      flowAnalysis.flow?.initialize(node.declaredElement2 as PromotableElement2,
           SharedTypeView(initializerStaticType), initializer,
           isFinal: parent.isFinal,
           isLate: parent.isLate,
@@ -5042,7 +5042,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   void visitGuardedPattern(covariant GuardedPatternImpl node) {
     var patternVariables = node.variables.values.toList();
     for (var variable in patternVariables) {
-      _define(variable);
+      _define(variable.asElement!);
     }
 
     node.pattern.accept(this);
@@ -5264,7 +5264,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         var guardedPattern = case_.guardedPattern;
         var variables = guardedPattern.variables;
         for (var variable in variables.values) {
-          _define(variable);
+          _define(variable.asElement!);
         }
         case_.accept(this);
       });
@@ -5302,7 +5302,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         var lastMember = group.members.last;
         _withDeclaredLocals(lastMember, lastMember.statements, () {
           for (var variable in group.variables.values) {
-            _define(variable);
+            _define(variable.asElement!);
           }
           lastMember.statements.accept(this);
         });
@@ -5615,7 +5615,7 @@ class SwitchExhaustiveness {
 class _WhyNotPromotedVisitor
     implements
         NonPromotionReasonVisitor<List<DiagnosticMessage>, AstNode,
-            PromotableElement, SharedTypeView<DartType>> {
+            PromotableElement2, SharedTypeView<DartType>> {
   final Source source;
 
   final SyntacticEntity _errorEntity;
@@ -5630,7 +5630,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<DiagnosticMessage> visitDemoteViaExplicitWrite(
-      DemoteViaExplicitWrite<PromotableElement> reason) {
+      DemoteViaExplicitWrite<PromotableElement2> reason) {
     var node = reason.node as AstNode;
     if (node is ForEachPartsWithIdentifier) {
       node = node.identifier;
@@ -5638,7 +5638,7 @@ class _WhyNotPromotedVisitor
     if (_dataForTesting != null) {
       _dataForTesting.nonPromotionReasonTargets[node] = reason.shortName;
     }
-    var variableName = reason.variable.name;
+    var variableName = reason.variable.name3;
     return [_contextMessageForWrite(variableName, node, reason)];
   }
 
@@ -5765,11 +5765,11 @@ class _WhyNotPromotedVisitor
     ];
   }
 
-  DiagnosticMessageImpl _contextMessageForWrite(String variableName,
-      AstNode node, DemoteViaExplicitWrite<PromotableElement> reason) {
+  DiagnosticMessageImpl _contextMessageForWrite(String? variableName,
+      AstNode node, DemoteViaExplicitWrite<PromotableElement2> reason) {
     return DiagnosticMessageImpl(
         filePath: source.fullName,
-        message: "Variable '$variableName' could not be promoted due to an "
+        message: "Variable '${variableName!}' could not be promoted due to an "
             "assignment",
         offset: node.offset,
         length: node.length,

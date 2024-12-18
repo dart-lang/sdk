@@ -15,6 +15,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -53,7 +54,7 @@ class FlowAnalysisDataForTesting {
 
   /// For each top level or class level declaration, the assigned variables
   /// information that was computed for it.
-  final Map<AstNode, AssignedVariablesForTesting<AstNode, PromotableElement>>
+  final Map<AstNode, AssignedVariablesForTesting<AstNode, PromotableElement2>>
       assignedVariables = {};
 
   /// For each expression that led to an error because it was not promoted, a
@@ -75,7 +76,7 @@ class FlowAnalysisHelper {
   final TypeSystemOperations typeOperations;
 
   /// Precomputed sets of potentially assigned variables.
-  AssignedVariables<AstNode, PromotableElement>? assignedVariables;
+  AssignedVariables<AstNode, PromotableElement2>? assignedVariables;
 
   /// The result for post-resolution stages of analysis, for testing only.
   final FlowAnalysisDataForTesting? dataForTesting;
@@ -94,7 +95,7 @@ class FlowAnalysisHelper {
   final bool inferenceUpdate4Enabled;
 
   /// The current flow, when resolving a function body, or `null` otherwise.
-  FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
+  FlowAnalysis<AstNode, Statement, Expression, PromotableElement2,
       SharedTypeView<DartType>>? flow;
 
   FlowAnalysisHelper(bool retainDataForTesting, FeatureSet featureSet,
@@ -172,10 +173,10 @@ class FlowAnalysisHelper {
         retainDataForTesting: dataForTesting != null, visit: visit);
     if (dataForTesting != null) {
       dataForTesting!.assignedVariables[node] = assignedVariables
-          as AssignedVariablesForTesting<AstNode, PromotableElement>;
+          as AssignedVariablesForTesting<AstNode, PromotableElement2>;
     }
     flow = isNonNullableByDefault
-        ? FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
+        ? FlowAnalysis<AstNode, Statement, Expression, PromotableElement2,
             SharedTypeView<DartType>>(
             typeOperations,
             assignedVariables!,
@@ -184,7 +185,7 @@ class FlowAnalysisHelper {
             fieldPromotionEnabled: fieldPromotionEnabled,
             inferenceUpdate4Enabled: inferenceUpdate4Enabled,
           )
-        : FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
+        : FlowAnalysis<AstNode, Statement, Expression, PromotableElement2,
                 SharedTypeView<DartType>>.legacy(
             typeOperations, assignedVariables!);
   }
@@ -234,7 +235,7 @@ class FlowAnalysisHelper {
 
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        var declaredElement = parameter.declaredElement!;
+        var declaredElement = parameter.declaredFragment!.element;
         // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
         // around a failure in duplicate_definition_test.dart; fix this.
         flow!.declare(declaredElement, SharedTypeView(declaredElement.type),
@@ -262,7 +263,7 @@ class FlowAnalysisHelper {
 
   bool isDefinitelyAssigned(
     SimpleIdentifier node,
-    PromotableElement element,
+    PromotableElement2 element,
   ) {
     var isAssigned = flow!.isAssigned(element);
 
@@ -279,7 +280,7 @@ class FlowAnalysisHelper {
 
   bool isDefinitelyUnassigned(
     SimpleIdentifier node,
-    PromotableElement element,
+    PromotableElement2 element,
   ) {
     var isUnassigned = flow!.isUnassigned(element);
 
@@ -334,7 +335,7 @@ class FlowAnalysisHelper {
       var variables = node.variables;
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
-        var declaredElement = variable.declaredElement as PromotableElement;
+        var declaredElement = variable.declaredElement2 as PromotableElement2;
         flow!.declare(declaredElement, SharedTypeView(declaredElement.type),
             initialized: variable.initializer != null);
       }
@@ -342,11 +343,11 @@ class FlowAnalysisHelper {
   }
 
   /// Computes the [AssignedVariables] map for the given [node].
-  static AssignedVariables<AstNode, PromotableElement> computeAssignedVariables(
-      AstNode node, FormalParameterList? parameters,
-      {bool retainDataForTesting = false,
-      void Function(AstVisitor<Object?> visitor)? visit}) {
-    AssignedVariables<AstNode, PromotableElement> assignedVariables =
+  static AssignedVariables<AstNode, PromotableElement2>
+      computeAssignedVariables(AstNode node, FormalParameterList? parameters,
+          {bool retainDataForTesting = false,
+          void Function(AstVisitor<Object?> visitor)? visit}) {
+    AssignedVariables<AstNode, PromotableElement2> assignedVariables =
         retainDataForTesting
             ? AssignedVariablesForTesting()
             : AssignedVariables();
@@ -417,10 +418,10 @@ class FlowAnalysisHelper {
 
 class TypeSystemOperations
     with
-        TypeAnalyzerOperationsMixin<DartType, PromotableElement,
+        TypeAnalyzerOperationsMixin<DartType, PromotableElement2,
             TypeParameterElement, InterfaceType, InterfaceElement>
     implements
-        TypeAnalyzerOperations<DartType, PromotableElement,
+        TypeAnalyzerOperations<DartType, PromotableElement2,
             TypeParameterElement, InterfaceType, InterfaceElement> {
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
@@ -579,7 +580,7 @@ class TypeSystemOperations
   }
 
   @override
-  bool isFinal(PromotableElement variable) {
+  bool isFinal(PromotableElement2 variable) {
     return variable.isFinal;
   }
 
@@ -639,7 +640,7 @@ class TypeSystemOperations
   }
 
   @override
-  bool isVariableFinal(PromotableElement element) {
+  bool isVariableFinal(PromotableElement2 element) {
     return element.isFinal;
   }
 
@@ -812,7 +813,7 @@ class TypeSystemOperations
   }
 
   @override
-  SharedTypeView<DartType> variableType(PromotableElement variable) {
+  SharedTypeView<DartType> variableType(PromotableElement2 variable) {
     return SharedTypeView(variable.type);
   }
 
@@ -850,14 +851,14 @@ class TypeSystemOperations
 /// The visitor that gathers local variables that are potentially assigned
 /// in corresponding statements, such as loops, `switch` and `try`.
 class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
-  final AssignedVariables<AstNode, PromotableElement> assignedVariables;
+  final AssignedVariables<AstNode, PromotableElement2> assignedVariables;
 
   _AssignedVariablesVisitor(this.assignedVariables);
 
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
-    var element = node.element;
-    if (element is PromotableElement) {
+    var element = node.element2;
+    if (element is PromotableElement2) {
       assignedVariables.write(element);
     }
   }
@@ -869,8 +870,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     super.visitAssignmentExpression(node);
 
     if (left is SimpleIdentifier) {
-      var element = left.staticElement;
-      if (element is PromotableElement) {
+      var element = left.element;
+      if (element is PromotableElement2) {
         assignedVariables.write(element);
       }
     }
@@ -895,7 +896,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       node.stackTraceParameter,
     ]) {
       if (identifier != null) {
-        assignedVariables.declare(identifier.declaredElement!);
+        assignedVariables.declare(identifier.declaredElement2!);
       }
     }
     super.visitCatchClause(node);
@@ -977,7 +978,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     covariant PatternVariableDeclarationImpl node,
   ) {
     for (var variable in node.elements) {
-      assignedVariables.declare(variable);
+      assignedVariables.declare(variable.element);
     }
     super.visitPatternVariableDeclaration(node);
   }
@@ -988,8 +989,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     if (node.operator.type.isIncrementOperator) {
       var operand = node.operand;
       if (operand is SimpleIdentifier) {
-        var element = operand.staticElement;
-        if (element is PromotableElement) {
+        var element = operand.element;
+        if (element is PromotableElement2) {
           assignedVariables.write(element);
         }
       }
@@ -1002,8 +1003,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     if (node.operator.type.isIncrementOperator) {
       var operand = node.operand;
       if (operand is SimpleIdentifier) {
-        var element = operand.staticElement;
-        if (element is PromotableElement) {
+        var element = operand.element;
+        if (element is PromotableElement2) {
           assignedVariables.write(element);
         }
       }
@@ -1012,8 +1013,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.staticElement;
-    if (element is PromotableElement &&
+    var element = node.element;
+    if (element is PromotableElement2 &&
         node.inGetterContext() &&
         node.parent is! FormalParameter &&
         node.parent is! CatchClause &&
@@ -1086,7 +1087,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         grandParent is FieldDeclaration) {
       throw StateError('Should not visit top level declarations');
     }
-    var declaredElement = node.declaredElement as PromotableElement;
+    var declaredElement = node.declaredElement2 as PromotableElement2;
     assignedVariables.declare(declaredElement);
     if (declaredElement.isLate && node.initializer != null) {
       assignedVariables.beginNode();
@@ -1107,7 +1108,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   void _declareParameters(FormalParameterList? parameters) {
     if (parameters == null) return;
     for (var parameter in parameters.parameters) {
-      assignedVariables.declare(parameter.declaredElement!);
+      assignedVariables.declare(parameter.declaredFragment!.element);
     }
   }
 
@@ -1134,16 +1135,16 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       iterable.accept(this);
 
       if (forLoopParts is ForEachPartsWithIdentifier) {
-        var element = forLoopParts.identifier.staticElement;
-        if (element is PromotableElement) {
+        var element = forLoopParts.identifier.element;
+        if (element is PromotableElement2) {
           assignedVariables.write(element);
         }
       } else if (forLoopParts is ForEachPartsWithDeclaration) {
-        var variable = forLoopParts.loopVariable.declaredElement!;
+        var variable = forLoopParts.loopVariable.declaredElement2!;
         assignedVariables.declare(variable);
       } else if (forLoopParts is ForEachPartsWithPatternImpl) {
         for (var variable in forLoopParts.variables) {
-          assignedVariables.declare(variable);
+          assignedVariables.declare(variable.element);
         }
       } else {
         throw StateError('Unrecognized for loop parts');
@@ -1187,8 +1188,8 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
 
   @override
   DartType getType(SimpleIdentifier node, {required bool isRead}) {
-    var variable = node.staticElement as VariableElement;
-    if (variable is PromotableElement) {
+    var variable = node.element as VariableElement2;
+    if (variable is PromotableElement2) {
       var promotedType = isRead
           ? _manager.flow?.variableRead(node, variable)
           : _manager.flow?.promotedType(variable);

@@ -575,6 +575,7 @@ class MethodInvocationResolver with ScopeHelpers {
     );
 
     var element = scopeLookupResult.getter;
+    var element2 = scopeLookupResult.getter2;
     if (element != null) {
       nameNode.staticElement = element;
       if (element is MultiplyDefinedElement) {
@@ -590,7 +591,7 @@ class MethodInvocationResolver with ScopeHelpers {
         return null;
       }
       if (element is VariableElement) {
-        _resolver.checkReadOfNotAssignedLocalVariable(nameNode, element);
+        _resolver.checkReadOfNotAssignedLocalVariable(nameNode, element2);
         var targetType =
             _localVariableTypeProvider.getType(nameNode, isRead: true);
         return _rewriteAsFunctionExpressionInvocation(node, targetType);

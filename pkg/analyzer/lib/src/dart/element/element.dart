@@ -140,6 +140,12 @@ class BindPatternVariableElementImpl2 extends PatternVariableElementImpl2
   BindPatternVariableFragment get firstFragment =>
       super.firstFragment as BindPatternVariableFragment;
 
+  /// This flag is set to `true` if this variable clashes with another
+  /// pattern variable with the same name within the same pattern.
+  set isDuplicate(bool value) => _wrappedElement.isDuplicate = value;
+
+  DeclaredVariablePatternImpl get node => _wrappedElement.node;
+
   @override
   BindPatternVariableElementImpl get _wrappedElement =>
       super._wrappedElement as BindPatternVariableElementImpl;
@@ -6596,8 +6602,22 @@ class JoinPatternVariableElementImpl2 extends PatternVariableElementImpl2
   JoinPatternVariableFragment get firstFragment =>
       super.firstFragment as JoinPatternVariableFragment;
 
+  shared.JoinedPatternVariableInconsistency get inconsistency =>
+      _wrappedElement.inconsistency;
+
+  set inconsistency(shared.JoinedPatternVariableInconsistency value) =>
+      _wrappedElement.inconsistency = value;
+
   @override
   bool get isConsistent => _wrappedElement.isConsistent;
+
+  set isFinal(bool value) => _wrappedElement.isFinal = value;
+
+  /// The identifiers that reference this element.
+  List<SimpleIdentifier> get references => _wrappedElement.references;
+
+  /// The variables that join into this variable.
+  List<PatternVariableElementImpl> get variables => _wrappedElement.variables;
 
   @override
   List<PatternVariableElement2> get variables2 =>
@@ -7597,6 +7617,8 @@ class LocalVariableElementImpl2 extends PromotableElementImpl2
 
   @override
   DartType get type => _wrappedElement.type;
+
+  set type(DartType type) => _wrappedElement.type = type;
 
   LocalVariableElementImpl get wrappedElement {
     return _wrappedElement;
@@ -8964,7 +8986,11 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
   NonParameterVariableElementImpl(String super.name, super.offset);
 
   @override
-  Element get enclosingElement3 => super.enclosingElement3!;
+  Element get enclosingElement3 =>
+      // TODO(paulberry): `!` is not appropriate here because variable elements
+      // aren't guaranteed to have enclosing elements. See
+      // https://github.com/dart-lang/sdk/issues/59750.
+      super.enclosingElement3!;
 
   bool get hasInitializer {
     return hasModifier(Modifier.HAS_INITIALIZER);
@@ -9344,6 +9370,11 @@ class PatternVariableElementImpl2 extends LocalVariableElementImpl2
   @override
   PatternVariableFragment get firstFragment =>
       super.firstFragment as PatternVariableFragment;
+
+  /// This flag is set to `true` while we are visiting the [WhenClause] of
+  /// the [GuardedPattern] that declares this variable.
+  set isVisitingWhenClause(bool value) =>
+      _wrappedElement.isVisitingWhenClause = value;
 
   @override
   JoinPatternVariableElement2? get join2 =>

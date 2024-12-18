@@ -85,7 +85,6 @@ lib/src/dart/resolver/property_element_resolver.dart
 lib/src/dart/resolver/resolution_result.dart
 lib/src/dart/resolver/resolution_visitor.dart
 lib/src/dart/resolver/scope.dart
-lib/src/dart/resolver/shared_type_analyzer.dart
 lib/src/dart/resolver/simple_identifier_resolver.dart
 lib/src/dart/resolver/this_lookup.dart
 lib/src/dart/resolver/type_property_resolver.dart

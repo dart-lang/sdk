@@ -6,7 +6,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -21,7 +21,7 @@ typedef SharedPatternField
 class SharedTypeAnalyzerErrors
     implements
         shared.TypeAnalyzerErrors<AstNode, Statement, Expression,
-            PromotableElement, SharedTypeView<DartType>, DartPattern, void> {
+            PromotableElement2, SharedTypeView<DartType>, DartPattern, void> {
   final ErrorReporter _errorReporter;
 
   SharedTypeAnalyzerErrors(this._errorReporter);
@@ -46,7 +46,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   void duplicateAssignmentPatternVariable({
-    required covariant PromotableElement variable,
+    required covariant PromotableElement2 variable,
     required covariant AssignedVariablePatternImpl original,
     required covariant AssignedVariablePatternImpl duplicate,
   }) {
@@ -107,13 +107,13 @@ class SharedTypeAnalyzerErrors
 
   @override
   void inconsistentJoinedPatternVariable({
-    required PromotableElement variable,
-    required PromotableElement component,
+    required PromotableElement2 variable,
+    required PromotableElement2 component,
   }) {
-    _errorReporter.atElement(
+    _errorReporter.atElement2(
       component,
       CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR,
-      arguments: [variable.name],
+      arguments: [variable.name3!],
     );
   }
 

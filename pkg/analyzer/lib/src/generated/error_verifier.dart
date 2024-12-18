@@ -6627,7 +6627,7 @@ class HiddenElements {
     this.outerElements,
     GuardedPatternImpl guardedPattern,
   ) {
-    _elements.addAll(guardedPattern.variables.values);
+    _elements.addAll(guardedPattern.variables.values.map((e) => e.asElement!));
   }
 
   /// Return `true` if this set of elements contains the given [element].
