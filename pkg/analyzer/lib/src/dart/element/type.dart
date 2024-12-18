@@ -166,6 +166,22 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         alias: alias);
   }
 
+  factory FunctionTypeImpl.v2({
+    required List<TypeParameterElement2> typeParameters,
+    required List<FormalParameterElement> formalParameters,
+    required DartType returnType,
+    required NullabilitySuffix nullabilitySuffix,
+    InstantiatedTypeAliasElement? alias,
+  }) {
+    return FunctionTypeImpl(
+      typeFormals: typeParameters.map((e) => e.asElement).toList(),
+      parameters: formalParameters.map((e) => e.asElement).toList(),
+      returnType: returnType,
+      nullabilitySuffix: nullabilitySuffix,
+      alias: alias,
+    );
+  }
+
   FunctionTypeImpl._({
     required this.typeFormals,
     required this.parameters,

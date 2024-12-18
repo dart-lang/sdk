@@ -12438,10 +12438,7 @@ final class NamedExpressionImpl extends ExpressionImpl
   @experimental
   @override
   FormalParameterElement? get element2 {
-    if (element case FormalParameterFragment fragment) {
-      return fragment.element;
-    }
-    return null;
+    return element?.asElement2;
   }
 
   @override
