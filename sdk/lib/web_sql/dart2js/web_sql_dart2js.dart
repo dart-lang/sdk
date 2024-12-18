@@ -255,7 +255,7 @@ class SqlResultSetRowList extends JavaScriptObject
   // -- start List<Map> mixins.
   // Map is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
