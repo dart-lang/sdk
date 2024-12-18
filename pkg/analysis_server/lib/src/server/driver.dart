@@ -141,7 +141,7 @@ class Driver implements ServerStarter {
   DetachableFileSystemManager? detachableFileSystemManager;
 
   /// The instrumentation service that is to be used by the analysis server.
-  InstrumentationService? instrumentationService;
+  late final InstrumentationService _instrumentationService;
 
   /// Use the given command-line [arguments] to start this server.
   ///
@@ -270,10 +270,7 @@ class Driver implements ServerStarter {
     var logFilePath =
         results.option(PROTOCOL_TRAFFIC_LOG) ??
         results.option(PROTOCOL_TRAFFIC_LOG_ALIAS);
-    var allInstrumentationServices =
-        this.instrumentationService == null
-            ? <InstrumentationService>[]
-            : [this.instrumentationService!];
+    var allInstrumentationServices = <InstrumentationService>[];
     if (logFilePath != null) {
       _rollLogFiles(logFilePath, 5);
       allInstrumentationServices.add(
@@ -289,21 +286,20 @@ class Driver implements ServerStarter {
     allInstrumentationServices.add(
       CrashReportingInstrumentation(crashReportSender),
     );
-    var instrumentationService = MulticastInstrumentationService(
+    _instrumentationService = MulticastInstrumentationService(
       allInstrumentationServices,
     );
-    this.instrumentationService = instrumentationService;
 
-    instrumentationService.logVersion(
+    _instrumentationService.logVersion(
       results.option(TRAIN_USING) != null
           ? 'training-0'
-          : _readUuid(instrumentationService),
+          : _readUuid(_instrumentationService),
       analysisServerOptions.clientId ?? '',
       analysisServerOptions.clientVersion ?? '',
       PROTOCOL_VERSION,
       defaultSdk.languageVersion.toString(),
     );
-    AnalysisEngine.instance.instrumentationService = instrumentationService;
+    AnalysisEngine.instance.instrumentationService = _instrumentationService;
 
     int? diagnosticServerPort;
     var portValue =
@@ -335,7 +331,7 @@ class Driver implements ServerStarter {
         analysisServerOptions,
         dartSdkManager,
         analyticsManager,
-        instrumentationService,
+        _instrumentationService,
         diagnosticServerPort,
         errorNotifier,
       );
@@ -347,7 +343,7 @@ class Driver implements ServerStarter {
         dartSdkManager,
         analyticsManager,
         crashReportingAttachmentsBuilder,
-        instrumentationService,
+        _instrumentationService,
         RequestStatisticsHelper(),
         diagnosticServerPort,
         errorNotifier,
