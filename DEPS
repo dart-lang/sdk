@@ -143,7 +143,7 @@ vars = {
   "markdown_rev": "4d5dbc659955973902f2585c54e94d453532db70",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
-  "native_rev": "da5dc148a0430b6c4224b59178db5385d79b2298", # disable tools/rev_sdk_deps.dart
+  "native_rev": "4d81ce6c5e17164ef63d8a3f5144e5def0702207", # disable tools/rev_sdk_deps.dart
   "package_config_rev": "76f2f6c245451da1fa24d7bbb00251b909e729a5",
   "pool_rev": "f85209d83cb0aa3c5612ed80de32df51ba580abd",
   "protobuf_rev": "da7279c56734cffed4deb1e3a6f93bdcefccf6b8",

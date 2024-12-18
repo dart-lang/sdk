@@ -146,6 +146,7 @@ class BuildCommand extends DartdevCommand {
     final buildResult = await nativeAssetsBuildRunner.build(
       configCreator: () => BuildConfigBuilder()
         ..setupCodeConfig(
+          targetOS: target.os,
           linkModePreference: LinkModePreference.dynamic,
           targetArchitecture: target.architecture,
           targetMacOSVersion: targetMacOSVersion,
@@ -156,8 +157,7 @@ class BuildCommand extends DartdevCommand {
         ...await validateCodeAssetBuildConfig(config),
       ],
       workingDirectory: workingDirectory,
-      targetOS: target.os,
-      buildMode: BuildMode.release,
+
       linkingEnabled: true,
       buildAssetTypes: [
         CodeAsset.type,
@@ -204,6 +204,7 @@ class BuildCommand extends DartdevCommand {
       final linkResult = await nativeAssetsBuildRunner.link(
         configCreator: () => LinkConfigBuilder()
           ..setupCodeConfig(
+            targetOS: target.os,
             targetArchitecture: target.architecture,
             linkModePreference: LinkModePreference.dynamic,
             targetMacOSVersion: targetMacOSVersion,
@@ -216,8 +217,8 @@ class BuildCommand extends DartdevCommand {
         resourceIdentifiers:
             recordUseEnabled ? Uri.file(recordedUsagesPath!) : null,
         workingDirectory: workingDirectory,
-        targetOS: target.os,
-        buildMode: BuildMode.release,
+        
+        
         buildResult: buildResult,
         buildAssetTypes: [
           CodeAsset.type,
