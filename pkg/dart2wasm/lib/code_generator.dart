@@ -2335,8 +2335,7 @@ abstract class AstCodeGenerator
     ClassInfo info = translator.closureInfo;
     translator.functions.recordClassAllocation(info.classId);
 
-    b.i32_const(info.classId);
-    b.i32_const(initialIdentityHash);
+    b.pushObjectHeaderFields(info);
     pushContext();
     translator.globals.readGlobal(b, closure.vtable);
     types.makeType(this, functionType);
@@ -2941,8 +2940,7 @@ abstract class AstCodeGenerator
         translator.getRecordClassInfo(node.recordType);
     translator.functions.recordClassAllocation(recordClassInfo.classId);
 
-    b.i32_const(recordClassInfo.classId);
-    b.i32_const(initialIdentityHash);
+    b.pushObjectHeaderFields(recordClassInfo);
     for (Expression positional in node.positional) {
       translateExpression(positional, translator.topInfo.nullableType);
     }
@@ -3256,8 +3254,7 @@ class TearOffCodeGenerator extends AstCodeGenerator {
     ClassInfo info = translator.closureInfo;
     translator.functions.recordClassAllocation(info.classId);
 
-    b.i32_const(info.classId);
-    b.i32_const(initialIdentityHash);
+    b.pushObjectHeaderFields(info);
     b.local_get(paramLocals[0]); // `this` as context
     translator.globals.readGlobal(b, closure.vtable);
     types.makeType(this, functionType);
@@ -3731,8 +3728,7 @@ class ConstructorAllocatorCodeGenerator extends AstCodeGenerator {
     }
 
     // Set field values
-    b.i32_const(info.classId);
-    b.i32_const(initialIdentityHash);
+    b.pushObjectHeaderFields(info);
 
     for (w.Local local in orderedFieldLocals.reversed) {
       b.local_get(local);
@@ -4594,6 +4590,13 @@ extension MacroAssembler on w.InstructionsBuilder {
     }
 
     return target.signature.outputs;
+  }
+
+  /// Pushes fields common to all Dart objects (class id, id hash).
+  void pushObjectHeaderFields(ClassInfo classInfo) {
+    // TODO(natebiggs): Adjust class ID for dynamic module if appropriate.
+    i32_const(classInfo.classId);
+    i32_const(initialIdentityHash);
   }
 }
 

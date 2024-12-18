@@ -12,6 +12,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
 import 'closures.dart';
+import 'code_generator.dart';
 import 'param_info.dart';
 import 'translator.dart';
 import 'types.dart';
@@ -532,8 +533,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     if (translator.options.jsCompatibility) {
       ClassInfo info = translator.classInfo[translator.jsStringClass]!;
       return createConstant(constant, info.nonNullableType, (b) {
-        b.i32_const(info.classId);
-        b.i32_const(initialIdentityHash);
+        b.pushObjectHeaderFields(info);
         translator.globals.readGlobal(b,
             translator.getInternalizedStringGlobal(b.module, constant.value));
         b.struct_new(info.struct);
@@ -551,8 +551,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           (info.struct.fields[FieldIndex.stringArray].type as w.RefType)
               .heapType as w.ArrayType;
 
-      b.i32_const(info.classId);
-      b.i32_const(initialIdentityHash);
+      b.pushObjectHeaderFields(info);
       if (lazy) {
         // Initialize string contents from passive data segment.
         w.DataSegmentBuilder segment;
@@ -631,8 +630,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     }
 
     return createConstant(constant, type, lazy: lazy, (b) {
-      b.i32_const(info.classId);
-      b.i32_const(initialIdentityHash);
+      b.pushObjectHeaderFields(info);
       for (int i = baseFieldCount; i < fieldCount; i++) {
         Constant subConstant = subConstants[i]!;
         constants.instantiateConstant(
@@ -740,8 +738,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       w.ArrayType arrayType = translator.listArrayType;
       w.ValueType elementType = arrayType.elementType.type.unpacked;
       int length = constant.entries.length;
-      b.i32_const(info.classId);
-      b.i32_const(initialIdentityHash);
+      b.pushObjectHeaderFields(info);
       constants.instantiateConstant(
           b, typeArgConstant, constants.typeInfo.nullableType);
       b.i64_const(length);
@@ -865,8 +862,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       ClassInfo info = translator.closureInfo;
       translator.functions.recordClassAllocation(info.classId);
 
-      b.i32_const(info.classId);
-      b.i32_const(initialIdentityHash);
+      b.pushObjectHeaderFields(info);
       translator.globals.readGlobal(b, dummyStructGlobal); // Dummy context
       translator.globals.readGlobal(b, closure.vtable);
       constants.instantiateConstant(
@@ -1026,8 +1022,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         b.struct_new(instantiationOfTearOffRepresentation.vtableStruct);
       }
 
-      b.i32_const(info.classId);
-      b.i32_const(initialIdentityHash);
+      b.pushObjectHeaderFields(info);
 
       // Context is not used by the vtable functions, but it's needed for
       // closure equality checks to work (`_Closure._equals`).
@@ -1059,8 +1054,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     StringConstant nameConstant = StringConstant(constant.name);
     bool lazy = ensureConstant(nameConstant)?.isLazy ?? false;
     return createConstant(constant, info.nonNullableType, lazy: lazy, (b) {
-      b.i32_const(info.classId);
-      b.i32_const(initialIdentityHash);
+      b.pushObjectHeaderFields(info);
       constants.instantiateConstant(b, nameConstant, stringType);
       b.struct_new(info.struct);
     });
@@ -1082,8 +1076,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
     return createConstant(constant, recordClassInfo.nonNullableType, lazy: lazy,
         (b) {
-      b.i32_const(recordClassInfo.classId);
-      b.i32_const(initialIdentityHash);
+      b.pushObjectHeaderFields(recordClassInfo);
       for (Constant argument in arguments) {
         constants.instantiateConstant(
             b, argument, translator.topInfo.nullableType);

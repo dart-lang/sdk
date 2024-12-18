@@ -12,6 +12,7 @@ import 'package:vm/transformations/type_flow/utils.dart' show UnionFind;
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
+import 'code_generator.dart';
 import 'param_info.dart';
 import 'translator.dart';
 
@@ -722,8 +723,7 @@ class ClosureLayouter extends RecursiveVisitor {
     w.Local typeParam(int i) => instantiationFunction.locals[1 + i];
 
     // Header for the closure struct
-    b.i32_const(translator.closureInfo.classId);
-    b.i32_const(initialIdentityHash);
+    b.pushObjectHeaderFields(translator.closureInfo);
 
     // Context for the instantiated closure, containing the original closure and
     // the type arguments
