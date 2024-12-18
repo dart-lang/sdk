@@ -1193,14 +1193,17 @@ CompileType ParameterInstr::ComputeType() const {
   // always be wrongly eliminated.
   // However there are parameters that are known to match their declared type:
   // for example receiver.
+  if (block_->IsCatchBlockEntry()) {
+    // Parameter of a catch block may correspond to a late local variable.
+    return CompileType::DynamicOrSentinel();
+  }
+
   GraphEntryInstr* graph_entry = block_->AsGraphEntry();
   if (graph_entry == nullptr) {
     if (auto function_entry = block_->AsFunctionEntry()) {
       graph_entry = function_entry->graph_entry();
     } else if (auto osr_entry = block_->AsOsrEntry()) {
       graph_entry = osr_entry->graph_entry();
-    } else if (auto catch_entry = block_->AsCatchBlockEntry()) {
-      graph_entry = catch_entry->graph_entry();
     } else {
       UNREACHABLE();
     }
@@ -1330,11 +1333,6 @@ CompileType ParameterInstr::ComputeType() const {
       TraceStrongModeType(this, inferred_type);
       return *inferred_type;
     }
-  }
-
-  if (block_->IsCatchBlockEntry()) {
-    // Parameter of a catch block may correspond to a late local variable.
-    return CompileType::DynamicOrSentinel();
   }
 
   return CompileType::Dynamic();

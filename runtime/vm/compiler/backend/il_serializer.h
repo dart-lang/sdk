@@ -49,6 +49,7 @@ class ReadStream;
 class RecordShape;
 class TargetEntryInstr;
 class TokenPosition;
+class TryEntryInstr;
 
 namespace compiler {
 struct TableSelector;
@@ -130,7 +131,8 @@ class NativeCallingConvention;
   V(IndirectEntryInstr*)                                                       \
   V(JoinEntryInstr*)                                                           \
   V(OsrEntryInstr*)                                                            \
-  V(TargetEntryInstr*)
+  V(TargetEntryInstr*)                                                         \
+  V(TryEntryInstr*)
 
 // Serializes flow graph, including constants and references
 // to objects of program structure.

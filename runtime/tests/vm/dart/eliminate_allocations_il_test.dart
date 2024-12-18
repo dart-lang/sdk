@@ -45,14 +45,15 @@ void matchIL$bar(FlowGraph graph) {
     match.block('Function', [
       match.Goto('B3', skipUntilMatched: false),
     ]),
-    'B3' <<
+    'B3' << match.tryBlock(tryBody: 'B4', catches: 'B7'),
+    'B4' <<
         match.block('Join', [
-          match.Goto('B5', skipUntilMatched: false),
+          match.Goto('B6', skipUntilMatched: false),
         ]),
-    'B5' <<
+    'B6' <<
         match.block('Join', [
           match.DartReturn('c_42'),
         ]),
-    'B6' << match.block('CatchBlock'),
+    'B7' << match.block('CatchBlock'),
   ]);
 }

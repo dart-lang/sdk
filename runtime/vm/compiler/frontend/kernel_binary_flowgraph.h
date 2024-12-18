@@ -245,11 +245,13 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BranchIfNull(TargetEntryInstr** then_entry,
                         TargetEntryInstr** otherwise_entry,
                         bool negate = false);
+
   Fragment CatchBlockEntry(const Array& handler_types,
                            intptr_t handler_index,
                            bool needs_stacktrace,
                            bool is_synthesized);
-  Fragment TryCatch(int try_handler_index);
+  Fragment TryEntry(int try_handler_index);
+
   Fragment Drop();
   Fragment DropArguments(intptr_t argument_count, intptr_t type_args_count);
 

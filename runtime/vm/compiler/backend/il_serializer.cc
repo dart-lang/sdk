@@ -157,7 +157,8 @@ BlockEntryInstr* FlowGraphDeserializer::ReadRefTrait<BlockEntryInstr*>::ReadRef(
   V(IndirectEntry, IndirectEntryInstr)                                         \
   V(JoinEntry, JoinEntryInstr)                                                 \
   V(OsrEntry, OsrEntryInstr)                                                   \
-  V(TargetEntry, TargetEntryInstr)
+  V(TargetEntry, TargetEntryInstr)                                             \
+  V(TryEntry, TryEntryInstr)
 
 #define SERIALIZABLE_AS_BLOCK_ENTRY(name, type)                                \
   template <>                                                                  \
@@ -318,6 +319,18 @@ CallTargets::CallTargets(FlowGraphDeserializer* d) : Cids(d->zone()) {
   }
 }
 
+void TryEntryInstr::WriteExtra(FlowGraphSerializer* s) {
+  JoinEntryInstr::WriteExtra(s);
+  s->WriteRef<JoinEntryInstr*>(try_body_);
+  s->WriteRef<CatchBlockEntryInstr*>(catch_target_);
+}
+
+void TryEntryInstr::ReadExtra(FlowGraphDeserializer* d) {
+  JoinEntryInstr::ReadExtra(d);
+  try_body_ = d->ReadRef<JoinEntryInstr*>();
+  catch_target_ = d->ReadRef<CatchBlockEntryInstr*>();
+}
+
 void CatchBlockEntryInstr::WriteTo(FlowGraphSerializer* s) {
   BlockEntryWithInitialDefs::WriteTo(s);
   s->Write<const Array&>(catch_handler_types_);
@@ -328,7 +341,6 @@ void CatchBlockEntryInstr::WriteTo(FlowGraphSerializer* s) {
 
 CatchBlockEntryInstr::CatchBlockEntryInstr(FlowGraphDeserializer* d)
     : BlockEntryWithInitialDefs(d),
-      graph_entry_(d->graph_entry()),
       predecessor_(nullptr),
       catch_handler_types_(d->Read<const Array&>()),
       catch_try_index_(d->Read<intptr_t>()),
@@ -693,22 +705,6 @@ void FlowGraphSerializer::WriteFlowGraph(
     WriteRef<BlockEntryInstr*>(optimized_block_order[i]);
   }
 
-  const auto* captured_parameters = flow_graph.captured_parameters();
-  if (captured_parameters->IsEmpty()) {
-    Write<bool>(false);
-  } else {
-    Write<bool>(true);
-    // Captured parameters are rare so write their bit numbers
-    // instead of writing BitVector.
-    GrowableArray<intptr_t> indices(Z, 0);
-    for (intptr_t i = 0, n = captured_parameters->length(); i < n; ++i) {
-      if (captured_parameters->Contains(i)) {
-        indices.Add(i);
-      }
-    }
-    Write<GrowableArray<intptr_t>>(indices);
-  }
-
   Write<intptr_t>(flow_graph.inlining_id());
 
   const InliningInfo& inlining_info = flow_graph.inlining_info();
@@ -774,13 +770,6 @@ FlowGraph* FlowGraphDeserializer::ReadFlowGraph() {
       for (intptr_t i = 0; i < num_blocks; ++i) {
         codegen_block_order->Add(ReadRef<BlockEntryInstr*>());
       }
-    }
-  }
-
-  if (Read<bool>()) {
-    GrowableArray<intptr_t> indices = Read<GrowableArray<intptr_t>>();
-    for (intptr_t i : indices) {
-      flow_graph->captured_parameters()->Add(i);
     }
   }
 

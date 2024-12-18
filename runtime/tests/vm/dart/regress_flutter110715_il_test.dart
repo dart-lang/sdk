@@ -44,24 +44,24 @@ void main() async {
 void matchIL$bug1(FlowGraph graph) {
   graph.dump();
   graph.match([
-    match.block('Graph'),
+    match.block('Graph', ['cnull' << match.Constant(value: null)]),
     match.block('Function'),
+    match.block('Try'),
     match.block('Join'),
     match.block('CatchBlock', [
-      'v0' << match.Parameter(),
-      match.Branch(match.StrictCompare('v0', match.any, kind: '==='),
-          ifTrue: 'B6', ifFalse: 'B7'),
+      match.Branch(match.StrictCompare(match.any, 'cnull', kind: '==='),
+          ifTrue: 'B7', ifFalse: 'B8'),
     ]),
-    'B6' <<
-        match.block('Target', [
-          match.Goto('B4'),
-        ]),
     'B7' <<
         match.block('Target', [
-          match.ClosureCall(),
-          match.Goto('B4'),
+          match.Goto('B5'),
         ]),
-    'B4' <<
+    'B8' <<
+        match.block('Target', [
+          match.ClosureCall(),
+          match.Goto('B5'),
+        ]),
+    'B5' <<
         match.block('Join', [
           match.DartReturn(),
         ]),
@@ -71,24 +71,24 @@ void matchIL$bug1(FlowGraph graph) {
 void matchIL$bug2(FlowGraph graph) {
   graph.dump();
   graph.match([
-    match.block('Graph'),
+    match.block('Graph', ['cnull' << match.Constant(value: null)]),
     match.block('Function'),
+    match.tryBlock(),
     match.block('Join'),
     match.block('CatchBlock', [
-      'v0' << match.Parameter(),
-      match.Branch(match.StrictCompare('v0', match.any, kind: '==='),
-          ifTrue: 'B6', ifFalse: 'B7'),
+      match.Branch(match.StrictCompare(match.any, 'cnull', kind: '==='),
+          ifTrue: 'B7', ifFalse: 'B8'),
     ]),
-    'B6' <<
-        match.block('Target', [
-          match.Goto('B4'),
-        ]),
     'B7' <<
         match.block('Target', [
-          match.ClosureCall(),
-          match.Goto('B4'),
+          match.Goto('B5'),
         ]),
-    'B4' <<
+    'B8' <<
+        match.block('Target', [
+          match.ClosureCall(),
+          match.Goto('B5'),
+        ]),
+    'B5' <<
         match.block('Join', [
           match.DartReturn(),
         ]),

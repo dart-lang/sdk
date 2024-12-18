@@ -179,25 +179,26 @@ void matchIL$testUnboxedRecordInTryCatch(FlowGraph graph) {
     match.block('Graph'),
     match.block('Function', [
       match.CheckStackOverflow(),
-      match.Goto('B1'),
+      match.Goto('B3'),
     ]),
-    'B1' <<
+    'B3' << match.tryBlock(tryBody: 'B4', catches: 'B6'),
+    'B4' <<
         match.block('Join', [
           'v1' << match.StaticCall(),
           'v1_a' << match.ExtractNthOutput('v1', index: 0),
           match.MoveArgument('v1_a'),
           match.StaticCall(),
-          match.Goto('B3'),
+          match.Goto('B5'),
         ]),
-    'B2' <<
+    'B6' <<
         match.block('CatchBlock', [
           'e' << match.Parameter(index: 2),
           'st' << match.Parameter(index: 3),
           match.MoveArgument('e'),
           match.StaticCall(),
-          match.Goto('B3'),
+          match.Goto('B5'),
         ]),
-    'B3' <<
+    'B5' <<
         match.block('Join', [
           match.DartReturn(),
         ]),

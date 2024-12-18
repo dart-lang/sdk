@@ -240,6 +240,17 @@ class FlowGraph : public ZoneAllocated {
   const GrowableArray<BlockEntryInstr*>& optimized_block_order() const {
     return optimized_block_order_;
   }
+  const GrowableArray<TryEntryInstr*>& try_entries() const {
+    return try_entries_;
+  }
+  TryEntryInstr* GetTryEntryByTryIndex(intptr_t try_index) const {
+    ASSERT(try_index < try_entries_.length());
+    return try_entries_[try_index];
+  }
+  CatchBlockEntryInstr* GetCatchBlockByTryIndex(intptr_t try_index) const {
+    return GetTryEntryByTryIndex(try_index)->catch_target();
+  }
+  intptr_t max_try_index() const { return max_try_index_; }
 
   // In AOT these are guaranteed to be topologically sorted, but not in JIT.
   GrowableArray<BlockEntryInstr*>* CodegenBlockOrder();
@@ -682,6 +693,10 @@ class FlowGraph : public ZoneAllocated {
                   const GrowableArray<BitVector*>& assigned_vars,
                   const GrowableArray<BitVector*>& dom_frontier,
                   GrowableArray<PhiInstr*>* live_phis);
+  void AddCatchEntryParameter(intptr_t var_index,
+                              CatchBlockEntryInstr* catch_entry);
+  void InsertCatchBlockParams(const GrowableArray<BlockEntryInstr*>& preorder,
+                              const GrowableArray<BitVector*>& assigned_vars);
 
   void RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis);
 
@@ -753,6 +768,9 @@ class FlowGraph : public ZoneAllocated {
   GrowableArray<BlockEntryInstr*> postorder_;
   GrowableArray<BlockEntryInstr*> reverse_postorder_;
   GrowableArray<BlockEntryInstr*> optimized_block_order_;
+  // Try entries indexed by try-index
+  GrowableArray<TryEntryInstr*> try_entries_;
+  intptr_t max_try_index_ = -1;
   ConstantInstr* constant_null_;
   ConstantInstr* constant_dead_;
 
@@ -822,13 +840,13 @@ class LivenessAnalysis : public ValueObject {
   // Update live-out set for the given block: live-out should contain
   // all values that are live-in for block's successors.
   // Returns true if live-out set was changed.
-  bool UpdateLiveOut(const BlockEntryInstr& instr);
+  virtual bool UpdateLiveOut(const BlockEntryInstr& instr);
 
   // Update live-in set for the given block: live-in should contain
   // all values that are live-out from the block and are not defined
   // by this block.
   // Returns true if live-in set was changed.
-  bool UpdateLiveIn(const BlockEntryInstr& instr);
+  virtual bool UpdateLiveIn(const BlockEntryInstr& instr);
 
   // Perform fix-point iteration updating live-out and live-in sets
   // for blocks until they stop changing.

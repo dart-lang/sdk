@@ -220,7 +220,7 @@ class Place : public ValueObject {
 
   // Construct a place from instruction if instruction accesses any place.
   // Otherwise constructs kNone place.
-  Place(Instruction* instr, bool* is_load, bool* is_store)
+  Place(FlowGraph* graph, Instruction* instr, bool* is_load, bool* is_store)
       : flags_(0), instance_(nullptr), raw_selector_(0), id_(0) {
     switch (instr->tag()) {
       case Instruction::kLoadField: {
@@ -288,6 +288,26 @@ class Place : public ValueObject {
         instance_ = store_indexed->array()->definition()->OriginalDefinition();
         SetIndex(store_indexed->index()->definition()->OriginalDefinition(),
                  store_indexed->index_scale(), store_indexed->class_id());
+        *is_store = true;
+        break;
+      }
+
+      case Instruction::kThrow: {
+        // [stackTrace] property of thrown [Error] object is populated by this
+        // instruction, so pretend that `throw e` is a
+        // `StoreField(e, Error.stackTrace, ...)`
+        // TODO(aam): Investigate whether it is better to treat throw/rethrow
+        // similar to dart call with `HasUnknownSideEffects`.
+        ThrowInstr* throw_instr = instr->AsThrow();
+        set_representation(kTagged);
+        instance_ =
+            throw_instr->exception()->definition()->OriginalDefinition();
+        set_kind(kInstanceField);
+        instance_field_ = &Slot::Get(
+            Field::ZoneHandle(graph->zone(), CompilerState::Current()
+                                                 .ErrorStackTraceField()
+                                                 .CloneFromOriginal()),
+            &graph->parsed_function());
         *is_store = true;
         break;
       }
@@ -738,11 +758,13 @@ class PhiPlaceMoves : public ZoneAllocated {
 class AliasedSet : public ZoneAllocated {
  public:
   AliasedSet(Zone* zone,
+             FlowGraph* graph,
              PointerSet<Place>* places_map,
              ZoneGrowableArray<Place*>* places,
              PhiPlaceMoves* phi_moves,
              bool print_traces)
       : zone_(zone),
+        graph_(graph),
         print_traces_(print_traces),
         places_map_(places_map),
         places_(*places),
@@ -1093,7 +1115,7 @@ class AliasedSet : public ZoneAllocated {
         return true;
       }
       bool is_load = false, is_store;
-      Place load_place(instr, &is_load, &is_store);
+      Place load_place(graph_, instr, &is_load, &is_store);
 
       if (is_load && load_place.Equals(*place)) {
         return true;
@@ -1114,6 +1136,15 @@ class AliasedSet : public ZoneAllocated {
   // Check if any use of the definition can create an alias.
   // Can add more objects into aliasing_worklist_.
   bool AnyUseCreatesAlias(Definition* defn) {
+    for (Value* env_use = defn->env_use_list(); env_use != nullptr;
+         env_use = env_use->next_use()) {
+      Instruction* instr = env_use->instruction();
+      if (instr->MayThrow() && instr->GetBlock()->InsideTryBlock()) {
+        // TODO(aam): This can be improved given that the alias is only
+        // created if matching catch block has a corresponding parameter.
+        return true;
+      }
+    }
     for (Value* use = defn->input_use_list(); use != nullptr;
          use = use->next_use()) {
       Instruction* instr = use->instruction();
@@ -1147,7 +1178,7 @@ class AliasedSet : public ZoneAllocated {
           if (Place::IsAllocation(instance) &&
               !instance->Identity().IsAliased()) {
             bool is_load, is_store;
-            Place store_place(instr, &is_load, &is_store);
+            Place store_place(graph_, instr, &is_load, &is_store);
 
             if (!HasLoadsFromPlace(instance, &store_place)) {
               // No loads found that match this store. If it is yet unknown if
@@ -1246,6 +1277,7 @@ class AliasedSet : public ZoneAllocated {
   }
 
   Zone* zone_;
+  FlowGraph* graph_;
 
   const bool print_traces_;
 
@@ -1387,7 +1419,7 @@ static AliasedSet* NumberPlaces(FlowGraph* graph,
     for (ForwardInstructionIterator instr_it(block); !instr_it.Done();
          instr_it.Advance()) {
       Instruction* instr = instr_it.Current();
-      Place place(instr, &has_loads, &has_stores);
+      Place place(graph, instr, &has_loads, &has_stores);
       if (place.kind() == Place::kNone) {
         continue;
       }
@@ -1420,7 +1452,7 @@ static AliasedSet* NumberPlaces(FlowGraph* graph,
 
   // Build aliasing sets mapping aliases to loads.
   return new (zone)
-      AliasedSet(zone, map, places, phi_moves, graph->should_print());
+      AliasedSet(zone, graph, map, places, phi_moves, graph->should_print());
 }
 
 // Load instructions handled by load elimination.
@@ -1583,6 +1615,13 @@ void LICM::Optimize() {
     for (BitVector::Iterator loop_it(loop->blocks()); !loop_it.Done();
          loop_it.Advance()) {
       BlockEntryInstr* block = flow_graph()->preorder()[loop_it.Current()];
+
+      if (block->IsCatchBlockEntry()) {
+        // Don't hoist out of catch block because transitions from try
+        // block to catch block are implicit and we might be hoisting
+        // load around and over the "store followed by throw in the try".
+        continue;
+      }
 
       // Preserve the "visible" effect flag as long as the preorder traversal
       // sees always-taken blocks. This way, we can only hoist invariant
@@ -1914,7 +1953,7 @@ class LoadOptimizer : public ValueObject {
         Instruction* instr = instr_it.Current();
 
         bool is_load = false, is_store = false;
-        Place place(instr, &is_load, &is_store);
+        Place place(graph_, instr, &is_load, &is_store);
 
         if (is_store && !IsSentinelStore(instr)) {
           gen->Add(GetPlaceId(instr));
@@ -2108,10 +2147,11 @@ class LoadOptimizer : public ValueObject {
         Instruction* instr = instr_it.Current();
 
         bool is_load = false, is_store = false;
-        Place place(instr, &is_load, &is_store);
+        Place place(graph_, instr, &is_load, &is_store);
 
         BitVector* killed = nullptr;
-        if (is_store) {
+        // Throw that stores into e.stackTrace is not considered here.
+        if (is_store && !instr->IsThrow()) {
           const intptr_t alias_id =
               aliased_set_->LookupAliasId(place.ToAlias());
           if (alias_id != AliasedSet::kNoAlias) {
@@ -2368,6 +2408,30 @@ class LoadOptimizer : public ValueObject {
     out->AddAll(forwarded_loads);
   }
 
+  // Aggregate kill sets for all blocks sharing same try index.
+  void ComputeKillSetsForTryBodies(
+      GrowableArray<BitVector*>& try_bodies_kills) {
+    for (intptr_t i = 0; i < graph_->try_entries().length(); i++) {
+      try_bodies_kills.Add(nullptr);
+    }
+    for (BlockIterator block_it = graph_->reverse_postorder_iterator();
+         !block_it.Done(); block_it.Advance()) {
+      BlockEntryInstr* block = block_it.Current();
+      if (block->try_index() == kInvalidTryIndex) {
+        continue;
+      }
+      BitVector* kill = kill_[block->preorder_number()];
+      BitVector* existing = try_bodies_kills[block->try_index()];
+      if (existing == nullptr) {
+        BitVector* copy = new BitVector(Z, kill->length());
+        copy->CopyFrom(kill);
+        try_bodies_kills[block->try_index()] = copy;
+      } else {
+        existing->AddAll(kill);
+      }
+    }
+  }
+
   // Compute OUT sets by propagating them iteratively until fix point
   // is reached.
   void ComputeOutSets() {
@@ -2375,6 +2439,9 @@ class LoadOptimizer : public ValueObject {
     BitVector* forwarded_loads =
         new (Z) BitVector(Z, aliased_set_->max_place_id());
     BitVector* temp_out = new (Z) BitVector(Z, aliased_set_->max_place_id());
+
+    GrowableArray<BitVector*> try_bodies_kills(graph_->try_entries().length());
+    ComputeKillSetsForTryBodies(try_bodies_kills);
 
     bool changed = true;
     while (changed) {
@@ -2412,6 +2479,13 @@ class LoadOptimizer : public ValueObject {
               pred_out = temp_out;
             }
             temp->Intersect(pred_out);
+          }
+          if (auto catch_entry = block->AsCatchBlockEntry()) {
+            // Everything that is getting killed in corresponding try-block
+            // should be removed from catch-block_in because we assume the
+            // execution can get to catch-block at any point of the try-block.
+            intptr_t catch_index = catch_entry->catch_try_index();
+            temp->RemoveAll(try_bodies_kills[catch_index]);
           }
         }
 
@@ -2679,7 +2753,7 @@ class LoadOptimizer : public ValueObject {
         ASSERT(replacement != nullptr);
 
         // Sets of outgoing values are not linked into use lists so
-        // they might contain values that were replace and removed
+        // they might contain values that were replaced and removed
         // from the graph by this iteration.
         // To prevent using them we additionally mark definitions themselves
         // as replaced and store a pointer to the replacement.
@@ -3079,6 +3153,10 @@ class StoreOptimizer : public LivenessAnalysis {
   }
 
   bool CanEliminateStore(Instruction* instr) {
+    if (instr->IsThrow()) {
+      // Throw stores into Error.stackTrace field
+      return false;
+    }
     if (CompilerState::Current().is_aot()) {
       // Tracking initializing stores is important for proper shared boxes
       // initialization, which doesn't happen in AOT and for
@@ -3165,14 +3243,14 @@ class StoreOptimizer : public LivenessAnalysis {
 
         bool is_load = false;
         bool is_store = false;
-        Place place(instr, &is_load, &is_store);
+        Place place(graph_, instr, &is_load, &is_store);
         if (place.IsImmutableField()) {
           // Loads/stores of final fields do not participate.
           continue;
         }
 
         // Handle stores.
-        if (is_store) {
+        if (is_store && !instr->IsThrow()) {
           if (kill->Contains(GetPlaceId(instr))) {
             if (!live_in->Contains(GetPlaceId(instr)) &&
                 CanEliminateStore(instr)) {
@@ -3278,7 +3356,7 @@ class StoreOptimizer : public LivenessAnalysis {
         Instruction* instr = (*exposed_stores)[i];
         bool is_load = false;
         bool is_store = false;
-        Place place(instr, &is_load, &is_store);
+        Place place(graph_, instr, &is_load, &is_store);
         ASSERT(!is_load && is_store);
         if (place.IsImmutableField()) {
           // Final field do not participate in dead store elimination.
@@ -4088,13 +4166,6 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
 //
 // This analysis is similar to dead/redundant phi elimination because
 // Parameter instructions serve as "implicit" phis.
-//
-// Caveat: when analyzing which Parameter-s are redundant we limit ourselves to
-// constant values because CatchBlockEntry-s are hanging out directly from
-// GraphEntry and thus they are only dominated by constants from GraphEntry -
-// thus we can't replace Parameter with arbitrary Definition which is not a
-// Constant even if we know that this Parameter is redundant and would always
-// evaluate to that Definition.
 class TryCatchAnalyzer : public ValueObject {
  public:
   explicit TryCatchAnalyzer(FlowGraph* flow_graph, bool is_aot)
@@ -4147,10 +4218,10 @@ class TryCatchAnalyzer : public ValueObject {
       const GrowableArray<Definition*>& idefs =
           *catch_entry->initial_definitions();
       for (auto idef : idefs) {
-        if (idef->IsParameter()) {
-          SetParameterId(idef, parameter_info_.length());
-          parameter_info_.Add(new ParameterInfo(idef->AsParameter()));
-        }
+        ParameterInstr* param = idef->AsParameter();
+        ASSERT(param != nullptr);
+        SetParameterId(param, parameter_info_.length());
+        parameter_info_.Add(new ParameterInfo(param));
       }
 
       catch_by_index_.EnsureLength(catch_entry->catch_try_index() + 1, nullptr);
@@ -4179,23 +4250,23 @@ class TryCatchAnalyzer : public ValueObject {
         Environment* env = current->env()->Outermost();
         ASSERT(env != nullptr);
 
-        for (intptr_t env_idx = 0; env_idx < idefs.length(); ++env_idx) {
-          if (ParameterInstr* param = idefs[env_idx]->AsParameter()) {
-            Definition* defn = env->ValueAt(env_idx)->definition();
+        for (intptr_t i = 0; i < idefs.length(); ++i) {
+          ParameterInstr* param = idefs[i]->AsParameter();
+          ASSERT(param != nullptr);
+          Definition* defn = env->ValueAt(param->env_index())->definition();
 
-            // Add defn as an incoming value to the parameter if it is not
-            // already present in the list.
-            bool found = false;
-            for (auto other_defn :
-                 parameter_info_[GetParameterId(param)]->incoming) {
-              if (other_defn == defn) {
-                found = true;
-                break;
-              }
+          // Add defn as an incoming value to the parameter if it is not
+          // already present in the list.
+          bool found = false;
+          for (auto other_defn :
+               parameter_info_[GetParameterId(param)]->incoming) {
+            if (other_defn == defn) {
+              found = true;
+              break;
             }
-            if (!found) {
-              parameter_info_[GetParameterId(param)]->incoming.Add(defn);
-            }
+          }
+          if (!found) {
+            parameter_info_[GetParameterId(param)]->incoming.Add(defn);
           }
         }
       }
@@ -4290,12 +4361,12 @@ class TryCatchAnalyzer : public ValueObject {
         Environment* env = current->env()->Outermost();
         RELEASE_ASSERT(env != nullptr);
 
-        for (intptr_t env_idx = 0; env_idx < idefs.length(); ++env_idx) {
-          if (ParameterInstr* param = idefs[env_idx]->AsParameter()) {
-            if (!parameter_info_[GetParameterId(param)]->alive) {
-              env->ValueAt(env_idx)->BindToEnvironment(
-                  flow_graph_->constant_null());
-            }
+        for (intptr_t i = 0; i < idefs.length(); ++i) {
+          ParameterInstr* param = idefs[i]->AsParameter();
+          ASSERT(param != nullptr);
+          if (!parameter_info_[GetParameterId(param)]->alive) {
+            env->ValueAt(param->env_index())
+                ->BindToEnvironment(flow_graph_->constant_null());
           }
         }
       }
@@ -4361,29 +4432,44 @@ void TryCatchAnalyzer::Optimize() {
     OptimizeDeadParameters();
   }
 
-  // For every catch-block: Iterate over all call instructions inside the
-  // corresponding try-block and figure out for each environment value if it
-  // is the same constant at all calls. If yes, replace the initial definition
-  // at the catch-entry with this constant.
-  const GrowableArray<CatchBlockEntryInstr*>& catch_entries =
-      flow_graph_->graph_entry()->catch_entries();
-
-  for (auto catch_entry : catch_entries) {
-    // Initialize cdefs with the original initial definitions (ParameterInstr).
+  // If catch-block parameter always have the same value, no need to pass
+  // it as a parameter. Instead replace that parameter with the value.
+  // Only caveat is that the value should dominate the try-entry block - it
+  // should exist before we enter try block, and therefor before we hit
+  // first "MayThrow" instruction.
+  //
+  // Catch-block parameter values come from "MayThrow"-instructions in
+  // the try-blocks with corresponding try-index.
+  //
+  for (auto try_entry : flow_graph_->try_entries()) {
+    if (try_entry == nullptr) {
+      // There might be gaps in try-indexes
+      continue;
+    }
+    auto catch_entry = try_entry->catch_target();
+    // Initialize env_cdefs with the original initial definitions.
     // The following representation is used:
     // ParameterInstr => unknown
-    // ConstantInstr => known constant
-    // nullptr => non-constant
-    GrowableArray<Definition*>* idefs = catch_entry->initial_definitions();
-    GrowableArray<Definition*> cdefs(idefs->length());
-    cdefs.AddArray(*idefs);
+    // Definition => Definition that is so far been the only
+    //               one dominating def
+    // nullptr => indication of mulitple Definitions
+    GrowableArray<Definition*> env_idefs;
+    for (intptr_t i = catch_entry->initial_definitions()->length() - 1; i >= 0;
+         i--) {
+      Definition* def = (*catch_entry->initial_definitions())[i];
+      ParameterInstr* param = def->AsParameter();
+      ASSERT(param != nullptr);
+      env_idefs.EnsureLength(param->env_index() + 1, nullptr);
+      env_idefs[param->env_index()] = def;
+    }
+    GrowableArray<Definition*> env_cdefs(env_idefs.length());
+    env_cdefs.AddArray(env_idefs);
 
-    // exception_var and stacktrace_var are never constant.  In asynchronous or
-    // generator functions they may be context-allocated in which case they are
-    // not tracked in the environment anyway.
-
-    cdefs[flow_graph_->EnvIndex(catch_entry->raw_exception_var())] = nullptr;
-    cdefs[flow_graph_->EnvIndex(catch_entry->raw_stacktrace_var())] = nullptr;
+    // exception_var and stacktrace_var are always set inside catch block.
+    env_cdefs[flow_graph_->EnvIndex(catch_entry->raw_exception_var())] =
+        nullptr;
+    env_cdefs[flow_graph_->EnvIndex(catch_entry->raw_stacktrace_var())] =
+        nullptr;
 
     for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
          !block_it.Done(); block_it.Advance()) {
@@ -4395,34 +4481,50 @@ void TryCatchAnalyzer::Optimize() {
           if (current->MayThrow()) {
             Environment* env = current->env()->Outermost();
             ASSERT(env != nullptr);
-            for (intptr_t env_idx = 0; env_idx < cdefs.length(); ++env_idx) {
-              if (cdefs[env_idx] != nullptr && !cdefs[env_idx]->IsConstant() &&
-                  env->ValueAt(env_idx)->BindsToConstant()) {
-                // If the recorded definition is not a constant, record this
-                // definition as the current constant definition.
-                cdefs[env_idx] = env->ValueAt(env_idx)->definition();
+            for (intptr_t env_idx = 0; env_idx < env_cdefs.length();
+                 ++env_idx) {
+              if (env_cdefs[env_idx] == nullptr) {
+                // It is already known that this var has multiple definitions.
+                continue;
               }
-              if (cdefs[env_idx] != env->ValueAt(env_idx)->definition()) {
-                // Non-constant definitions are reset to nullptr.
-                cdefs[env_idx] = nullptr;
+              Definition* existing_def = env_cdefs[env_idx];
+              Definition* candidate_def = env->ValueAt(env_idx)->definition();
+              if (existing_def == env_idefs[env_idx]) {
+                // First definition.
+                env_cdefs[env_idx] = candidate_def;
+              } else {
+                // We have encountered some definition already.
+                if (candidate_def != existing_def) {
+                  // Get rid of it if we see something different.
+                  env_cdefs[env_idx] = nullptr;
+                }
               }
             }
           }
         }
       }
     }
-    for (intptr_t j = 0; j < idefs->length(); ++j) {
-      if (cdefs[j] != nullptr && cdefs[j]->IsConstant()) {
-        Definition* old = (*idefs)[j];
-        ConstantInstr* orig = cdefs[j]->AsConstant();
-        ConstantInstr* copy =
-            new (flow_graph_->zone()) ConstantInstr(orig->value());
-        flow_graph_->AllocateSSAIndex(copy);
-        old->ReplaceUsesWith(copy);
-        copy->set_previous(old->previous());  // partial link
-        (*idefs)[j] = copy;
+    GrowableArray<Definition*> updated_params;
+    ASSERT(env_cdefs.length() == env_idefs.length());
+    for (intptr_t i = 0; i < env_cdefs.length(); ++i) {
+      Definition* new_def = env_cdefs[i];
+      // The new definition must dominate the try entry to be considered
+      // as an acceptable replacement.
+      if (new_def != nullptr && !new_def->GetBlock()->Dominates(try_entry)) {
+        new_def = nullptr;
+      }
+      Definition* old_def = env_idefs[i];
+      if (new_def != nullptr && new_def != old_def) {
+        ASSERT(old_def->IsParameter());
+        old_def->ReplaceUsesWith(new_def);
+      } else {
+        if (old_def != nullptr) {
+          updated_params.Add(old_def);
+        }
       }
     }
+    catch_entry->initial_definitions()->Clear();
+    catch_entry->initial_definitions()->AddArray(updated_params);
   }
 }
 

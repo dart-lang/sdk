@@ -405,6 +405,7 @@ struct InstrAttrs {
 #define FOR_EACH_LEAF_INSTRUCTION(M)                                           \
   M(GraphEntry, kNoGC)                                                         \
   M(TargetEntry, kNoGC)                                                        \
+  M(TryEntry, kNoGC)                                                           \
   M(NativeEntry, kNoGC)                                                        \
   M(OsrEntry, kNoGC)                                                           \
   M(IndirectEntry, kNoGC)                                                      \
@@ -1104,7 +1105,7 @@ class Instruction : public ZoneAllocated {
     next->set_previous(this);
   }
 
-  // Removed this instruction from the graph, after use lists have been
+  // Remove this instruction from the graph, after use lists have been
   // computed.  If the instruction is a definition with uses, those uses are
   // unaffected (so the instruction can be reinserted, e.g., hoisting).
   Instruction* RemoveFromGraph(bool return_previous = true);
@@ -1398,9 +1399,8 @@ class Instruction : public ZoneAllocated {
   friend class ConditionInstr;
   friend class Scheduler;
   friend class BlockEntryInstr;
-  friend class CatchBlockEntryInstr;  // deopt_id_
-  friend class DebugStepCheckInstr;   // deopt_id_
-  friend class StrictCompareInstr;    // deopt_id_
+  friend class DebugStepCheckInstr;  // deopt_id_
+  friend class StrictCompareInstr;   // deopt_id_
 
   // Fetch deopt id without checking if this computation can deoptimize.
   intptr_t GetDeoptId() const { return deopt_id_; }
@@ -1639,6 +1639,33 @@ class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(ParallelMoveInstr);
 };
 
+class OsrEntryRelinkingInfo : public ZoneAllocated {
+ public:
+  OsrEntryRelinkingInfo(GraphEntryInstr* graph_entry,
+                        Instruction* instr,
+                        Instruction* parent,
+                        const GrowableArray<TryEntryInstr*>& try_entries)
+      : graph_entry_(graph_entry), instr_(instr), parent_(parent) {
+    for (intptr_t i = 0; i < try_entries.length(); i++) {
+      try_entries_.Add(try_entries[i]);
+    }
+  }
+
+  GraphEntryInstr* graph_entry() { return graph_entry_; }
+  Instruction* instr() { return instr_; }
+  Instruction* parent() { return parent_; }
+  intptr_t try_entries_length() { return try_entries_.length(); }
+  TryEntryInstr* try_entries_at(intptr_t i) { return try_entries_[i]; }
+
+ private:
+  GraphEntryInstr* graph_entry_;
+  Instruction* instr_;
+  Instruction* parent_;
+  GrowableArray<TryEntryInstr*> try_entries_;
+
+  DISALLOW_COPY_AND_ASSIGN(OsrEntryRelinkingInfo);
+};
+
 // Basic block entries are administrative nodes.  There is a distinguished
 // graph entry with no predecessor.  Joins are the only nodes with multiple
 // predecessors.  Targets are all other basic block entries.  The types
@@ -1787,11 +1814,12 @@ class BlockEntryInstr : public TemplateInstruction<0, NoThrow> {
         stack_depth_(stack_depth),
         dominated_blocks_(1) {}
 
-  // Perform a depth first search to find OSR entry and
-  // link it to the given graph entry.
-  bool FindOsrEntryAndRelink(GraphEntryInstr* graph_entry,
-                             Instruction* parent,
-                             BitVector* block_marks);
+  // Populates [try_indices] as it recursively look for osr entry.
+  OsrEntryRelinkingInfo* FindOsrEntryRecursive(
+      GraphEntryInstr* graph_entry,
+      Instruction* parent,
+      BitVector& block_marks,
+      GrowableArray<TryEntryInstr*>& try_indices);
 
  private:
   virtual void ClearPredecessors() = 0;
@@ -1971,7 +1999,9 @@ class GraphEntryInstr : public BlockEntryWithInitialDefs {
 
   ConstantInstr* constant_null();
 
-  void RelinkToOsrEntry(Zone* zone, intptr_t max_block_id);
+  // Perform a depth first search to find OSR entry.
+  OsrEntryRelinkingInfo* FindOsrEntry(Zone* zone, intptr_t max_block_id);
+
   bool IsCompiledForOsr() const;
   intptr_t osr_id() const { return osr_id_; }
 
@@ -2321,6 +2351,65 @@ class IndirectEntryInstr : public JoinEntryInstr {
 #undef FIELD_LIST
 };
 
+// Instruction that marks beginning of the try-catch section.
+//
+// In OSR graph it can move upwards towards OSR entry away fromthe [try_body],
+// [catch_target], and [try_body] might be entered without going through
+// its [TryEntry].
+//
+// This instruction is the only instruction in the block, so it serves both as
+// an entry(so it can be jumped to) and the last instruction(so two successors
+// it has are processed by various graph traversals).
+class TryEntryInstr : public JoinEntryInstr {
+ public:
+  TryEntryInstr(intptr_t block_id,
+                intptr_t try_index,
+                intptr_t deopt_id,
+                intptr_t stack_depth)
+      : JoinEntryInstr(block_id, try_index, deopt_id, stack_depth),
+        try_body_(nullptr),
+        catch_target_(nullptr) {}
+
+  DECLARE_INSTRUCTION(TryEntry)
+
+  virtual intptr_t SuccessorCount() const { return 2; }
+  virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
+
+  PRINT_TO_SUPPORT
+  DECLARE_EMPTY_SERIALIZATION(TryEntryInstr, JoinEntryInstr)
+  DECLARE_EXTRA_SERIALIZATION
+
+  JoinEntryInstr* try_body() const { return try_body_; }
+  void set_try_body(JoinEntryInstr* try_body) { try_body_ = try_body; }
+
+  CatchBlockEntryInstr* catch_target() const { return catch_target_; }
+  void set_catch_target(CatchBlockEntryInstr* catch_target);
+
+ private:
+  // during OSR [try_body_] can be jump'ed to directly, while its try_entry
+  // moves up towards OSR entry.
+  JoinEntryInstr* try_body_;
+  CatchBlockEntryInstr* catch_target_;
+
+  DISALLOW_COPY_AND_ASSIGN(TryEntryInstr);
+};
+
+// Catch block associated with try-block represented by TryEntryInstr.
+//
+// Parameter instructions added to initial definitions associated
+// with this block are used to represent the state flowing on the
+// implicit exceptional edge. Runtime system will populate locations
+// corresponding to these parameters when preparing to enter the
+// catch. See [FlowGraph::AddCatchEntryParameter] and
+// [FlowGraphCompiler::RecordCatchEntryMoves].
+//
+// When computing the SSA form we will only insert Parameter
+// instructions corresponding to the variables which potentially
+// change their value inside blocks covered by this catch.
+//
+// Fundamentally these Parameter instructions serve the same
+// role for implicit exceptional edges as Phi instructions serve
+// for explicit edges which meet at Joins.
 class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
  public:
   CatchBlockEntryInstr(bool is_generated,
@@ -2331,15 +2420,12 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
                        intptr_t catch_try_index,
                        bool needs_stacktrace,
                        intptr_t deopt_id,
+                       intptr_t stack_depth,
                        const LocalVariable* exception_var,
                        const LocalVariable* stacktrace_var,
                        const LocalVariable* raw_exception_var,
                        const LocalVariable* raw_stacktrace_var)
-      : BlockEntryWithInitialDefs(block_id,
-                                  try_index,
-                                  deopt_id,
-                                  /*stack_depth=*/0),
-        graph_entry_(graph_entry),
+      : BlockEntryWithInitialDefs(block_id, try_index, deopt_id, stack_depth),
         predecessor_(nullptr),
         catch_handler_types_(Array::ZoneHandle(handler_types.ptr())),
         catch_try_index_(catch_try_index),
@@ -2359,8 +2445,6 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
     ASSERT((index == 0) && (predecessor_ != nullptr));
     return predecessor_;
   }
-
-  GraphEntryInstr* graph_entry() const { return graph_entry_; }
 
   const LocalVariable* exception_var() const { return exception_var_; }
   const LocalVariable* stacktrace_var() const { return stacktrace_var_; }
@@ -2385,6 +2469,7 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
 
  private:
   friend class BlockEntryInstr;  // Access to predecessor_ when inlining.
+  friend class TryEntryInstr;    // Access to AddPredecessor
 
   virtual void ClearPredecessors() { predecessor_ = nullptr; }
   virtual void AddPredecessor(BlockEntryInstr* predecessor) {
@@ -2392,7 +2477,6 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
     predecessor_ = predecessor;
   }
 
-  GraphEntryInstr* graph_entry_;
   BlockEntryInstr* predecessor_;
   const Array& catch_handler_types_;
   const intptr_t catch_try_index_;
@@ -2935,6 +3019,7 @@ class ParameterInstr : public TemplateDefinition<0, NoThrow> {
   intptr_t param_index() const { return param_index_; }
 
   const Location& location() const { return location_; }
+  void set_location(Location location) { location_ = location; }
 
   // Get the block entry for that instruction.
   virtual BlockEntryInstr* GetBlock() { return block_; }
