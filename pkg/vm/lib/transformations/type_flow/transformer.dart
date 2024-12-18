@@ -998,6 +998,7 @@ class TreeShaker {
 
   void addUsedExtension(Extension node) {
     if (_usedExtensions.add(node)) {
+      _usedLibraries.add(node.enclosingLibrary);
       node.annotations = const <Expression>[];
       _pass1.transformTypeParameterList(node.typeParameters, node);
       node.onType.accept(typeVisitor);
@@ -1006,6 +1007,7 @@ class TreeShaker {
 
   void addUsedExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     if (_usedExtensionTypeDeclarations.add(node)) {
+      _usedLibraries.add(node.enclosingLibrary);
       node.annotations = const <Expression>[];
       _pass1.transformTypeParameterList(node.typeParameters, node);
       node.declaredRepresentationType.accept(typeVisitor);
