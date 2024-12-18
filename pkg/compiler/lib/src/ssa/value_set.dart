@@ -169,6 +169,5 @@ class ValueSetNode {
   ValueSetNode(this.value, this.hash, this.next);
 
   @override
-  bool operator ==(other) =>
-      identical(this, other) || other is ValueSetNode && hash == other.hash;
+  bool operator ==(other) => identical(this, other);
 }

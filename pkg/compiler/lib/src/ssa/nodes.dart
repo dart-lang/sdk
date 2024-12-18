@@ -826,8 +826,7 @@ class HBasicBlock extends HInstructionList {
   int get hashCode => id;
 
   @override
-  bool operator ==(other) =>
-      identical(this, other) || other is HBasicBlock && id == other.id;
+  bool operator ==(other) => identical(this, other);
 
   bool get isNew => _status == _BasicBlockStatus.new_;
   bool get isOpen => _status == _BasicBlockStatus.open;
