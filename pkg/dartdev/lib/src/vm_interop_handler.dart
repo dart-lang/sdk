@@ -18,6 +18,9 @@ abstract class VmInteropHandler {
   ///
   /// If [markMainIsolateAsSystemIsolate] is given and set to true, the spawned
   /// isolate will run with `--mark-main-isolate-as-system-isolate` enabled.
+  ///
+  /// If [isAOT] is given and set to true, the script is executed by
+  /// execing the dartaotruntime.
   static void run(
     String script,
     List<String> args, {
@@ -27,11 +30,12 @@ abstract class VmInteropHandler {
     //
     // See https://github.com/dart-lang/sdk/issues/53576
     bool markMainIsolateAsSystemIsolate = false,
+    bool isAOT = false,
   }) {
     final port = _port;
     if (port == null) return;
     final message = <dynamic>[
-      _kResultRun,
+      isAOT ? _kResultRunAOT : _kResultRunJIT,
       script,
       packageConfigOverride,
       markMainIsolateAsSystemIsolate,
@@ -51,8 +55,9 @@ abstract class VmInteropHandler {
   }
 
   // Note: keep in sync with runtime/bin/dartdev_isolate.h
-  static const int _kResultRun = 1;
-  static const int _kResultExit = 2;
+  static const int _kResultRunJIT = 1;
+  static const int _kResultRunAOT = 2;
+  static const int _kResultExit = 3;
 
   static SendPort? _port;
 }

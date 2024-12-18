@@ -838,6 +838,19 @@ int Process::Start(Namespace* namespc,
   return starter.Start();
 }
 
+// The command line dart utility does not run on Fuchsia, this functionality
+// is not supported on that platform.
+int Process::Exec(Namespace* namespc,
+                  const char* path,
+                  const char** arguments,
+                  const char* working_directory,
+                  char* errmsg,
+                  intptr_t errmsg_len) {
+  snprintf(errmsg, errmsg_len,
+           "Process::Exec is not supported on this platform");
+  return -1;
+}
+
 intptr_t Process::SetSignalHandler(intptr_t signal) {
   errno = ENOSYS;
   return -1;
