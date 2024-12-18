@@ -68,8 +68,8 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
   /**
    * The lengths of the expressions or statements that would be replaced by an invocation of the
    * method. The lengths correspond to the offsets. In other words, for a given expression (or block
-   * of statements), if the offset of that expression is offsets[i], then the length of that
-   * expression is lengths[i].
+   * of statements), if the offset of that expression is <code>offsets[i]</code>, then the length of
+   * that expression is <code>lengths[i]</code>.
    */
   private final int[] lengths;
 
@@ -143,8 +143,8 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
   /**
    * The lengths of the expressions or statements that would be replaced by an invocation of the
    * method. The lengths correspond to the offsets. In other words, for a given expression (or block
-   * of statements), if the offset of that expression is offsets[i], then the length of that
-   * expression is lengths[i].
+   * of statements), if the offset of that expression is <code>offsets[i]</code>, then the length of
+   * that expression is <code>lengths[i]</code>.
    */
   public int[] getLengths() {
     return lengths;

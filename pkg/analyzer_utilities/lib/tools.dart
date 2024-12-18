@@ -417,8 +417,8 @@ class GeneratedFile extends GeneratedContent {
     var outputFile = output(pkgPath);
     var expectedContents = await computeContents(pkgPath);
     if (isDartFile) {
-      expectedContents =
-          await DartFormat._formatText(expectedContents, pkgPath: pkgPath);
+      expectedContents = await DartFormat._formatText(expectedContents,
+          pkgPath: dirname(outputFile.path));
     }
     try {
       var actualContents = outputFile.readAsStringSync();

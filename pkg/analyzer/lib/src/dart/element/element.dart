@@ -5085,6 +5085,12 @@ class FunctionElementImpl extends ExecutableElementImpl
         return libraryFragment;
       case ExecutableFragment executableFragment:
         return executableFragment;
+      case LocalVariableFragment variableFragment:
+        return variableFragment;
+      case TopLevelVariableFragment variableFragment:
+        return variableFragment;
+      case FieldFragment fieldFragment:
+        return fieldFragment;
     }
     // Local functions cannot be augmented.
     throw UnsupportedError('This is not a fragment');
@@ -5148,7 +5154,10 @@ abstract class FunctionTypedElementImpl2 extends TypeParameterizedElementImpl2
 /// Clients may not extend, implement or mix-in this class.
 class GenericFunctionTypeElementImpl extends _ExistingElementImpl
     with TypeParameterizedElementMixin
-    implements GenericFunctionTypeElement, FunctionTypedElementImpl {
+    implements
+        GenericFunctionTypeElement,
+        FunctionTypedElementImpl,
+        GenericFunctionTypeFragment {
   /// The declared return type of the function.
   DartType? _returnType;
 
@@ -5160,6 +5169,9 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
 
   /// The type defined by this element.
   FunctionType? _type;
+
+  late final GenericFunctionTypeElementImpl2 _element2 =
+      GenericFunctionTypeElementImpl2(this);
 
   /// Initialize a newly created function element to have no name and the given
   /// [nameOffset]. This is used for function expressions, that have no name.
@@ -5180,12 +5192,15 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   }
 
   @override
-  GenericFunctionTypeElement2 get element =>
-      throw UnsupportedError('This is not a fragment');
+  GenericFunctionTypeElement2 get element => _element2;
 
   @override
   LibraryFragment? get enclosingFragment =>
-      throw UnsupportedError('This is not a fragment');
+      enclosingElement3 as LibraryFragment;
+
+  @override
+  List<FormalParameterFragment> get formalParameters =>
+      parameters.cast<FormalParameterFragment>();
 
   @override
   String get identifier => '-';
@@ -5203,8 +5218,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   int? get nameOffset2 => null;
 
   @override
-  GenericFunctionTypeFragment? get nextFragment =>
-      throw UnsupportedError('This is not a fragment');
+  GenericFunctionTypeFragment? get nextFragment => null;
 
   @override
   List<ParameterElement> get parameters {
@@ -5221,8 +5235,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   }
 
   @override
-  GenericFunctionTypeFragment? get previousFragment =>
-      throw UnsupportedError('This is not a fragment');
+  GenericFunctionTypeFragment? get previousFragment => null;
 
   @override
   DartType get returnType {
@@ -5263,6 +5276,63 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeGenericFunctionTypeElement(this);
+  }
+}
+
+/// The element used for a generic function type.
+///
+/// Clients may not extend, implement or mix-in this class.
+class GenericFunctionTypeElementImpl2 extends FunctionTypedElementImpl2
+    implements GenericFunctionTypeElement2 {
+  final GenericFunctionTypeElementImpl _wrappedElement;
+
+  GenericFunctionTypeElementImpl2(this._wrappedElement);
+
+  @override
+  String? get documentationComment => _wrappedElement.documentationComment;
+
+  @override
+  GenericFunctionTypeFragment get firstFragment => _wrappedElement;
+
+  @override
+  List<FormalParameterElement> get formalParameters =>
+      _wrappedElement.formalParameters
+          .map((fragment) => fragment.element)
+          .toList();
+
+  @override
+  bool get isSimplyBounded => _wrappedElement.isSimplyBounded;
+
+  @override
+  bool get isSynthetic => _wrappedElement.isSynthetic;
+
+  @override
+  ElementKind get kind => _wrappedElement.kind;
+
+  @override
+  LibraryElement2 get library2 => _wrappedElement.library2!;
+
+  @override
+  Metadata get metadata2 => _wrappedElement.metadata2;
+
+  @override
+  String? get name3 => _wrappedElement.name3;
+
+  @override
+  DartType get returnType => _wrappedElement.returnType;
+
+  @override
+  FunctionType get type => _wrappedElement.type;
+
+  @override
+  List<TypeParameterElement2> get typeParameters2 =>
+      _wrappedElement.typeParameters2
+          .map((fragment) => fragment.element)
+          .toList();
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitGenericFunctionTypeElement(this);
   }
 }
 
@@ -10646,6 +10716,8 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
   Element2? get aliasedElement2 {
     switch (firstFragment.aliasedElement) {
       case InstanceFragment instance:
+        return instance.element;
+      case GenericFunctionTypeFragment instance:
         return instance.element;
     }
     return null;

@@ -1699,13 +1699,6 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
 }
 
 #if defined(DEBUG)
-// static
-void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
-  ASSERT(isolate == Isolate::Current());
-}
-#endif  // defined(DEBUG)
-
-#if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_INIT(object)                                     \
   reusable_##object##_handle_scope_active_(false),
 #else
@@ -1736,8 +1729,7 @@ class LibraryPrefixMapTraits {
 // that shared monitor.
 Isolate::Isolate(IsolateGroup* isolate_group,
                  const Dart_IsolateFlags& api_flags)
-    : BaseIsolate(),
-      current_tag_(UserTag::null()),
+    : current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
       field_table_(new FieldTable(/*isolate=*/this)),
       finalizers_(GrowableObjectArray::null()),

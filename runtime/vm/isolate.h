@@ -17,7 +17,6 @@
 #include "platform/assert.h"
 #include "platform/atomic.h"
 #include "platform/growable_array.h"
-#include "vm/base_isolate.h"
 #include "vm/class_table.h"
 #include "vm/dispatch_table.h"
 #include "vm/exceptions.h"
@@ -953,7 +952,7 @@ class Bequest {
   Dart_Port beneficiary_;
 };
 
-class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
+class Isolate : public IntrusiveDListEntry<Isolate> {
  public:
   // Keep both these enums in sync with isolate_patch.dart.
   // The different Isolate API message types.
@@ -1573,6 +1572,11 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   bool single_step_ = false;
   bool has_resumption_breakpoints_ = false;
   // End accessed from generated code.
+
+  Thread* scheduled_mutator_thread_ = nullptr;
+  // Stores the saved [Thread] object of a mutator. Mutators may retain their
+  // thread even when being descheduled (e.g. due to having an active stack).
+  Thread* mutator_thread_ = nullptr;
 
   IsolateGroup* const isolate_group_;
   std::unique_ptr<IsolateObjectStore> isolate_object_store_;

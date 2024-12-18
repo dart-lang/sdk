@@ -21,7 +21,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 /**
- * An item of an enumeration in a general sense - actual enum value, or a static field in a class.
+ * An item of an enumeration in a general sense - actual <code>enum</code> value, or a static field
+ * in a class.
  *
  * @coverage dart.server.generated.types
  */
@@ -31,8 +32,8 @@ public class FlutterWidgetPropertyValueEnumItem {
   public static final List<FlutterWidgetPropertyValueEnumItem> EMPTY_LIST = List.of();
 
   /**
-   * The URI of the library containing the className. When the enum item is passed back, this will
-   * allow the server to import the corresponding library if necessary.
+   * The URI of the library containing the <code>className</code>. When the enum item is passed back,
+   * this will allow the server to import the corresponding library if necessary.
    */
   private final String libraryUri;
 
@@ -109,8 +110,8 @@ public class FlutterWidgetPropertyValueEnumItem {
   }
 
   /**
-   * The URI of the library containing the className. When the enum item is passed back, this will
-   * allow the server to import the corresponding library if necessary.
+   * The URI of the library containing the <code>className</code>. When the enum item is passed back,
+   * this will allow the server to import the corresponding library if necessary.
    */
   public String getLibraryUri() {
     return libraryUri;

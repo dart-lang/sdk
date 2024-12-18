@@ -48,7 +48,7 @@ abstract class IntegrationTestMixin {
   /// isCompatible: bool
   ///
   ///   A flag indicating whether the plugin supports the same version of the
-  ///   plugin spec as the analysis server. If the value is false, then the
+  ///   plugin spec as the analysis server. If the value is `false`, then the
   ///   plugin is expected to shutdown after returning the response.
   ///
   /// name: String
@@ -70,9 +70,9 @@ abstract class IntegrationTestMixin {
   /// interestingFiles: List<String>
   ///
   ///   The glob patterns of the files for which the plugin will provide
-  ///   information. This value is ignored if the isCompatible field is false.
-  ///   Otherwise, it will be used to identify the files for which the plugin
-  ///   should be notified of changes.
+  ///   information. This value is ignored if the `isCompatible` field is
+  ///   `false`. Otherwise, it will be used to identify the files for which the
+  ///   plugin should be notified of changes.
   Future<PluginVersionCheckResult> sendPluginVersionCheck(
       String byteStorePath, String sdkPath, String version) async {
     var params =
@@ -103,7 +103,7 @@ abstract class IntegrationTestMixin {
   ///
   ///   A flag indicating whether the error is a fatal error, meaning that the
   ///   plugin will shutdown automatically after sending this notification. If
-  ///   true, the server will not expect any other responses or notifications
+  ///   `true`, the server will not expect any other responses or notifications
   ///   from the plugin.
   ///
   /// message: String
@@ -125,7 +125,7 @@ abstract class IntegrationTestMixin {
   /// the given file is out of date, then the response for this request will be
   /// delayed until it has been computed. If the content of the file changes
   /// after this request was received but before a response could be sent, then
-  /// an error of type CONTENT_MODIFIED will be generated.
+  /// an error of type `CONTENT_MODIFIED` will be generated.
   ///
   /// If a navigation region overlaps (but extends either before or after) the
   /// given region of the file it will be included in the result. This means
@@ -175,7 +175,7 @@ abstract class IntegrationTestMixin {
   }
 
   /// Used to inform the plugin of changes to files in the file system. Only
-  /// events associated with files that match the interestingFiles glob
+  /// events associated with files that match the `interestingFiles` glob
   /// patterns will be forwarded to the plugin.
   ///
   /// Parameters
@@ -294,7 +294,7 @@ abstract class IntegrationTestMixin {
   /// by the server in order to present a consistent view to the client.
   ///
   /// This notification should only be sent if the server has subscribed to it
-  /// by including the value "FOLDING" in the list of services passed in an
+  /// by including the value `"FOLDING"` in the list of services passed in an
   /// analysis.setSubscriptions request.
   ///
   /// Parameters
@@ -318,8 +318,8 @@ abstract class IntegrationTestMixin {
   /// meaning associated with a particular region.
   ///
   /// This notification should only be sent if the server has subscribed to it
-  /// by including the value "HIGHLIGHTS" in the list of services passed in an
-  /// analysis.setSubscriptions request.
+  /// by including the value `"HIGHLIGHTS"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
   ///
   /// Parameters
   ///
@@ -349,8 +349,8 @@ abstract class IntegrationTestMixin {
   /// view to the client.
   ///
   /// This notification should only be sent if the server has subscribed to it
-  /// by including the value "NAVIGATION" in the list of services passed in an
-  /// analysis.setSubscriptions request.
+  /// by including the value `"NAVIGATION"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
   ///
   /// Parameters
   ///
@@ -385,8 +385,8 @@ abstract class IntegrationTestMixin {
   /// view to the client.
   ///
   /// This notification should only be sent if the server has subscribed to it
-  /// by including the value "OCCURRENCES" in the list of services passed in an
-  /// analysis.setSubscriptions request.
+  /// by including the value `"OCCURRENCES"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
   ///
   /// Parameters
   ///
@@ -409,7 +409,7 @@ abstract class IntegrationTestMixin {
   /// cannot create a coherent outline, some fragments might be dropped.
   ///
   /// This notification should only be sent if the server has subscribed to it
-  /// by including the value "OUTLINE" in the list of services passed in an
+  /// by including the value `"OUTLINE"` in the list of services passed in an
   /// analysis.setSubscriptions request.
   ///
   /// Parameters

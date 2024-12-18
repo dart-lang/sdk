@@ -14,9 +14,19 @@ ConstructorClass ctorTest(ConstructorClass? ctor) => ctor ?? .new(1);
 
 ConstructorClass ctorRegularTest(ConstructorClass? ctor) => ctor ?? .regular(1);
 
+void noContextLHSContext(ConstructorClass? ctor) {
+  ctor ?? .new(1);
+  ctor ?? .regular(1);
+}
+
 ConstructorExt ctorExtTest(ConstructorExt? ctor) => ctor ?? .new(1);
 
 ConstructorExt ctorExtRegularTest(ConstructorExt? ctor) => ctor ?? .regular(1);
+
+void noContextLHSContextExt(ConstructorExt? ctor) {
+  ctor ?? .new(1);
+  ctor ?? .regular(1);
+}
 
 void main() {
   // Class
@@ -28,6 +38,9 @@ void main() {
   Expect.isNotNull(ctorRegularTest(null));
   Expect.equals(ctorRegularTest(ctorDefault), ctorDefault);
 
+  noContextLHSContext(null);
+  noContextLHSContext(ctorDefault);
+
   // Extension type
   var ctorExtDefault = ConstructorExt(2);
 
@@ -36,4 +49,7 @@ void main() {
 
   Expect.isNotNull(ctorExtRegularTest(null));
   Expect.equals(ctorExtRegularTest(ctorExtDefault), ctorExtDefault);
+
+  noContextLHSContextExt(null);
+  noContextLHSContextExt(ctorExtDefault);
 }

@@ -13,6 +13,7 @@ class FunctionsBuilder with Builder<ir.Functions> {
   final ModuleBuilder _module;
   final _functionBuilders = <FunctionBuilder>[];
   final _importedFunctions = <ir.ImportedFunction>[];
+  final _declaredFunctions = <ir.BaseFunction>{};
   int _nameCount = 0;
   ir.BaseFunction? _start;
 
@@ -61,10 +62,17 @@ class FunctionsBuilder with Builder<ir.Functions> {
     return function;
   }
 
+  /// Declare [function] as a module element so it can be used in a constant
+  /// context.
+  void declare(ir.BaseFunction function) {
+    _declaredFunctions.add(function);
+  }
+
   @override
   ir.Functions forceBuild() {
     final built = finalizeImportsAndBuilders<ir.DefinedFunction>(
         _importedFunctions, _functionBuilders);
-    return ir.Functions(_start, _importedFunctions, built, _nameCount);
+    return ir.Functions(
+        _start, _importedFunctions, built, [..._declaredFunctions], _nameCount);
   }
 }

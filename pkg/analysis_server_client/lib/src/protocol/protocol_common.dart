@@ -546,8 +546,8 @@ class CompletionSuggestion implements HasToJson {
   /// if the parameterName field is omitted.
   String? parameterType;
 
-  /// This field is omitted if getSuggestions was used rather than
-  /// getSuggestions2.
+  /// This field is omitted if `getSuggestions` was used rather than
+  /// `getSuggestions2`.
   ///
   /// This field is omitted if this suggestion corresponds to a locally
   /// declared element.
@@ -559,14 +559,14 @@ class CompletionSuggestion implements HasToJson {
   /// If this suggestion corresponds to an element from a not yet imported
   /// library, this field is the URI of a library that could be imported to
   /// make this suggestion accessible in the file where completion was
-  /// requested, such as package:foo/bar.dart or
-  /// file:///home/me/workspace/foo/test/bar_test.dart.
+  /// requested, such as `package:foo/bar.dart` or
+  /// `file:///home/me/workspace/foo/test/bar_test.dart`.
   String? libraryUri;
 
   /// True if the suggestion is for an element from a not yet imported library.
   /// This field is omitted if the element is declared locally, or is from
   /// library is already imported, so that the suggestion can be inserted as
-  /// is, or if getSuggestions was used rather than getSuggestions2.
+  /// is, or if `getSuggestions` was used rather than `getSuggestions2`.
   bool? isNotImported;
 
   CompletionSuggestion(
@@ -946,13 +946,13 @@ enum CompletionSuggestionKind {
   IMPORT,
 
   /// The element identifier should be inserted at the completion location. For
-  /// example "someMethod" in import 'myLib.dart' show someMethod;. For
+  /// example "someMethod" in `import 'myLib.dart' show someMethod;`. For
   /// suggestions of this kind, the element attribute is defined and the
   /// completion field is the element's identifier.
   IDENTIFIER,
 
   /// The element is being invoked at the completion location. For example,
-  /// 'someMethod' in x.someMethod();. For suggestions of this kind, the
+  /// 'someMethod' in `x.someMethod();`. For suggestions of this kind, the
   /// element attribute is defined and the completion field is the element's
   /// identifier.
   INVOCATION,
@@ -3312,7 +3312,7 @@ class SourceChange implements HasToJson {
   /// A human-readable description of the change to be applied.
   ///
   /// If this change includes multiple edits made for different reasons (such
-  /// as during a bulk fix operation), the individual items in edits may
+  /// as during a bulk fix operation), the individual items in `edits` may
   /// contain more specific descriptions.
   String message;
 
@@ -3519,8 +3519,8 @@ class SourceEdit implements HasToJson {
   /// and multiple applications of the fix to be grouped together.
   ///
   /// This value may be more specific than any value in an enclosing
-  /// SourceChange.message which could contain edits made for different reasons
-  /// (such as during a bulk fix operation).
+  /// `SourceChange.message` which could contain edits made for different
+  /// reasons (such as during a bulk fix operation).
   String? description;
 
   SourceEdit(this.offset, this.length, this.replacement,

@@ -1877,6 +1877,8 @@ abstract class AstCodeGenerator
     pushReceiver(selector.signature);
 
     if (selector.targetRanges.length == 1) {
+      // TODO(natebiggs): Ensure dynamic modules exclude this.
+
       assert(selector.staticDispatchRanges.length == 1);
       final target = selector.targetRanges[0].target;
       final signature = translator.signatureForDirectCall(target);
@@ -1887,6 +1889,8 @@ abstract class AstCodeGenerator
     }
 
     if (selector.targetRanges.isEmpty) {
+      // TODO(natebiggs): Ensure dynamic modules exclude this.
+
       // Unreachable call
       b.comment("Virtual call of ${selector.name} with no targets"
           " at ${node.location}");
@@ -1907,22 +1911,15 @@ abstract class AstCodeGenerator
     pushArguments(selector.signature, selector.paramInfo);
 
     if (selector.staticDispatchRanges.isNotEmpty) {
+      // TODO(natebiggs): Ensure dynamic modules exclude this.
+
       b.invoke(translator
           .getPolymorphicDispatchersForModule(b.module)
           .getPolymorphicDispatcher(selector));
     } else {
-      final offset = selector.offset!;
       b.comment("Instance $kind of '${selector.name}'");
       b.local_get(receiverVar);
-      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-      if (offset != 0) {
-        b.i32_const(offset);
-        b.i32_add();
-      }
-      b.call_indirect(
-          selector.signature, translator.dispatchTable.getWasmTable(b.module));
-
-      translator.functions.recordSelectorUse(selector);
+      translator.callDispatchTable(b, selector);
     }
 
     return translator.outputOrVoid(selector.signature.outputs);

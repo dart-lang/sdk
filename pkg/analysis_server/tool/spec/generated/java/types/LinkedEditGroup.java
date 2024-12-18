@@ -28,9 +28,9 @@ import com.google.gson.JsonPrimitive;
  * could be edited simultaneously.
  *
  * Edit groups may have a length of 0 and function as tabstops where there is no default text, for
- * example, an edit that inserts an if statement might provide an empty group between parens where
- * a condition should be typed. For this reason, it's also valid for a group to contain only a
- * single position that is not linked to others.
+ * example, an edit that inserts an <code>if</code> statement might provide an empty group between
+ * parens where a condition should be typed. For this reason, it's also valid for a group to
+ * contain only a single position that is not linked to others.
  *
  * @coverage dart.server.generated.types
  */

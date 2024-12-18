@@ -14,9 +14,19 @@ StaticMember memberTest(StaticMember? member) => member ?? .member();
 
 StaticMember memberTypeTest(StaticMember? member) => member ?? .memberType<String, int>("s");
 
+void noContextLHSContext(StaticMember? member) {
+  member ?? .member();
+  member ?? .memberType<String, int>("s");
+}
+
 StaticMemberExt memberExtTest(StaticMemberExt? member) => member ?? .member();
 
 StaticMemberExt memberExtTypeTest(StaticMemberExt? member) => member ?? .memberType<String, int>("s");
+
+void noContextLHSContextExt(StaticMemberExt? member) {
+  member ?? .member();
+  member ?? .memberType<String, int>("s");
+}
 
 void main() {
   // Class
@@ -28,6 +38,12 @@ void main() {
   Expect.isNotNull(memberTypeTest(null));
   Expect.equals(memberTypeTest(memberDefault), memberDefault);
 
+  noContextLHSContext(null);
+  noContextLHSContext(memberDefault);
+
+  StaticMember possiblyNullable = .memberNullable() ?? memberDefault;
+  StaticMember possiblyNullableWithType = .memberTypeNullable<String, int>("s") ?? memberDefault;
+
   // Extension type
   var memberExtDefault = StaticMemberExt.memberType(100);
 
@@ -36,4 +52,10 @@ void main() {
 
   Expect.isNotNull(memberExtTypeTest(null));
   Expect.equals(memberExtTypeTest(memberExtDefault), memberExtDefault);
+
+  noContextLHSContextExt(null);
+  noContextLHSContextExt(memberExtDefault);
+
+  StaticMemberExt possiblyNullableExt = .memberNullable() ?? memberExtDefault;
+  StaticMemberExt possiblyNullableExtWithType = .memberTypeNullable<String, int>("s") ?? memberExtDefault;
 }
