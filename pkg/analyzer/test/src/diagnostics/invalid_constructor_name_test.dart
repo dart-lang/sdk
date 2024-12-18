@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -72,6 +73,7 @@ enum E {
 }
 ''', [
       error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 40, 1),
+      error(WarningCode.UNUSED_ELEMENT, 59, 3),
     ]);
   }
 }

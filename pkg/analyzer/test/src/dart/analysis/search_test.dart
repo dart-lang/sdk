@@ -1487,6 +1487,7 @@ main() {
   }
 
   test_searchReferences_FunctionElement_local() async {
+    makeFilePriority(testFile);
     await resolveTestCode('''
 main() {
   test() {}
@@ -1602,6 +1603,7 @@ main() {
   }
 
   test_searchReferences_LabelElement() async {
+    makeFilePriority(testFile);
     await resolveTestCode('''
 main() {
 label:
@@ -1693,6 +1695,7 @@ part 'unitB.dart';
   }
 
   test_searchReferences_LocalVariableElement() async {
+    makeFilePriority(testFile);
     await resolveTestCode(r'''
 main() {
   var v;
@@ -1713,6 +1716,7 @@ main() {
   }
 
   test_searchReferences_LocalVariableElement_inForEachElement_expressionBody() async {
+    makeFilePriority(testFile);
     await resolveTestCode('''
 Object f() => [
   for (var v in []) v,
@@ -1726,6 +1730,7 @@ Object f() => [
   }
 
   test_searchReferences_LocalVariableElement_inForEachElement_inBlock() async {
+    makeFilePriority(testFile);
     await resolveTestCode('''
 Object f() {
   {
@@ -1743,6 +1748,7 @@ Object f() {
   }
 
   test_searchReferences_LocalVariableElement_inForEachElement_inFunctionBody() async {
+    makeFilePriority(testFile);
     await resolveTestCode('''
 Object f() {
   return [
@@ -1758,6 +1764,7 @@ Object f() {
   }
 
   test_searchReferences_LocalVariableElement_inForEachElement_topLevel() async {
+    makeFilePriority(testFile);
     await resolveTestCode('''
 var x = [
   for (var v in []) v,
@@ -1771,6 +1778,7 @@ var x = [
   }
 
   test_searchReferences_LocalVariableElement_inForEachLoop() async {
+    makeFilePriority(testFile);
     await resolveTestCode('''
 main() {
   for (var v in []) {
@@ -1793,16 +1801,7 @@ main() {
 
   test_searchReferences_LocalVariableElement_inPackage() async {
     var aaaPackageRootPath = '$packagesRootPath/aaa';
-    var testPath = convertPath('$aaaPackageRootPath/lib/a.dart');
-
-    writeTestPackageConfig(
-      PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaPackageRootPath),
-    );
-
-    fileForContextSelection = testFile;
-
-    await resolveFileCode(testPath, '''
+    var a_file = newFile('$aaaPackageRootPath/lib/a.dart', '''
 main() {
   var v;
   v = 1;
@@ -1811,6 +1810,17 @@ main() {
   v();
 }
 ''');
+
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaPackageRootPath),
+    );
+
+    fileForContextSelection = testFile;
+
+    driverFor(testFile).priorityFiles2 = [a_file];
+    await resolveFile2(a_file);
+
     var element = findElement2.localVar('v');
     await assertElementReferencesText(element, r'''
 package:aaa/a.dart::<fragment>::@function::main
@@ -2191,6 +2201,7 @@ main() {
   }
 
   test_searchReferences_ParameterElement_requiredPositional_ofLocalFunction() async {
+    makeFilePriority(testFile);
     await resolveTestCode('''
 main() {
   foo(p) {
@@ -2753,6 +2764,7 @@ void f(Object? x) {
   }
 
   test_searchReferences_VariablePatternElement_patternAssignment() async {
+    makeFilePriority(testFile);
     await resolveTestCode('''
 void f() {
   int v;

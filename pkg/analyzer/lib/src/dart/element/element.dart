@@ -3074,12 +3074,7 @@ abstract class ElementImpl implements Element, Element2 {
 
   @override
   bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-    return other is ElementImpl &&
-        other.kind == kind &&
-        other.location == location;
+    return identical(this, other);
   }
 
   @override

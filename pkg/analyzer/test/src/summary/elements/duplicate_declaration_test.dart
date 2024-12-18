@@ -736,6 +736,8 @@ library
       reference: <testLibrary>::@class::X::@def::0
       firstFragment: <testLibraryFragment>::@class::X::@def::0
       supertype: A
+      mixins
+        M
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::X::@def::0::@constructor::new

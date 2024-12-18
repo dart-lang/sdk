@@ -145,6 +145,11 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   }
 
   Future<void> indexTestUnit(String code) async {
+    // Make it priority, so the resolved unit stays in memory.
+    // So, when we get a local element, and search for it, we use this unit.
+    // This is important when local elements equality is identity.
+    makeFilePriority(testFile);
+
     await resolveTestCode(code);
   }
 

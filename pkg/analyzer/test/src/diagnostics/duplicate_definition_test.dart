@@ -2733,6 +2733,11 @@ class B extends A {
 }
 ''', [
       error(WarningCode.UNUSED_FIELD, 17, 1),
+      error(
+          CompileTimeErrorCode
+              .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
+          74,
+          1),
     ]);
   }
 
@@ -2752,6 +2757,11 @@ class B extends A {
       error(WarningCode.UNUSED_FIELD, 61, 1),
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 118, 1,
           contextMessages: [message(testFile, 109, 1)]),
+      error(
+          CompileTimeErrorCode
+              .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
+          118,
+          1),
     ]);
   }
 
