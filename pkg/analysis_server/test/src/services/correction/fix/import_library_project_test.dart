@@ -314,6 +314,23 @@ void f() {
     await assertNoFix();
   }
 
+  Future<void> test_extension_name() async {
+    createAnalysisOptionsFile(lints: [LintNames.comment_references]);
+    newFile('$testPackageLibPath/lib.dart', '''
+extension Ext on int {}
+''');
+    await resolveTestCode('''
+/// This should import [Ext].
+void f() {}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+/// This should import [Ext].
+void f() {}
+''');
+  }
+
   Future<void> test_extension_notImported_binaryOperator() async {
     newFile('$testPackageLibPath/lib.dart', '''
 extension E on String {
@@ -2164,6 +2181,25 @@ class ImportLibraryProject2Test extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT2;
 
+  Future<void> test_extension_name() async {
+    createAnalysisOptionsFile(lints: [LintNames.comment_references]);
+    newFile('$testPackageLibPath/lib1.dart', '''
+extension Ext on int {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';''');
+    await resolveTestCode('''
+/// This should import [Ext].
+void f() {}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart';
+
+/// This should import [Ext].
+void f() {}
+''');
+  }
+
   Future<void> test_lib() async {
     newFile('$packagesRootPath/my_pkg/lib/a.dart', '''
 export 'b.dart';
@@ -2539,6 +2575,23 @@ void f(lib.Test t) {}
 class ImportLibraryProject3Test extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT3;
+
+  Future<void> test_extension_name() async {
+    createAnalysisOptionsFile(lints: [LintNames.comment_references]);
+    newFile('$testPackageLibPath/src/lib1.dart', '''
+extension Ext on int {}
+''');
+    await resolveTestCode('''
+/// This should import [Ext].
+void f() {}
+''');
+    await assertHasFix('''
+import 'package:test/src/lib1.dart';
+
+/// This should import [Ext].
+void f() {}
+''');
+  }
 
   Future<void> test_inLibSrc_thisContextRoot_extension() async {
     newFile('$testPackageLibPath/src/lib.dart', '''

@@ -252,7 +252,10 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:linter/src/lint_codes.dart';
 
 final _builtInLintMultiProducers = {
-  LinterLintCode.comment_references: [ImportLibrary.forType],
+  LinterLintCode.comment_references: [
+    ImportLibrary.forType,
+    ImportLibrary.forExtension,
+  ],
   LinterLintCode.deprecated_member_use_from_same_package_without_message: [
     DataDriven.new,
   ],
@@ -1094,8 +1097,8 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     //  updated so that only the appropriate subset is generated.
     QualifyReference.new,
   ],
-  CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE:
-      [
+  CompileTimeErrorCode
+      .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE: [
     // TODO(brianwilkerson): Consider adding fixes to create a field, getter,
     //  method or setter. The existing producers would need to be updated so
     //  that only the appropriate subset is generated.
