@@ -61,6 +61,9 @@ wasm/source_map_simple_optimized_test: SkipByDesign # Reads source map file usin
 wasm/source_map_simple_test: SkipByDesign # Reads source map file using d8's readbuffer
 wasm/uri_base_test: SkipByDesign # Converts Uri.base to file path
 
+[ $compiler == dart2wasm && ( $runtime == d8 || $runtime == jsc || $runtime == jsshell ) ]
+wasm/multi_module_stress_test: SkipByDesign # DataView fails to load necessary input file.
+
 [ $compiler == dartk && $runtime == vm ]
 new_from_env_test: SkipByDesign # dart2js only test
 unconditional_dartio_import_test: SkipByDesign # dart2js only test
