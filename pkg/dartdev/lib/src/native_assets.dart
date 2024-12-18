@@ -53,6 +53,7 @@ Future<List<EncodedAsset>?> compileNativeAssetsJit({
   final buildResult = await nativeAssetsBuildRunner.build(
     configCreator: () => BuildConfigBuilder()
       ..setupCodeConfig(
+        targetOS: target.os,
         targetArchitecture: target.architecture,
         // When running in JIT mode, only dynamic libraries are supported.
         linkModePreference: LinkModePreference.dynamic,
@@ -64,9 +65,6 @@ Future<List<EncodedAsset>?> compileNativeAssetsJit({
       ...await validateDataAssetBuildConfig(config),
     ],
     workingDirectory: workingDirectory,
-    targetOS: target.os,
-    // Dart has no concept of release vs debug, default to release.
-    buildMode: BuildMode.release,
     runPackageName: runPackageName,
     linkingEnabled: false,
     buildAssetTypes: [
