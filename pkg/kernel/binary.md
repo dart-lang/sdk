@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 121;
+  UInt32 formatVersion = 122;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -358,8 +358,8 @@ type ExtensionMemberDescriptor {
   Name name;
   ExtensionMemberKind kind;
   Byte flags (isStatic);
-  MemberReference member;
-  MemberReference tearOff;
+  MemberReference member;  // May be NullReference.
+  MemberReference tearOff; // May be NullReference.
 }
 
 type ExtensionTypeDeclaration extends Node {
@@ -384,8 +384,8 @@ type ExtensionTypeMemberDescriptor {
   Name name;
   ExtensionTypeMemberKind kind;
   Byte flags (isStatic);
-  MemberReference member;
-  MemberReference tearOff;
+  MemberReference member;  // May be NullReference.
+  MemberReference tearOff; // May be NullReference.
 }
 
 abstract type Member extends Node {}

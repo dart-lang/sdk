@@ -563,7 +563,7 @@ class SharedInteropTransformer extends Transformer {
         break;
       default:
         for (final descriptor in interopTypeDecl.memberDescriptors) {
-          final descriptorNode = descriptor.memberReference.node;
+          final descriptorNode = descriptor.memberReference!.node;
           if (descriptorNode is Procedure &&
               _extensionIndex.isLiteralConstructor(descriptorNode)) {
             _diagnosticReporter.report(

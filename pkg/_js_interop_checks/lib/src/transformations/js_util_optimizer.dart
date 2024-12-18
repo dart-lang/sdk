@@ -981,7 +981,7 @@ class ExtensionIndex {
     if (_processedExtensionLibraries.contains(library)) return;
     for (var extension in library.extensions) {
       for (var descriptor in extension.memberDescriptors) {
-        var reference = descriptor.memberReference;
+        var reference = descriptor.memberReference!;
         var onType = extension.onType;
         bool isInteropOnType = false;
         Annotatable? cls;
@@ -1127,7 +1127,7 @@ class ExtensionIndex {
     for (var extensionType in library.extensionTypeDeclarations) {
       if (isInteropExtensionType(extensionType)) {
         for (var descriptor in extensionType.memberDescriptors) {
-          final reference = descriptor.memberReference;
+          final reference = descriptor.memberReference!;
           _extensionTypeMemberIndex[reference] = descriptor;
           _extensionTypeIndex[reference] = extensionType;
           final tearOffReference = descriptor.tearOffReference;

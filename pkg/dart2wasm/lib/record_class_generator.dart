@@ -139,7 +139,7 @@ class _RecordClassGenerator {
       .singleWhere((e) => e.name == 'WasmArrayExt')
       .memberDescriptors
       .singleWhere((member) => member.name.text == '[]')
-      .memberReference
+      .memberReference!
       .node as Procedure;
 
   late final Constructor wasmArrayLiteralConstructor =
