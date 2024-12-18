@@ -1162,7 +1162,8 @@ class _Element2Writer extends _AbstractElementWriter {
           _writeLibraryImport,
         );
       }
-      _writeElementList('prefixes', f, f.prefixes, _writePrefixElement);
+      _writeElementList(
+          'prefixes', f.library2!, f.prefixes, _writePrefixElement);
       // _writeList(
       //     'libraryExports', f.libraryExports, _writeLibraryExportElement);
       // _writeList('parts', f.parts, _writePartElement);

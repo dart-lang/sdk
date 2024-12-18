@@ -139,8 +139,8 @@ extension Element2OrNullExtension on Element2? {
         return null;
       case ConstructorElementImpl2():
         return self.firstFragment as Element;
-      case DynamicElementImpl():
-        return self;
+      case DynamicElementImpl2():
+        return self.firstFragment;
       case ExecutableMember():
         return self.declaration as Element;
       case ExtensionElementImpl2():

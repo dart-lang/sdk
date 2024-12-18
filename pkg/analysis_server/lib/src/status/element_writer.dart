@@ -36,6 +36,7 @@ class ElementWriter with TreeWriter {
   Map<String, Object?> _computeProperties(Element2 element) {
     var properties = <String, Object?>{};
 
+    var firstFragment = element.firstFragment;
     if (element case Annotatable element) {
       properties['annotations'] = element.metadata2.annotations;
     }
@@ -51,14 +52,14 @@ class ElementWriter with TreeWriter {
         properties['isValidMixin'] = element.isValidMixin;
       }
     }
-    if (element is ConstFieldElementImpl) {
-      properties['evaluationResult'] = element.evaluationResult;
+    if (firstFragment is ConstFieldElementImpl) {
+      properties['evaluationResult'] = firstFragment.evaluationResult;
     }
-    if (element is ConstLocalVariableElementImpl) {
-      properties['evaluationResult'] = element.evaluationResult;
+    if (firstFragment is ConstLocalVariableElementImpl) {
+      properties['evaluationResult'] = firstFragment.evaluationResult;
     }
-    if (element is ConstTopLevelVariableElementImpl) {
-      properties['evaluationResult'] = element.evaluationResult;
+    if (firstFragment is ConstTopLevelVariableElementImpl) {
+      properties['evaluationResult'] = firstFragment.evaluationResult;
     }
     if (element is ConstructorElement2) {
       properties['isConst'] = element.isConst;
