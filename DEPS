@@ -185,7 +185,7 @@ vars = {
   "download_chrome": False,
   "chrome_tag": "132.0.6834.32",
   "download_firefox": False,
-  "firefox_tag": "133.0",
+  "firefox_tag": "133.0.3",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,
