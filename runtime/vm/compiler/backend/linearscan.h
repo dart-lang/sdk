@@ -107,6 +107,7 @@ class FlowGraphAllocator : public ValueObject {
   Instruction* InstructionAt(intptr_t pos) const;
   BlockEntryInstr* BlockEntryAt(intptr_t pos) const;
   bool IsBlockEntry(intptr_t pos) const;
+  bool IsCatchBlockEntry(intptr_t pos) const;
 
   LiveRange* MakeLiveRangeForTemporary();
 
@@ -256,12 +257,12 @@ class FlowGraphAllocator : public ValueObject {
   // at all safepoints.
   void UpdateStackmapsForSuspendState();
 
-  // Returns true if [defn] is an OsrEntry or CatchBlockEntry parameter
+  // Returns true if [defn] is an OsrEntry parameter
   // corresponding to a synthetic :suspend_state variable.
   bool IsSuspendStateParameter(Definition* defn);
 
   // Allocates spill slot [slot_index] for the initial definition of
-  // OsrEntry or CatchBlockEntry (Parameter or Constant).
+  // OsrEntry (Parameter or Constant).
   void AllocateSpillSlotForInitialDefinition(intptr_t slot_index,
                                              intptr_t range_end);
 

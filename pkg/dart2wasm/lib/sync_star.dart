@@ -27,8 +27,7 @@ mixin SyncStarCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
     // function for this `sync*` function.
     DartType elementType = functionNode.emittedValueType!;
     translator.functions.recordClassAllocation(syncStarIterableInfo.classId);
-    b.i32_const(syncStarIterableInfo.classId);
-    b.i32_const(initialIdentityHash);
+    b.pushObjectHeaderFields(syncStarIterableInfo);
     types.makeType(this, elementType);
     if (context != null) {
       assert(!context.isEmpty);

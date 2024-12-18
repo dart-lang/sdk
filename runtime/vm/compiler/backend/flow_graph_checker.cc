@@ -210,7 +210,10 @@ void FlowGraphChecker::VisitInstructions(BlockEntryInstr* block) {
   }
   // Visit regular instructions.
   Instruction* last = block->last_instruction();
-  ASSERT1((last == block) == block->IsGraphEntry(), block);
+  // GraphEntry and TryEntry are the only instructions that have the whole
+  // block to themseleves.
+  ASSERT1((last == block) == (block->IsGraphEntry() || block->IsTryEntry()),
+          block);
   Instruction* prev = block;
   ASSERT(prev->previous() == nullptr);
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
@@ -431,7 +434,8 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
     // BlockEntry instructions have environments attached to them but
     // have no reliable way to verify if they are still in the graph.
     ASSERT1(is_env, instruction);
-    ASSERT1(instruction->IsGraphEntry() || instruction->next() != nullptr,
+    ASSERT1(instruction->IsGraphEntry() || instruction->IsTryEntry() ||
+                instruction->next() != nullptr,
             instruction);
     ASSERT2(DefDominatesUse(def, instruction), def, instruction);
   } else if (instruction->IsMaterializeObject()) {

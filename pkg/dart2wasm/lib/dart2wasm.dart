@@ -102,6 +102,23 @@ final List<Option> options = [
   Flag("enable-multi-module-stress-test-mode",
       (o, value) => o.translatorOptions.enableMultiModuleStressTestMode = value,
       defaultsTo: _d.translatorOptions.enableMultiModuleStressTestMode),
+  // Flags for dynamic modules
+  // The modified dill file produced by the main module compilation for dynamic
+  // modules. Providing this and not "dynamic-module-interface" indicates that
+  // this is a compilation of a dynamic module. The dill will contain the AST
+  // for the main module as well as some annotations to help identify entities
+  // when compiling dynamic modules.
+  UriOption(
+      "dynamic-module-main", (o, value) => o.dynamicModuleMainUri = value),
+  // A yaml file describing the interface of the main module accessible from
+  // dynamic modules. Providing this indicates to the dart2wasm that the module
+  // produced should support dynamic modules.
+  UriOption(
+      "dynamic-module-interface", (o, value) => o.dynamicInterfaceUri = value),
+  // A binary metadata file produced by the main module compilation for dynamic
+  // modules.
+  UriOption("dynamic-module-metadata",
+      (o, value) => o.dynamicModuleMetadataFile = value),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(
@@ -116,7 +133,8 @@ Map<String, String> processEnvironment(List<String> defines) =>
       if (index == -1) {
         throw ArgumentError('Bad define string: $d');
       }
-      return MapEntry<String, String>(d.substring(0, index), d.substring(index + 1));
+      return MapEntry<String, String>(
+          d.substring(0, index), d.substring(index + 1));
     }));
 
 WasmCompilerOptions parseArguments(List<String> arguments) {

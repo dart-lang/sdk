@@ -297,11 +297,13 @@ bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
 bool FlowGraphCompiler::IsEmptyBlock(BlockEntryInstr* block) const {
   // Entry-points cannot be merged because they must have assembly
   // prologue emitted which should not be included in any block they jump to.
-  return !block->IsGraphEntry() && !block->IsFunctionEntry() &&
-         !block->IsCatchBlockEntry() && !block->IsOsrEntry() &&
-         !block->IsIndirectEntry() && !block->HasNonRedundantParallelMove() &&
-         block->next()->IsGoto() &&
-         !block->next()->AsGoto()->HasNonRedundantParallelMove();
+
+  return block->IsTryEntry() ||
+         (!block->IsGraphEntry() && !block->IsFunctionEntry() &&
+          !block->IsCatchBlockEntry() && !block->IsOsrEntry() &&
+          !block->IsIndirectEntry() && !block->HasNonRedundantParallelMove() &&
+          block->next()->IsGoto() &&
+          !block->next()->AsGoto()->HasNonRedundantParallelMove());
 }
 
 void FlowGraphCompiler::CompactBlock(BlockEntryInstr* block) {
@@ -316,7 +318,9 @@ void FlowGraphCompiler::CompactBlock(BlockEntryInstr* block) {
   if (IsEmptyBlock(block)) {
     // For empty blocks, record a corresponding nonempty target as their
     // jump label.
-    BlockEntryInstr* target = block->next()->AsGoto()->successor();
+    BlockEntryInstr* target = block->IsTryEntry()
+                                  ? block->AsTryEntry()->try_body()
+                                  : block->next()->AsGoto()->successor();
     CompactBlock(target);
     block_info->set_jump_label(GetJumpLabel(target));
   }
@@ -430,25 +434,21 @@ void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env) {
         catch_block->initial_definitions();
     catch_entry_moves_maps_builder_->NewMapping(assembler()->CodeSize());
 
-    for (intptr_t i = 0; i < flow_graph().variable_count(); ++i) {
-      // Don't sync captured parameters. They are not in the environment.
-      if (flow_graph().captured_parameters()->Contains(i)) continue;
+    for (intptr_t i = 0; i < idefs->length(); i++) {
       auto param = (*idefs)[i]->AsParameter();
-
-      // Don't sync values that have been replaced with constants.
       if (param == nullptr) continue;
-      RELEASE_ASSERT(param->env_index() == i);
+
       Location dst = param->location();
 
       // Don't sync exception or stack trace variables.
       if (dst.IsRegister()) continue;
 
-      Location src = env->LocationAt(i);
+      Location src = env->LocationAt(param->env_index());
       // Can only occur if AllocationSinking is enabled - and it is disabled
       // in functions with try.
       ASSERT(!src.IsInvalid());
       const Representation src_type =
-          env->ValueAt(i)->definition()->representation();
+          env->ValueAt(param->env_index())->definition()->representation();
       const auto move = CatchEntryMoveFor(assembler(), src_type, src,
                                           LocationToStackIndex(dst));
       if (!move.IsRedundant()) {

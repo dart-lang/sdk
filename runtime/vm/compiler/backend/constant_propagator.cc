@@ -154,6 +154,12 @@ void ConstantPropagator::VisitOsrEntry(OsrEntryInstr* block) {
   }
 }
 
+void ConstantPropagator::VisitTryEntry(TryEntryInstr* entry) {
+  for (intptr_t i = 0; i < entry->SuccessorCount(); i++) {
+    SetReachable(entry->SuccessorAt(i));
+  }
+}
+
 void ConstantPropagator::VisitCatchBlockEntry(CatchBlockEntryInstr* block) {
   for (auto def : *block->initial_definitions()) {
     def->Accept(this);
@@ -1664,7 +1670,7 @@ static bool IsEmptyBlock(BlockEntryInstr* block) {
   // A block containing a goto to itself forms an infinite loop.
   // We don't consider this an empty block to handle the edge-case where code
   // reduces to an infinite loop.
-  return block->next()->IsGoto() &&
+  return !block->IsTryEntry() && block->next()->IsGoto() &&
          block->next()->AsGoto()->successor() != block && !HasPhis(block) &&
          !block->IsIndirectEntry();
 }

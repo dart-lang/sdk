@@ -168,7 +168,10 @@ static FlowGraph* BuildIrregexpFunctionFlowGraph(
   // Catch entries are always considered reachable, even if they
   // become unreachable after OSR.
   if (osr_id != Compiler::kNoOSRDeoptId) {
-    result.graph_entry->RelinkToOsrEntry(zone, result.num_blocks);
+    auto osr_result = result.graph_entry->FindOsrEntry(zone, result.num_blocks);
+    // No try-catch in irregexps, so we can pass nullptr as flow_graph_builder.
+    ASSERT(osr_result->try_entries_length() == 0);
+    kernel::FlowGraphBuilder::RelinkToOsrEntry(/*builder=*/nullptr, osr_result);
   }
   PrologueInfo prologue_info(-1, -1);
   return new (zone)
@@ -542,9 +545,14 @@ CodePtr CompileParsedFunctionHelper::Compile() {
       }
 
       if (flow_graph->should_reorder_blocks()) {
-        TIMELINE_DURATION(thread(), CompilerVerbose,
-                          "BlockScheduler::AssignEdgeWeights");
-        BlockScheduler::AssignEdgeWeights(flow_graph);
+        // Edge weights are indexed by blocks' preorder numbers. This means
+        // we can't apply them to OSR graph because it does not have the same
+        // structure as the original graph: it was mutated by RelinkToOsrEntry.
+        if (osr_id() == Compiler::kNoOSRDeoptId) {
+          TIMELINE_DURATION(thread(), CompilerVerbose,
+                            "BlockScheduler::AssignEdgeWeights");
+          BlockScheduler::AssignEdgeWeights(flow_graph);
+        }
       }
 
       CompilerPassState pass_state(thread(), flow_graph);

@@ -228,6 +228,14 @@ class PrettyPrinter {
       }
       buffer.write('}');
     }
+    if (block['o'] == 'TryEntry') {
+      if (block['tryBody'] != null) {
+        buffer.write(' tryBody: B${block["tryBody"]}');
+      }
+      if (block['catches'] != null) {
+        buffer.write(' catches: B${block["catches"]}');
+      }
+    }
     buffer.writeln();
     for (final instr in block['is'] ?? []) {
       buffer.write('  ');
@@ -485,6 +493,31 @@ class _BlockMatcher implements Matcher {
   }
 }
 
+class _TryBlockMatcher implements Matcher {
+  final String? tryBody;
+  final String? catches;
+  _TryBlockMatcher(this.tryBody, this.catches);
+
+  @override
+  MatchStatus match(Env e, covariant Map<String, dynamic> block) {
+    if (block['o'] != 'TryEntry') {
+      return MatchStatus.fail('Expected TryEntry block, got ${block['o']} '
+          'when matching B${block['b']}');
+    }
+    if (tryBody != null && "B${block['tryBody']}" != tryBody) {
+      return MatchStatus.fail(
+          'Expected tryBody block $tryBody , got B${block['tryBody']} '
+          'when matching B${block['b']}');
+    }
+    if (catches != null && "B${block['catches']}" != catches) {
+      return MatchStatus.fail(
+          'Expected catches block $catches , got B${block['catches']} '
+          'when matching B${block['b']}');
+    }
+    return MatchStatus.matched;
+  }
+}
+
 /// A matcher for instruction's named attributes.
 ///
 /// Attributes are resolved to their indices through [Env.descriptors].
@@ -671,6 +704,10 @@ class _CompileTypeMatcher implements Matcher {
 class Matchers {
   _BlockMatcher block(String kind, [List<dynamic> body = const []]) {
     return _BlockMatcher(kind, List<ElementMatcher>.from(body));
+  }
+
+  _TryBlockMatcher tryBlock({String? tryBody, String? catches}) {
+    return _TryBlockMatcher(tryBody, catches);
   }
 
   final _AnyMatcher any = const _AnyMatcher();
