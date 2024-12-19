@@ -882,6 +882,7 @@ class NewWidget extends StatelessWidget {
       expectedContent,
       command: Commands.performRefactor,
       title: extractWidgetTitle,
+      openTargetFile: true,
     );
   }
 
@@ -927,6 +928,7 @@ void f() {
       expectedContent,
       command: Commands.performRefactor,
       title: inlineVariableTitle,
+      openTargetFile: true,
     );
   }
 }

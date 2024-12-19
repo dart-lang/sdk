@@ -2528,7 +2528,10 @@ class _Universe {
       _recipeJoin(Rti._getCanonicalRecipe(baseType), Recipe.wrapFutureOrString);
 
   static String _canonicalRecipeOfGenericFunctionParameter(int index) =>
-      _recipeJoin('$index', Recipe.genericFunctionTypeParameterIndexString);
+      _recipeJoin(
+        _Utils.intToString(index),
+        Recipe.genericFunctionTypeParameterIndexString,
+      );
 
   static Rti _lookupErasedRti(Object? universe) {
     return _lookupTerminalRti(
@@ -4345,6 +4348,7 @@ class _Utils {
   static int asInt(Object? o) => JS('int', '#', o);
   static num asNum(Object? o) => JS('num', '#', o);
   static String asString(Object? o) => JS('String', '#', o);
+  static String intToString(Object? o) => JS('String', '"" + #', o);
   static Rti asRti(Object? s) => JS('Rti', '#', s);
   static Rti? asRtiOrNull(Object? s) => JS('Rti|Null', '#', s);
   static _Type as_Type(Object? o) => JS('_Type', '#', o);

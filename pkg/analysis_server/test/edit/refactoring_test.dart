@@ -1232,6 +1232,7 @@ void f() {
 }
 ''');
     // Start refactoring.
+    await setPriorityFiles2([testFile]);
     var result = await getRefactoringResult(() {
       return _sendInlineRequest('res =');
     });
@@ -1241,6 +1242,7 @@ void f() {
   }
 
   Future<void> test_feedback() {
+    setPriorityFiles([testFile]);
     addTestFile('''
 void f() {
   int test = 42;
@@ -1272,6 +1274,7 @@ void f() {
   }
 
   Future<void> test_OK() {
+    setPriorityFiles([testFile]);
     addTestFile('''
 void f() {
   int test = 42;
@@ -2547,6 +2550,7 @@ void f() {
   }
 
   Future<void> test_feedback() {
+    setPriorityFiles([testFile]);
     addTestFile('''
 class Test {}
 void f() {
@@ -2770,6 +2774,7 @@ part of my.new_name;
   }
 
   Future<void> test_localVariable() {
+    setPriorityFiles([testFile]);
     addTestFile('''
 void f() {
   int test = 0;
@@ -2881,6 +2886,7 @@ void f(Object? x) {
   }
 
   Future<void> test_patternVariable_patternAssignment() {
+    setPriorityFiles([testFile]);
     addTestFile('''
 void f(Object? x) {
   int test;
