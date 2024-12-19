@@ -36,4 +36,43 @@ class B extends A {
     var result = await sendEditBulkFixes([sourceDirectory.path]);
     expect(result.edits, hasLength(1));
   }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/59572')
+  Future<void> test_bulk_fix_with_parts() async {
+    writeFile(sourcePath(file_paths.analysisOptionsYaml), '''
+linter:
+  rules:
+    - empty_statements
+    - prefer_const_constructors
+''');
+    writeFile(sourcePath('part.dart'), '''
+part of 'test.dart';
+
+class C {
+  const C();
+}
+
+C b() {
+  // dart fix should only add a single const
+  return C();
+}
+''');
+    writeFile(sourcePath('test.dart'), '''
+part 'part.dart';
+
+void a() {
+  // need to trigger a lint in main.dart for the bug to happen
+  ;
+  b();
+}
+''');
+    await standardAnalysisSetup();
+    await analysisFinished;
+
+    var result = await sendEditBulkFixes([sourceDirectory.path]);
+    var edits = result.edits;
+    expect(edits, hasLength(2));
+    expect(edits[0].edits, hasLength(1));
+    expect(edits[1].edits, hasLength(1));
+  }
 }
