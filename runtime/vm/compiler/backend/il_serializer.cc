@@ -988,7 +988,6 @@ void GraphEntryInstr::WriteExtra(FlowGraphSerializer* s) {
   s->WriteRef<FunctionEntryInstr*>(normal_entry_);
   s->WriteRef<FunctionEntryInstr*>(unchecked_entry_);
   s->WriteRef<OsrEntryInstr*>(osr_entry_);
-  s->WriteGrowableArrayOfRefs<CatchBlockEntryInstr*>(catch_entries_);
   s->WriteGrowableArrayOfRefs<IndirectEntryInstr*>(indirect_entries_);
 }
 
@@ -997,7 +996,6 @@ void GraphEntryInstr::ReadExtra(FlowGraphDeserializer* d) {
   normal_entry_ = d->ReadRef<FunctionEntryInstr*>();
   unchecked_entry_ = d->ReadRef<FunctionEntryInstr*>();
   osr_entry_ = d->ReadRef<OsrEntryInstr*>();
-  catch_entries_ = d->ReadGrowableArrayOfRefs<CatchBlockEntryInstr*>();
   indirect_entries_ = d->ReadGrowableArrayOfRefs<IndirectEntryInstr*>();
 }
 

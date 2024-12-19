@@ -1989,10 +1989,6 @@ class GraphEntryInstr : public BlockEntryWithInitialDefs {
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
-  void AddCatchEntry(CatchBlockEntryInstr* entry) { catch_entries_.Add(entry); }
-
-  CatchBlockEntryInstr* GetCatchEntry(intptr_t index);
-
   void AddIndirectEntry(IndirectEntryInstr* entry) {
     indirect_entries_.Add(entry);
   }
@@ -2037,17 +2033,11 @@ class GraphEntryInstr : public BlockEntryWithInitialDefs {
 
   const ParsedFunction& parsed_function() const { return parsed_function_; }
 
-  const GrowableArray<CatchBlockEntryInstr*>& catch_entries() const {
-    return catch_entries_;
-  }
-
   const GrowableArray<IndirectEntryInstr*>& indirect_entries() const {
     return indirect_entries_;
   }
 
-  bool HasSingleEntryPoint() const {
-    return catch_entries().is_empty() && unchecked_entry() == nullptr;
-  }
+  bool HasSingleEntryPoint() const { return unchecked_entry() == nullptr; }
 
   PRINT_BLOCK_HEADER_TO_SUPPORT
   DECLARE_CUSTOM_SERIALIZATION(GraphEntryInstr)
@@ -2065,7 +2055,6 @@ class GraphEntryInstr : public BlockEntryWithInitialDefs {
   FunctionEntryInstr* normal_entry_ = nullptr;
   FunctionEntryInstr* unchecked_entry_ = nullptr;
   OsrEntryInstr* osr_entry_ = nullptr;
-  GrowableArray<CatchBlockEntryInstr*> catch_entries_;
   // Indirect targets are blocks reachable only through indirect gotos.
   GrowableArray<IndirectEntryInstr*> indirect_entries_;
   const intptr_t osr_id_;

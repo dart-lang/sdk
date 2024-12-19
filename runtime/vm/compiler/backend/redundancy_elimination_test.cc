@@ -85,7 +85,7 @@ static void TryCatchOptimizerTest(
   // Finally run TryCatchAnalyzer on the graph (in AOT mode).
   OptimizeCatchEntryStates(graph, /*is_aot=*/true);
 
-  EXPECT_EQ(1, graph->graph_entry()->catch_entries().length());
+  EXPECT_EQ(1, graph->try_entries().length());
   auto scope = graph->parsed_function().scope();
 
   GrowableArray<LocalVariable*> env;
@@ -104,7 +104,7 @@ static void TryCatchOptimizerTest(
     }
   }
 
-  CatchBlockEntryInstr* catch_entry = graph->graph_entry()->catch_entries()[0];
+  CatchBlockEntryInstr* catch_entry = graph->GetCatchBlockByTryIndex(0);
 
   // We should only synchronize state for variables from the synchronized list.
   for (auto defn : *catch_entry->initial_definitions()) {

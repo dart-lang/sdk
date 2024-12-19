@@ -264,7 +264,6 @@ Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
       AllocateBlockId(), CurrentTryIndex(), graph_entry_, handler_types,
       handler_index, needs_stacktrace, GetNextDeoptId(), /*stack_depth=*/0,
       exception_var, stacktrace_var, raw_exception_var, raw_stacktrace_var);
-  graph_entry_->AddCatchEntry(entry);
 
   TryEntryInstr* try_entry = try_entries_[handler_index];
   ASSERT(try_entry != nullptr && try_entry->catch_target() == nullptr);

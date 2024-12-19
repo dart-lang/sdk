@@ -1371,10 +1371,8 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   env.FillWith(constant_dead(), 0, num_direct_parameters());
   env.FillWith(constant_null(), num_direct_parameters(), num_stack_locals());
 
-  if (entry->catch_entries().is_empty()) {
-    ASSERT(entry->unchecked_entry() != nullptr ? entry->SuccessorCount() == 2
-                                               : entry->SuccessorCount() == 1);
-  }
+  ASSERT(entry->unchecked_entry() != nullptr ? entry->SuccessorCount() == 2
+                                             : entry->SuccessorCount() == 1);
 
   // For OSR on a non-empty stack, insert synthetic phis on every joining entry.
   // These phis are synthetic since they are not driven by live variable
@@ -1895,7 +1893,7 @@ void FlowGraph::ValidatePhis() {
 void FlowGraph::RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis) {
   // Augment live_phis with those that have implicit real used at
   // potentially throwing instructions if there is a try-catch in this graph.
-  if (!graph_entry()->catch_entries().is_empty()) {
+  if (!try_entries().is_empty()) {
     for (BlockIterator it(postorder_iterator()); !it.Done(); it.Advance()) {
       JoinEntryInstr* join = it.Current()->AsJoinEntry();
       if (join == nullptr) continue;

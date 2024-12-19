@@ -640,7 +640,7 @@ void FlowGraphAllocator::BuildLiveRanges() {
 
     CatchBlockEntryInstr* surrounding_catch_block =
         block->InsideTryBlock()
-            ? flow_graph_.graph_entry()->GetCatchEntry(block->try_index())
+            ? flow_graph_.GetCatchBlockByTryIndex(block->try_index())
             : nullptr;
     // Now process all instructions in reverse order.
     while (current != block) {
