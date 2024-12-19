@@ -17,28 +17,13 @@ main() {
 
 @reflectiveTest
 class TypeParameterElementTest extends AbstractTypeSystemTest {
-  test_equal_elementElement_sameLocation() {
+  test_equal() {
     var T1 = typeParameter('T');
     var T2 = typeParameter('T');
-    var U = typeParameter('U');
-    class_(name: 'A', typeParameters: [T1, T2, U]);
 
     expect(T1 == T1, isTrue);
     expect(T2 == T2, isTrue);
-    expect(U == U, isTrue);
 
-    expect(T1 == T2, isTrue);
-    expect(T2 == T1, isTrue);
-
-    expect(U == T1, isFalse);
-    expect(T1 == U, isFalse);
-  }
-
-  test_equal_elementElement_synthetic() {
-    var T1 = typeParameter('T');
-    var T2 = typeParameter('T');
-    expect(T1 == T1, isTrue);
-    expect(T2 == T2, isTrue);
     expect(T1 == T2, isFalse);
     expect(T2 == T1, isFalse);
   }
@@ -46,59 +31,47 @@ class TypeParameterElementTest extends AbstractTypeSystemTest {
 
 @reflectiveTest
 class TypeParameterTypeTest extends AbstractTypeSystemTest {
-  test_equal_equalElements() {
+  test_equal_differentElements() {
     var T1 = typeParameter('T');
     var T2 = typeParameter('T');
-    class_(name: 'A', typeParameters: [T1, T2]);
-
-    _assertEqual(typeParameterTypeNone(T1), typeParameterTypeNone(T2), isTrue);
-    _assertEqual(typeParameterTypeNone(T2), typeParameterTypeNone(T1), isTrue);
 
     _assertEqual(
       typeParameterTypeNone(T1),
-      typeParameterTypeQuestion(T2),
-      isFalse,
-    );
-    _assertEqual(
-      typeParameterTypeNone(T1),
-      typeParameterTypeQuestion(T2),
+      typeParameterTypeNone(T2),
       isFalse,
     );
   }
 
-  test_equal_equalElements_withRecursiveBounds() {
-    var A = class_(name: 'A', typeParameters: [typeParameter('E')]);
-
-    var T1 = typeParameter('T');
-    T1.bound = interfaceTypeNone(A, typeArguments: [
-      typeParameterTypeNone(T1),
-    ]);
-
-    var T2 = typeParameter('T');
-    T2.bound = interfaceTypeNone(A, typeArguments: [
-      typeParameterTypeNone(T2),
-    ]);
-
-    class_(name: 'B', typeParameters: [T1, T2]);
-
-    _assertEqual(typeParameterTypeNone(T1), typeParameterTypeNone(T2), isTrue);
-    _assertEqual(typeParameterTypeNone(T2), typeParameterTypeNone(T1), isTrue);
+  test_equal_sameElement() {
+    var T = typeParameter('T');
 
     _assertEqual(
-      typeParameterTypeNone(T1),
-      typeParameterTypeQuestion(T2),
+      typeParameterTypeNone(T),
+      typeParameterTypeNone(T),
+      isTrue,
+    );
+
+    _assertEqual(
+      typeParameterTypeNone(T),
+      typeParameterTypeQuestion(T),
       isFalse,
     );
+
     _assertEqual(
-      typeParameterTypeQuestion(T1),
-      typeParameterTypeNone(T2),
+      typeParameterTypeQuestion(T),
+      typeParameterTypeNone(T),
       isFalse,
+    );
+
+    _assertEqual(
+      typeParameterTypeQuestion(T),
+      typeParameterTypeQuestion(T),
+      isTrue,
     );
   }
 
   test_equal_sameElement_promotedBounds() {
     var T = typeParameter('T');
-    class_(name: 'A', typeParameters: [T]);
 
     _assertEqual(
       promotedTypeParameterTypeNone(T, intNone),
@@ -122,34 +95,6 @@ class TypeParameterTypeTest extends AbstractTypeSystemTest {
       typeParameterTypeNone(T),
       promotedTypeParameterTypeNone(T, intNone),
       isFalse,
-    );
-  }
-
-  test_equal_sameElements() {
-    var T = typeParameter('T');
-
-    _assertEqual(
-      typeParameterTypeNone(T),
-      typeParameterTypeNone(T),
-      isTrue,
-    );
-
-    _assertEqual(
-      typeParameterTypeNone(T),
-      typeParameterTypeQuestion(T),
-      isFalse,
-    );
-
-    _assertEqual(
-      typeParameterTypeQuestion(T),
-      typeParameterTypeNone(T),
-      isFalse,
-    );
-
-    _assertEqual(
-      typeParameterTypeQuestion(T),
-      typeParameterTypeQuestion(T),
-      isTrue,
     );
   }
 

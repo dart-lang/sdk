@@ -2668,6 +2668,7 @@ enum E<T> {
   }
 
   test_searchReferences_TypeParameterElement_ofLocalFunction() async {
+    makeFilePriority(testFile);
     await resolveTestCode('''
 main() {
   void foo<T>(T a) {

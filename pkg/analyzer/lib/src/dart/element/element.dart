@@ -1179,10 +1179,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       typeAliases.cast<TypeAliasFragment>();
 
   @override
-  bool operator ==(Object other) =>
-      other is CompilationUnitElementImpl && source == other.source;
-
-  @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitCompilationUnitElement(this);
 
@@ -3393,14 +3389,7 @@ abstract class ElementImpl2 implements Element2 {
 
   @override
   bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-    return other is ElementImpl2 &&
-        other.kind == kind &&
-        other.location == location &&
-        other.nonSynthetic2.firstFragment.nameOffset2 ==
-            nonSynthetic2.firstFragment.nameOffset2;
+    return identical(this, other);
   }
 
   /// Append a textual representation of this element to the given [builder].
@@ -6593,9 +6582,6 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
   @override
   List<PatternVariableFragment> get variables2 =>
       variables.cast<PatternVariableFragment>();
-
-  @override
-  bool operator ==(Object other) => identical(other, this);
 }
 
 class JoinPatternVariableElementImpl2 extends PatternVariableElementImpl2
@@ -7297,11 +7283,6 @@ class LibraryExportElementImpl extends _ExistingElementImpl
   ElementKind get kind => ElementKind.EXPORT;
 
   @override
-  bool operator ==(Object other) {
-    return identical(this, other);
-  }
-
-  @override
   T? accept<T>(ElementVisitor<T> visitor) {
     return visitor.visitLibraryExportElement(this);
   }
@@ -7388,11 +7369,6 @@ class LibraryImportElementImpl extends _ExistingElementImpl
       );
     }
     return Namespace.EMPTY;
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other);
   }
 
   @override
@@ -10938,20 +10914,6 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   set variance(shared.Variance? newVariance) => _variance = newVariance;
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) {
-      return true;
-    }
-    if (other is TypeParameterElement) {
-      if (other.enclosingElement3 == null || enclosingElement3 == null) {
-        return identical(other, this);
-      }
-      return other.location == location;
-    }
-    return false;
-  }
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>

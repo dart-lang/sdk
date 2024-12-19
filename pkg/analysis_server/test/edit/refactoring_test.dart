@@ -2799,6 +2799,7 @@ void f() {
   }
 
   Future<void> test_localVariable_finalCheck_shadowError() {
+    setPriorityFiles([testFile]);
     addTestFile('''
 void f() {
   var newName;
