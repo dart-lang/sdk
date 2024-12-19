@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
@@ -234,8 +235,8 @@ class PrefixExpressionResolver {
           _checkForInvalidAssignmentIncDec(node, staticType);
         }
         if (operand is SimpleIdentifier) {
-          var element = operand.staticElement;
-          if (element is PromotableElement) {
+          var element = operand.element;
+          if (element is PromotableElement2) {
             _resolver.flowAnalysis.flow
                 ?.write(node, element, SharedTypeView(staticType), null);
           }

@@ -1135,6 +1135,8 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kHas63BitSmis:
     case MethodRecognizer::kExtensionStreamHasListener:
+    case MethodRecognizer::kCompactHash_uninitializedIndex:
+    case MethodRecognizer::kCompactHash_uninitializedData:
     case MethodRecognizer::kSmi_hashCode:
     case MethodRecognizer::kMint_hashCode:
     case MethodRecognizer::kDouble_hashCode:
@@ -1745,6 +1747,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       // relaxed order access, which is acceptable for this use case.
       body += IntToBool();
 #endif  // PRODUCT
+    } break;
+    case MethodRecognizer::kCompactHash_uninitializedIndex: {
+      body += Constant(Object::uninitialized_index());
+    } break;
+    case MethodRecognizer::kCompactHash_uninitializedData: {
+      body += Constant(Object::uninitialized_data());
     } break;
     case MethodRecognizer::kSmi_hashCode: {
       // TODO(dartbug.com/38985): We should make this LoadLocal+Unbox+

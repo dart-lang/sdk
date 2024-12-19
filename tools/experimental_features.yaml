@@ -195,6 +195,7 @@ features:
         print('feature enabled');
       }
     help: "Number literals with digit separators."
+    expired: true
 
   inference-update-3: # See https://github.com/dart-lang/language/issues/1618
     enabledIn: '3.4.0'

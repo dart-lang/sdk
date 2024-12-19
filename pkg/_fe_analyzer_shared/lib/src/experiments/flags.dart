@@ -55,7 +55,7 @@ enum ExperimentalFlag {
   digitSeparators(
       name: 'digit-separators',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       experimentEnabledVersion: const Version(3, 6),
       experimentReleasedVersion: const Version(3, 6)),
 

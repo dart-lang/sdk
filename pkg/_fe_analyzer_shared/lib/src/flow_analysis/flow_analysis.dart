@@ -4429,7 +4429,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   /// For debugging only: the set of [Variable]s that have been passed to
   /// [declare] so far.  This is used to detect unnecessary calls to [declare].
-  final Set<Variable> _debugDeclaredVariables = {};
+  final Set<Variable> _debugDeclaredVariables =
+      // TODO(paulberry): consider changing back to `{}` once
+      // https://github.com/dart-lang/sdk/issues/59753 is fixed.
+      new Set.identity();
 
   @override
   late final SsaNode<Type> _superSsaNode = new SsaNode<Type>(null);

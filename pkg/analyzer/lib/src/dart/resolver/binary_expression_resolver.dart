@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
@@ -139,14 +140,14 @@ class BinaryExpressionResolver {
     }
 
     if (left is SimpleIdentifierImpl && right is NullLiteralImpl) {
-      var element = left.staticElement;
-      if (element is PromotableElement &&
+      var element = left.element;
+      if (element is PromotableElement2 &&
           flowAnalysis.isDefinitelyUnassigned(left, element)) {
         reportNullComparison(left, node.operator);
       }
     } else if (right is SimpleIdentifierImpl && left is NullLiteralImpl) {
-      var element = right.staticElement;
-      if (element is PromotableElement &&
+      var element = right.element;
+      if (element is PromotableElement2 &&
           flowAnalysis.isDefinitelyUnassigned(right, element)) {
         reportNullComparison(node.operator, right);
       }

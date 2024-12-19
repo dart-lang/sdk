@@ -820,8 +820,8 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    var element = this.element;
-    if (element is PromotableElement) {
+    var element = element2;
+    if (element is PromotableElement2) {
       return resolverVisitor
           .analyzeAssignedVariablePatternSchema(element)
           .unwrapTypeSchemaView();
@@ -5029,7 +5029,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
     var result = resolverVisitor.analyzeDeclaredVariablePattern(
         context,
         this,
-        declaredElement!,
+        declaredElement2!,
         declaredElement!.name,
         type?.typeOrThrow.wrapSharedTypeView());
     declaredElement!.type = result.staticType.unwrapTypeView();
@@ -9210,7 +9210,7 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
 
   /// Variables declared in [pattern], available in [whenClause] guard, and
   /// to the `ifTrue` node.
-  late Map<String, PatternVariableElementImpl> variables;
+  late Map<String, PatternVariableElementImpl2> variables;
 
   @override
   final WhenClauseImpl? whenClause;
@@ -17274,7 +17274,7 @@ class SwitchStatementCaseGroup {
   final bool hasLabels;
 
   /// Joined variables declared in [members], available in [statements].
-  late Map<String, PromotableElement> variables;
+  late Map<String, PromotableElement2> variables;
 
   SwitchStatementCaseGroup(this.members, this.hasLabels);
 

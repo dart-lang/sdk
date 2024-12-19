@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -467,8 +468,8 @@ class NullSafetyDeadCodeVerifier {
 
     target = target?.unParenthesized;
     if (target is SimpleIdentifier) {
-      var element = target.staticElement;
-      if (element is PromotableElement &&
+      var element = target.element;
+      if (element is PromotableElement2 &&
           flowAnalysis.isDefinitelyUnassigned(target, element)) {
         var parent = node.parent;
         while (parent is MethodInvocation ||

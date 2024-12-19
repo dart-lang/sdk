@@ -1782,7 +1782,6 @@ UnexpectedSeparatorInNumber:
   problemMessage: "Digit separators ('_') in a number literal can only be placed between two digits."
   correctionMessage: "Try removing the '_'."
   analyzerCode: UNEXPECTED_SEPARATOR_IN_NUMBER
-  experiments: digit-separators
   expression:
     - '123_'
     - '1.23_'

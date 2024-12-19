@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
@@ -54,6 +55,7 @@ class AssignmentExpressionResolver {
 
     var readElement = leftResolution.readElement;
     var writeElement = leftResolution.writeElement;
+    var writeElement2 = leftResolution.writeElement2;
 
     if (hasRead) {
       _resolver.setReadElement(
@@ -101,8 +103,8 @@ class AssignmentExpressionResolver {
         whyNotPromoted: whyNotPromoted, contextType: contextType);
 
     if (flow != null) {
-      if (writeElement is PromotableElement) {
-        flow.write(node, writeElement, SharedTypeView(node.typeOrThrow),
+      if (writeElement2 is PromotableElement2) {
+        flow.write(node, writeElement2, SharedTypeView(node.typeOrThrow),
             hasRead ? null : right);
       }
       if (isIfNull) {
@@ -359,8 +361,8 @@ class AssignmentExpressionShared {
     if (flow == null) return;
 
     if (left is SimpleIdentifier) {
-      var element = left.staticElement;
-      if (element is PromotableElement) {
+      var element = left.element;
+      if (element is PromotableElement2) {
         var assigned = flowAnalysis.isDefinitelyAssigned(left, element);
         var unassigned = flowAnalysis.isDefinitelyUnassigned(left, element);
 
@@ -377,7 +379,7 @@ class AssignmentExpressionShared {
               _errorReporter.atNode(
                 left,
                 CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
-                arguments: [element.name],
+                arguments: [element.name3!],
               );
             }
           }

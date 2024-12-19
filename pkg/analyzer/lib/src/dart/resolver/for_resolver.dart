@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -124,7 +125,7 @@ class ForResolver {
     Expression iterable = forEachParts.iterable;
     DeclaredIdentifier? loopVariable;
     SimpleIdentifier? identifier;
-    Element? identifierElement;
+    Element2? identifierElement;
     if (forEachParts is ForEachPartsWithDeclaration) {
       loopVariable = forEachParts.loopVariable;
     } else if (forEachParts is ForEachPartsWithIdentifier) {
@@ -144,12 +145,12 @@ class ForResolver {
       valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
     }
     if (identifier != null) {
-      identifierElement = identifier.staticElement;
-      if (identifierElement is VariableElement) {
+      identifierElement = identifier.element;
+      if (identifierElement is VariableElement2) {
         valueType = _resolver.localVariableTypeProvider
             .getType(identifier, isRead: false);
-      } else if (identifierElement is PropertyAccessorElement) {
-        var parameters = identifierElement.parameters;
+      } else if (identifierElement is SetterElement) {
+        var parameters = identifierElement.formalParameters;
         if (parameters.isNotEmpty) {
           valueType = parameters[0].type;
         }
@@ -180,14 +181,14 @@ class ForResolver {
     }
 
     if (loopVariable != null) {
-      var declaredElement = loopVariable.declaredElement!;
+      var declaredElement = loopVariable.declaredElement2!;
       _resolver.flowAnalysis.flow?.declare(
           declaredElement, SharedTypeView(declaredElement.type),
           initialized: true);
     }
 
     _resolver.flowAnalysis.flow?.forEach_bodyBegin(node);
-    if (identifierElement is PromotableElement &&
+    if (identifierElement is PromotableElement2 &&
         forEachParts is ForEachPartsWithIdentifier) {
       _resolver.flowAnalysis.flow?.write(
           forEachParts, identifierElement, SharedTypeView(elementType), null);

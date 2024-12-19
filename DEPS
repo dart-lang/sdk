@@ -135,7 +135,7 @@ vars = {
   "ecosystem_rev": "b4b2a438ff40cbbdf245b2854567316c1d24a394",
   "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
   "glob_rev": "994191a107b99a1911a3ef52ca238cd9305c8d37",
-  "http_rev": "79470d014b467f01b0e7c5b63ab6c86b22dec8db",
+  "http_rev": "c27d6c780bae0207e938f09596c2cf8d9bb4a963",
   "http_multi_server_rev": "f6a748819139b8cbf513d5fc36b10676b0cb066f",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
@@ -159,7 +159,7 @@ vars = {
   "sync_http_rev": "47e6b264a209d0d806cfe9cdad8b6c69ce231986",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
   "term_glyph_rev": "9ed8ed96fdd84cb7b72ee1be3e86010969fa95d4",
-  "test_rev": "dc0f8ea4d09aabb0fed16daea3d4653c8f967b02",
+  "test_rev": "165608a34917dcfc281ba67d64a814c57ae05c4e",
   "test_descriptor_rev": "408526a84e74d7af0f9c8c3fbb49ce9178927ee0",
   "test_process_rev": "5b0349ca18fe48cd527f74ac883db2964cbdba40",
   "test_reflective_loader_rev": "faade6299d1823f0d062eb5e98f3b440ddcea7c6",
@@ -185,7 +185,7 @@ vars = {
   "download_chrome": False,
   "chrome_tag": "132.0.6834.32",
   "download_firefox": False,
-  "firefox_tag": "133.0",
+  "firefox_tag": "133.0.3",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,

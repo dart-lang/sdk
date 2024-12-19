@@ -110,7 +110,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag digitSeparators = const ExperimentalFlag(
       name: 'digit-separators',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 6),
       experimentEnabledVersion: const Version(3, 6),
       experimentReleasedVersion: const Version(3, 6));
