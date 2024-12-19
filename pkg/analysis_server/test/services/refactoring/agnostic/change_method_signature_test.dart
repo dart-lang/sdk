@@ -725,7 +725,7 @@ NotAvailableNoExecutableElement
         buffer.writeln('UnexpectedSelectionState');
       case ValidSelectionState():
         buffer.write('element: ');
-        buffer.writeln(_elementToReferenceString(selectionState.element2));
+        buffer.writeln(_elementToReferenceString(selectionState.element));
         buffer.writeln('formalParameters');
         for (var formalParameter in selectionState.formalParameters) {
           buffer.writeln('  id: ${formalParameter.id}');
