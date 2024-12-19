@@ -4409,20 +4409,19 @@ class UnboxedConstantInstr : public ConstantInstr {
 
   virtual Representation representation() const { return representation_; }
 
-  // Either nullptr or the address of the unboxed constant.
-  uword constant_address() const { return constant_address_; }
-
   DECLARE_INSTRUCTION(UnboxedConstant)
-  DECLARE_CUSTOM_SERIALIZATION(UnboxedConstantInstr)
 
   DECLARE_ATTRIBUTES_NAMED(("value", "representation"),
                            (&value(), representation()))
 
- private:
-  const Representation representation_;
-  uword
-      constant_address_;  // Either nullptr or points to the untagged constant.
+#define FIELD_LIST(F) F(const Representation, representation_)
 
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(UnboxedConstantInstr,
+                                          ConstantInstr,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+ private:
   DISALLOW_COPY_AND_ASSIGN(UnboxedConstantInstr);
 };
 

@@ -1175,14 +1175,7 @@ bool ConstantInstr::AttributesEqual(const Instruction& other) const {
 
 UnboxedConstantInstr::UnboxedConstantInstr(const Object& value,
                                            Representation representation)
-    : ConstantInstr(value),
-      representation_(representation),
-      constant_address_(0) {
-  if (representation_ == kUnboxedDouble) {
-    ASSERT(value.IsDouble());
-    constant_address_ = FindDoubleConstant(Double::Cast(value).value());
-  }
-}
+    : ConstantInstr(value), representation_(representation) {}
 
 // Returns true if the value represents a constant.
 bool Value::BindsToConstant() const {
