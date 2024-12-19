@@ -52,7 +52,6 @@ void RunTestInMode(CompilerPass::PipelineMode mode) {
       R"(
       import 'dart:async';
 
-      @pragma("vm:entry-point", "call")
       Future foo() async {
         print('pos-0');
         await 0;
@@ -82,9 +81,9 @@ void RunTestInMode(CompilerPass::PipelineMode mode) {
   auto validate_indices = [](const YieldPoints& yield_points) {
     EXPECT_EQ(3, yield_points.length());
 
-    EXPECT_EQ(128, yield_points[0].Pos());
-    EXPECT_EQ(169, yield_points[1].Pos());
-    EXPECT_EQ(210, yield_points[2].Pos());
+    EXPECT_EQ(88, yield_points[0].Pos());
+    EXPECT_EQ(129, yield_points[1].Pos());
+    EXPECT_EQ(170, yield_points[2].Pos());
   };
 
   validate_indices(*GetYieldPointsFromGraph(flow_graph));
