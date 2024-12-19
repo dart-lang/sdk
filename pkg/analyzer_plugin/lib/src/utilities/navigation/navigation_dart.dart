@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -23,7 +24,8 @@ NavigationCollector computeDartNavigation(
     ParsedUnitResult result,
     int? offset,
     int? length) {
-  var dartCollector = _DartNavigationCollector(collector, offset, length);
+  var dartCollector =
+      _DartNavigationCollector(collector, resourceProvider, offset, length);
   var unit = result.unit;
   var visitor = _DartNavigationComputerVisitor(
     resourceProvider: resourceProvider,
@@ -92,65 +94,98 @@ AstNode? _getNodeForRange(CompilationUnit unit, int offset, int length) {
 /// A Dart specific wrapper around [NavigationCollector].
 class _DartNavigationCollector {
   final NavigationCollector collector;
+  final ResourceProvider resourceProvider;
   final int? requestedOffset;
   final int? requestedLength;
 
   _DartNavigationCollector(
-      this.collector, this.requestedOffset, this.requestedLength);
+    this.collector,
+    this.resourceProvider,
+    this.requestedOffset,
+    this.requestedLength,
+  );
 
   void _addRegion(
     int offset,
     int length,
     protocol.ElementKind kind,
     protocol.Location location, {
-    Element? targetElement,
+    Fragment? targetFragment,
   }) {
     // Discard elements that don't span the offset/range given (if provided).
     if (!_isWithinRequestedRange(offset, length)) {
       return;
     }
 
-    collector.addRegion(offset, length, kind, location,
-        targetElement: targetElement);
+    collector.addRegion(
+      offset,
+      length,
+      kind,
+      location,
+      targetFragment: targetFragment,
+    );
   }
 
-  void _addRegionForElement(int offset, int length, Element element) {
-    element = element.nonSynthetic;
-    if (element == DynamicElementImpl.instance) {
+  void _addRegionForElement(SyntacticEntity? nodeOrToken, Element2? element) {
+    _addRegionForFragment(nodeOrToken, element?.nonSynthetic2.firstFragment);
+  }
+
+  void _addRegionForFragment(SyntacticEntity? nodeOrToken, Fragment? fragment) {
+    if (nodeOrToken == null || fragment == null) return;
+
+    var offset = nodeOrToken.offset;
+    var length = nodeOrToken.length;
+
+    // If this fragment is for a synthetic element, use the first fragment for
+    // the non-synthetic element.
+    if (fragment.element.isSynthetic) {
+      fragment = fragment.element.nonSynthetic2.firstFragment;
+    }
+
+    if (fragment.element == DynamicElementImpl.instance) {
       return;
     }
-    if (element.location == null) {
+    if (fragment.element.location == null) {
       return;
     }
+
     // Discard elements that don't span the offset/range given (if provided).
     if (!_isWithinRequestedRange(offset, length)) {
       return;
     }
-    var location = element.toLocation();
+    var location = fragment.toLocation();
     if (location == null) {
       return;
     }
 
-    _addRegion(offset, length, element.kind.toPluginElementKind, location,
-        targetElement: element);
+    _addRegion(
+      offset,
+      length,
+      fragment.toPluginElementKind,
+      location,
+      targetFragment: fragment,
+    );
   }
 
-  void _addRegionForNode(AstNode? node, Element? element) {
-    if (node == null || element == null) {
-      return;
+  void _addRegionForLibrary(int offset, int length, String fullPath) {
+    if (resourceProvider.getResource(fullPath).exists) {
+      if (_isWithinRequestedRange(offset, length)) {
+        collector.addRegion(
+          offset,
+          length,
+          protocol.ElementKind.LIBRARY,
+          protocol.Location(
+            fullPath,
+            0,
+            0,
+            0,
+            0,
+            endLine: 0,
+            endColumn: 0,
+          ),
+        );
+      }
     }
-    var offset = node.offset;
-    var length = node.length;
-    _addRegionForElement(offset, length, element);
-  }
-
-  void _addRegionForToken(Token token, Element? element) {
-    if (element == null) {
-      return;
-    }
-    var offset = token.offset;
-    var length = token.length;
-    _addRegionForElement(offset, length, element);
   }
 
   /// Checks if offset/length intersect with the range the user requested
@@ -158,7 +193,7 @@ class _DartNavigationCollector {
   ///
   /// If the request did not specify a range, always returns true.
   bool _isWithinRequestedRange(int offset, int length) {
-    final requestedOffset = this.requestedOffset;
+    var requestedOffset = this.requestedOffset;
     if (requestedOffset == null) {
       return true;
     }
@@ -188,24 +223,24 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAnnotation(Annotation node) {
-    var element = node.element;
-    if (element is ConstructorElement && element.isSynthetic) {
-      element = element.enclosingElement3;
+    var element = node.element2;
+    if (element is ConstructorElement2 && element.isSynthetic) {
+      element = element.enclosingElement2;
     }
     var name = node.name;
     if (name is PrefixedIdentifier) {
       // use constructor in: @PrefixClass.constructorName
-      var prefixElement = name.prefix.staticElement;
-      if (prefixElement is ClassElement) {
+      var prefixElement = name.prefix.element;
+      if (prefixElement is ClassElement2) {
         prefixElement = element;
       }
-      computer._addRegionForNode(name.prefix, prefixElement);
+      computer._addRegionForElement(name.prefix, prefixElement);
       // always constructor
-      computer._addRegionForNode(name.identifier, element);
+      computer._addRegionForElement(name.identifier, element);
     } else {
-      computer._addRegionForNode(name, element);
+      computer._addRegionForElement(name, element);
     }
-    computer._addRegionForNode(node.constructorName, element);
+    computer._addRegionForElement(node.constructorName, element);
     // type arguments
     node.typeArguments?.accept(this);
     // arguments
@@ -215,20 +250,20 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     node.leftHandSide.accept(this);
-    computer._addRegionForToken(node.operator, node.staticElement);
+    computer._addRegionForElement(node.operator, node.element);
     node.rightHandSide.accept(this);
   }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
     node.leftOperand.accept(this);
-    computer._addRegionForToken(node.operator, node.staticElement);
+    computer._addRegionForElement(node.operator, node.element);
     node.rightOperand.accept(this);
   }
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    computer._addRegionForToken(node.name, node.declaredElement);
+    computer._addRegionForFragment(node.name, node.declaredFragment);
     super.visitClassDeclaration(node);
   }
 
@@ -237,20 +272,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     super.visitComment(node);
 
     for (var link in _documentLinkVisitor.findLinks(node)) {
-      computer._addRegion(
-        link.offset,
-        link.length,
-        protocol.ElementKind.LIBRARY,
-        protocol.Location(
-          link.targetPath,
-          0,
-          0,
-          0,
-          0,
-          endLine: 0,
-          endColumn: 0,
-        ),
-      );
+      computer._addRegionForLibrary(link.offset, link.length, link.targetPath);
     }
   }
 
@@ -274,19 +296,8 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     var resolvedUri = node.resolvedUri;
     if (resolvedUri is DirectiveUriWithSource) {
       var source = resolvedUri.source;
-      if (resourceProvider.getResource(source.fullName).exists) {
-        // TODO(brianwilkerson): If the analyzer ever resolves the URI to a
-        //  library, use that library element to create the region.
-        var uriNode = node.uri;
-        if (computer._isWithinRequestedRange(uriNode.offset, uriNode.length)) {
-          computer.collector.addRegion(
-              uriNode.offset,
-              uriNode.length,
-              protocol.ElementKind.LIBRARY,
-              protocol.Location(source.fullName, 0, 0, 0, 0,
-                  endLine: 0, endColumn: 0));
-        }
-      }
+      computer._addRegionForLibrary(
+          node.uri.offset, node.uri.length, source.fullName);
     }
     super.visitConfiguration(node);
   }
@@ -299,10 +310,11 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     // itself rather than linking to the class.
     var nameToken = node.name;
     if (nameToken == null) {
-      computer._addRegionForNode(node.returnType, node.declaredElement);
+      computer._addRegionForElement(
+          node.returnType, node.declaredFragment?.element);
     } else {
       node.returnType.accept(this);
-      computer._addRegionForToken(nameToken, node.declaredElement);
+      computer._addRegionForFragment(nameToken, node.declaredFragment);
     }
 
     node.parameters.accept(this);
@@ -313,7 +325,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    Element? element = node.staticElement;
+    Element2? element = node.element;
     if (element == null) {
       return;
     }
@@ -323,18 +335,18 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     {
       var importPrefix = namedType.importPrefix;
       if (importPrefix != null) {
-        computer._addRegionForToken(importPrefix.name, importPrefix.element);
+        computer._addRegionForElement(importPrefix.name, importPrefix.element2);
       }
       // For a named constructor, the class name points at the class.
       var classNameTargetElement =
-          node.name != null ? namedType.element : element;
-      computer._addRegionForToken(namedType.name2, classNameTargetElement);
+          node.name != null ? namedType.element2 : element;
+      computer._addRegionForElement(namedType.name2, classNameTargetElement);
     }
     // <TypeA, TypeB>
     namedType.typeArguments?.accept(this);
     // optional "name"
     if (node.name != null) {
-      computer._addRegionForNode(node.name, element);
+      computer._addRegionForElement(node.name, element);
     }
   }
 
@@ -343,9 +355,9 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     if (node.type == null) {
       var token = node.keyword;
       if (token != null && token.keyword == Keyword.VAR) {
-        var inferredType = node.declaredElement?.type;
+        var inferredType = node.declaredFragment?.element.type;
         if (inferredType is InterfaceType) {
-          computer._addRegionForToken(token, inferredType.element);
+          computer._addRegionForElement(token, inferredType.element3);
         }
       }
     }
@@ -354,19 +366,19 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    computer._addRegionForToken(node.name, node.declaredElement);
+    computer._addRegionForElement(node.name, node.declaredElement2);
     super.visitDeclaredVariablePattern(node);
   }
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    computer._addRegionForToken(node.name, node.constructorElement);
+    computer._addRegionForElement(node.name, node.constructorElement2);
 
     var arguments = node.arguments;
     if (arguments != null) {
-      computer._addRegionForNode(
+      computer._addRegionForElement(
         arguments.constructorSelector?.name,
-        node.constructorElement,
+        node.constructorElement2,
       );
       arguments.typeArguments?.accept(this);
       arguments.argumentList.accept(this);
@@ -375,26 +387,22 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    var exportElement = node.element;
-    if (exportElement != null) {
-      var libraryElement = exportElement.exportedLibrary;
-      _addUriDirectiveRegion(node, libraryElement);
-    }
+    _addUriDirectiveRegion(node, node.libraryExport?.uri);
     super.visitExportDirective(node);
   }
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    computer._addRegionForToken(node.name, node.declaredElement);
+    computer._addRegionForFragment(node.name, node.declaredFragment);
     super.visitExtensionTypeDeclaration(node);
   }
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    var element = node.declaredElement;
-    if (element is FieldFormalParameterElementImpl) {
-      computer._addRegionForToken(node.thisKeyword, element.field);
-      computer._addRegionForToken(node.name, element.field);
+    var element = node.declaredFragment?.element;
+    if (element != null) {
+      computer._addRegionForElement(node.thisKeyword, element.field2);
+      computer._addRegionForElement(node.name, element.field2);
     }
 
     node.type?.accept(this);
@@ -404,58 +412,54 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    computer._addRegionForToken(node.name, node.declaredElement);
+    computer._addRegionForFragment(node.name, node.declaredFragment);
     super.visitFunctionDeclaration(node);
   }
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var importElement = node.element;
-    if (importElement != null) {
-      var libraryElement = importElement.importedLibrary;
-      _addUriDirectiveRegion(node, libraryElement);
-    }
+    _addUriDirectiveRegion(node, node.libraryImport?.uri);
     super.visitImportDirective(node);
   }
 
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
-    computer._addRegionForToken(node.name, node.element);
+    computer._addRegionForElement(node.name, node.element2);
   }
 
   @override
   void visitIndexExpression(IndexExpression node) {
     super.visitIndexExpression(node);
-    var element = node.writeOrReadElement;
-    computer._addRegionForToken(node.leftBracket, element);
-    computer._addRegionForToken(node.rightBracket, element);
+    var element = node.writeOrReadElement2;
+    computer._addRegionForElement(node.leftBracket, element);
+    computer._addRegionForElement(node.rightBracket, element);
   }
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    computer._addRegionForNode(node.name2, node.element);
+    computer._addRegionForElement(node.name2, node.element2);
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    computer._addRegionForToken(node.name, node.declaredElement);
+    computer._addRegionForFragment(node.name, node.declaredFragment);
     super.visitMethodDeclaration(node);
   }
 
   @override
   void visitNamedType(NamedType node) {
     node.importPrefix?.accept(this);
-    computer._addRegionForToken(node.name2, node.element);
+    computer._addRegionForElement(node.name2, node.element2);
     node.typeArguments?.accept(this);
   }
 
   @override
   void visitPartDirective(PartDirective node) {
-    var element = node.element;
-    if (element is PartElement) {
-      var uri = element.uri;
+    var include = node.partInclude;
+    if (include != null) {
+      var uri = include.uri;
       if (uri is DirectiveUriWithUnit) {
-        computer._addRegionForNode(node.uri, uri.unit);
+        computer._addRegionForFragment(node.uri, uri.libraryFragment);
       } else if (uri is DirectiveUriWithSource) {
         var uriNode = node.uri;
         var source = uri.source;
@@ -463,8 +467,15 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
           uriNode.offset,
           uriNode.length,
           protocol.ElementKind.FILE,
-          protocol.Location(source.fullName, 0, 0, 0, 0,
-              endLine: 0, endColumn: 0),
+          protocol.Location(
+            source.fullName,
+            0,
+            0,
+            0,
+            0,
+            endLine: 0,
+            endColumn: 0,
+          ),
         );
       }
     }
@@ -474,7 +485,11 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    computer._addRegionForNode(node.libraryName ?? node.uri, node.element);
+    // TODO(dantup): How to migrate this to new element model? How do we get
+    //  the target element/fragment for a 'part of'?
+    if (node.element case ElementImpl element) {
+      computer._addRegionForElement(node.libraryName ?? node.uri, element);
+    }
     super.visitPartOfDirective(node);
   }
 
@@ -484,7 +499,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     if (nameNode != null) {
       var nameToken = nameNode.name ?? node.pattern.variablePattern?.name;
       if (nameToken != null) {
-        computer._addRegionForToken(nameToken, node.element);
+        computer._addRegionForElement(nameToken, node.element2);
       }
     }
 
@@ -494,25 +509,26 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitPostfixExpression(PostfixExpression node) {
     super.visitPostfixExpression(node);
-    computer._addRegionForToken(node.operator, node.staticElement);
+    computer._addRegionForElement(node.operator, node.element);
   }
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    computer._addRegionForToken(node.operator, node.staticElement);
+    computer._addRegionForElement(node.operator, node.element);
     super.visitPrefixExpression(node);
   }
 
   @override
   void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
-    Element? element = node.staticElement;
+    RedirectingConstructorInvocation node,
+  ) {
+    Element2? element = node.element;
     if (element != null && element.isSynthetic) {
-      element = element.enclosingElement3;
+      element = element.enclosingElement2;
     }
     // add region
-    computer._addRegionForToken(node.thisKeyword, element);
-    computer._addRegionForNode(node.constructorName, element);
+    computer._addRegionForElement(node.thisKeyword, element);
+    computer._addRegionForElement(node.constructorName, element);
     // process arguments
     node.argumentList.accept(this);
   }
@@ -520,9 +536,10 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitRepresentationDeclaration(RepresentationDeclaration node) {
     if (node.constructorName?.name case var constructorName?) {
-      computer._addRegionForToken(constructorName, node.constructorElement);
+      computer._addRegionForElement(
+          constructorName, node.constructorFragment?.element);
     }
-    computer._addRegionForToken(node.fieldName, node.fieldElement);
+    computer._addRegionForFragment(node.fieldName, node.fieldFragment);
     super.visitRepresentationDeclaration(node);
   }
 
@@ -530,7 +547,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     var nameToken = node.name;
     if (nameToken != null) {
-      computer._addRegionForToken(nameToken, node.declaredElement);
+      computer._addRegionForFragment(nameToken, node.declaredFragment);
     }
 
     super.visitSimpleFormalParameter(node);
@@ -538,30 +555,30 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.writeOrReadElement;
-    computer._addRegionForNode(node, element);
+    var element = node.writeOrReadElement2;
+    computer._addRegionForElement(node, element);
   }
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    Element? element = node.staticElement;
+    Element2? element = node.element;
     if (element != null && element.isSynthetic) {
-      element = element.enclosingElement3;
+      element = element.enclosingElement2;
     }
     // add region
-    computer._addRegionForToken(node.superKeyword, element);
-    computer._addRegionForNode(node.constructorName, element);
+    computer._addRegionForElement(node.superKeyword, element);
+    computer._addRegionForElement(node.constructorName, element);
     // process arguments
     node.argumentList.accept(this);
   }
 
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
-    var element = node.declaredElement;
-    if (element is SuperFormalParameterElementImpl) {
-      var superParameter = element.superConstructorParameter;
-      computer._addRegionForToken(node.superKeyword, superParameter);
-      computer._addRegionForToken(node.name, superParameter);
+    var element = node.declaredFragment?.element;
+    if (element case SuperFormalParameterElementImpl2 element) {
+      var superParameter = element.superConstructorParameter2;
+      computer._addRegionForElement(node.superKeyword, superParameter);
+      computer._addRegionForElement(node.name, superParameter);
     }
 
     node.type?.accept(this);
@@ -571,13 +588,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    computer._addRegionForToken(node.name, node.declaredElement);
+    computer._addRegionForFragment(node.name, node.declaredFragment);
     super.visitTypeParameter(node);
   }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    computer._addRegionForToken(node.name, node.declaredElement);
+    computer._addRegionForFragment(node.name, node.declaredFragment);
     super.visitVariableDeclaration(node);
   }
 
@@ -586,19 +603,19 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     /// Return the element for the type inferred for each of the variables in
     /// the given list of [variables], or `null` if not all variable have the
     /// same inferred type.
-    Element? getCommonElement(List<VariableDeclaration> variables) {
-      var firstType = variables[0].declaredElement?.type;
+    Element2? getCommonElement(List<VariableDeclaration> variables) {
+      var firstType = variables[0].declaredFragment?.element.type;
       if (firstType is! InterfaceType) {
         return null;
       }
 
-      var firstElement = firstType.element;
+      var firstElement = firstType.element3;
       for (var i = 1; i < variables.length; i++) {
-        var type = variables[i].declaredElement?.type;
+        var type = variables[i].declaredFragment?.element.type;
         if (type is! InterfaceType) {
           return null;
         }
-        if (type.element != firstElement) {
+        if (type.element3 != firstElement) {
           return null;
         }
       }
@@ -610,24 +627,73 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       if (token?.keyword == Keyword.VAR) {
         var element = getCommonElement(node.variables);
         if (element != null) {
-          computer._addRegionForToken(token!, element);
+          computer._addRegionForElement(token!, element);
         }
       }
     }
     super.visitVariableDeclarationList(node);
   }
 
-  /// If the source of the given [element] (referenced by the [node]) exists,
-  /// then add the navigation region from the [node] to the [element].
+  /// If the [uri] references a value unit, then add the navigation region from
+  /// the [node] to the unit.
   void _addUriDirectiveRegion(
     UriBasedDirective node,
-    LibraryElement? element,
+    DirectiveUri? uri,
   ) {
-    var source = element?.source;
-    if (source != null) {
-      if (resourceProvider.getResource(source.fullName).exists) {
-        computer._addRegionForNode(node.uri, element);
+    if (uri is DirectiveUriWithUnit && uri.source.exists()) {
+      computer._addRegionForFragment(node.uri, uri.libraryFragment);
+    } else if (uri is DirectiveUriWithLibrary && uri.source.exists()) {
+      computer._addRegionForElement(node.uri, uri.library2);
+    }
+  }
+}
+
+extension on Fragment {
+  protocol.ElementKind get toPluginElementKind {
+    // Preserve previous behaviour for compilation units, otherwise we will
+    // show them all as LIBRARY (which is what their elements are).
+    if (this is LibraryFragment && this != element.firstFragment) {
+      return protocol.ElementKind.COMPILATION_UNIT;
+    }
+    return element.kind.toPluginElementKind;
+  }
+
+  /// Create a location based on this element.
+  protocol.Location? toLocation({int? offset, int? length}) {
+    var libraryFragment = this.libraryFragment;
+    if (libraryFragment == null) {
+      return null;
+    }
+
+    var nameOffset = nameOffset2;
+    var nameLength = name2?.length;
+
+    if (nameOffset == null) {
+      // For unnamed constructors, use the type name as the target location.
+      if (this case ConstructorFragment self) {
+        nameOffset = self.typeNameOffset;
+        nameLength = self.typeName?.length;
       }
     }
+
+    if (nameLength != null && nameOffset != null) {
+      offset ??= nameOffset;
+      length ??= nameLength;
+    } else {
+      offset = 0;
+      length = 0;
+    }
+
+    var lineInfo = libraryFragment.lineInfo;
+    var offsetLocation = lineInfo.getLocation(offset);
+    var endLocation = lineInfo.getLocation(offset + length);
+    var startLine = offsetLocation.lineNumber;
+    var startColumn = offsetLocation.columnNumber;
+    var endLine = endLocation.lineNumber;
+    var endColumn = endLocation.columnNumber;
+
+    return protocol.Location(
+        libraryFragment.source.fullName, offset, length, startLine, startColumn,
+        endLine: endLine, endColumn: endColumn);
   }
 }

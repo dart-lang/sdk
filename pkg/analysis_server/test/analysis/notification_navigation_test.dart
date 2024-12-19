@@ -121,12 +121,6 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
     assertHasFileTarget(dartCoreFile.path, offset, length);
   }
 
-  /// Validates that there is a target in [testTargets]  with [testFile], at the
-  /// offset of [str] in [testFile], and with the length of  [str].
-  void assertHasTargetString(String str) {
-    assertHasTarget(str, length: str.length);
-  }
-
   /// Validates that there is not a region at [search] and with the given
   /// [length].
   void assertNoRegion(String search, int length) {
@@ -1476,7 +1470,7 @@ library my.lib;
 ''');
     await prepareNavigation();
     assertHasRegionString('my.lib');
-    assertHasTargetString('my.lib');
+    assertHasTarget('library', length: 0); // line 0, col 0 for unit targets.
   }
 
   Future<void>
@@ -1705,7 +1699,7 @@ void f() {
     addTestFile('part of lib;');
     await prepareNavigation();
     assertHasRegionString('lib');
-    assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
+    assertHasFileTarget(libFile, 0, 0);
   }
 
   Future<void> test_propertyAccess_propertyName_read() async {
@@ -1788,7 +1782,7 @@ class A {
     addTestFile('export "lib.dart";');
     await prepareNavigation();
     assertHasRegionString('"lib.dart"');
-    assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
+    assertHasFileTarget(libFile, 0, 0);
   }
 
   Future<void> test_string_export_unresolvedUri() async {
@@ -1803,7 +1797,7 @@ class A {
     addTestFile('import "lib.dart";');
     await prepareNavigation();
     assertHasRegionString('"lib.dart"');
-    assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
+    assertHasFileTarget(libFile, 0, 0);
   }
 
   Future<void> test_string_import_noUri() async {

@@ -1663,6 +1663,15 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
   ElementKind get kind => ElementKind.CONSTRUCTOR;
 
   @override
+  Element2 get nonSynthetic2 {
+    if (isSynthetic) {
+      return enclosingElement2;
+    } else {
+      return this;
+    }
+  }
+
+  @override
   ConstructorElement2? get redirectedConstructor2 =>
       (firstFragment.redirectedConstructor?.declaration
               as ConstructorElementImpl?)
@@ -10118,6 +10127,21 @@ abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
   @override
   bool get hasInitializer {
     return _fragments.any((f) => f.hasInitializer);
+  }
+
+  @override
+  Element2 get nonSynthetic2 {
+    if (isSynthetic) {
+      if (enclosingElement2 case EnumElementImpl2 enclosingElement2) {
+        // TODO(scheglov): remove 'index'?
+        if (name3 == 'index' || name3 == 'values') {
+          return enclosingElement2;
+        }
+      }
+      return (getter2 ?? setter2)!;
+    } else {
+      return this;
+    }
   }
 
   List<PropertyInducingElementImpl> get _fragments;
