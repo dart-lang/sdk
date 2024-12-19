@@ -175,14 +175,12 @@ test/src/dart/element/element_test.dart
 test/src/dart/element/function_type_test.dart
 test/src/dart/element/generic_inferrer_test.dart
 test/src/dart/element/inheritance_manager3_test.dart
-test/src/dart/element/is_known_test.dart
 test/src/dart/element/least_greatest_closure_test.dart
 test/src/dart/element/least_upper_bound_helper_test.dart
 test/src/dart/element/name_union_test.dart
 test/src/dart/element/non_covariant_type_parameter_position_test.dart
 test/src/dart/element/normalize_type_test.dart
 test/src/dart/element/nullable_test.dart
-test/src/dart/element/replace_top_bottom_test.dart
 test/src/dart/element/runtime_type_equality_test.dart
 test/src/dart/element/string_types.dart
 test/src/dart/element/subtype_test.dart
