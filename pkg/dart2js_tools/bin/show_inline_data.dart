@@ -11,7 +11,7 @@ import 'package:dart2js_tools/src/util.dart';
 ///
 /// This expands the push/pop operations and checks simple invariants (e.g. that
 /// the stack is always empty at the beginning of a function).
-main(List<String> args) {
+void main(List<String> args) {
   if (args.length != 1) {
     print('usage: show_inline_data.dart <js-file>');
     exit(1);

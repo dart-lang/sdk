@@ -109,6 +109,7 @@ class NativeCallingConvention;
   V(Range*)                                                                    \
   V(RecordShape)                                                               \
   V(Representation)                                                            \
+  V(simd128_value_t)                                                           \
   V(const Slot&)                                                               \
   V(const Slot*)                                                               \
   V(const String&)                                                             \

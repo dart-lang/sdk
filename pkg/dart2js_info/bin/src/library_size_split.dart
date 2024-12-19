@@ -213,7 +213,7 @@ class _Divider extends _Row {
   const _Divider() : super('', 0);
 }
 
-String _pad(value, n, {bool right = false}) {
+String _pad(Object value, int n, {bool right = false}) {
   final s = '$value';
   if (s.length >= n) return s;
   var pad = ' ' * (n - s.length);

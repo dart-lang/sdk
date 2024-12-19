@@ -1244,7 +1244,6 @@ GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
                                 deopt_id,
                                 /*stack_depth*/ 0),
       parsed_function_(parsed_function),
-      catch_entries_(),
       indirect_entries_(),
       osr_id_(osr_id),
       entry_count_(0),
@@ -1258,15 +1257,6 @@ ConstantInstr* GraphEntryInstr::constant_null() {
     if (defn != nullptr && defn->value().IsNull()) return defn;
   }
   UNREACHABLE();
-  return nullptr;
-}
-
-CatchBlockEntryInstr* GraphEntryInstr::GetCatchEntry(intptr_t index) {
-  // TODO(fschneider): Sort the catch entries by catch_try_index to avoid
-  // searching.
-  for (intptr_t i = 0; i < catch_entries_.length(); ++i) {
-    if (catch_entries_[i]->catch_try_index() == index) return catch_entries_[i];
-  }
   return nullptr;
 }
 

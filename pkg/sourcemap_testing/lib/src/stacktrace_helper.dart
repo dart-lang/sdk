@@ -91,7 +91,7 @@ Test processTestCode(String code, Iterable<String> configs) {
 /// function returns `true` if the compilation succeeded.
 typedef CompileFunc = Future<bool> Function(String, String);
 
-List<String> emptyPreamble(input, output) => const <String>[];
+List<String> emptyPreamble(String input, String output) => const <String>[];
 String? identityConverter(String? name) => name;
 
 /// Tests the stack trace of [test] using the expectations for [config].

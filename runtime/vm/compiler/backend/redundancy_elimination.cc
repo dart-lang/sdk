@@ -4214,7 +4214,11 @@ class TryCatchAnalyzer : public ValueObject {
   // Assign sequential ids to each ParameterInstr in each CatchEntryBlock.
   // Collect reverse mapping from try indexes to corresponding catches.
   void NumberCatchEntryParameters() {
-    for (auto catch_entry : flow_graph_->graph_entry()->catch_entries()) {
+    for (TryEntryInstr* try_entry : flow_graph_->try_entries()) {
+      if (try_entry == nullptr) {
+        continue;
+      }
+      CatchBlockEntryInstr* const catch_entry = try_entry->catch_target();
       const GrowableArray<Definition*>& idefs =
           *catch_entry->initial_definitions();
       for (auto idef : idefs) {
@@ -4418,7 +4422,7 @@ class TryCatchAnalyzer : public ValueObject {
 };
 
 void OptimizeCatchEntryStates(FlowGraph* flow_graph, bool is_aot) {
-  if (flow_graph->graph_entry()->catch_entries().is_empty()) {
+  if (flow_graph->try_entries().is_empty()) {
     return;
   }
 

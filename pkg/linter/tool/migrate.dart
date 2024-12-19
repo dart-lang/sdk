@@ -15,7 +15,7 @@ import 'package:path/path.dart' as path;
 import 'checks/driver.dart';
 
 /// Lists files yet to be migrated to the new element model.
-main(List<String> args) async {
+void main(List<String> args) async {
   var parser = ArgParser()
     ..addFlag('write',
         abbr: 'w', help: 'Write updated `analyzer_use_new_elements.txt` file.');

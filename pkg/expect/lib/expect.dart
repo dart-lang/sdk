@@ -78,7 +78,8 @@ class Expect {
     return buf.toString();
   }
 
-  static _escapeSubstring(StringBuffer buf, String string, int start, int end) {
+  static void _escapeSubstring(
+      StringBuffer buf, String string, int start, int end) {
     const hexDigits = "0123456789ABCDEF";
     const backslash = 0x5c;
     int chunkStart = start; // No escapes since this point.
@@ -310,7 +311,8 @@ class Expect {
 
   /// Checks that the expected and actual values are *not* identical
   /// (using `identical`).
-  static void notIdentical(var unexpected, var actual, [String reason = ""]) {
+  static void notIdentical(dynamic unexpected, dynamic actual,
+      [String reason = ""]) {
     if (!_identical(unexpected, actual)) return;
     String msg = _getMessage(reason);
     _fail("Expect.notIdentical(expected and actual: <$actual>$msg) fails.");
@@ -370,7 +372,8 @@ class Expect {
         'tolerance:<$tolerance>$msg) fails');
   }
 
-  static void notEquals(unexpected, actual, [String reason = ""]) {
+  static void notEquals(dynamic unexpected, dynamic actual,
+      [String reason = ""]) {
     if (unexpected != actual) return;
     String msg = _getMessage(reason);
     _fail("Expect.notEquals(unexpected: <$unexpected>, actual:<$actual>$msg) "
@@ -435,8 +438,8 @@ class Expect {
       }
     }
     if (expectedKeys.length != actualKeys.length) {
-      _failNotEqual(expectedKeys.length, actualKeys.length,
-          "mapEquals", "map.length");
+      _failNotEqual(
+          expectedKeys.length, actualKeys.length, "mapEquals", "map.length");
     }
   }
 
@@ -886,7 +889,7 @@ class Expect {
 }
 
 /// Used in [Expect] because [Expect.identical] shadows the real [identical].
-bool _identical(a, b) => identical(a, b);
+bool _identical(dynamic a, dynamic b) => identical(a, b);
 
 /// Exception thrown on a failed expectation check.
 ///

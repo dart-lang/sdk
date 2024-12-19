@@ -988,7 +988,6 @@ void GraphEntryInstr::WriteExtra(FlowGraphSerializer* s) {
   s->WriteRef<FunctionEntryInstr*>(normal_entry_);
   s->WriteRef<FunctionEntryInstr*>(unchecked_entry_);
   s->WriteRef<OsrEntryInstr*>(osr_entry_);
-  s->WriteGrowableArrayOfRefs<CatchBlockEntryInstr*>(catch_entries_);
   s->WriteGrowableArrayOfRefs<IndirectEntryInstr*>(indirect_entries_);
 }
 
@@ -997,7 +996,6 @@ void GraphEntryInstr::ReadExtra(FlowGraphDeserializer* d) {
   normal_entry_ = d->ReadRef<FunctionEntryInstr*>();
   unchecked_entry_ = d->ReadRef<FunctionEntryInstr*>();
   osr_entry_ = d->ReadRef<OsrEntryInstr*>();
-  catch_entries_ = d->ReadGrowableArrayOfRefs<CatchBlockEntryInstr*>();
   indirect_entries_ = d->ReadGrowableArrayOfRefs<IndirectEntryInstr*>();
 }
 
@@ -1602,6 +1600,18 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
       ASSERT(x.IsCanonical());
       Write<double>(Double::Cast(x).value());
       break;
+    case kFloat32x4Cid:
+      ASSERT(x.IsCanonical());
+      Write<simd128_value_t>(Float32x4::Cast(x).value());
+      break;
+    case kFloat64x2Cid:
+      ASSERT(x.IsCanonical());
+      Write<simd128_value_t>(Float64x2::Cast(x).value());
+      break;
+    case kInt32x4Cid:
+      ASSERT(x.IsCanonical());
+      Write<simd128_value_t>(Int32x4::Cast(x).value());
+      break;
     case kFieldCid: {
       const auto& field = Field::Cast(x);
       const auto& owner = Class::Handle(Z, field.Owner());
@@ -1879,6 +1889,24 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
     }
     case kDoubleCid:
       return Double::ZoneHandle(Z, Double::NewCanonical(Read<double>()));
+    case kFloat32x4Cid: {
+      auto& simd_value =
+          Float32x4::ZoneHandle(Z, Float32x4::New(Read<simd128_value_t>()));
+      simd_value ^= simd_value.Canonicalize(thread());
+      return simd_value;
+    }
+    case kFloat64x2Cid: {
+      auto& simd_value =
+          Float64x2::ZoneHandle(Z, Float64x2::New(Read<simd128_value_t>()));
+      simd_value ^= simd_value.Canonicalize(thread());
+      return simd_value;
+    }
+    case kInt32x4Cid: {
+      auto& simd_value =
+          Int32x4::ZoneHandle(Z, Int32x4::New(Read<simd128_value_t>()));
+      simd_value ^= simd_value.Canonicalize(thread());
+      return simd_value;
+    }
     case kFieldCid: {
       const classid_t owner_class_id = Read<classid_t>();
       const intptr_t field_index = Read<intptr_t>();
@@ -2290,6 +2318,21 @@ template <>
 Representation FlowGraphDeserializer::ReadTrait<Representation>::Read(
     FlowGraphDeserializer* d) {
   return static_cast<Representation>(d->Read<uint8_t>());
+}
+
+template <>
+void FlowGraphSerializer::WriteTrait<simd128_value_t>::Write(
+    FlowGraphSerializer* s,
+    simd128_value_t x) {
+  s->stream()->WriteBytes(&x, sizeof(simd128_value_t));
+}
+
+template <>
+simd128_value_t FlowGraphDeserializer::ReadTrait<simd128_value_t>::Read(
+    FlowGraphDeserializer* d) {
+  simd128_value_t value;
+  d->stream()->ReadBytes(&value, sizeof(simd128_value_t));
+  return value;
 }
 
 template <>

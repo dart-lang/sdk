@@ -44,9 +44,9 @@
 #   issue created for it.
 #
 # Stats:
-# -  54 "needsEvaluation"
+# -  58 "needsEvaluation"
 # - 308 "needsFix"
-# - 465 "hasFix"
+# - 470 "hasFix"
 # - 514 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2368,17 +2368,19 @@ LintCode.specify_nonobvious_local_variable_types:
 LintCode.specify_nonobvious_property_types:
   status: hasFix
 LintCode.strict_top_level_inference_add_type:
-  status: noFix
-  notes: |-
-    There is no obvious way to pick a good candidate type.
+  status: hasFix
 LintCode.strict_top_level_inference_replace_keyword:
   status: noFix
   notes: |-
-    There is no obvious way to pick a good candidate type.
+    Conceivably for variable declarations we can search some space (like the
+    library or the compilation unit) for what values are assigned, and suggest
+    the LUB of those value(s)' type(s).
 LintCode.strict_top_level_inference_split_to_types:
   status: noFix
   notes: |-
-    There is no obvious way to pick a good candidate type.
+    Conceivably for variable declarations we can search some space (like the
+    library or the compilation unit) for what values are assigned, and suggest
+    the LUB of those value(s)' type(s).
 LintCode.test_types_in_equals:
   status: noFix
 LintCode.throw_in_finally:

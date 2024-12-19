@@ -429,7 +429,7 @@ void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env) {
   if (is_optimizing() && env != nullptr && (try_index != kInvalidTryIndex)) {
     env = env->Outermost();
     CatchBlockEntryInstr* catch_block =
-        flow_graph().graph_entry()->GetCatchEntry(try_index);
+        flow_graph().GetCatchBlockByTryIndex(try_index);
     const GrowableArray<Definition*>* idefs =
         catch_block->initial_definitions();
     catch_entry_moves_maps_builder_->NewMapping(assembler()->CodeSize());

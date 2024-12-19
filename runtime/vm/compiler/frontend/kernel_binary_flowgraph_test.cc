@@ -15,7 +15,6 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_ConstFoldStringConcats) {
   // "Adjacent strings are implicitly concatenated to form a single string
   // literal."
   const char* kScript = R"(
-    @pragma("vm:entry-point", "call")
     test() {
       var s = 'aaaa'
           'bbbb'
@@ -253,7 +252,6 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_ConcatStringLits) {
 
 ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_InvariantFlagInListLiterals) {
   const char* kScript = R"(
-    @pragma("vm:entry-point", "call")
     test() {
       return [...[], 42];
     }
@@ -316,7 +314,6 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_TypedClosureCall) {
   //
   const char* kScript = R"(
     int callClosure(int Function(int) fun, int value) => fun(value);
-    @pragma("vm:entry-point", "call")
     test() => callClosure((int a) => a + 1, 10);
   )";
 
@@ -357,7 +354,6 @@ ISOLATE_UNIT_TEST_CASE(
     StreamingFlowGraphBuilder_StaticGetFinalFieldWithTrivialInitializer) {
   const char* kScript = R"(
     final int x = 0xFEEDFEED;
-    @pragma("vm:entry-point", "call")
     test() {
       return x;
     }

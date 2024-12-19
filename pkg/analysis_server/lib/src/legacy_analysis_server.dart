@@ -524,7 +524,7 @@ class LegacyAnalysisServer extends AnalysisServer {
 
   /// There was an error related to the socket from which requests are being
   /// read.
-  void error(argument) {}
+  void error(Object argument) {}
 
   /// Return the cached analysis result for the file with the given [path].
   /// If there is no cached result, return `null`.

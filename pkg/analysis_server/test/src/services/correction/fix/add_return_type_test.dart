@@ -11,38 +11,14 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AddReturnType_AlwaysDeclareReturnTypesTest);
+    defineReflectiveTests(AddReturnType_StrictTopLevelInferenceTest);
     defineReflectiveTests(AddReturnTypeBulkTest);
-    defineReflectiveTests(AddReturnTypeLintTest);
   });
 }
 
 @reflectiveTest
-class AddReturnTypeBulkTest extends BulkFixProcessorTest {
-  @override
-  String get lintCode => LintNames.always_declare_return_types;
-
-  Future<void> test_singleFile() async {
-    await resolveTestCode('''
-class A {
-  get foo => 0;
-  m(p) {
-    return p;
-  }
-}
-''');
-    await assertHasFix('''
-class A {
-  int get foo => 0;
-  dynamic m(p) {
-    return p;
-  }
-}
-''');
-  }
-}
-
-@reflectiveTest
-class AddReturnTypeLintTest extends FixProcessorLintTest {
+class AddReturnType_AlwaysDeclareReturnTypesTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.ADD_RETURN_TYPE;
 
@@ -235,6 +211,83 @@ get foo => 0;
 ''');
     await assertHasFix('''
 int get foo => 0;
+''');
+  }
+}
+
+@reflectiveTest
+class AddReturnType_StrictTopLevelInferenceTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_RETURN_TYPE;
+
+  @override
+  String get lintCode => LintNames.strict_top_level_inference;
+
+  Future<void> test_instanceMethod_typeVariable() async {
+    await resolveTestCode('''
+class C<T> {
+  f(T p) {
+    return p;
+  }
+}
+''');
+    await assertHasFix('''
+class C<T> {
+  T f(T p) {
+    return p;
+  }
+}
+''');
+  }
+
+  Future<void> test_topLevelFunction() async {
+    await resolveTestCode('''
+f() {
+  return '';
+}
+''');
+    await assertHasFix('''
+String f() {
+  return '';
+}
+''');
+  }
+
+  Future<void> test_topLevelFunction_typeVariable() async {
+    await resolveTestCode('''
+f<T>(T p) {
+  return [p];
+}
+''');
+    await assertHasFix('''
+List<T> f<T>(T p) {
+  return [p];
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AddReturnTypeBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.always_declare_return_types;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+class A {
+  get foo => 0;
+  m(p) {
+    return p;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int get foo => 0;
+  dynamic m(p) {
+    return p;
+  }
+}
 ''');
   }
 }
