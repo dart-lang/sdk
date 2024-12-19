@@ -369,7 +369,7 @@ List<LspEntity> getCustomClasses() {
         type: 'string',
         canBeUndefined: true,
         comment:
-            'The ElementLocation of the item being completed.\n\n'
+            'The encoded ElementLocation2 of the item being completed.\n\n'
             'This is used to provide documentation in the resolved response.',
       ),
     ], baseType: 'CompletionItemResolutionInfo'),

@@ -1106,7 +1106,7 @@ class DartCompletionResolutionInfo
   /// The URIs to be imported if this completion is selected.
   final List<String> importUris;
 
-  /// The ElementLocation of the item being completed.
+  /// The encoded ElementLocation2 of the item being completed.
   ///
   /// This is used to provide documentation in the resolved response.
   final String? ref;
