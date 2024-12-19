@@ -40,7 +40,7 @@ import 'package:stack_trace/stack_trace.dart';
 ///
 /// The .js file must contain a `//# sourceMappingURL=` line at the end, which
 /// tells this script how to determine the name of the source-map file.
-main(List<String> args) {
+void main(List<String> args) {
   if (args.length != 1) {
     print('usage: deobfuscate.dart <stack-trace-file>');
     exit(1);
@@ -87,7 +87,7 @@ main(List<String> args) {
 final green = stdout.hasTerminal ? '\x1b[32m' : '';
 final none = stdout.hasTerminal ? '\x1b[0m' : '';
 
-printPadded(String mapping, String? original, sb) {
+void printPadded(String mapping, String? original, sb) {
   var len = mapping.length;
   var s = mapping.indexOf('\n');
   if (s >= 0) len -= s + 1;

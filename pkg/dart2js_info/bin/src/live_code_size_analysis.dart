@@ -75,7 +75,11 @@ class LiveCodeAnalysisCommand extends Command<void> with PrintUsageException {
   }
 }
 
-Future<void> _liveCodeAnalysis(infoFile, coverageFile, bool verbose) async {
+Future<void> _liveCodeAnalysis(
+  String infoFile,
+  String coverageFile,
+  bool verbose,
+) async {
   var info = await infoFromFile(infoFile);
   var coverage = jsonDecode(File(coverageFile).readAsStringSync());
 

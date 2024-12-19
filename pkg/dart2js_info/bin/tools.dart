@@ -22,7 +22,7 @@ import 'src/text_print.dart';
 import 'src/to_devtools_format.dart';
 
 /// Entrypoint to run all dart2js_info tools.
-void main(args) {
+void main(List<String> args) {
   var commandRunner =
       CommandRunner(
           "dart2js_info",

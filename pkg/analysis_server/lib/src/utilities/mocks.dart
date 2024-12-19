@@ -47,7 +47,7 @@ class MockServerChannel implements ServerCommunicationChannel {
     _closed = true;
   }
 
-  void expectMsgCount({responseCount = 0, notificationCount = 0}) {
+  void expectMsgCount({int responseCount = 0, int notificationCount = 0}) {
     expect(responsesReceived, hasLength(responseCount));
     expect(notificationsReceived, hasLength(notificationCount));
   }

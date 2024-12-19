@@ -306,9 +306,12 @@ abstract final class DartPostfixCompletion {
     return processor.findObjectExpression() != null;
   }
 
-  static bool _false(_) => false;
+  static bool _false(PostfixCompletionProcessor _) => false;
 
-  static Future<PostfixCompletion?> _null(_, _) async => null;
+  static Future<PostfixCompletion?> _null(
+    PostfixCompletionProcessor _,
+    PostfixCompletionKind _,
+  ) async => null;
 }
 
 /// A description of a postfix completion.
