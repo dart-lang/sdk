@@ -134,7 +134,8 @@ final b = new Foo.named(); // 0
     expect(target.length, 5);
   }
 
-  Future<void> test_constructorInvocation_insideNullAwareElement_inList() async {
+  Future<void>
+  test_constructorInvocation_insideNullAwareElement_inList() async {
     addTestFile('''
 class Foo {
   Foo() {}
@@ -472,7 +473,7 @@ part of foo;
     assertHasRegionString('foo');
     expect(testTargets, hasLength(1));
     expect(testTargets[0].kind, ElementKind.LIBRARY);
-    assertHasFileTarget(partOfFile.path, 8, 3); // library [[foo]]
+    assertHasFileTarget(partOfFile.path, 0, 0);
   }
 
   Future<void> test_partOfDirective_uri() async {

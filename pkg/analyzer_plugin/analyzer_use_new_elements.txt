@@ -4,15 +4,13 @@ lib/src/utilities/completion/completion_target.dart
 lib/src/utilities/completion/element_suggestion_builder.dart
 lib/src/utilities/completion/optype.dart
 lib/src/utilities/completion/suggestion_builder.dart
-lib/src/utilities/navigation/navigation.dart
+lib/src/utilities/navigation/navigation_dart.dart
 lib/src/utilities/visitors/local_declaration_visitor.dart
 lib/utilities/analyzer_converter.dart
 lib/utilities/change_builder/change_builder_dart.dart
 lib/utilities/completion/inherited_reference_contributor.dart
 lib/utilities/completion/suggestion_builder.dart
 lib/utilities/completion/type_member_contributor.dart
-lib/utilities/navigation/navigation.dart
-lib/utilities/navigation/navigation_dart.dart
 lib/utilities/range_factory.dart
 test/src/utilities/change_builder/change_builder_dart_test.dart
 test/src/utilities/change_builder/dart/import_library_element_test.dart

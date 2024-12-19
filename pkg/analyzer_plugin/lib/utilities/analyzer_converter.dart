@@ -339,7 +339,7 @@ extension ElementExtensions on analyzer.Element? {
     return null;
   }
 
-  /// Create a location based on an the given [element].
+  /// Create a location based on this element.
   plugin.Location? toLocation({int? offset, int? length}) {
     var self = this;
     if (self == null || self.source == null) {
