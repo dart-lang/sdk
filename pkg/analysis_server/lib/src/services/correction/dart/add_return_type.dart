@@ -33,30 +33,29 @@ class AddReturnType extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    Token? insertBeforeEntity;
-    FunctionBody? body;
-    var executable = node;
-    if (executable is MethodDeclaration && executable.name == token) {
-      if (executable.returnType != null) {
+    if (node
+        case MethodDeclaration(:var name, :var returnType, :var isSetter) ||
+            FunctionDeclaration(:var name, :var returnType, :var isSetter)) {
+      if (name != token) {
         return;
       }
-      if (executable.isSetter) {
+      if (returnType != null) {
         return;
       }
+      if (isSetter) {
+        return;
+      }
+    }
+
+    Token insertBeforeEntity;
+    FunctionBody body;
+    if (node case MethodDeclaration method) {
       insertBeforeEntity =
-          executable.operatorKeyword ??
-          executable.propertyKeyword ??
-          executable.name;
-      body = executable.body;
-    } else if (executable is FunctionDeclaration && executable.name == token) {
-      if (executable.returnType != null) {
-        return;
-      }
-      if (executable.isSetter) {
-        return;
-      }
-      insertBeforeEntity = executable.propertyKeyword ?? executable.name;
-      body = executable.functionExpression.body;
+          method.operatorKeyword ?? method.propertyKeyword ?? method.name;
+      body = method.body;
+    } else if (node case FunctionDeclaration method) {
+      insertBeforeEntity = method.propertyKeyword ?? method.name;
+      body = method.functionExpression.body;
     } else {
       return;
     }
@@ -66,10 +65,9 @@ class AddReturnType extends ResolvedCorrectionProducer {
       return;
     }
 
-    var insertBeforeEntity_final = insertBeforeEntity;
     await builder.addDartFileEdit(file, (builder) {
       if (returnType is DynamicType || builder.canWriteType(returnType)) {
-        builder.addInsertion(insertBeforeEntity_final.offset, (builder) {
+        builder.addInsertion(insertBeforeEntity.offset, (builder) {
           if (returnType is DynamicType) {
             builder.write('dynamic');
           } else {
@@ -81,7 +79,7 @@ class AddReturnType extends ResolvedCorrectionProducer {
     });
   }
 
-  /// Return the type of value returned by the function [body], or `null` if a
+  /// Returns the type of value returned by the function [body], or `null` if a
   /// type can't be inferred.
   DartType? _inferReturnType(FunctionBody body) {
     DartType? baseType;
@@ -100,10 +98,8 @@ class AddReturnType extends ResolvedCorrectionProducer {
       return null;
     }
 
-    var isAsynchronous = body.isAsynchronous;
-    var isGenerator = body.isGenerator;
-    if (isAsynchronous) {
-      if (isGenerator) {
+    if (body.isAsynchronous) {
+      if (body.isGenerator) {
         return typeProvider.streamElement2.instantiate(
           typeArguments: [baseType],
           nullabilitySuffix: baseType.nullabilitySuffix,
@@ -114,7 +110,7 @@ class AddReturnType extends ResolvedCorrectionProducer {
           nullabilitySuffix: baseType.nullabilitySuffix,
         );
       }
-    } else if (isGenerator) {
+    } else if (body.isGenerator) {
       return typeProvider.iterableElement2.instantiate(
         typeArguments: [baseType],
         nullabilitySuffix: baseType.nullabilitySuffix,
@@ -144,13 +140,8 @@ class _ReturnTypeComputer extends RecursiveAstVisitor<void> {
   void visitReturnStatement(ReturnStatement node) {
     hasReturn = true;
     // prepare expression
-    var expression = node.expression;
-    if (expression == null) {
-      return;
-    }
-    // prepare type
-    var type = expression.typeOrThrow;
-    if (type.isBottom) {
+    var type = node.expression?.typeOrThrow;
+    if (type == null || type.isBottom) {
       return;
     }
     // combine types
