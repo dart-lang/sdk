@@ -1091,6 +1091,17 @@ void testRefStruct() {
   calloc.free(myStructPointer);
 }
 
+void testRefWithFinalizerStruct() {
+  final myStructPointer = calloc<TestStruct13>();
+  Pointer<Struct> structPointer = myStructPointer;
+  /**/ structPointer.refWithFinalizer(calloc.nativeFree);
+  //   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+  //                 ^
+  // [cfe] Expected type 'Struct' to be a valid and instantiated subtype of 'NativeType'.
+  calloc.free(myStructPointer);
+}
+
 T genericRef<T extends Struct>(Pointer<T> p) => p.ref;
 //                                              ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
@@ -1113,6 +1124,20 @@ T genericRef4<T extends Struct>(Array<T> p) => p[0];
 //                                             ^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
 //                                              ^
+// [cfe] Expected type 'T' to be a valid and instantiated subtype of 'NativeType'.
+
+T genericRefWithFinalizer<T extends Struct>(Pointer<T> p) =>
+    p.refWithFinalizer(calloc.nativeFree);
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+//    ^
+// [cfe] Expected type 'T' to be a valid and instantiated subtype of 'NativeType'.
+
+T genericRefWithFinalizer2<T extends Struct>(Pointer<T> p) =>
+    p.cast<T>().refWithFinalizer(calloc.nativeFree);
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+//              ^
 // [cfe] Expected type 'T' to be a valid and instantiated subtype of 'NativeType'.
 
 void testSizeOfGeneric() {

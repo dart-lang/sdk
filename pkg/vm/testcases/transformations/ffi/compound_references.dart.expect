@@ -39,6 +39,9 @@ final class Coordinate extends ffi::Struct {
       synthesized self::Coordinate #source = this;
     } =>ffi::_memCopy(ptr, #C10, #source.{ffi::_Compound::_typedDataBase}{core::Object}, #source.{ffi::_Compound::_offsetInBytes}{core::int}, self::Coordinate::#sizeOf);
   }
+  method getRefWithFinalizer(ffi::Pointer<self::Coordinate> ptr, ffi::Pointer<ffi::NativeFunction<(ffi::Pointer<ffi::Void>) → ffi::Void>> finalizer, {ffi::Pointer<ffi::Void>? token = #C4}) → void {
+    new self::Coordinate::#fromTypedData(ffi::Uint8Pointer|asTypedList(ptr.{ffi::Pointer::cast}<ffi::Uint8>(){() → ffi::Pointer<ffi::Uint8>}, self::Coordinate::#sizeOf, finalizer: finalizer, token: token), #C10, self::Coordinate::#sizeOf);
+  }
   @#C8
   static get x#offsetOf() → core::int
     return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
@@ -79,6 +82,9 @@ final class SomeUnion extends ffi::Union {
     block {
       synthesized self::SomeUnion #source = this;
     } =>ffi::_memCopy(ptr, index.{core::num::*}(self::SomeUnion::#sizeOf){(core::num) → core::num}, #source.{ffi::_Compound::_typedDataBase}{core::Object}, #source.{ffi::_Compound::_offsetInBytes}{core::int}, self::SomeUnion::#sizeOf);
+  }
+  method getRefWithFinalizer(ffi::Pointer<self::SomeUnion> ptr, ffi::Pointer<ffi::NativeFunction<(ffi::Pointer<ffi::Void>) → ffi::Void>> finalizer, {ffi::Pointer<ffi::Void>? token = #C4}) → void {
+    new self::SomeUnion::#fromTypedData(ffi::Uint8Pointer|asTypedList(ptr.{ffi::Pointer::cast}<ffi::Uint8>(){() → ffi::Pointer<ffi::Uint8>}, self::SomeUnion::#sizeOf, finalizer: finalizer, token: token), #C10, self::SomeUnion::#sizeOf);
   }
   @#C8
   static get coordinate#offsetOf() → core::int

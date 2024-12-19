@@ -998,6 +998,12 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   external T get ref;
 
   external T operator [](int index);
+
+  @Since('3.7')
+  external T refWithFinalizer(
+    Pointer<NativeFinalizerFunction> finalizer, {
+    Pointer<Void>? token,
+  });
 }
 
 @Since('2.19')
@@ -1083,6 +1089,9 @@ final class Int extends AbiSpecificInteger {
 abstract interface class Finalizable {
   factory Finalizable._() => throw UnsupportedError("");
 }
+
+typedef NativeFinalizerFunction =
+    NativeFunction<Void Function(Pointer<Void> token)>;
 
 @Since('3.0')
 abstract final class VarArgs<T extends Record> implements NativeType {}

@@ -1786,6 +1786,29 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   external T get ref;
   external set ref(T value);
 
+  /// A Dart view of the struct referenced by this pointer.
+  ///
+  /// Creates a reference accessing the fields of this struct backed by native
+  /// memory at [address].
+  /// The [address] must be aligned according to the struct alignment rules of
+  /// the platform.
+  ///
+  /// Attaches [finalizer] to the backing store of the struct. If provided,
+  /// [token] will be passed to [finalizer], otherwise the pointer (`this`)
+  /// itself will be passed.
+  /// The pointer (`this`) must _not_ be used anymore if the struct is _not_
+  /// guaranteed to be kept alive.
+  /// Prefer doing any native calls with the pointer _before_ calling
+  /// [refWithFinalizer].
+  ///
+  /// This extension method must be invoked on a receiver of type `Pointer<T>`
+  /// where `T` is a compile-time constant type.
+  @Since('3.7')
+  external T refWithFinalizer(
+    Pointer<NativeFinalizerFunction> finalizer, {
+    Pointer<Void>? token,
+  });
+
   /// Creates a reference to access the fields of this struct backed by native
   /// memory at `address + sizeOf<T>() * index`.
   ///
@@ -1847,6 +1870,29 @@ extension UnionPointer<T extends Union> on Pointer<T> {
   /// where `T` is a compile-time constant type.
   external T get ref;
   external set ref(T value);
+
+  /// A Dart view of the union referenced by this pointer.
+  ///
+  /// Creates a reference accessing the fields of this union backed by native
+  /// memory at [address].
+  /// The [address] must be aligned according to the union alignment rules of
+  /// the platform.
+  ///
+  /// Attaches [finalizer] to the backing store of the union. If provided,
+  /// [token] will be passed to [finalizer], otherwise the pointer (`this`)
+  /// itself will be passed.
+  /// The pointer (`this`) must _not_ be used anymore if the union is _not_
+  /// guaranteed to be kept alive.
+  /// Prefer doing any native calls with the pointer _before_ calling
+  /// [refWithFinalizer].
+  ///
+  /// This extension method must be invoked on a receiver of type `Pointer<T>`
+  /// where `T` is a compile-time constant type.
+  @Since('3.7')
+  external T refWithFinalizer(
+    Pointer<NativeFinalizerFunction> finalizer, {
+    Pointer<Void>? token,
+  });
 
   /// Creates a reference to access the fields of this union backed by native
   /// memory at `address + sizeOf<T>() * index`.

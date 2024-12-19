@@ -1280,6 +1280,12 @@ extension StructPointer<T extends Struct> on Pointer<T> {
       throw "UNREACHABLE: This case should have been rewritten in the CFE";
 
   @patch
+  T refWithFinalizer(
+    Pointer<NativeFinalizerFunction> finalizer, {
+    Pointer<Void>? token,
+  }) => throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
   T operator [](int index) =>
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 
@@ -1309,6 +1315,12 @@ extension UnionPointer<T extends Union> on Pointer<T> {
   @patch
   set ref(T value) =>
       throw "UNREACHABLE: This case should have been rewritten in the CFE";
+
+  @patch
+  T refWithFinalizer(
+    Pointer<NativeFinalizerFunction> finalizer, {
+    Pointer<Void>? token,
+  }) => throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 
   @patch
   T operator [](int index) =>
