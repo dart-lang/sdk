@@ -865,18 +865,6 @@ bool CompileType::IsSubtypeOf(const AbstractType& other) {
   if (other.IsTopTypeForSubtyping()) {
     return true;
   }
-
-  if (IsNone()) {
-    return false;
-  }
-
-  return ToAbstractType()->IsSubtypeOf(other, Heap::kOld);
-}
-
-bool CompileType::IsAssignableTo(const AbstractType& other) {
-  if (other.IsTopTypeForSubtyping()) {
-    return true;
-  }
   // If we allow comparisons against an uninstantiated type, then we can
   // end up incorrectly optimizing away AssertAssignables where the incoming
   // value and outgoing value have CompileTypes that would return true to the
@@ -894,19 +882,6 @@ bool CompileType::IsAssignableTo(const AbstractType& other) {
     return false;
   }
   if (is_nullable() && !Instance::NullIsAssignableTo(other)) {
-    return false;
-  }
-  return ToAbstractType()->IsSubtypeOf(other, Heap::kOld);
-}
-
-bool CompileType::IsInstanceOf(const AbstractType& other) {
-  if (other.IsTopTypeForInstanceOf()) {
-    return true;
-  }
-  if (IsNone() || !other.IsInstantiated()) {
-    return false;
-  }
-  if (is_nullable() && !other.IsNullable()) {
     return false;
   }
   return ToAbstractType()->IsSubtypeOf(other, Heap::kOld);
@@ -939,7 +914,7 @@ bool CompileType::Specialize(GrowableArray<intptr_t>* class_ids) {
 // bounds.
 static bool CanPotentiallyBeSmi(const AbstractType& type, bool recurse) {
   if (type.IsInstantiated()) {
-    return CompileType::Smi().IsAssignableTo(type);
+    return CompileType::Smi().IsSubtypeOf(type);
   } else if (type.IsTypeParameter()) {
     // For type parameters look at their bounds (if recurse allows us).
     const auto& param = TypeParameter::Cast(type);

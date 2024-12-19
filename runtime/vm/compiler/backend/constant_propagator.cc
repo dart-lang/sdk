@@ -460,7 +460,7 @@ void ConstantPropagator::VisitAssertAssignable(AssertAssignableInstr* instr) {
   if (dst_type.IsAbstractType()) {
     // We are ignoring the instantiator and instantiator_type_arguments, but
     // still monotonic and safe.
-    if (instr->value()->Type()->IsAssignableTo(AbstractType::Cast(dst_type))) {
+    if (instr->value()->Type()->IsSubtypeOf(AbstractType::Cast(dst_type))) {
       SetValue(instr, value);
       return;
     }
