@@ -663,7 +663,17 @@ static bool IsMarkedWithAlignLoops(const Function& function) {
 
 void FlowGraphCompiler::VisitBlocks() {
   CompactBlocks();
-  if (compiler::Assembler::EmittingComments()) {
+
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+  const bool should_align_loops =
+      (FLAG_align_all_loops || IsMarkedWithAlignLoops(function())) &&
+      (kPreferredLoopAlignment > 1);
+#else
+  static_assert(kPreferredLoopAlignment == 1);
+  const bool should_align_loops = false;
+#endif  // defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+
+  if (should_align_loops || compiler::Assembler::EmittingComments()) {
     // The loop_info fields were cleared, recompute.
     flow_graph().ComputeLoops();
   }
@@ -678,11 +688,6 @@ void FlowGraphCompiler::VisitBlocks() {
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
   const auto inner_lr_state = ComputeInnerLRState(flow_graph());
 #endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
-
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
-  const bool should_align_loops =
-      FLAG_align_all_loops || IsMarkedWithAlignLoops(function());
-#endif  // defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
 
   for (intptr_t i = 0; i < block_order().length(); ++i) {
     // Compile the block entry.
@@ -720,13 +725,10 @@ void FlowGraphCompiler::VisitBlocks() {
     }
 
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
-    if (should_align_loops && entry->IsLoopHeader() &&
-        kPreferredLoopAlignment > 1) {
+    if (should_align_loops && entry->IsLoopHeader()) {
       assembler()->mark_should_be_aligned();
       assembler()->Align(kPreferredLoopAlignment, 0);
     }
-#else
-    static_assert(kPreferredLoopAlignment == 1);
 #endif  // defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
 
     BeginCodeSourceRange(entry->source());
