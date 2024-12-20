@@ -56,6 +56,16 @@ group("runtime") {
     "utils/dartdev:dartdev",
     "utils/kernel-service:kernel-service",
   ]
+
+  # The following dependencies allow dartdev to start the resident frontend
+  # server.
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
+    deps += [ "utils/kernel-service:frontend_server_aot_product" ]
+    deps += [ "runtime/bin:dartaotruntime_product" ]
+  } else {
+    deps += [ "utils/kernel-service:frontend_server" ]
+  }
+
   if (!is_win) {
     # The test isn't run on windows
     deps += [ "runtime/bin:entrypoints_verification_test" ]
