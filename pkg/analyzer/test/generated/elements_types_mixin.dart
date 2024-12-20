@@ -464,7 +464,7 @@ mixin ElementsTypesMixin {
     return parameter;
   }
 
-  ParameterElement positionalParameter({
+  ParameterElementImpl positionalParameter({
     String? name,
     required DartType type,
     bool isCovariant = false,
