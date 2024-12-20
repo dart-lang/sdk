@@ -123,7 +123,7 @@ var b1 = a[1];
 var t = (int p) {};
 ''');
     assertType(
-      findElement.topVar('t').type,
+      findElement2.topVar('t').type,
       'Null Function(int)',
     );
   }
@@ -134,7 +134,7 @@ var a = 0;
 var t = (int p) => (a = 1);
 ''');
     assertType(
-      findElement.topVar('t').type,
+      findElement2.topVar('t').type,
       'int Function(int)',
     );
   }
@@ -144,7 +144,7 @@ var t = (int p) => (a = 1);
 var t = (int a, b,int c, d) => 0;
 ''');
     assertType(
-      findElement.topVar('t').type,
+      findElement2.topVar('t').type,
       'int Function(int, dynamic, int, dynamic)',
     );
   }
@@ -21240,6 +21240,6 @@ library
     var analysisSession = contextFor(testFile).currentSession;
     var result = await analysisSession.getUnitElement(testFile.path);
     result as UnitElementResult;
-    return result.element.library as LibraryElementImpl;
+    return result.fragment.element as LibraryElementImpl;
   }
 }

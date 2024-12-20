@@ -210,7 +210,6 @@ test/src/summary/elements/type_inference_test.dart
 test/src/summary/elements_base.dart
 test/src/summary/macro_test.dart
 test/src/summary/resolved_ast_printer.dart
-test/src/summary/top_level_inference_test.dart
 test/src/task/strong/dart2_inference_test.dart
 test/src/task/strong/inferred_type_test.dart
 test/src/utilities/extensions/analysis_session_test.dart
