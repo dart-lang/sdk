@@ -241,6 +241,16 @@ AOT snapshot can be used as follows to run DDC <dart-sdk>/bin/dartaotruntime
   Users should migrate to using `dart:js_interop` and `package:web`. See
   [#59716][].
 
+#### `dart:js`
+
+- `dart:js` is marked deprecated and will be removed in an upcoming release.
+  Users should migrate to using `dart:js_interop`. See [#59716][].
+
+#### `dart:js_util`
+
+- `dart:js_util` is marked deprecated and will be removed in an upcoming
+  release. Users should migrate to using `dart:js_interop`. See [#59716][].
+
 [#59716]: https://github.com/dart-lang/sdk/issues/59716
 
 ## 3.6.0
