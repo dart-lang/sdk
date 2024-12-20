@@ -24,6 +24,7 @@
 ///
 /// {@category Web (Legacy)}
 /// {@canonicalFor dart:_internal.HttpStatus}
+@Deprecated('Use package:web and dart:js_interop instead.')
 library dart.dom.html;
 
 import 'dart:async';

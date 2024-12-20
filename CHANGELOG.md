@@ -209,6 +209,40 @@ snapshot of these tools as package build/build_web_compiler depends on it. The
 AOT snapshot can be used as follows to run DDC <dart-sdk>/bin/dartaotruntime
 <dart-sdk>/bin/snapshots/dartdevc_aot.dart.snapshot <options>
 
+### Libraries
+
+#### `dart:html`
+
+- `dart:html` is marked deprecated and will be removed in an upcoming release.
+  Users should migrate to using `dart:js_interop` and `package:web`. See
+  [#59716][].
+
+#### `dart:indexed_db`
+
+- `dart:indexed_db` is marked deprecated and will be removed in an upcoming
+  release. Users should migrate to using `dart:js_interop` and `package:web`.
+  See [#59716][].
+
+#### `dart:svg`
+
+- `dart:svg` is marked deprecated and will be removed in an upcoming release.
+  Users should migrate to using `dart:js_interop` and `package:web`. See
+  [#59716][].
+
+#### `dart:web_audio`
+
+- `dart:web_audio` is marked deprecated and will be removed in an upcoming
+  release. Users should migrate to using `dart:js_interop` and `package:web`.
+  See [#59716][].
+
+#### `dart:web_gl`
+
+- `dart:web_gl` is marked deprecated and will be removed in an upcoming release.
+  Users should migrate to using `dart:js_interop` and `package:web`. See
+  [#59716][].
+
+[#59716]: https://github.com/dart-lang/sdk/issues/59716
+
 ## 3.6.0
 
 ### Language

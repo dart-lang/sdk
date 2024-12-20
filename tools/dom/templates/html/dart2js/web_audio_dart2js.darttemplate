@@ -10,6 +10,7 @@
 /// > our [migration guide](https://dart.dev/go/package-web).
 ///
 /// {@category Web (Legacy)}
+@Deprecated('Use package:web and dart:js_interop instead.')
 library dart.dom.web_audio;
 
 import 'dart:async';
