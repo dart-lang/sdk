@@ -1792,6 +1792,8 @@ FfiCode.NATIVE_FIELD_MISSING_TYPE:
   status: needsEvaluation
 FfiCode.NATIVE_FIELD_NOT_STATIC:
   status: needsEvaluation
+FfiCode.NATIVE_FUNCTION_MISSING_TYPE:
+  status: needsEvaluation
 FfiCode.NEGATIVE_VARIABLE_DIMENSION:
   status: noFix
 FfiCode.NON_CONSTANT_TYPE_ARGUMENT:

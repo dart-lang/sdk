@@ -2374,26 +2374,39 @@ abstract final class NativeApi {
 /// annotated function or variable in Dart. This can be overridden with the
 /// [symbol] parameter on the annotation.
 ///
-/// If this annotation is used on a function, then the type argument [T] to the
-/// [Native] annotation must be a function type representing the native
-/// function's parameter and return types. The parameter and return types must
-/// be subtypes of [NativeType].
+/// When used on a function, [T] must be a function type that represents the
+/// native function's parameter and return types. The parameter and return types
+/// must be subtypes of [NativeType].
 ///
-/// If this annotation is used on an external variable, then the type argument
-/// [T] must be a compatible native type. For example, an [int] field can be
-/// annotated with [Int32].
-/// If the type argument to `@Native` is omitted, it defaults to the Dart type
-/// of the annotated declaration, which *must* then be a native type too.
-/// This will never work for function declarations, but can apply to variables
-/// whose type is some of the types of this library, such as [Pointer].
-/// For native global variables that cannot be re-assigned, a final variable in
-/// Dart or a getter can be used to prevent assignments to the native field.
+/// When used on a variable, [T] must be a compatible native type. For example,
+/// an [int] field can be annotated with [Int32].
+///
+/// If the type argument [T] is omitted in the `@Native` annotation, it is
+/// inferred from the static type of the declaration, which must meet the
+/// following constraints:
+///
+/// For function or method declarations:
+/// - The return type must be one of the following:
+///   - [Pointer]
+///   - `void`
+///   - Subtype of compound types, such as [Struct] or [Union]
+/// - The parameter types must be subtypes of compound types or [Pointer]
+///
+/// For variable declarations, the type can be any of the following:
+///   - [Pointer]
+///   - Subtype of compound types, such as [Struct] or [Union]
+///
+/// For native global variables that cannot be reassigned, a `final` variable in
+/// Dart or a getter can be used to prevent modifications to the native field.
 ///
 /// Example:
 ///
 /// ```dart template:top
 /// @Native<Int64 Function(Int64, Int64)>()
 /// external int sum(int a, int b);
+///
+/// @Native()
+/// external void free(Pointer p);
 ///
 /// @Native<Int64>()
 /// external int aGlobalInt;

@@ -5276,6 +5276,12 @@ FfiNativeFieldType:
   analyzerCode: NATIVE_FIELD_INVALID_TYPE
   external: test/ffi_test.dart
 
+FfiNativeFunctionMissingType:
+  # Used by dart:ffi
+  problemMessage: "The native type of this function couldn't be inferred so it must be specified in the annotation."
+  analyzerCode: NATIVE_FUNCTION_MISSING_TYPE
+  external: test/ffi_test.dart
+
 FfiAddressOfMustBeNative:
   # Used by dart:ffi
   problemMessage: "Argument to 'Native.addressOf' must be annotated with @Native."

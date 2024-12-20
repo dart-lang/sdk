@@ -843,14 +843,42 @@ class FfiTransformer extends Transformer {
   ///
   /// For types where this returns a non-null value, this is the inverse of
   /// [convertNativeTypeToDartType].
-  DartType? convertDartTypeToNativeType(DartType dartType) {
-    if (isPointerType(dartType) ||
-        isStructOrUnionSubtype(dartType) ||
-        isArrayType(dartType)) {
+  DartType? convertDartTypeToNativeType(
+    DartType dartType, {
+    bool allowVoid = false,
+  }) {
+    if (allowVoid && dartType is VoidType) return voidType;
+
+    if (isArrayType(dartType) ||
+        isPointerType(dartType) ||
+        isStructOrUnionSubtype(dartType)) {
       return dartType;
-    } else {
-      return null;
     }
+
+    if (dartType is FunctionType) {
+      if (dartType.namedParameters.isNotEmpty) return null;
+      if (dartType.positionalParameters.length !=
+          dartType.requiredParameterCount) {
+        return null;
+      }
+      if (dartType.typeParameters.isNotEmpty) return null;
+
+      final returnType =
+          convertDartTypeToNativeType(dartType.returnType, allowVoid: true);
+      if (returnType == null) return null;
+
+      final argumentTypes = <DartType>[];
+      for (final paramDartType
+          in flattenVarargs(dartType).positionalParameters) {
+        argumentTypes.add(
+          convertDartTypeToNativeType(paramDartType) ?? dummyDartType,
+        );
+      }
+      if (argumentTypes.contains(dummyDartType)) return null;
+      return FunctionType(argumentTypes, returnType, Nullability.nonNullable);
+    }
+
+    return null;
   }
 
   /// Removes the VarArgs from a DartType list.
@@ -1468,7 +1496,7 @@ class FfiTransformer extends Transformer {
     bool allowInlineArray = false,
     bool allowVoid = false,
   }) {
-    if (!_nativeTypeValid(nativeType,
+    if (!isNativeTypeValid(nativeType,
         allowStructAndUnion: allowStructAndUnion,
         allowHandle: allowHandle,
         allowInlineArray: allowInlineArray,
@@ -1484,7 +1512,7 @@ class FfiTransformer extends Transformer {
 
   /// The Dart type system does not enforce that NativeFunction return and
   /// parameter types are only NativeTypes, so we need to check this.
-  bool _nativeTypeValid(
+  bool isNativeTypeValid(
     DartType nativeType, {
     bool allowStructAndUnion = false,
     bool allowHandle = false,

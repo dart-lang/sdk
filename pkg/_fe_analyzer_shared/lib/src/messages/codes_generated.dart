@@ -6648,6 +6648,18 @@ const MessageCode messageFfiNativeFieldType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiNativeFunctionMissingType =
+    messageFfiNativeFunctionMissingType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiNativeFunctionMissingType = const MessageCode(
+  "FfiNativeFunctionMissingType",
+  analyzerCodes: <String>["NATIVE_FUNCTION_MISSING_TYPE"],
+  problemMessage:
+      r"""The native type of this function couldn't be inferred so it must be specified in the annotation.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFfiNativeMustBeExternal = messageFfiNativeMustBeExternal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
