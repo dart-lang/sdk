@@ -1240,8 +1240,7 @@ library
   test_function_typed_parameter_implicit() async {
     var library = await buildLibrary('f(g()) => null;');
     expect(
-        library
-            .definingCompilationUnit.functions[0].parameters[0].hasImplicitType,
+        library.topLevelFunctions.first.formalParameters.first.hasImplicitType,
         isFalse);
   }
 
