@@ -21,8 +21,14 @@ Stream<String> expandedStream() async* {
 }
 
 Future test() async {
-  Expect.listEquals(['before', 'a', 'after', 'before', 'b', 'after'],
-      await expandedStream().toList());
+  Expect.listEquals([
+    'before',
+    'a',
+    'after',
+    'before',
+    'b',
+    'after',
+  ], await expandedStream().toList());
 }
 
 void main() {

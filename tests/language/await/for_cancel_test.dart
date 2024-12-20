@@ -83,11 +83,12 @@ StreamController infiniteStreamController() {
   }
 
   controller = new StreamController(
-      onListen: startTimer,
-      onResume: startTimer,
-      onCancel: () {
-        canceled = true;
-      });
+    onListen: startTimer,
+    onResume: startTimer,
+    onCancel: () {
+      canceled = true;
+    },
+  );
 
   return controller;
 }

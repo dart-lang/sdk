@@ -95,20 +95,24 @@ Future runTest(test, expectedTrace, expectedError, shouldCancel) {
   Tracer tracer = new Tracer(expectedTrace);
   Completer done = new Completer();
   var subscription;
-  subscription = test(tracer).listen((event) async {
-    tracer.trace("Y");
-    if (shouldCancel) {
-      await subscription.cancel();
-      tracer.trace("C");
+  subscription = test(tracer).listen(
+    (event) async {
+      tracer.trace("Y");
+      if (shouldCancel) {
+        await subscription.cancel();
+        tracer.trace("C");
+        done.complete(null);
+      }
+    },
+    onError: (error) {
+      Expect.equals(expectedError, error);
+      tracer.trace("X");
+    },
+    onDone: () {
+      tracer.done();
       done.complete(null);
-    }
-  }, onError: (error) {
-    Expect.equals(expectedError, error);
-    tracer.trace("X");
-  }, onDone: () {
-    tracer.done();
-    done.complete(null);
-  });
+    },
+  );
   return done.future.then((_) => tracer.done());
 }
 

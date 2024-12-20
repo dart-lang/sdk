@@ -92,7 +92,11 @@ awaitFoo() async {
 main() {
   asyncStart();
   test()
-      .then((_) => awaitFoo().then((_) => Expect.fail("Should have thrown"),
-          onError: (error) => Expect.equals("Error", error)))
+      .then(
+        (_) => awaitFoo().then(
+          (_) => Expect.fail("Should have thrown"),
+          onError: (error) => Expect.equals("Error", error),
+        ),
+      )
       .whenComplete(asyncEnd);
 }

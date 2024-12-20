@@ -25,11 +25,14 @@ main() {
     }
 
     // No events must be fired synchronously in response to a listen.
-    var subscription = f().listen((Null v) {
-      fail('Received event $v');
-    }, onDone: () {
-      fail('Received done');
-    });
+    var subscription = f().listen(
+      (Null v) {
+        fail('Received event $v');
+      },
+      onDone: () {
+        fail('Received done');
+      },
+    );
     // No events must be delivered after a cancel.
     subscription.cancel();
     return exits.future.then((v) {
@@ -51,9 +54,13 @@ main() {
       }
     }
 
-    return expectList(f().take(5), [0, 1, 2, 3, 4])
-        .then((_) => exits.future)
-        .then((v) {
+    return expectList(f().take(5), [
+      0,
+      1,
+      2,
+      3,
+      4,
+    ]).then((_) => exits.future).then((v) {
       expect(v, greaterThan(4));
       expect(list, ['a']);
     });
@@ -114,10 +121,9 @@ main() {
       }
     }
 
-    return fugl(3)
-        .whenComplete(() => fugl(2))
-        .whenComplete(() => fugl(1))
-        .whenComplete(() {
+    return fugl(
+      3,
+    ).whenComplete(() => fugl(2)).whenComplete(() => fugl(1)).whenComplete(() {
       expect(res, [
         'fisk 3',
         '+fisk',

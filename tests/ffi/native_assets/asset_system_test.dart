@@ -81,13 +81,13 @@ Future<void> runTests() async {
 @Native<Pointer Function(IntPtr)>()
 external Pointer malloc(int size);
 
-@Native<Void Function(Pointer)>(assetId: asset2Name)
+@Native(assetId: asset2Name)
 external void free(Pointer pointer);
 
 @Native<Pointer Function(Size)>()
 external Pointer CoTaskMemAlloc(int cb);
 
-@Native<Void Function(Pointer)>(assetId: asset2Name)
+@Native(assetId: asset2Name)
 external void CoTaskMemFree(Pointer pv);
 
 void testProcessOrSystem() {

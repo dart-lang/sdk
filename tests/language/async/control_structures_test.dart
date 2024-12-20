@@ -63,7 +63,8 @@ asyncTryCatchLoop() async {
 }
 
 asyncImplicitReturn() async {
-  try {} catch (e) {} finally {}
+  try {} catch (e) {
+  } finally {}
 }
 
 main() {

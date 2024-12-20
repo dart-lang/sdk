@@ -146,11 +146,13 @@ void main() {
       }
     }
 
-    return expectList(f(0), [0, 1]).whenComplete(() {
-      return expectList(f(1), [1]);
-    }).whenComplete(() {
-      return expectList(f(2), [2]);
-    });
+    return expectList(f(0), [0, 1])
+        .whenComplete(() {
+          return expectList(f(1), [1]);
+        })
+        .whenComplete(() {
+          return expectList(f(2), [2]);
+        });
   });
 
   test('dead-code return', () {

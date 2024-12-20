@@ -79,25 +79,25 @@ Future<void> runTests() async {
 @Native<Pointer Function(IntPtr)>(symbol: 'malloc')
 external Pointer posixMalloc(int size);
 
-@Native<Void Function(Pointer)>(symbol: 'free')
+@Native(symbol: 'free')
 external void posixFree(Pointer pointer);
 
 @Native<Pointer Function(Size)>(symbol: 'CoTaskMemAlloc')
 external Pointer winCoTaskMemAlloc(int cb);
 
-@Native<Void Function(Pointer)>(symbol: 'CoTaskMemFree')
+@Native(symbol: 'CoTaskMemFree')
 external void winCoTaskMemFree(Pointer pv);
 
 @Native<Pointer Function(IntPtr)>()
 external Pointer malloc(int size);
 
-@Native<Void Function(Pointer)>(assetId: asset2Name)
+@Native(assetId: asset2Name)
 external void free(Pointer pointer);
 
 @Native<Pointer Function(Size)>()
 external Pointer CoTaskMemAlloc(int cb);
 
-@Native<Void Function(Pointer)>(assetId: asset2Name)
+@Native(assetId: asset2Name)
 external void CoTaskMemFree(Pointer pv);
 
 void testProcessOrSystem() {

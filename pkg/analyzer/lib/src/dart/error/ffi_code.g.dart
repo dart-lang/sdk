@@ -387,6 +387,16 @@ class FfiCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters
+  static const FfiCode NATIVE_FUNCTION_MISSING_TYPE = FfiCode(
+    'NATIVE_FUNCTION_MISSING_TYPE',
+    "The native type of this function couldn't be inferred so it must be "
+        "specified in the annotation.",
+    correctionMessage:
+        "Try adding a type parameter extending `NativeType` to the `@Native` "
+        "annotation.",
+  );
+
   ///  No parameters.
   static const FfiCode NEGATIVE_VARIABLE_DIMENSION = FfiCode(
     'NEGATIVE_VARIABLE_DIMENSION',

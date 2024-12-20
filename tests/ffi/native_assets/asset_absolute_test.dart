@@ -113,7 +113,7 @@ final class Coord extends Struct {
 @Native()
 external Coord globalStruct;
 
-@Native<Coord Function()>()
+@Native()
 external Coord GetGlobalStruct();
 
 @Native()

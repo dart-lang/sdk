@@ -110,6 +110,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Subclass of `Struct` or `Union` we are currently visiting, or `null`.
   ClassDeclaration? compound;
 
+  /// The `Void` type from `dart:ffi`, or `null` if unresolved.
+  InterfaceType? ffiVoidType;
+
   /// Initialize a newly created verifier.
   FfiVerifier(this.typeSystem, this._errorReporter,
       {required this.strictCasts});
@@ -493,8 +496,36 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           );
         }
       } else {
-        if (declarationElement is MethodElement2 ||
-            declarationElement is TopLevelFunctionElement) {
+        if (declarationElement
+            case TopLevelFunctionElement() || MethodElement2()) {
+          declarationElement = declarationElement as ExecutableElement2;
+          var dartSignature = declarationElement.type;
+
+          if (declarationElement.isStatic && ffiSignature is DynamicType) {
+            // No type argument was given on the @Native annotation, so we try
+            // to infer the native type from the Dart signature.
+            if (dartSignature.returnType is VoidType) {
+              // The Dart signature has a `void` return type, so we create a new
+              // `FunctionType` with FFI's `Void` as the return type.
+              dartSignature = FunctionTypeImpl.v2(
+                typeParameters: dartSignature.typeParameters,
+                formalParameters: dartSignature.formalParameters,
+                returnType: ffiVoidType ??= annotationType.element3.library2
+                    .getClass2('Void')!
+                    .thisType,
+                nullabilitySuffix: dartSignature.nullabilitySuffix,
+              );
+            }
+            _checkFfiNativeFunction(
+              errorNode,
+              declarationElement,
+              dartSignature,
+              annotationValue,
+              formalParameters,
+            );
+            return;
+          }
+
           // Function annotated with something that isn't a function type.
           _errorReporter.atToken(
             errorNode,
@@ -512,9 +543,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           );
         }
       }
-
-      if (ffiSignature is FunctionType &&
-          declarationElement is ExecutableElement2) {}
     }
   }
 
@@ -683,11 +711,20 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       nullabilitySuffix: ffiSignature.nullabilitySuffix,
     );
     if (!_isValidFfiNativeFunctionType(nativeType)) {
-      _errorReporter.atToken(
-        errorToken,
-        FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
-        arguments: [nativeType, 'Native'],
-      );
+      var nativeTypeIsOmitted = (annotationValue.type! as InterfaceType)
+          .typeArguments[0] is DynamicType;
+      if (nativeTypeIsOmitted) {
+        _errorReporter.atToken(
+          errorToken,
+          FfiCode.NATIVE_FUNCTION_MISSING_TYPE,
+        );
+      } else {
+        _errorReporter.atToken(
+          errorToken,
+          FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
+          arguments: [nativeType, 'Native'],
+        );
+      }
       return;
     }
     if (!_validateCompatibleFunctionTypes(
@@ -1707,15 +1744,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             // When referencing a function, the target type must be a
             // `NativeFunction<T>` so that `T` matches the type from the
             // annotation.
-            if (!targetType.isNativeFunction) {
-              _errorReporter.atNode(
-                node,
-                FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
-                arguments: [targetType, _nativeAddressOf],
-              );
-            } else {
-              var targetFunctionType =
-                  (targetType as InterfaceType).typeArguments[0];
+            if (targetType case InterfaceType(isNativeFunction: true)) {
+              var targetFunctionType = targetType.typeArguments[0];
               if (!typeSystem.isEqualTo(nativeType, targetFunctionType)) {
                 _errorReporter.atNode(
                   node,
@@ -1723,29 +1753,61 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
                   arguments: [nativeType, targetFunctionType, _nativeAddressOf],
                 );
               }
-            }
-          } else {
-            // A native field is being referenced, this doesn't require a
-            // NativeFunction wrapper. However, we can't read the native type
-            // from the annotation directly because it might be inferred if none
-            // was given.
-            if (nativeType is DynamicType) {
-              var staticType = argument.staticType;
-              if (staticType != null) {
-                var canonical = _canonicalFfiTypeForDartType(staticType);
-
-                if (canonical != null) {
-                  nativeType = canonical;
-                }
-              }
-            }
-
-            if (!typeSystem.isEqualTo(nativeType, targetType)) {
+            } else {
               _errorReporter.atNode(
                 node,
-                FfiCode.MUST_BE_A_SUBTYPE,
-                arguments: [nativeType, targetType, _nativeAddressOf],
+                FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
+                arguments: [targetType, _nativeAddressOf],
               );
+            }
+          } else {
+            if (argument.staticType case var staticType?
+                when nativeType is DynamicType) {
+              // No type argument was given on the @Native annotation, so we try
+              // to infer the native type from the Dart signature.
+              if (staticType is FunctionType) {
+                if (staticType.returnType is VoidType) {
+                  // The Dart signature has a `void` return type, so we create a
+                  // new `FunctionType` with FFI's `Void` as the return type.
+                  staticType = FunctionTypeImpl.v2(
+                    typeParameters: staticType.typeParameters,
+                    formalParameters: staticType.formalParameters,
+                    returnType: ffiVoidType ??= annotationType.element3.library2
+                        .getClass2('Void')!
+                        .thisType,
+                    nullabilitySuffix: staticType.nullabilitySuffix,
+                  );
+                }
+
+                if (targetType case InterfaceType(isNativeFunction: true)) {
+                  var targetFunctionType = targetType.typeArguments[0];
+                  if (!typeSystem.isEqualTo(staticType, targetFunctionType)) {
+                    _errorReporter.atNode(
+                      node,
+                      FfiCode.MUST_BE_A_SUBTYPE,
+                      arguments: [
+                        staticType,
+                        targetFunctionType,
+                        _nativeAddressOf
+                      ],
+                    );
+                  }
+                } else {
+                  _errorReporter.atNode(
+                    node,
+                    FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
+                    arguments: [targetType, _nativeAddressOf],
+                  );
+                }
+              } else {
+                if (!typeSystem.isEqualTo(staticType, targetType)) {
+                  _errorReporter.atNode(
+                    node,
+                    FfiCode.MUST_BE_A_SUBTYPE,
+                    arguments: [staticType, targetType, _nativeAddressOf],
+                  );
+                }
+              }
             }
           }
 
