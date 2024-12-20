@@ -86,21 +86,17 @@ class RunningIsolates implements MessageRouter {
 // `package:frontend_server`.
 
 final class _ResidentCompilerInfo {
-  final String? _sdkHash;
-  final InternetAddress _address;
-  final int _port;
-
   /// The SDK hash that kernel files compiled using the Resident Frontend
   /// Compiler associated with this object will be stamped with.
-  String? get sdkHash => _sdkHash;
+  final String? sdkHash;
 
   /// The address that the Resident Frontend Compiler associated with this
   /// object is listening from.
-  InternetAddress get address => _address;
+  final InternetAddress address;
 
   /// The port number that the Resident Frontend Compiler associated with this
   /// object is listening on.
-  int get port => _port;
+  final int port;
 
   /// Extracts the value associated with a key from [entries], where [entries]
   /// is a [String] with the format '$key1:$value1 $key2:$value2 $key3:$value3 ...'.
@@ -126,12 +122,10 @@ final class _ResidentCompilerInfo {
   }
 
   _ResidentCompilerInfo._({
-    required String? sdkHash,
-    required int port,
-    required InternetAddress address,
-  }) : _sdkHash = sdkHash,
-       _port = port,
-       _address = address;
+    required this.sdkHash,
+    required this.port,
+    required this.address,
+  });
 }
 
 /// Class that knows how to orchestrate expression evaluation in dart2 world.
