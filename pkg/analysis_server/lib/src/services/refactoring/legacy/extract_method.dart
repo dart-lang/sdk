@@ -26,7 +26,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
@@ -975,10 +974,9 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
         result.addError(errorExits);
       }
     }
-    // maybe ends with "return" statement
+    // Maybe ends with a "return" statement.
     if (selectionStatements != null) {
-      var typeSystem = _resolveResult.typeSystem;
-      var returnTypeComputer = _ReturnTypeComputer(typeSystem);
+      var returnTypeComputer = ReturnTypeComputer(_resolveResult.typeSystem);
       for (var statement in selectionStatements) {
         statement.accept(returnTypeComputer);
       }
@@ -1755,41 +1753,6 @@ class _Occurrence {
   final Map<String, String> _parameterOldToOccurrenceName = <String, String>{};
 
   _Occurrence(this.range, this.isSelection);
-}
-
-class _ReturnTypeComputer extends RecursiveAstVisitor<void> {
-  final TypeSystem typeSystem;
-
-  DartType? returnType;
-
-  _ReturnTypeComputer(this.typeSystem);
-
-  @override
-  void visitBlockFunctionBody(BlockFunctionBody node) {}
-
-  @override
-  void visitReturnStatement(ReturnStatement node) {
-    // prepare expression
-    var expression = node.expression;
-    if (expression == null) {
-      return;
-    }
-    // prepare type
-    var type = expression.typeOrThrow;
-    if (type.isBottom) {
-      return;
-    }
-    // combine types
-    returnType = _combine(returnType, type);
-  }
-
-  DartType _combine(DartType? returnType, DartType type) {
-    if (returnType == null) {
-      return type;
-    } else {
-      return typeSystem.leastUpperBound(returnType, type);
-    }
-  }
 }
 
 /// Generalized version of some source, in which references to the specific

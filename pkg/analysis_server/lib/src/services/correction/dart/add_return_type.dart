@@ -4,12 +4,11 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -82,20 +81,20 @@ class AddReturnType extends ResolvedCorrectionProducer {
   /// Returns the type of value returned by the function [body], or `null` if a
   /// type can't be inferred.
   DartType? _inferReturnType(FunctionBody body) {
-    DartType? baseType;
-    if (body is ExpressionFunctionBody) {
-      baseType = body.expression.typeOrThrow;
-    } else if (body is BlockFunctionBody) {
-      var computer = _ReturnTypeComputer(unitResult.typeSystem);
-      body.block.accept(computer);
-      baseType = computer.returnType;
-      if (baseType == null && computer.hasReturn) {
-        baseType = typeProvider.voidType;
-      }
-    }
-
-    if (baseType == null) {
-      return null;
+    DartType baseType;
+    switch (body) {
+      case BlockFunctionBody():
+        var computer = ReturnTypeComputer(
+          unitResult.typeSystem,
+          isGenerator: body.isGenerator,
+        );
+        body.block.accept(computer);
+        baseType = computer.returnType ?? typeProvider.voidType;
+      case ExpressionFunctionBody():
+        baseType = body.expression.typeOrThrow;
+      case EmptyFunctionBody():
+      case NativeFunctionBody():
+        return null;
     }
 
     if (body.isAsynchronous) {
@@ -117,39 +116,5 @@ class AddReturnType extends ResolvedCorrectionProducer {
       );
     }
     return baseType;
-  }
-}
-
-/// Copied from lib/src/services/refactoring/extract_method.dart", but
-/// [hasReturn] was added.
-// TODO(brianwilkerson): Decide whether to unify the two classes.
-class _ReturnTypeComputer extends RecursiveAstVisitor<void> {
-  final TypeSystem typeSystem;
-
-  DartType? returnType;
-
-  /// A flag indicating whether at least one return statement was found.
-  bool hasReturn = false;
-
-  _ReturnTypeComputer(this.typeSystem);
-
-  @override
-  void visitBlockFunctionBody(BlockFunctionBody node) {}
-
-  @override
-  void visitReturnStatement(ReturnStatement node) {
-    hasReturn = true;
-    // prepare expression
-    var type = node.expression?.typeOrThrow;
-    if (type == null || type.isBottom) {
-      return;
-    }
-    // combine types
-    var current = returnType;
-    if (current == null) {
-      returnType = type;
-    } else {
-      returnType = typeSystem.leastUpperBound(current, type);
-    }
   }
 }
