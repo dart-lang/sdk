@@ -10,6 +10,14 @@ final class Coordinate extends Struct {
   void copyInto(Pointer<Coordinate> ptr) {
     ptr.ref = this;
   }
+
+  void getRefWithFinalizer(
+    Pointer<Coordinate> ptr,
+    Pointer<NativeFinalizerFunction> finalizer, {
+    Pointer<Void>? token,
+  }) {
+    ptr.refWithFinalizer(finalizer, token: token);
+  }
 }
 
 final class SomeUnion extends Union {
@@ -19,6 +27,14 @@ final class SomeUnion extends Union {
 
   void copyIntoAtIndex(Pointer<SomeUnion> ptr, int index) {
     ptr[index] = this;
+  }
+
+  void getRefWithFinalizer(
+    Pointer<SomeUnion> ptr,
+    Pointer<NativeFinalizerFunction> finalizer, {
+    Pointer<Void>? token,
+  }) {
+    ptr.refWithFinalizer(finalizer, token: token);
   }
 }
 

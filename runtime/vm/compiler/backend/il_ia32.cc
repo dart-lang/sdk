@@ -581,8 +581,7 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
   ASSERT(!is_unboxed_int || RepresentationUtils::ValueSize(representation()) <=
                                 compiler::target::kWordSize);
   const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps =
-      (constant_address() == 0) && !is_unboxed_int ? 1 : 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   if (representation() == kUnboxedDouble) {
@@ -590,9 +589,6 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
   } else {
     ASSERT(is_unboxed_int);
     locs->set_out(0, Location::RequiresRegister());
-  }
-  if (kNumTemps == 1) {
-    locs->set_temp(0, Location::RequiresRegister());
   }
   return locs;
 }

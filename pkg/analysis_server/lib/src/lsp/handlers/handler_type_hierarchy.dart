@@ -12,6 +12,7 @@ import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
+import 'package:analysis_server/src/utilities/element_location2.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -140,7 +141,7 @@ class TypeHierarchySubtypesHandler
         );
       }
 
-      var location = type_hierarchy.TypeHierarchyItemLocation.decode(data.ref);
+      var location = ElementLocation2.decode(data.ref);
       var calls = await computer.findSubtypes(location, server.searchEngine);
       var results = calls != null ? _convertItems(unit, calls) : null;
       return success(results);
@@ -188,7 +189,7 @@ class TypeHierarchySupertypesHandler
         );
       }
 
-      var location = type_hierarchy.TypeHierarchyItemLocation.decode(data.ref);
+      var location = ElementLocation2.decode(data.ref);
       var anchor = _toServerAnchor(data);
       var calls = await computer.findSupertypes(location, anchor: anchor);
       var results = calls != null ? _convertItems(unit, calls) : null;
@@ -204,7 +205,7 @@ class TypeHierarchySupertypesHandler
     var anchor = data.anchor;
     return anchor != null
         ? type_hierarchy.TypeHierarchyAnchor(
-          location: type_hierarchy.TypeHierarchyItemLocation.decode(anchor.ref),
+          location: ElementLocation2.decode(anchor.ref),
           path: anchor.path,
         )
         : null;

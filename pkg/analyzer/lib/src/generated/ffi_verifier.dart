@@ -355,6 +355,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (element.name3 == 'lookupFunction') {
           _validateLookupFunction(node);
         }
+      } else if (enclosingElement.isNativeStructPointerExtension ||
+          enclosingElement.isNativeUnionPointerExtension) {
+        if (element.name3 == 'refWithFinalizer') {
+          _validateRefWithFinalizer(node);
+        }
       }
     } else if (element is TopLevelFunctionElement) {
       if (element.library2.name3 == 'dart.ffi') {
@@ -1925,6 +1930,20 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         errorNode,
         FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
         arguments: ['ref'],
+      );
+    }
+  }
+
+  /// Validate the invocation of the
+  /// `Pointer<T extends Struct>.refWithFinalizer` and
+  /// `Pointer<T extends Union>.refWithFinalizer` extension methods.
+  void _validateRefWithFinalizer(MethodInvocation node) {
+    var targetType = node.realTarget?.staticType;
+    if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
+      _errorReporter.atNode(
+        node,
+        FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
+        arguments: ['refWithFinalizer'],
       );
     }
   }

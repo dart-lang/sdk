@@ -252,6 +252,8 @@ class FfiTransformer extends Transformer {
   final Procedure addressGetter;
   final Procedure structPointerGetRef;
   final Procedure structPointerSetRef;
+  final Procedure structPointerRefWithFinalizer;
+  final Procedure structPointerRefWithFinalizerTearoff;
   final Procedure structPointerGetElemAt;
   final Procedure structPointerSetElemAt;
   final Procedure structPointerElementAt;
@@ -260,12 +262,15 @@ class FfiTransformer extends Transformer {
   final Procedure structPointerElementAtTearoff;
   final Procedure unionPointerGetRef;
   final Procedure unionPointerSetRef;
+  final Procedure unionPointerRefWithFinalizer;
+  final Procedure unionPointerRefWithFinalizerTearoff;
   final Procedure unionPointerGetElemAt;
   final Procedure unionPointerSetElemAt;
   final Procedure unionPointerElementAt;
   final Procedure unionPointerPlusOperator;
   final Procedure unionPointerMinusOperator;
   final Procedure unionPointerElementAtTearoff;
+  final Procedure uint8PointerAsTypedList;
   final Procedure structArrayElemAt;
   final Procedure unionArrayElemAt;
   final Procedure arrayArrayElemAt;
@@ -355,6 +360,7 @@ class FfiTransformer extends Transformer {
   late final InterfaceType nativeTypeType;
   // The Pointer type when instantiated to bounds.
   late final InterfaceType pointerNativeTypeType;
+  late final InterfaceType uint8Type;
   late final InterfaceType compoundType;
 
   /// Classes corresponding to [NativeType], indexed by [NativeType].
@@ -494,6 +500,10 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'StructPointer', 'get:ref'),
         structPointerSetRef =
             index.getProcedure('dart:ffi', 'StructPointer', 'set:ref'),
+        structPointerRefWithFinalizer =
+            index.getProcedure('dart:ffi', 'StructPointer', 'refWithFinalizer'),
+        structPointerRefWithFinalizerTearoff = index.getProcedure('dart:ffi',
+            'StructPointer', LibraryIndex.tearoffPrefix + 'refWithFinalizer'),
         structPointerGetElemAt =
             index.getProcedure('dart:ffi', 'StructPointer', '[]'),
         structPointerSetElemAt =
@@ -510,6 +520,10 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'UnionPointer', 'get:ref'),
         unionPointerSetRef =
             index.getProcedure('dart:ffi', 'UnionPointer', 'set:ref'),
+        unionPointerRefWithFinalizer =
+            index.getProcedure('dart:ffi', 'UnionPointer', 'refWithFinalizer'),
+        unionPointerRefWithFinalizerTearoff = index.getProcedure('dart:ffi',
+            'UnionPointer', LibraryIndex.tearoffPrefix + 'refWithFinalizer'),
         unionPointerGetElemAt =
             index.getProcedure('dart:ffi', 'UnionPointer', '[]'),
         unionPointerSetElemAt =
@@ -522,6 +536,8 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'UnionPointer', '-'),
         unionPointerElementAtTearoff = index.getProcedure('dart:ffi',
             'UnionPointer', LibraryIndex.tearoffPrefix + 'elementAt'),
+        uint8PointerAsTypedList =
+            index.getProcedure('dart:ffi', 'Uint8Pointer', 'asTypedList'),
         structArrayElemAt = index.getProcedure('dart:ffi', 'StructArray', '[]'),
         unionArrayElemAt = index.getProcedure('dart:ffi', 'UnionArray', '[]'),
         arrayArrayElemAt = index.getProcedure('dart:ffi', 'ArrayArray', '[]'),
@@ -676,6 +692,8 @@ class FfiTransformer extends Transformer {
     intptrNativeTypeCfe =
         NativeTypeCfe(this, InterfaceType(intptrClass, Nullability.nonNullable))
             as AbiSpecificNativeTypeCfe;
+    uint8Type = InterfaceType(
+        nativeTypesClasses[NativeType.kUint8]!, Nullability.nonNullable);
     compoundType = InterfaceType(
       compoundClass,
       Nullability.nonNullable,

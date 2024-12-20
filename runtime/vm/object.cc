@@ -10011,12 +10011,8 @@ ObjectPtr Function::DoArgumentTypesMatch(
                            const TypeArguments& function_type_args) -> bool {
     // If the argument type is the top type, no need to check.
     if (type.IsTopTypeForSubtyping()) return true;
-    if (argument.IsNull()) {
-      return Instance::NullIsAssignableTo(type, instantiator_type_args,
-                                          function_type_args);
-    }
-    return argument.IsAssignableTo(type, instantiator_type_args,
-                                   function_type_args);
+    return argument.IsInstanceOf(type, instantiator_type_args,
+                                 function_type_args);
   };
 
   // Check types of the provided arguments against the expected parameter types.
@@ -21342,86 +21338,13 @@ void Instance::SetTypeArguments(const TypeArguments& value) const {
   SetFieldAtOffset(field_offset, value);
 }
 
-/*
-Specification of instance checks (e is T) and casts (e as T), where e evaluates
-to a value v and v has runtime type S:
-
-Instance checks (e is T) in weak checking mode in a legacy or opted-in library:
-  If v == null and T is a legacy type
-    return LEGACY_SUBTYPE(T, Null) || LEGACY_SUBTYPE(Object, T)
-  If v == null and T is not a legacy type, return NNBD_SUBTYPE(Null, T)
-  Otherwise return LEGACY_SUBTYPE(S, T)
-
-Instance checks (e is T) in strong checking mode in a legacy or opted-in lib:
-  If v == null and T is a legacy type
-    return LEGACY_SUBTYPE(T, Null) || LEGACY_SUBTYPE(Object, T)
-  Otherwise return NNBD_SUBTYPE(S, T)
-
-Casts (e as T) in weak checking mode in a legacy or opted-in library:
-  If LEGACY_SUBTYPE(S, T) then e as T evaluates to v.
-  Otherwise a TypeError is thrown.
-
-Casts (e as T) in strong checking mode in a legacy or opted-in library:
-  If NNBD_SUBTYPE(S, T) then e as T evaluates to v.
-  Otherwise a TypeError is thrown.
-*/
-
 bool Instance::IsInstanceOf(
     const AbstractType& other,
     const TypeArguments& other_instantiator_type_arguments,
     const TypeArguments& other_function_type_arguments) const {
   ASSERT(!other.IsDynamicType());
-  if (IsNull()) {
-    return Instance::NullIsInstanceOf(other, other_instantiator_type_arguments,
-                                      other_function_type_arguments);
-  }
-  // In strong mode, compute NNBD_SUBTYPE(runtimeType, other).
-  // In weak mode, compute LEGACY_SUBTYPE(runtimeType, other).
   return RuntimeTypeIsSubtypeOf(other, other_instantiator_type_arguments,
                                 other_function_type_arguments);
-}
-
-bool Instance::IsAssignableTo(
-    const AbstractType& other,
-    const TypeArguments& other_instantiator_type_arguments,
-    const TypeArguments& other_function_type_arguments) const {
-  ASSERT(!other.IsDynamicType());
-  // In strong mode, compute NNBD_SUBTYPE(runtimeType, other).
-  // In weak mode, compute LEGACY_SUBTYPE(runtimeType, other).
-  return RuntimeTypeIsSubtypeOf(other, other_instantiator_type_arguments,
-                                other_function_type_arguments);
-}
-
-// If 'other' type (once instantiated) is a legacy type:
-//   return LEGACY_SUBTYPE(other, Null) || LEGACY_SUBTYPE(Object, other).
-// Otherwise return NNBD_SUBTYPE(Null, T).
-// Ignore value of strong flag value.
-bool Instance::NullIsInstanceOf(
-    const AbstractType& other,
-    const TypeArguments& other_instantiator_type_arguments,
-    const TypeArguments& other_function_type_arguments) {
-  ASSERT(other.IsFinalized());
-  if (other.IsNullable()) {
-    // This case includes top types (void, dynamic, Object?).
-    // The uninstantiated nullable type will remain nullable after
-    // instantiation.
-    return true;
-  }
-  if (other.IsFutureOrType()) {
-    const auto& type = AbstractType::Handle(other.UnwrapFutureOr());
-    return NullIsInstanceOf(type, other_instantiator_type_arguments,
-                            other_function_type_arguments);
-  }
-  // No need to instantiate type, unless it is a type parameter.
-  // Note that a typeref cannot refer to a type parameter.
-  if (other.IsTypeParameter()) {
-    auto& type = AbstractType::Handle(other.InstantiateFrom(
-        other_instantiator_type_arguments, other_function_type_arguments,
-        kAllFree, Heap::kOld));
-    return Instance::NullIsInstanceOf(type, Object::null_type_arguments(),
-                                      Object::null_type_arguments());
-  }
-  return false;
 }
 
 // Must be kept in sync with GenerateNullIsAssignableToType in

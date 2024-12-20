@@ -1179,7 +1179,7 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
   }
 
   Value* left_value = call->Receiver();
-  if (left_value->Type()->IsInstanceOf(type)) {
+  if (left_value->Type()->IsSubtypeOf(type)) {
     ConstantInstr* replacement = flow_graph()->GetConstant(Bool::True());
     call->ReplaceUsesWith(replacement);
     ASSERT(current_iterator()->Current() == call);
@@ -1507,7 +1507,7 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
 
   auto& type_class = Class::Handle(zone_);
   for (auto& variant : typed_data_variants_) {
-    if (!receiver_type->IsAssignableTo(variant.array_type)) {
+    if (!receiver_type->IsSubtypeOf(variant.array_type)) {
       continue;
     }
 
@@ -1535,7 +1535,7 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
       type_class = variant.array_type.type_class();
       ReplaceWithIndexGet(call, variant.array_cid);
     } else {
-      if (!value_type->IsAssignableTo(variant.element_type)) {
+      if (!value_type->IsSubtypeOf(variant.element_type)) {
         return;
       }
       type_class = variant.array_type.type_class();

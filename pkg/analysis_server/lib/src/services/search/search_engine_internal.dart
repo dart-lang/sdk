@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source.dart';
@@ -182,7 +184,13 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern) async {
-    var allElements = <Element2>{};
+    var allElements = HashSet<Element2>(
+      hashCode: (e) => e.name3.hashCode,
+      equals: (a, b) {
+        return a.lookupName == b.lookupName &&
+            a.library2?.uri == b.library2?.uri;
+      },
+    );
     var regExp = RegExp(pattern);
     var drivers = _drivers.toList();
     for (var driver in drivers) {

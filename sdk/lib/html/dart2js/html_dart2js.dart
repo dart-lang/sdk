@@ -1,3 +1,11 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// DO NOT EDIT - unless you are editing documentation as per:
+// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
+// Auto-generated dart:html library.
+
 /// HTML elements and other resources for web-based applications that need to
 /// interact with the browser and the DOM (Document Object Model).
 ///
@@ -36,13 +44,6 @@ import 'dart:web_gl' as gl;
 import 'dart:web_gl' show RenderingContext, RenderingContext2;
 import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
 import 'dart:js_util' as js_util;
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// DO NOT EDIT - unless you are editing documentation as per:
-// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
-// Auto-generated dart:html library.
 
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:_js_helper'

@@ -2714,7 +2714,6 @@ void FlowGraphCompiler::GenerateInstanceOf(const InstructionSource& source,
       AbstractType::Handle(type.UnwrapFutureOr());
   if (!unwrapped_type.IsTypeParameter() || unwrapped_type.IsNullable()) {
     // Only nullable type parameter remains nullable after instantiation.
-    // See NullIsInstanceOf().
     __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
     __ BranchIf(EQUAL,
                 unwrapped_type.IsNullable() ? &is_instance : &is_not_instance);

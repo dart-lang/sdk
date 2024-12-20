@@ -1358,4 +1358,21 @@ DART_EXPORT char TakeString(char* my_string) {
   return my_string[4];
 }
 
+struct Vec4 {
+  double x;
+  double y;
+  double z;
+  double w;
+};
+
+// Rearranges the components of the input Vec4 and stores them in the result
+// Vec4.
+// [x, y, z, w] -> [y, z, w, x]
+DART_EXPORT void TwiddleVec4Components(Vec4 input, Vec4* result) {
+  result->x = input.y;
+  result->y = input.z;
+  result->z = input.w;
+  result->w = input.x;
+}
+
 }  // namespace dart

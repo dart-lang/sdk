@@ -558,7 +558,7 @@ mixin ElementsTypesMixin {
     );
   }
 
-  ParameterElement requiredParameter({
+  ParameterElementImpl requiredParameter({
     String? name,
     required DartType type,
     bool isCovariant = false,

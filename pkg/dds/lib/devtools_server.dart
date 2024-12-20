@@ -647,7 +647,11 @@ class DevToolsServer {
     uriParams['uri'] = vmServiceUri.toString();
 
     final devToolsUri = Uri.parse(devToolsUrl);
-    final uriToLaunch = _buildUriToLaunch(uriParams, page, devToolsUri);
+    final uriToLaunch = buildUriToLaunch(
+      devToolsUri,
+      page,
+      uriParams,
+    );
 
     // TODO(dantup): When ChromeOS has support for tunneling all ports we can
     // change this to always use the native browser for ChromeOS and may wish to
@@ -746,23 +750,22 @@ class DevToolsServer {
     return false;
   }
 
-  String _buildUriToLaunch(
-    Map<String, dynamic> uriParams,
-    String? page,
+  static String buildUriToLaunch(
     Uri devToolsUri,
+    String? page,
+    Map<String, dynamic>? params,
   ) {
-    final queryStringNameValues = [];
-    uriParams.forEach((key, value) => queryStringNameValues.add(
-        '${Uri.encodeQueryComponent(key)}=${Uri.encodeQueryComponent(value)}'));
-
-    if (page != null) {
-      queryStringNameValues.add('page=${Uri.encodeQueryComponent(page)}');
-    }
-
+    page ??= '';
+    var pathSep = devToolsUri.path.endsWith('/') ? '' : '/';
+    var newPath = '${devToolsUri.path}$pathSep$page';
+    var newParams = {
+      ...devToolsUri.queryParameters,
+      ...?params,
+    };
     return devToolsUri
         .replace(
-            path: devToolsUri.path.isEmpty ? '/' : devToolsUri.path,
-            fragment: '?${queryStringNameValues.join('&')}')
+            path: newPath,
+            queryParameters: newParams.isNotEmpty ? newParams : null)
         .toString();
   }
 

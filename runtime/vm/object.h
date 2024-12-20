@@ -8348,12 +8348,6 @@ class Instance : public Object {
                     const TypeArguments& other_instantiator_type_arguments,
                     const TypeArguments& other_function_type_arguments) const;
 
-  // Check if this instance is assignable to the given other type.
-  // The type argument vectors are used to instantiate the other type if needed.
-  bool IsAssignableTo(const AbstractType& other,
-                      const TypeArguments& other_instantiator_type_arguments,
-                      const TypeArguments& other_function_type_arguments) const;
-
   // Return true if the null instance can be assigned to a variable of [other]
   // type. Return false if null cannot be assigned or we cannot tell (if
   // [other] is a type parameter in NNBD strong mode). Only used for checks at
@@ -8476,12 +8470,6 @@ class Instance : public Object {
   // Returns false if other type is not a FutureOr.
   bool RuntimeTypeIsSubtypeOfFutureOr(Zone* zone,
                                       const AbstractType& other) const;
-
-  // Return true if the null instance is an instance of other type.
-  static bool NullIsInstanceOf(
-      const AbstractType& other,
-      const TypeArguments& other_instantiator_type_arguments,
-      const TypeArguments& other_function_type_arguments);
 
   CompressedObjectPtr* FieldAddrAtOffset(intptr_t offset) const {
     ASSERT(IsValidFieldOffset(offset));

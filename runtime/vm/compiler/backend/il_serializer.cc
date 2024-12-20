@@ -2636,22 +2636,6 @@ uint64_t FlowGraphDeserializer::ReadTrait<uint64_t>::Read(
   return static_cast<uint64_t>(d->stream()->Read<int64_t>());
 }
 
-void UnboxedConstantInstr::WriteTo(FlowGraphSerializer* s) {
-  ConstantInstr::WriteTo(s);
-  s->Write<Representation>(representation_);
-  // constant_address_ is not written - it is restored when reading.
-}
-
-UnboxedConstantInstr::UnboxedConstantInstr(FlowGraphDeserializer* d)
-    : ConstantInstr(d),
-      representation_(d->Read<Representation>()),
-      constant_address_(0) {
-  if (representation_ == kUnboxedDouble) {
-    ASSERT(value().IsDouble());
-    constant_address_ = FindDoubleConstant(Double::Cast(value()).value());
-  }
-}
-
 template <>
 void FlowGraphSerializer::WriteTrait<Value*>::Write(FlowGraphSerializer* s,
                                                     Value* x) {

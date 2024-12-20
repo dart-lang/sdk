@@ -37,11 +37,10 @@ class _AssignedVariablesDataComputer extends DataComputer<_Data> {
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<_Data>> actualMap) {
-    var unitElement = unit.declaredElement!;
-    var flowResult = testingData.uriToFlowAnalysisData[unitElement.source.uri]!;
-    _AssignedVariablesDataExtractor(
-            unitElement.source.uri, actualMap, flowResult)
-        .run(unit);
+    var unitElement = unit.declaredFragment!.element;
+    var uri = unitElement.firstFragment.source.uri;
+    var flowResult = testingData.uriToFlowAnalysisData[uri]!;
+    _AssignedVariablesDataExtractor(uri, actualMap, flowResult).run(unit);
   }
 }
 

@@ -1175,14 +1175,7 @@ bool ConstantInstr::AttributesEqual(const Instruction& other) const {
 
 UnboxedConstantInstr::UnboxedConstantInstr(const Object& value,
                                            Representation representation)
-    : ConstantInstr(value),
-      representation_(representation),
-      constant_address_(0) {
-  if (representation_ == kUnboxedDouble) {
-    ASSERT(value.IsDouble());
-    constant_address_ = FindDoubleConstant(Double::Cast(value).value());
-  }
-}
+    : ConstantInstr(value), representation_(representation) {}
 
 // Returns true if the value represents a constant.
 bool Value::BindsToConstant() const {
@@ -3025,8 +3018,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   const auto& abs_type = AbstractType::Cast(dst_type()->BoundConstant());
 
   if (abs_type.IsTopTypeForSubtyping() ||
-      (FLAG_eliminate_type_checks &&
-       value()->Type()->IsAssignableTo(abs_type))) {
+      (FLAG_eliminate_type_checks && value()->Type()->IsSubtypeOf(abs_type))) {
     return value()->definition();
   }
   if (abs_type.IsInstantiated()) {
@@ -3111,7 +3103,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 
     if (new_dst_type.IsTopTypeForSubtyping() ||
         (FLAG_eliminate_type_checks &&
-         value()->Type()->IsAssignableTo(new_dst_type))) {
+         value()->Type()->IsSubtypeOf(new_dst_type))) {
       return value()->definition();
     }
   }
@@ -5148,7 +5140,7 @@ bool InstanceCallBaseInstr::CanReceiverBeSmiBasedOnInterfaceTarget(
     // it would compute correctly whether or not receiver can be a smi.
     const AbstractType& target_type = AbstractType::Handle(
         zone, Class::Handle(zone, interface_target().Owner()).RareType());
-    if (!CompileType::Smi().IsAssignableTo(target_type)) {
+    if (!CompileType::Smi().IsSubtypeOf(target_type)) {
       return false;
     }
   }

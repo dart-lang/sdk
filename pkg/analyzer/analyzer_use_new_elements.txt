@@ -161,9 +161,7 @@ test/error/error_reporter_test.dart
 test/generated/elements_types_mixin.dart
 test/generated/non_error_resolver_test.dart
 test/generated/resolver_test_case.dart
-test/generated/static_type_analyzer_test.dart
 test/generated/type_system_test.dart
-test/id_tests/assigned_variables_test.dart
 test/id_tests/type_constraint_generation_test.dart
 test/src/dart/analysis/index_test.dart
 test/src/dart/analysis/result_printer.dart
@@ -172,7 +170,6 @@ test/src/dart/analysis/session_helper_test.dart
 test/src/dart/analysis/session_test.dart
 test/src/dart/ast/element_locator_test.dart
 test/src/dart/constant/evaluation_test.dart
-test/src/dart/constant/has_type_parameter_reference_test.dart
 test/src/dart/constant/value_test.dart
 test/src/dart/element/display_string_test.dart
 test/src/dart/element/element_test.dart

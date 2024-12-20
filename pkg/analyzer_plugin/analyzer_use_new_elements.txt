@@ -13,7 +13,6 @@ lib/utilities/completion/suggestion_builder.dart
 lib/utilities/completion/type_member_contributor.dart
 lib/utilities/range_factory.dart
 test/src/utilities/change_builder/change_builder_dart_test.dart
-test/src/utilities/change_builder/dart/import_library_element_test.dart
 test/src/utilities/completion/completion_target_test.dart
 test/src/utilities/visitors/local_declaration_visitor_test.dart
 test/support/abstract_context.dart
