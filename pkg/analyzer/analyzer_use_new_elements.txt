@@ -92,7 +92,6 @@ lib/src/dart/resolver/yield_statement_resolver.dart
 lib/src/diagnostic/diagnostic_factory.dart
 lib/src/error/best_practices_verifier.dart
 lib/src/error/correct_override.dart
-lib/src/error/dead_code_verifier.dart
 lib/src/error/deprecated_member_use_verifier.dart
 lib/src/error/duplicate_definition_verifier.dart
 lib/src/error/imports_verifier.dart
