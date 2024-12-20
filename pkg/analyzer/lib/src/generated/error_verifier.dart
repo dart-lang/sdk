@@ -4806,7 +4806,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var representationType = element.representation.type;
 
     for (var typeParameterNode in typeParameters) {
-      var typeParameterElement = typeParameterNode.declaredElement!;
+      var typeParameterElement = typeParameterNode.declaredFragment!.element;
       var nonCovariant = representationType.accept(
         NonCovariantTypeParameterPositionVisitor(
           [typeParameterElement],

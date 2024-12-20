@@ -611,6 +611,136 @@ void main() async {
     });
   });
 
+  group("Resident Frontend Server: 'compileExpression' command tests: ", () {
+    late Directory d;
+    late File executable, outputDill;
+
+    setUp(() async {
+      d = Directory.systemTemp.createTempSync();
+      executable = new File(path.join(d.path, 'src.dart'))
+        ..createSync()
+        ..writeAsStringSync('void main() {print("hello " "there");}');
+      outputDill = new File(path.join(d.path, 'src.dart.dill'));
+    });
+
+    tearDown(() async {
+      d.deleteSync(recursive: true);
+      ResidentFrontendServer.compilers.clear();
+    });
+
+    test('basic', () async {
+      final Map<String, dynamic> compileResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          ResidentFrontendServer.createCompileJSON(
+            executable: executable.path,
+            outputDill: outputDill.path,
+          ),
+        ),
+      );
+      expect(compileResult['success'], true);
+
+      final Map<String, dynamic> compileExpressionResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          jsonEncode({
+            'command': 'compileExpression',
+            'expression': '101 + 22',
+            'definitions': [],
+            'definitionTypes': [],
+            'typeDefinitions': [],
+            'typeBounds': [],
+            'typeDefaults': [],
+            'libraryUri': executable.uri.toString(),
+            'offset': 0,
+            'isStatic': true,
+            'method': 'main',
+          }),
+        ),
+      );
+
+      expect(compileExpressionResult['success'], true);
+      expect(compileExpressionResult['errorCount'], 0);
+      expect(compileExpressionResult['kernelBytes'], isA<String>());
+    });
+
+    test("when the 'libraryUri' argument begins with 'dart:'", () async {
+      final Map<String, dynamic> compileResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          ResidentFrontendServer.createCompileJSON(
+            executable: executable.path,
+            outputDill: outputDill.path,
+          ),
+        ),
+      );
+      expect(compileResult['success'], true);
+
+      final Map<String, dynamic> compileExpressionResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          jsonEncode({
+            'command': 'compileExpression',
+            'expression': 'this + 5',
+            'definitions': [],
+            'definitionTypes': [],
+            'typeDefinitions': [],
+            'typeBounds': [],
+            'typeDefaults': [],
+            'libraryUri': 'dart:core',
+            'offset': -1,
+            'isStatic': false,
+            'class': 'int',
+            'rootLibraryUri': executable.uri.toString(),
+          }),
+        ),
+      );
+
+      expect(compileExpressionResult['success'], true);
+      expect(compileExpressionResult['errorCount'], 0);
+      expect(compileExpressionResult['kernelBytes'], isA<String>());
+    });
+
+    test('invalid expression', () async {
+      final Map<String, dynamic> compileResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          ResidentFrontendServer.createCompileJSON(
+            executable: executable.path,
+            outputDill: outputDill.path,
+          ),
+        ),
+      );
+      expect(compileResult['success'], true);
+
+      final Map<String, dynamic> compileExpressionResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          jsonEncode({
+            'command': 'compileExpression',
+            'expression': '101 ++ "abc"',
+            'definitions': [],
+            'definitionTypes': [],
+            'typeDefinitions': [],
+            'typeBounds': [],
+            'typeDefaults': [],
+            'libraryUri': executable.uri.toString(),
+            'offset': 0,
+            'isStatic': true,
+            'method': 'main',
+          }),
+        ),
+      );
+
+      expect(compileExpressionResult['success'], false);
+      expect(compileExpressionResult['errorCount'], isPositive);
+      expect(compileExpressionResult['compilerOutputLines'], [
+        "org-dartlang-debug:synthetic_debug_expression:1:1: Error: Can't "
+            'assign to this.\n'
+            '101 ++ "abc"\n'
+            '^',
+        'org-dartlang-debug:synthetic_debug_expression:1:8: Error: Expected '
+            'one expression, but found additional input.\n'
+            '101 ++ "abc"\n'
+            '       ^^^^^'
+      ]);
+    });
+  });
+
   group('Resident Frontend Server: socket tests: ', () {
     late Directory d;
     late File serverInfo;

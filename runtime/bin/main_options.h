@@ -26,7 +26,11 @@ namespace bin {
   V(root_certs_file, root_certs_file)                                          \
   V(root_certs_cache, root_certs_cache)                                        \
   V(namespace, namespc)                                                        \
-  V(write_service_info, vm_write_service_info_filename)
+  V(write_service_info, vm_write_service_info_filename)                        \
+  /* The purpose of these flags is documented in */                            \
+  /* pkg/dartdev/lib/src/commands/compilation_server.dart. */                  \
+  V(resident_server_info_file, resident_server_info_file_path)                 \
+  V(resident_compiler_info_file, resident_compiler_info_file_path)
 
 // As STRING_OPTIONS_LIST but for boolean valued options. The default value is
 // always false, and the presence of the flag switches the value to true.
@@ -53,7 +57,10 @@ namespace bin {
   V(serve_devtools, enable_devtools)                                           \
   V(no_serve_observatory, disable_observatory)                                 \
   V(serve_observatory, enable_observatory)                                     \
-  V(print_dtd, print_dtd)
+  V(print_dtd, print_dtd)                                                      \
+  /* The purpose of this flag is documented in */                              \
+  /* pkg/dartdev/lib/src/commands/run.dart. */                                 \
+  V(resident, resident)
 
 // Boolean flags that have a short form.
 #define SHORT_BOOL_OPTIONS_LIST(V)                                             \

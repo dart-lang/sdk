@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:dartdev/src/native_assets_bundling.dart';
 import 'package:dartdev/src/sdk.dart';
 import 'package:dartdev/src/utils.dart';
+import 'package:file/local.dart';
 import 'package:logging/logging.dart';
 import 'package:native_assets_builder/native_assets_builder.dart';
 import 'package:native_assets_cli/code_assets_builder.dart';
@@ -45,10 +46,12 @@ Future<List<EncodedAsset>?> compileNativeAssetsJit({
     // This always runs in JIT mode.
     dartExecutable: Uri.file(sdk.dart),
     logger: logger(verbose),
+    fileSystem: const LocalFileSystem(),
   );
   final target = Target.current;
-  final targetMacOSVersion =
-      target.os == OS.macOS ? minimumSupportedMacOSVersion : null;
+  final macOSConfig = target.os == OS.macOS
+      ? MacOSConfig(targetVersion: minimumSupportedMacOSVersion)
+      : null;
   final cCompilerConfig = getCCompilerConfig();
   final buildResult = await nativeAssetsBuildRunner.build(
     configCreator: () => BuildConfigBuilder()
@@ -57,7 +60,7 @@ Future<List<EncodedAsset>?> compileNativeAssetsJit({
         targetArchitecture: target.architecture,
         // When running in JIT mode, only dynamic libraries are supported.
         linkModePreference: LinkModePreference.dynamic,
-        targetMacOSVersion: targetMacOSVersion,
+        macOSConfig: macOSConfig,
         cCompilerConfig: cCompilerConfig,
       ),
     configValidator: (config) async => [
@@ -129,7 +132,10 @@ Future<bool> warnOnNativeAssets() async {
   }
   try {
     final packageLayout =
-        await PackageLayout.fromRootPackageRoot(workingDirectory);
+        await PackageLayout.fromRootPackageRoot(
+      const LocalFileSystem(),
+      workingDirectory,
+    );
     final packagesWithNativeAssets = [
       ...await packageLayout.packagesWithAssets(Hook.build),
       ...await packageLayout.packagesWithAssets(Hook.link)
@@ -182,17 +188,13 @@ CCompilerConfig? getCCompilerConfig() {
           .toList();
   final hasEnvScriptArgs = envScriptArgs != null && envScriptArgs.isNotEmpty;
 
-  if (cc != null ||
-      ar != null ||
-      ld != null ||
-      envScript != null ||
-      hasEnvScriptArgs) {
+  if (cc != null && ar != null && ld != null) {
     return CCompilerConfig(
-      archiver: ar != null ? Uri.file(ar) : null,
-      compiler: cc != null ? Uri.file(cc) : null,
+      archiver: Uri.file(ar),
+      compiler: Uri.file(cc),
       envScript: envScript != null ? Uri.file(envScript) : null,
       envScriptArgs: hasEnvScriptArgs ? envScriptArgs : null,
-      linker: ld != null ? Uri.file(ld) : null,
+      linker: Uri.file(ld),
     );
   }
   return null;

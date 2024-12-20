@@ -11,6 +11,7 @@ import 'package:dartdev/src/experiments.dart';
 import 'package:dartdev/src/native_assets_bundling.dart';
 import 'package:dartdev/src/sdk.dart';
 import 'package:dartdev/src/utils.dart';
+import 'package:file/local.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:native_assets_builder/native_assets_builder.dart';
@@ -134,9 +135,11 @@ class BuildCommand extends DartdevCommand {
     stdout.writeln('Building native assets.');
     final workingDirectory = Directory.current.uri;
     final target = Target.current;
-    final targetMacOSVersion =
-        target.os == OS.macOS ? minimumSupportedMacOSVersion : null;
+    final macOSConfig = target.os == OS.macOS
+        ? MacOSConfig(targetVersion: minimumSupportedMacOSVersion)
+        : null;
     final nativeAssetsBuildRunner = NativeAssetsBuildRunner(
+      fileSystem: const LocalFileSystem(),
       dartExecutable: Uri.file(sdk.dart),
       logger: logger(verbose),
     );
@@ -149,7 +152,7 @@ class BuildCommand extends DartdevCommand {
           targetOS: target.os,
           linkModePreference: LinkModePreference.dynamic,
           targetArchitecture: target.architecture,
-          targetMacOSVersion: targetMacOSVersion,
+          macOSConfig: macOSConfig,
           cCompilerConfig: cCompilerConfig,
         ),
       configValidator: (config) async => [
@@ -207,7 +210,7 @@ class BuildCommand extends DartdevCommand {
             targetOS: target.os,
             targetArchitecture: target.architecture,
             linkModePreference: LinkModePreference.dynamic,
-            targetMacOSVersion: targetMacOSVersion,
+            macOSConfig: macOSConfig,
             cCompilerConfig: cCompilerConfig,
           ),
         configValidator: (config) async => [
@@ -217,8 +220,6 @@ class BuildCommand extends DartdevCommand {
         resourceIdentifiers:
             recordUseEnabled ? Uri.file(recordedUsagesPath!) : null,
         workingDirectory: workingDirectory,
-        
-        
         buildResult: buildResult,
         buildAssetTypes: [
           CodeAsset.type,
