@@ -47,7 +47,8 @@ testEvaluation(Future<void> fn()) async {
 test2() async {
   await testEvaluation(() async {
     Expect.isFalse(
-        await confuse(traceA(false)) && await confuse(traceB(false)));
+      await confuse(traceA(false)) && await confuse(traceB(false)),
+    );
     Expect.equals("a", trace);
   });
   await testEvaluation(() async {
@@ -65,7 +66,8 @@ test2() async {
 
   await testEvaluation(() async {
     Expect.isFalse(
-        await confuse(traceA(false)) || await confuse(traceB(false)));
+      await confuse(traceA(false)) || await confuse(traceB(false)),
+    );
     Expect.equals("ab", trace);
   });
   await testEvaluation(() async {

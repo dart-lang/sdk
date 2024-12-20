@@ -42,6 +42,8 @@ class C extends B {}
 T id<T>(T t) => t;
 
 main() async {
-  dynamic x = await id(((null as Future<B>?) ??
-      (Future.value(C())..expectStaticType<Exactly<Future<C>>>())));
+  dynamic x = await id(
+    ((null as Future<B>?) ??
+        (Future.value(C())..expectStaticType<Exactly<Future<C>>>())),
+  );
 }

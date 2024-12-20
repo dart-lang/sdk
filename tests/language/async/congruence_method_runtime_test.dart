@@ -79,7 +79,6 @@ void checkStaticTypes(C c) {
   // that its return value can be assigned to `Future<A>` but not
   // `Future<B>`.
   Future<A> v1 = c.f_inferred_A();
-
 }
 
 void checkDynamic(dynamic tearoff) {
