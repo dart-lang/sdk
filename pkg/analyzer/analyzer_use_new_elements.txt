@@ -61,7 +61,6 @@ lib/src/dart/resolver/applicable_extensions.dart
 lib/src/dart/resolver/assignment_expression_resolver.dart
 lib/src/dart/resolver/ast_rewrite.dart
 lib/src/dart/resolver/binary_expression_resolver.dart
-lib/src/dart/resolver/body_inference_context.dart
 lib/src/dart/resolver/comment_reference_resolver.dart
 lib/src/dart/resolver/constructor_reference_resolver.dart
 lib/src/dart/resolver/extension_member_resolver.dart
