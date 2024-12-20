@@ -167,7 +167,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
 
   /// Return the type for the class `Key`.
   Future<DartType?> _getKeyType() async {
-    var keyClass = await sessionHelper.getFlutterClass2('Key');
+    var keyClass = await sessionHelper.getFlutterClass('Key');
     if (keyClass == null) {
       return null;
     }

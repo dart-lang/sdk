@@ -166,7 +166,7 @@ class _ExtensionMemberValidator {
       var localElements = localElementMap[unitFragment];
 
       if (localElements == null) {
-        var result = await sessionHelper.getResolvedUnitByElement2(element);
+        var result = await sessionHelper.getResolvedUnitByElement(element);
         if (result == null) {
           return const [];
         }

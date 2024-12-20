@@ -417,7 +417,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
     _methodElement = element;
 
-    var declaration = await sessionHelper.getElementDeclaration2(
+    var declaration = await sessionHelper.getElementDeclaration(
       element.firstFragment,
     );
     var methodNode = declaration!.node;
@@ -512,7 +512,7 @@ class _ReferenceProcessor {
     refElement = reference.element2;
 
     // prepare CorrectionUtils
-    var result = await ref.sessionHelper.getResolvedUnitByElement2(refElement);
+    var result = await ref.sessionHelper.getResolvedUnitByElement(refElement);
     _refUtils = CorrectionUtils(result!);
 
     // prepare node and environment

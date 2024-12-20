@@ -110,11 +110,11 @@ class PropertyDescription {
     var enumValue = value.enumValue;
     if (enumValue != null) {
       var helper = AnalysisSessionHelper(resolvedUnit.session);
-      enumElement = await helper.getClass2(
+      enumElement = await helper.getClass(
         enumValue.libraryUri,
         enumValue.className,
       );
-      enumElement ??= await helper.getEnum2(
+      enumElement ??= await helper.getEnum(
         enumValue.libraryUri,
         enumValue.className,
       );

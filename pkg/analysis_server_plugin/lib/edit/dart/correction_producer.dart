@@ -418,35 +418,12 @@ abstract class ResolvedCorrectionProducer
   /// The type for the class `bool` from `dart:core`.
   DartType get _coreTypeBool => typeProvider.boolType;
 
-  /// Returns the class declaration for the given [element], or `null` if there
-  /// is no such class.
-  Future<ClassDeclaration?> getClassDeclaration(ClassElement element) async {
-    var result = await sessionHelper.getElementDeclaration(element);
-    var node = result?.node;
-    if (node is ClassDeclaration) {
-      return node;
-    }
-    return null;
-  }
-
   /// Returns the class declaration for the given [fragment], or `null` if there
   /// is no such class.
-  Future<ClassDeclaration?> getClassDeclaration2(ClassFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration2(fragment);
+  Future<ClassDeclaration?> getClassDeclaration(ClassFragment fragment) async {
+    var result = await sessionHelper.getElementDeclaration(fragment);
     var node = result?.node;
     if (node is ClassDeclaration) {
-      return node;
-    }
-    return null;
-  }
-
-  /// Returns the extension declaration for the given [element], or `null` if
-  /// there is no such extension.
-  Future<ExtensionDeclaration?> getExtensionDeclaration(
-      ExtensionElement element) async {
-    var result = await sessionHelper.getElementDeclaration(element);
-    var node = result?.node;
-    if (node is ExtensionDeclaration) {
       return node;
     }
     return null;
@@ -454,9 +431,9 @@ abstract class ResolvedCorrectionProducer
 
   /// Returns the extension declaration for the given [fragment], or `null` if
   /// there is no such extension.
-  Future<ExtensionDeclaration?> getExtensionDeclaration2(
+  Future<ExtensionDeclaration?> getExtensionDeclaration(
       ExtensionFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration2(fragment);
+    var result = await sessionHelper.getElementDeclaration(fragment);
     var node = result?.node;
     if (node is ExtensionDeclaration) {
       return node;
@@ -464,36 +441,13 @@ abstract class ResolvedCorrectionProducer
     return null;
   }
 
-  /// Returns the extension type for the given [element], or `null` if there
-  /// is no such extension type.
-  Future<ExtensionTypeDeclaration?> getExtensionTypeDeclaration(
-      ExtensionTypeElement element) async {
-    var result = await sessionHelper.getElementDeclaration(element);
-    var node = result?.node;
-    if (node is ExtensionTypeDeclaration) {
-      return node;
-    }
-    return null;
-  }
-
   /// Returns the extension type for the given [fragment], or `null` if there
   /// is no such extension type.
-  Future<ExtensionTypeDeclaration?> getExtensionTypeDeclaration2(
+  Future<ExtensionTypeDeclaration?> getExtensionTypeDeclaration(
       ExtensionTypeFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration2(fragment);
+    var result = await sessionHelper.getElementDeclaration(fragment);
     var node = result?.node;
     if (node is ExtensionTypeDeclaration) {
-      return node;
-    }
-    return null;
-  }
-
-  /// Returns the mixin declaration for the given [element], or `null` if there
-  /// is no such mixin.
-  Future<MixinDeclaration?> getMixinDeclaration(MixinElement element) async {
-    var result = await sessionHelper.getElementDeclaration(element);
-    var node = result?.node;
-    if (node is MixinDeclaration) {
       return node;
     }
     return null;
@@ -501,8 +455,8 @@ abstract class ResolvedCorrectionProducer
 
   /// Returns the mixin declaration for the given [fragment], or `null` if there
   /// is no such mixin.
-  Future<MixinDeclaration?> getMixinDeclaration2(MixinFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration2(fragment);
+  Future<MixinDeclaration?> getMixinDeclaration(MixinFragment fragment) async {
+    var result = await sessionHelper.getElementDeclaration(fragment);
     var node = result?.node;
     if (node is MixinDeclaration) {
       return node;
