@@ -94,7 +94,7 @@ class Process {
   // process exit streams.
   static int Start(Namespace* namespc,
                    const char* path,
-                   const char* arguments[],
+                   char* arguments[],
                    intptr_t arguments_length,
                    const char* working_directory,
                    char* environment[],
@@ -113,23 +113,6 @@ class Process {
                    intptr_t err,
                    intptr_t exit_handler,
                    ProcessResult* result);
-
-  // Exec process.
-  // On systems that support 'exec' it will use it to replace
-  // the current process image with the image corresponding to 'path'
-  // On systems that do not support it (Windows) it will start in a
-  // child process in the same group as the parent so that when the parent
-  // is killed the child also dies.
-  // Returns 0 if the process could be execed successfully
-  // Returns -1 if the exec could not be done successfully and 'errmsg'
-  // points to the error message
-  static int Exec(Namespace* namespc,
-                  const char* path,
-                  const char* arguments[],
-                  intptr_t arguments_length,
-                  const char* working_directory,
-                  char* errmsg,
-                  intptr_t errmsg_len);
 
   // Kill a process with a given pid.
   static bool Kill(intptr_t id, int signal);

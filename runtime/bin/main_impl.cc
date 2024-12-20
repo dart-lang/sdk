@@ -1421,11 +1421,11 @@ void main(int argc, char** argv) {
       Options::gen_snapshot_kind() == SnapshotKind::kNone) {
     DartDevIsolate::DartDev_Result dartdev_result = DartDevIsolate::RunDartDev(
         CreateIsolateGroupAndSetup, &package_config_override, &script_name,
-        &vm_options, &dart_options);
+        &dart_options);
     ASSERT(dartdev_result != DartDevIsolate::DartDev_Result_Unknown);
     ran_dart_dev = true;
     should_run_user_program =
-        (dartdev_result == DartDevIsolate::DartDev_Result_RunJIT);
+        (dartdev_result == DartDevIsolate::DartDev_Result_Run);
     if (should_run_user_program) {
       try_load_snapshots_lambda();
     }
