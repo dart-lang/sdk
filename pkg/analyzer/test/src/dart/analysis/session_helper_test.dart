@@ -34,7 +34,7 @@ int v = 0;
 ''');
     String uri = file.toUri().toString();
 
-    var element = (await helper.getClass(uri, 'C'))!;
+    var element = (await helper.getClass2(uri, 'C'))!;
     expect(element.displayName, 'C');
   }
 
@@ -44,7 +44,7 @@ int v = 0;
 ''');
     String uri = file.toUri().toString();
 
-    var element = await helper.getClass(uri, 'v');
+    var element = await helper.getClass2(uri, 'v');
     expect(element, isNull);
   }
 
@@ -57,7 +57,7 @@ export 'a.dart';
 ''');
     String bUri = bFile.toUri().toString();
 
-    var element = (await helper.getClass(bUri, 'A'))!;
+    var element = (await helper.getClass2(bUri, 'A'))!;
     expect(element.displayName, 'A');
   }
 
@@ -70,7 +70,7 @@ import 'a.dart';
 ''');
     String bUri = bFile.toUri().toString();
 
-    var element = await helper.getClass(bUri, 'A');
+    var element = await helper.getClass2(bUri, 'A');
     expect(element, isNull);
   }
 
@@ -78,8 +78,8 @@ import 'a.dart';
     await resolveTestCode(r'''
 class A {}
 ''');
-    var element = findElement.class_('A');
-    var result = (await helper.getElementDeclaration(element))!;
+    var element = findElement2.class_('A');
+    var result = (await helper.getElementDeclaration2(element.firstFragment))!;
     var node = result.node as ClassDeclaration;
     expect(node.name.lexeme, 'A');
   }
@@ -89,8 +89,8 @@ class A {}
 class A {}
 class B {}
 ''');
-    var element = findNode.classDeclaration('A').declaredElement!;
-    var resolvedUnit = (await helper.getResolvedUnitByElement(element))!;
+    var element = findNode.classDeclaration('A').declaredFragment!.element;
+    var resolvedUnit = (await helper.getResolvedUnitByElement2(element))!;
     expect(resolvedUnit.unit.declarations, hasLength(2));
   }
 
@@ -100,7 +100,7 @@ int get a => 0;
 ''');
     String uri = file.toUri().toString();
 
-    var element = (await helper.getTopLevelPropertyAccessor(uri, 'a'))!;
+    var element = (await helper.getTopLevelPropertyAccessor2(uri, 'a'))!;
     expect(element.kind, ElementKind.GETTER);
     expect(element.displayName, 'a');
   }
@@ -111,7 +111,7 @@ set a(_) {}
 ''');
     String uri = file.toUri().toString();
 
-    var element = (await helper.getTopLevelPropertyAccessor(uri, 'a='))!;
+    var element = (await helper.getTopLevelPropertyAccessor2(uri, 'a='))!;
     expect(element.kind, ElementKind.SETTER);
     expect(element.displayName, 'a');
   }
@@ -122,7 +122,7 @@ int a;
 ''');
     String uri = file.toUri().toString();
 
-    var element = (await helper.getTopLevelPropertyAccessor(uri, 'a'))!;
+    var element = (await helper.getTopLevelPropertyAccessor2(uri, 'a'))!;
     expect(element.kind, ElementKind.GETTER);
     expect(element.displayName, 'a');
   }
@@ -136,7 +136,7 @@ export 'a.dart';
 ''');
     String bUri = bFile.toUri().toString();
 
-    var element = (await helper.getTopLevelPropertyAccessor(bUri, 'a'))!;
+    var element = (await helper.getTopLevelPropertyAccessor2(bUri, 'a'))!;
     expect(element.kind, ElementKind.GETTER);
     expect(element.displayName, 'a');
   }
@@ -150,7 +150,7 @@ import 'a.dart';
 ''');
     String bUri = bFile.toUri().toString();
 
-    var element = await helper.getTopLevelPropertyAccessor(bUri, 'a');
+    var element = await helper.getTopLevelPropertyAccessor2(bUri, 'a');
     expect(element, isNull);
   }
 
@@ -160,7 +160,7 @@ int a;
 ''');
     String uri = file.toUri().toString();
 
-    var element = await helper.getTopLevelPropertyAccessor(uri, 'b');
+    var element = await helper.getTopLevelPropertyAccessor2(uri, 'b');
     expect(element, isNull);
   }
 
@@ -170,7 +170,7 @@ int a() {}
 ''');
     String uri = file.toUri().toString();
 
-    var element = await helper.getTopLevelPropertyAccessor(uri, 'a');
+    var element = await helper.getTopLevelPropertyAccessor2(uri, 'a');
     expect(element, isNull);
   }
 }
