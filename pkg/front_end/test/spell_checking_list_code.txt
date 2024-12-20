@@ -405,6 +405,7 @@ danrubel
 daringfireball
 dartaotruntime
 dartbug
+dartdev
 dartdoc
 dartfix
 dartino

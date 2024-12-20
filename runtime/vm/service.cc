@@ -3275,6 +3275,11 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
     report.AddProperty("scriptUri", script_uri.ToCString());
   }
   report.AddProperty("isStatic", isStatic);
+
+  const Library& root_lib =
+      Library::Handle(isolate->group()->object_store()->root_library());
+  report.AddProperty("rootLibraryUri",
+                     String::Handle(root_lib.url()).ToCString());
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
