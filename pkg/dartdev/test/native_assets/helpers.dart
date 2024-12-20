@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:file/local.dart';
 import 'package:logging/logging.dart';
 import 'package:native_assets_builder/src/utils/run_process.dart'
     as run_process;
@@ -60,6 +61,7 @@ Future<run_process.RunProcessResult> runProcess({
       captureOutput: captureOutput,
       expectedExitCode: expectedExitCode,
       throwOnUnexpectedExitCode: throwOnUnexpectedExitCode,
+      filesystem: const LocalFileSystem(),
     );
 
 Future<void> copyTestProjects(
