@@ -189,7 +189,6 @@ test/src/dart/element/upper_lower_bound_test.dart
 test/src/dart/micro/simple_file_resolver_test.dart
 test/src/dart/resolution/constant_test.dart
 test/src/dart/resolution/generic_type_alias_test.dart
-test/src/dart/resolution/local_variable_test.dart
 test/src/dart/resolution/prefix_element_test.dart
 test/src/dart/resolution/resolution.dart
 test/src/dart/resolution/scope_test.dart
