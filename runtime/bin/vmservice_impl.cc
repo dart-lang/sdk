@@ -125,7 +125,9 @@ bool VmService::Setup(const char* server_ip,
                       bool wait_for_dds_to_advertise_service,
                       bool serve_devtools,
                       bool serve_observatory,
-                      bool print_dtd) {
+                      bool print_dtd,
+                      bool should_use_resident_compiler,
+                      const char* resident_compiler_info_file_path) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != nullptr);
   SetServerAddress("");
@@ -225,6 +227,20 @@ bool VmService::Setup(const char* server_ip,
   result = Dart_SetField(library, DartUtils::NewString("_printDtd"),
                          print_dtd ? Dart_True() : Dart_False());
   SHUTDOWN_ON_ERROR(result);
+
+  if (should_use_resident_compiler) {
+    Dart_Handle resident_compiler_info_file_path_dart_string = nullptr;
+    if (resident_compiler_info_file_path == nullptr) {
+      resident_compiler_info_file_path_dart_string = Dart_Null();
+    } else {
+      resident_compiler_info_file_path_dart_string =
+          DartUtils::NewString(resident_compiler_info_file_path);
+    }
+    result = Dart_Invoke(
+        library, DartUtils::NewString("_populateResidentCompilerInfoFile"), 1,
+        &resident_compiler_info_file_path_dart_string);
+    SHUTDOWN_ON_ERROR(result);
+  }
 
 // Are we running on Windows?
 #if defined(DART_HOST_OS_WINDOWS)

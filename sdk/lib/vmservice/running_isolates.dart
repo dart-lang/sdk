@@ -80,6 +80,60 @@ class RunningIsolates implements MessageRouter {
   void routeResponse(Message message) {}
 }
 
+// NOTE: The following class is a duplicate of one in
+// 'package:frontend_server/resident_frontend_server_utils.dart'. We are forced
+// to duplicate it because `dart:_vmservice` is not allowed to import
+// `package:frontend_server`.
+
+final class _ResidentCompilerInfo {
+  final String? _sdkHash;
+  final InternetAddress _address;
+  final int _port;
+
+  /// The SDK hash that kernel files compiled using the Resident Frontend
+  /// Compiler associated with this object will be stamped with.
+  String? get sdkHash => _sdkHash;
+
+  /// The address that the Resident Frontend Compiler associated with this
+  /// object is listening from.
+  InternetAddress get address => _address;
+
+  /// The port number that the Resident Frontend Compiler associated with this
+  /// object is listening on.
+  int get port => _port;
+
+  /// Extracts the value associated with a key from [entries], where [entries]
+  /// is a [String] with the format '$key1:$value1 $key2:$value2 $key3:$value3 ...'.
+  static String _extractValueAssociatedWithKey(String entries, String key) =>
+      RegExp(
+        '$key:'
+        r'(\S+)(\s|$)',
+      ).allMatches(entries).first[1]!;
+
+  static _ResidentCompilerInfo fromFile(File file) {
+    final fileContents = file.readAsStringSync();
+
+    return _ResidentCompilerInfo._(
+      sdkHash:
+          fileContents.contains('sdkHash:')
+              ? _extractValueAssociatedWithKey(fileContents, 'sdkHash')
+              : null,
+      address: InternetAddress(
+        _extractValueAssociatedWithKey(fileContents, 'address'),
+      ),
+      port: int.parse(_extractValueAssociatedWithKey(fileContents, 'port')),
+    );
+  }
+
+  _ResidentCompilerInfo._({
+    required String? sdkHash,
+    required int port,
+    required InternetAddress address,
+  }) : _sdkHash = sdkHash,
+       _port = port,
+       _address = address;
+}
+
 /// Class that knows how to orchestrate expression evaluation in dart2 world.
 class _Evaluator {
   _Evaluator(this._message, this._isolate, this._service);
@@ -156,13 +210,49 @@ class _Evaluator {
     throw _CompileExpressionErrorDetails(data['details']);
   }
 
+  // NOTE: The following function is a duplicate of one in
+  // 'package:frontend_server/resident_frontend_server_utils.dart'. We are
+  // forced to duplicate it because `dart:_vmservice` is not allowed to import
+  // `package:frontend_server`.
+
+  /// Sends a compilation [request] to the resident frontend compiler associated
+  /// with [serverInfoFile], and returns the compiler's JSON response.
+  ///
+  /// Throws a [FileSystemException] if [serverInfoFile] cannot be accessed.
+  static Future<Map<String, dynamic>>
+  _sendRequestToResidentFrontendCompilerAndRecieveResponse(
+    String request,
+    File serverInfoFile,
+  ) async {
+    Socket? client;
+    Map<String, dynamic> jsonResponse;
+    final residentCompilerInfo = _ResidentCompilerInfo.fromFile(serverInfoFile);
+
+    try {
+      client = await Socket.connect(
+        residentCompilerInfo.address,
+        residentCompilerInfo.port,
+      );
+      client.write(request);
+      final data = String.fromCharCodes(await client.first);
+      jsonResponse = jsonDecode(data);
+    } catch (e) {
+      jsonResponse = <String, dynamic>{
+        'success': false,
+        'errorMessage': e.toString(),
+      };
+    }
+    client?.destroy();
+    return jsonResponse;
+  }
+
   /// If compilation fails, this method will throw a
   /// [_CompileExpressionErrorDetails] object that will be used to populate the
   /// 'details' field of the response to the evaluation RPC that requested this
   /// compilation to happen.
   Future<String> _compileExpression(
     Map<String, dynamic> buildScopeResponseResult,
-  ) {
+  ) async {
     Client? externalClient = _service._findFirstClientThatHandlesService(
       'compileExpression',
     );
@@ -192,6 +282,7 @@ class _Evaluator {
       compileParams['method'] = method;
     }
     if (externalClient != null) {
+      // Let the external client handle expression compilation.
       final compileExpression = Message.forMethod('compileExpression');
       compileExpression.client = externalClient;
       compileExpression.params.addAll(compileParams);
@@ -221,6 +312,38 @@ class _Evaluator {
               json as Map<String, dynamic>,
             ),
           );
+    } else if (VMServiceEmbedderHooks.getResidentCompilerInfoFile!() != null) {
+      // Compile the expression using the resident compiler.
+      final response =
+          await _sendRequestToResidentFrontendCompilerAndRecieveResponse(
+            jsonEncode({
+              'command': 'compileExpression',
+              'expression': compileParams['expression'],
+              'definitions': compileParams['definitions'],
+              'definitionTypes': compileParams['definitionTypes'],
+              'typeDefinitions': compileParams['typeDefinitions'],
+              'typeBounds': compileParams['typeBounds'],
+              'typeDefaults': compileParams['typeDefaults'],
+              'libraryUri': compileParams['libraryUri'],
+              'offset': compileParams['tokenPos'],
+              'isStatic': compileParams['isStatic'],
+              'class': compileParams['klass'],
+              'scriptUri': compileParams['scriptUri'],
+              'method': compileParams['method'],
+              'rootLibraryUri': buildScopeResponseResult['rootLibraryUri'],
+            }),
+            VMServiceEmbedderHooks.getResidentCompilerInfoFile!()!,
+          );
+
+      if (response['success'] == true) {
+        return response['kernelBytes'];
+      } else if (response['errorMessage'] != null) {
+        throw _CompileExpressionErrorDetails(response['errorMessage']);
+      } else {
+        final compilerOutputLines =
+            (response['compilerOutputLines'] as List<dynamic>).cast<String>();
+        throw _CompileExpressionErrorDetails(compilerOutputLines.join('\n'));
+      }
     } else {
       // fallback to compile using kernel service
       final compileExpressionParams = <String, dynamic>{

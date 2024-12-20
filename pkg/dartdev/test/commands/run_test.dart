@@ -1018,6 +1018,20 @@ void residentRun() {
     });
   });
 
+  test('running dartdev is a prerequisite for passing --resident', () async {
+    p = project(mainSrc: 'void main() {}');
+    final result = await p.run(['--resident', p.relativeFilePath]);
+
+    expect(result.exitCode, 255);
+    expect(
+      result.stderr,
+      contains(
+        'Passing the `--resident` flag to `dart` is invalid. It must be passed '
+        'to `dart run`.',
+      ),
+    );
+  });
+
   test(
       'passing --resident is a prerequisite for passing --resident-compiler-info-file',
       () async {
