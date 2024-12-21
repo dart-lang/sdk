@@ -118,6 +118,8 @@ class EnclosingExecutableContext {
     return element?.displayName;
   }
 
+  ExecutableElement2? get element2 => element.asElement2;
+
   bool get isClosure {
     return element is FunctionElement && element!.displayName.isEmpty;
   }
@@ -1484,7 +1486,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _requiredParametersVerifier.visitSuperConstructorInvocation(
       node,
-      enclosingConstructor: _enclosingExecutable.element.ifTypeOrNull(),
+      enclosingConstructor: _enclosingExecutable.element2.ifTypeOrNull(),
     );
     _constArgumentsVerifier.visitSuperConstructorInvocation(node);
     _isInConstructorInitializer = true;
