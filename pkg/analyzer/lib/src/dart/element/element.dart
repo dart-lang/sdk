@@ -2528,12 +2528,6 @@ abstract class ElementImpl implements Element, Element2 {
   /// Cached flags denoting presence of specific annotations in [_metadata].
   int _metadataFlags = 0;
 
-  /// A cached copy of the calculated hashCode for this element.
-  int? _cachedHashCode;
-
-  /// A cached copy of the calculated location for this element.
-  ElementLocation? _cachedLocation;
-
   /// The documentation comment for this element.
   String? _docComment;
 
@@ -2664,13 +2658,6 @@ abstract class ElementImpl implements Element, Element2 {
       }
     }
     return false;
-  }
-
-  @override
-  int get hashCode {
-    // TODO(scheglov): We might want to re-visit this optimization in the future.
-    // We cache the hash code value as this is a very frequently called method.
-    return _cachedHashCode ??= location.hashCode;
   }
 
   @override
@@ -2992,7 +2979,7 @@ abstract class ElementImpl implements Element, Element2 {
 
   @override
   ElementLocation get location {
-    return _cachedLocation ??= ElementLocationImpl.con1(this);
+    return ElementLocationImpl.con1(this);
   }
 
   @override
@@ -3311,11 +3298,6 @@ abstract class ElementImpl implements Element, Element2 {
 }
 
 abstract class ElementImpl2 implements Element2 {
-  /// A cached copy of the calculated `hashCode` for this element.
-  int? _cachedHashCode;
-
-  ElementLocation? _cachedLocation;
-
   @override
   final int id = ElementImpl._NEXT_ID++;
 
@@ -3331,13 +3313,6 @@ abstract class ElementImpl2 implements Element2 {
   @override
   // TODO(augmentations): implement enclosingElement2
   Element2? get enclosingElement2 => throw UnimplementedError();
-
-  @override
-  int get hashCode {
-    // TODO(scheglov): We might want to re-visit this optimization in the future.
-    // We cache the hash code as this is a very frequently called method.
-    return _cachedHashCode ??= location.hashCode;
-  }
 
   /// Return an identifier that uniquely identifies this element among the
   /// children of this element's parent.
@@ -3364,7 +3339,7 @@ abstract class ElementImpl2 implements Element2 {
 
   @override
   ElementLocation? get location {
-    return _cachedLocation ??= ElementLocationImpl.fromElement(this);
+    return ElementLocationImpl.fromElement(this);
   }
 
   @override
@@ -6547,9 +6522,6 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
       super.element as JoinPatternVariableElementImpl2;
 
   @override
-  int get hashCode => identityHashCode(this);
-
-  @override
   bool get isConsistent {
     return inconsistency == shared.JoinedPatternVariableInconsistency.none;
   }
@@ -7274,9 +7246,6 @@ class LibraryExportElementImpl extends _ExistingElementImpl
   LibraryElement2? get exportedLibrary2 => exportedLibrary;
 
   @override
-  int get hashCode => identityHashCode(this);
-
-  @override
   String get identifier => 'export@$nameOffset';
 
   @override
@@ -7329,9 +7298,6 @@ class LibraryImportElementImpl extends _ExistingElementImpl
   CompilationUnitElementImpl get enclosingElement3 {
     return super.enclosingElement3 as CompilationUnitElementImpl;
   }
-
-  @override
-  int get hashCode => identityHashCode(this);
 
   @override
   String get identifier => 'import@$nameOffset';
