@@ -375,12 +375,6 @@ extension InterfaceElementExtension on InterfaceElement {
   }
 }
 
-extension InterfaceTypeExtension on InterfaceType {
-  MethodElement2? getMethod2(String name) {
-    return getMethod(name)?.asElement2;
-  }
-}
-
 extension LabelElement2Extension on LabelElement2 {
   LabelElement get asElement {
     return firstFragment as LabelElement;
