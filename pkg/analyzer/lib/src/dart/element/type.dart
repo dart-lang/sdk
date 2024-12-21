@@ -370,16 +370,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       for (var namedParameter in sortedNamedParameters) {
         namedParameterInfo.add(namedParameter.isRequired);
         namedParameterInfo.add(namedParameter.name);
-        namedParameterInfo.add(namedParameter.type);
       }
     }
 
     return Object.hash(
-        nullabilitySuffix,
-        returnType,
-        requiredPositionalParameterCount,
-        Object.hashAll(positionalParameterTypes),
-        namedParameterInfo);
+      nullabilitySuffix,
+      returnType,
+      requiredPositionalParameterCount,
+      namedParameterInfo,
+    );
   }
 
   /// Given two functions [f1] and [f2] where f1 and f2 are known to be
