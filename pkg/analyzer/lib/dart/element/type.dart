@@ -385,6 +385,11 @@ abstract class InterfaceType implements ParameterizedType {
   /// with the given name.
   MethodElement? getMethod(String name);
 
+  /// Return the element representing the method with the given [name] that is
+  /// declared in this class, or `null` if this class does not declare a method
+  /// with the given name.
+  MethodElement2? getMethod2(String name);
+
   /// Return the element representing the setter with the given [name] that is
   /// declared in this class, or `null` if this class does not declare a setter
   /// with the given name.
