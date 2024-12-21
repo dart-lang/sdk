@@ -83,7 +83,7 @@ class CreateSetter extends ResolvedCorrectionProducer {
       return;
     }
     // prepare target declaration
-    var targetDeclarationResult = await sessionHelper.getElementDeclaration2(
+    var targetDeclarationResult = await sessionHelper.getElementDeclaration(
       targetFragment,
     );
     if (targetDeclarationResult == null) {

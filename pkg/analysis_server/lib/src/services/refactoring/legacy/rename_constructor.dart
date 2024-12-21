@@ -171,7 +171,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
 
   Future<AstNode?> _nodeCoveringReference(SourceReference reference) async {
     var element = reference.element2;
-    var unitResult = await sessionHelper.getResolvedUnitByElement2(element);
+    var unitResult = await sessionHelper.getResolvedUnitByElement(element);
     return unitResult?.unit
         .select(offset: reference.range.offset, length: 0)
         ?.coveringNode;
@@ -193,7 +193,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     var classElement = element2.enclosingElement2;
 
     var fragment = classElement.firstFragment;
-    var result = await sessionHelper.getElementDeclaration2(fragment);
+    var result = await sessionHelper.getElementDeclaration(fragment);
     if (result == null) {
       return;
     }

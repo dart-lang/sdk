@@ -17,7 +17,6 @@ import '../experiments.dart';
 import '../native_assets.dart';
 import '../sdk.dart';
 import '../utils.dart';
-import '../vm_interop_handler.dart';
 
 const int genericErrorExitCode = 255;
 const int compileErrorExitCode = 254;
@@ -94,18 +93,17 @@ class CompileJSCommand extends CompileSubcommandCommand {
     final args = argResults!;
     var snapshot = sdk.dart2jsAotSnapshot;
     var runtime = sdk.dartAotRuntime;
-    var isAOT = true;
     if (!Sdk.checkArtifactExists(snapshot, logError: false)) {
       // AOT snapshots cannot be generated on IA32, so we need this fallback
       // branch until support for IA32 is dropped (https://dartbug.com/49969).
       snapshot = sdk.dart2jsSnapshot;
+      runtime = sdk.dart;
       if (!Sdk.checkArtifactExists(snapshot)) {
         return genericErrorExitCode;
       }
-      runtime = sdk.dart;
-      isAOT = false;
     }
     final dart2jsCommand = [
+      runtime,
       snapshot,
       '--libraries-spec=${sdk.librariesJson}',
       '--cfe-invocation-modes=compile',
@@ -114,13 +112,8 @@ class CompileJSCommand extends CompileSubcommandCommand {
       if (args.rest.isNotEmpty) ...args.rest.sublist(0),
     ];
     try {
-      VmInteropHandler.run(
-        runtime,
-        dart2jsCommand,
-        packageConfigOverride: null,
-        isAOT : isAOT,
-      );
-      return 0;
+      final exitCode = await runProcessInheritStdio(dart2jsCommand);
+      return exitCode;
     } catch (e, st) {
       log.stderr('Error: JS compilation failed');
       log.stderr(e.toString());

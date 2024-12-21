@@ -146,7 +146,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   ) async {
     FieldFormalParameterFragment? fragment = element.firstFragment;
     while (fragment != null) {
-      var result = await sessionHelper.getElementDeclaration2(fragment);
+      var result = await sessionHelper.getElementDeclaration(fragment);
       var node = result?.node;
       if (node is! DefaultFormalParameter) return;
       var parameter = node.parameter as FieldFormalParameter;
@@ -439,7 +439,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       var localElements = localElementMap[unitFragment];
 
       if (localElements == null) {
-        var result = await sessionHelper.getResolvedUnitByElement2(element);
+        var result = await sessionHelper.getResolvedUnitByElement(element);
         if (result == null) {
           return const [];
         }

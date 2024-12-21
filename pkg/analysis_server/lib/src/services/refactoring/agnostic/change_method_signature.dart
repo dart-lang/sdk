@@ -595,7 +595,7 @@ class _SelectionAnalyzer {
 
   Future<AstNode?> _elementDeclaration(ExecutableElement2 element) async {
     var helper = refactoringContext.sessionHelper;
-    var nodeResult = await helper.getElementDeclaration2(element.firstFragment);
+    var nodeResult = await helper.getElementDeclaration(element.firstFragment);
     return nodeResult?.node;
   }
 }
@@ -668,7 +668,7 @@ class _SignatureUpdater {
   /// Returns the [MethodDeclaration] for a [MethodElement2].
   Future<AstNode?> elementDeclaration(ExecutableElement2 element) async {
     var helper = sessionHelper;
-    var result = await helper.getElementDeclaration2(element.firstFragment);
+    var result = await helper.getElementDeclaration(element.firstFragment);
     return result?.node;
   }
 
@@ -685,7 +685,7 @@ class _SignatureUpdater {
   /// Returns the resolved unit with [reference].
   Future<ResolvedUnitResult?> referenceUnitResult(SearchMatch reference) async {
     var element = reference.element2;
-    return await sessionHelper.getResolvedUnitByElement2(element);
+    return await sessionHelper.getResolvedUnitByElement(element);
   }
 
   /// Replaces [argumentList] with new code that has arguments as requested
@@ -745,7 +745,7 @@ class _SignatureUpdater {
   }) async {
     var path = element.firstFragment.libraryFragment.source.fullName;
 
-    var unitResult = await sessionHelper.getResolvedUnitByElement2(element);
+    var unitResult = await sessionHelper.getResolvedUnitByElement(element);
     if (unitResult == null) {
       return ChangeStatusFailure();
     }

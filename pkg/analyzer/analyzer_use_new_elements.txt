@@ -61,7 +61,6 @@ lib/src/dart/resolver/applicable_extensions.dart
 lib/src/dart/resolver/assignment_expression_resolver.dart
 lib/src/dart/resolver/ast_rewrite.dart
 lib/src/dart/resolver/binary_expression_resolver.dart
-lib/src/dart/resolver/body_inference_context.dart
 lib/src/dart/resolver/comment_reference_resolver.dart
 lib/src/dart/resolver/constructor_reference_resolver.dart
 lib/src/dart/resolver/extension_member_resolver.dart
@@ -92,7 +91,6 @@ lib/src/dart/resolver/yield_statement_resolver.dart
 lib/src/diagnostic/diagnostic_factory.dart
 lib/src/error/best_practices_verifier.dart
 lib/src/error/correct_override.dart
-lib/src/error/dead_code_verifier.dart
 lib/src/error/deprecated_member_use_verifier.dart
 lib/src/error/duplicate_definition_verifier.dart
 lib/src/error/imports_verifier.dart
@@ -189,7 +187,6 @@ test/src/dart/element/upper_lower_bound_test.dart
 test/src/dart/micro/simple_file_resolver_test.dart
 test/src/dart/resolution/constant_test.dart
 test/src/dart/resolution/generic_type_alias_test.dart
-test/src/dart/resolution/local_variable_test.dart
 test/src/dart/resolution/prefix_element_test.dart
 test/src/dart/resolution/resolution.dart
 test/src/dart/resolution/scope_test.dart
@@ -199,7 +196,6 @@ test/src/summary/elements/class_test.dart
 test/src/summary/elements/enum_test.dart
 test/src/summary/elements/extension_type_test.dart
 test/src/summary/elements/metadata_test.dart
-test/src/summary/elements/top_level_function_test.dart
 test/src/summary/elements/top_level_variable_test.dart
 test/src/summary/elements/type_alias_test.dart
 test/src/summary/elements/type_inference_test.dart

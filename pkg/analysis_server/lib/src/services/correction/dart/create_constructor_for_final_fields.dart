@@ -155,7 +155,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     required _FixContext fixContext,
     required NamedCompilationUnitMember classDeclaration,
   }) async {
-    var keyClass = await sessionHelper.getFlutterClass2('Key');
+    var keyClass = await sessionHelper.getFlutterClass('Key');
     if (keyClass == null) {
       return;
     }

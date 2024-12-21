@@ -45,7 +45,7 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
         );
         break;
       }
-      var resolvedUnit = await sessionHelper.getResolvedUnitByElement2(element);
+      var resolvedUnit = await sessionHelper.getResolvedUnitByElement(element);
       var unit = resolvedUnit?.unit;
       unit?.accept(
         ConflictValidatorVisitor(

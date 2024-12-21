@@ -158,7 +158,7 @@ class DocumentColorPresentationHandler
       var editRange = SourceRange(editStart, editEnd - editStart);
 
       var sessionHelper = AnalysisSessionHelper(unit.session);
-      var colorType = await sessionHelper.getFlutterClass2('Color');
+      var colorType = await sessionHelper.getFlutterClass('Color');
       if (colorType == null) {
         // If we can't find the class (perhaps because this isn't a Flutter
         // project) we will not include any results. In theory the client should

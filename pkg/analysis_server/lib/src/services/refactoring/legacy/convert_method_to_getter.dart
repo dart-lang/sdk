@@ -112,7 +112,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       fragment != null;
       fragment = fragment.nextFragment as GetterFragment?
     ) {
-      var result = await sessionHelper.getElementDeclaration2(fragment);
+      var result = await sessionHelper.getElementDeclaration(fragment);
       var declaration = result?.node;
       if (declaration is MethodDeclaration) {
         parameters = declaration.parameters;
@@ -148,7 +148,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       var refRange = reference.range;
       // prepare invocation
 
-      var resolvedUnit = await sessionHelper.getResolvedUnitByElement2(
+      var resolvedUnit = await sessionHelper.getResolvedUnitByElement(
         refElement,
       );
       var refUnit = resolvedUnit?.unit;

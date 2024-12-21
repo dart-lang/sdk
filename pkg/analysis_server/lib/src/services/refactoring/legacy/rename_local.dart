@@ -137,7 +137,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
     var result = RefactoringStatus();
-    var resolvedUnit = await sessionHelper.getResolvedUnitByElement2(element2);
+    var resolvedUnit = await sessionHelper.getResolvedUnitByElement(element2);
     var unit = resolvedUnit?.unit;
     unit?.accept(
       ConflictValidatorVisitor(

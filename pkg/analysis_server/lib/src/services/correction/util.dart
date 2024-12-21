@@ -8,8 +8,11 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as path;
@@ -48,8 +51,6 @@ List<AstNode> findLocalElementReferences(AstNode root, LocalElement2 element) {
   return collector.references;
 }
 
-// TODO(scheglov): replace with nodes once there will be
-// [CompilationUnit.getComments].
 /// Returns [SourceRange]s of all comments in [unit].
 List<SourceRange> getCommentRanges(CompilationUnit unit) {
   var ranges = <SourceRange>[];
@@ -65,6 +66,8 @@ List<SourceRange> getCommentRanges(CompilationUnit unit) {
   return ranges;
 }
 
+// TODO(scheglov): replace with nodes once there will be
+// [CompilationUnit.getComments].
 /// Return all [LocalElement2]s defined in the given [node].
 List<LocalElement2> getDefinedLocalElements(AstNode node) {
   var collector = _LocalElementsCollector();
@@ -368,6 +371,58 @@ bool _allListsIdentical(List<List<Object>> lists, int position) {
     }
   }
   return true;
+}
+
+/// Computes a valid return type for a function based on the contained return
+/// statements.
+class ReturnTypeComputer extends RecursiveAstVisitor<void> {
+  final TypeSystem _typeSystem;
+
+  final bool _isGenerator;
+
+  DartType? returnType;
+
+  ReturnTypeComputer(this._typeSystem, {bool isGenerator = false})
+    : _isGenerator = isGenerator;
+
+  @override
+  void visitBlockFunctionBody(BlockFunctionBody node) {}
+
+  @override
+  void visitReturnStatement(ReturnStatement node) {
+    if (_isGenerator) {
+      // Return statements are illegal in generators. Ignore.
+      return;
+    }
+    var type = node.expression?.typeOrThrow;
+    if (type == null || type.isBottom) {
+      return;
+    }
+    var current = returnType;
+    if (current == null) {
+      returnType = type;
+    } else {
+      returnType = _typeSystem.leastUpperBound(current, type);
+    }
+  }
+
+  @override
+  void visitYieldStatement(YieldStatement node) {
+    if (!_isGenerator) {
+      // Yield statements are illegal in non-generators. Ignore.
+      return;
+    }
+    var type = node.expression.typeOrThrow;
+    if (type.isBottom) {
+      return;
+    }
+    var current = returnType;
+    if (current == null) {
+      returnType = type;
+    } else {
+      returnType = _typeSystem.leastUpperBound(current, type);
+    }
+  }
 }
 
 class _DeclarationCollector extends RecursiveAstVisitor<void> {

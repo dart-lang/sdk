@@ -15,6 +15,7 @@
 /// [Scalable Vector Graphics Specification](http://www.w3.org/TR/SVG/).
 ///
 /// {@category Web (Legacy)}
+@Deprecated('Use package:web and dart:js_interop instead.')
 library dart.dom.svg;
 
 import 'dart:async';
