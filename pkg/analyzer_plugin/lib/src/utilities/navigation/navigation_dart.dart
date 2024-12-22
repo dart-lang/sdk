@@ -145,7 +145,7 @@ class _DartNavigationCollector {
     if (fragment.element == DynamicElementImpl.instance) {
       return;
     }
-    if (fragment.element.location == null) {
+    if (fragment.element is MultiplyDefinedElement2) {
       return;
     }
 

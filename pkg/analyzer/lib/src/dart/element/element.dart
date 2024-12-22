@@ -3338,11 +3338,6 @@ abstract class ElementImpl2 implements Element2 {
   bool get isPublic => !isPrivate;
 
   @override
-  ElementLocation? get location {
-    return ElementLocationImpl.fromElement(this);
-  }
-
-  @override
   String? get lookupName {
     return name3;
   }
@@ -5575,9 +5570,6 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
   @override
   LibraryElement2 get library2 => firstFragment.library2!;
-
-  @override
-  ElementLocation? get location => firstFragment.location;
 
   @override
   List<ElementAnnotation> get metadata => firstFragment.metadata;
@@ -8699,9 +8691,6 @@ class MultiplyDefinedElementImpl2 extends ElementImpl2
 
   @override
   LibraryElement2 get library2 => libraryFragment.element;
-
-  @override
-  ElementLocation? get location => null;
 
   @override
   Element2 get nonSynthetic2 => this;
