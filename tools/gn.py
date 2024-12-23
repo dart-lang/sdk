@@ -635,7 +635,12 @@ def BuildGnCommand(args, mode, arch, target_os, sanitizer, out_dir):
     if utils.IsWindows():
         gn = os.path.join(DART_ROOT, 'buildtools', 'win', 'gn.exe')
     else:
-        gn = os.path.join(DART_ROOT, 'buildtools', 'gn')
+        _gn = os.path.join(DART_ROOT, 'buildtools', 'gn')
+        if os.path.isfile(_gn):
+            gn = os.path.join(DART_ROOT, 'buildtools', 'gn')
+        else:
+            gn = os.path.join('/usr', 'bin', 'gn')
+        del _gn
     if not os.path.isfile(gn):
         raise Exception("Couldn't find the gn binary at path: " + gn)
 
