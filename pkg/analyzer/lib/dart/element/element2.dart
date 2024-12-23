@@ -54,7 +54,6 @@ import 'package:analyzer/dart/element/element.dart'
         DirectiveUri,
         ElementAnnotation,
         ElementKind,
-        ElementLocation,
         LibraryLanguageVersion,
         NamespaceCombinator;
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -435,11 +434,6 @@ abstract class Element2 {
   /// `null` if this element is a [MultiplyDefinedElement] that isn't contained
   /// in a single library.
   LibraryElement2? get library2;
-
-  /// The location of this element in the element model.
-  ///
-  /// The object can be used to locate this element at a later time.
-  ElementLocation? get location;
 
   /// The name to use for lookup in maps.
   ///
