@@ -21,7 +21,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart'
         UnknownTypeConstraintOrigin;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -31,19 +30,27 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 
 /// Instance of [shared.GeneratedTypeConstraint] specific to the Analyzer.
 typedef GeneratedTypeConstraint = shared.GeneratedTypeConstraint<DartType,
-    TypeParameterElement, PromotableElement2>;
+    TypeParameterElement, PromotableElementImpl2>;
 
 /// Instance of [shared.MergedTypeConstraint] specific to the Analyzer.
-typedef MergedTypeConstraint = shared.MergedTypeConstraint<DartType,
-    TypeParameterElement, PromotableElement2, InterfaceType, InterfaceElement>;
+typedef MergedTypeConstraint = shared.MergedTypeConstraint<
+    DartType,
+    TypeParameterElement,
+    PromotableElementImpl2,
+    InterfaceType,
+    InterfaceElement>;
 
 /// Instance of [shared.TypeConstraintFromArgument] specific to the Analyzer.
-typedef TypeConstraintFromArgument = shared.TypeConstraintFromArgument<DartType,
-    PromotableElement2, TypeParameterElement, InterfaceType, InterfaceElement>;
+typedef TypeConstraintFromArgument = shared.TypeConstraintFromArgument<
+    DartType,
+    PromotableElementImpl2,
+    TypeParameterElement,
+    InterfaceType,
+    InterfaceElement>;
 
 /// Instance of [shared.TypeConstraintFromExtendsClause] specific to the Analyzer.
 typedef TypeConstraintFromExtendsClause
-    = shared.TypeConstraintFromExtendsClause<DartType, PromotableElement2,
+    = shared.TypeConstraintFromExtendsClause<DartType, PromotableElementImpl2,
         TypeParameterElement, InterfaceType, InterfaceElement>;
 
 /// Instance of [shared.TypeConstraintFromFunctionContext] specific to the Analyzer.
@@ -52,7 +59,7 @@ typedef TypeConstraintFromFunctionContext
         DartType,
         DartType,
         DartType,
-        PromotableElement2,
+        PromotableElementImpl2,
         TypeParameterElement,
         InterfaceType,
         InterfaceElement>;
@@ -62,19 +69,23 @@ typedef TypeConstraintFromReturnType = shared.TypeConstraintFromReturnType<
     DartType,
     DartType,
     DartType,
-    PromotableElement2,
+    PromotableElementImpl2,
     TypeParameterElement,
     InterfaceType,
     InterfaceElement>;
 
 /// Instance of [shared.TypeConstraintOrigin] specific to the Analyzer.
-typedef TypeConstraintOrigin = shared.TypeConstraintOrigin<DartType,
-    PromotableElement2, TypeParameterElement, InterfaceType, InterfaceElement>;
+typedef TypeConstraintOrigin = shared.TypeConstraintOrigin<
+    DartType,
+    PromotableElementImpl2,
+    TypeParameterElement,
+    InterfaceType,
+    InterfaceElement>;
 
 /// Instance of [shared.UnknownTypeConstraintOrigin] specific to the Analyzer.
 typedef UnknownTypeConstraintOrigin = shared.UnknownTypeConstraintOrigin<
     DartType,
-    PromotableElement2,
+    PromotableElementImpl2,
     TypeParameterElement,
     InterfaceType,
     InterfaceElement>;
@@ -84,7 +95,7 @@ typedef UnknownTypeConstraintOrigin = shared.UnknownTypeConstraintOrigin<
 class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         DartType,
         ParameterElement,
-        PromotableElement2,
+        PromotableElementImpl2,
         TypeParameterElement,
         InterfaceType,
         InterfaceElement,
@@ -93,7 +104,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         shared.TypeConstraintGeneratorMixin<
             DartType,
             ParameterElement,
-            PromotableElement2,
+            PromotableElementImpl2,
             TypeParameterElement,
             InterfaceType,
             InterfaceElement,
