@@ -54,7 +54,8 @@ class FlowAnalysisDataForTesting {
 
   /// For each top level or class level declaration, the assigned variables
   /// information that was computed for it.
-  final Map<AstNode, AssignedVariablesForTesting<AstNode, PromotableElement2>>
+  final Map<AstNode,
+          AssignedVariablesForTesting<AstNode, PromotableElementImpl2>>
       assignedVariables = {};
 
   /// For each expression that led to an error because it was not promoted, a
@@ -76,7 +77,7 @@ class FlowAnalysisHelper {
   final TypeSystemOperations typeOperations;
 
   /// Precomputed sets of potentially assigned variables.
-  AssignedVariables<AstNode, PromotableElement2>? assignedVariables;
+  AssignedVariables<AstNode, PromotableElementImpl2>? assignedVariables;
 
   /// The result for post-resolution stages of analysis, for testing only.
   final FlowAnalysisDataForTesting? dataForTesting;
@@ -95,7 +96,7 @@ class FlowAnalysisHelper {
   final bool inferenceUpdate4Enabled;
 
   /// The current flow, when resolving a function body, or `null` otherwise.
-  FlowAnalysis<AstNode, Statement, Expression, PromotableElement2,
+  FlowAnalysis<AstNode, Statement, Expression, PromotableElementImpl2,
       SharedTypeView<DartType>>? flow;
 
   FlowAnalysisHelper(bool retainDataForTesting, FeatureSet featureSet,
@@ -173,10 +174,10 @@ class FlowAnalysisHelper {
         retainDataForTesting: dataForTesting != null, visit: visit);
     if (dataForTesting != null) {
       dataForTesting!.assignedVariables[node] = assignedVariables
-          as AssignedVariablesForTesting<AstNode, PromotableElement2>;
+          as AssignedVariablesForTesting<AstNode, PromotableElementImpl2>;
     }
     flow = isNonNullableByDefault
-        ? FlowAnalysis<AstNode, Statement, Expression, PromotableElement2,
+        ? FlowAnalysis<AstNode, Statement, Expression, PromotableElementImpl2,
             SharedTypeView<DartType>>(
             typeOperations,
             assignedVariables!,
@@ -185,7 +186,7 @@ class FlowAnalysisHelper {
             fieldPromotionEnabled: fieldPromotionEnabled,
             inferenceUpdate4Enabled: inferenceUpdate4Enabled,
           )
-        : FlowAnalysis<AstNode, Statement, Expression, PromotableElement2,
+        : FlowAnalysis<AstNode, Statement, Expression, PromotableElementImpl2,
                 SharedTypeView<DartType>>.legacy(
             typeOperations, assignedVariables!);
   }
@@ -235,7 +236,10 @@ class FlowAnalysisHelper {
 
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        var declaredElement = parameter.declaredFragment!.element;
+        // TODO(paulberry): try to remove this cast by changing `parameters` to
+        // a `FormalParameterListImpl`
+        var declaredElement =
+            parameter.declaredFragment!.element as PromotableElementImpl2;
         // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
         // around a failure in duplicate_definition_test.dart; fix this.
         flow!.declare(declaredElement, SharedTypeView(declaredElement.type),
@@ -263,7 +267,7 @@ class FlowAnalysisHelper {
 
   bool isDefinitelyAssigned(
     SimpleIdentifier node,
-    PromotableElement2 element,
+    PromotableElementImpl2 element,
   ) {
     var isAssigned = flow!.isAssigned(element);
 
@@ -280,7 +284,7 @@ class FlowAnalysisHelper {
 
   bool isDefinitelyUnassigned(
     SimpleIdentifier node,
-    PromotableElement2 element,
+    PromotableElementImpl2 element,
   ) {
     var isUnassigned = flow!.isUnassigned(element);
 
@@ -335,7 +339,8 @@ class FlowAnalysisHelper {
       var variables = node.variables;
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
-        var declaredElement = variable.declaredElement2 as PromotableElement2;
+        var declaredElement =
+            variable.declaredElement2 as PromotableElementImpl2;
         flow!.declare(declaredElement, SharedTypeView(declaredElement.type),
             initialized: variable.initializer != null);
       }
@@ -343,11 +348,11 @@ class FlowAnalysisHelper {
   }
 
   /// Computes the [AssignedVariables] map for the given [node].
-  static AssignedVariables<AstNode, PromotableElement2>
+  static AssignedVariables<AstNode, PromotableElementImpl2>
       computeAssignedVariables(AstNode node, FormalParameterList? parameters,
           {bool retainDataForTesting = false,
           void Function(AstVisitor<Object?> visitor)? visit}) {
-    AssignedVariables<AstNode, PromotableElement2> assignedVariables =
+    AssignedVariables<AstNode, PromotableElementImpl2> assignedVariables =
         retainDataForTesting
             ? AssignedVariablesForTesting()
             : AssignedVariables();
@@ -418,10 +423,10 @@ class FlowAnalysisHelper {
 
 class TypeSystemOperations
     with
-        TypeAnalyzerOperationsMixin<DartType, PromotableElement2,
+        TypeAnalyzerOperationsMixin<DartType, PromotableElementImpl2,
             TypeParameterElement, InterfaceType, InterfaceElement>
     implements
-        TypeAnalyzerOperations<DartType, PromotableElement2,
+        TypeAnalyzerOperations<DartType, PromotableElementImpl2,
             TypeParameterElement, InterfaceType, InterfaceElement> {
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
@@ -1189,7 +1194,7 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   @override
   DartType getType(SimpleIdentifier node, {required bool isRead}) {
     var variable = node.element as VariableElement2;
-    if (variable is PromotableElement2) {
+    if (variable is PromotableElementImpl2) {
       var promotedType = isRead
           ? _manager.flow?.variableRead(node, variable)
           : _manager.flow?.promotedType(variable);

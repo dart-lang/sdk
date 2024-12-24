@@ -5,12 +5,12 @@
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -236,7 +236,7 @@ class PrefixExpressionResolver {
         }
         if (operand is SimpleIdentifier) {
           var element = operand.element;
-          if (element is PromotableElement2) {
+          if (element is PromotableElementImpl2) {
             _resolver.flowAnalysis.flow
                 ?.write(node, element, SharedTypeView(staticType), null);
           }
