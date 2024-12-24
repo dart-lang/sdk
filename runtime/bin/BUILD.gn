@@ -1203,6 +1203,20 @@ source_set("dart_embedder_runtime_jit_set") {
     ":libdart_builtin",
     "..:libdart_jit",
   ]
+
+  if (is_win) {
+    libs = [
+      # ole32.dll contains CoTaskMemAlloc. Here so that package:ffi can look
+      # CoTaskMemAlloc up with `DynamicLibrary.process()`.
+      "ole32.lib",
+      "iphlpapi.lib",
+      "psapi.lib",
+      "ws2_32.lib",
+      "Rpcrt4.lib",
+      "shlwapi.lib",
+      "winmm.lib",
+    ]
+  }
 }
 
 static_library("dart_embedder_runtime_jit") {
