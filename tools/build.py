@@ -216,7 +216,16 @@ def CheckCleanBuild(build_config, args, env):
 
 
 def SanitizerEnvironmentVariables():
-    with io.open('tools/bots/test_matrix.json', encoding='utf-8') as fd:
+    if os.path.isfile('tools/bots/test_matrix.json'):
+        _test_matrix_path = 'tools/bots/test_matrix.json'
+    else:
+        if os.path.isfile(os.path.join(DART_ROOT, 'tools/bots/test_matrix.json')):
+            _test_matrix_path = os.path.join(DART_ROOT, 'tools/bots/test_matrix.json')
+        else:
+            _test_matrix_path = os.path.join(
+                os.path.join(os.getcwd(), 'tools/bots/test_matrix.json')
+            )
+    with io.open(_test_matrix_path, encoding='utf-8') as fd:
         config = json.loads(fd.read())
         env = dict()
         for k, v in config['sanitizer_options'].items():
