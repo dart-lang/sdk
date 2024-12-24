@@ -157,7 +157,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   ///  No parameters.
   static const CompileTimeErrorCode ASSIGNMENT_TO_CONST = CompileTimeErrorCode(
     'ASSIGNMENT_TO_CONST',
-    "Constant variables can't be assigned a value.",
+    "Constant variables can't be assigned a value after initialization.",
     correctionMessage:
         "Try removing the assignment, or remove the modifier 'const' from the "
         "variable.",

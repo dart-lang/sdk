@@ -5,9 +5,10 @@
 # Run
 #
 #     dart run analyzer/tool/messages/generate.dart
+#     dart run analyzer/tool/diagnostics/generate.dart
 #
 # to regenerate messages after having edited this file.
-
+#
 # This file is organized as a two level map, where the outer key corresponds to
 # the name of an analyzer error class (e.g. CompileTimeErrorCode), and the inner
 # key corresponds to the name of a static variable in that class, describing a
