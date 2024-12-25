@@ -98,7 +98,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 bool Function(Source) inferenceLoggingPredicate = (_) => false;
 
 typedef SharedMatchContext = shared.MatchContext<AstNode, Expression,
-    DartPattern, SharedTypeView<DartType>, PromotableElement2>;
+    DartPattern, SharedTypeView<DartType>, PromotableElementImpl2>;
 
 typedef SharedPatternField
     = shared.RecordPatternField<PatternFieldImpl, DartPatternImpl>;
@@ -125,7 +125,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             AstNode,
             Statement,
             Expression,
-            PromotableElement2,
+            PromotableElementImpl2,
             DartPattern,
             void,
             TypeParameterElement,
@@ -437,7 +437,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ExecutableElement? get enclosingFunction => _enclosingFunction;
 
   @override
-  FlowAnalysis<AstNode, Statement, Expression, PromotableElement2,
+  FlowAnalysis<AstNode, Statement, Expression, PromotableElementImpl2,
       SharedTypeView<DartType>> get flow => flowAnalysis.flow!;
 
   bool get isConstructorTearoffsEnabled =>
@@ -454,7 +454,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   shared.TypeAnalyzerOperations<
       DartType,
-      PromotableElement2,
+      PromotableElementImpl2,
       TypeParameterElement,
       InterfaceType,
       InterfaceElement> get operations => flowAnalysis.typeOperations;
@@ -668,9 +668,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       return;
     }
 
-    if (element is VariableElement2) {
-      var assigned = flowAnalysis.isDefinitelyAssigned(
-          node, element as PromotableElement2);
+    if (element is PromotableElementImpl2) {
+      var assigned = flowAnalysis.isDefinitelyAssigned(node, element);
       var unassigned = flowAnalysis.isDefinitelyUnassigned(node, element);
 
       if (element.isLate) {
@@ -978,7 +977,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SwitchExpressionMemberInfo<AstNode, Expression, PromotableElement2>
+  SwitchExpressionMemberInfo<AstNode, Expression, PromotableElementImpl2>
       getSwitchExpressionMemberInfo(
     covariant SwitchExpressionImpl node,
     int index,
@@ -996,12 +995,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SwitchStatementMemberInfo<AstNode, Statement, Expression, PromotableElement2>
-      getSwitchStatementMemberInfo(
+  SwitchStatementMemberInfo<AstNode, Statement, Expression,
+      PromotableElementImpl2> getSwitchStatementMemberInfo(
     covariant SwitchStatementImpl node,
     int index,
   ) {
-    CaseHeadOrDefaultInfo<AstNode, Expression, PromotableElement2> ofMember(
+    CaseHeadOrDefaultInfo<AstNode, Expression, PromotableElementImpl2> ofMember(
       SwitchMemberImpl member,
     ) {
       if (member is SwitchCaseImpl) {
@@ -1397,7 +1396,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required SharedMatchContext context,
   }) {
     var element = node.element2;
-    if (element is! PromotableElement2) {
+    if (element is! PromotableElementImpl2) {
       return PatternResult(
           matchedValueType: SharedTypeView(InvalidTypeImpl.instance));
     }
@@ -1883,7 +1882,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (staticType != null && expression is SimpleIdentifier) {
       var simpleIdentifier = expression as SimpleIdentifier;
       var element = simpleIdentifier.element;
-      if (element is PromotableElement2 &&
+      if (element is PromotableElementImpl2 &&
           !expression.typeOrThrow.isDartCoreNull &&
           typeSystem.isNullable(element.type) &&
           typeSystem.isNonNullable(staticType) &&
@@ -3819,9 +3818,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       for (var i = 0; i < catchLength; ++i) {
         var catchClause = catchClauses[i];
         nullSafetyDeadCodeVerifier.verifyCatchClause(catchClause);
+        // TODO(paulberry): try to remove these casts by changing `node` to a
+        // `TryStatementImpl`
         flow.tryCatchStatement_catchBegin(
-          catchClause.exceptionParameter?.declaredElement2,
-          catchClause.stackTraceParameter?.declaredElement2,
+          catchClause.exceptionParameter?.declaredElement2
+              as PromotableElementImpl2?,
+          catchClause.stackTraceParameter?.declaredElement2
+              as PromotableElementImpl2?,
         );
         catchClause.accept(this);
         flow.tryCatchStatement_catchEnd();
@@ -3890,8 +3893,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var parent = node.parent as VariableDeclarationList;
       var declaredType = parent.type;
       var initializerStaticType = initializer.typeOrThrow;
-      flowAnalysis.flow?.initialize(node.declaredElement2 as PromotableElement2,
-          SharedTypeView(initializerStaticType), initializer,
+      flowAnalysis.flow?.initialize(
+          node.declaredElement2 as PromotableElementImpl2,
+          SharedTypeView(initializerStaticType),
+          initializer,
           isFinal: parent.isFinal,
           isLate: parent.isLate,
           isImplicitlyTyped: declaredType == null);

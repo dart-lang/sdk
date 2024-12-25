@@ -123,10 +123,10 @@ class ForResolver {
   void _forEachParts(AstNode node, bool isAsync, ForEachParts forEachParts,
       void Function() visitBody) {
     Expression iterable = forEachParts.iterable;
-    DeclaredIdentifier? loopVariable;
+    DeclaredIdentifierImpl? loopVariable;
     SimpleIdentifier? identifier;
     Element2? identifierElement;
-    if (forEachParts is ForEachPartsWithDeclaration) {
+    if (forEachParts is ForEachPartsWithDeclarationImpl) {
       loopVariable = forEachParts.loopVariable;
     } else if (forEachParts is ForEachPartsWithIdentifier) {
       identifier = forEachParts.identifier;
@@ -188,7 +188,7 @@ class ForResolver {
     }
 
     _resolver.flowAnalysis.flow?.forEach_bodyBegin(node);
-    if (identifierElement is PromotableElement2 &&
+    if (identifierElement is PromotableElementImpl2 &&
         forEachParts is ForEachPartsWithIdentifier) {
       _resolver.flowAnalysis.flow?.write(
           forEachParts, identifierElement, SharedTypeView(elementType), null);
