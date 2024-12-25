@@ -227,11 +227,7 @@ abstract class DynamicType implements DartType {}
 ///   T<sub>xk</sub> xk}) &rarr; T</i>.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class FunctionType
-    implements
-        DartType,
-        SharedFunctionTypeStructure<DartType, TypeParameterElement,
-            ParameterElement> {
+abstract class FunctionType implements DartType {
   @override
   Null get element;
 
@@ -268,9 +264,37 @@ abstract class FunctionType
   /// in the declaration of the function.
   List<ParameterElement> get parameters;
 
+  /// All the positional parameter types, starting with the required ones, and
+  /// followed by the optional ones.
+  ///
+  /// Deprecated: this getter is a part of the analyzer's private
+  /// implementation, and was exposed by accident (see
+  /// https://github.com/dart-lang/sdk/issues/59763). Please use
+  /// [normalParameterTypes] and [optionalParameterTypes] instead.
+  @Deprecated('Please use normalParameterTypes and optionalParameterTypes')
+  List<DartType> get positionalParameterTypes;
+
+  /// The number of elements of [positionalParameterTypes] that are required
+  /// parameters.
+  ///
+  /// Deprecated: this getter is a part of the analyzer's private
+  /// implementation, and was exposed by accident (see
+  /// https://github.com/dart-lang/sdk/issues/59763). Please use
+  /// [normalParameterTypes].length instead.
+  @Deprecated('Please use normalParameterTypes.length')
+  int get requiredPositionalParameterCount;
+
   /// The type of object returned by this type of function.
-  @override
   DartType get returnType;
+
+  /// All the named parameters, sorted by name.
+  ///
+  /// Deprecated: this getter is a part of the analyzer's private
+  /// implementation, and was exposed by accident (see
+  /// https://github.com/dart-lang/sdk/issues/59763). Please use [parameters]
+  /// instead.
+  @Deprecated('Please use parameters')
+  List<ParameterElement> get sortedNamedParameters;
 
   /// The formal type parameters of this generic function; for example,
   /// `<T> T -> T`.
@@ -279,7 +303,6 @@ abstract class FunctionType
   // These are distinct from the `typeParameters` list, which contains type
   // parameters from surrounding contexts, and thus are free type variables
   // from the perspective of this function type.
-  @override
   List<TypeParameterElement> get typeFormals;
 
   /// The type parameters.
