@@ -24,6 +24,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
@@ -226,7 +227,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   @override
   (DartType, DartType, {List<TypeParameterElement> typeParametersToEliminate})
       instantiateFunctionTypesAndProvideFreshTypeParameters(
-          covariant FunctionType P, covariant FunctionType Q,
+          covariant FunctionTypeImpl P, covariant FunctionTypeImpl Q,
           {required bool leftSchema}) {
     // And `Z0...Zn` are fresh variables with bounds `B20, ..., B2n`.
     //   Where `B2i` is `B0i[Z0/T0, ..., Zn/Tn]` if `P` is a type schema.
