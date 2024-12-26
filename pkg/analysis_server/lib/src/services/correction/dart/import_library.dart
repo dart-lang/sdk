@@ -695,6 +695,7 @@ class _ImportLibraryCombinator extends ResolvedCorrectionProducer {
     }
     var newCombinatorCode = '';
     if (finalNames.isNotEmpty) {
+      // TODO(FMorschel): Use the utility function instead of ', '.
       newCombinatorCode = ' ${keyword.lexeme} ${finalNames.join(', ')}';
     }
     var libraryPath = unitResult.libraryElement2.firstFragment.source.fullName;

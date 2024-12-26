@@ -74,14 +74,26 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
   }
 
   /// Returns [ImportDirective]s that import the given [conflictingElements]
-  /// into [unitResult].
+  /// into [unitResult] and the set of uris (String) that represent each of the
+  /// import directives.
+  ///
+  /// The uris and the import directives are both returned so that we can
+  /// run the fix for a certain uri on all of the other import directives.
+  ///
+  /// The resulting [ResolvedUnitResult?] is the unit that contains the import
+  /// directives. Usually this is the unit that contains the conflicting
+  /// element, but it could be a parent unit if the conflicting element is
+  /// a part file and the relevant imports are in an upstream file in the
+  /// library hierarchy (enhanced parts).
   (Set<String>, ResolvedUnitResult?, Set<ImportDirective>) _getImportDirectives(
     ResolvedLibraryResult libraryResult,
     ResolvedUnitResult? unitResult,
     List<Element2> conflictingElements,
     String? prefix,
   ) {
+    // The uris of all import directives that import the conflicting elements.
     var uris = <String>{};
+    // The import directives that import the conflicting elements.
     var importDirectives = <ImportDirective>{};
     // Search in each unit up the chain for related imports.
     while (unitResult is ResolvedUnitResult) {
@@ -181,9 +193,13 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
       for (var (:directive, :hide) in hideCombinators) {
         if (hide != null) {
           var allNames = [
-            _elementName,
             ...hide.hiddenNames.map((name) => name.name),
-          ]..sort();
+            _elementName,
+          ];
+          if (_sortCombinators) {
+            allNames.sort();
+          }
+          // TODO(FMorschel): Use the utility function instead of ', '.
           var combinator = 'hide ${allNames.join(', ')}';
           var range = SourceRange(hide.offset, hide.length);
           builder.addSimpleReplacement(range, combinator);
@@ -247,12 +263,16 @@ class _ImportRemoveShow extends ResolvedCorrectionProducer {
           ...show.shownNames
               .map((name) => name.name)
               .where((name) => name != _elementName),
-        ]..sort();
+        ];
+        if (_sortCombinators) {
+          allNames.sort();
+        }
         if (allNames.isEmpty) {
           builder.addDeletion(SourceRange(show.offset - 1, show.length + 1));
           var hideCombinator = ' hide $_elementName';
           builder.addSimpleInsertion(directive.end - 1, hideCombinator);
         } else {
+          // TODO(FMorschel): Use the utility function instead of ', '.
           var combinator = 'show ${allNames.join(', ')}';
           var range = SourceRange(show.offset, show.length);
           builder.addSimpleReplacement(range, combinator);
@@ -260,4 +280,9 @@ class _ImportRemoveShow extends ResolvedCorrectionProducer {
       }
     });
   }
+}
+
+extension on ResolvedCorrectionProducer {
+  bool get _sortCombinators =>
+      getCodeStyleOptions(unitResult.file).combinatorsOrdering;
 }
