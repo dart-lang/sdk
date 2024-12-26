@@ -47,16 +47,17 @@ class C {
   final test16;
   final test17;
 
-  const C(x,
-      [this.test9 = theNull ?? notNull,
-      this.test10 = notNull ?? theNull,
-      this.test11 = theNull ?? theNull ?? notNull,
-      this.test12 = theNull ?? theNull ?? theNull])
-      : test13 = theNull ?? x,
-        test14 = notNull ?? x,
-        test15 = x ?? notNull,
-        test16 = theNull ?? theNull ?? x,
-        test17 = theNull ?? x ?? notNull;
+  const C(
+    x, [
+    this.test9 = theNull ?? notNull,
+    this.test10 = notNull ?? theNull,
+    this.test11 = theNull ?? theNull ?? notNull,
+    this.test12 = theNull ?? theNull ?? theNull,
+  ]) : test13 = theNull ?? x,
+       test14 = notNull ?? x,
+       test15 = x ?? notNull,
+       test16 = theNull ?? theNull ?? x,
+       test17 = theNull ?? x ?? notNull;
 
   List methodLocal() {
     // Method local const variable initializer.
@@ -74,7 +75,7 @@ class C {
       theNull ?? notNull,
       notNull ?? theNull,
       theNull ?? theNull ?? notNull,
-      theNull ?? theNull ?? theNull
+      theNull ?? theNull ?? theNull,
     ];
   }
 }

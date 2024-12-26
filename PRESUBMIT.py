@@ -532,12 +532,7 @@ def _CheckDevCompilerSync(input_api, output_api):
 def _CommonChecks(input_api, output_api):
     results = []
     results.extend(_CheckValidHostsInDEPS(input_api, output_api))
-
-    # TODO(rnystrom): Temporarily disabling dart format checking while
-    # migrating to the new formatting style.
-    # See: https://github.com/dart-lang/sdk/issues/56688
-    # results.extend(_CheckDartFormat(input_api, output_api))
-
+    results.extend(_CheckDartFormat(input_api, output_api))
     results.extend(_CheckStatusFiles(input_api, output_api))
     results.extend(_CheckLayering(input_api, output_api))
     results.extend(_CheckClangTidy(input_api, output_api))

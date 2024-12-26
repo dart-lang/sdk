@@ -81,7 +81,7 @@ class DartUnitHoverComputer {
           hover.containingLibraryPath = libraryInfo?.libraryPath;
         }
         // documentation
-        hover.dartdoc = _documentationComputer.computePreferred2(
+        hover.dartdoc = _documentationComputer.computePreferred(
           element,
           documentationPreference,
         );

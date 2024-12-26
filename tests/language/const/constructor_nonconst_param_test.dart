@@ -8,17 +8,16 @@ class A {
 
 class B {
   final a;
-  const B(dynamic v) //
-      : a = A(v)
-      //    ^^^^
-      // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
-      // [cfe] Constant evaluation error:
-      // [cfe] Constant expression expected.
+  const B(dynamic v) : a = A(v)
+  //                       ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  // [cfe] Constant evaluation error:
+  // [cfe] Constant expression expected.
   ;
 }
 
 void main() {
   const B("");
-//^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  // [error column 3, length 11]
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
 }

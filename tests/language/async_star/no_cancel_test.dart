@@ -11,11 +11,14 @@ var events = [];
 ticker() async* {
   var sc;
   var sentTickCount = 0;
-  sc = new StreamController(onListen: () {
-    events.add("listen");
-  }, onCancel: () {
-    events.add("cancel");
-  });
+  sc = new StreamController(
+    onListen: () {
+      events.add("listen");
+    },
+    onCancel: () {
+      events.add("cancel");
+    },
+  );
 
   try {
     var counter = 0;

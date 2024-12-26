@@ -716,8 +716,8 @@ class WidgetCreatorTracker {
         // there is a use case for this.
         continue;
       }
-      final Procedure method = member.memberReference.asProcedure;
-      if (_hasWidgetFactoryAnnotation(method)) {
+      final Procedure? method = member.memberReference?.asProcedure;
+      if (method != null && _hasWidgetFactoryAnnotation(method)) {
         _maybeAddNamedParameter(
           method.function,
           new VariableDeclaration(

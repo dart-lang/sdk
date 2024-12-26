@@ -274,7 +274,8 @@ class PropertyElementResolver with ScopeHelpers {
                 ?.unwrapTypeView() ??
             unpromotedType;
       }
-      _resolver.checkReadOfNotAssignedLocalVariable(node, readElementRequested);
+      _resolver.checkReadOfNotAssignedLocalVariable(
+          node, readElementRequested?.asElement2);
     }
 
     Element? writeElementRequested;

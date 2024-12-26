@@ -112,7 +112,7 @@ class TopLevelDeclarations {
   /// a top-level declaration that is exported (not necessary declared) by this
   /// library, and has the requested base name. For getters and setters the
   /// corresponding top-level variable is returned.
-  Future<Map<LibraryElement, Element>> withName(String baseName) async {
+  Future<Map<LibraryElement2, Element2>> withName(String baseName) async {
     var analysisDriver = _analysisContext.driver;
     await analysisDriver.discoverAvailableFiles();
 
@@ -121,7 +121,7 @@ class TopLevelDeclarations {
       fsState.getFileForPath(resolvedUnit.path),
     );
 
-    var result = <LibraryElement, Element>{};
+    var result = <LibraryElement2, Element2>{};
 
     for (var file in fsState.knownFiles.toList()) {
       if (!filter.shouldInclude(file)) {
@@ -133,7 +133,7 @@ class TopLevelDeclarations {
         continue;
       }
 
-      addElement(result, elementResult.element, baseName);
+      addElement2(result, elementResult.element2, baseName);
     }
 
     return result;

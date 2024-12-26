@@ -31,13 +31,16 @@ typedef WaitForHelper = void Function(Pointer<Void>);
 void waitForHelper(Pointer<Void> helper) {
   print("helper: $helper");
   testLibrary.lookupFunction<WaitForHelperNative, WaitForHelper>(
-      "WaitForHelper")(helper);
+    "WaitForHelper",
+  )(helper);
 }
 
 final testcases = [
   CallbackTest("GC", Pointer.fromFunction<ReturnVoid>(testGC)),
-  CallbackTest("UnprotectCode",
-      Pointer.fromFunction<WaitForHelperNative>(waitForHelper)),
+  CallbackTest(
+    "UnprotectCode",
+    Pointer.fromFunction<WaitForHelperNative>(waitForHelper),
+  ),
 ];
 
 const double zeroPointZero = 0.0;

@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -141,7 +141,7 @@ class A {
 ''');
 
     await resolveTestFile();
-    assertType(findElement.field('f').type, 'Set<int>');
+    assertType(findElement2.field('f').type, 'Set<int>');
 
     // The summary for the library was linked.
     _assertContainsLinkedCycle({testFile}, andClear: true);
@@ -161,7 +161,7 @@ class A {
 ''');
 
     await resolveTestFile();
-    assertType(findElement.field('f').type, 'Set<int>');
+    assertType(findElement2.field('f').type, 'Set<int>');
 
     // We changed the initializer of the final field. But it is static, so
     // even though the class hsa a constant constructor, we don't need its
@@ -225,7 +225,7 @@ import 'a.dart';
     // from the `LibraryReader` current at the moment of `exportNamespace`
     // access, not necessary the same that created this instance.
     var aResult = await driver.getLibraryByUri('package:test/a.dart');
-    var aElement = (aResult as LibraryElementResult).element;
+    var aElement = (aResult as LibraryElementResult).element2;
 
     // The element is valid at this point.
     expect(driver.isValidLibraryElement(aElement), isTrue);
@@ -241,7 +241,7 @@ import 'a.dart';
     expect(driver.isValidLibraryElement(aElement), isFalse);
 
     // But its `exportNamespace` can be accessed.
-    expect(aElement.exportNamespace.definedNames, isNotEmpty);
+    expect(aElement.exportNamespace.definedNames2, isNotEmpty);
 
     // TODO(scheglov): This is not quite right.
     // When we return `LibraryElement` that is not fully read, and read
@@ -361,21 +361,21 @@ export 'a.dart';
 
     var analysisContext = contextFor(macroFile);
 
-    Future<LibraryElement> getLibrary(String uriStr) async {
+    Future<LibraryElement2> getLibrary(String uriStr) async {
       var result = await analysisContext.currentSession.getLibraryByUri(uriStr)
           as LibraryElementResult;
-      return result.element;
+      return result.element2;
     }
 
     // This macro generates `MacroA`, but not `MacroB`.
     {
       var libraryA = await getLibrary('package:test/a.dart');
-      expect(libraryA.getClass('MacroA'), isNotNull);
-      expect(libraryA.getClass('MacroB'), isNull);
+      expect(libraryA.getClass2('MacroA'), isNotNull);
+      expect(libraryA.getClass2('MacroB'), isNull);
       // This propagates transitively.
       var libraryB = await getLibrary('package:test/b.dart');
-      expect(libraryB.exportNamespace.get('MacroA'), isNotNull);
-      expect(libraryB.exportNamespace.get('MacroB'), isNull);
+      expect(libraryB.exportNamespace.get2('MacroA'), isNotNull);
+      expect(libraryB.exportNamespace.get2('MacroB'), isNull);
     }
 
     _assertContainsLinkedCycle({a});
@@ -391,12 +391,12 @@ export 'a.dart';
     // This macro generates `MacroB`, but not `MacroA`.
     {
       var libraryA = await getLibrary('package:test/a.dart');
-      expect(libraryA.getClass('MacroA'), isNull);
-      expect(libraryA.getClass('MacroB'), isNotNull);
+      expect(libraryA.getClass2('MacroA'), isNull);
+      expect(libraryA.getClass2('MacroB'), isNotNull);
       // This propagates transitively.
       var libraryB = await getLibrary('package:test/b.dart');
-      expect(libraryB.exportNamespace.get('MacroA'), isNull);
-      expect(libraryB.exportNamespace.get('MacroB'), isNotNull);
+      expect(libraryB.exportNamespace.get2('MacroA'), isNull);
+      expect(libraryB.exportNamespace.get2('MacroB'), isNotNull);
     }
 
     _assertContainsLinkedCycle({a});
@@ -665,7 +665,7 @@ macro class MyMacro implements ClassTypesMacro {
 }
 
 extension on AnalysisDriver {
-  bool isValidLibraryElement(LibraryElement element) {
+  bool isValidLibraryElement(LibraryElement2 element) {
     return identical(element.session, currentSession);
   }
 }

@@ -16,11 +16,17 @@ sum(param0, param1) {
 
 main() {
   runTest() async {
-    await compile(TEST_ONE, entry: 'sum', check: (String generated) {
-      RegExp regexp = RegExp(getNumberTypeCheck('(param1|b)'));
-      Expect.isTrue(
-          regexp.hasMatch(generated), '$regexp not found in:\n$generated');
-    });
+    await compile(
+      TEST_ONE,
+      entry: 'sum',
+      check: (String generated) {
+        RegExp regexp = RegExp(getNumberTypeCheck('(param1|b)'));
+        Expect.isTrue(
+          regexp.hasMatch(generated),
+          '$regexp not found in:\n$generated',
+        );
+      },
+    );
   }
 
   asyncTest(() async {

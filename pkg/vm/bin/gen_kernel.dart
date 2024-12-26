@@ -27,7 +27,7 @@ Options:
 ${_argParser.usage}
 ''';
 
-main(List<String> arguments) async {
+void main(List<String> arguments) async {
   if (arguments.isNotEmpty && arguments.last == '--batch') {
     await runBatchModeCompiler();
   } else {

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.common.tasks;
+library;
 
 import 'dart:async'
     show Future, Zone, ZoneDelegate, ZoneSpecification, runZoned;
@@ -28,7 +28,7 @@ abstract class CompilerTask {
   Map<Measurer, CompilerTask>? _zoneValues;
 
   CompilerTask(this._measurer)
-      : _watch = _measurer.enableTaskMeasurements ? Stopwatch() : null;
+    : _watch = _measurer.enableTaskMeasurements ? Stopwatch() : null;
 
   /// Whether measurement is disabled. The functions [measure] and [measureIo]
   /// only measure time if measurements are enabled.
@@ -38,7 +38,7 @@ abstract class CompilerTask {
   ///
   /// Subclasses should override this with a proper name, otherwise we use the
   /// runtime type of the task.
-  String get name => "Unknown task '${this.runtimeType}'";
+  String get name => "Unknown task '$runtimeType'";
 
   bool get isRunning => _watch?.isRunning == true;
 
@@ -63,7 +63,8 @@ abstract class CompilerTask {
   /// Perform [action] and measure its runtime (including any asynchronous
   /// callbacks, such as, [Future.then], but excluding code measured by other
   /// tasks).
-  T measure<T>(T action()) => _isDisabled ? action() : _measureZoned(action);
+  T measure<T>(T Function() action) =>
+      _isDisabled ? action() : _measureZoned(action);
 
   /// Helper method that starts measuring with this [CompilerTask], that is,
   /// make this task the currently measured task.
@@ -94,7 +95,7 @@ abstract class CompilerTask {
     _measurer._currentTask = previous;
   }
 
-  T _measureZoned<T>(T action()) {
+  T _measureZoned<T>(T Function() action) {
     // Using zones, we're able to track asynchronous operations correctly, as
     // our zone will be asked to invoke `then` blocks. Then blocks (the closure
     // passed to runZoned, and other closures) are run via the `run` functions
@@ -105,10 +106,16 @@ abstract class CompilerTask {
     // The current zone is already measuring `this` task.
     if (Zone.current[_measurer] == this) return action();
 
-    return runZoned(action,
-        zoneValues: _zoneValues ??= {_measurer: this},
-        zoneSpecification: _zoneSpecification ??= ZoneSpecification(
-            run: _run, runUnary: _runUnary, runBinary: _runBinary));
+    return runZoned(
+      action,
+      zoneValues: _zoneValues ??= {_measurer: this},
+      zoneSpecification:
+          _zoneSpecification ??= ZoneSpecification(
+            run: _run,
+            runUnary: _runUnary,
+            runBinary: _runBinary,
+          ),
+    );
   }
 
   /// Run [f] in [zone]. Running must be delegated to [parent] to ensure that
@@ -118,7 +125,7 @@ abstract class CompilerTask {
   /// of other measuring zones, but we still need to call through the parent
   /// chain. Consequently, we use a zone value keyed by [_measurer] to see if
   /// we should measure or not when delegating.
-  R _run<R>(Zone self, ZoneDelegate parent, Zone zone, R f()) {
+  R _run<R>(Zone self, ZoneDelegate parent, Zone zone, R Function() f) {
     if (zone[_measurer] != this) return parent.run(zone, f);
     CompilerTask? previous = _start();
     try {
@@ -130,7 +137,12 @@ abstract class CompilerTask {
 
   /// Same as [run] except that [f] takes one argument, [arg].
   R _runUnary<R, T>(
-      Zone self, ZoneDelegate parent, Zone zone, R f(T arg), T arg) {
+    Zone self,
+    ZoneDelegate parent,
+    Zone zone,
+    R Function(T arg) f,
+    T arg,
+  ) {
     if (zone[_measurer] != this) return parent.runUnary(zone, f, arg);
     CompilerTask? previous = _start();
     try {
@@ -141,8 +153,14 @@ abstract class CompilerTask {
   }
 
   /// Same as [run] except that [f] takes two arguments ([a1] and [a2]).
-  R _runBinary<R, T1, T2>(Zone self, ZoneDelegate parent, Zone zone,
-      R f(T1 a1, T2 a2), T1 a1, T2 a2) {
+  R _runBinary<R, T1, T2>(
+    Zone self,
+    ZoneDelegate parent,
+    Zone zone,
+    R Function(T1 a1, T2 a2) f,
+    T1 a1,
+    T2 a2,
+  ) {
     if (zone[_measurer] != this) return parent.runBinary(zone, f, a1, a2);
     CompilerTask? previous = _start();
     try {
@@ -159,7 +177,7 @@ abstract class CompilerTask {
   /// Note: we assume that this method is used only by the compiler input
   /// provider, but it could be used by other tasks as long as the input
   /// provider will not be called by those tasks.
-  Future<T> measureIo<T>(Future<T> action()) {
+  Future<T> measureIo<T>(Future<T> Function() action) {
     if (_isDisabled) return action();
 
     if (_measurer._currentAsyncTask == null) {
@@ -177,7 +195,7 @@ abstract class CompilerTask {
 
   /// Measure the time spent in [action] (if in verbose mode) and accumulate it
   /// under a subtask with the given name.
-  T measureSubtask<T>(String name, T action()) {
+  T measureSubtask<T>(String name, T Function() action) {
     if (_isDisabled) return action();
 
     // Use a nested CompilerTask for the measurement to ensure nested [measure]
@@ -194,7 +212,7 @@ abstract class CompilerTask {
   /// Note: we assume that this method is used only by the compiler input
   /// provider, but it could be used by other tasks as long as the input
   /// provider will not be called by those tasks.
-  Future<T> measureIoSubtask<T>(String name, Future<T> action()) {
+  Future<T> measureIoSubtask<T>(String name, Future<T> Function() action) {
     if (_isDisabled) return action();
 
     // Use a nested CompilerTask for the measurement to ensure nested [measure]
@@ -245,8 +263,12 @@ class Measurer {
   final bool enableTaskMeasurements;
 
   static int _hashCodeGenerator = 197;
+
   @override
   final int hashCode = _hashCodeGenerator++;
+
+  @override
+  bool operator ==(other) => identical(this, other);
 
   Measurer({this.enableTaskMeasurements = false});
 

@@ -29,12 +29,10 @@ import '../source/source_field_builder.dart';
 import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
-import '../source/source_procedure_builder.dart';
 import '../source/source_type_alias_builder.dart';
 import '../type_inference/inference_results.dart'
     show InitializerInferenceResult;
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
-import '../type_inference/type_schema.dart' show UnknownType;
 import 'expression_generator_helper.dart';
 import 'internal_ast.dart';
 
@@ -131,8 +129,24 @@ abstract class BodyBuilderContext {
 
   /// Returns the [FormalParameterBuilder] by the given [name] declared in the
   /// member whose body is being built.
-  FormalParameterBuilder? getFormalParameterByName(Identifier name) {
-    throw new UnsupportedError('${runtimeType}.getFormalParameterByName');
+  FormalParameterBuilder? getFormalParameterByName(Identifier identifier) {
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals!) {
+        if (formal.isWildcard &&
+            identifier.name == '_' &&
+            formal.fileOffset == identifier.nameOffset) {
+          return formal;
+        }
+        if (formal.name == identifier.name &&
+            formal.fileOffset == identifier.nameOffset) {
+          return formal;
+        }
+      }
+      // Coverage-ignore(suite): Not run.
+      // If we have any formals we should find the one we're looking for.
+      assert(false, "$identifier not found in $formals");
+    }
+    return null;
   }
 
   /// Returns the [FunctionNode] for the function body currently being built.
@@ -154,7 +168,6 @@ abstract class BodyBuilderContext {
   /// factory, method, getter, or setter marked as `external`.
   bool get isExternalFunction => false;
 
-  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the member whose body is being built is a setter
   /// declaration.
   bool get isSetter => false;
@@ -169,7 +182,6 @@ abstract class BodyBuilderContext {
   /// factory declaration.
   bool get isFactory => false;
 
-  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the member whose body is being built is marked as
   /// native.
   bool get isNativeMethod => false;
@@ -643,6 +655,7 @@ class _TopLevelBodyBuilderDeclarationContext
       : super._(libraryBuilder);
 
   @override
+  // Coverage-ignore(suite): Not run.
   Builder? lookupLocalMember(String name, {bool required = false}) {
     return _libraryBuilder.lookupLocalMember(name, required: required);
   }
@@ -705,6 +718,7 @@ mixin _MemberBodyBuilderContext<T extends SourceMemberBuilder>
   Member get _builtMember;
 
   @override
+  // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? get augmentSuperTarget {
     if (_member.isAugmentation) {
       return _member.augmentSuperTarget;
@@ -810,6 +824,7 @@ mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isNativeMethod {
     return _member.isNative;
   }
@@ -823,42 +838,6 @@ mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
   bool get isSetter {
     return _member.isSetter;
   }
-}
-
-mixin _ProcedureBodyBuilderContextMixin<T extends SourceProcedureBuilder>
-    implements BodyBuilderContext {
-  T get _member;
-
-  @override
-  void setAsyncModifier(AsyncMarker asyncModifier) {
-    _member.asyncModifier = asyncModifier;
-  }
-
-  @override
-  DartType get returnTypeContext {
-    final bool isReturnTypeUndeclared =
-        _member.returnType is OmittedTypeBuilder &&
-            _member.function.returnType is DynamicType;
-    return isReturnTypeUndeclared
-        ? const UnknownType()
-        : _member.function.returnType;
-  }
-}
-
-class ProcedureBodyBuilderContext extends BodyBuilderContext
-    with
-        _MemberBodyBuilderContext<SourceProcedureBuilder>,
-        _FunctionBodyBuilderContextMixin<SourceProcedureBuilder>,
-        _ProcedureBodyBuilderContextMixin<SourceProcedureBuilder> {
-  @override
-  final SourceProcedureBuilder _member;
-
-  @override
-  final Member _builtMember;
-
-  ProcedureBodyBuilderContext(this._member, this._builtMember)
-      : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 }
 
 mixin _ConstructorBodyBuilderContextMixin<T extends ConstructorDeclaration>
@@ -1040,17 +1019,25 @@ class ParameterBodyBuilderContext extends BodyBuilderContext {
 }
 
 // Coverage-ignore(suite): Not run.
-class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext
-    with _MemberBodyBuilderContext<SourceProcedureBuilder> {
-  @override
-  final SourceProcedureBuilder _member;
-
-  @override
-  final Member _builtMember;
+class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
+  final Procedure _procedure;
 
   ExpressionCompilerProcedureBodyBuildContext(
-      DietListener listener, this._member, this._builtMember,
+      DietListener listener, this._procedure,
       {required bool isDeclarationInstanceMember})
       : super(listener.libraryBuilder, listener.currentDeclaration,
             isDeclarationInstanceMember: isDeclarationInstanceMember);
+
+  @override
+  AugmentSuperTarget? get augmentSuperTarget {
+    return null;
+  }
+
+  @override
+  int get memberNameOffset => _procedure.fileOffset;
+
+  @override
+  void registerSuperCall() {
+    _procedure.transformerFlags |= TransformerFlag.superCalls;
+  }
 }

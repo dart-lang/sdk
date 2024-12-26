@@ -23,11 +23,10 @@ main() {
   retainDataForTesting = true;
 
   runTests() async {
-    CompilationResult result = await runCompiler(memorySourceFiles: {
-      'main.dart': CODE
-    }, options: [
-      '--experimental-powersets',
-    ]);
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: {'main.dart': CODE},
+      options: ['--experimental-powersets'],
+    );
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler!;
     var results = compiler.globalInference.resultsForTesting!;
@@ -39,17 +38,23 @@ main() {
 
     var exactTrue = powersetBitsDomain.trueValue;
     var exactFalse = powersetBitsDomain.falseValue;
-    dynamic classA =
-        elementEnvironment.lookupClass(elementEnvironment.mainLibrary!, 'A');
+    dynamic classA = elementEnvironment.lookupClass(
+      elementEnvironment.mainLibrary!,
+      'A',
+    );
     var exactA = powersetBitsDomain.createNonNullExact(classA);
-    var subtypeObject =
-        powersetBitsDomain.createNonNullSubtype(commonElements.objectClass);
-    var exactNull =
-        powersetBitsDomain.createNonNullExact(commonElements.jsNullClass);
-    var exactBool =
-        powersetBitsDomain.createNonNullExact(commonElements.jsBoolClass);
-    var nullableBool =
-        powersetBitsDomain.createNullableExact(commonElements.jsBoolClass);
+    var subtypeObject = powersetBitsDomain.createNonNullSubtype(
+      commonElements.objectClass,
+    );
+    var exactNull = powersetBitsDomain.createNonNullExact(
+      commonElements.jsNullClass,
+    );
+    var exactBool = powersetBitsDomain.createNonNullExact(
+      commonElements.jsBoolClass,
+    );
+    var nullableBool = powersetBitsDomain.createNullableExact(
+      commonElements.jsBoolClass,
+    );
 
     var unionTrueFalse = powersetBitsDomain.union(exactTrue, exactFalse);
     var unionBoolNull = powersetBitsDomain.union(exactBool, exactNull);

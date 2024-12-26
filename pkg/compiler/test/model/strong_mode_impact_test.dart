@@ -73,8 +73,9 @@ main() {
   };
 
   retainDataForTesting = true;
-  CompilationResult result =
-      await runCompiler(memorySourceFiles: {'main.dart': source});
+  CompilationResult result = await runCompiler(
+    memorySourceFiles: {'main.dart': source},
+  );
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler!;
   var options = compiler.options;
@@ -87,8 +88,9 @@ main() {
     return type.toStructuredText(types, options);
   }
 
-  elementEnvironment.forEachLibraryMember(elementEnvironment.mainLibrary!,
-      (MemberEntity member) {
+  elementEnvironment.forEachLibraryMember(elementEnvironment.mainLibrary!, (
+    MemberEntity member,
+  ) {
     if (member == elementEnvironment.mainFunction) return;
 
     Impact? expectedImpact = expectedImpactMap[member.name];
@@ -102,31 +104,38 @@ main() {
     Set<String> implicitCasts = expectedImpact.implicitCasts.toSet();
     Set<String> parameterChecks = expectedImpact.parameterChecks.toSet();
 
-    String context = 'in $member:\n'
+    String context =
+        'in $member:\n'
         'Expected: $expectedImpact\nActual: $typeUses';
     for (TypeUse typeUse in typeUses) {
       String type = printType(typeUse.type);
       switch (typeUse.kind) {
-        case TypeUseKind.AS_CAST:
+        case TypeUseKind.asCast:
           Expect.isTrue(asCasts.contains(type), "Extra $typeUse $context");
           asCasts.remove(type);
           break;
-        case TypeUseKind.IMPLICIT_CAST:
+        case TypeUseKind.implicitCast:
           Expect.isTrue(
-              implicitCasts.contains(type), "Extra $typeUse $context");
+            implicitCasts.contains(type),
+            "Extra $typeUse $context",
+          );
           implicitCasts.remove(type);
           break;
-        case TypeUseKind.PARAMETER_CHECK:
+        case TypeUseKind.parameterCheck:
           Expect.isTrue(
-              parameterChecks.contains(type), "Extra $typeUse $context");
+            parameterChecks.contains(type),
+            "Extra $typeUse $context",
+          );
           parameterChecks.remove(type);
           break;
         default:
       }
     }
     Expect.isTrue(asCasts.isEmpty, "Missing as casts $asCasts $context");
-    Expect.isTrue(checkedModeChecks.isEmpty,
-        "Missing checked mode checks $checkedModeChecks $context");
+    Expect.isTrue(
+      checkedModeChecks.isEmpty,
+      "Missing checked mode checks $checkedModeChecks $context",
+    );
   });
 }
 
@@ -136,11 +145,12 @@ class Impact {
   final List<String> implicitCasts;
   final List<String> parameterChecks;
 
-  const Impact(
-      {this.checkedModeChecks = const <String>[],
-      this.asCasts = const <String>[],
-      this.implicitCasts = const <String>[],
-      this.parameterChecks = const <String>[]});
+  const Impact({
+    this.checkedModeChecks = const <String>[],
+    this.asCasts = const <String>[],
+    this.implicitCasts = const <String>[],
+    this.parameterChecks = const <String>[],
+  });
 
   @override
   String toString() {

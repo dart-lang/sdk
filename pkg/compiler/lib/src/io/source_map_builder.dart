@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.source_map_builder;
+library;
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' show Location;
-import '../../compiler_api.dart' as api
+import '../../compiler_api.dart'
+    as api
     show CompilerOutput, OutputSink, OutputType;
 import '../util/output_util.dart';
 import '../util/util.dart';
@@ -35,14 +37,15 @@ class SourceMapBuilder {
   final SourceLocations sourceLocations;
 
   SourceMapBuilder(
-      this.version,
-      this.sourceMapUri,
-      this.targetFileUri,
-      this.locationProvider,
-      this.minifiedGlobalNames,
-      this.minifiedInstanceNames,
-      this.sourceLocations,
-      this.outputSink);
+    this.version,
+    this.sourceMapUri,
+    this.targetFileUri,
+    this.locationProvider,
+    this.minifiedGlobalNames,
+    this.minifiedInstanceNames,
+    this.sourceLocations,
+    this.outputSink,
+  );
 
   void addMapping(int targetOffset, SourceLocation sourceLocation) {
     entries.add(SourceMapEntry(sourceLocation, targetOffset));
@@ -63,13 +66,14 @@ class SourceMapBuilder {
 
   void build() {
     LineColumnMap<SourceMapEntry> lineColumnMap = LineColumnMap();
-    entries.forEach((SourceMapEntry sourceMapEntry) {
-      Location kernelLocation =
-          locationProvider.getLocation(sourceMapEntry.targetOffset);
+    for (var sourceMapEntry in entries) {
+      Location kernelLocation = locationProvider.getLocation(
+        sourceMapEntry.targetOffset,
+      );
       int line = kernelLocation.line - 1;
       int column = kernelLocation.column - 1;
       lineColumnMap.add(line, column, sourceMapEntry);
-    });
+    }
 
     _build(lineColumnMap);
   }
@@ -109,15 +113,18 @@ class SourceMapBuilder {
     outputSink.write('  "version": 3,\n');
     outputSink.write('  "engine": "$version",\n');
     if (sourceMapUri != null && targetFileUri != null) {
-      outputSink.write('  "file": '
-          '"${fe.relativizeUri(sourceMapUri!, targetFileUri!, false)}",\n');
+      outputSink.write(
+        '  "file": '
+        '"${fe.relativizeUri(sourceMapUri!, targetFileUri!, false)}",\n',
+      );
     }
     outputSink.write('  "sourceRoot": "",\n');
     outputSink.write('  "sources": ');
     Iterable<String> relativeSourceUriList = const <String>[];
     if (sourceMapUri != null) {
-      relativeSourceUriList =
-          uriMap.elements.map((u) => fe.relativizeUri(sourceMapUri!, u, false));
+      relativeSourceUriList = uriMap.elements.map(
+        (u) => fe.relativizeUri(sourceMapUri!, u, false),
+      );
     }
     printStringListOn(relativeSourceUriList);
     outputSink.write(',\n');
@@ -140,8 +147,11 @@ class SourceMapBuilder {
     outputSink.write('\n  }\n}\n');
   }
 
-  void writeEntries(LineColumnMap<SourceMapEntry> entries, IndexMap<Uri> uriMap,
-      IndexMap<String> nameMap) {
+  void writeEntries(
+    LineColumnMap<SourceMapEntry> entries,
+    IndexMap<Uri> uriMap,
+    IndexMap<String> nameMap,
+  ) {
     SourceLocation? previousSourceLocation;
     int previousTargetLine = 0;
     DeltaEncoder targetColumnEncoder = DeltaEncoder();
@@ -191,7 +201,9 @@ class SourceMapBuilder {
   }
 
   void writeMinifiedNames(
-      Map<String, String> minifiedNames, IndexMap<String> nameMap) {
+    Map<String, String> minifiedNames,
+    IndexMap<String> nameMap,
+  ) {
     bool first = true;
     outputSink.write('"');
     for (final minifiedName in List.of(minifiedNames.keys)..sort()) {
@@ -250,19 +262,19 @@ class SourceMapBuilder {
   /// files and the target [fileUri]. [name] and [outputProvider] are used to
   /// create the [api.OutputSink] for the source map text.
   static void outputSourceMap(
-      SourceLocationsProvider sourceLocationsProvider,
-      LocationProvider locationProvider,
-      Map<String, String> minifiedGlobalNames,
-      Map<String, String> minifiedInstanceNames,
-      String name,
-      Uri? sourceMapUri,
-      Uri? fileUri,
-      api.CompilerOutput compilerOutput) {
+    SourceLocationsProvider sourceLocationsProvider,
+    LocationProvider locationProvider,
+    Map<String, String> minifiedGlobalNames,
+    Map<String, String> minifiedInstanceNames,
+    String name,
+    Uri? sourceMapUri,
+    Uri? fileUri,
+    api.CompilerOutput compilerOutput,
+  ) {
     // Create a source file for the compilation output. This allows using
     // [:getLine:] to transform offsets to line numbers in [SourceMapBuilder].
     int index = 0;
-    sourceLocationsProvider.sourceLocations
-        .forEach((SourceLocations sourceLocations) {
+    for (var sourceLocations in sourceLocationsProvider.sourceLocations) {
       String extension = 'js.map';
       if (index > 0) {
         if (name == '') {
@@ -272,23 +284,29 @@ class SourceMapBuilder {
           extension = 'js.map.${sourceLocations.name}';
         }
       }
-      final outputSink = BufferedStringSinkWrapper(compilerOutput
-          .createOutputSink(name, extension, api.OutputType.sourceMap));
+      final outputSink = BufferedStringSinkWrapper(
+        compilerOutput.createOutputSink(
+          name,
+          extension,
+          api.OutputType.sourceMap,
+        ),
+      );
       SourceMapBuilder sourceMapBuilder = SourceMapBuilder(
-          sourceLocations.name,
-          sourceMapUri,
-          fileUri,
-          locationProvider,
-          minifiedGlobalNames,
-          minifiedInstanceNames,
-          sourceLocations,
-          outputSink);
+        sourceLocations.name,
+        sourceMapUri,
+        fileUri,
+        locationProvider,
+        minifiedGlobalNames,
+        minifiedInstanceNames,
+        sourceLocations,
+        outputSink,
+      );
       sourceLocations.forEachSourceLocation(sourceMapBuilder.addMapping);
       sourceMapBuilder.build();
       sourceLocations.close();
       outputSink.close();
       index++;
-    });
+    }
   }
 }
 
@@ -308,11 +326,12 @@ class DeltaEncoder {
     _value = encodeVLQ(output, value, _value);
   }
 
-  static const int VLQ_BASE_SHIFT = 5;
-  static const int VLQ_BASE_MASK = (1 << 5) - 1;
-  static const int VLQ_CONTINUATION_BIT = 1 << 5;
-  static const int VLQ_CONTINUATION_MASK = 1 << 5;
-  static const String BASE64_DIGITS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn'
+  static const int vlqBaseShift = 5;
+  static const int vlqBaseMask = (1 << 5) - 1;
+  static const int vlqContinuationBit = 1 << 5;
+  static const int vlqContinuationMask = 1 << 5;
+  static const String base64Digits =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn'
       'opqrstuvwxyz0123456789+/';
 
   /// Writes the VLQ of delta between [value] and [offset] into [output] and
@@ -326,12 +345,12 @@ class DeltaEncoder {
     }
     delta = (delta << 1) | signBit;
     do {
-      int digit = delta & VLQ_BASE_MASK;
-      delta >>= VLQ_BASE_SHIFT;
+      int digit = delta & vlqBaseMask;
+      delta >>= vlqBaseShift;
       if (delta > 0) {
-        digit |= VLQ_CONTINUATION_BIT;
+        digit |= vlqContinuationBit;
       }
-      output.write(BASE64_DIGITS[digit]);
+      output.write(base64Digits[digit]);
     } while (delta > 0);
     return value;
   }
@@ -369,7 +388,7 @@ class LineColumnMap<T> {
   /// Calls [f] with the line number for each line with associated elements.
   ///
   /// [f] is called in increasing line order.
-  void forEachLine(void f(int line)) {
+  void forEachLine(void Function(int line) f) {
     List<int> lines = _map.keys.toList()..sort();
     lines.forEach(f);
   }
@@ -386,26 +405,28 @@ class LineColumnMap<T> {
   /// Calls [f] for each column with associated elements in [line].
   ///
   /// [f] is called in increasing column order.
-  void forEachColumn(int line, void f(int column, List<T> elements)) {
+  void forEachColumn(int line, void Function(int column, List<T> elements) f) {
     Map<int, List<T>>? lineMap = _map[line];
     if (lineMap != null) {
       List<int> columns = lineMap.keys.toList()..sort();
-      columns.forEach((int column) {
+      for (var column in columns) {
         f(column, lineMap[column]!);
-      });
+      }
     }
   }
 
   /// Calls [f] for each line/column/element triplet in the map.
   ///
   /// [f] is called in increasing line, column, element order.
-  void forEach(void f(int line, int column, T element)) {
+  void forEach(void Function(int line, int column, T element) f) {
     List<int> lines = _map.keys.toList()..sort();
     for (int line in lines) {
       Map<int, List<T>> lineMap = _map[line]!;
       List<int> columns = lineMap.keys.toList()..sort();
       for (int column in columns) {
-        lineMap[column]!.forEach((e) => f(line, column, e));
+        for (var e in lineMap[column]!) {
+          f(line, column, e);
+        }
       }
     }
   }
@@ -413,7 +434,7 @@ class LineColumnMap<T> {
   /// Calls [f] for each element associated in the map.
   ///
   /// [f] is called in increasing line, column, element order.
-  void forEachElement(void f(T element)) {
+  void forEachElement(void Function(T element) f) {
     forEach((line, column, element) => f(element));
   }
 }

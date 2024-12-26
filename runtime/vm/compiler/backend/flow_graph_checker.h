@@ -34,11 +34,11 @@ class FlowGraphChecker : public FlowGraphVisitor {
   // Constructs graph checker. The checker uses some custom-made
   // visitation to perform additional checks, and uses the
   // FlowGraphVisitor structure for anything else.
-  FlowGraphChecker(FlowGraph* flow_graph,
-                   const GrowableArray<const Function*>& inline_id_to_function)
+  explicit FlowGraphChecker(FlowGraph* flow_graph)
       : FlowGraphVisitor(flow_graph->preorder()),
         flow_graph_(flow_graph),
-        inline_id_to_function_(inline_id_to_function),
+        inline_id_to_function_(
+            flow_graph->inlining_info().inline_id_to_function),
         script_(Script::Handle(flow_graph_->zone())),
         current_block_(nullptr) {}
 

@@ -32,9 +32,9 @@ class B implements A {
 }
 
 class C = Object with A;
-  //  ^
-  // [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
-  // [cfe] The non-abstract class 'C' is missing implementations for these members:
+//    ^
+// [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
+// [cfe] The non-abstract class 'C' is missing implementations for these members:
 
 // Has a generative constructor: default.
 abstract class D {

@@ -28,13 +28,13 @@ external Pointer posixMalloc(int size);
 @Native<Pointer Function(IntPtr, IntPtr)>(symbol: 'calloc')
 external Pointer posixCalloc(int num, int size);
 
-@Native<Void Function(Pointer)>(symbol: 'free')
+@Native(symbol: 'free')
 external void posixFree(Pointer pointer);
 
 @Native<Pointer Function(Size)>(symbol: 'CoTaskMemAlloc')
 external Pointer winCoTaskMemAlloc(int cb);
 
-@Native<Void Function(Pointer)>(symbol: 'CoTaskMemFree')
+@Native(symbol: 'CoTaskMemFree')
 external void winCoTaskMemFree(Pointer pv);
 
 class _MallocAllocator implements Allocator {
@@ -75,17 +75,20 @@ void testFailure() {
   } on ArgumentError catch (e) {
     if (Platform.isWindows) {
       Expect.contains(
-          'None of the loaded modules contained the requested symbol',
-          e.message);
+        'None of the loaded modules contained the requested symbol',
+        e.message,
+      );
     } else if (Platform.isMacOS || Platform.isIOS) {
       Expect.contains('symbol_is_not_defined_29903211', e.message);
       Expect.contains('symbol not found', e.message);
     } else {
       Expect.contains(
-          'undefined symbol: symbol_is_not_defined_29903211', e.message);
+        'undefined symbol: symbol_is_not_defined_29903211',
+        e.message,
+      );
     }
   }
 }
 
-@Native<Void Function()>(symbol: 'symbol_is_not_defined_29903211')
+@Native(symbol: 'symbol_is_not_defined_29903211')
 external void symbolIsNotDefined();

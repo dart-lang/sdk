@@ -43,7 +43,7 @@ class VariableDeclarationResolver {
         element is FieldElement || element is TopLevelVariableElement;
 
     if (isTopLevel) {
-      _resolver.flowAnalysis.topLevelDeclaration_enter(node, null);
+      _resolver.flowAnalysis.bodyOrInitializer_enter(node, null);
     } else if (element.isLate) {
       _resolver.flowAnalysis.flow?.lateInitializer_begin(node);
     }
@@ -65,7 +65,7 @@ class VariableDeclarationResolver {
     }
 
     if (isTopLevel) {
-      _resolver.flowAnalysis.topLevelDeclaration_exit();
+      _resolver.flowAnalysis.bodyOrInitializer_exit();
       _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);
     } else if (element.isLate) {
       _resolver.flowAnalysis.flow?.lateInitializer_end();

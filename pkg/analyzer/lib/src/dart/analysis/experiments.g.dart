@@ -710,7 +710,7 @@ class IsExpired {
   static const bool control_flow_collections = true;
 
   /// Expiration status of the experiment "digit-separators"
-  static const bool digit_separators = false;
+  static const bool digit_separators = true;
 
   /// Expiration status of the experiment "enhanced-enums"
   static const bool enhanced_enums = true;

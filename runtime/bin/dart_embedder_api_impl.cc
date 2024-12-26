@@ -102,15 +102,16 @@ Dart_Isolate CreateVmServiceIsolate(const IsolateCreationData& data,
 
   Dart_EnterScope();
   // Load embedder specific bits and return.
-  if (!bin::VmService::Setup(config.ip, config.port, config.dev_mode,
-                             config.disable_auth_codes,
-                             config.write_service_info_filename,
-                             /*trace_loading=*/false, config.deterministic,
-                             /*enable_service_port_fallback=*/false,
-                             /*wait_for_dds_to_advertise_service=*/false,
-                             /*serve_devtools=*/false,
-                             /*serve_observatory=*/true,
-                             /*print_dtd=*/false)) {
+  if (!bin::VmService::Setup(
+          config.ip, config.port, config.dev_mode, config.disable_auth_codes,
+          config.write_service_info_filename,
+          /*trace_loading=*/false, config.deterministic,
+          /*enable_service_port_fallback=*/false,
+          /*wait_for_dds_to_advertise_service=*/false,
+          /*serve_devtools=*/false,
+          /*serve_observatory=*/true,
+          /*print_dtd=*/false, /*should_use_resident_compiler=*/false,
+          /*resident_compiler_info_file_path=*/nullptr)) {
     *error = Utils::StrDup(bin::VmService::GetErrorMessage());
     return nullptr;
   }
@@ -149,7 +150,9 @@ Dart_Isolate CreateVmServiceIsolateFromKernel(
                              /*wait_for_dds_to_advertise_service=*/false,
                              /*serve_devtools=*/false,
                              /*serve_observatory=*/true,
-                             /*print_dtd=*/false)) {
+                             /*print_dtd=*/false,
+                             /*should_use_resident_compiler=*/false,
+                             /*resident_compiler_info_file_path=*/nullptr)) {
     *error = Utils::StrDup(bin::VmService::GetErrorMessage());
     return nullptr;
   }

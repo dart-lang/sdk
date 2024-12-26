@@ -248,7 +248,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     var result = RefactoringStatus();
 
     Future<ClassElement2?> getClass(String name) async {
-      var element = await sessionHelper.getFlutterClass2(name);
+      var element = await sessionHelper.getFlutterClass(name);
       if (element == null) {
         result.addFatalError("Unable to find '$name' in $widgetsUri");
       }
@@ -259,7 +259,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       String uri,
       String name,
     ) async {
-      var element = await sessionHelper.getTopLevelPropertyAccessor2(uri, name);
+      var element = await sessionHelper.getTopLevelPropertyAccessor(uri, name);
       if (element == null) {
         result.addFatalError("Unable to find 'required' in $uri");
       }

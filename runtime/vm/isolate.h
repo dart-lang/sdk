@@ -17,7 +17,6 @@
 #include "platform/assert.h"
 #include "platform/atomic.h"
 #include "platform/growable_array.h"
-#include "vm/base_isolate.h"
 #include "vm/class_table.h"
 #include "vm/dispatch_table.h"
 #include "vm/exceptions.h"
@@ -327,9 +326,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   bool ContainsOnlyOneIsolate();
 
-  void RunWithLockedGroup(std::function<void()> fun);
-
-  void ScheduleInterrupts(uword interrupt_bits);
+  Dart_Port interrupt_port() { return interrupt_port_; }
 
   ThreadRegistry* thread_registry() const { return thread_registry_.get(); }
   SafepointHandler* safepoint_handler() { return safepoint_handler_.get(); }
@@ -836,6 +833,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::unique_ptr<MutatorThreadPool> thread_pool_;
   std::unique_ptr<SafepointRwLock> isolates_lock_;
   IntrusiveDList<Isolate> isolates_;
+  RelaxedAtomic<Dart_Port> interrupt_port_ = ILLEGAL_PORT;
   intptr_t isolate_count_ = 0;
   bool initial_spawn_successful_ = false;
   Dart_LibraryTagHandler library_tag_handler_ = nullptr;
@@ -954,7 +952,7 @@ class Bequest {
   Dart_Port beneficiary_;
 };
 
-class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
+class Isolate : public IntrusiveDListEntry<Isolate> {
  public:
   // Keep both these enums in sync with isolate_patch.dart.
   // The different Isolate API message types.
@@ -1574,6 +1572,11 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   bool single_step_ = false;
   bool has_resumption_breakpoints_ = false;
   // End accessed from generated code.
+
+  Thread* scheduled_mutator_thread_ = nullptr;
+  // Stores the saved [Thread] object of a mutator. Mutators may retain their
+  // thread even when being descheduled (e.g. due to having an active stack).
+  Thread* mutator_thread_ = nullptr;
 
   IsolateGroup* const isolate_group_;
   std::unique_ptr<IsolateObjectStore> isolate_object_store_;

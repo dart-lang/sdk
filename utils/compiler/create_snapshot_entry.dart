@@ -14,7 +14,7 @@ Future<String> getVersion(var rootPath, bool noGitHash) {
   var args = <String>[
     printVersionScript.toFilePath(),
     "--quiet",
-    if (noGitHash) '--no-git-hash'
+    if (noGitHash) '--no-git-hash',
   ];
   return Process.run("python3", args, runInShell: true).then((result) {
     if (result.exitCode != 0) {
@@ -31,7 +31,7 @@ Future<String> getDart2jsSnapshotGenerationFile(var rootPath, bool noGitHash) {
 import 'package:compiler/src/dart2js.dart' as dart2jsMain;
 
 void main(List<String> arguments) {
-  dart2jsMain.BUILD_ID = "$version";
+  dart2jsMain.buildID = "$version";
   dart2jsMain.main(arguments);
 }
 """;

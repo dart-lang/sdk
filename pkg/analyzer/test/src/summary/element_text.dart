@@ -9,10 +9,10 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_type_location.dart';
-import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -436,7 +436,7 @@ class _Element2Writer extends _AbstractElementWriter {
             // element, only an enclosing fragment).
           } else {
             if (expectedEnclosingElement is Member) {
-              expectedEnclosingElement = expectedEnclosingElement.baseElement!;
+              expectedEnclosingElement = expectedEnclosingElement.baseElement;
             }
             expect(element.enclosingElement2, expectedEnclosingElement);
           }
@@ -1162,7 +1162,8 @@ class _Element2Writer extends _AbstractElementWriter {
           _writeLibraryImport,
         );
       }
-      _writeElementList('prefixes', f, f.prefixes, _writePrefixElement);
+      _writeElementList(
+          'prefixes', f.library2!, f.prefixes, _writePrefixElement);
       // _writeList(
       //     'libraryExports', f.libraryExports, _writeLibraryExportElement);
       // _writeList('parts', f.parts, _writePartElement);

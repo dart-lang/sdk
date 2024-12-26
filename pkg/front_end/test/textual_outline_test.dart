@@ -521,7 +521,7 @@ export "a3.dart" show foo;
 import "a1.dart" show foo;""") {
     throw "Unexpected result: $result";
   }
-  expectUnknownChunk(infoForTesting);
+  expectNoUnknownChunk(infoForTesting);
 
   // Enums.
   infoForTesting = new TextualOutlineInfoForTesting();

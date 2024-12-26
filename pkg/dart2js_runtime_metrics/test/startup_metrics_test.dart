@@ -27,8 +27,11 @@ void main() {
   }
 
   Expect.isTrue(metrics.containsKey('runtime'), "Has 'runtime' key: $metrics");
-  Expect.equals(expectedRuntime, metrics['runtime'],
-      "Expected 'runtime: $expectedRuntime': $metrics");
+  Expect.equals(
+    expectedRuntime,
+    metrics['runtime'],
+    "Expected 'runtime: $expectedRuntime': $metrics",
+  );
 
   if (expectedRuntime == 'dart2js') {
     Expect.isTrue(metrics.containsKey('callMainMs'));

@@ -6,7 +6,7 @@ class Super<T> {
   }
 }
 
-class Mixin {
+mixin Mixin {
   void method(int t) {
     print(t + 1);
   }

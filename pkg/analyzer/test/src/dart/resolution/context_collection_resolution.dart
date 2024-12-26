@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
@@ -308,7 +307,11 @@ abstract class ContextResolutionTest
     var uriStr = uri.toString();
     var libraryResult = await analysisSession.getLibraryByUri(uriStr);
     libraryResult as LibraryElementResultImpl;
-    return libraryResult.element as LibraryElementImpl;
+    return libraryResult.element2;
+  }
+
+  void makeFilePriority(File file) {
+    driverFor(file).priorityFiles2 = [file];
   }
 
   @override
@@ -321,10 +324,11 @@ abstract class ContextResolutionTest
   }
 
   @override
-  Future<ResolvedUnitResult> resolveFile(File file) async {
+  Future<ResolvedUnitResultImpl> resolveFile(File file) async {
     var analysisContext = contextFor(fileForContextSelection ?? file);
     var session = analysisContext.currentSession;
-    return await session.getResolvedUnit(file.path) as ResolvedUnitResult;
+    var result = await session.getResolvedUnit(file.path);
+    return result as ResolvedUnitResultImpl;
   }
 
   @mustCallSuper

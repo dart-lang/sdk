@@ -223,6 +223,9 @@ abstract class TypeProvider {
   /// Return `true` if [element] cannot be extended, implemented, or mixed in.
   bool isNonSubtypableClass(InterfaceElement element);
 
+  /// Return `true` if [element] cannot be extended, implemented, or mixed in.
+  bool isNonSubtypableClass2(InterfaceElement2 element);
+
   /// Return 'true' if [id] is the name of a getter on the `Object` type.
   bool isObjectGetter(String id);
 

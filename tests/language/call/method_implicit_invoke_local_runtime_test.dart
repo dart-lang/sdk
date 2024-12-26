@@ -31,6 +31,4 @@ main() {
   // Implicitly invokes d2.call(1)
 
   // Cannot invoke with the wrong signature.
-
-
 }

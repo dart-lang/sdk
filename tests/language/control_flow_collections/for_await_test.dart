@@ -26,7 +26,7 @@ Future<void> testList() async {
 
   // Await in for-in body.
   Expect.listEquals(list, [
-    for (var i in [1, 2, 3]) await Future.value(i)
+    for (var i in [1, 2, 3]) await Future.value(i),
   ]);
 
   // Await in initializer.
@@ -51,12 +51,12 @@ Future<void> testMap() async {
 
   // Await in for-in body key.
   Expect.mapEquals(map, {
-    for (var i in [1, 2, 3]) await Future.value(i): i
+    for (var i in [1, 2, 3]) await Future.value(i): i,
   });
 
   // Await in for-in body value.
   Expect.mapEquals(map, {
-    for (var i in [1, 2, 3]) i: await Future.value(i)
+    for (var i in [1, 2, 3]) i: await Future.value(i),
   });
 
   // Await in initializer.
@@ -84,7 +84,7 @@ Future<void> testSet() async {
 
   // Await in for-in body.
   Expect.setEquals(set, {
-    for (var i in [1, 2, 3]) await Future.value(i)
+    for (var i in [1, 2, 3]) await Future.value(i),
   });
 
   // Await in initializer.

@@ -18,12 +18,13 @@ void main() {
 
   test('topological sort', () {
     expect(
-        graph.computeTopologicalSort(),
-        equals([
-          ['C'],
-          ['E'],
-          ['D', 'B', 'A']
-        ]));
+      graph.computeTopologicalSort(),
+      equals([
+        ['C'],
+        ['E'],
+        ['D', 'B', 'A'],
+      ]),
+    );
   });
 
   test('contains path', () {

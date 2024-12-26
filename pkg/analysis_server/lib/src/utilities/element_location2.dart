@@ -1,0 +1,106 @@
+// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/element/element2.dart';
+import 'package:collection/collection.dart';
+
+/// Represents the location of an [Element2] that exists in a chain of elements
+/// from a [LibraryElement2].
+///
+/// Elements with [Fragment]s or Elements with `null` names anywhere in the
+/// chain are not representable.
+class ElementLocation2 {
+  /// The library that this element belongs to.
+  final String _libraryUri;
+
+  /// The [Element2.lookupName] for this element, or the containing element if
+  /// this location is a [_MemberElementLocation2].
+  final String _topLevelName;
+
+  factory ElementLocation2.decode(String encoded) {
+    var components = encoded.split(';');
+    return switch (components) {
+      [String library, String topName] => ElementLocation2._(library, topName),
+      [String library, String topName, String memberName] =>
+        _MemberElementLocation2._(library, topName, memberName),
+      _ =>
+        throw ArgumentError.value(
+          encoded,
+          'encoded',
+          "Encoded string should be in the format 'libraryUri;topLevelName[;memberName]'",
+        ),
+    };
+  }
+
+  ElementLocation2._(this._libraryUri, this._topLevelName);
+
+  String get encoding => '$_libraryUri;$_topLevelName';
+
+  /// Locates the [Element2] represented by this [ElementLocation2] in
+  /// [session].
+  ///
+  /// Returns `null` if the [Element2] cannot be located.
+  Future<Element2?> locateIn(AnalysisSession session) async {
+    var result = await session.getLibraryByUri(_libraryUri);
+    if (result is! LibraryElementResult) return null;
+
+    return result.element2.children2.firstWhereOrNull(
+      (child) => child.lookupName == _topLevelName,
+    );
+  }
+
+  /// Gets an [ElementLocation2] for this element.
+  ///
+  /// Returns `null` if this element is neither a top level element or a
+  /// member of a top level element, or if either do not have a `lookupName`.
+  static ElementLocation2? forElement(Element2 element) {
+    var library = element.library2;
+    if (library == null) return null;
+    var libraryUri = library.uri.toString();
+
+    if (element.enclosingElement2 == library) {
+      var topName = element.lookupName;
+
+      return topName != null ? ElementLocation2._(libraryUri, topName) : null;
+    } else if (element.enclosingElement2?.enclosingElement2 == library) {
+      var memberName = element.lookupName;
+      var topName = element.enclosingElement2?.lookupName;
+
+      return topName != null && memberName != null
+          ? _MemberElementLocation2._(libraryUri, topName, memberName)
+          : null;
+    } else {
+      return null;
+    }
+  }
+}
+
+class _MemberElementLocation2 extends ElementLocation2 {
+  /// The [Element2.lookupName] for this member within [_topLevelName].
+  final String _memberName;
+
+  _MemberElementLocation2._(
+    super.libraryUri,
+    super.topLevelName,
+    this._memberName,
+  ) : super._();
+
+  @override
+  String get encoding => '${super.encoding};$_memberName';
+
+  /// Locates the [Element2] represented by this [_MemberElementLocation2] in
+  /// [session].
+  ///
+  /// Returns `null` if the [Element2] cannot be located.
+  @override
+  Future<Element2?> locateIn(AnalysisSession session) async {
+    var topLevel = await super.locateIn(session);
+
+    return topLevel?.children2.firstWhereOrNull(
+      (child) => child.lookupName == _memberName,
+    );
+  }
+}

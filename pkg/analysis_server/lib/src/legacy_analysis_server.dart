@@ -111,7 +111,7 @@ import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
-import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
+import 'package:analyzer_plugin/src/utilities/navigation/navigation_dart.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:telemetry/crash_reporting.dart';
@@ -524,7 +524,7 @@ class LegacyAnalysisServer extends AnalysisServer {
 
   /// There was an error related to the socket from which requests are being
   /// read.
-  void error(argument) {}
+  void error(Object argument) {}
 
   /// Return the cached analysis result for the file with the given [path].
   /// If there is no cached result, return `null`.

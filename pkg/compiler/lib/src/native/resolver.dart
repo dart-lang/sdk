@@ -21,15 +21,21 @@ class NativeClassFinder {
   /// Returns the set of all native classes declared in [libraries].
   Iterable<ClassEntity> computeNativeClasses(Iterable<Uri> libraries) {
     Set<ClassEntity> nativeClasses = {};
-    libraries.forEach((uri) => _processNativeClassesInLibrary(
-        _elementEnvironment.lookupLibrary(uri)!, nativeClasses));
+    for (var uri in libraries) {
+      _processNativeClassesInLibrary(
+        _elementEnvironment.lookupLibrary(uri)!,
+        nativeClasses,
+      );
+    }
     _processSubclassesOfNativeClasses(libraries, nativeClasses);
     return nativeClasses;
   }
 
   /// Adds all directly native classes declared in [library] to [nativeClasses].
   void _processNativeClassesInLibrary(
-      LibraryEntity library, Set<ClassEntity> nativeClasses) {
+    LibraryEntity library,
+    Set<ClassEntity> nativeClasses,
+  ) {
     _elementEnvironment.forEachClass(library, (ClassEntity cls) {
       if (_nativeBasicData.isNativeClass(cls)) {
         _processNativeClass(cls, nativeClasses);
@@ -40,7 +46,9 @@ class NativeClassFinder {
   /// Adds [cls] to [nativeClasses] and performs further processing of [cls],
   /// if necessary.
   void _processNativeClass(
-      covariant ClassEntity cls, Set<ClassEntity> nativeClasses) {
+    covariant ClassEntity cls,
+    Set<ClassEntity> nativeClasses,
+  ) {
     nativeClasses.add(cls);
     // Js Interop interfaces do not have tags.
     if (_nativeBasicData.isJsInteropClass(cls)) return;
@@ -69,7 +77,9 @@ class NativeClassFinder {
   /// Adds all subclasses of [nativeClasses] found in [libraries] to
   /// [nativeClasses].
   void _processSubclassesOfNativeClasses(
-      Iterable<Uri> libraries, Set<ClassEntity> nativeClasses) {
+    Iterable<Uri> libraries,
+    Set<ClassEntity> nativeClasses,
+  ) {
     Set<ClassEntity> nativeClassesAndSubclasses = {};
     // Collect potential subclasses, e.g.
     //
@@ -79,17 +89,19 @@ class NativeClassFinder {
 
     Map<String, Set<ClassEntity>> potentialExtends = {};
 
-    libraries.forEach((Uri uri) {
+    for (var uri in libraries) {
       LibraryEntity library = _elementEnvironment.lookupLibrary(uri)!;
       _elementEnvironment.forEachClass(library, (ClassEntity cls) {
         String? extendsName = _findExtendsNameOfClass(cls);
         if (extendsName != null) {
-          Set<ClassEntity> potentialSubclasses =
-              potentialExtends.putIfAbsent(extendsName, () => {});
+          Set<ClassEntity> potentialSubclasses = potentialExtends.putIfAbsent(
+            extendsName,
+            () => {},
+          );
           potentialSubclasses.add(cls);
         }
       });
-    });
+    }
 
     // Resolve all the native classes and any classes that might extend them in
     // [potentialExtends], and then check that the properly resolved class is in
@@ -119,17 +131,23 @@ class NativeClassFinder {
 
 /// Extracts the name if [value] is a named annotation based on
 /// [annotationClass], otherwise returns `null`.
-String? readAnnotationName(DartTypes dartTypes, Spannable spannable,
-    ConstantValue value, ClassEntity annotationClass,
-    {String? defaultValue}) {
+String? readAnnotationName(
+  DartTypes dartTypes,
+  Spannable spannable,
+  ConstantValue value,
+  ClassEntity annotationClass, {
+  String? defaultValue,
+}) {
   if (value is ConstructedConstantValue) {
     if (value.type.element != annotationClass) return null;
 
     Iterable<ConstantValue> fields = value.fields.values;
     // TODO(sra): Better validation of the constant.
     if (fields.length != 1) {
-      failedAt(spannable,
-          'Annotations needs one string: ${value.toStructuredText(dartTypes)}');
+      failedAt(
+        spannable,
+        'Annotations needs one string: ${value.toStructuredText(dartTypes)}',
+      );
     }
     final field = fields.single;
     if (field is StringConstantValue) {
@@ -137,8 +155,10 @@ String? readAnnotationName(DartTypes dartTypes, Spannable spannable,
     } else if (defaultValue != null && field is NullConstantValue) {
       return defaultValue;
     } else {
-      failedAt(spannable,
-          'Annotations needs one string: ${value.toStructuredText(dartTypes)}');
+      failedAt(
+        spannable,
+        'Annotations needs one string: ${value.toStructuredText(dartTypes)}',
+      );
     }
   }
   return null;

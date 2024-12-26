@@ -5,9 +5,9 @@
 # https://github.com/dart-lang/sdk/issues/56911
 
 # Definition, offset, method etc extracted by starting the VM with
-# `-DDFE_VERBOSE=false`, e.g.
+# `-DDFE_VERBOSE=true`, e.g.
 # ```
-# out/ReleaseX64/dart -DDFE_VERBOSE=false --enable-vm-service \
+# out/ReleaseX64/dart -DDFE_VERBOSE=true --enable-vm-service \
 # --serve-observatory --disable-service-auth-codes --pause_isolates_on_start \
 # inputFile.dart
 # ```

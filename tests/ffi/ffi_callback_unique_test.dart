@@ -12,9 +12,11 @@ void main() {
   for (int i = 0; i < 10; ++i) {
     // Several pointers for same call site.
     a.add(
-        Pointer.fromFunction<Int Function()>(nativeToDartCallback, 0).address);
+      Pointer.fromFunction<Int Function()>(nativeToDartCallback, 0).address,
+    );
     b.add(
-        Pointer.fromFunction<Int Function()>(nativeToDartCallback, 1).address);
+      Pointer.fromFunction<Int Function()>(nativeToDartCallback, 1).address,
+    );
   }
 
   ensureEqualEntries(a);

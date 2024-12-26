@@ -30,7 +30,7 @@ const var4 = fn1(3);
 // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn1(int a) {
   int b = a;
-  for (int i = 0;; i++) {
+  for (int i = 0; ; i++) {
     b *= 3;
     if (b > 10) return b;
   }
@@ -40,7 +40,7 @@ const var5 = fn2();
 //           ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn2() {
-  for (int i = 0, j = 2;; i += 2, j += 1) {
+  for (int i = 0, j = 2; ; i += 2, j += 1) {
     if (i + j > 10) {
       return i + j;
     }

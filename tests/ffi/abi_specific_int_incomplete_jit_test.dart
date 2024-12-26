@@ -12,9 +12,7 @@ import 'package:ffi/ffi.dart';
 // We want at least 1 mapping to satisfy the static checks.
 const notTestingOn = Abi.fuchsiaArm64;
 
-@AbiSpecificIntegerMapping({
-  notTestingOn: Int8(),
-})
+@AbiSpecificIntegerMapping({notTestingOn: Int8()})
 final class Incomplete extends AbiSpecificInteger {
   const Incomplete();
 }

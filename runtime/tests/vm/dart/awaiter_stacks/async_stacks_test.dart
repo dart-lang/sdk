@@ -154,12 +154,15 @@ Future listenAsyncStarThrowAsync() async {
 
 Future<void> customErrorZone() async {
   final completer = Completer<void>();
-  runZonedGuarded(() async {
-    await allYield();
-    completer.complete(null);
-  }, (e, s) {
-    completer.completeError(e, s);
-  });
+  runZonedGuarded(
+    () async {
+      await allYield();
+      completer.complete(null);
+    },
+    (e, s) {
+      completer.completeError(e, s);
+    },
+  );
   return completer.future;
 }
 
@@ -176,9 +179,12 @@ Future awaitTimeoutHappens() async {
 }
 
 Future awaitTimeoutHappensThrowFromOnTimeout() async {
-  await neverCompletes().timeout(Duration(milliseconds: 1), onTimeout: () {
-    throw 'timeout';
-  });
+  await neverCompletes().timeout(
+    Duration(milliseconds: 1),
+    onTimeout: () {
+      throw 'timeout';
+    },
+  );
 }
 
 // ----
@@ -190,8 +196,34 @@ Future awaitWait() async {
     throwAsync(),
     () async {
       await Future.value();
-    }()
+    }(),
   ]);
+}
+
+// ----
+// Scenario: FutureIterable.wait:
+// ----
+
+Future awaitIterableWaitExtension() async {
+  await [
+    throwAsync(),
+    () async {
+      await Future.value();
+    }(),
+  ].wait;
+}
+
+// ----
+// Scenario: FutureRecord.wait:
+// ----
+
+Future awaitRecordWaitExtension() async {
+  await (
+    throwAsync(),
+    () async {
+      await Future.value();
+    }(),
+  ).wait;
 }
 
 // ----
@@ -207,9 +239,11 @@ Future futureSyncWhenComplete() {
 // ----
 
 Future futureThen() {
-  return Future.value(0).then((value) {
-    throwSync();
-  }).then(_doSomething);
+  return Future.value(0)
+      .then((value) {
+        throwSync();
+      })
+      .then(_doSomething);
 }
 
 void _doSomething(_) {
@@ -259,6 +293,8 @@ Future<void> main(List<String> args) async {
     awaitTimeoutHappens,
     awaitTimeoutHappensThrowFromOnTimeout,
     awaitWait,
+    awaitIterableWaitExtension,
+    awaitRecordWaitExtension,
     futureSyncWhenComplete,
     futureThen,
   ];
@@ -762,6 +798,88 @@ final currentExpectations = [
   """
 #0    throwAsync (%test%)
 <asynchronous suspension>
+#1    FutureIterable.wait.<anonymous closure> (future_extensions.dart)
+<asynchronous suspension>
+#2    awaitIterableWaitExtension (%test%)
+<asynchronous suspension>
+#3    doTestAwait (%test%)
+<asynchronous suspension>
+#4    runTest (harness.dart)
+<asynchronous suspension>
+#5    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    throwAsync (%test%)
+<asynchronous suspension>
+#1    FutureIterable.wait.<anonymous closure> (future_extensions.dart)
+<asynchronous suspension>
+#2    awaitIterableWaitExtension (%test%)
+<asynchronous suspension>
+#3    doTestAwaitThen.<anonymous closure> (%test%)
+<asynchronous suspension>
+#4    doTestAwaitThen (%test%)
+<asynchronous suspension>
+#5    runTest (harness.dart)
+<asynchronous suspension>
+#6    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    throwAsync (%test%)
+<asynchronous suspension>
+#1    FutureIterable.wait.<anonymous closure> (future_extensions.dart)
+<asynchronous suspension>
+#2    awaitIterableWaitExtension (%test%)
+<asynchronous suspension>
+#3    doTestAwaitCatchError (%test%)
+<asynchronous suspension>
+#4    runTest (harness.dart)
+<asynchronous suspension>
+#5    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    throwAsync (%test%)
+<asynchronous suspension>
+#1    FutureRecord2.wait.<anonymous closure> (future_extensions.dart)
+<asynchronous suspension>
+#2    awaitRecordWaitExtension (%test%)
+<asynchronous suspension>
+#3    doTestAwait (%test%)
+<asynchronous suspension>
+#4    runTest (harness.dart)
+<asynchronous suspension>
+#5    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    throwAsync (%test%)
+<asynchronous suspension>
+#1    FutureRecord2.wait.<anonymous closure> (future_extensions.dart)
+<asynchronous suspension>
+#2    awaitRecordWaitExtension (%test%)
+<asynchronous suspension>
+#3    doTestAwaitThen.<anonymous closure> (%test%)
+<asynchronous suspension>
+#4    doTestAwaitThen (%test%)
+<asynchronous suspension>
+#5    runTest (harness.dart)
+<asynchronous suspension>
+#6    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    throwAsync (%test%)
+<asynchronous suspension>
+#1    FutureRecord2.wait.<anonymous closure> (future_extensions.dart)
+<asynchronous suspension>
+#2    awaitRecordWaitExtension (%test%)
+<asynchronous suspension>
+#3    doTestAwaitCatchError (%test%)
+<asynchronous suspension>
+#4    runTest (harness.dart)
+<asynchronous suspension>
+#5    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    throwAsync (%test%)
+<asynchronous suspension>
 #1    futureSyncWhenComplete.<anonymous closure> (%test%)
 <asynchronous suspension>
 #2    doTestAwait (%test%)
@@ -831,6 +949,6 @@ final currentExpectations = [
 #4    runTest (harness.dart)
 <asynchronous suspension>
 #5    main (%test%)
-<asynchronous suspension>"""
+<asynchronous suspension>""",
 ];
 // CURRENT EXPECTATIONS END

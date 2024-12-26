@@ -392,9 +392,13 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   await sink.close();
 
   if (depfile != null) {
+    final usedPackageConfig = results.usedPackageConfig;
     await writeDepfile(
       fileSystem,
-      results.compiledSources!,
+      [
+        if (usedPackageConfig != null) usedPackageConfig,
+        ...results.compiledSources!,
+      ],
       depfileTarget ?? outputFileName,
       depfile,
     );
@@ -429,10 +433,14 @@ class KernelCompilationResults {
   final ClassHierarchy? classHierarchy;
   final CoreTypes? coreTypes;
   final Iterable<Uri>? compiledSources;
+  final Uri? usedPackageConfig;
 
   KernelCompilationResults(this.component, this.loadedLibraries,
-      this.classHierarchy, this.coreTypes, this.compiledSources)
-      : nativeAssetsLibrary = null;
+    this.classHierarchy,
+    this.coreTypes,
+    this.compiledSources,
+  )   : nativeAssetsLibrary = null,
+        usedPackageConfig = null;
 
   KernelCompilationResults.named({
     this.component,
@@ -441,6 +449,7 @@ class KernelCompilationResults {
     this.coreTypes,
     this.compiledSources,
     this.nativeAssetsLibrary,
+    this.usedPackageConfig,
   });
 }
 
@@ -521,15 +530,24 @@ Future<KernelCompilationResults> compileToKernel(
 
   CompilerResult? compilerResult;
   final fromDillFile = args.fromDillFile;
+  Uri? usedPackageConfig;
   if (fromDillFile != null) {
     compilerResult =
         await loadKernel(options.fileSystem, resolveInputUri(fromDillFile));
   } else {
-    compilerResult = args.requireMain
+    final processedOptions = new ProcessedOptions(
+      options: options,
+      inputs: [args.source!, ...args.additionalSources],
+    );
+    compilerResult = await CompilerContext.runWithOptions(processedOptions,
+        (CompilerContext context) async {
+      return args.requireMain
         ? await kernelForProgram(args.source!, options,
             additionalSources: args.additionalSources)
         : await kernelForModule(
-            [args.source!, ...args.additionalSources], options);
+              [args.source!, ...args.additionalSources], options);
+    });
+    usedPackageConfig = await processedOptions.resolvePackagesFileUri();
   }
   final Component? component = compilerResult?.component;
 
@@ -571,6 +589,7 @@ Future<KernelCompilationResults> compileToKernel(
     classHierarchy: compilerResult?.classHierarchy,
     coreTypes: compilerResult?.coreTypes,
     compiledSources: compiledSources,
+    usedPackageConfig: usedPackageConfig,
   );
 }
 

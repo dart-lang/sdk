@@ -4,20 +4,16 @@
 
 class Bad {
   int foo = 0;
-  final int bar =
-      foo
-//    ^^^
-// [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
-// [cfe] Can't access 'this' in a field initializer to read 'foo'.
-      -1;
-  static const int toto =
-      bar
-//    ^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-// [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
-// [cfe] Can't access 'this' in a field initializer to read 'bar'.
-// [cfe] Undefined name 'bar'.
-      -3;
+  final int bar = foo - 1;
+  //              ^^^
+  // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
+  // [cfe] Can't access 'this' in a field initializer to read 'foo'.
+  static const int toto = bar - 3;
+  //                      ^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
+  // [cfe] Can't access 'this' in a field initializer to read 'bar'.
+  // [cfe] Undefined name 'bar'.
 }
 
 void use(x) {}

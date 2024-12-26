@@ -48,6 +48,6 @@ class B implements M {}
 var b = true;
 var c = b ? A() : B();
 ''');
-    assertType(findElement.topVar('c').type, 'M');
+    assertType(findElement2.topVar('c').type, 'M');
   }
 }

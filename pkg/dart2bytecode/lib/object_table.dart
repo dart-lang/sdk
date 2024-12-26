@@ -711,8 +711,10 @@ class _FunctionTypeHandle extends _TypeHandle {
   static const int flagHasOptionalPositionalParams = 1 << 0;
   static const int flagHasOptionalNamedParams = 1 << 1;
   static const int flagHasTypeParams = 1 << 2;
+  static const int flagHasEnclosingTypeParameters = 1 << 3;
 
   int functionTypeFlags = 0;
+  late int numEnclosingTypeParameters;
   TypeParametersDeclaration? typeParameters;
   late int numRequiredParams;
   late List<_TypeHandle> positionalParams;
@@ -723,6 +725,7 @@ class _FunctionTypeHandle extends _TypeHandle {
       : super(TypeTag.kFunctionType, nullability);
 
   _FunctionTypeHandle(
+      this.numEnclosingTypeParameters,
       this.typeParameters,
       this.numRequiredParams,
       this.positionalParams,
@@ -742,11 +745,17 @@ class _FunctionTypeHandle extends _TypeHandle {
     if (typeParameters != null) {
       functionTypeFlags |= flagHasTypeParams;
     }
+    if (numEnclosingTypeParameters != 0) {
+      functionTypeFlags |= flagHasEnclosingTypeParameters;
+    }
   }
 
   @override
   void writeContents(BufferedWriter writer) {
     writer.writePackedUInt30(functionTypeFlags);
+    if ((functionTypeFlags & flagHasEnclosingTypeParameters) != 0) {
+      writer.writePackedUInt30(numEnclosingTypeParameters);
+    }
     if ((functionTypeFlags & flagHasTypeParams) != 0) {
       typeParameters!.write(writer);
     }
@@ -769,6 +778,10 @@ class _FunctionTypeHandle extends _TypeHandle {
   @override
   void readContents(BufferedReader reader) {
     functionTypeFlags = reader.readPackedUInt30();
+    numEnclosingTypeParameters =
+        ((functionTypeFlags & flagHasEnclosingTypeParameters) != 0)
+            ? reader.readPackedUInt30()
+            : 0;
     typeParameters = ((functionTypeFlags & flagHasTypeParams) != 0)
         ? TypeParametersDeclaration.read(reader)
         : null;
@@ -808,6 +821,9 @@ class _FunctionTypeHandle extends _TypeHandle {
 
   @override
   bool get isCacheable {
+    if ((functionTypeFlags & flagHasEnclosingTypeParameters) != 0) {
+      return false;
+    }
     for (var param in positionalParams) {
       if (!param.isCacheable) {
         return false;
@@ -827,6 +843,7 @@ class _FunctionTypeHandle extends _TypeHandle {
   @override
   int get hashCode {
     int hash = typeParameters.hashCode;
+    hash = _combineHashes(hash, numEnclosingTypeParameters);
     hash = _combineHashes(hash, numRequiredParams);
     hash = _combineHashes(hash, listHashCode(positionalParams));
     hash = _combineHashes(hash, listHashCode(namedParams));
@@ -838,6 +855,7 @@ class _FunctionTypeHandle extends _TypeHandle {
   @override
   bool operator ==(other) =>
       other is _FunctionTypeHandle &&
+      this.numEnclosingTypeParameters == other.numEnclosingTypeParameters &&
       this.typeParameters == other.typeParameters &&
       this.numRequiredParams == other.numRequiredParams &&
       listEquals(this.positionalParams, other.positionalParams) &&
@@ -849,6 +867,9 @@ class _FunctionTypeHandle extends _TypeHandle {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('FunctionType');
+    if ((functionTypeFlags & flagHasEnclosingTypeParameters) != 0) {
+      sb.write(' <enclosing-type-params: $numEnclosingTypeParameters>');
+    }
     if ((functionTypeFlags & flagHasTypeParams) != 0) {
       sb.write(' $typeParameters');
     }
@@ -1569,6 +1590,7 @@ class ObjectTable implements ObjectWriter, ObjectReader {
   late _TypeHandle _voidType;
   late _TypeHandle _nullType;
   late _NodeVisitor _nodeVisitor;
+  int numEnclosingFunctionTypeParameters = 0;
 
   ObjectTable(CoreTypes coreTypes) {
     _dynamicType = getOrAddObject(_DynamicTypeHandle()) as _TypeHandle;
@@ -2057,6 +2079,8 @@ class _NodeVisitor extends VisitorDefault<ObjectHandle?>
     final returnType = objectTable.getHandle(node.returnType) as _TypeHandle;
 
     final result = objectTable.getOrAddObject(new _FunctionTypeHandle(
+        objectTable.numEnclosingFunctionTypeParameters +
+            numEnclosingTypeParameters,
         typeParameters,
         node.requiredParameterCount,
         positionalParams,

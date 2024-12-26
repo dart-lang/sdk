@@ -52,12 +52,16 @@ void printSizes(Map<String, int> sizeByImport, int programSize) {
   });
   // Sort by size, largest first.
   importSizes.sort((a, b) => b.size - a.size);
-  int longest = importSizes.fold('Percent of code deferred'.length,
-      (longest, importSize) => max(longest, importSize.import.length));
+  int longest = importSizes.fold(
+    'Percent of code deferred'.length,
+    (longest, importSize) => max(longest, importSize.import.length),
+  );
 
   void printRow(label, data, {int width = 15}) {
-    print('${label.toString().padRight(longest + 1)}'
-        '${data.toString().padLeft(width)}');
+    print(
+      '${label.toString().padRight(longest + 1)}'
+      '${data.toString().padLeft(width)}',
+    );
   }
 
   print('');
@@ -84,8 +88,11 @@ Map<String, int> getSizeByImport(AllInfo info) {
       sizeByImport['main'] = outputUnit.size;
     } else {
       for (final import in outputUnit.imports) {
-        sizeByImport.update(import, (value) => value + outputUnit.size,
-            ifAbsent: () => outputUnit.size);
+        sizeByImport.update(
+          import,
+          (value) => value + outputUnit.size,
+          ifAbsent: () => outputUnit.size,
+        );
       }
     }
   }

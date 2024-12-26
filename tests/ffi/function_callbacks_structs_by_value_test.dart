@@ -44,7 +44,9 @@ void recursiveTest(int recursionCounter) {
 }
 
 Struct20BytesHomogeneousInt32 dartPassStructRecursive(
-    int recursionCounter, Struct20BytesHomogeneousInt32 struct) {
+  int recursionCounter,
+  Struct20BytesHomogeneousInt32 struct,
+) {
   print("callbackPassStructRecursive($recursionCounter, $struct)");
   struct.a0++;
   final structA0Saved = struct.a0;
@@ -53,8 +55,11 @@ Struct20BytesHomogeneousInt32 dartPassStructRecursive(
     return struct;
   }
 
-  final result =
-      cPassStructRecursive(recursionCounter - 1, struct, functionPointer);
+  final result = cPassStructRecursive(
+    recursionCounter - 1,
+    struct,
+    functionPointer,
+  );
   result.a0++;
 
   // Check struct.a0 is not modified by Dart->C call.
@@ -67,14 +72,21 @@ Struct20BytesHomogeneousInt32 dartPassStructRecursive(
 }
 
 final functionPointer = Pointer.fromFunction<
-    Struct20BytesHomogeneousInt32 Function(
-        Int64, Struct20BytesHomogeneousInt32)>(dartPassStructRecursive);
+  Struct20BytesHomogeneousInt32 Function(Int64, Struct20BytesHomogeneousInt32)
+>(dartPassStructRecursive);
 
 final cPassStructRecursive = ffiTestFunctions.lookupFunction<
-    Struct20BytesHomogeneousInt32 Function(Int64 recursionCounter,
-        Struct20BytesHomogeneousInt32 struct, Pointer callbackAddress),
-    Struct20BytesHomogeneousInt32 Function(int recursionCounter,
-        Struct20BytesHomogeneousInt32, Pointer)>("PassStructRecursive");
+  Struct20BytesHomogeneousInt32 Function(
+    Int64 recursionCounter,
+    Struct20BytesHomogeneousInt32 struct,
+    Pointer callbackAddress,
+  ),
+  Struct20BytesHomogeneousInt32 Function(
+    int recursionCounter,
+    Struct20BytesHomogeneousInt32,
+    Pointer,
+  )
+>("PassStructRecursive");
 
 Struct8BytesNestedInt typedDataBackedStruct =
     Pointer<Struct8BytesNestedInt>.fromAddress(0).ref;
@@ -86,14 +98,13 @@ void _receiveStructByValue(Struct8BytesNestedInt struct) {
 
 final _receiveStructByValuePointer =
     Pointer.fromFunction<Void Function(Struct8BytesNestedInt)>(
-        _receiveStructByValue);
+      _receiveStructByValue,
+    );
 
 final _invokeReceiveStructByValue = ffiTestFunctions.lookupFunction<
-        Void Function(
-            Pointer<NativeFunction<Void Function(Struct8BytesNestedInt)>>),
-        void Function(
-            Pointer<NativeFunction<Void Function(Struct8BytesNestedInt)>>)>(
-    "CallbackWithStruct");
+  Void Function(Pointer<NativeFunction<Void Function(Struct8BytesNestedInt)>>),
+  void Function(Pointer<NativeFunction<Void Function(Struct8BytesNestedInt)>>)
+>("CallbackWithStruct");
 
 void testCopyLogic() {
   _invokeReceiveStructByValue(_receiveStructByValuePointer);

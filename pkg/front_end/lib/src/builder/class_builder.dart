@@ -135,6 +135,9 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
   /// For an augmentation class the origin class is returned.
   Class get cls;
 
+  /// Reference for the class built by this builder.
+  Reference get reference;
+
   @override
   ClassBuilder get origin;
 

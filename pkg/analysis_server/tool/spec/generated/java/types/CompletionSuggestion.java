@@ -171,7 +171,8 @@ public class CompletionSuggestion {
   private final String parameterType;
 
   /**
-   * This field is omitted if getSuggestions was used rather than getSuggestions2.
+   * This field is omitted if <code>getSuggestions</code> was used rather than
+   * <code>getSuggestions2</code>.
    *
    * This field is omitted if this suggestion corresponds to a locally declared element.
    *
@@ -180,15 +181,16 @@ public class CompletionSuggestion {
    *
    * If this suggestion corresponds to an element from a not yet imported library, this field is the
    * URI of a library that could be imported to make this suggestion accessible in the file where
-   * completion was requested, such as package:foo/bar.dart or
-   * file:///home/me/workspace/foo/test/bar_test.dart.
+   * completion was requested, such as <code>package:foo/bar.dart</code> or
+   * <code>file:///home/me/workspace/foo/test/bar_test.dart</code>.
    */
   private final String libraryUri;
 
   /**
    * True if the suggestion is for an element from a not yet imported library. This field is omitted
    * if the element is declared locally, or is from library is already imported, so that the
-   * suggestion can be inserted as is, or if getSuggestions was used rather than getSuggestions2.
+   * suggestion can be inserted as is, or if <code>getSuggestions</code> was used rather than
+   * <code>getSuggestions2</code>.
    */
   private final Boolean isNotImported;
 
@@ -380,7 +382,8 @@ public class CompletionSuggestion {
   /**
    * True if the suggestion is for an element from a not yet imported library. This field is omitted
    * if the element is declared locally, or is from library is already imported, so that the
-   * suggestion can be inserted as is, or if getSuggestions was used rather than getSuggestions2.
+   * suggestion can be inserted as is, or if <code>getSuggestions</code> was used rather than
+   * <code>getSuggestions2</code>.
    */
   public Boolean getIsNotImported() {
     return isNotImported;
@@ -402,7 +405,8 @@ public class CompletionSuggestion {
   }
 
   /**
-   * This field is omitted if getSuggestions was used rather than getSuggestions2.
+   * This field is omitted if <code>getSuggestions</code> was used rather than
+   * <code>getSuggestions2</code>.
    *
    * This field is omitted if this suggestion corresponds to a locally declared element.
    *
@@ -411,8 +415,8 @@ public class CompletionSuggestion {
    *
    * If this suggestion corresponds to an element from a not yet imported library, this field is the
    * URI of a library that could be imported to make this suggestion accessible in the file where
-   * completion was requested, such as package:foo/bar.dart or
-   * file:///home/me/workspace/foo/test/bar_test.dart.
+   * completion was requested, such as <code>package:foo/bar.dart</code> or
+   * <code>file:///home/me/workspace/foo/test/bar_test.dart</code>.
    */
   public String getLibraryUri() {
     return libraryUri;

@@ -17,8 +17,9 @@ main() {
   testDynamicLookupFunction();
 }
 
-ffi.DynamicLibrary ffiTestFunctions =
-    dlopenPlatformSpecific("ffi_test_functions");
+ffi.DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific(
+  "ffi_test_functions",
+);
 
 typedef NativeBinaryOp = ffi.Int32 Function(ffi.Int32, ffi.Int32);
 typedef BinaryOp = int Function(int, int);
@@ -28,16 +29,16 @@ typedef UnaryOp = int Function(ffi.Pointer<ffi.Int64>);
 
 void testWrongArity() {
   {
-    dynamic sumPlus42 =
-        ffiTestFunctions.lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42");
+    dynamic sumPlus42 = ffiTestFunctions
+        .lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42");
     Expect.throwsNoSuchMethodError(() => sumPlus42(10));
     Expect.throwsNoSuchMethodError(() => sumPlus42(10, 11, 12));
     Expect.throwsNoSuchMethodError(() => sumPlus42(10, 11, 12, y: 13));
   }
 
   {
-    Function sumPlus42 =
-        ffiTestFunctions.lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42");
+    Function sumPlus42 = ffiTestFunctions
+        .lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42");
     Expect.throwsNoSuchMethodError(() => sumPlus42(10));
     Expect.throwsNoSuchMethodError(() => sumPlus42(10, 11, 12));
     Expect.throwsNoSuchMethodError(() => sumPlus42(10, 11, 12, y: 13));
@@ -46,20 +47,21 @@ void testWrongArity() {
 
 void testWrongTypes() {
   {
-    dynamic sumPlus42 =
-        ffiTestFunctions.lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42");
+    dynamic sumPlus42 = ffiTestFunctions
+        .lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42");
     Expect.throwsTypeError(() => sumPlus42("abc", "def"));
   }
 
   {
-    Function sumPlus42 =
-        ffiTestFunctions.lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42");
+    Function sumPlus42 = ffiTestFunctions
+        .lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42");
     Expect.throwsTypeError(() => sumPlus42("abc", "def"));
   }
 
   {
-    dynamic pointerOp = ffiTestFunctions
-        .lookupFunction<NativeUnaryOp, UnaryOp>("Assign1337Index1");
+    dynamic pointerOp = ffiTestFunctions.lookupFunction<NativeUnaryOp, UnaryOp>(
+      "Assign1337Index1",
+    );
     Expect.throwsTypeError(() => pointerOp(0));
   }
 }

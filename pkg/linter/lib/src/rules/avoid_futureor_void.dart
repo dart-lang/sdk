@@ -16,7 +16,7 @@ class AvoidFutureOrVoid extends LintRule {
       : super(
             name: LintNames.avoid_futureor_void,
             description: _desc,
-            state: State.experimental());
+            state: const State.experimental());
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_futureor_void;

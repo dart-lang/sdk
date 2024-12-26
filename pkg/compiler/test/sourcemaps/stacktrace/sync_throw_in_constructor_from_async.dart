@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  /*1:main*/ test();
+  /*1:main*/
+  test();
 }
 
 test() async {
@@ -16,6 +17,7 @@ test() async {
 class Class {
   @pragma('dart2js:noInline')
   Class() {
-    /*6:Class*/ throw '>ExceptionMarker<';
+    /*6:Class*/
+    throw '>ExceptionMarker<';
   }
 }

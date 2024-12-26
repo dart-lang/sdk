@@ -206,6 +206,18 @@ mixin LspRequestHelpersMixin {
     return expectSuccessfulResponseTo<Null, Null>(request, (Null n) => n);
   }
 
+  Future<Null> editArgument(Uri uri, Position pos, ArgumentEdit edit) {
+    var request = makeRequest(
+      CustomMethods.dartTextDocumentEditArgument,
+      EditArgumentParams(
+        textDocument: TextDocumentIdentifier(uri: uri),
+        position: pos,
+        edit: edit,
+      ),
+    );
+    return expectSuccessfulResponseTo(request, (Null n) => n);
+  }
+
   /// Gets the entire range for [code].
   Range entireRange(String code) =>
       Range(start: startOfDocPos, end: positionFromOffset(code.length, code));

@@ -6,10 +6,12 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionOverrideResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -1102,6 +1104,31 @@ BinaryExpression
   element: package:test/lib.dart::<fragment>::@extension::E::@method::+#element
   staticInvokeType: void Function(int)
   staticType: void
+''');
+  }
+
+  test_promotion() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int f() => 0;
+}
+
+extension E on C {
+  int g(dynamic d) => 0;
+}
+
+void test(C? c) {
+  E(c)?.g(c); // `c` is promoted to `C` on the RHS of `?.`
+}
+''');
+    var node = findNode.simple('c);');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: c
+  parameter: <testLibraryFragment>::@extension::E::@method::g::@parameter::d
+  staticElement: <testLibraryFragment>::@function::test::@parameter::c
+  element: <testLibraryFragment>::@function::test::@parameter::c#element
+  staticType: C
 ''');
   }
 

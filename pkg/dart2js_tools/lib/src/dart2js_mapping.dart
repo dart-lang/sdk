@@ -33,9 +33,17 @@ class Dart2jsMapping {
     var minifiedNames = extensions['minified_names'];
     if (minifiedNames != null) {
       _extractMinifiedNames(
-          minifiedNames['global'] as String, sourceMap, globalNames, logger);
-      _extractMinifiedNames(minifiedNames['instance'] as String, sourceMap,
-          instanceNames, logger);
+        minifiedNames['global'] as String,
+        sourceMap,
+        globalNames,
+        logger,
+      );
+      _extractMinifiedNames(
+        minifiedNames['instance'] as String,
+        sourceMap,
+        instanceNames,
+        logger,
+      );
     }
     var jsonFrames = extensions['frames'] as String?;
     if (jsonFrames != null) {
@@ -53,13 +61,16 @@ class FrameEntry {
   final String? inlinedMethodName;
   final bool isEmpty;
   FrameEntry.push(
-      this.callUri, this.callLine, this.callColumn, this.inlinedMethodName)
-      : isEmpty = false;
+    this.callUri,
+    this.callLine,
+    this.callColumn,
+    this.inlinedMethodName,
+  ) : isEmpty = false;
   FrameEntry.pop(this.isEmpty)
-      : callUri = null,
-        callLine = null,
-        callColumn = null,
-        inlinedMethodName = null;
+    : callUri = null,
+      callLine = null,
+      callColumn = null,
+      inlinedMethodName = null;
 
   bool get isPush => callUri != null;
   bool get isPop => callUri == null;
@@ -86,8 +97,10 @@ Dart2jsMapping? parseMappingFor(Uri uri, {Logger? logger}) {
   if (urlIndex != -1) {
     sourcemapPath = contents.substring(urlIndex + _marker.length).trim();
   } else {
-    logger?.log('Error: source-map url marker not found in $uri\n'
-        '       trying $uri.map');
+    logger?.log(
+      'Error: source-map url marker not found in $uri\n'
+      '       trying $uri.map',
+    );
     sourcemapPath = '${uri.pathSegments.last}.map';
   }
 
@@ -112,9 +125,10 @@ class _FrameDecoder implements Iterator<String> {
   bool moveNext() => ++index < _length;
 
   @override
-  String get current => (index >= 0 && index < _length)
-      ? _internal[index]
-      : throw StateError('No current value available.');
+  String get current =>
+      (index >= 0 && index < _length)
+          ? _internal[index]
+          : throw StateError('No current value available.');
 
   bool get hasTokens => index < _length - 1 && _length > 0;
 
@@ -151,8 +165,12 @@ class _FrameDecoder implements Iterator<String> {
   }
 }
 
-_extractMinifiedNames(String encodedInput, SingleMapping sourceMap,
-    Map<String, String> minifiedNames, Logger? logger) {
+_extractMinifiedNames(
+  String encodedInput,
+  SingleMapping sourceMap,
+  Map<String, String> minifiedNames,
+  Logger? logger,
+) {
   if (encodedInput.isEmpty) return;
   List<String> input = encodedInput.split(',');
   if (input.length % 2 != 0) {

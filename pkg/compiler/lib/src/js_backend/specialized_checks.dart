@@ -30,24 +30,38 @@ class InstanceOfIsTestSpecialization implements IsTestSpecialization {
 
 class SpecializedChecks {
   static IsTestSpecialization? findIsTestSpecialization(
-      DartType dartType, MemberEntity compiland, JClosedWorld closedWorld,
-      {required bool experimentNullSafetyChecks}) {
+    DartType dartType,
+    MemberEntity compiland,
+    JClosedWorld closedWorld, {
+    required bool experimentNullSafetyChecks,
+  }) {
     if (dartType is LegacyType) {
       DartType base = dartType.baseType;
       // `Never*` accepts only `null`.
       if (base is NeverType) return SimpleIsTestSpecialization.isNull;
       // `Object*` is top and should be handled by constant folding.
       if (base.isObject) return null;
-      return _findIsTestSpecialization(base, compiland, closedWorld,
-          experimentNullSafetyChecks: experimentNullSafetyChecks);
+      return _findIsTestSpecialization(
+        base,
+        compiland,
+        closedWorld,
+        experimentNullSafetyChecks: experimentNullSafetyChecks,
+      );
     }
-    return _findIsTestSpecialization(dartType, compiland, closedWorld,
-        experimentNullSafetyChecks: experimentNullSafetyChecks);
+    return _findIsTestSpecialization(
+      dartType,
+      compiland,
+      closedWorld,
+      experimentNullSafetyChecks: experimentNullSafetyChecks,
+    );
   }
 
   static IsTestSpecialization? _findIsTestSpecialization(
-      DartType dartType, MemberEntity compiland, JClosedWorld closedWorld,
-      {required bool experimentNullSafetyChecks}) {
+    DartType dartType,
+    MemberEntity compiland,
+    JClosedWorld closedWorld, {
+    required bool experimentNullSafetyChecks,
+  }) {
     if (dartType is InterfaceType) {
       ClassEntity element = dartType.element;
       JCommonElements commonElements = closedWorld.commonElements;
@@ -88,8 +102,9 @@ class SpecializedChecks {
 
       ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
       if (!dartTypes.isSubtype(
-          elementEnvironment.getClassInstantiationToBounds(element),
-          dartType)) {
+        elementEnvironment.getClassInstantiationToBounds(element),
+        dartType,
+      )) {
         return null;
       }
 
@@ -119,10 +134,13 @@ class SpecializedChecks {
       if (classHierarchy.hasOnlySubclasses(topmost) &&
           !interceptorData.isInterceptedClass(topmost) &&
           outputUnitData.hasOnlyNonDeferredImportPathsToClass(
-              compiland, topmost)) {
+            compiland,
+            topmost,
+          )) {
         assert(!dartType.isObject); // Checked above.
         return InstanceOfIsTestSpecialization(
-            elementEnvironment.getClassInstantiationToBounds(topmost));
+          elementEnvironment.getClassInstantiationToBounds(topmost),
+        );
       }
 
       // Two ideas for further consideration:
@@ -146,26 +164,41 @@ class SpecializedChecks {
     return null;
   }
 
-  static FunctionEntity? findAsCheck(DartType dartType,
-      JCommonElements commonElements, bool useLegacySubtyping) {
+  static FunctionEntity? findAsCheck(
+    DartType dartType,
+    JCommonElements commonElements,
+    bool useLegacySubtyping,
+  ) {
     if (dartType is InterfaceType) {
       if (dartType.typeArguments.isNotEmpty) return null;
-      return _findAsCheck(dartType.element, commonElements,
-          nullable: false, legacy: useLegacySubtyping);
+      return _findAsCheck(
+        dartType.element,
+        commonElements,
+        nullable: false,
+        legacy: useLegacySubtyping,
+      );
     }
     if (dartType is LegacyType) {
       DartType baseType = dartType.baseType;
       if (baseType is InterfaceType && baseType.typeArguments.isEmpty) {
-        return _findAsCheck(baseType.element, commonElements,
-            nullable: false, legacy: true);
+        return _findAsCheck(
+          baseType.element,
+          commonElements,
+          nullable: false,
+          legacy: true,
+        );
       }
       return null;
     }
     if (dartType is NullableType) {
       DartType baseType = dartType.baseType;
       if (baseType is InterfaceType && baseType.typeArguments.isEmpty) {
-        return _findAsCheck(baseType.element, commonElements,
-            nullable: true, legacy: false);
+        return _findAsCheck(
+          baseType.element,
+          commonElements,
+          nullable: true,
+          legacy: false,
+        );
       }
       return null;
     }
@@ -188,8 +221,11 @@ class SpecializedChecks {
   ///     String    nullable: false  legacy: false    String    no
   ///
   static FunctionEntity? _findAsCheck(
-      ClassEntity element, JCommonElements commonElements,
-      {required bool nullable, required bool legacy}) {
+    ClassEntity element,
+    JCommonElements commonElements, {
+    required bool nullable,
+    required bool legacy,
+  }) {
     if (element == commonElements.jsStringClass ||
         element == commonElements.stringClass) {
       if (legacy) return commonElements.specializedAsStringLegacy;

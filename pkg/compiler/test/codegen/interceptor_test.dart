@@ -29,23 +29,37 @@ main() {
   runTests() async {
     // Check that one-shot interceptors preserve variable names, see
     // https://code.google.com/p/dart/issues/detail?id=8106.
-    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      Expect.isTrue(
-          generated.contains(new RegExp(r'[$A-Z]+\.toString\$0\$\(a\)')));
-      Expect.isTrue(generated.contains('myVariableName'));
-    });
+    await compile(
+      TEST_ONE,
+      entry: 'foo',
+      check: (String generated) {
+        Expect.isTrue(
+          generated.contains(new RegExp(r'[$A-Z]+\.toString\$0\$\(a\)')),
+        );
+        Expect.isTrue(generated.contains('myVariableName'));
+      },
+    );
     // Check that an intercepted getter that does not need to be
     // intercepted, is turned into a regular getter call or field
     // access.
-    await compile(TEST_TWO, entry: 'foo', check: (String generated) {
-      Expect.isFalse(generated.contains(r'a.get$length()'),
-          'a.get\$length() not expected in\n$generated');
-      Expect.isTrue(generated.contains(new RegExp(r'[$A-Z]+\.A\$\(\)\.length')),
-          '.length expected in\n$generated');
-      Expect.isTrue(
+    await compile(
+      TEST_TWO,
+      entry: 'foo',
+      check: (String generated) {
+        Expect.isFalse(
+          generated.contains(r'a.get$length()'),
+          'a.get\$length() not expected in\n$generated',
+        );
+        Expect.isTrue(
+          generated.contains(new RegExp(r'[$A-Z]+\.A\$\(\)\.length')),
+          '.length expected in\n$generated',
+        );
+        Expect.isTrue(
           generated.contains(new RegExp(r'[$A-Z]+\.get\$length\$as\(a\)')),
-          '*.get\$length expected in\n$generated');
-    });
+          '*.get\$length expected in\n$generated',
+        );
+      },
+    );
   }
 
   asyncTest(() async {

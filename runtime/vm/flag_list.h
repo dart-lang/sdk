@@ -69,6 +69,8 @@ constexpr bool FLAG_support_il_printer = false;
 // * R elease flags: Generally available flags except when building product.
 // * pre C ompile flags: Generally available flags except when building product
 //   or precompiled runtime.
+// * A ot flags: Generally available flags except when building precompiled
+//   runtime. (Unlike C, these flags are available in product mode.)
 // * D ebug flags: Can only be set in debug VMs, which also have C++ assertions
 //   enabled.
 //
@@ -76,8 +78,9 @@ constexpr bool FLAG_support_il_printer = false;
 //   P(name, type, default_value, comment)
 //   R(name, product_value, type, default_value, comment)
 //   C(name, precompiled_value, product_value, type, default_value, comment)
+//   A(name, precompiled_value, type, default_value, comment)
 //   D(name, type, default_value, comment)
-#define FLAG_LIST(P, R, C, D)                                                  \
+#define FLAG_LIST(P, R, C, A, D)                                               \
   VM_GLOBAL_FLAG_LIST(P, R, C, D)                                              \
   DISASSEMBLE_FLAGS(P, R, C, D)                                                \
   P(abort_on_oom, bool, false,                                                 \
@@ -246,7 +249,7 @@ constexpr bool FLAG_support_il_printer = false;
   R(eliminate_type_checks, true, bool, true,                                   \
     "Eliminate type checks when allowed by static type analysis.")             \
   D(support_rr, bool, false, "Support running within RR.")                     \
-  P(verify_entry_points, bool, false,                                          \
+  A(verify_entry_points, true, bool, false,                                    \
     "Throw API error on invalid member access through native API. See "        \
     "entry_point_pragma.md")                                                   \
   C(branch_coverage, false, false, bool, false, "Enable branch coverage")      \

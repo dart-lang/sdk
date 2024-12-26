@@ -840,6 +840,11 @@ TargetEntryInstr* BaseFlowGraphBuilder::BuildTargetEntry() {
                                   GetNextDeoptId(), GetStackDepth());
 }
 
+TargetEntryInstr* BaseFlowGraphBuilder::BuildTargetEntry(intptr_t try_index) {
+  return new (Z) TargetEntryInstr(AllocateBlockId(), try_index,
+                                  GetNextDeoptId(), GetStackDepth());
+}
+
 FunctionEntryInstr* BaseFlowGraphBuilder::BuildFunctionEntry(
     GraphEntryInstr* graph_entry) {
   return new (Z) FunctionEntryInstr(graph_entry, AllocateBlockId(),
@@ -854,6 +859,11 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildJoinEntry(intptr_t try_index) {
 JoinEntryInstr* BaseFlowGraphBuilder::BuildJoinEntry() {
   return new (Z) JoinEntryInstr(AllocateBlockId(), CurrentTryIndex(),
                                 GetNextDeoptId(), GetStackDepth());
+}
+
+TryEntryInstr* BaseFlowGraphBuilder::BuildTryEntry(intptr_t try_index) {
+  return new (Z) TryEntryInstr(AllocateBlockId(), try_index, GetNextDeoptId(),
+                               GetStackDepth());
 }
 
 IndirectEntryInstr* BaseFlowGraphBuilder::BuildIndirectEntry(

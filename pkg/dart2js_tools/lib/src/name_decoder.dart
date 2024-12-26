@@ -10,8 +10,12 @@ import 'package:source_maps/source_maps.dart';
 import 'dart2js_mapping.dart';
 import 'trace.dart';
 
-String? translate(String? error, Dart2jsMapping? mapping,
-    [StackTraceLine? line, TargetEntry? entry]) {
+String? translate(
+  String? error,
+  Dart2jsMapping? mapping, [
+  StackTraceLine? line,
+  TargetEntry? entry,
+]) {
   for (var decoder in _errorMapDecoders) {
     var result = decoder.decode(error, mapping, line, entry);
     // More than one decoder might be applied on a single error message. This
@@ -31,8 +35,12 @@ abstract class ErrorMapDecoder {
   /// Decode [error] that was reported in [line] and has a corresponding [entry]
   /// in the source-map file. The provided [mapping] includes additional
   /// minification data that may be used to decode the error message.
-  String? decode(String? error, Dart2jsMapping? mapping, StackTraceLine? line,
-      TargetEntry? entry) {
+  String? decode(
+    String? error,
+    Dart2jsMapping? mapping,
+    StackTraceLine? line,
+    TargetEntry? entry,
+  ) {
     if (error == null) return null;
     Match? lastMatch;
     var result = StringBuffer();
@@ -50,20 +58,33 @@ abstract class ErrorMapDecoder {
     return '$result';
   }
 
-  String? _decodeInternal(Match match, Dart2jsMapping? mapping,
-      StackTraceLine? line, TargetEntry? entry);
+  String? _decodeInternal(
+    Match match,
+    Dart2jsMapping? mapping,
+    StackTraceLine? line,
+    TargetEntry? entry,
+  );
 }
 
-typedef ErrorDecoder = String Function(Match match, Dart2jsMapping mapping,
-    StackTraceLine line, TargetEntry entry);
+typedef ErrorDecoder =
+    String Function(
+      Match match,
+      Dart2jsMapping mapping,
+      StackTraceLine line,
+      TargetEntry entry,
+    );
 
 class MinifiedNameDecoder extends ErrorMapDecoder {
   @override
   final RegExp _matcher = RegExp("minified:([a-zA-Z0-9_\$]*)");
 
   @override
-  String? _decodeInternal(Match match, Dart2jsMapping? mapping,
-      StackTraceLine? line, TargetEntry? entry) {
+  String? _decodeInternal(
+    Match match,
+    Dart2jsMapping? mapping,
+    StackTraceLine? line,
+    TargetEntry? entry,
+  ) {
     var minifiedName = match.group(1);
     return mapping!.globalNames[minifiedName];
   }
@@ -74,8 +95,12 @@ class CannotReadPropertyDecoder extends ErrorMapDecoder {
   final RegExp _matcher = RegExp("Cannot read property '([^']*)' of");
 
   @override
-  String? _decodeInternal(Match match, Dart2jsMapping? mapping,
-      StackTraceLine? line, TargetEntry? entry) {
+  String? _decodeInternal(
+    Match match,
+    Dart2jsMapping? mapping,
+    StackTraceLine? line,
+    TargetEntry? entry,
+  ) {
     var minifiedName = match.group(1);
     var name = mapping!.instanceNames[minifiedName];
     if (name == null) return null;
@@ -141,11 +166,16 @@ abstract class NoSuchMethodDecoderBase extends ErrorMapDecoder {
 class NoSuchMethodDecoder1 extends NoSuchMethodDecoderBase {
   @override
   final RegExp _matcher = RegExp(
-      "NoSuchMethodError: method not found: '([^']*)'( on [^\\(]*)? \\(.*\\)");
+    "NoSuchMethodError: method not found: '([^']*)'( on [^\\(]*)? \\(.*\\)",
+  );
 
   @override
-  String? _decodeInternal(Match match, Dart2jsMapping? mapping,
-      StackTraceLine? line, TargetEntry? entry) {
+  String? _decodeInternal(
+    Match match,
+    Dart2jsMapping? mapping,
+    StackTraceLine? line,
+    TargetEntry? entry,
+  ) {
     var minifiedName = match.group(1);
     var suffix = match.group(2) ?? '';
     var name = _translateMinifiedName(mapping!, minifiedName);
@@ -156,12 +186,17 @@ class NoSuchMethodDecoder1 extends NoSuchMethodDecoderBase {
 
 class NoSuchMethodDecoder2 extends NoSuchMethodDecoderBase {
   @override
-  final RegExp _matcher =
-      RegExp("NoSuchMethodError: method not found: '([^']*)'");
+  final RegExp _matcher = RegExp(
+    "NoSuchMethodError: method not found: '([^']*)'",
+  );
 
   @override
-  String? _decodeInternal(Match match, Dart2jsMapping? mapping,
-      StackTraceLine? line, TargetEntry? entry) {
+  String? _decodeInternal(
+    Match match,
+    Dart2jsMapping? mapping,
+    StackTraceLine? line,
+    TargetEntry? entry,
+  ) {
     var minifiedName = match.group(1);
     var name = _translateMinifiedName(mapping!, minifiedName);
     if (name == null) return null;
@@ -174,8 +209,12 @@ class UnhandledNotAFunctionError extends ErrorMapDecoder {
   final RegExp _matcher = RegExp("Error: ([^']*) is not a function");
 
   @override
-  String? _decodeInternal(Match match, Dart2jsMapping? mapping,
-      StackTraceLine? line, TargetEntry? entry) {
+  String? _decodeInternal(
+    Match match,
+    Dart2jsMapping? mapping,
+    StackTraceLine? line,
+    TargetEntry? entry,
+  ) {
     var minifiedName = match.group(1);
     var name = mapping!.instanceNames[minifiedName];
     if (name == null) return null;

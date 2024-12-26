@@ -70,11 +70,11 @@ class LateLowering {
   Member? _contextMember;
 
   LateLowering(this._coreTypes, CompilerOptions? _options)
-      : _omitLateNames = _options?.omitLateNames ?? false,
-        _readLocal = _Reader(_coreTypes.cellReadLocal),
-        _readField = _Reader(_coreTypes.cellReadField),
-        _readInitialized = _Reader(_coreTypes.initializedCellRead),
-        _readInitializedFinal = _Reader(_coreTypes.initializedCellReadFinal);
+    : _omitLateNames = _options?.omitLateNames ?? false,
+      _readLocal = _Reader(_coreTypes.cellReadLocal),
+      _readField = _Reader(_coreTypes.cellReadField),
+      _readInitialized = _Reader(_coreTypes.initializedCellRead),
+      _readInitializedFinal = _Reader(_coreTypes.initializedCellReadFinal);
 
   Nullability get nonNullable => _contextMember!.enclosingLibrary.nonNullable;
 
@@ -100,17 +100,20 @@ class LateLowering {
   Name _mangleFieldName(Field field) {
     assert(_shouldLowerInstanceField(field));
     final prefix = _lateInstanceFieldPrefix;
-    final suffix = field.initializer == null
-        ? field.isFinal
-            ? _lateFinalUninitializedSuffix
-            : _lateAssignableUninitializedSuffix
-        : field.isFinal
+    final suffix =
+        field.initializer == null
+            ? field.isFinal
+                ? _lateFinalUninitializedSuffix
+                : _lateAssignableUninitializedSuffix
+            : field.isFinal
             ? _lateFinalInitializedSuffix
             : _lateAssignableInitializedSuffix;
 
     Class cls = field.enclosingClass!;
     return Name(
-        '$prefix${cls.name}#${field.name.text}$suffix', field.enclosingLibrary);
+      '$prefix${cls.name}#${field.name.text}$suffix',
+      field.enclosingLibrary,
+    );
   }
 
   ConstructorInvocation _callCellConstructor(Expression name, int fileOffset) =>
@@ -119,62 +122,87 @@ class LateLowering {
           : _callCellNamedConstructor(name, fileOffset);
 
   ConstructorInvocation _callCellUnnamedConstructor(int fileOffset) =>
-      ConstructorInvocation(_coreTypes.cellConstructor,
-          Arguments.empty()..fileOffset = fileOffset)
-        ..fileOffset = fileOffset;
+      ConstructorInvocation(
+        _coreTypes.cellConstructor,
+        Arguments.empty()..fileOffset = fileOffset,
+      )..fileOffset = fileOffset;
 
   ConstructorInvocation _callCellNamedConstructor(
-          Expression name, int fileOffset) =>
-      ConstructorInvocation(_coreTypes.cellNamedConstructor,
-          Arguments([name])..fileOffset = fileOffset)
-        ..fileOffset = fileOffset;
+    Expression name,
+    int fileOffset,
+  ) => ConstructorInvocation(
+    _coreTypes.cellNamedConstructor,
+    Arguments([name])..fileOffset = fileOffset,
+  )..fileOffset = fileOffset;
 
   ConstructorInvocation _callInitializedCellConstructor(
-          Expression name, Expression initializer, int fileOffset) =>
+    Expression name,
+    Expression initializer,
+    int fileOffset,
+  ) =>
       _omitLateNames
           ? _callInitializedCellUnnamedConstructor(initializer, fileOffset)
           : _callInitializedCellNamedConstructor(name, initializer, fileOffset);
 
   ConstructorInvocation _callInitializedCellUnnamedConstructor(
-          Expression initializer, int fileOffset) =>
-      ConstructorInvocation(_coreTypes.initializedCellConstructor,
-          Arguments([initializer])..fileOffset = fileOffset)
-        ..fileOffset = fileOffset;
+    Expression initializer,
+    int fileOffset,
+  ) => ConstructorInvocation(
+    _coreTypes.initializedCellConstructor,
+    Arguments([initializer])..fileOffset = fileOffset,
+  )..fileOffset = fileOffset;
 
   ConstructorInvocation _callInitializedCellNamedConstructor(
-          Expression name, Expression initializer, int fileOffset) =>
-      ConstructorInvocation(_coreTypes.initializedCellNamedConstructor,
-          Arguments([name, initializer])..fileOffset = fileOffset)
-        ..fileOffset = fileOffset;
+    Expression name,
+    Expression initializer,
+    int fileOffset,
+  ) => ConstructorInvocation(
+    _coreTypes.initializedCellNamedConstructor,
+    Arguments([name, initializer])..fileOffset = fileOffset,
+  )..fileOffset = fileOffset;
 
   StringLiteral _nameLiteral(String? name, int fileOffset) =>
       StringLiteral(name ?? '')..fileOffset = fileOffset;
 
   InstanceInvocation _callReader(
-      _Reader reader, Expression receiver, DartType type, int fileOffset) {
+    _Reader reader,
+    Expression receiver,
+    DartType type,
+    int fileOffset,
+  ) {
     Procedure procedure = reader._procedure;
     List<DartType> typeArguments = [type];
     return InstanceInvocation(
-        InstanceAccessKind.Instance,
-        receiver,
-        procedure.name,
-        Arguments(const [], types: typeArguments)..fileOffset = fileOffset,
-        interfaceTarget: procedure,
-        functionType:
-            FunctionTypeInstantiator.instantiate(reader._type, typeArguments))
-      ..fileOffset = fileOffset;
+      InstanceAccessKind.Instance,
+      receiver,
+      procedure.name,
+      Arguments(const [], types: typeArguments)..fileOffset = fileOffset,
+      interfaceTarget: procedure,
+      functionType: FunctionTypeInstantiator.instantiate(
+        reader._type,
+        typeArguments,
+      ),
+    )..fileOffset = fileOffset;
   }
 
-  InstanceSet _callSetter(Procedure _setter, Expression receiver,
-          Expression value, int fileOffset) =>
-      InstanceSet(InstanceAccessKind.Instance, receiver, _setter.name, value,
-          interfaceTarget: _setter)
-        ..fileOffset = fileOffset;
+  InstanceSet _callSetter(
+    Procedure setter,
+    Expression receiver,
+    Expression value,
+    int fileOffset,
+  ) => InstanceSet(
+    InstanceAccessKind.Instance,
+    receiver,
+    setter.name,
+    value,
+    interfaceTarget: setter,
+  )..fileOffset = fileOffset;
 
   StaticInvocation _callIsSentinel(Expression value, int fileOffset) =>
-      StaticInvocation(_coreTypes.isSentinelMethod,
-          Arguments([value])..fileOffset = fileOffset)
-        ..fileOffset = fileOffset;
+      StaticInvocation(
+        _coreTypes.isSentinelMethod,
+        Arguments([value])..fileOffset = fileOffset,
+      )..fileOffset = fileOffset;
 
   void exitLibrary() {
     assert(_variableCells.isEmpty);
@@ -201,7 +229,9 @@ class LateLowering {
   }
 
   VariableDeclaration _addToCurrentScope(
-      VariableDeclaration variable, VariableDeclaration cell) {
+    VariableDeclaration variable,
+    VariableDeclaration cell,
+  ) {
     assert(_shouldLowerVariable(variable));
     assert(_lookupVariableCell(variable) == null);
     return (_variableCells.last ??= {})[variable] = cell;
@@ -220,19 +250,24 @@ class LateLowering {
     assert(_shouldLowerUninitializedVariable(variable));
     int fileOffset = variable.fileOffset;
     String? name = variable.name;
-    final cell = VariableDeclaration(name,
-        initializer:
-            _callCellConstructor(_nameLiteral(name, fileOffset), fileOffset),
-        type: InterfaceType(_coreTypes.cellClass, nonNullable),
-        isFinal: true,
-        isSynthesized: true)
-      ..fileOffset = fileOffset;
+    final cell = VariableDeclaration(
+      name,
+      initializer: _callCellConstructor(
+        _nameLiteral(name, fileOffset),
+        fileOffset,
+      ),
+      type: InterfaceType(_coreTypes.cellClass, nonNullable),
+      isFinal: true,
+      isSynthesized: true,
+    )..fileOffset = fileOffset;
 
     return _addToCurrentScope(variable, cell);
   }
 
   FunctionExpression _initializerClosure(
-      Expression initializer, DartType type) {
+    Expression initializer,
+    DartType type,
+  ) {
     int fileOffset = initializer.fileOffset;
     ReturnStatement body = ReturnStatement(initializer)
       ..fileOffset = fileOffset;
@@ -245,20 +280,24 @@ class LateLowering {
     assert(_shouldLowerInitializedVariable(variable));
     int fileOffset = variable.fileOffset;
     String? name = variable.name;
-    final cell = VariableDeclaration(name,
-        initializer: _callInitializedCellConstructor(
-            _nameLiteral(name, fileOffset),
-            _initializerClosure(variable.initializer!, variable.type),
-            fileOffset),
-        type: InterfaceType(_coreTypes.initializedCellClass, nonNullable),
-        isFinal: true,
-        isSynthesized: true)
-      ..fileOffset = fileOffset;
+    final cell = VariableDeclaration(
+      name,
+      initializer: _callInitializedCellConstructor(
+        _nameLiteral(name, fileOffset),
+        _initializerClosure(variable.initializer!, variable.type),
+        fileOffset,
+      ),
+      type: InterfaceType(_coreTypes.initializedCellClass, nonNullable),
+      isFinal: true,
+      isSynthesized: true,
+    )..fileOffset = fileOffset;
     return _addToCurrentScope(variable, cell);
   }
 
   TreeNode transformVariableDeclaration(
-      VariableDeclaration variable, Member? contextMember) {
+    VariableDeclaration variable,
+    Member? contextMember,
+  ) {
     _contextMember = contextMember;
 
     if (!_shouldLowerVariable(variable)) return variable;
@@ -283,11 +322,16 @@ class LateLowering {
 
     int fileOffset = node.fileOffset;
     VariableGet cell = _variableCellRead(variable, fileOffset);
-    _Reader reader = variable.initializer == null
-        ? _readLocal
-        : (variable.isFinal ? _readInitializedFinal : _readInitialized);
+    _Reader reader =
+        variable.initializer == null
+            ? _readLocal
+            : (variable.isFinal ? _readInitializedFinal : _readInitialized);
     return _callReader(
-        reader, cell, node.promotedType ?? variable.type, fileOffset);
+      reader,
+      cell,
+      node.promotedType ?? variable.type,
+      fileOffset,
+    );
   }
 
   TreeNode transformVariableSet(VariableSet node, Member contextMember) {
@@ -298,13 +342,14 @@ class LateLowering {
 
     int fileOffset = node.fileOffset;
     VariableGet cell = _variableCellRead(variable, fileOffset);
-    Procedure setter = variable.initializer == null
-        ? (variable.isFinal
-            ? _coreTypes.cellFinalLocalValueSetter
-            : _coreTypes.cellValueSetter)
-        : (variable.isFinal
-            ? _coreTypes.initializedCellFinalValueSetter
-            : _coreTypes.initializedCellValueSetter);
+    Procedure setter =
+        variable.initializer == null
+            ? (variable.isFinal
+                ? _coreTypes.cellFinalLocalValueSetter
+                : _coreTypes.cellValueSetter)
+            : (variable.isFinal
+                ? _coreTypes.initializedCellFinalValueSetter
+                : _coreTypes.initializedCellValueSetter);
     return _callSetter(setter, cell, node.value, fileOffset);
   }
 
@@ -318,61 +363,70 @@ class LateLowering {
       // We need to unbind the canonical name since we reuse the reference but
       // change the name.
       field.fieldReference.canonicalName?.unbind();
-      Field fieldCell = Field.immutable(_mangleFieldCellName(field),
-          type: InterfaceType(_coreTypes.cellClass, nonNullable),
-          initializer: _callCellConstructor(
-              _nameLiteral(name.text, fileOffset), fileOffset),
-          isFinal: true,
-          isStatic: true,
-          fileUri: fileUri,
-          fieldReference: field.fieldReference)
-        ..fileOffset = fileOffset
-        // TODO(fishythefish,srujzs,johnniwinther): Also mark the getter/setter
-        //  as extension/extension type members.
-        ..isExtensionMember = field.isExtensionMember
-        ..isExtensionTypeMember = field.isExtensionTypeMember;
+      Field fieldCell =
+          Field.immutable(
+              _mangleFieldCellName(field),
+              type: InterfaceType(_coreTypes.cellClass, nonNullable),
+              initializer: _callCellConstructor(
+                _nameLiteral(name.text, fileOffset),
+                fileOffset,
+              ),
+              isFinal: true,
+              isStatic: true,
+              fileUri: fileUri,
+              fieldReference: field.fieldReference,
+            )
+            ..fileOffset = fileOffset
+            // TODO(fishythefish,srujzs,johnniwinther): Also mark the getter/setter
+            //  as extension/extension type members.
+            ..isExtensionMember = field.isExtensionMember
+            ..isExtensionTypeMember = field.isExtensionTypeMember;
       StaticGet fieldCellAccess() =>
           StaticGet(fieldCell)..fileOffset = fileOffset;
 
       Procedure getter = Procedure(
-          name,
-          ProcedureKind.Getter,
-          FunctionNode(
-              ReturnStatement(
-                  _callReader(_readField, fieldCellAccess(), type, fileOffset))
-                ..fileOffset = fileOffset,
-              returnType: type)
-            ..fileOffset = fileOffset,
-          isStatic: true,
-          fileUri: fileUri,
-          reference: field.getterReference)
-        ..fileOffset = fileOffset;
+        name,
+        ProcedureKind.Getter,
+        FunctionNode(
+          ReturnStatement(
+            _callReader(_readField, fieldCellAccess(), type, fileOffset),
+          )..fileOffset = fileOffset,
+          returnType: type,
+        )..fileOffset = fileOffset,
+        isStatic: true,
+        fileUri: fileUri,
+        reference: field.getterReference,
+      )..fileOffset = fileOffset;
 
-      VariableDeclaration setterValue =
-          VariableDeclaration('value', type: type, isSynthesized: true)
-            ..fileOffset = fileOffset;
+      VariableDeclaration setterValue = VariableDeclaration(
+        'value',
+        type: type,
+        isSynthesized: true,
+      )..fileOffset = fileOffset;
       VariableGet setterValueRead() =>
           VariableGet(setterValue)..fileOffset = fileOffset;
 
       Procedure setter = Procedure(
-          name,
-          ProcedureKind.Setter,
-          FunctionNode(
-              ReturnStatement(_callSetter(
-                  field.isFinal
-                      ? _coreTypes.cellFinalFieldValueSetter
-                      : _coreTypes.cellValueSetter,
-                  fieldCellAccess(),
-                  setterValueRead(),
-                  fileOffset))
-                ..fileOffset = fileOffset,
-              positionalParameters: [setterValue],
-              returnType: VoidType())
-            ..fileOffset = fileOffset,
-          isStatic: true,
-          fileUri: fileUri,
-          reference: field.setterReference)
-        ..fileOffset = fileOffset;
+        name,
+        ProcedureKind.Setter,
+        FunctionNode(
+          ReturnStatement(
+            _callSetter(
+              field.isFinal
+                  ? _coreTypes.cellFinalFieldValueSetter
+                  : _coreTypes.cellValueSetter,
+              fieldCellAccess(),
+              setterValueRead(),
+              fileOffset,
+            ),
+          )..fileOffset = fileOffset,
+          positionalParameters: [setterValue],
+          returnType: VoidType(),
+        )..fileOffset = fileOffset,
+        isStatic: true,
+        fileUri: fileUri,
+        reference: field.setterReference,
+      )..fileOffset = fileOffset;
 
       TreeNode parent = field.parent!;
       if (parent is Class) {
@@ -389,8 +443,9 @@ class LateLowering {
 
   Field _backingInstanceField(Field field) {
     assert(_shouldLowerInstanceField(field));
-    return _backingInstanceFields[field] ??=
-        _computeBackingInstanceField(field);
+    return _backingInstanceFields[field] ??= _computeBackingInstanceField(
+      field,
+    );
   }
 
   Field _computeBackingInstanceField(Field field) {
@@ -408,26 +463,33 @@ class LateLowering {
     // We need to unbind the canonical name since we reuse the reference but
     // change the name.
     field.fieldReference.canonicalName?.unbind();
-    Field backingField = Field.mutable(mangledName,
-        type: type,
-        initializer: StaticInvocation(_coreTypes.createSentinelMethod,
-            Arguments(const [], types: [type])..fileOffset = fileOffset)
-          ..fileOffset = fileOffset,
-        fileUri: fileUri,
-        fieldReference: field.fieldReference)
-      ..fileOffset = fileOffset
-      ..isInternalImplementation = true;
-    InstanceGet fieldRead() => InstanceGet(InstanceAccessKind.Instance,
-        ThisExpression()..fileOffset = fileOffset, mangledName,
-        interfaceTarget: backingField, resultType: type)
-      ..fileOffset = fileOffset;
+    Field backingField =
+        Field.mutable(
+            mangledName,
+            type: type,
+            initializer: StaticInvocation(
+              _coreTypes.createSentinelMethod,
+              Arguments(const [], types: [type])..fileOffset = fileOffset,
+            )..fileOffset = fileOffset,
+            fileUri: fileUri,
+            fieldReference: field.fieldReference,
+          )
+          ..fileOffset = fileOffset
+          ..isInternalImplementation = true;
+    InstanceGet fieldRead() => InstanceGet(
+      InstanceAccessKind.Instance,
+      ThisExpression()..fileOffset = fileOffset,
+      mangledName,
+      interfaceTarget: backingField,
+      resultType: type,
+    )..fileOffset = fileOffset;
     InstanceSet fieldWrite(Expression value) => InstanceSet(
-        InstanceAccessKind.Instance,
-        ThisExpression()..fileOffset = fileOffset,
-        mangledName,
-        value,
-        interfaceTarget: backingField)
-      ..fileOffset = fileOffset;
+      InstanceAccessKind.Instance,
+      ThisExpression()..fileOffset = fileOffset,
+      mangledName,
+      value,
+      interfaceTarget: backingField,
+    )..fileOffset = fileOffset;
 
     Statement getterBody() {
       if (initializer == null) {
@@ -435,13 +497,14 @@ class LateLowering {
         //
         // T get field => _lateReadCheck<T>(this._#field, "field");
         return ReturnStatement(
-            StaticInvocation(
-                _coreTypes.lateReadCheck,
-                Arguments([fieldRead(), _nameLiteral(nameText, fileOffset)],
-                    types: [type])
-                  ..fileOffset = fileOffset)
-              ..fileOffset = fileOffset)
-          ..fileOffset = fileOffset;
+          StaticInvocation(
+            _coreTypes.lateReadCheck,
+            Arguments(
+              [fieldRead(), _nameLiteral(nameText, fileOffset)],
+              types: [type],
+            )..fileOffset = fileOffset,
+          )..fileOffset = fileOffset,
+        )..fileOffset = fileOffset;
       } else if (field.isFinal) {
         // The lowered getter for `late final T field = e;` is
         //
@@ -454,43 +517,44 @@ class LateLowering {
         //   }
         //   return value;
         // }
-        VariableDeclaration value = VariableDeclaration('value',
-            initializer: fieldRead(), type: type, isSynthesized: true)
-          ..fileOffset = fileOffset;
+        VariableDeclaration value = VariableDeclaration(
+          'value',
+          initializer: fieldRead(),
+          type: type,
+          isSynthesized: true,
+        )..fileOffset = fileOffset;
         VariableGet valueRead() => VariableGet(value)..fileOffset = fileOffset;
-        VariableDeclaration result = VariableDeclaration('result',
-            initializer: initializer,
-            type: type,
-            isFinal: true,
-            isSynthesized: true)
-          ..fileOffset = fileOffset;
+        VariableDeclaration result = VariableDeclaration(
+          'result',
+          initializer: initializer,
+          type: type,
+          isFinal: true,
+          isSynthesized: true,
+        )..fileOffset = fileOffset;
         VariableGet resultRead() =>
             VariableGet(result)..fileOffset = fileOffset;
         return Block([
           value,
           IfStatement(
-              _callIsSentinel(valueRead(), fileOffset),
-              Block([
-                result,
-                ExpressionStatement(
-                    StaticInvocation(
-                        _coreTypes.lateInitializeOnceCheck,
-                        Arguments(
-                            [fieldRead(), _nameLiteral(nameText, fileOffset)])
-                          ..fileOffset = fileOffset)
-                      ..fileOffset = fileOffset)
+            _callIsSentinel(valueRead(), fileOffset),
+            Block([
+              result,
+              ExpressionStatement(
+                StaticInvocation(
+                  _coreTypes.lateInitializeOnceCheck,
+                  Arguments([fieldRead(), _nameLiteral(nameText, fileOffset)])
+                    ..fileOffset = fileOffset,
+                )..fileOffset = fileOffset,
+              )..fileOffset = fileOffset,
+              ExpressionStatement(
+                VariableSet(value, fieldWrite(resultRead()))
                   ..fileOffset = fileOffset,
-                ExpressionStatement(
-                    VariableSet(value, fieldWrite(resultRead()))
-                      ..fileOffset = fileOffset)
-                  ..fileOffset = fileOffset
-              ])
-                ..fileOffset = fileOffset,
-              null)
-            ..fileOffset = fileOffset,
-          ReturnStatement(valueRead())..fileOffset = fileOffset
-        ])
-          ..fileOffset = fileOffset;
+              )..fileOffset = fileOffset,
+            ])..fileOffset = fileOffset,
+            null,
+          )..fileOffset = fileOffset,
+          ReturnStatement(valueRead())..fileOffset = fileOffset,
+        ])..fileOffset = fileOffset;
       } else {
         // The lowered getter for `late T field = e;` is
         //
@@ -511,39 +575,46 @@ class LateLowering {
         //
         // This lowering avoids generating an extra narrowing node in inference,
         // but the generated code is worse due to poor register allocation.
-        VariableDeclaration value = VariableDeclaration('value',
-            initializer: fieldRead(), type: type, isSynthesized: true)
-          ..fileOffset = fileOffset;
+        VariableDeclaration value = VariableDeclaration(
+          'value',
+          initializer: fieldRead(),
+          type: type,
+          isSynthesized: true,
+        )..fileOffset = fileOffset;
         VariableGet valueRead() => VariableGet(value)..fileOffset = fileOffset;
         return Block([
           value,
           IfStatement(
-              _callIsSentinel(valueRead(), fileOffset),
-              ExpressionStatement(
-                  VariableSet(value, fieldWrite(initializer))
-                    ..fileOffset = fileOffset)
+            _callIsSentinel(valueRead(), fileOffset),
+            ExpressionStatement(
+              VariableSet(value, fieldWrite(initializer))
                 ..fileOffset = fileOffset,
-              null)
-            ..fileOffset = fileOffset,
-          ReturnStatement(valueRead())..fileOffset = fileOffset
-        ])
-          ..fileOffset = fileOffset;
+            )..fileOffset = fileOffset,
+            null,
+          )..fileOffset = fileOffset,
+          ReturnStatement(valueRead())..fileOffset = fileOffset,
+        ])..fileOffset = fileOffset;
       }
     }
 
-    Procedure getter = Procedure(name, ProcedureKind.Getter,
-        FunctionNode(getterBody(), returnType: type)..fileOffset = fileOffset,
-        fileUri: fileUri, reference: field.getterReference)
-      ..fileOffset = fileOffset;
+    Procedure getter = Procedure(
+      name,
+      ProcedureKind.Getter,
+      FunctionNode(getterBody(), returnType: type)..fileOffset = fileOffset,
+      fileUri: fileUri,
+      reference: field.getterReference,
+    )..fileOffset = fileOffset;
     // The initializer is copied from [field] to [getter] so we copy the
     // transformer flags to reflect whether the getter contains super calls.
     getter.transformerFlags = field.transformerFlags;
     _copyAnnotations(getter, field);
     enclosingClass.addProcedure(getter);
 
-    VariableDeclaration setterValue =
-        VariableDeclaration('value', type: type, isSynthesized: true)
-          ..fileOffset = fileOffset;
+    VariableDeclaration setterValue = VariableDeclaration(
+      'value',
+      type: type,
+      isSynthesized: true,
+    )..fileOffset = fileOffset;
     VariableGet setterValueRead() =>
         VariableGet(setterValue)..fileOffset = fileOffset;
 
@@ -565,16 +636,15 @@ class LateLowering {
         // }
         return Block([
           ExpressionStatement(
-              StaticInvocation(
-                  _coreTypes.lateWriteOnceCheck,
-                  Arguments([fieldRead(), _nameLiteral(nameText, fileOffset)])
-                    ..fileOffset = fileOffset)
-                ..fileOffset = fileOffset)
-            ..fileOffset = fileOffset,
+            StaticInvocation(
+              _coreTypes.lateWriteOnceCheck,
+              Arguments([fieldRead(), _nameLiteral(nameText, fileOffset)])
+                ..fileOffset = fileOffset,
+            )..fileOffset = fileOffset,
+          )..fileOffset = fileOffset,
           ExpressionStatement(fieldWrite(setterValueRead()))
-            ..fileOffset = fileOffset
-        ])
-          ..fileOffset = fileOffset;
+            ..fileOffset = fileOffset,
+        ])..fileOffset = fileOffset;
       } else {
         // There is no setter for `late final T field = e;`.
         return null;
@@ -584,14 +654,16 @@ class LateLowering {
     Statement? body = setterBody();
     if (body != null) {
       Procedure setter = Procedure(
-          name,
-          ProcedureKind.Setter,
-          FunctionNode(body,
-              positionalParameters: [setterValue], returnType: VoidType())
-            ..fileOffset = fileOffset,
-          fileUri: fileUri,
-          reference: field.setterReference)
-        ..fileOffset = fileOffset;
+        name,
+        ProcedureKind.Setter,
+        FunctionNode(
+          body,
+          positionalParameters: [setterValue],
+          returnType: VoidType(),
+        )..fileOffset = fileOffset,
+        fileUri: fileUri,
+        reference: field.setterReference,
+      )..fileOffset = fileOffset;
       _copyAnnotations(setter, field);
       enclosingClass.addProcedure(setter);
     }
@@ -603,8 +675,9 @@ class LateLowering {
     for (final annotation in source.annotations) {
       if (annotation is ConstantExpression) {
         target.addAnnotation(
-            ConstantExpression(annotation.constant, annotation.type)
-              ..fileOffset = annotation.fileOffset);
+          ConstantExpression(annotation.constant, annotation.type)
+            ..fileOffset = annotation.fileOffset,
+        );
       } else {
         throw StateError('Non-constant annotation on $source');
       }

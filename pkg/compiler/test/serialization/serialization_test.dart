@@ -17,14 +17,16 @@ main(List<String> args) {
   });
 }
 
-Future checkTests(Directory dataDir,
-    {List<String> options = const <String>[],
-    List<String> args = const <String>[],
-    Directory? libDirectory,
-    bool forUserLibrariesOnly = true,
-    int shards = 1,
-    int shardIndex = 0,
-    void onTest(Uri uri)?}) async {
+Future checkTests(
+  Directory dataDir, {
+  List<String> options = const <String>[],
+  List<String> args = const <String>[],
+  Directory? libDirectory,
+  bool forUserLibrariesOnly = true,
+  int shards = 1,
+  int shardIndex = 0,
+  void onTest(Uri uri)?,
+}) async {
   args = args.toList();
   bool shouldContinue = args.remove('-c');
   bool continued = false;
@@ -58,8 +60,9 @@ Future checkTests(Directory dataDir,
     // Pretend this is a dart2js_native test to allow use of 'native' keyword
     // and import of private libraries.
     String commonTestPath = 'sdk/tests/compiler';
-    Uri entryPoint =
-        Uri.parse('memory:$commonTestPath/dart2js_native/main.dart');
+    Uri entryPoint = Uri.parse(
+      'memory:$commonTestPath/dart2js_native/main.dart',
+    );
     String mainCode = await File.fromUri(entity.uri).readAsString();
     Map<String, String> memorySourceFiles = {entryPoint.path: mainCode};
 
@@ -70,8 +73,9 @@ Future checkTests(Directory dataDir,
         String libFileName = libEntity.uri.pathSegments.last;
         if (libFileName.startsWith(filePrefix)) {
           print('    - libs/$libFileName');
-          Uri libFileUri =
-              Uri.parse('memory:$commonTestPath/libs/$libFileName');
+          Uri libFileUri = Uri.parse(
+            'memory:$commonTestPath/libs/$libFileName',
+          );
           String libCode = await File.fromUri(libEntity.uri).readAsString();
           memorySourceFiles[libFileUri.path] = libCode;
         }
@@ -79,10 +83,11 @@ Future checkTests(Directory dataDir,
     }
 
     await runTest(
-        entryPoint: entryPoint,
-        memorySourceFiles: memorySourceFiles,
-        options: testOptions,
-        strategy: strategy);
+      entryPoint: entryPoint,
+      memorySourceFiles: memorySourceFiles,
+      options: testOptions,
+      strategy: strategy,
+    );
   }
   Expect.isFalse(hasFailures, 'Errors found.');
   Expect.isTrue(testCount > 0, "No files were tested.");

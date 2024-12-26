@@ -882,6 +882,7 @@ void f(A a, B b, C c) {
   }
 
   Future<void> test_label() async {
+    await setPriorityFiles2([testFile]);
     addTestFile('''
 void f() {
 myLabel:
@@ -901,6 +902,7 @@ myLabel:
   }
 
   Future<void> test_localVariable() async {
+    await setPriorityFiles2([testFile]);
     addTestFile('''
 void f() {
   var vvv = 1;
@@ -1300,6 +1302,7 @@ void f(({int foo}) x, num ^a) {
   }
 
   Future<void> test_pattern_relational_variable() async {
+    await setPriorityFiles2([testFile]);
     await assertReferences(
       kind: ElementKind.LOCAL_VARIABLE,
       resultKinds: {0: SearchResultKind.READ},
@@ -1562,6 +1565,7 @@ class A<T> {
   }
 
   Future<void> test_variable_forEachElement_block() async {
+    await setPriorityFiles2([testFile]);
     addTestFile('''
 void f(List<int> values) {
   {
@@ -1575,6 +1579,7 @@ void f(List<int> values) {
   }
 
   Future<void> test_variable_forEachElement_expressionBody() async {
+    await setPriorityFiles2([testFile]);
     addTestFile('''
 Object f() => [for (final value in []) value * 2];
 ''');
@@ -1584,6 +1589,7 @@ Object f() => [for (final value in []) value * 2];
   }
 
   Future<void> test_variable_forEachElement_functionBody() async {
+    await setPriorityFiles2([testFile]);
     addTestFile('''
 void f(List<int> values) {
   [for (final value in values) value * 2];
@@ -1595,6 +1601,7 @@ void f(List<int> values) {
   }
 
   Future<void> test_variable_forEachElement_topLevelVariable() async {
+    await setPriorityFiles2([testFile]);
     addTestFile('''
 final a = [for (final value in []) value * 2];
 ''');

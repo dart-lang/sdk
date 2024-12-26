@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:linter/src/rules/use_build_context_synchronously.dart';
 import 'package:test/test.dart';
@@ -23,8 +23,7 @@ class AsyncStateTest extends PubPackageResolutionTest {
   @override
   bool get addFlutterPackageDep => true;
 
-  Element get contextElement =>
-      findNode.simple('context /* ref */').staticElement!;
+  Element2 get contextElement => findNode.simple('context /* ref */').element!;
 
   FindNode get findNode => FindNode(result.content, result.unit);
 
@@ -2712,7 +2711,7 @@ void foo(BuildContext context, StreamSubscription<void> s) async {
 }
 
 extension on AstNode {
-  AsyncState? asyncStateFor(AstNode reference, Element expressionElement) {
+  AsyncState? asyncStateFor(AstNode reference, Element2 expressionElement) {
     assert(
       () {
         if (reference.parent == this) return true;

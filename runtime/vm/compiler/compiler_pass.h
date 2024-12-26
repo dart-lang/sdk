@@ -64,14 +64,12 @@ class FlowGraph;
 class FlowGraphCompiler;
 class Function;
 class Precompiler;
-class SpeculativeInliningPolicy;
 class TimelineStream;
 class Thread;
 
 struct CompilerPassState {
   CompilerPassState(Thread* thread,
                     FlowGraph* flow_graph,
-                    SpeculativeInliningPolicy* speculative_policy,
                     Precompiler* precompiler = nullptr);
 
   FlowGraph* flow_graph() const { return flow_graph_; }
@@ -83,17 +81,7 @@ struct CompilerPassState {
   int inlining_depth;
   AllocationSinking* sinking;
 
-  // Maps inline_id_to_function[inline_id] -> function. Top scope
-  // function has inline_id 0. The map is populated by the inliner.
-  GrowableArray<const Function*> inline_id_to_function;
-  // Token position where inlining occurred.
-  GrowableArray<TokenPosition> inline_id_to_token_pos;
-  // For a given inlining-id(index) specifies the caller's inlining-id.
-  GrowableArray<intptr_t> caller_inline_id;
-
   CallSpecializer* call_specializer;
-
-  SpeculativeInliningPolicy* speculative_policy;
 
   intptr_t sticky_flags;
 

@@ -15,5 +15,5 @@ import 'lib.dart' deferred as lib;
  member_unit=main{}
 */
 main() => lib.loadLibrary().then(/*closure_unit=main{}*/ (_) {
-      (lib.funky)();
-    });
+  (lib.funky)();
+});

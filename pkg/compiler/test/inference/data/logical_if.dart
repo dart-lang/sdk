@@ -101,7 +101,9 @@ class Class4 {}
 
 /*member: _promotedAndIfThen:[null]*/
 _promotedAndIfThen(
-    /*Union([exact=Class4], [exact=JSUInt31])*/ o, /*[exact=JSBool]*/ c) {
+  /*Union([exact=Class4], [exact=JSUInt31])*/ o,
+  /*[exact=JSBool]*/ c,
+) {
   if (o is Class4 && c) {
     o. /*invoke: [exact=Class4]*/ toString();
   }
@@ -122,7 +124,9 @@ class Class5 {}
 
 /*member: _promotedAndIfThenElse:[null]*/
 _promotedAndIfThenElse(
-    /*Union([exact=Class5], [exact=JSUInt31])*/ o, /*[exact=JSBool]*/ c) {
+  /*Union([exact=Class5], [exact=JSUInt31])*/ o,
+  /*[exact=JSBool]*/ c,
+) {
   if (o is Class5 && c) {
     o. /*invoke: [exact=Class5]*/ toString();
   } else {
@@ -147,7 +151,9 @@ class Class6 {}
 
 /*member: _promotedNotAndIfThenElse:[null]*/
 _promotedNotAndIfThenElse(
-    /*Union([exact=Class6], [exact=JSUInt31])*/ o, /*[exact=JSBool]*/ c) {
+  /*Union([exact=Class6], [exact=JSUInt31])*/ o,
+  /*[exact=JSBool]*/ c,
+) {
   if (o is! Class6 && c) {
     o. /*invoke: Union([exact=Class6], [exact=JSUInt31])*/ toString();
   } else {
@@ -170,7 +176,9 @@ class Class7 {}
 
 /*member: _promotedOrIfThen:[null]*/
 _promotedOrIfThen(
-    /*Union([exact=Class7], [exact=JSUInt31])*/ o, /*[exact=JSBool]*/ c) {
+  /*Union([exact=Class7], [exact=JSUInt31])*/ o,
+  /*[exact=JSBool]*/ c,
+) {
   if (o is Class7 || c) {
     o. /*invoke: Union([exact=Class7], [exact=JSUInt31])*/ toString();
   }
@@ -191,7 +199,9 @@ class Class8 {}
 
 /*member: _promotedOrIfThenElse:[null]*/
 _promotedOrIfThenElse(
-    /*Union([exact=Class8], [exact=JSUInt31])*/ o, /*[exact=JSBool]*/ c) {
+  /*Union([exact=Class8], [exact=JSUInt31])*/ o,
+  /*[exact=JSBool]*/ c,
+) {
   if (o is Class8 || c) {
     o. /*invoke: Union([exact=Class8], [exact=JSUInt31])*/ toString();
   } else {
@@ -216,7 +226,9 @@ class Class9 {}
 
 /*member: _promotedNotOrIfThenElse:[null]*/
 _promotedNotOrIfThenElse(
-    /*Union([exact=Class9], [exact=JSUInt31])*/ o, /*[exact=JSBool]*/ c) {
+  /*Union([exact=Class9], [exact=JSUInt31])*/ o,
+  /*[exact=JSBool]*/ c,
+) {
   if (o is! Class9 || c) {
     o. /*invoke: Union([exact=Class9], [exact=JSUInt31])*/ toString();
   } else {

@@ -8,8 +8,7 @@ import 'package:js_runtime/synced/invocation_mirror_constants.dart'
 enum InvocationMirrorKind {
   method._(constants.method),
   getter._(constants.getter),
-  setter._(constants.setter),
-  ;
+  setter._(constants.setter);
 
   // This is preferred over [index] to avoid coupling the enum ordering to
   // codegen.

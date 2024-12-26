@@ -120,7 +120,7 @@ class GeneralizingElementVisitor2<R> implements ElementVisitor2<R> {
 
   @override
   R? visitGetterElement(GetterElement element) =>
-      visitExecutableElement(element);
+      visitPropertyAccessorElement(element);
 
   @override
   R? visitLabelElement(LabelElement2 element) {
@@ -156,12 +156,15 @@ class GeneralizingElementVisitor2<R> implements ElementVisitor2<R> {
     return visitElement(element);
   }
 
+  R? visitPropertyAccessorElement(PropertyAccessorElement2 element) =>
+      visitExecutableElement(element);
+
   R? visitPropertyInducingElement(PropertyInducingElement2 element) =>
       visitVariableElement(element);
 
   @override
   R? visitSetterElement(SetterElement element) =>
-      visitExecutableElement(element);
+      visitPropertyAccessorElement(element);
 
   @override
   R? visitSuperFormalParameterElement(SuperFormalParameterElement2 element) =>

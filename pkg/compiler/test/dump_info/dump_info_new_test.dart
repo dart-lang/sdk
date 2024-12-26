@@ -23,8 +23,10 @@ final JsonEncoder indentedEncoder = const JsonEncoder.withIndent('  ');
 String jsonEncode(Map object, {bool indent = true}) {
   final jsonEncoder = indent ? indentedEncoder : encoder;
   // Filter block comments since they interfere with ID test comments.
-  final json =
-      jsonEncoder.convert(object).replaceAll('/*', '').replaceAll('*/', '');
+  final json = jsonEncoder
+      .convert(object)
+      .replaceAll('/*', '')
+      .replaceAll('*/', '');
   return json;
 }
 
@@ -42,14 +44,13 @@ main(List<String> args) {
     Directory dataDir = Directory.fromUri(Platform.script.resolve('data_new'));
     print('Testing output of new-dump-info');
     print('==================================================================');
-    await checkTests(dataDir, const DumpInfoDataComputer(),
-        args: args,
-        testedConfigs: allSpecConfigs,
-        options: [
-          '--stage=dump-info-all',
-          '--new-dump-info',
-          '--enable-asserts'
-        ]);
+    await checkTests(
+      dataDir,
+      const DumpInfoDataComputer(),
+      args: args,
+      testedConfigs: allSpecConfigs,
+      options: ['--stage=dump-info-all', '--new-dump-info', '--enable-asserts'],
+    );
   });
 }
 
@@ -74,9 +75,12 @@ class DumpInfoDataComputer extends DataComputer<Features> {
   static const String wildcard = '%';
 
   @override
-  void computeLibraryData(Compiler compiler, LibraryEntity library,
-      Map<Id, ActualData<Features>> actualMap,
-      {required bool verbose}) {
+  void computeLibraryData(
+    Compiler compiler,
+    LibraryEntity library,
+    Map<Id, ActualData<Features>> actualMap, {
+    required bool verbose,
+  }) {
     final converter = info.AllInfoToJsonConverter(isBackwardCompatible: true);
     DumpInfoStateData dumpInfoState = compiler.dumpInfoStateForTesting;
 
@@ -85,39 +89,56 @@ class DumpInfoDataComputer extends DataComputer<Features> {
     if (libraryInfo == null) return;
 
     features.addElement(
-        Tags.library, jsonEncode(libraryInfo.accept(converter)));
+      Tags.library,
+      jsonEncode(libraryInfo.accept(converter)),
+    );
 
     // Store program-wide information on the main library.
     final name = '${library.canonicalUri.pathSegments.last}';
     if (name.startsWith('main')) {
       for (final constantInfo in dumpInfoState.info.constants) {
         features.addElement(
-            Tags.constant, jsonEncode(constantInfo.accept(converter)));
+          Tags.constant,
+          jsonEncode(constantInfo.accept(converter)),
+        );
       }
       features.addElement(
-          Tags.dependencies, jsonEncode(dumpInfoState.info.dependencies));
+        Tags.dependencies,
+        jsonEncode(dumpInfoState.info.dependencies),
+      );
       for (final outputUnit in dumpInfoState.info.outputUnits) {
         var outputUnitJsonObject = outputUnit.accept(converter);
         // Remove the size from the main output unit due to high noise ratio.
         if (outputUnit.name == 'main') {
-          outputUnitJsonObject =
-              filteredJsonObject(outputUnitJsonObject, {'size'});
+          outputUnitJsonObject = filteredJsonObject(outputUnitJsonObject, {
+            'size',
+          });
         }
         features.addElement(Tags.outputUnits, jsonEncode(outputUnitJsonObject));
       }
       features.addElement(
-          Tags.deferredFiles, jsonEncode(dumpInfoState.info.deferredFiles!));
+        Tags.deferredFiles,
+        jsonEncode(dumpInfoState.info.deferredFiles!),
+      );
     }
 
     final id = LibraryId(library.canonicalUri);
-    actualMap[id] =
-        ActualData<Features>(id, features, library.canonicalUri, -1, library);
+    actualMap[id] = ActualData<Features>(
+      id,
+      features,
+      library.canonicalUri,
+      -1,
+      library,
+    );
   }
 
   @override
-  void computeClassData(Compiler compiler, ClassEntity cls,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool verbose = false}) {
+  void computeClassData(
+    Compiler compiler,
+    ClassEntity cls,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool verbose = false,
+  }) {
     final converter = info.AllInfoToJsonConverter(isBackwardCompatible: true);
     DumpInfoStateData dumpInfoState = compiler.dumpInfoStateForTesting;
 
@@ -126,15 +147,19 @@ class DumpInfoDataComputer extends DataComputer<Features> {
     if (classInfo == null) return;
 
     features.addElement(Tags.clazz, jsonEncode(classInfo.accept(converter)));
-    final classTypeInfos =
-        dumpInfoState.info.classTypes.where((i) => i.name == classInfo.name);
+    final classTypeInfos = dumpInfoState.info.classTypes.where(
+      (i) => i.name == classInfo.name,
+    );
     assert(
-        classTypeInfos.length < 2,
-        'Ambiguous class type info resolution. '
-        'Expected 0 or 1 elements, found: $classTypeInfos');
+      classTypeInfos.length < 2,
+      'Ambiguous class type info resolution. '
+      'Expected 0 or 1 elements, found: $classTypeInfos',
+    );
     if (classTypeInfos.length == 1) {
       features.addElement(
-          Tags.classType, jsonEncode(classTypeInfos.first.accept(converter)));
+        Tags.classType,
+        jsonEncode(classTypeInfos.first.accept(converter)),
+      );
     }
 
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
@@ -142,14 +167,22 @@ class DumpInfoDataComputer extends DataComputer<Features> {
     ir.Class node = elementMap.getClassDefinition(cls).node as ir.Class;
     ClassId id = ClassId(node.name);
     ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
-    actualMap[id] = ActualData<Features>(id, features,
-        nodeWithOffset.location!.file, nodeWithOffset.fileOffset, cls);
+    actualMap[id] = ActualData<Features>(
+      id,
+      features,
+      nodeWithOffset.location!.file,
+      nodeWithOffset.fileOffset,
+      cls,
+    );
   }
 
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool verbose = false}) {
+  void computeMemberData(
+    Compiler compiler,
+    MemberEntity member,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool verbose = false,
+  }) {
     final converter = info.AllInfoToJsonConverter(isBackwardCompatible: true);
     DumpInfoStateData dumpInfoState = compiler.dumpInfoStateForTesting;
 
@@ -159,31 +192,47 @@ class DumpInfoDataComputer extends DataComputer<Features> {
 
     if (functionInfo is info.FunctionInfo) {
       features.addElement(
-          Tags.function, jsonEncode(functionInfo.accept(converter)));
+        Tags.function,
+        jsonEncode(functionInfo.accept(converter)),
+      );
       for (final use in functionInfo.uses) {
-        features.addElement(Tags.holding,
-            jsonEncode(converter.visitDependencyInfo(use), indent: false));
+        features.addElement(
+          Tags.holding,
+          jsonEncode(converter.visitDependencyInfo(use), indent: false),
+        );
       }
       for (final closure in functionInfo.closures) {
         features.addElement(
-            Tags.closure, jsonEncode(closure.accept(converter)));
+          Tags.closure,
+          jsonEncode(closure.accept(converter)),
+        );
         features.addElement(
-            Tags.function, jsonEncode(closure.function.accept(converter)));
+          Tags.function,
+          jsonEncode(closure.function.accept(converter)),
+        );
       }
     }
 
     if (functionInfo is info.FieldInfo) {
       features.addElement(
-          Tags.function, jsonEncode(functionInfo.accept(converter)));
+        Tags.function,
+        jsonEncode(functionInfo.accept(converter)),
+      );
       for (final use in functionInfo.uses) {
-        features.addElement(Tags.holding,
-            jsonEncode(converter.visitDependencyInfo(use), indent: false));
+        features.addElement(
+          Tags.holding,
+          jsonEncode(converter.visitDependencyInfo(use), indent: false),
+        );
       }
       for (final closure in functionInfo.closures) {
         features.addElement(
-            Tags.closure, jsonEncode(closure.accept(converter)));
+          Tags.closure,
+          jsonEncode(closure.accept(converter)),
+        );
         features.addElement(
-            Tags.function, jsonEncode(closure.function.accept(converter)));
+          Tags.function,
+          jsonEncode(closure.function.accept(converter)),
+        );
       }
     }
 
@@ -192,8 +241,13 @@ class DumpInfoDataComputer extends DataComputer<Features> {
     final node = elementMap.getMemberDefinition(member).node as ir.Member;
     Id id = computeMemberId(node);
     ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
-    actualMap[id] = ActualData<Features>(id, features,
-        nodeWithOffset.location!.file, nodeWithOffset.fileOffset, member);
+    actualMap[id] = ActualData<Features>(
+      id,
+      features,
+      nodeWithOffset.location!.file,
+      nodeWithOffset.fileOffset,
+      member,
+    );
   }
 
   @override
@@ -236,17 +290,23 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
           if (actualValue is List) {
             List actualList = actualValue.toList();
             for (String expectedObject in expectedValue) {
-              String expectedText =
-                  jsonEncode(jsonDecode(expectedObject), indent: false);
+              String expectedText = jsonEncode(
+                jsonDecode(expectedObject),
+                indent: false,
+              );
               bool matchFound = false;
               if (wildcard != null && expectedText.endsWith(wildcard!)) {
                 // Wildcard matcher.
-                String prefix =
-                    expectedText.substring(0, expectedText.indexOf(wildcard!));
+                String prefix = expectedText.substring(
+                  0,
+                  expectedText.indexOf(wildcard!),
+                );
                 List matches = [];
                 for (String actualObject in actualList) {
-                  final formattedActualObject =
-                      jsonEncode(jsonDecode(actualObject), indent: false);
+                  final formattedActualObject = jsonEncode(
+                    jsonDecode(actualObject),
+                    indent: false,
+                  );
                   if (formattedActualObject.startsWith(prefix)) {
                     matches.add(actualObject);
                     matchFound = true;
@@ -257,8 +317,10 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
                 }
               } else {
                 for (String actualObject in actualList) {
-                  final formattedActualObject =
-                      jsonEncode(jsonDecode(actualObject), indent: false);
+                  final formattedActualObject = jsonEncode(
+                    jsonDecode(actualObject),
+                    indent: false,
+                  );
                   if (expectedText == formattedActualObject) {
                     actualList.remove(actualObject);
                     matchFound = true;
@@ -271,16 +333,21 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
               }
             }
             if (actualList.isNotEmpty) {
-              errorsFound
-                  .add("Extra data found $key=[${actualList.join(',')}]");
+              errorsFound.add(
+                "Extra data found $key=[${actualList.join(',')}]",
+              );
             }
           } else {
-            errorsFound.add("List data expected for $key: "
-                "expected '$expectedValue', found '${actualValue}'");
+            errorsFound.add(
+              "List data expected for $key: "
+              "expected '$expectedValue', found '${actualValue}'",
+            );
           }
         } else if (expectedValue != actualValue) {
-          errorsFound.add("Mismatch for $key: expected '$expectedValue', "
-              "found '${actualValue}'");
+          errorsFound.add(
+            "Mismatch for $key: expected '$expectedValue', "
+            "found '${actualValue}'",
+          );
         }
       });
       actualFeatures.forEach((String key, Object value) {

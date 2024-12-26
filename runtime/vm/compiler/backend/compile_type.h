@@ -101,14 +101,6 @@ class CompileType : public ZoneAllocated {
   // Return true if this type is a subtype of the given type.
   bool IsSubtypeOf(const AbstractType& other);
 
-  // Return true if value of this type is assignable to a location of the
-  // given type.
-  bool IsAssignableTo(const AbstractType& other);
-
-  // Return true if value of this type always passes 'is' test
-  // against given type.
-  bool IsInstanceOf(const AbstractType& other);
-
   // Return the non-nullable version of this type.
   CompileType CopyNonNullable() {
     if (IsNull()) {
@@ -278,7 +270,7 @@ class CompileType : public ZoneAllocated {
 
   // Returns true if a value of this CompileType can contain a Smi.
   // Note that this is not the same as calling
-  // CompileType::Smi().IsAssignableTo(this) - because this compile type
+  // CompileType::Smi().IsSubtypeOf(this) - because this compile type
   // can be uninstantiated.
   bool CanBeSmi();
 

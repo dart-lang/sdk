@@ -13,7 +13,7 @@ class Hasher implements CodeOutputListener {
   ByteConversionSink? _byteSink;
 
   Hasher._(this._digestSink)
-      : _byteSink = sha1.startChunkedConversion(_digestSink);
+    : _byteSink = sha1.startChunkedConversion(_digestSink);
 
   factory Hasher() => Hasher._(_DigestSink());
 

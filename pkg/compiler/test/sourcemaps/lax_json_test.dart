@@ -39,8 +39,13 @@ void main() {
   Expect.listEquals(decode('[\n]'), []);
   Expect.listEquals(decode('["foo"]'), ['foo']);
   Expect.listEquals(decode('["foo",]'), ['foo']);
-  Expect.listEquals(decode('["foo", "bar", true, \nnull\n,false,]'),
-      ['foo', 'bar', true, null, false]);
+  Expect.listEquals(decode('["foo", "bar", true, \nnull\n,false,]'), [
+    'foo',
+    'bar',
+    true,
+    null,
+    false,
+  ]);
 
   // Maps.
   Expect.mapEquals(decode('{}'), {});
@@ -48,7 +53,10 @@ void main() {
   Expect.mapEquals(decode('{"foo":"bar"}'), {'foo': 'bar'});
   Expect.mapEquals(decode('{"foo":"bar",}'), {'foo': 'bar'});
   Expect.mapEquals(
-      decode('{"foo":true, "bar": false, "baz": true, '
-          '"boz": \nnull\n,"qux": false,}'),
-      {'foo': true, 'bar': false, 'baz': true, 'boz': null, 'qux': false});
+    decode(
+      '{"foo":true, "bar": false, "baz": true, '
+      '"boz": \nnull\n,"qux": false,}',
+    ),
+    {'foo': true, 'bar': false, 'baz': true, 'boz': null, 'qux': false},
+  );
 }

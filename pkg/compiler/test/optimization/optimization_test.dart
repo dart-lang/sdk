@@ -22,8 +22,12 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
     bool strict = args.contains('-s');
-    await checkTests(dataDir, OptimizationDataComputer(strict: strict),
-        options: [], args: args);
+    await checkTests(
+      dataDir,
+      OptimizationDataComputer(strict: strict),
+      options: [],
+      args: args,
+    );
   });
 }
 
@@ -38,7 +42,9 @@ class OptimizationDataValidator
     Features features = Features();
     for (OptimizationLogEntry entry in actualData.entries) {
       features.addElement(
-          entry.tag, entry.features.getText().replaceAll(',', '&'));
+        entry.tag,
+        entry.features.getText().replaceAll(',', '&'),
+      );
     }
     return features.getText();
   }
@@ -133,15 +139,23 @@ class OptimizationDataComputer extends DataComputer<OptimizationTestLog> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<OptimizationTestLog>> actualMap,
-      {bool verbose = false}) {
+  void computeMemberData(
+    Compiler compiler,
+    MemberEntity member,
+    Map<Id, ActualData<OptimizationTestLog>> actualMap, {
+    bool verbose = false,
+  }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    OptimizationIrComputer(compiler.reporter, actualMap, elementMap, member,
-            compiler.backendStrategy, closedWorld.closureDataLookup)
-        .run(definition.node);
+    OptimizationIrComputer(
+      compiler.reporter,
+      actualMap,
+      elementMap,
+      member,
+      compiler.backendStrategy,
+      closedWorld.closureDataLookup,
+    ).run(definition.node);
   }
 
   @override
@@ -156,13 +170,13 @@ class OptimizationIrComputer extends IrDataExtractor<OptimizationTestLog> {
   final ClosureData _closureDataLookup;
 
   OptimizationIrComputer(
-      DiagnosticReporter reporter,
-      Map<Id, ActualData<OptimizationTestLog>> actualMap,
-      this._elementMap,
-      MemberEntity member,
-      this._backendStrategy,
-      this._closureDataLookup)
-      : super(reporter, actualMap);
+    DiagnosticReporter reporter,
+    Map<Id, ActualData<OptimizationTestLog>> actualMap,
+    this._elementMap,
+    MemberEntity member,
+    this._backendStrategy,
+    this._closureDataLookup,
+  ) : super(reporter, actualMap);
 
   OptimizationTestLog? getLog(MemberEntity member) {
     final functionCompiler =
@@ -185,8 +199,9 @@ class OptimizationIrComputer extends IrDataExtractor<OptimizationTestLog> {
   @override
   OptimizationTestLog? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info =
-          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(
+        node as ir.LocalFunction,
+      );
       return getMemberValue(info.callMethod!);
     }
     return null;

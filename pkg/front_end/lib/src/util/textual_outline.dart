@@ -402,6 +402,12 @@ class _UnknownChunk extends _TokenChunk {
   _UnknownChunk(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
+// Coverage-ignore(suite): Not run.
+class _RecoveredImportChunk extends _TokenChunk {
+  _RecoveredImportChunk(Token startToken, Token endToken)
+      : super(startToken, endToken);
+}
+
 class _UnknownTokenBuilder {
   Token? start;
   Token? interimEnd;
@@ -838,6 +844,7 @@ class TextualOutlineListener extends Listener {
   }
 
   Token? firstShowOrHide;
+  Token? rememberedImportKeyword;
   List<_NamespaceCombinator>? _combinators;
   List<String>? _combinatorNames;
 
@@ -887,9 +894,26 @@ class TextualOutlineListener extends Listener {
     if (semicolon != null) {
       importExportsStartToChunk[importKeyword] = new _ImportChunk(
           importKeyword, semicolon, firstShowOrHide, _combinators);
+      _combinators = null;
+      firstShowOrHide = null;
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      rememberedImportKeyword = importKeyword;
     }
-    _combinators = null;
-    firstShowOrHide = null;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleRecoverImport(Token? semicolon) {
+    gotError = true;
+    if (semicolon != null) {
+      if (rememberedImportKeyword != null) {
+        unsortableElementStartToChunk[rememberedImportKeyword!] =
+            new _RecoveredImportChunk(rememberedImportKeyword!, semicolon);
+      }
+      _combinators = null;
+      firstShowOrHide = null;
+    }
   }
 
   @override

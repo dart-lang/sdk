@@ -2,28 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_emitter.main_call_stub_generator;
+library;
 
 import 'package:compiler/src/options.dart';
-import 'package:js_runtime/synced/embedded_names.dart' as embeddedNames;
+import 'package:js_runtime/synced/embedded_names.dart' as embedded_names;
 
 import '../common/elements.dart';
 import '../elements/entities.dart';
-import '../js/js.dart' as jsAst;
+import '../js/js.dart' as js_ast;
 import '../js/js.dart' show js;
 
 import 'js_emitter.dart' show Emitter;
 
 class MainCallStubGenerator {
-  static jsAst.Statement generateInvokeMain(
-      CommonElements commonElements,
-      Emitter emitter,
-      FunctionEntity main,
-      bool requiresStartupMetrics,
-      CompilerOptions options) {
-    jsAst.Expression mainAccess = emitter.staticFunctionAccess(main);
-    jsAst.Expression currentScriptAccess =
-        emitter.generateEmbeddedGlobalAccess(embeddedNames.CURRENT_SCRIPT);
+  static js_ast.Statement generateInvokeMain(
+    CommonElements commonElements,
+    Emitter emitter,
+    FunctionEntity main,
+    bool requiresStartupMetrics,
+    CompilerOptions options,
+  ) {
+    js_ast.Expression mainAccess = emitter.staticFunctionAccess(main);
+    js_ast.Expression currentScriptAccess = emitter
+        .generateEmbeddedGlobalAccess(embedded_names.CURRENT_SCRIPT);
 
     // TODO(https://github.com/dart-lang/language/issues/1120#issuecomment-670802088):
     // Validate constraints on `main()` in resolution for dart2js, and in DDC.
@@ -35,7 +36,7 @@ class MainCallStubGenerator {
     // has been validated earlier.
     int positionalParameters = parameterStructure.positionalParameters;
 
-    jsAst.Expression mainCallClosure;
+    js_ast.Expression mainCallClosure;
     if (positionalParameters == 0) {
       if (parameterStructure.namedParameters.isEmpty) {
         // e.g. `void main()`.
@@ -48,8 +49,9 @@ class MainCallStubGenerator {
         mainCallClosure = js(r'''function() { return #(); }''', mainAccess);
       }
     } else {
-      jsAst.Expression convertArgumentList =
-          emitter.staticFunctionAccess(commonElements.convertMainArgumentList);
+      js_ast.Expression convertArgumentList = emitter.staticFunctionAccess(
+        commonElements.convertMainArgumentList,
+      );
       if (positionalParameters == 1) {
         // e.g. `void main(List<String> args)`,  `main([args])`.
         mainCallClosure = js(
@@ -70,7 +72,8 @@ class MainCallStubGenerator {
     // onload event of all script tags and getting the first script which
     // finishes. Since onload is called immediately after execution this should
     // not substantially change execution order.
-    return js.statement('''
+    return js.statement(
+      '''
       (function (callback) {
         if (typeof document === "undefined") {
           callback(null);
@@ -109,14 +112,16 @@ class MainCallStubGenerator {
         } else {
           callMain([]);
         }
-      })''', {
-      'currentScript': currentScriptAccess,
-      'mainCallClosure': mainCallClosure,
-      'isCollectingRuntimeMetrics': options.experimentalTrackAllocations,
-      'runtimeMetricsContainer': embeddedNames.RUNTIME_METRICS_CONTAINER,
-      'runtimeMetricsEmbeddedGlobal': embeddedNames.RUNTIME_METRICS,
-      'startupMetrics': requiresStartupMetrics,
-      'startupMetricsEmbeddedGlobal': embeddedNames.STARTUP_METRICS,
-    });
+      })''',
+      {
+        'currentScript': currentScriptAccess,
+        'mainCallClosure': mainCallClosure,
+        'isCollectingRuntimeMetrics': options.experimentalTrackAllocations,
+        'runtimeMetricsContainer': embedded_names.RUNTIME_METRICS_CONTAINER,
+        'runtimeMetricsEmbeddedGlobal': embedded_names.RUNTIME_METRICS,
+        'startupMetrics': requiresStartupMetrics,
+        'startupMetricsEmbeddedGlobal': embedded_names.STARTUP_METRICS,
+      },
+    );
   }
 }

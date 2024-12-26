@@ -195,7 +195,7 @@ base class _SecureFilterImpl extends NativeFieldWrapperClass1
   @pragma("vm:external-name", "SecureSocket_FilterPointer")
   external int _pointer();
 
-  @pragma("vm:entry-point", "get")
+  @pragma("vm:entry-point")
   List<_ExternalBuffer>? buffers;
 }
 

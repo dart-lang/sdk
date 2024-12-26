@@ -105,7 +105,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
     if (target is ExtensionOverride) {
       targetFragment = target.element2.firstFragment;
       if (targetFragment is ExtensionFragment) {
-        targetNode = await getExtensionDeclaration2(targetFragment);
+        targetNode = await getExtensionDeclaration(targetFragment);
         if (targetNode == null) {
           return;
         }
@@ -113,7 +113,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
     } else if (target is Identifier && target.element is ExtensionElement2) {
       targetFragment = (target.element as ExtensionElement2).firstFragment;
       if (targetFragment is ExtensionFragment) {
-        targetNode = await getExtensionDeclaration2(targetFragment);
+        targetNode = await getExtensionDeclaration(targetFragment);
         if (targetNode == null) {
           return;
         }
@@ -144,13 +144,13 @@ class CreateMethod extends ResolvedCorrectionProducer {
       // Prepare target ClassDeclaration.
       if (targetClassElement is MixinElement2) {
         var fragment = targetClassElement.firstFragment;
-        targetNode = await getMixinDeclaration2(fragment);
+        targetNode = await getMixinDeclaration(fragment);
       } else if (targetClassElement is ClassElement2) {
         var fragment = targetClassElement.firstFragment;
-        targetNode = await getClassDeclaration2(fragment);
+        targetNode = await getClassDeclaration(fragment);
       } else if (targetClassElement is ExtensionTypeElement2) {
         var fragment = targetClassElement.firstFragment;
-        targetNode = await getExtensionTypeDeclaration2(fragment);
+        targetNode = await getExtensionTypeDeclaration(fragment);
       }
       if (targetNode == null) {
         return;

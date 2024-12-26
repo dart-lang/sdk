@@ -67,8 +67,9 @@ public class FlutterWidgetProperty {
   private final String name;
 
   /**
-   * The list of children properties, if any. For example any property of type EdgeInsets will have
-   * four children properties of type double - left / top / right / bottom.
+   * The list of children properties, if any. For example any property of type
+   * <code>EdgeInsets</code> will have four children properties of type <code>double</code> - left /
+   * top / right / bottom.
    */
   private final List<FlutterWidgetProperty> children;
 
@@ -140,8 +141,9 @@ public class FlutterWidgetProperty {
   }
 
   /**
-   * The list of children properties, if any. For example any property of type EdgeInsets will have
-   * four children properties of type double - left / top / right / bottom.
+   * The list of children properties, if any. For example any property of type
+   * <code>EdgeInsets</code> will have four children properties of type <code>double</code> - left /
+   * top / right / bottom.
    */
   public List<FlutterWidgetProperty> getChildren() {
     return children;

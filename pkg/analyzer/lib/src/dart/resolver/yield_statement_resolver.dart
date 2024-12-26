@@ -100,10 +100,10 @@ class YieldStatementResolver {
           return;
         }
       } else {
-        var imposedSequenceType = imposedReturnType.asInstanceOf(
+        var imposedSequenceType = imposedReturnType.asInstanceOf2(
           bodyContext.isSynchronous
-              ? _typeProvider.iterableElement
-              : _typeProvider.streamElement,
+              ? _typeProvider.iterableElement2
+              : _typeProvider.streamElement2,
         );
         if (imposedSequenceType != null) {
           var imposedValueType = imposedSequenceType.typeArguments[0];
@@ -183,7 +183,9 @@ class YieldStatementResolver {
   }
 
   void _resolve_notGenerator(YieldStatement node) {
-    node.expression.accept(_resolver);
+    _resolver.analyzeExpression(
+        node.expression, _resolver.operations.unknownType);
+    _resolver.popRewrite();
 
     _errorReporter.atNode(
       node,

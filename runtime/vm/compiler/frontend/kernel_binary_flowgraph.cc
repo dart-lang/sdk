@@ -67,7 +67,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
 
   PrologueInfo prologue_info(-1, -1);
   if (B->IsCompiledForOsr()) {
-    B->graph_entry_->RelinkToOsrEntry(Z, B->last_used_block_id_ + 1);
+    auto result = B->graph_entry_->FindOsrEntry(Z, B->last_used_block_id_ + 1);
+    flow_graph_builder_->RelinkToOsrEntry(result);
   }
   return new (Z) FlowGraph(
       *parsed_function(), B->graph_entry_, B->last_used_block_id_,
@@ -886,18 +887,24 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
     B->RecordUncheckedEntryPoint(graph_entry, extra_entry);
   }
 
-  // When compiling for OSR, use a depth first search to find the OSR
-  // entry and make graph entry jump to it instead of normal entry.
-  // Catch entries are always considered reachable, even if they
-  // become unreachable after OSR.
-  if (flow_graph_builder_->IsCompiledForOsr()) {
-    graph_entry->RelinkToOsrEntry(Z,
-                                  flow_graph_builder_->last_used_block_id_ + 1);
-  }
-  return new (Z) FlowGraph(
+  auto flow_graph = new (Z) FlowGraph(
       *parsed_function(), graph_entry, flow_graph_builder_->last_used_block_id_,
       prologue_info,
       FlowGraph::CompilationModeFrom(flow_graph_builder_->optimizing()));
+
+  // When compiling for OSR, use a depth first search to find the OSR
+  // entry and make graph entry jump to it instead of normal entry.
+  // Include enclosing try blocks with corresponding catch blocks.
+  if (flow_graph_builder_->IsCompiledForOsr()) {
+    auto result = graph_entry->FindOsrEntry(
+        Z, flow_graph_builder_->last_used_block_id_ + 1);
+    flow_graph_builder_->RelinkToOsrEntry(result);
+    flow_graph = new (Z) FlowGraph(
+        *parsed_function(), graph_entry,
+        flow_graph_builder_->last_used_block_id_, prologue_info,
+        FlowGraph::CompilationModeFrom(flow_graph_builder_->optimizing_));
+  }
+  return flow_graph;
 }
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
@@ -1821,12 +1828,12 @@ Fragment StreamingFlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
                                                     intptr_t handler_index,
                                                     bool needs_stacktrace,
                                                     bool is_synthesized) {
-  return flow_graph_builder_->CatchBlockEntry(handler_types, handler_index,
-                                              needs_stacktrace, is_synthesized);
+  return B->CatchBlockEntry(handler_types, handler_index, needs_stacktrace,
+                            is_synthesized);
 }
 
-Fragment StreamingFlowGraphBuilder::TryCatch(int try_handler_index) {
-  return flow_graph_builder_->TryCatch(try_handler_index);
+Fragment StreamingFlowGraphBuilder::TryEntry(int try_handler_index) {
+  return B->TryEntry(try_handler_index);
 }
 
 Fragment StreamingFlowGraphBuilder::Drop() {
@@ -5538,8 +5545,15 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch(TokenPosition* position) {
   const TokenPosition pos = ReadPosition();  // read position.
   if (position != nullptr) *position = pos;
 
+  // [try entry, try_body=B1, catch=B3]
+  // B1: [try body, try_index = <n>]
+  //   goto B2
+  // B3: [catch entry, try_handler_index = <n>]
+  //   goto B2
+  // B2: [join]
+  //   ...
   intptr_t try_handler_index = AllocateTryIndex();
-  Fragment try_body = TryCatch(try_handler_index);
+  Fragment try_body = TryEntry(try_handler_index);
   JoinEntryInstr* after_try = BuildJoinEntry();
 
   // Fill in the body of the try.
@@ -5689,7 +5703,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally(TokenPosition* position) {
   //   => We are responsible for catching it, executing the finally block and
   //      rethrowing the exception.
   intptr_t try_handler_index = AllocateTryIndex();
-  Fragment try_body = TryCatch(try_handler_index);
+  Fragment try_body = TryEntry(try_handler_index);
   JoinEntryInstr* after_try = BuildJoinEntry();
 
   intptr_t offset = ReaderOffset();
@@ -5894,7 +5908,11 @@ Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration(
                                            ? helper.equals_position_
                                            : helper.position_;
   if (position != nullptr) *position = helper.position_;
-  if (NeedsDebugStepCheck(stack(), debug_position) && !helper.IsHoisted()) {
+  if (debug_position.IsDebugPause() && !helper.IsHoisted() &&
+      // We always make it possible to add a breakpoint on the equals sign if it
+      // exists.
+      (helper.equals_position_.IsReal() ||
+       NeedsDebugStepCheck(stack(), debug_position))) {
     instructions = DebugStepCheck(debug_position) + instructions;
   }
   instructions += StoreLocal(helper.position_, variable);

@@ -102,7 +102,9 @@ testStringInterpolationConst() {
 }
 
 /*member: testStringJuxtaposition:type=[inst:JSString]*/
-testStringJuxtaposition() => 'a' 'b';
+testStringJuxtaposition() =>
+    'a'
+    'b';
 
 /*member: testSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testSymbol() => #main;
@@ -112,7 +114,10 @@ testConstSymbol() => const Symbol('main');
 
 const complexSymbolField1 = "true".length == 4;
 
-const complexSymbolField2 = "true" "false" "${true}${null}";
+const complexSymbolField2 =
+    "true"
+    "false"
+    "${true}${null}";
 
 const complexSymbolField3 = const {
   0: const bool.fromEnvironment('a', defaultValue: true),

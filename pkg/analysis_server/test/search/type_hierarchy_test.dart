@@ -106,7 +106,7 @@ augment class C extends MyClass1 {}
         'superclass': 1,
         'interfaces': [],
         'mixins': [],
-        'subclasses': [2, 3],
+        'subclasses': [2],
       },
       {
         'classElement': {
@@ -115,18 +115,6 @@ augment class C extends MyClass1 {}
           'location': anything,
           'flags': 0,
         },
-        'interfaces': [],
-        'mixins': [],
-        'subclasses': [],
-      },
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'C',
-          'location': anything,
-          'flags': 0,
-        },
-        'superclass': 0,
         'interfaces': [],
         'mixins': [],
         'subclasses': [],

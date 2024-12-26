@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js_backend.runtime_types_new;
+library;
 
 import 'package:js_shared/synced/recipe_syntax.dart';
 import 'package:js_shared/variance.dart';
@@ -10,7 +10,7 @@ import 'package:js_shared/variance.dart';
 import '../common/elements.dart' show CommonElements, JCommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../js/js.dart' as jsAst;
+import '../js/js.dart' as js_ast;
 import '../js/js.dart' show js;
 import '../js_model/js_world.dart';
 import '../js_model/type_recipe.dart';
@@ -24,22 +24,28 @@ import 'runtime_types_codegen.dart' show RuntimeTypesSubstitutions;
 abstract class RecipeEncoder {
   /// Returns a [RecipeEncoding] representing the given [recipe] to be
   /// evaluated against a type environment with shape [structure].
-  RecipeEncoding encodeRecipe(ModularEmitter emitter,
-      TypeEnvironmentStructure environmentStructure, TypeRecipe recipe);
+  RecipeEncoding encodeRecipe(
+    ModularEmitter emitter,
+    TypeEnvironmentStructure environmentStructure,
+    TypeRecipe recipe,
+  );
 
-  jsAst.Literal encodeGroundRecipe(ModularEmitter emitter, TypeRecipe recipe);
+  js_ast.Literal encodeGroundRecipe(ModularEmitter emitter, TypeRecipe recipe);
 
-  /// Returns a [jsAst.Literal] representing [supertypeArgument] to be evaluated
+  /// Returns a [js_ast.Literal] representing [supertypeArgument] to be evaluated
   /// against a [FullTypeEnvironmentStructure] representing [declaringType]. Any
   /// [TypeVariableType]s appearing in [supertypeArgument] which are declared by
   /// [declaringType] are always encoded as indices and type variables are
   /// assumed to never be erased.
-  jsAst.Literal encodeMetadataRecipe(ModularEmitter emitter,
-      InterfaceType declaringType, DartType supertypeArgument);
+  js_ast.Literal encodeMetadataRecipe(
+    ModularEmitter emitter,
+    InterfaceType declaringType,
+    DartType supertypeArgument,
+  );
 
-  /// Returns a [jsAst.Literal] representing the recipe for converting a binding
+  /// Returns a [js_ast.Literal] representing the recipe for converting a binding
   /// Rti with N bindings into a record Rti for a record shape with N fields.
-  jsAst.Literal encodeRecordFromBindingRecipe(RecordShape shape);
+  js_ast.Literal encodeRecordFromBindingRecipe(RecordShape shape);
 }
 
 class RecipeEncoderImpl implements RecipeEncoder {
@@ -48,35 +54,44 @@ class RecipeEncoderImpl implements RecipeEncoder {
   final NativeBasicData _nativeData;
   final JCommonElements commonElements;
 
-  RecipeEncoderImpl(this._closedWorld, this._rtiSubstitutions, this._nativeData,
-      this.commonElements);
+  RecipeEncoderImpl(
+    this._closedWorld,
+    this._rtiSubstitutions,
+    this._nativeData,
+    this.commonElements,
+  );
 
   @override
-  RecipeEncoding encodeRecipe(ModularEmitter emitter,
-      TypeEnvironmentStructure environmentStructure, TypeRecipe recipe) {
+  RecipeEncoding encodeRecipe(
+    ModularEmitter emitter,
+    TypeEnvironmentStructure environmentStructure,
+    TypeRecipe recipe,
+  ) {
     return _RecipeGenerator(this, emitter, environmentStructure, recipe).run();
   }
 
   @override
-  jsAst.Literal encodeGroundRecipe(ModularEmitter emitter, TypeRecipe recipe) {
+  js_ast.Literal encodeGroundRecipe(ModularEmitter emitter, TypeRecipe recipe) {
     return _RecipeGenerator(this, emitter, null, recipe).run().recipe;
   }
 
   @override
-  jsAst.Literal encodeMetadataRecipe(ModularEmitter emitter,
-      InterfaceType declaringType, DartType supertypeArgument) {
+  js_ast.Literal encodeMetadataRecipe(
+    ModularEmitter emitter,
+    InterfaceType declaringType,
+    DartType supertypeArgument,
+  ) {
     return _RecipeGenerator(
-            this,
-            emitter,
-            FullTypeEnvironmentStructure(classType: declaringType),
-            TypeExpressionRecipe(supertypeArgument),
-            metadata: true)
-        .run()
-        .recipe;
+      this,
+      emitter,
+      FullTypeEnvironmentStructure(classType: declaringType),
+      TypeExpressionRecipe(supertypeArgument),
+      metadata: true,
+    ).run().recipe;
   }
 
   @override
-  jsAst.Literal encodeRecordFromBindingRecipe(RecordShape shape) {
+  js_ast.Literal encodeRecordFromBindingRecipe(RecordShape shape) {
     final sb = StringBuffer();
     sb.write(Recipe.startRecordString);
     // Partial shape tag. The full shape is this plus the number of fields.
@@ -102,18 +117,22 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   final Set<TypeVariableType> typeVariables = {};
 
   // Accumulated recipe.
-  final List<jsAst.Literal> _fragments = [];
+  final List<js_ast.Literal> _fragments = [];
   final List<int> _codes = [];
 
   _RecipeGenerator(
-      this._encoder, this._emitter, this._environment, this._recipe,
-      {this.metadata = false});
+    this._encoder,
+    this._emitter,
+    this._environment,
+    this._recipe, {
+    this.metadata = false,
+  });
 
   JClosedWorld get _closedWorld => _encoder._closedWorld;
   NativeBasicData get _nativeData => _encoder._nativeData;
   RuntimeTypesSubstitutions get _rtiSubstitutions => _encoder._rtiSubstitutions;
 
-  RecipeEncoding _finishEncoding(jsAst.Literal literal) =>
+  RecipeEncoding _finishEncoding(js_ast.Literal literal) =>
       RecipeEncoding(literal, typeVariables);
 
   RecipeEncoding run() {
@@ -123,7 +142,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
       return _finishEncoding(js.string(String.fromCharCodes(_codes)));
     }
     _flushCodes();
-    return _finishEncoding(jsAst.StringConcatenation(_fragments));
+    return _finishEncoding(js_ast.StringConcatenation(_fragments));
   }
 
   void _start(TypeRecipe recipe) {
@@ -137,7 +156,9 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   }
 
   void _startFullTypeEnvironmentRecipe(
-      FullTypeEnvironmentRecipe recipe, void _) {
+    FullTypeEnvironmentRecipe recipe,
+    void _,
+  ) {
     if (recipe.classType == null) {
       _emitCode(Recipe.pushDynamic);
       assert(recipe.types.isNotEmpty);
@@ -155,7 +176,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
         if (!first) {
           _emitCode(Recipe.separator);
         }
-        visit(type, _);
+        visit(type, null);
         first = false;
       }
       _emitCode(Recipe.endTypeArguments);
@@ -189,7 +210,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
     }
   }
 
-  void _emitName(jsAst.Name name) {
+  void _emitName(js_ast.Name name) {
     if (_fragments.isNotEmpty && _codes.isEmpty) {
       _emitCode(Recipe.separator);
     }
@@ -203,17 +224,17 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   }
 
   @override
-  void visit(DartType type, _) => type.accept(this, _);
+  void visit(DartType type, _) => type.accept(this, null);
 
   @override
   void visitLegacyType(LegacyType type, _) {
-    visit(type.baseType, _);
+    visit(type.baseType, null);
     _emitCode(Recipe.wrapStar);
   }
 
   @override
   void visitNullableType(NullableType type, _) {
-    visit(type.baseType, _);
+    visit(type.baseType, null);
     _emitCode(Recipe.wrapQuestion);
   }
 
@@ -233,14 +254,18 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
     }
     if (environment is FullTypeEnvironmentStructure) {
       final index = indexTypeVariable(
-          _closedWorld, _rtiSubstitutions, environment, type,
-          metadata: metadata);
+        _closedWorld,
+        _rtiSubstitutions,
+        environment,
+        type,
+        metadata: metadata,
+      );
       if (index != null) {
         _emitInteger(index);
         return;
       }
 
-      jsAst.Name name = _emitter.typeVariableAccessNewRti(type.element);
+      js_ast.Name name = _emitter.typeVariableAccessNewRti(type.element);
       _emitName(name);
       typeVariables.add(type);
       return;
@@ -276,7 +301,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
 
   @override
   void visitInterfaceType(InterfaceType type, _) {
-    jsAst.Name name = _emitter.typeAccessNewRti(type.element);
+    js_ast.Name name = _emitter.typeAccessNewRti(type.element);
     if (type.typeArguments.isEmpty) {
       // Push the name, which is later converted by an implicit toType
       // operation.
@@ -293,7 +318,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
           // Emit 'any' type.
           _emitExtensionOp(Recipe.pushAnyExtension);
         } else {
-          visit(argumentType, _);
+          visit(argumentType, null);
         }
         first = false;
       }
@@ -312,7 +337,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
       if (!first) {
         _emitCode(Recipe.separator);
       }
-      visit(field, _);
+      visit(field, null);
       first = false;
     }
     _emitCode(Recipe.endFunctionArguments);
@@ -343,7 +368,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
       }
     }
 
-    visit(type.returnType, _);
+    visit(type.returnType, null);
     _emitCode(Recipe.startFunctionArguments);
 
     bool first = true;
@@ -351,7 +376,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
       if (!first) {
         _emitCode(Recipe.separator);
       }
-      visit(parameterType, _);
+      visit(parameterType, null);
       first = false;
     }
 
@@ -362,14 +387,17 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
         if (!first) {
           _emitCode(Recipe.separator);
         }
-        visit(parameterType, _);
+        visit(parameterType, null);
         first = false;
       }
       _emitCode(Recipe.endOptionalGroup);
     }
 
     void emitNamedGroup(
-        List<String> names, Set<String> requiredNames, List<DartType> types) {
+      List<String> names,
+      Set<String> requiredNames,
+      List<DartType> types,
+    ) {
       assert(names.length == types.length);
       first = true;
       _emitCode(Recipe.startNamedGroup);
@@ -378,18 +406,23 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
           _emitCode(Recipe.separator);
         }
         _emitStringUnescaped(names[i]);
-        _emitCode(requiredNames.contains(names[i])
-            ? Recipe.requiredNameSeparator
-            : Recipe.nameSeparator);
-        visit(types[i], _);
+        _emitCode(
+          requiredNames.contains(names[i])
+              ? Recipe.requiredNameSeparator
+              : Recipe.nameSeparator,
+        );
+        visit(types[i], null);
         first = false;
       }
       _emitCode(Recipe.endNamedGroup);
     }
 
     if (type.namedParameterTypes.isNotEmpty) {
-      emitNamedGroup(type.namedParameters, type.requiredNamedParameters,
-          type.namedParameterTypes);
+      emitNamedGroup(
+        type.namedParameters,
+        type.requiredNamedParameters,
+        type.namedParameterTypes,
+      );
     }
 
     _emitCode(Recipe.endFunctionArguments);
@@ -402,7 +435,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
         if (!first) {
           _emitCode(Recipe.separator);
         }
-        visit(typeVariable.bound, _);
+        visit(typeVariable.bound, null);
         first = false;
       }
       _emitCode(Recipe.endTypeArguments);
@@ -421,7 +454,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
 
   @override
   void visitFutureOrType(FutureOrType type, _) {
-    visit(type.typeArgument, _);
+    visit(type.typeArgument, null);
     _emitCode(Recipe.wrapFutureOr);
   }
 }
@@ -437,8 +470,10 @@ class _RulesetEntry {
   bool get isEmpty => _supertypes.isEmpty && _typeVariables.isEmpty;
   bool get isNotEmpty => _supertypes.isNotEmpty || _typeVariables.isNotEmpty;
 
-  void addAll(Iterable<InterfaceType> supertypes,
-      Map<TypeVariableType, DartType> typeVariables) {
+  void addAll(
+    Iterable<InterfaceType> supertypes,
+    Map<TypeVariableType, DartType> typeVariables,
+  ) {
     _supertypes.addAll(supertypes);
     _typeVariables.addAll(typeVariables);
   }
@@ -466,12 +501,17 @@ class Ruleset {
     _redirections[redirectee] = target;
   }
 
-  void addEntry(InterfaceType targetType, Iterable<InterfaceType> supertypes,
-      Map<TypeVariableType, DartType> typeVariables) {
+  void addEntry(
+    InterfaceType targetType,
+    Iterable<InterfaceType> supertypes,
+    Map<TypeVariableType, DartType> typeVariables,
+  ) {
     if (_isObject(targetType) || _isSyntheticClosure(targetType)) return;
-    supertypes = supertypes.where((supertype) =>
-        !_isObject(supertype) &&
-        !identical(targetType.element, supertype.element));
+    supertypes = supertypes.where(
+      (supertype) =>
+          !_isObject(supertype) &&
+          !identical(targetType.element, supertype.element),
+    );
     if (supertypes.isEmpty && typeVariables.isEmpty) return;
     _RulesetEntry entry = _entries[targetType] ??= _RulesetEntry();
     entry.addAll(supertypes, typeVariables);
@@ -495,7 +535,7 @@ class RulesetEncoder {
   // TODO(fishythefish): Common substring elimination.
 
   /// Produces a string readable by `JSON.parse()`.
-  jsAst.StringConcatenation encodeRuleset(Ruleset ruleset) =>
+  js_ast.StringConcatenation encodeRuleset(Ruleset ruleset) =>
       js.concatenateStrings([
         _leftBrace,
         ...js.joinLiterals([
@@ -505,125 +545,138 @@ class RulesetEncoder {
         _rightBrace,
       ]);
 
-  jsAst.StringConcatenation _encodeRedirection(
-          MapEntry<ClassEntity, ClassEntity> redirection) =>
-      js.concatenateStrings([
-        _doubleQuote,
-        _emitter.typeAccessNewRti(redirection.key),
-        _doubleQuote,
-        _colon,
-        _doubleQuote,
-        _emitter.typeAccessNewRti(redirection.value),
-        _doubleQuote,
-      ]);
+  js_ast.StringConcatenation _encodeRedirection(
+    MapEntry<ClassEntity, ClassEntity> redirection,
+  ) => js.concatenateStrings([
+    _doubleQuote,
+    _emitter.typeAccessNewRti(redirection.key),
+    _doubleQuote,
+    _colon,
+    _doubleQuote,
+    _emitter.typeAccessNewRti(redirection.value),
+    _doubleQuote,
+  ]);
 
-  jsAst.StringConcatenation _encodeEntry(
-          MapEntry<InterfaceType, _RulesetEntry> entry) =>
-      js.concatenateStrings([
-        _doubleQuote,
-        _emitter.typeAccessNewRti(entry.key.element),
-        _doubleQuote,
-        _colon,
-        _leftBrace,
-        ...js.joinLiterals([
-          ...entry.value._supertypes.map((InterfaceType supertype) =>
-              _encodeSupertype(entry.key, supertype)),
-          ...entry.value._typeVariables.entries.map((mapEntry) =>
-              _encodeTypeVariable(entry.key, mapEntry.key, mapEntry.value))
-        ], _comma),
-        _rightBrace,
-      ]);
+  js_ast.StringConcatenation _encodeEntry(
+    MapEntry<InterfaceType, _RulesetEntry> entry,
+  ) => js.concatenateStrings([
+    _doubleQuote,
+    _emitter.typeAccessNewRti(entry.key.element),
+    _doubleQuote,
+    _colon,
+    _leftBrace,
+    ...js.joinLiterals([
+      ...entry.value._supertypes.map(
+        (InterfaceType supertype) => _encodeSupertype(entry.key, supertype),
+      ),
+      ...entry.value._typeVariables.entries.map(
+        (mapEntry) =>
+            _encodeTypeVariable(entry.key, mapEntry.key, mapEntry.value),
+      ),
+    ], _comma),
+    _rightBrace,
+  ]);
 
-  jsAst.StringConcatenation _encodeSupertype(
-          InterfaceType targetType, InterfaceType supertype) =>
-      js.concatenateStrings([
-        _doubleQuote,
-        _emitter.typeAccessNewRti(supertype.element),
-        _doubleQuote,
-        _colon,
-        _leftBracket,
-        ...js.joinLiterals(
-            supertype.typeArguments.map((DartType supertypeArgument) =>
-                _encodeSupertypeArgument(targetType, supertypeArgument)),
-            _comma),
-        _rightBracket,
-      ]);
+  js_ast.StringConcatenation _encodeSupertype(
+    InterfaceType targetType,
+    InterfaceType supertype,
+  ) => js.concatenateStrings([
+    _doubleQuote,
+    _emitter.typeAccessNewRti(supertype.element),
+    _doubleQuote,
+    _colon,
+    _leftBracket,
+    ...js.joinLiterals(
+      supertype.typeArguments.map(
+        (DartType supertypeArgument) =>
+            _encodeSupertypeArgument(targetType, supertypeArgument),
+      ),
+      _comma,
+    ),
+    _rightBracket,
+  ]);
 
-  jsAst.StringConcatenation _encodeTypeVariable(InterfaceType targetType,
-          TypeVariableType typeVariable, DartType supertypeArgument) =>
-      js.concatenateStrings([
-        _doubleQuote,
-        _emitter.typeVariableAccessNewRti(typeVariable.element),
-        _doubleQuote,
-        _colon,
-        _encodeSupertypeArgument(targetType, supertypeArgument),
-      ]);
+  js_ast.StringConcatenation _encodeTypeVariable(
+    InterfaceType targetType,
+    TypeVariableType typeVariable,
+    DartType supertypeArgument,
+  ) => js.concatenateStrings([
+    _doubleQuote,
+    _emitter.typeVariableAccessNewRti(typeVariable.element),
+    _doubleQuote,
+    _colon,
+    _encodeSupertypeArgument(targetType, supertypeArgument),
+  ]);
 
-  jsAst.Literal _encodeSupertypeArgument(
-          InterfaceType targetType, DartType supertypeArgument) =>
-      js.concatenateStrings([
-        _doubleQuote,
-        _recipeEncoder.encodeMetadataRecipe(
-            _emitter, targetType, supertypeArgument),
-        _doubleQuote
-      ]);
+  js_ast.Literal _encodeSupertypeArgument(
+    InterfaceType targetType,
+    DartType supertypeArgument,
+  ) => js.concatenateStrings([
+    _doubleQuote,
+    _recipeEncoder.encodeMetadataRecipe(
+      _emitter,
+      targetType,
+      supertypeArgument,
+    ),
+    _doubleQuote,
+  ]);
 
-  jsAst.StringConcatenation encodeErasedTypes(
-          Map<ClassEntity, int> erasedTypes) =>
-      js.concatenateStrings([
-        _leftBrace,
-        ...js.joinLiterals(erasedTypes.entries.map(encodeErasedType), _comma),
-        _rightBrace,
-      ]);
+  js_ast.StringConcatenation encodeErasedTypes(
+    Map<ClassEntity, int> erasedTypes,
+  ) => js.concatenateStrings([
+    _leftBrace,
+    ...js.joinLiterals(erasedTypes.entries.map(encodeErasedType), _comma),
+    _rightBrace,
+  ]);
 
-  jsAst.StringConcatenation encodeErasedType(
-          MapEntry<ClassEntity, int> entry) =>
-      js.concatenateStrings([
-        _doubleQuote,
-        _emitter.typeAccessNewRti(entry.key),
-        _doubleQuote,
-        _colon,
-        js.number(entry.value),
-      ]);
+  js_ast.StringConcatenation encodeErasedType(
+    MapEntry<ClassEntity, int> entry,
+  ) => js.concatenateStrings([
+    _doubleQuote,
+    _emitter.typeAccessNewRti(entry.key),
+    _doubleQuote,
+    _colon,
+    js.number(entry.value),
+  ]);
 
-  jsAst.StringConcatenation encodeTypeParameterVariances(
-          Map<ClassEntity, List<Variance>> typeParameterVariances) =>
-      js.concatenateStrings([
-        _leftBrace,
-        ...js.joinLiterals(
-            typeParameterVariances.entries
-                .map(_encodeTypeParameterVariancesForClass),
-            _comma),
-        _rightBrace,
-      ]);
+  js_ast.StringConcatenation encodeTypeParameterVariances(
+    Map<ClassEntity, List<Variance>> typeParameterVariances,
+  ) => js.concatenateStrings([
+    _leftBrace,
+    ...js.joinLiterals(
+      typeParameterVariances.entries.map(_encodeTypeParameterVariancesForClass),
+      _comma,
+    ),
+    _rightBrace,
+  ]);
 
-  jsAst.StringConcatenation _encodeTypeParameterVariancesForClass(
-          MapEntry<ClassEntity, List<Variance>> classEntry) =>
-      js.concatenateStrings([
-        _doubleQuote,
-        _emitter.typeAccessNewRti(classEntry.key),
-        _doubleQuote,
-        _colon,
-        _leftBracket,
-        ...js.joinLiterals(
-            classEntry.value.map((v) => js.number(v.index)), _comma),
-        _rightBracket
-      ]);
+  js_ast.StringConcatenation _encodeTypeParameterVariancesForClass(
+    MapEntry<ClassEntity, List<Variance>> classEntry,
+  ) => js.concatenateStrings([
+    _doubleQuote,
+    _emitter.typeAccessNewRti(classEntry.key),
+    _doubleQuote,
+    _colon,
+    _leftBracket,
+    ...js.joinLiterals(classEntry.value.map((v) => js.number(v.index)), _comma),
+    _rightBracket,
+  ]);
 }
 
 class RecipeEncoding {
-  final jsAst.Literal recipe;
+  final js_ast.Literal recipe;
   final Set<TypeVariableType> typeVariables;
 
   const RecipeEncoding(this.recipe, this.typeVariables);
 }
 
 int? indexTypeVariable(
-    JClosedWorld world,
-    RuntimeTypesSubstitutions rtiSubstitutions,
-    FullTypeEnvironmentStructure environment,
-    TypeVariableType type,
-    {bool metadata = false}) {
+  JClosedWorld world,
+  RuntimeTypesSubstitutions rtiSubstitutions,
+  FullTypeEnvironmentStructure environment,
+  TypeVariableType type, {
+  bool metadata = false,
+}) {
   int i = environment.bindings.indexOf(type);
   if (i >= 0) {
     // Indices are 1-based since '0' encodes using the entire type for the
@@ -646,9 +699,10 @@ int? indexTypeVariable(
   // index, even though in the general case it is not at a specific index.
 
   ClassHierarchy classHierarchy = world.classHierarchy;
-  var test = mustCheckAllSubtypes(world, cls)
-      ? classHierarchy.anyStrictSubtypeOf
-      : classHierarchy.anyStrictSubclassOf;
+  var test =
+      mustCheckAllSubtypes(world, cls)
+          ? classHierarchy.anyStrictSubtypeOf
+          : classHierarchy.anyStrictSubclassOf;
   if (test(cls, (ClassEntity subclass) {
     return !rtiSubstitutions.isTrivialSubstitution(subclass, cls);
   })) {

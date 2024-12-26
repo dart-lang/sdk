@@ -45,7 +45,8 @@ forInReturn() {
 
 /*member: _forInReturn:[null|subclass=Object]*/
 _forInReturn(
-    /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/ list) {
+  /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/ list,
+) {
   /*iterator: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/
   /*current: [exact=ArrayIterator]*/
   /*moveNext: [exact=ArrayIterator]*/

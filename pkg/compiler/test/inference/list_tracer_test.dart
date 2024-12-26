@@ -252,7 +252,9 @@ doTest(String allocation, {required bool nullify}) async {
   checkType('listEscapingTwiceInIndexSet', commonMasks.numType);
   checkType('listSetInNonFinalField', commonMasks.numType);
   checkType(
-      'listWithChangedLength', (commonMasks.uint31Type as TypeMask).nullable());
+    'listWithChangedLength',
+    (commonMasks.uint31Type as TypeMask).nullable(),
+  );
 
   checkType('listPassedToClosure', commonMasks.dynamicType);
   checkType('listReturnedFromClosure', commonMasks.dynamicType);

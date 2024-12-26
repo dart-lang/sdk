@@ -5,9 +5,9 @@
 class Foo {
   Foo();
   Foo();
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR
-// [cfe] 'Foo' is already declared in this scope.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR
+  // [cfe] 'Foo' is already declared in this scope.
 }
 
 main() {

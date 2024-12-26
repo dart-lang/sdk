@@ -409,7 +409,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       if (constraint.lower is! SharedUnknownTypeSchemaView<DartType>) {
         return grounded
             ? leastClosure(constraint.lower.unwrapTypeSchemaView(),
-                topType: topType)
+                coreTypes: coreTypes)
             : constraint.lower.unwrapTypeSchemaView();
       } else if (constraint.upper is! UnknownType) {
         return grounded
@@ -440,7 +440,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       } else if (constraint.lower is! UnknownType) {
         return grounded
             ? leastClosure(constraint.lower.unwrapTypeSchemaView(),
-                topType: topType)
+                coreTypes: coreTypes)
             :
             // Coverage-ignore(suite): Not run.
             constraint.lower.unwrapTypeSchemaView();

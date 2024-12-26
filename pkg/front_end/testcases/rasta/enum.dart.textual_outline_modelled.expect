@@ -1,3 +1,6 @@
-enum Foo { ec1, ec2 }
+enum Foo {
+  ec1,
+  ec2,
+}
 
 main() {}

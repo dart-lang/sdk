@@ -42,9 +42,10 @@ import 'compiler_options.dart' show CompilerOptions;
 /// an error is reported.
 // TODO(sigmund): rename to kernelForScript?
 Future<CompilerResult?> kernelForProgram(Uri source, CompilerOptions options,
-    {List<Uri> additionalSources = const <Uri>[]}) async {
+    {List<Uri> additionalSources = const <Uri>[],
+    bool requireMain = true}) async {
   return (await kernelForProgramInternal(source, options,
-      additionalSources: additionalSources));
+      additionalSources: additionalSources, requireMain: requireMain));
 }
 
 // Coverage-ignore(suite): Not run.

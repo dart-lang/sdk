@@ -57,7 +57,7 @@ class DartTypeArgumentsSignatureComputer {
     _argumentList = argumentList;
 
     var label = element.displayString2();
-    var documentation = _documentationComputer.computePreferred2(
+    var documentation = _documentationComputer.computePreferred(
       element,
       documentationPreference,
     );

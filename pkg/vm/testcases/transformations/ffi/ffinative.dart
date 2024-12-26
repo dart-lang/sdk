@@ -11,6 +11,12 @@
 import 'dart:ffi';
 import 'dart:nativewrappers';
 
+@Native()
+external void returnVoid();
+
+@Native()
+external Pointer returnPointer(Pointer x);
+
 @Native<IntPtr Function(IntPtr)>(symbol: 'ReturnIntPtr')
 external int returnIntPtr(int x);
 
@@ -69,5 +75,7 @@ void main() {
   final b = NativeClassy().myField;
   NativeClassy().myField = !b;
 
+  Native.addressOf<NativeFunction<Void Function()>>(returnVoid);
+  Native.addressOf<NativeFunction<Pointer Function(Pointer)>>(returnPointer);
   Native.addressOf<NativeFunction<IntPtr Function(IntPtr)>>(returnIntPtr);
 }

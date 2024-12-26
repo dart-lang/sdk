@@ -40,10 +40,10 @@ class B extends A {
     var classB = findElement2.class_('B');
     var memberA = classA.constructors2[0];
     var memberB = classB.constructors2[0];
-    var futureA = getHierarchyMembers2(searchEngine, memberA).then((members) {
+    var futureA = getHierarchyMembers(searchEngine, memberA).then((members) {
       expect(members, unorderedEquals([memberA]));
     });
-    var futureB = getHierarchyMembers2(searchEngine, memberB).then((members) {
+    var futureB = getHierarchyMembers(searchEngine, memberB).then((members) {
       expect(members, unorderedEquals([memberB]));
     });
     await Future.wait([futureA, futureB]);
@@ -72,16 +72,16 @@ class D {
     var memberB = classB.fields2[0];
     var memberC = classC.fields2[0];
     var memberD = classD.fields2[0];
-    var futureA = getHierarchyMembers2(searchEngine, memberA).then((members) {
+    var futureA = getHierarchyMembers(searchEngine, memberA).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberC]));
     });
-    var futureB = getHierarchyMembers2(searchEngine, memberB).then((members) {
+    var futureB = getHierarchyMembers(searchEngine, memberB).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberC]));
     });
-    var futureC = getHierarchyMembers2(searchEngine, memberC).then((members) {
+    var futureC = getHierarchyMembers(searchEngine, memberC).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberC]));
     });
-    var futureD = getHierarchyMembers2(searchEngine, memberD).then((members) {
+    var futureD = getHierarchyMembers(searchEngine, memberD).then((members) {
       expect(members, unorderedEquals([memberD]));
     });
     await Future.wait([futureA, futureB, futureC, futureD]);
@@ -106,15 +106,15 @@ class C extends B {
     var memberB = classB.fields2[0];
     var memberC = classC.fields2[0];
     {
-      var members = await getHierarchyMembers2(searchEngine, memberA);
+      var members = await getHierarchyMembers(searchEngine, memberA);
       expect(members, unorderedEquals([memberA]));
     }
     {
-      var members = await getHierarchyMembers2(searchEngine, memberB);
+      var members = await getHierarchyMembers(searchEngine, memberB);
       expect(members, unorderedEquals([memberB]));
     }
     {
-      var members = await getHierarchyMembers2(searchEngine, memberC);
+      var members = await getHierarchyMembers(searchEngine, memberC);
       expect(members, unorderedEquals([memberC]));
     }
   }
@@ -141,7 +141,7 @@ class C extends B {
     var result = await performance.runAsync(
       'getHierarchyMembers',
       (performance) =>
-          getHierarchyMembers2(searchEngine, member, performance: performance),
+          getHierarchyMembers(searchEngine, member, performance: performance),
     );
     expect(result, hasLength(count));
 
@@ -186,19 +186,19 @@ class E extends D {
     var memberC = classC.methods2[0];
     var memberD = classD.methods2[0];
     var memberE = classE.methods2[0];
-    var futureA = getHierarchyMembers2(searchEngine, memberA).then((members) {
+    var futureA = getHierarchyMembers(searchEngine, memberA).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberC]));
     });
-    var futureB = getHierarchyMembers2(searchEngine, memberB).then((members) {
+    var futureB = getHierarchyMembers(searchEngine, memberB).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberC]));
     });
-    var futureC = getHierarchyMembers2(searchEngine, memberC).then((members) {
+    var futureC = getHierarchyMembers(searchEngine, memberC).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberC]));
     });
-    var futureD = getHierarchyMembers2(searchEngine, memberD).then((members) {
+    var futureD = getHierarchyMembers(searchEngine, memberD).then((members) {
       expect(members, unorderedEquals([memberD, memberE]));
     });
-    var futureE = getHierarchyMembers2(searchEngine, memberE).then((members) {
+    var futureE = getHierarchyMembers(searchEngine, memberE).then((members) {
       expect(members, unorderedEquals([memberD, memberE]));
     });
     await Future.wait([futureA, futureB, futureC, futureD, futureE]);
@@ -238,7 +238,7 @@ class D extends B {
     var methodB = findElement2.method('_test', of: 'B');
     var methodD = findElement2.method('_test', of: 'D');
 
-    var members = await getHierarchyMembers2(searchEngine, methodB);
+    var members = await getHierarchyMembers(searchEngine, methodB);
     expect(members, unorderedEquals([methodB, methodD]));
   }
 
@@ -274,7 +274,7 @@ class D extends B {
     var methodC = findElement2.method('_test', of: 'C');
     var methodD = findElement2.method('_test', of: 'D');
 
-    var members = await getHierarchyMembers2(searchEngine, methodB);
+    var members = await getHierarchyMembers(searchEngine, methodB);
     expect(members, unorderedEquals([methodA, methodB, methodC, methodD]));
   }
 
@@ -292,11 +292,11 @@ class B extends A {
     var memberA = classA.methods2[0];
     var memberB = classB.methods2[0];
     {
-      var members = await getHierarchyMembers2(searchEngine, memberA);
+      var members = await getHierarchyMembers(searchEngine, memberA);
       expect(members, unorderedEquals([memberA]));
     }
     {
-      var members = await getHierarchyMembers2(searchEngine, memberB);
+      var members = await getHierarchyMembers(searchEngine, memberB);
       expect(members, unorderedEquals([memberB]));
     }
   }
@@ -324,13 +324,13 @@ class E {
     var memberA = classA.methods2[0];
     var memberB = classB.methods2[0];
     var memberD = classD.methods2[0];
-    var futureA = getHierarchyMembers2(searchEngine, memberA).then((members) {
+    var futureA = getHierarchyMembers(searchEngine, memberA).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberD]));
     });
-    var futureB = getHierarchyMembers2(searchEngine, memberB).then((members) {
+    var futureB = getHierarchyMembers(searchEngine, memberB).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberD]));
     });
-    var futureD = getHierarchyMembers2(searchEngine, memberD).then((members) {
+    var futureD = getHierarchyMembers(searchEngine, memberD).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberD]));
     });
     await Future.wait([futureA, futureB, futureD]);
@@ -363,12 +363,12 @@ class B extends A {
 ''');
     {
       var classA = findElement2.class_('A');
-      var members = getClassMembers2(classA);
+      var members = getClassMembers(classA);
       expect(members.map((e) => e.name3), unorderedEquals(['ma1', 'ma2']));
     }
     {
       var classB = findElement2.class_('B');
-      var members = getClassMembers2(classB);
+      var members = getClassMembers(classB);
       expect(members.map((e) => e.name3), unorderedEquals(['mb1', 'mb2']));
     }
   }
@@ -403,27 +403,27 @@ class E extends D {
     var parameterE = classE.methods2[0].formalParameters[0];
 
     {
-      var result = await getHierarchyNamedParameters2(searchEngine, parameterA);
+      var result = await getHierarchyNamedParameters(searchEngine, parameterA);
       expect(result, unorderedEquals([parameterA, parameterB, parameterC]));
     }
 
     {
-      var result = await getHierarchyNamedParameters2(searchEngine, parameterB);
+      var result = await getHierarchyNamedParameters(searchEngine, parameterB);
       expect(result, unorderedEquals([parameterA, parameterB, parameterC]));
     }
 
     {
-      var result = await getHierarchyNamedParameters2(searchEngine, parameterC);
+      var result = await getHierarchyNamedParameters(searchEngine, parameterC);
       expect(result, unorderedEquals([parameterA, parameterB, parameterC]));
     }
 
     {
-      var result = await getHierarchyNamedParameters2(searchEngine, parameterD);
+      var result = await getHierarchyNamedParameters(searchEngine, parameterD);
       expect(result, unorderedEquals([parameterD, parameterE]));
     }
 
     {
-      var result = await getHierarchyNamedParameters2(searchEngine, parameterE);
+      var result = await getHierarchyNamedParameters(searchEngine, parameterE);
       expect(result, unorderedEquals([parameterD, parameterE]));
     }
   }
@@ -441,7 +441,7 @@ class B extends A {
     var classA = findElement2.class_('A');
     var parameterA = classA.methods2[0].formalParameters[0];
 
-    var result = await getHierarchyNamedParameters2(searchEngine, parameterA);
+    var result = await getHierarchyNamedParameters(searchEngine, parameterA);
     expect(result, unorderedEquals([parameterA]));
   }
 
@@ -458,7 +458,7 @@ class B extends A {
     var classA = findElement2.class_('A');
     var parameterA = classA.methods2[0].formalParameters[0];
 
-    var result = await getHierarchyNamedParameters2(searchEngine, parameterA);
+    var result = await getHierarchyNamedParameters(searchEngine, parameterA);
     expect(result, unorderedEquals([parameterA]));
   }
 
@@ -478,7 +478,7 @@ class B extends A {
 ''');
     {
       var classA = findElement2.class_('A');
-      var members = getMembers2(classA);
+      var members = getMembers(classA);
       expect(
         members.map((e) => e.name3),
         unorderedEquals([
@@ -497,7 +497,7 @@ class B extends A {
     }
     {
       var classB = findElement2.class_('B');
-      var members = getMembers2(classB);
+      var members = getMembers(classB);
       expect(
         members.map((e) => e.name3),
         unorderedEquals([

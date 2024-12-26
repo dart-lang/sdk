@@ -19,13 +19,16 @@ class DiffCommand extends Command<void> with PrintUsageException {
       "See code size differences between two dump-info files.";
 
   DiffCommand() {
-    argParser.addFlag('summary-only',
-        defaultsTo: false,
-        help: "Show only a summary and hide details of each library");
-    argParser.addFlag('main-only',
-        defaultsTo: false,
-        help:
-            "Only includes diffs where the entity is in the main output unit.");
+    argParser.addFlag(
+      'summary-only',
+      defaultsTo: false,
+      help: "Show only a summary and hide details of each library",
+    );
+    argParser.addFlag(
+      'main-only',
+      defaultsTo: false,
+      help: "Only includes diffs where the entity is in the main output unit.",
+    );
   }
 
   @override
@@ -34,7 +37,8 @@ class DiffCommand extends Command<void> with PrintUsageException {
     var args = argRes.rest;
     if (args.length < 2) {
       usageException(
-          'Missing arguments, expected two dump-info files to compare');
+        'Missing arguments, expected two dump-info files to compare',
+      );
     }
 
     final oldInfo = await infoFromFile(args[0]);
@@ -110,25 +114,42 @@ class DiffCommand extends Command<void> with PrintUsageException {
     }
     totalSizes[sizeChanges] = totalSizeChange;
 
-    reportSummary(oldInfo, newInfo, adds, removals, sizeChanges, becameDeferred,
-        becameUndeferred, totalSizes);
+    reportSummary(
+      oldInfo,
+      newInfo,
+      adds,
+      removals,
+      sizeChanges,
+      becameDeferred,
+      becameUndeferred,
+      totalSizes,
+    );
     if (!summaryOnly) {
       print('');
-      reportFull(oldInfo, newInfo, adds, removals, sizeChanges, becameDeferred,
-          becameUndeferred, totalSizes);
+      reportFull(
+        oldInfo,
+        newInfo,
+        adds,
+        removals,
+        sizeChanges,
+        becameDeferred,
+        becameUndeferred,
+        totalSizes,
+      );
     }
   }
 }
 
 void reportSummary(
-    AllInfo oldInfo,
-    AllInfo newInfo,
-    List<AddDiff> adds,
-    List<RemoveDiff> removals,
-    List<SizeDiff> sizeChanges,
-    List<DeferredStatusDiff> becameDeferred,
-    List<DeferredStatusDiff> becameUndeferred,
-    Map<List<Diff>, int> totalSizes) {
+  AllInfo oldInfo,
+  AllInfo newInfo,
+  List<AddDiff> adds,
+  List<RemoveDiff> removals,
+  List<SizeDiff> sizeChanges,
+  List<DeferredStatusDiff> becameDeferred,
+  List<DeferredStatusDiff> becameUndeferred,
+  Map<List<Diff>, int> totalSizes,
+) {
   var overallSizeDiff = newInfo.program!.size - oldInfo.program!.size;
   print('total_size_difference $overallSizeDiff');
 
@@ -140,14 +161,15 @@ void reportSummary(
 }
 
 void reportFull(
-    AllInfo oldInfo,
-    AllInfo newInfo,
-    List<AddDiff> adds,
-    List<RemoveDiff> removals,
-    List<SizeDiff> sizeChanges,
-    List<DeferredStatusDiff> becameDeferred,
-    List<DeferredStatusDiff> becameUndeferred,
-    Map<List<Diff>, int> totalSizes) {
+  AllInfo oldInfo,
+  AllInfo newInfo,
+  List<AddDiff> adds,
+  List<RemoveDiff> removals,
+  List<SizeDiff> sizeChanges,
+  List<DeferredStatusDiff> becameDeferred,
+  List<DeferredStatusDiff> becameUndeferred,
+  Map<List<Diff>, int> totalSizes,
+) {
   // TODO(het): Improve this output. Siggi has good suggestions in
   // https://github.com/dart-lang/dart2js_info/pull/19
 
@@ -159,29 +181,37 @@ void reportFull(
 
   _section('REMOVED', size: totalSizes[removals]);
   for (var removal in removals) {
-    print('${longName(removal.info, useLibraryUri: true)}: '
-        '${removal.info.size} bytes');
+    print(
+      '${longName(removal.info, useLibraryUri: true)}: '
+      '${removal.info.size} bytes',
+    );
   }
   print('');
 
   _section('CHANGED SIZE', size: totalSizes[sizeChanges]);
   for (var sizeChange in sizeChanges) {
-    print('${longName(sizeChange.info, useLibraryUri: true)}: '
-        '${sizeChange.sizeDifference} bytes');
+    print(
+      '${longName(sizeChange.info, useLibraryUri: true)}: '
+      '${sizeChange.sizeDifference} bytes',
+    );
   }
   print('');
 
   _section('BECAME DEFERRED', size: totalSizes[becameDeferred]);
   for (var diff in becameDeferred) {
-    print('${longName(diff.info, useLibraryUri: true)}: '
-        '${diff.info.size} bytes');
+    print(
+      '${longName(diff.info, useLibraryUri: true)}: '
+      '${diff.info.size} bytes',
+    );
   }
   print('');
 
   _section('NO LONGER DEFERRED', size: totalSizes[becameUndeferred]);
   for (var diff in becameUndeferred) {
-    print('${longName(diff.info, useLibraryUri: true)}: '
-        '${diff.info.size} bytes');
+    print(
+      '${longName(diff.info, useLibraryUri: true)}: '
+      '${diff.info.size} bytes',
+    );
   }
 }
 

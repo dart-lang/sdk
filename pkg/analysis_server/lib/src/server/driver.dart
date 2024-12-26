@@ -141,9 +141,7 @@ class Driver implements ServerStarter {
   DetachableFileSystemManager? detachableFileSystemManager;
 
   /// The instrumentation service that is to be used by the analysis server.
-  InstrumentationService? instrumentationService;
-
-  HttpAnalysisServer? httpServer;
+  late final InstrumentationService _instrumentationService;
 
   /// Use the given command-line [arguments] to start this server.
   ///
@@ -272,10 +270,7 @@ class Driver implements ServerStarter {
     var logFilePath =
         results.option(PROTOCOL_TRAFFIC_LOG) ??
         results.option(PROTOCOL_TRAFFIC_LOG_ALIAS);
-    var allInstrumentationServices =
-        this.instrumentationService == null
-            ? <InstrumentationService>[]
-            : [this.instrumentationService!];
+    var allInstrumentationServices = <InstrumentationService>[];
     if (logFilePath != null) {
       _rollLogFiles(logFilePath, 5);
       allInstrumentationServices.add(
@@ -291,21 +286,20 @@ class Driver implements ServerStarter {
     allInstrumentationServices.add(
       CrashReportingInstrumentation(crashReportSender),
     );
-    var instrumentationService = MulticastInstrumentationService(
+    _instrumentationService = MulticastInstrumentationService(
       allInstrumentationServices,
     );
-    this.instrumentationService = instrumentationService;
 
-    instrumentationService.logVersion(
+    _instrumentationService.logVersion(
       results.option(TRAIN_USING) != null
           ? 'training-0'
-          : _readUuid(instrumentationService),
+          : _readUuid(_instrumentationService),
       analysisServerOptions.clientId ?? '',
       analysisServerOptions.clientVersion ?? '',
       PROTOCOL_VERSION,
       defaultSdk.languageVersion.toString(),
     );
-    AnalysisEngine.instance.instrumentationService = instrumentationService;
+    AnalysisEngine.instance.instrumentationService = _instrumentationService;
 
     int? diagnosticServerPort;
     var portValue =
@@ -337,7 +331,7 @@ class Driver implements ServerStarter {
         analysisServerOptions,
         dartSdkManager,
         analyticsManager,
-        instrumentationService,
+        _instrumentationService,
         diagnosticServerPort,
         errorNotifier,
       );
@@ -349,7 +343,7 @@ class Driver implements ServerStarter {
         dartSdkManager,
         analyticsManager,
         crashReportingAttachmentsBuilder,
-        instrumentationService,
+        _instrumentationService,
         RequestStatisticsHelper(),
         diagnosticServerPort,
         errorNotifier,
@@ -406,9 +400,8 @@ class Driver implements ServerStarter {
       analyticsManager,
       detachableFileSystemManager,
     );
-    httpServer = HttpAnalysisServer(socketServer);
 
-    diagnosticServer.httpServer = httpServer!;
+    diagnosticServer.httpServer = HttpAnalysisServer(socketServer);
     if (diagnosticServerPort != null) {
       diagnosticServer.startOnPort(diagnosticServerPort);
     }
@@ -440,18 +433,14 @@ class Driver implements ServerStarter {
         exitCode = await devServer.processDirectories([trainDirectory]);
         if (exitCode != 0) exit(exitCode);
 
-        var httpServer = this.httpServer;
-        if (httpServer != null) {
-          httpServer.close();
-        }
+        diagnosticServer.httpServer.close();
         await instrumentationService.shutdown();
-
         unawaited(socketServer.analysisServer!.shutdown());
 
         try {
           tempDriverDir.deleteSync(recursive: true);
         } catch (_) {
-          // ignore any exception
+          // Ignore any exception.
         }
 
         exit(exitCode);
@@ -473,10 +462,7 @@ class Driver implements ServerStarter {
             errorNotifier.sendSilentExceptionsToClient = true;
           }
           serveResult.then((_) async {
-            var httpServer = this.httpServer;
-            if (httpServer != null) {
-              httpServer.close();
-            }
+            diagnosticServer.httpServer.close();
             await instrumentationService.shutdown();
             unawaited(socketServer.analysisServer!.shutdown());
             if (sendPort == null) exit(0);
@@ -485,7 +471,7 @@ class Driver implements ServerStarter {
         print:
             results.flag(INTERNAL_PRINT_TO_CONSOLE)
                 ? null
-                : httpServer!.recordPrint,
+                : diagnosticServer.httpServer.recordPrint,
       );
     }
   }
@@ -518,8 +504,7 @@ class Driver implements ServerStarter {
       detachableFileSystemManager,
     );
     errorNotifier.server = socketServer.analysisServer;
-
-    diagnosticServer.httpServer = httpServer = HttpAnalysisServer(socketServer);
+    diagnosticServer.httpServer = HttpAnalysisServer(socketServer);
 
     if (diagnosticServerPort != null) {
       diagnosticServer.startOnPort(diagnosticServerPort);
@@ -947,8 +932,6 @@ class Driver implements ServerStarter {
 /// Implements the [DiagnosticServer] class by wrapping an [HttpAnalysisServer].
 class _DiagnosticServerImpl extends DiagnosticServer {
   late HttpAnalysisServer httpServer;
-
-  _DiagnosticServerImpl();
 
   @override
   Future<int> getServerPort() async => (await httpServer.serveHttp())!;

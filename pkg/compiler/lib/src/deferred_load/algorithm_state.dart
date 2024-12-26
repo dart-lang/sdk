@@ -26,19 +26,29 @@ class AlgorithmState {
   final ImportSetLattice importSets;
   final WorkQueue queue;
 
-  AlgorithmState._(this.closedWorld, this.elementMap, this.compiler,
-      this.importSets, this.registry)
-      : queue = WorkQueue(importSets, registry);
+  AlgorithmState._(
+    this.closedWorld,
+    this.elementMap,
+    this.compiler,
+    this.importSets,
+    this.registry,
+  ) : queue = WorkQueue(importSets, registry);
 
   /// Factory function to create and initialize an [AlgorithmState].
   factory AlgorithmState.create(
-      FunctionEntity main,
-      Compiler compiler,
-      KernelToElementMap elementMap,
-      KClosedWorld closedWorld,
-      ImportSetLattice importSets) {
+    FunctionEntity main,
+    Compiler compiler,
+    KernelToElementMap elementMap,
+    KClosedWorld closedWorld,
+    ImportSetLattice importSets,
+  ) {
     var entityDataState = AlgorithmState._(
-        closedWorld, elementMap, compiler, importSets, EntityDataRegistry());
+      closedWorld,
+      elementMap,
+      compiler,
+      importSets,
+      EntityDataRegistry(),
+    );
     entityDataState.initialize(main);
     return entityDataState;
   }
@@ -68,12 +78,14 @@ class AlgorithmState {
       _updateDependencies(entityData, oldSet, newSet);
     } else if (entityData.needsRecursiveUpdate) {
       assert(
-          // Invariant: we must mark main before we mark any deferred import.
-          newSet != importSets.mainSet || oldSet != importSets.emptySet,
-          failedAt(
-              NO_LOCATION_SPANNABLE,
-              "Tried to assign to the main output unit, but it was assigned "
-              "to $currentSet."));
+        // Invariant: we must mark main before we mark any deferred import.
+        newSet != importSets.mainSet || oldSet != importSets.emptySet,
+        failedAt(
+          noLocationSpannable,
+          "Tried to assign to the main output unit, but it was assigned "
+          "to $currentSet.",
+        ),
+      );
       queue.addEntityData(entityData, newSet);
     } else {
       entityToSet[entityData] = importSets.union(currentSet, newSet);
@@ -84,8 +96,12 @@ class AlgorithmState {
   /// deferred roots and recursively populate caches.
   void processEntity(EntityData entityData) {
     if (directDependencies.containsKey(entityData)) return;
-    var infoBuilder =
-        EntityDataInfoBuilder(closedWorld, elementMap, compiler, registry);
+    var infoBuilder = EntityDataInfoBuilder(
+      closedWorld,
+      elementMap,
+      compiler,
+      registry,
+    );
     var visitor = EntityDataInfoVisitor(infoBuilder);
     entityData.accept(visitor);
     var info = infoBuilder.info;
@@ -105,7 +121,10 @@ class AlgorithmState {
   /// Updates the dependencies of a given [EntityData] from [oldSet] to
   /// [newSet].
   void _updateDependencies(
-      EntityData entityData, ImportSet oldSet, ImportSet newSet) {
+    EntityData entityData,
+    ImportSet oldSet,
+    ImportSet newSet,
+  ) {
     var directDependenciesList = directDependencies[entityData]!;
     for (var entity in directDependenciesList) {
       update(entity, oldSet, newSet);

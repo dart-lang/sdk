@@ -8,8 +8,8 @@ class X {
 
   /*member: X.:[exact=X]*/
   X(Object /*Union([exact=JSExtendableArray], [exact=JSString])*/ value)
-      : assert(value is String),
-        a = value;
+    : assert(value is String),
+      a = value;
 }
 
 /*member: main:[null]*/

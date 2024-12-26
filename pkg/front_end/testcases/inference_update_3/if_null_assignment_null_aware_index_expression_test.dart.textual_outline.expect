@@ -20,7 +20,7 @@ class Indexable<ReadType, WriteType> {
 }
 
 Indexable<ReadType, WriteType>? maybeIndexable<ReadType, WriteType>(
-  ReadType value,
-) => Indexable<ReadType, WriteType>(value);
+        ReadType value) =>
+    Indexable<ReadType, WriteType>(value);
 
 main() {}

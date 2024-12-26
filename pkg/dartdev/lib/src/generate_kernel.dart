@@ -6,7 +6,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:frontend_server/resident_frontend_server_utils.dart'
-    show ResidentCompilerInfo, sendAndReceiveResponse;
+    show computeCachedDillPath, ResidentCompilerInfo, sendAndReceiveResponse;
 import 'package:kernel/binary/tag.dart' show isValidSdkHash;
 import 'package:path/path.dart' as p;
 import 'package:pub/pub.dart';
@@ -50,22 +50,21 @@ Future<DartExecutableWithPackageConfig> generateKernel(
 }) async {
   // Locates the package_config.json and cached kernel file, makes sure the
   // resident frontend server is up and running, and computes a kernel.
-  final packageRoot = _packageRootFor(executable);
-  if (packageRoot == null) {
-    throw FrontendCompilerException._(
-        'Unable to locate .dart_tool/package_config.json in any parent folder.'
-        'Did you run `pub get`?',
-        CompilationIssue.standaloneProgramError);
-  }
   await ensureCompilationServerIsRunning(serverInfoFile);
-  final packageConfig = p.join(packageRoot, packageConfigName);
-  final cachedKernel = _cachedKernelPath(executable.executable, packageRoot);
+
+  final packageRoot = _packageRootFor(executable);
+  final packageConfig =
+      packageRoot != null ? p.join(packageRoot, packageConfigName) : null;
+
+  final canonicalizedExecutablePath = p.canonicalize(executable.executable);
+  final cachedDillPath = computeCachedDillPath(canonicalizedExecutablePath);
+
   Map<String, dynamic> result;
   try {
     result = await sendAndReceiveResponse(
       compileRequestGenerator(
-        executable: p.canonicalize(executable.executable),
-        outputDill: cachedKernel,
+        executable: canonicalizedExecutablePath,
+        outputDill: cachedDillPath,
         packages: packageConfig,
         args: args,
       ),
@@ -88,41 +87,8 @@ Future<DartExecutableWithPackageConfig> generateKernel(
     }
   }
   return DartExecutableWithPackageConfig(
-    executable: cachedKernel,
+    executable: cachedDillPath,
     packageConfig: packageConfig,
-  );
-}
-
-/// Returns the absolute path to [executable]'s cached kernel file.
-/// Throws a [FrontendCompilerException] if the cached kernel cannot be
-/// created.
-String _cachedKernelPath(String executable, String packageRoot) {
-  final executableDirPath = p.canonicalize(p.dirname(executable));
-  var cachedKernelDirectory = p.join(
-    packageRoot,
-    '.dart_tool',
-    dartdevKernelCache,
-  );
-
-  final subdirectoryList =
-      executableDirPath.replaceFirst(packageRoot, '').split(p.separator);
-  for (var directory in subdirectoryList) {
-    cachedKernelDirectory = p.join(cachedKernelDirectory, directory);
-  }
-
-  try {
-    Directory(cachedKernelDirectory).createSync(recursive: true);
-  } catch (e) {
-    throw FrontendCompilerException._(
-      e.toString(),
-      CompilationIssue.serverError,
-    );
-  }
-  return p.canonicalize(
-    p.join(
-      cachedKernelDirectory,
-      '${p.basename(executable)}-${sdk.version}.dill',
-    ),
   );
 }
 

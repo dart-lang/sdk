@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 void simpleSwitch(e) {
-  /*0@break*/ switch (e) {
+  /*0@break*/
+  switch (e) {
     case 0:
-      /*target=0*/ break;
+      /*target=0*/
+      break;
   }
 }
 
@@ -14,7 +16,8 @@ void labelledSwitch(e) {
   /*0@break*/
   switch (e) {
     case 0:
-      /*target=0*/ break target;
+      /*target=0*/
+      break target;
   }
 }
 
@@ -24,7 +27,8 @@ void switchNestedInLoop(l) {
     /*0@break*/
     switch (e) {
       case 0:
-        /*target=0*/ break target;
+        /*target=0*/
+        break target;
     }
   }
 }
@@ -33,22 +37,28 @@ void labelledSwitchNestedInLoop(l) {
   target:
   /*0@break*/
   for (var e in l) {
-    /*1@break*/ switch (e) {
+    /*1@break*/
+    switch (e) {
       case 0:
-        /*target=0*/ break target;
+        /*target=0*/
+        break target;
       case 1:
-        /*target=1*/ break;
+        /*target=1*/
+        break;
     }
   }
 }
 
 void switchWithContinue(e) {
-  /*0@break*/ switch (e) {
+  /*0@break*/
+  switch (e) {
     target:
     case /*1@continue*/ 0:
-      /*target=0*/ break;
+      /*target=0*/
+      break;
     case 1:
-      /*target=1*/ continue target;
+      /*target=1*/
+      continue target;
   }
 }
 

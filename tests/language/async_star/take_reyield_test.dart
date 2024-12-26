@@ -23,6 +23,11 @@ main() {
   }
 
   asyncStart();
-  expectList(fivePartialSums(makeStream(10)), [0, 1, 3, 6, 10])
-      .then(asyncSuccess);
+  expectList(fivePartialSums(makeStream(10)), [
+    0,
+    1,
+    3,
+    6,
+    10,
+  ]).then(asyncSuccess);
 }

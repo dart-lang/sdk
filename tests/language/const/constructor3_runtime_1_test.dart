@@ -17,12 +17,6 @@ class D extends C {
 const intValue = 0;
 const c = const C(0.0);
 
-
-
-
 main() {
   print(c);
-
-
-
 }

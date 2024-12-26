@@ -1982,72 +1982,86 @@ main() {
     test('nullAwareAccess temporarily promotes', () {
       var x = Var('x');
       late SsaNode<SharedTypeView<Type>> ssaBeforePromotion;
+      h.addMember('int', 'f', 'Null Function(Object?)');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
-        x.nullAwareAccess(second(
-            listLiteral(elementType: 'dynamic', [
-              checkReachable(true),
-              checkPromoted(x, 'int'),
-              getSsaNodes(
-                  (nodes) => expect(nodes[x], same(ssaBeforePromotion))),
-            ]),
-            expr('Null'))),
+        x.invokeMethod(
+            'f',
+            [
+              listLiteral(elementType: 'dynamic', [
+                checkReachable(true),
+                checkPromoted(x, 'int'),
+                getSsaNodes(
+                    (nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+              ])
+            ],
+            isNullAware: true),
         checkNotPromoted(x),
         getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
       ]);
     });
 
-    test('nullAwareAccess does not promote the target of a cascade', () {
+    test('nullAwareAccess promotes the target of a cascade', () {
       var x = Var('x');
+      h.addMember('int', 'f', 'Null Function(Object?)');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.nullAwareAccess(
-            second(
+        x.cascade([
+          (placeholder) => placeholder.invokeMethod('f', [
                 listLiteral(elementType: 'dynamic', [
                   checkReachable(true),
-                  checkNotPromoted(x),
-                ]),
-                expr('Null')),
-            isCascaded: true),
+                  checkPromoted(x, 'int'),
+                ])
+              ])
+        ], isNullAware: true),
       ]);
     });
 
     test('nullAwareAccess preserves demotions', () {
       var x = Var('x');
+      h.addMember('int', 'f', 'Null Function(Object?)');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
-        expr('int').nullAwareAccess(second(
-                listLiteral(elementType: 'dynamic', [
-                  checkReachable(true),
-                  checkPromoted(x, 'int'),
-                ]),
-                x.write(expr('int?')))
-            .thenStmt(checkNotPromoted(x))),
+        expr('int').invokeMethod(
+            'f',
+            [
+              listLiteral(elementType: 'dynamic', [
+                checkReachable(true),
+                checkPromoted(x, 'int'),
+                x.write(expr('int?')),
+              ])
+            ],
+            isNullAware: true),
         checkNotPromoted(x),
       ]);
     });
 
     test('nullAwareAccess sets reachability correctly for `Null` type', () {
+      h.addMember('Never', 'f', 'Null Function(Object?)');
       h.run([
         expr('Null')
-            .nullAwareAccess(second(checkReachable(false), expr('Object?')))
-            .thenStmt(checkReachable(true)),
+            .invokeMethod('f', [checkReachable(false)], isNullAware: true),
+        checkReachable(true),
       ]);
     });
 
     test('nullAwareAccess_end ignores shorting if target is non-nullable', () {
       var x = Var('x');
+      h.addMember('int', 'f', 'Null Function(Object?)');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        expr('int').nullAwareAccess(second(
-            listLiteral(elementType: 'dynamic', [
-              checkReachable(true),
-              x.as_('int'),
-              checkPromoted(x, 'int'),
-            ]),
-            expr('Null'))),
+        expr('int').invokeMethod(
+            'f',
+            [
+              listLiteral(elementType: 'dynamic', [
+                checkReachable(true),
+                x.as_('int'),
+                checkPromoted(x, 'int'),
+              ])
+            ],
+            isNullAware: true),
         // Since the null-shorting path was reachable, promotion of `x` should
         // be cancelled.
         checkNotPromoted(x),

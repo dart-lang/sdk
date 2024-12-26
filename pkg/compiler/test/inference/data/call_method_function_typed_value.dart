@@ -8,11 +8,11 @@ import "package:expect/expect.dart";
 
 /*member: f:[subclass=JSInt]*/
 int f(
-        int
-            /*spec.[null|subclass=Object]*/
-            /*prod.[subclass=JSInt]*/
-            i) =>
-    2 /*invoke: [exact=JSUInt31]*/ * i;
+  int
+  /*spec.[null|subclass=Object]*/
+  /*prod.[subclass=JSInt]*/
+  i,
+) => 2 /*invoke: [exact=JSUInt31]*/ * i;
 
 typedef int IntToInt(int x);
 

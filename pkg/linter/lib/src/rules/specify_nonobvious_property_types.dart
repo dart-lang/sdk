@@ -18,7 +18,7 @@ class SpecifyNonObviousPropertyTypes extends LintRule {
       : super(
           name: LintNames.specify_nonobvious_property_types,
           description: _desc,
-          state: State.experimental(),
+          state: const State.experimental(),
         );
 
   @override

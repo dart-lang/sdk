@@ -5,25 +5,25 @@ class A {
 }
 
 exhaustiveDirect(A a) => switch (a) {
-  A() => 0,
-};
+      A() => 0,
+    };
 
 exhaustiveWithFields(A a) => switch (a) {
-  A(:var field1, :var field2) => 0,
-};
+      A(:var field1, :var field2) => 0,
+    };
 
 exhaustiveWithTypedFields(A a) => switch (a) {
-  A(:int field1, :num field2) => 0,
-};
+      A(:int field1, :num field2) => 0,
+    };
 
 exhaustiveWithWildcards(A a) => switch (a) {
-  A(field1: _, field2: _) => 0,
-};
+      A(field1: _, field2: _) => 0,
+    };
 
 nonExhaustiveFixedField(A a) => switch (a) {
-  A(field1: 5) => 0,
-};
+      A(field1: 5) => 0,
+    };
 
 nonExhaustiveTypedField(A a) => switch (a) {
-  A(:int field2) => 0,
-};
+      A(:int field2) => 0,
+    };

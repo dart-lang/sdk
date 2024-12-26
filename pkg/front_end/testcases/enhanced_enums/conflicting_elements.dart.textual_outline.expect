@@ -4,7 +4,10 @@ enum E1 {
   final int element = 42;
 }
 
-enum E2 { element, element }
+enum E2 {
+  element,
+  element;
+}
 
 enum E3 {
   element;

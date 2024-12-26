@@ -101,7 +101,7 @@ class RelevanceComputer {
 
   /// Compute the relevance for the given [CandidateSuggestion].
   int computeRelevance(CandidateSuggestion suggestion) {
-    var neverType = request.libraryElement2.typeProvider.neverType;
+    var neverType = request.libraryElement.typeProvider.neverType;
     switch (suggestion) {
       case ClassSuggestion():
         return computeTopLevelRelevance2(
@@ -722,7 +722,7 @@ class RelevanceComputer {
     var typeParameters = element.typeParameters2;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement2.typeProvider.neverType;
+      var neverType = request.libraryElement.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
     return element.instantiate(

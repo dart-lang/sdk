@@ -76,9 +76,11 @@ class SsaFinalizeInterceptors extends HBaseVisitor<void>
     // block, like constants, which we ignore.
     HThis? thisParameter;
     HParameterValue? receiverParameter;
-    for (HInstruction? node = _graph.entry.first;
-        node != null;
-        node = node.next) {
+    for (
+      HInstruction? node = _graph.entry.first;
+      node != null;
+      node = node.next
+    ) {
       if (node is HParameterValue) {
         if (node is HThis) {
           thisParameter = node;
@@ -88,10 +90,14 @@ class SsaFinalizeInterceptors extends HBaseVisitor<void>
         }
       }
     }
-    assert(thisParameter != null,
-        '`this` parameter should be before other parameters');
-    assert(receiverParameter != null,
-        'Intercepted convention requires explicit receiver');
+    assert(
+      thisParameter != null,
+      '`this` parameter should be before other parameters',
+    );
+    assert(
+      receiverParameter != null,
+      'Intercepted convention requires explicit receiver',
+    );
     thisParameter!.instructionType = receiverParameter!.instructionType;
     receiverParameter.block!.rewrite(receiverParameter, thisParameter);
     receiverParameter.sourceElement = const _RenameToUnderscore();
@@ -104,10 +110,16 @@ class SsaFinalizeInterceptors extends HBaseVisitor<void>
     if (_interceptorIsReceiver(node)) {
       if (node.element != null) {
         tryReplaceExplicitReceiverForTargetWithDummy(
-            node, node.selector, node.element!);
+          node,
+          node.selector,
+          node.element!,
+        );
       } else {
         tryReplaceExplicitReceiverForSelectorWithDummy(
-            node, node.selector, node.receiverType);
+          node,
+          node.selector,
+          node.receiverType,
+        );
       }
       return;
     }
@@ -137,12 +149,13 @@ class SsaFinalizeInterceptors extends HBaseVisitor<void>
       inputs[0] = _graph.addConstantNull(_closedWorld);
 
       HOneShotInterceptor oneShot = HOneShotInterceptor(
-          node.selector,
-          node.receiverType,
-          inputs,
-          node.instructionType,
-          node.typeArguments,
-          interceptor.interceptedClasses);
+        node.selector,
+        node.receiverType,
+        inputs,
+        node.instructionType,
+        node.typeArguments,
+        interceptor.interceptedClasses,
+      );
       oneShot.sourceInformation = node.sourceInformation;
       oneShot.sourceElement = node.sourceElement;
       oneShot.sideEffects.setTo(node.sideEffects);
@@ -160,7 +173,10 @@ class SsaFinalizeInterceptors extends HBaseVisitor<void>
     if (!node.isInterceptedCall) return;
     if (_interceptorIsReceiver(node)) {
       tryReplaceExplicitReceiverForTargetWithDummy(
-          node, node.selector, node.element);
+        node,
+        node.selector,
+        node.element,
+      );
     }
   }
 
@@ -187,7 +203,10 @@ class SsaFinalizeInterceptors extends HBaseVisitor<void>
   }
 
   void tryReplaceExplicitReceiverForTargetWithDummy(
-      HInvoke node, Selector? selector, MemberEntity target) {
+    HInvoke node,
+    Selector? selector,
+    MemberEntity target,
+  ) {
     // Automatically generated property extraction closures don't work with the
     // dummy receiver optimization. If the selector is a getter but the target
     // is not, we have a 'tear-off'.
@@ -202,7 +221,10 @@ class SsaFinalizeInterceptors extends HBaseVisitor<void>
   }
 
   void tryReplaceExplicitReceiverForSelectorWithDummy(
-      HInvoke node, Selector selector, AbstractValue mask) {
+    HInvoke node,
+    Selector selector,
+    AbstractValue mask,
+  ) {
     // Calls of the form
     //
     //     a.foo$1(a, x)
@@ -231,7 +253,10 @@ class SsaFinalizeInterceptors extends HBaseVisitor<void>
     if (!_interceptorData.isInterceptedSelector(selector)) return;
 
     if (!_interceptorData.isInterceptedMixinSelector(
-        selector, mask, _closedWorld)) {
+      selector,
+      mask,
+      _closedWorld,
+    )) {
       _replaceReceiverArgumentWithDummy(node, 1);
     }
   }

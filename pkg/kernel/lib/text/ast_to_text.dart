@@ -1307,9 +1307,13 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         endLine(';');
       }
 
-      writeReference(descriptor.memberReference, isTearOff: false);
-      if (descriptor.tearOffReference != null) {
-        writeReference(descriptor.tearOffReference!, isTearOff: true);
+      final Reference? memberReference = descriptor.memberReference;
+      if (memberReference != null) {
+        writeReference(memberReference, isTearOff: false);
+      }
+      final Reference? tearOffReference = descriptor.tearOffReference;
+      if (tearOffReference != null) {
+        writeReference(tearOffReference, isTearOff: true);
       }
     });
     --indentation;
@@ -1387,9 +1391,13 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         endLine(';');
       }
 
-      writeReference(descriptor.memberReference, isTearOff: false);
-      if (descriptor.tearOffReference != null) {
-        writeReference(descriptor.tearOffReference!, isTearOff: true);
+      final Reference? memberReference = descriptor.memberReference;
+      if (memberReference != null) {
+        writeReference(memberReference, isTearOff: false);
+      }
+      final Reference? tearOffReference = descriptor.tearOffReference;
+      if (tearOffReference != null) {
+        writeReference(tearOffReference, isTearOff: true);
       }
     });
     --indentation;

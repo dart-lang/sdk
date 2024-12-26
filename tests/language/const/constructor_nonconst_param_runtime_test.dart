@@ -10,9 +10,7 @@ class A {
 }
 
 class B {
-
   const B(dynamic v) //
-
   ;
 }
 

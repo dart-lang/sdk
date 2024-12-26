@@ -280,9 +280,9 @@ abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
   ExtensionDeclaration? _existingExtension(DartType targetType) {
     for (var existingExtension in unitResult.unit.declarations) {
       if (existingExtension is ExtensionDeclaration) {
-        var element = existingExtension.declaredElement!;
+        var element = existingExtension.declaredFragment!.element;
         var instantiated = [element].applicableTo(
-          targetLibrary: libraryElement,
+          targetLibrary: libraryElement2,
           targetType: targetType,
           strictCasts: true,
         );

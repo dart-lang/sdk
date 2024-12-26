@@ -41,12 +41,14 @@ int test(Foo foo) {
 """;
 
 Future check(String test, {String entry = 'test'}) {
-  return compile(test,
-      entry: entry,
-      methodName: 'test',
-      check: checkerForAbsentPresent(test),
-      disableTypeInference: false,
-      disableInlining: false);
+  return compile(
+    test,
+    entry: entry,
+    methodName: 'test',
+    check: checkerForAbsentPresent(test),
+    disableTypeInference: false,
+    disableInlining: false,
+  );
 }
 
 void main() {

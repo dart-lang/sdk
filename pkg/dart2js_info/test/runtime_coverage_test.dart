@@ -27,11 +27,14 @@ void main() {
       late final AllInfo allInfo;
 
       setUpAll(() async {
-        final infoBinaryFile =
-            await resolveTestFile('classes/classes.js.info.data');
+        final infoBinaryFile = await resolveTestFile(
+          'classes/classes.js.info.data',
+        );
         allInfo = decode(infoBinaryFile.readAsBytesSync());
-        classFilters = (await resolveTestFile('classes/class_filter.txt'))
-            .readAsLinesSync();
+        classFilters =
+            (await resolveTestFile(
+              'classes/class_filter.txt',
+            )).readAsLinesSync();
       });
 
       setUp(() {
@@ -46,19 +49,23 @@ void main() {
 
       test('AngularInfo conversions throws on invalid schemes', () {
         expect(
-            () => RuntimeClassInfo.fromAngularInfo(
-                'no/scheme/here.dart - ClassName'),
-            throwsArgumentError);
+          () => RuntimeClassInfo.fromAngularInfo(
+            'no/scheme/here.dart - ClassName',
+          ),
+          throwsArgumentError,
+        );
         expect(
-            () => RuntimeClassInfo.fromAngularInfo('noscheme.dart - ClassName'),
-            throwsArgumentError);
+          () => RuntimeClassInfo.fromAngularInfo('noscheme.dart - ClassName'),
+          throwsArgumentError,
+        );
       });
 
       test('class filters parse and annotate properly', () {
         // Process class filters.
         for (final filterString in classFilters) {
-          final runtimeClassInfo =
-              RuntimeClassInfo.fromAngularInfo(filterString);
+          final runtimeClassInfo = RuntimeClassInfo.fromAngularInfo(
+            filterString,
+          );
           expect(runtimeClassInfo.annotated, isFalse);
           runtimeClassInfos[runtimeClassInfo.key] = runtimeClassInfo;
         }
@@ -66,8 +73,10 @@ void main() {
         // Annotate class filters with their corresponding ClassInfo.
         for (final classInfo in allInfo.classes) {
           final name = qualifiedName(classInfo);
-          final nameWithoutScheme =
-              name.substring(name.indexOf(':') + 1, name.length);
+          final nameWithoutScheme = name.substring(
+            name.indexOf(':') + 1,
+            name.length,
+          );
           final runtimeClassInfo = runtimeClassInfos[nameWithoutScheme];
           if (runtimeClassInfo != null) {
             runtimeClassInfo.annotateWithClassInfo(classInfo);

@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// The scope defined by a block.
 class BlockScope {
@@ -179,8 +180,8 @@ class NamespaceBuilder {
 
   /// Create a namespace representing the export namespace of the given
   /// [library].
-  Namespace createExportNamespaceForLibrary(LibraryElement library) {
-    Map<String, Element> exportedNames = _getExportMapping(library);
+  Namespace createExportNamespaceForLibrary(LibraryElement2 library) {
+    Map<String, Element> exportedNames = _getExportMapping(library.asElement);
     return Namespace(exportedNames);
   }
 

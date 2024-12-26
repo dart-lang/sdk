@@ -48,8 +48,13 @@ class RuntimeTypeUseData {
   /// visitor.
   ir.DartType? argumentType;
 
-  RuntimeTypeUseData(this.kind, this.leftRuntimeTypeExpression, this.receiver,
-      this.rightRuntimeTypeExpression, this.argument);
+  RuntimeTypeUseData(
+    this.kind,
+    this.leftRuntimeTypeExpression,
+    this.receiver,
+    this.rightRuntimeTypeExpression,
+    this.argument,
+  );
 
   bool get isComplete {
     switch (kind) {
@@ -76,7 +81,9 @@ class RuntimeTypeUseData {
 /// [cache] is used to ensure that only one [RuntimeTypeUseData] object is
 /// created per case, even for the `==` case.
 RuntimeTypeUseData computeRuntimeTypeUse(
-    Map<ir.InstanceGet, RuntimeTypeUseData> cache, ir.InstanceGet node) {
+  Map<ir.InstanceGet, RuntimeTypeUseData> cache,
+  ir.InstanceGet node,
+) {
   RuntimeTypeUseData? receiverData = cache[node];
   if (receiverData != null) return receiverData;
 
@@ -94,7 +101,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(
   if (node.receiver is ir.VariableGet &&
       nodeParent is ir.ConditionalExpression &&
       nodeParentParent is ir.Let) {
-    _NullAwareExpression? nullAware = getNullAwareExpression(nodeParentParent);
+    _NullAwareExpression? nullAware = _getNullAwareExpression(nodeParentParent);
     if (nullAware != null) {
       // The node is of the form:
       //
@@ -105,8 +112,9 @@ RuntimeTypeUseData computeRuntimeTypeUse(
       final nullAwareParentParent = nullAwareParent.parent;
       if (nullAwareParent is ir.VariableDeclaration &&
           nullAwareParentParent is ir.Let) {
-        _NullAwareExpression? outer =
-            getNullAwareExpression(nullAwareParentParent);
+        _NullAwareExpression? outer = _getNullAwareExpression(
+          nullAwareParentParent,
+        );
         if (outer != null &&
             outer.receiver == nullAware.let &&
             _isInvokeToString(outer.expression)) {
@@ -148,8 +156,9 @@ RuntimeTypeUseData computeRuntimeTypeUse(
             argumentGet = getRuntimeType;
           }
 
-          _NullAwareExpression? otherNullAware =
-              getNullAwareExpression(nullAwareParent.right);
+          _NullAwareExpression? otherNullAware = _getNullAwareExpression(
+            nullAwareParent.right,
+          );
           if (otherNullAware != null) {
             if (_extractGetRuntimeType(otherNullAware.expression)
                 case final getRuntimeType?) {
@@ -191,8 +200,9 @@ RuntimeTypeUseData computeRuntimeTypeUse(
             nullAwareParentParent.right == nullAware.let) {
           // [nullAware] is the right hand side of ==.
 
-          _NullAwareExpression? otherNullAware =
-              getNullAwareExpression(nullAwareParentParent.left);
+          _NullAwareExpression? otherNullAware = _getNullAwareExpression(
+            nullAwareParentParent.left,
+          );
 
           if (_extractGetRuntimeType(nullAwareParentParent.left)
               case final getRuntimeType?) {
@@ -260,7 +270,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(
     }
   } else if (nodeParent is ir.VariableDeclaration &&
       nodeParentParent is ir.Let) {
-    _NullAwareExpression? nullAware = getNullAwareExpression(nodeParentParent);
+    _NullAwareExpression? nullAware = _getNullAwareExpression(nodeParentParent);
     if (nullAware != null && _isInvokeToString(nullAware.expression)) {
       // Detected
       //
@@ -278,8 +288,9 @@ RuntimeTypeUseData computeRuntimeTypeUse(
     if (nodeParent is ir.EqualsCall && nodeParent.left == node) {
       // [node] is the left hand side of ==.
 
-      _NullAwareExpression? nullAware =
-          getNullAwareExpression(nodeParent.right);
+      _NullAwareExpression? nullAware = _getNullAwareExpression(
+        nodeParent.right,
+      );
       if (_extractGetRuntimeType(nodeParent.right) case final getRuntimeType?) {
         // Detected
         //
@@ -326,8 +337,9 @@ RuntimeTypeUseData computeRuntimeTypeUse(
       _isObjectMethodInvocation(nodeParentParent)) {
     if (nodeParentParent is ir.EqualsCall && nodeParentParent.right == node) {
       // [node] is the right hand side of ==.
-      _NullAwareExpression? nullAware =
-          getNullAwareExpression(nodeParentParent.left);
+      _NullAwareExpression? nullAware = _getNullAwareExpression(
+        nodeParentParent.left,
+      );
 
       if (_extractGetRuntimeType(nodeParentParent.left)
           case final getRuntimeType?) {
@@ -384,17 +396,26 @@ RuntimeTypeUseData computeRuntimeTypeUse(
     receiverGet = node;
   }
 
-  RuntimeTypeUseData data =
-      RuntimeTypeUseData(kind, receiverGet, receiver, argumentGet, argument);
+  RuntimeTypeUseData data = RuntimeTypeUseData(
+    kind,
+    receiverGet,
+    receiver,
+    argumentGet,
+    argument,
+  );
   cache[receiverGet] = data;
   if (argumentGet != null) {
     cache[argumentGet] = data;
   }
 
-  assert(!(argument != null && argumentGet == null),
-      "Missing argumentGet in $data for $node.");
   assert(
-      receiverGet != argumentGet, "Duplicate property get in $data for $node.");
+    !(argument != null && argumentGet == null),
+    "Missing argumentGet in $data for $node.",
+  );
+  assert(
+    receiverGet != argumentGet,
+    "Duplicate property get in $data for $node.",
+  );
   return data;
 }
 
@@ -419,7 +440,7 @@ ir.InstanceGet? _extractGetRuntimeType(ir.TreeNode node) =>
 ///
 ///     let final #1 = a in #1 == null ? null : #1.b
 ///
-/// [getNullAwareExpression] recognizes such expressions storing the result in
+/// [_getNullAwareExpression] recognizes such expressions storing the result in
 /// a [_NullAwareExpression] object.
 ///
 /// [syntheticVariable] holds the synthesized `#1` variable. [expression] holds
@@ -441,7 +462,7 @@ class _NullAwareExpression {
   String toString() => let.toString();
 }
 
-_NullAwareExpression? getNullAwareExpression(ir.TreeNode node) {
+_NullAwareExpression? _getNullAwareExpression(ir.TreeNode node) {
   if (node is ir.Let) {
     ir.Expression body = node.body;
     if (node.variable.name == null &&

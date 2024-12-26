@@ -10,9 +10,6 @@ import 'package:expect/expect.dart';
 void main() {
   var a = [1, 2, 3][2];
   switch (a) {
-
-
-
     case 1:
       print("OK");
   }

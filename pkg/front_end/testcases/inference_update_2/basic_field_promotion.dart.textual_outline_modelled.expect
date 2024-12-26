@@ -1,5 +1,7 @@
 abstract class C {
-  C(int? i) : _privateFinalField = i, publicFinalField = i;
+  C(int? i)
+      : _privateFinalField = i,
+        publicFinalField = i;
   final int? _privateFinalField;
   final int? publicFinalField;
   int? _privateField;

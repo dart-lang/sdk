@@ -34,14 +34,29 @@ foo2(Stream subStream) async* {
 Future test() async {
   Expect.listEquals([0, 1], await (subStream(0).toList()));
   Completer<bool> finalized = new Completer<bool>();
-  Expect.listEquals(["outer", 0, 1, "outer", 1, 2, "outer", 2],
-      await (foo(finalized).take(8).toList()));
+  Expect.listEquals([
+    "outer",
+    0,
+    1,
+    "outer",
+    1,
+    2,
+    "outer",
+    2,
+  ], await (foo(finalized).take(8).toList()));
   Expect.isTrue(await (finalized.future));
 
   finalized = new Completer<bool>();
   // Canceling the stream while it is yield*-ing from the sub-stream.
-  Expect.listEquals(["outer", 0, 1, "outer", 1, 2, "outer"],
-      await (foo(finalized).take(7).toList()));
+  Expect.listEquals([
+    "outer",
+    0,
+    1,
+    "outer",
+    1,
+    2,
+    "outer",
+  ], await (foo(finalized).take(7).toList()));
   Expect.isTrue(await (finalized.future));
   finalized = new Completer<bool>();
 
@@ -60,16 +75,21 @@ Future test() async {
     }
   }
 
-  controller = new StreamController(onListen: () {
-    scheduleMicrotask(addNext);
-  }, onPause: () {
-    pausedCompleter.complete(true);
-  }, onResume: () {
-    resumedCompleter.complete(true);
-    scheduleMicrotask(addNext);
-  }, onCancel: () {
-    canceledCompleter.complete(true);
-  });
+  controller = new StreamController(
+    onListen: () {
+      scheduleMicrotask(addNext);
+    },
+    onPause: () {
+      pausedCompleter.complete(true);
+    },
+    onResume: () {
+      resumedCompleter.complete(true);
+      scheduleMicrotask(addNext);
+    },
+    onCancel: () {
+      canceledCompleter.complete(true);
+    },
+  );
 
   late StreamSubscription subscription;
   // Test that the yield*'ed stream is paused and resumed.

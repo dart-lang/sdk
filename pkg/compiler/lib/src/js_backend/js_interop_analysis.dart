@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Analysis to determine how to generate code for typed JavaScript interop.
-library compiler.src.js_backend.js_interop_analysis;
+library;
 
 import '../elements/types.dart';
-import '../js/js.dart' as jsAst;
+import '../js/js.dart' as js_ast;
 import '../js/js.dart' show js;
 import '../universe/selector.dart' show Selector;
 import '../universe/codegen_world_builder.dart';
@@ -14,12 +14,17 @@ import '../universe/world_builder.dart' show SelectorConstraints;
 import 'namer.dart';
 import 'native_data.dart';
 
-jsAst.Statement? buildJsInteropBootstrap(
-    CodegenWorld codegenWorld, NativeBasicData nativeBasicData, Namer namer) {
+js_ast.Statement? buildJsInteropBootstrap(
+  CodegenWorld codegenWorld,
+  NativeBasicData nativeBasicData,
+  Namer namer,
+) {
   if (!nativeBasicData.isJsInteropUsed) return null;
-  List<jsAst.Statement> statements = [];
-  codegenWorld.forEachInvokedName(
-      (String name, Map<Selector, SelectorConstraints> selectors) {
+  List<js_ast.Statement> statements = [];
+  codegenWorld.forEachInvokedName((
+    String name,
+    Map<Selector, SelectorConstraints> selectors,
+  ) {
     selectors.forEach((Selector selector, SelectorConstraints constraints) {
       if (selector.isMaybeClosureCall) {
         // TODO(jacobr): support named arguments.
@@ -28,16 +33,21 @@ jsAst.Statement? buildJsInteropBootstrap(
         String candidateParameterNames =
             'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         List<String> parameters = List<String>.generate(
-            argumentCount, (i) => candidateParameterNames[i]);
+          argumentCount,
+          (i) => candidateParameterNames[i],
+        );
 
-        jsAst.Name name = namer.invocationName(selector);
-        statements.add(js.statement(
+        js_ast.Name name = namer.invocationName(selector);
+        statements.add(
+          js.statement(
             'Function.prototype.# = function(#) { return this(#) }',
-            [name, parameters, parameters]));
+            [name, parameters, parameters],
+          ),
+        );
       }
     });
   });
-  return jsAst.Block(statements);
+  return js_ast.Block(statements);
 }
 
 FunctionType buildJsFunctionType(DartTypes dartTypes) {
@@ -45,11 +55,12 @@ FunctionType buildJsFunctionType(DartTypes dartTypes) {
   // range of positional arguments that need to be supported by JavaScript
   // function types.
   return dartTypes.functionType(
-      dartTypes.dynamicType(),
-      const <DartType>[],
-      List<DartType>.filled(16, dartTypes.dynamicType()),
-      const <String>[],
-      const <String>{},
-      const <DartType>[],
-      const <FunctionTypeVariable>[]);
+    dartTypes.dynamicType(),
+    const <DartType>[],
+    List<DartType>.filled(16, dartTypes.dynamicType()),
+    const <String>[],
+    const <String>{},
+    const <DartType>[],
+    const <FunctionTypeVariable>[],
+  );
 }

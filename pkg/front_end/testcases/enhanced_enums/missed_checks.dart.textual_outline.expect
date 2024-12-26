@@ -1,10 +1,18 @@
-enum E1 { element.new() }
+enum E1 {
+  element.new();
+}
 
-enum E2<values> { element }
+enum E2<values> {
+  element;
+}
 
-enum E3<element> { element }
+enum E3<element> {
+  element;
+}
 
-enum values { element }
+enum values {
+  element;
+}
 
 abstract class SuperclassWithEquals {
   bool operator ==(Object other) => true;

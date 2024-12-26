@@ -111,7 +111,8 @@ class ParserTestListener implements Listener {
 
   out.writeln("}");
 
-  return new DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+  return new DartFormatter(
+          languageVersion: DartFormatter.latestShortStyleLanguageVersion)
       .format("$out");
 }
 

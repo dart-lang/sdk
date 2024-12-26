@@ -5,23 +5,15 @@
 // Bug: 4254106 Constant constructors must have (implicit) const parameters.
 
 class ConstCounter {
-  const ConstCounter(int i)
-      : nextValue_ = (
-      //             ^
-      // [cfe] Can't find ')' to match '('.
-
-            // Incorrect assignment of a non-const function to a final field.
-            () => i + 1;
-//          ^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
-// [cfe] Not a constant expression.
-//                     ^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+  const ConstCounter(int i) : nextValue_ = (() => i + 1);
+  //                                        ^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  // [cfe] Not a constant expression.
   final nextValue_;
 }
 
 main() {
   const ConstCounter(3);
-//^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  // [error column 3, length 21]
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
 }

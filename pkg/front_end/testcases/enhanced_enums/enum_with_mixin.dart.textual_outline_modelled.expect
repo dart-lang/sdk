@@ -1,4 +1,6 @@
-enum NormalEnum { value }
+enum NormalEnum {
+  value;
+}
 
 enum SomeEnum with HasSomeField {
   value;

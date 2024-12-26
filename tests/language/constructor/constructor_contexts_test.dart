@@ -43,9 +43,7 @@ class NoContextsNothingCaptured<T> extends Test {
   Function f1;
   Function f2;
 
-  NoContextsNothingCaptured(T a)
-      : f1 = (() => {}),
-        f2 = (() => {}) {
+  NoContextsNothingCaptured(T a) : f1 = (() => {}), f2 = (() => {}) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() => {});
@@ -61,12 +59,12 @@ class AllocatorContextOnlyTypeParamCapturedInInitializer<T> extends Test {
   T a;
 
   AllocatorContextOnlyTypeParamCapturedInInitializer(this.a)
-      : f1 = (() {
-          Expect.identical(T, int);
-        }),
-        f2 = (() {
-          Expect.identical(T, int);
-        }) {
+    : f1 = (() {
+        Expect.identical(T, int);
+      }),
+      f2 = (() {
+        Expect.identical(T, int);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() => {});
@@ -80,15 +78,15 @@ class AllocatorContextOnlyNormalParamCapturedInInitializer<T> extends Test {
   int a;
 
   AllocatorContextOnlyNormalParamCapturedInInitializer(int a)
-      : this.a = a,
-        f1 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-        }),
-        f2 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-        }) {
+    : this.a = a,
+      f1 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+      }),
+      f2 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() => {});
@@ -102,17 +100,17 @@ class AllocatorContextTypeAndNormalParamCapturedInInitializer<T> extends Test {
   int a;
 
   AllocatorContextTypeAndNormalParamCapturedInInitializer(int a)
-      : this.a = a,
-        f1 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-          Expect.identical(T, int);
-        }),
-        f2 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-          Expect.identical(T, int);
-        }) {
+    : this.a = a,
+      f1 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+        Expect.identical(T, int);
+      }),
+      f2 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+        Expect.identical(T, int);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() => {});
@@ -126,8 +124,8 @@ class AllocatorContextOnlyTypeParamCapturedInBody<T> extends Test {
   T a;
 
   AllocatorContextOnlyTypeParamCapturedInBody(this.a)
-      : f1 = (() => {}),
-        f2 = (() => {}) {
+    : f1 = (() => {}),
+      f2 = (() => {}) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -146,13 +144,13 @@ class AllocatorContextTypeParamCapturedInInitializerAndTypeParamInBody<T>
   int a;
 
   AllocatorContextTypeParamCapturedInInitializerAndTypeParamInBody(int a)
-      : this.a = a,
-        f1 = (() {
-          Expect.identical(T, int);
-        }),
-        f2 = (() {
-          Expect.identical(T, int);
-        }) {
+    : this.a = a,
+      f1 = (() {
+        Expect.identical(T, int);
+      }),
+      f2 = (() {
+        Expect.identical(T, int);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -171,15 +169,15 @@ class AllocatorContextNormalParamCapturedInInitializerAndTypeParamInBody<T>
   int a;
 
   AllocatorContextNormalParamCapturedInInitializerAndTypeParamInBody(int a)
-      : this.a = a,
-        f1 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-        }),
-        f2 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-        }) {
+    : this.a = a,
+      f1 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+      }),
+      f2 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -192,24 +190,26 @@ class AllocatorContextNormalParamCapturedInInitializerAndTypeParamInBody<T>
 }
 
 class AllocatorContextTypeAndNormalParamCapturedInInitializerAndTypeParamInBody<
-    T> extends Test {
+  T
+>
+    extends Test {
   Function f1;
   Function f2;
   int a;
 
   AllocatorContextTypeAndNormalParamCapturedInInitializerAndTypeParamInBody(
-      int a)
-      : this.a = a,
-        f1 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-          Expect.identical(T, int);
-        }),
-        f2 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-          Expect.identical(T, int);
-        }) {
+    int a,
+  ) : this.a = a,
+      f1 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+        Expect.identical(T, int);
+      }),
+      f2 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+        Expect.identical(T, int);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -228,9 +228,7 @@ class BodyContextOnlyThisCaptured<T> extends Test {
   Function f2;
   int a;
 
-  BodyContextOnlyThisCaptured(this.a)
-      : f1 = (() => {}),
-        f2 = (() => {}) {
+  BodyContextOnlyThisCaptured(this.a) : f1 = (() => {}), f2 = (() => {}) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -250,8 +248,8 @@ class BodyContextOnlyNormalParamCapturedInBody<T> extends Test {
   int a;
 
   BodyContextOnlyNormalParamCapturedInBody(this.a)
-      : f1 = (() => {}),
-        f2 = (() => {}) {
+    : f1 = (() => {}),
+      f2 = (() => {}) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -271,8 +269,8 @@ class BodyContextOnlyThisAndNormalParamCapturedInBody<T> extends Test {
   int a;
 
   BodyContextOnlyThisAndNormalParamCapturedInBody(this.a)
-      : f1 = (() => {}),
-        f2 = (() => {}) {
+    : f1 = (() => {}),
+      f2 = (() => {}) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -297,13 +295,13 @@ class AllocatorContextNormalParamCapturedInBodyTypeParamInInitializer<T>
   int a;
 
   AllocatorContextNormalParamCapturedInBodyTypeParamInInitializer(int a)
-      : this.a = a,
-        f1 = (() {
-          Expect.identical(T, int);
-        }),
-        f2 = (() {
-          Expect.identical(T, int);
-        }) {
+    : this.a = a,
+      f1 = (() {
+        Expect.identical(T, int);
+      }),
+      f2 = (() {
+        Expect.identical(T, int);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -323,15 +321,15 @@ class AllocatorContextNormalParamCapturedInBodyAndInitializer<T> extends Test {
   int a;
 
   AllocatorContextNormalParamCapturedInBodyAndInitializer(int a)
-      : this.a = a,
-        f1 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-        }),
-        f2 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-        }) {
+    : this.a = a,
+      f1 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+      }),
+      f2 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -346,24 +344,26 @@ class AllocatorContextNormalParamCapturedInBodyAndInitializer<T> extends Test {
 }
 
 class AllocatorContextNormalParamCapturedInBodyAndNormalAndTypeParamInInitializer<
-    T> extends Test {
+  T
+>
+    extends Test {
   Function f1;
   Function f2;
   int a;
 
   AllocatorContextNormalParamCapturedInBodyAndNormalAndTypeParamInInitializer(
-      int a)
-      : this.a = a,
-        f1 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-          Expect.identical(T, int);
-        }),
-        f2 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-          Expect.identical(T, int);
-        }) {
+    int a,
+  ) : this.a = a,
+      f1 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+        Expect.identical(T, int);
+      }),
+      f2 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+        Expect.identical(T, int);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -383,9 +383,9 @@ class AllocatorContextNormalParamAndTypeParamCapturedInBody<T> extends Test {
   int a;
 
   AllocatorContextNormalParamAndTypeParamCapturedInBody(int a)
-      : this.a = a,
-        f1 = (() => {}),
-        f2 = (() => {}) {
+    : this.a = a,
+      f1 = (() => {}),
+      f2 = (() => {}) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -402,20 +402,20 @@ class AllocatorContextNormalParamAndTypeParamCapturedInBody<T> extends Test {
 }
 
 class AllocatorContextNormalParamAndTypeParamCapturedInBodyAndTypeParamInInitializer<
-    T> extends Test {
+  T
+>
+    extends Test {
   Function f1;
   Function f2;
   int a;
 
-  AllocatorContextNormalParamAndTypeParamCapturedInBodyAndTypeParamInInitializer(
-      int a)
-      : this.a = a,
-        f1 = (() {
-          Expect.identical(T, int);
-        }),
-        f2 = (() {
-          Expect.identical(T, int);
-        }) {
+  AllocatorContextNormalParamAndTypeParamCapturedInBodyAndTypeParamInInitializer(int a) : this.a = a,
+      f1 = (() {
+        Expect.identical(T, int);
+      }),
+      f2 = (() {
+        Expect.identical(T, int);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -432,22 +432,22 @@ class AllocatorContextNormalParamAndTypeParamCapturedInBodyAndTypeParamInInitial
 }
 
 class AllocatorContextNormalParamAndTypeParamCapturedInBodyAndNormalParamInInitializer<
-    T> extends Test {
+  T
+>
+    extends Test {
   Function f1;
   Function f2;
   int a;
 
-  AllocatorContextNormalParamAndTypeParamCapturedInBodyAndNormalParamInInitializer(
-      int a)
-      : this.a = a,
-        f1 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-        }),
-        f2 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-        }) {
+  AllocatorContextNormalParamAndTypeParamCapturedInBodyAndNormalParamInInitializer(int a) : this.a = a,
+      f1 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+      }),
+      f2 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -470,17 +470,17 @@ class AllocatorContextNormalParamAndTypeParamCapturedInBodyAndInitializer<T>
   int a;
 
   AllocatorContextNormalParamAndTypeParamCapturedInBodyAndInitializer(int a)
-      : this.a = a,
-        f1 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-          Expect.identical(T, int);
-        }),
-        f2 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-          Expect.identical(T, int);
-        }) {
+    : this.a = a,
+      f1 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+        Expect.identical(T, int);
+      }),
+      f2 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+        Expect.identical(T, int);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -504,9 +504,9 @@ class BothContextsThisAndTypeParamCapturedInBody<T> extends Test {
   int a;
 
   BothContextsThisAndTypeParamCapturedInBody(int a)
-      : this.a = a,
-        f1 = (() => {}),
-        f2 = (() => {}) {
+    : this.a = a,
+      f1 = (() => {}),
+      f2 = (() => {}) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -528,13 +528,13 @@ class BothContextsThisCapturedInBodyTypeParamInInitializer<T> extends Test {
   int a;
 
   BothContextsThisCapturedInBodyTypeParamInInitializer(int a)
-      : this.a = a,
-        f1 = (() {
-          Expect.identical(T, int);
-        }),
-        f2 = (() {
-          Expect.identical(T, int);
-        }) {
+    : this.a = a,
+      f1 = (() {
+        Expect.identical(T, int);
+      }),
+      f2 = (() {
+        Expect.identical(T, int);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -554,15 +554,15 @@ class BothContextsThisCapturedInBodyNormalParamInInitializer<T> extends Test {
   int a;
 
   BothContextsThisCapturedInBodyNormalParamInInitializer(int a)
-      : this.a = a,
-        f1 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-        }),
-        f2 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-        }) {
+    : this.a = a,
+      f1 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+      }),
+      f2 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -583,17 +583,17 @@ class BothContextsThisCapturedInBodyNormalAndTypeParamInInitializer<T>
   int a;
 
   BothContextsThisCapturedInBodyNormalAndTypeParamInInitializer(int a)
-      : this.a = a,
-        f1 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-          Expect.identical(T, int);
-        }),
-        f2 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-          Expect.identical(T, int);
-        }) {
+    : this.a = a,
+      f1 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+        Expect.identical(T, int);
+      }),
+      f2 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+        Expect.identical(T, int);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -614,13 +614,13 @@ class BothContextsThisAndNormalParamCapturedInBodyTypeParamInInitializer<T>
   int a;
 
   BothContextsThisAndNormalParamCapturedInBodyTypeParamInInitializer(int a)
-      : this.a = a,
-        f1 = (() {
-          Expect.identical(T, int);
-        }),
-        f2 = (() {
-          Expect.identical(T, int);
-        }) {
+    : this.a = a,
+      f1 = (() {
+        Expect.identical(T, int);
+      }),
+      f2 = (() {
+        Expect.identical(T, int);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -645,15 +645,15 @@ class BothContextsThisAndNormalParamCapturedInBodyNormalParamInInitializer<T>
   int a;
 
   BothContextsThisAndNormalParamCapturedInBodyNormalParamInInitializer(int a)
-      : this.a = a,
-        f1 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-        }),
-        f2 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-        }) {
+    : this.a = a,
+      f1 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+      }),
+      f2 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -672,24 +672,26 @@ class BothContextsThisAndNormalParamCapturedInBodyNormalParamInInitializer<T>
 }
 
 class BothContextsThisAndNormalParamCapturedInBodyTypeAndNormalParamInInitializer<
-    T> extends Test {
+  T
+>
+    extends Test {
   Function f1;
   Function f2;
   int a;
 
   BothContextsThisAndNormalParamCapturedInBodyTypeAndNormalParamInInitializer(
-      int a)
-      : this.a = a,
-        f1 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-          Expect.identical(T, int);
-        }),
-        f2 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-          Expect.identical(T, int);
-        }) {
+    int a,
+  ) : this.a = a,
+      f1 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+        Expect.identical(T, int);
+      }),
+      f2 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+        Expect.identical(T, int);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -714,13 +716,13 @@ class BothContextsThisAndTypeParamCapturedInBodyTypeParamInInitializer<T>
   int a;
 
   BothContextsThisAndTypeParamCapturedInBodyTypeParamInInitializer(int a)
-      : this.a = a,
-        f1 = (() {
-          Expect.identical(T, int);
-        }),
-        f2 = (() {
-          Expect.identical(T, int);
-        }) {
+    : this.a = a,
+      f1 = (() {
+        Expect.identical(T, int);
+      }),
+      f2 = (() {
+        Expect.identical(T, int);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -743,15 +745,15 @@ class BothContextsThisAndTypeParamCapturedInBodyNormalParamInInitializer<T>
   int a;
 
   BothContextsThisAndTypeParamCapturedInBodyNormalParamInInitializer(int a)
-      : this.a = a,
-        f1 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-        }),
-        f2 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-        }) {
+    : this.a = a,
+      f1 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+      }),
+      f2 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -768,24 +770,26 @@ class BothContextsThisAndTypeParamCapturedInBodyNormalParamInInitializer<T>
 }
 
 class BothContextsThisAndTypeParamCapturedInBodyTypeAndNormalParamInInitializer<
-    T> extends Test {
+  T
+>
+    extends Test {
   Function f1;
   Function f2;
   int a;
 
   BothContextsThisAndTypeParamCapturedInBodyTypeAndNormalParamInInitializer(
-      int a)
-      : this.a = a,
-        f1 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-          Expect.identical(T, int);
-        }),
-        f2 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-          Expect.identical(T, int);
-        }) {
+    int a,
+  ) : this.a = a,
+      f1 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+        Expect.identical(T, int);
+      }),
+      f2 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+        Expect.identical(T, int);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -807,9 +811,9 @@ class BothContextsEverythingCapturedInBody<T> extends Test {
   int a;
 
   BothContextsEverythingCapturedInBody(int a)
-      : this.a = a,
-        f1 = (() => {}),
-        f2 = (() => {}) {
+    : this.a = a,
+      f1 = (() => {}),
+      f2 = (() => {}) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -836,13 +840,13 @@ class BothContextsEverythingCapturedInBodyAndTypeParamInInitializer<T>
   int a;
 
   BothContextsEverythingCapturedInBodyAndTypeParamInInitializer(int a)
-      : this.a = a,
-        f1 = (() {
-          Expect.identical(T, int);
-        }),
-        f2 = (() {
-          Expect.identical(T, int);
-        }) {
+    : this.a = a,
+      f1 = (() {
+        Expect.identical(T, int);
+      }),
+      f2 = (() {
+        Expect.identical(T, int);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -869,15 +873,15 @@ class BothContextsEverythingCapturedInBodyAndNormalParamInInitializer<T>
   int a;
 
   BothContextsEverythingCapturedInBodyAndNormalParamInInitializer(int a)
-      : this.a = a,
-        f1 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-        }),
-        f2 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-        }) {
+    : this.a = a,
+      f1 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+      }),
+      f2 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -903,17 +907,17 @@ class BothContextsEverythingCapturedInBodyAndInitializer<T> extends Test {
   int a;
 
   BothContextsEverythingCapturedInBodyAndInitializer(int a)
-      : this.a = a,
-        f1 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-          Expect.identical(T, int);
-        }),
-        f2 = (() {
-          a++;
-          Expect.equals(++expectedValueOfA, a);
-          Expect.identical(T, int);
-        }) {
+    : this.a = a,
+      f1 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+        Expect.identical(T, int);
+      }),
+      f2 = (() {
+        a++;
+        Expect.equals(++expectedValueOfA, a);
+        Expect.identical(T, int);
+      }) {
     assertions.add(f1);
     assertions.add(f2);
     assertions.add(() {
@@ -935,8 +939,9 @@ class BothContextsEverythingCapturedInBodyAndInitializer<T> extends Test {
 
 void main() {
   expectedValueOfA = 123;
-  NoContextsNothingCaptured a =
-      NoContextsNothingCaptured<int>(expectedValueOfA);
+  NoContextsNothingCaptured a = NoContextsNothingCaptured<int>(
+    expectedValueOfA,
+  );
   a.runAssertions();
 
   expectedValueOfA = 123;
@@ -947,13 +952,15 @@ void main() {
   expectedValueOfA = 123;
   AllocatorContextOnlyNormalParamCapturedInInitializer c =
       AllocatorContextOnlyNormalParamCapturedInInitializer<int>(
-          expectedValueOfA);
+        expectedValueOfA,
+      );
   c.runAssertions();
 
   expectedValueOfA = 123;
   AllocatorContextTypeAndNormalParamCapturedInInitializer d =
       AllocatorContextTypeAndNormalParamCapturedInInitializer<int>(
-          expectedValueOfA);
+        expectedValueOfA,
+      );
   d.runAssertions();
 
   expectedValueOfA = 123;
@@ -964,64 +971,69 @@ void main() {
   expectedValueOfA = 123;
   AllocatorContextTypeParamCapturedInInitializerAndTypeParamInBody f =
       AllocatorContextTypeParamCapturedInInitializerAndTypeParamInBody<int>(
-          expectedValueOfA);
+        expectedValueOfA,
+      );
   f.runAssertions();
 
   expectedValueOfA = 123;
   AllocatorContextNormalParamCapturedInInitializerAndTypeParamInBody g =
       AllocatorContextNormalParamCapturedInInitializerAndTypeParamInBody<int>(
-          expectedValueOfA);
+        expectedValueOfA,
+      );
   g.runAssertions();
 
   expectedValueOfA = 123;
   AllocatorContextTypeAndNormalParamCapturedInInitializerAndTypeParamInBody h =
       AllocatorContextTypeAndNormalParamCapturedInInitializerAndTypeParamInBody<
-          int>(expectedValueOfA);
+        int
+      >(expectedValueOfA);
   h.runAssertions();
 
   expectedValueOfA = 123;
   AllocatorContextNormalParamCapturedInBodyTypeParamInInitializer i =
       AllocatorContextNormalParamCapturedInBodyTypeParamInInitializer<int>(
-          expectedValueOfA);
+        expectedValueOfA,
+      );
   i.runAssertions();
 
   expectedValueOfA = 123;
   AllocatorContextNormalParamCapturedInBodyAndInitializer j =
       AllocatorContextNormalParamCapturedInBodyAndInitializer<int>(
-          expectedValueOfA);
+        expectedValueOfA,
+      );
   j.runAssertions();
 
   expectedValueOfA = 123;
   AllocatorContextNormalParamCapturedInBodyAndNormalAndTypeParamInInitializer
-      k =
-      AllocatorContextNormalParamCapturedInBodyAndNormalAndTypeParamInInitializer<
-          int>(expectedValueOfA);
+  k = AllocatorContextNormalParamCapturedInBodyAndNormalAndTypeParamInInitializer<
+    int
+  >(expectedValueOfA);
   k.runAssertions();
 
   expectedValueOfA = 123;
   AllocatorContextNormalParamAndTypeParamCapturedInBody l =
       AllocatorContextNormalParamAndTypeParamCapturedInBody<int>(
-          expectedValueOfA);
+        expectedValueOfA,
+      );
   l.runAssertions();
 
   expectedValueOfA = 123;
   AllocatorContextNormalParamAndTypeParamCapturedInBodyAndTypeParamInInitializer
-      m =
-      AllocatorContextNormalParamAndTypeParamCapturedInBodyAndTypeParamInInitializer<
-          int>(expectedValueOfA);
+  m = AllocatorContextNormalParamAndTypeParamCapturedInBodyAndTypeParamInInitializer<
+    int
+  >(expectedValueOfA);
   m.runAssertions();
 
   expectedValueOfA = 123;
   AllocatorContextNormalParamAndTypeParamCapturedInBodyAndNormalParamInInitializer
-      n =
-      AllocatorContextNormalParamAndTypeParamCapturedInBodyAndNormalParamInInitializer<
-          int>(expectedValueOfA);
+  n = AllocatorContextNormalParamAndTypeParamCapturedInBodyAndNormalParamInInitializer<int>(expectedValueOfA);
   n.runAssertions();
 
   expectedValueOfA = 123;
   AllocatorContextNormalParamAndTypeParamCapturedInBodyAndInitializer o =
       AllocatorContextNormalParamAndTypeParamCapturedInBodyAndInitializer<int>(
-          expectedValueOfA);
+        expectedValueOfA,
+      );
   o.runAssertions();
 
   expectedValueOfA = 123;
@@ -1030,8 +1042,9 @@ void main() {
   p.runAssertions();
 
   expectedValueOfA = 123;
-  BodyContextOnlyThisCaptured q =
-      BodyContextOnlyThisCaptured<int>(expectedValueOfA);
+  BodyContextOnlyThisCaptured q = BodyContextOnlyThisCaptured<int>(
+    expectedValueOfA,
+  );
   q.runAssertions();
 
   expectedValueOfA = 123;
@@ -1042,19 +1055,22 @@ void main() {
   expectedValueOfA = 123;
   BothContextsThisCapturedInBodyTypeParamInInitializer s =
       BothContextsThisCapturedInBodyTypeParamInInitializer<int>(
-          expectedValueOfA);
+        expectedValueOfA,
+      );
   s.runAssertions();
 
   expectedValueOfA = 123;
   BothContextsThisCapturedInBodyNormalParamInInitializer t =
       BothContextsThisCapturedInBodyNormalParamInInitializer<int>(
-          expectedValueOfA);
+        expectedValueOfA,
+      );
   t.runAssertions();
 
   expectedValueOfA = 123;
   BothContextsThisCapturedInBodyNormalAndTypeParamInInitializer u =
       BothContextsThisCapturedInBodyNormalAndTypeParamInInitializer<int>(
-          expectedValueOfA);
+        expectedValueOfA,
+      );
   u.runAssertions();
 
   expectedValueOfA = 123;
@@ -1065,38 +1081,44 @@ void main() {
   expectedValueOfA = 123;
   BothContextsThisAndTypeParamCapturedInBodyTypeParamInInitializer w =
       BothContextsThisAndTypeParamCapturedInBodyTypeParamInInitializer<int>(
-          expectedValueOfA);
+        expectedValueOfA,
+      );
   w.runAssertions();
 
   expectedValueOfA = 123;
   BothContextsThisAndTypeParamCapturedInBodyNormalParamInInitializer x =
       BothContextsThisAndTypeParamCapturedInBodyNormalParamInInitializer<int>(
-          expectedValueOfA);
+        expectedValueOfA,
+      );
   x.runAssertions();
 
   expectedValueOfA = 123;
   BothContextsThisAndTypeParamCapturedInBodyTypeAndNormalParamInInitializer y =
       BothContextsThisAndTypeParamCapturedInBodyTypeAndNormalParamInInitializer<
-          int>(expectedValueOfA);
+        int
+      >(expectedValueOfA);
   y.runAssertions();
 
   expectedValueOfA = 123;
   BothContextsThisAndNormalParamCapturedInBodyTypeParamInInitializer z =
       BothContextsThisAndNormalParamCapturedInBodyTypeParamInInitializer<int>(
-          expectedValueOfA);
+        expectedValueOfA,
+      );
   z.runAssertions();
 
   expectedValueOfA = 123;
   BothContextsThisAndNormalParamCapturedInBodyNormalParamInInitializer aa =
       BothContextsThisAndNormalParamCapturedInBodyNormalParamInInitializer<int>(
-          expectedValueOfA);
+        expectedValueOfA,
+      );
   aa.runAssertions();
 
   expectedValueOfA = 123;
   BothContextsThisAndNormalParamCapturedInBodyTypeAndNormalParamInInitializer
-      ab =
+  ab =
       BothContextsThisAndNormalParamCapturedInBodyTypeAndNormalParamInInitializer<
-          int>(expectedValueOfA);
+        int
+      >(expectedValueOfA);
   ab.runAssertions();
 
   expectedValueOfA = 123;
@@ -1107,13 +1129,15 @@ void main() {
   expectedValueOfA = 123;
   BothContextsEverythingCapturedInBodyAndTypeParamInInitializer ad =
       BothContextsEverythingCapturedInBodyAndTypeParamInInitializer<int>(
-          expectedValueOfA);
+        expectedValueOfA,
+      );
   ad.runAssertions();
 
   expectedValueOfA = 123;
   BothContextsEverythingCapturedInBodyAndNormalParamInInitializer ae =
       BothContextsEverythingCapturedInBodyAndNormalParamInInitializer<int>(
-          expectedValueOfA);
+        expectedValueOfA,
+      );
   ae.runAssertions();
 
   expectedValueOfA = 123;

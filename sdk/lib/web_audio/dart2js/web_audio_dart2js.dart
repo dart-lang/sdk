@@ -1,3 +1,7 @@
+// DO NOT EDIT - unless you are editing documentation as per:
+// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
+// Auto-generated dart:audio library.
+
 /// High-fidelity audio programming in the browser.
 ///
 /// > [!Note]
@@ -6,6 +10,7 @@
 /// > our [migration guide](https://dart.dev/go/package-web).
 ///
 /// {@category Web (Legacy)}
+@Deprecated('Use package:web and dart:js_interop instead.')
 library dart.dom.web_audio;
 
 import 'dart:async';
@@ -17,9 +22,6 @@ import 'dart:_native_typed_data';
 import 'dart:typed_data';
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JavaScriptObject;
-// DO NOT EDIT - unless you are editing documentation as per:
-// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
-// Auto-generated dart:audio library.
 
 import 'dart:_js_helper'
     show

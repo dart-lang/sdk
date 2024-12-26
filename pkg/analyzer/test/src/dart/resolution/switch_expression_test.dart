@@ -6,10 +6,12 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SwitchExpressionResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -179,6 +181,34 @@ SwitchExpression
         literal: 0
         staticType: int
   rightBracket: }
+  staticType: int
+''');
+  }
+
+  test_joinedVariables_inLocalFunction() async {
+    // Note: this is an important case to test because when variables are inside
+    // a local function, their enclosing element is `null`.
+    await assertNoErrorsInCode('''
+abstract class C {
+  List<int> get values;
+}
+abstract class D {
+  List<int> get values;
+}
+test(Object o) => () =>
+  switch (o) {
+    C(:var values) || D(:var values) =>
+      [for (var value in values) value + 1],
+    _ => []
+  };
+''');
+
+    var node = findNode.simple('value + 1');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: value
+  staticElement: value@185
+  element: value@185
   staticType: int
 ''');
   }

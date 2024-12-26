@@ -25,16 +25,13 @@ class MyClass {
   final int someVeryUniqueVariableName1337plus42 = 3;
 
   Object callMyMethod() {
-    return myFinalizable.myMethod(
-      namedArgument: Object(),
-      () {
-        // Force a capture of this.
-        // Without capture: `error: expected: delta >= 0`.
-        // With capture `error: expected: variable != nullptr`.
-        someVeryUniqueVariableName1337plus42;
-        throw Exception('Throw something');
-      },
-    );
+    return myFinalizable.myMethod(namedArgument: Object(), () {
+      // Force a capture of this.
+      // Without capture: `error: expected: delta >= 0`.
+      // With capture `error: expected: variable != nullptr`.
+      someVeryUniqueVariableName1337plus42;
+      throw Exception('Throw something');
+    });
   }
 }
 

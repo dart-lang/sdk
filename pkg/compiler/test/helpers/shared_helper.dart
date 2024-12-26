@@ -13,8 +13,11 @@ String constantToText(DartTypes dartTypes, ConstantValue constant) {
 }
 
 class DartTypeToTextVisitor extends DartTypeVisitor<void, StringBuffer> {
-  String visitList(Iterable<DartType> types, StringBuffer sb,
-      [String comma = '']) {
+  String visitList(
+    Iterable<DartType> types,
+    StringBuffer sb, [
+    String comma = '',
+  ]) {
     for (DartType type in types) {
       sb.write(comma);
       visit(type, sb);
@@ -251,8 +254,10 @@ class ConstantToTextVisitor
     sb.write(')');
   }
 
-  void _unsupported(ConstantValue constant) => throw UnsupportedError(
-      'Unsupported constant value: ${constant.toStructuredText(_dartTypes)}');
+  void _unsupported(ConstantValue constant) =>
+      throw UnsupportedError(
+        'Unsupported constant value: ${constant.toStructuredText(_dartTypes)}',
+      );
 
   @override
   void visitInterceptor(InterceptorConstantValue constant, StringBuffer sb) =>
@@ -260,8 +265,9 @@ class ConstantToTextVisitor
 
   @override
   void visitDummyInterceptor(
-          DummyInterceptorConstantValue constant, StringBuffer sb) =>
-      _unsupported(constant);
+    DummyInterceptorConstantValue constant,
+    StringBuffer sb,
+  ) => _unsupported(constant);
 
   @override
   void visitLateSentinel(LateSentinelConstantValue constant, StringBuffer sb) =>
@@ -277,12 +283,15 @@ class ConstantToTextVisitor
 
   @override
   void visitDeferredGlobal(
-          DeferredGlobalConstantValue constant, StringBuffer sb) =>
-      _unsupported(constant);
+    DeferredGlobalConstantValue constant,
+    StringBuffer sb,
+  ) => _unsupported(constant);
 
   @override
   void visitInstantiation(
-      InstantiationConstantValue constant, StringBuffer sb) {
+    InstantiationConstantValue constant,
+    StringBuffer sb,
+  ) {
     sb.write('Instantiation(');
     sb.write(constant.function.element.name);
     sb.write('<');
@@ -292,7 +301,9 @@ class ConstantToTextVisitor
 
   @override
   void visitJavaScriptObject(
-      JavaScriptObjectConstantValue constant, StringBuffer sb) {
+    JavaScriptObjectConstantValue constant,
+    StringBuffer sb,
+  ) {
     sb.write('JavaScriptObject({');
     for (int index = 0; index < constant.keys.length; index++) {
       if (index > 0) {

@@ -81,7 +81,7 @@ class MyClass {
 void f() {
   MyClass()./*[0*/field/*0]*/ = '';
   print(MyClass()./*[1*/field/*1]*/);
-  
+
   var myInstance = MyClass();
   myInstance./*[2*/field/*2]*/ = '';
   print(myInstance./*[3*/field/*3]*/);
@@ -167,7 +167,7 @@ class MyClass {
 void f() {
   MyClass()./*[0*/field/*0]*/ = '';
   print(MyClass()./*[1*/field/*1]*/);
-  
+
   var myInstance = MyClass();
   myInstance./*[2*/field/*2]*/ = '';
   print(myInstance./*[3*/field/*3]*/);
@@ -188,7 +188,7 @@ class MyClass {
 void f() {
   MyClass()./*[0*/field/*0]*/ = '';
   print(MyClass()./*[1*/fi^eld/*1]*/);
-  
+
   var myInstance = MyClass();
   myInstance./*[2*/field/*2]*/ = '';
   print(myInstance./*[3*/field/*3]*/);
@@ -199,12 +199,23 @@ void f() {
     await _checkRanges(content);
   }
 
-  Future<void> test_import_prefix() async {
+  Future<void> test_import_prefix_declaration() async {
     var content = '''
-imp^ort 'dart:async' as async;
+import 'dart:async' as asy^nc;
 
-/*[0*/async./*0]*/Future<String>? f() {}
-/*[1*/async./*1]*/Future<String>? g() {}
+/*[0*/async/*0]*/.Future<String>? f() {}
+/*[1*/async/*1]*/.Future<String>? g() {}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_import_prefix_reference() async {
+    var content = '''
+import 'dart:async' as async;
+
+/*[0*/^async/*0]*/.Future<String>? f() {}
+/*[1*/async/*1]*/.Future<String>? g() {}
 ''';
 
     await _checkRanges(content);
@@ -370,7 +381,7 @@ class MyClass {
 void f() {
   MyClass()./*[0*/field/*0]*/ = '';
   print(MyClass()./*[1*/field/*1]*/);
-  
+
   var myInstance = MyClass();
   myInstance./*[2*/field/*2]*/ = '';
   print(myInstance./*[3*/field/*3]*/);
@@ -391,7 +402,7 @@ class MyClass {
 void f() {
   MyClass()./*[0*/fie^ld/*0]*/ = '';
   print(MyClass()./*[1*/field/*1]*/);
-  
+
   var myInstance = MyClass();
   myInstance./*[2*/field/*2]*/ = '';
   print(myInstance./*[3*/field/*3]*/);

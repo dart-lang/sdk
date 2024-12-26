@@ -288,7 +288,9 @@ class JsBuilder {
   }
 
   Iterable<Literal> joinLiterals(
-      Iterable<Literal> items, Literal separator) sync* {
+    Iterable<Literal> items,
+    Literal separator,
+  ) sync* {
     bool first = true;
     for (final item in items) {
       if (!first) yield separator;
@@ -314,7 +316,10 @@ class JsBuilder {
   Comment comment(String text) => Comment(text);
 
   Call propertyCall(
-      Expression receiver, Expression fieldName, List<Expression> arguments) {
+    Expression receiver,
+    Expression fieldName,
+    List<Expression> arguments,
+  ) {
     return Call(PropertyAccess(receiver, fieldName), arguments);
   }
 
@@ -347,7 +352,10 @@ LiteralNumber number(num value) => js.number(value);
 ArrayInitializer numArray(Iterable<int> list) => js.numArray(list);
 ArrayInitializer stringArray(Iterable<String> list) => js.stringArray(list);
 Call propertyCall(
-    Expression receiver, Expression fieldName, List<Expression> arguments) {
+  Expression receiver,
+  Expression fieldName,
+  List<Expression> arguments,
+) {
   return js.propertyCall(receiver, fieldName, arguments);
 }
 
@@ -404,8 +412,7 @@ enum _Category {
   arrow,
   hash,
   whitespace,
-  other,
-  ;
+  other;
 
   static const _asciiTable = <_Category>[
     other, other, other, other, other, other, other, other, // 0-7
@@ -528,7 +535,7 @@ class MiniJsParser {
     'typeof',
     'void',
     'delete',
-    'await'
+    'await',
   };
 
   static final OPERATORS_THAT_LOOK_LIKE_IDENTIFIERS = {
@@ -537,7 +544,7 @@ class MiniJsParser {
     'delete',
     'in',
     'instanceof',
-    'await'
+    'await',
   };
 
   static _Category _category(int code) {
@@ -678,11 +685,12 @@ class MiniJsParser {
         // Special code to disallow !, ~ and / in non-first position in token,
         // so that !! and ~~ parse as two tokens and != parses as one, while =/
         // parses as a an equals token followed by a regexp literal start.
-        newCat = (code == char_codes.$BANG ||
-                code == char_codes.$SLASH ||
-                code == char_codes.$TILDE)
-            ? _Category.none
-            : _category(code);
+        newCat =
+            (code == char_codes.$BANG ||
+                    code == char_codes.$SLASH ||
+                    code == char_codes.$TILDE)
+                ? _Category.none
+                : _category(code);
       } while (!_singleCharCategory(cat) &&
           (cat == newCat ||
               (cat == _Category.alpha &&
@@ -819,8 +827,9 @@ class MiniJsParser {
       return expression;
     } else if (_acceptCategory(_Category.hash)) {
       var nameOrPosition = parseHash();
-      InterpolatedExpression expression =
-          InterpolatedExpression(nameOrPosition);
+      InterpolatedExpression expression = InterpolatedExpression(
+        nameOrPosition,
+      );
       interpolatedValues.add(expression);
       return expression;
     } else {
@@ -843,8 +852,9 @@ class MiniJsParser {
       for (;;) {
         if (_acceptCategory(_Category.hash)) {
           var nameOrPosition = parseHash();
-          InterpolatedParameter parameter =
-              InterpolatedParameter(nameOrPosition);
+          InterpolatedParameter parameter = InterpolatedParameter(
+            nameOrPosition,
+          );
           interpolatedValues.add(parameter);
           params.add(parameter);
         } else {
@@ -899,8 +909,9 @@ class MiniJsParser {
       propertyName = LiteralString(identifier);
     } else if (_acceptCategory(_Category.hash)) {
       var nameOrPosition = parseHash();
-      InterpolatedLiteral interpolatedLiteral =
-          InterpolatedLiteral(nameOrPosition);
+      InterpolatedLiteral interpolatedLiteral = InterpolatedLiteral(
+        nameOrPosition,
+      );
       interpolatedValues.add(interpolatedLiteral);
       propertyName = interpolatedLiteral;
     } else {
@@ -1070,8 +1081,10 @@ class MiniJsParser {
         return Assignment(lhs, rhs);
       } else {
         // Handle +=, -=, etc.
-        String operator =
-            assignmentOperator.substring(0, assignmentOperator.length - 1);
+        String operator = assignmentOperator.substring(
+          0,
+          assignmentOperator.length - 1,
+        );
         return Assignment.compound(lhs, operator, rhs);
       }
     }
@@ -1111,7 +1124,8 @@ class MiniJsParser {
       return parseArrowFunctionBody(params);
     }
     return expressions.reduce(
-        (Expression value, Expression element) => Binary(',', value, element));
+      (Expression value, Expression element) => Binary(',', value, element),
+    );
   }
 
   Expression parseArrowFunctionBody(List<Parameter> params) {
@@ -1130,7 +1144,8 @@ class MiniJsParser {
   }
 
   VariableDeclarationList finishVariableDeclarationList(
-      Declaration firstVariable) {
+    Declaration firstVariable,
+  ) {
     var initialization = <VariableInitialization>[];
 
     void declare(Declaration declaration) {
@@ -1248,8 +1263,9 @@ class MiniJsParser {
       // statement.
       if (expression is InterpolatedExpression) {
         assert(identical(interpolatedValues.last, expression));
-        InterpolatedStatement statement =
-            InterpolatedStatement(expression.nameOrPosition);
+        InterpolatedStatement statement = InterpolatedStatement(
+          expression.nameOrPosition,
+        );
         interpolatedValues[interpolatedValues.length - 1] = statement;
         return statement;
       }
@@ -1337,10 +1353,10 @@ class MiniJsParser {
         _expectCategory(_Category.rparen);
         Statement body = parseStatement();
         return ForIn(
-            VariableDeclarationList(
-                [VariableInitialization(declaration, null)]),
-            objectExpression,
-            body);
+          VariableDeclarationList([VariableInitialization(declaration, null)]),
+          objectExpression,
+          body,
+        );
       }
       Expression declarations = finishVariableDeclarationList(declaration);
       _expectCategory(_Category.semicolon);
@@ -1355,8 +1371,9 @@ class MiniJsParser {
   Declaration parseVariableDeclaration() {
     if (_acceptCategory(_Category.hash)) {
       var nameOrPosition = parseHash();
-      InterpolatedDeclaration declaration =
-          InterpolatedDeclaration(nameOrPosition);
+      InterpolatedDeclaration declaration = InterpolatedDeclaration(
+        nameOrPosition,
+      );
       interpolatedValues.add(declaration);
       return declaration;
     } else {

@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/verifier.dart';
 import 'package:test/test.dart';
 import 'package:vm/modular/target/install.dart' show installAdditionalTargets;
 import 'package:vm/transformations/pragma.dart'
@@ -86,6 +87,9 @@ void runTestCase(
   }
 
   compareResultWithExpectationsFile(source, actual);
+
+  verifyComponent(
+      target, VerificationStage.afterGlobalTransformations, component);
 
   ensureKernelCanBeSerializedToBinary(component);
 }

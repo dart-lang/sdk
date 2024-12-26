@@ -46,20 +46,14 @@ typedef FconCyclicCoBound<X extends Function(X)> = Function(X);
 
 typedef FinvCyclicCoBound<X extends Function(X)> = X Function(X);
 
-class AcovCyclicCoBound<
-  X extends FcovCyclicCoBound<Y>,
-  Y extends Function(Y)
-> {}
+class AcovCyclicCoBound<X extends FcovCyclicCoBound<Y>,
+    Y extends Function(Y)> {}
 
-class AconCyclicCoBound<
-  X extends FconCyclicCoBound<Y>,
-  Y extends Function(Y)
-> {}
+class AconCyclicCoBound<X extends FconCyclicCoBound<Y>,
+    Y extends Function(Y)> {}
 
-class AinvCyclicCoBound<
-  X extends FinvCyclicCoBound<Y>,
-  Y extends Function(Y)
-> {}
+class AinvCyclicCoBound<X extends FinvCyclicCoBound<Y>,
+    Y extends Function(Y)> {}
 
 class B<X> {}
 

@@ -23,7 +23,6 @@ import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Produces [CodeAction]s from Dart source commands, fixes, assists and
 /// refactors from the server.
@@ -323,7 +322,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       // Converts/Rewrites
       if (shouldIncludeKind(CodeActionKind.RefactorRewrite)) {
         var node = NodeLocator(offset).searchWithin(unitResult.unit);
-        var element = server.getElementOfNode(node).asElement2;
+        var element = server.getElementOfNode2(node);
 
         // Getter to Method
         if (element is GetterElement &&

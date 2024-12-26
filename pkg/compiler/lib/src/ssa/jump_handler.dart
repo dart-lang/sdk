@@ -24,13 +24,20 @@ abstract class JumpHandler {
     return TargetJumpHandler(builder, target);
   }
 
-  void generateBreak(SourceInformation? sourceInformation,
-      [LabelDefinition? label]);
-  void generateContinue(SourceInformation? sourceInformation,
-      [LabelDefinition? label]);
-  void forEachBreak(void action(HBreak instruction, LocalsHandler locals));
+  void generateBreak(
+    SourceInformation? sourceInformation, [
+    LabelDefinition? label,
+  ]);
+  void generateContinue(
+    SourceInformation? sourceInformation, [
+    LabelDefinition? label,
+  ]);
+  void forEachBreak(
+    void Function(HBreak instruction, LocalsHandler locals) action,
+  );
   void forEachContinue(
-      void action(HContinue instruction, LocalsHandler locals));
+    void Function(HContinue instruction, LocalsHandler locals) action,
+  );
   bool hasAnyContinue();
   bool hasAnyBreak();
   void close();
@@ -47,17 +54,25 @@ class NullJumpHandler implements JumpHandler {
   NullJumpHandler(this.reporter);
 
   @override
-  void generateBreak(SourceInformation? sourceInformation,
-      [LabelDefinition? label]) {
-    reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
-        'NullJumpHandler.generateBreak should not be called.');
+  void generateBreak(
+    SourceInformation? sourceInformation, [
+    LabelDefinition? label,
+  ]) {
+    reporter.internalError(
+      currentElementSpannable,
+      'NullJumpHandler.generateBreak should not be called.',
+    );
   }
 
   @override
-  void generateContinue(SourceInformation? sourceInformation,
-      [LabelDefinition? label]) {
-    reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
-        'NullJumpHandler.generateContinue should not be called.');
+  void generateContinue(
+    SourceInformation? sourceInformation, [
+    LabelDefinition? label,
+  ]) {
+    reporter.internalError(
+      currentElementSpannable,
+      'NullJumpHandler.generateContinue should not be called.',
+    );
   }
 
   @override
@@ -85,7 +100,7 @@ class TargetJumpHandler implements JumpHandler {
   final KernelSsaGraphBuilder builder;
   @override
   final JumpTarget target;
-  final List<_JumpHandlerEntry> jumps = [];
+  final List<_JumpHandlerEntry> _jumps = [];
 
   TargetJumpHandler(this.builder, this.target) {
     assert(builder.jumpTargets[target] == null);
@@ -93,8 +108,10 @@ class TargetJumpHandler implements JumpHandler {
   }
 
   @override
-  void generateBreak(SourceInformation? sourceInformation,
-      [LabelDefinition? label]) {
+  void generateBreak(
+    SourceInformation? sourceInformation, [
+    LabelDefinition? label,
+  ]) {
     HInstruction breakInstruction;
     if (label == null) {
       breakInstruction = HBreak(target, sourceInformation);
@@ -103,12 +120,14 @@ class TargetJumpHandler implements JumpHandler {
     }
     LocalsHandler locals = LocalsHandler.from(builder.localsHandler);
     builder.close(breakInstruction as HJump);
-    jumps.add(_JumpHandlerEntry(breakInstruction, locals));
+    _jumps.add(_JumpHandlerEntry(breakInstruction, locals));
   }
 
   @override
-  void generateContinue(SourceInformation? sourceInformation,
-      [LabelDefinition? label]) {
+  void generateContinue(
+    SourceInformation? sourceInformation, [
+    LabelDefinition? label,
+  ]) {
     HInstruction continueInstruction;
     if (label == null) {
       continueInstruction = HContinue(target, sourceInformation);
@@ -120,13 +139,14 @@ class TargetJumpHandler implements JumpHandler {
     }
     LocalsHandler locals = LocalsHandler.from(builder.localsHandler);
     builder.close(continueInstruction as HJump);
-    jumps.add(_JumpHandlerEntry(continueInstruction, locals));
+    _jumps.add(_JumpHandlerEntry(continueInstruction, locals));
   }
 
   @override
   void forEachBreak(
-      void Function(HBreak instruction, LocalsHandler locals) action) {
-    for (_JumpHandlerEntry entry in jumps) {
+    void Function(HBreak instruction, LocalsHandler locals) action,
+  ) {
+    for (_JumpHandlerEntry entry in _jumps) {
       final jumpInstruction = entry.jumpInstruction;
       if (jumpInstruction is HBreak) action(jumpInstruction, entry.locals);
     }
@@ -134,8 +154,9 @@ class TargetJumpHandler implements JumpHandler {
 
   @override
   void forEachContinue(
-      void Function(HContinue instruction, LocalsHandler locals) action) {
-    for (_JumpHandlerEntry entry in jumps) {
+    void Function(HContinue instruction, LocalsHandler locals) action,
+  ) {
+    for (_JumpHandlerEntry entry in _jumps) {
       final jumpInstruction = entry.jumpInstruction;
       if (jumpInstruction is HContinue) action(jumpInstruction, entry.locals);
     }
@@ -143,7 +164,7 @@ class TargetJumpHandler implements JumpHandler {
 
   @override
   bool hasAnyContinue() {
-    for (_JumpHandlerEntry entry in jumps) {
+    for (_JumpHandlerEntry entry in _jumps) {
       if (entry.isContinue()) return true;
     }
     return false;
@@ -151,7 +172,7 @@ class TargetJumpHandler implements JumpHandler {
 
   @override
   bool hasAnyBreak() {
-    for (_JumpHandlerEntry entry in jumps) {
+    for (_JumpHandlerEntry entry in _jumps) {
       if (entry.isBreak()) return true;
     }
     return false;
@@ -184,18 +205,23 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
   SwitchCaseJumpHandler(super.builder, super.target);
 
   @override
-  void generateBreak(SourceInformation? sourceInformation,
-      [LabelDefinition? label]) {
+  void generateBreak(
+    SourceInformation? sourceInformation, [
+    LabelDefinition? label,
+  ]) {
     if (label == null) {
       // Creates a special break instruction for the synthetic loop generated
       // for a switch statement with continue statements. See
       // [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
 
-      HInstruction breakInstruction =
-          HBreak(target, sourceInformation, breakSwitchContinueLoop: true);
+      HInstruction breakInstruction = HBreak(
+        target,
+        sourceInformation,
+        breakSwitchContinueLoop: true,
+      );
       LocalsHandler locals = LocalsHandler.from(builder.localsHandler);
       builder.close(breakInstruction as HJump);
-      jumps.add(_JumpHandlerEntry(breakInstruction, locals));
+      _jumps.add(_JumpHandlerEntry(breakInstruction, locals));
     } else {
       super.generateBreak(sourceInformation, label);
     }
@@ -206,22 +232,26 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
   }
 
   @override
-  void generateContinue(SourceInformation? sourceInformation,
-      [LabelDefinition? label]) {
+  void generateContinue(
+    SourceInformation? sourceInformation, [
+    LabelDefinition? label,
+  ]) {
     if (isContinueToSwitchCase(label)) {
       // Creates the special instructions 'label = i; continue l;' used in
       // switch statements with continue statements. See
       // [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
 
-      HInstruction value = builder.graph
-          .addConstantInt(targetIndexMap[label!.target]!, builder.closedWorld);
+      HInstruction value = builder.graph.addConstantInt(
+        targetIndexMap[label!.target]!,
+        builder.closedWorld,
+      );
       builder.localsHandler.updateLocal(target, value);
 
       assert(label.target.labels.contains(label));
       HInstruction continueInstruction = HContinue(target, sourceInformation);
       LocalsHandler locals = LocalsHandler.from(builder.localsHandler);
       builder.close(continueInstruction as HJump);
-      jumps.add(_JumpHandlerEntry(continueInstruction, locals));
+      _jumps.add(_JumpHandlerEntry(continueInstruction, locals));
     } else {
       super.generateContinue(sourceInformation, label);
     }

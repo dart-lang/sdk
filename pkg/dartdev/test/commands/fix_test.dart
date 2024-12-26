@@ -403,6 +403,59 @@ linter:
           ]));
     });
 
+    test(
+      '--apply --code=(multiple) [part file]',
+      () async {
+        p = project(
+          mainSrc: '''
+part 'part.dart';
+
+void a() {
+  // need to trigger a lint in main.dart for the bug to happen
+  ;
+  b();
+}
+''',
+          analysisOptions: '''
+linter:
+  rules:
+    - empty_statements
+    - prefer_const_constructors
+''',
+        );
+        p!.file('lib/part.dart', '''
+part of 'main.dart';
+
+Stream<String> b() {
+  // dart fix should only add a single const
+  return Stream.empty();
+}
+''');
+        var result = await p!.runFix([
+          '--apply',
+          '--code',
+          'empty_statements',
+          '--code',
+          'prefer_const_constructors',
+          '.'
+        ], workingDir: p!.dirPath);
+
+        expect(result.exitCode, 0);
+        expect(result.stderr, isEmpty);
+        expect(
+            result.stdout,
+            stringContainsInOrderWithVariableBullets([
+              'Applying fixes...',
+              'lib${Platform.pathSeparator}main.dart',
+              '  empty_statements $bullet 1 fix',
+              'lib${Platform.pathSeparator}part.dart',
+              '  prefer_const_constructors $bullet 1 fix',
+              '2 fixes made in 2 files.',
+            ]));
+      },
+      skip: 'Failing: https://github.com/dart-lang/sdk/issues/59572',
+    );
+
     test('--apply --code=(multiple: comma-delimited)', () async {
       p = project(
         mainSrc: '''

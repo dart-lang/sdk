@@ -38,8 +38,9 @@ main() {
 main() {
   asyncTest(() async {
     CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': source},
-        options: <String>[Flags.disableInlining]);
+      memorySourceFiles: {'main.dart': source},
+      options: <String>[Flags.disableInlining],
+    );
     Expect.isTrue(result.isSuccess);
 
     JElementEnvironment elementEnvironment =
@@ -55,8 +56,10 @@ main() {
     Expect.equals(mixin, elementEnvironment.getEffectiveMixinClass(superClass));
     Expect.equals(superB, elementEnvironment.getSuperClass(superClass));
     Expect.equals(superA, elementEnvironment.getSuperClass(superB));
-    Expect.equals(elementEnvironment.getSuperClass(superA),
-        elementEnvironment.getSuperClass(mixin));
+    Expect.equals(
+      elementEnvironment.getSuperClass(superA),
+      elementEnvironment.getSuperClass(mixin),
+    );
 
     final method1 =
         lookupMember(elementEnvironment, 'Class.method1') as FunctionEntity;

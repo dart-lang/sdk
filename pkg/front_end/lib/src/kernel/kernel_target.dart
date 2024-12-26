@@ -66,6 +66,7 @@ import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart'
     show CompilationPhaseForProblemReporting, SourceLoader;
+import '../source/source_method_builder.dart';
 import '../type_inference/type_schema.dart';
 import 'benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import 'constant_evaluator.dart' as constants
@@ -910,8 +911,11 @@ class KernelTarget {
         AmbiguousBuilder problem = declaration;
         declaration = problem.getFirstDeclaration();
       }
+      // TODO(johnniwinther): Add a [MethodBuilder] interface to handle this.
       if (declaration is ProcedureBuilder) {
         mainReference = declaration.procedure.reference;
+      } else if (declaration is SourceMethodBuilder) {
+        mainReference = declaration.invokeTarget.reference;
       }
     }
     component.setMainMethodAndMode(mainReference, true, compiledMode);

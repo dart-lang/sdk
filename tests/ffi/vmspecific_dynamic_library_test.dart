@@ -29,7 +29,8 @@ void testOpen() {
 
 void testOpenError() {
   Expect.throws(
-      () => dlopenPlatformSpecific("doesnotexistforsurelibrary123409876"));
+    () => dlopenPlatformSpecific("doesnotexistforsurelibrary123409876"),
+  );
 }
 
 typedef NativeDoubleUnOp = Double Function(Double);
@@ -56,14 +57,19 @@ void testLookup() {
 
 void testLookupError() {
   DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
-  Expect.throws(() => l.lookupFunction<NativeDoubleUnOp, DoubleUnOp>(
-      "functionnamethatdoesnotexistforsure749237593845"));
+  Expect.throws(
+    () => l.lookupFunction<NativeDoubleUnOp, DoubleUnOp>(
+      "functionnamethatdoesnotexistforsure749237593845",
+    ),
+  );
 }
 
 void testToString() {
   DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
   Expect.stringEquals(
-      "DynamicLibrary: handle=0x", l.toString().substring(0, 25));
+    "DynamicLibrary: handle=0x",
+    l.toString().substring(0, 25),
+  );
 }
 
 void testEquality() {

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_model.locals;
+library;
 
 import 'package:kernel/ast.dart' as ir;
 
@@ -38,22 +38,26 @@ class GlobalLocalsMap {
 
   /// Deserializes a [GlobalLocalsMap] object from [source].
   factory GlobalLocalsMap.readFromDataSource(
-      MemberEntity Function(MemberEntity) localMapKeyLookup,
-      DataSourceReader source) {
+    MemberEntity Function(MemberEntity) localMapKeyLookup,
+    DataSourceReader source,
+  ) {
     source.begin(tag);
-    Map<MemberEntity, Deferrable<KernelToLocalsMap>> _localsMaps = {};
+    Map<MemberEntity, Deferrable<KernelToLocalsMap>> localsMaps = {};
     int mapCount = source.readInt();
     for (int i = 0; i < mapCount; i++) {
-      Deferrable<KernelToLocalsMap> localsMap =
-          source.readDeferrable(KernelToLocalsMapImpl.readFromDataSource);
+      Deferrable<KernelToLocalsMap> localsMap = source.readDeferrable(
+        KernelToLocalsMapImpl.readFromDataSource,
+      );
       List<MemberEntity> members = source.readMembers();
       for (MemberEntity member in members) {
-        _localsMaps[member] = localsMap;
+        localsMaps[member] = localsMap;
       }
     }
     source.end(tag);
     return GlobalLocalsMap.internal(
-        localMapKeyLookup, DeferrableValueMap(_localsMaps));
+      localMapKeyLookup,
+      DeferrableValueMap(localsMaps),
+    );
   }
 
   /// Serializes this [GlobalLocalsMap] to [sink].
@@ -69,8 +73,10 @@ class GlobalLocalsMap {
       reverseMap.putIfAbsent(localsMap, () => []).add(member);
     });
     sink.writeInt(reverseMap.length);
-    reverseMap
-        .forEach((KernelToLocalsMap localsMap, List<MemberEntity> members) {
+    reverseMap.forEach((
+      KernelToLocalsMap localsMap,
+      List<MemberEntity> members,
+    ) {
       sink.writeDeferrable(() => localsMap.writeToDataSink(sink));
       sink.writeMembers(members);
     });
@@ -198,7 +204,9 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
     _ensureJumpMap(node.target);
     return _jumpTargetMap![node] ??
         failedAt(
-            currentMember, 'Could not find target for break statement: $node');
+          currentMember,
+          'Could not find target for break statement: $node',
+        );
   }
 
   @override
@@ -259,8 +267,11 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   Local getLocalVariable(ir.VariableDeclaration node) {
     final variableMap = _variableMap ??= {};
     return variableMap.putIfAbsent(node, () {
-      JLocal local = JLocal(node.name, currentMember,
-          isRegularParameter: node.parent is ir.FunctionNode);
+      JLocal local = JLocal(
+        node.name,
+        currentMember,
+        isRegularParameter: node.parent is ir.FunctionNode,
+      );
       _locals.register<JLocal, LocalData>(local, LocalData(node));
       return local;
     });
@@ -296,9 +307,12 @@ class JumpVisitor extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
 
   JJumpTarget _getJumpTarget(ir.TreeNode node) {
     return jumpTargetMap.putIfAbsent(node, () {
-      return JJumpTarget(member, jumpIndex++,
-          isSwitch: node is ir.SwitchStatement,
-          isSwitchCase: node is ir.SwitchCase);
+      return JJumpTarget(
+        member,
+        jumpIndex++,
+        isSwitch: node is ir.SwitchStatement,
+        isSwitchCase: node is ir.SwitchCase,
+      );
     });
   }
 
@@ -482,11 +496,14 @@ class JJumpTarget extends JumpTarget {
   @override
   bool isContinueTarget;
 
-  JJumpTarget(this.memberContext, this.nestingLevel,
-      {this.isSwitch = false,
-      this.isSwitchCase = false,
-      this.isBreakTarget = false,
-      this.isContinueTarget = false});
+  JJumpTarget(
+    this.memberContext,
+    this.nestingLevel, {
+    this.isSwitch = false,
+    this.isSwitchCase = false,
+    this.isBreakTarget = false,
+    this.isContinueTarget = false,
+  });
 
   /// Deserializes a [JJumpTarget] object from [source].
   factory JJumpTarget.readFromDataSource(DataSourceReader source) {
@@ -497,18 +514,24 @@ class JJumpTarget extends JumpTarget {
     bool isSwitchCase = source.readBool();
     bool isBreakTarget = source.readBool();
     bool isContinueTarget = source.readBool();
-    JJumpTarget target = JJumpTarget(memberContext, nestingLevel,
-        isSwitch: isSwitch,
-        isSwitchCase: isSwitchCase,
-        isBreakTarget: isBreakTarget,
-        isContinueTarget: isContinueTarget);
+    JJumpTarget target = JJumpTarget(
+      memberContext,
+      nestingLevel,
+      isSwitch: isSwitch,
+      isSwitchCase: isSwitchCase,
+      isBreakTarget: isBreakTarget,
+      isContinueTarget: isContinueTarget,
+    );
     int labelCount = source.readInt();
     for (int i = 0; i < labelCount; i++) {
       String labelName = source.readString();
       bool isBreakTarget = source.readBool();
       bool isContinueTarget = source.readBool();
-      target.addLabel(labelName,
-          isBreakTarget: isBreakTarget, isContinueTarget: isContinueTarget);
+      target.addLabel(
+        labelName,
+        isBreakTarget: isBreakTarget,
+        isContinueTarget: isContinueTarget,
+      );
     }
     source.end(tag);
     return target;
@@ -538,11 +561,18 @@ class JJumpTarget extends JumpTarget {
   }
 
   @override
-  JLabelDefinition addLabel(String labelName,
-      {bool isBreakTarget = false, bool isContinueTarget = false}) {
+  JLabelDefinition addLabel(
+    String labelName, {
+    bool isBreakTarget = false,
+    bool isContinueTarget = false,
+  }) {
     _labels ??= <JLabelDefinition>[];
-    final labelDefinition = JLabelDefinition(this, labelName,
-        isBreakTarget: isBreakTarget, isContinueTarget: isContinueTarget);
+    final labelDefinition = JLabelDefinition(
+      this,
+      labelName,
+      isBreakTarget: isBreakTarget,
+      isContinueTarget: isContinueTarget,
+    );
     _labels!.add(labelDefinition);
     return labelDefinition;
   }
@@ -583,8 +613,12 @@ class JLabelDefinition extends LabelDefinition {
   @override
   bool isContinueTarget;
 
-  JLabelDefinition(this.target, this.labelName,
-      {this.isBreakTarget = false, this.isContinueTarget = false});
+  JLabelDefinition(
+    this.target,
+    this.labelName, {
+    this.isBreakTarget = false,
+    this.isContinueTarget = false,
+  });
 
   @override
   String get name => labelName;
@@ -668,13 +702,16 @@ class LocalData {
 /// Calls [f] for each parameter in [function] in the canonical order:
 /// Positional parameters by index, then named parameters lexicographically.
 void forEachOrderedParameterAsLocal(
-    GlobalLocalsMap globalLocalsMap,
-    JsToElementMap elementMap,
-    FunctionEntity function,
-    void f(Local parameter, {required bool isElided})) {
+  GlobalLocalsMap globalLocalsMap,
+  JsToElementMap elementMap,
+  FunctionEntity function,
+  void Function(Local parameter, {required bool isElided}) f,
+) {
   KernelToLocalsMap localsMap = globalLocalsMap.getLocalsMap(function);
-  forEachOrderedParameter(elementMap, function,
-      (ir.VariableDeclaration variable, {required bool isElided}) {
+  forEachOrderedParameter(elementMap, function, (
+    ir.VariableDeclaration variable, {
+    required bool isElided,
+  }) {
     f(localsMap.getLocalVariable(variable), isElided: isElided);
   });
 }

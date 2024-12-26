@@ -20,9 +20,7 @@ class A {
 
 class B extends A {
   final b;
-  const B(v)
-      : b = v + 1.0,
-        super(v);
+  const B(v) : b = v + 1.0, super(v);
 }
 
 class F {

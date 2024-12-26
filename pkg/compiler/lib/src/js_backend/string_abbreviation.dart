@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show $0, $9, $A, $Z, $a, $z;
 
@@ -10,8 +11,10 @@ import 'package:front_end/src/api_unstable/dart2js.dart'
 ///
 /// [strings] must not contain the empty string.
 /// [strings] must have no duplicates.
-List<String> abbreviateToIdentifiers(Iterable<String> strings,
-    {int minLength = 6}) {
+List<String> abbreviateToIdentifiers(
+  Iterable<String> strings, {
+  int minLength = 6,
+}) {
   var nodes = [for (final string in strings) _Node(string)];
   _partition(nodes, minLength, [], 0);
   return [for (final node in nodes) node.assignment];
@@ -31,10 +34,14 @@ class _Node {
 /// - [path] contains the prefix of the compressed name at this depth.
 /// - Path compression starts after the first [minLength] characters.
 void _partition(
-    List<_Node> nodes, int minLength, List<String> path, int index) {
+  List<_Node> nodes,
+  int minLength,
+  List<String> path,
+  int index,
+) {
   while (true) {
     // Handle trivial partitions.
-    if (nodes.length == 0) return;
+    if (nodes.isEmpty) return;
     if (nodes.length == 1 && path.length >= minLength) {
       String name = path.join();
       assert(name.isNotEmpty);
@@ -49,7 +56,7 @@ void _partition(
 
     for (final node in nodes) {
       String string = node.string;
-      assert(string.length > 0);
+      assert(string.isNotEmpty);
       if (index < string.length) {
         int codeUnit = string.codeUnitAt(index);
         (partition[codeUnit] ??= []).add(node);
@@ -63,7 +70,7 @@ void _partition(
       terminating.assignment = path.join();
     }
 
-    if (partition.length == 0) return;
+    if (partition.isEmpty) return;
 
     if (partition.length > 1) {
       var keys = partition.keys.toList();
@@ -86,9 +93,11 @@ void _partition(
     // Add some characters to name to distinguish from terminating strings.
     // Add the first few legal identifier characters of the string regardless.
     if (terminating != null || path.length < minLength) {
-      path.add(_isIdentifier(codeUnit, path.isEmpty)
-          ? String.fromCharCode(codeUnit)
-          : '_');
+      path.add(
+        _isIdentifier(codeUnit, path.isEmpty)
+            ? String.fromCharCode(codeUnit)
+            : '_',
+      );
     }
     nodes = partition.values.single;
     index += 1;
@@ -146,9 +155,9 @@ Map<int, String> _discriminators(List<int> keys, bool atStart) {
       if (escapeToUnderscore) {
         encoding[key] = '_';
       } else if (key < 256) {
-        encoding[key] = 'x' + key.toRadixString(16).padLeft(2, '0');
+        encoding[key] = 'x${key.toRadixString(16).padLeft(2, '0')}';
       } else {
-        encoding[key] = 'u' + key.toRadixString(16).padLeft(4, '0');
+        encoding[key] = 'u${key.toRadixString(16).padLeft(4, '0')}';
       }
     }
   }

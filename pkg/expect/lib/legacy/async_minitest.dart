@@ -253,13 +253,13 @@ void throws(dynamic v) {
   _checkThrow<Object>(v, (_) {});
 }
 
-Matcher throwsA(matcher) => (dynamic o) {
+Matcher throwsA(dynamic matcher) => (dynamic o) {
       _checkThrow<Object>(o, (error) {
         expect(error, matcher);
       });
     };
 
-Matcher completion(matcher) => (dynamic o) {
+Matcher completion(dynamic matcher) => (dynamic o) {
       Expect.type<Future>(o);
       Future future = o;
       asyncStart();

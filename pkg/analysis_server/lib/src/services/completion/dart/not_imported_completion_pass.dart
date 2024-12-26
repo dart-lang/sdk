@@ -137,7 +137,7 @@ class NotImportedCompletionPass {
         continue;
       }
 
-      var library = request.libraryElement2;
+      var library = request.libraryElement;
       var element = elementResult.element2;
       if (element == library) {
         // Don't suggest elements from the library in which completion is being

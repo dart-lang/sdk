@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
@@ -29,14 +29,14 @@ void f() {
   A._foo();
 }
 ''');
-    _assertIsEnumLike(findElement.class_('A'), false);
+    _assertIsEnumLike(findElement2.class_('A'), false);
   }
 
   test_isEnumLike_false_constructors_hasPublic() async {
     await assertNoErrorsInCode('''
 class A {}
 ''');
-    _assertIsEnumLike(findElement.class_('A'), false);
+    _assertIsEnumLike(findElement2.class_('A'), false);
   }
 
   test_isEnumLike_false_fields_empty() async {
@@ -49,14 +49,14 @@ void f() {
   A._();
 }
 ''');
-    _assertIsEnumLike(findElement.class_('A'), false);
+    _assertIsEnumLike(findElement2.class_('A'), false);
   }
 
   test_isEnumLike_false_isAbstract() async {
     await assertNoErrorsInCode('''
 abstract class A {}
 ''');
-    _assertIsEnumLike(findElement.class_('A'), false);
+    _assertIsEnumLike(findElement2.class_('A'), false);
   }
 
   test_isEnumLike_false_isExtended() async {
@@ -71,7 +71,7 @@ class B extends A {
   B() : super._();
 }
 ''');
-    _assertIsEnumLike(findElement.class_('A'), false);
+    _assertIsEnumLike(findElement2.class_('A'), false);
   }
 
   test_isEnumLike_true() async {
@@ -82,7 +82,7 @@ class A {
   const A._();
 }
 ''');
-    _assertIsEnumLike(findElement.class_('A'), true);
+    _assertIsEnumLike(findElement2.class_('A'), true);
   }
 
   test_isEnumLike_true_hasInstanceField() async {
@@ -94,7 +94,7 @@ class A {
   const A._(this.f);
 }
 ''');
-    _assertIsEnumLike(findElement.class_('A'), true);
+    _assertIsEnumLike(findElement2.class_('A'), true);
   }
 
   test_isEnumLike_true_hasSuperclass() async {
@@ -109,7 +109,7 @@ class B extends A {
   const B._();
 }
 ''');
-    _assertIsEnumLike(findElement.class_('B'), true);
+    _assertIsEnumLike(findElement2.class_('B'), true);
   }
 
   test_isEnumLike_true_hasSyntheticField() async {
@@ -121,7 +121,7 @@ class A {
   int get foo => 0;
 }
 ''');
-    _assertIsEnumLike(findElement.class_('A'), true);
+    _assertIsEnumLike(findElement2.class_('A'), true);
   }
 
   test_isEnumLike_true_isImplemented() async {
@@ -134,7 +134,7 @@ class A {
 
 class B implements A {}
 ''');
-    _assertIsEnumLike(findElement.class_('A'), true);
+    _assertIsEnumLike(findElement2.class_('A'), true);
   }
 
   test_lookUpInheritedConcreteGetter_declared() async {
@@ -143,7 +143,7 @@ class A {
   int get foo => 0;
 }
 ''');
-    var A = findElement.class_('A');
+    var A = findElement2.class_('A');
     assertElementNull(
       A._lookUpInheritedConcreteGetter('foo'),
     );
@@ -159,10 +159,10 @@ class B extends A {
   int get foo => 0;
 }
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteGetter('foo'),
-      declaration: findElement.getter('foo', of: 'A'),
+      declaration: findElement2.getter('foo', of: 'A'),
     );
   }
 
@@ -180,7 +180,7 @@ class B extends A {
   int get _foo => 0;
 }
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedConcreteGetter('_foo'),
     );
@@ -198,10 +198,10 @@ class B extends A {
   int get _foo => 0;
 }
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteGetter('_foo'),
-      declaration: findElement.getter('_foo', of: 'A'),
+      declaration: findElement2.getter('_foo', of: 'A'),
     );
   }
 
@@ -215,7 +215,7 @@ class B extends A {
   int get foo => 0;
 }
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedConcreteGetter('foo'),
     );
@@ -229,10 +229,10 @@ class A {
 
 class B extends A {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteGetter('foo'),
-      declaration: findElement.getter('foo', of: 'A'),
+      declaration: findElement2.getter('foo', of: 'A'),
     );
   }
 
@@ -244,7 +244,7 @@ abstract class A {
 
 abstract class B extends A {}
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedConcreteGetter('foo'),
     );
@@ -262,10 +262,10 @@ mixin M {
 
 class B extends A with M {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteGetter('foo'),
-      declaration: findElement.getter('foo', of: 'M'),
+      declaration: findElement2.getter('foo', of: 'M'),
     );
   }
 
@@ -285,10 +285,10 @@ mixin M2 {
 
 class B extends A with M1, M2 {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteGetter('foo'),
-      declaration: findElement.getter('foo', of: 'M2'),
+      declaration: findElement2.getter('foo', of: 'M2'),
     );
   }
 
@@ -306,10 +306,10 @@ mixin M2 {}
 
 class B extends A with M1, M2 {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteGetter('foo'),
-      declaration: findElement.getter('foo', of: 'M1'),
+      declaration: findElement2.getter('foo', of: 'M1'),
     );
   }
 
@@ -323,10 +323,10 @@ mixin M {}
 
 class B extends A with M {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteGetter('foo'),
-      declaration: findElement.getter('foo', of: 'A'),
+      declaration: findElement2.getter('foo', of: 'A'),
     );
   }
 
@@ -344,10 +344,10 @@ mixin M2 {
 
 class B extends A with M1, M2 {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteGetter('foo'),
-      declaration: findElement.getter('foo', of: 'M1'),
+      declaration: findElement2.getter('foo', of: 'M1'),
     );
   }
 
@@ -363,10 +363,10 @@ mixin M {
 
 class B extends A with M {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteGetter('foo'),
-      declaration: findElement.getter('foo', of: 'A'),
+      declaration: findElement2.getter('foo', of: 'A'),
     );
   }
 
@@ -378,7 +378,7 @@ class A {
 
 class B extends A {}
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedConcreteGetter('foo'),
     );
@@ -396,10 +396,10 @@ class B {
 
 class C extends A implements B {}
 ''');
-    var C = findElement.class_('C');
-    assertElement2(
+    var C = findElement2.class_('C');
+    assertElement3(
       C._lookUpInheritedConcreteGetter('foo'),
-      declaration: findElement.getter('foo', of: 'A'),
+      declaration: findElement2.getter('foo', of: 'A'),
     );
   }
 
@@ -411,7 +411,7 @@ class A {
 
 abstract class B implements A {}
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedConcreteGetter('foo'),
     );
@@ -425,7 +425,7 @@ class B extends A {}
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
     ]);
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedConcreteGetter('foo'),
     );
@@ -435,7 +435,7 @@ class B extends A {}
     await assertNoErrorsInCode('''
 class A {}
 ''');
-    var A = findElement.class_('A');
+    var A = findElement2.class_('A');
     assertElementNull(
       A._lookUpInheritedConcreteGetter('foo'),
     );
@@ -447,7 +447,7 @@ class A {
   void foo() {}
 }
 ''');
-    var A = findElement.class_('A');
+    var A = findElement2.class_('A');
     assertElementNull(
       A._lookUpInheritedConcreteMethod('foo'),
     );
@@ -463,10 +463,10 @@ class B extends A {
   void foo() {}
 }
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteMethod('foo'),
-      declaration: findElement.method('foo', of: 'A'),
+      declaration: findElement2.method('foo', of: 'A'),
     );
   }
 
@@ -484,7 +484,7 @@ class B extends A {
   void _foo() {}
 }
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedConcreteMethod('_foo'),
     );
@@ -502,10 +502,10 @@ class B extends A {
   void _foo() {}
 }
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteMethod('_foo'),
-      declaration: findElement.method('_foo', of: 'A'),
+      declaration: findElement2.method('_foo', of: 'A'),
     );
   }
 
@@ -519,7 +519,7 @@ class B extends A {
   void foo() {}
 }
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedConcreteMethod('foo'),
     );
@@ -533,10 +533,10 @@ class A {
 
 class B extends A {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteMethod('foo'),
-      declaration: findElement.method('foo', of: 'A'),
+      declaration: findElement2.method('foo', of: 'A'),
     );
   }
 
@@ -548,7 +548,7 @@ abstract class A {
 
 abstract class B extends A {}
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedConcreteMethod('foo'),
     );
@@ -566,10 +566,10 @@ mixin M {
 
 class B extends A with M {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteMethod('foo'),
-      declaration: findElement.method('foo', of: 'M'),
+      declaration: findElement2.method('foo', of: 'M'),
     );
   }
 
@@ -589,10 +589,10 @@ mixin M2 {
 
 class B extends A with M1, M2 {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteMethod('foo'),
-      declaration: findElement.method('foo', of: 'M2'),
+      declaration: findElement2.method('foo', of: 'M2'),
     );
   }
 
@@ -610,10 +610,10 @@ mixin M2 {}
 
 class B extends A with M1, M2 {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteMethod('foo'),
-      declaration: findElement.method('foo', of: 'M1'),
+      declaration: findElement2.method('foo', of: 'M1'),
     );
   }
 
@@ -627,10 +627,10 @@ mixin M {}
 
 class B extends A with M {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteMethod('foo'),
-      declaration: findElement.method('foo', of: 'A'),
+      declaration: findElement2.method('foo', of: 'A'),
     );
   }
 
@@ -648,10 +648,10 @@ mixin M2 {
 
 class B extends A with M1, M2 {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteMethod('foo'),
-      declaration: findElement.method('foo', of: 'M1'),
+      declaration: findElement2.method('foo', of: 'M1'),
     );
   }
 
@@ -667,10 +667,10 @@ mixin M {
 
 class B extends A with M {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteMethod('foo'),
-      declaration: findElement.method('foo', of: 'A'),
+      declaration: findElement2.method('foo', of: 'A'),
     );
   }
 
@@ -682,7 +682,7 @@ class A {
 
 class B extends A {}
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedConcreteMethod('foo'),
     );
@@ -700,10 +700,10 @@ class B {
 
 class C extends A implements B {}
 ''');
-    var C = findElement.class_('C');
-    assertElement2(
+    var C = findElement2.class_('C');
+    assertElement3(
       C._lookUpInheritedConcreteMethod('foo'),
-      declaration: findElement.method('foo', of: 'A'),
+      declaration: findElement2.method('foo', of: 'A'),
     );
   }
 
@@ -715,7 +715,7 @@ class A {
 
 abstract class B implements A {}
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedConcreteMethod('foo'),
     );
@@ -729,7 +729,7 @@ class B extends A {}
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
     ]);
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedConcreteMethod('foo'),
     );
@@ -739,7 +739,7 @@ class B extends A {}
     await assertNoErrorsInCode('''
 class A {}
 ''');
-    var A = findElement.class_('A');
+    var A = findElement2.class_('A');
     assertElementNull(
       A._lookUpInheritedConcreteMethod('foo'),
     );
@@ -751,7 +751,7 @@ class A {
   set foo(int _) {}
 }
 ''');
-    var A = findElement.class_('A');
+    var A = findElement2.class_('A');
     assertElementNull(
       A._lookUpInheritedConcreteSetter('foo'),
     );
@@ -767,10 +767,10 @@ class B extends A {
   set foo(int _) {}
 }
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteSetter('foo'),
-      declaration: findElement.setter('foo', of: 'A'),
+      declaration: findElement2.setter('foo', of: 'A'),
     );
   }
 
@@ -788,7 +788,7 @@ class B extends A {
   set _foo(int _) {}
 }
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedConcreteSetter('_foo'),
     );
@@ -806,10 +806,10 @@ class B extends A {
   set _foo(int _) {}
 }
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteSetter('_foo'),
-      declaration: findElement.setter('_foo', of: 'A'),
+      declaration: findElement2.setter('_foo', of: 'A'),
     );
   }
 
@@ -823,7 +823,7 @@ class B extends A {
   set foo(int _) {}
 }
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedConcreteSetter('foo'),
     );
@@ -837,10 +837,10 @@ class A {
 
 class B extends A {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteSetter('foo'),
-      declaration: findElement.setter('foo', of: 'A'),
+      declaration: findElement2.setter('foo', of: 'A'),
     );
   }
 
@@ -852,7 +852,7 @@ abstract class A {
 
 abstract class B extends A {}
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedConcreteSetter('foo'),
     );
@@ -870,10 +870,10 @@ mixin M {
 
 class B extends A with M {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteSetter('foo'),
-      declaration: findElement.setter('foo', of: 'M'),
+      declaration: findElement2.setter('foo', of: 'M'),
     );
   }
 
@@ -893,10 +893,10 @@ mixin M2 {
 
 class B extends A with M1, M2 {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteSetter('foo'),
-      declaration: findElement.setter('foo', of: 'M2'),
+      declaration: findElement2.setter('foo', of: 'M2'),
     );
   }
 
@@ -914,10 +914,10 @@ mixin M2 {}
 
 class B extends A with M1, M2 {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteSetter('foo'),
-      declaration: findElement.setter('foo', of: 'M1'),
+      declaration: findElement2.setter('foo', of: 'M1'),
     );
   }
 
@@ -931,10 +931,10 @@ mixin M {}
 
 class B extends A with M {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteSetter('foo'),
-      declaration: findElement.setter('foo', of: 'A'),
+      declaration: findElement2.setter('foo', of: 'A'),
     );
   }
 
@@ -952,10 +952,10 @@ mixin M2 {
 
 class B extends A with M1, M2 {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteSetter('foo'),
-      declaration: findElement.setter('foo', of: 'M1'),
+      declaration: findElement2.setter('foo', of: 'M1'),
     );
   }
 
@@ -971,10 +971,10 @@ mixin M {
 
 class B extends A with M {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedConcreteSetter('foo'),
-      declaration: findElement.setter('foo', of: 'A'),
+      declaration: findElement2.setter('foo', of: 'A'),
     );
   }
 
@@ -986,7 +986,7 @@ class A {
 
 class B extends A {}
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedConcreteSetter('foo'),
     );
@@ -1004,10 +1004,10 @@ class B {
 
 class C extends A implements B {}
 ''');
-    var C = findElement.class_('C');
-    assertElement2(
+    var C = findElement2.class_('C');
+    assertElement3(
       C._lookUpInheritedConcreteSetter('foo'),
-      declaration: findElement.setter('foo', of: 'A'),
+      declaration: findElement2.setter('foo', of: 'A'),
     );
   }
 
@@ -1019,7 +1019,7 @@ class A {
 
 abstract class B implements A {}
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedConcreteSetter('foo'),
     );
@@ -1033,7 +1033,7 @@ class B extends A {}
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
     ]);
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedConcreteSetter('foo'),
     );
@@ -1043,7 +1043,7 @@ class B extends A {}
     await assertNoErrorsInCode('''
 class A {}
 ''');
-    var A = findElement.class_('A');
+    var A = findElement2.class_('A');
     assertElementNull(
       A._lookUpInheritedConcreteSetter('foo'),
     );
@@ -1055,7 +1055,7 @@ class A {
   void foo() {}
 }
 ''');
-    var A = findElement.class_('A');
+    var A = findElement2.class_('A');
     assertElementNull(
       A._lookUpInheritedMethod('foo'),
     );
@@ -1071,10 +1071,10 @@ class B extends A {
   void foo() {}
 }
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedMethod('foo'),
-      declaration: findElement.method('foo', of: 'A'),
+      declaration: findElement2.method('foo', of: 'A'),
     );
   }
 
@@ -1092,7 +1092,7 @@ class B extends A {
   void _foo() {}
 }
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedMethod('_foo'),
     );
@@ -1110,10 +1110,10 @@ class B extends A {
   void _foo() {}
 }
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedMethod('_foo'),
-      declaration: findElement.method('_foo', of: 'A'),
+      declaration: findElement2.method('_foo', of: 'A'),
     );
   }
 
@@ -1127,7 +1127,7 @@ class B extends A {
   void foo() {}
 }
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedMethod('foo'),
     );
@@ -1141,10 +1141,10 @@ class A {
 
 class B extends A {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedMethod('foo'),
-      declaration: findElement.method('foo', of: 'A'),
+      declaration: findElement2.method('foo', of: 'A'),
     );
   }
 
@@ -1160,10 +1160,10 @@ mixin M {
 
 class B extends A with M {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedMethod('foo'),
-      declaration: findElement.method('foo', of: 'M'),
+      declaration: findElement2.method('foo', of: 'M'),
     );
   }
 
@@ -1183,10 +1183,10 @@ mixin M2 {
 
 class B extends A with M1, M2 {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedMethod('foo'),
-      declaration: findElement.method('foo', of: 'M2'),
+      declaration: findElement2.method('foo', of: 'M2'),
     );
   }
 
@@ -1204,10 +1204,10 @@ mixin M2 {}
 
 class B extends A with M1, M2 {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedMethod('foo'),
-      declaration: findElement.method('foo', of: 'M1'),
+      declaration: findElement2.method('foo', of: 'M1'),
     );
   }
 
@@ -1221,10 +1221,10 @@ mixin M {}
 
 class B extends A with M {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedMethod('foo'),
-      declaration: findElement.method('foo', of: 'A'),
+      declaration: findElement2.method('foo', of: 'A'),
     );
   }
 
@@ -1240,10 +1240,10 @@ mixin M {
 
 class B extends A with M {}
 ''');
-    var B = findElement.class_('B');
-    assertElement2(
+    var B = findElement2.class_('B');
+    assertElement3(
       B._lookUpInheritedMethod('foo'),
-      declaration: findElement.method('foo', of: 'A'),
+      declaration: findElement2.method('foo', of: 'A'),
     );
   }
 
@@ -1255,7 +1255,7 @@ class A {
 
 class B extends A {}
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedMethod('foo'),
     );
@@ -1273,10 +1273,10 @@ class B {
 
 class C extends A implements B {}
 ''');
-    var C = findElement.class_('C');
-    assertElement2(
+    var C = findElement2.class_('C');
+    assertElement3(
       C._lookUpInheritedMethod('foo'),
-      declaration: findElement.method('foo', of: 'A'),
+      declaration: findElement2.method('foo', of: 'A'),
     );
   }
 
@@ -1288,7 +1288,7 @@ class A {
 
 abstract class B implements A {}
 ''');
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedMethod('foo'),
     );
@@ -1302,7 +1302,7 @@ class B extends A {}
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
     ]);
-    var B = findElement.class_('B');
+    var B = findElement2.class_('B');
     assertElementNull(
       B._lookUpInheritedMethod('foo'),
     );
@@ -1312,31 +1312,35 @@ class B extends A {}
     await assertNoErrorsInCode('''
 class A {}
 ''');
-    var A = findElement.class_('A');
+    var A = findElement2.class_('A');
     assertElementNull(
       A._lookUpInheritedMethod('foo'),
     );
   }
 
-  static void _assertIsEnumLike(ClassElement element, bool expected) {
-    expect((element as ClassElementImpl).isEnumLike, expected);
+  static void _assertIsEnumLike(ClassElement2 element, bool expected) {
+    expect((element as ClassElementImpl2).isEnumLike, expected);
   }
 }
 
-extension on ClassElement {
-  PropertyAccessorElement? _lookUpInheritedConcreteGetter(String name) {
-    return lookUpInheritedConcreteGetter(name, library);
+extension on ClassElement2 {
+  PropertyAccessorElement2? _lookUpInheritedConcreteGetter(String name) {
+    return (this as InterfaceElementImpl2)
+        .lookUpInheritedConcreteGetter(name, library2);
   }
 
-  MethodElement? _lookUpInheritedConcreteMethod(String name) {
-    return lookUpInheritedConcreteMethod(name, library);
+  MethodElement2? _lookUpInheritedConcreteMethod(String name) {
+    return (this as InterfaceElementImpl2)
+        .lookUpInheritedConcreteMethod(name, library2);
   }
 
-  PropertyAccessorElement? _lookUpInheritedConcreteSetter(String name) {
-    return lookUpInheritedConcreteSetter(name, library);
+  PropertyAccessorElement2? _lookUpInheritedConcreteSetter(String name) {
+    return (this as InterfaceElementImpl2)
+        .lookUpInheritedConcreteSetter(name, library2);
   }
 
-  MethodElement? _lookUpInheritedMethod(String name) {
-    return lookUpInheritedMethod(name, library);
+  MethodElement2? _lookUpInheritedMethod(String name) {
+    return (this as InterfaceElementImpl2)
+        .lookUpInheritedMethod(name, library2);
   }
 }

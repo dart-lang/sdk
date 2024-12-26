@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:expect/async_helper.dart';
+
 class Foo {
   bool disposed = false;
 
@@ -12,6 +14,7 @@ class Foo {
 }
 
 Future<void> main() async {
+  asyncStart();
   List<Function> callbacks = [];
   for (final x in [1, 2]) {
     final Foo foo = Foo();
@@ -24,4 +27,5 @@ Future<void> main() async {
   for (final callback in callbacks) {
     callback();
   }
+  asyncEnd();
 }

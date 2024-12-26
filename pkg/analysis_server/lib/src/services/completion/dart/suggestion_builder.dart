@@ -152,7 +152,6 @@ class SuggestionBuilder {
         false,
         false,
         displayText: displayText,
-        elementLocation: null, // type.element is Null for FunctionType.
       ),
     );
   }
@@ -728,7 +727,6 @@ class SuggestionBuilder {
       parameterType: type,
       replacementLength: replacementLength,
       element: convertElement2(parameter),
-      elementLocation: parameter.location,
     );
 
     if (parameter is FieldFormalParameterElement2) {
@@ -850,7 +848,6 @@ class SuggestionBuilder {
       element.metadata2.hasDeprecated,
       false,
       displayText: displayText,
-      elementLocation: element.location,
       requiredImports: overrideImports.toList(),
     );
     suggestion.element = protocol.convertElement2(element);
@@ -928,7 +925,6 @@ class SuggestionBuilder {
         false,
         // Let the user know that we are going to insert a complete statement.
         displayText: displayText,
-        elementLocation: method.location,
       ),
       textToMatchOverride: 'setState',
     );
@@ -1522,9 +1518,7 @@ class SuggestionBuilder {
     ElementLocation? elementLocation;
     if (element is! LocalVariableElement2 ||
         (element is FormalParameterElement &&
-            element.enclosingElement2 != null)) {
-      elementLocation = element.location;
-    }
+            element.enclosingElement2 != null)) {}
 
     return _ElementCompletionData(
       isDeprecated: element.hasOrInheritsDeprecated,
@@ -1576,7 +1570,7 @@ class SuggestionBuilder {
 
   /// If the [element] has a documentation comment, return it.
   _ElementDocumentation? _getDocumentation(Element2 element) {
-    var doc = request.documentationComputer.compute2(
+    var doc = request.documentationComputer.compute(
       element,
       includeSummary: true,
     );
@@ -1604,7 +1598,7 @@ class SuggestionBuilder {
     var typeParameters = element.typeParameters2;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement2.typeProvider.neverType;
+      var neverType = request.libraryElement.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
     return element.instantiate(
@@ -1617,7 +1611,7 @@ class SuggestionBuilder {
     var typeParameters = element.typeParameters2;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement2.typeProvider.neverType;
+      var neverType = request.libraryElement.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
     return element.instantiate(
@@ -1630,7 +1624,7 @@ class SuggestionBuilder {
     var typeParameters = element.typeParameters2;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement2.typeProvider.neverType;
+      var neverType = request.libraryElement.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
     return element.instantiate(
@@ -1642,7 +1636,7 @@ class SuggestionBuilder {
   /// If the [element] has a documentation comment, fill the [suggestion]'s
   /// documentation fields.
   void _setDocumentation(CompletionSuggestion suggestion, Element2 element) {
-    var doc = request.documentationComputer.compute2(
+    var doc = request.documentationComputer.compute(
       element,
       includeSummary: true,
     );
@@ -1799,7 +1793,6 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
       defaultArgumentListTextRanges: element.defaultArgumentList?.ranges,
       libraryUri: libraryUriStr,
       isNotImported: isNotImported ? true : null,
-      elementLocation: element.elementLocation,
       requiredImports: requiredImports,
       colorHex: element.colorHex,
     );

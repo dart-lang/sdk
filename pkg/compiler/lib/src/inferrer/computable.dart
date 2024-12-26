@@ -24,9 +24,10 @@ class ComputableAbstractValue implements AbstractValue {
   bool get isComputed => _wrappedValue != null;
   bool get isUncomputed => _wrappedValue == null;
 
-  AbstractValue _unwrapOrThrow() => isUncomputed
-      ? throw StateError("Uncomputed abstract value")
-      : _wrappedValue!;
+  AbstractValue _unwrapOrThrow() =>
+      isUncomputed
+          ? throw StateError("Uncomputed abstract value")
+          : _wrappedValue!;
 
   AbstractValue _unwrapOrEmpty(AbstractValueDomain wrappedDomain) =>
       isUncomputed ? wrappedDomain.emptyType : _wrappedValue!;
@@ -174,12 +175,18 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
       ComputableAbstractValue(_wrappedDomain.asyncStarStreamType);
 
   @override
-  AbstractValueWithPrecision createFromStaticType(DartType type,
-      {required bool nullable}) {
-    final unwrapped =
-        _wrappedDomain.createFromStaticType(type, nullable: nullable);
+  AbstractValueWithPrecision createFromStaticType(
+    DartType type, {
+    required bool nullable,
+  }) {
+    final unwrapped = _wrappedDomain.createFromStaticType(
+      type,
+      nullable: nullable,
+    );
     return AbstractValueWithPrecision(
-        ComputableAbstractValue(unwrapped.abstractValue), unwrapped.isPrecise);
+      ComputableAbstractValue(unwrapped.abstractValue),
+      unwrapped.isPrecise,
+    );
   }
 
   @override
@@ -221,27 +228,32 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
   @override
   AbstractValue excludeLateSentinel(covariant ComputableAbstractValue value) =>
       ComputableAbstractValue(
-          _wrappedDomain.excludeLateSentinel(_unwrap(value)));
+        _wrappedDomain.excludeLateSentinel(_unwrap(value)),
+      );
 
   @override
   AbstractValue includeLateSentinel(covariant ComputableAbstractValue value) =>
       ComputableAbstractValue(
-          _wrappedDomain.includeLateSentinel(_unwrap(value)));
+        _wrappedDomain.includeLateSentinel(_unwrap(value)),
+      );
 
   @override
   AbstractBool containsType(
-          covariant ComputableAbstractValue value, ClassEntity cls) =>
-      _wrappedDomain.containsType(_unwrap(value), cls);
+    covariant ComputableAbstractValue value,
+    ClassEntity cls,
+  ) => _wrappedDomain.containsType(_unwrap(value), cls);
 
   @override
   AbstractBool containsOnlyType(
-          covariant ComputableAbstractValue value, ClassEntity cls) =>
-      _wrappedDomain.containsOnlyType(_unwrap(value), cls);
+    covariant ComputableAbstractValue value,
+    ClassEntity cls,
+  ) => _wrappedDomain.containsOnlyType(_unwrap(value), cls);
 
   @override
   AbstractBool isInstanceOf(
-          covariant ComputableAbstractValue value, ClassEntity cls) =>
-      _wrappedDomain.isInstanceOf(_unwrap(value), cls);
+    covariant ComputableAbstractValue value,
+    ClassEntity cls,
+  ) => _wrappedDomain.isInstanceOf(_unwrap(value), cls);
 
   @override
   AbstractBool isEmpty(covariant ComputableAbstractValue value) =>
@@ -325,8 +337,8 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractBool isPositiveIntegerOrNull(
-          covariant ComputableAbstractValue value) =>
-      _wrappedDomain.isPositiveIntegerOrNull(_unwrap(value));
+    covariant ComputableAbstractValue value,
+  ) => _wrappedDomain.isPositiveIntegerOrNull(_unwrap(value));
 
   @override
   AbstractBool isIntegerOrNull(covariant ComputableAbstractValue value) =>
@@ -365,25 +377,34 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
       _wrappedDomain.isTruthy(_unwrap(value));
 
   @override
-  AbstractValue union(covariant ComputableAbstractValue a,
-          covariant ComputableAbstractValue b) =>
-      ComputableAbstractValue(_wrappedDomain.union(_unwrap(a), _unwrap(b)));
+  AbstractValue union(
+    covariant ComputableAbstractValue a,
+    covariant ComputableAbstractValue b,
+  ) => ComputableAbstractValue(_wrappedDomain.union(_unwrap(a), _unwrap(b)));
 
   @override
   AbstractValue unionOfMany(covariant Iterable<AbstractValue> values) =>
-      ComputableAbstractValue(_wrappedDomain.unionOfMany(values.map(
-          (AbstractValue value) => _unwrap(value as ComputableAbstractValue))));
-
-  @override
-  AbstractValue intersection(covariant ComputableAbstractValue a,
-          covariant ComputableAbstractValue b) =>
       ComputableAbstractValue(
-          _wrappedDomain.intersection(_unwrap(a), _unwrap(b)));
+        _wrappedDomain.unionOfMany(
+          values.map(
+            (AbstractValue value) => _unwrap(value as ComputableAbstractValue),
+          ),
+        ),
+      );
 
   @override
-  AbstractBool areDisjoint(covariant ComputableAbstractValue a,
-          covariant ComputableAbstractValue b) =>
-      _wrappedDomain.areDisjoint(_unwrap(a), _unwrap(b));
+  AbstractValue intersection(
+    covariant ComputableAbstractValue a,
+    covariant ComputableAbstractValue b,
+  ) => ComputableAbstractValue(
+    _wrappedDomain.intersection(_unwrap(a), _unwrap(b)),
+  );
+
+  @override
+  AbstractBool areDisjoint(
+    covariant ComputableAbstractValue a,
+    covariant ComputableAbstractValue b,
+  ) => _wrappedDomain.areDisjoint(_unwrap(a), _unwrap(b));
 
   @override
   AbstractBool containsAll(covariant ComputableAbstractValue a) =>
@@ -391,9 +412,10 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractValue computeAbstractValueForConstant(
-          covariant ConstantValue value) =>
-      ComputableAbstractValue(
-          _wrappedDomain.computeAbstractValueForConstant(value));
+    covariant ConstantValue value,
+  ) => ComputableAbstractValue(
+    _wrappedDomain.computeAbstractValueForConstant(value),
+  );
 
   @override
   bool isContainer(covariant ComputableAbstractValue value) =>
@@ -401,23 +423,27 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractValue createContainerValue(
-          covariant ComputableAbstractValue? originalValue,
-          Object? allocationNode,
-          MemberEntity? allocationElement,
-          covariant ComputableAbstractValue elementType,
-          int? length) =>
-      ComputableAbstractValue(_wrappedDomain.createContainerValue(
-          _unwrapOrNull(originalValue),
-          allocationNode,
-          allocationElement,
-          _unwrap(elementType),
-          length));
+    covariant ComputableAbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    covariant ComputableAbstractValue elementType,
+    int? length,
+  ) => ComputableAbstractValue(
+    _wrappedDomain.createContainerValue(
+      _unwrapOrNull(originalValue),
+      allocationNode,
+      allocationElement,
+      _unwrap(elementType),
+      length,
+    ),
+  );
 
   @override
   AbstractValue getContainerElementType(
-          covariant ComputableAbstractValue value) =>
-      ComputableAbstractValue(
-          _wrappedDomain.getContainerElementType(_unwrap(value)));
+    covariant ComputableAbstractValue value,
+  ) => ComputableAbstractValue(
+    _wrappedDomain.getContainerElementType(_unwrap(value)),
+  );
 
   @override
   int? getContainerLength(covariant ComputableAbstractValue value) =>
@@ -429,15 +455,18 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractValue createSetValue(
-          covariant ComputableAbstractValue? originalValue,
-          Object? allocationNode,
-          MemberEntity? allocationElement,
-          covariant ComputableAbstractValue elementType) =>
-      ComputableAbstractValue(_wrappedDomain.createSetValue(
-          _unwrapOrNull(originalValue),
-          allocationNode,
-          allocationElement,
-          _unwrap(elementType)));
+    covariant ComputableAbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    covariant ComputableAbstractValue elementType,
+  ) => ComputableAbstractValue(
+    _wrappedDomain.createSetValue(
+      _unwrapOrNull(originalValue),
+      allocationNode,
+      allocationElement,
+      _unwrap(elementType),
+    ),
+  );
 
   @override
   AbstractValue getSetElementType(covariant ComputableAbstractValue value) =>
@@ -449,17 +478,20 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractValue createMapValue(
-          covariant ComputableAbstractValue? originalValue,
-          Object? allocationNode,
-          MemberEntity? allocationElement,
-          covariant ComputableAbstractValue key,
-          covariant ComputableAbstractValue value) =>
-      ComputableAbstractValue(_wrappedDomain.createMapValue(
-          _unwrapOrNull(originalValue),
-          allocationNode,
-          allocationElement,
-          _unwrap(key),
-          _unwrap(value)));
+    covariant ComputableAbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    covariant ComputableAbstractValue key,
+    covariant ComputableAbstractValue value,
+  ) => ComputableAbstractValue(
+    _wrappedDomain.createMapValue(
+      _unwrapOrNull(originalValue),
+      allocationNode,
+      allocationElement,
+      _unwrap(key),
+      _unwrap(value),
+    ),
+  );
 
   @override
   AbstractValue getMapKeyType(covariant ComputableAbstractValue value) =>
@@ -475,42 +507,53 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractValue createDictionaryValue(
-          covariant ComputableAbstractValue? originalValue,
-          Object? allocationNode,
-          MemberEntity? allocationElement,
-          covariant ComputableAbstractValue key,
-          covariant ComputableAbstractValue value,
-          covariant Map<String, AbstractValue> mappings) =>
-      ComputableAbstractValue(_wrappedDomain.createDictionaryValue(
-          _unwrapOrNull(originalValue),
-          allocationNode,
-          allocationElement,
-          _unwrap(key),
-          _unwrap(value), {
+    covariant ComputableAbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    covariant ComputableAbstractValue key,
+    covariant ComputableAbstractValue value,
+    covariant Map<String, AbstractValue> mappings,
+  ) => ComputableAbstractValue(
+    _wrappedDomain.createDictionaryValue(
+      _unwrapOrNull(originalValue),
+      allocationNode,
+      allocationElement,
+      _unwrap(key),
+      _unwrap(value),
+      {
         for (final entry in mappings.entries)
-          entry.key: _unwrap(entry.value as ComputableAbstractValue)
-      }));
+          entry.key: _unwrap(entry.value as ComputableAbstractValue),
+      },
+    ),
+  );
 
   @override
   bool containsDictionaryKey(
-          covariant ComputableAbstractValue value, String key) =>
+    covariant ComputableAbstractValue value,
+    String key,
+  ) =>
       value.isComputed &&
       _wrappedDomain.containsDictionaryKey(value._wrappedValue!, key);
 
   @override
   AbstractValue getDictionaryValueForKey(
-          covariant ComputableAbstractValue value, String key) =>
-      ComputableAbstractValue(
-          _wrappedDomain.getDictionaryValueForKey(_unwrap(value), key));
+    covariant ComputableAbstractValue value,
+    String key,
+  ) => ComputableAbstractValue(
+    _wrappedDomain.getDictionaryValueForKey(_unwrap(value), key),
+  );
 
   @override
   AbstractValue createRecordValue(
-      RecordShape shape, List<AbstractValue> types) {
+    RecordShape shape,
+    List<AbstractValue> types,
+  ) {
     AbstractValue abstractValue = _wrappedDomain.createRecordValue(
-        shape,
-        types
-            .map((e) => _unwrap(e as ComputableAbstractValue))
-            .toList(growable: false));
+      shape,
+      types
+          .map((e) => _unwrap(e as ComputableAbstractValue))
+          .toList(growable: false),
+    );
     return ComputableAbstractValue(abstractValue);
   }
 
@@ -520,24 +563,30 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
 
   @override
   bool recordHasGetter(
-          covariant ComputableAbstractValue value, String getterName) =>
-      _wrappedDomain.recordHasGetter(_unwrap(value), getterName);
+    covariant ComputableAbstractValue value,
+    String getterName,
+  ) => _wrappedDomain.recordHasGetter(_unwrap(value), getterName);
 
   @override
   AbstractValue getGetterTypeInRecord(
-          covariant ComputableAbstractValue value, String getterName) =>
-      _wrappedDomain.getGetterTypeInRecord(_unwrap(value), getterName);
+    covariant ComputableAbstractValue value,
+    String getterName,
+  ) => _wrappedDomain.getGetterTypeInRecord(_unwrap(value), getterName);
 
   @override
-  bool isSpecializationOf(covariant ComputableAbstractValue specialization,
-          covariant ComputableAbstractValue generalization) =>
-      _wrappedDomain.isSpecializationOf(
-          _unwrap(specialization), _unwrap(generalization));
+  bool isSpecializationOf(
+    covariant ComputableAbstractValue specialization,
+    covariant ComputableAbstractValue generalization,
+  ) => _wrappedDomain.isSpecializationOf(
+    _unwrap(specialization),
+    _unwrap(generalization),
+  );
 
   @override
   AbstractValue? getGeneralization(covariant ComputableAbstractValue? value) {
-    final generalization =
-        _wrappedDomain.getGeneralization(_unwrapOrNull(value));
+    final generalization = _wrappedDomain.getGeneralization(
+      _unwrapOrNull(value),
+    );
     if (generalization == null) return null;
     return ComputableAbstractValue(generalization);
   }
@@ -556,47 +605,54 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractValue createPrimitiveValue(
-          covariant ComputableAbstractValue originalValue,
-          PrimitiveConstantValue value) =>
-      ComputableAbstractValue(
-          _wrappedDomain.createPrimitiveValue(_unwrap(originalValue), value));
+    covariant ComputableAbstractValue originalValue,
+    PrimitiveConstantValue value,
+  ) => ComputableAbstractValue(
+    _wrappedDomain.createPrimitiveValue(_unwrap(originalValue), value),
+  );
 
   @override
   PrimitiveConstantValue? getPrimitiveValue(
-          covariant ComputableAbstractValue value) =>
-      _wrappedDomain.getPrimitiveValue(_unwrap(value));
+    covariant ComputableAbstractValue value,
+  ) => _wrappedDomain.getPrimitiveValue(_unwrap(value));
 
   @override
   AbstractValue computeReceiver(Iterable<MemberEntity> members) =>
       ComputableAbstractValue(_wrappedDomain.computeReceiver(members));
 
   @override
-  AbstractBool isTargetingMember(covariant ComputableAbstractValue receiver,
-          MemberEntity member, Name name) =>
-      _wrappedDomain.isTargetingMember(_unwrap(receiver), member, name);
+  AbstractBool isTargetingMember(
+    covariant ComputableAbstractValue receiver,
+    MemberEntity member,
+    Name name,
+  ) => _wrappedDomain.isTargetingMember(_unwrap(receiver), member, name);
 
   @override
   AbstractBool needsNoSuchMethodHandling(
-          covariant ComputableAbstractValue receiver, Selector selector) =>
-      _wrappedDomain.needsNoSuchMethodHandling(_unwrap(receiver), selector);
+    covariant ComputableAbstractValue receiver,
+    Selector selector,
+  ) => _wrappedDomain.needsNoSuchMethodHandling(_unwrap(receiver), selector);
 
   @override
   AbstractValue? getAbstractValueForNativeMethodParameterType(DartType type) {
-    final value =
-        _wrappedDomain.getAbstractValueForNativeMethodParameterType(type);
+    final value = _wrappedDomain.getAbstractValueForNativeMethodParameterType(
+      type,
+    );
     if (value == null) return null;
     return ComputableAbstractValue(value);
   }
 
   @override
-  AbstractBool isIn(covariant ComputableAbstractValue subset,
-          covariant ComputableAbstractValue superset) =>
-      _wrappedDomain.isIn(_unwrap(subset), _unwrap(superset));
+  AbstractBool isIn(
+    covariant ComputableAbstractValue subset,
+    covariant ComputableAbstractValue superset,
+  ) => _wrappedDomain.isIn(_unwrap(subset), _unwrap(superset));
 
   @override
   MemberEntity? locateSingleMember(
-          covariant ComputableAbstractValue receiver, Selector selector) =>
-      _wrappedDomain.locateSingleMember(_unwrap(receiver), selector);
+    covariant ComputableAbstractValue receiver,
+    Selector selector,
+  ) => _wrappedDomain.locateSingleMember(_unwrap(receiver), selector);
 
   @override
   AbstractBool isJsIndexable(covariant ComputableAbstractValue value) =>
@@ -604,26 +660,32 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
 
   @override
   AbstractBool isJsIndexableAndIterable(
-          covariant ComputableAbstractValue value) =>
-      _wrappedDomain.isJsIndexableAndIterable(_unwrap(value));
+    covariant ComputableAbstractValue value,
+  ) => _wrappedDomain.isJsIndexableAndIterable(_unwrap(value));
 
   @override
   AbstractBool isFixedLengthJsIndexable(
-          covariant ComputableAbstractValue value) =>
-      _wrappedDomain.isFixedLengthJsIndexable(_unwrap(value));
+    covariant ComputableAbstractValue value,
+  ) => _wrappedDomain.isFixedLengthJsIndexable(_unwrap(value));
 
   @override
   Iterable<DynamicCallTarget> findRootsOfTargets(
-      covariant ComputableAbstractValue receiver,
-      Selector selector,
-      MemberHierarchyBuilder memberHierarchyBuilder) {
+    covariant ComputableAbstractValue receiver,
+    Selector selector,
+    MemberHierarchyBuilder memberHierarchyBuilder,
+  ) {
     return _wrappedDomain.findRootsOfTargets(
-        _unwrap(receiver), selector, memberHierarchyBuilder);
+      _unwrap(receiver),
+      selector,
+      memberHierarchyBuilder,
+    );
   }
 
   @override
-  bool isInvalidRefinement(covariant ComputableAbstractValue before,
-      covariant ComputableAbstractValue after) {
+  bool isInvalidRefinement(
+    covariant ComputableAbstractValue before,
+    covariant ComputableAbstractValue after,
+  ) {
     return _wrappedDomain.isInvalidRefinement(_unwrap(before), _unwrap(after));
   }
 
@@ -634,11 +696,14 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
   @override
   AbstractValue readAbstractValueFromDataSource(DataSourceReader source) =>
       ComputableAbstractValue(
-          _wrappedDomain.readAbstractValueFromDataSource(source));
+        _wrappedDomain.readAbstractValueFromDataSource(source),
+      );
 
   @override
   void writeAbstractValueToDataSink(
-      DataSinkWriter sink, covariant ComputableAbstractValue value) {
+    DataSinkWriter sink,
+    covariant ComputableAbstractValue value,
+  ) {
     _wrappedDomain.writeAbstractValueToDataSink(sink, _unwrap(value));
   }
 }
@@ -669,19 +734,27 @@ class ComputableSelectorStrategy implements SelectorConstraintsStrategy {
 
   @override
   UniverseSelectorConstraints createSelectorConstraints(
-          Selector selector, Object? initialConstraint) =>
-      ComputableUniverseSelectorConstraints(
-          _wrappedStrategy.createSelectorConstraints(
-              selector, _unwrap(initialConstraint as ComputableAbstractValue)));
+    Selector selector,
+    Object? initialConstraint,
+  ) => ComputableUniverseSelectorConstraints(
+    _wrappedStrategy.createSelectorConstraints(
+      selector,
+      _unwrap(initialConstraint as ComputableAbstractValue),
+    ),
+  );
 
   @override
-  bool appliedUnnamed(DynamicUse dynamicUse, MemberEntity member,
-          covariant JClosedWorld world) =>
-      _wrappedStrategy.appliedUnnamed(
-          dynamicUse.withReceiverConstraint(_unwrap(
-              dynamicUse.receiverConstraint as ComputableAbstractValue)),
-          member,
-          world);
+  bool appliedUnnamed(
+    DynamicUse dynamicUse,
+    MemberEntity member,
+    covariant JClosedWorld world,
+  ) => _wrappedStrategy.appliedUnnamed(
+    dynamicUse.withReceiverConstraint(
+      _unwrap(dynamicUse.receiverConstraint as ComputableAbstractValue),
+    ),
+    member,
+    world,
+  );
 }
 
 class ComputableUniverseSelectorConstraints
@@ -689,7 +762,8 @@ class ComputableUniverseSelectorConstraints
   final UniverseSelectorConstraints _universeSelectorConstraints;
 
   const ComputableUniverseSelectorConstraints(
-      this._universeSelectorConstraints);
+    this._universeSelectorConstraints,
+  );
 
   // There should be no uncomputed values at this point, so throw instead of
   // requiring a domain.

@@ -13,8 +13,9 @@ import 'package:compiler/src/util/memory_compiler.dart';
 
 void main() {
   asyncTest(() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+    );
     Compiler compiler = result.compiler!;
     var closedWorld = compiler.backendClosedWorldForTesting!;
     var env = closedWorld.elementEnvironment;

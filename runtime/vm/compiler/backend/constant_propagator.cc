@@ -154,6 +154,12 @@ void ConstantPropagator::VisitOsrEntry(OsrEntryInstr* block) {
   }
 }
 
+void ConstantPropagator::VisitTryEntry(TryEntryInstr* entry) {
+  for (intptr_t i = 0; i < entry->SuccessorCount(); i++) {
+    SetReachable(entry->SuccessorAt(i));
+  }
+}
+
 void ConstantPropagator::VisitCatchBlockEntry(CatchBlockEntryInstr* block) {
   for (auto def : *block->initial_definitions()) {
     def->Accept(this);
@@ -454,7 +460,7 @@ void ConstantPropagator::VisitAssertAssignable(AssertAssignableInstr* instr) {
   if (dst_type.IsAbstractType()) {
     // We are ignoring the instantiator and instantiator_type_arguments, but
     // still monotonic and safe.
-    if (instr->value()->Type()->IsAssignableTo(AbstractType::Cast(dst_type))) {
+    if (instr->value()->Type()->IsSubtypeOf(AbstractType::Cast(dst_type))) {
       SetValue(instr, value);
       return;
     }
@@ -857,9 +863,10 @@ void ConstantPropagator::VisitLoadIndexedUnsafe(LoadIndexedUnsafeInstr* instr) {
 }
 
 void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
-  // Cannot treat an initialized field as constant because the same code will be
-  // used when the AppAOT or AppJIT starts over with everything uninitialized or
-  // another isolate in the isolate group starts with everything uninitialized.
+  // We cannot generally take the current value for an initialized constant
+  // field because the same code will be used when the AppAOT or AppJIT starts
+  // over with everything uninitialized or another isolate in the isolate group
+  // starts with everything uninitialized.
   SetValue(instr, non_constant_);
 }
 
@@ -1664,7 +1671,7 @@ static bool IsEmptyBlock(BlockEntryInstr* block) {
   // A block containing a goto to itself forms an infinite loop.
   // We don't consider this an empty block to handle the edge-case where code
   // reduces to an infinite loop.
-  return block->next()->IsGoto() &&
+  return !block->IsTryEntry() && block->next()->IsGoto() &&
          block->next()->AsGoto()->successor() != block && !HasPhis(block) &&
          !block->IsIndirectEntry();
 }

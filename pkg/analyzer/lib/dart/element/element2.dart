@@ -54,7 +54,6 @@ import 'package:analyzer/dart/element/element.dart'
         DirectiveUri,
         ElementAnnotation,
         ElementKind,
-        ElementLocation,
         LibraryLanguageVersion,
         NamespaceCombinator;
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -375,7 +374,7 @@ abstract class Element2 {
   /// If the receiver is already a non-[Member] element (or a synthetic element,
   /// such as a synthetic property accessor), this getter will return the
   /// receiver.
-  Element2? get baseElement;
+  Element2 get baseElement;
 
   /// The children of this element.
   ///
@@ -436,11 +435,6 @@ abstract class Element2 {
   /// in a single library.
   LibraryElement2? get library2;
 
-  /// The location of this element in the element model.
-  ///
-  /// The object can be used to locate this element at a later time.
-  ElementLocation? get location;
-
   /// The name to use for lookup in maps.
   ///
   /// It is usually the same as [name3], with a few special cases.
@@ -494,6 +488,12 @@ abstract class Element2 {
   /// Clients should not depend on the content of the returned value as it will
   /// be changed if doing so would improve the UX.
   String displayString2({bool multiline = false, bool preferTypeAlias = false});
+
+  /// Returns a display name for the given element that includes the path to the
+  /// compilation unit in which the type is defined. If [shortName] is `null`
+  /// then [displayName] will be used as the name of this element. Otherwise
+  /// the provided name will be used.
+  String getExtendedDisplayName2({String? shortName});
 
   /// Whether the element, assuming that it is within scope, is accessible to
   /// code in the given [library].
@@ -832,7 +832,7 @@ abstract class FieldFragment implements PropertyInducingFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FormalParameterElement
-    implements PromotableElement2, Annotatable {
+    implements PromotableElement2, Annotatable, LocalElement2 {
   @override
   FormalParameterElement get baseElement;
 
@@ -928,7 +928,7 @@ abstract class FormalParameterElement
 ///
 /// Clients may not extend, implement, or mix-in this class.
 abstract class FormalParameterFragment
-    implements PromotableFragment, Annotatable {
+    implements PromotableFragment, Annotatable, LocalFragment {
   @override
   FormalParameterElement get element;
 
@@ -1067,6 +1067,8 @@ abstract class GenericFunctionTypeElement2 implements FunctionTypedElement2 {
 
 /// The portion of a [GenericFunctionTypeElement2] coming from a single
 /// declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class GenericFunctionTypeFragment implements FunctionTypedFragment {
   @override
   GenericFunctionTypeElement2 get element;
@@ -1142,9 +1144,6 @@ abstract class InstanceElement2
   /// The getters declared in this element.
   List<GetterElement> get getters2;
 
-  @override
-  LibraryElement2 get library2;
-
   /// The methods declared in this element.
   List<MethodElement2> get methods2;
 
@@ -1165,9 +1164,44 @@ abstract class InstanceElement2
 
   /// Returns the setter from [setters2] that has the given [name].
   SetterElement? getSetter2(String name);
+
+  /// Returns the element representing the getter that results from looking up
+  /// the given [name] in this class with respect to the given [library],
+  /// or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 17.18 Lookup.
+  GetterElement? lookUpGetter2({
+    required String name,
+    required LibraryElement2 library,
+  });
+
+  /// Returns the element representing the method that results from looking up
+  /// the given [name] in this class with respect to the given [library],
+  /// or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 17.18 Lookup.
+  MethodElement2? lookUpMethod2({
+    required String name,
+    required LibraryElement2 library,
+  });
+
+  /// Returns the element representing the setter that results from looking up
+  /// the given [name] in this class with respect to the given [library],
+  /// or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 17.18 Lookup.
+  SetterElement? lookUpSetter2({
+    required String name,
+    required LibraryElement2 library,
+  });
 }
 
 /// The portion of an [InstanceElement2] contributed by a single declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class InstanceFragment
     implements TypeDefiningFragment, TypeParameterizedFragment {
   @override
@@ -1279,9 +1313,32 @@ abstract class InterfaceElement2 implements InstanceElement2 {
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   });
+
+  /// Returns the element representing the method that results from looking up
+  /// the given [methodName] in the superclass of this class with respect to the
+  /// given [library], or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 16.15.1:
+  /// <blockquote>
+  /// The result of looking up method <i>m</i> in class <i>C</i> with respect to
+  /// library <i>L</i> is:  If <i>C</i> declares an instance method named
+  /// <i>m</i> that is accessible to <i>L</i>, then that method is the result of
+  /// the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the
+  /// result of the lookup is the result of looking up method <i>m</i> in
+  /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
+  /// failed.
+  /// </blockquote>
+  // TODO(scheglov): Deprecate and remove it.
+  MethodElement2? lookUpInheritedMethod2({
+    required String methodName,
+    required LibraryElement2 library,
+  });
 }
 
 /// The portion of an [InterfaceElement2] contributed by a single declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class InterfaceFragment implements InstanceFragment {
   /// The constructors declared in this fragment.
   ///
@@ -1562,7 +1619,7 @@ abstract class LibraryElement2 implements Element2, Annotatable {
 /// An `export` directive within a library fragment.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LibraryExport {
+abstract class LibraryExport implements Annotatable {
   /// The combinators that were specified as part of the `export` directive.
   ///
   /// The combinators are in the order in which they were specified.
@@ -1606,6 +1663,12 @@ abstract class LibraryFragment implements Fragment, Annotatable {
 
   /// The fragments of the top-level getters declared in this fragment.
   List<GetterFragment> get getters;
+
+  /// The libraries that are imported by this unit.
+  ///
+  /// This includes all of the libraries that are imported using a prefix, and
+  /// those that are imported without a prefix.
+  List<LibraryElement2> get importedLibraries2;
 
   /// The libraries exported by this unit.
   List<LibraryExport> get libraryExports2;
@@ -1655,7 +1718,7 @@ abstract class LibraryFragment implements Fragment, Annotatable {
 /// An `import` directive within a library fragment.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LibraryImport {
+abstract class LibraryImport implements Annotatable {
   /// The combinators that were specified as part of the `import` directive.
   ///
   /// The combinators are in the order in which they were specified.
@@ -1674,6 +1737,9 @@ abstract class LibraryImport {
   /// an implicit import of `dart:core`.
   bool get isSynthetic;
 
+  /// The library fragment that contains this object.
+  LibraryFragment? get libraryFragment;
+
   /// The [Namespace] that this directive contributes to the containing library.
   Namespace get namespace;
 
@@ -1686,13 +1752,25 @@ abstract class LibraryImport {
   DirectiveUri get uri;
 }
 
+/// An element that can be (but is not required to be) defined within a method
+/// or function (an [ExecutableElement]).
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class LocalElement2 implements Element2 {}
+
+/// The portion of an [LocalElement2] contributed by a single declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class LocalFragment implements Fragment {}
+
 /// A local function.
 ///
 /// This can be either a local function, a closure, or the initialization
 /// expression for a field or variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LocalFunctionElement implements ExecutableElement2 {
+abstract class LocalFunctionElement
+    implements ExecutableElement2, LocalElement2 {
   @override
   LocalFunctionFragment get firstFragment;
 }
@@ -1701,7 +1779,8 @@ abstract class LocalFunctionElement implements ExecutableElement2 {
 /// declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LocalFunctionFragment implements ExecutableFragment {
+abstract class LocalFunctionFragment
+    implements ExecutableFragment, LocalFragment {
   // TODO(brianwilkerson): This should override `element` to be more specific,
   //  but can't because the Impl class supports both local and top-level
   //  functions.
@@ -1724,7 +1803,8 @@ abstract class LocalFunctionFragment implements ExecutableFragment {
 /// A local variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LocalVariableElement2 implements PromotableElement2 {
+abstract class LocalVariableElement2
+    implements PromotableElement2, LocalElement2, Annotatable {
   @override
   LocalVariableElement2 get baseElement;
 
@@ -1739,12 +1819,10 @@ abstract class LocalVariableElement2 implements PromotableElement2 {
 /// declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LocalVariableFragment implements PromotableFragment {
+abstract class LocalVariableFragment
+    implements PromotableFragment, LocalFragment {
   @override
   LocalVariableElement2 get element;
-
-  @override
-  ExecutableFragment? get enclosingFragment;
 
   /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
@@ -2111,9 +2189,6 @@ abstract class PromotableFragment implements VariableFragment {
   PromotableElement2 get element;
 
   @override
-  ExecutableFragment? get enclosingFragment;
-
-  @override
   PromotableFragment? get nextFragment;
 
   @override
@@ -2191,6 +2266,9 @@ abstract class PropertyInducingElement2
 
   /// Whether any fragment of this variable has an initializer at declaration.
   bool get hasInitializer;
+
+  @override
+  LibraryElement2 get library2;
 
   /// The setter associated with this variable.
   ///
@@ -2507,9 +2585,6 @@ abstract class TypeParameterElement2 implements TypeDefiningElement2 {
   @override
   TypeParameterFragment get firstFragment;
 
-  @override
-  LibraryElement2 get library2;
-
   /// Returns the [TypeParameterType] with the given [nullabilitySuffix] for
   /// this type parameter.
   TypeParameterType instantiate({
@@ -2545,6 +2620,9 @@ abstract class TypeParameterizedElement2 implements Element2, Annotatable {
   ///
   /// If the element does not define a type, returns `true`.
   bool get isSimplyBounded;
+
+  @override
+  LibraryElement2 get library2;
 
   /// The type parameters declared by this element directly.
   ///

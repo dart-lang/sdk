@@ -133,25 +133,26 @@ class Scroller implements Draggable, MomentumDelegate {
   bool _activeGesture = false;
   late final ScrollWatcher _scrollWatcher = ScrollWatcher(this)..initialize();
 
-  Scroller(Element scrollableElem,
-      [this.verticalEnabled = false,
-      this.horizontalEnabled = false,
-      momentumEnabled = true,
-      lookupContentSizeDelegate,
-      num defaultDecelerationFactor = 1,
-      int? scrollTechnique,
-      bool capture = false])
-      : _momentumEnabled = momentumEnabled,
-        _lookupContentSizeDelegate = lookupContentSizeDelegate,
-        _element = scrollableElem,
-        _frame = scrollableElem.parent!,
-        _scrollTechnique =
-            scrollTechnique ?? ScrollerScrollTechnique.TRANSFORM_3D,
-        _minPoint = Coordinate(0, 0),
-        _maxPoint = Coordinate(0, 0),
-        _maxOffset = Coordinate(0, 0),
-        _minOffset = Coordinate(0, 0),
-        _contentOffset = Coordinate(0, 0) {
+  Scroller(
+    Element scrollableElem, [
+    this.verticalEnabled = false,
+    this.horizontalEnabled = false,
+    momentumEnabled = true,
+    lookupContentSizeDelegate,
+    num defaultDecelerationFactor = 1,
+    int? scrollTechnique,
+    bool capture = false,
+  ]) : _momentumEnabled = momentumEnabled,
+       _lookupContentSizeDelegate = lookupContentSizeDelegate,
+       _element = scrollableElem,
+       _frame = scrollableElem.parent!,
+       _scrollTechnique =
+           scrollTechnique ?? ScrollerScrollTechnique.TRANSFORM_3D,
+       _minPoint = Coordinate(0, 0),
+       _maxPoint = Coordinate(0, 0),
+       _maxOffset = Coordinate(0, 0),
+       _minOffset = Coordinate(0, 0),
+       _contentOffset = Coordinate(0, 0) {
     _touchHandler = TouchHandler(this, scrollableElem.parent);
     _momentum = Momentum(this, defaultDecelerationFactor);
 
@@ -193,7 +194,7 @@ class Scroller implements Draggable, MomentumDelegate {
           throwTo(_maxPoint.x, _maxPoint.y, FAST_SNAP_DECELERATION_FACTOR);
           handled = true;
           break;
-/* TODO(jacobr): enable arrow keys when the don't conflict with other
+        /* TODO(jacobr): enable arrow keys when the don't conflict with other
    application keyboard shortcuts.
           case 38: // up
             handled = throwDelta(
@@ -276,9 +277,13 @@ class Scroller implements Draggable, MomentumDelegate {
         _momentum.abort();
 
         _startDeceleration(
-            _momentum.calculateVelocity(
-                _contentOffset, snappedTarget, decelerationFactor),
-            decelerationFactor);
+          _momentum.calculateVelocity(
+            _contentOffset,
+            snappedTarget,
+            decelerationFactor,
+          ),
+          decelerationFactor,
+        );
         if (_onDecelStart != null) {
           _onDecelStart.add(Event(ScrollerEventType.DECEL_START));
         }
@@ -315,8 +320,10 @@ class Scroller implements Draggable, MomentumDelegate {
   /// Adjusted content size is a size with the combined largest height and width
   /// of both the content and the frame.
   Size _getAdjustedContentSize() {
-    return Size(Math.max(_scrollSize.width, _contentSize.width),
-        Math.max(_scrollSize.height, _contentSize.height));
+    return Size(
+      Math.max(_scrollSize.width, _contentSize.width),
+      Math.max(_scrollSize.height, _contentSize.height),
+    );
   }
 
   // TODO(jmesserly): these should be properties instead of get* methods
@@ -410,12 +417,14 @@ class Scroller implements Draggable, MomentumDelegate {
     Coordinate contentStart = _contentStartOffset!;
     num newX = contentStart.x + _touchHandler.getDragDeltaX();
     num newY = contentStart.y + _touchHandler.getDragDeltaY();
-    newY = _shouldScrollVertically()
-        ? _adjustValue(newY, _minPoint.y, _maxPoint.y)
-        : 0;
-    newX = _shouldScrollHorizontally()
-        ? _adjustValue(newX, _minPoint.x, _maxPoint.x)
-        : 0;
+    newY =
+        _shouldScrollVertically()
+            ? _adjustValue(newY, _minPoint.y, _maxPoint.y)
+            : 0;
+    newX =
+        _shouldScrollHorizontally()
+            ? _adjustValue(newX, _minPoint.x, _maxPoint.x)
+            : 0;
     if (!_activeGesture) {
       _activeGesture = true;
       _dragInProgress = true;
@@ -436,7 +445,8 @@ class Scroller implements Draggable, MomentumDelegate {
     }
     bool shouldHorizontal = _shouldScrollHorizontally();
     bool shouldVertical = _shouldScrollVertically();
-    bool verticalish = _touchHandler.getDragDeltaY().abs() >
+    bool verticalish =
+        _touchHandler.getDragDeltaY().abs() >
         _touchHandler.getDragDeltaX().abs();
     return !!(shouldVertical || shouldHorizontal && !verticalish);
   }
@@ -495,10 +505,15 @@ class Scroller implements Draggable, MomentumDelegate {
       Size adjusted = _getAdjustedContentSize();
       _maxPoint = Coordinate(-_maxOffset.x, -_maxOffset.y);
       _minPoint = Coordinate(
-          Math.min(
-              _scrollSize.width - adjusted.width + _minOffset.x, _maxPoint.x),
-          Math.min(_scrollSize.height - adjusted.height + _minOffset.y,
-              _maxPoint.y));
+        Math.min(
+          _scrollSize.width - adjusted.width + _minOffset.x,
+          _maxPoint.x,
+        ),
+        Math.min(
+          _scrollSize.height - adjusted.height + _minOffset.y,
+          _maxPoint.y,
+        ),
+      );
       callback();
     });
   }
@@ -569,7 +584,12 @@ class Scroller implements Draggable, MomentumDelegate {
     assert(_minPoint != null); // Min point is not set
     assert(_maxPoint != null); // Max point is not set
     return _momentum.start(
-        velocity, _minPoint, _maxPoint, _contentOffset, decelerationFactor);
+      velocity,
+      _minPoint,
+      _maxPoint,
+      _contentOffset,
+      decelerationFactor,
+    );
   }
 
   Coordinate stop() {
@@ -585,11 +605,11 @@ class Scroller implements Draggable, MomentumDelegate {
   static Function _getOffsetFunction(int scrollTechnique) {
     return scrollTechnique == ScrollerScrollTechnique.TRANSFORM_3D
         ? (el, x, y) {
-            FxUtil.setTranslate(el, x, y, 0);
-          }
+          FxUtil.setTranslate(el, x, y, 0);
+        }
         : (el, x, y) {
-            FxUtil.setLeftAndTop(el, x, y);
-          };
+          FxUtil.setLeftAndTop(el, x, y);
+        };
   }
 }
 

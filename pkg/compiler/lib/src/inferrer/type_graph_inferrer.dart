@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library type_graph_inferrer;
+library;
 
 import 'package:kernel/ast.dart' as ir;
 import '../closure.dart';
@@ -28,8 +28,12 @@ class TypeGraphInferrer implements TypesInferrer {
   final InferredDataBuilder _inferredDataBuilder;
   Metrics _metrics = Metrics.none();
 
-  TypeGraphInferrer(this._compiler, this.closedWorld, this._globalLocalsMap,
-      this._inferredDataBuilder);
+  TypeGraphInferrer(
+    this._compiler,
+    this.closedWorld,
+    this._globalLocalsMap,
+    this._inferredDataBuilder,
+  );
 
   String get name => 'Graph inferrer';
 
@@ -50,14 +54,15 @@ class TypeGraphInferrer implements TypesInferrer {
 
   InferrerEngine createInferrerEngineFor(FunctionEntity main) {
     return engine.InferrerEngine(
-        _compiler.options,
-        _compiler.progress,
-        _compiler.reporter,
-        _compiler.outputProvider,
-        closedWorld,
-        main,
-        _globalLocalsMap,
-        _inferredDataBuilder);
+      _compiler.options,
+      _compiler.progress,
+      _compiler.reporter,
+      _compiler.outputProvider,
+      closedWorld,
+      main,
+      _globalLocalsMap,
+      _inferredDataBuilder,
+    );
   }
 
   Iterable<MemberEntity>? getCallersOfForTesting(MemberEntity element) {
@@ -70,7 +75,9 @@ class TypeGraphInferrer implements TypesInferrer {
     Map<Local, AbstractValue> parameterResults = <Local, AbstractValue>{};
 
     void createMemberResults(
-        MemberEntity member, MemberTypeInformation typeInformation) {
+      MemberEntity member,
+      MemberTypeInformation typeInformation,
+    ) {
       final data = inferrer.dataOfMember(member).compress();
       bool isJsInterop = closedWorld.nativeData.isJsInteropMember(member);
 
@@ -88,39 +95,52 @@ class TypeGraphInferrer implements TypesInferrer {
       }
 
       bool throwsAlways =
-          // Always throws if the return type was inferred to be non-null empty.
-          abstractValueDomain.isEmpty(returnType).isDefinitelyTrue;
+              // Always throws if the return type was inferred to be non-null empty.
+              abstractValueDomain
+              .isEmpty(returnType)
+              .isDefinitelyTrue;
 
       bool isCalledOnce = typeInformation.isCalledExactlyOnce;
 
       memberResults[member] = GlobalTypeInferenceMemberResultImpl(
-          data, returnType, type,
-          throwsAlways: throwsAlways, isCalledOnce: isCalledOnce);
+        data,
+        returnType,
+        type,
+        throwsAlways: throwsAlways,
+        isCalledOnce: isCalledOnce,
+      );
     }
 
-    Set<FieldEntity> freeVariables = Set<FieldEntity>();
-    inferrer.types.forEachMemberType(
-        (MemberEntity member, MemberTypeInformation typeInformation) {
+    Set<FieldEntity> freeVariables = <FieldEntity>{};
+    inferrer.types.forEachMemberType((
+      MemberEntity member,
+      MemberTypeInformation typeInformation,
+    ) {
       createMemberResults(member, typeInformation);
       if (member is JClosureCallMethod) {
-        final info = closedWorld.closureDataLookup.getScopeInfo(member)
-            as ClosureRepresentationInfo;
-        info.forEachFreeVariable(_globalLocalsMap.getLocalsMap(member),
-            (Local from, FieldEntity to) {
+        final info =
+            closedWorld.closureDataLookup.getScopeInfo(member)
+                as ClosureRepresentationInfo;
+        info.forEachFreeVariable(_globalLocalsMap.getLocalsMap(member), (
+          Local from,
+          FieldEntity to,
+        ) {
           freeVariables.add(to);
         });
       }
     });
     for (FieldEntity field in freeVariables) {
       if (!memberResults.containsKey(field)) {
-        MemberTypeInformation typeInformation =
-            inferrer.types.getInferredTypeOfMember(field);
+        MemberTypeInformation typeInformation = inferrer.types
+            .getInferredTypeOfMember(field);
         createMemberResults(field, typeInformation);
       }
     }
 
-    inferrer.types.forEachParameterType(
-        (Local parameter, ParameterTypeInformation typeInformation) {
+    inferrer.types.forEachParameterType((
+      Local parameter,
+      ParameterTypeInformation typeInformation,
+    ) {
       // We need to get the correct type based on the parameter's check policy.
       // This will be used to determine if the parameter needs a check at the
       // beginning of the associated function.
@@ -130,24 +150,29 @@ class TypeGraphInferrer implements TypesInferrer {
 
     Map<ir.TreeNode, AbstractValue> allocatedLists = {};
     Map<ir.TreeNode, AbstractValue> allocatedRecords = {};
-    inferrer.types.allocatedLists
-        .forEach((ir.TreeNode node, ListTypeInformation typeInformation) {
+    inferrer.types.allocatedLists.forEach((
+      ir.TreeNode node,
+      ListTypeInformation typeInformation,
+    ) {
       allocatedLists[node] = typeInformation.type;
     });
-    inferrer.types.allocatedRecords
-        .forEach((ir.TreeNode node, RecordTypeInformation typeInformation) {
+    inferrer.types.allocatedRecords.forEach((
+      ir.TreeNode node,
+      RecordTypeInformation typeInformation,
+    ) {
       allocatedRecords[node] = typeInformation.type;
     });
 
     GlobalTypeInferenceResults results = GlobalTypeInferenceResultsImpl(
-        closedWorld,
-        _globalLocalsMap,
-        _inferredDataBuilder.close(closedWorld),
-        memberResults,
-        parameterResults,
-        inferrer.returnsListElementTypeSet,
-        allocatedLists,
-        allocatedRecords);
+      closedWorld,
+      _globalLocalsMap,
+      _inferredDataBuilder.close(closedWorld),
+      memberResults,
+      parameterResults,
+      inferrer.returnsListElementTypeSet,
+      allocatedLists,
+      allocatedRecords,
+    );
 
     inferrer.clear();
 

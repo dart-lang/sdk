@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:compiler/src/commandline_options.dart';
 
 Future<void> main(List<String> args) async {
-  Stopwatch stopwatch = new Stopwatch();
+  Stopwatch stopwatch = Stopwatch();
   String? input;
   String? serializedInput;
   String output = 'out.js';
@@ -37,7 +37,7 @@ Future<void> main(List<String> args) async {
       }
     } else {
       if (input != null) {
-        print("Multiple entrypoints provided: '${input}' and '${arg}'.");
+        print("Multiple entrypoints provided: '$input' and '$arg'.");
         exit(-1);
       }
       input = arg;
@@ -68,37 +68,34 @@ Future<void> main(List<String> args) async {
   baseOptions.addAll(arguments);
 
   String cfeOutput = '${inputPrefix}0.dill';
-  String dillOutput = '${inputPrefix}.dill';
-  String dataOutput = '${inputPrefix}.dill.data';
-  String codeOutput = '${outputPrefix}.code';
+  String dillOutput = '$inputPrefix.dill';
+  String dataOutput = '$inputPrefix.dill.data';
+  String codeOutput = '$outputPrefix.code';
   shards ??= 2;
 
   stopwatch.start();
   if (start <= 0 && stop >= 0) {
-    await subProcess(
-        baseOptions, [input, '${Flags.stage}=cfe', '--out=$cfeOutput'], '0:\t');
+    await subProcess(baseOptions, [
+      input,
+      '${Flags.stage}=cfe',
+      '--out=$cfeOutput',
+    ], '0:\t');
   }
   if (start <= 1 && stop >= 1) {
-    await subProcess(
-        baseOptions,
-        [
-          cfeOutput,
-          '--out=$dillOutput',
-          '${Flags.closedWorldUri}=${dataOutput}',
-          '${Flags.stage}=closed-world'
-        ],
-        '1:\t');
+    await subProcess(baseOptions, [
+      cfeOutput,
+      '--out=$dillOutput',
+      '${Flags.closedWorldUri}=$dataOutput',
+      '${Flags.stage}=closed-world',
+    ], '1:\t');
   }
   if (shards <= 1) {
-    await subProcess(
-        baseOptions,
-        [
-          dillOutput,
-          '${Flags.globalInferenceUri}=${dataOutput}',
-          '${Flags.stage}=codegen-emit-js',
-          '--out=${output}'
-        ],
-        '3:\t');
+    await subProcess(baseOptions, [
+      dillOutput,
+      '${Flags.globalInferenceUri}=$dataOutput',
+      '${Flags.stage}=codegen-emit-js',
+      '--out=$output',
+    ], '3:\t');
   } else {
     if (start <= 2 && stop >= 2) {
       List<List<String>> additionalArguments = [];
@@ -106,55 +103,62 @@ Future<void> main(List<String> args) async {
       for (int shard = 0; shard < shards; shard++) {
         additionalArguments.add([
           dillOutput,
-          '${Flags.globalInferenceUri}=${dataOutput}',
+          '${Flags.globalInferenceUri}=$dataOutput',
           '${Flags.codegenShard}=$shard',
           '${Flags.codegenShards}=$shards',
-          '${Flags.codegenUri}=${codeOutput}',
-          '${Flags.stage}=codegen'
+          '${Flags.codegenUri}=$codeOutput',
+          '${Flags.stage}=codegen',
         ]);
         outputPrefixes.add('2:${shard + 1}/$shards\t');
       }
 
-      Stopwatch subwatch = new Stopwatch();
+      Stopwatch subwatch = Stopwatch();
       subwatch.start();
-      await Future.wait(new List<Future<void>>.generate(shards, (int shard) {
-        return subProcess(
-            baseOptions, additionalArguments[shard], outputPrefixes[shard]);
-      }));
+      await Future.wait(
+        List<Future<void>>.generate(shards, (int shard) {
+          return subProcess(
+            baseOptions,
+            additionalArguments[shard],
+            outputPrefixes[shard],
+          );
+        }),
+      );
       subwatch.stop();
       print('2:\tTotal time: ${_formatMs(subwatch.elapsedMilliseconds)}');
     }
     if (start <= 3 && stop >= 3) {
-      await subProcess(
-          baseOptions,
-          [
-            dillOutput,
-            '${Flags.globalInferenceUri}=${dataOutput}',
-            '${Flags.codegenUri}=${codeOutput}',
-            '${Flags.codegenShards}=$shards',
-            '${Flags.stage}=emit-js',
-            '--out=${output}'
-          ],
-          '3:\t');
+      await subProcess(baseOptions, [
+        dillOutput,
+        '${Flags.globalInferenceUri}=$dataOutput',
+        '${Flags.codegenUri}=$codeOutput',
+        '${Flags.codegenShards}=$shards',
+        '${Flags.stage}=emit-js',
+        '--out=$output',
+      ], '3:\t');
     }
   }
   stopwatch.stop();
   print('Total time: ${_formatMs(stopwatch.elapsedMilliseconds)}');
 }
 
-Future<void> subProcess(List<String> baseOptions,
-    List<String> additionalOptions, String outputPrefix) async {
-  List<String> options = []
-    ..addAll(baseOptions)
-    ..addAll(additionalOptions);
+Future<void> subProcess(
+  List<String> baseOptions,
+  List<String> additionalOptions,
+  String outputPrefix,
+) async {
+  List<String> options = [...baseOptions, ...additionalOptions];
   print(
-      '${outputPrefix}Command: ${Platform.resolvedExecutable} ${options.join(' ')}');
-  Process process = await Process.start(Platform.resolvedExecutable, options,
-      runInShell: true);
-  _Prefixer stdoutPrefixer = new _Prefixer(outputPrefix, stdout);
-  _Prefixer stderrOutputter = new _Prefixer(outputPrefix, stderr);
-  process.stdout.transform(utf8.decoder).listen(stdoutPrefixer);
-  process.stderr.transform(utf8.decoder).listen(stderrOutputter);
+    '${outputPrefix}Command: ${Platform.resolvedExecutable} ${options.join(' ')}',
+  );
+  Process process = await Process.start(
+    Platform.resolvedExecutable,
+    options,
+    runInShell: true,
+  );
+  _Prefixer stdoutPrefixer = _Prefixer(outputPrefix, stdout);
+  _Prefixer stderrOutputter = _Prefixer(outputPrefix, stderr);
+  process.stdout.transform(utf8.decoder).listen(stdoutPrefixer.call);
+  process.stderr.transform(utf8.decoder).listen(stderrOutputter.call);
 
   int exitCode = await process.exitCode;
   if (exitCode != 0) {
@@ -190,5 +194,5 @@ class _Prefixer {
 }
 
 String _formatMs(int ms) {
-  return (ms / 1000).toStringAsFixed(3) + 's';
+  return '${(ms / 1000).toStringAsFixed(3)}s';
 }

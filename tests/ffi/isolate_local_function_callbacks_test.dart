@@ -49,8 +49,10 @@ int add(int a, int b) {
 }
 
 testNativeCallableStatic() {
-  final callback = NativeCallable<CallbackNativeType>.isolateLocal(add,
-      exceptionalReturn: 0);
+  final callback = NativeCallable<CallbackNativeType>.isolateLocal(
+    add,
+    exceptionalReturn: 0,
+  );
 
   Expect.equals(1234, callTwoIntFunction(callback.nativeFunction, 1000, 234));
 
@@ -61,8 +63,9 @@ testNativeCallableClosure() {
   int c = 70000;
 
   final callback = NativeCallable<CallbackNativeType>.isolateLocal(
-      (int a, int b) => a + b + c,
-      exceptionalReturn: 0);
+    (int a, int b) => a + b + c,
+    exceptionalReturn: 0,
+  );
 
   Expect.equals(71234, callTwoIntFunction(callback.nativeFunction, 1000, 234));
 
@@ -73,8 +76,10 @@ testNativeCallableClosure() {
 }
 
 testNativeCallableDoubleCloseError() {
-  final callback = NativeCallable<CallbackNativeType>.isolateLocal(add,
-      exceptionalReturn: 0);
+  final callback = NativeCallable<CallbackNativeType>.isolateLocal(
+    add,
+    exceptionalReturn: 0,
+  );
   Expect.notEquals(nullptr, callback.nativeFunction);
   callback.close();
 
@@ -96,11 +101,14 @@ int selfClosingStatic(int a, int b) {
 
 testNativeCallableNestedCloseCallStatic() {
   selfClosingStaticCallback = NativeCallable<CallbackNativeType>.isolateLocal(
-      selfClosingStatic,
-      exceptionalReturn: 0);
+    selfClosingStatic,
+    exceptionalReturn: 0,
+  );
 
-  Expect.equals(1234,
-      callTwoIntFunction(selfClosingStaticCallback.nativeFunction, 1000, 234));
+  Expect.equals(
+    1234,
+    callTwoIntFunction(selfClosingStaticCallback.nativeFunction, 1000, 234),
+  );
 
   // The callback is already closed.
   Expect.throwsStateError(() {
@@ -133,8 +141,9 @@ int throwerCallback(int a, int b) {
 
 testNativeCallableExceptionalReturnStatic() {
   final callback = NativeCallable<CallbackNativeType>.isolateLocal(
-      throwerCallback,
-      exceptionalReturn: 5678);
+    throwerCallback,
+    exceptionalReturn: 5678,
+  );
 
   Expect.equals(1234, callTwoIntFunction(callback.nativeFunction, 1000, 234));
   Expect.equals(5678, callTwoIntFunction(callback.nativeFunction, 0, 0));
@@ -143,8 +152,10 @@ testNativeCallableExceptionalReturnStatic() {
 }
 
 testNativeCallableExceptionalReturnClosure() {
-  final callback =
-      NativeCallable<CallbackNativeType>.isolateLocal((int a, int b) {
+  final callback = NativeCallable<CallbackNativeType>.isolateLocal((
+    int a,
+    int b,
+  ) {
     if (a != 1000) {
       throw "Oh no!";
     }
@@ -159,14 +170,23 @@ testNativeCallableExceptionalReturnClosure() {
 
 Future<void> testNativeCallableDontKeepAliveStatic() async {
   final exitPort = ReceivePort();
-  await Isolate.spawn((_) async {
-    final callback = NativeCallable<CallbackNativeType>.isolateLocal(add,
-        exceptionalReturn: 0);
+  await Isolate.spawn(
+    (_) async {
+      final callback = NativeCallable<CallbackNativeType>.isolateLocal(
+        add,
+        exceptionalReturn: 0,
+      );
 
-    Expect.equals(1234, callTwoIntFunction(callback.nativeFunction, 1000, 234));
+      Expect.equals(
+        1234,
+        callTwoIntFunction(callback.nativeFunction, 1000, 234),
+      );
 
-    callback.keepIsolateAlive = false;
-  }, null, onExit: exitPort.sendPort);
+      callback.keepIsolateAlive = false;
+    },
+    null,
+    onExit: exitPort.sendPort,
+  );
   await exitPort.first;
   exitPort.close();
 }
@@ -175,23 +195,32 @@ Future<void> testNativeCallableDontKeepAliveClosure() async {
   int c = 70000;
 
   final exitPort = ReceivePort();
-  await Isolate.spawn((_) async {
-    final callback = NativeCallable<CallbackNativeType>.isolateLocal(
+  await Isolate.spawn(
+    (_) async {
+      final callback = NativeCallable<CallbackNativeType>.isolateLocal(
         (int a, int b) => a + b + c,
-        exceptionalReturn: 0);
+        exceptionalReturn: 0,
+      );
 
-    Expect.equals(
-        71234, callTwoIntFunction(callback.nativeFunction, 1000, 234));
+      Expect.equals(
+        71234,
+        callTwoIntFunction(callback.nativeFunction, 1000, 234),
+      );
 
-    callback.keepIsolateAlive = false;
-  }, null, onExit: exitPort.sendPort);
+      callback.keepIsolateAlive = false;
+    },
+    null,
+    onExit: exitPort.sendPort,
+  );
   await exitPort.first;
   exitPort.close();
 }
 
 testNativeCallableKeepAliveGetter() {
-  final callback = NativeCallable<CallbackNativeType>.isolateLocal(add,
-      exceptionalReturn: 0);
+  final callback = NativeCallable<CallbackNativeType>.isolateLocal(
+    add,
+    exceptionalReturn: 0,
+  );
   // Check that only the flag changes are counted by decrementing and
   // incrementing a lot, and by different amounts.
   for (int i = 0; i < 100; ++i) {

@@ -30,18 +30,29 @@ List<GeneratedContent> get allTargets {
 // to update this file.
 
 ''');
-      var pubspecPath = normalize(
-        join(packageRoot, 'analyzer', 'pubspec.yaml'),
-      );
-      var pubspec = loadYaml(File(pubspecPath).readAsStringSync());
-      var version = (pubspec as YamlMap)['version'] as String;
 
+      var analyzerPluginVersion = versionFromPubspec(
+        normalize(join(packageRoot, 'analyzer_plugin', 'pubspec.yaml')),
+      );
+      var analyzerVersion = versionFromPubspec(
+        normalize(join(packageRoot, 'analyzer', 'pubspec.yaml')),
+      );
       buffer.write('''
-/// The version of the analyzer that matches the analyzer code used by the
-/// analysis_server package.
-var analyzerVersion = '$version';
+/// The version of the analyzer_plugin package that matches the analyzer_plugin
+/// code used by the analysis_server package.
+var analyzerPluginVersion = '$analyzerPluginVersion';
+
+/// The version of the analyzer package that matches the analyzer code used by
+/// the analysis_server package.
+var analyzerVersion = '$analyzerVersion';
+
 ''');
       return buffer.toString();
     }),
   ];
+}
+
+String versionFromPubspec(String pubspecPath) {
+  var pubspec = loadYaml(File(pubspecPath).readAsStringSync());
+  return (pubspec as YamlMap)['version'] as String;
 }

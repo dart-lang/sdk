@@ -1,5 +1,7 @@
 class Ext {
-  const Ext() : assert(maybe != null, "Must not be null"), _ = "OK";
+  const Ext()
+      : assert(maybe != null, "Must not be null"),
+        _ = "OK";
   final String _;
 }
 

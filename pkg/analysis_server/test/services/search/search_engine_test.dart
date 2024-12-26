@@ -90,7 +90,7 @@ class C extends A {
     await resolveFile2(a);
     var A = findElement2.class_('A');
 
-    var members = await searchEngine.membersOfSubtypes2(A);
+    var members = await searchEngine.membersOfSubtypes(A);
     expect(members, unorderedEquals(['a', 'b']));
   }
 
@@ -107,7 +107,7 @@ enum E implements A {
 ''');
 
     var A = findElement2.class_('A');
-    var members = await searchEngine.membersOfSubtypes2(A);
+    var members = await searchEngine.membersOfSubtypes(A);
     expect(members, unorderedEquals(['foo']));
   }
 
@@ -124,7 +124,7 @@ enum E with M {
 ''');
 
     var M = findElement2.mixin('M');
-    var members = await searchEngine.membersOfSubtypes2(M);
+    var members = await searchEngine.membersOfSubtypes(M);
     expect(members, unorderedEquals(['foo']));
   }
 
@@ -145,7 +145,7 @@ class B extends A {}
     await resolveFile2(a);
     var A = findElement2.class_('A');
 
-    var members = await searchEngine.membersOfSubtypes2(A);
+    var members = await searchEngine.membersOfSubtypes(A);
     expect(members, isEmpty);
   }
 
@@ -168,7 +168,7 @@ class B {
     await resolveFile2(a);
     var A = findElement2.class_('A');
 
-    var members = await searchEngine.membersOfSubtypes2(A);
+    var members = await searchEngine.membersOfSubtypes(A);
     expect(members, isNull);
   }
 
@@ -198,7 +198,7 @@ class D extends B {
     await resolveFile2(a);
     var A = findElement2.class_('A');
 
-    var members = await searchEngine.membersOfSubtypes2(A);
+    var members = await searchEngine.membersOfSubtypes(A);
     expect(members, unorderedEquals(['a', '_b']));
   }
 
@@ -213,7 +213,7 @@ class C implements B {}
     var element = findElement2.class_('T');
 
     var subtypes = <InterfaceElement2>{};
-    await searchEngine.appendAllSubtypes2(
+    await searchEngine.appendAllSubtypes(
       element,
       subtypes,
       OperationPerformanceImpl('<root>'),
@@ -242,7 +242,7 @@ class C extends B {}
     var element = findElement2.class_('T');
 
     var subtypes = <InterfaceElement2>{};
-    await searchEngine.appendAllSubtypes2(
+    await searchEngine.appendAllSubtypes(
       element,
       subtypes,
       OperationPerformanceImpl('<root>'),
@@ -263,7 +263,7 @@ extension type C(int it) implements A {}
     var element = findElement2.class_('A');
 
     var subtypes = <InterfaceElement2>{};
-    await searchEngine.appendAllSubtypes2(
+    await searchEngine.appendAllSubtypes(
       element,
       subtypes,
       OperationPerformanceImpl('<root>'),
@@ -285,7 +285,7 @@ class A {}
 
     var element = findElement2.class_('A');
     var subtypes = <InterfaceElement2>{};
-    await searchEngine.appendAllSubtypes2(
+    await searchEngine.appendAllSubtypes(
       element,
       subtypes,
       OperationPerformanceImpl('<root>'),
@@ -310,7 +310,7 @@ mixin E implements C {}
     var element = findElement2.class_('T');
 
     var subtypes = <InterfaceElement2>{};
-    await searchEngine.appendAllSubtypes2(
+    await searchEngine.appendAllSubtypes(
       element,
       subtypes,
       OperationPerformanceImpl('<root>'),
@@ -440,7 +440,7 @@ T b;
 ''');
 
     var element = findElement2.importFind('package:aaa/a.dart').class_('T');
-    var matches = await searchEngine.searchReferences2(element);
+    var matches = await searchEngine.searchReferences(element);
     expect(matches, hasLength(2));
     expect(
       matches,
@@ -474,7 +474,7 @@ int t;
           (e) => e.name3 == 'int',
         )!;
 
-    var matches = await searchEngine.searchReferences2(intElement);
+    var matches = await searchEngine.searchReferences(intElement);
 
     void assertHasOne(String path, String name) {
       expect(
@@ -501,7 +501,7 @@ enum E {
     await resolveTestCode(code);
 
     var element = findElement2.constructor('named');
-    var matches = await searchEngine.searchReferences2(element);
+    var matches = await searchEngine.searchReferences(element);
     expect(
       matches,
       unorderedEquals([
@@ -526,7 +526,7 @@ enum E {
     await resolveTestCode(code);
 
     var element = findElement2.unnamedConstructor('E');
-    var matches = await searchEngine.searchReferences2(element);
+    var matches = await searchEngine.searchReferences(element);
     expect(
       matches,
       unorderedEquals([
@@ -562,7 +562,7 @@ void f(A a) {}
     await resolveTestCode(code);
 
     var element = findElement2.extensionType('A');
-    var matches = await searchEngine.searchReferences2(element);
+    var matches = await searchEngine.searchReferences(element);
     expect(
       matches,
       unorderedEquals([
@@ -590,7 +590,7 @@ class A {
 
     var element = findElement2.getter('x');
 
-    var matches = await searchEngine.searchReferences2(element);
+    var matches = await searchEngine.searchReferences(element);
     expect(matches, hasLength(1));
     expect(
       matches,
@@ -618,7 +618,7 @@ class B extends A {
     await resolveTestCode(code);
 
     var element = findElement2.unnamedConstructor('A').parameter('a');
-    var matches = await searchEngine.searchReferences2(element);
+    var matches = await searchEngine.searchReferences(element);
     expect(
       matches,
       unorderedEquals([
@@ -643,11 +643,11 @@ int f(int _) => _;
     await resolveTestCode(code);
 
     var parameter = findElement2.parameter('_');
-    var parameterMatches = await searchEngine.searchReferences2(parameter);
+    var parameterMatches = await searchEngine.searchReferences(parameter);
     expect(parameterMatches, isEmpty);
 
     var topLevelVariable = findElement2.topVar('_');
-    var topLevelVariableMatches = await searchEngine.searchReferences2(
+    var topLevelVariableMatches = await searchEngine.searchReferences(
       topLevelVariable,
     );
     expect(
@@ -670,7 +670,7 @@ f(int _) {}
     await resolveTestCode(code);
 
     var element = findElement2.parameter('_');
-    var matches = await searchEngine.searchReferences2(element);
+    var matches = await searchEngine.searchReferences(element);
 
     // No crashes.
     expect(matches, isEmpty);
@@ -688,7 +688,7 @@ void g() {
     await resolveTestCode(code);
 
     var element = findElement2.parameter('test');
-    var matches = await searchEngine.searchReferences2(element);
+    var matches = await searchEngine.searchReferences(element);
     expect(
       matches,
       unorderedEquals([
@@ -712,7 +712,7 @@ class A {
     await resolveTestCode(code);
 
     var element = findElement2.field('_');
-    var matches = await searchEngine.searchReferences2(element);
+    var matches = await searchEngine.searchReferences(element);
 
     expect(
       matches,
@@ -735,7 +735,7 @@ int f() => _;
     await resolveTestCode(code);
 
     var element = findElement2.topVar('_');
-    var matches = await searchEngine.searchReferences2(element);
+    var matches = await searchEngine.searchReferences(element);
 
     expect(
       matches,
@@ -886,7 +886,7 @@ void f(A<int> a, A<double> b) {}
 ''');
 
     var element = findElement2.typeAlias('A');
-    var matches = await searchEngine.searchReferences2(element);
+    var matches = await searchEngine.searchReferences(element);
 
     Matcher hasOne(Element2 element, String search) {
       return predicate((SearchMatch match) {

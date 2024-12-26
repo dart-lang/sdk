@@ -6,7 +6,7 @@ import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -83,10 +83,10 @@ class _CiderDartFixContextImpl extends DartFixContext {
   }) : super(instrumentationService: InstrumentationService.NULL_SERVICE);
 
   @override
-  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(
+  Future<Map<LibraryElement2, Element2>> getTopLevelDeclarations(
     String name,
   ) async {
-    var result = <LibraryElement, Element>{};
+    var result = <LibraryElement2, Element2>{};
     var files = _fileResolver.getFilesWithTopLevelDeclarations(name);
     for (var file in files) {
       var kind = file.kind;
@@ -94,12 +94,12 @@ class _CiderDartFixContextImpl extends DartFixContext {
         var libraryElement = await _fileResolver.getLibraryByUri2(
           uriStr: file.uriStr,
         );
-        TopLevelDeclarations.addElement(result, libraryElement, name);
+        TopLevelDeclarations.addElement2(result, libraryElement, name);
       }
     }
     return result;
   }
 
   @override
-  Stream<LibraryElement> librariesWithExtensions(String memberName) async* {}
+  Stream<LibraryElement2> librariesWithExtensions(String memberName) async* {}
 }

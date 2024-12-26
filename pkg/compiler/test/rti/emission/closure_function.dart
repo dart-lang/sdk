@@ -7,8 +7,8 @@ test(o) => o is Function;
 
 main() {
   test(
-
-      /*checks=[],instance*/
-      () {});
+    /*checks=[],instance*/
+    () {},
+  );
   test(null);
 }

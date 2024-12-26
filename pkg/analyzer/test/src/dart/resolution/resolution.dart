@@ -7,6 +7,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
@@ -162,6 +163,28 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     if (element is Member) {
       assertSubstitution(element.substitution, substitution);
+    } else if (substitution.isNotEmpty) {
+      fail('Expected to be a Member: (${element.runtimeType}) $element');
+    }
+  }
+
+  void assertElement3(
+    Object? nodeOrElement, {
+    required Element2 declaration,
+    Map<String, String> substitution = const {},
+  }) {
+    Element2? element;
+    if (nodeOrElement is AstNode) {
+      element = getNodeElement2(nodeOrElement);
+    } else {
+      element = nodeOrElement as Element2?;
+    }
+
+    var actualDeclaration = element?.baseElement;
+    expect(actualDeclaration, same(declaration));
+
+    if (element is Member) {
+      assertSubstitution((element as Member).substitution, substitution);
     } else if (substitution.isNotEmpty) {
       fail('Expected to be a Member: (${element.runtimeType}) $element');
     }
@@ -461,6 +484,57 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.propertyName.staticElement;
     } else if (node is NamedType) {
       return node.element;
+    } else {
+      fail('Unsupported node: (${node.runtimeType}) $node');
+    }
+  }
+
+  Element2? getNodeElement2(AstNode node) {
+    if (node is Annotation) {
+      return node.element2;
+    } else if (node is AssignmentExpression) {
+      return node.element;
+    } else if (node is BinaryExpression) {
+      return node.element;
+    } else if (node is ConstructorReference) {
+      return node.constructorName.element;
+    } else if (node is Declaration) {
+      return node.declaredFragment?.element;
+    } else if (node is ExtensionOverride) {
+      return node.element2;
+    } else if (node is FormalParameter) {
+      return node.declaredFragment?.element;
+    } else if (node is FunctionExpressionInvocation) {
+      return node.element;
+    } else if (node is FunctionReference) {
+      var function = node.function.unParenthesized;
+      if (function is Identifier) {
+        return function.element;
+      } else if (function is PropertyAccess) {
+        return function.propertyName.element;
+      } else if (function is ConstructorReference) {
+        return function.constructorName.element;
+      } else {
+        fail('Unsupported node: (${function.runtimeType}) $function');
+      }
+    } else if (node is Identifier) {
+      return node.element;
+    } else if (node is ImplicitCallReference) {
+      return node.element;
+    } else if (node is IndexExpression) {
+      return node.element;
+    } else if (node is InstanceCreationExpression) {
+      return node.constructorName.element;
+    } else if (node is MethodInvocation) {
+      return node.methodName.element;
+    } else if (node is PostfixExpression) {
+      return node.element;
+    } else if (node is PrefixExpression) {
+      return node.element;
+    } else if (node is PropertyAccess) {
+      return node.propertyName.element;
+    } else if (node is NamedType) {
+      return node.element2;
     } else {
       fail('Unsupported node: (${node.runtimeType}) $node');
     }

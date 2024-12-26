@@ -155,7 +155,8 @@ JSObject getCurrentLibrary() =>
     // We can't use interop for this, as the lowering would be emitted as
     // `dart.global.eval('this')`, which does not evaluate to the same value as
     // `eval('this')`.
-    _foreign_helper.JS('', 'this');
+    _foreign_helper
+    .JS('', 'this');
 
 main() async {
   asyncStart();
@@ -167,7 +168,8 @@ main() async {
   // Cache blocker is a workaround for:
   // https://code.google.com/p/dart/issues/detail?id=11834
   var cacheBlocker = new DateTime.now().millisecondsSinceEpoch;
-  var goldenUrl = '/root_dart/tests/dartdevc/debugger/'
+  var goldenUrl =
+      '/root_dart/tests/dartdevc/debugger/'
       'debugger_test_golden.txt?cacheBlock=$cacheBlocker';
 
   String? golden;
@@ -177,17 +179,20 @@ main() async {
     print("Warning: couldn't load golden file from $goldenUrl");
   }
 
-  document.body!.append(new ScriptElement()
-    ..type = 'text/javascript'
-    ..innerHtml = r"""
+  document.body!.append(
+    new ScriptElement()
+      ..type = 'text/javascript'
+      ..innerHtml = r"""
 window.PackageJSClass = function PackageJSClass(x) {
   this.x = x;
 };
-""");
+""",
+  );
 
-  var _devtoolsFormatter = (devtoolsFormatters![0]
-          as ExternalDartReference<_debugger.JsonMLFormatter>)
-      .toDartObject;
+  var _devtoolsFormatter =
+      (devtoolsFormatters![0]
+              as ExternalDartReference<_debugger.JsonMLFormatter>)
+          .toDartObject;
 
   var actual = new StringBuffer();
 
@@ -200,15 +205,19 @@ window.PackageJSClass = function PackageJSClass(x) {
   // to expected output.
   void addGolden(String name, JSAny value) {
     var text = format(value);
-    actual.write('Test: $name\n'
-        'Value:\n'
-        '$text\n'
-        '-----------------------------------\n');
+    actual.write(
+      'Test: $name\n'
+      'Value:\n'
+      '$text\n'
+      '-----------------------------------\n',
+    );
   }
 
   void addFormatterGoldens(String name, Object? object, [Object? config]) {
     addGolden(
-        '$name formatting header', _devtoolsFormatter.header(object, config));
+      '$name formatting header',
+      _devtoolsFormatter.header(object, config),
+    );
     addGolden('$name formatting body', _devtoolsFormatter.body(object, config));
   }
 
@@ -258,10 +267,11 @@ window.PackageJSClass = function PackageJSClass(x) {
 
     addNestedFormatterGoldens('Iterable', iterable);
 
-    var s = new Set()
-      ..add("foo")
-      ..add(42)
-      ..add(true);
+    var s =
+        new Set()
+          ..add("foo")
+          ..add(42)
+          ..add(true);
     addNestedFormatterGoldens('Set', s);
   });
 
@@ -332,13 +342,14 @@ window.PackageJSClass = function PackageJSClass(x) {
       lib['link'] = () {}.toJS;
     }
     addFormatterGoldens(
-        'Test library',
-        // TODO(srujzs): We have to construct a `Library` manually here,
-        // whereas the `LibraryModuleFormatter` does that for us automatically
-        // when we format the module. We should add properties to libraries so
-        // that we can detect them as a library. Once we have support for that,
-        // revisit this and the formatter code.
-        _debugger.Library('debugger_test', lib));
+      'Test library',
+      // TODO(srujzs): We have to construct a `Library` manually here,
+      // whereas the `LibraryModuleFormatter` does that for us automatically
+      // when we format the module. We should add properties to libraries so
+      // that we can detect them as a library. Once we have support for that,
+      // revisit this and the formatter code.
+      _debugger.Library('debugger_test', lib),
+    );
   });
 
   group('StackTrace formatting', () {
@@ -364,11 +375,15 @@ window.PackageJSClass = function PackageJSClass(x) {
 
   group('Generics formatting', () {
     addNestedFormatterGoldens(
-        'TestGenericClass', new TestGenericClass<int, List>(42));
+      'TestGenericClass',
+      new TestGenericClass<int, List>(42),
+    );
     addNestedFormatterGoldens(
-        'TestGenericClassJSInterop',
-        new TestGenericClass<PackageJSClass<JSString>, int>(
-            new PackageJSClass("Hello".toJS)));
+      'TestGenericClassJSInterop',
+      new TestGenericClass<PackageJSClass<JSString>, int>(
+        new PackageJSClass("Hello".toJS),
+      ),
+    );
   });
 
   test('verify golden match', () {
@@ -394,8 +409,9 @@ window.PackageJSClass = function PackageJSClass(x) {
       textField.style
         ..width = '800px'
         ..height = '400px';
-      document.body!.append(new Element.tag('h3')
-        ..innerHtml = helpMessage.replaceAll('\n', '<br>'));
+      document.body!.append(
+        new Element.tag('h3')..innerHtml = helpMessage.replaceAll('\n', '<br>'),
+      );
       document.body!.append(textField);
       document.body!.onClick.listen((_) {
         textField.select();

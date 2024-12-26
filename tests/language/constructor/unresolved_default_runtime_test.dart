@@ -16,5 +16,4 @@ class A {
 
 main() {
   A.method();
-
 }

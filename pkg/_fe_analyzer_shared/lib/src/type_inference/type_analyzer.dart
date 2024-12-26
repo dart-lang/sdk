@@ -4,6 +4,7 @@
 
 import '../flow_analysis/flow_analysis.dart';
 import '../types/shared_type.dart';
+import 'null_shorting.dart';
 import 'type_analysis_result.dart';
 import 'type_analyzer_operations.dart';
 
@@ -262,25 +263,29 @@ class SwitchStatementMemberInfo<Node extends Object, Statement extends Node,
 /// of each entry in order to verify that when an entity is popped, it has the
 /// expected kind.
 mixin TypeAnalyzer<
-    TypeStructure extends SharedTypeStructure<TypeStructure>,
-    Node extends Object,
-    Statement extends Node,
-    Expression extends Node,
-    Variable extends Object,
-    Pattern extends Node,
-    Error,
-    TypeParameterStructure extends SharedTypeParameterStructure<TypeStructure>,
-    TypeDeclarationType extends Object,
-    TypeDeclaration extends Object> {
+        TypeStructure extends SharedTypeStructure<TypeStructure>,
+        Node extends Object,
+        Statement extends Node,
+        Expression extends Node,
+        Variable extends Object,
+        Pattern extends Node,
+        Error,
+        // Work around https://github.com/dart-lang/dart_style/issues/1568
+        // ignore: lines_longer_than_80_chars
+        TypeParameterStructure extends SharedTypeParameterStructure<TypeStructure>,
+        TypeDeclarationType extends Object,
+        TypeDeclaration extends Object>
+    implements
+        TypeAnalysisNullShortingInterface<Expression,
+            SharedTypeView<TypeStructure>> {
   TypeAnalyzerErrors<Node, Statement, Expression, Variable,
       SharedTypeView<TypeStructure>, Pattern, Error> get errors;
 
-  /// Returns the client's [FlowAnalysis] object.
+  @override
   FlowAnalysis<Node, Statement, Expression, Variable,
       SharedTypeView<TypeStructure>> get flow;
 
-  /// The [TypeAnalyzerOperations], used to access types, check subtyping, and
-  /// query variable types.
+  @override
   TypeAnalyzerOperations<TypeStructure, Variable, TypeParameterStructure,
       TypeDeclarationType, TypeDeclaration> get operations;
 
@@ -553,9 +558,20 @@ mixin TypeAnalyzer<
   /// Analyzes an expression.  [node] is the expression to analyze, and
   /// [schema] is the type schema which should be used for type inference.
   ///
+  /// If [continueNullShorting] is `false` (the default), then any null shorting
+  /// that starts inside [node] will be terminated, and the returned type will
+  /// be nullable, to reflect the fact that null-aware expressions might
+  /// evaluate to `null`.
+  ///
+  /// If [continueNullShorting] is `true`, then null shorting that starts inside
+  /// [node] will be allowed to continue into the containing expression.
+  ///
   /// Stack effect: pushes (Expression).
   SharedTypeView<TypeStructure> analyzeExpression(
-      Expression node, SharedTypeSchemaView<TypeStructure> schema) {
+      Expression node, SharedTypeSchemaView<TypeStructure> schema,
+      {bool continueNullShorting = false}) {
+    int? nullShortingTargetDepth;
+    if (!continueNullShorting) nullShortingTargetDepth = nullShortingDepth;
     // Stack: ()
     if (schema is SharedDynamicTypeSchemaView<TypeStructure>) {
       schema = operations.unknownType;
@@ -563,10 +579,15 @@ mixin TypeAnalyzer<
     ExpressionTypeAnalysisResult<TypeStructure> result =
         dispatchExpression(node, schema);
     // Stack: (Expression)
-    if (operations.isNever(result.provisionalType)) {
+    if (operations.isNever(result.type)) {
       flow.handleExit();
     }
-    return result.resolveShorting();
+    SharedTypeView<TypeStructure> type = result.type;
+    if (nullShortingTargetDepth != null &&
+        nullShortingDepth > nullShortingTargetDepth) {
+      type = finishNullShorting(nullShortingTargetDepth, type);
+    }
+    return type;
   }
 
   /// Analyzes a collection element of the form

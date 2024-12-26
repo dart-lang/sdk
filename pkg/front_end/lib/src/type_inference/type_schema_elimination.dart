@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/src/replacement_visitor.dart';
 
 import 'type_schema.dart' show UnknownType;
@@ -38,9 +39,9 @@ DartType greatestClosure(DartType schema, {required DartType topType}) {
 ///
 /// Note that the least closure of a type schema is always a subtype of any type
 /// which matches the schema.
-DartType leastClosure(DartType schema, {required DartType topType}) {
+DartType leastClosure(DartType schema, {required CoreTypes coreTypes}) {
   return _TypeSchemaEliminationVisitor.run(schema,
-      computeLeastClosure: true, topType: topType);
+      computeLeastClosure: true, topType: coreTypes.objectNullableRawType);
 }
 
 /// Visitor that computes least and greatest closures of a type schema.

@@ -6,17 +6,20 @@ import 'package:compiler/src/util/testing.dart';
 
 class Class1 {
   method1() {
-    /*needsArgs,needsSignature*/ num? local<T>(num n) => null;
+    /*needsArgs,needsSignature*/
+    num? local<T>(num n) => null;
     return local;
   }
 
   method2() {
-    /*needsArgs,needsSignature*/ num? local<T>(int n) => null;
+    /*needsArgs,needsSignature*/
+    num? local<T>(int n) => null;
     return local;
   }
 
   method3() {
-    /*needsArgs,needsSignature*/ int? local<T>(num n) => null;
+    /*needsArgs,needsSignature*/
+    int? local<T>(num n) => null;
     return local;
   }
 }
@@ -44,7 +47,8 @@ class Class4 {
   /*prod.member: Class4.method6:needsArgs,selectors=[Selector(call, method6, arity=0, types=1)]*/
   /*spec.member: Class4.method6:explicit=[method6.T],needsArgs,selectors=[Selector(call, method6, arity=0, types=1)],test*/
   method6<T>() {
-    /*needsSignature*/ num? local(num n, T t) => null;
+    /*needsSignature*/
+    num? local(num n, T t) => null;
     return local;
   }
 }
@@ -67,24 +71,28 @@ method8<T>() {
 /*spec.member: method9:explicit=[method9.T],needsArgs,test*/
 /*prod.member: method9:needsArgs*/
 method9<T>() {
-  /*needsSignature*/ num? local(num n, T t) => null;
+  /*needsSignature*/
+  num? local(num n, T t) => null;
   return local;
 }
 
 method10() {
   /*spec.explicit=[local.T],needsArgs,needsSignature,test*/
-  /*prod.needsArgs,needsSignature*/ num? local<T>(T n) => null;
+  /*prod.needsArgs,needsSignature*/
+  num? local<T>(T n) => null;
   return local;
 }
 
 method11() {
-  /*needsArgs,needsSignature*/ T? local<T>(num n) => null;
+  /*needsArgs,needsSignature*/
+  T? local<T>(num n) => null;
   return local;
 }
 
 method12() {
   /*spec.explicit=[local.T],needsArgs,needsSignature,test*/
-  /*prod.needsArgs,needsSignature*/ num? local<T>(num n, T t) => null;
+  /*prod.needsArgs,needsSignature*/
+  num? local<T>(num n, T t) => null;
   return local;
 }
 

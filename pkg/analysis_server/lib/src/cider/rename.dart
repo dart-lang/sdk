@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 
 class CanRenameResponse {
@@ -82,14 +83,17 @@ class CanRenameResponse {
       );
     }
     // check if there are members with "newName" in the same ClassElement
-    for (var newNameMember in getChildren(parentClass, newName)) {
+    for (var newNameMember in getChildren(parentClass.asElement2, newName)) {
       var message = format(
         "Class '{0}' already declares {1} with name '{2}'.",
         parentClass.displayName,
         getElementKindName(newNameMember),
         newName,
       );
-      result.addError(message, newLocation_fromElement(newNameMember));
+      result.addError(
+        message,
+        newLocation_fromElement(newNameMember.asElement),
+      );
     }
   }
 

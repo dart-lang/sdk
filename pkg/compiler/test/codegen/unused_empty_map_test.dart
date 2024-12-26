@@ -15,7 +15,7 @@ void main() {
   var x = {};
   return;
 }
-"""
+""",
 };
 
 const HASHMAP_EMPTY_CONSTRUCTOR = r"LinkedHashMap_LinkedHashMap$_empty";
@@ -24,7 +24,9 @@ main() {
   runTest() async {
     var collector = OutputCollector();
     await runCompiler(
-        memorySourceFiles: TEST_SOURCE, outputProvider: collector);
+      memorySourceFiles: TEST_SOURCE,
+      outputProvider: collector,
+    );
     String generated = collector.getOutput('', api.OutputType.js)!;
     Expect.isFalse(generated.contains(HASHMAP_EMPTY_CONSTRUCTOR));
   }

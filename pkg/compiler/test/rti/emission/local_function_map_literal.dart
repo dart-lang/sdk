@@ -11,9 +11,9 @@ import 'package:compiler/src/util/testing.dart';
 @pragma('dart2js:noInline')
 method<T>() {
   return
-      /*spec.checks=[$signature],instance*/
-      /*prod.checks=[],instance*/
-      () => <T, int>{};
+  /*spec.checks=[$signature],instance*/
+  /*prod.checks=[],instance*/
+  () => <T, int>{};
 }
 
 @pragma('dart2js:noInline')

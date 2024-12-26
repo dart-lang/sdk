@@ -44,8 +44,12 @@ class MyNativeResource implements Finalizable {
 
   MyNativeResource._(this.pointer, {int? externalSize}) {
     print('pointer $pointer');
-    freeFinalizer.attach(this, pointer,
-        externalSize: externalSize, detach: this);
+    freeFinalizer.attach(
+      this,
+      pointer,
+      externalSize: externalSize,
+      detach: this,
+    );
   }
 
   factory MyNativeResource() {
@@ -74,8 +78,8 @@ final DynamicLibrary stdlib = DynamicLibrary.process();
 
 typedef PosixCallocNative = Pointer<Void> Function(IntPtr num, IntPtr size);
 typedef PosixCalloc = Pointer<Void> Function(int num, int size);
-final PosixCalloc calloc =
-    stdlib.lookupFunction<PosixCallocNative, PosixCalloc>('calloc');
+final PosixCalloc calloc = stdlib
+    .lookupFunction<PosixCallocNative, PosixCalloc>('calloc');
 
 typedef PosixFreeNative = Void Function(Pointer<Void>);
 final freePtr = stdlib.lookup<NativeFunction<PosixFreeNative>>('free');

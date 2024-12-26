@@ -40,8 +40,9 @@ main() {
 
 main() {
   runTests() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: {'main.dart': CODE});
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: {'main.dart': CODE},
+    );
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler!;
     JClosedWorld world = compiler.backendClosedWorldForTesting!;
@@ -94,31 +95,45 @@ main() {
           Expect.isTrue(isExact || isSubclass || isSubtype);
           var element = _elementCache.putIfAbsent(type, () {
             if (type == " ") return null;
-            final cls = elementEnvironment.lookupClass(
-                elementEnvironment.mainLibrary!, type) as ClassEntity;
+            final cls =
+                elementEnvironment.lookupClass(
+                      elementEnvironment.mainLibrary!,
+                      type,
+                    )
+                    as ClassEntity;
             Expect.isNotNull(cls, "No class '$type' found.");
             return cls;
           });
 
-          var mask = isExact
-              ? TypeMask.nonNullExact(element, world)
-              : (isSubclass
-                  ? TypeMask.nonNullSubclass(element, world)
-                  : TypeMask.nonNullSubtype(element, world));
+          var mask =
+              isExact
+                  ? TypeMask.nonNullExact(element, world)
+                  : (isSubclass
+                      ? TypeMask.nonNullSubclass(element, world)
+                      : TypeMask.nonNullSubtype(element, world));
           return isNullable ? mask.nullable() : mask;
         });
 
     /// Checks the expectation of `isDisjoint` for two mask descriptors (see
     /// [maskOf] for details).
-    check(String typeMaskDescriptor1, String typeMaskDescriptor2,
-        {areDisjoint = true}) {
+    check(
+      String typeMaskDescriptor1,
+      String typeMaskDescriptor2, {
+      areDisjoint = true,
+    }) {
       print('[$typeMaskDescriptor1] & [$typeMaskDescriptor2]');
-      checkMask(maskOf(typeMaskDescriptor1), maskOf(typeMaskDescriptor2),
-          areDisjoint: areDisjoint);
+      checkMask(
+        maskOf(typeMaskDescriptor1),
+        maskOf(typeMaskDescriptor2),
+        areDisjoint: areDisjoint,
+      );
     }
 
-    checkUnions(List<String> descriptors1, List<String> descriptors2,
-        {areDisjoint = true}) {
+    checkUnions(
+      List<String> descriptors1,
+      List<String> descriptors2, {
+      areDisjoint = true,
+    }) {
       print('[$descriptors1] & [$descriptors2]');
       var m1 = TypeMask.unionOf(descriptors1.map(maskOf).toList(), commonMasks);
       var m2 = TypeMask.unionOf(descriptors2.map(maskOf).toList(), commonMasks);

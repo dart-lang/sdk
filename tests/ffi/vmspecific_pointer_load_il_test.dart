@@ -17,18 +17,9 @@ void main() async {
     for (int i = 0; i < length; i++) {
       pointer[i] = i;
     }
-    Expect.equals(
-      10,
-      testOffset(pointer),
-    );
-    Expect.equals(
-      10,
-      testAllocate(pointer),
-    );
-    Expect.equals(
-      45,
-      testHoist(pointer),
-    );
+    Expect.equals(10, testOffset(pointer));
+    Expect.equals(10, testAllocate(pointer));
+    Expect.equals(45, testHoist(pointer));
     print(globalVar);
   });
 }
@@ -49,21 +40,12 @@ void matchIL$testOffset(FlowGraph graph) {
       'int 0' << match.UnboxedConstant(value: 0),
     ]),
     match.block('Function', [
-      'pointer' <<
-          match.Parameter(
-            index: 0,
-          ),
+      'pointer' << match.Parameter(index: 0),
       'pointer.address untagged' <<
-          match.LoadField(
-            'pointer',
-            slot: 'PointerBase.data',
-          ),
+          match.LoadField('pointer', slot: 'PointerBase.data'),
       ...convertUntaggedAddressToInt64('pointer'),
       'pointer2.address int64' <<
-          match.BinaryInt64Op(
-            'pointer.address int64',
-            'int 10',
-          ),
+          match.BinaryInt64Op('pointer.address int64', 'int 10'),
       // `pointer2` is not allocated.
       ...convertInt64AddressToUntagged('pointer2'),
       ...loadIndexedValueAsInt64('pointer2', 'int 0'),
@@ -96,21 +78,12 @@ void matchIL$testAllocate(FlowGraph graph) {
       'int 0' << match.UnboxedConstant(value: 0),
     ]),
     match.block('Function', [
-      'pointer' <<
-          match.Parameter(
-            index: 0,
-          ),
+      'pointer' << match.Parameter(index: 0),
       'pointer.address untagged' <<
-          match.LoadField(
-            'pointer',
-            slot: 'PointerBase.data',
-          ),
+          match.LoadField('pointer', slot: 'PointerBase.data'),
       ...convertUntaggedAddressToInt64('pointer'),
       'pointer2.address int64' <<
-          match.BinaryInt64Op(
-            'pointer.address int64',
-            'int 10',
-          ),
+          match.BinaryInt64Op('pointer.address int64', 'int 10'),
       ...convertInt64AddressToUntagged('pointer2'),
       // The untagged pointer2.address can live through an allocation
       // even though it is marked `InnerPointerAccess::kMayBeInnerPointer`
@@ -146,15 +119,9 @@ void matchIL$testHoist(FlowGraph graph) {
       'int 1' << match.UnboxedConstant(value: 1),
     ]),
     match.block('Function', [
-      'pointer' <<
-          match.Parameter(
-            index: 0,
-          ),
+      'pointer' << match.Parameter(index: 0),
       'pointer[i].address untagged' <<
-          match.LoadField(
-            'pointer',
-            slot: 'PointerBase.data',
-          ),
+          match.LoadField('pointer', slot: 'PointerBase.data'),
       match.Goto('B1'),
     ]),
     'B1' <<
@@ -162,8 +129,11 @@ void matchIL$testHoist(FlowGraph graph) {
           'result int64' << match.Phi('int 0', 'result'),
           'i int64' << match.Phi('int 0', 'i'),
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
-              ifTrue: 'B2', ifFalse: 'B3'),
+          match.Branch(
+            match.RelationalOp(match.any, match.any, kind: '<'),
+            ifTrue: 'B2',
+            ifFalse: 'B3',
+          ),
         ]),
     'B2' <<
         match.block('Target', [
@@ -172,31 +142,16 @@ void matchIL$testHoist(FlowGraph graph) {
           match.StoreStaticField(match.any),
           if (is32BitConfiguration) ...[
             'i $indexRep' <<
-                match.IntConverter(
-                  'i int64',
-                  from: 'int64',
-                  to: indexRep,
-                ),
+                match.IntConverter('i int64', from: 'int64', to: indexRep),
           ],
           // Do a load indexed with the untagged pointer.address that is
           // hoisted out of the loop.
           ...loadIndexedValueAsInt64('pointer[i]', 'i $indexRep'),
-          'result' <<
-              match.BinaryInt64Op(
-                match.any,
-                'pointer[i].value int64',
-              ),
-          'i' <<
-              match.BinaryInt64Op(
-                match.any,
-                match.any,
-              ),
+          'result' << match.BinaryInt64Op(match.any, 'pointer[i].value int64'),
+          'i' << match.BinaryInt64Op(match.any, match.any),
           match.Goto('B1'),
         ]),
-    'B3' <<
-        match.block('Target', [
-          match.DartReturn(match.any),
-        ]),
+    'B3' << match.block('Target', [match.DartReturn(match.any)]),
   ]);
 }
 
@@ -245,10 +200,7 @@ List<Matcher> convertInt64AddressToUntagged(String name) {
 List<Matcher> loadIndexedValueAsInt64(String name, String index) {
   return [
     '$name.value $valueRep' <<
-        match.LoadIndexed(
-          '$name.address untagged',
-          index,
-        ),
+        match.LoadIndexed('$name.address untagged', index),
     if (is32BitConfiguration) ...[
       '$name.value int64' <<
           match.IntConverter(

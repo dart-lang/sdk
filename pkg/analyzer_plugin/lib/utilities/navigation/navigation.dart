@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart' as analyzer;
+import 'package:analyzer/dart/element/element2.dart' as analyzer;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -28,21 +28,21 @@ abstract class DartNavigationRequest implements NavigationRequest {
 /// Clients may not extend, implement or mix-in this class.
 abstract class NavigationCollector {
   /// Record a new navigation region corresponding to the given [range] that
-  /// should navigate to the given [targetNameLocation].
+  /// should navigate to the given [targetLocation].
   void addRange(
       SourceRange range, ElementKind targetKind, Location targetLocation,
-      {analyzer.Element? targetElement});
+      {analyzer.Fragment? targetFragment});
 
   /// Record a new navigation region with the given [offset] and [length] that
   /// should navigate to the given [targetNameLocation].
   ///
   /// In the most cases the [targetNameLocation] is already based on the
-  /// [targetElement], but in a few cases this method is invoked without an
+  /// [analyzer.Fragment], but in a few cases this method is invoked without an
   /// element. The element is provided to associate it with the target, and
   /// later update the target.
   void addRegion(int offset, int length, ElementKind targetKind,
       Location targetNameLocation,
-      {analyzer.Element? targetElement});
+      {analyzer.Fragment? targetFragment});
 }
 
 /// An object used to produce navigation regions.

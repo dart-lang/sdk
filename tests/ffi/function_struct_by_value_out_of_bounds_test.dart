@@ -50,17 +50,21 @@ Struct9Uint8 returnStruct9(Pointer<Struct9Uint8> s9) {
 void main() {
   final ffiTestFunctions = dlopenPlatformSpecific('ffi_test_functions');
   final alloc = ffiTestFunctions.lookupFunction<
-      Pointer<Struct9Uint8> Function(),
-      Pointer<Struct9Uint8> Function()>('AllocStruct9Uint8');
-  final sum = ffiTestFunctions.lookupFunction<Int64 Function(Struct9Uint8),
-      int Function(Struct9Uint8)>('SumStruct9Uint8');
+    Pointer<Struct9Uint8> Function(),
+    Pointer<Struct9Uint8> Function()
+  >('AllocStruct9Uint8');
+  final sum = ffiTestFunctions
+      .lookupFunction<Int64 Function(Struct9Uint8), int Function(Struct9Uint8)>(
+        'SumStruct9Uint8',
+      );
   final sumReturnStruct9 = ffiTestFunctions.lookupFunction<
-      Int64 Function(Pointer<NativeFunction<Callback>>, Pointer<Struct9Uint8>),
-      int Function(Pointer<NativeFunction<Callback>>,
-          Pointer<Struct9Uint8>)>('SumReturnStruct9Uint8');
+    Int64 Function(Pointer<NativeFunction<Callback>>, Pointer<Struct9Uint8>),
+    int Function(Pointer<NativeFunction<Callback>>, Pointer<Struct9Uint8>)
+  >('SumReturnStruct9Uint8');
   final free = ffiTestFunctions.lookupFunction<
-      Void Function(Pointer<Struct9Uint8>),
-      void Function(Pointer<Struct9Uint8>)>('FreeStruct9Uint8');
+    Void Function(Pointer<Struct9Uint8>),
+    void Function(Pointer<Struct9Uint8>)
+  >('FreeStruct9Uint8');
 
   final array = alloc();
   Struct9Uint8 s9 = array[64 * 1024 - 1]; // At the end of a page.

@@ -46,8 +46,8 @@ class T {
   const T(this.value);
   const T.length(dynamic l) : value = (l == null ? 0 : l.length);
   const T.asserts(dynamic l)
-      : assert(l == null || l.length < 2),
-        value = (l ?? "").length;
+    : assert(l == null || l.length < 2),
+      value = (l ?? "").length;
 }
 
 class C {

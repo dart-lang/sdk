@@ -6,7 +6,8 @@ import 'package:compiler/src/util/testing.dart';
 
 main() {
   /*spec.checks=[$signature],instance*/
-  /*prod.checks=[],instance*/ T id<T>(T t) => t;
+  /*prod.checks=[],instance*/
+  T id<T>(T t) => t;
   int Function(int) x = id;
   makeLive("${x.runtimeType}");
 }

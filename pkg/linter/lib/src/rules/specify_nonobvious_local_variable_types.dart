@@ -16,7 +16,7 @@ class SpecifyNonObviousLocalVariableTypes extends LintRule {
       : super(
           name: LintNames.specify_nonobvious_local_variable_types,
           description: _desc,
-          state: State.experimental(),
+          state: const State.experimental(),
         );
 
   @override

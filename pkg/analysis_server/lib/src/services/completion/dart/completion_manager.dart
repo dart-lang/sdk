@@ -19,7 +19,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -35,7 +34,6 @@ import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/completion_matcher.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
@@ -247,10 +245,10 @@ class DartCompletionRequest {
   final FeatureComputer featureComputer;
 
   /// The library element of the file in which completion is requested.
-  final LibraryElement libraryElement;
+  final LibraryElement2 libraryElement;
 
   /// The library fragment of the file in which completion is requested.
-  final CompilationUnitElement libraryFragment;
+  final LibraryFragment libraryFragment;
 
   /// Return the offset within the source at which the completion is being
   /// requested.
@@ -298,7 +296,7 @@ class DartCompletionRequest {
     required FileState fileState,
     required String filePath,
     required String fileContent,
-    required CompilationUnitElement unitElement,
+    required LibraryFragment libraryFragment,
     required AstNode enclosingNode,
     required int offset,
     required CompilationUnit unit,
@@ -307,7 +305,7 @@ class DartCompletionRequest {
   }) {
     var target = CompletionTarget.forOffset(enclosingNode, offset);
 
-    var libraryElement = unitElement.library;
+    var libraryElement = libraryFragment.element;
     var featureComputer = FeatureComputer(
       libraryElement.typeSystem,
       libraryElement.typeProvider,
@@ -333,13 +331,13 @@ class DartCompletionRequest {
       ),
       featureComputer: featureComputer,
       libraryElement: libraryElement,
-      libraryFragment: unitElement,
+      libraryFragment: libraryFragment,
       offset: offset,
       opType: opType,
       fileState: fileState,
       path: filePath,
       replacementRange: target.computeReplacementRange(offset),
-      source: unitElement.source,
+      source: libraryFragment.source,
       target: target,
       unit: unit,
     );
@@ -357,7 +355,7 @@ class DartCompletionRequest {
       fileState: resolvedUnit.fileState,
       filePath: resolvedUnit.path,
       fileContent: resolvedUnit.content,
-      unitElement: resolvedUnit.unit.declaredElement!,
+      libraryFragment: resolvedUnit.libraryFragment,
       enclosingNode: resolvedUnit.unit,
       offset: offset,
       unit: resolvedUnit.unit,
@@ -402,9 +400,6 @@ class DartCompletionRequest {
   InheritanceManager3 get inheritanceManager {
     return analysisSession.inheritanceManager;
   }
-
-  /// Getter for the [Element2] representation of [libraryElement].
-  LibraryElement2 get libraryElement2 => libraryElement.asElement2;
 
   /// Answer the [DartType] for Object in dart:core
   InterfaceType get objectType => libraryElement.typeProvider.objectType;

@@ -38,14 +38,7 @@ class Class1 {
   */
   var field5 = 5;
 
-  Class1.a()
-      : field1 = 1,
-        field2 = 1,
-        field3 = 3,
-        field5 = 5;
+  Class1.a() : field1 = 1, field2 = 1, field3 = 3, field5 = 5;
 
-  Class1.b()
-      : field2 = 2,
-        field3 = 3,
-        field5 = 5;
+  Class1.b() : field2 = 2, field3 = 3, field5 = 5;
 }

@@ -27,10 +27,10 @@ void main(List<String> args) async {
 }
 
 void startIsolate(int val) {
-  Isolate.spawn(isolateEntry, val);
+  Isolate.spawn<int>(isolateEntry, val);
 }
 
-Future isolateEntry(message) async {
+Future isolateEntry(int message) async {
   print('starting $message');
   await Future.delayed(Duration(seconds: message));
   print('ending $message');

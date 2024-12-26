@@ -63,11 +63,12 @@
 /// double, String, bool, null. Other constants (e.g. enums, const objects) will
 /// simply be missing as though they were not constants.
 
-library js_emitter.resource_info_emitter;
+library;
 
 import 'dart:convert' show jsonDecode;
 import 'dart:io' show Platform;
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../js/js.dart' as js;
@@ -109,8 +110,8 @@ class ResourceInfoCollector {
       '_comment': r'Resources referenced by annotated resource identifers',
       'AppTag': 'TBD',
       'environment': environment,
-      'identifiers': _identifierMap.values.toList()
-        ..sort(_ResourceIdentifierInfo.compare)
+      'identifiers':
+          _identifierMap.values.toList()..sort(_ResourceIdentifierInfo.compare),
     };
     return json;
   }
@@ -143,8 +144,8 @@ class _ResourceIdentifierInfo {
   }
 
   Map<String, dynamic> toJson() {
-    final files = _files.entries.toList()
-      ..sort((a, b) => a.key.compareTo(b.key));
+    final files =
+        _files.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
     return {
       "name": _key.name,
       "uri": _key.uri.toString(),
@@ -158,11 +159,11 @@ class _ResourceIdentifierInfo {
                 {
                   if (resourceIdentifier.location != null)
                     '@': _locationToJson(resourceIdentifier.location!),
-                  ...jsonDecode(resourceIdentifier.arguments)
-                }
-            ]
-          }
-      ]
+                  ...jsonDecode(resourceIdentifier.arguments),
+                },
+            ],
+          },
+      ],
     };
   }
 

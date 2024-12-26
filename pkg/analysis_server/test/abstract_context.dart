@@ -188,6 +188,10 @@ class AbstractContextTest
     return result as ResolvedUnitResult;
   }
 
+  void makeFilePriority(File file) {
+    driverFor(file).priorityFiles2 = [file];
+  }
+
   @override
   File newFile(String path, String content) {
     if (_analysisContextCollection != null && !path.endsWith('.dart')) {

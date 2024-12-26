@@ -730,7 +730,7 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
   var tree = transformModuleFormat(format, moduleTree);
   var nameListener = emitDebugSymbols ? js_ast.NameListener() : null;
   tree.accept(js_ast.Printer(opts, printer,
-      localNamer: js_ast.TemporaryNamer(tree, nameListener)));
+      localNamer: js_ast.ScopedNamer(tree, nameListener)));
 
   Map<String, Object?>? builtMap;
   if (buildSourceMap && sourceMap != null) {

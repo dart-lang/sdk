@@ -18,13 +18,14 @@ anonymousClosureCalled() {
 
 /*member: localFunctionUnused:SideEffects(reads nothing; writes nothing)*/
 localFunctionUnused() {
-  // ignore: UNUSED_ELEMENT
-  /*SideEffects(reads static; writes nothing)*/ localFunction() => field;
+  /*SideEffects(reads static; writes nothing)*/
+  localFunction() => field; // ignore: UNUSED_ELEMENT
 }
 
 /*member: localFunctionCalled:SideEffects(reads static; writes nothing)*/
 localFunctionCalled() {
-  /*SideEffects(reads static; writes nothing)*/ localFunction() => field;
+  /*SideEffects(reads static; writes nothing)*/
+  localFunction() => field;
   return localFunction();
 }
 

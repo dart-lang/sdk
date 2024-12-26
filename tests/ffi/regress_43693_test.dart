@@ -21,7 +21,8 @@ final class Struct43693 extends Struct {
 final int Function(Pointer<Struct43693>) readMyStructSomeValue =
     ffiTestFunctions
         .lookup<NativeFunction<Uint64 Function(Pointer<Struct43693>)>>(
-            "Regress43693")
+          "Regress43693",
+        )
         .asFunction<int Function(Pointer<Struct43693>)>();
 
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");

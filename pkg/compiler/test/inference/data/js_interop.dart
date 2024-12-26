@@ -17,8 +17,10 @@ main() {
 @anonymous
 class Class1 {
   /*member: Class1.:[null|subclass=Object]*/
-  external factory Class1(
-      {/*[exact=JSUInt31]*/ a, /*Value([exact=JSString], value: "")*/ b});
+  external factory Class1({
+    /*[exact=JSUInt31]*/ a,
+    /*Value([exact=JSString], value: "")*/ b,
+  });
 }
 
 /*member: anonymousClass:[subclass=LegacyJavaScriptObject]*/
@@ -43,7 +45,8 @@ jsInteropClass() {
   JsInteropClass cls = JsInteropClass();
   return cls. /*update: [exact=JsInteropClass]*/ setter =
       cls. /*[exact=JsInteropClass]*/ getter /*invoke: [subclass=JSInt]*/ +
-          cls. /*invoke: [exact=JsInteropClass]*/ method(
-              0) /*invoke: [subclass=JSInt]*/ +
-          10;
+      cls. /*invoke: [exact=JsInteropClass]*/ method(
+        0,
+      ) /*invoke: [subclass=JSInt]*/ +
+      10;
 }

@@ -196,7 +196,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
         var annotation = metadata.annotations[i].element2;
         if (annotation is GetterElement &&
             annotation.name3 == 'reflectiveTest' &&
-            annotation.library2?.name3 == 'test_reflective_loader') {
+            annotation.library2.name3 == 'test_reflective_loader') {
           // The class is instantiated through the use of mirrors in
           // 'test_reflective_loader'.
           var unnamedConstructor = element.constructors2

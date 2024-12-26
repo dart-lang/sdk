@@ -17,23 +17,29 @@ final Uri entryPoint = Uri.parse('memory:main.dart');
 main() {
   runTests() async {
     test('Empty program', await run());
-    test('Crash diagnostics', await run(diagnostics: CrashingDiagnostics()),
-        expectedLines: [
-          'Uncaught exception in diagnostic handler: $EXCEPTION',
-          null /* Stack trace*/
-        ],
-        expectedExceptions: [
-          EXCEPTION
-        ]);
+    test(
+      'Crash diagnostics',
+      await run(diagnostics: CrashingDiagnostics()),
+      expectedLines: [
+        'Uncaught exception in diagnostic handler: $EXCEPTION',
+        null /* Stack trace*/,
+      ],
+      expectedExceptions: [EXCEPTION],
+    );
 
-    var cantReadFile =
-        templateCantReadFile.withArguments(entryPoint, EXCEPTION);
+    var cantReadFile = templateCantReadFile.withArguments(
+      entryPoint,
+      EXCEPTION,
+    );
     List<String> expectedLines = [
       "Error: ${cantReadFile.problemMessage}",
       "Error: ${messageMissingMain.problemMessage}",
     ];
-    test('Throw in input provider', await run(memorySourceFiles: CrashingMap()),
-        expectedLines: expectedLines);
+    test(
+      'Throw in input provider',
+      await run(memorySourceFiles: CrashingMap()),
+      expectedLines: expectedLines,
+    );
   }
 
   asyncTest(() async {
@@ -42,8 +48,12 @@ main() {
   });
 }
 
-void test(String title, RunResult result,
-    {List expectedLines = const [], List expectedExceptions = const []}) {
+void test(
+  String title,
+  RunResult result, {
+  List expectedLines = const [],
+  List expectedExceptions = const [],
+}) {
   print('--------------------------------------------------------------------');
   print('Running $title');
   print('--------------------------------------------------------------------');
@@ -51,10 +61,16 @@ void test(String title, RunResult result,
   result.lines.forEach(print);
   print('exceptions:');
   result.exceptions.forEach(print);
-  Expect.equals(expectedLines.length, result.lines.length,
-      "Unexpected number of calls to print.");
-  Expect.equals(expectedExceptions.length, result.exceptions.length,
-      "Unexpected number of exceptions.");
+  Expect.equals(
+    expectedLines.length,
+    result.lines.length,
+    "Unexpected number of calls to print.",
+  );
+  Expect.equals(
+    expectedExceptions.length,
+    result.exceptions.length,
+    "Unexpected number of exceptions.",
+  );
   for (int i = 0; i < expectedLines.length; i++) {
     if (expectedLines[i] != null) {
       Expect.stringEquals(expectedLines[i], result.lines[i]);
@@ -62,23 +78,29 @@ void test(String title, RunResult result,
   }
 }
 
-Future<RunResult> run(
-    {Map<String, String> memorySourceFiles = const {'main.dart': 'main() {}'},
-    api.CompilerDiagnostics? diagnostics}) async {
+Future<RunResult> run({
+  Map<String, String> memorySourceFiles = const {'main.dart': 'main() {}'},
+  api.CompilerDiagnostics? diagnostics,
+}) async {
   RunResult result = RunResult();
-  await runZoned(() async {
-    try {
-      await runCompiler(
+  await runZoned(
+    () async {
+      try {
+        await runCompiler(
           entryPoint: entryPoint,
           memorySourceFiles: memorySourceFiles,
-          diagnosticHandler: diagnostics);
-    } catch (e) {
-      result.exceptions.add(e);
-    }
-  }, zoneSpecification: ZoneSpecification(
+          diagnosticHandler: diagnostics,
+        );
+      } catch (e) {
+        result.exceptions.add(e);
+      }
+    },
+    zoneSpecification: ZoneSpecification(
       print: (Zone self, ZoneDelegate parent, Zone zone, String line) {
-    result.lines.add(line);
-  }));
+        result.lines.add(line);
+      },
+    ),
+  );
   return result;
 }
 
@@ -90,7 +112,13 @@ class RunResult {
 class CrashingDiagnostics extends DiagnosticCollector {
   @override
   void report(
-      code, Uri? uri, int? begin, int? end, String text, api.Diagnostic kind) {
+    code,
+    Uri? uri,
+    int? begin,
+    int? end,
+    String text,
+    api.Diagnostic kind,
+  ) {
     throw EXCEPTION;
   }
 }

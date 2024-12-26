@@ -651,6 +651,20 @@ class ScopedBlockingCall {
   DISALLOW_COPY_AND_ASSIGN(ScopedBlockingCall);
 };
 
+// Remove once we remove the limitation on the number of running mutators.
+// https://github.com/dart-lang/sdk/issues/54687
+class LeaveIsolateScope {
+ public:
+  LeaveIsolateScope() : isolate_(Dart_CurrentIsolate()) { Dart_ExitIsolate(); }
+  ~LeaveIsolateScope() { Dart_EnterIsolate(isolate_); }
+
+ private:
+  Dart_Isolate isolate_;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(LeaveIsolateScope);
+};
+
 struct MagicNumberData {
   static constexpr intptr_t kMaxLength = 8;
 

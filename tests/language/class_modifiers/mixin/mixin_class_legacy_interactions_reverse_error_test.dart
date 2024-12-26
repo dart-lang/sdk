@@ -12,9 +12,9 @@ import 'mixin_class_legacy_lib.dart' as legacy;
 /// Test that it is an error to mix in a class (which is not marked as a
 /// mixin class) from the core libraries in 3.0.
 class A with Comparable<int> {
-//           ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
-// [cfe] The class 'Comparable' can't be used as a mixin because it isn't a mixin class nor a mixin.
+  //         ^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
+  // [cfe] The class 'Comparable' can't be used as a mixin because it isn't a mixin class nor a mixin.
   int compareTo(int x) => 0;
 }
 

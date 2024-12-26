@@ -13,9 +13,8 @@ class A<T> {
   f() {
     // TODO(johnniwinther): Optimize local function type signature need.
     return
-
-        /*needsSignature*/
-        (int t) {};
+    /*needsSignature*/
+    (int t) {};
   }
 }
 

@@ -48,7 +48,8 @@ Future staticMembers() async {
   Expect.equals(c, 2);
   var d = C.staticFoo(2) + await dummy();
   Expect.equals(d, 3);
-  var e = C.staticField +
+  var e =
+      C.staticField +
       C.staticGetter +
       (C.staticSetter = 1) +
       C.staticFoo(1) +
@@ -65,7 +66,8 @@ Future topLevelMembers() async {
   Expect.equals(c, 2);
   var d = topLevelFoo(1) + await dummy();
   Expect.equals(d, 2);
-  var e = globalVariable +
+  var e =
+      globalVariable +
       topLevelGetter +
       (topLevelSetter = 1) +
       topLevelFoo(1) +
@@ -83,7 +85,8 @@ Future instanceMembers() async {
   Expect.equals(c, 2);
   var d = inst.foo(1) + await dummy();
   Expect.equals(d, 2);
-  var e = inst.field +
+  var e =
+      inst.field +
       inst.getter +
       (inst.setter = 1) +
       inst.foo(1) +
@@ -194,16 +197,12 @@ Future controlFlow() async {
         Expect.fail("unreachable");
     }
     // Return.
-    Expect.equals(
-        42,
-        await () async {
-          return await func(42);
-        }());
-    Expect.equals(
-        42,
-        await () async {
-          return func(42);
-        }());
+    Expect.equals(42, await () async {
+      return await func(42);
+    }());
+    Expect.equals(42, await () async {
+      return func(42);
+    }());
     // Yield.
     Stream<int> testStream1() async* {
       yield await func(42);

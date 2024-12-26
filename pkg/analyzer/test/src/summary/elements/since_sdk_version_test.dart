@@ -1305,7 +1305,7 @@ library
 
     var libraryResult = await analysisSession.getLibraryByUri(uriStr);
     libraryResult as LibraryElementResult;
-    return libraryResult.element as LibraryElementImpl;
+    return libraryResult.element2 as LibraryElementImpl;
   }
 }
 

@@ -6,13 +6,11 @@ class A {
   A.a() : this.b();
   //      ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_CONSTRUCTOR_REDIRECT
-  A.b()
-    : this.a()
-    //^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_CONSTRUCTOR_REDIRECT
-    //     ^
-    // [cfe] Redirecting constructors can't be cyclic.
-  ;
+  A.b() : this.a();
+  //      ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_CONSTRUCTOR_REDIRECT
+  //           ^
+  // [cfe] Redirecting constructors can't be cyclic.
   A.c() : this.b();
 }
 

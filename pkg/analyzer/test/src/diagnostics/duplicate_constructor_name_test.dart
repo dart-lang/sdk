@@ -110,6 +110,7 @@ enum E {
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 45, 5),
+      error(WarningCode.UNUSED_ELEMENT, 47, 3),
     ]);
   }
 

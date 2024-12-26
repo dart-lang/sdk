@@ -102,7 +102,7 @@ class DartUnitSignatureComputer {
       }
     }
 
-    var dartdoc = _documentationComputer.computePreferred2(
+    var dartdoc = _documentationComputer.computePreferred(
       element,
       documentationPreference,
     );

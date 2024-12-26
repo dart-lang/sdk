@@ -11,18 +11,19 @@ class A {
 
 /*member: B.:[exact=B]*/
 class B extends A {
-  /*member: B.foo:Dictionary([exact=JsLinkedHashMap], key: [empty], value: [null], map: {})*/ foo() =>
-      {};
+  /*member: B.foo:Dictionary([exact=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
+  foo() => {};
 }
 
 /*member: C.:[exact=C]*/
 class C extends B {
-  /*member: C.foo:Dictionary([exact=JsLinkedHashMap], key: [empty], value: [null], map: {})*/ foo() =>
-      {};
+  /*member: C.foo:Dictionary([exact=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
+  foo() => {};
 }
 
 /*member: a:[null|subclass=B]*/
-dynamic a = [new B(), C()]
+dynamic a =
+    [new B(), C()]
     /*Container([exact=JSExtendableArray], element: [subclass=B], length: 2)*/
     [0];
 

@@ -165,7 +165,7 @@ Set<String> _getNamesConflictingAt(AstNode node) {
     var localsRange = _getLocalsConflictingRange(node);
     var enclosingExecutable = getEnclosingExecutableNode(node);
     if (enclosingExecutable != null) {
-      var visibleRangeMap = VisibleRangesComputer.forNode2(enclosingExecutable);
+      var visibleRangeMap = VisibleRangesComputer.forNode(enclosingExecutable);
       visibleRangeMap.forEach((element, elementRange) {
         if (elementRange.intersects(localsRange)) {
           result.add(element.displayName);
@@ -175,14 +175,14 @@ Set<String> _getNamesConflictingAt(AstNode node) {
   }
   // fields
   {
-    var enclosingInterfaceElement = node.enclosingInterfaceElement2;
+    var enclosingInterfaceElement = node.enclosingInterfaceElement;
     if (enclosingInterfaceElement != null) {
       var elements = [
         ...enclosingInterfaceElement.allSupertypes.map((type) => type.element3),
         enclosingInterfaceElement,
       ];
       for (var interfaceElement in elements) {
-        var classMembers = getChildren2(interfaceElement);
+        var classMembers = getChildren(interfaceElement);
         for (var classMemberElement in classMembers) {
           result.add(classMemberElement.displayName);
         }
@@ -312,7 +312,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     // analyze method body
     result.addStatus(_prepareMethodParts());
     // process references
-    var references = await searchEngine.searchReferences2(methodElement);
+    var references = await searchEngine.searchReferences(methodElement);
     _referenceProcessors.clear();
     for (var reference in references) {
       var processor = _ReferenceProcessor(this, reference);
@@ -417,7 +417,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
     _methodElement = element;
 
-    var declaration = await sessionHelper.getElementDeclaration2(
+    var declaration = await sessionHelper.getElementDeclaration(
       element.firstFragment,
     );
     var methodNode = declaration!.node;
@@ -512,7 +512,7 @@ class _ReferenceProcessor {
     refElement = reference.element2;
 
     // prepare CorrectionUtils
-    var result = await ref.sessionHelper.getResolvedUnitByElement2(refElement);
+    var result = await ref.sessionHelper.getResolvedUnitByElement(refElement);
     _refUtils = CorrectionUtils(result!);
 
     // prepare node and environment
@@ -956,7 +956,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   }
 
   void _addParameter(SimpleIdentifier node) {
-    var parameterElement = getParameterElement2(node);
+    var parameterElement = getFormalParameterElement(node);
     // not a parameter
     if (parameterElement == null) {
       return;
@@ -977,7 +977,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   }
 
   void _addVariable(SimpleIdentifier node) {
-    var variableElement = getLocalVariableElement2(node);
+    var variableElement = getLocalVariableElement(node);
     if (variableElement != null) {
       var nodeRange = range.node(node);
       result.addVariable(variableElement, nodeRange);

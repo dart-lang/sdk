@@ -27,32 +27,36 @@ void main() {
 
   // DeferredStatement in block with nested block gets elided.
   Expect.equals(
-      DebugPrint(Block([_DeferredStatement(Block.empty())])), '{\n}\n');
+    DebugPrint(Block([_DeferredStatement(Block.empty())])),
+    '{\n}\n',
+  );
   Expect.equals(
-      DebugPrint(Block([
+    DebugPrint(
+      Block([
         _DeferredStatement(
-            _DeferredStatement(_DeferredStatement(Block.empty())))
-      ])),
-      '{\n}\n');
+          _DeferredStatement(_DeferredStatement(Block.empty())),
+        ),
+      ]),
+    ),
+    '{\n}\n',
+  );
 
   // Nested Blocks in DeferredStatements are elided.
   Expect.equals(
-      DebugPrint(
-        Block([
-          _DeferredStatement(
-            Block([
-              _DeferredStatement(Block.empty()),
-              Block.empty(),
-              Block([
-                _DeferredStatement(Block.empty()),
-                Block.empty(),
-              ]),
-              _DeferredStatement(_DeferredStatement(Block.empty())),
-            ]),
-          ),
-        ]),
-      ),
-      '{\n}\n');
+    DebugPrint(
+      Block([
+        _DeferredStatement(
+          Block([
+            _DeferredStatement(Block.empty()),
+            Block.empty(),
+            Block([_DeferredStatement(Block.empty()), Block.empty()]),
+            _DeferredStatement(_DeferredStatement(Block.empty())),
+          ]),
+        ),
+      ]),
+    ),
+    '{\n}\n',
+  );
 
   // DeferredStatement with empty Statement prints semicolon and a newline.
   Expect.equals(DebugPrint(_DeferredStatement(EmptyStatement())), ';\n');

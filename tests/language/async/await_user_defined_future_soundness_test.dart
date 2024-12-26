@@ -53,11 +53,14 @@ class CustomFuture2<S, T> implements Future<T> {
 
 void main() async {
   bool seenError = false;
-  runZoned(() {
-    foo(CustomFuture1());
-  }, onError: (e, st) {
-    seenError = true;
-  });
+  runZoned(
+    () {
+      foo(CustomFuture1());
+    },
+    onError: (e, st) {
+      seenError = true;
+    },
+  );
   Expect.listEquals(<String>['Checkpoint 1', 'Checkpoint 2'], executionTrace);
   Expect.isTrue(seenError);
 

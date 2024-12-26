@@ -166,7 +166,7 @@ class NonCovariantTypeParameterPositionVisitorTest
   bool _compute(DartType type) {
     return type.accept(
       NonCovariantTypeParameterPositionVisitor(
-        [T_element],
+        [T_element.element],
         initialVariance: Variance.covariant,
       ),
     );

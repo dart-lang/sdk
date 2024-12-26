@@ -1,0 +1,47 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# https://github.com/dart-lang/sdk/issues/57040
+
+# Definition, offset, method etc extracted by starting the VM with
+# `-DDFE_VERBOSE=true`, e.g.
+# ```
+# out/ReleaseX64/dart -DDFE_VERBOSE=true --enable-vm-service \
+# --serve-observatory --disable-service-auth-codes --pause_isolates_on_start \
+# inputFile.dart
+# ```
+# and then issuing the expression compilation. It will then print stuff like
+# `DFE: request[6]: [dart:core, _OneByteString, 1, 0]` in the terminal.
+
+sources: |
+  import "dart:developer";
+
+  extension on String? {
+    bool get isNullOrEmpty {
+      var str = this;
+      return str == null || str.isEmpty;
+    }
+  }
+
+  void main() {
+    String? str = "hello";
+    debugger();
+    print(str.isNullOrEmpty);
+    str = null;
+    debugger();
+    print(str.isNullOrEmpty);
+  }
+
+definitions: ["str"]
+# dynamic
+definition_types: ["null"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+method: "main"
+static: true
+offset: 239 # at the second 'debugger' call.
+scriptUri: main.dart
+expression: |
+  str.isNullOrEmpty

@@ -32,30 +32,42 @@ class Listener implements DiagnosticReporter {
   }
 
   @override
-  reportErrorMessage(Spannable spannable, MessageKind messageKind,
-      [Map<String, String> arguments = const {}]) {
+  reportErrorMessage(
+    Spannable spannable,
+    MessageKind messageKind, [
+    Map<String, String> arguments = const {},
+  ]) {
     reportError(createMessage(spannable, messageKind, arguments));
   }
 
   @override
-  DiagnosticMessage createMessage(spannable, messageKind,
-      [arguments = const {}]) {
-    return DiagnosticMessage(SourceSpan.unknown(), spannable,
-        MessageTemplate.TEMPLATES[messageKind]!.message(arguments, null));
+  DiagnosticMessage createMessage(
+    spannable,
+    messageKind, [
+    arguments = const {},
+  ]) {
+    return DiagnosticMessage(
+      SourceSpan.unknown(),
+      spannable,
+      MessageTemplate.templates[messageKind]!.message(arguments, null),
+    );
   }
 
   @override
   noSuchMethod(_) => null;
 }
 
-void test(DartTypes dartTypes, String specString,
-    {List<Object>? returns,
-    List<Object>? creates,
-    SideEffects? expectedSideEffects,
-    NativeThrowBehavior? expectedThrows,
-    bool? expectedNew,
-    bool? expectedGvn,
-    bool expectError = false}) {
+void test(
+  DartTypes dartTypes,
+  String specString, {
+  List<Object>? returns,
+  List<Object>? creates,
+  SideEffects? expectedSideEffects,
+  NativeThrowBehavior? expectedThrows,
+  bool? expectedNew,
+  bool? expectedGvn,
+  bool expectError = false,
+}) {
   List<Object> actualReturns = [];
   List<Object> actualCreates = [];
   SideEffects? actualSideEffects;
@@ -65,16 +77,20 @@ void test(DartTypes dartTypes, String specString,
   Listener listener = Listener();
   try {
     NativeBehavior.processSpecString(
-        dartTypes, listener, NO_LOCATION_SPANNABLE, specString,
-        setSideEffects: (effects) => actualSideEffects = effects,
-        setThrows: (b) => actualThrows = b,
-        setIsAllocation: (b) => actualNew = b,
-        setUseGvn: (b) => actualGvn = b,
-        lookupType: (t, {bool? required}) => t,
-        typesReturned: actualReturns,
-        typesInstantiated: actualCreates,
-        objectType: OBJECT,
-        nullType: NULL);
+      dartTypes,
+      listener,
+      noLocationSpannable,
+      specString,
+      setSideEffects: (effects) => actualSideEffects = effects,
+      setThrows: (b) => actualThrows = b,
+      setIsAllocation: (b) => actualNew = b,
+      setUseGvn: (b) => actualGvn = b,
+      lookupType: (t, {bool? required}) => t,
+      typesReturned: actualReturns,
+      typesInstantiated: actualCreates,
+      objectType: OBJECT,
+      nullType: NULL,
+    );
   } catch (e) {
     Expect.isTrue(expectError, 'Unexpected error "$specString"');
     Expect.isNotNull(listener.errorMessage, 'Error message expected.');
@@ -94,15 +110,26 @@ void test(DartTypes dartTypes, String specString,
   Expect.equals(expectedGvn, actualGvn);
 }
 
-void testWithSideEffects(DartTypes dartTypes, String specString,
-    {List<Object>? returns, List<Object>? creates, bool expectError = false}) {
-  void sideEffectsTest(String newSpecString, SideEffects expectedSideEffects,
-      {bool? sideEffectsExpectError}) {
-    test(dartTypes, newSpecString,
-        returns: returns,
-        creates: creates,
-        expectedSideEffects: expectedSideEffects,
-        expectError: sideEffectsExpectError ?? expectError);
+void testWithSideEffects(
+  DartTypes dartTypes,
+  String specString, {
+  List<Object>? returns,
+  List<Object>? creates,
+  bool expectError = false,
+}) {
+  void sideEffectsTest(
+    String newSpecString,
+    SideEffects expectedSideEffects, {
+    bool? sideEffectsExpectError,
+  }) {
+    test(
+      dartTypes,
+      newSpecString,
+      returns: returns,
+      creates: creates,
+      expectedSideEffects: expectedSideEffects,
+      expectError: sideEffectsExpectError ?? expectError,
+    );
   }
 
   SideEffects emptySideEffects = SideEffects.empty();
@@ -126,28 +153,36 @@ void testWithSideEffects(DartTypes dartTypes, String specString,
   effects.clearChangesStaticProperty();
   effects.clearAllDependencies();
   sideEffectsTest(
-      specString + "effects:no-instance,no-static;depends:none;", effects);
+    specString + "effects:no-instance,no-static;depends:none;",
+    effects,
+  );
 
   effects = SideEffects();
   effects.clearAllSideEffects();
   effects.clearDependsOnInstancePropertyStore();
   effects.clearDependsOnStaticPropertyStore();
   sideEffectsTest(
-      specString + "effects:none;depends:no-instance,no-static;", effects);
+    specString + "effects:none;depends:no-instance,no-static;",
+    effects,
+  );
 
   effects = SideEffects();
   effects.clearChangesInstanceProperty();
   effects.clearChangesStaticProperty();
   effects.clearDependsOnIndexStore();
   sideEffectsTest(
-      specString + "effects:no-instance,no-static;depends:no-index;", effects);
+    specString + "effects:no-instance,no-static;depends:no-index;",
+    effects,
+  );
 
   effects = SideEffects();
   effects.clearChangesIndex();
   effects.clearDependsOnInstancePropertyStore();
   effects.clearDependsOnStaticPropertyStore();
   sideEffectsTest(
-      specString + "effects:no-index;depends:no-instance,no-static;", effects);
+    specString + "effects:no-index;depends:no-instance,no-static;",
+    effects,
+  );
 
   effects = SideEffects();
   effects.clearChangesIndex();
@@ -161,45 +196,77 @@ void testWithSideEffects(DartTypes dartTypes, String specString,
   effects.clearChangesInstanceProperty();
   effects.clearChangesStaticProperty();
   sideEffectsTest(
-      specString + "effects:no-instance,no-static;depends:all;", effects);
+    specString + "effects:no-instance,no-static;depends:all;",
+    effects,
+  );
 
   effects = SideEffects();
   effects.clearDependsOnInstancePropertyStore();
   effects.clearDependsOnStaticPropertyStore();
   sideEffectsTest(
-      specString + "effects:all;depends:no-instance,no-static;", effects);
-
-  sideEffectsTest(specString + "effects:no-instance,no-static;", effects,
-      sideEffectsExpectError: true);
-
-  sideEffectsTest(specString + "depends:no-instance,no-static;", effects,
-      sideEffectsExpectError: true);
-
-  sideEffectsTest(specString + "effects:none;", effects,
-      sideEffectsExpectError: true);
-
-  sideEffectsTest(specString + "depends:all;", effects,
-      sideEffectsExpectError: true);
+    specString + "effects:all;depends:no-instance,no-static;",
+    effects,
+  );
 
   sideEffectsTest(
-      specString + "effects:no-instance,no-static;depends:foo;", effects,
-      sideEffectsExpectError: true);
+    specString + "effects:no-instance,no-static;",
+    effects,
+    sideEffectsExpectError: true,
+  );
 
   sideEffectsTest(
-      specString + "effects:foo;depends:no-instance,no-static;", effects,
-      sideEffectsExpectError: true);
+    specString + "depends:no-instance,no-static;",
+    effects,
+    sideEffectsExpectError: true,
+  );
 
-  sideEffectsTest(specString + "effects:all;depends:foo", effects,
-      sideEffectsExpectError: true);
+  sideEffectsTest(
+    specString + "effects:none;",
+    effects,
+    sideEffectsExpectError: true,
+  );
 
-  sideEffectsTest(specString + "effects:foo;depends:none;", effects,
-      sideEffectsExpectError: true);
+  sideEffectsTest(
+    specString + "depends:all;",
+    effects,
+    sideEffectsExpectError: true,
+  );
 
-  sideEffectsTest(specString + "effects:;depends:none;", effects,
-      sideEffectsExpectError: true);
+  sideEffectsTest(
+    specString + "effects:no-instance,no-static;depends:foo;",
+    effects,
+    sideEffectsExpectError: true,
+  );
 
-  sideEffectsTest(specString + "effects:all;depends:;", effects,
-      sideEffectsExpectError: true);
+  sideEffectsTest(
+    specString + "effects:foo;depends:no-instance,no-static;",
+    effects,
+    sideEffectsExpectError: true,
+  );
+
+  sideEffectsTest(
+    specString + "effects:all;depends:foo",
+    effects,
+    sideEffectsExpectError: true,
+  );
+
+  sideEffectsTest(
+    specString + "effects:foo;depends:none;",
+    effects,
+    sideEffectsExpectError: true,
+  );
+
+  sideEffectsTest(
+    specString + "effects:;depends:none;",
+    effects,
+    sideEffectsExpectError: true,
+  );
+
+  sideEffectsTest(
+    specString + "effects:all;depends:;",
+    effects,
+    sideEffectsExpectError: true,
+  );
 }
 
 void main() async {
@@ -217,8 +284,12 @@ void main() async {
   test(types, 'returns:var;', returns: [OBJECT, NULL], creates: []);
   test(types, 'returns:A;', returns: ['A'], creates: ['A']);
   test(types, 'returns:A|B;', returns: ['A', 'B'], creates: ['A', 'B']);
-  test(types, 'returns:A|B|C;',
-      returns: ['A', 'B', 'C'], creates: ['A', 'B', 'C']);
+  test(
+    types,
+    'returns:A|B|C;',
+    returns: ['A', 'B', 'C'],
+    creates: ['A', 'B', 'C'],
+  );
 
   test(types, 'creates:void;', expectError: true);
   test(types, 'creates:;', creates: []);
@@ -235,69 +306,160 @@ void main() async {
   test(types, 'returns:A|B|C;creates:;', returns: ['A', 'B', 'C'], creates: []);
 
   test(types, 'returns:void;creates:A;', returns: [], creates: ['A']);
-  test(types, 'returns:;creates:A|B;',
-      returns: [OBJECT, NULL], creates: ['A', 'B']);
-  test(types, 'returns:var;creates:A|B|C;',
-      returns: [OBJECT, NULL], creates: ['A', 'B', 'C']);
-  test(types, 'returns:A; creates:A|B|C; ',
-      returns: ['A'], creates: ['A', 'B', 'C']);
-  test(types, ' returns:A|B;  creates:A|C;',
-      returns: ['A', 'B'], creates: ['A', 'C']);
-  test(types, ' returns:A|B|C;   creates:A;  ',
-      returns: ['A', 'B', 'C'], creates: ['A']);
+  test(
+    types,
+    'returns:;creates:A|B;',
+    returns: [OBJECT, NULL],
+    creates: ['A', 'B'],
+  );
+  test(
+    types,
+    'returns:var;creates:A|B|C;',
+    returns: [OBJECT, NULL],
+    creates: ['A', 'B', 'C'],
+  );
+  test(
+    types,
+    'returns:A; creates:A|B|C; ',
+    returns: ['A'],
+    creates: ['A', 'B', 'C'],
+  );
+  test(
+    types,
+    ' returns:A|B;  creates:A|C;',
+    returns: ['A', 'B'],
+    creates: ['A', 'C'],
+  );
+  test(
+    types,
+    ' returns:A|B|C;   creates:A;  ',
+    returns: ['A', 'B', 'C'],
+    creates: ['A'],
+  );
 
   testWithSideEffects(types, 'returns:void;', returns: [], creates: []);
   testWithSideEffects(types, 'returns:void;', returns: [], creates: []);
   testWithSideEffects(types, 'returns:;', returns: [OBJECT, NULL], creates: []);
-  testWithSideEffects(types, 'returns:var;',
-      returns: [OBJECT, NULL], creates: []);
+  testWithSideEffects(
+    types,
+    'returns:var;',
+    returns: [OBJECT, NULL],
+    creates: [],
+  );
   testWithSideEffects(types, 'returns:A;', returns: ['A'], creates: ['A']);
-  testWithSideEffects(types, 'returns:A|B;',
-      returns: ['A', 'B'], creates: ['A', 'B']);
-  testWithSideEffects(types, 'returns:A|B|C;',
-      returns: ['A', 'B', 'C'], creates: ['A', 'B', 'C']);
-  testWithSideEffects(types, 'returns: A| B |C ;',
-      returns: ['A', 'B', 'C'], creates: ['A', 'B', 'C']);
+  testWithSideEffects(
+    types,
+    'returns:A|B;',
+    returns: ['A', 'B'],
+    creates: ['A', 'B'],
+  );
+  testWithSideEffects(
+    types,
+    'returns:A|B|C;',
+    returns: ['A', 'B', 'C'],
+    creates: ['A', 'B', 'C'],
+  );
+  testWithSideEffects(
+    types,
+    'returns: A| B |C ;',
+    returns: ['A', 'B', 'C'],
+    creates: ['A', 'B', 'C'],
+  );
 
   testWithSideEffects(types, 'creates:void;', expectError: true);
   testWithSideEffects(types, 'creates:;', creates: []);
   testWithSideEffects(types, 'creates:var;', creates: []);
   testWithSideEffects(types, 'creates:A;', returns: [], creates: ['A']);
   testWithSideEffects(types, 'creates:A|B;', returns: [], creates: ['A', 'B']);
-  testWithSideEffects(types, 'creates:A|B|C;',
-      returns: [], creates: ['A', 'B', 'C']);
+  testWithSideEffects(
+    types,
+    'creates:A|B|C;',
+    returns: [],
+    creates: ['A', 'B', 'C'],
+  );
 
-  testWithSideEffects(types, 'returns:void;creates:;',
-      returns: [], creates: []);
-  testWithSideEffects(types, 'returns:;creates:;',
-      returns: [OBJECT, NULL], creates: []);
-  testWithSideEffects(types, 'returns:var;creates:;',
-      returns: [OBJECT, NULL], creates: []);
-  testWithSideEffects(types, 'returns:A;creates:;',
-      returns: ['A'], creates: []);
-  testWithSideEffects(types, 'returns:A|B;creates:;',
-      returns: ['A', 'B'], creates: []);
-  testWithSideEffects(types, 'returns:A|B|C;creates:;',
-      returns: ['A', 'B', 'C'], creates: []);
+  testWithSideEffects(
+    types,
+    'returns:void;creates:;',
+    returns: [],
+    creates: [],
+  );
+  testWithSideEffects(
+    types,
+    'returns:;creates:;',
+    returns: [OBJECT, NULL],
+    creates: [],
+  );
+  testWithSideEffects(
+    types,
+    'returns:var;creates:;',
+    returns: [OBJECT, NULL],
+    creates: [],
+  );
+  testWithSideEffects(
+    types,
+    'returns:A;creates:;',
+    returns: ['A'],
+    creates: [],
+  );
+  testWithSideEffects(
+    types,
+    'returns:A|B;creates:;',
+    returns: ['A', 'B'],
+    creates: [],
+  );
+  testWithSideEffects(
+    types,
+    'returns:A|B|C;creates:;',
+    returns: ['A', 'B', 'C'],
+    creates: [],
+  );
 
-  testWithSideEffects(types, 'returns:void;creates:A;',
-      returns: [], creates: ['A']);
-  testWithSideEffects(types, 'returns:;creates:A|B;',
-      returns: [OBJECT, NULL], creates: ['A', 'B']);
-  testWithSideEffects(types, 'returns:var;creates:A|B|C;',
-      returns: [OBJECT, NULL], creates: ['A', 'B', 'C']);
-  testWithSideEffects(types, 'returns:A; creates:A|B|C; ',
-      returns: ['A'], creates: ['A', 'B', 'C']);
-  testWithSideEffects(types, ' returns:A|B;  creates:A|C;',
-      returns: ['A', 'B'], creates: ['A', 'C']);
-  testWithSideEffects(types, ' returns:A|B|C;   creates:A;  ',
-      returns: ['A', 'B', 'C'], creates: ['A']);
+  testWithSideEffects(
+    types,
+    'returns:void;creates:A;',
+    returns: [],
+    creates: ['A'],
+  );
+  testWithSideEffects(
+    types,
+    'returns:;creates:A|B;',
+    returns: [OBJECT, NULL],
+    creates: ['A', 'B'],
+  );
+  testWithSideEffects(
+    types,
+    'returns:var;creates:A|B|C;',
+    returns: [OBJECT, NULL],
+    creates: ['A', 'B', 'C'],
+  );
+  testWithSideEffects(
+    types,
+    'returns:A; creates:A|B|C; ',
+    returns: ['A'],
+    creates: ['A', 'B', 'C'],
+  );
+  testWithSideEffects(
+    types,
+    ' returns:A|B;  creates:A|C;',
+    returns: ['A', 'B'],
+    creates: ['A', 'C'],
+  );
+  testWithSideEffects(
+    types,
+    ' returns:A|B|C;   creates:A;  ',
+    returns: ['A', 'B', 'C'],
+    creates: ['A'],
+  );
 
   test(types, 'throws:may', expectedThrows: NativeThrowBehavior.may);
   test(types, 'throws:never', expectedThrows: NativeThrowBehavior.never);
   test(types, 'throws:null(1)', expectedThrows: NativeThrowBehavior.nullNsm);
-  test(types, 'throws:null(1)+may',
-      expectedThrows: NativeThrowBehavior.nullNsmThenMay);
+  test(
+    types,
+    'throws:null(1)+may',
+    expectedThrows: NativeThrowBehavior.nullNsmThenMay,
+  );
 
   test(types, 'new:true', expectedNew: true);
   test(types, 'new:false', expectedNew: false);

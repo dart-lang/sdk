@@ -6,7 +6,10 @@ enum E1 {
 
 enum E10 with A10 { element }
 
-enum E2 { element, element }
+enum E2 {
+  element,
+  element;
+}
 
 enum E3 {
   element;

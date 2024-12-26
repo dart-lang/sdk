@@ -21,8 +21,10 @@ class AsyncCallbackTest {
   AsyncCallbackTest(this.name, this.callback, this.afterCallbackChecks) {}
 
   Future<void> run() async {
-    final NativeAsyncCallbackTestFn tester = ffiTestFunctions.lookupFunction<
-        NativeAsyncCallbackTest, NativeAsyncCallbackTestFn>("TestAsync$name");
+    final NativeAsyncCallbackTestFn tester = ffiTestFunctions
+        .lookupFunction<NativeAsyncCallbackTest, NativeAsyncCallbackTestFn>(
+          "TestAsync$name",
+        );
 
     final cb = callback;
     tester(cb is NativeCallable ? cb.nativeFunction : cb as Pointer);

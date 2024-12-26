@@ -1,0 +1,60 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+extension type ET1(core::int id) {
+  constructor • = self::ET1|constructor#;
+  constructor c1 = self::ET1|constructor#c1;
+  constructor c2 = self::ET1|constructor#c2;
+  static redirecting-factory tearoff f1 = self::ET1|constructor#_#f1#tearOff;
+  static factory f2 = self::ET1|constructor#f2;
+  static factory tearoff f2 = self::ET1|constructor#_#f2#tearOff;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
+[@vm.unboxing-info.metadata=()->i]
+static extension-type-member method ET1|constructor#() → self::ET1% /* erasure=core::int, declared=! */ {
+  lowered final self::ET1% /* erasure=core::int, declared=! */ #this = #C1;
+  return #this;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
+[@vm.unboxing-info.metadata=()->i]
+static extension-type-member method ET1|constructor#c1() → self::ET1% /* erasure=core::int, declared=! */ {
+  lowered final self::ET1% /* erasure=core::int, declared=! */ #this;
+  #this = [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::ET1|constructor#();
+  return #this;
+}
+
+[@vm.inferred-return-type.metadata=int]
+[@vm.unboxing-info.metadata=(i)->i]
+static extension-type-member method ET1|constructor#c2([@vm.inferred-arg-type.metadata=int] core::int id) → self::ET1% /* erasure=core::int, declared=! */ {
+  lowered final self::ET1% /* erasure=core::int, declared=! */ #this = id;
+  return #this;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
+[@vm.unboxing-info.metadata=()->i]
+static extension-type-member method ET1|constructor#_#f1#tearOff() → self::ET1% /* erasure=core::int, declared=! */
+  return [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::ET1|constructor#c1();
+
+[@vm.inferred-return-type.metadata=int]
+[@vm.unboxing-info.metadata=(i)->i]
+static extension-type-member method ET1|constructor#f2([@vm.inferred-arg-type.metadata=int] core::int v) → self::ET1% /* erasure=core::int, declared=! */
+  return [@vm.inferred-type.metadata=int] self::ET1|constructor#c2(v);
+
+[@vm.inferred-return-type.metadata=int]
+[@vm.unboxing-info.metadata=(b)->i]
+static extension-type-member method ET1|constructor#_#f2#tearOff(core::int v) → self::ET1% /* erasure=core::int, declared=! */
+  return [@vm.inferred-type.metadata=int] self::ET1|constructor#f2(v);
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  core::print(#C2);
+  core::print(#C3);
+}
+constants  {
+  #C1 = 0
+  #C2 = static-tearoff self::ET1|constructor#_#f1#tearOff
+  #C3 = static-tearoff self::ET1|constructor#_#f2#tearOff
+}

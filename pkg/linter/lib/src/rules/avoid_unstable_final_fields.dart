@@ -12,7 +12,7 @@ class AvoidUnstableFinalFields extends LintRule {
       : super(
             name: LintNames.avoid_unstable_final_fields,
             description: _desc,
-            state: State.removed());
+            state: const State.removed());
 
   @override
   LintCode get lintCode => LinterLintCode.removed_lint;

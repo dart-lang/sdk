@@ -22,10 +22,10 @@ void main() {
 
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
-typedef NativeTypeNFT = Pointer<NativeType> Function(
-    Pointer<Pointer<NativeType>>, Int8);
-typedef NativeTypeFT = Pointer<NativeType> Function(
-    Pointer<Pointer<NativeType>>, int);
+typedef NativeTypeNFT =
+    Pointer<NativeType> Function(Pointer<Pointer<NativeType>>, Int8);
+typedef NativeTypeFT =
+    Pointer<NativeType> Function(Pointer<Pointer<NativeType>>, int);
 
 void testLookupFunctionPointerNativeType() {
   // The function signature does not match up, but that does not matter since

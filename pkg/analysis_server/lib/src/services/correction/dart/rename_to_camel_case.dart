@@ -76,7 +76,7 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
     if (element is LocalVariableElement2) {
       var root = node.thisOrAncestorOfType<Block>();
       if (root != null) {
-        references = findLocalElementReferences3(root, element);
+        references = findLocalElementReferences(root, element);
       }
     } else if (element is FormalParameterElement) {
       if (!element.isNamed) {
@@ -89,7 +89,7 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
                 )
                 ?.parent;
         if (root != null) {
-          references = findLocalElementReferences3(root, element);
+          references = findLocalElementReferences(root, element);
         }
       }
     }

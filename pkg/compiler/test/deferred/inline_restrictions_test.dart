@@ -15,7 +15,9 @@ void main() {
   asyncTest(() async {
     OutputCollector collector = OutputCollector();
     CompilationResult result = await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      outputProvider: collector,
+    );
     Compiler compiler = result.compiler!;
     var closedWorld = compiler.backendClosedWorldForTesting!;
     var env = closedWorld.elementEnvironment;
@@ -35,8 +37,10 @@ void main() {
     String mainOutput = collector.getOutput("", api.OutputType.js)!;
     String lib1Output =
         collector.getOutput("out_${ou_lib1.name}", api.OutputType.jsPart)!;
-    String? lib3Output =
-        collector.getOutput("out_${ou_lib3.name}", api.OutputType.jsPart);
+    String? lib3Output = collector.getOutput(
+      "out_${ou_lib3.name}",
+      api.OutputType.jsPart,
+    );
 
     // Test that inlineMeAway was inlined and its argument thus dropped.
     //
@@ -107,5 +111,5 @@ test() {
 """,
   "lib3.dart": """
 sameContextInline(x) => "inline same context" + x;
-"""
+""",
 };

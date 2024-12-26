@@ -15,10 +15,11 @@ main() {
 
 /*member: _trustParameters:[exact=JSUInt31]*/
 _trustParameters(
-    int
-        /*spec.Union([exact=JSString], [exact=JSUInt31])*/
-        /*prod.[exact=JSUInt31]*/
-        i) {
+  int
+  /*spec.Union([exact=JSString], [exact=JSUInt31])*/
+  /*prod.[exact=JSUInt31]*/
+  i,
+) {
   return i;
 }
 

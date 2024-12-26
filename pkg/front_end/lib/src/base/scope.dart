@@ -13,8 +13,6 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/prefix_builder.dart';
-//import '../kernel/body_builder.dart' show JumpTarget;
-import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart';
 import '../kernel/load_library_builder.dart';
@@ -25,6 +23,8 @@ import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
+import '../source/source_method_builder.dart';
+import '../source/source_property_builder.dart';
 import 'messages.dart';
 import 'name_space.dart';
 import 'uri_offset.dart';
@@ -649,7 +649,15 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference? get readTargetReference => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -657,7 +665,15 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  Reference? get invokeTargetReference => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => const [];
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => throw new UnsupportedError("$runtimeType.isProperty");
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -696,11 +712,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   SourceLibraryBuilder get libraryBuilder {
     throw new UnsupportedError('$runtimeType.library');
   }
-
-  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
-  @override
-  // Coverage-ignore(suite): Not run.
-  ProcedureKind? get kind => null;
 
   @override
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
@@ -759,12 +770,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   @override
   AugmentSuperTarget? get augmentSuperTarget {
     throw new UnsupportedError('$runtimeType.augmentSuperTarget}');
-  }
-
-  @override
-  BodyBuilderContext createBodyBuilderContext() {
-    throw new UnsupportedError(
-        '$runtimeType.bodyBuilderContextForAnnotations}');
   }
 
   @override
@@ -1493,6 +1498,10 @@ extension on Builder {
     } else if (self is SourceClassBuilder) {
       return _hasPatchAnnotation(self.metadata);
     } else if (self is SourceExtensionBuilder) {
+      return _hasPatchAnnotation(self.metadata);
+    } else if (self is SourcePropertyBuilder) {
+      return _hasPatchAnnotation(self.metadata);
+    } else if (self is SourceMethodBuilder) {
       return _hasPatchAnnotation(self.metadata);
     } else if (self is SourceExtensionTypeDeclarationBuilder) {
       // Coverage-ignore-block(suite): Not run.

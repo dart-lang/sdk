@@ -28,20 +28,17 @@ void main() {
       // reference to it.
       'ConstructedConstant(C(p=IntConstant(2)))': {'lib12'},
       'DeferredGlobalConstant(ConstructedConstant(C(p=IntConstant(2))))':
-          // With CFE constants, the references are inlined, so the constant
-          // occurs in lib12.
-          {'lib12'},
+      // With CFE constants, the references are inlined, so the constant
+      // occurs in lib12.
+      {'lib12'},
       // Test that the non-deferred constant is inlined.
       'ConstructedConstant(C(p=IntConstant(5)))': {'main'},
     };
-    await run(
-        MEMORY_SOURCE_FILES,
-        const [
-          OutputUnitDescriptor('memory:lib1.dart', 'foo', 'lib1'),
-          OutputUnitDescriptor('memory:lib2.dart', 'foo', 'lib2'),
-          OutputUnitDescriptor('memory:main.dart', 'foo', 'lib12')
-        ],
-        expectedOutputUnits);
+    await run(MEMORY_SOURCE_FILES, const [
+      OutputUnitDescriptor('memory:lib1.dart', 'foo', 'lib1'),
+      OutputUnitDescriptor('memory:lib2.dart', 'foo', 'lib2'),
+      OutputUnitDescriptor('memory:main.dart', 'foo', 'lib12'),
+    ], expectedOutputUnits);
   }
 
   asyncTest(() async {
@@ -115,5 +112,5 @@ foo() {
   print("lib2");
   main.foo();
 }
-"""
+""",
 };

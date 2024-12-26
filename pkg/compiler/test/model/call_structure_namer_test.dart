@@ -9,20 +9,24 @@ import 'package:expect/expect.dart';
 
 main() {
   asyncTest(() async {
-    test(List<String> expectedSuffixes,
-        {int positionalParameters = 0,
-        int typeParameters = 0,
-        List<String> namedParameters = const <String>[]}) {
+    test(
+      List<String> expectedSuffixes, {
+      int positionalParameters = 0,
+      int typeParameters = 0,
+      List<String> namedParameters = const <String>[],
+    }) {
       CallStructure callStructure = CallStructure(
-          positionalParameters + namedParameters.length,
-          namedParameters,
-          typeParameters);
+        positionalParameters + namedParameters.length,
+        namedParameters,
+        typeParameters,
+      );
       List<String> actualSuffixes = callSuffixForStructure(callStructure);
       Expect.listEquals(
-          expectedSuffixes,
-          actualSuffixes,
-          "Unexpected suffixes for $callStructure. "
-          "Expected: $expectedSuffixes, actual: $actualSuffixes.");
+        expectedSuffixes,
+        actualSuffixes,
+        "Unexpected suffixes for $callStructure. "
+        "Expected: $expectedSuffixes, actual: $actualSuffixes.",
+      );
     }
 
     test(['0']);
@@ -39,8 +43,12 @@ main() {
     test(['1', '1', 'a'], namedParameters: ['a'], typeParameters: 1);
     test(['1', '2', 'a', 'b'], namedParameters: ['a', 'b'], typeParameters: 1);
     test(['1', '2', 'b', 'c'], namedParameters: ['c', 'b'], typeParameters: 1);
-    test(['1', '2', 'a'],
-        positionalParameters: 1, namedParameters: ['a'], typeParameters: 1);
+    test(
+      ['1', '2', 'a'],
+      positionalParameters: 1,
+      namedParameters: ['a'],
+      typeParameters: 1,
+    );
 
     test(['2', '0'], typeParameters: 2);
     test(['2', '1'], positionalParameters: 1, typeParameters: 2);
@@ -48,7 +56,11 @@ main() {
     test(['2', '1', 'a'], namedParameters: ['a'], typeParameters: 2);
     test(['2', '2', 'a', 'b'], namedParameters: ['a', 'b'], typeParameters: 2);
     test(['2', '2', 'b', 'c'], namedParameters: ['c', 'b'], typeParameters: 2);
-    test(['2', '2', 'a'],
-        positionalParameters: 1, namedParameters: ['a'], typeParameters: 2);
+    test(
+      ['2', '2', 'a'],
+      positionalParameters: 1,
+      namedParameters: ['a'],
+      typeParameters: 2,
+    );
   });
 }

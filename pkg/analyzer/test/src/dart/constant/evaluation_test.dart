@@ -326,10 +326,109 @@ const v = 1 == a;
     ]);
   }
 
+  test_equalEqual_list_matchingTypeArgs_explicit() async {
+    await assertNoErrorsInCode('''
+const v = <int>[] == <int>[];
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool true
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
+  test_equalEqual_list_matchingTypeArgs_inferred() async {
+    await assertNoErrorsInCode('''
+const v = [1, 2] == [1, 2];
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool true
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
+  test_equalEqual_list_mismatchedTypeArgs() async {
+    await assertNoErrorsInCode('''
+const v = const <int>[] == const <num>[];
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool false
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
+  test_equalEqual_map_matchingTypeArgs_explicit() async {
+    await assertNoErrorsInCode('''
+const v = <String, int>{} == <String, int>{};
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool true
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
+  test_equalEqual_map_matchingTypeArgs_inferred() async {
+    await assertNoErrorsInCode('''
+const v = {'x': 1, 'y': 2} == {'x': 1, 'y': 2};
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool true
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
+  test_equalEqual_map_mismatchedTypeArgs() async {
+    await assertNoErrorsInCode('''
+const v = const <String, int>{} == const <String, num>{};
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool false
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
   test_equalEqual_null_object() async {
     await assertNoErrorsInCode('''
 const Object? a = null;
 const v = a == Object();
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool false
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
+  test_equalEqual_set_matchingTypeArgs_explicit() async {
+    await assertNoErrorsInCode('''
+const v = <int>{} == <int>{};
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool true
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
+  test_equalEqual_set_matchingTypeArgs_inferred() async {
+    await assertNoErrorsInCode('''
+const v = {1, 2} == {1, 2};
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool true
+  variable: <testLibraryFragment>::@topLevelVariable::v
+''');
+  }
+
+  test_equalEqual_set_mismatchedTypeArgs() async {
+    await assertNoErrorsInCode('''
+const v = const <int>{} == const <num>{};
 ''');
     var result = _topLevelVar('v');
     assertDartObjectText(result, '''
@@ -358,7 +457,7 @@ class A {
 
 const v = A() == 0;
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 72, 8),
+      error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 72, 8),
     ]);
     var result = _topLevelVar('v');
     _assertNull(result);
@@ -373,7 +472,7 @@ class A {
 
 const v = A() == 0;
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 61, 8),
+      error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 61, 8),
     ]);
     var result = _topLevelVar('v');
     _assertNull(result);
@@ -424,6 +523,19 @@ const v = A(0) == A(0);
 bool true
   variable: <testLibraryFragment>::@topLevelVariable::v
 ''');
+  }
+
+  test_equalEqual_userClass_noPrimitiveEquality() async {
+    await assertErrorsInCode('''
+class A {
+  const A();
+  bool operator ==(other) => false;
+}
+
+const v = A() == A();
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 72, 10),
+    ]);
   }
 
   test_hasPrimitiveEquality_bool() async {
@@ -2074,6 +2186,120 @@ test() {
 void _() {}
 const c = _;
 ''');
+  }
+
+  test_visitInstanceCreationExpression_invalidNamedArg() async {
+    await assertErrorsInCode('''
+class A {
+  const A({ required int x });
+}
+const a = A(x: false);
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 58, 5),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 55, 8),
+    ]);
+  }
+
+  test_visitInstanceCreationExpression_invalidNamedArg_superParam() async {
+    await assertErrorsInCode('''
+class A {
+  const A({ required int x });
+}
+class B extends A {
+  const B({ required super.x });
+}
+const a = B(x: false);
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 113, 5),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 110, 8),
+    ]);
+  }
+
+  test_visitInstanceCreationExpression_invalidPositionalArg() async {
+    await assertErrorsInCode('''
+class A {
+  const A(int x);
+}
+const a = A(false);
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 5),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 42, 5),
+    ]);
+  }
+
+  test_visitInstanceCreationExpression_invalidPositionalArg_superParam() async {
+    await assertErrorsInCode('''
+class A {
+  const A(int x);
+}
+class B extends A {
+  const B(super.x);
+}
+const a = B(false);
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 84, 5),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 84, 5),
+    ]);
+  }
+
+  test_visitInstanceCreationExpression_missingNamedArg() async {
+    await assertErrorsInCode('''
+class A {
+  const A({required int x });
+}
+const a = A();
+''', [
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 52, 1),
+    ]);
+  }
+
+  test_visitInstanceCreationExpression_missingNamedArg_superParam() async {
+    await assertErrorsInCode('''
+class A {
+  const A({required int x });
+}
+class B extends A {
+  const B({required super.x });
+}
+const a = B();
+''', [
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 106, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 106,
+          3),
+      error(CompileTimeErrorCode.INVALID_CONSTANT, 106, 3,
+          contextMessages: [message(testFile, 88, 1)]),
+    ]);
+  }
+
+  test_visitInstanceCreationExpression_missingPositionalArg() async {
+    await assertErrorsInCode('''
+class A {
+  const A(int x);
+}
+const a = A();
+''', [
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          42, 1),
+    ]);
+  }
+
+  test_visitInstanceCreationExpression_missingPositionalArg_superParam() async {
+    await assertErrorsInCode('''
+class A {
+  const A(int x);
+}
+class B extends A {
+  const B(super.x);
+}
+const a = B();
+''', [
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          84, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 82,
+          3),
+      error(CompileTimeErrorCode.INVALID_CONSTANT, 82, 3,
+          contextMessages: [message(testFile, 66, 1)]),
+    ]);
   }
 
   test_visitInstanceCreationExpression_noArgs() async {

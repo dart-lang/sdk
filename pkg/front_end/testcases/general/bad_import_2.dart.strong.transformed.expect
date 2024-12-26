@@ -1,0 +1,14 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/bad_import_2.dart:6:35: Error: The prefix ('as' clause) should come before any show/hide combinators.
+// Try moving the prefix before the combinators.
+// import "bad_import_2.dart" show a as b show c; // Error
+//                                   ^^
+//
+import self as self;
+
+import "org-dartlang-testcase:///bad_import_2.dart" show a;
+import "org-dartlang-testcase:///bad_import_2.dart" show a;
+import "org-dartlang-testcase:///bad_import_2.dart" as b;

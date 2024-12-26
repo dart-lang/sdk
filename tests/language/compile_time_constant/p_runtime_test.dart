@@ -8,9 +8,7 @@
 import "package:expect/expect.dart";
 
 class A {
-  const A(
-
-      );
+  const A();
   final x = null;
 }
 

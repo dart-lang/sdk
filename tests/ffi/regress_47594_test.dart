@@ -14,8 +14,9 @@ import 'package:ffi/ffi.dart';
 
 final strerror = DynamicLibrary.process()
     .lookupFunction<Pointer<Utf8> Function(Int32), Pointer<Utf8> Function(int)>(
-        'strerror',
-        isLeaf: true);
+      'strerror',
+      isLeaf: true,
+    );
 
 void main() {
   for (var i = 0; i < 10000; i++) strerror(0).toDartString();

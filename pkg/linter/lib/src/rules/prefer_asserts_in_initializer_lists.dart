@@ -40,7 +40,7 @@ class _AssertVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = getWriteOrReadElement2(node);
+    var element = getWriteOrReadElement(node);
 
     // use method
     needInstance = needInstance ||

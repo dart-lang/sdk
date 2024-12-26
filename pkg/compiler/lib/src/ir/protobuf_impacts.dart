@@ -74,7 +74,9 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
   static const String protobufLibraryUri = 'package:protobuf/protobuf.dart';
 
   static ProtobufImpactHandler? createIfApplicable(
-      KernelToElementMap elementMap, ir.Member node) {
+    KernelToElementMap elementMap,
+    ir.Member node,
+  ) {
     if (!elementMap.options.enableProtoShaking) return null;
 
     // Not all programs will include the protobuf library. Ideally those
@@ -99,21 +101,30 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
 
   ProtobufImpactHandler._(this._elementMap, this._messageClass);
 
-  late final ir.Class _builderInfoClass =
-      _elementMap.env.libraryIndex.getClass(protobufLibraryUri, 'BuilderInfo');
-  late final ir.Class _tagNumberClass =
-      _elementMap.env.libraryIndex.getClass(protobufLibraryUri, 'TagNumber');
-  late final ir.Field _tagNumberField = _elementMap.env.libraryIndex
-      .getField(protobufLibraryUri, 'TagNumber', 'tagNumber');
+  late final ir.Class _builderInfoClass = _elementMap.env.libraryIndex.getClass(
+    protobufLibraryUri,
+    'BuilderInfo',
+  );
+  late final ir.Class _tagNumberClass = _elementMap.env.libraryIndex.getClass(
+    protobufLibraryUri,
+    'TagNumber',
+  );
+  late final ir.Field _tagNumberField = _elementMap.env.libraryIndex.getField(
+    protobufLibraryUri,
+    'TagNumber',
+    'tagNumber',
+  );
   late final ir.Procedure _builderInfoAddMethod = _elementMap.env.libraryIndex
       .getProcedure(protobufLibraryUri, 'BuilderInfo', 'add');
-  late final ir.FunctionType _typeOfBuilderInfoAddOfNull =
-      ir.FunctionTypeInstantiator.instantiate(
-          _builderInfoAddMethod.getterType as ir.FunctionType,
-          const <ir.DartType>[ir.NullType()]);
+  late final ir.FunctionType _typeOfBuilderInfoAddOfNull = ir
+      .FunctionTypeInstantiator.instantiate(
+    _builderInfoAddMethod.getterType as ir.FunctionType,
+    const <ir.DartType>[ir.NullType()],
+  );
 
   late final ir.Procedure? _builderInfoAddUnusedMethod = _elementMap
-      .env.libraryIndex
+      .env
+      .libraryIndex
       .tryGetProcedure(protobufLibraryUri, 'BuilderInfo', 'addUnused');
 
   static const String metadataFieldName = '_i';
@@ -145,39 +156,40 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
   };
 
   ir.InstanceInvocation _buildProtobufMetadataPlaceholder(
-      ir.InstanceInvocation node) {
+    ir.InstanceInvocation node,
+  ) {
     final addUnusedMethod = _builderInfoAddUnusedMethod;
     if (addUnusedMethod == null) {
       // Legacy version, call `add` method.
       return ir.InstanceInvocation(
-          ir.InstanceAccessKind.Instance,
-          _CloneVisitorLenientVariables().clone(node.receiver),
-          _builderInfoAddMethod.name,
-          ir.Arguments(
-            <ir.Expression>[
-              ir.IntLiteral(0), // tagNumber
-              ir.NullLiteral(), // name
-              ir.NullLiteral(), // fieldType
-              ir.NullLiteral(), // defaultOrMaker
-              ir.NullLiteral(), // subBuilder
-              ir.NullLiteral(), // valueOf
-              ir.NullLiteral(), // enumValues
-            ],
-            types: <ir.DartType>[const ir.NullType()],
-          ),
-          interfaceTarget: _builderInfoAddMethod,
-          functionType: _typeOfBuilderInfoAddOfNull)
-        ..fileOffset = node.fileOffset;
+        ir.InstanceAccessKind.Instance,
+        _CloneVisitorLenientVariables().clone(node.receiver),
+        _builderInfoAddMethod.name,
+        ir.Arguments(
+          <ir.Expression>[
+            ir.IntLiteral(0), // tagNumber
+            ir.NullLiteral(), // name
+            ir.NullLiteral(), // fieldType
+            ir.NullLiteral(), // defaultOrMaker
+            ir.NullLiteral(), // subBuilder
+            ir.NullLiteral(), // valueOf
+            ir.NullLiteral(), // enumValues
+          ],
+          types: <ir.DartType>[const ir.NullType()],
+        ),
+        interfaceTarget: _builderInfoAddMethod,
+        functionType: _typeOfBuilderInfoAddOfNull,
+      )..fileOffset = node.fileOffset;
     } else {
       // New version, call `addUnused` method.
       return ir.InstanceInvocation(
-          ir.InstanceAccessKind.Instance,
-          _CloneVisitorLenientVariables().clone(node.receiver),
-          addUnusedMethod.name,
-          ir.Arguments([]),
-          interfaceTarget: addUnusedMethod,
-          functionType: addUnusedMethod.getterType as ir.FunctionType)
-        ..fileOffset = node.fileOffset;
+        ir.InstanceAccessKind.Instance,
+        _CloneVisitorLenientVariables().clone(node.receiver),
+        addUnusedMethod.name,
+        ir.Arguments([]),
+        interfaceTarget: addUnusedMethod,
+        functionType: addUnusedMethod.getterType as ir.FunctionType,
+      )..fileOffset = node.fileOffset;
     }
   }
 
@@ -187,10 +199,11 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
 
     // Check if this is a metadata initializer. If so its impacts are
     // conditional on the associated field being reachable.
-    return _impactData = interfaceTarget.enclosingClass == _builderInfoClass &&
-            metadataInitializers.contains(node.name.text)
-        ? ImpactData()
-        : null;
+    return _impactData =
+        interfaceTarget.enclosingClass == _builderInfoClass &&
+                metadataInitializers.contains(node.name.text)
+            ? ImpactData()
+            : null;
   }
 
   @override
@@ -199,10 +212,11 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
     if (_impactData == null) return null;
 
     // The tag number is always the first argument in a metadata initializer.
-    final tagNumber = ((node.arguments.positional[0] as ir.ConstantExpression)
-            .constant as ir.DoubleConstant)
-        .value
-        .toInt();
+    final tagNumber =
+        ((node.arguments.positional[0] as ir.ConstantExpression).constant
+                as ir.DoubleConstant)
+            .value
+            .toInt();
 
     // Iterate through all the accessors and find ones which are annotated
     // with a matching tag number. These are the accessors that the current
@@ -224,8 +238,12 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
         }
       }
     }
-    return ConditionalImpactData(accessors, _impactData!,
-        original: node, replacement: _buildProtobufMetadataPlaceholder(node));
+    return ConditionalImpactData(
+      accessors,
+      _impactData!,
+      original: node,
+      replacement: _buildProtobufMetadataPlaceholder(node),
+    );
   }
 }
 

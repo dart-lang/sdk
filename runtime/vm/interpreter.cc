@@ -1525,11 +1525,10 @@ bool Interpreter::AllocateClosure(Thread* thread,
   if (TryAllocate(thread, kClosureCid, instance_size,
                   reinterpret_cast<ObjectPtr*>(&result))) {
     uword start = UntaggedObject::ToAddr(result);
-    ObjectPtr null_value = Object::null();
-    for (intptr_t offset = sizeof(UntaggedInstance); offset < instance_size;
-         offset += kWordSize) {
-      *reinterpret_cast<ObjectPtr*>(start + offset) = null_value;
-    }
+    Object::InitializeObject(start, kClosureCid, instance_size,
+                             Closure::ContainsCompressedPointers(),
+                             Object::from_offset<Closure>(),
+                             Object::to_offset<Closure>());
     SP[0] = result;
     return true;
   } else {
@@ -2472,8 +2471,8 @@ SwitchDispatch:
     TypeArgumentsPtr type_args = TypeArguments::RawCast(SP[-1]);
     if (LIKELY(InterpreterHelpers::IsAllocateFinalized(cls))) {
       const intptr_t class_id = cls->untag()->id_;
-      const intptr_t instance_size = cls->untag()->host_instance_size_in_words_
-                                     << kWordSizeLog2;
+      const intptr_t instance_size =
+          cls->untag()->host_instance_size_in_words_ * kCompressedWordSize;
       ObjectPtr result;
       if (TryAllocate(thread, class_id, instance_size, &result)) {
         uword start = UntaggedObject::ToAddr(result);

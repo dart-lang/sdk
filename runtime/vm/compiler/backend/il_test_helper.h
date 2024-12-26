@@ -81,8 +81,6 @@ class TestPipeline : public ValueObject {
                         is_optimizing,
                         CompilerState::ShouldTrace(function)),
         hierarchy_info_(thread_),
-        speculative_policy_(std::unique_ptr<SpeculativeInliningPolicy>(
-            new SpeculativeInliningPolicy(/*enable_suppresson=*/false))),
         mode_(mode),
         flow_graph_(nullptr),
         function_(function),
@@ -96,8 +94,6 @@ class TestPipeline : public ValueObject {
                         /*is_optimizing=*/true,
                         CompilerTracing::kOff),
         hierarchy_info_(thread_),
-        speculative_policy_(std::unique_ptr<SpeculativeInliningPolicy>(
-            new SpeculativeInliningPolicy(/*enable_suppresson=*/false))),
         mode_(mode),
         flow_graph_(fn()),
         function_(flow_graph_->function()),
@@ -121,7 +117,6 @@ class TestPipeline : public ValueObject {
   Thread* thread_;
   CompilerState compiler_state_;
   HierarchyInfo hierarchy_info_;
-  std::unique_ptr<SpeculativeInliningPolicy> speculative_policy_;
   CompilerPass::PipelineMode mode_;
   ZoneGrowableArray<const ICData*>* ic_data_array_ = nullptr;
   CompilerPassState* pass_state_ = nullptr;

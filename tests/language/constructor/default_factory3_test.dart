@@ -15,7 +15,9 @@ class Foo extends Bar {}
 class Bar {}
 
 class _AImpl<T extends Foo> implements A<T> {
-  factory _AImpl() { return _AImpl._(); }
+  factory _AImpl() {
+    return _AImpl._();
+  }
 
   _AImpl._();
 }

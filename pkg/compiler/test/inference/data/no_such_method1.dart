@@ -6,16 +6,17 @@
 class A {
   /*member: A.noSuchMethod:[exact=JSUInt31]*/
   noSuchMethod(
-          /*spec.[null|subclass=Object]*/
-          /*prod.[exact=JSInvocationMirror]*/
-          im) =>
-      42;
+    /*spec.[null|subclass=Object]*/
+    /*prod.[exact=JSInvocationMirror]*/
+    im,
+  ) => 42;
 }
 
 /*member: B.:[exact=B]*/
 class B extends A {
   /*member: B.foo:[exact=JSUInt31]*/
-  /*invoke: [subclass=B]*/ foo();
+  /*invoke: [subclass=B]*/
+  foo();
 }
 
 /*member: C.:[exact=C]*/
@@ -25,7 +26,8 @@ class C extends B {
 }
 
 /*member: a:[null|subclass=B]*/
-dynamic a = [new B(), C()]
+dynamic a =
+    [new B(), C()]
     /*Container([exact=JSExtendableArray], element: [subclass=B], length: 2)*/
     [0];
 

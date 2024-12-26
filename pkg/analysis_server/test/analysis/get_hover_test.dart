@@ -1582,6 +1582,70 @@ void f() {
     expect(hover.staticType, 'int? Function(double?)');
   }
 
+  Future<void> test_nullAwareElement_inList() async {
+    newFile(testFilePath, '''
+void f(int? x) {
+  [?x];
+}
+''');
+    var hover = await prepareHover('x];');
+    expect(hover.containingLibraryName, isNull);
+    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.dartdoc, isNull);
+    expect(hover.elementDescription, 'int? x');
+    expect(hover.elementKind, 'parameter');
+    expect(hover.staticType, 'int?');
+  }
+
+  Future<void> test_nullAwareElement_inSet() async {
+    newFile(testFilePath, '''
+void f(int? x) {
+  {?x};
+}
+''');
+    var hover = await prepareHover('x};');
+    expect(hover.containingLibraryName, isNull);
+    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.dartdoc, isNull);
+    expect(hover.elementDescription, 'int? x');
+    expect(hover.elementKind, 'parameter');
+    expect(hover.staticType, 'int?');
+  }
+
+  Future<void> test_nullAwareKey_inMap() async {
+    newFile(testFilePath, '''
+void f(int? x) {
+  {?x: ""};
+}
+''');
+    var hover = await prepareHover('x: ');
+    expect(hover.containingLibraryName, isNull);
+    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.dartdoc, isNull);
+    expect(hover.elementDescription, 'int? x');
+    expect(hover.elementKind, 'parameter');
+    expect(hover.staticType, 'int?');
+  }
+
+  Future<void> test_nullAwareValue_inMap() async {
+    newFile(testFilePath, '''
+void f(int? x) {
+  {"": ?x};
+}
+''');
+    var hover = await prepareHover('x};');
+    expect(hover.containingLibraryName, isNull);
+    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.dartdoc, isNull);
+    expect(hover.elementDescription, 'int? x');
+    expect(hover.elementKind, 'parameter');
+    expect(hover.staticType, 'int?');
+  }
+
   Future<void> test_parameter_declaration_fieldFormal() async {
     newFile(testFilePath, '''
 class A {

@@ -41,7 +41,7 @@ class EntityDataMap<K extends EntityMapKey, V extends Object> {
   }
 
   /// Calls [f] for each non-null entity with its corresponding data object.
-  void forEach(void f(K entity, V data)) {
+  void forEach(void Function(K entity, V data) f) {
     // Copy the length in case the list is modified during the loop.
     int length = _list.length;
     for (int i = 0; i < length; i++) {
@@ -55,8 +55,11 @@ class EntityDataMap<K extends EntityMapKey, V extends Object> {
 
 /// Index based of entities of type [K] with a corresponding data object of
 /// type [V] and an environment of type [Env].
-class EntityDataEnvMap<K extends EntityMapKey, V extends Object,
-    Env extends Object> {
+class EntityDataEnvMap<
+  K extends EntityMapKey,
+  V extends Object,
+  Env extends Object
+> {
   final List<(K, V, Env)?> _list = [];
   int _length = 0;
   int get length => _length;
@@ -77,7 +80,10 @@ class EntityDataEnvMap<K extends EntityMapKey, V extends Object,
   /// The index of [entity] is set to match its index in the entity, data and
   /// environment lists in this map.
   K0 register<K0 extends K, V0 extends V, Env0 extends Env>(
-      K0 entity, V0 data, Env0 env) {
+    K0 entity,
+    V0 data,
+    Env0 env,
+  ) {
     entity._index = _list.length;
     _list.add((entity, data, env));
     _length++;
@@ -94,7 +100,7 @@ class EntityDataEnvMap<K extends EntityMapKey, V extends Object,
 
   /// Calls [f] for each non-null entity with its corresponding data object and
   /// environment.
-  void forEach(void f(K entity, V data, Env env)) {
+  void forEach(void Function(K entity, V data, Env env) f) {
     // Copy the length in case the list is modified during the loop.
     int length = _list.length;
     for (int i = 0; i < length; i++) {

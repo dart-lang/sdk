@@ -182,7 +182,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
         fileState: resolvedUnit.fileState,
         filePath: resolvedUnit.path,
         fileContent: resolvedUnit.content,
-        unitElement: resolvedUnit.unitElement,
+        libraryFragment: resolvedUnit.unitElement,
         enclosingNode: enclosingNode,
         offset: offset,
         unit: resolvedUnit.parsedUnit,

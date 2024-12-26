@@ -26,10 +26,13 @@ main(List<String> args) {
 runTests(List<String> args, [int? shardIndex]) {
   asyncTest(() async {
     Directory dataDir = Directory.fromUri(Platform.script.resolve('emission'));
-    await checkTests(dataDir, const RtiEmissionDataComputer(),
-        args: args,
-        shardIndex: shardIndex ?? 0,
-        shards: shardIndex != null ? 4 : 1);
+    await checkTests(
+      dataDir,
+      const RtiEmissionDataComputer(),
+      args: args,
+      shardIndex: shardIndex ?? 0,
+      shards: shardIndex != null ? 4 : 1,
+    );
   });
 }
 
@@ -109,26 +112,40 @@ class RtiEmissionDataComputer extends DataComputer<String> {
   const RtiEmissionDataComputer();
 
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool verbose = false}) {
+  void computeMemberData(
+    Compiler compiler,
+    MemberEntity member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool verbose = false,
+  }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    RtiEmissionIrComputer(compiler.reporter, actualMap, elementMap, compiler,
-            closedWorld.closureDataLookup)
-        .run(definition.node);
+    RtiEmissionIrComputer(
+      compiler.reporter,
+      actualMap,
+      elementMap,
+      compiler,
+      closedWorld.closureDataLookup,
+    ).run(definition.node);
   }
 
   @override
   void computeClassData(
-      Compiler compiler, ClassEntity cls, Map<Id, ActualData<String>> actualMap,
-      {bool verbose = false}) {
+    Compiler compiler,
+    ClassEntity cls,
+    Map<Id, ActualData<String>> actualMap, {
+    bool verbose = false,
+  }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
-    RtiEmissionIrComputer(compiler.reporter, actualMap, elementMap, compiler,
-            closedWorld.closureDataLookup)
-        .computeForClass(elementMap.getClassDefinition(cls).node as ir.Class);
+    RtiEmissionIrComputer(
+      compiler.reporter,
+      actualMap,
+      elementMap,
+      compiler,
+      closedWorld.closureDataLookup,
+    ).computeForClass(elementMap.getClassDefinition(cls).node as ir.Class);
   }
 
   @override
@@ -143,12 +160,12 @@ class RtiEmissionIrComputer extends IrDataExtractor<String>
   final Compiler compiler;
 
   RtiEmissionIrComputer(
-      DiagnosticReporter reporter,
-      Map<Id, ActualData<String>> actualMap,
-      this._elementMap,
-      this.compiler,
-      this._closureDataLookup)
-      : super(reporter, actualMap);
+    DiagnosticReporter reporter,
+    Map<Id, ActualData<String>> actualMap,
+    this._elementMap,
+    this.compiler,
+    this._closureDataLookup,
+  ) : super(reporter, actualMap);
 
   @override
   String computeClassValue(Id id, ir.Class node) {
@@ -163,8 +180,9 @@ class RtiEmissionIrComputer extends IrDataExtractor<String>
   @override
   String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info =
-          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(
+        node as ir.LocalFunction,
+      );
       return getMemberValue(info.callMethod!);
     }
     return null;

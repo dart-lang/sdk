@@ -36,19 +36,28 @@ main() {
         load("non_existing.js");
       }
     }
-  """
+  """,
   ]);
 
   asyncStart();
-  lib.loadLibrary().then(/*closure_unit=main{}*/ (_) {
-    Expect.fail("Library should not have loaded");
-  }, onError: /*closure_unit=main{}*/ (error) {
-    lib.loadLibrary().then(/*closure_unit=main{}*/ (_) {
-      Expect.equals("loaded", lib.foo());
-    }, onError: /*closure_unit=main{}*/ (error) {
-      Expect.fail("Library should have loaded this time");
-    }).whenComplete(/*closure_unit=main{}*/ () {
-      asyncEnd();
-    });
-  });
+  lib.loadLibrary().then(
+    /*closure_unit=main{}*/ (_) {
+      Expect.fail("Library should not have loaded");
+    },
+    onError: /*closure_unit=main{}*/ (error) {
+      lib
+          .loadLibrary()
+          .then(
+            /*closure_unit=main{}*/ (_) {
+              Expect.equals("loaded", lib.foo());
+            },
+            onError: /*closure_unit=main{}*/ (error) {
+              Expect.fail("Library should have loaded this time");
+            },
+          )
+          .whenComplete(/*closure_unit=main{}*/ () {
+            asyncEnd();
+          });
+    },
+  );
 }

@@ -721,7 +721,7 @@ class GenericMixinProto extends Proto {
   @override
   Proto? resolve() {
     List<TypeAnnotation>? newTypeArguments =
-    typeArguments.resolve((a) => a.resolve());
+        typeArguments.resolve((a) => a.resolve());
     return newTypeArguments == null
         ? null
         : new GenericMixinProto(reference, scope, newTypeArguments);

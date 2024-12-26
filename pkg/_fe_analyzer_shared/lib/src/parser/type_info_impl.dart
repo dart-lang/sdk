@@ -1327,7 +1327,10 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
           typeInfo = computeType(next, /* required = */ true, inDeclaration);
         }
         if (typeInfo == noType) {
-          if (next == start && !inDeclaration && !isCloser(next.next!)) {
+          if (next == start &&
+              !inDeclaration &&
+              !isCloser(next.next!) &&
+              !next.next!.isA(TokenType.COMMA)) {
             return noTypeParamOrArg;
           }
           if (!next.next!.isA(TokenType.COMMA)) {

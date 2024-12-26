@@ -14,8 +14,12 @@ import 'package:source_maps/source_maps.dart';
 /// the outputPath directory. It is also expected that there is a "js.js.map"
 /// file. It is furthermore expected that the js has been compiled from a file
 /// in the same folder called test.dart.
-ProcessResult runD8AndStep(String outputPath, String testFileName,
-    AnnotatedCode code, List<String> scriptD8Command) {
+ProcessResult runD8AndStep(
+  String outputPath,
+  String testFileName,
+  AnnotatedCode code,
+  List<String> scriptD8Command,
+) {
   var outputFile = path.join(outputPath, 'js.js');
   var sourcemapText = File('$outputFile.map').readAsStringSync();
   SingleMapping sourceMap = parseSingleMapping(jsonDecode(sourcemapText));
@@ -24,31 +28,44 @@ ProcessResult runD8AndStep(String outputPath, String testFileName,
       .map((entry) => entry.entries.map((entry) => entry.sourceLine).toSet())
       .fold(<int?>{}, (prev, e) => prev..addAll(e));
 
-  for (Annotation annotation
-      in code.annotations.where((a) => a.text.trim() == 'nm')) {
+  for (Annotation annotation in code.annotations.where(
+    (a) => a.text.trim() == 'nm',
+  )) {
     if (mappedToLines.contains(annotation.lineNo - 1)) {
-      fail('Was not allowed to have a mapping to line '
-          '${annotation.lineNo}, but did.\n'
-          'Sourcemap looks like this (note 0-indexed):\n'
-          '${sourceMap.debugString}');
+      fail(
+        'Was not allowed to have a mapping to line '
+        '${annotation.lineNo}, but did.\n'
+        'Sourcemap looks like this (note 0-indexed):\n'
+        '${sourceMap.debugString}',
+      );
     }
   }
 
   List<String?> breakpoints = [];
   // Annotations are 1-based, js breakpoints are 0-based.
-  for (Annotation breakAt
-      in code.annotations.where((a) => a.text.trim() == 'bl')) {
-    breakpoints
-        .add(_getJsBreakpointLine(testFileName, sourceMap, breakAt.lineNo - 1));
+  for (Annotation breakAt in code.annotations.where(
+    (a) => a.text.trim() == 'bl',
+  )) {
+    breakpoints.add(
+      _getJsBreakpointLine(testFileName, sourceMap, breakAt.lineNo - 1),
+    );
   }
-  for (Annotation breakAt
-      in code.annotations.where((a) => a.text.trim().startsWith('bc:'))) {
-    breakpoints.add(_getJsBreakpointLineAndColumn(
-        testFileName, sourceMap, breakAt.lineNo - 1, breakAt.columnNo - 1));
+  for (Annotation breakAt in code.annotations.where(
+    (a) => a.text.trim().startsWith('bc:'),
+  )) {
+    breakpoints.add(
+      _getJsBreakpointLineAndColumn(
+        testFileName,
+        sourceMap,
+        breakAt.lineNo - 1,
+        breakAt.columnNo - 1,
+      ),
+    );
   }
 
   File inspectorFile = File.fromUri(
-      sdkRoot!.uri.resolve('pkg/sourcemap_testing/lib/src/js/inspector.js'));
+    sdkRoot!.uri.resolve('pkg/sourcemap_testing/lib/src/js/inspector.js'),
+  );
   if (!inspectorFile.existsSync()) throw "Couldn't find 'inspector.js'";
   var outInspectorPath = path.join(outputPath, 'inspector.js');
   inspectorFile.copySync(outInspectorPath);
@@ -65,15 +82,22 @@ ProcessResult runD8AndStep(String outputPath, String testFileName,
 /// the outputPath directory. It is also expected that there is a "js.js.map"
 /// file. It is furthermore expected that the js has been compiled from a file
 /// in the same folder called test.dart.
-void checkD8Steps(String outputPath, List<String> d8Output, AnnotatedCode code,
-    {bool debug = false}) {
+void checkD8Steps(
+  String outputPath,
+  List<String> d8Output,
+  AnnotatedCode code, {
+  bool debug = false,
+}) {
   var outputFilename = 'js.js';
   var outputFile = path.join(outputPath, outputFilename);
   var sourcemapText = File('$outputFile.map').readAsStringSync();
   SingleMapping sourceMap = parseSingleMapping(jsonDecode(sourcemapText));
 
-  List<List<_DartStackTraceDataEntry>> result =
-      _extractStackTraces(d8Output, sourceMap, outputFilename);
+  List<List<_DartStackTraceDataEntry>> result = _extractStackTraces(
+    d8Output,
+    sourceMap,
+    outputFilename,
+  );
 
   List<_DartStackTraceDataEntry> trace =
       result.map((entry) => entry.first).toList();
@@ -84,16 +108,19 @@ void checkD8Steps(String outputPath, List<String> d8Output, AnnotatedCode code,
 
   Set<int> recordStopLines =
       trace.where((entry) => !entry.isError).map((entry) => entry.line).toSet();
-  Set<String> recordStopLineColumns = trace
-      .where((entry) => !entry.isError)
-      .map((entry) => '${entry.line}:${entry.column}')
-      .toSet();
+  Set<String> recordStopLineColumns =
+      trace
+          .where((entry) => !entry.isError)
+          .map((entry) => '${entry.line}:${entry.column}')
+          .toSet();
 
   List<String?> expectedStops = [];
-  for (Annotation annotation in code.annotations.where((annotation) =>
-      annotation.text.trim().startsWith('s:') ||
-      annotation.text.trim().startsWith('sl:') ||
-      annotation.text.trim().startsWith('bc:'))) {
+  for (Annotation annotation in code.annotations.where(
+    (annotation) =>
+        annotation.text.trim().startsWith('s:') ||
+        annotation.text.trim().startsWith('sl:') ||
+        annotation.text.trim().startsWith('bc:'),
+  )) {
     String text = annotation.text.trim();
     int stopNum = int.parse(text.substring(text.indexOf(':') + 1));
     if (expectedStops.length < stopNum) expectedStops.length = stopNum;
@@ -107,8 +134,9 @@ void checkD8Steps(String outputPath, List<String> d8Output, AnnotatedCode code,
 
   List<List<String>?> noBreaksStart = [];
   List<List<String>?> noBreaksEnd = [];
-  for (Annotation annotation in code.annotations
-      .where((annotation) => annotation.text.trim().startsWith('nbb:'))) {
+  for (Annotation annotation in code.annotations.where(
+    (annotation) => annotation.text.trim().startsWith('nbb:'),
+  )) {
     String text = annotation.text.trim();
     var split = text.split(':');
     int stopNum1 = int.parse(split[1]);
@@ -120,24 +148,36 @@ void checkD8Steps(String outputPath, List<String> d8Output, AnnotatedCode code,
   }
 
   _checkRecordedStops(
-      recordStops, expectedStops, noBreaksStart, noBreaksEnd, debug);
+    recordStops,
+    expectedStops,
+    noBreaksStart,
+    noBreaksEnd,
+    debug,
+  );
 
-  for (Annotation annotation in code.annotations
-      .where((annotation) => annotation.text.trim() == 'nb')) {
+  for (Annotation annotation in code.annotations.where(
+    (annotation) => annotation.text.trim() == 'nb',
+  )) {
     // Check that we didn't break where we're not allowed to.
     if (recordStopLines.contains(annotation.lineNo)) {
-      fail('Was not allowed to stop on line ${annotation.lineNo}, but did!'
-          '  Actual line stops: $recordStopLines${_debugHint(debug)}');
+      fail(
+        'Was not allowed to stop on line ${annotation.lineNo}, but did!'
+        '  Actual line stops: $recordStopLines${_debugHint(debug)}',
+      );
     }
   }
-  for (Annotation annotation in code.annotations
-      .where((annotation) => annotation.text.trim() == 'nbc')) {
+  for (Annotation annotation in code.annotations.where(
+    (annotation) => annotation.text.trim() == 'nbc',
+  )) {
     // Check that we didn't break where we're not allowed to.
-    if (recordStopLineColumns
-        .contains('${annotation.lineNo}:${annotation.columnNo}')) {
-      fail('Was not allowed to stop on line ${annotation.lineNo} '
-          'column ${annotation.columnNo}, but did!'
-          '  Actual line stops: $recordStopLineColumns${_debugHint(debug)}');
+    if (recordStopLineColumns.contains(
+      '${annotation.lineNo}:${annotation.columnNo}',
+    )) {
+      fail(
+        'Was not allowed to stop on line ${annotation.lineNo} '
+        'column ${annotation.columnNo}, but did!'
+        '  Actual line stops: $recordStopLineColumns${_debugHint(debug)}',
+      );
     }
   }
 
@@ -147,11 +187,12 @@ void checkD8Steps(String outputPath, List<String> d8Output, AnnotatedCode code,
 }
 
 void _checkRecordedStops(
-    List<String> recordStops,
-    List<String?> expectedStops,
-    List<List<String>?> noBreaksStart,
-    List<List<String>?> noBreaksEnd,
-    bool debug) {
+  List<String> recordStops,
+  List<String?> expectedStops,
+  List<List<String>?> noBreaksStart,
+  List<List<String>?> noBreaksEnd,
+  bool debug,
+) {
   // We want to find all expected lines in recorded lines in order, but allow
   // more in between in the recorded lines.
   // noBreaksStart and noBreaksStart gives instructions on what's *NOT* allowed
@@ -193,22 +234,29 @@ void _checkRecordedStops(
         //
         // Also we add 1 to expectedIndex, because the stop annotations are
         // 1-based in the source files (e.g. `/*s:1*/` is expectedIndex 0)
-        print("Skipping stop `$recorded` that didn't match expected stop "
-            '${expectedIndex + 1} `${expectedStops[expectedIndex]}`');
+        print(
+          "Skipping stop `$recorded` that didn't match expected stop "
+          '${expectedIndex + 1} `${expectedStops[expectedIndex]}`',
+        );
       }
-      if (aliveNoBreaks
-          .contains("${(recorded.split(":")..removeLast()).join(":")}:")) {
-        fail("Break '$recorded' was found when it wasn't allowed "
-            '(js step $stopNumber, after stop ${expectedIndex + 1}). '
-            'This can happen when an expected stop was not matched'
-            '${_debugHint(debug)}.');
+      if (aliveNoBreaks.contains(
+        "${(recorded.split(":")..removeLast()).join(":")}:",
+      )) {
+        fail(
+          "Break '$recorded' was found when it wasn't allowed "
+          '(js step $stopNumber, after stop ${expectedIndex + 1}). '
+          'This can happen when an expected stop was not matched'
+          '${_debugHint(debug)}.',
+        );
       }
     }
   }
   if (expectedIndex != expectedStops.length) {
     // Didn't find everything.
-    fail('Expected to find $expectedStops but found $recordStops'
-        '${_debugHint(debug)}');
+    fail(
+      'Expected to find $expectedStops but found $recordStops'
+      '${_debugHint(debug)}',
+    );
   }
 }
 
@@ -221,10 +269,12 @@ String _debugHint(bool debug) {
 
 void _debugPrint(List<_DartStackTraceDataEntry> trace, String outputPath) {
   StringBuffer sb = StringBuffer();
-  var jsFile =
-      File(path.join(outputPath, 'js.js')).readAsStringSync().split('\n');
-  var dartFile =
-      File(path.join(outputPath, 'test.dart')).readAsStringSync().split('\n');
+  var jsFile = File(
+    path.join(outputPath, 'js.js'),
+  ).readAsStringSync().split('\n');
+  var dartFile = File(
+    path.join(outputPath, 'test.dart'),
+  ).readAsStringSync().split('\n');
 
   List<String> getSnippet(List<String> data, int line, int column) {
     List<String> result = List<String>.filled(5, '');
@@ -260,8 +310,11 @@ void _debugPrint(List<_DartStackTraceDataEntry> trace, String outputPath) {
       continue;
     }
     var jsSnippet = getSnippet(jsFile, trace[i].jsLine, trace[i].jsColumn);
-    var dartSnippet =
-        getSnippet(dartFile, trace[i].line - 1, trace[i].column - 1);
+    var dartSnippet = getSnippet(
+      dartFile,
+      trace[i].line - 1,
+      trace[i].column - 1,
+    );
     var view = sideBySide(jsSnippet, dartSnippet, 50);
     sb.writeAll(view, '\n');
   }
@@ -270,7 +323,10 @@ void _debugPrint(List<_DartStackTraceDataEntry> trace, String outputPath) {
 }
 
 List<List<_DartStackTraceDataEntry>> _extractStackTraces(
-    List<String> lines, SingleMapping sourceMap, String outputFilename) {
+  List<String> lines,
+  SingleMapping sourceMap,
+  String outputFilename,
+) {
   List<List<_DartStackTraceDataEntry>> result = [];
   bool inStackTrace = false;
   List<String> currentStackTrace = <String>[];
@@ -279,7 +335,8 @@ List<List<_DartStackTraceDataEntry>> _extractStackTraces(
       inStackTrace = true;
     } else if (line.trim() == '--- Debugger stacktrace end ---') {
       result.add(
-          _extractStackTrace(currentStackTrace, sourceMap, outputFilename));
+        _extractStackTrace(currentStackTrace, sourceMap, outputFilename),
+      );
       currentStackTrace.clear();
       inStackTrace = false;
     } else if (inStackTrace) {
@@ -290,7 +347,10 @@ List<List<_DartStackTraceDataEntry>> _extractStackTraces(
 }
 
 List<_DartStackTraceDataEntry> _extractStackTrace(
-    List<String> js, SingleMapping sourceMap, String wantedFile) {
+  List<String> js,
+  SingleMapping sourceMap,
+  String wantedFile,
+) {
   List<_DartStackTraceDataEntry> result = [];
   for (String line in js) {
     if (!line.contains('$wantedFile:')) {
@@ -299,8 +359,9 @@ List<_DartStackTraceDataEntry> _extractStackTrace(
     }
     Iterable<Match> ms = RegExp(r'(\d+):(\d+)').allMatches(line);
     if (ms.isEmpty) {
-      result.add(_DartStackTraceDataEntry.error(
-          "Line and column not found for '$line'"));
+      result.add(
+        _DartStackTraceDataEntry.error("Line and column not found for '$line'"),
+      );
       continue;
     }
     Match m = ms.first;
@@ -308,19 +369,34 @@ List<_DartStackTraceDataEntry> _extractStackTrace(
     int c = int.parse(m.group(2)!);
     SourceMapSpan? span = _getColumnOrPredecessor(sourceMap, l, c);
     if (span?.start == null) {
-      result.add(_DartStackTraceDataEntry.errorWithJsPosition(
-          "Source map not found for '$line'", l, c));
+      result.add(
+        _DartStackTraceDataEntry.errorWithJsPosition(
+          "Source map not found for '$line'",
+          l,
+          c,
+        ),
+      );
       continue;
     }
     var file = span!.sourceUrl?.pathSegments.last ?? '(unknown file)';
-    result.add(_DartStackTraceDataEntry(
-        file, span.start.line + 1, span.start.column + 1, l, c));
+    result.add(
+      _DartStackTraceDataEntry(
+        file,
+        span.start.line + 1,
+        span.start.column + 1,
+        l,
+        c,
+      ),
+    );
   }
   return result;
 }
 
 SourceMapSpan? _getColumnOrPredecessor(
-    SingleMapping sourceMap, int line, int column) {
+  SingleMapping sourceMap,
+  int line,
+  int column,
+) {
   SourceMapSpan? span = sourceMap.spanFor(line, column);
   if (span == null && line > 0) {
     span = sourceMap.spanFor(line - 1, 999999);
@@ -337,19 +413,25 @@ class _DartStackTraceDataEntry {
   final int jsColumn;
 
   _DartStackTraceDataEntry(
-      this.file, this.line, this.column, this.jsLine, this.jsColumn)
-      : errorString = null;
+    this.file,
+    this.line,
+    this.column,
+    this.jsLine,
+    this.jsColumn,
+  ) : errorString = null;
   _DartStackTraceDataEntry.error(this.errorString)
-      : file = null,
-        line = -1,
-        column = -1,
-        jsLine = -1,
-        jsColumn = -1;
+    : file = null,
+      line = -1,
+      column = -1,
+      jsLine = -1,
+      jsColumn = -1;
   _DartStackTraceDataEntry.errorWithJsPosition(
-      this.errorString, this.jsLine, this.jsColumn)
-      : file = null,
-        line = -1,
-        column = -1;
+    this.errorString,
+    this.jsLine,
+    this.jsColumn,
+  ) : file = null,
+      line = -1,
+      column = -1;
 
   bool get isError => errorString != null;
 
@@ -371,7 +453,10 @@ class _PointMapping {
 /// The "magic 4" below is taken from
 /// https://github.com/ChromeDevTools/devtools-frontend/blob/fa18d70a995f06cb73365b2e5b8ae974cf60bd3a/front_end/sources/JavaScriptSourceFrame.js#L1520-L1523
 String? _getJsBreakpointLine(
-    String testFileName, SingleMapping sourceMap, int breakOnLine) {
+  String testFileName,
+  SingleMapping sourceMap,
+  int breakOnLine,
+) {
   List<_PointMapping> mappingsOnLines = [];
   for (var line in sourceMap.lines) {
     for (var entry in line.entries) {
@@ -384,7 +469,8 @@ String? _getJsBreakpointLine(
           sourceUrlId != null &&
           sourceMap.urls[sourceUrlId] == testFileName) {
         mappingsOnLines.add(
-            _PointMapping(sourceLine, sourceColumn, line.line, entry.column));
+          _PointMapping(sourceLine, sourceColumn, line.line, entry.column),
+        );
       }
     }
   }
@@ -405,8 +491,12 @@ String? _getJsBreakpointLine(
 }
 
 /// Input and output is expected to be 0-based.
-String? _getJsBreakpointLineAndColumn(String testFileName,
-    SingleMapping sourceMap, int breakOnLine, int breakOnColumn) {
+String? _getJsBreakpointLineAndColumn(
+  String testFileName,
+  SingleMapping sourceMap,
+  int breakOnLine,
+  int breakOnColumn,
+) {
   for (var line in sourceMap.lines) {
     for (var entry in line.entries) {
       if (entry.sourceLine == breakOnLine &&
@@ -420,8 +510,12 @@ String? _getJsBreakpointLineAndColumn(String testFileName,
   return null;
 }
 
-ProcessResult _runD8(String outInspectorPath, List<String> scriptD8Command,
-    String debugAction, List<String?> breakpoints) {
+ProcessResult _runD8(
+  String outInspectorPath,
+  List<String> scriptD8Command,
+  String debugAction,
+  List<String?> breakpoints,
+) {
   var outInspectorPathRelative = path.relative(outInspectorPath);
   ProcessResult runResult = Process.runSync(d8Executable, [
     '--enable-inspector',
@@ -429,7 +523,7 @@ ProcessResult _runD8(String outInspectorPath, List<String> scriptD8Command,
     ...scriptD8Command,
     '--',
     debugAction,
-    ...breakpoints.nonNulls
+    ...breakpoints.nonNulls,
   ]);
   if (runResult.exitCode != 0) {
     print(runResult.stderr);
@@ -446,7 +540,8 @@ File getD8File() {
     final arch = Abi.current().toString().split('_')[1];
     if (Platform.isWindows) {
       return File(
-          '${dir.path}${Platform.pathSeparator}d8/windows/$arch/d8.exe');
+        '${dir.path}${Platform.pathSeparator}d8/windows/$arch/d8.exe',
+      );
     } else if (Platform.isLinux) {
       return File('${dir.path}${Platform.pathSeparator}d8/linux/$arch/d8');
     } else if (Platform.isMacOS) {

@@ -64,7 +64,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     var arguments = node.argumentList.arguments;
-    if (arguments.length == 1 && arguments.first.canonicalElement2 == element) {
+    if (arguments.length == 1 && arguments.first.canonicalElement == element) {
       rule.reportLint(forEachStatement);
     }
   }
@@ -74,7 +74,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
     var arguments = node.argumentList.arguments;
     var target = node.target;
     if (arguments.length == 1 &&
-        arguments.first.canonicalElement2 == element &&
+        arguments.first.canonicalElement == element &&
         (target == null || !_ReferenceFinder(element).references(target))) {
       rule.reportLint(forEachStatement);
     }
@@ -92,7 +92,7 @@ class _ReferenceFinder extends UnifyingAstVisitor<void> {
   _ReferenceFinder(this.element);
 
   bool references(Expression target) {
-    if (target.canonicalElement2 == element) return true;
+    if (target.canonicalElement == element) return true;
 
     target.accept(this);
     return found;
@@ -102,7 +102,7 @@ class _ReferenceFinder extends UnifyingAstVisitor<void> {
   visitNode(AstNode node) {
     if (found) return;
 
-    found = node.canonicalElement2 == element;
+    found = node.canonicalElement == element;
     if (!found) {
       super.visitNode(node);
     }

@@ -27,6 +27,7 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
@@ -389,7 +390,7 @@ class FileResolver {
     return fsState.getFilesWithTopLevelDeclarations(name);
   }
 
-  Future<LibraryElement> getLibraryByUri2({
+  Future<LibraryElementImpl> getLibraryByUri2({
     required String uriStr,
     OperationPerformanceImpl? performance,
   }) async {

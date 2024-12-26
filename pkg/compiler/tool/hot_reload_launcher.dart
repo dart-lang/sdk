@@ -19,6 +19,8 @@
 /// wait for additional input. On every new-line entered (text is ignored), it
 /// will trigger a hot reload to refresh the compiler, then reexecute the
 /// compiler with the exact same args provided upfront.
+library;
+
 import 'dart:developer';
 import 'package:vm_service/vm_service_io.dart' as vm_service_io;
 
@@ -33,8 +35,14 @@ Future<void> main(List<String> args) async {
     if (io.Platform.isLinux) {
       // Calculate how long it took for the process to reach main, this gives us
       // an estimate of how long it takes to compile dart2js and load it.
-      final result = io.Process.runSync(
-          'ps', ['--pid', '${io.pid}', '-D', '%F %T', '-o', 'lstart=']);
+      final result = io.Process.runSync('ps', [
+        '--pid',
+        '${io.pid}',
+        '-D',
+        '%F %T',
+        '-o',
+        'lstart=',
+      ]);
       final startTimeString = (result.stdout as String).trim();
       final startTime = DateTime.parse(startTimeString);
       final currentTime = DateTime.now();
@@ -44,12 +52,16 @@ Future<void> main(List<String> args) async {
   } catch (e) {
     print('Warning: couldn\'t compute load time [$e]');
   }
-  final info =
-      await Service.controlWebServer(enable: true, silenceOutput: true);
+  final info = await Service.controlWebServer(
+    enable: true,
+    silenceOutput: true,
+  );
   final observatoryUri = info.serverUri;
   if (observatoryUri == null) {
-    print('Error: VM service not found. Make sure to invoke the '
-        'Dart VM with the `--enable-vm-service` flag');
+    print(
+      'Error: VM service not found. Make sure to invoke the '
+      'Dart VM with the `--enable-vm-service` flag',
+    );
     io.exit(1);
   }
   final wsUri = 'ws://${observatoryUri.authority}${observatoryUri.path}ws';
@@ -65,8 +77,10 @@ Future<void> main(List<String> args) async {
 
   Stopwatch watch = Stopwatch()..start();
   while (true) {
-    print('${'--' * 20} (iteration: $iteration, '
-        'rebuild time: ${watch.elapsedMilliseconds}ms)');
+    print(
+      '${'--' * 20} (iteration: $iteration, '
+      'rebuild time: ${watch.elapsedMilliseconds}ms)',
+    );
     iteration++;
     try {
       await p.compilerMain(args);

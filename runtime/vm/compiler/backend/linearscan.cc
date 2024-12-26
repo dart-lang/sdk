@@ -375,7 +375,7 @@ void LiveRange::AddHintedUse(intptr_t pos,
 void LiveRange::AddUseInterval(intptr_t start, intptr_t end) {
   ASSERT(start < end);
 
-  // Live ranges are being build by visiting instructions in post-order.
+  // Live ranges are being built by visiting instructions in post-order.
   // This implies that use intervals will be prepended in a monotonically
   // decreasing order.
   if (first_use_interval() != nullptr) {
@@ -391,9 +391,13 @@ void LiveRange::AddUseInterval(intptr_t start, intptr_t end) {
     } else if (start == first_use_interval()->start()) {
       // Grow first interval if necessary.
       if (end <= first_use_interval()->end()) return;
-      first_use_interval_->end_ = end;
+      first_use_interval()->end_ = end;
       return;
     } else if (end == first_use_interval()->start()) {
+      first_use_interval()->start_ = start;
+      return;
+    } else if (end == first_use_interval()->end()) {
+      ASSERT(start < first_use_interval()->start_);
       first_use_interval()->start_ = start;
       return;
     }
@@ -418,7 +422,7 @@ void LiveRange::DefineAt(intptr_t pos) {
   // definition of the value inside the same block.
   if (first_use_interval_ == nullptr) {
     // Definition without a use.
-    first_use_interval_ = new UseInterval(pos, pos + 1, nullptr);
+    first_use_interval_ = new UseInterval(pos, pos + 1, /*next=*/nullptr);
     last_use_interval_ = first_use_interval_;
   } else {
     // Shrink the first use interval. It was optimistically expanded to
@@ -634,8 +638,29 @@ void FlowGraphAllocator::BuildLiveRanges() {
     Instruction* current =
         ConnectOutgoingPhiMoves(block, current_interference_set);
 
+    CatchBlockEntryInstr* surrounding_catch_block =
+        block->InsideTryBlock()
+            ? flow_graph_.GetCatchBlockByTryIndex(block->try_index())
+            : nullptr;
     // Now process all instructions in reverse order.
     while (current != block) {
+      if (surrounding_catch_block != nullptr && current->MayThrow()) {
+        intptr_t current_pos = GetLifetimePosition(current);
+        // For every SSA value that is live in for a catch, create an interval
+        // that covers the whole current block.
+        //
+        // Note: a value "live in" for a catch has to be "live in" for this
+        // block because its definition must dominate catch.
+        for (BitVector::Iterator it(liveness_.GetLiveInSetAt(
+                 surrounding_catch_block->postorder_number()));
+             !it.Done(); it.Advance()) {
+          LiveRange* range = GetLiveRange(it.Current());
+          range->AddUseInterval(block->start_pos(), current_pos + 1);
+          // Once we extended range on seeing first MayThrow and included
+          // the whole block into the range, we are done.
+          surrounding_catch_block = nullptr;
+        }
+      }
       // Skip parallel moves that we insert while processing instructions.
       if (!current->IsParallelMove()) {
         ProcessOneInstruction(block, current, current_interference_set);
@@ -666,7 +691,6 @@ void FlowGraphAllocator::BuildLiveRanges() {
       safepoints_.Add(catch_entry);
 
       // Process initial definitions.
-      ProcessEnvironmentUses(catch_entry, catch_entry);  // For lazy deopt
       for (intptr_t i = 0; i < catch_entry->initial_definitions()->length();
            i++) {
         Definition* defn = (*catch_entry->initial_definitions())[i];
@@ -726,8 +750,7 @@ void FlowGraphAllocator::SplitInitialDefinitionAt(LiveRange* range,
 
 bool FlowGraphAllocator::IsSuspendStateParameter(Definition* defn) {
   if (auto param = defn->AsParameter()) {
-    if ((param->GetBlock()->IsOsrEntry() ||
-         param->GetBlock()->IsCatchBlockEntry()) &&
+    if ((param->GetBlock()->IsOsrEntry()) &&
         flow_graph_.SuspendStateVar() != nullptr &&
         param->env_index() == flow_graph_.SuspendStateEnvIndex()) {
       return true;
@@ -856,20 +879,12 @@ void FlowGraphAllocator::ProcessInitialDefinition(
     // a synthetic :suspend_state variable as it is already allocated
     // in AllocateSpillSlotForSuspendState.
     ASSERT(defn->IsParameter());
-    ASSERT(defn->AsParameter()->env_index() == initial_definition_index);
     const intptr_t spill_slot_index =
         -compiler::target::frame_layout.VariableIndexForFrameSlot(
             spill_slot.stack_index());
     AllocateSpillSlotForInitialDefinition(spill_slot_index, range_end);
     // Note, all incoming parameters are assumed to be tagged.
     MarkAsObjectAtSafepoints(range);
-  } else if (defn->IsConstant() && block->IsCatchBlockEntry() &&
-             (initial_definition_index >=
-              flow_graph_.num_direct_parameters())) {
-    // Constants at catch block entries consume spill slots.
-    AllocateSpillSlotForInitialDefinition(
-        initial_definition_index - flow_graph_.num_direct_parameters(),
-        range_end);
   }
 }
 
@@ -1724,6 +1739,7 @@ static ParallelMoveInstr* CreateParallelMoveBefore(Instruction* instr,
                                                    intptr_t pos) {
   ASSERT(pos > 0);
   Instruction* prev = instr->previous();
+  ASSERT(prev != nullptr);
   ParallelMoveInstr* move = prev->AsParallelMove();
   if ((move == nullptr) ||
       (FlowGraphAllocator::GetLifetimePosition(move) != pos)) {
@@ -1738,6 +1754,7 @@ static ParallelMoveInstr* CreateParallelMoveBefore(Instruction* instr,
 static ParallelMoveInstr* CreateParallelMoveAfter(Instruction* instr,
                                                   intptr_t pos) {
   Instruction* next = instr->next();
+  ASSERT(next != nullptr);
   if (next->IsParallelMove() &&
       (FlowGraphAllocator::GetLifetimePosition(next) == pos)) {
     return next->AsParallelMove();
@@ -1788,9 +1805,15 @@ void FlowGraphAllocator::NumberInstructions() {
         // predecessor block (all such blocks have at least two instructions:
         // the block entry and goto instructions.)
         Instruction* last = block->PredecessorAt(i)->last_instruction();
-        ASSERT(last->IsGoto());
-
-        ParallelMoveInstr* move = last->AsGoto()->GetParallelMove();
+        ParallelMoveInstr* move = nullptr;
+        if (last->IsGoto()) {
+          move = last->AsGoto()->GetParallelMove();
+        } else if (last->IsTryEntry()) {
+          move = last->AsTryEntry()->GetParallelMove();
+        } else {
+          UNREACHABLE();
+        }
+        ASSERT(move != nullptr);
 
         // Populate the ParallelMove with empty moves.
         for (intptr_t j = 0; j < move_count; j++) {
@@ -1820,6 +1843,11 @@ BlockEntryInstr* FlowGraphAllocator::BlockEntryAt(intptr_t pos) const {
 
 bool FlowGraphAllocator::IsBlockEntry(intptr_t pos) const {
   return IsInstructionStartPosition(pos) && InstructionAt(pos)->IsBlockEntry();
+}
+
+bool FlowGraphAllocator::IsCatchBlockEntry(intptr_t pos) const {
+  return IsInstructionStartPosition(pos) &&
+         InstructionAt(pos)->IsCatchBlockEntry();
 }
 
 void AllocationFinger::Initialize(LiveRange* range) {
@@ -2749,7 +2777,7 @@ bool FlowGraphAllocator::EvictIntersection(LiveRange* allocated,
 MoveOperands* FlowGraphAllocator::AddMoveAt(intptr_t pos,
                                             Location to,
                                             Location from) {
-  ASSERT(!IsBlockEntry(pos));
+  ASSERT(!IsBlockEntry(pos) || IsCatchBlockEntry(pos));
 
   // Now that the GraphEntry (B0) does no longer have any parameter instructions
   // in it so we should not attempt to add parallel moves to it.
@@ -2984,6 +3012,19 @@ void FlowGraphAllocator::PrepareForAllocation(
   }
 }
 
+static LiveRange* FindCover(LiveRange* parent, intptr_t pos) {
+  for (LiveRange* range = parent; range != nullptr;
+       range = range->next_sibling()) {
+    if (range->CanCover(pos)) {
+      return range;
+    }
+  }
+  TRACE_ALLOC(THR_Print("Range v%" Pd " is not covered at pos %" Pd "\n",
+                        parent->vreg(), pos));
+  UNREACHABLE();
+  return nullptr;
+}
+
 void FlowGraphAllocator::AllocateUnallocatedRanges() {
 #if defined(DEBUG)
   ASSERT(UnallocatedIsSorted());
@@ -3015,25 +3056,52 @@ void FlowGraphAllocator::AllocateUnallocatedRanges() {
 
   // Finish allocation.
   AdvanceActiveIntervals(kMaxPosition);
+
+  // Go through all catch_entries live ranges and ensure that all of those
+  // which have live values on registers have also spill slots allocated.
+  // When exception is thrown, live values to catch_entry blocks arrive
+  // via those spill slots.
+  for (intptr_t i = 0; i < flow_graph_.try_entries().length(); i++) {
+    auto try_entry = flow_graph_.try_entries().At(i);
+    if (try_entry == nullptr) {
+      continue;
+    }
+    CatchBlockEntryInstr* catch_entry = try_entry->catch_target();
+    BitVector* live = liveness_.GetLiveInSet(catch_entry);
+    for (BitVector::Iterator it(live); !it.Done(); it.Advance()) {
+      LiveRange* range = GetLiveRange(it.Current());
+      LiveRange* dst_cover = FindCover(range, catch_entry->start_pos());
+      Location dst = dst_cover->assigned_location();
+
+      if (TargetLocationIsSpillSlot(dst_cover, dst)) {
+        // Values are eagerly spilled. Spill slot already contains appropriate
+        // value.
+        continue;
+      }
+
+      if (dst.Equals(LocationExceptionLocation()) ||
+          dst.Equals(LocationStackTraceLocation())) {
+        continue;
+      }
+
+      if (dst.IsRegister() || dst.IsFpuRegister()) {
+        if (range->spill_slot().IsInvalid()) {
+          AllocateSpillSlotFor(range);
+          auto try_entry = catch_entry->PredecessorAt(0)->AsTryEntry();
+          auto try_body = try_entry->try_body();
+          AddMoveAt(try_body->start_pos() + 1, range->spill_slot(),
+                    range->assigned_location());
+        }
+      }
+    }
+  }
+
   TRACE_ALLOC(THR_Print("Allocation completed\n"));
 }
 
 bool FlowGraphAllocator::TargetLocationIsSpillSlot(LiveRange* range,
                                                    Location target) {
   return GetLiveRange(range->vreg())->spill_slot().Equals(target);
-}
-
-static LiveRange* FindCover(LiveRange* parent, intptr_t pos) {
-  for (LiveRange* range = parent; range != nullptr;
-       range = range->next_sibling()) {
-    if (range->CanCover(pos)) {
-      return range;
-    }
-  }
-  TRACE_ALLOC(THR_Print("Range v%" Pd " is not covered at pos %" Pd "\n",
-                        parent->vreg(), pos));
-  UNREACHABLE();
-  return nullptr;
 }
 
 static bool AreLocationsAllTheSame(const GrowableArray<Location>& locs) {
@@ -3074,12 +3142,19 @@ void FlowGraphAllocator::ResolveControlFlow() {
                             sibling->End()));
       TRACE_ALLOC(sibling->assigned_location().Print());
       TRACE_ALLOC(THR_Print("]\n"));
-      if ((range->End() == sibling->Start()) &&
-          !TargetLocationIsSpillSlot(range, sibling->assigned_location()) &&
+
+      bool constant_to_catch_block = IsCatchBlockEntry(sibling->Start()) &&
+                                     range->assigned_location().IsConstant();
+      if (((range->End() == sibling->Start()) || constant_to_catch_block) &&
+          (!TargetLocationIsSpillSlot(range, sibling->assigned_location())) &&
           !range->assigned_location().Equals(sibling->assigned_location()) &&
-          !IsBlockEntry(range->End())) {
-        AddMoveAt(sibling->Start(), sibling->assigned_location(),
-                  range->assigned_location());
+          (!IsBlockEntry(range->End()) || constant_to_catch_block)) {
+        if (IsCatchBlockEntry(sibling->Start())) {
+          ASSERT(!range->assigned_location().IsRegister());
+        }
+        AddMoveAt(
+            sibling->Start() + (IsCatchBlockEntry(sibling->Start()) ? 1 : 0),
+            sibling->assigned_location(), range->assigned_location());
       }
       range = sibling;
     }
@@ -3096,15 +3171,21 @@ void FlowGraphAllocator::ResolveControlFlow() {
   BitVector* can_emit = new BitVector(flow_graph_.zone(), 10);
   for (intptr_t i = 1; i < block_order_.length(); i++) {
     BlockEntryInstr* block = block_order_[i];
+    bool is_catch_entry = block->IsCatchBlockEntry();
     BitVector* live = liveness_.GetLiveInSet(block);
     for (BitVector::Iterator it(live); !it.Done(); it.Advance()) {
       LiveRange* range = GetLiveRange(it.Current());
       if (range->next_sibling() == nullptr) {
-        // Nothing to connect. The whole range was allocated to the same
-        // location.
         TRACE_ALLOC(
             THR_Print("range v%" Pd " has no siblings\n", range->vreg()));
-        continue;
+        if (is_catch_entry) {
+          // Incoming catch entry ranges have to be restored from the spill
+          // slots.
+        } else {
+          // Nothing to connect. The whole range was allocated to the same
+          // location.
+          continue;
+        }
       }
 
       LiveRange* dst_cover = FindCover(range, block->start_pos());
@@ -3121,6 +3202,23 @@ void FlowGraphAllocator::ResolveControlFlow() {
         // value.
         TRACE_ALLOC(
             THR_Print("  [no resolution necessary - range is spilled]\n"));
+        continue;
+      }
+
+      if (is_catch_entry) {
+        if (!dst.Equals(LocationExceptionLocation()) &&
+            !dst.Equals(LocationStackTraceLocation())) {
+          if (dst.IsRegister() || dst.IsFpuRegister()) {
+            LiveRange* parent = GetLiveRange(range->vreg());
+            ASSERT(!parent->spill_slot().IsInvalid());
+            if (!dst.Equals(parent->spill_slot())) {
+              ASSERT(!range->spill_slot().IsInvalid());
+              // Ensure register gets a value from the spill slot at the
+              // beginning of the catch block(after the catch block instr)
+              block->GetParallelMove()->AddMove(dst, parent->spill_slot());
+            }
+          }
+        }
         continue;
       }
 
@@ -3144,7 +3242,7 @@ void FlowGraphAllocator::ResolveControlFlow() {
       if ((src_locs.length() > 1) && AreLocationsAllTheSame(src_locs)) {
         if (!dst.Equals(src_locs[0])) {
           // We have a non-redundant move which potentially can be performed
-          // at the start of block, however we will only be able to check
+          // at the start of block, however we will be able to check
           // whether or not source location is alive on all incoming edges
           // only when we finish processing all live-in values.
           pending.Add(MoveOperands(dst, src_locs[0]));
@@ -3183,8 +3281,17 @@ void FlowGraphAllocator::ResolveControlFlow() {
         Location src = pending[j].src();
         for (intptr_t p = 0; p < block->PredecessorCount(); p++) {
           BlockEntryInstr* pred = block->PredecessorAt(p);
-          for (auto move :
-               pred->last_instruction()->AsGoto()->GetParallelMove()->moves()) {
+          auto last = pred->last_instruction();
+          ParallelMoveInstr* parallel_move = nullptr;
+          if (last->IsGoto()) {
+            parallel_move = last->AsGoto()->GetParallelMove();
+          } else if (last->IsTryEntry()) {
+            parallel_move = last->AsTryEntry()->GetParallelMove();
+          } else {
+            UNREACHABLE();
+          }
+          ASSERT(parallel_move != nullptr);
+          for (auto move : parallel_move->moves()) {
             if (!move->IsRedundant() && move->dest().Equals(src)) {
               can_emit->Remove(j);
               changed = true;

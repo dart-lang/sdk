@@ -4,6 +4,7 @@
 
 /// @docImport 'flow_analysis.dart';
 /// @docImport '../field_promotability.dart';
+/// @docImport '../type_inference/type_analyzer_operations.dart';
 library;
 
 /// Callback API used by flow analysis to query and manipulate the client's
@@ -83,6 +84,16 @@ abstract interface class FlowAnalysisTypeOperations<Type extends Object> {
 
   /// Returns `true` if [type] is a reference to a type parameter.
   bool isTypeParameterType(Type type);
+
+  /// Computes the nullable form of [type], in other words the least upper bound
+  /// of [type] and `Null`.
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement
+  /// [TypeAnalyzerOperations.makeNullableInternal] to receive a concrete
+  /// implementation of [makeNullable] instead of implementing [makeNullable]
+  /// directly.
+  Type makeNullable(Type type);
 
   /// Returns the non-null promoted version of [type].
   ///

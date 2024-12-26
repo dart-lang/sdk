@@ -190,7 +190,7 @@ Object anyOf(List<String> expected) => _Expectation((actual) {
       fail("Expected $actual to be one of $expected.");
     });
 
-_defaultAction() {}
+dynamic _defaultAction() {}
 
 /// One level of group() nesting to track an optional [setUp()] and [tearDown()]
 /// function for the group.

@@ -65,8 +65,10 @@ int nextDeclarationCandidate(String sources, int start) {
 ///
 /// Copied from [SingleMapping._findLine].
 TargetLineEntry? findLine(SingleMapping sourceMap, int line) {
-  int index =
-      binarySearch<TargetLineEntry>(sourceMap.lines, (e) => e.line > line);
+  int index = binarySearch<TargetLineEntry>(
+    sourceMap.lines,
+    (e) => e.line > line,
+  );
   return (index <= 0) ? null : sourceMap.lines[index - 1];
 }
 

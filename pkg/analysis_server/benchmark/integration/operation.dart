@@ -15,7 +15,7 @@ abstract class Operation {
   Future<void>? perform(Driver driver);
 }
 
-/// A [RequestOperation] sends a [JSON] request to the server.
+/// A [RequestOperation] sends a JSON request to the server.
 class RequestOperation extends Operation {
   final CommonInputConverter converter;
   final Map<String, dynamic> json;
@@ -62,7 +62,7 @@ class RequestOperation extends Operation {
   }
 }
 
-/// A [ResponseOperation] waits for a [JSON] response from the server.
+/// A [ResponseOperation] waits for a JSON response from the server.
 class ResponseOperation extends Operation {
   static final Duration responseTimeout = Duration(seconds: 60);
   final CommonInputConverter converter;

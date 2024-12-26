@@ -60,7 +60,11 @@ class ClickBuster {
     DoubleLinkedQueueEntry<num>? entry = _coordinates.firstEntry();
     while (entry != null) {
       if (_hitTest(
-          entry.element, entry.nextEntry()!.element, coord.x, coord.y)) {
+        entry.element,
+        entry.nextEntry()!.element,
+        coord.x,
+        coord.y,
+      )) {
         entry.nextEntry()!.remove();
         entry.remove();
         return;
@@ -115,7 +119,10 @@ class ClickBuster {
   /// event has preventDefault called on it.
   static void _toggleTapHighlights(bool enable) {
     document.body!.style.setProperty(
-        "-webkit-tap-highlight-color", enable ? "" : "rgba(0,0,0,0)", "");
+      "-webkit-tap-highlight-color",
+      enable ? "" : "rgba(0,0,0,0)",
+      "",
+    );
   }
 
   /// Registers new touches to create temporary "allowable zones" and registers

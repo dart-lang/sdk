@@ -66,6 +66,15 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   static bool IsExpressionTempVarUsedInRecognizedMethodFlowGraph(
       const Function& function);
 
+  // [builder] can be nullptr if there is a guarantee that there are no
+  // try_entries in the path from graph entry to osr instruction.
+  static void RelinkToOsrEntry(FlowGraphBuilder* builder,
+                               OsrEntryRelinkingInfo* info);
+
+  void RelinkToOsrEntry(OsrEntryRelinkingInfo* info) {
+    RelinkToOsrEntry(this, info);
+  }
+
  private:
   BlockEntryInstr* BuildPrologue(BlockEntryInstr* normal_entry,
                                  PrologueInfo* prologue_info);
@@ -189,7 +198,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                            intptr_t handler_index,
                            bool needs_stacktrace,
                            bool is_synthesized);
-  Fragment TryCatch(int try_handler_index);
+
+  Fragment TryEntry(int try_handler_index);
   Fragment CheckStackOverflowInPrologue(TokenPosition position);
   Fragment CloneContext(const ZoneGrowableArray<const Slot*>& context_slots);
 
@@ -605,7 +615,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   }
 
   TryCatchBlock* CurrentTryCatchBlock() const { return try_catch_block_; }
-
   void SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block);
 
   // A chained list of breakable blocks. Chaining and lookup is done by the
@@ -629,6 +638,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   CatchBlock* catch_block_;
 
   ActiveClass active_class_;
+
+  // TryEntryInstr indexed by try_index
+  GrowableArray<TryEntryInstr*> try_entries_;
 
   // Cached _PrependTypeArguments.
   Function& prepend_type_arguments_;

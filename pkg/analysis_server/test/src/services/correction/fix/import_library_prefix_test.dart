@@ -127,6 +127,29 @@ void f() {
 ''');
   }
 
+  Future<void> test_with_showCombinator_differentPrefix() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {}
+class B {}
+''');
+    await resolveTestCode(r'''
+import 'lib.dart' as lib show A;
+void f() {
+  lib.A? a;
+  lib2.B b;
+  print('$a $b');
+}
+''');
+    await assertHasFix(r'''
+import 'lib.dart' as lib show A, B;
+void f() {
+  lib.A? a;
+  lib.B b;
+  print('$a $b');
+}
+''');
+  }
+
   Future<void> test_withAnnotation() async {
     newFile('$testPackageLibPath/a.dart', '''
 class MyAnnotation {

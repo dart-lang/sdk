@@ -1,3 +1,7 @@
+// DO NOT EDIT - unless you are editing documentation as per:
+// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
+// Auto-generated dart:web_sql library.
+
 /// An API for storing data in the browser that can be queried with SQL.
 ///
 /// **Caution:** this specification is no longer actively maintained by the Web
@@ -9,6 +13,7 @@
 ///
 /// {@category Web (Legacy)}
 /// {@nodoc}
+@deprecated
 library dart.dom.web_sql;
 
 import 'dart:async';
@@ -18,11 +23,7 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JavaScriptObject;
-// DO NOT EDIT - unless you are editing documentation as per:
-// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
-// Auto-generated dart:web_sql library.
 
-@deprecated
 import 'dart:_js_helper'
     show
         applyExtension,
@@ -255,7 +256,7 @@ class SqlResultSetRowList extends JavaScriptObject
   // -- start List<Map> mixins.
   // Map is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 

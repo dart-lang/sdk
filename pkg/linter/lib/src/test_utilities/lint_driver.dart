@@ -22,11 +22,11 @@ class LintDriver {
   /// total number of files analyzed for statistics.
   final Set<String> _filesAnalyzed = {};
 
-  final LinterOptions options;
+  final LinterOptions _options;
 
   final ResourceProvider _resourceProvider;
 
-  LintDriver(this.options, this._resourceProvider);
+  LintDriver(this._options, this._resourceProvider);
 
   Future<List<AnalysisErrorInfo>> analyze(Iterable<io.File> files) async {
     AnalysisEngine.instance.instrumentationService = _StdInstrumentation();
@@ -36,7 +36,7 @@ class LintDriver {
 
     var contextCollection = AnalysisContextCollectionImpl(
       resourceProvider: _resourceProvider,
-      sdkPath: options.dartSdkPath,
+      sdkPath: _options.dartSdkPath,
       includedPaths: filesPaths,
       updateAnalysisOptions2: ({
         required analysisOptions,
@@ -46,9 +46,9 @@ class LintDriver {
         analysisOptions.lint = true;
         analysisOptions.warning = false;
         analysisOptions.lintRules =
-            options.enabledRules.toList(growable: false);
+            _options.enabledRules.toList(growable: false);
       },
-      enableLintRuleTiming: options.enableTiming,
+      enableLintRuleTiming: _options.enableTiming,
     );
 
     _filesAnalyzed.addAll(filesPaths);

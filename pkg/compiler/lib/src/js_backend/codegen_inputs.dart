@@ -16,6 +16,10 @@ class CodegenInputs {
   final Tracer tracer;
   final FixedNames fixedNames;
 
-  CodegenInputs(this.rtiSubstitutions, this.rtiRecipeEncoder, this.tracer,
-      this.fixedNames);
+  CodegenInputs(
+    this.rtiSubstitutions,
+    this.rtiRecipeEncoder,
+    this.tracer,
+    this.fixedNames,
+  );
 }

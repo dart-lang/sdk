@@ -90,37 +90,47 @@ void main() {
   GGen<int>.new.expectStaticType<Exactly<GGen<int> Function(int)>>();
   GGen<int>.named.expectStaticType<Exactly<GGen<int> Function(int)>>();
   GGenRedir<int>.new.expectStaticType<Exactly<GGenRedir<int> Function(int)>>();
-  GGenRedir<int>
-      .named
+  GGenRedir<int>.named
       .expectStaticType<Exactly<GGenRedir<int> Function(int)>>();
   GFac<int>.new.expectStaticType<Exactly<GFac<int> Function(int)>>();
   GFac<int>.named.expectStaticType<Exactly<GFac<int> Function(int)>>();
   GFacRedir<int>.new.expectStaticType<Exactly<GFacRedir<int> Function(int)>>();
-  GFacRedir<int>
-      .named
+  GFacRedir<int>.named
       .expectStaticType<Exactly<GFacRedir<int> Function(int)>>();
 
   context<GGen<int> Function(int)>(
-      GGen.new..expectStaticType<Exactly<GGen<int> Function(int)>>());
+    GGen.new..expectStaticType<Exactly<GGen<int> Function(int)>>(),
+  );
   context<GGen<int> Function(int)>(
-      GGen.named..expectStaticType<Exactly<GGen<int> Function(int)>>());
+    GGen.named..expectStaticType<Exactly<GGen<int> Function(int)>>(),
+  );
   context<GGenRedir<int> Function(int)>(
-      GGenRedir.new..expectStaticType<Exactly<GGenRedir<int> Function(int)>>());
-  context<GGenRedir<int> Function(int)>(GGenRedir.named
-    ..expectStaticType<Exactly<GGenRedir<int> Function(int)>>());
+    GGenRedir.new..expectStaticType<Exactly<GGenRedir<int> Function(int)>>(),
+  );
+  context<GGenRedir<int> Function(int)>(
+    GGenRedir.named..expectStaticType<Exactly<GGenRedir<int> Function(int)>>(),
+  );
   context<GFac<int> Function(int)>(
-      GFac.new..expectStaticType<Exactly<GFac<int> Function(int)>>());
+    GFac.new..expectStaticType<Exactly<GFac<int> Function(int)>>(),
+  );
   context<GFac<int> Function(int)>(
-      GFac.named..expectStaticType<Exactly<GFac<int> Function(int)>>());
+    GFac.named..expectStaticType<Exactly<GFac<int> Function(int)>>(),
+  );
   context<GFacRedir<int> Function(int)>(
-      GFacRedir.new..expectStaticType<Exactly<GFacRedir<int> Function(int)>>());
-  context<GFacRedir<int> Function(int)>(GFacRedir.named
-    ..expectStaticType<Exactly<GFacRedir<int> Function(int)>>());
+    GFacRedir.new..expectStaticType<Exactly<GFacRedir<int> Function(int)>>(),
+  );
+  context<GFacRedir<int> Function(int)>(
+    GFacRedir.named..expectStaticType<Exactly<GFacRedir<int> Function(int)>>(),
+  );
 
-  context<Optional<int> Function()>(Optional.new
-    ..expectStaticType<Exactly<Optional<int> Function([int, int])>>());
-  context<Optional<int> Function()>(Optional.named
-    ..expectStaticType<Exactly<Optional<int> Function({int x, int y})>>());
+  context<Optional<int> Function()>(
+    Optional.new
+      ..expectStaticType<Exactly<Optional<int> Function([int, int])>>(),
+  );
+  context<Optional<int> Function()>(
+    Optional.named
+      ..expectStaticType<Exactly<Optional<int> Function({int x, int y})>>(),
+  );
 
   // Check that tear-offs are canonicalized where possible
   // (where not instantiates with a non-constant type).
@@ -144,12 +154,18 @@ void main() {
   test<GGen<T> Function<T>(int)>(GGen.new, GGen.new, GGen.named);
   test<GGen<T> Function<T>(int)>(GGen.named, GGen.named);
   test<GGenRedir<T> Function<T>(int)>(
-      GGenRedir.new, GGenRedir.new, GGenRedir.named);
+    GGenRedir.new,
+    GGenRedir.new,
+    GGenRedir.named,
+  );
   test<GGenRedir<T> Function<T>(int)>(GGenRedir.named, GGenRedir.named);
   test<GFac<T> Function<T>(int)>(GFac.new, GFac.new, GFac.named);
   test<GFac<T> Function<T>(int)>(GFac.named, GFac.named);
   test<GFacRedir<T> Function<T>(int)>(
-      GFacRedir.new, GFacRedir.new, GFacRedir.named);
+    GFacRedir.new,
+    GFacRedir.new,
+    GFacRedir.named,
+  );
   test<GFacRedir<T> Function<T>(int)>(GFacRedir.named, GFacRedir.named);
 
   // Generic class constructors torn off with explicit instantiation
@@ -157,15 +173,25 @@ void main() {
   test<GGen<int> Function(int)>(GGen<int>.new, GGen<int>.new, GGen<int>.named);
   test<GGen<int> Function(int)>(GGen<int>.named, GGen<int>.named);
   test<GGenRedir<int> Function(int)>(
-      GGenRedir<int>.new, GGenRedir<int>.new, GGenRedir<int>.named);
+    GGenRedir<int>.new,
+    GGenRedir<int>.new,
+    GGenRedir<int>.named,
+  );
   test<GGenRedir<int> Function(int)>(
-      GGenRedir<int>.named, GGenRedir<int>.named);
+    GGenRedir<int>.named,
+    GGenRedir<int>.named,
+  );
   test<GFac<int> Function(int)>(GFac<int>.new, GFac<int>.new, GFac<int>.named);
   test<GFac<int> Function(int)>(GFac<int>.named, GFac<int>.named);
   test<GFacRedir<int> Function(int)>(
-      GFacRedir<int>.new, GFacRedir<int>.new, GFacRedir<int>.named);
+    GFacRedir<int>.new,
+    GFacRedir<int>.new,
+    GFacRedir<int>.named,
+  );
   test<GFacRedir<int> Function(int)>(
-      GFacRedir<int>.named, GFacRedir<int>.named);
+    GFacRedir<int>.named,
+    GFacRedir<int>.named,
+  );
 
   // Not equal if *different* instantiations.
   Expect.notEquals(GGen<int>.new, GGen<num>.new);

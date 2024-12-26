@@ -208,13 +208,6 @@ class LocalVariable : public ZoneAllocated {
     bitfield_ = IsInvisibleBit::update(value, bitfield_);
   }
 
-  bool is_captured_parameter() const {
-    return IsCapturedParameterBit::decode(bitfield_);
-  }
-  void set_is_captured_parameter(bool value) {
-    bitfield_ = IsCapturedParameterBit::update(value, bitfield_);
-  }
-
   bool Equals(const LocalVariable& other) const;
 
   void PrintTo(BaseTextBuffer* f,
@@ -230,10 +223,7 @@ class LocalVariable : public ZoneAllocated {
   // in the stack frame.
   using IsCapturedBit = BitField<uint32_t, bool, IsFinalBit::kNextBit, 1>;
   using IsInvisibleBit = BitField<uint32_t, bool, IsCapturedBit::kNextBit, 1>;
-  using IsCapturedParameterBit =
-      BitField<uint32_t, bool, IsInvisibleBit::kNextBit, 1>;
-  using IsLateBit =
-      BitField<uint32_t, bool, IsCapturedParameterBit ::kNextBit, 1>;
+  using IsLateBit = BitField<uint32_t, bool, IsInvisibleBit ::kNextBit, 1>;
 
   enum CovarianceMode {
     kNotCovariant,

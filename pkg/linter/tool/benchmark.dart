@@ -9,14 +9,15 @@ import 'dart:math' as math;
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/lint/util.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/extensions.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/test_utilities/analysis_error_info.dart';
-import 'package:linter/src/test_utilities/formatter.dart';
 import 'package:linter/src/test_utilities/linter_options.dart';
 import 'package:linter/src/test_utilities/test_linter.dart';
+import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 import 'lint_sets.dart';
@@ -32,6 +33,31 @@ const benchmarkRuns = 10;
 const loggedAnalyzerErrorExitCode = 63;
 
 const unableToProcessExitCode = 64;
+
+/// Collect all lintable files, recursively, under this [entityPtah] root,
+/// ignoring links.
+Iterable<File> collectFiles(String entityPtah) {
+  var files = <File>[];
+
+  var file = File(entityPtah);
+  if (file.existsSync()) {
+    files.add(file);
+  } else {
+    var directory = Directory(entityPtah);
+    if (directory.existsSync()) {
+      for (var entry
+          in directory.listSync(recursive: true, followLinks: false)) {
+        var relative = path.relative(entry.path, from: directory.path);
+
+        if (entry is File && entry.path.isLintable && !relative.isInHiddenDir) {
+          files.add(entry);
+        }
+      }
+    }
+  }
+
+  return files;
+}
 
 Future<void> lintFiles(TestLinter linter, List<File> filesToLint) async {
   // Setup an error watcher to track whether an error was logged to stderr so
@@ -181,6 +207,16 @@ int _maxSeverity(List<AnalysisErrorInfo> infos) {
       0, (value, e) => math.max(value, e.errorCode.errorSeverity.ordinal));
 }
 
+class Stat implements Comparable<Stat> {
+  final String name;
+  final int elapsed;
+
+  Stat(this.name, this.elapsed);
+
+  @override
+  int compareTo(Stat other) => other.elapsed - elapsed;
+}
+
 class _ErrorWatchingSink implements StringSink {
   bool encounteredError = false;
 
@@ -205,5 +241,46 @@ class _ErrorWatchingSink implements StringSink {
       encounteredError = true;
     }
     delegate.writeln(obj);
+  }
+}
+
+extension on String {
+  /// Whether this path is a hidden directory.
+  bool get isInHiddenDir =>
+      path.split(this).any((part) => part.startsWith('.'));
+
+  /// Whether this path is a Dart file or a Pubspec file.
+  bool get isLintable =>
+      isDartFileName(this) || isPubspecFileName(path.basename(this));
+}
+
+extension on StringSink {
+  void writeTimings(List<Stat> timings, int summaryLength) {
+    var names = timings.map((s) => s.name).toList();
+
+    var longestName =
+        names.fold<int>(0, (prev, element) => math.max(prev, element.length));
+    var longestTime = 8;
+    var tableWidth = math.max(summaryLength, longestName + longestTime);
+    var pad = tableWidth - longestName;
+    var line = ''.padLeft(tableWidth, '-');
+
+    writeln();
+    writeln(line);
+    writeln('${'Timings'.padRight(longestName)}${'ms'.padLeft(pad)}');
+    writeln(line);
+    var totalTime = 0;
+
+    timings.sort();
+    for (var stat in timings) {
+      totalTime += stat.elapsed;
+      writeln(
+          '${stat.name.padRight(longestName)}${stat.elapsed.toString().padLeft(pad)}');
+    }
+
+    writeln(line);
+    writeln(
+        '${'Total'.padRight(longestName)}${totalTime.toString().padLeft(pad)}');
+    writeln(line);
   }
 }

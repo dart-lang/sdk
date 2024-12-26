@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library ssa;
+library;
 
 import 'package:compiler/src/ssa/metrics.dart';
 
@@ -49,25 +49,35 @@ class SsaFunctionCompiler implements FunctionCompiler {
   late final CodegenInputs _codegen;
 
   SsaFunctionCompiler(
-      this._options,
-      this._reporter,
-      this._metrics,
-      JsBackendStrategy backendStrategy,
-      Measurer measurer,
-      this.sourceInformationStrategy)
-      : generator =
-            SsaCodeGeneratorTask(measurer, _options, sourceInformationStrategy),
-        _builder = SsaBuilderTask(
-            measurer, backendStrategy, sourceInformationStrategy, _metrics),
-        optimizer = SsaOptimizerTask(measurer, _options);
+    this._options,
+    this._reporter,
+    this._metrics,
+    JsBackendStrategy backendStrategy,
+    Measurer measurer,
+    this.sourceInformationStrategy,
+  ) : generator = SsaCodeGeneratorTask(
+        measurer,
+        _options,
+        sourceInformationStrategy,
+      ),
+      _builder = SsaBuilderTask(
+        measurer,
+        backendStrategy,
+        sourceInformationStrategy,
+        _metrics,
+      ),
+      optimizer = SsaOptimizerTask(measurer, _options);
 
   @override
-  void initialize(GlobalTypeInferenceResults globalInferenceResults,
-      CodegenInputs codegen) {
+  void initialize(
+    GlobalTypeInferenceResults globalInferenceResults,
+    CodegenInputs codegen,
+  ) {
     _globalInferenceResults = globalInferenceResults;
     _trivialInferenceResults = TrivialGlobalTypeInferenceResults(
-        globalInferenceResults.closedWorld,
-        _globalInferenceResults.globalLocalsMap);
+      globalInferenceResults.closedWorld,
+      _globalInferenceResults.globalLocalsMap,
+    );
     _codegen = codegen;
     _builder.onCodegenStart(globalInferenceResults.closedWorld);
   }
@@ -80,15 +90,21 @@ class SsaFunctionCompiler implements FunctionCompiler {
     // for the target function but stubs are so simple that this usually doesn't
     // produce better code. Deserializing inference results is also expensive so
     // we avoid it here.
-    final inferenceResults = member is JParameterStub
-        ? _trivialInferenceResults
-        : _globalInferenceResults;
+    final inferenceResults =
+        member is JParameterStub
+            ? _trivialInferenceResults
+            : _globalInferenceResults;
     JClosedWorld closedWorld = _globalInferenceResults.closedWorld;
 
-    CodegenRegistry registry =
-        CodegenRegistry(closedWorld.elementEnvironment, member);
+    CodegenRegistry registry = CodegenRegistry(
+      closedWorld.elementEnvironment,
+      member,
+    );
     ModularNamer namer = ModularNamerImpl(
-        registry, closedWorld.commonElements, _codegen.fixedNames);
+      registry,
+      closedWorld.commonElements,
+      _codegen.fixedNames,
+    );
     ModularEmitter emitter = ModularEmitterImpl(namer, registry, _options);
     if (member is ConstructorEntity &&
         member.enclosingClass == closedWorld.commonElements.jsNullClass) {
@@ -97,104 +113,136 @@ class SsaFunctionCompiler implements FunctionCompiler {
     }
 
     final graph = _builder.build(
-        member, inferenceResults, _codegen, registry, namer, emitter);
+      member,
+      inferenceResults,
+      _codegen,
+      registry,
+      namer,
+      emitter,
+    );
     if (graph == null) {
       return registry.close(null);
     }
 
-    optimizer.optimize(member, graph, _codegen, closedWorld, inferenceResults,
-        registry, _metrics);
+    optimizer.optimize(
+      member,
+      graph,
+      _codegen,
+      closedWorld,
+      inferenceResults,
+      registry,
+      _metrics,
+    );
     js.Expression result = generator.generateCode(
-        member, graph, _codegen, closedWorld, registry, namer, emitter);
+      member,
+      graph,
+      _codegen,
+      closedWorld,
+      registry,
+      namer,
+      emitter,
+    );
     if (graph.needsAsyncRewrite) {
       SourceInformationBuilder sourceInformationBuilder =
           sourceInformationStrategy.createBuilderForContext(member);
       result = _rewriteAsync(
-          _codegen,
-          closedWorld.commonElements,
-          closedWorld.elementEnvironment,
-          registry,
-          namer,
-          emitter,
-          member as FunctionEntity,
-          result,
-          graph.asyncElementType,
-          sourceInformationBuilder.buildAsyncBody(),
-          sourceInformationBuilder.buildAsyncExit());
-      _codegen.tracer
-          .traceJavaScriptText('JavaScript.rewrite', result.debugPrint);
+        _codegen,
+        closedWorld.commonElements,
+        closedWorld.elementEnvironment,
+        registry,
+        namer,
+        emitter,
+        member as FunctionEntity,
+        result,
+        graph.asyncElementType,
+        sourceInformationBuilder.buildAsyncBody(),
+        sourceInformationBuilder.buildAsyncExit(),
+      );
+      _codegen.tracer.traceJavaScriptText(
+        'JavaScript.rewrite',
+        result.debugPrint,
+      );
     }
     if (result.sourceInformation == null) {
       result = result.withSourceInformation(
-          sourceInformationStrategy.buildSourceMappedMarker());
+        sourceInformationStrategy.buildSourceMappedMarker(),
+      );
     }
 
     return registry.close(result as js.Fun);
   }
 
   js.Expression _rewriteAsync(
-      CodegenInputs codegen,
-      CommonElements commonElements,
-      JElementEnvironment elementEnvironment,
-      CodegenRegistry registry,
-      ModularNamer namer,
-      ModularEmitter emitter,
-      FunctionEntity element,
-      js.Expression code,
-      DartType? asyncTypeParameter,
-      SourceInformation? bodySourceInformation,
-      SourceInformation? exitSourceInformation) {
-    if (element.asyncMarker == AsyncMarker.SYNC) return code;
+    CodegenInputs codegen,
+    CommonElements commonElements,
+    JElementEnvironment elementEnvironment,
+    CodegenRegistry registry,
+    ModularNamer namer,
+    ModularEmitter emitter,
+    FunctionEntity element,
+    js.Expression code,
+    DartType? asyncTypeParameter,
+    SourceInformation? bodySourceInformation,
+    SourceInformation? exitSourceInformation,
+  ) {
+    if (element.asyncMarker == AsyncMarker.sync) return code;
 
     late final AsyncRewriterBase rewriter;
     js.Name name = namer.methodPropertyName(
-        element is JGeneratorBody ? element.function : element);
+      element is JGeneratorBody ? element.function : element,
+    );
 
     switch (element.asyncMarker) {
-      case AsyncMarker.ASYNC:
+      case AsyncMarker.async:
         rewriter = _makeAsyncRewriter(
-            codegen,
-            commonElements,
-            elementEnvironment,
-            registry,
-            namer,
-            emitter,
-            element,
-            code,
-            asyncTypeParameter,
-            name);
+          codegen,
+          commonElements,
+          elementEnvironment,
+          registry,
+          namer,
+          emitter,
+          element,
+          code,
+          asyncTypeParameter,
+          name,
+        );
         break;
-      case AsyncMarker.SYNC_STAR:
+      case AsyncMarker.syncStar:
         rewriter = _makeSyncStarRewriter(
-            codegen,
-            commonElements,
-            elementEnvironment,
-            registry,
-            namer,
-            emitter,
-            element,
-            code,
-            asyncTypeParameter,
-            name);
+          codegen,
+          commonElements,
+          elementEnvironment,
+          registry,
+          namer,
+          emitter,
+          element,
+          code,
+          asyncTypeParameter,
+          name,
+        );
         break;
-      case AsyncMarker.ASYNC_STAR:
+      case AsyncMarker.asyncStar:
         rewriter = _makeAsyncStarRewriter(
-            codegen,
-            commonElements,
-            elementEnvironment,
-            registry,
-            namer,
-            emitter,
-            element,
-            code,
-            asyncTypeParameter,
-            name);
+          codegen,
+          commonElements,
+          elementEnvironment,
+          registry,
+          namer,
+          emitter,
+          element,
+          code,
+          asyncTypeParameter,
+          name,
+        );
         break;
-      case AsyncMarker.SYNC:
+      case AsyncMarker.sync:
         throw StateError('Cannot rewrite sync method as async.');
     }
     return rewriter.rewrite(
-        code as js.Fun, bodySourceInformation, exitSourceInformation);
+      code as js.Fun,
+      bodySourceInformation,
+      exitSourceInformation,
+    );
   }
 
   /// Returns an optional expression that evaluates [type].  Returns `null` if
@@ -203,110 +251,143 @@ class SsaFunctionCompiler implements FunctionCompiler {
   // TODO(sra): We could also return an empty list if the generator takes no
   // type (e.g. due to rtiNeed optimization).
   List<js.Expression>? _fetchItemTypeNewRti(
-      CommonElements commonElements, CodegenRegistry registry, DartType? type) {
+    CommonElements commonElements,
+    CodegenRegistry registry,
+    DartType? type,
+  ) {
     if (type == null) return null;
     registry.registerStaticUse(
-        StaticUse.staticInvoke(commonElements.findType, CallStructure.ONE_ARG));
+      StaticUse.staticInvoke(commonElements.findType, CallStructure.oneArg),
+    );
     return [TypeReference(TypeExpressionRecipe(type))];
   }
 
   AsyncRewriter _makeAsyncRewriter(
-      CodegenInputs codegen,
-      CommonElements commonElements,
-      JElementEnvironment elementEnvironment,
-      CodegenRegistry registry,
-      ModularNamer namer,
-      ModularEmitter emitter,
-      FunctionEntity element,
-      js.Expression code,
-      DartType? elementType,
-      js.Name name) {
+    CodegenInputs codegen,
+    CommonElements commonElements,
+    JElementEnvironment elementEnvironment,
+    CodegenRegistry registry,
+    ModularNamer namer,
+    ModularEmitter emitter,
+    FunctionEntity element,
+    js.Expression code,
+    DartType? elementType,
+    js.Name name,
+  ) {
     FunctionEntity startFunction = commonElements.asyncHelperStartSync;
     FunctionEntity completerFactory = commonElements.asyncAwaitCompleterFactory;
 
-    final itemTypeExpression =
-        _fetchItemTypeNewRti(commonElements, registry, elementType);
+    final itemTypeExpression = _fetchItemTypeNewRti(
+      commonElements,
+      registry,
+      elementType,
+    );
 
-    AsyncRewriter rewriter = AsyncRewriter(_reporter, element,
-        asyncStart: emitter.staticFunctionAccess(startFunction),
-        asyncAwait:
-            emitter.staticFunctionAccess(commonElements.asyncHelperAwait),
-        asyncReturn:
-            emitter.staticFunctionAccess(commonElements.asyncHelperReturn),
-        asyncRethrow:
-            emitter.staticFunctionAccess(commonElements.asyncHelperRethrow),
-        wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
-        completerFactory: emitter.staticFunctionAccess(completerFactory),
-        completerFactoryTypeArguments: itemTypeExpression,
-        safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
-        bodyName: namer.deriveAsyncBodyName(name));
+    AsyncRewriter rewriter = AsyncRewriter(
+      _reporter,
+      element,
+      asyncStart: emitter.staticFunctionAccess(startFunction),
+      asyncAwait: emitter.staticFunctionAccess(commonElements.asyncHelperAwait),
+      asyncReturn: emitter.staticFunctionAccess(
+        commonElements.asyncHelperReturn,
+      ),
+      asyncRethrow: emitter.staticFunctionAccess(
+        commonElements.asyncHelperRethrow,
+      ),
+      wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
+      completerFactory: emitter.staticFunctionAccess(completerFactory),
+      completerFactoryTypeArguments: itemTypeExpression,
+      safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
+      bodyName: namer.deriveAsyncBodyName(name),
+    );
 
-    registry.registerStaticUse(StaticUse.staticInvoke(
-        completerFactory,
-        CallStructure.unnamed(0, 1),
-        [elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)]));
+    registry.registerStaticUse(
+      StaticUse.staticInvoke(completerFactory, CallStructure.unnamed(0, 1), [
+        elementEnvironment.getFunctionAsyncOrSyncStarElementType(element),
+      ]),
+    );
 
     return rewriter;
   }
 
   SyncStarRewriter _makeSyncStarRewriter(
-      CodegenInputs codegen,
-      CommonElements commonElements,
-      JElementEnvironment elementEnvironment,
-      CodegenRegistry registry,
-      ModularNamer namer,
-      ModularEmitter emitter,
-      FunctionEntity element,
-      js.Expression code,
-      DartType? asyncTypeParameter,
-      js.Name name) {
-    SyncStarRewriter rewriter = SyncStarRewriter(_reporter, element,
-        iteratorCurrentValueProperty: namer.instanceFieldPropertyName(
-            commonElements.syncStarIteratorCurrentField),
-        iteratorDatumProperty: namer.instanceFieldPropertyName(
-            commonElements.syncStarIteratorDatumField),
-        yieldStarSelector: namer
-            .instanceMethodName(commonElements.syncStarIteratorYieldStarMethod),
-        safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
-        bodyName: namer.deriveAsyncBodyName(name));
+    CodegenInputs codegen,
+    CommonElements commonElements,
+    JElementEnvironment elementEnvironment,
+    CodegenRegistry registry,
+    ModularNamer namer,
+    ModularEmitter emitter,
+    FunctionEntity element,
+    js.Expression code,
+    DartType? asyncTypeParameter,
+    js.Name name,
+  ) {
+    SyncStarRewriter rewriter = SyncStarRewriter(
+      _reporter,
+      element,
+      iteratorCurrentValueProperty: namer.instanceFieldPropertyName(
+        commonElements.syncStarIteratorCurrentField,
+      ),
+      iteratorDatumProperty: namer.instanceFieldPropertyName(
+        commonElements.syncStarIteratorDatumField,
+      ),
+      yieldStarSelector: namer.instanceMethodName(
+        commonElements.syncStarIteratorYieldStarMethod,
+      ),
+      safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
+      bodyName: namer.deriveAsyncBodyName(name),
+    );
 
     return rewriter;
   }
 
   AsyncStarRewriter _makeAsyncStarRewriter(
-      CodegenInputs codegen,
-      CommonElements commonElements,
-      JElementEnvironment elementEnvironment,
-      CodegenRegistry registry,
-      ModularNamer namer,
-      ModularEmitter emitter,
-      FunctionEntity element,
-      js.Expression code,
-      DartType? asyncTypeParameter,
-      js.Name name) {
-    final itemTypeExpression =
-        _fetchItemTypeNewRti(commonElements, registry, asyncTypeParameter);
+    CodegenInputs codegen,
+    CommonElements commonElements,
+    JElementEnvironment elementEnvironment,
+    CodegenRegistry registry,
+    ModularNamer namer,
+    ModularEmitter emitter,
+    FunctionEntity element,
+    js.Expression code,
+    DartType? asyncTypeParameter,
+    js.Name name,
+  ) {
+    final itemTypeExpression = _fetchItemTypeNewRti(
+      commonElements,
+      registry,
+      asyncTypeParameter,
+    );
 
-    AsyncStarRewriter rewriter = AsyncStarRewriter(_reporter, element,
-        asyncStarHelper:
-            emitter.staticFunctionAccess(commonElements.asyncStarHelper),
-        streamOfController:
-            emitter.staticFunctionAccess(commonElements.streamOfController),
-        wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
-        newController: emitter.staticFunctionAccess(
-            commonElements.asyncStarStreamControllerFactory),
-        newControllerTypeArguments: itemTypeExpression,
-        safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
-        yieldExpression:
-            emitter.staticFunctionAccess(commonElements.yieldSingle),
-        yieldStarExpression:
-            emitter.staticFunctionAccess(commonElements.yieldStar),
-        bodyName: namer.deriveAsyncBodyName(name));
+    AsyncStarRewriter rewriter = AsyncStarRewriter(
+      _reporter,
+      element,
+      asyncStarHelper: emitter.staticFunctionAccess(
+        commonElements.asyncStarHelper,
+      ),
+      streamOfController: emitter.staticFunctionAccess(
+        commonElements.streamOfController,
+      ),
+      wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
+      newController: emitter.staticFunctionAccess(
+        commonElements.asyncStarStreamControllerFactory,
+      ),
+      newControllerTypeArguments: itemTypeExpression,
+      safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
+      yieldExpression: emitter.staticFunctionAccess(commonElements.yieldSingle),
+      yieldStarExpression: emitter.staticFunctionAccess(
+        commonElements.yieldStar,
+      ),
+      bodyName: namer.deriveAsyncBodyName(name),
+    );
 
-    registry.registerStaticUse(StaticUse.staticInvoke(
+    registry.registerStaticUse(
+      StaticUse.staticInvoke(
         commonElements.asyncStarStreamControllerFactory,
         CallStructure.unnamed(1, 1),
-        [elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)]));
+        [elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)],
+      ),
+    );
 
     return rewriter;
   }
@@ -321,12 +402,13 @@ abstract class SsaBuilder {
   /// Creates the [HGraph] for [member] or returns `null` if no code is needed
   /// for [member].
   HGraph? build(
-      MemberEntity member,
-      GlobalTypeInferenceResults globalInferenceResults,
-      CodegenInputs codegen,
-      CodegenRegistry registry,
-      ModularNamer namer,
-      ModularEmitter emitter);
+    MemberEntity member,
+    GlobalTypeInferenceResults globalInferenceResults,
+    CodegenInputs codegen,
+    CodegenRegistry registry,
+    ModularNamer namer,
+    ModularEmitter emitter,
+  );
 }
 
 class SsaBuilderTask extends CompilerTask {
@@ -339,28 +421,42 @@ class SsaBuilderTask extends CompilerTask {
   @override
   Metrics metrics = Metrics.none();
 
-  SsaBuilderTask(super.measurer, this._backendStrategy,
-      this._sourceInformationFactory, this._ssaMetrics);
+  SsaBuilderTask(
+    super.measurer,
+    this._backendStrategy,
+    this._sourceInformationFactory,
+    this._ssaMetrics,
+  );
 
   @override
   String get name => 'SSA builder';
 
-  void onCodegenStart(JClosedWorld _closedWorld) {
+  void onCodegenStart(JClosedWorld closedWorld) {
     _builder = _backendStrategy.createSsaBuilder(
-        this, _closedWorld, _sourceInformationFactory);
+      this,
+      closedWorld,
+      _sourceInformationFactory,
+    );
     metrics = _ssaMetrics;
   }
 
   /// Creates the [HGraph] for [member] or returns `null` if no code is needed
   /// for [member].
   HGraph? build(
-      MemberEntity member,
-      GlobalTypeInferenceResults globalInferenceResults,
-      CodegenInputs codegen,
-      CodegenRegistry registry,
-      ModularNamer namer,
-      ModularEmitter emitter) {
+    MemberEntity member,
+    GlobalTypeInferenceResults globalInferenceResults,
+    CodegenInputs codegen,
+    CodegenRegistry registry,
+    ModularNamer namer,
+    ModularEmitter emitter,
+  ) {
     return _builder.build(
-        member, globalInferenceResults, codegen, registry, namer, emitter);
+      member,
+      globalInferenceResults,
+      codegen,
+      registry,
+      namer,
+      emitter,
+    );
   }
 }

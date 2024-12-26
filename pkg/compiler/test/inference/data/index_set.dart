@@ -11,7 +11,8 @@ listIndexSetSingle() {
   var list = [0];
   return list
       /*update: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
-      [0] = 42;
+      [0] =
+      42;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -23,7 +24,8 @@ listIndexSetMultiple() {
   var list = [0, 1, 2, 3];
   return list
       /*update: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 4)*/
-      [2] = 42;
+      [2] =
+      42;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -35,7 +37,8 @@ listIndexSetBad() {
   var list = [0, 1];
   return list
       /*update: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 2)*/
-      [3] = 42;
+      [3] =
+      42;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -47,7 +50,8 @@ listIndexSetMixed() {
   dynamic list = [''];
   return list
       /*update: Container([exact=JSExtendableArray], element: Union([exact=JSString], [exact=JSUInt31]), length: 1)*/
-      [0] = 42;
+      [0] =
+      42;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,7 +63,8 @@ mapUpdateEmpty() {
   var map = {};
   return map
       /*update: Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
-      [0] = 42;
+      [0] =
+      42;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -71,7 +76,8 @@ mapUpdateSingle() {
   var map = {0: 1};
   return map
       /*update: Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
-      [0] = 42;
+      [0] =
+      42;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -83,7 +89,8 @@ mapUpdateMultiple() {
   var map = {0: 1, 2: 3, 4: 5};
   return map
       /*update: Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
-      [2] = 42;
+      [2] =
+      42;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -95,7 +102,8 @@ mapUpdateMissing() {
   var map = {0: 1};
   return map
       /*update: Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
-      [2] = 42;
+      [2] =
+      42;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -107,7 +115,8 @@ mapUpdateMixedKeys() {
   dynamic map = {'': 2};
   return map
       /*update: Map([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSUInt31])*/
-      [0] = 42;
+      [0] =
+      42;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -119,7 +128,8 @@ mapUpdateMixedValues() {
   dynamic map = {2: ''};
   return map
       /*update: Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSString])*/
-      [2] = 42;
+      [2] =
+      42;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -131,7 +141,8 @@ dictionaryUpdateEmpty() {
   var map = {};
   return map
       /*update: Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: Value([null|exact=JSString], value: "bar"), map: {foo: Value([null|exact=JSString], value: "bar")})*/
-      ['foo'] = 'bar';
+      ['foo'] =
+      'bar';
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -143,7 +154,8 @@ dictionaryUpdateSingle() {
   var map = {'foo': 'bar'};
   return map
       /*update: Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: [null|exact=JSString], map: {foo: [exact=JSString]})*/
-      ['foo'] = 'boz';
+      ['foo'] =
+      'boz';
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -155,7 +167,8 @@ dictionaryReUpdateSingle() {
   var map = {'foo': 'bar'};
   return map
       /*update: Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: Value([null|exact=JSString], value: "bar"), map: {foo: Value([exact=JSString], value: "bar")})*/
-      ['foo'] = 'bar';
+      ['foo'] =
+      'bar';
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -167,7 +180,8 @@ dictionaryUpdateMultiple() {
   var map = {'foo': 'bar'};
   return map
       /*update: Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSString], map: {foo: Value([exact=JSString], value: "bar"), baz: Value([null|exact=JSString], value: "boz")})*/
-      ['baz'] = 'boz';
+      ['baz'] =
+      'boz';
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -179,7 +193,8 @@ intDictionaryUpdateSingle() {
   var map = {};
   return map
       /*update: Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: [null|exact=JSUInt31], map: {foo: [null|exact=JSUInt31]})*/
-      ['foo'] = 0;
+      ['foo'] =
+      0;
 }
 
 /*member: main:[null]*/

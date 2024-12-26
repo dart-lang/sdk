@@ -13,13 +13,9 @@ class A {
   final stringField;
 
   /*member: A.:[exact=A]*/
-  A()
-      : intField = 42,
-        stringField = 'foo';
+  A() : intField = 42, stringField = 'foo';
 
-  A.bar()
-      : intField = 'bar',
-        stringField = 42;
+  A.bar() : intField = 'bar', stringField = 42;
 }
 
 /*member: main:[null]*/

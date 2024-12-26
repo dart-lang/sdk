@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show json;
+
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -11,7 +13,6 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/error/analyzer_error_code.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -97,10 +98,19 @@ class ExpectedDiagnostic {
   /// the message contents should not be checked.
   final Pattern? _messageContains;
 
+  // A pattern that should be contained in the error's correction message, or
+  // `null` if the correction message contents should not be checked.
+  final Pattern? _correctionContains;
+
   /// Initialize a newly created diagnostic description.
-  ExpectedDiagnostic(this._diagnosticMatcher, this._offset, this._length,
-      {Pattern? messageContains})
-      : _messageContains = messageContains;
+  ExpectedDiagnostic(
+    this._diagnosticMatcher,
+    this._offset,
+    this._length, {
+    Pattern? messageContains,
+    Pattern? correctionContains,
+  })  : _messageContains = messageContains,
+        _correctionContains = correctionContains;
 
   /// Whether the [error] matches this description of what it's expected to be.
   bool matches(AnalysisError error) {
@@ -109,6 +119,12 @@ class ExpectedDiagnostic {
     if (error.length != _length) return false;
     if (_messageContains != null && !error.message.contains(_messageContains)) {
       return false;
+    }
+    if (_correctionContains != null) {
+      if (error.correction == null ||
+          !error.correction!.contains(_correctionContains)) {
+        return false;
+      }
     }
 
     return true;
@@ -132,8 +148,19 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
     return [ruleName];
   }
 
-  ExpectedDiagnostic lint(int offset, int length, {Pattern? messageContains}) =>
-      _ExpectedLint(lintRule, offset, length, messageContains: messageContains);
+  ExpectedDiagnostic lint(
+    int offset,
+    int length, {
+    Pattern? messageContains,
+    Pattern? correctionContains,
+  }) =>
+      _ExpectedLint(
+        lintRule,
+        offset,
+        length,
+        messageContains: messageContains,
+        correctionContains: correctionContains,
+      );
 }
 
 class PubPackageResolutionTest extends _ContextResolutionTest {
@@ -348,6 +375,14 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
         buffer.write(expected._offset);
         buffer.write(', ');
         buffer.write(expected._length);
+        if (expected._messageContains != null) {
+          buffer.write(', messageContains: ');
+          buffer.write(json.encode(expected._messageContains.toString()));
+        }
+        if (expected._correctionContains != null) {
+          buffer.write(', correctionContains: ');
+          buffer.write(json.encode(expected._correctionContains.toString()));
+        }
         buffer.writeln(']');
       }
     }
@@ -365,6 +400,10 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
         buffer.write(actual.length);
         buffer.write(', ');
         buffer.write(actual.message);
+        if (actual.correctionMessage != null) {
+          buffer.write(', ');
+          buffer.write(json.encode(actual.correctionMessage));
+        }
         buffer.writeln(']');
       }
     }
@@ -469,8 +508,7 @@ abstract class _ContextResolutionTest
   late ResolvedUnitResult result;
 
   /// Error codes that by default should be ignored in test expectations.
-  List<AnalyzerErrorCode> get ignoredErrorCodes =>
-      [WarningCode.UNUSED_LOCAL_VARIABLE];
+  List<ErrorCode> get ignoredErrorCodes => [WarningCode.UNUSED_LOCAL_VARIABLE];
 
   /// The path to the root of the external packages.
   @override
@@ -574,8 +612,15 @@ final class _ExpectedError extends ExpectedDiagnostic {
 final class _ExpectedLint extends ExpectedDiagnostic {
   final String _lintName;
 
-  _ExpectedLint(this._lintName, int offset, int length,
-      {Pattern? messageContains})
-      : super((error) => error.errorCode.name == _lintName, offset, length,
-            messageContains: messageContains);
+  _ExpectedLint(
+    this._lintName,
+    int offset,
+    int length, {
+    super.messageContains,
+    super.correctionContains,
+  }) : super(
+          (error) => error.errorCode.name == _lintName,
+          offset,
+          length,
+        );
 }

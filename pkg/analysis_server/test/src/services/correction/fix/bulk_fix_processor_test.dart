@@ -146,6 +146,41 @@ var c = new C();
     expect(processor.changeMap.libraryMap.length, 3);
   }
 
+  /// https://github.com/dart-lang/sdk/issues/59572
+  Future<void> test_hasFixes_in_part_and_library2() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.empty_statements, LintNames.prefer_const_constructors],
+    );
+
+    newFile('$testPackageLibPath/part.dart', '''
+part of 'test.dart';
+
+class C {
+  const C();
+}
+
+C b() {
+  // dart fix should only add a single const
+  return C();
+}
+''');
+
+    await resolveTestCode('''
+part 'part.dart';
+
+void a() {
+  // need to trigger a lint in main.dart for the bug to happen
+  ;
+  b();
+}
+''');
+
+    expect(await computeHasFixes(), isTrue);
+    expect(processor.changeMap.libraryMap.length, 2);
+    expect(processor.fixDetails.length, 2);
+  }
+
   Future<void> test_hasFixes_stoppedAfterFirst() async {
     createAnalysisOptionsFile(
       experiments: experiments,

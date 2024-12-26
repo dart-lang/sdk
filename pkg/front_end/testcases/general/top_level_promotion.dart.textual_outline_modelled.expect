@@ -13,9 +13,8 @@ class Class4<K, V> {
 class Class5 {
   Class2<Class1?> get getter1 => throw '';
   late final field2 = Class4<String?, bool>();
-  late final field3 = getter1.method1(
-    (o) => o != null ? field2[o.field1] : null,
-  );
+  late final field3 =
+      getter1.method1((o) => o != null ? field2[o.field1] : null);
   method2() {}
 }
 

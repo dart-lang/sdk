@@ -605,7 +605,7 @@ void f(prefix a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: prefix
-  element: <null>
+  element: <testLibraryFragment>::@prefix::prefix
   element2: <testLibraryFragment>::@prefix2::prefix
   type: InvalidType
 ''');
@@ -633,7 +633,7 @@ NamedType
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <null>
+  element: <testLibraryFragment>::@prefix::prefix
   element2: <testLibraryFragment>::@prefix2::prefix
   type: InvalidType
 ''');

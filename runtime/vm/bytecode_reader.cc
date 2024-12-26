@@ -1264,6 +1264,7 @@ ObjectPtr BytecodeReaderHelper::ReadType(intptr_t tag,
   const int kFlagHasOptionalPositionalParams = 1 << 0;
   const int kFlagHasOptionalNamedParams = 1 << 1;
   const int kFlagHasTypeParams = 1 << 2;
+  const int kFlagHasEnclosingTypeParameters = 1 << 3;
 
   switch (tag) {
     case kInvalid:
@@ -1338,10 +1339,14 @@ ObjectPtr BytecodeReaderHelper::ReadType(intptr_t tag,
     }
     case kFunctionType: {
       const intptr_t flags = reader_.ReadUInt();
-      const intptr_t num_parent_type_args =
-          enclosing_function_types_.is_empty()
-              ? 0
-              : enclosing_function_types_.Last()->NumTypeArguments();
+      intptr_t num_parent_type_args = 0;
+      if ((flags & kFlagHasEnclosingTypeParameters) != 0) {
+        num_parent_type_args = reader_.ReadUInt();
+        ASSERT(num_parent_type_args > 0);
+        ASSERT(!enclosing_function_types_.is_empty());
+        ASSERT(num_parent_type_args ==
+               enclosing_function_types_.Last()->NumTypeArguments());
+      }
       auto& signature_type = FunctionType::Handle(
           Z, FunctionType::New(num_parent_type_args, nullability));
       // TODO(alexmarkov): skip type finalization

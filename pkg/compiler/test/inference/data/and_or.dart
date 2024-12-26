@@ -72,7 +72,8 @@ returnDyn8(/*Union([exact=JSString], [exact=JSUInt31])*/ x) {
   return x;
 }
 
-/*member: test8:Union(null, [exact=JSString], [exact=JSUInt31])*/ test8() {
+/*member: test8:Union(null, [exact=JSString], [exact=JSUInt31])*/
+test8() {
   dynamic a = "foo";
   if (a. /*Value([exact=JSString], value: "foo")*/ length /*invoke: [subclass=JSInt]*/ ==
       3) {
@@ -97,9 +98,8 @@ test9() {
   if (!(a is bool && a is bool)) returnDyn9(a);
 }
 
-/*member: returnString:[exact=JSString]*/ returnString(
-        /*[exact=JSString]*/ x) =>
-    x;
+/*member: returnString:[exact=JSString]*/
+returnString(/*[exact=JSString]*/ x) => x;
 
 /*member: test10:[null]*/
 test10() {

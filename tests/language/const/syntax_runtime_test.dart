@@ -19,27 +19,16 @@ main() {
 
   Expect.equals(87, F2);
 
-
   Expect.isTrue(P0 is Point);
-
-
-
 
   Expect.isTrue(A0 is int);
   Expect.isTrue(A1 is int);
 
-
-
   Expect.isTrue(C0.X is C1);
-
 
   Expect.equals("Hello 42", B2);
 
-
   const cf1 = identical(const Point(1, 2), const Point(1, 2));
-
-
-
 
   var f5 = B5;
 }
@@ -47,7 +36,6 @@ main() {
 const F0 = 42;
 
 const int F2 = 87;
-
 
 class Point {
   final x, y;
@@ -59,24 +47,17 @@ class Point {
 // user-defined const constructors.
 const P0 = const Point(0, 0);
 
-
-
-
 // Check that we cannot have cyclic references in compile time
 // expressions.
 const A0 = 42;
 const A1 = A0 + 1;
-
-
 
 class C0 {
   static const X = const C1();
 }
 
 class C1 {
-  const C1()
-
-  ;
+  const C1();
   final x = null;
 }
 
@@ -85,8 +66,6 @@ const B0 = 42;
 const B1 = "Hello";
 const B2 = "$B1 $B0";
 
-
 // Check identical.
-
 
 const B5 = identical(1, const Point(1, 2));

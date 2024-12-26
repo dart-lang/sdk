@@ -11,6 +11,7 @@
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/slot.h"
 #include "vm/growable_array.h"
+#include "vm/object_store.h"
 #include "vm/scopes.h"
 
 namespace dart {
@@ -173,6 +174,21 @@ const Field& CompilerState::CompoundTypedDataBaseField() {
     compound_typed_data_base_field_ = &field;
   }
   return *compound_typed_data_base_field_;
+}
+
+const Field& CompilerState::ErrorStackTraceField() {
+  if (error_stack_trace_field_ == nullptr) {
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+    const auto& error_class = Class::Handle(
+        zone, thread->isolate_group()->object_store()->error_class());
+    const auto& field = Field::ZoneHandle(
+        zone,
+        error_class.LookupInstanceFieldAllowPrivate(Symbols::_stackTrace()));
+    ASSERT(!field.IsNull());
+    error_stack_trace_field_ = &field;
+  }
+  return *error_stack_trace_field_;
 }
 
 static bool IsMarkedWithNoBoundsChecks(const Function& function) {

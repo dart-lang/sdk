@@ -20,14 +20,20 @@ class ShowCommand extends Command<void> with PrintUsageException {
   final String description = "Show a text representation of the info file.";
 
   ShowCommand() {
-    argParser.addOption('out',
-        abbr: 'o', help: 'Output file (defauts to stdout)');
+    argParser.addOption(
+      'out',
+      abbr: 'o',
+      help: 'Output file (defauts to stdout)',
+    );
 
-    argParser.addFlag('inject-text',
-        negatable: false,
-        help: 'Whether to inject output code snippets.\n\n'
-            'By default dart2js produces code spans, but excludes the text. This\n'
-            'option can be used to embed the text directly in the output.');
+    argParser.addFlag(
+      'inject-text',
+      negatable: false,
+      help:
+          'Whether to inject output code snippets.\n\n'
+          'By default dart2js produces code spans, but excludes the text. This\n'
+          'option can be used to embed the text directly in the output.',
+    );
   }
 
   @override
@@ -119,13 +125,17 @@ class TextPrinter implements InfoVisitor<void> {
   void visitLibrary(LibraryInfo info) {
     _writeBlock('${info.uri}: ${_size(info.size)}', () {
       if (info.topLevelFunctions.isNotEmpty) {
-        _writeBlock('Top-level functions',
-            () => info.topLevelFunctions.forEach(visitFunction));
+        _writeBlock(
+          'Top-level functions',
+          () => info.topLevelFunctions.forEach(visitFunction),
+        );
         buffer.writeln();
       }
       if (info.topLevelVariables.isNotEmpty) {
-        _writeBlock('Top-level variables',
-            () => info.topLevelVariables.forEach(visitField));
+        _writeBlock(
+          'Top-level variables',
+          () => info.topLevelVariables.forEach(visitField),
+        );
         buffer.writeln();
       }
       if (info.classes.isNotEmpty) {
@@ -145,22 +155,27 @@ class TextPrinter implements InfoVisitor<void> {
   @override
   void visitClass(ClassInfo info) {
     _writeBlock(
-        '${info.name}: ${_size(info.size)} [${info.outputUnit?.filename}]', () {
-      if (info.functions.isNotEmpty) {
-        _writeBlock('Methods:', () => info.functions.forEach(visitFunction));
-      }
-      if (info.fields.isNotEmpty) {
-        _writeBlock('Fields:', () => info.fields.forEach(visitField));
-      }
-      if (info.functions.isNotEmpty || info.fields.isNotEmpty) buffer.writeln();
-    });
+      '${info.name}: ${_size(info.size)} [${info.outputUnit?.filename}]',
+      () {
+        if (info.functions.isNotEmpty) {
+          _writeBlock('Methods:', () => info.functions.forEach(visitFunction));
+        }
+        if (info.fields.isNotEmpty) {
+          _writeBlock('Fields:', () => info.fields.forEach(visitField));
+        }
+        if (info.functions.isNotEmpty || info.fields.isNotEmpty) {
+          buffer.writeln();
+        }
+      },
+    );
   }
 
   @override
   void visitClassType(ClassTypeInfo info) {
     _writeBlock(
-        '${info.name}: ${_size(info.size)} [${info.outputUnit?.filename}]',
-        () {});
+      '${info.name}: ${_size(info.size)} [${info.outputUnit?.filename}]',
+      () {},
+    );
   }
 
   @override
@@ -183,24 +198,27 @@ class TextPrinter implements InfoVisitor<void> {
     if (info.functionKind == FunctionInfo.TOP_LEVEL_FUNCTION_KIND) {
       outputUnitFile = ' [${info.outputUnit?.filename}]';
     }
-    String params =
-        info.parameters.map((p) => "${p.declaredType} ${p.name}").join(', ');
+    String params = info.parameters
+        .map((p) => "${p.declaredType} ${p.name}")
+        .join(', ');
     _writeBlock(
-        '${info.returnType} ${info.name}($params): ${_size(info.size)}$outputUnitFile',
-        () {
-      String params = info.parameters.map((p) => p.type).join(', ');
-      _writeIndented('declared type: ${info.type}');
-      _writeIndented(
-          'inferred type: ${info.inferredReturnType} Function($params)');
-      _writeIndented('side effects: ${info.sideEffects}');
-      if (injectText) _writeBlock("code:", () => _writeCode(info.code));
-      if (info.closures.isNotEmpty) {
-        _writeBlock('Closures:', () => info.closures.forEach(visitClosure));
-      }
-      if (info.uses.isNotEmpty) {
-        _writeBlock('Dependencies:', () => info.uses.forEach(showDependency));
-      }
-    });
+      '${info.returnType} ${info.name}($params): ${_size(info.size)}$outputUnitFile',
+      () {
+        String params = info.parameters.map((p) => p.type).join(', ');
+        _writeIndented('declared type: ${info.type}');
+        _writeIndented(
+          'inferred type: ${info.inferredReturnType} Function($params)',
+        );
+        _writeIndented('side effects: ${info.sideEffects}');
+        if (injectText) _writeBlock("code:", () => _writeCode(info.code));
+        if (info.closures.isNotEmpty) {
+          _writeBlock('Closures:', () => info.closures.forEach(visitClosure));
+        }
+        if (info.uses.isNotEmpty) {
+          _writeBlock('Dependencies:', () => info.uses.forEach(showDependency));
+        }
+      },
+    );
   }
 
   void showDependency(DependencyInfo info) {

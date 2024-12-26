@@ -84,7 +84,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         !node.isSetter &&
         !declaredElement.isPrivate &&
         !node.isOperator &&
-        !node.hasInheritedMethod &&
+        !node.hasInheritedMethod(context.inheritanceManager) &&
         !_isOverridingMember(declaredElement)) {
       checkParams(node.parameters?.parameters);
     }

@@ -94,7 +94,10 @@ abstract class ListViewLayout<D> {
   /// Returns an interval specifying what views are currently visible given a
   /// particular [:offset:].
   Interval<int> computeVisibleInterval(
-      num offset, num viewLength, num bufferLength);
+    num offset,
+    num viewLength,
+    num bufferLength,
+  );
 }
 
 /// Base class used for the simple fixed size item [:ListView:] classes and more
@@ -130,18 +133,18 @@ class GenericListView<D> extends View {
   /// is an [:ObservableList<T>:] then it will listen to changes to the list
   /// and update the view appropriately.
   GenericListView(
-      this._layout,
-      this._data,
-      this._scrollable,
-      this._vertical,
-      this._selectedItem,
-      this._snapToItems,
-      this._paginate,
-      this._removeClippedViews,
-      this._showScrollbar,
-      this._pages)
-      : _activeInterval = Interval(0, 0),
-        _itemViews = <int, View>{} {
+    this._layout,
+    this._data,
+    this._scrollable,
+    this._vertical,
+    this._selectedItem,
+    this._snapToItems,
+    this._paginate,
+    this._removeClippedViews,
+    this._showScrollbar,
+    this._pages,
+  ) : _activeInterval = Interval(0, 0),
+      _itemViews = <int, View>{} {
     // TODO(rnystrom): Move this into enterDocument once we have an exitDocument
     // that we can use to unregister it.
     if (_scrollable) {
@@ -206,19 +209,19 @@ class GenericListView<D> extends View {
 
     if (_scrollable) {
       scroller = Scroller(
-          _containerElem,
-          _vertical /* verticalScrollEnabled */,
-          !_vertical /* horizontalScrollEnabled */,
-          true /* momentumEnabled */, () {
-        num? width = _layout.getWidth(_viewLength);
-        num? height = _layout.getHeight(_viewLength);
-        width = width ?? 0;
-        height = height ?? 0;
-        return Size(width, height);
-      },
-          _paginate && _snapToItems
-              ? Scroller.FAST_SNAP_DECELERATION_FACTOR
-              : 1);
+        _containerElem,
+        _vertical /* verticalScrollEnabled */,
+        !_vertical /* horizontalScrollEnabled */,
+        true /* momentumEnabled */,
+        () {
+          num? width = _layout.getWidth(_viewLength);
+          num? height = _layout.getHeight(_viewLength);
+          width = width ?? 0;
+          height = height ?? 0;
+          return Size(width, height);
+        },
+        _paginate && _snapToItems ? Scroller.FAST_SNAP_DECELERATION_FACTOR : 1,
+      );
       scroller!.onContentMoved.listen((e) => renderVisibleItems(false));
       if (_pages != null) {
         watch(_pages.target, (s) => _onPageSelected());
@@ -319,12 +322,14 @@ class GenericListView<D> extends View {
 
   void _decelStart() {
     final scroll = scroller!;
-    num currentTarget = scroll.verticalEnabled
-        ? scroll.currentTarget.y
-        : scroll.currentTarget.x;
-    num current = scroll.verticalEnabled
-        ? scroll.contentOffset.y
-        : scroll.contentOffset.x;
+    num currentTarget =
+        scroll.verticalEnabled
+            ? scroll.currentTarget.y
+            : scroll.currentTarget.x;
+    num current =
+        scroll.verticalEnabled
+            ? scroll.contentOffset.y
+            : scroll.contentOffset.x;
     int targetIndex = _layout.getSnapIndex(currentTarget, _viewLength);
     if (current != currentTarget) {
       // The user is throwing rather than statically releasing.
@@ -367,8 +372,11 @@ class GenericListView<D> extends View {
 
   void _onPageSelected() {
     if (_pages!.target != _layout.getPage(_activeInterval.start, _viewLength)) {
-      _throwTo(_layout.getOffset(
-          _layout.getPageStartIndex(_pages.target.value, _viewLength)));
+      _throwTo(
+        _layout.getOffset(
+          _layout.getPageStartIndex(_pages.target.value, _viewLength),
+        ),
+      );
     }
   }
 
@@ -396,9 +404,10 @@ class GenericListView<D> extends View {
       _pages.current.value = _layout.getPage(targetInterval.start, _viewLength);
     }
     if (_pages != null) {
-      _pages.length.value = _data.isNotEmpty
-          ? _layout.getPage(_data.length - 1, _viewLength) + 1
-          : 0;
+      _pages.length.value =
+          _data.isNotEmpty
+              ? _layout.getPage(_data.length - 1, _viewLength) + 1
+              : 0;
     }
 
     if (!_removeClippedViews) {
@@ -414,28 +423,36 @@ class GenericListView<D> extends View {
     // TODO(jacobr): add unittests that this code behaves correctly.
 
     // Remove views that are not needed anymore
-    for (int i = _activeInterval.start,
-            end = Math.min(targetInterval.start, _activeInterval.end);
-        i < end;
-        i++) {
+    for (
+      int i = _activeInterval.start,
+          end = Math.min(targetInterval.start, _activeInterval.end);
+      i < end;
+      i++
+    ) {
       _removeView(i);
     }
-    for (int i = Math.max(targetInterval.end, _activeInterval.start);
-        i < _activeInterval.end;
-        i++) {
+    for (
+      int i = Math.max(targetInterval.end, _activeInterval.start);
+      i < _activeInterval.end;
+      i++
+    ) {
       _removeView(i);
     }
 
     // Add new views
-    for (int i = targetInterval.start,
-            end = Math.min(_activeInterval.start, targetInterval.end);
-        i < end;
-        i++) {
+    for (
+      int i = targetInterval.start,
+          end = Math.min(_activeInterval.start, targetInterval.end);
+      i < end;
+      i++
+    ) {
       _addView(i);
     }
-    for (int i = Math.max(_activeInterval.end, targetInterval.start);
-        i < targetInterval.end;
-        i++) {
+    for (
+      int i = Math.max(_activeInterval.end, targetInterval.start);
+      i < targetInterval.end;
+      i++
+    ) {
       _addView(i);
     }
 
@@ -518,8 +535,10 @@ class GenericListView<D> extends View {
     // really detached.
     late Coordinate currentPosition;
     if (animate) {
-      currentPosition =
-          FxUtil.computeRelativePosition(view.node, _containerElem);
+      currentPosition = FxUtil.computeRelativePosition(
+        view.node,
+        _containerElem,
+      );
     }
     assert(_itemViews[index] is _PlaceholderView);
     view.enterDocument();
@@ -610,7 +629,11 @@ class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
   final bool _paginate;
 
   FixedSizeListViewLayout(
-      this.itemViewFactory, this._data, this._vertical, this._paginate);
+    this.itemViewFactory,
+    this._data,
+    this._vertical,
+    this._paginate,
+  );
 
   @override
   void onDataChange() {}
@@ -702,13 +725,19 @@ class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
 
   @override
   Interval<int> computeVisibleInterval(
-      num offset, num viewLength, num bufferLength) {
-    int targetIntervalStart =
-        Math.max(0, (-offset - bufferLength) ~/ _itemLength);
+    num offset,
+    num viewLength,
+    num bufferLength,
+  ) {
+    int targetIntervalStart = Math.max(
+      0,
+      (-offset - bufferLength) ~/ _itemLength,
+    );
     num targetIntervalEnd = GoogleMath.clamp(
-        ((-offset + viewLength + bufferLength) / _itemLength).ceil(),
-        targetIntervalStart,
-        _data.length);
+      ((-offset + viewLength + bufferLength) / _itemLength).ceil(),
+      targetIntervalStart,
+      _data.length,
+    );
     return Interval(targetIntervalStart, targetIntervalEnd.toInt());
   }
 }
@@ -718,25 +747,29 @@ class ListView<D> extends GenericListView<D> {
   /// Creates a new ListView for the given data. If [:_data:] is an
   /// [:ObservableList<T>:] then it will listen to changes to the list and
   /// update the view appropriately.
-  ListView(List<D> data, ViewFactory<D> itemViewFactory, bool scrollable,
-      bool vertical, ObservableValue<D>? selectedItem,
-      [bool snapToItems = false,
-      bool paginate = false,
-      bool removeClippedViews = false,
-      bool showScrollbar = false,
-      PageState? pages])
-      : super(
-            FixedSizeListViewLayout<D>(
-                itemViewFactory, data, vertical, paginate),
-            data,
-            scrollable,
-            vertical,
-            selectedItem,
-            snapToItems,
-            paginate,
-            removeClippedViews,
-            showScrollbar,
-            pages);
+  ListView(
+    List<D> data,
+    ViewFactory<D> itemViewFactory,
+    bool scrollable,
+    bool vertical,
+    ObservableValue<D>? selectedItem, [
+    bool snapToItems = false,
+    bool paginate = false,
+    bool removeClippedViews = false,
+    bool showScrollbar = false,
+    PageState? pages,
+  ]) : super(
+         FixedSizeListViewLayout<D>(itemViewFactory, data, vertical, paginate),
+         data,
+         scrollable,
+         vertical,
+         selectedItem,
+         snapToItems,
+         paginate,
+         removeClippedViews,
+         showScrollbar,
+         pages,
+       );
 }
 
 /// Layout where each item may have variable size along the axis the list view
@@ -752,11 +785,14 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
   Interval<int> _lastVisibleInterval;
 
   VariableSizeListViewLayout(
-      this.itemViewFactory, data, this._vertical, this._paginate)
-      : _data = data,
-        _lastVisibleInterval = Interval(0, 0),
-        _itemOffsets = <int>[0],
-        _lengths = <int>[];
+    this.itemViewFactory,
+    data,
+    this._vertical,
+    this._paginate,
+  ) : _data = data,
+      _lastVisibleInterval = Interval(0, 0),
+      _itemOffsets = <int>[0],
+      _lengths = <int>[];
 
   @override
   void onDataChange() {
@@ -819,7 +855,7 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
       if (_itemOffsets.length > 2) {
         lengthFromAllButLastElement =
             (getOffset(_itemOffsets.length - 2) - getOffset(0)) *
-                (_data.length / (_itemOffsets.length - 2));
+            (_data.length / (_itemOffsets.length - 2));
       }
       return (lengthFromAllButLastElement +
               Math.max(viewLength, _lengths[_lengths.length - 1]))
@@ -850,9 +886,10 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
     if (index >= _itemOffsets.length) {
       int offset = _itemOffsets[_itemOffsets.length - 1];
       for (int i = _itemOffsets.length; i <= index; i++) {
-        int length = _vertical
-            ? itemViewFactory.getHeight(_data[i - 1])
-            : itemViewFactory.getWidth(_data[i - 1]);
+        int length =
+            _vertical
+                ? itemViewFactory.getHeight(_data[i - 1])
+                : itemViewFactory.getWidth(_data[i - 1]);
         offset += length;
         _itemOffsets.add(offset);
         _lengths.add(length);
@@ -885,12 +922,19 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
 
   @override
   Interval<int> computeVisibleInterval(
-      num offset, num viewLength, num bufferLength) {
+    num offset,
+    num viewLength,
+    num bufferLength,
+  ) {
     final offsetInt = offset.toInt();
-    int start = _findFirstItemBefore(-offsetInt - bufferLength,
-        _lastVisibleInterval != null ? _lastVisibleInterval.start : 0);
-    int end = _findFirstItemAfter(-offsetInt + viewLength + bufferLength,
-        _lastVisibleInterval != null ? _lastVisibleInterval.end : 0);
+    int start = _findFirstItemBefore(
+      -offsetInt - bufferLength,
+      _lastVisibleInterval != null ? _lastVisibleInterval.start : 0,
+    );
+    int end = _findFirstItemAfter(
+      -offsetInt + viewLength + bufferLength,
+      _lastVisibleInterval != null ? _lastVisibleInterval.end : 0,
+    );
     _lastVisibleInterval = Interval(start, Math.max(start, end));
     _lastOffset = offsetInt;
     return _lastVisibleInterval;
@@ -919,25 +963,29 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
 }
 
 class VariableSizeListView<D> extends GenericListView<D> {
-  VariableSizeListView(List<D> data, VariableSizeViewFactory<D> itemViewFactory,
-      bool scrollable, bool vertical, ObservableValue<D?> selectedItem,
-      [bool snapToItems = false,
-      bool paginate = false,
-      bool removeClippedViews = false,
-      bool showScrollbar = false,
-      PageState? pages])
-      : super(
-            VariableSizeListViewLayout(
-                itemViewFactory, data, vertical, paginate),
-            data,
-            scrollable,
-            vertical,
-            selectedItem,
-            snapToItems,
-            paginate,
-            removeClippedViews,
-            showScrollbar,
-            pages);
+  VariableSizeListView(
+    List<D> data,
+    VariableSizeViewFactory<D> itemViewFactory,
+    bool scrollable,
+    bool vertical,
+    ObservableValue<D?> selectedItem, [
+    bool snapToItems = false,
+    bool paginate = false,
+    bool removeClippedViews = false,
+    bool showScrollbar = false,
+    PageState? pages,
+  ]) : super(
+         VariableSizeListViewLayout(itemViewFactory, data, vertical, paginate),
+         data,
+         scrollable,
+         vertical,
+         selectedItem,
+         snapToItems,
+         paginate,
+         removeClippedViews,
+         showScrollbar,
+         pages,
+       );
 }
 
 /// A back button that is equivalent to clicking "back" in the browser. */
@@ -998,8 +1046,11 @@ class DialogView extends View {
         </div>
       </div>''');
 
-    _done =
-        PushButtonView('Done', 'done-button', EventBatch.wrap((e) => onDone()));
+    _done = PushButtonView(
+      'Done',
+      'done-button',
+      EventBatch.wrap((e) => onDone()),
+    );
     final titleArea = node.querySelector('.dialog-title-area')!;
     titleArea.nodes.add(_done.node);
 

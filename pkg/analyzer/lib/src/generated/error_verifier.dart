@@ -118,6 +118,8 @@ class EnclosingExecutableContext {
     return element?.displayName;
   }
 
+  ExecutableElement2? get element2 => element.asElement2;
+
   bool get isClosure {
     return element is FunctionElement && element!.displayName.isEmpty;
   }
@@ -1011,16 +1013,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    Expression functionExpression = node.function;
+    var functionExpression = node.function;
 
     if (functionExpression is ExtensionOverride) {
       return super.visitFunctionExpressionInvocation(node);
     }
 
-    DartType expressionType = functionExpression.typeOrThrow;
-    if (expressionType is FunctionType) {
-      _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
-    }
+    _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
     _requiredParametersVerifier.visitFunctionExpressionInvocation(node);
     _constArgumentsVerifier.visitFunctionExpressionInvocation(node);
     _checkUseVerifier.checkFunctionExpressionInvocation(node);
@@ -1487,7 +1486,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _requiredParametersVerifier.visitSuperConstructorInvocation(
       node,
-      enclosingConstructor: _enclosingExecutable.element.ifTypeOrNull(),
+      enclosingConstructor: _enclosingExecutable.element2.ifTypeOrNull(),
     );
     _constArgumentsVerifier.visitSuperConstructorInvocation(node);
     _isInConstructorInitializer = true;
@@ -4809,7 +4808,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var representationType = element.representation.type;
 
     for (var typeParameterNode in typeParameters) {
-      var typeParameterElement = typeParameterNode.declaredElement!;
+      var typeParameterElement = typeParameterNode.declaredFragment!.element;
       var nonCovariant = representationType.accept(
         NonCovariantTypeParameterPositionVisitor(
           [typeParameterElement],
@@ -6630,7 +6629,7 @@ class HiddenElements {
     this.outerElements,
     GuardedPatternImpl guardedPattern,
   ) {
-    _elements.addAll(guardedPattern.variables.values);
+    _elements.addAll(guardedPattern.variables.values.map((e) => e.asElement!));
   }
 
   /// Return `true` if this set of elements contains the given [element].

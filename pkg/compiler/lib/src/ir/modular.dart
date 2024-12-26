@@ -26,9 +26,14 @@ abstract class ModularStrategy {
 
 /// Compute [ModularMemberData] from the IR.
 ModularMemberData computeModularMemberData(
-    KernelToElementMap elementMap, ir.Member node, ScopeModel scopeModel) {
+  KernelToElementMap elementMap,
+  ir.Member node,
+  ScopeModel scopeModel,
+) {
   return ModularMemberData(
-      scopeModel, ImpactBuilder(elementMap, node).computeImpact());
+    scopeModel,
+    ImpactBuilder(elementMap, node).computeImpact(),
+  );
 }
 
 class ModularCore {

@@ -62,12 +62,16 @@ void testTopDownInference() {
   // Maps.
 
   // The context element type is pushed into the branches.
-  Expect.mapEquals(<int, String>{1: "s"},
-      <int, String>{if (true) expectInt(1): expectString("s")});
+  Expect.mapEquals(
+    <int, String>{1: "s"},
+    <int, String>{if (true) expectInt(1): expectString("s")},
+  );
 
   // Bottom up-inference from elements is not pushed back down into branches.
-  Expect.mapEquals(<int, String>{1: "s", 2: "t"},
-      {1: "s", if (true) expectDynamic(2): expectDynamic("t")});
+  Expect.mapEquals(
+    <int, String>{1: "s", 2: "t"},
+    {1: "s", if (true) expectDynamic(2): expectDynamic("t")},
+  );
 
   // Sets.
 

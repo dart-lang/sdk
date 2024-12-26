@@ -1479,14 +1479,14 @@ class A {}
     var element = await fileResolver.getLibraryByUri2(
       uriStr: 'package:dart.my/a.dart',
     );
-    expect(element.definingCompilationUnit.classes, hasLength(1));
+    expect(element.classes, hasLength(1));
   }
 
   test_getLibraryByUri_notExistingFile() async {
     var element = await fileResolver.getLibraryByUri2(
       uriStr: 'package:dart.my/a.dart',
     );
-    expect(element.definingCompilationUnit.classes, isEmpty);
+    expect(element.classes, isEmpty);
   }
 
   test_getLibraryByUri_partOf() async {
@@ -1663,8 +1663,7 @@ byteStore
     );
 
     // Ask types for top-level variables.
-    var b_unit = b_library.definingCompilationUnit;
-    for (var topLevelVariable in b_unit.topLevelVariables) {
+    for (var topLevelVariable in b_library.topLevelVariables) {
       topLevelVariable.type;
     }
 

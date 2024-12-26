@@ -1,8 +1,10 @@
 [![pub package](https://img.shields.io/pub/v/js.svg)](https://pub.dev/packages/js)
 [![package publisher](https://img.shields.io/pub/publisher/js.svg)](https://pub.dev/packages/js/publisher)
 
-**Important:** Prefer using `dart:js_interop` instead of this package for JS
-interop. See the [JS interop documentation] for more details.
+> [!CAUTION]
+> This package is discontinued.
+> Prefer using `dart:js_interop` instead of this package for JS 
+> interop. See the [JS interop documentation] for more details.
 
 Use this package when you want to call JavaScript APIs from Dart code, or vice
 versa.

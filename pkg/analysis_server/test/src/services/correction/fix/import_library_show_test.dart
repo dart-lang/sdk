@@ -134,6 +134,31 @@ void f(String s, C c) {
 ''');
   }
 
+  Future<void> test_extension_shown_class_differentPrefix() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+extension E on String {
+  int get m => 0;
+}
+''');
+    await resolveTestCode('''
+import 'package:test/lib.dart' as lib show C;
+import 'package:test/lib.dart' show E;
+
+void f(String s, lib2.C c) {
+  s.m;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as lib show C;
+import 'package:test/lib.dart' show C, E;
+
+void f(String s, C c) {
+  s.m;
+}
+''');
+  }
+
   Future<void> test_override_samePackage() async {
     newFile('$testPackageLibPath/lib.dart', '''
 class A {}

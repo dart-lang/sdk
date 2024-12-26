@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend.namer;
+part of 'namer.dart';
 
 mixin _MinifiedFieldNamer implements Namer {
-  _FieldNamingRegistry get fieldRegistry;
+  FieldNamingRegistry get fieldRegistry;
 
   // Returns a minimal name for the field that is globally unique along
   // the given element's class inheritance chain.
@@ -13,7 +13,7 @@ mixin _MinifiedFieldNamer implements Namer {
   // The inheritance scope based naming might not yield a name. For instance,
   // this could be because the field belongs to a mixin. In such a case this
   // will return `null` and a normal field name has to be used.
-  jsAst.Name? _minifiedInstanceFieldPropertyName(FieldEntity element) {
+  js_ast.Name? _minifiedInstanceFieldPropertyName(FieldEntity element) {
     if (_nativeData.hasFixedBackendName(element)) {
       return StringBackedName(_nativeData.getFixedBackendName(element)!);
     }
@@ -38,18 +38,18 @@ mixin _MinifiedFieldNamer implements Namer {
 /// The field naming registry allocates names to be used along a path in the
 /// inheritance hierarchy of fields, starting with the object class. The actual
 /// hierarchy is encoded using instances of [_FieldNamingScope].
-class _FieldNamingRegistry {
+class FieldNamingRegistry {
   final Namer namer;
 
-  final Map<Entity, _FieldNamingScope> scopes = {};
+  final Map<Entity, _FieldNamingScope> _scopes = {};
 
-  final Map<Entity, jsAst.Name> globalNames = {};
+  final Map<Entity, js_ast.Name> globalNames = {};
 
   int globalCount = 0;
 
-  final List<jsAst.Name> nameStore = [];
+  final List<js_ast.Name> nameStore = [];
 
-  _FieldNamingRegistry(this.namer);
+  FieldNamingRegistry(this.namer);
 
   // Returns the name to be used for a field with distance [index] from the
   // root of the object hierarchy. The distance thereby is computed as the
@@ -59,7 +59,7 @@ class _FieldNamingRegistry {
   // The implementation assumes that names are requested in order, that is the
   // name at position i+1 is requested after the name at position i was
   // requested.
-  jsAst.Name getName(int index) {
+  js_ast.Name getName(int index) {
     if (index >= nameStore.length) {
       // The namer usually does not use certain names as they clash with
       // existing properties on JS objects (see [_reservedNativeProperties]).
@@ -69,7 +69,8 @@ class _FieldNamingRegistry {
       if (index < MinifyNamer._reservedNativeProperties.length &&
           MinifyNamer._reservedNativeProperties[index].length <= 2) {
         nameStore.add(
-            StringBackedName(MinifyNamer._reservedNativeProperties[index]));
+          StringBackedName(MinifyNamer._reservedNativeProperties[index]),
+        );
       } else {
         nameStore.add(namer.getFreshName(namer.instanceScope, "field$index"));
       }
@@ -92,8 +93,8 @@ class _FieldNamingRegistry {
 class _FieldNamingScope {
   final _FieldNamingScope? superScope;
   final Entity container;
-  final Map<Entity, jsAst.Name> names = Maplet();
-  final _FieldNamingRegistry registry;
+  final Map<Entity, js_ast.Name> names = Maplet();
+  final FieldNamingRegistry registry;
 
   /// Naming counter used for fields of ordinary classes.
   late int _fieldNameCounter;
@@ -105,14 +106,18 @@ class _FieldNamingScope {
   /// The number of locally used fields. Depending on the naming source
   /// (e.g. inheritance based or globally unique for mixins) this
   /// might be different from [inheritanceBasedFieldNameCounter].
+  // ignore: unnecessary_getters_setters
   int get _localFieldNameCounter => _fieldNameCounter;
-  void set _localFieldNameCounter(int val) {
+  set _localFieldNameCounter(int val) {
     _fieldNameCounter = val;
   }
 
   factory _FieldNamingScope.forClass(
-      ClassEntity cls, JClosedWorld world, _FieldNamingRegistry registry) {
-    _FieldNamingScope? result = registry.scopes[cls];
+    ClassEntity cls,
+    JClosedWorld world,
+    FieldNamingRegistry registry,
+  ) {
+    _FieldNamingScope? result = registry._scopes[cls];
     if (result != null) return result;
 
     if (world.isUsedAsMixin(cls)) {
@@ -122,8 +127,11 @@ class _FieldNamingScope {
       if (superclass == null) {
         result = _FieldNamingScope.rootScope(cls, registry);
       } else {
-        _FieldNamingScope superScope =
-            _FieldNamingScope.forClass(superclass, world, registry);
+        _FieldNamingScope superScope = _FieldNamingScope.forClass(
+          superclass,
+          world,
+          registry,
+        );
         if (world.elementEnvironment.isMixinApplication(cls)) {
           result = _MixinFieldNamingScope.mixedIn(cls, superScope, registry);
         } else {
@@ -132,40 +140,44 @@ class _FieldNamingScope {
       }
     }
 
-    world.elementEnvironment.forEachClassMember(cls,
-        (ClassEntity declarer, MemberEntity member) {
+    world.elementEnvironment.forEachClassMember(cls, (
+      ClassEntity declarer,
+      MemberEntity member,
+    ) {
       // TODO(sra): Don't add elided names.
       if (member is FieldEntity && member.isInstanceMember) result!.add(member);
     });
 
-    registry.scopes[cls] = result;
+    registry._scopes[cls] = result;
     return result;
   }
 
-  factory _FieldNamingScope.forBox(Local box, _FieldNamingRegistry registry) {
-    return registry.scopes
-        .putIfAbsent(box, () => _BoxFieldNamingScope(box, registry));
+  factory _FieldNamingScope.forBox(Local box, FieldNamingRegistry registry) {
+    return registry._scopes.putIfAbsent(
+      box,
+      () => _BoxFieldNamingScope(box, registry),
+    );
   }
 
   _FieldNamingScope.rootScope(this.container, this.registry)
-      : superScope = null,
-        _fieldNameCounter = 0;
+    : superScope = null,
+      _fieldNameCounter = 0;
 
   _FieldNamingScope.inherit(
-      this.container, _FieldNamingScope superScope, this.registry)
-      : this.superScope = superScope {
-    _fieldNameCounter = superScope.inheritanceBasedFieldNameCounter;
-  }
+    this.container,
+    _FieldNamingScope this.superScope,
+    this.registry,
+  ) : _fieldNameCounter = superScope.inheritanceBasedFieldNameCounter;
 
   /// Checks whether [name] is already used in the current scope chain.
-  bool _isNameUnused(jsAst.Name name) {
+  bool _isNameUnused(js_ast.Name name) {
     return !names.values.contains(name) &&
         ((superScope == null) || superScope!._isNameUnused(name));
   }
 
-  jsAst.Name _nextName() => registry.getName(_localFieldNameCounter++);
+  js_ast.Name _nextName() => registry.getName(_localFieldNameCounter++);
 
-  jsAst.Name? operator [](Entity field) {
+  js_ast.Name? operator [](Entity field) {
     final name = names[field];
     if (name == null && superScope != null) return superScope![field];
     return name;
@@ -174,7 +186,7 @@ class _FieldNamingScope {
   void add(Entity field) {
     if (names.containsKey(field)) return;
 
-    jsAst.Name value = _nextName();
+    js_ast.Name value = _nextName();
     assert(_isNameUnused(value), failedAt(field));
     names[field] = value;
   }
@@ -193,21 +205,23 @@ class _MixinFieldNamingScope extends _FieldNamingScope {
   @override
   int get _localFieldNameCounter => registry.globalCount;
   @override
-  void set _localFieldNameCounter(int val) {
+  set _localFieldNameCounter(int val) {
     registry.globalCount = val;
   }
 
   @override
-  Map<Entity, jsAst.Name> get names => registry.globalNames;
+  Map<Entity, js_ast.Name> get names => registry.globalNames;
 
   _MixinFieldNamingScope.mixin(super.cls, super.registry) : super.rootScope();
 
   _MixinFieldNamingScope.mixedIn(
-      super.container, super.superScope, super.registry)
-      : super.inherit();
+    super.container,
+    super.superScope,
+    super.registry,
+  ) : super.inherit();
 
   @override
-  jsAst.Name _nextName() {
+  js_ast.Name _nextName() {
     final proposed = super._nextName() as _NamerName;
     return CompoundName([proposed, Namer._literalDollar as _NamerName]);
   }
@@ -224,7 +238,7 @@ class _BoxFieldNamingScope extends _FieldNamingScope {
   bool containsField(_) => true;
 
   @override
-  jsAst.Name operator [](Entity field) {
+  js_ast.Name operator [](Entity field) {
     if (!names.containsKey(field)) add(field);
     return names[field]!;
   }

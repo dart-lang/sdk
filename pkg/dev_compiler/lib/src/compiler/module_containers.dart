@@ -150,7 +150,7 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
   String Function(K) keyToString;
 
   ModuleItemObjectContainer(String name, this.keyToString)
-      : super._(name, js_ast.TemporaryId(name));
+      : super._(name, js_ast.ScopedId(name));
 
   @override
   void operator []=(K key, js_ast.Expression value) {
@@ -172,7 +172,7 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
     });
     moduleItems[key] = ModuleItemData(
         containerId, js_ast.LiteralString("'$fieldString'"), value);
-    if (length % 500 == 0) containerId = js_ast.TemporaryId(name);
+    if (length % 500 == 0) containerId = js_ast.ScopedId(name);
   }
 
   @override
@@ -218,8 +218,7 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
 /// ];
 /// ```
 class ModuleItemArrayContainer<K> extends ModuleItemContainer<K> {
-  ModuleItemArrayContainer(String name)
-      : super._(name, js_ast.TemporaryId(name));
+  ModuleItemArrayContainer(String name) : super._(name, js_ast.ScopedId(name));
 
   @override
   void operator []=(K key, js_ast.Expression value) {
@@ -239,7 +238,7 @@ class ModuleItemArrayContainer<K> extends ModuleItemContainer<K> {
 
   @override
   List<js_ast.Statement> emit({EmitValue<K>? emitValue}) {
-    var dummyExpression = js_ast.TemporaryId('dummyExpression');
+    var dummyExpression = js_ast.ScopedId('dummyExpression');
     var properties = List<js_ast.Expression>.filled(length, dummyExpression);
 
     // If the entire array holds just one value, generate a short initializer.

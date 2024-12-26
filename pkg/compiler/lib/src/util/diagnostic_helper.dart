@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.test.diagnostic_helper;
+library;
 
-import 'package:compiler/compiler_api.dart' as api
+import 'package:compiler/compiler_api.dart'
+    as api
     show CompilerDiagnostics, Diagnostic;
 import 'package:compiler/src/diagnostics/messages.dart'
     show Message, MessageKind;
@@ -18,7 +19,13 @@ class CollectedMessage {
   final api.Diagnostic kind;
 
   CollectedMessage(
-      this.message, this.uri, this.begin, this.end, this.text, this.kind);
+    this.message,
+    this.uri,
+    this.begin,
+    this.end,
+    this.text,
+    this.kind,
+  );
 
   MessageKind? get messageKind => message?.kind;
 
@@ -33,14 +40,21 @@ class DiagnosticCollector implements api.CompilerDiagnostics {
   List<CollectedMessage> messages = <CollectedMessage>[];
 
   @override
-  void report(covariant Message? message, Uri? uri, int? begin, int? end,
-      String text, api.Diagnostic kind) {
+  void report(
+    covariant Message? message,
+    Uri? uri,
+    int? begin,
+    int? end,
+    String text,
+    api.Diagnostic kind,
+  ) {
     messages.add(CollectedMessage(message, uri, begin, end, text, kind));
   }
 
   Iterable<CollectedMessage> filterMessagesByKinds(List<api.Diagnostic> kinds) {
-    return messages
-        .where((CollectedMessage message) => kinds.contains(message.kind));
+    return messages.where(
+      (CollectedMessage message) => kinds.contains(message.kind),
+    );
   }
 
   Iterable<CollectedMessage> get errors {

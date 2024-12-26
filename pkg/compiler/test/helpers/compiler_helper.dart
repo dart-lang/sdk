@@ -31,17 +31,19 @@ const _commonTestPath = 'sdk/tests/web/native';
 ///
 /// If [check] is provided, it is executed on the code for [entry] before
 /// returning.
-Future<String> compile(String code,
-    {String entry = 'main',
-    String? methodName,
-    bool enableTypeAssertions = false,
-    bool minify = false,
-    bool disableInlining = true,
-    bool disableTypeInference = true,
-    bool omitImplicitChecks = true,
-    bool enableVariance = false,
-    void check(String generatedEntry)?,
-    bool returnAll = false}) async {
+Future<String> compile(
+  String code, {
+  String entry = 'main',
+  String? methodName,
+  bool enableTypeAssertions = false,
+  bool minify = false,
+  bool disableInlining = true,
+  bool disableTypeInference = true,
+  bool omitImplicitChecks = true,
+  bool enableVariance = false,
+  void check(String generatedEntry)?,
+  bool returnAll = false,
+}) async {
   OutputCollector? outputCollector = returnAll ? OutputCollector() : null;
   List<String> options = <String>[];
   if (disableTypeInference) {
@@ -74,17 +76,19 @@ Future<String> compile(String code,
   }
 
   CompilationResult result = await runCompiler(
-      entryPoint: entryPoint,
-      memorySourceFiles: source,
-      options: options,
-      outputProvider: outputCollector);
+    entryPoint: entryPoint,
+    memorySourceFiles: source,
+    options: options,
+    outputProvider: outputCollector,
+  );
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler!;
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity mainLibrary = elementEnvironment.mainLibrary!;
-  final element = elementEnvironment.lookupLibraryMember(
-      mainLibrary, methodName) as FunctionEntity;
+  final element =
+      elementEnvironment.lookupLibraryMember(mainLibrary, methodName)
+          as FunctionEntity;
   JsBackendStrategy backendStrategy = compiler.backendStrategy;
   String generated = backendStrategy.getGeneratedCodeForTesting(element)!;
   if (check != null) {
@@ -95,11 +99,13 @@ Future<String> compile(String code,
       : generated;
 }
 
-Future<String> compileAll(String code,
-    {bool disableInlining = true,
-    bool minify = false,
-    int? expectedErrors,
-    int? expectedWarnings}) async {
+Future<String> compileAll(
+  String code, {
+  bool disableInlining = true,
+  bool minify = false,
+  int? expectedErrors,
+  int? expectedWarnings,
+}) async {
   OutputCollector outputCollector = OutputCollector();
   DiagnosticCollector diagnosticCollector = DiagnosticCollector();
   List<String> options = <String>[];
@@ -113,15 +119,17 @@ Future<String> compileAll(String code,
   Uri entryPoint = Uri.parse('memory:$_commonTestPath/main.dart');
 
   CompilationResult result = await runCompiler(
-      entryPoint: entryPoint,
-      memorySourceFiles: {entryPoint.path: code},
-      options: options,
-      outputProvider: outputCollector,
-      diagnosticHandler: diagnosticCollector);
+    entryPoint: entryPoint,
+    memorySourceFiles: {entryPoint.path: code},
+    options: options,
+    outputProvider: outputCollector,
+    diagnosticHandler: diagnosticCollector,
+  );
   Expect.isTrue(
-      result.isSuccess,
-      'Unexpected compilation error(s): '
-      '${diagnosticCollector.errors}');
+    result.isSuccess,
+    'Unexpected compilation error(s): '
+    '${diagnosticCollector.errors}',
+  );
   return outputCollector.getOutput('', api.OutputType.js)!;
 }
 
@@ -146,17 +154,29 @@ void checkNumberOfMatches(Iterator it, int nb) {
 }
 
 Future compileAndMatch(String code, String entry, RegExp regexp) {
-  return compile(code, entry: entry, check: (String generated) {
-    Expect.isTrue(regexp.hasMatch(generated),
-        '"$generated" does not match /$regexp/ from source:\n$code');
-  });
+  return compile(
+    code,
+    entry: entry,
+    check: (String generated) {
+      Expect.isTrue(
+        regexp.hasMatch(generated),
+        '"$generated" does not match /$regexp/ from source:\n$code',
+      );
+    },
+  );
 }
 
 Future compileAndDoNotMatch(String code, String entry, RegExp regexp) {
-  return compile(code, entry: entry, check: (String generated) {
-    Expect.isFalse(regexp.hasMatch(generated),
-        '"$generated" has a match in /$regexp/ from source:\n$code');
-  });
+  return compile(
+    code,
+    entry: entry,
+    check: (String generated) {
+      Expect.isFalse(
+        regexp.hasMatch(generated),
+        '"$generated" has a match in /$regexp/ from source:\n$code',
+      );
+    },
+  );
 }
 
 int length(Link link) => link.isEmpty ? 0 : length(link.tail!) + 1;
@@ -171,24 +191,35 @@ Future compileAndDoNotMatchFuzzy(String code, String entry, String regexp) {
   return compileAndMatchFuzzyHelper(code, entry, regexp, shouldMatch: false);
 }
 
-Future compileAndMatchFuzzyHelper(String code, String entry, String regexp,
-    {required bool shouldMatch}) {
-  return compile(code, entry: entry, check: (String generated) {
-    String originalRegexp = regexp;
-    final xRe = RegExp('\\bx\\b');
-    regexp = regexp.replaceAll(xRe, '(?:$anyIdentifier)');
-    final spaceRe = RegExp('\\s+');
-    regexp = regexp.replaceAll(spaceRe, '(?:\\s*)');
-    if (shouldMatch) {
-      Expect.isTrue(
+Future compileAndMatchFuzzyHelper(
+  String code,
+  String entry,
+  String regexp, {
+  required bool shouldMatch,
+}) {
+  return compile(
+    code,
+    entry: entry,
+    check: (String generated) {
+      String originalRegexp = regexp;
+      final xRe = RegExp('\\bx\\b');
+      regexp = regexp.replaceAll(xRe, '(?:$anyIdentifier)');
+      final spaceRe = RegExp('\\s+');
+      regexp = regexp.replaceAll(spaceRe, '(?:\\s*)');
+      if (shouldMatch) {
+        Expect.isTrue(
           RegExp(regexp).hasMatch(generated),
           "Pattern '$originalRegexp' not found in\n$generated\n"
-          "from source\n$code");
-    } else {
-      Expect.isFalse(new RegExp(regexp).hasMatch(generated),
-          "Pattern '$originalRegexp' found in\n$generated\nfrom source\n$code");
-    }
-  });
+          "from source\n$code",
+        );
+      } else {
+        Expect.isFalse(
+          new RegExp(regexp).hasMatch(generated),
+          "Pattern '$originalRegexp' found in\n$generated\nfrom source\n$code",
+        );
+      }
+    },
+  );
 }
 
 /// Returns a 'check' function that uses comments in [test] to drive checking.
@@ -211,12 +242,16 @@ checkerForAbsentPresent(String test) {
       Pattern pattern = match.groups([2, 3, 4]).where((s) => s != null).single!;
       if (match.group(4) != null) pattern = RegExp(pattern as String);
       if (directive == 'present') {
-        Expect.isTrue(generated.contains(pattern),
-            "Cannot find '$pattern' in:\n$generated");
+        Expect.isTrue(
+          generated.contains(pattern),
+          "Cannot find '$pattern' in:\n$generated",
+        );
       } else {
         assert(directive == 'absent');
-        Expect.isFalse(generated.contains(pattern),
-            "Must not find '$pattern' in:\n$generated");
+        Expect.isFalse(
+          generated.contains(pattern),
+          "Must not find '$pattern' in:\n$generated",
+        );
       }
     }
   }
@@ -225,6 +260,7 @@ checkerForAbsentPresent(String test) {
 }
 
 RegExp _directivePattern = RegExp(
-    //      \1                     \2        \3         \4
-    r'''// *(present|absent): *(?:"([^"]*)"|'([^'']*)'|/(.*)/)''',
-    multiLine: true);
+  //      \1                     \2        \3         \4
+  r'''// *(present|absent): *(?:"([^"]*)"|'([^'']*)'|/(.*)/)''',
+  multiLine: true,
+);

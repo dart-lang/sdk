@@ -18,9 +18,9 @@ abstract class B extends A implements I {
 }
 
 class C extends B {
-//    ^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_IMPLEMENTATION_OVERRIDE
-// [cfe] The implementation of 'foo' in the non-abstract class 'C' does not conform to its interface.
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_IMPLEMENTATION_OVERRIDE
+  // [cfe] The implementation of 'foo' in the non-abstract class 'C' does not conform to its interface.
 
   // However, there is a problem here because this class is concrete and doesn't
   // override foo.

@@ -10,6 +10,7 @@ final class Pointer<T extends NativeType> {
   @pragma("wasm:entry-point")
   WasmI32 _address;
 
+  @pragma("wasm:prefer-inline")
   Pointer._(this._address);
 
   @patch

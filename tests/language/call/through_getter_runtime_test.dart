@@ -31,9 +31,6 @@ class CallThroughGetterTest {
     Expect.equals(1, TOP_LEVEL_CONST);
     Expect.equals(1, TOP_LEVEL_CONST_REF);
     Expect.equals(2, topLevel());
-
-
-
   }
 
   static void testField() {

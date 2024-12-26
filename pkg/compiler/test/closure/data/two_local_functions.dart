@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  /**/ local1() {}
-  /*fields=[local1],free=[local1]*/ local2() => local1();
+  /**/
+  local1() {}
+  /*fields=[local1],free=[local1]*/
+  local2() => local1();
   return local2;
 }

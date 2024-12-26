@@ -30,6 +30,6 @@ Messages generateMessagesFiles(Uri repoDir) {
   return generateMessagesFilesRaw(
       repoDir,
       (s) => new DartFormatter(
-              languageVersion: DartFormatter.latestLanguageVersion)
+              languageVersion: DartFormatter.latestShortStyleLanguageVersion)
           .format(s));
 }

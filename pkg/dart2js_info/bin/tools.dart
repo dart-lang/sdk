@@ -22,24 +22,27 @@ import 'src/text_print.dart';
 import 'src/to_devtools_format.dart';
 
 /// Entrypoint to run all dart2js_info tools.
-void main(args) {
-  var commandRunner = CommandRunner("dart2js_info",
-      "collection of tools to digest the output of dart2js's --dump-info")
-    ..addCommand(CodeDepsCommand())
-    ..addCommand(CommonCommand())
-    ..addCommand(CoverageLogServerCommand())
-    ..addCommand(DebugCommand())
-    ..addCommand(DiffCommand())
-    ..addCommand(DeferredLibraryCheck())
-    ..addCommand(DeferredLibrarySize())
-    ..addCommand(DeferredLibraryLayout())
-    ..addCommand(ConvertCommand())
-    ..addCommand(FunctionSizeCommand())
-    ..addCommand(LibrarySizeCommand())
-    ..addCommand(LiveCodeAnalysisCommand())
-    ..addCommand(RuntimeCoverageAnalysisCommand())
-    ..addCommand(ShowInferredTypesCommand())
-    ..addCommand(ShowCommand())
-    ..addCommand(DevtoolsFormatCommand());
+void main(List<String> args) {
+  var commandRunner =
+      CommandRunner(
+          "dart2js_info",
+          "collection of tools to digest the output of dart2js's --dump-info",
+        )
+        ..addCommand(CodeDepsCommand())
+        ..addCommand(CommonCommand())
+        ..addCommand(CoverageLogServerCommand())
+        ..addCommand(DebugCommand())
+        ..addCommand(DiffCommand())
+        ..addCommand(DeferredLibraryCheck())
+        ..addCommand(DeferredLibrarySize())
+        ..addCommand(DeferredLibraryLayout())
+        ..addCommand(ConvertCommand())
+        ..addCommand(FunctionSizeCommand())
+        ..addCommand(LibrarySizeCommand())
+        ..addCommand(LiveCodeAnalysisCommand())
+        ..addCommand(RuntimeCoverageAnalysisCommand())
+        ..addCommand(ShowInferredTypesCommand())
+        ..addCommand(ShowCommand())
+        ..addCommand(DevtoolsFormatCommand());
   commandRunner.run(args);
 }

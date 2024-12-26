@@ -11,14 +11,11 @@ void main() {
   var a = [1, 2, 3][2];
   switch (a) {
     case 0.0:
-    //   ^^^
-    // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE
-    //   ^^^
-    // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
-    //   ^
-    // [cfe] Type 'double' of the case expression is not a subtype of type 'int' of this switch expression.
-    //   ^
-    // [cfe] Case expression '0.0' does not have a primitive operator '=='.
+      // ^^^
+      // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+      // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE
+      // [cfe] Case expression '0.0' does not have a primitive operator '=='.
+      // [cfe] Type 'double' of the case expression is not a subtype of type 'int' of this switch expression.
       print("illegal");
       break;
     case 1:

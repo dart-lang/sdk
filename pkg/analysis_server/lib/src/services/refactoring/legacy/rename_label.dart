@@ -6,18 +6,18 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 /// A [Refactoring] for renaming [LabelElement]s.
 class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
   RenameLabelRefactoringImpl(
     super.workspace,
     super.sessionHelper,
-    LabelElement super.element,
-  );
+    LabelElement2 super.element,
+  ) : super.c2();
 
   @override
-  LabelElement get element => super.element as LabelElement;
+  LabelElement2 get element2 => super.element2 as LabelElement2;
 
   @override
   String get refactoringName => 'Rename Label';
@@ -38,6 +38,6 @@ class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<void> fillChange() {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
-    return processor.renameElement(element);
+    return processor.renameElement2(element2);
   }
 }

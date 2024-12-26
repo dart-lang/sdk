@@ -163,8 +163,8 @@ class CreateGetter extends CreateFieldOrGetter {
       }
     } else {
       targetElement =
-          nameNode.enclosingInterfaceElement2 ??
-          nameNode.enclosingExtensionElement2;
+          nameNode.enclosingInterfaceElement ??
+          nameNode.enclosingExtensionElement;
       if (targetElement == null) {
         return;
       }
@@ -198,7 +198,7 @@ class CreateGetter extends CreateFieldOrGetter {
       return;
     }
     // prepare target declaration
-    var targetDeclarationResult = await sessionHelper.getElementDeclaration2(
+    var targetDeclarationResult = await sessionHelper.getElementDeclaration(
       targetFragment,
     );
     if (targetDeclarationResult == null) {

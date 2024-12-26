@@ -55,6 +55,11 @@ abstract class AnalysisSession {
   /// with the given library [element].
   SomeParsedLibraryResult getParsedLibraryByElement(LibraryElement element);
 
+  /// Return information about the results of parsing units of the library file
+  /// with the given library [element].
+  @experimental
+  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement2 element);
+
   /// Return information about the results of parsing the file with the given
   /// absolute, normalized [path].
   SomeParsedUnitResult getParsedUnit(String path);

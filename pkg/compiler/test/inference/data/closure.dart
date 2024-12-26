@@ -19,7 +19,8 @@ main() {
 
 /*member: returnInClosure:[exact=JSUInt31]*/
 returnInClosure() {
-  /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
+  /*[null|subclass=Object]*/
+  local(/*[subclass=Closure]*/ f) => f();
 
   int lines = 0;
   local(/*[exact=JSUInt31]*/ () {
@@ -30,7 +31,8 @@ returnInClosure() {
 
 /*member: accessInClosure:[exact=JSUInt31]*/
 accessInClosure() {
-  /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
+  /*[null|subclass=Object]*/
+  local(/*[subclass=Closure]*/ f) => f();
 
   int lines = 0;
   local(/*[exact=JSBool]*/ () {
@@ -41,7 +43,8 @@ accessInClosure() {
 
 /*member: invokeInClosure:[exact=JSUInt31]*/
 invokeInClosure() {
-  /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
+  /*[null|subclass=Object]*/
+  local(/*[subclass=Closure]*/ f) => f();
 
   int lines = 0;
   local(/*[subclass=JSNumber]*/ () {
@@ -52,7 +55,8 @@ invokeInClosure() {
 
 /*member: operatorInClosure:[exact=JSUInt31]*/
 operatorInClosure() {
-  /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
+  /*[null|subclass=Object]*/
+  local(/*[subclass=Closure]*/ f) => f();
 
   int lines = 0;
   local(/*[subclass=JSInt]*/ () {
@@ -63,7 +67,8 @@ operatorInClosure() {
 
 /*member: assignInClosure:[subclass=JSInt]*/
 assignInClosure() {
-  /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
+  /*[null|subclass=Object]*/
+  local(/*[subclass=Closure]*/ f) => f();
 
   int lines = 0;
   local(/*[null]*/ () {
@@ -74,7 +79,8 @@ assignInClosure() {
 
 /*member: assignInTwoClosures:[subclass=JSInt]*/
 assignInTwoClosures() {
-  /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
+  /*[null|subclass=Object]*/
+  local(/*[subclass=Closure]*/ f) => f();
 
   int lines = 0;
   local(/*[null]*/ () {
@@ -88,7 +94,8 @@ assignInTwoClosures() {
 
 /*member: accessAssignInClosure:[subclass=JSInt]*/
 accessAssignInClosure() {
-  /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
+  /*[null|subclass=Object]*/
+  local(/*[subclass=Closure]*/ f) => f();
 
   int lines = 0;
   local(/*[null]*/ () {
@@ -99,7 +106,8 @@ accessAssignInClosure() {
 
 /*member: accessBeforeAssignInClosure:[exact=JSUInt31]*/
 accessBeforeAssignInClosure() {
-  /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
+  /*[null|subclass=Object]*/
+  local(/*[subclass=Closure]*/ f) => f();
 
   int lines = 0;
   local(/*[null]*/ () {
@@ -111,7 +119,8 @@ accessBeforeAssignInClosure() {
 
 /*member: accessAfterAssignInClosure:[exact=JSUInt31]*/
 accessAfterAssignInClosure() {
-  /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
+  /*[null|subclass=Object]*/
+  local(/*[subclass=Closure]*/ f) => f();
 
   int lines = 0;
   local(/*[subclass=JSInt]*/ () {
@@ -123,7 +132,8 @@ accessAfterAssignInClosure() {
 
 /*member: compoundInClosure:[subclass=JSInt]*/
 compoundInClosure() {
-  /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
+  /*[null|subclass=Object]*/
+  local(/*[subclass=Closure]*/ f) => f();
 
   int lines = 0;
   local(/*[null]*/ () {
@@ -134,7 +144,8 @@ compoundInClosure() {
 
 /*member: postfixInClosure:[subclass=JSPositiveInt]*/
 postfixInClosure() {
-  /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
+  /*[null|subclass=Object]*/
+  local(/*[subclass=Closure]*/ f) => f();
 
   int lines = 0;
   local(/*[null]*/ () {

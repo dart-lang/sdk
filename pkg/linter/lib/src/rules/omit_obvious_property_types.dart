@@ -16,7 +16,7 @@ class OmitObviousPropertyTypes extends LintRule {
       : super(
           name: 'omit_obvious_property_types',
           description: _desc,
-          state: State.experimental(),
+          state: const State.experimental(),
         );
 
   @override

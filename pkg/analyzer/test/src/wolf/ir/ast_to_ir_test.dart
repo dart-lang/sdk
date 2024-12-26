@@ -69,7 +69,7 @@ test(C c, int other) => c $op other;
     check(astNodes)[findNode.binary('c $op other')]
       ..containsSubrange(astNodes[findNode.simple('c $op')]!)
       ..containsSubrange(astNodes[findNode.simple('other;')]!);
-    var c = Instance(findElement.class_('C').thisType);
+    var c = Instance(findElement2.class_('C').thisType);
     _callHandlers['C.$op'] = binaryFunction<Instance, int>((this_, other) {
       check(this_).identicalTo(c);
       check(other).equals(123);
@@ -90,8 +90,8 @@ test(List<C> list, int other) => list.first $op= other;
       ..containsSubrange(astNodes[findNode.simple('list.first')]!)
       ..containsSubrange(astNodes[findNode.prefixed('list.first')]!)
       ..containsSubrange(astNodes[findNode.simple('other;')]!);
-    var c = Instance(findElement.class_('C').thisType);
-    var result = Instance(findElement.class_('C').thisType);
+    var c = Instance(findElement2.class_('C').thisType);
+    var result = Instance(findElement2.class_('C').thisType);
     _callHandlers['C.$op'] = binaryFunction<Instance, int>((this_, other) {
       check(this_).identicalTo(c);
       check(other).equals(123);
@@ -372,7 +372,7 @@ test(C? c) => c?.p ??= hook(123, '123');
     _callHandlers['C.p'] = unaryFunction<Instance>((c) => hook(p, 'c.p'));
     _callHandlers['C.p='] = binaryFunction<Instance, int?>(
         (c, value) => hook(p = value, 'c.p=$value'));
-    var c = Instance(findElement.class_('C').thisType);
+    var c = Instance(findElement2.class_('C').thisType);
     expectHooks([], () => check(runInterpreter([null])).equals(null));
     expectHooks(['c.p', '123', 'c.p=123'],
         () => check(runInterpreter([c])).equals(123));
@@ -429,7 +429,7 @@ test(C c) => c.p ??= hook(123, '123');
     _callHandlers['C.p'] = unaryFunction<Instance>((c) => hook(p, 'c.p'));
     _callHandlers['C.p='] = binaryFunction<Instance, int?>(
         (c, value) => hook(p = value, 'c.p=$value'));
-    var c = Instance(findElement.class_('C').thisType);
+    var c = Instance(findElement2.class_('C').thisType);
     expectHooks(['c.p', '123', 'c.p=123'],
         () => check(runInterpreter([c])).equals(123));
     check(p).equals(123);
@@ -484,7 +484,7 @@ test(C c) => (c).p ??= hook(123, '123');
     _callHandlers['C.p'] = unaryFunction<Instance>((c) => hook(p, 'c.p'));
     _callHandlers['C.p='] = binaryFunction<Instance, int?>(
         (c, value) => hook(p = value, 'c.p=$value'));
-    var c = Instance(findElement.class_('C').thisType);
+    var c = Instance(findElement2.class_('C').thisType);
     expectHooks(['c.p', '123', 'c.p=123'],
         () => check(runInterpreter([c])).equals(123));
     check(p).equals(123);
@@ -539,7 +539,7 @@ class C {
     _callHandlers['C.p'] = unaryFunction<Instance>((c) => hook(p, 'c.p'));
     _callHandlers['C.p='] = binaryFunction<Instance, int?>(
         (c, value) => hook(p = value, 'c.p=$value'));
-    var c = Instance(findElement.class_('C').thisType);
+    var c = Instance(findElement2.class_('C').thisType);
     expectHooks(['c.p', '123', 'c.p=123'],
         () => check(runInterpreter([c])).equals(123));
     check(p).equals(123);
@@ -1077,7 +1077,7 @@ class C {
     analyze(findNode.methodDeclaration('test'));
     check(astNodes)[findNode.methodInvocation('f(x)')]
         .containsSubrange(astNodes[findNode.simple('x); // invocation')]!);
-    var c = Instance(findElement.class_('C').thisType);
+    var c = Instance(findElement2.class_('C').thisType);
     _callHandlers['C.f'] = binaryFunction<Instance, int>((this_, x) {
       check(this_).identicalTo(c);
       check(x).equals(123);
@@ -1141,7 +1141,7 @@ class C {
       check(x).equals(123);
       return 456;
     });
-    var c = Instance(findElement.class_('C').thisType);
+    var c = Instance(findElement2.class_('C').thisType);
     check(runInterpreter([c, 123])).equals(456);
   }
 
@@ -1654,7 +1654,7 @@ class C {
 ''');
     analyze(findNode.singleMethodDeclaration);
     check(astNodes).containsNode(findNode.this_('this'));
-    var thisValue = Instance(findElement.class_('C').thisType);
+    var thisValue = Instance(findElement2.class_('C').thisType);
     check(runInterpreter([thisValue])).identicalTo(thisValue);
   }
 
@@ -1844,8 +1844,7 @@ class AstToIRTestBase extends PubPackageResolutionTest {
           eventListener: astNodes,
         );
       default:
-        throw UnimplementedError(
-            'TODO(paulberry): ${declaration.declaredElement}');
+        throw UnimplementedError('TODO(paulberry): $declaration');
     }
     validate(ir);
     scopes = analyzeScopes(ir);

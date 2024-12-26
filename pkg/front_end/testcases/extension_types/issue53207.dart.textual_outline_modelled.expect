@@ -19,14 +19,13 @@ extension type F3<X extends Future<Object>>(X foo) implements Future<Object> {}
 extension type F4<X extends Future<num>>(X foo) implements F3<X> {}
 
 test(
-  E1 e1,
-  E2<Future<String>> e2,
-  E3 e3,
-  E4<Future<double>> e4,
-  E5<Object> e5object,
-  E5<Future<num>> e5future,
-  F1 f1,
-  F2<Future<num>> f2,
-  F3<Future<String>> f3,
-  F4<Future<int>> f4,
-) async {}
+    E1 e1,
+    E2<Future<String>> e2,
+    E3 e3,
+    E4<Future<double>> e4,
+    E5<Object> e5object,
+    E5<Future<num>> e5future,
+    F1 f1,
+    F2<Future<num>> f2,
+    F3<Future<String>> f3,
+    F4<Future<int>> f4) async {}

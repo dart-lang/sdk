@@ -16,26 +16,153 @@ main() {
   Expect.isTrue(identical('ab\'cd', "ab'cd"));
 
   // String concatenation works even when quotes are different.
-  Expect.isTrue(identical("abcd", "ab" "cd"));
-  Expect.isTrue(identical("abcd", "ab" 'cd'));
-  Expect.isTrue(identical("abcd", 'ab' 'cd'));
-  Expect.isTrue(identical("abcd", 'ab' "cd"));
+  Expect.isTrue(
+    identical(
+      "abcd",
+      "ab"
+          "cd",
+    ),
+  );
+  Expect.isTrue(
+    identical(
+      "abcd",
+      "ab"
+          'cd',
+    ),
+  );
+  Expect.isTrue(
+    identical(
+      "abcd",
+      'ab'
+          'cd',
+    ),
+  );
+  Expect.isTrue(
+    identical(
+      "abcd",
+      'ab'
+          "cd",
+    ),
+  );
 
   // Or when there are more than 2 concatenations.
-  Expect.isTrue(identical("abcd", "a" "b" "cd"));
-  Expect.isTrue(identical("abcd", "a" "b" "c" "d"));
-  Expect.isTrue(identical('abcd', 'a' 'b' 'c' 'd'));
-  Expect.isTrue(identical("abcd", "a" "b" 'c' "d"));
-  Expect.isTrue(identical("abcd", 'a' 'b' 'c' 'd'));
-  Expect.isTrue(identical("abcd", 'a' "b" 'c' "d"));
+  Expect.isTrue(
+    identical(
+      "abcd",
+      "a"
+          "b"
+          "cd",
+    ),
+  );
+  Expect.isTrue(
+    identical(
+      "abcd",
+      "a"
+          "b"
+          "c"
+          "d",
+    ),
+  );
+  Expect.isTrue(
+    identical(
+      'abcd',
+      'a'
+          'b'
+          'c'
+          'd',
+    ),
+  );
+  Expect.isTrue(
+    identical(
+      "abcd",
+      "a"
+          "b"
+          'c'
+          "d",
+    ),
+  );
+  Expect.isTrue(
+    identical(
+      "abcd",
+      'a'
+          'b'
+          'c'
+          'd',
+    ),
+  );
+  Expect.isTrue(
+    identical(
+      "abcd",
+      'a'
+          "b"
+          'c'
+          "d",
+    ),
+  );
 
-  Expect.isTrue(identical("a'b'cd", "a" "'b'" 'c' "d"));
-  Expect.isTrue(identical("a\"b\"cd", "a" '"b"' 'c' "d"));
-  Expect.isTrue(identical("a\"b\"cd", "a" '"b"' 'c' "d"));
-  Expect.isTrue(identical("a'b'cd", 'a' "'b'" 'c' "d"));
-  Expect.isTrue(identical('a\'b\'cd', "a" "'b'" 'c' "d"));
-  Expect.isTrue(identical('a"b"cd', 'a' '"b"' 'c' "d"));
-  Expect.isTrue(identical("a\"b\"cd", 'a' '"b"' 'c' "d"));
+  Expect.isTrue(
+    identical(
+      "a'b'cd",
+      "a"
+          "'b'"
+          'c'
+          "d",
+    ),
+  );
+  Expect.isTrue(
+    identical(
+      "a\"b\"cd",
+      "a"
+          '"b"'
+          'c'
+          "d",
+    ),
+  );
+  Expect.isTrue(
+    identical(
+      "a\"b\"cd",
+      "a"
+          '"b"'
+          'c'
+          "d",
+    ),
+  );
+  Expect.isTrue(
+    identical(
+      "a'b'cd",
+      'a'
+          "'b'"
+          'c'
+          "d",
+    ),
+  );
+  Expect.isTrue(
+    identical(
+      'a\'b\'cd',
+      "a"
+          "'b'"
+          'c'
+          "d",
+    ),
+  );
+  Expect.isTrue(
+    identical(
+      'a"b"cd',
+      'a'
+          '"b"'
+          'c'
+          "d",
+    ),
+  );
+  Expect.isTrue(
+    identical(
+      "a\"b\"cd",
+      'a'
+          '"b"'
+          'c'
+          "d",
+    ),
+  );
 
   const a = identical("ab", "a" + "b");
   Expect.isTrue(a);
@@ -43,7 +170,11 @@ main() {
   const b = identical("xyz", "x" + yz);
   Expect.isTrue(b);
 
-  const c = identical("12", "1" "2");
+  const c = identical(
+    "12",
+    "1"
+        "2",
+  );
   Expect.isTrue(c);
 
   const d = identical("zyz", "z$yz");

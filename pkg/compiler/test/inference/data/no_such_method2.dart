@@ -6,10 +6,10 @@
 abstract class A {
   /*member: A.noSuchMethod:[exact=JSUInt31]*/
   noSuchMethod(
-          /*spec.[null|subclass=Object]*/
-          /*prod.[exact=JSInvocationMirror]*/
-          im) =>
-      42;
+    /*spec.[null|subclass=Object]*/
+    /*prod.[exact=JSInvocationMirror]*/
+    im,
+  ) => 42;
 }
 
 /*member: B.:[exact=B]*/
@@ -31,14 +31,15 @@ class D implements A {
 
   /*member: D.noSuchMethod:[exact=JSNumNotInt]*/
   noSuchMethod(
-          /*prod.[exact=JSInvocationMirror]*/
-          /*spec.[null|subclass=Object]*/
-          im) =>
-      42.5;
+    /*prod.[exact=JSInvocationMirror]*/
+    /*spec.[null|subclass=Object]*/
+    im,
+  ) => 42.5;
 }
 
 /*member: a:Union(null, [exact=D], [subclass=B])*/
-dynamic a = [new B(), C(), D()]
+dynamic a =
+    [new B(), C(), D()]
     /*Container([exact=JSExtendableArray], element: Union([exact=D], [subclass=B]), length: 3)*/
     [0];
 

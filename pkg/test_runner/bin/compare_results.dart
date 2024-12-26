@@ -164,7 +164,7 @@ bool search(
   return judgement;
 }
 
-main(List<String> args) async {
+void main(List<String> args) async {
   final parser = ArgParser();
   parser.addFlag("changed",
       abbr: 'c',

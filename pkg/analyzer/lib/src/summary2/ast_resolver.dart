@@ -75,10 +75,10 @@ class AstResolver {
     node.accept(_resolutionVisitor);
     node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
-    _flowAnalysis.topLevelDeclaration_enter(node, null);
+    _flowAnalysis.bodyOrInitializer_enter(node, null);
     node.accept(_resolverVisitor);
     _resolverVisitor.checkIdle();
-    _flowAnalysis.topLevelDeclaration_exit();
+    _flowAnalysis.bodyOrInitializer_exit();
   }
 
   void resolveConstructorNode(ConstructorDeclarationImpl node) {
@@ -94,11 +94,10 @@ class AstResolver {
     visit(_scopeResolverVisitor);
 
     _prepareEnclosingDeclarations();
-    _flowAnalysis.topLevelDeclaration_enter(node, node.parameters,
-        visit: visit);
+    _flowAnalysis.bodyOrInitializer_enter(node, node.parameters, visit: visit);
     visit(_resolverVisitor);
     _resolverVisitor.checkIdle();
-    _flowAnalysis.topLevelDeclaration_exit();
+    _flowAnalysis.bodyOrInitializer_exit();
   }
 
   void resolveExpression(
@@ -111,11 +110,11 @@ class AstResolver {
     node = getNode();
     node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
-    _flowAnalysis.topLevelDeclaration_enter(node.parent!, null);
+    _flowAnalysis.bodyOrInitializer_enter(node.parent!, null);
     _resolverVisitor.analyzeExpression(node, SharedTypeSchemaView(contextType));
     _resolverVisitor.popRewrite();
     _resolverVisitor.checkIdle();
-    _flowAnalysis.topLevelDeclaration_exit();
+    _flowAnalysis.bodyOrInitializer_exit();
   }
 
   void _prepareEnclosingDeclarations() {

@@ -22,7 +22,7 @@ import com.google.gson.JsonPrimitive;
 
 /**
  * The set of top-level elements encoded as pairs of the defining library URI and the name, and
- * stored in the parallel lists elementUris and elementNames.
+ * stored in the parallel lists <code>elementUris</code> and <code>elementNames</code>.
  *
  * @coverage dart.server.generated.types
  */
@@ -37,12 +37,12 @@ public class ImportedElementSet {
   private final List<String> strings;
 
   /**
-   * The library URI part of the element. It is an index in the strings field.
+   * The library URI part of the element. It is an index in the <code>strings</code> field.
    */
   private final int[] uris;
 
   /**
-   * The name part of a the element. It is an index in the strings field.
+   * The name part of a the element. It is an index in the <code>strings</code> field.
    */
   private final int[] names;
 
@@ -85,7 +85,7 @@ public class ImportedElementSet {
   }
 
   /**
-   * The name part of a the element. It is an index in the strings field.
+   * The name part of a the element. It is an index in the <code>strings</code> field.
    */
   public int[] getNames() {
     return names;
@@ -99,7 +99,7 @@ public class ImportedElementSet {
   }
 
   /**
-   * The library URI part of the element. It is an index in the strings field.
+   * The library URI part of the element. It is an index in the <code>strings</code> field.
    */
   public int[] getUris() {
     return uris;

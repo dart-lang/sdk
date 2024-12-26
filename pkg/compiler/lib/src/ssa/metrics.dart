@@ -18,8 +18,9 @@ class SsaMetrics extends MetricsBase {
   final countConditionDecided = CountMetric('count.if.decided');
   final countIsTestDecided = CountMetric('count.isTest.decided');
   final countIsTestSimplified = CountMetric('count.isTest.simplified');
-  final countLateSentinelCheckDecided =
-      CountMetric('count.lateSentinel.decided');
+  final countLateSentinelCheckDecided = CountMetric(
+    'count.lateSentinel.decided',
+  );
 
   @override
   String get namespace => 'ssa';
@@ -29,22 +30,22 @@ class SsaMetrics extends MetricsBase {
 
   @override
   Iterable<Metric> get secondary => [
-        countMethodInlined,
-        countMethodNotInlined,
-        countSpecializations,
-        countLengthOptimized,
-        countFieldGetFolded,
-        countIndexFolded,
-        countGetLengthFolded,
-        countGettersTotal,
-        countGettersInlined,
-        countGettersElided,
-        countSettersTotal,
-        countSettersInlined,
-        countSettersElided,
-        countConditionDecided,
-        countIsTestDecided,
-        countIsTestSimplified,
-        countLateSentinelCheckDecided
-      ];
+    countMethodInlined,
+    countMethodNotInlined,
+    countSpecializations,
+    countLengthOptimized,
+    countFieldGetFolded,
+    countIndexFolded,
+    countGetLengthFolded,
+    countGettersTotal,
+    countGettersInlined,
+    countGettersElided,
+    countSettersTotal,
+    countSettersInlined,
+    countSettersElided,
+    countConditionDecided,
+    countIsTestDecided,
+    countIsTestSimplified,
+    countLateSentinelCheckDecided,
+  ];
 }

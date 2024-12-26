@@ -57,7 +57,7 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
       return;
     }
 
-    var declaration = await sessionHelper.getElementDeclaration2(
+    var declaration = await sessionHelper.getElementDeclaration(
       variable.firstFragment,
     );
     var variableNode = declaration?.node;

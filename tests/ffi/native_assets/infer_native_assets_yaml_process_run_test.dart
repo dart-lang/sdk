@@ -59,10 +59,7 @@ Future<void> invokeHelperWorkingDir() async {
   print('invoke helper in working dir');
   await withTempDir((tempUri) async {
     await createTestFiles(tempUri);
-    await runDart(
-      workingDirectory: tempUri,
-      scriptUri: Uri(path: helperName),
-    );
+    await runDart(workingDirectory: tempUri, scriptUri: Uri(path: helperName));
   });
   print('invoke helper in working dir done');
 }
@@ -80,10 +77,7 @@ Future<void> createTestFiles(Uri tempUri) async {
 
   final nativeAssetsYaml = createNativeAssetYaml(
     asset: helperCopiedUri.toString(),
-    assetMapping: [
-      'absolute',
-      ffiTestFunctionsUriAbsolute.toFilePath(),
-    ],
+    assetMapping: ['absolute', ffiTestFunctionsUriAbsolute.toFilePath()],
   );
   final nativeAssetsUri = dartToolsUri.resolve('native_assets.yaml');
   await File.fromUri(nativeAssetsUri).writeAsString(nativeAssetsYaml);

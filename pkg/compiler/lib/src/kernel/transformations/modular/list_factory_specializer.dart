@@ -25,21 +25,27 @@ class ListFactorySpecializer extends BaseSpecializer {
   final Procedure _arrayAllocateGrowableFactory;
 
   ListFactorySpecializer(this.coreTypes, this.hierarchy)
-      : _listGenerateFactory =
-            coreTypes.index.getProcedure('dart:core', 'List', 'generate'),
-        _arrayAllocateFixedFactory = coreTypes.index
-            .getProcedure('dart:_interceptors', 'JSArray', 'allocateFixed'),
-        _arrayAllocateGrowableFactory = coreTypes.index
-            .getProcedure('dart:_interceptors', 'JSArray', 'allocateGrowable'),
-        _jsArrayClass =
-            coreTypes.index.getClass('dart:_interceptors', 'JSArray'),
-        _intClass = coreTypes.index.getClass('dart:core', 'int') {
+    : _listGenerateFactory = coreTypes.index.getProcedure(
+        'dart:core',
+        'List',
+        'generate',
+      ),
+      _arrayAllocateFixedFactory = coreTypes.index.getProcedure(
+        'dart:_interceptors',
+        'JSArray',
+        'allocateFixed',
+      ),
+      _arrayAllocateGrowableFactory = coreTypes.index.getProcedure(
+        'dart:_interceptors',
+        'JSArray',
+        'allocateGrowable',
+      ),
+      _jsArrayClass = coreTypes.index.getClass('dart:_interceptors', 'JSArray'),
+      _intClass = coreTypes.index.getClass('dart:core', 'int') {
     assert(_listGenerateFactory.isFactory);
     assert(_arrayAllocateGrowableFactory.isFactory);
     assert(_arrayAllocateFixedFactory.isFactory);
-    transformers.addAll({
-      _listGenerateFactory: transformListGenerateFactory,
-    });
+    transformers.addAll({_listGenerateFactory: transformListGenerateFactory});
   }
 
   late final Procedure intPlus =
@@ -66,13 +72,18 @@ class ListFactorySpecializer extends BaseSpecializer {
   ///  - the function argument is not a simple closure,
   ///  - the `growable:` argument cannot be determined.
   TreeNode transformListGenerateFactory(
-      StaticInvocation node, Member contextMember) {
+    StaticInvocation node,
+    Member contextMember,
+  ) {
     final args = node.arguments;
     assert(args.positional.length == 2);
     final length = args.positional[0];
     final generator = args.positional[1];
-    final bool? growable =
-        _getConstantNamedOptionalArgument(args, 'growable', true);
+    final bool? growable = _getConstantNamedOptionalArgument(
+      args,
+      'growable',
+      true,
+    );
     if (growable == null) return node;
 
     if (generator is! FunctionExpression) return node;
@@ -90,29 +101,28 @@ class ListFactorySpecializer extends BaseSpecializer {
 
     Expression getLength() {
       if (lengthConstant != null) return IntLiteral(lengthConstant);
-      lengthVariable ??= VariableDeclaration('_length',
-          initializer: length,
-          isFinal: true,
-          type: intType,
-          isSynthesized: true)
-        ..fileOffset = node.fileOffset;
+      lengthVariable ??= VariableDeclaration(
+        '_length',
+        initializer: length,
+        isFinal: true,
+        type: intType,
+        isSynthesized: true,
+      )..fileOffset = node.fileOffset;
       return VariableGet(lengthVariable!)..fileOffset = node.fileOffset;
     }
 
     Expression allocation = StaticInvocation(
-        growable ? _arrayAllocateGrowableFactory : _arrayAllocateFixedFactory,
-        Arguments(
-          [getLength()],
-          types: args.types,
-        ))
-      ..fileOffset = node.fileOffset;
+      growable ? _arrayAllocateGrowableFactory : _arrayAllocateFixedFactory,
+      Arguments([getLength()], types: args.types),
+    )..fileOffset = node.fileOffset;
 
     final listVariable = VariableDeclaration(
       _listNameFromContext(node),
       initializer: allocation,
       isFinal: true,
-      type: InterfaceType(
-          _jsArrayClass, Nullability.nonNullable, [...args.types]),
+      type: InterfaceType(_jsArrayClass, Nullability.nonNullable, [
+        ...args.types,
+      ]),
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
 
@@ -142,13 +152,17 @@ class ListFactorySpecializer extends BaseSpecializer {
         VariableSet(
           indexVariable,
           InstanceInvocation(
-              InstanceAccessKind.Instance,
-              VariableGet(indexVariable)..fileOffset = node.fileOffset,
-              Name('+'),
-              Arguments([IntLiteral(1)]),
-              interfaceTarget: intPlus,
-              functionType:
-                  FunctionType([intType], intType, Nullability.nonNullable)),
+            InstanceAccessKind.Instance,
+            VariableGet(indexVariable)..fileOffset = node.fileOffset,
+            Name('+'),
+            Arguments([IntLiteral(1)]),
+            interfaceTarget: intPlus,
+            functionType: FunctionType(
+              [intType],
+              intType,
+              Nullability.nonNullable,
+            ),
+          ),
         )..fileOffset = node.fileOffset,
       ],
       // body, e.g. _list[_i] = expression;
@@ -156,22 +170,23 @@ class ListFactorySpecializer extends BaseSpecializer {
     )..fileOffset = node.fileOffset;
 
     return BlockExpression(
-      Block([
-        if (lengthVariable != null) lengthVariable!,
-        listVariable,
-        loop,
-      ]),
+      Block([if (lengthVariable != null) lengthVariable!, listVariable, loop]),
       VariableGet(listVariable)..fileOffset = node.fileOffset,
     );
   }
 
   Statement _loopBody(
-      int constructorFileOffset,
-      VariableDeclaration listVariable,
-      VariableDeclaration indexVariable,
-      FunctionExpression generator) {
+    int constructorFileOffset,
+    VariableDeclaration listVariable,
+    VariableDeclaration indexVariable,
+    FunctionExpression generator,
+  ) {
     final inliner = ListGenerateLoopBodyInliner(
-        this, constructorFileOffset, listVariable, generator.function);
+      this,
+      constructorFileOffset,
+      listVariable,
+      generator.function,
+    );
     inliner.bind(indexVariable);
     return inliner.run();
   }
@@ -179,7 +194,7 @@ class ListFactorySpecializer extends BaseSpecializer {
   /// Returns constant value of the first argument in [args], or null if it is
   /// not a constant.
   int? _getLengthArgument(Arguments args) {
-    if (args.positional.length < 1) return null;
+    if (args.positional.isEmpty) return null;
     final value = args.positional.first;
     if (value is IntLiteral) {
       return value.value;
@@ -196,7 +211,10 @@ class ListFactorySpecializer extends BaseSpecializer {
   /// null if it is not a bool constant. Returns [defaultValue] if optional
   /// argument is not passed. Argument is asserted to have the given [name].
   bool? _getConstantNamedOptionalArgument(
-      Arguments args, String name, bool defaultValue) {
+    Arguments args,
+    String name,
+    bool defaultValue,
+  ) {
     if (args.named.isEmpty) {
       return defaultValue;
     }
@@ -243,8 +261,12 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
   late final VariableDeclaration parameter;
   int functionNestingLevel = 0;
 
-  ListGenerateLoopBodyInliner(this.listFactorySpecializer,
-      this.constructorFileOffset, this.listVariable, this.function);
+  ListGenerateLoopBodyInliner(
+    this.listFactorySpecializer,
+    this.constructorFileOffset,
+    this.listVariable,
+    this.function,
+  );
 
   static bool suitableFunctionExpression(FunctionExpression node) {
     final function = node.function;
@@ -282,11 +304,12 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
     // argument to help dart2js allocate both locations to the same JavaScript
     // variable. The argument is usually named after the closure parameter.
     final closureParameter = function.positionalParameters.single;
-    parameter = VariableDeclaration(argument.name,
-        initializer: VariableGet(argument)..fileOffset = argument.fileOffset,
-        type: closureParameter.type,
-        isSynthesized: true)
-      ..fileOffset = closureParameter.fileOffset;
+    parameter = VariableDeclaration(
+      argument.name,
+      initializer: VariableGet(argument)..fileOffset = argument.fileOffset,
+      type: closureParameter.type,
+      isSynthesized: true,
+    )..fileOffset = closureParameter.fileOffset;
     this.argument = argument;
     setVariableClone(closureParameter, parameter);
   }
@@ -330,10 +353,13 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
           ]),
           interfaceTarget: listFactorySpecializer.jsArrayIndexSet,
           functionType:
-              Substitution.fromInterfaceType(listVariable.type as InterfaceType)
-                      .substituteType(
-                          listFactorySpecializer.jsArrayIndexSet.getterType)
-                  as FunctionType)
+              Substitution.fromInterfaceType(
+                    listVariable.type as InterfaceType,
+                  ).substituteType(
+                    listFactorySpecializer.jsArrayIndexSet.getterType,
+                  )
+                  as FunctionType,
+        )
         ..isInvariant = true
         ..isBoundsSafe = true
         ..fileOffset = constructorFileOffset,

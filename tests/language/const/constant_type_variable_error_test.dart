@@ -9,45 +9,38 @@ class A<X> {
   final Object x1, x2, x3, x4, x5, x6, x7, x8;
 
   const A()
-      : x1 = const [X],
-        //^
-        // [analyzer] unspecified
-        //          ^
-        // [cfe] Type variables can't be used as constants.
-        x2 = const <X>[],
-        //^
-        // [analyzer] unspecified
-        //          ^
-        // [cfe] Type variables can't be used as constants.
-        x3 = const {X},
-        //^
-        // [analyzer] unspecified
-        //          ^
-        // [cfe] Type variables can't be used as constants.
-        x4 = const <X>{},
-        //^
-        // [analyzer] unspecified
-        //          ^
-        // [cfe] Type variables can't be used as constants.
-        x5 = const {X: null},
-        //^
-        // [analyzer] unspecified
-        //          ^
-        // [cfe] Type variables can't be used as constants.
-        x6 = const <X, String?>{},
-        //^
-        // [analyzer] unspecified
-        //          ^
-        // [cfe] Type variables can't be used as constants.
-        x7 = const B<X>(),
-        //^
-        // [analyzer] unspecified
-        //           ^
-        // [cfe] Type variables can't be used as constants.
-        x8 = const C(X);
-  //^
-  // [analyzer] unspecified
-  //                 ^
+    : x1 = const [X],
+      //          ^
+      // [analyzer] COMPILE_TIME_ERROR.CONST_TYPE_PARAMETER
+      // [cfe] Type variables can't be used as constants.
+      x2 = const <X>[],
+      //          ^
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL
+      // [cfe] Type variables can't be used as constants.
+      x3 = const {X},
+      //          ^
+      // [analyzer] COMPILE_TIME_ERROR.CONST_TYPE_PARAMETER
+      // [cfe] Type variables can't be used as constants.
+      x4 = const <X>{},
+      //          ^
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL
+      // [cfe] Type variables can't be used as constants.
+      x5 = const {X: null},
+      //          ^
+      // [analyzer] COMPILE_TIME_ERROR.CONST_TYPE_PARAMETER
+      // [cfe] Type variables can't be used as constants.
+      x6 = const <X, String?>{},
+      //          ^
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL
+      // [cfe] Type variables can't be used as constants.
+      x7 = const B<X>(),
+      //           ^
+      // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
+      // [cfe] Type variables can't be used as constants.
+      x8 = const C(X);
+  //               ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_TYPE_PARAMETER
   // [cfe] Type variables can't be used as constants.
 }
 

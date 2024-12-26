@@ -768,7 +768,7 @@ class SourceExtensionTypeDeclarationBuilder
       case BuiltMemberKind.ExtensionTypeOperator:
         // Coverage-ignore(suite): Not run.
         unhandled(
-            "${memberBuilder.runtimeType}:${memberKind}",
+            "$memberBuilder(${memberBuilder.runtimeType}):${memberKind}",
             "addMemberInternal",
             memberBuilder.fileOffset,
             memberBuilder.fileUri);
@@ -798,8 +798,8 @@ class SourceExtensionTypeDeclarationBuilder
       case BuiltMemberKind.ExtensionOperator:
       case BuiltMemberKind.ExtensionTypeRepresentationField:
         // Coverage-ignore(suite): Not run.
-        unhandled("${memberBuilder.runtimeType}:${memberKind}", "buildMembers",
-            memberBuilder.fileOffset, memberBuilder.fileUri);
+        unhandled("$memberBuilder(${memberBuilder.runtimeType}):${memberKind}",
+            "buildMembers", memberBuilder.fileOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
       case BuiltMemberKind.LateIsSetField:
         kind = ExtensionTypeMemberKind.Field;
@@ -974,6 +974,10 @@ class SourceExtensionTypeDeclarationBuilder
           // TODO(johnniwinther): Support augmentations.
           origin,
           null);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get reference => _extensionTypeDeclaration.reference;
 }
 
 class _SourceExtensionTypeDeclarationBuilderAugmentationAccess

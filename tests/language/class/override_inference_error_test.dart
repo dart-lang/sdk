@@ -47,47 +47,49 @@ abstract class IDoubleDouble {
 // then omitting any parameter or return type is an error.
 
 abstract class CInvalid1 implements IIntInt, IIntDouble {
-  /*indent*/ foo(x);
-  //         ^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  foo(x);
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
+  // [cfe] Can't infer types for 'foo' as the overridden members don't have a combined signature.
 }
 
 abstract class CInvalid2 implements IIntInt, IDoubleInt {
-  /*indent*/ foo(x);
-  //         ^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  foo(x);
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
+  // [cfe] Can't infer types for 'foo' as the overridden members don't have a combined signature.
 }
 
 abstract class CInvalid3 implements IIntInt, IDoubleDouble {
-  /*indent*/ foo(x);
-  //         ^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  foo(x);
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
+  // [cfe] Can't infer types for 'foo' as the overridden members don't have a combined signature.
 }
 
 // Even if the conflicting super-parameter/return type is given a type.
 abstract class CInvalid4 implements IIntInt, IIntDouble {
   Never foo(x);
   //    ^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
+  //        ^
+  // [cfe] Can't infer a type for 'x' as the overridden members don't have a combined signature.
 }
 
 abstract class CInvalid5 implements IIntInt, IDoubleInt {
-  /*indent*/ foo(num x);
-  //         ^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  foo(num x);
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
+  // [cfe] Can't infer a return type for 'foo' as the overridden members don't have a combined signature.
 }
 
 // Even if the omitted parameter doesn't exist in the super-interfaces.
 abstract class CInvalid6 implements IIntInt, IDoubleInt {
   Never foo(num x, [y]);
   //    ^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
+  //                ^
+  // [cfe] Can't infer a type for 'y' as the overridden members don't have a combined signature.
 }
 
 // And even if there is no real conflict.
@@ -100,10 +102,10 @@ abstract class IOpty {
 }
 
 abstract class CInvalid7 implements IOptx, IOpty {
-  /*indent*/ foo({int x, int y});
-  //         ^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  foo({int x, int y});
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
+  // [cfe] Can't infer a return type for 'foo' as the overridden members don't have a combined signature.
 }
 
 // The type of unconstrained omitted types is `dynamic`.
@@ -120,18 +122,18 @@ class CInherit1 implements IOptx {
     int intVar = x;
     x = x.toRadixString(16).length;
     // And not dynamic.
-    /*indent*/ x.arglebargle();
-    //           ^^^^^^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    x.arglebargle();
+    //^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [cfe] The method 'arglebargle' isn't defined for the class 'int'.
 
     // Return type is exactly int.
     if (x == 0) {
       num tmp3 = x;
       return tmp3; // Does not allow returning a supertype of int.
       //     ^^^^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
+      // [cfe] A value of type 'num' can't be returned from a function with return type 'int'.
     }
     // Allows returning int.
     return intVar;
@@ -166,7 +168,7 @@ class CInvalid8 implements IReq {
   foo({num x}) {}
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.MISSING_DEFAULT_VALUE_FOR_PARAMETER
-  // [cfe] unspecified
+  // [cfe] The parameter 'x' can't have a value of 'null' because of its type 'num', but the implicit default value is 'null'.
 }
 
 class CInvalid9 implements IReq {
@@ -174,7 +176,7 @@ class CInvalid9 implements IReq {
   void foo({x}) {}
   //        ^
   // [analyzer] COMPILE_TIME_ERROR.MISSING_DEFAULT_VALUE_FOR_PARAMETER
-  // [cfe] unspecified
+  // [cfe] The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
 }
 
 abstract class INonNullable {
@@ -187,7 +189,7 @@ class CInvalid10 implements INonNullable {
   foo({x}) {}
   //   ^
   // [analyzer] COMPILE_TIME_ERROR.MISSING_DEFAULT_VALUE_FOR_PARAMETER
-  // [cfe] unspecified
+  // [cfe] The parameter 'x' can't have a value of 'null' because of its type 'num', but the implicit default value is 'null'.
 }
 
 /// Do not inherit default value implicitly.
@@ -199,7 +201,7 @@ class CInvalid11 implements IDefault {
   foo({x}) => x;
   //   ^
   // [analyzer] COMPILE_TIME_ERROR.MISSING_DEFAULT_VALUE_FOR_PARAMETER
-  // [cfe] unspecified
+  // [cfe] The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
 }
 
 // Inherits type variables, even with different names.
@@ -216,10 +218,10 @@ class CInheritGeneric<S> implements CGeneric<S> {
     S tmp = x;
     x = tmp;
     // And not dynamic.
-    /*indent*/ x.arglebargle();
-    //           ^^^^^^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    x.arglebargle();
+    //^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The method 'arglebargle' isn't defined for the class 'Object?'.
 
     // Return type is S.
     tmp = foo(x);
@@ -232,10 +234,10 @@ class CInheritGeneric<S> implements CGeneric<S> {
     Q tmp = x;
     x = tmp;
     // And not dynamic.
-    /*indent*/ x.arglebargle();
-    //           ^^^^^^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    x.arglebargle();
+    //^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The method 'arglebargle' isn't defined for the class 'Object?'.
 
     // Return type is Q.
     tmp = bar<Q>(x);

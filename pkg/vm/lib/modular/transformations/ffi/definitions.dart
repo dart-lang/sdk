@@ -683,6 +683,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         final sizeAnnotations = getArraySizeAnnotations(m).toList();
         if (sizeAnnotations.length == 1) {
           final arrayDimensions = sizeAnnotations.single.$1;
+          final variableLength = sizeAnnotations.single.$2;
           if (this.arrayDimensions(dartType) == arrayDimensions.length) {
             final elementType = arraySingleElementType(dartType);
             if (elementType is! InterfaceType) {
@@ -691,7 +692,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             } else {
               type = NativeTypeCfe(this, dartType,
                   compoundCache: compoundCache,
-                  arrayDimensions: arrayDimensions);
+                  arrayDimensions: arrayDimensions,
+                  variableLength: variableLength);
             }
           } else {
             type = InvalidNativeTypeCfe("Invalid array dimensions.");
@@ -903,7 +905,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             fieldType.fieldValues[ffiInlineArrayLengthField.fieldReference]
                 as IntConstant;
         final arrayLength = arrayLengthConstant.value;
-        members.add(ArrayNativeTypeCfe(singleElementType, arrayLength));
+        final variableLengthConstant = fieldType
+                .fieldValues[ffiInlineArrayVariableLengthField.fieldReference]
+            as BoolConstant;
+        final variableLength = variableLengthConstant.value;
+        members.add(
+            ArrayNativeTypeCfe(singleElementType, arrayLength, variableLength));
       }
     }
     if (compoundClass.superclass == structClass) {

@@ -24,15 +24,17 @@ class NoSuchMethodInfo {
   final bool isComplexNoReturn;
   final bool isComplexReturn;
 
-  const NoSuchMethodInfo(this.className,
-      {this.superClassName,
-      this.hasThrowingSyntax = false,
-      this.hasForwardingSyntax = false,
-      this.isThrowing = false,
-      this.isDefault = false,
-      this.isOther = false,
-      this.isComplexNoReturn = false,
-      this.isComplexReturn = false});
+  const NoSuchMethodInfo(
+    this.className, {
+    this.superClassName,
+    this.hasThrowingSyntax = false,
+    this.hasForwardingSyntax = false,
+    this.isThrowing = false,
+    this.isDefault = false,
+    this.isOther = false,
+    this.isComplexNoReturn = false,
+    this.isComplexReturn = false,
+  });
 }
 
 class NoSuchMethodTest {
@@ -40,12 +42,16 @@ class NoSuchMethodTest {
   final List<NoSuchMethodInfo> methods;
   final bool isNoSuchMethodUsed;
 
-  const NoSuchMethodTest(this.code, this.methods,
-      {this.isNoSuchMethodUsed = false});
+  const NoSuchMethodTest(
+    this.code,
+    this.methods, {
+    this.isNoSuchMethodUsed = false,
+  });
 }
 
 const List<NoSuchMethodTest> TESTS = const <NoSuchMethodTest>[
-  const NoSuchMethodTest("""
+  const NoSuchMethodTest(
+    """
 abstract class I {
   foo();
 }
@@ -55,10 +61,13 @@ class A implements I {
 main() {
   print(new A().foo());
 }
-""", const <NoSuchMethodInfo>[
-    const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
-  ]),
-  const NoSuchMethodTest("""
+""",
+    const <NoSuchMethodInfo>[
+      const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
+    ],
+  ),
+  const NoSuchMethodTest(
+    """
 abstract class I {
   foo();
 }
@@ -69,10 +78,13 @@ class B {}
 main() {
   print(new A().foo());
 }
-""", const <NoSuchMethodInfo>[
-    const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
-  ]),
-  const NoSuchMethodTest("""
+""",
+    const <NoSuchMethodInfo>[
+      const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
+    ],
+  ),
+  const NoSuchMethodTest(
+    """
 abstract class I {
   foo();
 }
@@ -85,10 +97,13 @@ class B {}
 main() {
   print(new A().foo());
 }
-""", const <NoSuchMethodInfo>[
-    const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
-  ]),
-  const NoSuchMethodTest("""
+""",
+    const <NoSuchMethodInfo>[
+      const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
+    ],
+  ),
+  const NoSuchMethodTest(
+    """
 abstract class I {
   foo();
 }
@@ -101,12 +116,19 @@ class B {
 main() {
   print(new A().foo());
 }
-""", const <NoSuchMethodInfo>[
-    const NoSuchMethodInfo('A',
-        superClassName: 'B', hasForwardingSyntax: true, isDefault: true),
-    const NoSuchMethodInfo('B', hasForwardingSyntax: true, isDefault: true),
-  ]),
-  const NoSuchMethodTest("""
+""",
+    const <NoSuchMethodInfo>[
+      const NoSuchMethodInfo(
+        'A',
+        superClassName: 'B',
+        hasForwardingSyntax: true,
+        isDefault: true,
+      ),
+      const NoSuchMethodInfo('B', hasForwardingSyntax: true, isDefault: true),
+    ],
+  ),
+  const NoSuchMethodTest(
+    """
 abstract class I {
   foo();
 }
@@ -119,22 +141,34 @@ class B {
 main() {
   print(new A().foo());
 }
-""", const <NoSuchMethodInfo>[
-    const NoSuchMethodInfo('A',
-        superClassName: 'B', hasForwardingSyntax: true, isThrowing: true),
-    const NoSuchMethodInfo('B', hasThrowingSyntax: true, isThrowing: true),
-  ], isNoSuchMethodUsed: true),
-  const NoSuchMethodTest("""
+""",
+    const <NoSuchMethodInfo>[
+      const NoSuchMethodInfo(
+        'A',
+        superClassName: 'B',
+        hasForwardingSyntax: true,
+        isThrowing: true,
+      ),
+      const NoSuchMethodInfo('B', hasThrowingSyntax: true, isThrowing: true),
+    ],
+    isNoSuchMethodUsed: true,
+  ),
+  const NoSuchMethodTest(
+    """
 class A {
   noSuchMethod(x) => 3;
 }
 main() {
   print((new A() as dynamic).foo());
 }
-""", const <NoSuchMethodInfo>[
-    const NoSuchMethodInfo('A', isOther: true, isComplexReturn: true),
-  ], isNoSuchMethodUsed: true),
-  const NoSuchMethodTest("""
+""",
+    const <NoSuchMethodInfo>[
+      const NoSuchMethodInfo('A', isOther: true, isComplexReturn: true),
+    ],
+    isNoSuchMethodUsed: true,
+  ),
+  const NoSuchMethodTest(
+    """
 abstract class I {
   foo();
 }
@@ -144,10 +178,13 @@ class A implements I {
 main() {
   print(new A().foo());
 }
-""", const <NoSuchMethodInfo>[
-    const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
-  ]),
-  const NoSuchMethodTest("""
+""",
+    const <NoSuchMethodInfo>[
+      const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
+    ],
+  ),
+  const NoSuchMethodTest(
+    """
 abstract class I {
   foo();
 }
@@ -157,20 +194,28 @@ class A implements I {
 main() {
   print(new A().foo());
 }
-""", const <NoSuchMethodInfo>[
-    const NoSuchMethodInfo('A', isOther: true, isComplexNoReturn: true),
-  ], isNoSuchMethodUsed: true),
-  const NoSuchMethodTest("""
+""",
+    const <NoSuchMethodInfo>[
+      const NoSuchMethodInfo('A', isOther: true, isComplexNoReturn: true),
+    ],
+    isNoSuchMethodUsed: true,
+  ),
+  const NoSuchMethodTest(
+    """
 class A {
   noSuchMethod(x, [y]) => super.noSuchMethod(x) + y;
 }
 main() {
   print((new A() as dynamic).foo());
 }
-""", const <NoSuchMethodInfo>[
-    const NoSuchMethodInfo('A', isOther: true, isComplexNoReturn: true),
-  ], isNoSuchMethodUsed: true),
-  const NoSuchMethodTest("""
+""",
+    const <NoSuchMethodInfo>[
+      const NoSuchMethodInfo('A', isOther: true, isComplexNoReturn: true),
+    ],
+    isNoSuchMethodUsed: true,
+  ),
+  const NoSuchMethodTest(
+    """
 class A {
   noSuchMethod(Invocation x) {
     throw UnsupportedError('');
@@ -179,10 +224,14 @@ class A {
 main() {
   print((new A() as dynamic).foo());
 }
-""", const <NoSuchMethodInfo>[
-    const NoSuchMethodInfo('A', hasThrowingSyntax: true, isThrowing: true),
-  ], isNoSuchMethodUsed: true),
-  const NoSuchMethodTest("""
+""",
+    const <NoSuchMethodInfo>[
+      const NoSuchMethodInfo('A', hasThrowingSyntax: true, isThrowing: true),
+    ],
+    isNoSuchMethodUsed: true,
+  ),
+  const NoSuchMethodTest(
+    """
 class A {
   noSuchMethod(Invocation x) {
     print('foo');
@@ -192,10 +241,14 @@ class A {
 main() {
   print((new A() as dynamic).foo());
 }
-""", const <NoSuchMethodInfo>[
-    const NoSuchMethodInfo('A', isOther: true, isComplexNoReturn: true),
-  ], isNoSuchMethodUsed: true),
-  const NoSuchMethodTest("""
+""",
+    const <NoSuchMethodInfo>[
+      const NoSuchMethodInfo('A', isOther: true, isComplexNoReturn: true),
+    ],
+    isNoSuchMethodUsed: true,
+  ),
+  const NoSuchMethodTest(
+    """
 class A {
   noSuchMethod(Invocation x) {
     return toString();
@@ -204,10 +257,14 @@ class A {
 main() {
   print((new A() as dynamic).foo());
 }
-""", const <NoSuchMethodInfo>[
-    const NoSuchMethodInfo('A', isOther: true, isComplexReturn: true),
-  ], isNoSuchMethodUsed: true),
-  const NoSuchMethodTest("""
+""",
+    const <NoSuchMethodInfo>[
+      const NoSuchMethodInfo('A', isOther: true, isComplexReturn: true),
+    ],
+    isNoSuchMethodUsed: true,
+  ),
+  const NoSuchMethodTest(
+    """
 abstract class I {
   foo();
 }
@@ -217,10 +274,13 @@ class A implements I {
 main() {
   print(new A().foo());
 }
-""", const <NoSuchMethodInfo>[
-    const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
-  ]),
-  const NoSuchMethodTest("""
+""",
+    const <NoSuchMethodInfo>[
+      const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
+    ],
+  ),
+  const NoSuchMethodTest(
+    """
 abstract class I {
   foo();
 }
@@ -230,9 +290,12 @@ class A implements I {
 main() {
   print(new A().foo());
 }
-""", const <NoSuchMethodInfo>[
-    const NoSuchMethodInfo('A', isOther: true, isComplexNoReturn: true),
-  ], isNoSuchMethodUsed: true),
+""",
+    const <NoSuchMethodInfo>[
+      const NoSuchMethodInfo('A', isOther: true, isComplexNoReturn: true),
+    ],
+    isNoSuchMethodUsed: true,
+  ),
 ];
 
 main() {
@@ -240,8 +303,9 @@ main() {
     for (NoSuchMethodTest test in TESTS) {
       print('---- testing -------------------------------------------------');
       print(test.code);
-      CompilationResult result =
-          await runCompiler(memorySourceFiles: {'main.dart': test.code});
+      CompilationResult result = await runCompiler(
+        memorySourceFiles: {'main.dart': test.code},
+      );
       Expect.isTrue(result.isSuccess);
       Compiler compiler = result.compiler!;
       checkTest(compiler, test);
@@ -260,9 +324,12 @@ checkTest(Compiler compiler, NoSuchMethodTest test) {
   NoSuchMethodRegistry registry =
       compiler.frontendStrategy.noSuchMethodRegistry;
   var resolver = registry.internalResolverForTesting;
-  final ObjectNSM = frontendEnvironment.lookupClassMember(
-      compiler.frontendStrategy.commonElements.objectClass,
-      Names.noSuchMethod_) as FunctionEntity;
+  final ObjectNSM =
+      frontendEnvironment.lookupClassMember(
+            compiler.frontendStrategy.commonElements.objectClass,
+            Names.noSuchMethod_,
+          )
+          as FunctionEntity;
   JClosedWorld backendClosedWorld = compiler.backendClosedWorldForTesting!;
   ElementEnvironment backendEnvironment = backendClosedWorld.elementEnvironment;
   NoSuchMethodData data = backendClosedWorld.noSuchMethodData;
@@ -270,37 +337,53 @@ checkTest(Compiler compiler, NoSuchMethodTest test) {
   // Test [NoSuchMethodResolver] results for each method.
   for (NoSuchMethodInfo info in test.methods) {
     ClassEntity? cls = frontendEnvironment.lookupClass(
-        frontendEnvironment.mainLibrary!, info.className);
+      frontendEnvironment.mainLibrary!,
+      info.className,
+    );
     Expect.isNotNull(cls, "Class ${info.className} not found.");
-    final noSuchMethod = frontendEnvironment.lookupClassMember(
-        cls!, Names.noSuchMethod_) as FunctionEntity?;
+    final noSuchMethod =
+        frontendEnvironment.lookupClassMember(cls!, Names.noSuchMethod_)
+            as FunctionEntity?;
     Expect.isNotNull(noSuchMethod, "noSuchMethod not found in $cls.");
 
     if (info.superClassName == null) {
       Expect.equals(ObjectNSM, resolver.getSuperNoSuchMethod(noSuchMethod!));
     } else {
       ClassEntity? superclass = frontendEnvironment.lookupClass(
-          frontendEnvironment.mainLibrary!, info.superClassName!);
+        frontendEnvironment.mainLibrary!,
+        info.superClassName!,
+      );
       Expect.isNotNull(
-          superclass, "Superclass ${info.superClassName} not found.");
-      final superNoSuchMethod = frontendEnvironment.lookupClassMember(
-          superclass!, Names.noSuchMethod_) as FunctionEntity?;
+        superclass,
+        "Superclass ${info.superClassName} not found.",
+      );
+      final superNoSuchMethod =
+          frontendEnvironment.lookupClassMember(
+                superclass!,
+                Names.noSuchMethod_,
+              )
+              as FunctionEntity?;
       Expect.isNotNull(
-          superNoSuchMethod, "noSuchMethod not found in $superclass.");
+        superNoSuchMethod,
+        "noSuchMethod not found in $superclass.",
+      );
       Expect.equals(
-          superNoSuchMethod,
-          resolver.getSuperNoSuchMethod(noSuchMethod!),
-          "Unexpected super noSuchMethod for $noSuchMethod.");
+        superNoSuchMethod,
+        resolver.getSuperNoSuchMethod(noSuchMethod!),
+        "Unexpected super noSuchMethod for $noSuchMethod.",
+      );
     }
 
     Expect.equals(
-        info.hasForwardingSyntax,
-        resolver.hasForwardingSyntax(noSuchMethod as JFunction),
-        "Unexpected hasForwardSyntax result on $noSuchMethod.");
+      info.hasForwardingSyntax,
+      resolver.hasForwardingSyntax(noSuchMethod as JFunction),
+      "Unexpected hasForwardSyntax result on $noSuchMethod.",
+    );
     Expect.equals(
-        info.hasThrowingSyntax,
-        resolver.hasThrowingSyntax(noSuchMethod),
-        "Unexpected hasThrowingSyntax result on $noSuchMethod.");
+      info.hasThrowingSyntax,
+      resolver.hasThrowingSyntax(noSuchMethod),
+      "Unexpected hasThrowingSyntax result on $noSuchMethod.",
+    );
   }
 
   // Test [NoSuchMethodRegistry] results for each method. These are based on
@@ -308,46 +391,65 @@ checkTest(Compiler compiler, NoSuchMethodTest test) {
   // methods first.
   for (NoSuchMethodInfo info in test.methods) {
     ClassEntity? frontendClass = frontendEnvironment.lookupClass(
-        frontendEnvironment.mainLibrary!, info.className);
+      frontendEnvironment.mainLibrary!,
+      info.className,
+    );
     Expect.isNotNull(frontendClass, "Class ${info.className} not found.");
-    final frontendNoSuchMethod = frontendEnvironment.lookupClassMember(
-        frontendClass!, Names.noSuchMethod_) as FunctionEntity?;
+    final frontendNoSuchMethod =
+        frontendEnvironment.lookupClassMember(
+              frontendClass!,
+              Names.noSuchMethod_,
+            )
+            as FunctionEntity?;
     Expect.isNotNull(
-        frontendNoSuchMethod, "noSuchMethod not found in $frontendClass.");
+      frontendNoSuchMethod,
+      "noSuchMethod not found in $frontendClass.",
+    );
 
     Expect.equals(
-        info.isDefault,
-        registry.defaultImpls.contains(frontendNoSuchMethod),
-        "Unexpected isDefault result on $frontendNoSuchMethod.");
+      info.isDefault,
+      registry.defaultImpls.contains(frontendNoSuchMethod),
+      "Unexpected isDefault result on $frontendNoSuchMethod.",
+    );
     Expect.equals(
-        info.isThrowing,
-        registry.throwingImpls.contains(frontendNoSuchMethod),
-        "Unexpected isThrowing result on $frontendNoSuchMethod.");
+      info.isThrowing,
+      registry.throwingImpls.contains(frontendNoSuchMethod),
+      "Unexpected isThrowing result on $frontendNoSuchMethod.",
+    );
     Expect.equals(
-        info.isOther,
-        registry.otherImpls.contains(frontendNoSuchMethod),
-        "Unexpected isOther result on $frontendNoSuchMethod.");
+      info.isOther,
+      registry.otherImpls.contains(frontendNoSuchMethod),
+      "Unexpected isOther result on $frontendNoSuchMethod.",
+    );
 
     ClassEntity? backendClass = backendEnvironment.lookupClass(
-        backendEnvironment.mainLibrary!, info.className);
+      backendEnvironment.mainLibrary!,
+      info.className,
+    );
     Expect.isNotNull(backendClass, "Class ${info.className} not found.");
-    final backendNoSuchMethod = backendEnvironment.lookupClassMember(
-        backendClass!, Names.noSuchMethod_) as FunctionEntity?;
+    final backendNoSuchMethod =
+        backendEnvironment.lookupClassMember(backendClass!, Names.noSuchMethod_)
+            as FunctionEntity?;
     Expect.isNotNull(
-        backendNoSuchMethod, "noSuchMethod not found in $backendClass.");
+      backendNoSuchMethod,
+      "noSuchMethod not found in $backendClass.",
+    );
 
     Expect.equals(
-        info.isComplexNoReturn,
-        data.complexNoReturnImpls.contains(backendNoSuchMethod),
-        "Unexpected isComplexNoReturn result on $backendNoSuchMethod.");
+      info.isComplexNoReturn,
+      data.complexNoReturnImpls.contains(backendNoSuchMethod),
+      "Unexpected isComplexNoReturn result on $backendNoSuchMethod.",
+    );
     Expect.equals(
-        info.isComplexReturn,
-        data.complexReturningImpls.contains(backendNoSuchMethod),
-        "Unexpected isComplexReturn result on $backendNoSuchMethod.");
+      info.isComplexReturn,
+      data.complexReturningImpls.contains(backendNoSuchMethod),
+      "Unexpected isComplexReturn result on $backendNoSuchMethod.",
+    );
   }
 
   Expect.equals(
-      test.isNoSuchMethodUsed,
-      backendClosedWorld.backendUsage.isNoSuchMethodUsed,
-      "Unexpected isNoSuchMethodUsed result.");
+    test.isNoSuchMethodUsed,
+    backendClosedWorld.backendUsage.isNoSuchMethodUsed,
+    "Unexpected isNoSuchMethodUsed result.",
+  );
 }

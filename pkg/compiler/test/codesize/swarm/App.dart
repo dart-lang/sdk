@@ -29,10 +29,11 @@ class App {
       Timer.run(onLoad);
     } else {
       window.onContentLoaded.listen(
-          // TODO(sigmund):  Consider eliminating the call to "wrap", for
-          // instance, modify event listeners to always wrap, or extend DOM code
-          // to intercept the beginning & end of each event loop
-          EventBatch.wrap((event) => onLoad()));
+        // TODO(sigmund):  Consider eliminating the call to "wrap", for
+        // instance, modify event listeners to always wrap, or extend DOM code
+        // to intercept the beginning & end of each event loop
+        EventBatch.wrap((event) => onLoad()),
+      );
     }
   }
 
@@ -47,8 +48,9 @@ class App {
     // Swap and reload the cache if ready
     if (!swapAndReloadCache()) {
       // Otherwise wait until an update to the cache is ready
-      window.applicationCache!.onUpdateReady
-          .listen((e) => swapAndReloadCache());
+      window.applicationCache!.onUpdateReady.listen(
+        (e) => swapAndReloadCache(),
+      );
     }
   }
 

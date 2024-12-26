@@ -37,8 +37,9 @@ main() {
 
 main() {
   asyncTest(() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: {'main.dart': code});
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: {'main.dart': code},
+    );
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler!;
     JsBackendStrategy backendStrategy = compiler.backendStrategy;
@@ -48,34 +49,47 @@ main() {
     ProgramLookup programLookup = ProgramLookup(backendStrategy);
 
     js.Name getName(String name) {
-      return backendStrategy.namerForTesting
-          .globalPropertyNameForMember(lookupMember(elementEnvironment, name));
+      return backendStrategy.namerForTesting.globalPropertyNameForMember(
+        lookupMember(elementEnvironment, name),
+      );
     }
 
-    void checkParameters(String name,
-        {required int expectedParameterCount,
-        required bool needsTypeArguments}) {
+    void checkParameters(
+      String name, {
+      required int expectedParameterCount,
+      required bool needsTypeArguments,
+    }) {
       final function = lookupMember(elementEnvironment, name) as FunctionEntity;
 
       Expect.equals(
-          needsTypeArguments,
-          rtiNeed.methodNeedsTypeArguments(function),
-          "Unexpected type argument need for $function.");
+        needsTypeArguments,
+        rtiNeed.methodNeedsTypeArguments(function),
+        "Unexpected type argument need for $function.",
+      );
       Method method = programLookup.getMethod(function)!;
       Expect.isNotNull(method, "No method found for $function");
 
       final fun = method.code as js.Fun;
-      Expect.equals(expectedParameterCount, fun.params.length,
-          "Unexpected parameter count on $function: ${js.nodeToString(fun)}");
+      Expect.equals(
+        expectedParameterCount,
+        fun.params.length,
+        "Unexpected parameter count on $function: ${js.nodeToString(fun)}",
+      );
     }
 
     // The declarations should have type parameters only when needed.
-    checkParameters('A.fact',
-        expectedParameterCount: 2, needsTypeArguments: false);
+    checkParameters(
+      'A.fact',
+      expectedParameterCount: 2,
+      needsTypeArguments: false,
+    );
     checkParameters('A.', expectedParameterCount: 2, needsTypeArguments: false);
 
-    checkArguments(String name, String targetName,
-        {required int expectedTypeArguments}) {
+    checkArguments(
+      String name,
+      String targetName, {
+      required int expectedTypeArguments,
+    }) {
       final function = lookupMember(elementEnvironment, name) as FunctionEntity;
       Method method = programLookup.getMethod(function)!;
 
@@ -83,24 +97,30 @@ main() {
 
       js.Name selector = getName(targetName);
       bool callFound = false;
-      forEachNode(fun, onCall: (js.Call node) {
-        js.Node target = js.undefer(node.target);
-        if (target is js.PropertyAccess) {
-          js.Node targetSelector = js.undefer(target.selector);
-          if (targetSelector is js.Name && targetSelector.key == selector.key) {
-            callFound = true;
-            Expect.equals(
+      forEachNode(
+        fun,
+        onCall: (js.Call node) {
+          js.Node target = js.undefer(node.target);
+          if (target is js.PropertyAccess) {
+            js.Node targetSelector = js.undefer(target.selector);
+            if (targetSelector is js.Name &&
+                targetSelector.key == selector.key) {
+              callFound = true;
+              Expect.equals(
                 expectedTypeArguments,
                 node.arguments.length,
                 "Unexpected argument count in $function call to $targetName: "
-                "${js.nodeToString(fun)}");
+                "${js.nodeToString(fun)}",
+              );
+            }
           }
-        }
-      });
+        },
+      );
       Expect.isTrue(
-          callFound,
-          "No call to $targetName in $function found: "
-          "${js.nodeToString(fun)}");
+        callFound,
+        "No call to $targetName in $function found: "
+        "${js.nodeToString(fun)}",
+      );
     }
 
     // The declarations should have type parameters only when needed by the

@@ -105,6 +105,17 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
+  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement2 element) {
+    checkConsistency();
+
+    if (element.session != this) {
+      return NotElementOfThisSessionResult();
+    }
+
+    return _driver.getParsedLibraryByUri(element.uri);
+  }
+
+  @override
   SomeParsedUnitResult getParsedUnit(String path) {
     checkConsistency();
     return _driver.parseFileSync(path);

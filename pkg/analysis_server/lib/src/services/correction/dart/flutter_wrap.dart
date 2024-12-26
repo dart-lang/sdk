@@ -272,11 +272,11 @@ abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var selectedRange = range.startEnd(firstWidget, lastWidget);
     var src = utils.getRangeText(selectedRange);
-    var parentClassElement = await sessionHelper.getClass2(
+    var parentClassElement = await sessionHelper.getClass(
       _parentLibraryUri,
       _parentClassName,
     );
-    var widgetClassElement = await sessionHelper.getFlutterClass2('Widget');
+    var widgetClassElement = await sessionHelper.getFlutterClass('Widget');
     if (parentClassElement == null || widgetClassElement == null) {
       return;
     }
@@ -341,7 +341,7 @@ abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
     var parentClassName = _parentClassName;
     ClassElement2? parentClassElement;
     if (parentLibraryUri != null && parentClassName != null) {
-      parentClassElement = await sessionHelper.getClass2(
+      parentClassElement = await sessionHelper.getClass(
         parentLibraryUri,
         parentClassName,
       );

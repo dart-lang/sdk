@@ -20,5 +20,5 @@ main() {
   check(c);
   //    ^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] Can't tear off method 'call' from a potentially null value.
 }

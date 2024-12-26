@@ -27,6 +27,9 @@ main(List<String> args) async {
   } else {
     dataComputer = const TypeMaskDataComputer();
   }
-  await show<String>(results, dataComputer,
-      options: [/*stopAfterTypeInference*/]);
+  await show<String>(
+    results,
+    dataComputer,
+    options: [/*stopAfterTypeInference*/],
+  );
 }

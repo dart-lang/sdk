@@ -17,7 +17,7 @@ class InvalidCasePatterns extends LintRule {
       : super(
           name: LintNames.invalid_case_patterns,
           description: _desc,
-          state: State.experimental(),
+          state: const State.experimental(),
         );
 
   // TODO(pq): update to add specific messages w/ specific corrections

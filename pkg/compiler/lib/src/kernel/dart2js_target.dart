@@ -4,12 +4,15 @@
 
 // TODO(johnniwinther): Add a test that ensure that this library doesn't depend
 // on the dart2js internals.
-library compiler.src.kernel.dart2js_target;
+library;
 
+// ignore: implementation_imports
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
+// ignore: implementation_imports
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
+// ignore: implementation_imports
 import 'package:_js_interop_checks/src/transformations/shared_interop_transformer.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart';
@@ -21,7 +24,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../options.dart';
 import 'invocation_mirror.dart';
-import 'transformations/modular/transform.dart' as modularTransforms;
+import 'transformations/modular/transform.dart' as modular_transforms;
 
 const Iterable<String> _allowedDartSchemePaths = [
   'async',
@@ -69,8 +72,12 @@ class Dart2jsTarget extends Target {
   final bool supportsUnevaluatedConstants;
   Map<String, ir.Class>? _nativeClasses;
 
-  Dart2jsTarget(this.name, this.flags,
-      {this.options, this.supportsUnevaluatedConstants = true});
+  Dart2jsTarget(
+    this.name,
+    this.flags, {
+    this.options,
+    this.supportsUnevaluatedConstants = true,
+  });
 
   @override
   bool get enableNoSuchMethodForwarders => true;
@@ -97,17 +104,17 @@ class Dart2jsTarget extends Target {
 
   @override
   List<String> get extraIndexedLibraries => const [
-        'dart:_foreign_helper',
-        'dart:_interceptors',
-        'dart:_js_helper',
-        'dart:_js_types',
-        'dart:_late_helper',
-        'dart:js',
-        'dart:js_interop',
-        'dart:js_interop_unsafe',
-        'dart:js_util',
-        'dart:typed_data',
-      ];
+    'dart:_foreign_helper',
+    'dart:_interceptors',
+    'dart:_js_helper',
+    'dart:_js_types',
+    'dart:_late_helper',
+    'dart:js',
+    'dart:js_interop',
+    'dart:js_interop_unsafe',
+    'dart:js_util',
+    'dart:typed_data',
+  ];
 
   @override
   bool mayDefineRestrictedType(Uri uri) =>
@@ -134,31 +141,40 @@ class Dart2jsTarget extends Target {
 
   @override
   void performModularTransformationsOnLibraries(
-      ir.Component component,
-      CoreTypes coreTypes,
-      ClassHierarchy hierarchy,
-      List<ir.Library> libraries,
-      Map<String, String>? environmentDefines,
-      covariant DiagnosticReporter<Message, LocatedMessage> diagnosticReporter,
-      ReferenceFromIndex? referenceFromIndex,
-      {void Function(String msg)? logger,
-      ChangedStructureNotifier? changedStructureNotifier}) {
+    ir.Component component,
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    List<ir.Library> libraries,
+    Map<String, String>? environmentDefines,
+    covariant DiagnosticReporter<Message, LocatedMessage> diagnosticReporter,
+    ReferenceFromIndex? referenceFromIndex, {
+    void Function(String msg)? logger,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
     _nativeClasses = JsInteropChecks.getNativeClasses(component);
     final jsInteropReporter = JsInteropDiagnosticReporter(diagnosticReporter);
     var jsInteropChecks = JsInteropChecks(
-        coreTypes, hierarchy, jsInteropReporter, _nativeClasses!);
+      coreTypes,
+      hierarchy,
+      jsInteropReporter,
+      _nativeClasses!,
+    );
     // Process and validate first before doing anything with exports.
     for (var library in libraries) {
       jsInteropChecks.visitLibrary(library);
     }
     var sharedInteropTransformer = SharedInteropTransformer(
-        TypeEnvironment(coreTypes, hierarchy),
-        jsInteropReporter,
-        jsInteropChecks.exportChecker,
-        jsInteropChecks.extensionIndex);
+      TypeEnvironment(coreTypes, hierarchy),
+      jsInteropReporter,
+      jsInteropChecks.exportChecker,
+      jsInteropChecks.extensionIndex,
+    );
     var jsUtilOptimizer = JsUtilOptimizer(
-        coreTypes, hierarchy, jsInteropChecks.extensionIndex,
-        isDart2JS: true);
+      coreTypes,
+      hierarchy,
+      jsInteropChecks.extensionIndex,
+      isDart2JS: true,
+    );
     for (var library in libraries) {
       // Shared transformer has static checks, so we still visit even if there
       // are errors.
@@ -170,19 +186,24 @@ class Dart2jsTarget extends Target {
         jsUtilOptimizer.visitLibrary(library);
       }
     }
-    modularTransforms.transformLibraries(
-        libraries, coreTypes, hierarchy, options);
+    modular_transforms.transformLibraries(
+      libraries,
+      coreTypes,
+      hierarchy,
+      options,
+    );
     logger?.call("Modular transformations performed");
   }
 
   @override
   ir.Expression instantiateInvocation(
-      CoreTypes coreTypes,
-      ir.Expression receiver,
-      String name,
-      ir.Arguments arguments,
-      int offset,
-      bool isSuper) {
+    CoreTypes coreTypes,
+    ir.Expression receiver,
+    String name,
+    ir.Arguments arguments,
+    int offset,
+    bool isSuper,
+  ) {
     InvocationMirrorKind kind;
     if (name.startsWith('get:')) {
       kind = InvocationMirrorKind.getter;
@@ -194,48 +215,60 @@ class Dart2jsTarget extends Target {
       kind = InvocationMirrorKind.method;
     }
     return ir.StaticInvocation(
-        coreTypes.index
-            .getTopLevelProcedure('dart:core', '_createInvocationMirror'),
-        ir.Arguments(<ir.Expression>[
-          ir.StringLiteral(name)..fileOffset = offset,
-          ir.ListLiteral(arguments.types
-              .map<ir.Expression>((t) => ir.TypeLiteral(t))
-              .toList()),
-          ir.ListLiteral(arguments.positional)..fileOffset = offset,
-          ir.MapLiteral(List<ir.MapLiteralEntry>.from(
+      coreTypes.index.getTopLevelProcedure(
+        'dart:core',
+        '_createInvocationMirror',
+      ),
+      ir.Arguments(<ir.Expression>[
+        ir.StringLiteral(name)..fileOffset = offset,
+        ir.ListLiteral(
+          arguments.types.map<ir.Expression>((t) => ir.TypeLiteral(t)).toList(),
+        ),
+        ir.ListLiteral(arguments.positional)..fileOffset = offset,
+        ir.MapLiteral(
+            List<ir.MapLiteralEntry>.from(
               arguments.named.map((ir.NamedExpression arg) {
-            return ir.MapLiteralEntry(
-                ir.StringLiteral(arg.name)..fileOffset = arg.fileOffset,
-                arg.value)
-              ..fileOffset = arg.fileOffset;
-          })), keyType: coreTypes.stringNonNullableRawType)
-            ..isConst = (arguments.named.length == 0)
-            ..fileOffset = arguments.fileOffset,
-          ir.IntLiteral(kind.value)..fileOffset = offset,
-        ]))
-      ..fileOffset = offset;
+                return ir.MapLiteralEntry(
+                  ir.StringLiteral(arg.name)..fileOffset = arg.fileOffset,
+                  arg.value,
+                )..fileOffset = arg.fileOffset;
+              }),
+            ),
+            keyType: coreTypes.stringNonNullableRawType,
+          )
+          ..isConst = (arguments.named.isEmpty)
+          ..fileOffset = arguments.fileOffset,
+        ir.IntLiteral(kind.value)..fileOffset = offset,
+      ]),
+    )..fileOffset = offset;
   }
 
   @override
-  ir.Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
-      ir.Expression receiver, String name, ir.Arguments arguments, int offset,
-      {bool isMethod = false,
-      bool isGetter = false,
-      bool isSetter = false,
-      bool isField = false,
-      bool isLocalVariable = false,
-      bool isDynamic = false,
-      bool isSuper = false,
-      bool isStatic = false,
-      bool isConstructor = false,
-      bool isTopLevel = false}) {
+  ir.Expression instantiateNoSuchMethodError(
+    CoreTypes coreTypes,
+    ir.Expression receiver,
+    String name,
+    ir.Arguments arguments,
+    int offset, {
+    bool isMethod = false,
+    bool isGetter = false,
+    bool isSetter = false,
+    bool isField = false,
+    bool isLocalVariable = false,
+    bool isDynamic = false,
+    bool isSuper = false,
+    bool isStatic = false,
+    bool isConstructor = false,
+    bool isTopLevel = false,
+  }) {
     // TODO(sigmund): implement;
     return ir.InvalidExpression(null);
   }
 
   @override
   ConstantsBackend get constantsBackend => Dart2jsConstantsBackend(
-      supportsUnevaluatedConstants: supportsUnevaluatedConstants);
+    supportsUnevaluatedConstants: supportsUnevaluatedConstants,
+  );
 
   @override
   DartLibrarySupport get dartLibrarySupport =>
@@ -249,7 +282,7 @@ const implicitlyUsedLibraries = <String>[
   'dart:_late_helper',
   // Needed since dart:js_util methods like createDartExport use this.
   'dart:js_interop_unsafe',
-  'dart:js_util'
+  'dart:js_util',
 ];
 
 // TODO(sigmund): this "extraRequiredLibraries" needs to be removed...
@@ -331,7 +364,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:js_util',
     'dart:math',
     'dart:typed_data',
-  ]
+  ],
 };
 
 /// Extends the Dart2jsTarget to transform outlines to meet the requirements
@@ -343,9 +376,12 @@ class Dart2jsSummaryTarget extends Dart2jsTarget with SummaryMixin {
   @override
   final bool excludeNonSources;
 
-  Dart2jsSummaryTarget(String name, this.sources, this.excludeNonSources,
-      TargetFlags targetFlags)
-      : super(name, targetFlags);
+  Dart2jsSummaryTarget(
+    String name,
+    this.sources,
+    this.excludeNonSources,
+    TargetFlags targetFlags,
+  ) : super(name, targetFlags);
 }
 
 class Dart2jsConstantsBackend extends ConstantsBackend {

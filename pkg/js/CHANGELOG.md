@@ -1,3 +1,7 @@
+## 0.7.2
+
+- Mark libraries as `@Deprecated`.
+
 ## 0.7.1
 
 - README update to indicate that `dart:js_interop` should be preferred.

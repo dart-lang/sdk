@@ -112,7 +112,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Whether [node] overrides some other member.
   bool isOverridingMember(Declaration node) =>
       context.inheritanceManager
-          .overriddenMember2(node.declaredFragment?.element) !=
+          .overriddenMember(node.declaredFragment?.element) !=
       null;
 
   @override

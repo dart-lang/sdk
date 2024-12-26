@@ -54,8 +54,8 @@ class AbstractObservable implements Observable {
   }
 
   AbstractObservable([this.parent])
-      : uid = EventBatch.genUid(),
-        listeners = List<ChangeListener>.empty();
+    : uid = EventBatch.genUid(),
+      listeners = List<ChangeListener>.empty();
 
   @override
   bool addChangeListener(ChangeListener listener) {
@@ -84,17 +84,20 @@ class AbstractObservable implements Observable {
 
   void recordListUpdate(int index, newValue, oldValue) {
     recordEvent(
-        ChangeEvent.list(this, ChangeEvent.UPDATE, index, newValue, oldValue));
+      ChangeEvent.list(this, ChangeEvent.UPDATE, index, newValue, oldValue),
+    );
   }
 
   void recordListInsert(int index, newValue) {
     recordEvent(
-        ChangeEvent.list(this, ChangeEvent.INSERT, index, newValue, null));
+      ChangeEvent.list(this, ChangeEvent.INSERT, index, newValue, null),
+    );
   }
 
   void recordListRemove(int index, oldValue) {
     recordEvent(
-        ChangeEvent.list(this, ChangeEvent.REMOVE, index, null, oldValue));
+      ChangeEvent.list(this, ChangeEvent.REMOVE, index, null, oldValue),
+    );
   }
 
   void recordGlobalChange() {
@@ -133,8 +136,8 @@ class ObservableList<T> extends AbstractObservable
   final List<T> _internal;
 
   ObservableList([Observable? parent])
-      : _internal = List<T>.empty(),
-        super(parent);
+    : _internal = List<T>.empty(),
+      super(parent);
 
   @override
   T operator [](int index) => _internal[index];
@@ -291,9 +294,11 @@ class ObservableList<T> extends AbstractObservable
     dstStart ??= 0;
 
     if (srcStart < dstStart) {
-      for (int i = srcStart + count - 1, j = dstStart + count - 1;
-          i >= srcStart;
-          i--, j--) {
+      for (
+        int i = srcStart + count - 1, j = dstStart + count - 1;
+        i >= srcStart;
+        i--, j--
+      ) {
         dst[j] = src[i];
       }
     } else {
@@ -434,8 +439,8 @@ class ObservableList<T> extends AbstractObservable
 /// A wrapper around a single value whose change can be observed. */
 class ObservableValue<T> extends AbstractObservable {
   ObservableValue(T value, [Observable? parent])
-      : _value = value,
-        super(parent);
+    : _value = value,
+      super(parent);
 
   T get value => _value;
 

@@ -13,7 +13,5 @@ class Klass {
 }
 
 main() {
-
   new Klass(1);
-
 }

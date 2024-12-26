@@ -11,10 +11,12 @@ main(List<String> args) {
   var goldenFile = 'api_allowed.json';
   asyncTest(() async {
     await run(
-        Uri.parse('memory:main.dart'), 'pkg/compiler/test/analyses/$goldenFile',
-        analyzedUrisFilter: (Uri uri) => uri.isScheme('dart'),
-        memorySourceFiles: {'main.dart': 'main() {}'},
-        verbose: args.contains('-v'),
-        generate: args.contains('-g'));
+      Uri.parse('memory:main.dart'),
+      'pkg/compiler/test/analyses/$goldenFile',
+      analyzedUrisFilter: (Uri uri) => uri.isScheme('dart'),
+      memorySourceFiles: {'main.dart': 'main() {}'},
+      verbose: args.contains('-v'),
+      generate: args.contains('-g'),
+    );
   });
 }

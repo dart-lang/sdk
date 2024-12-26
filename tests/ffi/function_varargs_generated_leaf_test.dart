@@ -48,8 +48,9 @@ void main() {
 }
 
 final variadicAt1Int64x2Leaf = ffiTestFunctions.lookupFunction<
-    Int64 Function(Int64, VarArgs<(Int64,)>),
-    int Function(int, int)>("VariadicAt1Int64x2", isLeaf: true);
+  Int64 Function(Int64, VarArgs<(Int64,)>),
+  int Function(int, int)
+>("VariadicAt1Int64x2", isLeaf: true);
 
 /// Single variadic argument.
 void testVariadicAt1Int64x2Leaf() {
@@ -67,8 +68,9 @@ void testVariadicAt1Int64x2Leaf() {
 }
 
 final variadicAt1Doublex2Leaf = ffiTestFunctions.lookupFunction<
-    Double Function(Double, VarArgs<(Double,)>),
-    double Function(double, double)>("VariadicAt1Doublex2", isLeaf: true);
+  Double Function(Double, VarArgs<(Double,)>),
+  double Function(double, double)
+>("VariadicAt1Doublex2", isLeaf: true);
 
 /// Single variadic argument.
 void testVariadicAt1Doublex2Leaf() {
@@ -86,8 +88,9 @@ void testVariadicAt1Doublex2Leaf() {
 }
 
 final variadicAt1Int64x5Leaf = ffiTestFunctions.lookupFunction<
-    Int64 Function(Int64, VarArgs<(Int64, Int64, Int64, Int64)>),
-    int Function(int, int, int, int, int)>("VariadicAt1Int64x5", isLeaf: true);
+  Int64 Function(Int64, VarArgs<(Int64, Int64, Int64, Int64)>),
+  int Function(int, int, int, int, int)
+>("VariadicAt1Int64x5", isLeaf: true);
 
 /// Variadic arguments.
 void testVariadicAt1Int64x5Leaf() {
@@ -111,9 +114,9 @@ void testVariadicAt1Int64x5Leaf() {
 }
 
 final variadicAt1Doublex5Leaf = ffiTestFunctions.lookupFunction<
-    Double Function(Double, VarArgs<(Double, Double, Double, Double)>),
-    double Function(double, double, double, double,
-        double)>("VariadicAt1Doublex5", isLeaf: true);
+  Double Function(Double, VarArgs<(Double, Double, Double, Double)>),
+  double Function(double, double, double, double, double)
+>("VariadicAt1Doublex5", isLeaf: true);
 
 /// Variadic arguments.
 void testVariadicAt1Doublex5Leaf() {
@@ -137,51 +140,55 @@ void testVariadicAt1Doublex5Leaf() {
 }
 
 final variadicAt1Int64x20Leaf = ffiTestFunctions.lookupFunction<
-    Int64 Function(
+  Int64 Function(
+    Int64,
+    VarArgs<
+      (
         Int64,
-        VarArgs<
-            (
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64
-            )>),
-    int Function(
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int,
-        int)>("VariadicAt1Int64x20", isLeaf: true);
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+      )
+    >,
+  ),
+  int Function(
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+  )
+>("VariadicAt1Int64x20", isLeaf: true);
 
 /// Variadic arguments exhaust registers.
 void testVariadicAt1Int64x20Leaf() {
@@ -227,8 +234,28 @@ void testVariadicAt1Int64x20Leaf() {
   a18 = -19;
   a19 = 20;
 
-  final result = variadicAt1Int64x20Leaf(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9,
-      a10, a11, a12, a13, a14, a15, a16, a17, a18, a19);
+  final result = variadicAt1Int64x20Leaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+    a12,
+    a13,
+    a14,
+    a15,
+    a16,
+    a17,
+    a18,
+    a19,
+  );
 
   print("result = $result");
 
@@ -236,51 +263,55 @@ void testVariadicAt1Int64x20Leaf() {
 }
 
 final variadicAt1Doublex20Leaf = ffiTestFunctions.lookupFunction<
-    Double Function(
+  Double Function(
+    Double,
+    VarArgs<
+      (
         Double,
-        VarArgs<
-            (
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double
-            )>),
-    double Function(
-        double,
-        double,
-        double,
-        double,
-        double,
-        double,
-        double,
-        double,
-        double,
-        double,
-        double,
-        double,
-        double,
-        double,
-        double,
-        double,
-        double,
-        double,
-        double,
-        double)>("VariadicAt1Doublex20", isLeaf: true);
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+      )
+    >,
+  ),
+  double Function(
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+  )
+>("VariadicAt1Doublex20", isLeaf: true);
 
 /// Variadic arguments exhaust registers.
 void testVariadicAt1Doublex20Leaf() {
@@ -326,19 +357,39 @@ void testVariadicAt1Doublex20Leaf() {
   a18 = -19.0;
   a19 = 20.0;
 
-  final result = variadicAt1Doublex20Leaf(a0, a1, a2, a3, a4, a5, a6, a7, a8,
-      a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19);
+  final result = variadicAt1Doublex20Leaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+    a12,
+    a13,
+    a14,
+    a15,
+    a16,
+    a17,
+    a18,
+    a19,
+  );
 
   print("result = $result");
 
   Expect.approxEquals(10.0, result);
 }
 
-final variadicAt1Int64x2Struct8BytesIntInt64Leaf =
-    ffiTestFunctions.lookupFunction<
-        Int64 Function(Int64, VarArgs<(Int64, Struct8BytesInt, Int64)>),
-        int Function(int, int, Struct8BytesInt,
-            int)>("VariadicAt1Int64x2Struct8BytesIntInt64", isLeaf: true);
+final variadicAt1Int64x2Struct8BytesIntInt64Leaf = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(Int64, VarArgs<(Int64, Struct8BytesInt, Int64)>),
+      int Function(int, int, Struct8BytesInt, int)
+    >("VariadicAt1Int64x2Struct8BytesIntInt64", isLeaf: true);
 
 /// Variadic arguments including struct.
 void testVariadicAt1Int64x2Struct8BytesIntInt64Leaf() {
@@ -366,12 +417,12 @@ void testVariadicAt1Int64x2Struct8BytesIntInt64Leaf() {
 
 final variadicAt1Doublex2Struct32BytesHomogeneousDoubleDLeaf = ffiTestFunctions
     .lookupFunction<
-            Double Function(Double,
-                VarArgs<(Double, Struct32BytesHomogeneousDouble, Double)>),
-            double Function(
-                double, double, Struct32BytesHomogeneousDouble, double)>(
-        "VariadicAt1Doublex2Struct32BytesHomogeneousDoubleD",
-        isLeaf: true);
+      Double Function(
+        Double,
+        VarArgs<(Double, Struct32BytesHomogeneousDouble, Double)>,
+      ),
+      double Function(double, double, Struct32BytesHomogeneousDouble, double)
+    >("VariadicAt1Doublex2Struct32BytesHomogeneousDoubleD", isLeaf: true);
 
 /// Variadic arguments including struct.
 void testVariadicAt1Doublex2Struct32BytesHomogeneousDoubleDLeaf() {
@@ -389,8 +440,12 @@ void testVariadicAt1Doublex2Struct32BytesHomogeneousDoubleDLeaf() {
   a2.a3 = 6.0;
   a3 = -7.0;
 
-  final result =
-      variadicAt1Doublex2Struct32BytesHomogeneousDoubleDLeaf(a0, a1, a2, a3);
+  final result = variadicAt1Doublex2Struct32BytesHomogeneousDoubleDLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+  );
 
   print("result = $result");
 
@@ -399,13 +454,11 @@ void testVariadicAt1Doublex2Struct32BytesHomogeneousDoubleDLeaf() {
   calloc.free(a2Pointer);
 }
 
-final variadicAt1DoubleStruct12BytesHomogeneousFloatDoubLeaf =
-    ffiTestFunctions.lookupFunction<
-            Double Function(
-                Double, VarArgs<(Struct12BytesHomogeneousFloat, Double)>),
-            double Function(double, Struct12BytesHomogeneousFloat, double)>(
-        "VariadicAt1DoubleStruct12BytesHomogeneousFloatDoub",
-        isLeaf: true);
+final variadicAt1DoubleStruct12BytesHomogeneousFloatDoubLeaf = ffiTestFunctions
+    .lookupFunction<
+      Double Function(Double, VarArgs<(Struct12BytesHomogeneousFloat, Double)>),
+      double Function(double, Struct12BytesHomogeneousFloat, double)
+    >("VariadicAt1DoubleStruct12BytesHomogeneousFloatDoub", isLeaf: true);
 
 /// Variadic arguments including struct.
 void testVariadicAt1DoubleStruct12BytesHomogeneousFloatDoubLeaf() {
@@ -420,8 +473,11 @@ void testVariadicAt1DoubleStruct12BytesHomogeneousFloatDoubLeaf() {
   a1.a2 = 4.0;
   a2 = -5.0;
 
-  final result =
-      variadicAt1DoubleStruct12BytesHomogeneousFloatDoubLeaf(a0, a1, a2);
+  final result = variadicAt1DoubleStruct12BytesHomogeneousFloatDoubLeaf(
+    a0,
+    a1,
+    a2,
+  );
 
   print("result = $result");
 
@@ -430,14 +486,11 @@ void testVariadicAt1DoubleStruct12BytesHomogeneousFloatDoubLeaf() {
   calloc.free(a1Pointer);
 }
 
-final variadicAt1Int32Struct20BytesHomogeneousInt32Int32Leaf =
-    ffiTestFunctions
-        .lookupFunction<
-                Int32 Function(
-                    Int32, VarArgs<(Struct20BytesHomogeneousInt32, Int32)>),
-                int Function(int, Struct20BytesHomogeneousInt32, int)>(
-            "VariadicAt1Int32Struct20BytesHomogeneousInt32Int32",
-            isLeaf: true);
+final variadicAt1Int32Struct20BytesHomogeneousInt32Int32Leaf = ffiTestFunctions
+    .lookupFunction<
+      Int32 Function(Int32, VarArgs<(Struct20BytesHomogeneousInt32, Int32)>),
+      int Function(int, Struct20BytesHomogeneousInt32, int)
+    >("VariadicAt1Int32Struct20BytesHomogeneousInt32Int32", isLeaf: true);
 
 /// Variadic arguments including struct.
 void testVariadicAt1Int32Struct20BytesHomogeneousInt32Int32Leaf() {
@@ -454,8 +507,11 @@ void testVariadicAt1Int32Struct20BytesHomogeneousInt32Int32Leaf() {
   a1.a4 = 6;
   a2 = -7;
 
-  final result =
-      variadicAt1Int32Struct20BytesHomogeneousInt32Int32Leaf(a0, a1, a2);
+  final result = variadicAt1Int32Struct20BytesHomogeneousInt32Int32Leaf(
+    a0,
+    a1,
+    a2,
+  );
 
   print("result = $result");
 
@@ -464,13 +520,11 @@ void testVariadicAt1Int32Struct20BytesHomogeneousInt32Int32Leaf() {
   calloc.free(a1Pointer);
 }
 
-final variadicAt1DoubleStruct20BytesHomogeneousFloatDoubLeaf =
-    ffiTestFunctions.lookupFunction<
-            Double Function(
-                Double, VarArgs<(Struct20BytesHomogeneousFloat, Double)>),
-            double Function(double, Struct20BytesHomogeneousFloat, double)>(
-        "VariadicAt1DoubleStruct20BytesHomogeneousFloatDoub",
-        isLeaf: true);
+final variadicAt1DoubleStruct20BytesHomogeneousFloatDoubLeaf = ffiTestFunctions
+    .lookupFunction<
+      Double Function(Double, VarArgs<(Struct20BytesHomogeneousFloat, Double)>),
+      double Function(double, Struct20BytesHomogeneousFloat, double)
+    >("VariadicAt1DoubleStruct20BytesHomogeneousFloatDoub", isLeaf: true);
 
 /// Variadic arguments including struct.
 void testVariadicAt1DoubleStruct20BytesHomogeneousFloatDoubLeaf() {
@@ -487,8 +541,11 @@ void testVariadicAt1DoubleStruct20BytesHomogeneousFloatDoubLeaf() {
   a1.a4 = 6.0;
   a2 = -7.0;
 
-  final result =
-      variadicAt1DoubleStruct20BytesHomogeneousFloatDoubLeaf(a0, a1, a2);
+  final result = variadicAt1DoubleStruct20BytesHomogeneousFloatDoubLeaf(
+    a0,
+    a1,
+    a2,
+  );
 
   print("result = $result");
 
@@ -498,8 +555,9 @@ void testVariadicAt1DoubleStruct20BytesHomogeneousFloatDoubLeaf() {
 }
 
 final variadicAt2Int32Int64IntPtrLeaf = ffiTestFunctions.lookupFunction<
-    Int32 Function(Int32, Int64, VarArgs<(IntPtr,)>),
-    int Function(int, int, int)>("VariadicAt2Int32Int64IntPtr", isLeaf: true);
+  Int32 Function(Int32, Int64, VarArgs<(IntPtr,)>),
+  int Function(int, int, int)
+>("VariadicAt2Int32Int64IntPtr", isLeaf: true);
 
 /// Regression test for variadic arguments.
 /// https://github.com/dart-lang/sdk/issues/49460
@@ -519,11 +577,11 @@ void testVariadicAt2Int32Int64IntPtrLeaf() {
   Expect.equals(-2, result);
 }
 
-final variadicAt1DoubleInt64Int32DoubleInt64Int32Leaf =
-    ffiTestFunctions.lookupFunction<
-        Double Function(Double, VarArgs<(Int64, Int32, Double, Int64, Int32)>),
-        double Function(double, int, int, double, int,
-            int)>("VariadicAt1DoubleInt64Int32DoubleInt64Int32", isLeaf: true);
+final variadicAt1DoubleInt64Int32DoubleInt64Int32Leaf = ffiTestFunctions
+    .lookupFunction<
+      Double Function(Double, VarArgs<(Int64, Int32, Double, Int64, Int32)>),
+      double Function(double, int, int, double, int, int)
+    >("VariadicAt1DoubleInt64Int32DoubleInt64Int32", isLeaf: true);
 
 /// Variadic arguments mixed.
 void testVariadicAt1DoubleInt64Int32DoubleInt64Int32Leaf() {
@@ -541,22 +599,25 @@ void testVariadicAt1DoubleInt64Int32DoubleInt64Int32Leaf() {
   a4 = -5;
   a5 = 6;
 
-  final result =
-      variadicAt1DoubleInt64Int32DoubleInt64Int32Leaf(a0, a1, a2, a3, a4, a5);
+  final result = variadicAt1DoubleInt64Int32DoubleInt64Int32Leaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+  );
 
   print("result = $result");
 
   Expect.approxEquals(3.0, result);
 }
 
-final variadicAt1Int64Int32Struct12BytesHomogeneousFloatLeaf =
-    ffiTestFunctions
-        .lookupFunction<
-                Double Function(
-                    Int64, VarArgs<(Int32, Struct12BytesHomogeneousFloat)>),
-                double Function(int, int, Struct12BytesHomogeneousFloat)>(
-            "VariadicAt1Int64Int32Struct12BytesHomogeneousFloat",
-            isLeaf: true);
+final variadicAt1Int64Int32Struct12BytesHomogeneousFloatLeaf = ffiTestFunctions
+    .lookupFunction<
+      Double Function(Int64, VarArgs<(Int32, Struct12BytesHomogeneousFloat)>),
+      double Function(int, int, Struct12BytesHomogeneousFloat)
+    >("VariadicAt1Int64Int32Struct12BytesHomogeneousFloat", isLeaf: true);
 
 /// Variadic arguments homogenous struct stack alignment on macos_arm64.
 void testVariadicAt1Int64Int32Struct12BytesHomogeneousFloatLeaf() {
@@ -571,8 +632,11 @@ void testVariadicAt1Int64Int32Struct12BytesHomogeneousFloatLeaf() {
   a2.a1 = 4.0;
   a2.a2 = -5.0;
 
-  final result =
-      variadicAt1Int64Int32Struct12BytesHomogeneousFloatLeaf(a0, a1, a2);
+  final result = variadicAt1Int64Int32Struct12BytesHomogeneousFloatLeaf(
+    a0,
+    a1,
+    a2,
+  );
 
   print("result = $result");
 
@@ -581,37 +645,38 @@ void testVariadicAt1Int64Int32Struct12BytesHomogeneousFloatLeaf() {
   calloc.free(a2Pointer);
 }
 
-final variadicAt11Doublex8FloatStruct12BytesHomogeneousFLeaf =
-    ffiTestFunctions.lookupFunction<
-            Double Function(
-                Double,
-                Double,
-                Double,
-                Double,
-                Double,
-                Double,
-                Double,
-                Double,
-                Float,
-                Struct12BytesHomogeneousFloat,
-                Int64,
-                VarArgs<(Int32, Struct12BytesHomogeneousFloat)>),
-            double Function(
-                double,
-                double,
-                double,
-                double,
-                double,
-                double,
-                double,
-                double,
-                double,
-                Struct12BytesHomogeneousFloat,
-                int,
-                int,
-                Struct12BytesHomogeneousFloat)>(
-        "VariadicAt11Doublex8FloatStruct12BytesHomogeneousF",
-        isLeaf: true);
+final variadicAt11Doublex8FloatStruct12BytesHomogeneousFLeaf = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Float,
+        Struct12BytesHomogeneousFloat,
+        Int64,
+        VarArgs<(Int32, Struct12BytesHomogeneousFloat)>,
+      ),
+      double Function(
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        Struct12BytesHomogeneousFloat,
+        int,
+        int,
+        Struct12BytesHomogeneousFloat,
+      )
+    >("VariadicAt11Doublex8FloatStruct12BytesHomogeneousF", isLeaf: true);
 
 /// Variadic arguments homogenous struct stack alignment on macos_arm64.
 void testVariadicAt11Doublex8FloatStruct12BytesHomogeneousFLeaf() {
@@ -650,7 +715,20 @@ void testVariadicAt11Doublex8FloatStruct12BytesHomogeneousFLeaf() {
   a12.a2 = -17.0;
 
   final result = variadicAt11Doublex8FloatStruct12BytesHomogeneousFLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+    a12,
+  );
 
   print("result = $result");
 
@@ -660,32 +738,35 @@ void testVariadicAt11Doublex8FloatStruct12BytesHomogeneousFLeaf() {
   calloc.free(a12Pointer);
 }
 
-final variadicAt1DoubleInt64Int32Struct20BytesHomogeneouLeaf =
-    ffiTestFunctions.lookupFunction<
-            Double Function(
-                Double,
-                VarArgs<
-                    (
-                      Int64,
-                      Int32,
-                      Struct20BytesHomogeneousInt32,
-                      Double,
-                      Int64,
-                      Int32,
-                      Struct12BytesHomogeneousFloat,
-                      Int64
-                    )>),
-            double Function(
-                double,
-                int,
-                int,
-                Struct20BytesHomogeneousInt32,
-                double,
-                int,
-                int,
-                Struct12BytesHomogeneousFloat,
-                int)>("VariadicAt1DoubleInt64Int32Struct20BytesHomogeneou",
-        isLeaf: true);
+final variadicAt1DoubleInt64Int32Struct20BytesHomogeneouLeaf = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        Double,
+        VarArgs<
+          (
+            Int64,
+            Int32,
+            Struct20BytesHomogeneousInt32,
+            Double,
+            Int64,
+            Int32,
+            Struct12BytesHomogeneousFloat,
+            Int64,
+          )
+        >,
+      ),
+      double Function(
+        double,
+        int,
+        int,
+        Struct20BytesHomogeneousInt32,
+        double,
+        int,
+        int,
+        Struct12BytesHomogeneousFloat,
+        int,
+      )
+    >("VariadicAt1DoubleInt64Int32Struct20BytesHomogeneou", isLeaf: true);
 
 /// Variadic arguments mixed.
 void testVariadicAt1DoubleInt64Int32Struct20BytesHomogeneouLeaf() {
@@ -718,7 +799,16 @@ void testVariadicAt1DoubleInt64Int32Struct20BytesHomogeneouLeaf() {
   a8 = -15;
 
   final result = variadicAt1DoubleInt64Int32Struct20BytesHomogeneouLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -729,9 +819,9 @@ void testVariadicAt1DoubleInt64Int32Struct20BytesHomogeneouLeaf() {
 }
 
 final variadicAt5Doublex5Leaf = ffiTestFunctions.lookupFunction<
-    Double Function(Double, Double, Double, Double, Double, VarArgs<()>),
-    double Function(double, double, double, double,
-        double)>("VariadicAt5Doublex5", isLeaf: true);
+  Double Function(Double, Double, Double, Double, Double, VarArgs<()>),
+  double Function(double, double, double, double, double)
+>("VariadicAt5Doublex5", isLeaf: true);
 
 /// Variadic arguments function definition, but not passing any.
 void testVariadicAt5Doublex5Leaf() {
@@ -754,24 +844,33 @@ void testVariadicAt5Doublex5Leaf() {
   Expect.approxEquals(-3.0, result);
 }
 
-final variadicAt1Int64x7Struct12BytesHomogeneousInt32Leaf =
-    ffiTestFunctions.lookupFunction<
-            Int64 Function(
-                Int64,
-                VarArgs<
-                    (
-                      Int64,
-                      Int64,
-                      Int64,
-                      Int64,
-                      Int64,
-                      Int64,
-                      Struct12BytesHomogeneousInt32
-                    )>),
-            int Function(int, int, int, int, int, int, int,
-                Struct12BytesHomogeneousInt32)>(
-        "VariadicAt1Int64x7Struct12BytesHomogeneousInt32",
-        isLeaf: true);
+final variadicAt1Int64x7Struct12BytesHomogeneousInt32Leaf = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(
+        Int64,
+        VarArgs<
+          (
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+            Struct12BytesHomogeneousInt32,
+          )
+        >,
+      ),
+      int Function(
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        Struct12BytesHomogeneousInt32,
+      )
+    >("VariadicAt1Int64x7Struct12BytesHomogeneousInt32", isLeaf: true);
 
 /// Struct stradles last argument register, variadic
 void testVariadicAt1Int64x7Struct12BytesHomogeneousInt32Leaf() {
@@ -797,7 +896,15 @@ void testVariadicAt1Int64x7Struct12BytesHomogeneousInt32Leaf() {
   a7.a2 = 10;
 
   final result = variadicAt1Int64x7Struct12BytesHomogeneousInt32Leaf(
-      a0, a1, a2, a3, a4, a5, a6, a7);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+  );
 
   print("result = $result");
 
@@ -806,13 +913,14 @@ void testVariadicAt1Int64x7Struct12BytesHomogeneousInt32Leaf() {
   calloc.free(a7Pointer);
 }
 
-final variadicAt1Struct12BytesHomogeneousInt32Int32x4Leaf =
-    ffiTestFunctions.lookupFunction<
-            Int32 Function(Struct12BytesHomogeneousInt32,
-                VarArgs<(Int32, Int32, Int32, Int32)>),
-            int Function(Struct12BytesHomogeneousInt32, int, int, int, int)>(
-        "VariadicAt1Struct12BytesHomogeneousInt32Int32x4",
-        isLeaf: true);
+final variadicAt1Struct12BytesHomogeneousInt32Int32x4Leaf = ffiTestFunctions
+    .lookupFunction<
+      Int32 Function(
+        Struct12BytesHomogeneousInt32,
+        VarArgs<(Int32, Int32, Int32, Int32)>,
+      ),
+      int Function(Struct12BytesHomogeneousInt32, int, int, int, int)
+    >("VariadicAt1Struct12BytesHomogeneousInt32Int32x4", isLeaf: true);
 
 /// Variadic arguments test on macos_arm64.
 void testVariadicAt1Struct12BytesHomogeneousInt32Int32x4Leaf() {
@@ -831,8 +939,13 @@ void testVariadicAt1Struct12BytesHomogeneousInt32Int32x4Leaf() {
   a3 = 6;
   a4 = -7;
 
-  final result =
-      variadicAt1Struct12BytesHomogeneousInt32Int32x4Leaf(a0, a1, a2, a3, a4);
+  final result = variadicAt1Struct12BytesHomogeneousInt32Int32x4Leaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+  );
 
   print("result = $result");
 

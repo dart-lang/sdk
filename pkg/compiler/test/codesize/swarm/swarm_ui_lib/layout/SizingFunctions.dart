@@ -117,8 +117,8 @@ class TrackSizing {
   final SizingFunction max;
 
   const TrackSizing.auto()
-      : min = const MinContentSizing(),
-        max = const MaxContentSizing();
+    : min = const MinContentSizing(),
+      max = const MaxContentSizing();
 
   TrackSizing(this.min, this.max);
 

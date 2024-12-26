@@ -61,11 +61,14 @@ class A {
   Future<void> test_method_block_noReturn() async {
     await resolveTestCode('''
 class A {
-  /*caret*/m() {
-  }
+  /*caret*/m() {}
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+class A {
+  void m() {}
+}
+''');
   }
 
   Future<void> test_method_block_returnDynamic() async {

@@ -9,9 +9,8 @@ class A<T> {
     // TODO(johnniwinther): The signature is not needed since the type isn't a
     // potential subtype of the checked function types.
     return
-
-        /*checks=[$signature],instance*/
-        (T t, String s) {};
+    /*checks=[$signature],instance*/
+    (T t, String s) {};
   }
 }
 

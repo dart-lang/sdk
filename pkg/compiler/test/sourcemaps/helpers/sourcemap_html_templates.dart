@@ -83,7 +83,7 @@ function setFile(value) {
 ''');
     }
   }
-  sb.write('''  
+  sb.write('''
 <div style="right:0px;height:30px;background-color:#E0E0E0;position:fixed;">
   file:
 ''');
@@ -115,7 +115,11 @@ setFile('$defaultFile');
 
 /// Outputs JavaScript/Dart source mapping traces into [uri].
 void outputJsDartTrace(
-    Uri uri, String jsCodeHtml, String dartCodeHtml, String jsTraceHtml) {
+  Uri uri,
+  String jsCodeHtml,
+  String dartCodeHtml,
+  String jsTraceHtml,
+) {
   String html = '''
 <div class="js-buffer">
 ${jsCodeHtml}

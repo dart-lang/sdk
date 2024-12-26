@@ -25,8 +25,9 @@ main() {
   retainDataForTesting = true;
 
   runTests() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: {'main.dart': CODE});
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: {'main.dart': CODE},
+    );
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler!;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
@@ -48,18 +49,28 @@ main() {
     var subtypeA = TypeMask.nonNullSubtype(classA, closedWorld);
 
     var subclassObject = TypeMask.nonNullSubclass(
-        closedWorld.commonElements.objectClass, closedWorld);
+      closedWorld.commonElements.objectClass,
+      closedWorld,
+    );
 
     var unionABC = UnionTypeMask.unionOf([exactA, exactB, exactC], commonMasks);
-    var unionABnC =
-        UnionTypeMask.unionOf([exactA, exactB.nullable(), exactC], commonMasks);
+    var unionABnC = UnionTypeMask.unionOf([
+      exactA,
+      exactB.nullable(),
+      exactC,
+    ], commonMasks);
     var unionAB = UnionTypeMask.unionOf([exactA, exactB], commonMasks);
     var unionSubtypeAC = UnionTypeMask.unionOf([subtypeA, exactC], commonMasks);
-    var unionSubclassAC =
-        UnionTypeMask.unionOf([subclassA, exactC], commonMasks);
+    var unionSubclassAC = UnionTypeMask.unionOf([
+      subclassA,
+      exactC,
+    ], commonMasks);
     var unionBCD = UnionTypeMask.unionOf([exactB, exactC, exactD], commonMasks);
-    var unionBCDn =
-        UnionTypeMask.unionOf([exactB, exactC, exactD.nullable()], commonMasks);
+    var unionBCDn = UnionTypeMask.unionOf([
+      exactB,
+      exactC,
+      exactD.nullable(),
+    ], commonMasks);
 
     Expect.isFalse(unionABC.isNullable);
     Expect.isTrue(unionABnC.isNullable);

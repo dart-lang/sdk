@@ -138,6 +138,7 @@ void matchIL$bodyAlwaysThrows(FlowGraph graph) {
   graph.match([
     match.block('Graph'),
     match.block('Function'),
+    match.tryBlock(),
     match.block('CatchBlock'),
     match.block('Join'),
   ], inCodegenBlockOrder: true);

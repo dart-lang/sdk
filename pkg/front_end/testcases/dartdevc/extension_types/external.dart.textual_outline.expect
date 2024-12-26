@@ -1,4 +1,5 @@
 @JS()
+
 library static_interop;
 
 import 'dart:js_interop';

@@ -6,49 +6,19 @@ class Class<T> {
   int method(double o) => 42;
 }
 
-add(
-  num n,
-  int i,
-  double d,
-  Class<String> c,
-  dynamic dyn,
-  Never never,
-  String string,
-) {}
+add(num n, int i, double d, Class<String> c, dynamic dyn, Never never,
+    String string) {}
 
-unaryMinus(
-  num n,
-  int i,
-  double d,
-  Class<String> c,
-  dynamic dyn,
-  Never never,
-  String string,
-) {}
+unaryMinus(num n, int i, double d, Class<String> c, dynamic dyn, Never never,
+    String string) {}
 
-indexGet(
-  List<int> list,
-  Map<String, double> map,
-  Class<String> c,
-  dynamic dyn,
-  Never never,
-  String string,
-) {}
+indexGet(List<int> list, Map<String, double> map, Class<String> c, dynamic dyn,
+    Never never, String string) {}
 
-indexSet(
-  List<int> list,
-  Map<String, double> map,
-  Class<String> c,
-  dynamic dyn,
-  Never never,
-) {}
+indexSet(List<int> list, Map<String, double> map, Class<String> c, dynamic dyn,
+    Never never) {}
 
-compound(
-  List<int> list,
-  Map<String, double> map,
-  Class<String> c,
-  dynamic dyn,
-  Never never,
-) {}
+compound(List<int> list, Map<String, double> map, Class<String> c, dynamic dyn,
+    Never never) {}
 
 main() {}

@@ -12,18 +12,22 @@ from os.path import basename, dirname, exists, isabs, join
 from glob import glob
 
 re_directive = re.compile(r'^(library|import|part|native|resource)\s+(.*);$')
-re_comment = re.compile(r'^(///|/\*| \*).*$')
+re_comment = re.compile(r'^(///?|/\*| \*).*$')
+re_annotation = re.compile(r'^@.*$')
+re_newline = re.compile(r'\n')
 
 
 class Library(object):
 
-    def __init__(self, name, imports, sources, natives, code, comment):
+    def __init__(self, name, imports, sources, natives, code, comment,
+                 annotations):
         self.name = name
         self.imports = imports
         self.sources = sources
         self.natives = natives
         self.code = code
         self.comment = comment
+        self.annotations = annotations
 
 
 def parseLibrary(library):
@@ -37,6 +41,7 @@ def parseLibrary(library):
     natives = []
     inlinecode = []
     librarycomment = []
+    libraryannotations = []
     if exists(library):
         # TODO(sigmund): stop parsing when import/source
         for line in fileinput.input(library):
@@ -56,14 +61,17 @@ def parseLibrary(library):
                     raise Exception(
                         'unknown directive %s in %s' % (directive, line))
             else:
-                # Check for library comment.
-                if not libraryname and re_comment.match(line):
-                    librarycomment.append(line)
+                # Check for library comments and annotations.
+                if not libraryname:
+                    if re_comment.match(line) or re_newline.match(line):
+                        librarycomment.append(line)
+                    elif re_annotation.match(line):
+                        libraryannotations.append(line)
                 else:
                     inlinecode.append(line)
         fileinput.close()
     return Library(libraryname, imports, sources, natives, inlinecode,
-                   librarycomment)
+                   librarycomment, libraryannotations)
 
 
 def normjoin(*args):
@@ -126,6 +134,8 @@ except for dart files with absolute paths, which will be copied to
                 if library.name:
                     if library.comment:
                         f.write('%s' % (''.join(library.comment)))
+                    if library.annotations:
+                        f.write('%s' % (''.join(library.annotations)))
                     f.write("library %s;\n\n" % library.name)
                 else:
                     f.write("library %s;\n\n" % basename(lib))

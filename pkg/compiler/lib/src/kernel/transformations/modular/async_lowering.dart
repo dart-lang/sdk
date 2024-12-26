@@ -18,7 +18,8 @@ class _FunctionData {
   /// Returns true if all [AwaitExpression]s are children of [ReturnStatement]s.
   bool allAwaitsDirectReturn() {
     return awaits.every(
-        (awaitExpression) => returnStatements.contains(awaitExpression.parent));
+      (awaitExpression) => returnStatements.contains(awaitExpression.parent),
+    );
   }
 }
 
@@ -56,16 +57,27 @@ class AsyncLowering {
     node.asyncMarker = AsyncMarker.Sync;
     final futureValueType = node.emittedValueType!;
     _updateFunctionBody(
-        node,
-        ReturnStatement(StaticInvocation(
-            _coreTypes.futureSyncFactory,
-            Arguments([
-              FunctionExpression(FunctionNode(node.body,
+      node,
+      ReturnStatement(
+        StaticInvocation(
+          _coreTypes.futureSyncFactory,
+          Arguments(
+            [
+              FunctionExpression(
+                FunctionNode(
+                  node.body,
                   returnType: FutureOrType(
-                      futureValueType, futureValueType.nullability)))
-            ], types: [
-              futureValueType
-            ]))));
+                    futureValueType,
+                    futureValueType.nullability,
+                  ),
+                ),
+              ),
+            ],
+            types: [futureValueType],
+          ),
+        ),
+      ),
+    );
   }
 
   void _wrapReturns(_FunctionData functionData, FunctionNode node) {
@@ -75,15 +87,19 @@ class AsyncLowering {
       // Ensure the returned future has a runtime type (T) matching the
       // function's return type by wrapping with Future.value<T>.
       if (expression == null) continue;
-      final futureValueCall = StaticInvocation(_coreTypes.futureValueFactory,
-          Arguments([expression], types: [futureValueType]));
+      final futureValueCall = StaticInvocation(
+        _coreTypes.futureValueFactory,
+        Arguments([expression], types: [futureValueType]),
+      );
       returnStatement.expression = futureValueCall;
       futureValueCall.parent = returnStatement;
     }
   }
 
   void _transformDirectReturnAwaits(
-      FunctionNode node, _FunctionData functionData) {
+    FunctionNode node,
+    _FunctionData functionData,
+  ) {
     // If every await is the direct child of a return statement then we can
     // do the following transformation:
     // return await e; --> return e;
@@ -144,8 +160,10 @@ class AsyncLowering {
   }
 
   void visitAwaitExpression(AwaitExpression expression) {
-    assert(_functions.isNotEmpty,
-        'Awaits must be within the scope of a function.');
+    assert(
+      _functions.isNotEmpty,
+      'Awaits must be within the scope of a function.',
+    );
     _functions.last.awaits.add(expression);
   }
 

@@ -661,8 +661,11 @@ static ObjectPtr AcceptCompilation(Thread* thread) {
 }
 
 static ObjectPtr RejectCompilation(Thread* thread) {
-  TransitionVMToNative transition(thread);
-  Dart_KernelCompilationResult result = KernelIsolate::RejectCompilation();
+  Dart_KernelCompilationResult result;
+  {
+    TransitionVMToNative transition(thread);
+    result = KernelIsolate::RejectCompilation();
+  }
   if (result.status != Dart_KernelCompilationStatus_Ok) {
     if (result.status != Dart_KernelCompilationStatus_MsgFailed) {
       FATAL(
@@ -2383,8 +2386,8 @@ class FieldInvalidator {
     }
 
     instance_ ^= value.ptr();
-    if (instance_.IsAssignableTo(type, instantiator_type_arguments_,
-                                 function_type_arguments_)) {
+    if (instance_.IsInstanceOf(type, instantiator_type_arguments_,
+                               function_type_arguments_)) {
       // Do not add record instances to cache as they don't have a valid
       // key (type of a record depends on types of all its fields).
       if (cid != kRecordCid) {

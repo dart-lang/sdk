@@ -28,7 +28,8 @@ var x = const ConstClass(const ConstClass(1));
 class C {
   /*member: C.foo:member_unit=1{lib2}*/
   static foo() {
-    /*closure_unit=1{lib2}*/ () {}(); // Hack to avoid inlining.
+    /*closure_unit=1{lib2}*/
+    () {}(); // Hack to avoid inlining.
     return 1;
   }
 
@@ -37,7 +38,8 @@ class C {
 
   /*member: C.bar:member_unit=3{lib1}*/
   bar() {
-    /*closure_unit=3{lib1}*/ () {}(); // Hack to avoid inlining.
+    /*closure_unit=3{lib1}*/
+    () {}(); // Hack to avoid inlining.
     return 1;
   }
 }
@@ -112,7 +114,7 @@ class C4 {
 */
 class C5 {
   static const foo = const [
-    const {1: 3}
+    const {1: 3},
   ];
 
   /*member: C5.:member_unit=3{lib1}*/
@@ -120,7 +122,8 @@ class C5 {
 
   /*member: C5.bar:member_unit=3{lib1}*/
   bar() {
-    /*closure_unit=3{lib1}*/ () {}(); // Hack to avoid inlining.
+    /*closure_unit=3{lib1}*/
+    () {}(); // Hack to avoid inlining.
     return 1;
   }
 }

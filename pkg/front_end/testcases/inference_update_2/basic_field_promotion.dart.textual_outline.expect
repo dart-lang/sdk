@@ -7,7 +7,9 @@ abstract class C {
   int? get publicAbstractGetter;
   int? get _privateConcreteGetter => 0;
   int? get publicConcreteGetter => 0;
-  C(int? i) : _privateFinalField = i, publicFinalField = i;
+  C(int? i)
+      : _privateFinalField = i,
+        publicFinalField = i;
 }
 
 void acceptsInt(int x) {}

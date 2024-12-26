@@ -41,7 +41,7 @@ class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
     List<AstNode>? references;
     var root = node.thisOrAncestorOfType<Block>();
     if (root != null) {
-      references = findLocalElementReferences3(root, element);
+      references = findLocalElementReferences(root, element);
     }
     if (references == null) return;
 

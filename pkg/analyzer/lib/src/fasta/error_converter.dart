@@ -504,11 +504,7 @@ class FastaErrorReporter {
         );
         return;
       case "YIELD_IN_NON_GENERATOR":
-        errorReporter?.atOffset(
-          offset: offset,
-          length: length,
-          errorCode: CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
-        );
+        // Reported by [YieldStatementResolver._resolve_notGenerator]
         return;
       case "BUILT_IN_IDENTIFIER_IN_DECLARATION":
         // Reported by [ErrorVerifier._checkForBuiltInIdentifierAsName].

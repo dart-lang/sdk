@@ -12,13 +12,15 @@ import 'package:compiler/src/util/memory_compiler.dart';
 test(String code, List<String> options, List<MessageKind> expectedHints) async {
   DiagnosticCollector collector = DiagnosticCollector();
   CompilationResult result = await runCompiler(
-      memorySourceFiles: {'main.dart': code},
-      options: options,
-      diagnosticHandler: collector);
+    memorySourceFiles: {'main.dart': code},
+    options: options,
+    diagnosticHandler: collector,
+  );
   Expect.isTrue(result.isSuccess);
   List<MessageKind?> actualHints =
       collector.hints.map((c) => c.messageKind).toList();
-  String message = "Unexpected hints for $options on\n$code\n"
+  String message =
+      "Unexpected hints for $options on\n$code\n"
       "Expected: ${expectedHints}\n"
       "Actual  : ${actualHints}";
   Expect.listEquals(expectedHints, actualHints, message);
@@ -41,15 +43,25 @@ main() {
 main() {
   asyncTest(() async {
     await test(runtimeTypeToStringObject, [], []);
-    await test(runtimeTypeToStringObject, [Flags.omitImplicitChecks],
-        [MessageKind.RUNTIME_TYPE_TO_STRING]);
-    await test(runtimeTypeToStringObject,
-        [Flags.omitImplicitChecks, Flags.laxRuntimeTypeToString], []);
+    await test(
+      runtimeTypeToStringObject,
+      [Flags.omitImplicitChecks],
+      [MessageKind.runtimeTypeToString],
+    );
+    await test(runtimeTypeToStringObject, [
+      Flags.omitImplicitChecks,
+      Flags.laxRuntimeTypeToString,
+    ], []);
 
     await test(runtimeTypeToStringClass, [], []);
-    await test(runtimeTypeToStringClass, [Flags.omitImplicitChecks],
-        [MessageKind.RUNTIME_TYPE_TO_STRING]);
-    await test(runtimeTypeToStringClass,
-        [Flags.omitImplicitChecks, Flags.laxRuntimeTypeToString], []);
+    await test(
+      runtimeTypeToStringClass,
+      [Flags.omitImplicitChecks],
+      [MessageKind.runtimeTypeToString],
+    );
+    await test(runtimeTypeToStringClass, [
+      Flags.omitImplicitChecks,
+      Flags.laxRuntimeTypeToString,
+    ], []);
   });
 }

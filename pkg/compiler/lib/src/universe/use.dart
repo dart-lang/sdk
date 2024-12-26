@@ -14,7 +14,7 @@
 /// The different compiler stages combine these uses into `WorldImpact` objects,
 /// which are later used to construct a closed-world understanding of the
 /// program.
-library dart2js.universe.use;
+library;
 
 import 'package:kernel/ast.dart' as ir;
 
@@ -31,11 +31,7 @@ import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
 import 'world_impact.dart';
 
-enum DynamicUseKind {
-  INVOKE,
-  GET,
-  SET,
-}
+enum DynamicUseKind { invoke, get, set }
 
 /// The use of a dynamic property. [selector] defined the name and kind of the
 /// property and [receiverConstraint] defines the known constraint for the
@@ -48,12 +44,13 @@ class DynamicUse {
   final List<DartType>? _typeArguments;
 
   DynamicUse(this.selector, this.receiverConstraint, this._typeArguments)
-      : assert(
-            selector.callStructure.typeArgumentCount ==
-                (_typeArguments?.length ?? 0),
-            "Type argument count mismatch. Selector has "
-            "${selector.callStructure.typeArgumentCount} but "
-            "${_typeArguments?.length ?? 0} were passed.");
+    : assert(
+        selector.callStructure.typeArgumentCount ==
+            (_typeArguments?.length ?? 0),
+        "Type argument count mismatch. Selector has "
+        "${selector.callStructure.typeArgumentCount} but "
+        "${_typeArguments?.length ?? 0} were passed.",
+      );
 
   DynamicUse withReceiverConstraint(Object? otherReceiverConstraint) {
     if (otherReceiverConstraint == receiverConstraint) {
@@ -84,8 +81,7 @@ class DynamicUse {
       if (constraint is AbstractValue) {
         sink.writeAbstractValue(constraint);
       } else {
-        throw UnsupportedError(
-            "Unsupported receiver constraint: ${constraint}");
+        throw UnsupportedError("Unsupported receiver constraint: $constraint");
       }
     }
     sink.writeDartTypesOrNull(_typeArguments);
@@ -120,11 +116,11 @@ class DynamicUse {
 
   DynamicUseKind get kind {
     if (selector.isGetter) {
-      return DynamicUseKind.GET;
+      return DynamicUseKind.get;
     } else if (selector.isSetter) {
-      return DynamicUseKind.SET;
+      return DynamicUseKind.set;
     } else {
-      return DynamicUseKind.INVOKE;
+      return DynamicUseKind.invoke;
     }
   }
 
@@ -132,7 +128,9 @@ class DynamicUse {
 
   @override
   int get hashCode => Hashing.listHash(
-      typeArguments, Hashing.objectsHash(selector, receiverConstraint));
+    typeArguments,
+    Hashing.objectsHash(selector, receiverConstraint),
+  );
 
   @override
   bool operator ==(other) {
@@ -148,27 +146,27 @@ class DynamicUse {
 }
 
 enum StaticUseKind {
-  STATIC_TEAR_OFF,
-  SUPER_TEAR_OFF,
-  SUPER_FIELD_SET,
-  SUPER_GET,
-  SUPER_SETTER_SET,
-  SUPER_INVOKE,
-  INSTANCE_FIELD_GET,
-  INSTANCE_FIELD_SET,
-  CLOSURE,
-  CLOSURE_CALL,
-  CALL_METHOD,
-  CONSTRUCTOR_INVOKE,
-  CONST_CONSTRUCTOR_INVOKE,
-  DIRECT_INVOKE,
-  INLINING,
-  STATIC_INVOKE,
-  STATIC_GET,
-  STATIC_SET,
-  FIELD_INIT,
-  FIELD_CONSTANT_INIT,
-  WEAK_STATIC_TEAR_OFF,
+  staticTearOff,
+  superTearOff,
+  superFieldSet,
+  superGet,
+  superSetterSet,
+  superInvoke,
+  instanceFieldGet,
+  instanceFieldSet,
+  closure,
+  closureCall,
+  callMethod,
+  constructorInvoke,
+  constConstructorInvoke,
+  directInvoke,
+  inlining,
+  staticInvoke,
+  staticGet,
+  staticSet,
+  fieldInit,
+  fieldConstantInit,
+  weakStaticTearOff,
 }
 
 enum _StaticUseFlag {
@@ -194,12 +192,15 @@ class StaticUse {
 
   static void clearCache() => _cache.clear();
 
-  static StaticUse internal(Entity element, StaticUseKind kind,
-      {InterfaceType? type,
-      CallStructure? callStructure,
-      ImportEntity? deferredImport,
-      ConstantValue? constant,
-      List<DartType>? typeArguments}) {
+  static StaticUse internal(
+    Entity element,
+    StaticUseKind kind, {
+    InterfaceType? type,
+    CallStructure? callStructure,
+    ImportEntity? deferredImport,
+    ConstantValue? constant,
+    List<DartType>? typeArguments,
+  }) {
     StaticUse use;
     if (type == null &&
         callStructure == null &&
@@ -208,19 +209,22 @@ class StaticUse {
         typeArguments == null) {
       use = StaticUse._(element, kind);
     } else {
-      use = _ExtendedStaticUse._(element, kind,
-          type: type,
-          callStructure: callStructure,
-          deferredImport: deferredImport,
-          typeArguments: typeArguments,
-          constant: constant);
+      use = _ExtendedStaticUse._(
+        element,
+        kind,
+        type: type,
+        callStructure: callStructure,
+        deferredImport: deferredImport,
+        typeArguments: typeArguments,
+        constant: constant,
+      );
     }
     return _cache[use] ??= use;
   }
 
   /// Use the [StaticUse.internal] factory to ensure canonicalization.
   StaticUse._(this.element, this.kind, {int? hashCode})
-      : this.hashCode = hashCode ?? Hashing.objectHash(element, kind.hashCode);
+    : hashCode = hashCode ?? Hashing.objectHash(element, kind.hashCode);
 
   factory StaticUse.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
@@ -249,12 +253,15 @@ class StaticUse {
       typeArguments = source.readDartTypes();
     }
     source.end(tag);
-    return StaticUse.internal(element, kind,
-        type: type,
-        callStructure: callStructure,
-        deferredImport: deferredImport,
-        constant: constant,
-        typeArguments: typeArguments);
+    return StaticUse.internal(
+      element,
+      kind,
+      type: type,
+      callStructure: callStructure,
+      deferredImport: deferredImport,
+      constant: constant,
+      typeArguments: typeArguments,
+    );
   }
 
   void writeToDataSink(DataSinkWriter sink) {
@@ -313,33 +320,33 @@ class StaticUse {
   String get shortText {
     StringBuffer sb = StringBuffer();
     switch (kind) {
-      case StaticUseKind.INSTANCE_FIELD_SET:
-      case StaticUseKind.SUPER_FIELD_SET:
-      case StaticUseKind.SUPER_SETTER_SET:
-      case StaticUseKind.STATIC_SET:
+      case StaticUseKind.instanceFieldSet:
+      case StaticUseKind.superFieldSet:
+      case StaticUseKind.superSetterSet:
+      case StaticUseKind.staticSet:
         sb.write('set:');
         break;
-      case StaticUseKind.FIELD_INIT:
+      case StaticUseKind.fieldInit:
         sb.write('init:');
         break;
-      case StaticUseKind.CLOSURE:
+      case StaticUseKind.closure:
         sb.write('def:');
         break;
-      case StaticUseKind.STATIC_TEAR_OFF:
-      case StaticUseKind.SUPER_TEAR_OFF:
-      case StaticUseKind.SUPER_GET:
-      case StaticUseKind.SUPER_INVOKE:
-      case StaticUseKind.INSTANCE_FIELD_GET:
-      case StaticUseKind.CLOSURE_CALL:
-      case StaticUseKind.CALL_METHOD:
-      case StaticUseKind.CONSTRUCTOR_INVOKE:
-      case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-      case StaticUseKind.DIRECT_INVOKE:
-      case StaticUseKind.INLINING:
-      case StaticUseKind.STATIC_INVOKE:
-      case StaticUseKind.STATIC_GET:
-      case StaticUseKind.FIELD_CONSTANT_INIT:
-      case StaticUseKind.WEAK_STATIC_TEAR_OFF:
+      case StaticUseKind.staticTearOff:
+      case StaticUseKind.superTearOff:
+      case StaticUseKind.superGet:
+      case StaticUseKind.superInvoke:
+      case StaticUseKind.instanceFieldGet:
+      case StaticUseKind.closureCall:
+      case StaticUseKind.callMethod:
+      case StaticUseKind.constructorInvoke:
+      case StaticUseKind.constConstructorInvoke:
+      case StaticUseKind.directInvoke:
+      case StaticUseKind.inlining:
+      case StaticUseKind.staticInvoke:
+      case StaticUseKind.staticGet:
+      case StaticUseKind.fieldConstantInit:
+      case StaticUseKind.weakStaticTearOff:
         break;
     }
     final member = element;
@@ -384,110 +391,165 @@ class StaticUse {
   /// Invocation of a static or top-level [element] with the given
   /// [callStructure].
   factory StaticUse.staticInvoke(
-      FunctionEntity element, CallStructure callStructure,
-      [List<DartType>? typeArguments, ImportEntity? deferredImport]) {
+    FunctionEntity element,
+    CallStructure callStructure, [
+    List<DartType>? typeArguments,
+    ImportEntity? deferredImport,
+  ]) {
     assert(
-        element.isStatic || element.isTopLevel,
-        failedAt(
-            element,
-            "Static invoke element $element must be a top-level "
-            "or static method."));
-    assert(element.isFunction,
-        failedAt(element, "Static get element $element must be a function."));
+      element.isStatic || element.isTopLevel,
+      failedAt(
+        element,
+        "Static invoke element $element must be a top-level "
+        "or static method.",
+      ),
+    );
+    assert(
+      element.isFunction,
+      failedAt(element, "Static get element $element must be a function."),
+    );
     StaticUse staticUse = StaticUse.internal(
-        element, StaticUseKind.STATIC_INVOKE,
-        callStructure: callStructure,
-        typeArguments: typeArguments,
-        deferredImport: deferredImport);
+      element,
+      StaticUseKind.staticInvoke,
+      callStructure: callStructure,
+      typeArguments: typeArguments,
+      deferredImport: deferredImport,
+    );
     assert(staticUse._checkGenericInvariants());
     return staticUse;
   }
 
   /// Closurization of a static or top-level function [element].
-  factory StaticUse.staticTearOff(FunctionEntity element,
-      [ImportEntity? deferredImport]) {
+  factory StaticUse.staticTearOff(
+    FunctionEntity element, [
+    ImportEntity? deferredImport,
+  ]) {
     assert(
-        element.isStatic || element.isTopLevel,
-        failedAt(
-            element,
-            "Static tear-off element $element must be a top-level "
-            "or static method."));
-    assert(element.isFunction,
-        failedAt(element, "Static get element $element must be a function."));
-    return StaticUse.internal(element, StaticUseKind.STATIC_TEAR_OFF,
-        deferredImport: deferredImport);
+      element.isStatic || element.isTopLevel,
+      failedAt(
+        element,
+        "Static tear-off element $element must be a top-level "
+        "or static method.",
+      ),
+    );
+    assert(
+      element.isFunction,
+      failedAt(element, "Static get element $element must be a function."),
+    );
+    return StaticUse.internal(
+      element,
+      StaticUseKind.staticTearOff,
+      deferredImport: deferredImport,
+    );
   }
 
   /// Weak reference to a tear-off of a static or top-level function [element].
-  factory StaticUse.weakStaticTearOff(FunctionEntity element,
-      [ImportEntity? deferredImport]) {
+  factory StaticUse.weakStaticTearOff(
+    FunctionEntity element, [
+    ImportEntity? deferredImport,
+  ]) {
     assert(
-        element.isStatic || element.isTopLevel,
-        failedAt(
-            element,
-            "Weak tear-off element $element must be a top-level "
-            "or static method."));
-    return StaticUse.internal(element, StaticUseKind.WEAK_STATIC_TEAR_OFF,
-        deferredImport: deferredImport);
+      element.isStatic || element.isTopLevel,
+      failedAt(
+        element,
+        "Weak tear-off element $element must be a top-level "
+        "or static method.",
+      ),
+    );
+    return StaticUse.internal(
+      element,
+      StaticUseKind.weakStaticTearOff,
+      deferredImport: deferredImport,
+    );
   }
 
   /// Read access of a static or top-level field or getter [element].
-  factory StaticUse.staticGet(MemberEntity element,
-      [ImportEntity? deferredImport]) {
+  factory StaticUse.staticGet(
+    MemberEntity element, [
+    ImportEntity? deferredImport,
+  ]) {
     assert(
-        element.isStatic || element.isTopLevel,
-        failedAt(
-            element,
-            "Static get element $element must be a top-level "
-            "or static field or getter."));
+      element.isStatic || element.isTopLevel,
+      failedAt(
+        element,
+        "Static get element $element must be a top-level "
+        "or static field or getter.",
+      ),
+    );
     assert(
-        element is FieldEntity || element.isGetter,
-        failedAt(element,
-            "Static get element $element must be a field or a getter."));
-    return StaticUse.internal(element, StaticUseKind.STATIC_GET,
-        deferredImport: deferredImport);
+      element is FieldEntity || element.isGetter,
+      failedAt(
+        element,
+        "Static get element $element must be a field or a getter.",
+      ),
+    );
+    return StaticUse.internal(
+      element,
+      StaticUseKind.staticGet,
+      deferredImport: deferredImport,
+    );
   }
 
   /// Write access of a static or top-level field or setter [element].
-  factory StaticUse.staticSet(MemberEntity element,
-      [ImportEntity? deferredImport]) {
+  factory StaticUse.staticSet(
+    MemberEntity element, [
+    ImportEntity? deferredImport,
+  ]) {
     assert(
-        element.isStatic || element.isTopLevel,
-        failedAt(
-            element,
-            "Static set element $element "
-            "must be a top-level or static method."));
+      element.isStatic || element.isTopLevel,
+      failedAt(
+        element,
+        "Static set element $element "
+        "must be a top-level or static method.",
+      ),
+    );
     assert(
-        (element is FieldEntity && element.isAssignable) || element.isSetter,
-        failedAt(element,
-            "Static set element $element must be a field or a setter."));
-    return StaticUse.internal(element, StaticUseKind.STATIC_SET,
-        deferredImport: deferredImport);
+      (element is FieldEntity && element.isAssignable) || element.isSetter,
+      failedAt(
+        element,
+        "Static set element $element must be a field or a setter.",
+      ),
+    );
+    return StaticUse.internal(
+      element,
+      StaticUseKind.staticSet,
+      deferredImport: deferredImport,
+    );
   }
 
   /// Invocation of the lazy initializer for a static or top-level field
   /// [element].
   factory StaticUse.staticInit(FieldEntity element) {
     assert(
-        element.isStatic || element.isTopLevel,
-        failedAt(
-            element,
-            "Static init element $element must be a top-level "
-            "or static method."));
-    return StaticUse.internal(element, StaticUseKind.FIELD_INIT);
+      element.isStatic || element.isTopLevel,
+      failedAt(
+        element,
+        "Static init element $element must be a top-level "
+        "or static method.",
+      ),
+    );
+    return StaticUse.internal(element, StaticUseKind.fieldInit);
   }
 
   /// Invocation of a super method [element] with the given [callStructure].
   factory StaticUse.superInvoke(
-      FunctionEntity element, CallStructure callStructure,
-      [List<DartType>? typeArguments]) {
+    FunctionEntity element,
+    CallStructure callStructure, [
+    List<DartType>? typeArguments,
+  ]) {
     assert(
-        element.isInstanceMember,
-        failedAt(element,
-            "Super invoke element $element must be an instance method."));
+      element.isInstanceMember,
+      failedAt(
+        element,
+        "Super invoke element $element must be an instance method.",
+      ),
+    );
     StaticUse staticUse = StaticUse.internal(
-        element, StaticUseKind.SUPER_INVOKE,
-        callStructure: callStructure, typeArguments: typeArguments);
+      element,
+      StaticUseKind.superInvoke,
+      callStructure: callStructure,
+      typeArguments: typeArguments,
+    );
     assert(staticUse._checkGenericInvariants());
     return staticUse;
   }
@@ -495,86 +557,129 @@ class StaticUse {
   /// Read access of a super field or getter [element].
   factory StaticUse.superGet(MemberEntity element) {
     assert(
-        element.isInstanceMember,
-        failedAt(
-            element, "Super get element $element must be an instance method."));
+      element.isInstanceMember,
+      failedAt(
+        element,
+        "Super get element $element must be an instance method.",
+      ),
+    );
     assert(
-        element is FieldEntity || element.isGetter,
-        failedAt(element,
-            "Super get element $element must be a field or a getter."));
-    return StaticUse.internal(element, StaticUseKind.SUPER_GET);
+      element is FieldEntity || element.isGetter,
+      failedAt(
+        element,
+        "Super get element $element must be a field or a getter.",
+      ),
+    );
+    return StaticUse.internal(element, StaticUseKind.superGet);
   }
 
   /// Write access of a super field [element].
   factory StaticUse.superFieldSet(FieldEntity element) {
     assert(
-        element.isInstanceMember,
-        failedAt(
-            element, "Super set element $element must be an instance method."));
-    return StaticUse.internal(element, StaticUseKind.SUPER_FIELD_SET);
+      element.isInstanceMember,
+      failedAt(
+        element,
+        "Super set element $element must be an instance method.",
+      ),
+    );
+    return StaticUse.internal(element, StaticUseKind.superFieldSet);
   }
 
   /// Write access of a super setter [element].
   factory StaticUse.superSetterSet(FunctionEntity element) {
     assert(
-        element.isInstanceMember,
-        failedAt(
-            element, "Super set element $element must be an instance method."));
-    assert(element.isSetter,
-        failedAt(element, "Super set element $element must be a setter."));
-    return StaticUse.internal(element, StaticUseKind.SUPER_SETTER_SET);
+      element.isInstanceMember,
+      failedAt(
+        element,
+        "Super set element $element must be an instance method.",
+      ),
+    );
+    assert(
+      element.isSetter,
+      failedAt(element, "Super set element $element must be a setter."),
+    );
+    return StaticUse.internal(element, StaticUseKind.superSetterSet);
   }
 
   /// Closurization of a super method [element].
   factory StaticUse.superTearOff(FunctionEntity element) {
     assert(
-        element.isInstanceMember && element.isFunction,
-        failedAt(element,
-            "Super invoke element $element must be an instance method."));
-    return StaticUse.internal(element, StaticUseKind.SUPER_TEAR_OFF);
+      element.isInstanceMember && element.isFunction,
+      failedAt(
+        element,
+        "Super invoke element $element must be an instance method.",
+      ),
+    );
+    return StaticUse.internal(element, StaticUseKind.superTearOff);
   }
 
   /// Invocation of a constructor [element] through a this or super
   /// constructor call with the given [callStructure].
   factory StaticUse.superConstructorInvoke(
-      ConstructorEntity element, CallStructure callStructure) {
+    ConstructorEntity element,
+    CallStructure callStructure,
+  ) {
     assert(
-        element.isGenerativeConstructor,
-        failedAt(
-            element,
-            "Constructor invoke element $element must be a "
-            "generative constructor."));
-    return StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
-        callStructure: callStructure);
+      element.isGenerativeConstructor,
+      failedAt(
+        element,
+        "Constructor invoke element $element must be a "
+        "generative constructor.",
+      ),
+    );
+    return StaticUse.internal(
+      element,
+      StaticUseKind.staticInvoke,
+      callStructure: callStructure,
+    );
   }
 
   /// Invocation of a constructor (body) [element] through a this or super
   /// constructor call with the given [callStructure].
   factory StaticUse.constructorBodyInvoke(
-      ConstructorBodyEntity element, CallStructure callStructure) {
-    return StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
-        callStructure: callStructure);
+    ConstructorBodyEntity element,
+    CallStructure callStructure,
+  ) {
+    return StaticUse.internal(
+      element,
+      StaticUseKind.staticInvoke,
+      callStructure: callStructure,
+    );
   }
 
   /// Direct invocation of a generator (body) [element], as a static call or
   /// through a this or super constructor call.
   factory StaticUse.generatorBodyInvoke(FunctionEntity element) {
-    return StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
-        callStructure: CallStructure.NO_ARGS);
+    return StaticUse.internal(
+      element,
+      StaticUseKind.staticInvoke,
+      callStructure: CallStructure.noArgs,
+    );
   }
 
   /// Direct invocation of a method [element] with the given [callStructure].
-  factory StaticUse.directInvoke(FunctionEntity element,
-      CallStructure callStructure, List<DartType>? typeArguments) {
+  factory StaticUse.directInvoke(
+    FunctionEntity element,
+    CallStructure callStructure,
+    List<DartType>? typeArguments,
+  ) {
     assert(
-        element.isInstanceMember,
-        failedAt(element,
-            "Direct invoke element $element must be an instance member."));
-    assert(element.isFunction,
-        failedAt(element, "Direct invoke element $element must be a method."));
+      element.isInstanceMember,
+      failedAt(
+        element,
+        "Direct invoke element $element must be an instance member.",
+      ),
+    );
+    assert(
+      element.isFunction,
+      failedAt(element, "Direct invoke element $element must be a method."),
+    );
     StaticUse staticUse = StaticUse.internal(
-        element, StaticUseKind.DIRECT_INVOKE,
-        callStructure: callStructure, typeArguments: typeArguments);
+      element,
+      StaticUseKind.directInvoke,
+      callStructure: callStructure,
+      typeArguments: typeArguments,
+    );
     assert(staticUse._checkGenericInvariants());
     return staticUse;
   }
@@ -582,136 +687,194 @@ class StaticUse {
   /// Direct read access of a field or getter [element].
   factory StaticUse.directGet(MemberEntity element) {
     assert(
-        element.isInstanceMember,
-        failedAt(element,
-            "Direct get element $element must be an instance member."));
+      element.isInstanceMember,
+      failedAt(
+        element,
+        "Direct get element $element must be an instance member.",
+      ),
+    );
     assert(
-        element is FieldEntity || element.isGetter,
-        failedAt(element,
-            "Direct get element $element must be a field or a getter."));
-    return StaticUse.internal(element, StaticUseKind.STATIC_GET);
+      element is FieldEntity || element.isGetter,
+      failedAt(
+        element,
+        "Direct get element $element must be a field or a getter.",
+      ),
+    );
+    return StaticUse.internal(element, StaticUseKind.staticGet);
   }
 
   /// Direct write access of a field [element].
   factory StaticUse.directSet(FieldEntity element) {
     assert(
-        element.isInstanceMember,
-        failedAt(element,
-            "Direct set element $element must be an instance member."));
-    return StaticUse.internal(element, StaticUseKind.STATIC_SET);
+      element.isInstanceMember,
+      failedAt(
+        element,
+        "Direct set element $element must be an instance member.",
+      ),
+    );
+    return StaticUse.internal(element, StaticUseKind.staticSet);
   }
 
   /// Constructor invocation of [element] with the given [callStructure].
   factory StaticUse.constructorInvoke(
-      ConstructorEntity element, CallStructure callStructure) {
-    return StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
-        callStructure: callStructure);
+    ConstructorEntity element,
+    CallStructure callStructure,
+  ) {
+    return StaticUse.internal(
+      element,
+      StaticUseKind.staticInvoke,
+      callStructure: callStructure,
+    );
   }
 
   /// Constructor invocation of [element] with the given [callStructure] on
   /// [type].
   factory StaticUse.typedConstructorInvoke(
-      ConstructorEntity element,
-      CallStructure callStructure,
-      InterfaceType type,
-      ImportEntity? deferredImport) {
-    return StaticUse.internal(element, StaticUseKind.CONSTRUCTOR_INVOKE,
-        type: type,
-        callStructure: callStructure,
-        deferredImport: deferredImport);
+    ConstructorEntity element,
+    CallStructure callStructure,
+    InterfaceType type,
+    ImportEntity? deferredImport,
+  ) {
+    return StaticUse.internal(
+      element,
+      StaticUseKind.constructorInvoke,
+      type: type,
+      callStructure: callStructure,
+      deferredImport: deferredImport,
+    );
   }
 
   /// Constant constructor invocation of [element] with the given
   /// [callStructure] on [type].
   factory StaticUse.constConstructorInvoke(
-      ConstructorEntity element,
-      CallStructure callStructure,
-      InterfaceType type,
-      ImportEntity? deferredImport) {
-    return StaticUse.internal(element, StaticUseKind.CONST_CONSTRUCTOR_INVOKE,
-        type: type,
-        callStructure: callStructure,
-        deferredImport: deferredImport);
+    ConstructorEntity element,
+    CallStructure callStructure,
+    InterfaceType type,
+    ImportEntity? deferredImport,
+  ) {
+    return StaticUse.internal(
+      element,
+      StaticUseKind.constConstructorInvoke,
+      type: type,
+      callStructure: callStructure,
+      deferredImport: deferredImport,
+    );
   }
 
   /// Initialization of an instance field [element].
   factory StaticUse.fieldInit(FieldEntity element) {
     assert(
-        element.isInstanceMember,
-        failedAt(
-            element, "Field init element $element must be an instance field."));
-    return StaticUse.internal(element, StaticUseKind.FIELD_INIT);
+      element.isInstanceMember,
+      failedAt(
+        element,
+        "Field init element $element must be an instance field.",
+      ),
+    );
+    return StaticUse.internal(element, StaticUseKind.fieldInit);
   }
 
   /// Constant initialization of an instance field [element].
   factory StaticUse.fieldConstantInit(
-      FieldEntity element, ConstantValue constant) {
+    FieldEntity element,
+    ConstantValue constant,
+  ) {
     assert(
-        element.isInstanceMember,
-        failedAt(
-            element, "Field init element $element must be an instance field."));
-    return StaticUse.internal(element, StaticUseKind.FIELD_CONSTANT_INIT,
-        constant: constant);
+      element.isInstanceMember,
+      failedAt(
+        element,
+        "Field init element $element must be an instance field.",
+      ),
+    );
+    return StaticUse.internal(
+      element,
+      StaticUseKind.fieldConstantInit,
+      constant: constant,
+    );
   }
 
   /// Read access of an instance field or boxed field [element].
   factory StaticUse.fieldGet(FieldEntity element) {
     assert(
-        element.isInstanceMember || element is JContextField,
-        failedAt(element,
-            "Field init element $element must be an instance or boxed field."));
-    return StaticUse.internal(element, StaticUseKind.INSTANCE_FIELD_GET);
+      element.isInstanceMember || element is JContextField,
+      failedAt(
+        element,
+        "Field init element $element must be an instance or boxed field.",
+      ),
+    );
+    return StaticUse.internal(element, StaticUseKind.instanceFieldGet);
   }
 
   /// Write access of an instance field or boxed field [element].
   factory StaticUse.fieldSet(FieldEntity element) {
     assert(
-        element.isInstanceMember || element is JContextField,
-        failedAt(element,
-            "Field init element $element must be an instance or boxed field."));
-    return StaticUse.internal(element, StaticUseKind.INSTANCE_FIELD_SET);
+      element.isInstanceMember || element is JContextField,
+      failedAt(
+        element,
+        "Field init element $element must be an instance or boxed field.",
+      ),
+    );
+    return StaticUse.internal(element, StaticUseKind.instanceFieldSet);
   }
 
   /// Read of a local function [element].
   factory StaticUse.closure(Local element) {
-    return StaticUse.internal(element, StaticUseKind.CLOSURE);
+    return StaticUse.internal(element, StaticUseKind.closure);
   }
 
   /// An invocation of a local function [element] with the provided
   /// [callStructure] and [typeArguments].
-  factory StaticUse.closureCall(Local element, CallStructure callStructure,
-      List<DartType>? typeArguments) {
+  factory StaticUse.closureCall(
+    Local element,
+    CallStructure callStructure,
+    List<DartType>? typeArguments,
+  ) {
     StaticUse staticUse = StaticUse.internal(
-        element, StaticUseKind.CLOSURE_CALL,
-        callStructure: callStructure, typeArguments: typeArguments);
+      element,
+      StaticUseKind.closureCall,
+      callStructure: callStructure,
+      typeArguments: typeArguments,
+    );
     assert(staticUse._checkGenericInvariants());
     return staticUse;
   }
 
   /// Read of a call [method] on a closureClass.
   factory StaticUse.callMethod(FunctionEntity method) {
-    return StaticUse.internal(method, StaticUseKind.CALL_METHOD);
+    return StaticUse.internal(method, StaticUseKind.callMethod);
   }
 
   /// Implicit method/constructor invocation of [element] created by the
   /// backend.
   factory StaticUse.implicitInvoke(FunctionEntity element) {
-    return StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
-        callStructure: element.parameterStructure.callStructure);
+    return StaticUse.internal(
+      element,
+      StaticUseKind.staticInvoke,
+      callStructure: element.parameterStructure.callStructure,
+    );
   }
 
   /// Inlining of [element].
   factory StaticUse.constructorInlining(
-      ConstructorEntity element, InterfaceType? instanceType) {
-    return StaticUse.internal(element, StaticUseKind.INLINING,
-        type: instanceType);
+    ConstructorEntity element,
+    InterfaceType? instanceType,
+  ) {
+    return StaticUse.internal(
+      element,
+      StaticUseKind.inlining,
+      type: instanceType,
+    );
   }
 
   /// Inlining of [element].
   factory StaticUse.methodInlining(
-      FunctionEntity element, List<DartType>? typeArguments) {
-    return StaticUse.internal(element, StaticUseKind.INLINING,
-        typeArguments: typeArguments);
+    FunctionEntity element,
+    List<DartType>? typeArguments,
+  ) {
+    return StaticUse.internal(
+      element,
+      StaticUseKind.inlining,
+      typeArguments: typeArguments,
+    );
   }
 }
 
@@ -732,36 +895,42 @@ class _ExtendedStaticUse extends StaticUse {
   final List<DartType>? typeArguments;
 
   /// Use the [StaticUse.internal] factory to ensure canonicalization.
-  _ExtendedStaticUse._(super.element, super.kind,
-      {this.type,
-      this.callStructure,
-      this.deferredImport,
-      this.constant,
-      this.typeArguments})
-      : super._(
-            hashCode: Hashing.listHash([
-          element,
-          kind,
-          type,
-          Hashing.listHash(typeArguments),
-          callStructure,
-          deferredImport,
-          constant
-        ]));
+  _ExtendedStaticUse._(
+    super.element,
+    super.kind, {
+    this.type,
+    this.callStructure,
+    this.deferredImport,
+    this.constant,
+    this.typeArguments,
+  }) : super._(
+         hashCode: Hashing.listHash([
+           element,
+           kind,
+           type,
+           Hashing.listHash(typeArguments),
+           callStructure,
+           deferredImport,
+           constant,
+         ]),
+       );
 
   @override
   bool _checkGenericInvariants() {
     assert(
-        (callStructure?.typeArgumentCount ?? 0) == (typeArguments?.length ?? 0),
-        failedAt(
-            element,
-            "Type argument count mismatch. Call structure has "
-            "${callStructure?.typeArgumentCount ?? 0} but "
-            "${typeArguments?.length ?? 0} were passed in $this."));
+      (callStructure?.typeArgumentCount ?? 0) == (typeArguments?.length ?? 0),
+      failedAt(
+        element,
+        "Type argument count mismatch. Call structure has "
+        "${callStructure?.typeArgumentCount ?? 0} but "
+        "${typeArguments?.length ?? 0} were passed in $this.",
+      ),
+    );
     return true;
   }
 
   @override
+  // ignore: hash_and_equals
   bool operator ==(other) {
     if (identical(this, other)) return true;
     // Subtypes of StaticUse are normalized so we can just compare against this
@@ -782,21 +951,21 @@ class _ExtendedStaticUse extends StaticUse {
 }
 
 enum TypeUseKind {
-  IS_CHECK,
-  AS_CAST,
-  CATCH_TYPE,
-  TYPE_LITERAL,
-  INSTANTIATION,
-  NATIVE_INSTANTIATION,
-  CONST_INSTANTIATION,
-  RECORD_INSTANTIATION,
-  CONSTRUCTOR_REFERENCE,
-  IMPLICIT_CAST,
-  PARAMETER_CHECK,
-  RTI_VALUE,
-  TYPE_ARGUMENT,
-  NAMED_TYPE_VARIABLE_NEW_RTI,
-  TYPE_VARIABLE_BOUND_CHECK,
+  isCheck,
+  asCast,
+  catchType,
+  typeLiteral,
+  instantiation,
+  nativeInstantiation,
+  constInstantiation,
+  recordInstantiation,
+  constructorReference,
+  implicitCast,
+  parameterCheck,
+  rtiValue,
+  typeArgument,
+  namedTypeVariableNewRti,
+  typeVariableBoundCheck,
 }
 
 /// Use of a [DartType].
@@ -809,10 +978,8 @@ class TypeUse {
   final int hashCode;
   final ImportEntity? deferredImport;
 
-  TypeUse.internal(DartType type, TypeUseKind kind, [this.deferredImport])
-      : this.type = type,
-        this.kind = kind,
-        this.hashCode = Hashing.objectsHash(type, kind, deferredImport);
+  TypeUse.internal(this.type, this.kind, [this.deferredImport])
+    : hashCode = Hashing.objectsHash(type, kind, deferredImport);
 
   factory TypeUse.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
@@ -835,49 +1002,49 @@ class TypeUse {
   String get shortText {
     StringBuffer sb = StringBuffer();
     switch (kind) {
-      case TypeUseKind.IS_CHECK:
+      case TypeUseKind.isCheck:
         sb.write('is:');
         break;
-      case TypeUseKind.AS_CAST:
+      case TypeUseKind.asCast:
         sb.write('as:');
         break;
-      case TypeUseKind.CATCH_TYPE:
+      case TypeUseKind.catchType:
         sb.write('catch:');
         break;
-      case TypeUseKind.TYPE_LITERAL:
+      case TypeUseKind.typeLiteral:
         sb.write('lit:');
         break;
-      case TypeUseKind.INSTANTIATION:
+      case TypeUseKind.instantiation:
         sb.write('inst:');
         break;
-      case TypeUseKind.CONST_INSTANTIATION:
+      case TypeUseKind.constInstantiation:
         sb.write('const:');
         break;
-      case TypeUseKind.RECORD_INSTANTIATION:
+      case TypeUseKind.recordInstantiation:
         sb.write('record:');
         break;
-      case TypeUseKind.CONSTRUCTOR_REFERENCE:
+      case TypeUseKind.constructorReference:
         sb.write('constructor:');
         break;
-      case TypeUseKind.NATIVE_INSTANTIATION:
+      case TypeUseKind.nativeInstantiation:
         sb.write('native:');
         break;
-      case TypeUseKind.IMPLICIT_CAST:
+      case TypeUseKind.implicitCast:
         sb.write('impl:');
         break;
-      case TypeUseKind.PARAMETER_CHECK:
+      case TypeUseKind.parameterCheck:
         sb.write('param:');
         break;
-      case TypeUseKind.RTI_VALUE:
+      case TypeUseKind.rtiValue:
         sb.write('rti:');
         break;
-      case TypeUseKind.TYPE_ARGUMENT:
+      case TypeUseKind.typeArgument:
         sb.write('typeArg:');
         break;
-      case TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI:
+      case TypeUseKind.namedTypeVariableNewRti:
         sb.write('named:');
         break;
-      case TypeUseKind.TYPE_VARIABLE_BOUND_CHECK:
+      case TypeUseKind.typeVariableBoundCheck:
         sb.write('bound:');
         break;
     }
@@ -892,12 +1059,12 @@ class TypeUse {
 
   /// [type] used in an is check, like `e is T` or `e is! T`.
   factory TypeUse.isCheck(DartType type) {
-    return TypeUse.internal(type, TypeUseKind.IS_CHECK);
+    return TypeUse.internal(type, TypeUseKind.isCheck);
   }
 
   /// [type] used in an as cast, like `e as T`.
   factory TypeUse.asCast(DartType type) {
-    return TypeUse.internal(type, TypeUseKind.AS_CAST);
+    return TypeUse.internal(type, TypeUseKind.asCast);
   }
 
   /// [type] used as a parameter type or field type in Dart 2, like `T` in:
@@ -906,7 +1073,7 @@ class TypeUse {
   ///    T field;
   ///
   factory TypeUse.parameterCheck(DartType type) {
-    return TypeUse.internal(type, TypeUseKind.PARAMETER_CHECK);
+    return TypeUse.internal(type, TypeUseKind.parameterCheck);
   }
 
   /// [type] used in an implicit cast in Dart 2, like `T` in
@@ -915,49 +1082,54 @@ class TypeUse {
   ///    T bar = foo; // Implicitly `T bar = foo as T`.
   ///
   factory TypeUse.implicitCast(DartType type) {
-    return TypeUse.internal(type, TypeUseKind.IMPLICIT_CAST);
+    return TypeUse.internal(type, TypeUseKind.implicitCast);
   }
 
   /// [type] used in a on type catch clause, like `try {} on T catch (e) {}`.
   factory TypeUse.catchType(DartType type) {
-    return TypeUse.internal(type, TypeUseKind.CATCH_TYPE);
+    return TypeUse.internal(type, TypeUseKind.catchType);
   }
 
   /// [type] used as a type literal, like `foo() => T;`.
   factory TypeUse.typeLiteral(DartType type, ImportEntity? deferredImport) {
-    return TypeUse.internal(type, TypeUseKind.TYPE_LITERAL, deferredImport);
+    return TypeUse.internal(type, TypeUseKind.typeLiteral, deferredImport);
   }
 
   /// [type] used in an instantiation, like `new T();`.
   factory TypeUse.instantiation(InterfaceType type) {
-    return TypeUse.internal(type, TypeUseKind.INSTANTIATION);
+    return TypeUse.internal(type, TypeUseKind.instantiation);
   }
 
   /// [type] used in a constant instantiation, like `const T();`.
   factory TypeUse.constInstantiation(
-      InterfaceType type, ImportEntity? deferredImport) {
+    InterfaceType type,
+    ImportEntity? deferredImport,
+  ) {
     return TypeUse.internal(
-        type, TypeUseKind.CONST_INSTANTIATION, deferredImport);
+      type,
+      TypeUseKind.constInstantiation,
+      deferredImport,
+    );
   }
 
   /// [type] used in a native instantiation.
   factory TypeUse.nativeInstantiation(InterfaceType type) {
-    return TypeUse.internal(type, TypeUseKind.NATIVE_INSTANTIATION);
+    return TypeUse.internal(type, TypeUseKind.nativeInstantiation);
   }
 
   /// [type] used in a record instantiation, like `(1, 2)` or `const (1, 2)`.
   factory TypeUse.recordInstantiation(RecordType type) {
-    return TypeUse.internal(type, TypeUseKind.RECORD_INSTANTIATION);
+    return TypeUse.internal(type, TypeUseKind.recordInstantiation);
   }
 
   /// [type] used as a direct RTI value.
   factory TypeUse.constTypeLiteral(DartType type) {
-    return TypeUse.internal(type, TypeUseKind.RTI_VALUE);
+    return TypeUse.internal(type, TypeUseKind.rtiValue);
   }
 
   /// [type] constructor used, for example in a `instanceof` check.
   factory TypeUse.constructorReference(DartType type) {
-    return TypeUse.internal(type, TypeUseKind.CONSTRUCTOR_REFERENCE);
+    return TypeUse.internal(type, TypeUseKind.constructorReference);
   }
 
   /// [type] used directly as a type argument.
@@ -965,16 +1137,16 @@ class TypeUse {
   /// The happens during optimization where a type variable can be replaced by
   /// an invariable type argument derived from a constant receiver.
   factory TypeUse.typeArgument(DartType type) {
-    return TypeUse.internal(type, TypeUseKind.TYPE_ARGUMENT);
+    return TypeUse.internal(type, TypeUseKind.typeArgument);
   }
 
   /// [type] used as a named type variable in a recipe.
   factory TypeUse.namedTypeVariableNewRti(TypeVariableType type) =>
-      TypeUse.internal(type, TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI);
+      TypeUse.internal(type, TypeUseKind.namedTypeVariableNewRti);
 
   /// [type] used as a bound on a type variable.
   factory TypeUse.typeVariableBoundCheck(DartType type) =>
-      TypeUse.internal(type, TypeUseKind.TYPE_VARIABLE_BOUND_CHECK);
+      TypeUse.internal(type, TypeUseKind.typeVariableBoundCheck);
 
   @override
   bool operator ==(other) {
@@ -1066,18 +1238,19 @@ class ConditionalUse {
   /// satisifed.
   final WorldImpact? replacementImpact;
 
-  ConditionalUse.noReplacement(
-      {required this.impact, required this.originalConditions})
-      : original = null,
-        replacement = null,
-        replacementImpact = null,
-        assert(originalConditions.isNotEmpty);
+  ConditionalUse.noReplacement({
+    required this.impact,
+    required this.originalConditions,
+  }) : original = null,
+       replacement = null,
+       replacementImpact = null,
+       assert(originalConditions.isNotEmpty);
 
-  ConditionalUse.withReplacement(
-      {required this.original,
-      required this.replacement,
-      required this.replacementImpact,
-      required this.impact,
-      required this.originalConditions})
-      : assert(originalConditions.isNotEmpty);
+  ConditionalUse.withReplacement({
+    required this.original,
+    required this.replacement,
+    required this.replacementImpact,
+    required this.impact,
+    required this.originalConditions,
+  }) : assert(originalConditions.isNotEmpty);
 }

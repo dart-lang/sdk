@@ -15,13 +15,16 @@ negate(x) {
 
 main() {
   runTest() async {
-    await compile(TEST_IF_BOOL_FIRST_INSTRUCTION, entry: 'negate',
-        check: (String generated) {
-      Expect.isTrue(generated.contains("!")); // We want to see !x.
-      Expect.isFalse(generated.contains("!=")); // And not !== true.
-      Expect.isFalse(generated.contains("true"));
-      Expect.isFalse(generated.contains("false"));
-    });
+    await compile(
+      TEST_IF_BOOL_FIRST_INSTRUCTION,
+      entry: 'negate',
+      check: (String generated) {
+        Expect.isTrue(generated.contains("!")); // We want to see !x.
+        Expect.isFalse(generated.contains("!=")); // And not !== true.
+        Expect.isFalse(generated.contains("true"));
+        Expect.isFalse(generated.contains("false"));
+      },
+    );
   }
 
   asyncTest(() async {

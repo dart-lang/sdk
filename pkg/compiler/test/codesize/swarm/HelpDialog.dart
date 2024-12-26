@@ -13,7 +13,7 @@ class HelpDialog extends DialogView {
   final Function _doneHandler;
 
   HelpDialog(this._parent, this._doneHandler)
-      : super('Information', '', makeContent());
+    : super('Information', '', makeContent());
 
   @override
   void onDone() {

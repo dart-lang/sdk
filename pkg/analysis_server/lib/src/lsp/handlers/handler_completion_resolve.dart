@@ -9,10 +9,9 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/utilities/element_location2.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class CompletionResolveHandler
@@ -62,11 +61,7 @@ class CompletionResolveHandler
   ) async {
     var file = data.file;
     var importUris = data.importUris.map(Uri.parse).toList();
-    var elementLocationReference = data.ref;
-    var elementLocation =
-        elementLocationReference != null
-            ? ElementLocationImpl.con2(elementLocationReference)
-            : null;
+    var elementReference = data.ref;
 
     const timeout = Duration(milliseconds: 1000);
     var timer = Stopwatch()..start();
@@ -129,8 +124,10 @@ class CompletionResolveHandler
         // Look up documentation if we can get an element for this item.
         Either2<MarkupContent, String>? documentation;
         var element =
-            elementLocation != null
-                ? await session.locateElement(elementLocation)
+            elementReference != null
+                ? await ElementLocation2.decode(
+                  elementReference,
+                ).locateIn(session)
                 : null;
         if (element != null) {
           var formats = clientCapabilities.completionDocumentationFormats;

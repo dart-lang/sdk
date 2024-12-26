@@ -387,6 +387,54 @@ class A {
     await testContents(contents);
   }
 
+  Future<void> test_function_inNullAwareElement_inList() async {
+    var contents = '''
+bool? [!foo!]() => null;
+
+bar() {
+  return [?fo^o()];
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_function_inNullAwareElement_inSet() async {
+    var contents = '''
+bool? [!foo!]() => null;
+
+bar() {
+  return {?fo^o()};
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_function_inNullAwareKey_inMap() async {
+    var contents = '''
+bool? [!foo!]() => null;
+
+bar() {
+  return {?fo^o(): "value"};
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_function_inNullAwareValue_inMap() async {
+    var contents = '''
+bool? [!foo!]() => null;
+
+bar() {
+  return {"key": ?fo^o()};
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_functionInPattern() async {
     var contents = '''
 bool [!greater!](int x, int y) => x > y;
@@ -838,6 +886,54 @@ f() {
 }
 
 class [!A!]<T> {}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_type_inNullAwareElement_inList() async {
+    var contents = '''
+f() {
+  final a = [?A^];
+}
+
+class [!A!] {}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_type_inNullAwareElement_inSet() async {
+    var contents = '''
+f() {
+  final a = {?A^};
+}
+
+class [!A!] {}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_type_inNullAwareKey_inMap() async {
+    var contents = '''
+f() {
+  final a = {?A^, "value"};
+}
+
+class [!A!] {}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_type_inNullAwareValue_inMap() async {
+    var contents = '''
+f() {
+  final a = {"key": ?A^};
+}
+
+class [!A!] {}
 ''';
 
     await testContents(contents);

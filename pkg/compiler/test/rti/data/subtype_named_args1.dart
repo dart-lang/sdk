@@ -64,7 +64,8 @@ main() {
   makeLive(/*needsSignature*/ ({int? v}) {} is t4);
   makeLive(/*needsSignature*/ ({Map? v}) {} is t4);
   makeLive(
-      /*needsSignature*/ ({Map<List<Map<List, List<int>>>, List>? v}) {} is t4);
+    /*needsSignature*/ ({Map<List<Map<List, List<int>>>, List>? v}) {} is t4,
+  );
   makeLive(/*needsSignature*/ ({List? v}) {} is t4);
   makeLive(/*needsSignature*/ ({t8? v}) {} is t4);
   makeLive(/*needsSignature*/ ({t7? v}) {} is t4);
@@ -97,6 +98,7 @@ main() {
   makeLive(/*needsSignature*/ ({int? a}) {} is t8);
   makeLive(/*needsSignature*/ ({Map? a}) {} is t8);
   makeLive(
-      /*needsSignature*/ ({Map<List<Map<List, List<int>>>, List>? a}) {} is t8);
+    /*needsSignature*/ ({Map<List<Map<List, List<int>>>, List>? a}) {} is t8,
+  );
   makeLive(/*needsSignature*/ ({List? a}) {} is t8);
 }

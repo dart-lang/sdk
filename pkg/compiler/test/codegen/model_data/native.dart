@@ -25,8 +25,8 @@ class Class {
   */
   @pragma('dart2js:noInline')
   method1(a, [b, c])
-      // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
-      native;
+  // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
+  native;
 
   /*member: Class.method2:
    calls=[method2(a,b,c)],
@@ -38,8 +38,8 @@ class Class {
   */
   @pragma('dart2js:noInline')
   method2(a, {b, c})
-      // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
-      native;
+  // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
+  native;
 
   // TODO(johnniwinther): Control the order of the named arguments. Currently
   // we sort them lexicographically but that doesn't match the target
@@ -54,8 +54,8 @@ class Class {
   */
   @pragma('dart2js:noInline')
   method3(a, {c, b})
-      // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
-      native;
+  // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
+  native;
 
   // TODO(johnniwinther): Control the order of the named arguments. Currently
   // we sort them lexicographically but that doesn't match the target
@@ -73,15 +73,15 @@ class Class {
   */
   @pragma('dart2js:noInline')
   method4(a, {c, d, b})
-      // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
-      native;
+  // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
+  native;
 }
 
 /*member: makeClass:params=0*/
 @Creates('Class')
 makeClass()
-    // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
-    native;
+// ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
+native;
 
 /*member: main:calls=[test(1),*],params=0*/
 main() {

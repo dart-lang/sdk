@@ -39,6 +39,7 @@ class _Exception implements Exception {
 
 /// Exception thrown when a string or some other data does not have an expected
 /// format and cannot be parsed or processed.
+@pragma("vm:entry-point")
 class FormatException implements Exception {
   /// A message describing the format error.
   final String message;

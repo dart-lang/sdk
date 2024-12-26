@@ -29,8 +29,7 @@ class TypeSchemaEliminationTest {
   }
 
   DartType leastClosure(DartType schema) {
-    return typeSchemaElimination.leastClosure(schema,
-        topType: env.coreTypes.objectNullableRawType);
+    return typeSchemaElimination.leastClosure(schema, coreTypes: env.coreTypes);
   }
 
   void testGreatest(String type, String expectedClosure) {

@@ -199,7 +199,7 @@ class ClassPropertyModel {
   /// pair in JavaScript.
   ///
   /// The value property stores the symbol used for the field's storage slot.
-  final virtualFields = <Field, js_ast.TemporaryId>{};
+  final virtualFields = <Field, js_ast.ScopedId>{};
 
   /// The set of inherited getters, used because JS getters/setters are paired,
   /// so if we're generating a setter we may need to emit a getter that calls
@@ -272,7 +272,7 @@ class ClassPropertyModel {
           fieldModel.isVirtual(field) ||
           field.isCovariantByDeclaration ||
           field.isCovariantByClass) {
-        virtualFields[field] = js_ast.TemporaryId(js_ast.toJSIdentifier(name));
+        virtualFields[field] = js_ast.ScopedId(js_ast.toJSIdentifier(name));
       }
     }
   }

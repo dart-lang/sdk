@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:front_end/src/source/synthetic_method_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -21,9 +22,9 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/method_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
-import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart'
     show
@@ -54,7 +55,6 @@ import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
-import 'source_procedure_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
 class SourceEnumBuilder extends SourceClassBuilder {
@@ -391,31 +391,23 @@ class SourceEnumBuilder extends SourceClassBuilder {
           synthesizedDefaultConstructorBuilder!.fileUri);
     }
 
-    ProcedureBuilder toStringBuilder = new SourceProcedureBuilder(
-        metadata: null,
-        modifiers: Modifiers.empty,
-        returnType: stringType,
+    MethodBuilder toStringBuilder = new SyntheticMethodBuilder(
         name: "_enumToString",
-        typeParameters: null,
-        formals: null,
-        kind: ProcedureKind.Method,
+        fileUri: fileUri,
+        fileOffset: fileOffset,
         libraryBuilder: libraryBuilder,
         declarationBuilder: this,
-        fileUri: fileUri,
-        startOffset: fileOffset,
-        nameOffset: fileOffset,
-        formalsOffset: fileOffset,
-        endOffset: endOffset,
-        procedureReference: toStringReference,
-        tearOffReference: null,
-        asyncModifier: AsyncMarker.Sync,
         nameScheme: new NameScheme(
             isInstanceMember: true,
             containerName: new ClassName(name),
             containerType: ContainerType.Class,
             libraryName: new LibraryName(coreLibrary.library.reference)),
-        isSynthetic: true);
-    nameSpace.addLocalMember("_enumToString", toStringBuilder, setter: false);
+        isAbstract: false,
+        reference: toStringReference,
+        creator: new _EnumToStringCreator(
+            this, stringType, _underscoreEnumTypeBuilder));
+    nameSpace.addLocalMember(toStringBuilder.name, toStringBuilder,
+        setter: false);
     nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
         toStringBuilder.name, toStringBuilder, toStringBuilder.fileUri!);
 
@@ -757,43 +749,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
           buildElement(elementBuilder, classHierarchy.coreTypes));
     }
 
-    SourceProcedureBuilder toStringBuilder =
-        firstMemberNamed("_enumToString") as SourceProcedureBuilder;
-
-    Name toStringName =
-        new Name("_enumToString", classHierarchy.coreTypes.coreLibrary);
-    Member? superToString = cls.superclass != null
-        ? classHierarchy.getDispatchTarget(cls.superclass!, toStringName)
-        : null;
-    Procedure? toStringSuperTarget = superToString is Procedure &&
-            // Coverage-ignore(suite): Not run.
-            superToString.enclosingClass != classHierarchy.coreTypes.objectClass
-        ? superToString
-        : null;
-
-    if (toStringSuperTarget != null) {
-      // Coverage-ignore-block(suite): Not run.
-      toStringBuilder.invokeTarget!.transformerFlags |=
-          TransformerFlag.superCalls;
-      toStringBuilder.body = new ReturnStatement(new SuperMethodInvocation(
-          toStringName, new Arguments([]), toStringSuperTarget));
-    } else {
-      ClassBuilder enumClass =
-          _underscoreEnumTypeBuilder.declaration as ClassBuilder;
-      MemberBuilder? nameFieldBuilder =
-          enumClass.lookupLocalMember("_name") as MemberBuilder?;
-      assert(nameFieldBuilder != null);
-      Field nameField = nameFieldBuilder!.readTarget as Field;
-
-      toStringBuilder.body = new ReturnStatement(new StringConcatenation([
-        new StringLiteral("${cls.demangledName}."),
-        new InstanceGet.byReference(
-            InstanceAccessKind.Instance, new ThisExpression(), nameField.name,
-            interfaceTargetReference: nameField.getterReference,
-            resultType: nameField.getterType),
-      ]));
-    }
-
     super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
   }
 }
@@ -806,4 +761,74 @@ class EnumConstantInfo {
   Token? argumentsBeginToken;
 
   EnumConstantInfo(this.metadata, this.name, this.nameOffset);
+}
+
+class _EnumToStringCreator implements SyntheticMethodCreator {
+  final SourceEnumBuilder _enumBuilder;
+  final TypeBuilder _stringTypeBuilder;
+  final TypeBuilder _underscoreEnumTypeBuilder;
+
+  _EnumToStringCreator(this._enumBuilder, this._stringTypeBuilder,
+      this._underscoreEnumTypeBuilder);
+
+  @override
+  Procedure buildOutlineNode(
+      {required SourceLibraryBuilder libraryBuilder,
+      required Name name,
+      required Uri fileUri,
+      required int fileOffset,
+      required Reference reference}) {
+    FunctionNode function = new FunctionNode(
+        new EmptyStatement()..fileOffset = fileOffset,
+        returnType:
+            _stringTypeBuilder.build(libraryBuilder, TypeUse.returnType))
+      ..fileOffset = fileOffset
+      ..fileEndOffset = fileOffset;
+    Procedure procedure = new Procedure(name, ProcedureKind.Method, function,
+        fileUri: fileUri, reference: reference)
+      ..fileOffset = fileOffset
+      ..fileEndOffset = fileOffset;
+    procedure.transformerFlags |= TransformerFlag.superCalls;
+    return procedure;
+  }
+
+  @override
+  void buildOutlineExpressions(
+      {required Procedure procedure, required ClassHierarchy classHierarchy}) {
+    Name toStringName =
+        new Name("_enumToString", classHierarchy.coreTypes.coreLibrary);
+    Member? superToString = _enumBuilder.cls.superclass != null
+        ? classHierarchy.getDispatchTarget(
+            _enumBuilder.cls.superclass!, toStringName)
+        : null;
+    Procedure? toStringSuperTarget = superToString is Procedure &&
+            // Coverage-ignore(suite): Not run.
+            superToString.enclosingClass != classHierarchy.coreTypes.objectClass
+        ? superToString
+        : null;
+
+    if (toStringSuperTarget != null) {
+      // Coverage-ignore-block(suite): Not run.
+      procedure.transformerFlags |= TransformerFlag.superCalls;
+      procedure.function.body = new ReturnStatement(new SuperMethodInvocation(
+          toStringName, new Arguments([]), toStringSuperTarget))
+        ..parent = procedure.function;
+    } else {
+      ClassBuilder enumClass =
+          _underscoreEnumTypeBuilder.declaration as ClassBuilder;
+      MemberBuilder? nameFieldBuilder =
+          enumClass.lookupLocalMember("_name") as MemberBuilder?;
+      assert(nameFieldBuilder != null);
+      Field nameField = nameFieldBuilder!.readTarget as Field;
+
+      procedure.function.body = new ReturnStatement(new StringConcatenation([
+        new StringLiteral("${_enumBuilder.cls.demangledName}."),
+        new InstanceGet.byReference(
+            InstanceAccessKind.Instance, new ThisExpression(), nameField.name,
+            interfaceTargetReference: nameField.getterReference,
+            resultType: nameField.getterType),
+      ]))
+        ..parent = procedure.function;
+    }
+  }
 }

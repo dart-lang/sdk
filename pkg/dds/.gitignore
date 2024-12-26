@@ -3,3 +3,5 @@
 .packages
 build/
 pubspec.lock
+*.code-workspace
+logs/

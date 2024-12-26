@@ -21,11 +21,10 @@ class Globals {
   final Map<w.Global, w.BaseFunction> _globalGetters = {};
 
   final Map<Field, w.Global> _globalInitializedFlag = {};
+  final WasmGlobalImporter _globalsModuleMap;
 
-  late final WasmGlobalImporter _globalsModuleMap =
-      WasmGlobalImporter(translator, 'global');
-
-  Globals(this.translator);
+  Globals(this.translator)
+      : _globalsModuleMap = WasmGlobalImporter(translator, 'global');
 
   Constant? _getConstantInitializer(Field variable) {
     Expression? init = variable.initializer;
@@ -43,8 +42,7 @@ class Globals {
   /// Takes into account the calling module and the module the global belongs
   /// to. If they are not the same then accesses the global indirectly, either
   /// through an import or a getter call.
-  w.ValueType readGlobal(w.InstructionsBuilder b, w.Global global,
-      {String importNameSuffix = ''}) {
+  w.ValueType readGlobal(w.InstructionsBuilder b, w.Global global) {
     final owningModule = global.enclosingModule;
     final callingModule = b.module;
     if (owningModule == callingModule) {

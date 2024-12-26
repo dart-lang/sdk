@@ -581,8 +581,7 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
   ASSERT(!is_unboxed_int || RepresentationUtils::ValueSize(representation()) <=
                                 compiler::target::kWordSize);
   const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps =
-      (constant_address() == 0) && !is_unboxed_int ? 1 : 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   if (representation() == kUnboxedDouble) {
@@ -590,9 +589,6 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
   } else {
     ASSERT(is_unboxed_int);
     locs->set_out(0, Location::RequiresRegister());
-  }
-  if (kNumTemps == 1) {
-    locs->set_temp(0, Location::RequiresRegister());
   }
   return locs;
 }
@@ -2385,9 +2381,6 @@ LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
 void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   compiler->AddExceptionHandler(this);
-  if (HasParallelMove()) {
-    parallel_move()->EmitNativeCode(compiler);
-  }
 
   // Restore ESP from EBP as we are coming from a throw and the code for
   // popping arguments has not been run.
@@ -2397,6 +2390,10 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       kWordSize;
   ASSERT(fp_sp_dist <= 0);
   __ leal(ESP, compiler::Address(EBP, fp_sp_dist));
+
+  if (HasParallelMove()) {
+    parallel_move()->EmitNativeCode(compiler);
+  }
 
   if (!compiler->is_optimizing()) {
     if (raw_exception_var_ != nullptr) {

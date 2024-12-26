@@ -39,10 +39,10 @@ class SwarmState extends UIState {
   late final BiIterator<Section> _sectionIterator;
 
   SwarmState(this._dataModel)
-      : currentArticle = ObservableValue<Article?>(null),
-        selectedArticle = ObservableValue<Article?>(null),
-        storyMaximized = ObservableValue<bool>(false),
-        storyTextMode = ObservableValue<bool>(true) {
+    : currentArticle = ObservableValue<Article?>(null),
+      selectedArticle = ObservableValue<Article?>(null),
+      storyMaximized = ObservableValue<bool>(false),
+      storyTextMode = ObservableValue<bool>(true) {
     startHistoryTracking();
     // TODO(efortuna): consider having this class just hold observable
     // currentIndices instead of iterators with observablevalues..
@@ -82,8 +82,9 @@ class SwarmState extends UIState {
   void loadFromHistory(Map values) {
     // TODO(jimhug): There's a better way of doing this...
     if (values['section'] != null) {
-      _sectionIterator
-          .jumpToValue(_dataModel.findSectionById(values['section']));
+      _sectionIterator.jumpToValue(
+        _dataModel.findSectionById(values['section']),
+      );
     } else {
       _sectionIterator = BiIterator<Section>(_dataModel.sections);
     }
@@ -132,7 +133,9 @@ class SwarmState extends UIState {
     int oldIndex = _articleIterator.currentIndex.value;
 
     _articleIterator = BiIterator<Article>(
-        newFeed.articles, _articleIterator.currentIndex.listeners);
+      newFeed.articles,
+      _articleIterator.currentIndex.listeners,
+    );
 
     _articleIterator.currentIndex.value = oldIndex;
     selectedArticle.value = _articleIterator.current;
@@ -145,7 +148,9 @@ class SwarmState extends UIState {
     int oldIndex = _articleIterator.currentIndex.value;
 
     _articleIterator = BiIterator<Article>(
-        newFeed.articles, _articleIterator.currentIndex.listeners);
+      newFeed.articles,
+      _articleIterator.currentIndex.listeners,
+    );
     _articleIterator.currentIndex.value = oldIndex;
     selectedArticle.value = _articleIterator.current;
   }
@@ -164,9 +169,13 @@ class SwarmState extends UIState {
     // go to the "next section", but we're already at the last section.
     if (oldSection != _sectionIterator.current) {
       _feedIterator = BiIterator<Feed>(
-          _sectionIterator.current.feeds, _feedIterator.currentIndex.listeners);
-      _articleIterator = BiIterator<Article>(_feedIterator.current.articles,
-          _articleIterator.currentIndex.listeners);
+        _sectionIterator.current.feeds,
+        _feedIterator.currentIndex.listeners,
+      );
+      _articleIterator = BiIterator<Article>(
+        _feedIterator.current.articles,
+        _articleIterator.currentIndex.listeners,
+      );
       _articleIterator.currentIndex.value = oldIndex;
       selectedArticle.value = _articleIterator.current;
     }
@@ -189,11 +198,15 @@ class SwarmState extends UIState {
     // go to the "previous section", but we're already at the first section.
     if (oldSection != _sectionIterator.current) {
       _feedIterator = BiIterator<Feed>(
-          _sectionIterator.current.feeds, _feedIterator.currentIndex.listeners);
+        _sectionIterator.current.feeds,
+        _feedIterator.currentIndex.listeners,
+      );
       // Jump to back of feed set if we are moving backwards through sections.
       _feedIterator.currentIndex.value = _feedIterator.list.length - 1;
-      _articleIterator = BiIterator<Article>(_feedIterator.current.articles,
-          _articleIterator.currentIndex.listeners);
+      _articleIterator = BiIterator<Article>(
+        _feedIterator.current.articles,
+        _articleIterator.currentIndex.listeners,
+      );
       _articleIterator.currentIndex.value = oldIndex;
       selectedArticle.value = _articleIterator.current;
     }
@@ -235,12 +248,17 @@ class SwarmState extends UIState {
   /// selected item location if the user used keyboard shortcuts. These
   /// are manipulated in goToPrevious/NextSection().
   void moveToNewSection(String sectionTitle) {
-    _sectionIterator.currentIndex.value =
-        _dataModel.findSectionIndex(sectionTitle);
+    _sectionIterator.currentIndex.value = _dataModel.findSectionIndex(
+      sectionTitle,
+    );
     _feedIterator = BiIterator<Feed>(
-        _sectionIterator.current.feeds, _feedIterator.currentIndex.listeners);
-    _articleIterator = BiIterator<Article>(_feedIterator.current.articles,
-        _articleIterator.currentIndex.listeners);
+      _sectionIterator.current.feeds,
+      _feedIterator.currentIndex.listeners,
+    );
+    _articleIterator = BiIterator<Article>(
+      _feedIterator.current.articles,
+      _articleIterator.currentIndex.listeners,
+    );
   }
 
   Section get currentSection => _sectionIterator.current;

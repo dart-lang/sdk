@@ -28,10 +28,10 @@ late Derived<Derived> derivedDerived;
 late Derived<Derived<int>> derivedDerivedInt;
     ''');
     var dynamicType = typeProvider.dynamicType;
-    var derivedDynamicType = findElement.topVar('derivedDynamic').type;
-    var derivedIntType = findElement.topVar('derivedInt').type;
-    var derivedDerivedType = findElement.topVar('derivedDerived').type;
-    var derivedDerivedIntType = findElement.topVar('derivedDerivedInt').type;
+    var derivedDynamicType = findElement2.topVar('derivedDynamic').type;
+    var derivedIntType = findElement2.topVar('derivedInt').type;
+    var derivedDerivedType = findElement2.topVar('derivedDerived').type;
+    var derivedDerivedIntType = findElement2.topVar('derivedDerivedInt').type;
     // class Derived<T> extends Future<T> { ... }
     // flatten(Derived) = dynamic
     expect(_flatten(derivedDynamicType), dynamicType);
@@ -53,8 +53,8 @@ late B b;
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
     ]);
-    var aType = findElement.topVar('a').type;
-    var bType = findElement.topVar('b').type;
+    var aType = findElement2.topVar('a').type;
+    var bType = findElement2.topVar('b').type;
     // flatten(A) = A and flatten(B) = B, since neither class contains Future
     // in its class hierarchy.  Even though there is a loop in the class
     // hierarchy, flatten() should terminate.
@@ -84,8 +84,8 @@ late B b;
     ]);
     InterfaceType intType = typeProvider.intType;
     InterfaceType numType = typeProvider.numType;
-    var aType = findElement.topVar('a').type;
-    var bType = findElement.topVar('b').type;
+    var aType = findElement2.topVar('a').type;
+    var bType = findElement2.topVar('b').type;
     // The code in flatten() that inhibits infinite recursion shouldn't be
     // fooled by the fact that Derived appears twice in the type hierarchy.
     expect(_flatten(aType), intType);
@@ -110,8 +110,8 @@ late B b;
     ]);
     InterfaceType intType = typeProvider.intType;
     InterfaceType numType = typeProvider.numType;
-    var aType = findElement.topVar('a').type;
-    var bType = findElement.topVar('b').type;
+    var aType = findElement2.topVar('a').type;
+    var bType = findElement2.topVar('b').type;
     expect(_flatten(aType), intType);
     expect(_flatten(bType), numType);
   }
@@ -163,8 +163,8 @@ late B b;
       error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 112, 1),
       error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 148, 11),
     ]);
-    var aType = findElement.topVar('a').type;
-    var bType = findElement.topVar('b').type;
+    var aType = findElement2.topVar('a').type;
+    var bType = findElement2.topVar('b').type;
     // flatten(A) = A and flatten(B) = B, since neither string nor int is more
     // specific than the other.
     expect(_flatten(aType), intType);
@@ -187,7 +187,7 @@ class A {
 class B extends A {}
 late B b;
 ''');
-    var bType = findElement.topVar('b').type;
+    var bType = findElement2.topVar('b').type;
     expect(findNode.as_('this as B').staticType, bType);
   }
 
@@ -263,7 +263,7 @@ class C {
 test() => new C.m();
 late C c;
 ''');
-    var cType = findElement.topVar('c').type;
+    var cType = findElement2.topVar('c').type;
     expect(findNode.instanceCreation('new C.m()').staticType, cType);
   }
 
@@ -274,7 +274,7 @@ class I {}
 test() => new C<I>();
 late I i;
 ''');
-    var iType = findElement.topVar('i').type;
+    var iType = findElement2.topVar('i').type;
     InterfaceType type =
         findNode.instanceCreation('new C<I>()').staticType as InterfaceType;
     List<DartType> typeArgs = type.typeArguments;
@@ -288,7 +288,7 @@ class C {}
 test() => new C();
 late C c;
 ''');
-    var cType = findElement.topVar('c').type;
+    var cType = findElement2.topVar('c').type;
     expect(findNode.instanceCreation('new C()').staticType, cType);
   }
 
@@ -373,7 +373,7 @@ class B extends A {
 }
 late B b;
 ''');
-    var bType = findElement.topVar('b').type;
+    var bType = findElement2.topVar('b').type;
     expect(findNode.super_('super').staticType, bType);
   }
 
@@ -393,7 +393,7 @@ class B extends A {
 }
 late B b;
 ''');
-    var bType = findElement.topVar('b').type;
+    var bType = findElement2.topVar('b').type;
     expect(findNode.this_('this').staticType, bType);
   }
 

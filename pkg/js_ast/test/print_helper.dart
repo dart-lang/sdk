@@ -29,8 +29,12 @@ Node testStatement(String expression, [optional1, String? optional2]) {
   return _test(js.statement, expression, optional1, optional2);
 }
 
-Node _test(Node Function(String, Object?) parse, String expression, optional1,
-    String? optional2) {
+Node _test(
+  Node Function(String, Object?) parse,
+  String expression,
+  optional1,
+  String? optional2,
+) {
   final String expected;
   final Object? arguments; // null, List, or Map.
 
@@ -53,9 +57,10 @@ Node _test(Node Function(String, Object?) parse, String expression, optional1,
 
 String prettyPrint(Node node) {
   JavaScriptPrintingOptions options = JavaScriptPrintingOptions(
-      shouldCompressOutput: false,
-      minifyLocalVariables: false,
-      preferSemicolonToNewlineInMinifiedOutput: false);
+    shouldCompressOutput: false,
+    minifyLocalVariables: false,
+    preferSemicolonToNewlineInMinifiedOutput: false,
+  );
   SimpleJavaScriptPrintingContext context = SimpleJavaScriptPrintingContext();
   Printer printer = Printer(options, context);
   printer.visit(node);

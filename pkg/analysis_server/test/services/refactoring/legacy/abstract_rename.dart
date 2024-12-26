@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:test/test.dart';
@@ -53,6 +54,21 @@ class RenameRefactoringTest extends RefactoringTest {
   void createRenameRefactoringForElement(Element? element) {
     var workspace = RefactoringWorkspace([driverFor(testFile)], searchEngine);
     var refactoring = RenameRefactoring.create(
+      workspace,
+      testAnalysisResult,
+      element,
+    );
+    if (refactoring == null) {
+      fail("No refactoring for '$element'.");
+    }
+    this.refactoring = refactoring;
+  }
+
+  /// Creates a new [RenameRefactoring] in [refactoring] for [element].
+  /// Fails if no [RenameRefactoring] can be created.
+  void createRenameRefactoringForElement2(Element2? element) {
+    var workspace = RefactoringWorkspace([driverFor(testFile)], searchEngine);
+    var refactoring = RenameRefactoring.create2(
       workspace,
       testAnalysisResult,
       element,

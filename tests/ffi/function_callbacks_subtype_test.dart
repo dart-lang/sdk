@@ -26,24 +26,27 @@ final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 typedef TwoIntVoidFnNativeType = Void Function(Pointer, Int32, Int32);
 typedef TwoIntVoidFnType = void Function(Pointer, int, int);
-final callTwoIntVoidFunction =
-    ffiTestFunctions.lookupFunction<TwoIntVoidFnNativeType, TwoIntVoidFnType>(
-        "CallTwoIntVoidFunction");
+final callTwoIntVoidFunction = ffiTestFunctions
+    .lookupFunction<TwoIntVoidFnNativeType, TwoIntVoidFnType>(
+      "CallTwoIntVoidFunction",
+    );
 
-typedef TwoIntPointerFnNativeType = Pointer<NativeType> Function(
-    Pointer, Int32, Int32);
+typedef TwoIntPointerFnNativeType =
+    Pointer<NativeType> Function(Pointer, Int32, Int32);
 typedef TwoIntPointerFnType = Pointer<NativeType> Function(Pointer, int, int);
-final callTwoIntPointerFunction = ffiTestFunctions.lookupFunction<
-    TwoIntPointerFnNativeType,
-    TwoIntPointerFnType>("CallTwoIntPointerFunction");
+final callTwoIntPointerFunction = ffiTestFunctions
+    .lookupFunction<TwoIntPointerFnNativeType, TwoIntPointerFnType>(
+      "CallTwoIntPointerFunction",
+    );
 
-typedef TwoPointerIntFnNativeType = Int32 Function(
-    Pointer, Pointer<NativeType>, Pointer<NativeType>);
-typedef TwoPointerIntFnType = int Function(
-    Pointer, Pointer<NativeType>, Pointer<NativeType>);
-final callTwoPointerIntFunction = ffiTestFunctions.lookupFunction<
-    TwoPointerIntFnNativeType,
-    TwoPointerIntFnType>("CallTwoPointerIntFunction");
+typedef TwoPointerIntFnNativeType =
+    Int32 Function(Pointer, Pointer<NativeType>, Pointer<NativeType>);
+typedef TwoPointerIntFnType =
+    int Function(Pointer, Pointer<NativeType>, Pointer<NativeType>);
+final callTwoPointerIntFunction = ffiTestFunctions
+    .lookupFunction<TwoPointerIntFnNativeType, TwoPointerIntFnType>(
+      "CallTwoPointerIntFunction",
+    );
 
 typedef VoidReturnFunction = Void Function(Int32, Int32);
 int addVoidResult = 0;
@@ -100,34 +103,49 @@ Future<void> testReturnVoid() async {
 
 void testReturnSubtype() {
   // The Dart function is allowed to return a subtype of the native return type.
-  final legacyCallback =
-      Pointer.fromFunction<NaTyPtrReturnFunction>(addInt64PtrReturn);
+  final legacyCallback = Pointer.fromFunction<NaTyPtrReturnFunction>(
+    addInt64PtrReturn,
+  );
   Expect.equals(
-      123, callTwoIntPointerFunction(legacyCallback, 100, 23).address);
+    123,
+    callTwoIntPointerFunction(legacyCallback, 100, 23).address,
+  );
 
-  final isolateLocal =
-      NativeCallable<NaTyPtrReturnFunction>.isolateLocal(addInt64PtrReturn)
-        ..keepIsolateAlive = false;
-  Expect.equals(456,
-      callTwoIntPointerFunction(isolateLocal.nativeFunction, 400, 56).address);
+  final isolateLocal = NativeCallable<NaTyPtrReturnFunction>.isolateLocal(
+    addInt64PtrReturn,
+  )..keepIsolateAlive = false;
+  Expect.equals(
+    456,
+    callTwoIntPointerFunction(isolateLocal.nativeFunction, 400, 56).address,
+  );
 }
 
 void testParamSubtype() {
   // The Dart function is allowed to accept params that are a supertype of the
   // native type's params.
-  final legacyCallback =
-      Pointer.fromFunction<Int64PtrParamFunction>(addNaTyPtrParam, 0);
+  final legacyCallback = Pointer.fromFunction<Int64PtrParamFunction>(
+    addNaTyPtrParam,
+    0,
+  );
   Expect.equals(
-      123,
-      callTwoPointerIntFunction(legacyCallback, Pointer<Int64>.fromAddress(100),
-          Pointer<Int64>.fromAddress(23)));
+    123,
+    callTwoPointerIntFunction(
+      legacyCallback,
+      Pointer<Int64>.fromAddress(100),
+      Pointer<Int64>.fromAddress(23),
+    ),
+  );
 
   final isolateLocal = NativeCallable<Int64PtrParamFunction>.isolateLocal(
-      addNaTyPtrParam,
-      exceptionalReturn: 0)
-    ..keepIsolateAlive = false;
+    addNaTyPtrParam,
+    exceptionalReturn: 0,
+  )..keepIsolateAlive = false;
   Expect.equals(
-      456,
-      callTwoPointerIntFunction(isolateLocal.nativeFunction,
-          Pointer<Int64>.fromAddress(400), Pointer<Int64>.fromAddress(56)));
+    456,
+    callTwoPointerIntFunction(
+      isolateLocal.nativeFunction,
+      Pointer<Int64>.fromAddress(400),
+      Pointer<Int64>.fromAddress(56),
+    ),
+  );
 }

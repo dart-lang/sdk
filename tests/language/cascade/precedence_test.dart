@@ -96,30 +96,34 @@ main() {
   // Different expressions on the left-hand side of '..'.
   //  conditionalExpression >> postfixExpression > primary selector*
   Expect.equals(
-      a,
-      a
-        ..set(37)
-        ..get());
+    a,
+    a
+      ..set(37)
+      ..get(),
+  );
   a.test(37);
   Expect.equals(
-      a,
-      fa()
-        ..set(42)
-        ..get());
+    a,
+    fa()
+      ..set(42)
+      ..get(),
+  );
   a.test(42);
   Expect.equals(
-      a,
-      box.x
-        ..set(37)
-        ..get());
+    a,
+    box.x
+      ..set(37)
+      ..get(),
+  );
   a.test(37);
   // '..' binds to 'b + a', i.e., to the 'b' object, not to 'a'.
   Expect.equals(
-      b,
-      b + a
-        ..test(124)
-        ..set(117)
-        ..get());
+    b,
+    b + a
+      ..test(124)
+      ..set(117)
+      ..get(),
+  );
   b.test(117);
   a.test(37);
 
@@ -167,17 +171,19 @@ main() {
   Box originalBox = box;
   // Should parse as:
   // box = (box..x = (a.value == 21 ? b : c)..x.test(117));
-  box = box
-    ..x = a.value == 21 ? b : c
-    ..x.test(117);
+  box =
+      box
+        ..x = a.value == 21 ? b : c
+        ..x.test(117);
   Expect.equals(originalBox, box);
   Expect.equals(box.value, b);
 
   // New cascades are allowed inside an expressionWithoutCascade if properly
   // delimited.
   box
-    ..x = (a
-      ..set(42)
-      ..test(42))
+    ..x =
+        (a
+          ..set(42)
+          ..test(42))
     ..x.test(42);
 }

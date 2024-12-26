@@ -1600,12 +1600,12 @@ class BinaryBuilder {
     Name name = readName();
     int kind = readByte();
     int flags = readByte();
-    CanonicalName memberName = readNonNullCanonicalNameReference();
+    CanonicalName? memberName = readNullableCanonicalNameReference();
     CanonicalName? tearOffName = readNullableCanonicalNameReference();
     return new ExtensionMemberDescriptor(
         name: name,
         kind: ExtensionMemberKind.values[kind],
-        memberReference: memberName.reference,
+        memberReference: memberName?.reference,
         tearOffReference: tearOffName?.reference)
       ..flags = flags;
   }
@@ -1692,12 +1692,12 @@ class BinaryBuilder {
     Name name = readName();
     int kind = readByte();
     int flags = readByte();
-    CanonicalName memberName = readNonNullCanonicalNameReference();
+    CanonicalName? memberName = readNullableCanonicalNameReference();
     CanonicalName? tearOffName = readNullableCanonicalNameReference();
     return new ExtensionTypeMemberDescriptor(
         name: name,
         kind: ExtensionTypeMemberKind.values[kind],
-        memberReference: memberName.reference,
+        memberReference: memberName?.reference,
         tearOffReference: tearOffName?.reference)
       ..flags = flags;
   }

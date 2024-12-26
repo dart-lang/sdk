@@ -13,13 +13,10 @@ class A {
   const A(foo);
 }
 
-class B extends A
-
-{
+class B extends A {
   const B(foo) : super(foo);
 }
 
 main() {
   var a = const B(42);
-
 }

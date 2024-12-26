@@ -52,47 +52,81 @@ class SharedInteropTransformer extends Transformer {
 
   StaticInvocation get invocation => _invocation!;
 
-  SharedInteropTransformer(this._typeEnvironment, this._diagnosticReporter,
-      this._exportChecker, this._extensionIndex)
-      : _callMethodVarArgs = _typeEnvironment.coreTypes.index
-            .getTopLevelProcedure('dart:js_interop_unsafe',
-                'JSObjectUnsafeUtilExtension|callMethodVarArgs'),
-        _createDartExport = _typeEnvironment.coreTypes.index
-            .getTopLevelProcedure('dart:js_util', 'createDartExport'),
-        _createJSInteropWrapper = _typeEnvironment.coreTypes.index
-            .getTopLevelProcedure('dart:js_interop', 'createJSInteropWrapper'),
-        _createStaticInteropMock = _typeEnvironment.coreTypes.index
-            .getTopLevelProcedure('dart:js_util', 'createStaticInteropMock'),
-        _functionToJS = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
-            'dart:js_interop', 'FunctionToJSExportedDartFunction|get#toJS'),
-        _getProperty = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
-            'dart:js_interop_unsafe', 'JSObjectUnsafeUtilExtension|[]'),
-        _globalContext = _typeEnvironment.coreTypes.index
-            .getTopLevelProcedure('dart:js_interop', 'get:globalContext'),
-        _instanceof = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
-            'dart:js_interop', 'JSAnyUtilityExtension|instanceof'),
-        _instanceOfString = _typeEnvironment.coreTypes.index
-            .getTopLevelProcedure(
-                'dart:js_interop', 'JSAnyUtilityExtension|instanceOfString'),
-        _isA = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
-            'dart:js_interop', 'JSAnyUtilityExtension|isA'),
-        _isATearoff = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
-            'dart:js_interop',
-            'JSAnyUtilityExtension|${LibraryIndex.tearoffPrefix}isA'),
-        _jsAny = _typeEnvironment.coreTypes.index
-            .getExtensionType('dart:js_interop', 'JSAny'),
-        _jsFunction = _typeEnvironment.coreTypes.index
-            .getExtensionType('dart:js_interop', 'JSFunction'),
-        _jsObject = _typeEnvironment.coreTypes.index
-            .getExtensionType('dart:js_interop', 'JSObject'),
-        _setProperty = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
-            'dart:js_interop_unsafe', 'JSObjectUnsafeUtilExtension|[]='),
-        _stringToJS = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
-            'dart:js_interop', 'StringToJSString|get#toJS'),
-        _staticInteropMockValidator = StaticInteropMockValidator(
-            _diagnosticReporter, _exportChecker, _typeEnvironment),
-        _typeofEquals = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
-            'dart:js_interop', 'JSAnyUtilityExtension|typeofEquals');
+  SharedInteropTransformer(
+    this._typeEnvironment,
+    this._diagnosticReporter,
+    this._exportChecker,
+    this._extensionIndex,
+  ) : _callMethodVarArgs = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure(
+            'dart:js_interop_unsafe',
+            'JSObjectUnsafeUtilExtension|callMethodVarArgs',
+          ),
+      _createDartExport = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_util',
+        'createDartExport',
+      ),
+      _createJSInteropWrapper = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure('dart:js_interop', 'createJSInteropWrapper'),
+      _createStaticInteropMock = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure('dart:js_util', 'createStaticInteropMock'),
+      _functionToJS = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        'FunctionToJSExportedDartFunction|get#toJS',
+      ),
+      _getProperty = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop_unsafe',
+        'JSObjectUnsafeUtilExtension|[]',
+      ),
+      _globalContext = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        'get:globalContext',
+      ),
+      _instanceof = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        'JSAnyUtilityExtension|instanceof',
+      ),
+      _instanceOfString = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        'JSAnyUtilityExtension|instanceOfString',
+      ),
+      _isA = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        'JSAnyUtilityExtension|isA',
+      ),
+      _isATearoff = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        'JSAnyUtilityExtension|${LibraryIndex.tearoffPrefix}isA',
+      ),
+      _jsAny = _typeEnvironment.coreTypes.index.getExtensionType(
+        'dart:js_interop',
+        'JSAny',
+      ),
+      _jsFunction = _typeEnvironment.coreTypes.index.getExtensionType(
+        'dart:js_interop',
+        'JSFunction',
+      ),
+      _jsObject = _typeEnvironment.coreTypes.index.getExtensionType(
+        'dart:js_interop',
+        'JSObject',
+      ),
+      _setProperty = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop_unsafe',
+        'JSObjectUnsafeUtilExtension|[]=',
+      ),
+      _stringToJS = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        'StringToJSString|get#toJS',
+      ),
+      _staticInteropMockValidator = StaticInteropMockValidator(
+        _diagnosticReporter,
+        _exportChecker,
+        _typeEnvironment,
+      ),
+      _typeofEquals = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        'JSAnyUtilityExtension|typeofEquals',
+      );
 
   @override
   TreeNode visitStaticInvocation(StaticInvocation node) {
@@ -106,7 +140,9 @@ class SharedInteropTransformer extends Transformer {
         final interface = typeArguments[0] as InterfaceType;
         if (target == _createJSInteropWrapper) {
           replacement = _createExport(
-              interface, ExtensionType(_jsObject, Nullability.nonNullable));
+            interface,
+            ExtensionType(_jsObject, Nullability.nonNullable),
+          );
         }
         replacement = _createExport(interface);
       }
@@ -125,9 +161,10 @@ class SharedInteropTransformer extends Transformer {
           staticInteropTypeArgumentCorrect &&
           dartTypeArgumentCorrect &&
           _staticInteropMockValidator.validateCreateStaticInteropMock(
-              invocation,
-              (staticInteropType as InterfaceType).classNode,
-              (dartType as InterfaceType).classNode)) {
+            invocation,
+            (staticInteropType as InterfaceType).classNode,
+            (dartType as InterfaceType).classNode,
+          )) {
         final arguments = invocation.arguments.positional;
         assert(arguments.length == 1 || arguments.length == 2);
         final proto = arguments.length == 2 ? arguments[1] : null;
@@ -144,28 +181,32 @@ class SharedInteropTransformer extends Transformer {
       if (coreInteropType is ExtensionTypeDeclaration &&
           _extensionIndex.isJSType(coreInteropType)) {
         replacement = _createIsACheck(
-            receiver, interopType as ExtensionType, coreInteropType);
+          receiver,
+          interopType as ExtensionType,
+          coreInteropType,
+        );
       } else {
         // Generated tear-offs call the original method, so ignore that
         // invocation.
         if (!_inIsATearoff) {
           assert(interopType is TypeParameterType);
           _diagnosticReporter.report(
-              templateJsInteropIsAInvalidTypeVariable
-                  .withArguments(interopType),
-              invocation.fileOffset,
-              invocation.name.text.length,
-              invocation.location?.file);
+            templateJsInteropIsAInvalidTypeVariable.withArguments(interopType),
+            invocation.fileOffset,
+            invocation.name.text.length,
+            invocation.location?.file,
+          );
         }
         replacement = invocation;
       }
     } else if (target == _isATearoff) {
       // Calling the generated tear-off is still bad, however.
       _diagnosticReporter.report(
-          messageJsInteropIsATearoff,
-          invocation.fileOffset,
-          invocation.name.text.length,
-          invocation.location?.file);
+        messageJsInteropIsATearoff,
+        invocation.fileOffset,
+        invocation.name.text.length,
+        invocation.location?.file,
+      );
     }
     replacement.transformChildren(this);
     _invocation = null;
@@ -193,10 +234,11 @@ class SharedInteropTransformer extends Transformer {
   bool _verifyExportable(DartType dartType) {
     if (dartType is! InterfaceType) {
       _diagnosticReporter.report(
-          templateJsInteropExportInvalidTypeArgument.withArguments(dartType),
-          invocation.fileOffset,
-          invocation.name.text.length,
-          invocation.location?.file);
+        templateJsInteropExportInvalidTypeArgument.withArguments(dartType),
+        invocation.fileOffset,
+        invocation.name.text.length,
+        invocation.location?.file,
+      );
       return false;
     }
     var dartClass = dartType.classNode;
@@ -204,11 +246,13 @@ class SharedInteropTransformer extends Transformer {
         js_interop.hasStaticInteropAnnotation(dartClass) ||
         js_interop.hasAnonymousAnnotation(dartClass)) {
       _diagnosticReporter.report(
-          templateJsInteropExportInvalidInteropTypeArgument
-              .withArguments(dartType),
-          invocation.fileOffset,
-          invocation.name.text.length,
-          invocation.location?.file);
+        templateJsInteropExportInvalidInteropTypeArgument.withArguments(
+          dartType,
+        ),
+        invocation.fileOffset,
+        invocation.name.text.length,
+        invocation.location?.file,
+      );
       return false;
     }
     if (!_exportChecker.exportStatus.containsKey(dartClass.reference)) {
@@ -226,11 +270,13 @@ class SharedInteropTransformer extends Transformer {
     var exportStatus = _exportChecker.exportStatus[dartClass.reference];
     if (exportStatus == ExportStatus.nonExportable) {
       _diagnosticReporter.report(
-          templateJsInteropExportClassNotMarkedExportable
-              .withArguments(dartClass.name),
-          invocation.fileOffset,
-          invocation.name.text.length,
-          invocation.location?.file);
+        templateJsInteropExportClassNotMarkedExportable.withArguments(
+          dartClass.name,
+        ),
+        invocation.fileOffset,
+        invocation.name.text.length,
+        invocation.location?.file,
+      );
       return false;
     }
     return exportStatus == ExportStatus.exportable;
@@ -249,8 +295,11 @@ class SharedInteropTransformer extends Transformer {
   ///
   /// Returns a call to the block of code that instantiates this object literal
   /// and returns it.
-  TreeNode _createExport(InterfaceType dartType,
-      [DartType? returnType, Expression? proto]) {
+  TreeNode _createExport(
+    InterfaceType dartType, [
+    DartType? returnType,
+    Expression? proto,
+  ]) {
     var exportMap =
         _exportChecker.exportClassToMemberMap[dartType.classNode.reference]!;
 
@@ -261,27 +310,35 @@ class SharedInteropTransformer extends Transformer {
     // already a variable for both these declarations.
     // TODO(srujzs): Change these to `VariableDeclaration.forValue` once
     // https://github.com/dart-lang/sdk/issues/54734 is resolved.
-    var dartInstance = VariableDeclaration('#dartInstance',
-        initializer: invocation.arguments.positional[0],
-        type: dartType,
-        isSynthesized: true)
-      ..fileOffset = invocation.fileOffset;
+    var dartInstance = VariableDeclaration(
+      '#dartInstance',
+      initializer: invocation.arguments.positional[0],
+      type: dartType,
+      isSynthesized: true,
+    )..fileOffset = invocation.fileOffset;
     block.add(dartInstance);
 
-    var jsExporter = VariableDeclaration('#jsExporter',
-        initializer: getLiteral(proto),
-        type: ExtensionType(_jsObject, Nullability.nonNullable),
-        isSynthesized: true)
-      ..fileOffset = invocation.fileOffset;
+    var jsExporter = VariableDeclaration(
+      '#jsExporter',
+      initializer: getLiteral(proto),
+      type: ExtensionType(_jsObject, Nullability.nonNullable),
+      isSynthesized: true,
+    )..fileOffset = invocation.fileOffset;
     block.add(jsExporter);
 
     for (var MapEntry(key: exportName, value: exports) in exportMap.entries) {
       ExpressionStatement setProperty(
-          VariableGet jsObject, String propertyName, StaticInvocation jsValue) {
+        VariableGet jsObject,
+        String propertyName,
+        StaticInvocation jsValue,
+      ) {
         // `jsObject[propertyName] = jsValue`
-        return ExpressionStatement(StaticInvocation(_setProperty,
-            Arguments([jsObject, StringLiteral(propertyName), jsValue])))
-          ..fileOffset = invocation.fileOffset;
+        return ExpressionStatement(
+          StaticInvocation(
+            _setProperty,
+            Arguments([jsObject, StringLiteral(propertyName), jsValue]),
+          ),
+        )..fileOffset = invocation.fileOffset;
       }
 
       var firstExport = exports.first;
@@ -289,19 +346,25 @@ class SharedInteropTransformer extends Transformer {
       if (firstExport is Procedure &&
           firstExport.kind == ProcedureKind.Method) {
         // `jsExport[jsName] = dartMock.tearoffMethod.toJS`
-        block.add(setProperty(
+        block.add(
+          setProperty(
             VariableGet(jsExporter),
             exportName,
             StaticInvocation(
-                _functionToJS,
-                Arguments([
-                  InstanceTearOff(InstanceAccessKind.Instance,
-                      VariableGet(dartInstance), firstExport.name,
-                      interfaceTarget: firstExport,
-                      resultType: _staticInteropMockValidator
-                          .typeParameterResolver
-                          .resolve(firstExport.getterType))
-                ]))));
+              _functionToJS,
+              Arguments([
+                InstanceTearOff(
+                  InstanceAccessKind.Instance,
+                  VariableGet(dartInstance),
+                  firstExport.name,
+                  interfaceTarget: firstExport,
+                  resultType: _staticInteropMockValidator.typeParameterResolver
+                      .resolve(firstExport.getterType),
+                ),
+              ]),
+            ),
+          ),
+        );
       } else {
         // Create the mapping from `get` and `set` to their `dartInstance` calls
         // to be used in `Object.defineProperty`.
@@ -330,77 +393,107 @@ class SharedInteropTransformer extends Transformer {
         //
         // A new map VariableDeclaration is created and added to the block of
         // statements for each export name.
-        var getSetMap = VariableDeclaration('#${exportName}Mapping',
-            initializer: getLiteral(),
-            type: ExtensionType(_jsObject, Nullability.nonNullable),
-            isSynthesized: true)
-          ..fileOffset = invocation.fileOffset;
+        var getSetMap = VariableDeclaration(
+          '#${exportName}Mapping',
+          initializer: getLiteral(),
+          type: ExtensionType(_jsObject, Nullability.nonNullable),
+          isSynthesized: true,
+        )..fileOffset = invocation.fileOffset;
         block.add(getSetMap);
         var (:getter, :setter) = _exportChecker.getGetterSetter(exports);
         if (getter != null) {
           final resultType = _staticInteropMockValidator.typeParameterResolver
               .resolve(getter.getterType);
-          block.add(setProperty(
+          block.add(
+            setProperty(
               VariableGet(getSetMap),
               'get',
               StaticInvocation(
-                  _functionToJS,
-                  Arguments([
-                    FunctionExpression(FunctionNode(
-                        ReturnStatement(InstanceGet(InstanceAccessKind.Instance,
-                            VariableGet(dartInstance), getter.name,
-                            interfaceTarget: getter, resultType: resultType)),
-                        returnType: resultType))
-                  ]))));
+                _functionToJS,
+                Arguments([
+                  FunctionExpression(
+                    FunctionNode(
+                      ReturnStatement(
+                        InstanceGet(
+                          InstanceAccessKind.Instance,
+                          VariableGet(dartInstance),
+                          getter.name,
+                          interfaceTarget: getter,
+                          resultType: resultType,
+                        ),
+                      ),
+                      returnType: resultType,
+                    ),
+                  ),
+                ]),
+              ),
+            ),
+          );
         }
         if (setter != null) {
-          var setterParameter = VariableDeclaration('#val',
-              type: _staticInteropMockValidator.typeParameterResolver
-                  .resolve(setter.setterType),
-              isSynthesized: true)
-            ..fileOffset = invocation.fileOffset;
-          block.add(setProperty(
+          var setterParameter = VariableDeclaration(
+            '#val',
+            type: _staticInteropMockValidator.typeParameterResolver.resolve(
+              setter.setterType,
+            ),
+            isSynthesized: true,
+          )..fileOffset = invocation.fileOffset;
+          block.add(
+            setProperty(
               VariableGet(getSetMap),
               'set',
               StaticInvocation(
-                  _functionToJS,
-                  Arguments([
-                    FunctionExpression(FunctionNode(
-                        ExpressionStatement(InstanceSet(
-                            InstanceAccessKind.Instance,
-                            VariableGet(dartInstance),
-                            setter.name,
-                            VariableGet(setterParameter),
-                            interfaceTarget: setter)),
-                        positionalParameters: [setterParameter],
-                        returnType: const VoidType()))
-                  ]))));
+                _functionToJS,
+                Arguments([
+                  FunctionExpression(
+                    FunctionNode(
+                      ExpressionStatement(
+                        InstanceSet(
+                          InstanceAccessKind.Instance,
+                          VariableGet(dartInstance),
+                          setter.name,
+                          VariableGet(setterParameter),
+                          interfaceTarget: setter,
+                        ),
+                      ),
+                      positionalParameters: [setterParameter],
+                      returnType: const VoidType(),
+                    ),
+                  ),
+                ]),
+              ),
+            ),
+          );
         }
         // Call `Object.defineProperty` to define the export name with the
         // 'get' and/or 'set' mapping. This allows us to treat get/set
         // semantics as methods.
-        block.add(ExpressionStatement(callMethodVarArgs(
-            getObjectProperty(),
-            'defineProperty',
-            [
+        block.add(
+          ExpressionStatement(
+            callMethodVarArgs(getObjectProperty(), 'defineProperty', [
               VariableGet(jsExporter),
               toJSString(exportName),
-              VariableGet(getSetMap)
-            ],
-            VoidType()))
-          ..fileOffset = invocation.fileOffset);
+              VariableGet(getSetMap),
+            ], VoidType()),
+          )..fileOffset = invocation.fileOffset,
+        );
       }
     }
 
-    block.add(ReturnStatement(AsExpression(VariableGet(jsExporter), returnType)
-      ..fileOffset = invocation.fileOffset));
+    block.add(
+      ReturnStatement(
+        AsExpression(VariableGet(jsExporter), returnType)
+          ..fileOffset = invocation.fileOffset,
+      ),
+    );
     // Return a call to evaluate the entire block of code and return the JS mock
     // that was created.
     return FunctionInvocation(
         FunctionAccessKind.Function,
         FunctionExpression(FunctionNode(Block(block), returnType: returnType)),
         Arguments([]),
-        functionType: FunctionType([], returnType, Nullability.nonNullable))
+        functionType: FunctionType([], returnType, Nullability.nonNullable),
+      )
       ..fileOffset = invocation.fileOffset
       ..parent = invocation.parent;
   }
@@ -413,15 +506,20 @@ class SharedInteropTransformer extends Transformer {
   /// If [interopType] is an erroneous type like a type that wraps a JS
   /// primitive type or one with an object literal constructor, an error is
   /// reported.
-  TreeNode _createIsACheck(Expression receiver, ExtensionType interopType,
-      ExtensionTypeDeclaration jsType) {
+  TreeNode _createIsACheck(
+    Expression receiver,
+    ExtensionType interopType,
+    ExtensionTypeDeclaration jsType,
+  ) {
     // In the case where the receiver wasn't a variable to begin with,
     // synthesize a var so that we don't evaluate the receiver multiple times.
-    final any = receiver is VariableGet
-        ? receiver.variable
-        : (VariableDeclaration.forValue(receiver,
-            type: ExtensionType(_jsAny, Nullability.nullable))
-          ..fileOffset = invocation.fileOffset);
+    final any =
+        receiver is VariableGet
+            ? receiver.variable
+            : (VariableDeclaration.forValue(
+              receiver,
+              type: ExtensionType(_jsAny, Nullability.nullable),
+            )..fileOffset = invocation.fileOffset);
 
     Expression? check;
     final interopTypeDecl = interopType.extensionTypeDeclaration;
@@ -458,20 +556,22 @@ class SharedInteropTransformer extends Transformer {
         // check that the receiver is an `instanceof` that prototype.
         // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray#description
         // for more details.
-        check = StaticInvocation(_instanceof,
-            Arguments([VariableGet(any), getInt8ArrayPrototype()]));
+        check = StaticInvocation(
+          _instanceof,
+          Arguments([VariableGet(any), getInt8ArrayPrototype()]),
+        );
         break;
       default:
         for (final descriptor in interopTypeDecl.memberDescriptors) {
-          final descriptorNode = descriptor.memberReference.node;
+          final descriptorNode = descriptor.memberReference!.node;
           if (descriptorNode is Procedure &&
               _extensionIndex.isLiteralConstructor(descriptorNode)) {
             _diagnosticReporter.report(
-                templateJsInteropIsAObjectLiteralType
-                    .withArguments(interopType),
-                invocation.fileOffset,
-                invocation.name.text.length,
-                invocation.location?.file);
+              templateJsInteropIsAObjectLiteralType.withArguments(interopType),
+              invocation.fileOffset,
+              invocation.name.text.length,
+              invocation.location?.file,
+            );
             break;
           }
         }
@@ -489,32 +589,49 @@ class SharedInteropTransformer extends Transformer {
         var typeName = js_interop.getJSName(interopTypeDecl);
         if (typeName.isEmpty) typeName = interopTypeDecl.name;
         instanceOfString = JsUtilOptimizer.concatenateJSNames(
-            js_interop.getJSName(interopTypeDecl.enclosingLibrary), typeName);
+          js_interop.getJSName(interopTypeDecl.enclosingLibrary),
+          typeName,
+        );
     }
     if (typeofString != null) {
       if (interopTypeDecl != jsType) {
         _diagnosticReporter.report(
-            templateJsInteropIsAPrimitiveExtensionType.withArguments(
-                interopType, jsTypeName),
-            invocation.fileOffset,
-            invocation.name.text.length,
-            invocation.location?.file);
+          templateJsInteropIsAPrimitiveExtensionType.withArguments(
+            interopType,
+            jsTypeName,
+          ),
+          invocation.fileOffset,
+          invocation.name.text.length,
+          invocation.location?.file,
+        );
       } else {
-        check = StaticInvocation(_typeofEquals,
-            Arguments([VariableGet(any), StringLiteral(typeofString)]));
+        check = StaticInvocation(
+          _typeofEquals,
+          Arguments([VariableGet(any), StringLiteral(typeofString)]),
+        );
       }
     } else if (instanceOfString != null) {
-      check = StaticInvocation(_instanceOfString,
-          Arguments([VariableGet(any), StringLiteral(instanceOfString)]));
+      check = StaticInvocation(
+        _instanceOfString,
+        Arguments([VariableGet(any), StringLiteral(instanceOfString)]),
+      );
     }
     final nullable = interopType.nullability == Nullability.nullable;
     Expression nullCheck = EqualsNull(VariableGet(any));
     Expression notNullCheck = Not(EqualsNull(VariableGet(any)));
     if (check != null) {
-      check = nullable
-          ? LogicalExpression(nullCheck, LogicalExpressionOperator.OR, check)
-          : LogicalExpression(
-              notNullCheck, LogicalExpressionOperator.AND, check);
+      check =
+          nullable
+              ? LogicalExpression(
+                nullCheck,
+                LogicalExpressionOperator.OR,
+                check,
+              )
+              : LogicalExpression(
+                notNullCheck,
+                LogicalExpressionOperator.AND,
+                check,
+              );
     } else if (!nullable) {
       // `JSAny`
       check = notNullCheck;
@@ -531,53 +648,65 @@ class SharedInteropTransformer extends Transformer {
   // `dart:js_interop_unsafe` members easier. These helpers need to access the
   // current node's file offset so that the CFE verifier is happy.
 
-  Expression asJSObject(Expression object,
-          [bool nullable = false]) =>
+  Expression asJSObject(Expression object, [bool nullable = false]) =>
       AsExpression(
-          object,
-          ExtensionType(_jsObject,
-              nullable ? Nullability.nullable : Nullability.nonNullable))
-        ..fileOffset = invocation.fileOffset;
+        object,
+        ExtensionType(
+          _jsObject,
+          nullable ? Nullability.nullable : Nullability.nonNullable,
+        ),
+      )..fileOffset = invocation.fileOffset;
 
   Expression toJSString(String string) =>
       StaticInvocation(_stringToJS, Arguments([StringLiteral(string)]))
         ..fileOffset = invocation.fileOffset;
 
-  StaticInvocation callMethodVarArgs(Expression jsObject, String methodName,
-      List<Expression> args, DartType returnType) {
+  StaticInvocation callMethodVarArgs(
+    Expression jsObject,
+    String methodName,
+    List<Expression> args,
+    DartType returnType,
+  ) {
     // `jsObject.callMethodVarArgs(methodName.toJS, args)`
     return StaticInvocation(
-        _callMethodVarArgs,
-        Arguments([
+      _callMethodVarArgs,
+      Arguments(
+        [
           jsObject,
           toJSString(methodName),
-          ListLiteral(args,
-              typeArgument: ExtensionType(_jsAny, Nullability.nullable))
-        ], types: [
-          returnType
-        ]))
-      ..fileOffset = invocation.fileOffset;
+          ListLiteral(
+            args,
+            typeArgument: ExtensionType(_jsAny, Nullability.nullable),
+          ),
+        ],
+        types: [returnType],
+      ),
+    )..fileOffset = invocation.fileOffset;
   }
 
   // Get the object with the given [property] off of the global context.
-  Expression getGlobalProperty(String property) => asJSObject(StaticInvocation(
+  Expression getGlobalProperty(String property) => asJSObject(
+    StaticInvocation(
       _getProperty,
-      Arguments([StaticGet(_globalContext), StringLiteral(property)])))
-    ..fileOffset = invocation.fileOffset;
+      Arguments([StaticGet(_globalContext), StringLiteral(property)]),
+    ),
+  )..fileOffset = invocation.fileOffset;
 
   Expression getObjectProperty() => getGlobalProperty('Object');
 
   Expression getInt8ArrayPrototype() => callMethodVarArgs(
-      getObjectProperty(),
-      'getPrototypeOf',
-      [getGlobalProperty('Int8Array')],
-      ExtensionType(_jsFunction, Nullability.nonNullable));
+    getObjectProperty(),
+    'getPrototypeOf',
+    [getGlobalProperty('Int8Array')],
+    ExtensionType(_jsFunction, Nullability.nonNullable),
+  );
 
   // Get a fresh object literal, using the proto to create it if one was
   // given.
   StaticInvocation getLiteral([Expression? proto]) => callMethodVarArgs(
-      getObjectProperty(),
-      'create',
-      [asJSObject(proto ?? NullLiteral(), true)],
-      ExtensionType(_jsObject, Nullability.nonNullable));
+    getObjectProperty(),
+    'create',
+    [asJSObject(proto ?? NullLiteral(), true)],
+    ExtensionType(_jsObject, Nullability.nonNullable),
+  );
 }

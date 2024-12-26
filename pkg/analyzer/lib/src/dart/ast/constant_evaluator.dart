@@ -7,7 +7,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 /// Instances of the class [ConstantEvaluator] evaluate constant expressions to
 /// produce their compile-time value.
@@ -391,7 +391,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 
   /// Return the constant value of the static constant represented by the given
   /// [element].
-  Object _getConstantValue(Element? element) {
+  Object _getConstantValue(Element2? element) {
     // TODO(brianwilkerson): Implement this
 //    if (element is FieldElement) {
 //      FieldElement field = element;

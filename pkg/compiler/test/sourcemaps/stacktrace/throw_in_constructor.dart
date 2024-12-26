@@ -10,6 +10,7 @@ main() {
 class Class {
   @pragma('dart2js:noInline')
   Class() {
-    /*3:Class*/ throw '>ExceptionMarker<';
+    /*3:Class*/
+    throw '>ExceptionMarker<';
   }
 }

@@ -45,16 +45,16 @@ class _Decoder {
   final int length;
   int position = 0;
 
-  _Decoder(String text)
-      : codeUnits = text.codeUnits,
-        length = text.length;
+  _Decoder(String text) : codeUnits = text.codeUnits, length = text.length;
 
   _decode() {
     var result = _decodeValue();
     _trimWhitespace();
     if (position != codeUnits.length) {
-      throw ArgumentError("Unexpected trailing text: "
-          "'${new String.fromCharCodes(codeUnits, position)}'.");
+      throw ArgumentError(
+        "Unexpected trailing text: "
+        "'${new String.fromCharCodes(codeUnits, position)}'.",
+      );
     }
     return result;
   }
@@ -80,8 +80,10 @@ class _Decoder {
         result = _decodeNumber();
       }
     } else {
-      throw ArgumentError("No value found in text: "
-          "'${new String.fromCharCodes(codeUnits, 0)}'.");
+      throw ArgumentError(
+        "No value found in text: "
+        "'${new String.fromCharCodes(codeUnits, 0)}'.",
+      );
     }
     return result;
   }
@@ -288,7 +290,9 @@ class _Decoder {
   }
 
   void _fail() {
-    throw ArgumentError("Unexpected value: "
-        "'${new String.fromCharCodes(codeUnits, position)}'.");
+    throw ArgumentError(
+      "Unexpected value: "
+      "'${new String.fromCharCodes(codeUnits, position)}'.",
+    );
   }
 }

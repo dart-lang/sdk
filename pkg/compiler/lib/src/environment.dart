@@ -12,5 +12,5 @@ class Environment {
   final Map<String, String> definitions;
 
   Environment(Map<String, String> definitions)
-      : this.definitions = Map.unmodifiable(definitions);
+    : definitions = Map.unmodifiable(definitions);
 }

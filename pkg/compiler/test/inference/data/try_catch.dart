@@ -366,7 +366,8 @@ class A {
     } catch (e) {
       return true;
     } finally {
-      /*update: [exact=A]*/ a = 55;
+      /*update: [exact=A]*/
+      a = 55;
     }
   }
 
@@ -377,7 +378,8 @@ class A {
     } catch (e) {
       return true;
     } finally {
-      /*update: [exact=A]*/ b = 55;
+      /*update: [exact=A]*/
+      b = 55;
     }
     return b;
   }
@@ -385,12 +387,15 @@ class A {
   /*member: A.testc:Union(null, [exact=JSBool], [exact=JSString])*/
   testc() {
     try {
-      /*update: [exact=A]*/ c = 'foo';
+      /*update: [exact=A]*/
+      c = 'foo';
       throw /*[exact=A]*/ c;
     } catch (e) {
-      /*update: [exact=A]*/ c = false;
+      /*update: [exact=A]*/
+      c = false;
     } catch (e) {
-      /*update: [exact=A]*/ c = true;
+      /*update: [exact=A]*/
+      c = true;
     }
     return /*[exact=A]*/ c;
   }
@@ -398,7 +403,8 @@ class A {
   /*member: A.testd:Value([null|exact=JSString], value: "foo")*/
   testd() {
     try {
-      /*update: [exact=A]*/ d = 'foo';
+      /*update: [exact=A]*/
+      d = 'foo';
     } catch (e) {
       // Do nothing
     }
@@ -408,9 +414,11 @@ class A {
   /*member: A.teste:Union(null, [exact=JSBool], [exact=JSString])*/
   teste() {
     try {
-      /*update: [exact=A]*/ e = 'foo';
+      /*update: [exact=A]*/
+      e = 'foo';
     } catch (_) {
-      /*update: [exact=A]*/ e = true;
+      /*update: [exact=A]*/
+      e = true;
     }
     return /*[exact=A]*/ e;
   }
@@ -418,10 +426,12 @@ class A {
   /*member: A.testf:Union(null, [exact=JSBool], [exact=JSString], [exact=JSUInt31])*/
   testf() {
     try {
-      /*update: [exact=A]*/ f = 'foo';
+      /*update: [exact=A]*/
+      f = 'foo';
       return 3;
     } catch (e) {
-      /*update: [exact=A]*/ f = true;
+      /*update: [exact=A]*/
+      f = true;
     }
     return /*[exact=A]*/ f;
   }
@@ -429,11 +439,15 @@ class A {
   /*member: A.testg:Union(null, [exact=JSUInt31], [exact=JsLinkedHashMap])*/
   testg() {
     try {
-      /*update: [exact=A]*/ g = 'foo';
-      /*update: [exact=A]*/ g = 5.5;
+      /*update: [exact=A]*/
+      g = 'foo';
+      /*update: [exact=A]*/
+      g = 5.5;
     } catch (e) {
-      /*update: [exact=A]*/ g = [];
-      /*update: [exact=A]*/ b = {};
+      /*update: [exact=A]*/
+      g = [];
+      /*update: [exact=A]*/
+      b = {};
     }
     return /*[exact=A]*/ b;
   }

@@ -40,7 +40,8 @@ import "package:kernel/ast.dart"
         Member,
         Procedure,
         TreeNode,
-        TypeParameter;
+        TypeParameter,
+        VariableDeclaration;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 import "package:testing/src/log.dart" show splitLines;
@@ -72,7 +73,8 @@ class Context extends ChainContext {
           const ReadTest(),
           const CompileExpression(),
           new MatchProcedureExpectations(".expect",
-              updateExpectations: updateExpectations)
+              updateExpectations: updateExpectations),
+          const OutputParametersMatches(),
         ];
 
   ProcessedOptions get options => compilerContext.options;
@@ -194,7 +196,51 @@ class TestCase {
   }
 }
 
-class MatchProcedureExpectations extends Step<List<TestCase>, Null, Context> {
+class OutputParametersMatches
+    extends Step<List<TestCase>, List<TestCase>, Context> {
+  const OutputParametersMatches();
+
+  @override
+  String get name => "output parameters matches";
+
+  @override
+  Future<Result<List<TestCase>>> run(List<TestCase> tests, Context context) {
+    for (TestCase test in tests) {
+      for (CompilationResult result in test.results) {
+        Procedure? compiledProcedure = result.compiledProcedure;
+        if (compiledProcedure == null) continue;
+        if (compiledProcedure.function.namedParameters.isNotEmpty) {
+          return Future.value(
+              fail(tests, "Compiled expression contains named parameters."));
+        }
+        List<VariableDeclaration> positionals =
+            compiledProcedure.function.positionalParameters;
+        if (positionals.length != test.definitions.length) {
+          return Future.value(fail(
+              tests,
+              "Compiled expression contains a wrong number of "
+              "positional parameters: Expected ${test.definitions.length} "
+              "(${test.definitions.join(", ")}) "
+              "but had ${positionals.length} "
+              "(${positionals.map((p) => p.name).join(", ")})."));
+        }
+        for (int i = 0; i < positionals.length; i++) {
+          if (positionals[i].name != test.definitions[i]) {
+            return Future.value(fail(
+                tests,
+                "Compiled expression doesn't contain '${test.definitions[i]}' "
+                "but '${positionals[i].name}' as positional parameter $i."));
+          }
+        }
+      }
+    }
+
+    return Future.value(pass(tests));
+  }
+}
+
+class MatchProcedureExpectations
+    extends Step<List<TestCase>, List<TestCase>, Context> {
   final String suffix;
   final bool updateExpectations;
 
@@ -205,7 +251,8 @@ class MatchProcedureExpectations extends Step<List<TestCase>, Null, Context> {
   String get name => "match expectations";
 
   @override
-  Future<Result<Null>> run(List<TestCase> tests, Context context) async {
+  Future<Result<List<TestCase>>> run(
+      List<TestCase> tests, Context context) async {
     String actual = "";
     for (TestCase test in tests) {
       String primary = test.results.first.printResult(test.entryPoint, context);
@@ -215,7 +262,7 @@ class MatchProcedureExpectations extends Step<List<TestCase>, Null, Context> {
             test.results[i].printResult(test.entryPoint, context);
         if (primary != secondary) {
           return fail(
-              null,
+              tests,
               "Multiple expectations don't match on $test:"
               "\nFirst expectation:\n$actual\n"
               "\nSecond expectation:\n$secondary\n");
@@ -231,19 +278,19 @@ class MatchProcedureExpectations extends Step<List<TestCase>, Null, Context> {
         if (!updateExpectations) {
           String diff = await runDiff(expectedFile.uri, actual);
           return fail(
-              null, "$testUri doesn't match ${expectedFile.uri}\n$diff");
+              tests, "$testUri doesn't match ${expectedFile.uri}\n$diff");
         }
       } else {
-        return pass(null);
+        return pass(tests);
       }
     }
     if (updateExpectations) {
       await openWrite(expectedFile.uri, (IOSink sink) {
         sink.writeln(actual.trim());
       });
-      return pass(null);
+      return pass(tests);
     } else {
-      return fail(null, """
+      return fail(tests, """
 Please create file ${expectedFile.path} with this content:
 $actual""");
     }

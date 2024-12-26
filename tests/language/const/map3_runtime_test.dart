@@ -13,8 +13,6 @@ class A {
 
 class B implements A {
   const B();
-
-
 }
 
 main() {

@@ -11,34 +11,4 @@ class Foo<X> {
   const Foo.baz();
 }
 
-main() {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}
+main() {}

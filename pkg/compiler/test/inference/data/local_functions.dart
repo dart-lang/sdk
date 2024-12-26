@@ -23,7 +23,8 @@ main() {
 
 /*member: namedLocalFunctionInvoke:[exact=JSUInt31]*/
 namedLocalFunctionInvoke() {
-  /*[exact=JSUInt31]*/ local() => 0;
+  /*[exact=JSUInt31]*/
+  local() => 0;
   return local();
 }
 
@@ -43,7 +44,8 @@ unnamedLocalFunctionInvoke() {
 
 /*member: namedLocalFunctionGet:[subclass=Closure]*/
 namedLocalFunctionGet() {
-  /*[exact=JSUInt31]*/ local() => 0;
+  /*[exact=JSUInt31]*/
+  local() => 0;
   return local;
 }
 
@@ -53,7 +55,8 @@ namedLocalFunctionGet() {
 
 /*member: recursiveLocalFunction:[subclass=Closure]*/
 recursiveLocalFunction() {
-  /*[subclass=Closure]*/ local() => local;
+  /*[subclass=Closure]*/
+  local() => local;
   return local();
 }
 
@@ -64,7 +67,8 @@ recursiveLocalFunction() {
 /*member: namedLocalFunctionInvokeMissingArgument:[null|subclass=Object]*/
 @pragma('dart2js:disableFinal')
 namedLocalFunctionInvokeMissingArgument() {
-  /*[exact=JSUInt31]*/ local(/*[empty]*/ x) => 0;
+  /*[exact=JSUInt31]*/
+  local(/*[empty]*/ x) => 0;
   dynamic b = local;
   return b();
 }
@@ -76,7 +80,8 @@ namedLocalFunctionInvokeMissingArgument() {
 /*member: namedLocalFunctionInvokeExtraArgument:[null|subclass=Object]*/
 @pragma('dart2js:disableFinal')
 namedLocalFunctionInvokeExtraArgument() {
-  /*[exact=JSUInt31]*/ local() => 0;
+  /*[exact=JSUInt31]*/
+  local() => 0;
   dynamic b = local;
   return b(0);
 }
@@ -88,7 +93,8 @@ namedLocalFunctionInvokeExtraArgument() {
 /*member: namedLocalFunctionInvokeExtraNamedArgument:[null|subclass=Object]*/
 @pragma('dart2js:disableFinal')
 namedLocalFunctionInvokeExtraNamedArgument() {
-  /*[exact=JSUInt31]*/ local() => 0;
+  /*[exact=JSUInt31]*/
+  local() => 0;
   dynamic b = local;
   return b(a: 0);
 }
@@ -127,9 +133,11 @@ _callCompare(int /*[subclass=Closure]*/ compare({a, b})) {
 
 /*member: callCompare:[null]*/
 callCompare() {
-  _callCompare(/*[subclass=JSInt]*/
-      ({/*[exact=JSUInt31]*/ a, /*[exact=JSUInt31]*/ b}) =>
-          a /*invoke: [exact=JSUInt31]*/ - b);
+  _callCompare(
+    /*[subclass=JSInt]*/
+    ({/*[exact=JSUInt31]*/ a, /*[exact=JSUInt31]*/ b}) =>
+        a /*invoke: [exact=JSUInt31]*/ - b,
+  );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

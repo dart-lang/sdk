@@ -45,9 +45,10 @@ final emptyPackageConfig = '''{
 ''';
 
 Future<void> invokeHelper({bool withPackageConfig = true}) async {
-  final test = withPackageConfig
-      ? 'with packageConfig'
-      : 'with automaticPackageResolution';
+  final test =
+      withPackageConfig
+          ? 'with packageConfig'
+          : 'with automaticPackageResolution';
   print('invoke helper $test');
   await withTempDir((tempUri) async {
     await createTestFiles(tempUri);
@@ -85,10 +86,7 @@ Future<void> createTestFiles(Uri tempUri) async {
 
   final nativeAssetsYaml = createNativeAssetYaml(
     asset: helperCopiedUri.toString(),
-    assetMapping: [
-      'absolute',
-      ffiTestFunctionsUriAbsolute.toFilePath(),
-    ],
+    assetMapping: ['absolute', ffiTestFunctionsUriAbsolute.toFilePath()],
   );
   final nativeAssetsUri = dartToolsUri.resolve('native_assets.yaml');
   await File.fromUri(nativeAssetsUri).writeAsString(nativeAssetsYaml);

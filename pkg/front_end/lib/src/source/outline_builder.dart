@@ -1760,7 +1760,7 @@ class OutlineBuilder extends StackListenerImpl {
               name: identifier.name,
               typeParameters: typeParameters,
               formals: formals,
-              kind: kind,
+              isOperator: false,
               startOffset: startOffset,
               nameOffset: nameOffset,
               formalsOffset: formalsOffset,

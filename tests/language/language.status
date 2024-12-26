@@ -27,9 +27,6 @@ type_object/literal_type_literal_test: SkipByDesign # Relies on symbol names
 unsorted/invocation_mirror_test: SkipByDesign # Relies on symbol names
 vm/type_cast_vm_test: SkipByDesign # Relies on symbol names
 
-[ $compiler != dart2analyzer ]
-switch/case_warn_test: Skip # Analyzer only, see language_analyzer2.status
-
 [ $compiler == dart2bytecode ]
 class_modifiers/trans_legacy/legacy_superdeclaration_test: Crash
 const/inference_test: Crash

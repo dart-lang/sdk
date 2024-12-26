@@ -28,14 +28,16 @@ final ffiTestFunctionsFileName = dylibName('ffi_test_functions');
 
 final cwdUri = Directory.current.uri;
 
-final platformExecutableUriAbsolute =
-    cwdUri.resolve(Platform.executable.replaceAll('\\', '/'));
+final platformExecutableUriAbsolute = cwdUri.resolve(
+  Platform.executable.replaceAll('\\', '/'),
+);
 
 /// The build folder on desktop platforms.
 final buildUriAbsolute = platformExecutableUriAbsolute.parent;
 
-final ffiTestFunctionsUriAbsolute =
-    buildUriAbsolute.resolve(ffiTestFunctionsFileName);
+final ffiTestFunctionsUriAbsolute = buildUriAbsolute.resolve(
+  ffiTestFunctionsFileName,
+);
 
 /// The sdk folder on desktop platforms.
 final sdkUriAbsolute = buildUriAbsolute.parent.parent;
@@ -44,24 +46,29 @@ final standaloneExtension = (Platform.isWindows ? '.bat' : '');
 
 final standaloneExtensionExe = (Platform.isWindows ? '.exe' : '');
 
-final genKernelUri =
-    sdkUriAbsolute.resolve('pkg/vm/tool/gen_kernel$standaloneExtension');
+final genKernelUri = sdkUriAbsolute.resolve(
+  'pkg/vm/tool/gen_kernel$standaloneExtension',
+);
 
-final protobufAwareTreeshakerUri =
-    sdkUriAbsolute.resolve('pkg/vm/bin/protobuf_aware_treeshaker.dart');
+final protobufAwareTreeshakerUri = sdkUriAbsolute.resolve(
+  'pkg/vm/bin/protobuf_aware_treeshaker.dart',
+);
 
-final genSnapshotUri =
-    buildUriAbsolute.resolve('gen_snapshot$standaloneExtensionExe');
+final genSnapshotUri = buildUriAbsolute.resolve(
+  'gen_snapshot$standaloneExtensionExe',
+);
 
 final dartUri = buildUriAbsolute.resolve('dart$standaloneExtensionExe');
 
-final dartPrecompiledRuntimeUri =
-    buildUriAbsolute.resolve('dartaotruntime$standaloneExtensionExe');
+final dartPrecompiledRuntimeUri = buildUriAbsolute.resolve(
+  'dartaotruntime$standaloneExtensionExe',
+);
 
 final platformDillUri = buildUriAbsolute.resolve('vm_platform_strong.dill');
 
-final packageConfigUri =
-    sdkUriAbsolute.resolve('.dart_tool/package_config.json');
+final packageConfigUri = sdkUriAbsolute.resolve(
+  '.dart_tool/package_config.json',
+);
 
 extension on Uri {
   Uri get parent {
@@ -119,45 +126,34 @@ stderr     : ${result.stderr}''';
   }
 }
 
-enum KernelCombine {
-  source,
-  concatenation,
-}
+enum KernelCombine { source, concatenation }
 
-enum Runtime {
-  aot,
-  appjit,
-  jit,
-}
+enum Runtime { aot, appjit, jit }
 
-enum AotCompile {
-  assembly,
-  elf,
-}
+enum AotCompile { assembly, elf }
 
 Future<void> runGenKernel({
   required Runtime runtime,
   required Uri outputUri,
   Uri? inputUri,
   Uri? nativeAssetsUri,
-}) =>
-    runProcess(
-      executable: genKernelUri.toFilePath(),
-      arguments: [
-        if (runtime == Runtime.aot) '--aot',
-        '--platform',
-        platformDillUri.toFilePath(),
-        '--packages',
-        packageConfigUri.toFilePath(),
-        '--output',
-        outputUri.toFilePath(),
-        if (nativeAssetsUri != null) ...[
-          '--native-assets',
-          nativeAssetsUri.toFilePath(),
-        ],
-        if (inputUri != null) inputUri.toFilePath(),
-      ],
-    );
+}) => runProcess(
+  executable: genKernelUri.toFilePath(),
+  arguments: [
+    if (runtime == Runtime.aot) '--aot',
+    '--platform',
+    platformDillUri.toFilePath(),
+    '--packages',
+    packageConfigUri.toFilePath(),
+    '--output',
+    outputUri.toFilePath(),
+    if (nativeAssetsUri != null) ...[
+      '--native-assets',
+      nativeAssetsUri.toFilePath(),
+    ],
+    if (inputUri != null) inputUri.toFilePath(),
+  ],
+);
 
 Future<void> createDillFile({
   required Uri outputUri,
@@ -199,13 +195,10 @@ Future<void> createDillFile({
           await File.fromUri(nativeAssetsDillUri).readAsBytes();
       await File.fromUri(
         protobufAwareTreeshaking ? preTreeshakenDill : outputUri,
-      ).writeAsBytes(
-        [
-          ...programKernelBytes,
-          ...nativeAssetKernelBytes,
-        ],
-        flush: true,
-      );
+      ).writeAsBytes([
+        ...programKernelBytes,
+        ...nativeAssetKernelBytes,
+      ], flush: true);
   }
 
   if (protobufAwareTreeshaking) {
@@ -291,48 +284,38 @@ Future<void> runDart({
   Uri? workingDirectory,
   Uri? packageConfigUri,
   List<String> toolArgs = const [],
-}) =>
-    runProcess(
-      executable: dartUri.toFilePath(),
-      arguments: [
-        // Prevent subprocesses holding on to [workingDirectory] on Windows.
-        '--suppress-core-dump',
-        ...toolArgs,
-        if (packageConfigUri != null)
-          '--packages=${packageConfigUri.toFilePath()}',
-        scriptUri.toFilePath(),
-        ...arguments,
-      ],
-      workingDirectory: workingDirectory,
-    );
+}) => runProcess(
+  executable: dartUri.toFilePath(),
+  arguments: [
+    // Prevent subprocesses holding on to [workingDirectory] on Windows.
+    '--suppress-core-dump',
+    ...toolArgs,
+    if (packageConfigUri != null) '--packages=${packageConfigUri.toFilePath()}',
+    scriptUri.toFilePath(),
+    ...arguments,
+  ],
+  workingDirectory: workingDirectory,
+);
 
 Future<void> runDartKernelSnapshot({
   required Uri outputUri,
   required Uri inputUri,
   Uri? packageConfigUri,
   Uri? workingDirectory,
-}) =>
-    runDart(
-      workingDirectory: workingDirectory,
-      toolArgs: [
-        '--snapshot-kind=kernel',
-        '--snapshot=${outputUri.toFilePath()}',
-      ],
-      packageConfigUri: packageConfigUri,
-      scriptUri: inputUri,
-    );
+}) => runDart(
+  workingDirectory: workingDirectory,
+  toolArgs: ['--snapshot-kind=kernel', '--snapshot=${outputUri.toFilePath()}'],
+  packageConfigUri: packageConfigUri,
+  scriptUri: inputUri,
+);
 
 Future<void> runDartAotRuntime({
   required Uri aotSnapshotUri,
   List<String> arguments = const [],
-}) =>
-    runProcess(
-      executable: dartPrecompiledRuntimeUri.toFilePath(),
-      arguments: [
-        aotSnapshotUri.toFilePath(),
-        ...arguments,
-      ],
-    );
+}) => runProcess(
+  executable: dartPrecompiledRuntimeUri.toFilePath(),
+  arguments: [aotSnapshotUri.toFilePath(), ...arguments],
+);
 
 Future<void> testIsolateSpawnUri({
   required Uri spawnUri,
@@ -413,32 +396,20 @@ Future<void> compileAndRun({
         await withTempDir(prefix: 'link dir', (tempDir) async {
           final link = Link.fromUri(tempDir.resolve('my_link'));
           await link.create(outDillUri.toFilePath());
-          await runDart(
-            scriptUri: link.uri,
-            arguments: runArguments,
-          );
+          await runDart(scriptUri: link.uri, arguments: runArguments);
         });
       } else {
-        await runDart(
-          scriptUri: outJitUri,
-          arguments: runArguments,
-        );
+        await runDart(scriptUri: outJitUri, arguments: runArguments);
       }
     case Runtime.jit:
       if (useSymlink) {
         await withTempDir(prefix: 'link dir', (tempDir) async {
           final link = Link.fromUri(tempDir.resolve('my_link'));
           await link.create(outDillUri.toFilePath());
-          await runDart(
-            scriptUri: link.uri,
-            arguments: runArguments,
-          );
+          await runDart(scriptUri: link.uri, arguments: runArguments);
         });
       } else {
-        await runDart(
-          scriptUri: outDillUri,
-          arguments: runArguments,
-        );
+        await runDart(scriptUri: outDillUri, arguments: runArguments);
       }
   }
 }
@@ -546,46 +517,45 @@ Future<void> Function(List<String> args, Object? message) selfInvokingTest({
   required Future<void> Function() doOnProcessInvocation,
   required Future<void> Function() doOnSpawnUriInvocation,
   bool verbose = false,
-}) =>
-    (List<String> args, Object? message) async {
-      if (verbose) print('main');
-      if (args.isEmpty) {
-        if (verbose) print('doOnOuterInvocation');
-        // Outer invocation: compile and run this file.
-        // We're likely in `dartaotruntime` when running tests on the bot, because
-        // those configurations are guaranteed to have the dartaotruntime available.
-        // However we might be in JIT mode when tests are run locally.
-        // This means, we cannot call `Isolate.spawnUri` on the snapshots we
-        // create directly.
-        await doOnOuterInvocation();
-        if (verbose) print('doOnOuterInvocation done');
-        return;
-      }
+}) => (List<String> args, Object? message) async {
+  if (verbose) print('main');
+  if (args.isEmpty) {
+    if (verbose) print('doOnOuterInvocation');
+    // Outer invocation: compile and run this file.
+    // We're likely in `dartaotruntime` when running tests on the bot, because
+    // those configurations are guaranteed to have the dartaotruntime available.
+    // However we might be in JIT mode when tests are run locally.
+    // This means, we cannot call `Isolate.spawnUri` on the snapshots we
+    // create directly.
+    await doOnOuterInvocation();
+    if (verbose) print('doOnOuterInvocation done');
+    return;
+  }
 
-      final sendPort = message as SendPort?;
-      if (sendPort == null) {
-        // First self-invocation, we are now guaranteed to be in the right runtime:
-        // `Platform.resolvedExecutable` will be dartaotruntime if the
-        // `Platform.script` is an aot snapshot. So, it's valid to call
-        // `Isolate.spawnUri` with `Platform.script`.
-        if (verbose) print('doOnProcessInvocation');
-        await doOnProcessInvocation();
-        if (verbose) print('doOnProcessInvocation done');
-        return;
-      }
+  final sendPort = message as SendPort?;
+  if (sendPort == null) {
+    // First self-invocation, we are now guaranteed to be in the right runtime:
+    // `Platform.resolvedExecutable` will be dartaotruntime if the
+    // `Platform.script` is an aot snapshot. So, it's valid to call
+    // `Isolate.spawnUri` with `Platform.script`.
+    if (verbose) print('doOnProcessInvocation');
+    await doOnProcessInvocation();
+    if (verbose) print('doOnProcessInvocation done');
+    return;
+  }
 
-      // Second self-invocation. This time through `Isolate.spawnUri`.
-      try {
-        if (verbose) print('doOnSpawnUriInvocation');
-        await doOnSpawnUriInvocation();
-        if (verbose) print('doOnSpawnUriInvocation done');
-      } catch (e, st) {
-        sendPort.send([e.toString(), st.toString()]);
-        rethrow;
-      }
-      // Done, no errors.
-      sendPort.send(null);
-    };
+  // Second self-invocation. This time through `Isolate.spawnUri`.
+  try {
+    if (verbose) print('doOnSpawnUriInvocation');
+    await doOnSpawnUriInvocation();
+    if (verbose) print('doOnSpawnUriInvocation done');
+  } catch (e, st) {
+    sendPort.send([e.toString(), st.toString()]);
+    rethrow;
+  }
+  // Done, no errors.
+  sendPort.send(null);
+};
 
 const doesNotExistName = 'doesnotexist92304';
 
@@ -606,7 +576,8 @@ void testNonExistingFunction() {
 
   final addressOfError = Expect.throws<ArgumentError>(() {
     Native.addressOf<NativeFunction<Int32 Function(Int32, Int32)>>(
-        doesnotexist92304);
+      doesnotexist92304,
+    );
   });
   Expect.contains(doesNotExistName, addressOfError.message);
   Expect.contains('No asset with id', addressOfError.message);

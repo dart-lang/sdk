@@ -653,7 +653,7 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
   /// Return `true` if the given [element] is a top-level member of the test
   /// package.
   bool _isInsideTestPackage(engine.TopLevelFunctionElement element) {
-    var parent = element.library2!;
+    var parent = element.library2;
     return parent.firstFragment.source.fullName.endsWith('test.dart');
   }
 }

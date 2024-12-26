@@ -21,11 +21,8 @@ typedef EditableInvocationInfo =
       int numSuppliedPositionals,
     });
 
-/// A mixin that provides functionality for locating arguments and associated
-/// parameters in a document to allow a client to provide editing capabilities.
 mixin EditableArgumentsMixin {
-  /// Gets information about an invocation at [offset] in [result] that can be
-  /// edited.
+  /// Gets the argument list at [offset] that can be edited.
   EditableInvocationInfo? getInvocationInfo(
     ResolvedUnitResult result,
     int offset,

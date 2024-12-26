@@ -16,10 +16,14 @@ const String TEST_ONE = r"""
 main() {
   runTest() async {
     // Check that almost-constant interceptor is used.
-    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      String re = r'a && [\w\.]*_methods';
-      Expect.isTrue(generated.contains(new RegExp(re)), 'contains /$re/');
-    });
+    await compile(
+      TEST_ONE,
+      entry: 'foo',
+      check: (String generated) {
+        String re = r'a && [\w\.]*_methods';
+        Expect.isTrue(generated.contains(new RegExp(re)), 'contains /$re/');
+      },
+    );
   }
 
   asyncTest(() async {

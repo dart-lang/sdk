@@ -111,7 +111,9 @@ void main() {
   checkProperSubtype(TYPE_REF<Future<Object>>(), TYPE_REF<FutureOr<Object?>>());
   // Future<Object?> <: FutureOr<Object?>
   checkProperSubtype(
-      TYPE_REF<Future<Object?>>(), TYPE_REF<FutureOr<Object?>>());
+    TYPE_REF<Future<Object?>>(),
+    TYPE_REF<FutureOr<Object?>>(),
+  );
   // FutureOr<Never> <: Future<Never>
   checkSubtype(TYPE_REF<FutureOr<Never>>(), TYPE_REF<Future<Never>>());
   // Future<B> <: FutureOr<A>
@@ -147,69 +149,99 @@ void main() {
   // Generic Function Subtypes.
   // Bound is a built in type.
   // <T extends int> void -> void <: <T extends int> void -> void
-  checkSubtype(TYPE_REF<void Function<T extends int>()>(),
-      TYPE_REF<void Function<T extends int>()>());
+  checkSubtype(
+    TYPE_REF<void Function<T extends int>()>(),
+    TYPE_REF<void Function<T extends int>()>(),
+  );
 
   // <T extends String> A -> T <: <T extends String> B -> T
-  checkProperSubtype(TYPE_REF<T Function<T extends String>(A)>(),
-      TYPE_REF<T Function<T extends String>(B)>());
+  checkProperSubtype(
+    TYPE_REF<T Function<T extends String>(A)>(),
+    TYPE_REF<T Function<T extends String>(B)>(),
+  );
 
   // <T extends double> T -> B <: <T extends double> T -> A
-  checkProperSubtype(TYPE_REF<B Function<T extends double>(T)>(),
-      TYPE_REF<A Function<T extends double>(T)>());
+  checkProperSubtype(
+    TYPE_REF<B Function<T extends double>(T)>(),
+    TYPE_REF<A Function<T extends double>(T)>(),
+  );
 
   // Bound is a function type.
   // <T extends A -> B> void -> void <: <T extends A -> B> void -> void
-  checkSubtype(TYPE_REF<void Function<T extends A Function(B)>()>(),
-      TYPE_REF<void Function<T extends A Function(B)>()>());
+  checkSubtype(
+    TYPE_REF<void Function<T extends A Function(B)>()>(),
+    TYPE_REF<void Function<T extends A Function(B)>()>(),
+  );
 
   // <T extends A -> B> A -> T <: <T extends A -> B> B -> T
-  checkProperSubtype(TYPE_REF<T Function<T extends A Function(B)>(A)>(),
-      TYPE_REF<T Function<T extends A Function(B)>(B)>());
+  checkProperSubtype(
+    TYPE_REF<T Function<T extends A Function(B)>(A)>(),
+    TYPE_REF<T Function<T extends A Function(B)>(B)>(),
+  );
 
   // <T extends A -> B> T -> B <: <T extends A -> B> T -> A
-  checkProperSubtype(TYPE_REF<B Function<T extends A Function(B)>(T)>(),
-      TYPE_REF<A Function<T extends A Function(B)>(T)>());
+  checkProperSubtype(
+    TYPE_REF<B Function<T extends A Function(B)>(T)>(),
+    TYPE_REF<A Function<T extends A Function(B)>(T)>(),
+  );
 
   // Bound is a user defined class.
   // <T extends B> void -> void <: <T extends B> void -> void
-  checkSubtype(TYPE_REF<void Function<T extends B>()>(),
-      TYPE_REF<void Function<T extends B>()>());
+  checkSubtype(
+    TYPE_REF<void Function<T extends B>()>(),
+    TYPE_REF<void Function<T extends B>()>(),
+  );
 
   // <T extends B> A -> T <: <T extends B> B -> T
-  checkProperSubtype(TYPE_REF<T Function<T extends B>(A)>(),
-      TYPE_REF<T Function<T extends B>(B)>());
+  checkProperSubtype(
+    TYPE_REF<T Function<T extends B>(A)>(),
+    TYPE_REF<T Function<T extends B>(B)>(),
+  );
 
   // // <T extends B> T -> B <: <T extends B> T -> A
-  checkProperSubtype(TYPE_REF<B Function<T extends B>(T)>(),
-      TYPE_REF<A Function<T extends B>(T)>());
+  checkProperSubtype(
+    TYPE_REF<B Function<T extends B>(T)>(),
+    TYPE_REF<A Function<T extends B>(T)>(),
+  );
 
   // Bound is a Future.
   // <T extends Future<B>> void -> void <: <T extends Future<B>> void -> void
-  checkSubtype(TYPE_REF<void Function<T extends Future<B>>()>(),
-      TYPE_REF<void Function<T extends Future<B>>()>());
+  checkSubtype(
+    TYPE_REF<void Function<T extends Future<B>>()>(),
+    TYPE_REF<void Function<T extends Future<B>>()>(),
+  );
 
   // <T extends Future<B>> A -> T <: <T extends Future<B>> B -> T
-  checkProperSubtype(TYPE_REF<T Function<T extends Future<B>>(A)>(),
-      TYPE_REF<T Function<T extends Future<B>>(B)>());
+  checkProperSubtype(
+    TYPE_REF<T Function<T extends Future<B>>(A)>(),
+    TYPE_REF<T Function<T extends Future<B>>(B)>(),
+  );
 
   // <T extends Future<B>> T -> B <: <T extends Future<B>> T -> A
-  checkProperSubtype(TYPE_REF<B Function<T extends Future<B>>(T)>(),
-      TYPE_REF<A Function<T extends Future<B>>(T)>());
+  checkProperSubtype(
+    TYPE_REF<B Function<T extends Future<B>>(T)>(),
+    TYPE_REF<A Function<T extends Future<B>>(T)>(),
+  );
 
   // Bound is a FutureOr.
   // <T extends FutureOr<B>> void -> void <:
   //    <T extends FutureOr<B>> void -> void
-  checkSubtype(TYPE_REF<void Function<T extends FutureOr<B>>()>(),
-      TYPE_REF<void Function<T extends FutureOr<B>>()>());
+  checkSubtype(
+    TYPE_REF<void Function<T extends FutureOr<B>>()>(),
+    TYPE_REF<void Function<T extends FutureOr<B>>()>(),
+  );
 
   // <T extends FutureOr<B>> A -> T <: <T extends FutureOr<B>> B -> T
-  checkProperSubtype(TYPE_REF<T Function<T extends FutureOr<B>>(A)>(),
-      TYPE_REF<T Function<T extends FutureOr<B>>(B)>());
+  checkProperSubtype(
+    TYPE_REF<T Function<T extends FutureOr<B>>(A)>(),
+    TYPE_REF<T Function<T extends FutureOr<B>>(B)>(),
+  );
 
   // <T extends FutureOr<B>> T -> B <: <T extends FutureOr<B>> T -> A
-  checkProperSubtype(TYPE_REF<B Function<T extends FutureOr<B>>(T)>(),
-      TYPE_REF<A Function<T extends FutureOr<B>>(T)>());
+  checkProperSubtype(
+    TYPE_REF<B Function<T extends FutureOr<B>>(T)>(),
+    TYPE_REF<A Function<T extends FutureOr<B>>(T)>(),
+  );
 
   // Generics.
   // D <:> D<B>

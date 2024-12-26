@@ -77,8 +77,8 @@ io/https_connection_closed_during_handshake_test: SkipByDesign # long_ssl_cert_e
 io/https_nonblocking_trust_evaluation_test: SkipByDesign
 
 [ $simulator ]
-io/socket_sigpipe_test: SkipByDesign # Test uses ffi
 io/http_big_header_test: SkipSlow # Issue 52110
+io/socket_sigpipe_test: SkipByDesign # Test uses ffi
 
 [ $compiler == dartk && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.

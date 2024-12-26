@@ -17,6 +17,16 @@ main() {
 @reflectiveTest
 class DeadCodeTest extends PubPackageResolutionTest
     with DeadCodeTestCases_Language212 {
+  test_deadBlock_conditionalElse_recordPropertyAccess() async {
+    await assertErrorsInCode(r'''
+void f(({int x, int y}) p) {
+  true ? p.x : p.y;
+}
+''', [
+      error(WarningCode.DEAD_CODE, 44, 3),
+    ]);
+  }
+
   test_deadOperandLHS_or_recordPropertyAccess() async {
     await assertErrorsInCode(r'''
 void f(({bool b, }) r) {
@@ -402,7 +412,7 @@ f() {
     ]);
   }
 
-  test_deadBlock_conditionalIf() async {
+  test_deadBlock_conditionalThen() async {
     await assertErrorsInCode(r'''
 f() {
   false ? 1 : 2;
@@ -412,7 +422,7 @@ f() {
     ]);
   }
 
-  test_deadBlock_conditionalIf_debugConst() async {
+  test_deadBlock_conditionalThen_debugConst() async {
     await assertNoErrorsInCode(r'''
 const bool DEBUG = false;
 f() {
@@ -421,7 +431,7 @@ f() {
 ''');
   }
 
-  test_deadBlock_conditionalIf_nested() async {
+  test_deadBlock_conditionalThen_nested() async {
     // Test that a dead then-statement can't generate additional violations.
     await assertErrorsInCode(r'''
 f() {

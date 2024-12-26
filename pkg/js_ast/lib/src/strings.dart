@@ -73,8 +73,11 @@ class StringToSource {
   }
 
   static void writeString(
-      StringBuffer sb, String string, StringToSourceKind kind,
-      {required bool utf8}) {
+    StringBuffer sb,
+    String string,
+    StringToSourceKind kind, {
+    required bool utf8,
+  }) {
     for (int rune in string.runes) {
       String? escape = _irregularEscape(rune, kind.doubleQuotes);
       if (escape != null) {

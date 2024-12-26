@@ -67,13 +67,16 @@ void testReadWrite() {
 }
 
 void testWriteRead() {
-  SingleMapping sourceMap =
-      convertFromHumanReadableSourceMap(HUMAN_READABLE_SOURCE_MAP);
+  SingleMapping sourceMap = convertFromHumanReadableSourceMap(
+    HUMAN_READABLE_SOURCE_MAP,
+  );
   print(sourceMap);
   String humanReadable = convertToHumanReadableSourceMap(sourceMap);
   print(humanReadable);
   SingleMapping sourceMap2 = convertFromHumanReadableSourceMap(humanReadable);
   Expect.deepEquals(
-      json.decode(HUMAN_READABLE_SOURCE_MAP), json.decode(humanReadable));
+    json.decode(HUMAN_READABLE_SOURCE_MAP),
+    json.decode(humanReadable),
+  );
   Expect.deepEquals(sourceMap.toJson(), sourceMap2.toJson());
 }

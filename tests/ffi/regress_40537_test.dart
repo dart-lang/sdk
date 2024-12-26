@@ -45,9 +45,10 @@ variant1Positive() {
 /// `return x`.
 ///
 /// This does.
-final regress40537Variant2 =
-    ffiTestFunctions.lookupFunction<IntPtr Function(Uint8), int Function(int)>(
-        "Regress40537Variant2");
+final regress40537Variant2 = ffiTestFunctions
+    .lookupFunction<IntPtr Function(Uint8), int Function(int)>(
+      "Regress40537Variant2",
+    );
 
 variant2Negative() {
   // The 32 bit representation of -7 is 0xFFFFFFF9.
@@ -67,9 +68,10 @@ variant2Positive() {
 }
 
 /// `return x`.
-final regress40537Variant3 =
-    ffiTestFunctions.lookupFunction<Uint8 Function(IntPtr), int Function(int)>(
-        "Regress40537Variant3");
+final regress40537Variant3 = ffiTestFunctions
+    .lookupFunction<Uint8 Function(IntPtr), int Function(int)>(
+      "Regress40537Variant3",
+    );
 
 variant3Negative() {
   // This really passes -7 its intptr_t.

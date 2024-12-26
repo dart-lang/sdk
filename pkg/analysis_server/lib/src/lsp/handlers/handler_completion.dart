@@ -23,13 +23,13 @@ import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.d
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
 import 'package:analysis_server/src/services/snippets/dart_snippet_request.dart';
 import 'package:analysis_server/src/services/snippets/snippet_manager.dart';
+import 'package:analysis_server/src/utilities/element_location2.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -478,27 +478,26 @@ class CompletionHandler
         CompletionItemResolutionInfo? resolutionInfo;
 
         if (item is ElementBasedSuggestion && item is ImportableSuggestion) {
-          var elementLocation =
-              (item as ElementBasedSuggestion).element.asElement!.location;
-          var importUri = item.importData?.libraryUri;
+          var element = (item as ElementBasedSuggestion).element;
 
+          var importUri = item.importData?.libraryUri;
           if (importUri != null) {
             resolutionInfo = DartCompletionResolutionInfo(
               file: unit.path,
               importUris: [importUri.toString()],
-              ref: elementLocation?.encoding,
+              ref: ElementLocation2.forElement(element)?.encoding,
             );
           }
         } else if (item is OverrideSuggestion) {
           var overrideData = item.data;
           if (overrideData != null && overrideData.imports.isNotEmpty) {
-            var elementLocation =
-                (item as ElementBasedSuggestion).element.location;
+            var element = (item as ElementBasedSuggestion).element;
+
             var importUris = overrideData.imports;
             resolutionInfo = DartCompletionResolutionInfo(
               file: unit.path,
               importUris: importUris.map((uri) => uri.toString()).toList(),
-              ref: elementLocation?.encoding,
+              ref: ElementLocation2.forElement(element)?.encoding,
             );
           }
         }

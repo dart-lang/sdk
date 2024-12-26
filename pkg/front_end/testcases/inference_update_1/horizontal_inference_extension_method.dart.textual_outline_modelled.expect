@@ -3,54 +3,44 @@ extension on int {
       throw '';
   T _laterUnnamedParameter<T>(T x, void Function(T) y) => throw '';
   T _unnecessaryDueToExplicitParameterTypeNamed<T>(
-    T x,
-    T Function({required T x, required int y}) y,
-  ) => throw '';
+          T x, T Function({required T x, required int y}) y) =>
+      throw '';
   T _unnecessaryDueToNoDependency<T>(T Function() x, T y) => throw '';
   U _closureAsParameterType<T, U>(T x, U Function(T) y) => throw '';
   U _propagateFromContravariantReturnType<T, U>(
-    void Function(T) Function() x,
-    U Function(T) y,
-  ) => throw '';
+          void Function(T) Function() x, U Function(T) y) =>
+      throw '';
   U _propagateToContravariantParameterType<T, U>(
-    T Function() x,
-    U Function(void Function(T)) y,
-  ) => throw '';
+          T Function() x, U Function(void Function(T)) y) =>
+      throw '';
   U _propagateToEarlierClosure<T, U>(U Function(T) x, T Function() y) =>
       throw '';
   U _propagateToLaterClosure<T, U>(T Function() x, U Function(T) y) => throw '';
   U _propagateToReturnType<T, U>(T x, U Function(T) y) => throw '';
   V _longDependencyChain<T, U, V>(
-    T Function() x,
-    U Function(T) y,
-    V Function(U) z,
-  ) => throw '';
+          T Function() x, U Function(T) y, V Function(U) z) =>
+      throw '';
   void _earlierNamedParameter<T>({required void Function(T) a, required T b}) =>
       throw '';
-  void _earlierNamedParameterDependsOnUnnamedParameter<T>(
-    T b, {
-    required void Function(T) a,
-  }) => throw '';
+  void _earlierNamedParameterDependsOnUnnamedParameter<T>(T b,
+          {required void Function(T) a}) =>
+      throw '';
   void _earlierUnnamedParameter<T>(void Function(T) x, T y) => throw '';
   void _laterNamedParameter<T>({required T a, required void Function(T) b}) =>
       throw '';
-  void _laterUnnamedParameterDependsOnNamedParameter<T>(
-    void Function(T) x, {
-    required T a,
-  }) => throw '';
+  void _laterUnnamedParameterDependsOnNamedParameter<T>(void Function(T) x,
+          {required T a}) =>
+      throw '';
   void _parenthesized<T>(T x, void Function(T) y) => throw '';
   void _parenthesizedNamed<T>({required T a, required void Function(T) b}) =>
       throw '';
   void _parenthesizedTwice<T>(T x, void Function(T) y) => throw '';
-  void _parenthesizedTwiceNamed<T>({
-    required T a,
-    required void Function(T) b,
-  }) => throw '';
+  void _parenthesizedTwiceNamed<T>(
+          {required T a, required void Function(T) b}) =>
+      throw '';
   void _returnTypeRefersToMultipleTypeVars<T, U>(
-    Map<T, U> Function() x,
-    void Function(T) y,
-    void Function(U) z,
-  ) => throw '';
+          Map<T, U> Function() x, void Function(T) y, void Function(U) z) =>
+      throw '';
 }
 
 main() {}

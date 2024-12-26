@@ -7,18 +7,39 @@ import("//build/toolchain/ccache.gni")
 import("//build/toolchain/gcc_toolchain.gni")
 import("//build/toolchain/rbe.gni")
 
-if (use_ccache) {
-  assembler_prefix = "ccache "
-  compiler_prefix = "ccache "
-  link_prefix = "ccache "
-} else {
-  assembler_prefix = ""
-  compiler_prefix = ""
-  link_prefix = ""
-}
-
 template("fuchsia_toolchain") {
   toolchain(target_name) {
+    if (use_rbe) {
+      compiler_args =
+          rewrapper_args + [ "--labels=type=compile,compiler=clang,lang=cpp" ]
+      if (target_cpu == "x64") {
+        target_triple = "x86_64-unknown-fuchsia"
+      } else if (target_cpu == "arm64") {
+        target_triple = "aarch64-unknown-fuchsia"
+      } else if (target_cpu == "riscv64") {
+        target_triple = "riscv64-unknown-fuchsia"
+      } else {
+        assert(false, "Unsupported target_cpu: $target_cpu")
+      }
+      compiler_args += [ "--inputs=build/rbe,buildtools/$rbe_os-$rbe_cpu/clang/bin/llvm,buildtools/$rbe_os-$rbe_cpu/clang/include/$target_triple/c++/v1/__config_site" ]
+
+      # TODO: Unfortunately I see no way to get build_arch reliably.
+      if (rbe_os != host_os) {
+        compiler_args += [ "--remote_wrapper=../../build/rbe/llvm.sh" ]
+      }
+      assembler_prefix = ""
+      compiler_prefix = string_join(" ", compiler_args) + " "
+      link_prefix = ""
+    } else if (use_ccache) {
+      assembler_prefix = "ccache "
+      compiler_prefix = "ccache "
+      link_prefix = "ccache "
+    } else {
+      assembler_prefix = ""
+      compiler_prefix = ""
+      link_prefix = ""
+    }
+
     toolchain_bin =
         rebase_path("//buildtools/$host_os-x64/clang/bin", root_out_dir)
     fuchsia_sdk =

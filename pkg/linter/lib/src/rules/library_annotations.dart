@@ -91,6 +91,6 @@ extension on ElementAnnotation {
     var element = element2;
     return element is ConstructorElement2 &&
         element.enclosingElement2.name3 == className &&
-        element.library2?.name3 == libraryName;
+        element.library2.name3 == libraryName;
   }
 }

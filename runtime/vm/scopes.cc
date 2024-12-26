@@ -663,9 +663,6 @@ void LocalVariable::PrintTo(BaseTextBuffer* f,
   if (is_captured()) {
     f->AddString(", is_captured");
   }
-  if (is_captured_parameter()) {
-    f->AddString(", is_captured_parameter");
-  }
   if (is_invisible()) {
     f->AddString(", is_invisible");
   }

@@ -25,7 +25,8 @@ _refineBeforeCapture(/*[null|exact=Class1]*/ o) {
   o. /*invoke: [null|exact=Class1]*/ method1();
   o. /*invoke: [exact=Class1]*/ method1();
 
-  /*[exact=Class1]*/ localFunction() => o;
+  /*[exact=Class1]*/
+  localFunction() => o;
   return localFunction();
 }
 
@@ -50,7 +51,8 @@ class Class4 {}
 
 /*member: _refineAfterCapture:Union([exact=Class3], [exact=Class4])*/
 _refineAfterCapture(/*Union([exact=Class3], [exact=Class4])*/ o) {
-  /*Union([exact=Class3], [exact=Class4])*/ localFunction() => o;
+  /*Union([exact=Class3], [exact=Class4])*/
+  localFunction() => o;
 
   o. /*invoke: Union([exact=Class3], [exact=Class4])*/ method3();
   o. /*invoke: Union([exact=Class3], [exact=Class4])*/ method3();
@@ -79,8 +81,10 @@ class Class6 {}
 
 /*member: _refineAfterNestedCapture:Union([exact=Class5], [exact=Class6])*/
 _refineAfterNestedCapture(/*Union([exact=Class5], [exact=Class6])*/ o) {
-  /*Union([exact=Class5], [exact=Class6])*/ localFunction() {
-    /*Union([exact=Class5], [exact=Class6])*/ nestedFunction() => o;
+  /*Union([exact=Class5], [exact=Class6])*/
+  localFunction() {
+    /*Union([exact=Class5], [exact=Class6])*/
+    nestedFunction() => o;
     return nestedFunction();
   }
 
@@ -111,9 +115,10 @@ class Class8 {}
 
 /*member: _refineAfterCaptureInNested:Union([exact=Class7], [exact=Class8])*/
 _refineAfterCaptureInNested(/*Union([exact=Class7], [exact=Class8])*/ o) {
-  /*Union([exact=Class7], [exact=Class8])*/ localFunction(
-      /*Union([exact=Class7], [exact=Class8])*/ p) {
-    /*Union([exact=Class7], [exact=Class8])*/ nestedFunction() => p;
+  /*Union([exact=Class7], [exact=Class8])*/
+  localFunction(/*Union([exact=Class7], [exact=Class8])*/ p) {
+    /*Union([exact=Class7], [exact=Class8])*/
+    nestedFunction() => p;
 
     p. /*invoke: Union([exact=Class7], [exact=Class8])*/ method7();
     p. /*invoke: Union([exact=Class7], [exact=Class8])*/ method7();

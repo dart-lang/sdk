@@ -8,10 +8,10 @@ class A {
   // throws an exception.
   /*member: A.noSuchMethod:[empty]*/
   noSuchMethod(
-          /*spec.[null|subclass=Object]*/
-          /*prod.[exact=JSInvocationMirror]*/
-          im) =>
-      throw 'foo';
+    /*spec.[null|subclass=Object]*/
+    /*prod.[exact=JSInvocationMirror]*/
+    im,
+  ) => throw 'foo';
 }
 
 /*member: B.:[exact=B]*/
@@ -27,7 +27,8 @@ class C extends B {
 }
 
 /*member: a:[null|subclass=B]*/
-dynamic a = [new B(), C()]
+dynamic a =
+    [new B(), C()]
     /*Container([exact=JSExtendableArray], element: [subclass=B], length: 2)*/
     [0];
 /*member: test1:[empty]*/

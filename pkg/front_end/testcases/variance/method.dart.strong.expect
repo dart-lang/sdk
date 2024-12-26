@@ -1,0 +1,505 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/variance/method.dart:14:5: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//   T method1() => throw "uncalled";
+//     ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:15:26: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method2(Contra<T> x) {}
+//                          ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:16:10: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//   Cov<T> method3() {
+//          ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:19:31: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method4(Contra<Cov<T>> x) {}
+//                               ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:20:31: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method5(Cov<Contra<T>> x) {}
+//                               ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:21:21: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//   Contra<Contra<T>> method6() => (Contra<T> x) {};
+//                     ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:22:15: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//   Cov<Cov<T>> method7() {
+//               ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:27:10: Error: Can't use 'in' type variable 'T' in an 'inout' position in the return type.
+//   Inv<T> method8() => throw "uncalled";
+//          ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:28:23: Error: Can't use 'in' type variable 'T' in an 'inout' position.
+//   void method9(Inv<T> x) {}
+//                       ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:29:16: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//   Covariant<T> method10() => throw "uncalled";
+//                ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:30:34: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method11(Contravariant<T> x) {}
+//                                  ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:31:16: Error: Can't use 'in' type variable 'T' in an 'inout' position in the return type.
+//   Invariant<T> method12() => throw "uncalled";
+//                ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:32:30: Error: Can't use 'in' type variable 'T' in an 'inout' position.
+//   void method13(Invariant<T> x) {}
+//                              ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:33:45: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method14(Contravariant<Covariant<T>> x) {}
+//                                             ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:34:45: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method15(Covariant<Contravariant<T>> x) {}
+//                                             ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:35:35: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//   Contravariant<Contravariant<T>> method16() =>
+//                                   ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:37:27: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//   Covariant<Covariant<T>> method17() => Covariant<Covariant<T>>();
+//                           ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:38:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
+//   void method18<X extends T>() {}
+//                 ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:39:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
+//   void method19<X extends Cov<T>>() {}
+//                 ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:40:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
+//   void method20<X extends Covariant<T>>() {}
+//                 ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:41:37: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method21({required Contra<T> x}) {}
+//                                     ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:42:44: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method22({required Contravariant<T> x}) {}
+//                                            ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:43:69: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method23({required Covariant<T> x, required Contravariant<T> y}) {}
+//                                                                     ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:44:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
+//   void method24<X extends Contra<T>>() {}
+//                 ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:45:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
+//   void method25<X extends Contravariant<T>>() {}
+//                 ^
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:48:5: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//   T method1() => throw "uncalled";
+//     ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:49:26: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method2(Contra<T> x) {}
+//                          ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:50:10: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//   Cov<T> method3() {
+//          ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:53:31: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method4(Contra<Cov<T>> x) {}
+//                               ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:54:31: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method5(Cov<Contra<T>> x) {}
+//                               ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:55:21: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//   Contra<Contra<T>> method6() => (Contra<T> x) {};
+//                     ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:56:15: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//   Cov<Cov<T>> method7() {
+//               ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:61:10: Error: Can't use 'in' type variable 'T' in an 'inout' position in the return type.
+//   Inv<T> method8() => throw "uncalled";
+//          ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:62:23: Error: Can't use 'in' type variable 'T' in an 'inout' position.
+//   void method9(Inv<T> x) {}
+//                       ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:63:16: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//   Covariant<T> method10() => throw "uncalled";
+//                ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:64:34: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method11(Contravariant<T> x) {}
+//                                  ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:65:16: Error: Can't use 'in' type variable 'T' in an 'inout' position in the return type.
+//   Invariant<T> method12() => throw "uncalled";
+//                ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:66:30: Error: Can't use 'in' type variable 'T' in an 'inout' position.
+//   void method13(Invariant<T> x) {}
+//                              ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:67:45: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method14(Contravariant<Covariant<T>> x) {}
+//                                             ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:68:45: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method15(Covariant<Contravariant<T>> x) {}
+//                                             ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:69:35: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//   Contravariant<Contravariant<T>> method16() =>
+//                                   ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:71:27: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//   Covariant<Covariant<T>> method17() => Covariant<Covariant<T>>();
+//                           ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:72:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
+//   void method18<X extends T>() {}
+//                 ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:73:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
+//   void method19<X extends Cov<T>>() {}
+//                 ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:74:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
+//   void method20<X extends Covariant<T>>() {}
+//                 ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:75:37: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method21({required Contra<T> x}) {}
+//                                     ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:76:44: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method22({required Contravariant<T> x}) {}
+//                                            ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:77:69: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method23({required Covariant<T> x, required Contravariant<T> y}) {}
+//                                                                     ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:78:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
+//   void method24<X extends Contra<T>>() {}
+//                 ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:79:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
+//   void method25<X extends Contravariant<T>>() {}
+//                 ^
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/method.dart:82:21: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method1(A<T> x) {}
+//                     ^
+// pkg/front_end/testcases/variance/method.dart:81:12: Context: This is the type variable whose bound isn't conformed to.
+// class B<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:83:16: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//   Contra<A<T>> method2() {
+//                ^
+// pkg/front_end/testcases/variance/method.dart:81:12: Context: This is the type variable whose bound isn't conformed to.
+// class B<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/method.dart:92:32: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   void method(void Function(T) x) {}
+//                                ^
+// pkg/front_end/testcases/variance/method.dart:90:12: Context: This is the type variable whose bound isn't conformed to.
+// class D<in T> extends C<void Function(T)> {
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef Inv<invariant T extends core::Object? = dynamic> = <X extends T% = dynamic>() → void;
+typedef Cov<T extends core::Object? = dynamic> = () → T%;
+typedef Contra<contravariant T extends core::Object? = dynamic> = (T%) → void;
+class Covariant<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Covariant<self::Covariant::T%>
+    : super core::Object::•()
+    ;
+}
+class Contravariant<contravariant T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Contravariant<self::Contravariant::T%>
+    : super core::Object::•()
+    ;
+}
+class Invariant<invariant T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Invariant<self::Invariant::T%>
+    : super core::Object::•()
+    ;
+}
+class A<contravariant T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+  method method1() → self::A::T%
+    return throw "uncalled";
+  method method2(covariant-by-class (self::A::T%) → void x) → void {}
+  method method3() → () → self::A::T% {
+    return () → Never => throw "uncalled";
+  }
+  method method4(covariant-by-class (() → self::A::T%) → void x) → void {}
+  method method5(covariant-by-class () → (self::A::T%) → void x) → void {}
+  method method6() → ((self::A::T%) → void) → void
+    return ((self::A::T%) → void x) → void {};
+  method method7() → () → () → self::A::T% {
+    return () → () → Never {
+      return () → Never => throw "uncalled";
+    };
+  }
+  method method8() → <X extends self::A::T% = dynamic>() → void
+    return throw "uncalled";
+  method method9(covariant-by-class <X extends self::A::T% = dynamic>() → void x) → void {}
+  method method10() → self::Covariant<self::A::T%>
+    return throw "uncalled";
+  method method11(covariant-by-class self::Contravariant<self::A::T%> x) → void {}
+  method method12() → self::Invariant<self::A::T%>
+    return throw "uncalled";
+  method method13(covariant-by-class self::Invariant<self::A::T%> x) → void {}
+  method method14(covariant-by-class self::Contravariant<self::Covariant<self::A::T%>> x) → void {}
+  method method15(covariant-by-class self::Covariant<self::Contravariant<self::A::T%>> x) → void {}
+  method method16() → self::Contravariant<self::Contravariant<self::A::T%>>
+    return new self::Contravariant::•<self::Contravariant<self::A::T%>>();
+  method method17() → self::Covariant<self::Covariant<self::A::T%>>
+    return new self::Covariant::•<self::Covariant<self::A::T%>>();
+  method method18<X extends self::A::T%>() → void {}
+  method method19<X extends () → self::A::T%>() → void {}
+  method method20<X extends self::Covariant<self::A::T%>>() → void {}
+  method method21({required covariant-by-class (self::A::T%) → void x}) → void {}
+  method method22({required covariant-by-class self::Contravariant<self::A::T%> x}) → void {}
+  method method23({required self::Covariant<self::A::T%> x, required covariant-by-class self::Contravariant<self::A::T%> y}) → void {}
+  method method24<covariant-by-class X extends (self::A::T%) → void>() → void {}
+  method method25<covariant-by-class X extends self::Contravariant<self::A::T%>>() → void {}
+}
+abstract class BMixin<contravariant T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+  method method1() → self::BMixin::T%
+    return throw "uncalled";
+  method method2(covariant-by-class (self::BMixin::T%) → void x) → void {}
+  method method3() → () → self::BMixin::T% {
+    return () → Never => throw "uncalled";
+  }
+  method method4(covariant-by-class (() → self::BMixin::T%) → void x) → void {}
+  method method5(covariant-by-class () → (self::BMixin::T%) → void x) → void {}
+  method method6() → ((self::BMixin::T%) → void) → void
+    return ((self::BMixin::T%) → void x) → void {};
+  method method7() → () → () → self::BMixin::T% {
+    return () → () → Never {
+      return () → Never => throw "uncalled";
+    };
+  }
+  method method8() → <X extends self::BMixin::T% = dynamic>() → void
+    return throw "uncalled";
+  method method9(covariant-by-class <X extends self::BMixin::T% = dynamic>() → void x) → void {}
+  method method10() → self::Covariant<self::BMixin::T%>
+    return throw "uncalled";
+  method method11(covariant-by-class self::Contravariant<self::BMixin::T%> x) → void {}
+  method method12() → self::Invariant<self::BMixin::T%>
+    return throw "uncalled";
+  method method13(covariant-by-class self::Invariant<self::BMixin::T%> x) → void {}
+  method method14(covariant-by-class self::Contravariant<self::Covariant<self::BMixin::T%>> x) → void {}
+  method method15(covariant-by-class self::Covariant<self::Contravariant<self::BMixin::T%>> x) → void {}
+  method method16() → self::Contravariant<self::Contravariant<self::BMixin::T%>>
+    return new self::Contravariant::•<self::Contravariant<self::BMixin::T%>>();
+  method method17() → self::Covariant<self::Covariant<self::BMixin::T%>>
+    return new self::Covariant::•<self::Covariant<self::BMixin::T%>>();
+  method method18<X extends self::BMixin::T%>() → void {}
+  method method19<X extends () → self::BMixin::T%>() → void {}
+  method method20<X extends self::Covariant<self::BMixin::T%>>() → void {}
+  method method21({required covariant-by-class (self::BMixin::T%) → void x}) → void {}
+  method method22({required covariant-by-class self::Contravariant<self::BMixin::T%> x}) → void {}
+  method method23({required self::Covariant<self::BMixin::T%> x, required covariant-by-class self::Contravariant<self::BMixin::T%> y}) → void {}
+  method method24<covariant-by-class X extends (self::BMixin::T%) → void>() → void {}
+  method method25<covariant-by-class X extends self::Contravariant<self::BMixin::T%>>() → void {}
+}
+class B<contravariant T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::T%>
+    : super core::Object::•()
+    ;
+  method method1(covariant-by-class self::A<self::B::T%> x) → void {}
+  method method2() → (self::A<self::B::T%>) → void {
+    throw "uncalled";
+  }
+}
+class C<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T%>
+    : super core::Object::•()
+    ;
+  method method(covariant-by-class self::C::T% x) → void {}
+}
+class D<contravariant T extends core::Object? = dynamic> extends self::C<(self::D::T%) → void> {
+  synthetic constructor •() → self::D<self::D::T%>
+    : super self::C::•()
+    ;
+  @#C1
+  method method(covariant-by-class (self::D::T%) → void x) → void {}
+}
+
+constants  {
+  #C1 = core::_Override {}
+}

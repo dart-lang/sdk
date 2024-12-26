@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/lint/io.dart';
 
-import 'annotation_test.dart' as annotation;
 import 'ascii_utils_test.dart' as ascii_utils;
 import 'doc_test.dart' as doc;
 import 'engine_test.dart' as engine;
@@ -30,7 +29,6 @@ void main() {
   // Redirect output.
   outSink = MockIOSink();
 
-  annotation.main();
   ascii_utils.main();
   doc.main();
   engine.main();

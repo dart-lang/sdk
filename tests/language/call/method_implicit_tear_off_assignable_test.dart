@@ -16,7 +16,8 @@ main() {
   // supertype of the target type. Since we no longer allow implicit downcasts,
   // this is a static error.
   void Function([int]) f = i;
+  //                   ^
+  // [cfe] A value of type 'void Function()' can't be assigned to a variable of type 'void Function([int])'.
   //                       ^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-  // [cfe] unspecified
 }

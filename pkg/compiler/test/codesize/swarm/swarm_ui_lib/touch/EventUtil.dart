@@ -11,9 +11,12 @@ class EventUtil {
   /// If [capture] is true, the listener gets events on the capture phase.
   /// If [removeHandlerOnFocus] is true the handler is removed when there is any
   /// focus event, and added back on blur events.
-  static void observe(/*Element or Document*/ element, Stream<Event> stream,
-      EventListener handler,
-      [bool removeHandlerOnFocus = false]) {
+  static void observe(
+    /*Element or Document*/ element,
+    Stream<Event> stream,
+    EventListener handler, [
+    bool removeHandlerOnFocus = false,
+  ]) {
     var subscription = stream.listen(handler);
     // TODO(jacobr): this remove on focus behavior seems really ugly.
     if (removeHandlerOnFocus) {

@@ -887,8 +887,6 @@ void f() {
 }
 ''', [
       error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
-      // TODO(pq): consider deduplicating.
-      error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
     ]);
   }
 
@@ -1623,7 +1621,7 @@ class B extends A {
 ''',
       [
         error(HintCode.DEPRECATED_MEMBER_USE, 57, 7,
-            text: "'A.new' is deprecated and shouldn't be used."),
+            text: "'A' is deprecated and shouldn't be used."),
       ],
     );
   }

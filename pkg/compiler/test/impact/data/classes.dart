@@ -246,7 +246,9 @@ class ForwardingConstructorGenericSuperClass<T> {
 }
 
 class ForwardingConstructorGenericClass<
-    S> = ForwardingConstructorGenericSuperClass<S> with EmptyMixin;
+  S
+> = ForwardingConstructorGenericSuperClass<S>
+    with EmptyMixin;
 
 /*member: testForwardingConstructorGeneric:
  static=[

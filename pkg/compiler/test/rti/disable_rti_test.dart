@@ -55,28 +55,29 @@ method<T>() {
 
 const Map<String, List<String>> expectedIsChecksMap =
     const <String, List<String>>{
-  'A': const <String>[],
-  'B': const <String>[],
-  'C': const <String>[r'$isB'],
-  // TODO(sigmund): change these tests to check that the new rti medatada
-  // includes the information we need to check the equivalent of D.$asB and
-  // F.$asB
-  'D': const <String>[r'$isB'],
-  'E': const <String>[],
-  'F': const <String>[],
-  'G': const <String>[],
-  'H': const <String>[r'$isG'],
-  'I': const <String>[],
-  'method_local1': const <String>[r'$signature'],
-  'method_local2': const <String>[r'$signature'],
-  'method_local3': const <String>[r'$signature'],
-};
+      'A': const <String>[],
+      'B': const <String>[],
+      'C': const <String>[r'$isB'],
+      // TODO(sigmund): change these tests to check that the new rti medatada
+      // includes the information we need to check the equivalent of D.$asB and
+      // F.$asB
+      'D': const <String>[r'$isB'],
+      'E': const <String>[],
+      'F': const <String>[],
+      'G': const <String>[],
+      'H': const <String>[r'$isG'],
+      'I': const <String>[],
+      'method_local1': const <String>[r'$signature'],
+      'method_local2': const <String>[r'$signature'],
+      'method_local3': const <String>[r'$signature'],
+    };
 
 main() {
   runTest() async {
     CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': code},
-        options: [Flags.disableRtiOptimization, Flags.disableInlining]);
+      memorySourceFiles: {'main.dart': code},
+      options: [Flags.disableRtiOptimization, Flags.disableInlining],
+    );
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler!;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
@@ -88,20 +89,27 @@ main() {
 
     void processMember(MemberEntity element) {
       if (element is FunctionEntity) {
-        Expect.isTrue(rtiNeed.methodNeedsTypeArguments(element),
-            "Expected $element to need type arguments.");
-        Expect.isTrue(rtiNeed.methodNeedsSignature(element),
-            "Expected $element to need signature.");
-        elementEnvironment.forEachNestedClosure(element,
-            (FunctionEntity local) {
+        Expect.isTrue(
+          rtiNeed.methodNeedsTypeArguments(element),
+          "Expected $element to need type arguments.",
+        );
+        Expect.isTrue(
+          rtiNeed.methodNeedsSignature(element),
+          "Expected $element to need signature.",
+        );
+        elementEnvironment.forEachNestedClosure(element, (
+          FunctionEntity local,
+        ) {
           closures.add(local.enclosingClass!);
         });
       }
     }
 
     void processClass(ClassEntity element) {
-      Expect.equals(elementEnvironment.isGenericClass(element),
-          closedWorld.rtiNeed.classNeedsTypeArguments(element));
+      Expect.equals(
+        elementEnvironment.isGenericClass(element),
+        closedWorld.rtiNeed.classNeedsTypeArguments(element),
+      );
       elementEnvironment.forEachConstructor(element, processMember);
       elementEnvironment.forEachLocalClassMember(element, processMember);
 
@@ -113,10 +121,11 @@ main() {
           isChecks.add(r'$signature');
         }
         Expect.setEquals(
-            expectedIsChecks,
-            isChecks,
-            "Unexpected is checks for $element: "
-            "Expected $expectedIsChecks, actual $isChecks.");
+          expectedIsChecks,
+          isChecks,
+          "Unexpected is checks for $element: "
+          "Expected $expectedIsChecks, actual $isChecks.",
+        );
       }
     }
 

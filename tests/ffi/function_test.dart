@@ -59,8 +59,9 @@ typedef NativeQuadOpSigned = Int64 Function(Int8, Int16, Int32, Int64);
 typedef QuadOp = int Function(int, int, int, int);
 typedef NativeQuadOpUnsigned = Uint64 Function(Uint8, Uint16, Uint32, Uint64);
 
-BinaryOp sumPlus42 =
-    ffiTestFunctions.lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42");
+BinaryOp sumPlus42 = ffiTestFunctions.lookupFunction<NativeBinaryOp, BinaryOp>(
+  "SumPlus42",
+);
 
 QuadOp intComputation = ffiTestFunctions
     .lookupFunction<NativeQuadOpSigned, QuadOp>("IntComputation");
@@ -75,114 +76,151 @@ void testNativeFunctionFromLookup() {
   Expect.equals(625, (intComputation as dynamic)(125, 250, 500, 1000));
 
   Expect.equals(
-      0x7FFFFFFFFFFFFFFF, intComputation(0, 0, 0, 0x7FFFFFFFFFFFFFFF));
+    0x7FFFFFFFFFFFFFFF,
+    intComputation(0, 0, 0, 0x7FFFFFFFFFFFFFFF),
+  );
   Expect.equals(
-      -0x8000000000000000, intComputation(0, 0, 0, -0x8000000000000000));
+    -0x8000000000000000,
+    intComputation(0, 0, 0, -0x8000000000000000),
+  );
 
-  Expect.equals(0x7FFFFFFFFFFFFFFF,
-      (intComputation as dynamic)(0, 0, 0, 0x7FFFFFFFFFFFFFFF));
-  Expect.equals(-0x8000000000000000,
-      (intComputation as dynamic)(0, 0, 0, -0x8000000000000000));
+  Expect.equals(
+    0x7FFFFFFFFFFFFFFF,
+    (intComputation as dynamic)(0, 0, 0, 0x7FFFFFFFFFFFFFFF),
+  );
+  Expect.equals(
+    -0x8000000000000000,
+    (intComputation as dynamic)(0, 0, 0, -0x8000000000000000),
+  );
 }
 
 typedef NativeReturnMaxUint8 = Uint8 Function();
-int Function() returnMaxUint8 = ffiTestFunctions
-    .lookup("ReturnMaxUint8")
-    .cast<NativeFunction<NativeReturnMaxUint8>>()
-    .asFunction();
-int Function() returnMaxUint8v2 = ffiTestFunctions
-    .lookup("ReturnMaxUint8v2")
-    .cast<NativeFunction<NativeReturnMaxUint8>>()
-    .asFunction();
+int Function() returnMaxUint8 =
+    ffiTestFunctions
+        .lookup("ReturnMaxUint8")
+        .cast<NativeFunction<NativeReturnMaxUint8>>()
+        .asFunction();
+int Function() returnMaxUint8v2 =
+    ffiTestFunctions
+        .lookup("ReturnMaxUint8v2")
+        .cast<NativeFunction<NativeReturnMaxUint8>>()
+        .asFunction();
 
 typedef NativeReturnMaxUint16 = Uint16 Function();
-int Function() returnMaxUint16 = ffiTestFunctions
-    .lookup("ReturnMaxUint16")
-    .cast<NativeFunction<NativeReturnMaxUint16>>()
-    .asFunction();
-int Function() returnMaxUint16v2 = ffiTestFunctions
-    .lookup("ReturnMaxUint16v2")
-    .cast<NativeFunction<NativeReturnMaxUint16>>()
-    .asFunction();
+int Function() returnMaxUint16 =
+    ffiTestFunctions
+        .lookup("ReturnMaxUint16")
+        .cast<NativeFunction<NativeReturnMaxUint16>>()
+        .asFunction();
+int Function() returnMaxUint16v2 =
+    ffiTestFunctions
+        .lookup("ReturnMaxUint16v2")
+        .cast<NativeFunction<NativeReturnMaxUint16>>()
+        .asFunction();
 
 typedef NativeReturnMaxUint32 = Uint32 Function();
-int Function() returnMaxUint32 = ffiTestFunctions
-    .lookup("ReturnMaxUint32")
-    .cast<NativeFunction<NativeReturnMaxUint32>>()
-    .asFunction();
-int Function() returnMaxUint32v2 = ffiTestFunctions
-    .lookup("ReturnMaxUint32v2")
-    .cast<NativeFunction<NativeReturnMaxUint32>>()
-    .asFunction();
+int Function() returnMaxUint32 =
+    ffiTestFunctions
+        .lookup("ReturnMaxUint32")
+        .cast<NativeFunction<NativeReturnMaxUint32>>()
+        .asFunction();
+int Function() returnMaxUint32v2 =
+    ffiTestFunctions
+        .lookup("ReturnMaxUint32v2")
+        .cast<NativeFunction<NativeReturnMaxUint32>>()
+        .asFunction();
 
 typedef NativeReturnMinInt8 = Int8 Function();
-int Function() returnMinInt8 = ffiTestFunctions
-    .lookup("ReturnMinInt8")
-    .cast<NativeFunction<NativeReturnMinInt8>>()
-    .asFunction();
-int Function() returnMinInt8v2 = ffiTestFunctions
-    .lookup("ReturnMinInt8v2")
-    .cast<NativeFunction<NativeReturnMinInt8>>()
-    .asFunction();
+int Function() returnMinInt8 =
+    ffiTestFunctions
+        .lookup("ReturnMinInt8")
+        .cast<NativeFunction<NativeReturnMinInt8>>()
+        .asFunction();
+int Function() returnMinInt8v2 =
+    ffiTestFunctions
+        .lookup("ReturnMinInt8v2")
+        .cast<NativeFunction<NativeReturnMinInt8>>()
+        .asFunction();
 
 typedef NativeReturnMinInt16 = Int16 Function();
-int Function() returnMinInt16 = ffiTestFunctions
-    .lookup("ReturnMinInt16")
-    .cast<NativeFunction<NativeReturnMinInt16>>()
-    .asFunction();
-int Function() returnMinInt16v2 = ffiTestFunctions
-    .lookup("ReturnMinInt16v2")
-    .cast<NativeFunction<NativeReturnMinInt16>>()
-    .asFunction();
+int Function() returnMinInt16 =
+    ffiTestFunctions
+        .lookup("ReturnMinInt16")
+        .cast<NativeFunction<NativeReturnMinInt16>>()
+        .asFunction();
+int Function() returnMinInt16v2 =
+    ffiTestFunctions
+        .lookup("ReturnMinInt16v2")
+        .cast<NativeFunction<NativeReturnMinInt16>>()
+        .asFunction();
 
 typedef NativeReturnMinInt32 = Int32 Function();
-int Function() returnMinInt32 = ffiTestFunctions
-    .lookup("ReturnMinInt32")
-    .cast<NativeFunction<NativeReturnMinInt32>>()
-    .asFunction();
-int Function() returnMinInt32v2 = ffiTestFunctions
-    .lookup("ReturnMinInt32v2")
-    .cast<NativeFunction<NativeReturnMinInt32>>()
-    .asFunction();
+int Function() returnMinInt32 =
+    ffiTestFunctions
+        .lookup("ReturnMinInt32")
+        .cast<NativeFunction<NativeReturnMinInt32>>()
+        .asFunction();
+int Function() returnMinInt32v2 =
+    ffiTestFunctions
+        .lookup("ReturnMinInt32v2")
+        .cast<NativeFunction<NativeReturnMinInt32>>()
+        .asFunction();
 
 typedef NativeTakeMaxUint8 = IntPtr Function(Uint8);
-int Function(int) takeMaxUint8 = ffiTestFunctions
-    .lookup("TakeMaxUint8")
-    .cast<NativeFunction<NativeTakeMaxUint8>>()
-    .asFunction();
+int Function(int) takeMaxUint8 =
+    ffiTestFunctions
+        .lookup("TakeMaxUint8")
+        .cast<NativeFunction<NativeTakeMaxUint8>>()
+        .asFunction();
 
 typedef NativeTakeMaxUint16 = IntPtr Function(Uint16);
-int Function(int) takeMaxUint16 = ffiTestFunctions
-    .lookup("TakeMaxUint16")
-    .cast<NativeFunction<NativeTakeMaxUint16>>()
-    .asFunction();
+int Function(int) takeMaxUint16 =
+    ffiTestFunctions
+        .lookup("TakeMaxUint16")
+        .cast<NativeFunction<NativeTakeMaxUint16>>()
+        .asFunction();
 
 typedef NativeTakeMaxUint32 = IntPtr Function(Uint32);
-int Function(int) takeMaxUint32 = ffiTestFunctions
-    .lookup("TakeMaxUint32")
-    .cast<NativeFunction<NativeTakeMaxUint32>>()
-    .asFunction();
+int Function(int) takeMaxUint32 =
+    ffiTestFunctions
+        .lookup("TakeMaxUint32")
+        .cast<NativeFunction<NativeTakeMaxUint32>>()
+        .asFunction();
 
 typedef NativeTakeMinInt8 = IntPtr Function(Int8);
-int Function(int) takeMinInt8 = ffiTestFunctions
-    .lookup("TakeMinInt8")
-    .cast<NativeFunction<NativeTakeMinInt8>>()
-    .asFunction();
+int Function(int) takeMinInt8 =
+    ffiTestFunctions
+        .lookup("TakeMinInt8")
+        .cast<NativeFunction<NativeTakeMinInt8>>()
+        .asFunction();
 
 typedef NativeTakeMinInt16 = IntPtr Function(Int16);
-int Function(int) takeMinInt16 = ffiTestFunctions
-    .lookup("TakeMinInt16")
-    .cast<NativeFunction<NativeTakeMinInt16>>()
-    .asFunction();
+int Function(int) takeMinInt16 =
+    ffiTestFunctions
+        .lookup("TakeMinInt16")
+        .cast<NativeFunction<NativeTakeMinInt16>>()
+        .asFunction();
 
 typedef NativeTakeMinInt32 = IntPtr Function(Int32);
-int Function(int) takeMinInt32 = ffiTestFunctions
-    .lookup("TakeMinInt32")
-    .cast<NativeFunction<NativeTakeMinInt32>>()
-    .asFunction();
+int Function(int) takeMinInt32 =
+    ffiTestFunctions
+        .lookup("TakeMinInt32")
+        .cast<NativeFunction<NativeTakeMinInt32>>()
+        .asFunction();
 
-typedef NativeTakeMaxUint8x10 = IntPtr Function(
-    Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8);
+typedef NativeTakeMaxUint8x10 =
+    IntPtr Function(
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+      Uint8,
+    );
 int Function(int, int, int, int, int, int, int, int, int, int) takeMaxUint8x10 =
     ffiTestFunctions
         .lookup("TakeMaxUint8x10")
@@ -213,9 +251,9 @@ void testExtension() {
   Expect.equals(1, takeMinInt16(-0x8000));
   Expect.equals(1, takeMinInt32(-0x80000000));
   Expect.equals(
-      1,
-      takeMaxUint8x10(
-          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff));
+    1,
+    takeMaxUint8x10(0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff),
+  );
   // Upper bits garbage, needs to truncate.
   Expect.equals(1, takeMaxUint8(0xabcff));
   Expect.equals(1, takeMaxUint16(0xabcffff));
@@ -224,9 +262,20 @@ void testExtension() {
   Expect.equals(1, takeMinInt16(0x8abc8000));
   Expect.equals(1, takeMinInt32(0x8abc80000000));
   Expect.equals(
-      1,
-      takeMaxUint8x10(0xabcff, 0xabcff, 0xabcff, 0xabcff, 0xabcff, 0xabcff,
-          0xabcff, 0xabcff, 0xabcff, 0xabcff));
+    1,
+    takeMaxUint8x10(
+      0xabcff,
+      0xabcff,
+      0xabcff,
+      0xabcff,
+      0xabcff,
+      0xabcff,
+      0xabcff,
+      0xabcff,
+      0xabcff,
+      0xabcff,
+    ),
+  );
 }
 
 QuadOp uintComputation = ffiTestFunctions
@@ -235,16 +284,20 @@ QuadOp uintComputation = ffiTestFunctions
 void test64bitInterpretations() {
   // 2 ^ 63 - 1
   Expect.equals(
-      0x7FFFFFFFFFFFFFFF, uintComputation(0, 0, 0, 0x7FFFFFFFFFFFFFFF));
+    0x7FFFFFFFFFFFFFFF,
+    uintComputation(0, 0, 0, 0x7FFFFFFFFFFFFFFF),
+  );
   // -2 ^ 63 interpreted as 2 ^ 63
   Expect.equals(
-      -0x8000000000000000, uintComputation(0, 0, 0, -0x8000000000000000));
+    -0x8000000000000000,
+    uintComputation(0, 0, 0, -0x8000000000000000),
+  );
   // -1 interpreted as 2 ^ 64 - 1
   Expect.equals(-1, uintComputation(0, 0, 0, -1));
 }
 
-typedef NativeSenaryOp = Int64 Function(
-    Int8, Int16, Int32, Uint8, Uint16, Uint32);
+typedef NativeSenaryOp =
+    Int64 Function(Int8, Int16, Int32, Uint8, Uint16, Uint32);
 typedef SenaryOp = int Function(int, int, int, int, int, int);
 
 SenaryOp sumSmallNumbers = ffiTestFunctions
@@ -263,7 +316,9 @@ void testTruncation() {
 
   Expect.equals(0xFFFFFFFF80000000, sumSmallNumbers(0, 0, 0x80000000, 0, 0, 0));
   Expect.equals(
-      0x000000007FFFFFFF, sumSmallNumbers(0, 0, 0xFFFFFFFF7FFFFFFF, 0, 0, 0));
+    0x000000007FFFFFFF,
+    sumSmallNumbers(0, 0, 0xFFFFFFFF7FFFFFFF, 0, 0, 0),
+  );
   Expect.equals(0, sumSmallNumbers(0, 0, 0, 0, 0, 0x100000000));
   Expect.equals(0xFFFFFFFF, sumSmallNumbers(0, 0, 0, 0, 0, -1));
 }
@@ -287,12 +342,34 @@ void testNativeFunctionFloats() {
   Expect.approxEquals(1337.0, times1_337Float(1000.0));
 }
 
-typedef NativeDecenaryOp = IntPtr Function(IntPtr, IntPtr, IntPtr, IntPtr,
-    IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, IntPtr);
-typedef NativeDecenaryOp2 = Int16 Function(
-    Int8, Int16, Int8, Int16, Int8, Int16, Int8, Int16, Int8, Int16);
-typedef DecenaryOp = int Function(
-    int, int, int, int, int, int, int, int, int, int);
+typedef NativeDecenaryOp =
+    IntPtr Function(
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+    );
+typedef NativeDecenaryOp2 =
+    Int16 Function(
+      Int8,
+      Int16,
+      Int8,
+      Int16,
+      Int8,
+      Int16,
+      Int8,
+      Int16,
+      Int8,
+      Int16,
+    );
+typedef DecenaryOp =
+    int Function(int, int, int, int, int, int, int, int, int, int);
 
 DecenaryOp sumManyInts = ffiTestFunctions
     .lookupFunction<NativeDecenaryOp, DecenaryOp>("SumManyInts");
@@ -308,10 +385,22 @@ void testNativeFunctionManyArguments5() {
   Expect.equals(55, sumManySmallInts(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
 }
 
-typedef NativeUndenaryOp = IntPtr Function(IntPtr, IntPtr, IntPtr, IntPtr,
-    IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, IntPtr);
-typedef UndenaryOp = int Function(
-    int, int, int, int, int, int, int, int, int, int, int);
+typedef NativeUndenaryOp =
+    IntPtr Function(
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+    );
+typedef UndenaryOp =
+    int Function(int, int, int, int, int, int, int, int, int, int, int);
 
 UndenaryOp sumManyIntsOdd = ffiTestFunctions
     .lookupFunction<NativeUndenaryOp, UndenaryOp>("SumManyIntsOdd");
@@ -320,70 +409,119 @@ void testNativeFunctionManyArguments4() {
   Expect.equals(66, sumManyIntsOdd(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11));
 }
 
-typedef NativeDoubleDecenaryOp = Double Function(Double, Double, Double, Double,
-    Double, Double, Double, Double, Double, Double);
-typedef DoubleDecenaryOp = double Function(double, double, double, double,
-    double, double, double, double, double, double);
+typedef NativeDoubleDecenaryOp =
+    Double Function(
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+    );
+typedef DoubleDecenaryOp =
+    double Function(
+      double,
+      double,
+      double,
+      double,
+      double,
+      double,
+      double,
+      double,
+      double,
+      double,
+    );
 
 DoubleDecenaryOp sumManyDoubles = ffiTestFunctions
     .lookupFunction<NativeDoubleDecenaryOp, DoubleDecenaryOp>("SumManyDoubles");
 
 void testNativeFunctionManyArguments2() {
   Expect.approxEquals(
-      55.0, sumManyDoubles(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0));
+    55.0,
+    sumManyDoubles(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0),
+  );
 }
 
-typedef NativeVigesimalOp = Double Function(
-    IntPtr,
-    Float,
-    IntPtr,
-    Double,
-    IntPtr,
-    Float,
-    IntPtr,
-    Double,
-    IntPtr,
-    Float,
-    IntPtr,
-    Double,
-    IntPtr,
-    Float,
-    IntPtr,
-    Double,
-    IntPtr,
-    Float,
-    IntPtr,
-    Double);
-typedef VigesimalOp = double Function(
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double);
+typedef NativeVigesimalOp =
+    Double Function(
+      IntPtr,
+      Float,
+      IntPtr,
+      Double,
+      IntPtr,
+      Float,
+      IntPtr,
+      Double,
+      IntPtr,
+      Float,
+      IntPtr,
+      Double,
+      IntPtr,
+      Float,
+      IntPtr,
+      Double,
+      IntPtr,
+      Float,
+      IntPtr,
+      Double,
+    );
+typedef VigesimalOp =
+    double Function(
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+    );
 
 VigesimalOp sumManyNumbers = ffiTestFunctions
     .lookupFunction<NativeVigesimalOp, VigesimalOp>("SumManyNumbers");
 
 void testNativeFunctionManyArguments3() {
   Expect.approxEquals(
-      210.0,
-      sumManyNumbers(1, 2.0, 3, 4.0, 5, 6.0, 7, 8.0, 9, 10.0, 11, 12.0, 13,
-          14.0, 15, 16.0, 17, 18.0, 19, 20.0));
+    210.0,
+    sumManyNumbers(
+      1,
+      2.0,
+      3,
+      4.0,
+      5,
+      6.0,
+      7,
+      8.0,
+      9,
+      10.0,
+      11,
+      12.0,
+      13,
+      14.0,
+      15,
+      16.0,
+      17,
+      18.0,
+      19,
+      20.0,
+    ),
+  );
 }
 
 typedef Int64PointerUnOp = Pointer<Int64> Function(Pointer<Int64>);
@@ -418,8 +556,10 @@ void testNullPointers() {
 typedef NativeFloatPointerToBool = Uint8 Function(Pointer<Float>);
 typedef FloatPointerToBool = int Function(Pointer<Float>);
 
-FloatPointerToBool isRoughly1337 = ffiTestFunctions.lookupFunction<
-    NativeFloatPointerToBool, FloatPointerToBool>("IsRoughly1337");
+FloatPointerToBool isRoughly1337 = ffiTestFunctions
+    .lookupFunction<NativeFloatPointerToBool, FloatPointerToBool>(
+      "IsRoughly1337",
+    );
 
 void testFloatRounding() {
   Pointer<Float> p2 = calloc();
@@ -463,14 +603,18 @@ String get arg2ObfuscatedName {
 }
 
 void testNativeFunctionNullableInt() {
-  final sumPlus42 = ffiTestFunctions.lookupFunction<
-      Int32 Function(Int32, Int32), int Function(int, int?)>("SumPlus42");
+  final sumPlus42 = ffiTestFunctions
+      .lookupFunction<Int32 Function(Int32, Int32), int Function(int, int?)>(
+        "SumPlus42",
+      );
 
   try {
     sumPlus42(3, null);
   } catch (e) {
     // TODO(http://dartbug.com/47098): Save param names to dwarf.
-    Expect.isTrue(e.toString().contains(arg2ObfuscatedName) ||
-        e.toString().contains('<optimized out>'));
+    Expect.isTrue(
+      e.toString().contains(arg2ObfuscatedName) ||
+          e.toString().contains('<optimized out>'),
+    );
   }
 }

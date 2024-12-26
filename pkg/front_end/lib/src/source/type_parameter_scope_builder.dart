@@ -35,7 +35,8 @@ import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
-import 'source_procedure_builder.dart';
+import 'source_method_builder.dart';
+import 'source_property_builder.dart';
 import 'source_type_alias_builder.dart';
 
 enum _PropertyKind {
@@ -1602,8 +1603,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         var (
           List<NominalParameterBuilder>? typeParameters,
           List<FormalParameterBuilder>? formals
-        ) = _createTypeParametersAndFormals(declarationBuilder,
-            fragment.typeParameters, fragment.formals, unboundNominalParameters,
+        ) = _createTypeParametersAndFormals(
+            declarationBuilder, null, null, unboundNominalParameters,
             isInstanceMember: isInstanceMember,
             fileUri: fragment.fileUri,
             nameOffset: fragment.nameOffset);
@@ -1633,34 +1634,23 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           procedureReference =
               indexedContainer!.lookupGetterReference(nameToLookup);
         }
-
-        SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
-            metadata: fragment.metadata,
-            modifiers: fragment.modifiers,
-            returnType: fragment.returnType,
-            name: name,
-            typeParameters: typeParameters,
-            formals: formals,
-            kind: kind,
-            libraryBuilder: enclosingLibraryBuilder,
-            declarationBuilder: declarationBuilder,
-            fileUri: fragment.fileUri,
-            startOffset: fragment.startOffset,
-            nameOffset: fragment.nameOffset,
-            // TODO(johnniwinther): Avoid formals offset on getter.
-            formalsOffset: fragment.formalsOffset,
-            endOffset: fragment.endOffset,
-            procedureReference: procedureReference,
-            tearOffReference: null,
-            asyncModifier: fragment.asyncModifier,
-            nameScheme: nameScheme,
-            nativeMethodName: fragment.nativeMethodName);
-        fragment.builder = procedureBuilder;
-        builders.add(new _AddBuilder(fragment.name, procedureBuilder,
+        SourcePropertyBuilder propertyBuilder =
+            new SourcePropertyBuilder.forGetter(
+                fileUri: fragment.fileUri,
+                fileOffset: fragment.nameOffset,
+                name: name,
+                libraryBuilder: enclosingLibraryBuilder,
+                declarationBuilder: declarationBuilder,
+                isStatic: fragment.modifiers.isStatic,
+                fragment: fragment,
+                nameScheme: nameScheme,
+                getterReference: procedureReference);
+        fragment.setBuilder(propertyBuilder, typeParameters, formals);
+        builders.add(new _AddBuilder(fragment.name, propertyBuilder,
             fragment.fileUri, fragment.nameOffset));
         if (procedureReference != null) {
           loader.buildersCreatedWithReferences[procedureReference] =
-              procedureBuilder;
+              propertyBuilder;
         }
       case SetterFragment():
         String name = fragment.name;
@@ -1670,8 +1660,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         var (
           List<NominalParameterBuilder>? typeParameters,
           List<FormalParameterBuilder>? formals
-        ) = _createTypeParametersAndFormals(declarationBuilder,
-            fragment.typeParameters, fragment.formals, unboundNominalParameters,
+        ) = _createTypeParametersAndFormals(
+            declarationBuilder, null, null, unboundNominalParameters,
             isInstanceMember: isInstanceMember,
             fileUri: fragment.fileUri,
             nameOffset: fragment.nameOffset);
@@ -1712,36 +1702,26 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 indexedContainer!.lookupSetterReference(nameToLookup);
           }
         }
-
-        SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
-            metadata: fragment.metadata,
-            modifiers: fragment.modifiers,
-            returnType: fragment.returnType,
-            name: name,
-            typeParameters: typeParameters,
-            formals: formals,
-            kind: kind,
-            libraryBuilder: enclosingLibraryBuilder,
-            declarationBuilder: declarationBuilder,
-            fileUri: fragment.fileUri,
-            startOffset: fragment.startOffset,
-            nameOffset: fragment.nameOffset,
-            formalsOffset: fragment.formalsOffset,
-            endOffset: fragment.endOffset,
-            procedureReference: procedureReference,
-            tearOffReference: null,
-            asyncModifier: fragment.asyncModifier,
-            nameScheme: nameScheme,
-            nativeMethodName: fragment.nativeMethodName);
-        fragment.builder = procedureBuilder;
-        builders.add(new _AddBuilder(fragment.name, procedureBuilder,
+        SourcePropertyBuilder propertyBuilder =
+            new SourcePropertyBuilder.forSetter(
+                fileUri: fragment.fileUri,
+                fileOffset: fragment.nameOffset,
+                name: name,
+                libraryBuilder: enclosingLibraryBuilder,
+                declarationBuilder: declarationBuilder,
+                isStatic: fragment.modifiers.isStatic,
+                fragment: fragment,
+                nameScheme: nameScheme,
+                setterReference: procedureReference);
+        fragment.setBuilder(propertyBuilder, typeParameters, formals);
+        builders.add(new _AddBuilder(fragment.name, propertyBuilder,
             fragment.fileUri, fragment.nameOffset));
         if (procedureReference != null) {
           loader.buildersCreatedWithReferences[procedureReference] =
-              procedureBuilder;
+              propertyBuilder;
         }
         if (conflictingSetter) {
-          procedureBuilder.isConflictingSetter = true;
+          propertyBuilder.isConflictingSetter = true;
         }
       case MethodFragment():
         String name = fragment.name;
@@ -1751,8 +1731,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         var (
           List<NominalParameterBuilder>? typeParameters,
           List<FormalParameterBuilder>? formals
-        ) = _createTypeParametersAndFormals(declarationBuilder,
-            fragment.typeParameters, fragment.formals, unboundNominalParameters,
+        ) = _createTypeParametersAndFormals(
+            declarationBuilder, null, null, unboundNominalParameters,
             isInstanceMember: isInstanceMember,
             fileUri: fragment.fileUri,
             nameOffset: fragment.nameOffset);
@@ -1760,9 +1740,12 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         fragment.typeParameterNameSpace.addTypeParameters(
             problemReporting, typeParameters,
             ownerName: name, allowNameConflict: true);
+        fragment.typeParameterNameSpace.addTypeParameters(
+            problemReporting, fragment.declaredTypeParameters,
+            ownerName: name, allowNameConflict: true);
 
-        ProcedureKind kind = fragment.kind;
-        assert(kind == ProcedureKind.Method || kind == ProcedureKind.Operator);
+        ProcedureKind kind =
+            fragment.isOperator ? ProcedureKind.Operator : ProcedureKind.Method;
 
         final bool isExtensionMember = containerType == ContainerType.Extension;
         final bool isExtensionTypeMember =
@@ -1795,33 +1778,23 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                     .name);
           }
         }
-
-        SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
-            metadata: fragment.metadata,
-            modifiers: fragment.modifiers,
-            returnType: fragment.returnType,
+        SourceMethodBuilder methodBuilder = new SourceMethodBuilder(
+            fileUri: fragment.fileUri,
+            fileOffset: fragment.nameOffset,
             name: name,
-            typeParameters: typeParameters,
-            formals: formals,
-            kind: kind,
             libraryBuilder: enclosingLibraryBuilder,
             declarationBuilder: declarationBuilder,
-            fileUri: fragment.fileUri,
-            startOffset: fragment.startOffset,
-            nameOffset: fragment.nameOffset,
-            formalsOffset: fragment.formalsOffset,
-            endOffset: fragment.endOffset,
-            procedureReference: procedureReference,
-            tearOffReference: tearOffReference,
-            asyncModifier: fragment.asyncModifier,
+            isStatic: fragment.modifiers.isStatic,
+            fragment: fragment,
             nameScheme: nameScheme,
-            nativeMethodName: fragment.nativeMethodName);
-        fragment.builder = procedureBuilder;
-        builders.add(new _AddBuilder(fragment.name, procedureBuilder,
+            reference: procedureReference,
+            tearOffReference: tearOffReference);
+        fragment.setBuilder(methodBuilder, typeParameters, formals);
+        builders.add(new _AddBuilder(fragment.name, methodBuilder,
             fragment.fileUri, fragment.nameOffset));
         if (procedureReference != null) {
           loader.buildersCreatedWithReferences[procedureReference] =
-              procedureBuilder;
+              methodBuilder;
         }
       case ConstructorFragment():
         List<NominalParameterBuilder>? typeParameters = fragment.typeParameters;
@@ -2191,6 +2164,7 @@ class LibraryNameSpaceBuilder {
 
       assert(
           !(declaration is FunctionBuilder &&
+              // Coverage-ignore(suite): Not run.
               (declaration.isConstructor || declaration.isFactory)),
           "Unexpected constructor in library: $declaration.");
 
@@ -2651,6 +2625,7 @@ bool isDuplicatedDeclaration(Builder? existing, Builder other) {
 
         if (nominalVariableCopy != null) {
           if (typeParameters != null) {
+            // Coverage-ignore-block(suite): Not run.
             typeParameters = nominalVariableCopy.newParameterBuilders
               ..addAll(typeParameters);
           } else {
@@ -2673,6 +2648,7 @@ bool isDuplicatedDeclaration(Builder? existing, Builder other) {
               hasImmediatelyDeclaredInitializer: false)
         ];
         if (formals != null) {
+          // Coverage-ignore-block(suite): Not run.
           synthesizedFormals.addAll(formals);
         }
         formals = synthesizedFormals;
@@ -2686,6 +2662,7 @@ bool isDuplicatedDeclaration(Builder? existing, Builder other) {
 
         if (nominalVariableCopy != null) {
           if (typeParameters != null) {
+            // Coverage-ignore-block(suite): Not run.
             typeParameters = nominalVariableCopy.newParameterBuilders
               ..addAll(typeParameters);
           } else {
@@ -2723,6 +2700,7 @@ bool isDuplicatedDeclaration(Builder? existing, Builder other) {
               hasImmediatelyDeclaredInitializer: false)
         ];
         if (formals != null) {
+          // Coverage-ignore-block(suite): Not run.
           synthesizedFormals.addAll(formals);
         }
         formals = synthesizedFormals;

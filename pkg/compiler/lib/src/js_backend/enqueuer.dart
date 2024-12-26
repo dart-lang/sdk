@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js.enqueue;
+library;
 
 import 'dart:collection' show Queue;
 
@@ -50,9 +50,13 @@ class CodegenEnqueuer extends Enqueuer {
   // applying additional impacts before re-emptying the queue.
   void Function()? onEmptyForTesting;
 
-  CodegenEnqueuer(this.task, this.worldBuilder, this._workItemBuilder,
-      this.listener, this._annotationsData)
-      : this.name = 'codegen enqueuer';
+  CodegenEnqueuer(
+    this.task,
+    this.worldBuilder,
+    this._workItemBuilder,
+    this.listener,
+    this._annotationsData,
+  ) : name = 'codegen enqueuer';
 
   @override
   Iterable<ClassEntity> get directlyInstantiatedClasses =>
@@ -84,8 +88,10 @@ class CodegenEnqueuer extends Enqueuer {
     _queue.add(workItem);
   }
 
-  void _registerInstantiatedType(InterfaceType type,
-      {bool nativeUsage = false}) {
+  void _registerInstantiatedType(
+    InterfaceType type, {
+    bool nativeUsage = false,
+  }) {
     task.measureSubtask('codegen.typeUse', () {
       worldBuilder.registerTypeInstantiation(type, _applyClassUse);
       listener.registerInstantiatedType(type, nativeUsage: nativeUsage);
@@ -94,24 +100,29 @@ class CodegenEnqueuer extends Enqueuer {
 
   @override
   bool checkNoEnqueuedInvokedInstanceMethods(
-      ElementEnvironment elementEnvironment) {
+    ElementEnvironment elementEnvironment,
+  ) {
     return checkEnqueuerConsistency(elementEnvironment);
   }
 
   @override
   void checkClass(ClassEntity cls) {
-    worldBuilder.processClassMembers(cls,
-        (MemberEntity member, EnumSet<MemberUse> useSet) {
+    worldBuilder.processClassMembers(cls, (
+      MemberEntity member,
+      EnumSet<MemberUse> useSet,
+    ) {
       if (useSet.isNotEmpty) {
-        failedAt(member,
-            'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}');
+        failedAt(
+          member,
+          'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}',
+        );
       }
     }, checkEnqueuerConsistency: true);
   }
 
   /// Callback for applying the use of a [cls].
   void _applyClassUse(ClassEntity cls, EnumSet<ClassUse> useSet) {
-    if (useSet.contains(ClassUse.INSTANTIATED)) {
+    if (useSet.contains(ClassUse.instantiated)) {
       _recentClasses.add(cls);
       worldBuilder.processClassMembers(cls, _applyMemberUse);
       // We only tell the backend once that [cls] was instantiated, so
@@ -119,20 +130,20 @@ class CodegenEnqueuer extends Enqueuer {
       // dependencies.
       applyImpact(listener.registerInstantiatedClass(cls));
     }
-    if (useSet.contains(ClassUse.IMPLEMENTED)) {
+    if (useSet.contains(ClassUse.implemented)) {
       applyImpact(listener.registerImplementedClass(cls));
     }
   }
 
   /// Callback for applying the use of a [member].
   void _applyMemberUse(MemberEntity member, EnumSet<MemberUse> useSet) {
-    if (useSet.contains(MemberUse.NORMAL)) {
+    if (useSet.contains(MemberUse.normal)) {
       _addToWorkList(member);
     }
-    if (useSet.contains(MemberUse.CLOSURIZE_INSTANCE)) {
+    if (useSet.contains(MemberUse.closurizeInstance)) {
       _registerClosurizedMember(member as FunctionEntity);
     }
-    if (useSet.contains(MemberUse.CLOSURIZE_STATIC)) {
+    if (useSet.contains(MemberUse.closurizeStatic)) {
       applyImpact(listener.registerGetOfStaticFunction());
     }
   }
@@ -149,32 +160,32 @@ class CodegenEnqueuer extends Enqueuer {
     task.measureSubtask('codegen.staticUse', () {
       worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
       switch (staticUse.kind) {
-        case StaticUseKind.CONSTRUCTOR_INVOKE:
-        case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+        case StaticUseKind.constructorInvoke:
+        case StaticUseKind.constConstructorInvoke:
           processTypeUse(member, TypeUse.instantiation(staticUse.type!));
           break;
-        case StaticUseKind.INLINING:
+        case StaticUseKind.inlining:
           // TODO(johnniwinther): Should this be tracked with _MemberUsage ?
           listener.registerUsedElement(staticUse.element as MemberEntity);
           break;
-        case StaticUseKind.CALL_METHOD:
-        case StaticUseKind.CLOSURE:
-        case StaticUseKind.CLOSURE_CALL:
-        case StaticUseKind.DIRECT_INVOKE:
-        case StaticUseKind.FIELD_CONSTANT_INIT:
-        case StaticUseKind.FIELD_INIT:
-        case StaticUseKind.INSTANCE_FIELD_GET:
-        case StaticUseKind.INSTANCE_FIELD_SET:
-        case StaticUseKind.STATIC_GET:
-        case StaticUseKind.STATIC_INVOKE:
-        case StaticUseKind.STATIC_SET:
-        case StaticUseKind.STATIC_TEAR_OFF:
-        case StaticUseKind.SUPER_FIELD_SET:
-        case StaticUseKind.SUPER_GET:
-        case StaticUseKind.SUPER_INVOKE:
-        case StaticUseKind.SUPER_SETTER_SET:
-        case StaticUseKind.SUPER_TEAR_OFF:
-        case StaticUseKind.WEAK_STATIC_TEAR_OFF:
+        case StaticUseKind.callMethod:
+        case StaticUseKind.closure:
+        case StaticUseKind.closureCall:
+        case StaticUseKind.directInvoke:
+        case StaticUseKind.fieldConstantInit:
+        case StaticUseKind.fieldInit:
+        case StaticUseKind.instanceFieldGet:
+        case StaticUseKind.instanceFieldSet:
+        case StaticUseKind.staticGet:
+        case StaticUseKind.staticInvoke:
+        case StaticUseKind.staticSet:
+        case StaticUseKind.staticTearOff:
+        case StaticUseKind.superFieldSet:
+        case StaticUseKind.superGet:
+        case StaticUseKind.superInvoke:
+        case StaticUseKind.superSetterSet:
+        case StaticUseKind.superTearOff:
+        case StaticUseKind.weakStaticTearOff:
           break;
       }
     });
@@ -184,52 +195,52 @@ class CodegenEnqueuer extends Enqueuer {
   void processTypeUse(MemberEntity? member, TypeUse typeUse) {
     DartType type = typeUse.type;
     switch (typeUse.kind) {
-      case TypeUseKind.INSTANTIATION:
+      case TypeUseKind.instantiation:
         _registerInstantiatedType(type as InterfaceType);
         break;
-      case TypeUseKind.NATIVE_INSTANTIATION:
+      case TypeUseKind.nativeInstantiation:
         _registerInstantiatedType(type as InterfaceType, nativeUsage: true);
         break;
-      case TypeUseKind.RECORD_INSTANTIATION:
+      case TypeUseKind.recordInstantiation:
         // TODO(49718): Collect record types for conversion to classes.
         throw UnimplementedError('processTypeUse  $member  $typeUse');
-      case TypeUseKind.IS_CHECK:
-      case TypeUseKind.CATCH_TYPE:
+      case TypeUseKind.isCheck:
+      case TypeUseKind.catchType:
         _registerIsCheck(type);
         break;
-      case TypeUseKind.AS_CAST:
+      case TypeUseKind.asCast:
         if (_annotationsData.getExplicitCastCheckPolicy(member).isEmitted) {
           _registerIsCheck(type);
         }
         break;
-      case TypeUseKind.IMPLICIT_CAST:
+      case TypeUseKind.implicitCast:
         if (_annotationsData.getImplicitDowncastCheckPolicy(member).isEmitted) {
           _registerIsCheck(type);
         }
         break;
-      case TypeUseKind.PARAMETER_CHECK:
-      case TypeUseKind.TYPE_VARIABLE_BOUND_CHECK:
+      case TypeUseKind.parameterCheck:
+      case TypeUseKind.typeVariableBoundCheck:
         if (_annotationsData.getParameterCheckPolicy(member).isEmitted) {
           _registerIsCheck(type);
         }
         break;
-      case TypeUseKind.TYPE_LITERAL:
+      case TypeUseKind.typeLiteral:
         if (type is TypeVariableType) {
           worldBuilder.registerTypeVariableTypeLiteral(type);
         }
         break;
-      case TypeUseKind.RTI_VALUE:
+      case TypeUseKind.rtiValue:
         worldBuilder.registerConstTypeLiteral(type);
         break;
-      case TypeUseKind.TYPE_ARGUMENT:
+      case TypeUseKind.typeArgument:
         worldBuilder.registerTypeArgument(type);
         break;
-      case TypeUseKind.CONSTRUCTOR_REFERENCE:
+      case TypeUseKind.constructorReference:
         worldBuilder.registerConstructorReference(type as InterfaceType);
         break;
-      case TypeUseKind.CONST_INSTANTIATION:
-        failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected type use: $typeUse.");
-      case TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI:
+      case TypeUseKind.constInstantiation:
+        failedAt(currentElementSpannable, "Unexpected type use: $typeUse.");
+      case TypeUseKind.namedTypeVariableNewRti:
         _registerNamedTypeVariableNewRti(type as TypeVariableType);
         break;
     }
@@ -258,7 +269,7 @@ class CodegenEnqueuer extends Enqueuer {
     applyImpact(listener.registerClosurizedMember(element));
   }
 
-  void _forEach(void f(WorkItem work)) {
+  void _forEach(void Function(WorkItem work) f) {
     do {
       while (_queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
@@ -274,12 +285,13 @@ class CodegenEnqueuer extends Enqueuer {
       _recentClasses.clear();
       _recentConstants = false;
       if (!_onQueueEmpty(recents)) _recentClasses.addAll(recents);
-    } while (
-        _queue.isNotEmpty || _recentClasses.isNotEmpty || _recentConstants);
+    } while (_queue.isNotEmpty ||
+        _recentClasses.isNotEmpty ||
+        _recentConstants);
   }
 
   @override
-  void forEach(void f(WorkItem work)) {
+  void forEach(void Function(WorkItem work) f) {
     _forEach(f);
     if (onEmptyForTesting != null) {
       onEmptyForTesting!();
@@ -298,7 +310,7 @@ class CodegenEnqueuer extends Enqueuer {
   }
 
   @override
-  void logSummary(void log(String message)) {
+  void logSummary(void Function(String message) log) {
     log('Compiled ${processedEntities.length} methods.');
     listener.logSummary(log);
   }

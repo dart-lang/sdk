@@ -6,13 +6,14 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
-import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// A [Refactoring] for renaming [LibraryImportElement]s.
@@ -79,17 +80,22 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
       }
     }
     // update references
-    var matches = await searchEngine.searchReferences(element);
-    var references = getSourceReferences(matches);
+    var references = await searchEngine.searchLibraryImportReferences(
+      element.asElement2,
+    );
     for (var reference in references) {
       if (newName.isEmpty) {
-        reference.addEdit(change, '');
+        doSourceChange_addSourceEdit(
+          change,
+          reference.libraryFragment.source,
+          newSourceEdit_range(reference.range, ''),
+        );
       } else {
         var identifier = await _getInterpolationIdentifier(reference);
         if (identifier != null) {
-          doSourceChange_addElementEdit(
+          doSourceChange_addFragmentEdit(
             change,
-            reference.element,
+            reference.libraryFragment,
             SourceEdit(
               identifier.offset,
               identifier.length,
@@ -97,7 +103,11 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
             ),
           );
         } else {
-          reference.addEdit(change, '$newName.');
+          doSourceChange_addSourceEdit(
+            change,
+            reference.libraryFragment.source,
+            newSourceEdit_range(reference.range, '$newName.'),
+          );
         }
       }
     }
@@ -120,9 +130,9 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   /// an [InterpolationExpression] without surrounding curly brackets, return
   /// it. Otherwise return `null`.
   Future<SimpleIdentifier?> _getInterpolationIdentifier(
-    SourceReference reference,
+    LibraryFragmentSearchMatch reference,
   ) async {
-    var source = reference.element.source!;
+    var source = reference.libraryFragment.source;
     var unitResult = sessionHelper.session.getParsedUnit(source.fullName);
     if (unitResult is! ParsedUnitResult) {
       return null;

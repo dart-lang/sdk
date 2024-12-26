@@ -19,13 +19,19 @@ ArgParser createArgParser() {
   argParser.addFlag('colors', negatable: true);
   argParser.addFlag('all', negatable: false, defaultsTo: false);
   argParser.addFlag('strong', negatable: false, defaultsTo: false);
-  argParser.addFlag('omit-implicit-checks',
-      negatable: false, defaultsTo: false);
+  argParser.addFlag(
+    'omit-implicit-checks',
+    negatable: false,
+    defaultsTo: false,
+  );
   return argParser;
 }
 
-show<T>(ArgResults argResults, DataComputer<T> dataComputer,
-    {List<String> options = const <String>[]}) async {
+show<T>(
+  ArgResults argResults,
+  DataComputer<T> dataComputer, {
+  List<String> options = const <String>[],
+}) async {
   dataComputer.setup();
 
   if (argResults.wasParsed('colors')) {
@@ -49,14 +55,20 @@ show<T>(ArgResults argResults, DataComputer<T> dataComputer,
   if (omitImplicitChecks) {
     options.add(Flags.omitImplicitChecks);
   }
-  Dart2jsCompiledData<T>? data = await computeData<T>(
-      file, entryPoint, const {}, dataComputer,
-      options: options,
-      testFrontend: dataComputer.testFrontend,
-      forUserLibrariesOnly: false,
-      skipUnprocessedMembers: true,
-      skipFailedCompilations: true,
-      verbose: verbose) as Dart2jsCompiledData<T>?;
+  Dart2jsCompiledData<T>? data =
+      await computeData<T>(
+            file,
+            entryPoint,
+            const {},
+            dataComputer,
+            options: options,
+            testFrontend: dataComputer.testFrontend,
+            forUserLibrariesOnly: false,
+            skipUnprocessedMembers: true,
+            skipFailedCompilations: true,
+            verbose: verbose,
+          )
+          as Dart2jsCompiledData<T>?;
   if (data == null) {
     print('Compilation failed.');
   } else {

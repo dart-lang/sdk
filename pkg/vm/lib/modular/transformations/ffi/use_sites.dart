@@ -210,7 +210,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
                 node == lookupFunctionTearoff ||
                 node == abiSpecificIntegerPointerElementAtTearoff ||
                 node == structPointerElementAtTearoff ||
-                node == unionPointerElementAtTearoff))) ||
+                node == structPointerRefWithFinalizerTearoff ||
+                node == unionPointerElementAtTearoff ||
+                node == unionPointerRefWithFinalizerTearoff))) ||
         // Dart2wasm uses enabledConstructorTearOffLowerings but these are not
         // users trying to call constructors.
         isConstructorTearOffLowering(node);
@@ -337,6 +339,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         ensureNativeTypeValid(nativeType, node, allowStructAndUnion: true);
 
         return _replaceSetRef(node);
+      } else if (target == structPointerRefWithFinalizer ||
+          target == unionPointerRefWithFinalizer) {
+        final DartType nativeType = node.arguments.types[0];
+
+        ensureNativeTypeValid(nativeType, node, allowStructAndUnion: true);
+
+        return _replaceRefWithFinalizer(node);
       } else if (target == abiSpecificIntegerPointerElementAt ||
           target == structPointerElementAt ||
           target == unionPointerElementAt ||
@@ -1050,6 +1059,52 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     );
   }
 
+  /// Replaces a `.refWithFinalizer` on a compound pointer extension with a
+  /// typed data view.
+  Expression _replaceRefWithFinalizer(StaticInvocation node) {
+    final dartType = node.arguments.types[0] as InterfaceType;
+    final constructors = dartType.classNode.constructors;
+    final fromTypedDataCtor =
+        constructors.firstWhere((c) => c.name == Name("#fromTypedData"));
+    // args: (receiver, finalizer, {token})
+    final pointer = node.arguments.positional[0];
+    final finalizer =
+        NamedExpression('finalizer', node.arguments.positional[1]);
+    NamedExpression? token;
+    if (node.arguments.named.isNotEmpty) {
+      token = node.arguments.named[0];
+    }
+
+    final cast = InstanceInvocation(
+      InstanceAccessKind.Instance,
+      pointer,
+      castMethod.name,
+      Arguments(const [], types: [uint8Type]),
+      interfaceTarget: castMethod,
+      functionType: FunctionTypeInstantiator.instantiate(
+        castMethod.getterType as FunctionType,
+        [uint8Type],
+      ),
+    );
+
+    return ConstructorInvocation(
+      fromTypedDataCtor,
+      Arguments(
+        [
+          StaticInvocation(
+            uint8PointerAsTypedList,
+            Arguments(
+              [cast, inlineSizeOf(dartType)!],
+              named: [finalizer, if (token != null) token],
+            ),
+          ),
+          ConstantExpression(IntConstant(0)),
+          inlineSizeOf(dartType)!,
+        ],
+      ),
+    );
+  }
+
   Expression _replaceRefArray(StaticInvocation node) {
     final dartType = node.arguments.types[0];
     final clazz = (dartType as InterfaceType).classNode;
@@ -1217,6 +1272,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
                     arrayNestedDimensionsFirst.name,
                     interfaceTarget: arrayNestedDimensionsFirst,
                     resultType: arrayNestedDimensionsFirst.getterType),
+                InstanceGet(
+                  InstanceAccessKind.Instance,
+                  VariableGet(arrayVar),
+                  arrayVariableLengthField.name,
+                  interfaceTarget: arrayVariableLengthField,
+                  resultType: arrayVariableLengthField.type,
+                ),
                 InstanceGet(InstanceAccessKind.Instance, VariableGet(arrayVar),
                     arrayNestedDimensionsRest.name,
                     interfaceTarget: arrayNestedDimensionsRest,

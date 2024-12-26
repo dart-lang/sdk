@@ -43,6 +43,7 @@ void IsolateSpawn(const char* platform_script_value) {
       "}\n",
       platform_script_value);
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle test_lib = TestCase::LoadTestScript(scriptChars, nullptr);
 
   free(scriptChars);
@@ -242,6 +243,7 @@ ISOLATE_UNIT_TEST_CASE(Isolate_MayExit_True) {
 
   EXPECT_EQ(false, thread->is_unwind_in_progress());
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_EnterScope();
 
   Dart_Handle lib =
@@ -266,6 +268,7 @@ ISOLATE_UNIT_TEST_CASE(Isolate_MayExit_False) {
 
   EXPECT_EQ(false, thread->is_unwind_in_progress());
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_EnterScope();
 
   Dart_Handle lib =

@@ -1,6 +1,6 @@
 class BuildAssert {
   const BuildAssert(bool condition, [Object? message])
-    : assert(condition, message);
+      : assert(condition, message);
 }
 
 class Const {

@@ -32,15 +32,23 @@ class InliningDataComputer extends DataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool verbose = false}) {
+  void computeMemberData(
+    Compiler compiler,
+    MemberEntity member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool verbose = false,
+  }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    InliningIrComputer(compiler.reporter, actualMap, elementMap, member,
-            compiler.backendStrategy, closedWorld.closureDataLookup)
-        .run(definition.node);
+    InliningIrComputer(
+      compiler.reporter,
+      actualMap,
+      elementMap,
+      member,
+      compiler.backendStrategy,
+      closedWorld.closureDataLookup,
+    ).run(definition.node);
   }
 
   @override
@@ -55,14 +63,14 @@ class InliningIrComputer extends IrDataExtractor<String> {
   final InlineDataCache _inlineDataCache;
 
   InliningIrComputer(
-      DiagnosticReporter reporter,
-      Map<Id, ActualData<String>> actualMap,
-      this._elementMap,
-      MemberEntity member,
-      this._backendStrategy,
-      this._closureDataLookup)
-      : this._inlineDataCache = InlineDataCache(enableUserAssertions: true),
-        super(reporter, actualMap);
+    DiagnosticReporter reporter,
+    Map<Id, ActualData<String>> actualMap,
+    this._elementMap,
+    MemberEntity member,
+    this._backendStrategy,
+    this._closureDataLookup,
+  ) : this._inlineDataCache = InlineDataCache(enableUserAssertions: true),
+      super(reporter, actualMap);
 
   String? getMemberValue(MemberEntity member) {
     if (member is FunctionEntity) {
@@ -71,10 +79,12 @@ class InliningIrComputer extends IrDataExtractor<String> {
         constructorBody = getConstructorBody(member);
       }
       List<String> inlinedIn = <String>[];
-      _backendStrategy.codegenImpactsForTesting!
-          .forEach((MemberEntity user, WorldImpact impact) {
+      _backendStrategy.codegenImpactsForTesting!.forEach((
+        MemberEntity user,
+        WorldImpact impact,
+      ) {
         for (StaticUse use in impact.staticUses) {
-          if (use.kind == StaticUseKind.INLINING) {
+          if (use.kind == StaticUseKind.inlining) {
             if (use.element == member) {
               if (use.type != null) {
                 inlinedIn.add('${user.name}:${use.type}');
@@ -121,7 +131,8 @@ class InliningIrComputer extends IrDataExtractor<String> {
 
   ConstructorBodyEntity getConstructorBody(ConstructorEntity constructor) {
     return _elementMap.getConstructorBody(
-            _elementMap.getMemberDefinition(constructor).node as ir.Constructor)
+          _elementMap.getMemberDefinition(constructor).node as ir.Constructor,
+        )
         as ConstructorBodyEntity;
   }
 
@@ -147,8 +158,9 @@ class InliningIrComputer extends IrDataExtractor<String> {
   @override
   String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info =
-          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(
+        node as ir.LocalFunction,
+      );
       return getMemberValue(info.callMethod!);
     }
     return null;

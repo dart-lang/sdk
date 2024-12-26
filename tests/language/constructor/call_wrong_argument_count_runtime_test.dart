@@ -11,5 +11,4 @@ class Stockhorn {
 
 main() {
   new Stockhorn(1);
-
 }

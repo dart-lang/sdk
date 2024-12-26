@@ -17,6 +17,8 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
 /// Returns a [List] of fixed length with given types.
@@ -84,7 +86,11 @@ class DynamicTypeImpl extends TypeImpl
 }
 
 /// The type of a function, method, constructor, getter, or setter.
-class FunctionTypeImpl extends TypeImpl implements FunctionType {
+class FunctionTypeImpl extends TypeImpl
+    implements
+        FunctionType,
+        SharedFunctionTypeStructure<DartType, TypeParameterElement,
+            ParameterElement> {
   @override
   late int hashCode = _computeHashCode();
 
@@ -162,6 +168,22 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         requiredPositionalParameterCount: requiredPositionalParameterCount,
         sortedNamedParameters: sortedNamedParameters,
         alias: alias);
+  }
+
+  factory FunctionTypeImpl.v2({
+    required List<TypeParameterElement2> typeParameters,
+    required List<FormalParameterElement> formalParameters,
+    required DartType returnType,
+    required NullabilitySuffix nullabilitySuffix,
+    InstantiatedTypeAliasElement? alias,
+  }) {
+    return FunctionTypeImpl(
+      typeFormals: typeParameters.map((e) => e.asElement).toList(),
+      parameters: formalParameters.map((e) => e.asElement).toList(),
+      returnType: returnType,
+      nullabilitySuffix: nullabilitySuffix,
+      alias: alias,
+    );
   }
 
   FunctionTypeImpl._({
@@ -352,16 +374,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       for (var namedParameter in sortedNamedParameters) {
         namedParameterInfo.add(namedParameter.isRequired);
         namedParameterInfo.add(namedParameter.name);
-        namedParameterInfo.add(namedParameter.type);
       }
     }
 
     return Object.hash(
-        nullabilitySuffix,
-        returnType,
-        requiredPositionalParameterCount,
-        Object.hashAll(positionalParameterTypes),
-        namedParameterInfo);
+      nullabilitySuffix,
+      returnType,
+      requiredPositionalParameterCount,
+      namedParameterInfo,
+    );
   }
 
   /// Given two functions [f1] and [f2] where f1 and f2 are known to be
@@ -751,7 +772,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<MethodElement2> get methods2 =>
-      methods.map((fragment) => (fragment as MethodFragment).element).toList();
+      methods.map((e) => e.asElement2).toList();
 
   @override
   List<InterfaceType> get mixins {
@@ -889,6 +910,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       MethodMember.from(element.getMethod(methodName), this);
 
   @override
+  MethodElement2? getMethod2(String methodName) {
+    return getMethod(methodName)?.asElement2;
+  }
+
+  @override
   PropertyAccessorElement? getSetter(String setterName) =>
       PropertyAccessorMember.from(element.getSetter(setterName), this);
 
@@ -953,6 +979,23 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  GetterElement? lookUpGetter3(
+    String name,
+    LibraryElement2 library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  }) {
+    return lookUpGetter2(
+      name,
+      library.asElement,
+      concrete: concrete,
+      inherited: inherited,
+      recoveryStatic: recoveryStatic,
+    )?.asElement2.ifTypeOrNull();
+  }
+
+  @override
   MethodElement? lookUpMethod2(
     String name,
     LibraryElement library, {
@@ -992,6 +1035,23 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  MethodElement2? lookUpMethod3(
+    String name,
+    LibraryElement2 library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  }) {
+    return lookUpMethod2(
+      name,
+      library.asElement,
+      concrete: concrete,
+      inherited: inherited,
+      recoveryStatic: recoveryStatic,
+    )?.asElement2;
+  }
+
+  @override
   PropertyAccessorElement? lookUpSetter2(
     String name,
     LibraryElement library, {
@@ -1028,6 +1088,23 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     return null;
+  }
+
+  @override
+  SetterElement? lookUpSetter3(
+    String name,
+    LibraryElement2 library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  }) {
+    return lookUpSetter2(
+      name,
+      library.asElement,
+      concrete: concrete,
+      inherited: inherited,
+      recoveryStatic: recoveryStatic,
+    )?.asElement2.ifTypeOrNull();
   }
 
   @override

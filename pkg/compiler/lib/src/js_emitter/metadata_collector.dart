@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_emitter.metadata_collector;
+library;
 
+// ignore: implementation_imports
 import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../common.dart';
 import '../deferred_load/output_unit.dart' show OutputUnit;
 
 import '../elements/types.dart';
-import '../js/js.dart' as jsAst;
+import '../js/js.dart' as js_ast;
 import '../js_backend/runtime_types_new.dart' show RecipeEncoder;
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 
@@ -21,9 +22,9 @@ import 'js_emitter.dart' show ModularEmitter;
 /// [_rc] is used to count the number of references of the token in the
 /// ast for a program.
 /// [value] is the actual position, once they have been finalized.
-abstract class _MetadataEntry extends jsAst.DeferredNumber
-    implements Comparable<_MetadataEntry>, jsAst.ReferenceCountedAstNode {
-  jsAst.Expression get entry;
+abstract class MetadataEntry extends js_ast.DeferredNumber
+    implements Comparable<MetadataEntry>, js_ast.ReferenceCountedAstNode {
+  js_ast.Expression get entry;
   @override
   int get value;
   int get _rc;
@@ -32,15 +33,15 @@ abstract class _MetadataEntry extends jsAst.DeferredNumber
   // will be applied to the [entry] to also mark potential [_MetadataEntry]
   // instances in the [entry] as seen.
   @override
-  void markSeen(jsAst.TokenCounter visitor);
+  void markSeen(js_ast.TokenCounter visitor);
 }
 
-class BoundMetadataEntry extends _MetadataEntry {
+class BoundMetadataEntry extends MetadataEntry {
   int _value = -1;
   @override
   int _rc = 0;
   @override
-  final jsAst.Expression entry;
+  final js_ast.Expression entry;
 
   BoundMetadataEntry(this.entry);
 
@@ -61,28 +62,28 @@ class BoundMetadataEntry extends _MetadataEntry {
   bool get isUsed => _rc > 0;
 
   @override
-  void markSeen(jsAst.TokenCounter visitor) {
+  void markSeen(js_ast.TokenCounter visitor) {
     _rc++;
     if (_rc == 1) entry.accept(visitor);
   }
 
   @override
-  int compareTo(covariant _MetadataEntry other) => other._rc - this._rc;
+  int compareTo(MetadataEntry other) => other._rc - _rc;
 
   @override
   String toString() => 'BoundMetadataEntry($hashCode,rc=$_rc,_value=$_value)';
 }
 
-class _MetadataList extends jsAst.DeferredExpression {
-  late final jsAst.Expression _value;
+class _MetadataList extends js_ast.DeferredExpression {
+  late final js_ast.Expression _value;
 
-  void setExpression(jsAst.Expression value) {
-    assert(value.precedenceLevel == this.precedenceLevel);
+  void setExpression(js_ast.Expression value) {
+    assert(value.precedenceLevel == precedenceLevel);
     _value = value;
   }
 
   @override
-  jsAst.Expression get value {
+  js_ast.Expression get value {
     return _value;
   }
 
@@ -91,7 +92,7 @@ class _MetadataList extends jsAst.DeferredExpression {
       js_precedence.Precedence.primary;
 }
 
-class MetadataCollector implements jsAst.TokenFinalizer {
+class MetadataCollector implements js_ast.TokenFinalizer {
   final DiagnosticReporter reporter;
   final ModularEmitter _emitter;
   final RecipeEncoder _rtiRecipeEncoder;
@@ -110,7 +111,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
 
   MetadataCollector(this.reporter, this._emitter, this._rtiRecipeEncoder);
 
-  jsAst.Expression getTypesForOutputUnit(OutputUnit outputUnit) {
+  js_ast.Expression getTypesForOutputUnit(OutputUnit outputUnit) {
     return _typesTokens.putIfAbsent(outputUnit, () => _MetadataList());
   }
 
@@ -140,39 +141,43 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     }
   }
 
-  jsAst.Expression reifyType(DartType type, OutputUnit outputUnit) {
+  js_ast.Expression reifyType(DartType type, OutputUnit outputUnit) {
     return _addTypeInOutputUnit(type, outputUnit);
   }
 
-  jsAst.Expression _computeTypeRepresentationNewRti(DartType type) {
+  js_ast.Expression _computeTypeRepresentationNewRti(DartType type) {
     return _rtiRecipeEncoder.encodeGroundRecipe(
-        _emitter, TypeExpressionRecipe(type));
+      _emitter,
+      TypeExpressionRecipe(type),
+    );
   }
 
-  jsAst.Expression _addTypeInOutputUnit(DartType type, OutputUnit outputUnit) {
+  js_ast.Expression _addTypeInOutputUnit(DartType type, OutputUnit outputUnit) {
     final typeMap = _typesMap[outputUnit] ??= {};
-    final metadataEntryList = (typeMap[type] ??= [
-      BoundMetadataEntry(_computeTypeRepresentationNewRti(type))
-    ]);
+    final metadataEntryList =
+        (typeMap[type] ??= [
+          BoundMetadataEntry(_computeTypeRepresentationNewRti(type)),
+        ]);
     return metadataEntryList.single;
   }
 
   @override
   void finalizeTokens() {
     void countTokensInTypes(Iterable<BoundMetadataEntry> entries) {
-      jsAst.TokenCounter counter = jsAst.TokenCounter();
+      js_ast.TokenCounter counter = js_ast.TokenCounter();
       entries
           .where((BoundMetadataEntry e) => e._rc > 0)
           .map((BoundMetadataEntry e) => e.entry)
           .forEach(counter.countTokens);
     }
 
-    jsAst.ArrayInitializer finalizeMap(
-        Map<dynamic, List<BoundMetadataEntry>> map) {
+    js_ast.ArrayInitializer finalizeMap(
+      Map<dynamic, List<BoundMetadataEntry>> map,
+    ) {
       List<BoundMetadataEntry> entries = [
         for (var entriesList in map.values)
           for (var entry in entriesList)
-            if (entry.isUsed) entry
+            if (entry.isUsed) entry,
       ];
       entries.sort();
 
@@ -185,7 +190,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
 
       final values = entries.map((BoundMetadataEntry e) => e.entry).toList();
 
-      return jsAst.ArrayInitializer(values);
+      return js_ast.ArrayInitializer(values);
     }
 
     _typesTokens.forEach((OutputUnit outputUnit, _MetadataList token) {
@@ -194,7 +199,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
         typesMap.values.forEach(countTokensInTypes);
         token.setExpression(finalizeMap(typesMap));
       } else {
-        token.setExpression(jsAst.ArrayInitializer([]));
+        token.setExpression(js_ast.ArrayInitializer([]));
       }
     });
   }

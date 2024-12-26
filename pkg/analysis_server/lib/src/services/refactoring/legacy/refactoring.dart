@@ -471,52 +471,80 @@ abstract class RenameRefactoring implements Refactoring {
         workspace,
         sessionHelper,
         resolvedUnit,
-        element,
+        element.asElement2!,
       );
     }
     if (element is ConstructorElement) {
       return RenameConstructorRefactoringImpl(
         workspace,
         sessionHelper,
-        element,
+        element.asElement2,
       );
     }
     if (element is LabelElement) {
-      return RenameLabelRefactoringImpl(workspace, sessionHelper, element);
+      return RenameLabelRefactoringImpl(
+        workspace,
+        sessionHelper,
+        element.asElement2 as LabelElement2,
+      );
     }
     if (element is LibraryElement) {
-      return RenameLibraryRefactoringImpl(workspace, sessionHelper, element);
+      return RenameLibraryRefactoringImpl(
+        workspace,
+        sessionHelper,
+        element.asElement2,
+      );
     }
     if (element is ParameterElement) {
-      return RenameParameterRefactoringImpl(workspace, sessionHelper, element);
+      return RenameParameterRefactoringImpl(
+        workspace,
+        sessionHelper,
+        element.asElement2,
+      );
     }
     if (element is LocalElement) {
-      return RenameLocalRefactoringImpl(workspace, sessionHelper, element);
+      return RenameLocalRefactoringImpl(
+        workspace,
+        sessionHelper,
+        element.asElement2 as LocalElement2,
+      );
     }
     if (element is TypeParameterElement) {
       return RenameTypeParameterRefactoringImpl(
         workspace,
         sessionHelper,
-        element,
+        element.asElement2,
       );
     }
     if (enclosingElement is InterfaceElement) {
       return RenameClassMemberRefactoringImpl(
         workspace,
         sessionHelper,
-        enclosingElement,
-        element,
+        enclosingElement.asElement2,
+        element.asElement2!,
       );
     }
     if (enclosingElement is ExtensionElement) {
       return RenameExtensionMemberRefactoringImpl(
         workspace,
         sessionHelper,
-        enclosingElement,
-        element,
+        enclosingElement.asElement2,
+        element.asElement2!,
       );
     }
     return null;
+  }
+
+  /// Returns a new [RenameRefactoring] instance for renaming the [element].
+  ///
+  /// Returns `null` if there is no support for renaming elements of the given
+  /// kind.
+  static RenameRefactoring? create2(
+    RefactoringWorkspace workspace,
+    ResolvedUnitResult resolvedUnit,
+    Element2? element,
+  ) {
+    return create(workspace, resolvedUnit, element.asElement);
   }
 
   /// Given a node/element, finds the best element to rename (for example

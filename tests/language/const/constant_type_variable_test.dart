@@ -11,10 +11,10 @@ class A<X> {
   final Object x1, x2;
 
   const A()
-      : t1 = X,
-        t2 = List<X>,
-        x1 = 1 is X,
-        x2 = (const <Never>[] as dynamic) as List<X>;
+    : t1 = X,
+      t2 = List<X>,
+      x1 = 1 is X,
+      x2 = (const <Never>[] as dynamic) as List<X>;
 }
 
 void main() {

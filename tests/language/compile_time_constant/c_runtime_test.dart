@@ -6,15 +6,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 const m0 = const {499: 400 + 99};
-const m1 = const {
-
-};
-const m2 = const {
-
-};
-const m3 = const {
-
-};
+const m1 = const {};
+const m2 = const {};
+const m3 = const {};
 
 use(x) => x;
 

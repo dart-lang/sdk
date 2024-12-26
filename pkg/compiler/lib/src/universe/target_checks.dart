@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.target_checks;
+library;
 
 /// A summary of the checks required when entering a target method.
 ///
@@ -28,12 +28,18 @@ class TargetChecks {
   static final TargetChecks none = const TargetChecks._(false, false, false);
 
   // Typical of closure calls and dynamic calls.
-  static final TargetChecks dynamicChecks =
-      const TargetChecks._(true, true, true);
+  static final TargetChecks dynamicChecks = const TargetChecks._(
+    true,
+    true,
+    true,
+  );
 
   // Typical of method calls.
-  static final TargetChecks covariantChecks =
-      const TargetChecks._(false, true, false);
+  static final TargetChecks covariantChecks = const TargetChecks._(
+    false,
+    true,
+    false,
+  );
 
   // TODO(sra): This can be more fine-grained, talking about individual
   // parameters.

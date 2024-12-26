@@ -67,6 +67,48 @@ main() {}
     expect(value.getField('(super)')!.getField('f')!.toIntValue(), 42);
   }
 
+  test_constList_withNullAwareElement() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+  foo() {
+    return const [?A()];
+  }
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_ELEMENT, 51, 1),
+    ]);
+    assertType(findNode.listLiteral('const ['), 'List<A>');
+  }
+
+  test_constMap_withNullAwareKey() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+  foo() {
+    return const {?A(): 0};
+  }
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY, 51, 1),
+    ]);
+    assertType(findNode.setOrMapLiteral('const {'), 'Map<A, int>');
+  }
+
+  test_constMap_withNullAwareValue() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+  foo() {
+    return const {0: ?A()};
+  }
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE, 54, 1),
+    ]);
+    assertType(findNode.setOrMapLiteral('const {'), 'Map<int, A>');
+  }
+
   test_constNotInitialized() async {
     await assertErrorsInCode(r'''
 class B {
@@ -80,6 +122,20 @@ class C extends B {
 ''', [
       error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 62, 1),
     ]);
+  }
+
+  test_constSet_withNullAwareElement() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+  foo() {
+    return const {?A()};
+  }
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_ELEMENT, 51, 1),
+    ]);
+    assertType(findNode.setOrMapLiteral('const {'), 'Set<A>');
   }
 
   test_context_eliminateTypeVariables() async {

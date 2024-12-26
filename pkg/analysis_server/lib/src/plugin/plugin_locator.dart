@@ -21,7 +21,7 @@ class PluginLocator {
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
-  final Map<String, String?> pluginMap = {};
+  final Map<String, String?> _pluginMap = {};
 
   /// Initialize a newly created plugin locator to use the given
   /// [resourceProvider] to access the file system.
@@ -36,18 +36,12 @@ class PluginLocator {
   ///
   /// The content of the plugin directory is not validated.
   String? findPlugin(String packageRoot) {
-    return pluginMap.putIfAbsent(packageRoot, () => _findPlugin(packageRoot));
-  }
-
-  /// The implementation of [findPlugin].
-  String? _findPlugin(String packageRoot) {
-    var packageFolder = resourceProvider.getFolder(packageRoot);
-    var pluginFolder = packageFolder
-        .getChildAssumingFolder(toolsFolderName)
-        .getChildAssumingFolder(defaultPluginFolderName);
-    if (pluginFolder.exists) {
-      return pluginFolder.path;
-    }
-    return null;
+    return _pluginMap.putIfAbsent(packageRoot, () {
+      var pluginFolder = resourceProvider
+          .getFolder(packageRoot)
+          .getChildAssumingFolder(toolsFolderName)
+          .getChildAssumingFolder(defaultPluginFolderName);
+      return pluginFolder.exists ? pluginFolder.path : null;
+    });
   }
 }

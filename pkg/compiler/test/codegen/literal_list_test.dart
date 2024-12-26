@@ -17,20 +17,27 @@ foo() {
 
 main() {
   runTest() async {
-    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      Expect.isTrue(
+    await compile(
+      TEST_ONE,
+      entry: 'foo',
+      check: (String generated) {
+        Expect.isTrue(
           generated.contains('A.print(A._setArrayType([1, 2], t1));'),
           "Code pattern 'A.print(A._setArrayType([1, 2], t1));' "
-          "not found in\n$generated");
-      Expect.isTrue(
+          "not found in\n$generated",
+        );
+        Expect.isTrue(
           generated.contains('A.print(A._setArrayType([3], t1));'),
           "Code pattern 'A.print(A._setArrayType([3], t1));' "
-          "not found in\n$generated");
-      Expect.isTrue(
+          "not found in\n$generated",
+        );
+        Expect.isTrue(
           generated.contains('A.print(A._setArrayType([4, 5], t1));'),
           "Code pattern 'A.print(A._setArrayType([4, 5], t1));' "
-          "not found in\n$generated");
-    });
+          "not found in\n$generated",
+        );
+      },
+    );
   }
 
   asyncTest(() async {

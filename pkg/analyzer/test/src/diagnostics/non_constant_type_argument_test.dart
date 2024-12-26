@@ -74,4 +74,46 @@ T genericRef<T extends Struct>(Pointer<T> p) =>
     p.ref;
 ''', [error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 72, 5)]);
   }
+
+  test_refWithFinalizer_class() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+final class MyStruct extends Struct {
+  @Uint8()
+  external int myField;
+}
+
+void main() {
+  final pointer = Pointer<MyStruct>.fromAddress(0);
+  pointer.refWithFinalizer(nullptr).myField = 1;
+}
+''');
+  }
+
+  test_refWithFinalizer_class_cascade() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+final class MyStruct extends Struct {
+  @Uint8()
+  external int myField;
+}
+
+void main() {
+  final pointer = Pointer<MyStruct>.fromAddress(0)
+    ..refWithFinalizer(nullptr).myField = 1;
+  print(pointer);
+}
+''');
+  }
+
+  test_refWithFinalizer_typeParameter() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+T genericRefWithFinalizer<T extends Struct>(Pointer<T> p) =>
+    p.refWithFinalizer(nullptr);
+''', [error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 85, 27)]);
+  }
 }

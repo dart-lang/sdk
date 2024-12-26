@@ -600,26 +600,32 @@ abstract class Node {
 
   /// Returns a node equivalent to [this], but with new source position.
   Node withSourceInformation(
-      JavaScriptNodeSourceInformation? newSourceInformation) {
+    JavaScriptNodeSourceInformation? newSourceInformation,
+  ) {
     if (!_shouldReplaceSourceInformation(newSourceInformation)) return this;
     return _clone()
-      .._sourceInformation =
-          _replacementSourceInformation(newSourceInformation);
+      .._sourceInformation = _replacementSourceInformation(
+        newSourceInformation,
+      );
   }
 
   bool _shouldReplaceSourceInformation(
-      JavaScriptNodeSourceInformation? newSourceInformation) {
+    JavaScriptNodeSourceInformation? newSourceInformation,
+  ) {
     // TODO(sra): Should existing data be 'sticky' if we try to update with
     // `null`?
     return newSourceInformation != sourceInformation;
   }
 
   JavaScriptNodeSourceInformation? _replacementSourceInformation(
-      JavaScriptNodeSourceInformation? newSourceInformation) {
+    JavaScriptNodeSourceInformation? newSourceInformation,
+  ) {
     final source = _sourceInformation;
     return source is _SourceInformationAndAnnotations
         ? _SourceInformationAndAnnotations(
-            newSourceInformation, source._annotations)
+          newSourceInformation,
+          source._annotations,
+        )
         : newSourceInformation;
   }
 
@@ -636,7 +642,9 @@ abstract class Node {
 
   _SourceInformationAndAnnotations _appendedAnnotation(Object newAnnotation) {
     return _SourceInformationAndAnnotations(
-        sourceInformation, List.unmodifiable([...annotations, newAnnotation]));
+      sourceInformation,
+      List.unmodifiable([...annotations, newAnnotation]),
+    );
   }
 
   /// Returns a node equivalent to [this] but with the same source information
@@ -677,7 +685,7 @@ class _SourceInformationAndAnnotations
   final JavaScriptNodeSourceInformation? _sourceInformation;
   final List<Object> _annotations;
   _SourceInformationAndAnnotations(this._sourceInformation, this._annotations)
-      : assert(_sourceInformation is! _SourceInformationAndAnnotations);
+    : assert(_sourceInformation is! _SourceInformationAndAnnotations);
 }
 
 class Program extends Node {
@@ -717,11 +725,13 @@ abstract class Statement extends Node {
   // Override for refined return type.
   @override
   Statement withSourceInformation(
-      JavaScriptNodeSourceInformation? newSourceInformation) {
+    JavaScriptNodeSourceInformation? newSourceInformation,
+  ) {
     if (!_shouldReplaceSourceInformation(newSourceInformation)) return this;
     return _clone()
-      .._sourceInformation =
-          _replacementSourceInformation(newSourceInformation);
+      .._sourceInformation = _replacementSourceInformation(
+        newSourceInformation,
+      );
   }
 
   // Override for refined return type.
@@ -883,9 +893,13 @@ class For extends Loop {
   final Expression? condition;
   final Expression? update;
 
-  For(this.init, this.condition, this.update, Statement body,
-      {JavaScriptNodeSourceInformation? sourceInformation})
-      : super(body) {
+  For(
+    this.init,
+    this.condition,
+    this.update,
+    Statement body, {
+    JavaScriptNodeSourceInformation? sourceInformation,
+  }) : super(body) {
     _sourceInformation = sourceInformation;
   }
 
@@ -922,9 +936,12 @@ class ForIn extends Loop {
   final Expression leftHandSide;
   final Expression object;
 
-  ForIn(this.leftHandSide, this.object, Statement body,
-      {JavaScriptNodeSourceInformation? sourceInformation})
-      : super(body) {
+  ForIn(
+    this.leftHandSide,
+    this.object,
+    Statement body, {
+    JavaScriptNodeSourceInformation? sourceInformation,
+  }) : super(body) {
     _sourceInformation = sourceInformation;
   }
 
@@ -956,9 +973,11 @@ class ForIn extends Loop {
 class While extends Loop {
   final Expression condition;
 
-  While(this.condition, Statement body,
-      {JavaScriptNodeSourceInformation? sourceInformation})
-      : super(body) {
+  While(
+    this.condition,
+    Statement body, {
+    JavaScriptNodeSourceInformation? sourceInformation,
+  }) : super(body) {
     _sourceInformation = sourceInformation;
   }
 
@@ -988,8 +1007,11 @@ class While extends Loop {
 class Do extends Loop {
   final Expression condition;
 
-  Do(super.body, this.condition,
-      {JavaScriptNodeSourceInformation? sourceInformation}) {
+  Do(
+    super.body,
+    this.condition, {
+    JavaScriptNodeSourceInformation? sourceInformation,
+  }) {
     _sourceInformation = sourceInformation;
   }
 
@@ -1389,11 +1411,13 @@ abstract class Expression extends Node {
   // Override for refined return type.
   @override
   Expression withSourceInformation(
-      JavaScriptNodeSourceInformation? newSourceInformation) {
+    JavaScriptNodeSourceInformation? newSourceInformation,
+  ) {
     if (!_shouldReplaceSourceInformation(newSourceInformation)) return this;
     return _clone()
-      .._sourceInformation =
-          _replacementSourceInformation(newSourceInformation);
+      .._sourceInformation = _replacementSourceInformation(
+        newSourceInformation,
+      );
   }
 
   // Override for refined return type.
@@ -1618,8 +1642,11 @@ class VariableInitialization extends Expression {
   // The initializing value can be missing, e.g. for `a` in `var a, b=1;`.
   final Expression? value;
 
-  VariableInitialization(this.declaration, this.value,
-      {JavaScriptNodeSourceInformation? sourceInformation}) {
+  VariableInitialization(
+    this.declaration,
+    this.value, {
+    JavaScriptNodeSourceInformation? sourceInformation,
+  }) {
     _sourceInformation = sourceInformation;
   }
 
@@ -1689,8 +1716,11 @@ class Call extends Expression {
   Expression target;
   List<Expression> arguments;
 
-  Call(this.target, this.arguments,
-      {JavaScriptNodeSourceInformation? sourceInformation}) {
+  Call(
+    this.target,
+    this.arguments, {
+    JavaScriptNodeSourceInformation? sourceInformation,
+  }) {
     _sourceInformation = sourceInformation;
   }
 
@@ -2049,8 +2079,11 @@ class ArrowFunction extends FunctionExpression {
   @override
   final AsyncModifier asyncModifier;
 
-  ArrowFunction(this.params, this.body,
-      {this.asyncModifier = AsyncModifier.sync});
+  ArrowFunction(
+    this.params,
+    this.body, {
+    this.asyncModifier = AsyncModifier.sync,
+  });
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitArrowFunction(this);
@@ -2087,15 +2120,17 @@ enum AsyncModifier {
   sync('sync', isAsync: false, isYielding: false),
   async('async', isAsync: true, isYielding: false),
   asyncStar('async*', isAsync: true, isYielding: true),
-  syncStar('sync*', isAsync: false, isYielding: true),
-  ;
+  syncStar('sync*', isAsync: false, isYielding: true);
 
   final bool isAsync;
   final bool isYielding;
   final String description;
 
-  const AsyncModifier(this.description,
-      {required this.isAsync, required this.isYielding});
+  const AsyncModifier(
+    this.description, {
+    required this.isAsync,
+    required this.isYielding,
+  });
 
   @override
   String toString() => description;
@@ -2108,10 +2143,10 @@ class PropertyAccess extends Expression {
   PropertyAccess(this.receiver, this.selector);
 
   PropertyAccess.field(this.receiver, String fieldName)
-      : selector = LiteralString(fieldName);
+    : selector = LiteralString(fieldName);
 
   PropertyAccess.indexed(this.receiver, int index)
-      : selector = LiteralNumber('$index');
+    : selector = LiteralNumber('$index');
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitAccess(this);
@@ -2444,7 +2479,7 @@ class Property extends Node {
   final Expression value;
 
   Property(this.name, this.value)
-      : assert(name is Literal || name is DeferredExpression);
+    : assert(name is Literal || name is DeferredExpression);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitProperty(this);

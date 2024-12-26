@@ -20,7 +20,9 @@ void main() {
   } on RangeError catch (exception) {
     final toString = exception.toString();
     Expect.equals(
-        "RangeError: Invalid value: Not in inclusive range 0..7: 8", toString);
+      "RangeError: Invalid value: Not in inclusive range 0..7: 8",
+      toString,
+    );
   }
   calloc.free(pointer);
 }

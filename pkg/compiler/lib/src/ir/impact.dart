@@ -27,22 +27,36 @@ abstract class ImpactRegistry {
 
   void registerNullLiteral();
 
-  void registerListLiteral(ir.DartType elementType,
-      {required bool isConst, required bool isEmpty});
+  void registerListLiteral(
+    ir.DartType elementType, {
+    required bool isConst,
+    required bool isEmpty,
+  });
 
-  void registerSetLiteral(ir.DartType elementType,
-      {required bool isConst, required bool isEmpty});
+  void registerSetLiteral(
+    ir.DartType elementType, {
+    required bool isConst,
+    required bool isEmpty,
+  });
 
-  void registerMapLiteral(ir.DartType keyType, ir.DartType valueType,
-      {required bool isConst, required bool isEmpty});
+  void registerMapLiteral(
+    ir.DartType keyType,
+    ir.DartType valueType, {
+    required bool isConst,
+    required bool isEmpty,
+  });
 
   void registerRecordLiteral(ir.RecordType type, {required bool isConst});
 
   void registerStaticTearOff(
-      ir.Procedure procedure, ir.LibraryDependency? import);
+    ir.Procedure procedure,
+    ir.LibraryDependency? import,
+  );
 
   void registerWeakStaticTearOff(
-      ir.Procedure procedure, ir.LibraryDependency? import);
+    ir.Procedure procedure,
+    ir.LibraryDependency? import,
+  );
 
   void registerStaticGet(ir.Member member, ir.LibraryDependency? import);
 
@@ -51,7 +65,9 @@ abstract class ImpactRegistry {
   void registerAssert({required bool withMessage});
 
   void registerGenericInstantiation(
-      ir.FunctionType expressionType, List<ir.DartType> typeArguments);
+    ir.FunctionType expressionType,
+    List<ir.DartType> typeArguments,
+  );
 
   void registerSyncStar(ir.DartType elementType);
 
@@ -88,64 +104,76 @@ abstract class ImpactRegistry {
   void registerFieldInitialization(ir.Field node);
 
   void registerFieldConstantInitialization(
-      ir.Field node, ConstantReference constant);
+    ir.Field node,
+    ConstantReference constant,
+  );
 
   void registerLoadLibrary();
 
   void registerRedirectingInitializer(
-      ir.Constructor constructor,
-      int positionalArguments,
-      List<String> namedArguments,
-      List<ir.DartType> typeArguments);
+    ir.Constructor constructor,
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+  );
 
   void registerParameterCheck(ir.DartType type);
 
   void registerLazyField();
 
   void registerNew(
-      ir.Member constructor,
-      ir.InterfaceType type,
-      int positionalArguments,
-      List<String> namedArguments,
-      List<ir.DartType> typeArguments,
-      ir.LibraryDependency? import,
-      {required bool isConst});
+    ir.Member constructor,
+    ir.InterfaceType type,
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+    ir.LibraryDependency? import, {
+    required bool isConst,
+  });
 
-  void registerConstInstantiation(ir.Class cls, List<ir.DartType> typeArguments,
-      ir.LibraryDependency? import);
+  void registerConstInstantiation(
+    ir.Class cls,
+    List<ir.DartType> typeArguments,
+    ir.LibraryDependency? import,
+  );
 
   void registerStaticInvocation(
-      ir.Procedure target,
-      int positionalArguments,
-      List<String> namedArguments,
-      List<ir.DartType> typeArguments,
-      ir.LibraryDependency? import);
+    ir.Procedure target,
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+    ir.LibraryDependency? import,
+  );
 
   void registerLocalFunctionInvocation(
-      ir.FunctionDeclaration localFunction,
-      int positionalArguments,
-      List<String> namedArguments,
-      List<ir.DartType> typeArguments);
+    ir.FunctionDeclaration localFunction,
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+  );
 
   void registerDynamicInvocation(
-      ir.DartType receiverType,
-      ir.Name name,
-      int positionalArguments,
-      List<String> namedArguments,
-      List<ir.DartType> typeArguments);
+    ir.DartType receiverType,
+    ir.Name name,
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+  );
 
   void registerInstanceInvocation(
-      ir.DartType receiverType,
-      ir.Member target,
-      int positionalArguments,
-      List<String> namedArguments,
-      List<ir.DartType> typeArguments);
+    ir.DartType receiverType,
+    ir.Member target,
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+  );
 
   void registerFunctionInvocation(
-      ir.DartType receiverType,
-      int positionalArguments,
-      List<String> namedArguments,
-      List<ir.DartType> typeArguments);
+    ir.DartType receiverType,
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+  );
 
   void registerDynamicGet(ir.DartType receiverType, ir.Name name);
 
@@ -155,22 +183,30 @@ abstract class ImpactRegistry {
 
   void registerInstanceSet(ir.DartType receiverType, ir.Member target);
 
-  void registerSuperInvocation(ir.Member target, int positionalArguments,
-      List<String> namedArguments, List<ir.DartType> typeArguments);
+  void registerSuperInvocation(
+    ir.Member target,
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+  );
 
   void registerSuperGet(ir.Member target);
 
   void registerSuperSet(ir.Member target);
 
   void registerSuperInitializer(
-      ir.Constructor source,
-      ir.Constructor target,
-      int positionalArguments,
-      List<String> namedArguments,
-      List<ir.DartType> typeArguments);
+    ir.Constructor source,
+    ir.Constructor target,
+    int positionalArguments,
+    List<String> namedArguments,
+    List<ir.DartType> typeArguments,
+  );
 
-  void registerRuntimeTypeUse(RuntimeTypeUseKind kind, ir.DartType receiverType,
-      ir.DartType? argumentType);
+  void registerRuntimeTypeUse(
+    RuntimeTypeUseKind kind,
+    ir.DartType receiverType,
+    ir.DartType? argumentType,
+  );
 
   void registerExternalConstructorNode(ir.Constructor node);
   void registerFieldNode(ir.Field node);
@@ -196,11 +232,14 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
   final ir.StaticTypeContext staticTypeContext;
 
   ConstantImpactVisitor(
-      this.registry, this.import, this.expression, this.staticTypeContext);
+    this.registry,
+    this.import,
+    this.expression,
+    this.staticTypeContext,
+  );
 
   static Never _unexpectedConstant(ir.Constant node) {
-    throw UnsupportedError(
-        "Unexpected constant ${node} (${node.runtimeType}).");
+    throw UnsupportedError("Unexpected constant $node (${node.runtimeType}).");
   }
 
   @override
@@ -222,27 +261,36 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
   @override
   void visitInstantiationConstant(ir.InstantiationConstant node) {
     registry.registerGenericInstantiation(
-        node.tearOffConstant.getType(staticTypeContext) as ir.FunctionType,
-        node.types);
+      node.tearOffConstant.getType(staticTypeContext) as ir.FunctionType,
+      node.types,
+    );
     visitConstant(node.tearOffConstant);
   }
 
   @override
   void visitInstanceConstant(ir.InstanceConstant node) {
     registry.registerConstInstantiation(
-        node.classNode, node.typeArguments, import);
+      node.classNode,
+      node.typeArguments,
+      import,
+    );
     node.fieldValues.forEach((ir.Reference reference, ir.Constant value) {
       ir.Field field = reference.asField;
       registry.registerFieldConstantInitialization(
-          field, ConstantReference(expression, value));
+        field,
+        ConstantReference(expression, value),
+      );
       visitConstant(value);
     });
   }
 
   @override
   void visitSetConstant(ir.SetConstant node) {
-    registry.registerSetLiteral(node.typeArgument,
-        isConst: true, isEmpty: node.entries.isEmpty);
+    registry.registerSetLiteral(
+      node.typeArgument,
+      isConst: true,
+      isEmpty: node.entries.isEmpty,
+    );
     for (ir.Constant element in node.entries) {
       visitConstant(element);
     }
@@ -250,8 +298,11 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
 
   @override
   void visitListConstant(ir.ListConstant node) {
-    registry.registerListLiteral(node.typeArgument,
-        isConst: true, isEmpty: node.entries.isEmpty);
+    registry.registerListLiteral(
+      node.typeArgument,
+      isConst: true,
+      isEmpty: node.entries.isEmpty,
+    );
     for (ir.Constant element in node.entries) {
       visitConstant(element);
     }
@@ -259,8 +310,12 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
 
   @override
   void visitMapConstant(ir.MapConstant node) {
-    registry.registerMapLiteral(node.keyType, node.valueType,
-        isConst: true, isEmpty: node.entries.isEmpty);
+    registry.registerMapLiteral(
+      node.keyType,
+      node.valueType,
+      isConst: true,
+      isEmpty: node.entries.isEmpty,
+    );
     for (ir.ConstantMapEntry entry in node.entries) {
       visitConstant(entry.key);
       visitConstant(entry.value);
@@ -318,8 +373,8 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
 
   @override
   Never visitRedirectingFactoryTearOffConstant(
-          ir.RedirectingFactoryTearOffConstant node) =>
-      _unexpectedConstant(node);
+    ir.RedirectingFactoryTearOffConstant node,
+  ) => _unexpectedConstant(node);
 
   @override
   Never visitTypedefTearOffConstant(ir.TypedefTearOffConstant node) =>

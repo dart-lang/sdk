@@ -65,28 +65,15 @@ class DeclaredVariablePatternResult<
 
 /// Container for the result of running type analysis on an expression.
 ///
-/// This class keeps track of a provisional type of the expression (prior to
-/// resolving null shorting) as well as the information necessary to resolve
-/// null shorting.
-abstract class ExpressionTypeAnalysisResult<
+/// This class keeps track of the type of the expression. Derived classes expose
+/// other results of type analysis that are specific to certain expression
+/// types.
+class ExpressionTypeAnalysisResult<
     TypeStructure extends SharedTypeStructure<TypeStructure>> {
-  /// Type of the expression before resolving null shorting.
-  ///
-  /// For example, if `this` is the result of analyzing `(... as int?)?.isEven`,
-  /// [provisionalType] will be `bool`, because the `isEven` getter returns
-  /// `bool`, and it is not yet known (until looking at the surrounding code)
-  /// whether there will be additional selectors after `isEven` that should act
-  /// on the `bool` type.
-  SharedTypeView<TypeStructure> get provisionalType;
+  /// The static type of the expression.
+  final SharedTypeView<TypeStructure> type;
 
-  /// Resolves any pending null shorting.  For example, if `this` is the result
-  /// of analyzing `(... as int?)?.isEven`, then calling [resolveShorting] will
-  /// cause the `?.` to be desugared (if code generation is occurring) and will
-  /// return the type `bool?`.
-  ///
-  /// TODO(paulberry): document what calls back to the client might be made by
-  /// invoking this method.
-  SharedTypeView<TypeStructure> resolveShorting();
+  ExpressionTypeAnalysisResult({required this.type});
 }
 
 /// Result for analyzing an if-case statement or element in
@@ -112,7 +99,7 @@ class IfCaseStatementResult<
 /// Container for the result of running type analysis on an integer literal.
 class IntTypeAnalysisResult<
         TypeStructure extends SharedTypeStructure<TypeStructure>>
-    extends SimpleTypeAnalysisResult<TypeStructure> {
+    extends ExpressionTypeAnalysisResult<TypeStructure> {
   /// Whether the integer literal was converted to a double.
   final bool convertedToDouble;
 
@@ -316,7 +303,7 @@ class ObjectPatternResult<
 /// Container for the result of running type analysis on a pattern assignment.
 class PatternAssignmentAnalysisResult<
         TypeStructure extends SharedTypeStructure<TypeStructure>>
-    extends SimpleTypeAnalysisResult<TypeStructure> {
+    extends ExpressionTypeAnalysisResult<TypeStructure> {
   /// The type schema of the pattern on the left hand size of the assignment.
   final SharedTypeSchemaView<TypeStructure> patternSchema;
 
@@ -422,28 +409,11 @@ class RelationalPatternResult<
       required super.matchedValueType});
 }
 
-/// Container for the result of running type analysis on an expression that does
-/// not contain any null shorting.
-class SimpleTypeAnalysisResult<
-        TypeStructure extends SharedTypeStructure<TypeStructure>>
-    implements ExpressionTypeAnalysisResult<TypeStructure> {
-  /// The static type of the expression.
-  final SharedTypeView<TypeStructure> type;
-
-  SimpleTypeAnalysisResult({required this.type});
-
-  @override
-  SharedTypeView<TypeStructure> get provisionalType => type;
-
-  @override
-  SharedTypeView<TypeStructure> resolveShorting() => type;
-}
-
 /// Result for analyzing a switch expression in
 /// [TypeAnalyzer.analyzeSwitchExpression].
 class SwitchExpressionResult<
     TypeStructure extends SharedTypeStructure<TypeStructure>,
-    Error> extends SimpleTypeAnalysisResult<TypeStructure> {
+    Error> extends ExpressionTypeAnalysisResult<TypeStructure> {
   /// Errors for non-bool guards.
   ///
   /// The key is the case index of the erroneous guard.

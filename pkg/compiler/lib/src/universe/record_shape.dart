@@ -118,9 +118,10 @@ class RecordShape {
     return positionalFieldCount + nameIndex;
   }
 
-  String getterNameOfIndex(int index) => index < positionalFieldCount
-      ? positionalFieldIndexToGetterName(index)
-      : fieldNames[index - positionalFieldCount];
+  String getterNameOfIndex(int index) =>
+      index < positionalFieldCount
+          ? positionalFieldIndexToGetterName(index)
+          : fieldNames[index - positionalFieldCount];
 
   bool nameMatchesGetter(String name) {
     return indexOfGetterName(name) >= 0;

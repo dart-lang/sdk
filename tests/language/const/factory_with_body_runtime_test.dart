@@ -7,10 +7,6 @@
 //
 // Tests that a "const factory" with body produces a compile-time error.
 
-class ConstFactoryWithBody {
+class ConstFactoryWithBody {}
 
-}
-
-main() {
-
-}
+main() {}

@@ -7,12 +7,8 @@
 
 class Bad {
   int foo = 0;
-  final int bar =
-
-      -1;
-  static const int toto =
-
-      -3;
+  final int bar = -1;
+  static const int toto = -3;
 }
 
 void use(x) {}

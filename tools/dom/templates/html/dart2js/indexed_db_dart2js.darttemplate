@@ -75,6 +75,7 @@
 /// documentation](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API).
 ///
 /// {@category Web (Legacy)}
+@Deprecated('Use package:web and dart:js_interop instead.')
 library dart.dom.indexed_db;
 
 import 'dart:async';

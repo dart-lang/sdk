@@ -1,9 +1,17 @@
 import 'main_lib.dart' as a;
 
-const list = <int>[...a.list, ...a.set];
+const list = <int>[
+  ...a.list,
+  ...a.set,
+];
 
-const map = <int, String>{...a.map};
+const map = <int, String>{
+  ...a.map,
+};
 
-const set = <int>{...a.set, ...a.list};
+const set = <int>{
+  ...a.set,
+  ...a.list,
+};
 
 main() {}

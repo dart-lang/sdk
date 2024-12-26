@@ -6,7 +6,7 @@ import "dart:typed_data" as typ;
 
 import "dart:ffi";
 
-@#C10
+@#C11
 final class MyStruct extends ffi::Struct {
   synthetic constructor •() → self::MyStruct
     : super ffi::Struct::•()
@@ -14,55 +14,55 @@ final class MyStruct extends ffi::Struct {
   constructor #fromTypedDataBase(synthesized core::Object #typedDataBase, synthesized core::int #offsetInBytes) → self::MyStruct
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
     ;
-  @#C12
+  @#C13
   constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::MyStruct
     : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
     ;
+  @#C14
   @#C13
-  @#C12
   get a() → core::int
     return ffi::_loadInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyStruct::a#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
+  @#C14
   @#C13
-  @#C12
   set a(synthesized core::int #externalFieldValue) → void
     return ffi::_storeInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyStruct::a#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
+  @#C14
   @#C13
-  @#C12
   get b() → core::int
     return ffi::_loadInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyStruct::b#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
+  @#C14
   @#C13
-  @#C12
   set b(synthesized core::int #externalFieldValue) → void
     return ffi::_storeInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyStruct::b#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
   @#C15
-  @#C12
+  @#C13
   get array() → ffi::Array<ffi::Int8>
-    return new ffi::Array::_<ffi::Int8>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyStruct::array#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C3, #C16);
+    return new ffi::Array::_<ffi::Int8>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyStruct::array#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C3, #C4, #C16);
   @#C15
-  @#C12
+  @#C13
   set array(synthesized ffi::Array<ffi::Int8> #externalFieldValue) → void
     return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyStruct::array#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
   @#C15
-  @#C12
+  @#C13
   get array2() → ffi::Array<ffi::UnsignedLong>
-    return new ffi::Array::_<ffi::UnsignedLong>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyStruct::array2#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C3, #C16);
+    return new ffi::Array::_<ffi::UnsignedLong>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyStruct::array2#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C3, #C4, #C16);
   @#C15
-  @#C12
+  @#C13
   set array2(synthesized ffi::Array<ffi::UnsignedLong> #externalFieldValue) → void
     return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyStruct::array2#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C20.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
-  @#C12
+  @#C13
   static get a#offsetOf() → core::int
     return #C22.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
-  @#C12
+  @#C13
   static get b#offsetOf() → core::int
     return #C24.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
-  @#C12
+  @#C13
   static get array#offsetOf() → core::int
     return #C26.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
-  @#C12
+  @#C13
   static get array2#offsetOf() → core::int
     return #C29.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
-  @#C12
+  @#C13
   static get #sizeOf() → core::int
     return #C32.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
@@ -74,33 +74,33 @@ final class MyUnion extends ffi::Union {
   constructor #fromTypedDataBase(synthesized core::Object #typedDataBase, synthesized core::int #offsetInBytes) → self::MyUnion
     : super ffi::Union::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
     ;
-  @#C12
+  @#C13
   constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::MyUnion
     : super ffi::Union::_fromTypedData(#typedData, #offset, #sizeInBytes)
     ;
+  @#C14
   @#C13
-  @#C12
   get a() → core::int
     return ffi::_loadInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyUnion::a#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
+  @#C14
   @#C13
-  @#C12
   set a(synthesized core::int #externalFieldValue) → void
     return ffi::_storeInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyUnion::a#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
+  @#C14
   @#C13
-  @#C12
   get b() → core::int
     return ffi::_loadInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyUnion::b#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
+  @#C14
   @#C13
-  @#C12
   set b(synthesized core::int #externalFieldValue) → void
     return ffi::_storeInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyUnion::b#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
-  @#C12
+  @#C13
   static get a#offsetOf() → core::int
     return #C22.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
-  @#C12
+  @#C13
   static get b#offsetOf() → core::int
     return #C22.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
-  @#C12
+  @#C13
   static get #sizeOf() → core::int
     return #C24.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
@@ -134,18 +134,18 @@ constants  {
   #C1 = "vm:ffi:struct-fields"
   #C2 = TypeLiteralConstant(ffi::Int8)
   #C3 = 10
-  #C4 = ffi::_FfiInlineArray {elementType:#C2, length:#C3}
-  #C5 = TypeLiteralConstant(ffi::UnsignedLong)
-  #C6 = ffi::_FfiInlineArray {elementType:#C5, length:#C3}
-  #C7 = <core::Type>[#C2, #C2, #C4, #C6]
-  #C8 = null
-  #C9 = ffi::_FfiStructLayout {fieldTypes:#C7, packing:#C8}
-  #C10 = core::pragma {name:#C1, options:#C9}
-  #C11 = "vm:prefer-inline"
-  #C12 = core::pragma {name:#C11, options:#C8}
-  #C13 = ffi::Int8 {}
-  #C14 = false
-  #C15 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C3, dimension2:#C8, dimension3:#C8, dimension4:#C8, dimension5:#C8, dimensions:#C8, variableLength:#C14}
+  #C4 = false
+  #C5 = ffi::_FfiInlineArray {elementType:#C2, length:#C3, variableLength:#C4}
+  #C6 = TypeLiteralConstant(ffi::UnsignedLong)
+  #C7 = ffi::_FfiInlineArray {elementType:#C6, length:#C3, variableLength:#C4}
+  #C8 = <core::Type>[#C2, #C2, #C5, #C7]
+  #C9 = null
+  #C10 = ffi::_FfiStructLayout {fieldTypes:#C8, packing:#C9}
+  #C11 = core::pragma {name:#C1, options:#C10}
+  #C12 = "vm:prefer-inline"
+  #C13 = core::pragma {name:#C12, options:#C9}
+  #C14 = ffi::Int8 {}
+  #C15 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C3, dimension2:#C9, dimension3:#C9, dimension4:#C9, dimension5:#C9, dimensions:#C9, variableDimension:#C9}
   #C16 = <core::int>[]
   #C17 = <core::int>[#C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3]
   #C18 = 40
@@ -164,7 +164,7 @@ constants  {
   #C31 = 96
   #C32 = <core::int>[#C30, #C31, #C30, #C31, #C31, #C31, #C31, #C31, #C30, #C31, #C31, #C30, #C31, #C30, #C31, #C30, #C31, #C31, #C31, #C30, #C30, #C30]
   #C33 = <core::Type>[#C2, #C2]
-  #C34 = ffi::_FfiStructLayout {fieldTypes:#C33, packing:#C8}
+  #C34 = ffi::_FfiStructLayout {fieldTypes:#C33, packing:#C9}
   #C35 = core::pragma {name:#C1, options:#C34}
   #C36 = "cfe:ffi:native-marker"
   #C37 = "myNative"

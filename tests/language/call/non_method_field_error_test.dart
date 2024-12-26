@@ -13,15 +13,15 @@ class Hest extends Fisk {}
 main() {
   Fisk x1 = new Fisk();
   x1.i();
-//^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
-//    ^
-// [cfe] 'i' isn't a function or method and can't be invoked.
+  // [error column 3, length 4]
+  // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+  //  ^
+  // [cfe] 'i' isn't a function or method and can't be invoked.
 
   Hest x2 = new Hest();
   x2.i();
-//^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
-//    ^
-// [cfe] 'i' isn't a function or method and can't be invoked.
+  // [error column 3, length 4]
+  // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+  //  ^
+  // [cfe] 'i' isn't a function or method and can't be invoked.
 }

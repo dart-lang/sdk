@@ -49,6 +49,7 @@ class ReadStream;
 class RecordShape;
 class TargetEntryInstr;
 class TokenPosition;
+class TryEntryInstr;
 
 namespace compiler {
 struct TableSelector;
@@ -108,6 +109,7 @@ class NativeCallingConvention;
   V(Range*)                                                                    \
   V(RecordShape)                                                               \
   V(Representation)                                                            \
+  V(simd128_value_t)                                                           \
   V(const Slot&)                                                               \
   V(const Slot*)                                                               \
   V(const String&)                                                             \
@@ -130,7 +132,8 @@ class NativeCallingConvention;
   V(IndirectEntryInstr*)                                                       \
   V(JoinEntryInstr*)                                                           \
   V(OsrEntryInstr*)                                                            \
-  V(TargetEntryInstr*)
+  V(TargetEntryInstr*)                                                         \
+  V(TryEntryInstr*)
 
 // Serializes flow graph, including constants and references
 // to objects of program structure.
@@ -304,6 +307,7 @@ class FlowGraphSerializer : public ValueObject {
   bool can_write_refs() const { return can_write_refs_; }
 
  private:
+  void AddBaseObject(const Object& x);
   void WriteObjectImpl(const Object& x, intptr_t cid, intptr_t object_index);
   bool IsWritten(const Object& obj);
   bool HasEnclosingTypes(const Object& obj);
@@ -497,6 +501,7 @@ class FlowGraphDeserializer : public ValueObject {
   }
 
  private:
+  void AddBaseObject(const Object& x);
   ClassPtr GetClassById(classid_t id) const;
   const Object& ReadObjectImpl(intptr_t cid, intptr_t object_index);
   void SetObjectAt(intptr_t object_index, const Object& object);

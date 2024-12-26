@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// OtherResources=align_loops_test.dart
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
@@ -21,12 +23,20 @@ void checkAligned(Symbol sym) {
   }
 }
 
-Future<void> testAOT(String dillPath, {bool useAsm = false}) async {
-  await withTempDir('align-loops-test-${useAsm ? 'asm' : 'elf'}',
-      (String tempDir) async {
+Future<void> testAOT(
+  String dillPath, {
+  required bool useAsm,
+  required bool testILSerialization,
+}) async {
+  await withTempDir('align-loops-test-${useAsm ? 'asm' : 'elf'}', (
+    String tempDir,
+  ) async {
     // Generate the snapshot
     final snapshotPath = path.join(tempDir, 'libtest.so');
-    final commonSnapshotArgs = [dillPath];
+    final commonSnapshotArgs = [
+      if (testILSerialization) '--test_il_serialization',
+      dillPath,
+    ];
 
     if (useAsm) {
       final assemblyPath = path.join(tempDir, 'test.S');
@@ -68,24 +78,33 @@ void main() async {
 
   await withTempDir('align_loops', (String tempDir) async {
     final testProgram = path.join(
-        sdkDir, 'runtime', 'tests', 'vm', 'dart', 'align_loops_test.dart');
+      sdkDir,
+      'runtime',
+      'tests',
+      'vm',
+      'dart',
+      'align_loops_test.dart',
+    );
 
     final aotDillPath = path.join(tempDir, 'aot_test.dill');
     await run(genKernel, <String>[
       '--aot',
       '--platform',
       platformDill,
-      ...Platform.executableArguments
-          .where((arg) => arg.startsWith('--enable-experiment=')),
+      ...Platform.executableArguments.where(
+        (arg) => arg.startsWith('--enable-experiment='),
+      ),
       '-o',
       aotDillPath,
-      testProgram
+      testProgram,
     ]);
 
     await Future.wait([
       // Test unstripped ELF generation directly.
-      testAOT(aotDillPath),
-      testAOT(aotDillPath, useAsm: true),
+      testAOT(aotDillPath, useAsm: false, testILSerialization: false),
+      testAOT(aotDillPath, useAsm: true, testILSerialization: false),
+      testAOT(aotDillPath, useAsm: false, testILSerialization: true),
+      testAOT(aotDillPath, useAsm: true, testILSerialization: true),
     ]);
   });
 }

@@ -43,12 +43,10 @@ Future<void> invokeHelper() async {
       final dartToolsUri = tempUri.resolve('.dart_tool/');
       final packageConfigUri = dartToolsUri.resolve('package_config.json');
       final receivePort = ReceivePort();
-      await Isolate.spawnUri(
-        helperCopiedUri,
-        [],
-        [receivePort.sendPort, tempUri2.path],
-        packageConfig: packageConfigUri,
-      );
+      await Isolate.spawnUri(helperCopiedUri, [], [
+        receivePort.sendPort,
+        tempUri2.path,
+      ], packageConfig: packageConfigUri);
 
       final result = (await receivePort.first);
       if (result != 49) {
@@ -76,10 +74,7 @@ Future<void> createTestFiles(Uri tempUri, Uri tempUri2) async {
 
   final nativeAssetsYaml = createNativeAssetYaml(
     asset: helper2CopiedUri.toString(),
-    assetMapping: [
-      'absolute',
-      ffiTestFunctionsUriAbsolute.toFilePath(),
-    ],
+    assetMapping: ['absolute', ffiTestFunctionsUriAbsolute.toFilePath()],
   );
   final nativeAssetsUri = dartToolsUri.resolve('native_assets.yaml');
   await File.fromUri(nativeAssetsUri).writeAsString(nativeAssetsYaml);

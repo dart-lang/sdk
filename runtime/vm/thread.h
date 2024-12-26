@@ -365,9 +365,8 @@ class Thread : public ThreadState {
     kScavengerTask,
     kSampleBlockTask,
     kIncrementalCompactorTask,
+    kSpawnTask,
   };
-  // Converts a TaskKind to its corresponding C-String name.
-  static const char* TaskKindToCString(TaskKind kind);
 
   ~Thread();
 
@@ -507,6 +506,7 @@ class Thread : public ThreadState {
 
   void ScheduleInterrupts(uword interrupt_bits);
   ErrorPtr HandleInterrupts();
+  ErrorPtr HandleInterrupts(uword interrupt_bits);
   uword GetAndClearInterrupts();
   bool HasScheduledInterrupts() const {
     return (stack_limit_.load() & kInterruptsMask) != 0;
@@ -1481,7 +1481,10 @@ class Thread : public ThreadState {
   // Releases a active mutator threads from the thread registry.
   //
   // Thread needs to be at-safepoint.
-  static void FreeActiveThread(Thread* thread, bool bypass_safepoint);
+  static void FreeActiveThread(Thread* thread,
+                               Isolate* isolate,
+                               bool is_dart_mutator,
+                               bool bypass_safepoint);
 
   static void SetCurrent(Thread* current) { OSThread::SetCurrentTLS(current); }
 

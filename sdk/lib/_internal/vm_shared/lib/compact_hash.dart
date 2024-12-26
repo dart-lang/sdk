@@ -360,11 +360,18 @@ mixin _CustomEqualsAndHashCode<K> implements _EqualsAndHashCode {
   bool _equals(Object? e1, Object? e2) => (_equality as Function)(e1, e2);
 }
 
-final _uninitializedIndex = new Uint32List(_HashBase._UNINITIALIZED_INDEX_SIZE);
+@pragma("vm:prefer-inline")
+@pragma("vm:recognized", "other")
+@pragma("vm:exact-result-type", "dart:typed_data#_Uint32List")
+external Uint32List get _uninitializedIndex;
+
 // Note: not const. Const arrays are made immutable by having a different class
 // than regular arrays that throws on element assignment. We want the data field
 // in maps and sets to be monomorphic.
-final _uninitializedData = new List.filled(0, null);
+@pragma("vm:prefer-inline")
+@pragma("vm:recognized", "other")
+@pragma("vm:exact-result-type", "dart:core#_List")
+external List<Object?> get _uninitializedData;
 
 // VM-internalized implementation of a default-constructed LinkedHashMap. Map
 // literals also create instances of this class.

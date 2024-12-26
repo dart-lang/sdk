@@ -60,7 +60,6 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
       final s = o.toString();
       final jsString =
           s is JSStringImpl ? js.JSValue.boxT<JSAny?>(s.toExternRef) : s.toJS;
-      // array._setUnchecked(i, jsString);
       array[i] = jsString;
     }
     return JSStringImpl(

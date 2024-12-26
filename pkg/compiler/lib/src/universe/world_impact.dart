@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.universe.world_impact;
+library;
 
 import '../elements/entities.dart';
 import '../util/util.dart' show Setlet;
@@ -41,9 +41,11 @@ class WorldImpact {
 
   Iterable<ConditionalUse> get conditionalUses => const [];
 
-  void _forEach<U>(
-          Iterable<U> uses, void Function(MemberEntity?, U) visitUse) =>
-      uses.forEach((use) => visitUse(member, use));
+  void _forEach<U>(Iterable<U> uses, void Function(MemberEntity?, U) visitUse) {
+    for (final use in uses) {
+      visitUse(member, use);
+    }
+  }
 
   void forEachDynamicUse(void Function(MemberEntity?, DynamicUse) visitUse) =>
       _forEach(dynamicUses, visitUse);
@@ -54,8 +56,8 @@ class WorldImpact {
   void forEachConstantUse(void Function(MemberEntity?, ConstantUse) visitUse) =>
       _forEach(constantUses, visitUse);
   void forEachConditionalUse(
-          void Function(MemberEntity?, ConditionalUse) visitUse) =>
-      _forEach(conditionalUses, visitUse);
+    void Function(MemberEntity?, ConditionalUse) visitUse,
+  ) => _forEach(conditionalUses, visitUse);
 
   bool get isEmpty => true;
 
@@ -74,7 +76,9 @@ class WorldImpact {
     void add(String title, Iterable<Object?> iterable) {
       if (iterable.isNotEmpty) {
         sb.write('\n $title:');
-        iterable.forEach((e) => sb.write('\n  $e'));
+        for (var e in iterable) {
+          sb.write('\n  $e');
+        }
       }
     }
 
@@ -109,8 +113,12 @@ class WorldImpactBuilderImpl extends WorldImpactBuilder {
   WorldImpactBuilderImpl([this.member]);
 
   WorldImpactBuilderImpl.internal(
-      this._dynamicUses, this._staticUses, this._typeUses, this._constantUses,
-      {this.member});
+    this._dynamicUses,
+    this._staticUses,
+    this._typeUses,
+    this._constantUses, {
+    this.member,
+  });
 
   @override
   bool get isEmpty =>

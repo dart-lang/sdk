@@ -33,7 +33,7 @@ class FlutterWrapStreamBuilder extends ResolvedCorrectionProducer {
     }
     var widgetSrc = utils.getNodeText(widgetExpr);
 
-    var streamBuilderElement = await sessionHelper.getFlutterClass2(
+    var streamBuilderElement = await sessionHelper.getFlutterClass(
       'StreamBuilder',
     );
     if (streamBuilderElement == null) {

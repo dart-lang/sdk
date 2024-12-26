@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/analyzer_error_code.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -19,7 +19,7 @@ main() {
 @reflectiveTest
 class LibraryPrivateTypesInPublicApiEnumTest extends LintRuleTest {
   @override
-  List<AnalyzerErrorCode> get ignoredErrorCodes => [
+  List<ErrorCode> get ignoredErrorCodes => [
         WarningCode.UNUSED_LOCAL_VARIABLE,
         WarningCode.UNUSED_ELEMENT,
         WarningCode.UNUSED_FIELD,
@@ -97,7 +97,7 @@ sealed class E {
 @reflectiveTest
 class LibraryPrivateTypesInPublicApiExtensionTypeTest extends LintRuleTest {
   @override
-  List<AnalyzerErrorCode> get ignoredErrorCodes => [
+  List<ErrorCode> get ignoredErrorCodes => [
         WarningCode.UNUSED_LOCAL_VARIABLE,
         WarningCode.UNUSED_ELEMENT,
         WarningCode.UNUSED_FIELD,
@@ -231,7 +231,7 @@ extension type E(Object o) {
 @reflectiveTest
 class LibraryPrivateTypesInPublicApiSuperParamTest extends LintRuleTest {
   @override
-  List<AnalyzerErrorCode> get ignoredErrorCodes => [
+  List<ErrorCode> get ignoredErrorCodes => [
         WarningCode.UNUSED_LOCAL_VARIABLE,
         WarningCode.UNUSED_ELEMENT,
         WarningCode.UNUSED_FIELD,
@@ -289,7 +289,7 @@ class B extends A {
 @reflectiveTest
 class LibraryPrivateTypesInPublicApiTest extends LintRuleTest {
   @override
-  List<AnalyzerErrorCode> get ignoredErrorCodes => [
+  List<ErrorCode> get ignoredErrorCodes => [
         WarningCode.UNUSED_LOCAL_VARIABLE,
         WarningCode.UNUSED_ELEMENT,
         WarningCode.UNUSED_FIELD,

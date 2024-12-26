@@ -22,21 +22,27 @@ main() {
   runTest() async {
     List<String> options = [Flags.enableCheckedMode];
     CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': SOURCE}, options: options);
+      memorySourceFiles: {'main.dart': SOURCE},
+      options: options,
+    );
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler!;
     Program program =
         compiler.backendStrategy.emitterTask.emitter.programForTesting!;
     JsBackendStrategy backendStrategy = compiler.backendStrategy;
     var name = backendStrategy.namerForTesting.operatorIs(
-        compiler.backendClosedWorldForTesting!.commonElements.functionClass);
+      compiler.backendClosedWorldForTesting!.commonElements.functionClass,
+    );
     for (Fragment fragment in program.fragments) {
       for (Library library in fragment.libraries) {
         for (Class cls in library.classes) {
           if (!cls.element.isClosure) continue;
           for (StubMethod stub in cls.isChecks) {
-            Expect.notEquals(stub.name!.key, name.key,
-                "Unexpected ${name.key} stub on $cls");
+            Expect.notEquals(
+              stub.name!.key,
+              name.key,
+              "Unexpected ${name.key} stub on $cls",
+            );
           }
         }
       }

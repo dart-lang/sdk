@@ -9,6 +9,4 @@ class A {
   A();
 }
 
-main() {
-
-}
+main() {}

@@ -303,7 +303,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   }
 
   test_hash_optionalPositionalParameterType() {
-    _testHashesSometimesDiffer((i) => FunctionTypeImpl(
+    _testHashesAlwaysEqual((i) => FunctionTypeImpl(
             typeFormals: const [],
             parameters: [
               positionalParameter(name: 'x', type: class_(name: 'C$i').thisType)
@@ -364,7 +364,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   }
 
   test_hash_requiredPositionalParameterType() {
-    _testHashesSometimesDiffer((i) => FunctionTypeImpl(
+    _testHashesAlwaysEqual((i) => FunctionTypeImpl(
             typeFormals: const [],
             parameters: [
               requiredParameter(name: 'x', type: class_(name: 'C$i').thisType)

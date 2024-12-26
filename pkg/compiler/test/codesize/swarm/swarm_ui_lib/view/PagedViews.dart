@@ -9,9 +9,9 @@ class PageState {
   final ObservableValue<int> target;
   final ObservableValue<int> length;
   PageState()
-      : current = ObservableValue<int>(0),
-        target = ObservableValue<int>(0),
-        length = ObservableValue<int>(1);
+    : current = ObservableValue<int>(0),
+      target = ObservableValue<int>(0),
+      length = ObservableValue<int>(1);
 }
 
 /// Simplifies using a PageNumberView and PagedColumnView together. */
@@ -19,9 +19,7 @@ class PagedContentView extends CompositeView {
   final View content;
   final PageState pages;
 
-  PagedContentView(this.content)
-      : pages = PageState(),
-        super('paged-content') {
+  PagedContentView(this.content) : pages = PageState(), super('paged-content') {
     addChild(PagedColumnView(pages, content));
     addChild(PageNumberView(pages));
   }
@@ -112,10 +110,16 @@ class PagedColumnView extends View {
     // the scroller configured the default way.
 
     // TODO(jacobr): use named arguments when available.
-    scroller = Scroller(_container, false /* verticalScrollEnabled */,
-        true /* horizontalScrollEnabled */, true /* momentumEnabled */, () {
-      return Size(_getViewLength(_container), 1);
-    }, Scroller.FAST_SNAP_DECELERATION_FACTOR);
+    scroller = Scroller(
+      _container,
+      false /* verticalScrollEnabled */,
+      true /* horizontalScrollEnabled */,
+      true /* momentumEnabled */,
+      () {
+        return Size(_getViewLength(_container), 1);
+      },
+      Scroller.FAST_SNAP_DECELERATION_FACTOR,
+    );
 
     scroller.onDecelStart.listen(_snapToPage);
     scroller.onScrollerDragEnd.listen(_snapToPage);
@@ -239,9 +243,10 @@ class PagedColumnView extends View {
             current < 0) {
           // The user is trying to throw so we want to round up to the
           // nearest page in the direction they are throwing.
-          newPageNumber = currentTarget < current
-              ? currentPageNumber + 1
-              : currentPageNumber - 1;
+          newPageNumber =
+              currentTarget < current
+                  ? currentPageNumber + 1
+                  : currentPageNumber - 1;
         } else {
           newPageNumber = pageNumber.round();
         }
@@ -266,7 +271,9 @@ class PagedColumnView extends View {
     // Figure out how many columns we're rendering.
     // The algorithm ensures we're bigger than the specified min size.
     int perPage = Math.max(
-        1, (_viewportSize + _columnGap) ~/ (_columnWidth + _columnGap));
+      1,
+      (_viewportSize + _columnGap) ~/ (_columnWidth + _columnGap),
+    );
 
     // Divide up the viewport between the columns.
     int columnSize = (_viewportSize - (perPage - 1) * _columnGap) ~/ perPage;

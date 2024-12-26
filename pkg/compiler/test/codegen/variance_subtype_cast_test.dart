@@ -112,10 +112,12 @@ foo(param) {
 main() {
   runTests() async {
     Future check(String test) {
-      return compile(test,
-          entry: 'foo',
-          check: checkerForAbsentPresent(test),
-          enableVariance: true);
+      return compile(
+        test,
+        entry: 'foo',
+        check: checkerForAbsentPresent(test),
+        enableVariance: true,
+      );
     }
 
     await check(LEGACY_COV_CAST);

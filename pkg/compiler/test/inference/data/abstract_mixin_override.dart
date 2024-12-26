@@ -21,7 +21,8 @@ mixin M1 {
   void foo(x);
   /*member: M1.bar:[null]*/
   void bar(/*[exact=JSUInt31]*/ y) {
-    /*invoke: [subtype=M1]*/ foo(y);
+    /*invoke: [subtype=M1]*/
+    foo(y);
   }
 }
 
@@ -45,7 +46,8 @@ mixin M2 {
   void foo(/*Value([exact=JSString], value: "")*/ x) => 5;
   /*member: M2.bar:[null]*/
   void bar(/*Value([exact=JSString], value: "")*/ y) {
-    /*invoke: [subtype=M2]*/ foo(y);
+    /*invoke: [subtype=M2]*/
+    foo(y);
   }
 }
 

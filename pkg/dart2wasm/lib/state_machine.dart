@@ -595,7 +595,7 @@ abstract class ProcedureStateMachineEntryCodeGenerator
     setSourceMapSource(source);
     setSourceMapFileOffset(member.fileOffset);
 
-    closures = Closures(translator, member);
+    closures = translator.getClosures(member);
 
     // We don't support inlining state machine functions atm. Only when we
     // inline and have call-site guarantees we would use the unchecked entry.
@@ -605,7 +605,6 @@ abstract class ProcedureStateMachineEntryCodeGenerator
     if (context != null && context.isEmpty) context = context.parent;
 
     generateOuter(member.function, context, source);
-    addNestedClosuresToCompilationQueue();
   }
 }
 

@@ -84,7 +84,8 @@ _noRefinementNullSelectors(/*[null|exact=Class2]*/ o) {
   o. /*[null|exact=Class2]*/ noSuchMethod;
   o. /*invoke: [null|exact=Class2]*/ toString();
   o. /*invoke: [null|exact=Class2]*/ noSuchMethod(
-      null as dynamic); // assumed to throw.
+    null as dynamic,
+  ); // assumed to throw.
   o. /*[exact=Class2]*/ toString;
   return o;
 }

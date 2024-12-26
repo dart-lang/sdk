@@ -80,7 +80,6 @@ class SingleRootFileSystemEntity implements FileSystemEntity {
   Future<String> readAsString() async => delegate.readAsString();
 }
 
-_normalize(root) {
-  Uri uri = root;
+Uri _normalize(Uri uri) {
   return uri.path.endsWith('/') ? uri : uri.replace(path: '${uri.path}/');
 }

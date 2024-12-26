@@ -220,7 +220,11 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     await withPlugin(
       test: (String pluginPath) async {
         var contextRoot = _newContextRoot(pkgPath);
-        await manager.addPluginToContextRoot(contextRoot, pluginPath);
+        await manager.addPluginToContextRoot(
+          contextRoot,
+          pluginPath,
+          isLegacyPlugin: true,
+        );
         await manager.stopAll();
       },
     );
@@ -241,8 +245,16 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
           pluginName: 'plugin2',
           test: (String plugin2Path) async {
             var contextRoot = _newContextRoot(pkgPath);
-            await manager.addPluginToContextRoot(contextRoot, plugin1Path);
-            await manager.addPluginToContextRoot(contextRoot, plugin2Path);
+            await manager.addPluginToContextRoot(
+              contextRoot,
+              plugin1Path,
+              isLegacyPlugin: true,
+            );
+            await manager.addPluginToContextRoot(
+              contextRoot,
+              plugin2Path,
+              isLegacyPlugin: true,
+            );
 
             var responses = manager.broadcastRequest(
               CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100),
@@ -272,8 +284,16 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
           pluginName: 'plugin2',
           test: (String plugin2Path) async {
             var contextRoot = _newContextRoot(pkgPath);
-            await manager.addPluginToContextRoot(contextRoot, plugin1Path);
-            await manager.addPluginToContextRoot(contextRoot, plugin2Path);
+            await manager.addPluginToContextRoot(
+              contextRoot,
+              plugin1Path,
+              isLegacyPlugin: true,
+            );
+            await manager.addPluginToContextRoot(
+              contextRoot,
+              plugin2Path,
+              isLegacyPlugin: true,
+            );
 
             var responses = manager.broadcastRequest(
               CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100),
@@ -296,7 +316,11 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
       content: '(invalid content here)',
       test: (String plugin1Path) async {
         var contextRoot = _newContextRoot(pkgPath);
-        await manager.addPluginToContextRoot(contextRoot, plugin1Path);
+        await manager.addPluginToContextRoot(
+          contextRoot,
+          plugin1Path,
+          isLegacyPlugin: true,
+        );
 
         var responses = manager.broadcastRequest(
           CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100),
@@ -335,7 +359,11 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
       pluginName: 'plugin1',
       test: (String plugin1Path) async {
         var contextRoot = _newContextRoot(pkgPath);
-        await manager.addPluginToContextRoot(contextRoot, plugin1Path);
+        await manager.addPluginToContextRoot(
+          contextRoot,
+          plugin1Path,
+          isLegacyPlugin: true,
+        );
         var plugins = manager.pluginsForContextRoot(contextRoot);
         expect(plugins, hasLength(1));
         var watchEvent = watcher.WatchEvent(
@@ -367,8 +395,16 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
           pluginName: 'plugin2',
           test: (String plugin2Path) async {
             var contextRoot = _newContextRoot(pkgPath);
-            await manager.addPluginToContextRoot(contextRoot, plugin1Path);
-            await manager.addPluginToContextRoot(contextRoot, plugin2Path);
+            await manager.addPluginToContextRoot(
+              contextRoot,
+              plugin1Path,
+              isLegacyPlugin: true,
+            );
+            await manager.addPluginToContextRoot(
+              contextRoot,
+              plugin2Path,
+              isLegacyPlugin: true,
+            );
 
             var plugins = manager.pluginsForContextRoot(contextRoot);
             expect(plugins, hasLength(2));
@@ -394,7 +430,11 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     await withPlugin(
       test: (String pluginPath) async {
         var contextRoot = _newContextRoot(pkgPath);
-        await manager.addPluginToContextRoot(contextRoot, pluginPath);
+        await manager.addPluginToContextRoot(
+          contextRoot,
+          pluginPath,
+          isLegacyPlugin: true,
+        );
 
         var plugins = manager.pluginsForContextRoot(contextRoot);
         expect(plugins, hasLength(1));
@@ -416,7 +456,11 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     await withPlugin(
       test: (String pluginPath) async {
         var contextRoot = _newContextRoot(pkgPath);
-        await manager.addPluginToContextRoot(contextRoot, pluginPath);
+        await manager.addPluginToContextRoot(
+          contextRoot,
+          pluginPath,
+          isLegacyPlugin: true,
+        );
 
         manager.removedContextRoot(contextRoot);
 
@@ -444,9 +488,21 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
           test: (String plugin2Path) async {
             var contextRoot1 = _newContextRoot(pkg1Path);
             var contextRoot2 = _newContextRoot(pkg2Path);
-            await manager.addPluginToContextRoot(contextRoot1, plugin1Path);
-            await manager.addPluginToContextRoot(contextRoot1, plugin2Path);
-            await manager.addPluginToContextRoot(contextRoot2, plugin1Path);
+            await manager.addPluginToContextRoot(
+              contextRoot1,
+              plugin1Path,
+              isLegacyPlugin: true,
+            );
+            await manager.addPluginToContextRoot(
+              contextRoot1,
+              plugin2Path,
+              isLegacyPlugin: true,
+            );
+            await manager.addPluginToContextRoot(
+              contextRoot2,
+              plugin1Path,
+              isLegacyPlugin: true,
+            );
 
             await manager.restartPlugins();
             var plugins = manager.plugins;
@@ -531,7 +587,7 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     //
     // Test path computation.
     //
-    var files = manager.filesFor(pluginDirPath);
+    var files = manager.filesFor(pluginDirPath, isLegacyPlugin: true);
     expect(files.execution, pluginFile);
     expect(files.packageConfig, packageConfigFile);
   }
@@ -567,7 +623,7 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     //
     // Test path computation.
     //
-    var files = manager.filesFor(pluginDirPath);
+    var files = manager.filesFor(pluginDirPath, isLegacyPlugin: true);
     expect(files.execution, pluginFile);
     var packageConfigFile = files.packageConfig;
     expect(packageConfigFile.exists, isTrue);

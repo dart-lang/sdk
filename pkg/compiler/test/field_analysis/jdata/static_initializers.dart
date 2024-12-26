@@ -110,8 +110,8 @@ var field3e = [
   [
     3,
     4,
-    [5, 6, method]
-  ]
+    [5, 6, method],
+  ],
 ];
 
 /*member: field3f:final,lazy*/
@@ -121,8 +121,8 @@ var field3f = [
   [
     3,
     4,
-    [5, 6, method()]
-  ]
+    [5, 6, method()],
+  ],
 ];
 
 /*member: field3g:final,lazy*/
@@ -186,7 +186,7 @@ var field7g = {
   7: 7,
   8: 8,
   9: 9,
-  10: 10
+  10: 10,
 };
 
 /*member: field8a:eager,final*/

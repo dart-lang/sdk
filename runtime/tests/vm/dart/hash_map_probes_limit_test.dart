@@ -5,7 +5,7 @@
 // This test verifies that a relatively large program (kernel compiler)
 // can be compiled with --hash_map_probes_limit.
 
-// VMOptions=--hash_map_probes_limit=1000
+// VMOptions=--hash_map_probes_limit=2000
 
 import "package:vm/kernel_front_end.dart";
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.source_information;
+library;
 
 import 'package:kernel/ast.dart' as ir;
 import '../common.dart';
@@ -29,7 +29,9 @@ abstract class SourceInformation extends JavaScriptNodeSourceInformation {
   }
 
   static void writeToDataSink(
-      DataSinkWriter sink, SourceInformation sourceInformation) {
+    DataSinkWriter sink,
+    SourceInformation sourceInformation,
+  ) {
     if (sourceInformation is SourceMappedMarker) {
       sink.writeInt(1);
     } else {
@@ -81,9 +83,10 @@ class FrameContext {
 
   factory FrameContext.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    SourceInformation callInformation =
-        source.readIndexedNoCache<SourceInformation>(
-            () => SourceInformation.readFromDataSource(source));
+    SourceInformation callInformation = source
+        .readIndexedNoCache<SourceInformation>(
+          () => SourceInformation.readFromDataSource(source),
+        );
     String inlinedMethodName = source.readString();
     source.end(tag);
     return FrameContext(callInformation, inlinedMethodName);
@@ -92,9 +95,10 @@ class FrameContext {
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeIndexed<SourceInformation>(
-        callInformation,
-        (SourceInformation sourceInformation) =>
-            SourceInformation.writeToDataSink(sink, sourceInformation));
+      callInformation,
+      (SourceInformation sourceInformation) =>
+          SourceInformation.writeToDataSink(sink, sourceInformation),
+    );
     sink.writeString(inlinedMethodName);
     sink.end(tag);
   }
@@ -115,7 +119,8 @@ class SourceInformationStrategy {
 
   /// Create a [SourceInformationBuilder] for [member].
   SourceInformationBuilder createBuilderForContext(
-      covariant MemberEntity member) {
+    covariant MemberEntity member,
+  ) {
     return SourceInformationBuilder();
   }
 
@@ -133,19 +138,21 @@ class SourceInformationBuilder {
   /// Create a [SourceInformationBuilder] for [member] with additional inlining
   /// [context].
   SourceInformationBuilder forContext(
-          covariant MemberEntity member, SourceInformation? context) =>
-      this;
+    covariant MemberEntity member,
+    SourceInformation? context,
+  ) => this;
 
   /// Generate [SourceInformation] for the declaration of the [member].
   SourceInformation? buildDeclaration(covariant MemberEntity member) => null;
 
   /// Generate [SourceInformation] for the stub of [callStructure] for [member].
   SourceInformation? buildStub(
-          covariant FunctionEntity function, CallStructure callStructure) =>
-      null;
+    covariant FunctionEntity function,
+    CallStructure callStructure,
+  ) => null;
 
   /// Generate [SourceInformation] for the generic [node].
-  @deprecated
+  @Deprecated("Use SourceInformationFactory")
   SourceInformation? buildGeneric(ir.Node node) => null;
 
   /// Generate [SourceInformation] for an instantiation of a class using [node]
@@ -308,7 +315,9 @@ abstract class SourceLocation {
   }
 
   static void writeToDataSink(
-      DataSinkWriter sink, SourceLocation sourceLocation) {
+    DataSinkWriter sink,
+    SourceLocation sourceLocation,
+  ) {
     if (sourceLocation is NoSourceLocationMarker) {
       sink.writeInt(0);
     } else {
@@ -356,7 +365,7 @@ abstract class SourceLocation {
   String get shortText => '${sourceUri?.pathSegments.last}:[$line,$column]';
 
   @override
-  String toString() => '${sourceUri}:[${line},${column}]';
+  String toString() => '$sourceUri:[$line,$column]';
 }
 
 /// A location in a source file encoded as a kernel [ir.Source] object and a
@@ -366,7 +375,7 @@ class _ConcreteSourceLocation extends SourceLocation {
   final int _lineColumn;
 
   _ConcreteSourceLocation(this._source, this.sourceName, int line, int column)
-      : _lineColumn = (line << 32) | column;
+    : _lineColumn = (line << 32) | column;
 
   @override
   Uri get sourceUri => _source.fileUri!;
@@ -387,15 +396,17 @@ class _ConcreteSourceLocation extends SourceLocation {
   String get shortText => '${sourceUri.pathSegments.last}:[$line,$column]';
 
   @override
-  String toString() => '${sourceUri}:[$line,$column]';
+  String toString() => '$sourceUri:[$line,$column]';
 }
 
 /// Compute the source map name for [element]. If [callStructure] is non-null
 /// it is used to name the parameter stub for [element].
 // TODO(johnniwinther): Merge this with `computeKernelElementNameForSourceMaps`
 // when the old frontend is removed.
-String? computeElementNameForSourceMaps(Entity element,
-    [CallStructure? callStructure]) {
+String? computeElementNameForSourceMaps(
+  Entity element, [
+  CallStructure? callStructure,
+]) {
   if (element is ClassEntity) {
     return element.name;
   }
@@ -475,11 +486,11 @@ class FrameEntry {
   final bool isEmptyPop;
 
   FrameEntry.push(this.pushLocation, this.inlinedMethodName)
-      : isEmptyPop = false;
+    : isEmptyPop = false;
 
   FrameEntry.pop(this.isEmptyPop)
-      : pushLocation = null,
-        inlinedMethodName = null;
+    : pushLocation = null,
+      inlinedMethodName = null;
 
   bool get isPush => pushLocation != null;
   bool get isPop => pushLocation == null;

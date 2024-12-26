@@ -17,7 +17,7 @@ class C {
 }
 
 const
-// [error line 19, column 1, length 5]
+// [error column 1, length 5]
 // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
 // [cfe] Can't have modifier 'const' here.
 get y => 2;

@@ -137,10 +137,6 @@ FlowGraphCompiler::FlowGraphCompiler(
     FlowGraph* flow_graph,
     const ParsedFunction& parsed_function,
     bool is_optimizing,
-    SpeculativeInliningPolicy* speculative_policy,
-    const GrowableArray<const Function*>& inline_id_to_function,
-    const GrowableArray<TokenPosition>& inline_id_to_token_pos,
-    const GrowableArray<intptr_t>& caller_inline_id,
     ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
     CodeStatistics* stats /* = nullptr */)
     : thread_(Thread::Current()),
@@ -160,7 +156,6 @@ FlowGraphCompiler::FlowGraphCompiler(
       static_calls_target_table_(),
       indirect_gotos_(),
       is_optimizing_(is_optimizing),
-      speculative_policy_(speculative_policy),
       may_reoptimize_(false),
       intrinsic_mode_(false),
       stats_(stats),
@@ -196,13 +191,18 @@ FlowGraphCompiler::FlowGraphCompiler(
 #else
   const bool stack_traces_only = false;
 #endif
+
+  const auto& inlining_info = flow_graph->inlining_info();
   // Make sure that the function is at the position for inline_id 0.
-  ASSERT(inline_id_to_function.length() >= 1);
-  ASSERT(inline_id_to_function[0]->ptr() ==
+  ASSERT(inlining_info.inline_id_to_function.length() >= 1);
+  ASSERT(inlining_info.inline_id_to_function[0]->ptr() ==
          flow_graph->parsed_function().function().ptr());
-  code_source_map_builder_ = new (zone_)
-      CodeSourceMapBuilder(zone_, stack_traces_only, caller_inline_id,
-                           inline_id_to_token_pos, inline_id_to_function);
+  ASSERT(inlining_info.inline_id_to_function.length() ==
+         inlining_info.caller_inline_id.length());
+  code_source_map_builder_ = new (zone_) CodeSourceMapBuilder(
+      zone_, stack_traces_only, inlining_info.caller_inline_id,
+      inlining_info.inline_id_to_token_pos,
+      inlining_info.inline_id_to_function);
 
   ArchSpecificInitialization();
 }
@@ -297,11 +297,13 @@ bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
 bool FlowGraphCompiler::IsEmptyBlock(BlockEntryInstr* block) const {
   // Entry-points cannot be merged because they must have assembly
   // prologue emitted which should not be included in any block they jump to.
-  return !block->IsGraphEntry() && !block->IsFunctionEntry() &&
-         !block->IsCatchBlockEntry() && !block->IsOsrEntry() &&
-         !block->IsIndirectEntry() && !block->HasNonRedundantParallelMove() &&
-         block->next()->IsGoto() &&
-         !block->next()->AsGoto()->HasNonRedundantParallelMove();
+
+  return block->IsTryEntry() ||
+         (!block->IsGraphEntry() && !block->IsFunctionEntry() &&
+          !block->IsCatchBlockEntry() && !block->IsOsrEntry() &&
+          !block->IsIndirectEntry() && !block->HasNonRedundantParallelMove() &&
+          block->next()->IsGoto() &&
+          !block->next()->AsGoto()->HasNonRedundantParallelMove());
 }
 
 void FlowGraphCompiler::CompactBlock(BlockEntryInstr* block) {
@@ -316,7 +318,9 @@ void FlowGraphCompiler::CompactBlock(BlockEntryInstr* block) {
   if (IsEmptyBlock(block)) {
     // For empty blocks, record a corresponding nonempty target as their
     // jump label.
-    BlockEntryInstr* target = block->next()->AsGoto()->successor();
+    BlockEntryInstr* target = block->IsTryEntry()
+                                  ? block->AsTryEntry()->try_body()
+                                  : block->next()->AsGoto()->successor();
     CompactBlock(target);
     block_info->set_jump_label(GetJumpLabel(target));
   }
@@ -425,30 +429,26 @@ void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env) {
   if (is_optimizing() && env != nullptr && (try_index != kInvalidTryIndex)) {
     env = env->Outermost();
     CatchBlockEntryInstr* catch_block =
-        flow_graph().graph_entry()->GetCatchEntry(try_index);
+        flow_graph().GetCatchBlockByTryIndex(try_index);
     const GrowableArray<Definition*>* idefs =
         catch_block->initial_definitions();
     catch_entry_moves_maps_builder_->NewMapping(assembler()->CodeSize());
 
-    for (intptr_t i = 0; i < flow_graph().variable_count(); ++i) {
-      // Don't sync captured parameters. They are not in the environment.
-      if (flow_graph().captured_parameters()->Contains(i)) continue;
+    for (intptr_t i = 0; i < idefs->length(); i++) {
       auto param = (*idefs)[i]->AsParameter();
-
-      // Don't sync values that have been replaced with constants.
       if (param == nullptr) continue;
-      RELEASE_ASSERT(param->env_index() == i);
+
       Location dst = param->location();
 
       // Don't sync exception or stack trace variables.
       if (dst.IsRegister()) continue;
 
-      Location src = env->LocationAt(i);
+      Location src = env->LocationAt(param->env_index());
       // Can only occur if AllocationSinking is enabled - and it is disabled
       // in functions with try.
       ASSERT(!src.IsInvalid());
       const Representation src_type =
-          env->ValueAt(i)->definition()->representation();
+          env->ValueAt(param->env_index())->definition()->representation();
       const auto move = CatchEntryMoveFor(assembler(), src_type, src,
                                           LocationToStackIndex(dst));
       if (!move.IsRedundant()) {
@@ -663,7 +663,17 @@ static bool IsMarkedWithAlignLoops(const Function& function) {
 
 void FlowGraphCompiler::VisitBlocks() {
   CompactBlocks();
-  if (compiler::Assembler::EmittingComments()) {
+
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+  const bool should_align_loops =
+      (FLAG_align_all_loops || IsMarkedWithAlignLoops(function())) &&
+      (kPreferredLoopAlignment > 1);
+#else
+  static_assert(kPreferredLoopAlignment == 1);
+  const bool should_align_loops = false;
+#endif  // defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+
+  if (should_align_loops || compiler::Assembler::EmittingComments()) {
     // The loop_info fields were cleared, recompute.
     flow_graph().ComputeLoops();
   }
@@ -678,11 +688,6 @@ void FlowGraphCompiler::VisitBlocks() {
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
   const auto inner_lr_state = ComputeInnerLRState(flow_graph());
 #endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
-
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
-  const bool should_align_loops =
-      FLAG_align_all_loops || IsMarkedWithAlignLoops(function());
-#endif  // defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
 
   for (intptr_t i = 0; i < block_order().length(); ++i) {
     // Compile the block entry.
@@ -720,13 +725,10 @@ void FlowGraphCompiler::VisitBlocks() {
     }
 
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
-    if (should_align_loops && entry->IsLoopHeader() &&
-        kPreferredLoopAlignment > 1) {
+    if (should_align_loops && entry->IsLoopHeader()) {
       assembler()->mark_should_be_aligned();
       assembler()->Align(kPreferredLoopAlignment, 0);
     }
-#else
-    static_assert(kPreferredLoopAlignment == 1);
 #endif  // defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
 
     BeginCodeSourceRange(entry->source());
@@ -1248,15 +1250,9 @@ compiler::Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
 
   // No deoptimization allowed when 'FLAG_precompiled_mode' is set.
   if (FLAG_precompiled_mode) {
-    if (FLAG_trace_compiler) {
-      THR_Print(
-          "Retrying compilation %s, suppressing inlining of deopt_id:%" Pd "\n",
+    FATAL("Speculative instructions are not allowed in AOT: %s, deopt_id %" Pd
+          "\n",
           parsed_function_.function().ToFullyQualifiedCString(), deopt_id);
-    }
-    ASSERT(speculative_policy_->AllowsSpeculativeInlining());
-    ASSERT(deopt_id != 0);  // longjmp must return non-zero value.
-    Thread::Current()->long_jump_base()->Jump(
-        deopt_id, Object::speculative_inlining_error());
   }
 
   ASSERT(is_optimizing_);
@@ -2720,7 +2716,6 @@ void FlowGraphCompiler::GenerateInstanceOf(const InstructionSource& source,
       AbstractType::Handle(type.UnwrapFutureOr());
   if (!unwrapped_type.IsTypeParameter() || unwrapped_type.IsNullable()) {
     // Only nullable type parameter remains nullable after instantiation.
-    // See NullIsInstanceOf().
     __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
     __ BranchIf(EQUAL,
                 unwrapped_type.IsNullable() ? &is_instance : &is_not_instance);

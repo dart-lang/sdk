@@ -661,17 +661,18 @@ class Types with StandardBounds {
                 .withDeclaredNullability(tFutureOr.nullability));
 
       case (InterfaceType sInterfaceType, FutureOrType tFutureOr):
+        Nullability tFutureOrNullability = tFutureOr.nullability;
         return
             // Rule 11.
             performNullabilityAwareSubtypeCheck(
                     sInterfaceType,
                     tFutureOr.typeArgument
-                        .withDeclaredNullability(tFutureOr.nullability))
+                        .withDeclaredNullability(tFutureOrNullability))
                 // Rule 10.
                 .orSubtypeCheckFor(
                     sInterfaceType,
                     new InterfaceType(this.hierarchy.coreTypes.futureClass,
-                        tFutureOr.nullability, [tFutureOr.typeArgument]),
+                        tFutureOrNullability, [tFutureOr.typeArgument]),
                     this);
 
       case (FunctionType sFunctionType, FutureOrType tFutureOr):
@@ -709,12 +710,13 @@ class Types with StandardBounds {
           StructuralParameterType sStructuralParameterType,
           FutureOrType tFutureOr
         ):
+        Nullability tFutureOrNullability = tFutureOr.nullability;
         return
             // Rule 11.
             performNullabilityAwareSubtypeCheck(
                     sStructuralParameterType,
                     tFutureOr.typeArgument
-                        .withDeclaredNullability(tFutureOr.nullability))
+                        .withDeclaredNullability(tFutureOrNullability))
                 // Rule 13.
                 .orSubtypeCheckFor(
                     sStructuralParameterType.parameter.bound
@@ -729,7 +731,7 @@ class Types with StandardBounds {
                 .orSubtypeCheckFor(
                     sStructuralParameterType,
                     new InterfaceType(this.hierarchy.coreTypes.futureClass,
-                        tFutureOr.nullability, [tFutureOr.typeArgument]),
+                        tFutureOrNullability, [tFutureOr.typeArgument]),
                     this);
 
       case (IntersectionType sIntersectionType, FutureOrType tFutureOr):
@@ -822,17 +824,18 @@ class Types with StandardBounds {
                 .withDeclaredNullability(tFutureOr.nullability));
 
       case (ExtensionType sExtensionType, FutureOrType tFutureOr):
+        Nullability tFutureOrNullability = tFutureOr.nullability;
         return
             // Rule 11.
             performNullabilityAwareSubtypeCheck(
                     sExtensionType,
                     tFutureOr.typeArgument
-                        .withDeclaredNullability(tFutureOr.nullability))
+                        .withDeclaredNullability(tFutureOrNullability))
                 // Rule 10.
                 .orSubtypeCheckFor(
                     sExtensionType,
                     new InterfaceType(this.hierarchy.coreTypes.futureClass,
-                        tFutureOr.nullability, [tFutureOr.typeArgument]),
+                        tFutureOrNullability, [tFutureOr.typeArgument]),
                     this);
 
       case (DynamicType(), NullType()):

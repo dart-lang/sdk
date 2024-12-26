@@ -41,8 +41,9 @@ main() {
 
 Future runTest1() async {
   CompilationResult result = await runCompiler(
-      memorySourceFiles: {'main.dart': TEST1},
-      options: [Flags.disableInlining]);
+    memorySourceFiles: {'main.dart': TEST1},
+    options: [Flags.disableInlining],
+  );
   Compiler compiler = result.compiler!;
   JsBackendStrategy backendStrategy = compiler.backendStrategy;
   GlobalTypeInferenceResults results =
@@ -50,18 +51,28 @@ Future runTest1() async {
   JClosedWorld closedWorld = results.closedWorld;
   JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
-  MemberEntity element = elementEnvironment.lookupLibraryMember(
-      elementEnvironment.mainLibrary!, 'foo')!;
+  MemberEntity element =
+      elementEnvironment.lookupLibraryMember(
+        elementEnvironment.mainLibrary!,
+        'foo',
+      )!;
   AbstractValue mask = results.resultOfMember(element).returnType;
-  AbstractValue falseType =
-      ValueTypeMask(commonMasks.boolType as TypeMask, FalseConstantValue());
+  AbstractValue falseType = ValueTypeMask(
+    commonMasks.boolType as TypeMask,
+    FalseConstantValue(),
+  );
   // 'foo' should always return false
   Expect.equals(falseType, mask);
   // the argument to 'bar' is always false
-  final bar = elementEnvironment.lookupLibraryMember(
-      elementEnvironment.mainLibrary!, 'bar') as FunctionEntity;
-  elementEnvironment.forEachParameterAsLocal(results.globalLocalsMap, bar,
-      (barArg) {
+  final bar =
+      elementEnvironment.lookupLibraryMember(
+            elementEnvironment.mainLibrary!,
+            'bar',
+          )
+          as FunctionEntity;
+  elementEnvironment.forEachParameterAsLocal(results.globalLocalsMap, bar, (
+    barArg,
+  ) {
     AbstractValue barArgMask = results.resultOfParameter(barArg);
     Expect.equals(falseType, barArgMask);
   });
@@ -92,8 +103,9 @@ main() {
 
 Future runTest2() async {
   CompilationResult result = await runCompiler(
-      memorySourceFiles: {'main.dart': TEST2},
-      options: [Flags.disableInlining]);
+    memorySourceFiles: {'main.dart': TEST2},
+    options: [Flags.disableInlining],
+  );
   Compiler compiler = result.compiler!;
   JsBackendStrategy backendStrategy = compiler.backendStrategy;
   GlobalTypeInferenceResults results =
@@ -101,15 +113,23 @@ Future runTest2() async {
   JClosedWorld closedWorld = results.closedWorld;
   AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
   JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-  MemberEntity element = elementEnvironment.lookupLibraryMember(
-      elementEnvironment.mainLibrary!, 'foo')!;
+  MemberEntity element =
+      elementEnvironment.lookupLibraryMember(
+        elementEnvironment.mainLibrary!,
+        'foo',
+      )!;
   AbstractValue mask = results.resultOfMember(element).returnType;
   // Can't infer value for foo's return type, it could be either true or false
   Expect.identical(commonMasks.boolType, mask);
-  final bar = elementEnvironment.lookupLibraryMember(
-      elementEnvironment.mainLibrary!, 'bar') as FunctionEntity;
-  elementEnvironment.forEachParameterAsLocal(results.globalLocalsMap, bar,
-      (barArg) {
+  final bar =
+      elementEnvironment.lookupLibraryMember(
+            elementEnvironment.mainLibrary!,
+            'bar',
+          )
+          as FunctionEntity;
+  elementEnvironment.forEachParameterAsLocal(results.globalLocalsMap, bar, (
+    barArg,
+  ) {
     AbstractValue barArgMask = results.resultOfParameter(barArg);
     // The argument to bar should have the same type as the return type of foo
     Expect.identical(commonMasks.boolType, barArgMask);

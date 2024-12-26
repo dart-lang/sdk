@@ -4,10 +4,12 @@
 
 main() {
   // This call is on the stack when the error is thrown.
-  /*1:main*/ test();
+  /*1:main*/
+  test();
 }
 
 @pragma('dart2js:noInline')
 test() async {
-  /*2:test*/ /*4:test*/ throw '>ExceptionMarker<';
+  /*2:test*/ /*4:test*/
+  throw '>ExceptionMarker<';
 }

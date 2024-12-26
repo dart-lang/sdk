@@ -7,6 +7,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:test/test.dart';
@@ -91,9 +92,9 @@ class LocateElementTest extends PubPackageResolutionTest {
 }
 
 class _MockAnalysisSession implements AnalysisSession {
-  final _libraries = <String, LibraryElement>{};
+  final _libraries = <String, LibraryElementImpl>{};
 
-  void addLibrary(LibraryElement library) =>
+  void addLibrary(LibraryElementImpl library) =>
       _libraries[library.identifier] = library;
 
   @override

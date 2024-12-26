@@ -11,6 +11,7 @@ import 'package:front_end/src/codes/cfe_codes.dart'
         messageFfiNativeFieldMissingType,
         messageFfiNativeFieldMustBeStatic,
         messageFfiNativeFieldType,
+        messageFfiNativeFunctionMissingType,
         messageFfiNativeMustBeExternal,
         messageFfiNativeOnlyNativeFieldWrapperClassCanBePointer,
         templateCantHaveNamedParameters,
@@ -767,7 +768,8 @@ class FfiNativeTransformer extends FfiTransformer {
       final dimensions = ensureArraySizeAnnotation(node, ffiType, false);
       return (
         ffiType,
-        NativeTypeCfe.withoutLayout(this, dartType, arrayDimensions: dimensions)
+        NativeTypeCfe.withoutLayout(this, dartType,
+            arrayDimensions: dimensions, variableLength: false)
       );
     }
 
@@ -790,6 +792,43 @@ class FfiNativeTransformer extends FfiTransformer {
     }
 
     return (ffiType, NativeTypeCfe.withoutLayout(this, ffiType));
+  }
+
+  DartType _validateOrInferNativeFunctionType(
+    Procedure node,
+    DartType nativeType,
+    FunctionType dartType,
+  ) {
+    if (nativeType is DynamicType) {
+      // No type argument was given on the @Native annotation, so we try to
+      // infer the native type from the Dart signature.
+      final inferred = convertDartTypeToNativeType(dartType, allowVoid: true);
+      if (inferred != null) {
+        nativeType = inferred;
+      }
+
+      final nativeFunctionType = InterfaceType(
+        nativeFunctionClass,
+        Nullability.nonNullable,
+        [nativeType],
+      );
+
+      if (!isNativeTypeValid(
+        nativeFunctionType,
+        allowHandle: true,
+        allowStructAndUnion: true,
+      )) {
+        diagnosticReporter.report(
+          messageFfiNativeFunctionMissingType,
+          node.fileOffset,
+          1,
+          node.location?.file,
+        );
+        throw FfiStaticTypeError();
+      }
+    }
+
+    return nativeType;
   }
 
   @override
@@ -828,6 +867,18 @@ class FfiNativeTransformer extends FfiTransformer {
     final ffiConstant = ffiNativeAnnotation.constant as InstanceConstant;
     var nativeType = ffiConstant.typeArguments[0];
 
+    if (node.kind == ProcedureKind.Method) {
+      final dartType =
+          node.function.computeFunctionType(Nullability.nonNullable);
+      try {
+        nativeType =
+            _validateOrInferNativeFunctionType(node, nativeType, dartType);
+      } on FfiStaticTypeError {
+        // We've already reported an error.
+        return node;
+      }
+    }
+
     final nativeName = _resolveNativeSymbolName(node, ffiConstant);
     final overriddenAssetName = _assetNameFromAnnotation(ffiConstant);
     final isLeaf = _isLeaf(ffiConstant);
@@ -842,14 +893,13 @@ class FfiNativeTransformer extends FfiTransformer {
         // We've already reported an error.
         return node;
       }
-      final ffiFunctionType = ffiConstant.typeArguments[0] as FunctionType;
 
       if (!node.isStatic) {
-        return _transformInstanceMethod(node, ffiFunctionType, nativeName,
+        return _transformInstanceMethod(node, nativeType, nativeName,
             overriddenAssetName, isLeaf, ffiNativeAnnotation.fileOffset);
       }
 
-      return _transformStaticFunction(node, ffiFunctionType, nativeName,
+      return _transformStaticFunction(node, nativeType, nativeName,
           overriddenAssetName, isLeaf, ffiNativeAnnotation.fileOffset);
     } else if (node.kind == ProcedureKind.Getter ||
         node.kind == ProcedureKind.Setter) {

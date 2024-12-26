@@ -1066,6 +1066,9 @@ class ConcurrentMarkTask : public ThreadPool::Task {
     // Exit isolate cleanly *before* notifying it, to avoid shutdown race.
     Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
     // This marker task is done. Notify the original isolate.
+
+    Dart_Port interrupt_port = isolate_group_->interrupt_port();
+
     {
       MonitorLocker ml(page_space_->tasks_lock());
       page_space_->set_tasks(page_space_->tasks() - 1);
@@ -1076,10 +1079,12 @@ class ConcurrentMarkTask : public ThreadPool::Task {
       ASSERT(page_space_->phase() == PageSpace::kMarking);
       if (page_space_->concurrent_marker_tasks() == 0) {
         page_space_->set_phase(PageSpace::kAwaitingFinalization);
-        isolate_group_->ScheduleInterrupts(Thread::kVMInterrupt);
       }
       ml.NotifyAll();
     }
+
+    PortMap::PostMessage(Message::New(
+        interrupt_port, Smi::New(Thread::kVMInterrupt), Message::kOOBPriority));
   }
 
  private:

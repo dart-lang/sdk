@@ -277,19 +277,27 @@ void testNegativeArray() {
 // the element size.
 void testAlignment() {
   Expect.throws<ArgumentError>(
-      () => Pointer<Int16>.fromAddress(1).asTypedList(1));
+    () => Pointer<Int16>.fromAddress(1).asTypedList(1),
+  );
   Expect.throws<ArgumentError>(
-      () => Pointer<Int32>.fromAddress(2).asTypedList(1));
+    () => Pointer<Int32>.fromAddress(2).asTypedList(1),
+  );
   Expect.throws<ArgumentError>(
-      () => Pointer<Int64>.fromAddress(4).asTypedList(1));
+    () => Pointer<Int64>.fromAddress(4).asTypedList(1),
+  );
   Expect.throws<ArgumentError>(
-      () => Pointer<Uint16>.fromAddress(1).asTypedList(1));
+    () => Pointer<Uint16>.fromAddress(1).asTypedList(1),
+  );
   Expect.throws<ArgumentError>(
-      () => Pointer<Uint32>.fromAddress(2).asTypedList(1));
+    () => Pointer<Uint32>.fromAddress(2).asTypedList(1),
+  );
   Expect.throws<ArgumentError>(
-      () => Pointer<Uint64>.fromAddress(4).asTypedList(1));
+    () => Pointer<Uint64>.fromAddress(4).asTypedList(1),
+  );
   Expect.throws<ArgumentError>(
-      () => Pointer<Float>.fromAddress(2).asTypedList(1));
+    () => Pointer<Float>.fromAddress(2).asTypedList(1),
+  );
   Expect.throws<ArgumentError>(
-      () => Pointer<Double>.fromAddress(4).asTypedList(1));
+    () => Pointer<Double>.fromAddress(4).asTypedList(1),
+  );
 }

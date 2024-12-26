@@ -121,57 +121,36 @@ DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
 
 #ifndef DART_PRECOMPILED_RUNTIME
 
-void DartCompilationPipeline::ParseFunction(ParsedFunction* parsed_function) {
-  // Nothing to do here.
-}
-
-FlowGraph* DartCompilationPipeline::BuildFlowGraph(
+static FlowGraph* BuildIrregexpFunctionFlowGraph(
     Zone* zone,
     ParsedFunction* parsed_function,
     ZoneGrowableArray<const ICData*>* ic_data_array,
     intptr_t osr_id,
     bool optimized) {
-  kernel::FlowGraphBuilder builder(parsed_function, ic_data_array,
-                                   /* not building var desc */ nullptr,
-                                   /* not inlining */ nullptr, optimized,
-                                   osr_id);
-  FlowGraph* graph = builder.BuildGraph();
-  ASSERT(graph != nullptr);
-  return graph;
-}
+  if (parsed_function->regexp_compile_data() == nullptr) {
+    VMTagScope tagScope(parsed_function->thread(),
+                        VMTag::kCompileParseRegExpTagId);
+    RegExp& regexp = RegExp::Handle(parsed_function->function().regexp());
 
-void IrregexpCompilationPipeline::ParseFunction(
-    ParsedFunction* parsed_function) {
-  VMTagScope tagScope(parsed_function->thread(),
-                      VMTag::kCompileParseRegExpTagId);
-  Zone* zone = parsed_function->zone();
-  RegExp& regexp = RegExp::Handle(parsed_function->function().regexp());
+    const String& pattern = String::Handle(regexp.pattern());
 
-  const String& pattern = String::Handle(regexp.pattern());
+    RegExpCompileData* compile_data = new (zone) RegExpCompileData();
+    // Parsing failures are handled in the RegExp factory constructor.
+    RegExpParser::ParseRegExp(pattern, regexp.flags(), compile_data);
 
-  RegExpCompileData* compile_data = new (zone) RegExpCompileData();
-  // Parsing failures are handled in the RegExp factory constructor.
-  RegExpParser::ParseRegExp(pattern, regexp.flags(), compile_data);
+    regexp.set_num_bracket_expressions(compile_data->capture_count);
+    regexp.set_capture_name_map(compile_data->capture_name_map);
+    if (compile_data->simple) {
+      regexp.set_is_simple();
+    } else {
+      regexp.set_is_complex();
+    }
 
-  regexp.set_num_bracket_expressions(compile_data->capture_count);
-  regexp.set_capture_name_map(compile_data->capture_name_map);
-  if (compile_data->simple) {
-    regexp.set_is_simple();
-  } else {
-    regexp.set_is_complex();
+    parsed_function->SetRegExpCompileData(compile_data);
+
+    // Variables are allocated after compilation.
   }
 
-  parsed_function->SetRegExpCompileData(compile_data);
-
-  // Variables are allocated after compilation.
-}
-
-FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
-    Zone* zone,
-    ParsedFunction* parsed_function,
-    ZoneGrowableArray<const ICData*>* ic_data_array,
-    intptr_t osr_id,
-    bool optimized) {
   // Compile to the dart IR.
   RegExpEngine::CompilationResult result =
       RegExpEngine::CompileIR(parsed_function->regexp_compile_data(),
@@ -180,7 +159,6 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
     Report::LongJump(LanguageError::Handle(
         LanguageError::New(String::Handle(String::New(result.error_message)))));
   }
-  backtrack_goto_ = result.backtrack_goto;
 
   // Allocate variables now that we know the number of locals.
   parsed_function->AllocateIrregexpVariables(result.num_stack_locals);
@@ -190,7 +168,10 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
   // Catch entries are always considered reachable, even if they
   // become unreachable after OSR.
   if (osr_id != Compiler::kNoOSRDeoptId) {
-    result.graph_entry->RelinkToOsrEntry(zone, result.num_blocks);
+    auto osr_result = result.graph_entry->FindOsrEntry(zone, result.num_blocks);
+    // No try-catch in irregexps, so we can pass nullptr as flow_graph_builder.
+    ASSERT(osr_result->try_entries_length() == 0);
+    kernel::FlowGraphBuilder::RelinkToOsrEntry(/*builder=*/nullptr, osr_result);
   }
   PrologueInfo prologue_info(-1, -1);
   return new (zone)
@@ -198,13 +179,23 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
                 prologue_info, FlowGraph::CompilationModeFrom(optimized));
 }
 
-CompilationPipeline* CompilationPipeline::New(Zone* zone,
-                                              const Function& function) {
-  if (function.IsIrregexpFunction()) {
-    return new (zone) IrregexpCompilationPipeline();
-  } else {
-    return new (zone) DartCompilationPipeline();
+FlowGraph* Compiler::BuildFlowGraph(
+    Zone* zone,
+    ParsedFunction* parsed_function,
+    ZoneGrowableArray<const ICData*>* ic_data_array,
+    intptr_t osr_id,
+    bool optimized) {
+  if (parsed_function->function().IsIrregexpFunction()) {
+    return BuildIrregexpFunctionFlowGraph(zone, parsed_function, ic_data_array,
+                                          osr_id, optimized);
   }
+  kernel::FlowGraphBuilder builder(parsed_function, ic_data_array,
+                                   /* not building var desc */ nullptr,
+                                   /* not inlining */ nullptr, optimized,
+                                   osr_id);
+  FlowGraph* graph = builder.BuildGraph();
+  ASSERT(graph != nullptr);
+  return graph;
 }
 
 // Compile a function. Should call only if the function has not been compiled.
@@ -310,7 +301,7 @@ class CompileParsedFunctionHelper : public ValueObject {
         osr_id_(osr_id),
         thread_(Thread::Current()) {}
 
-  CodePtr Compile(CompilationPipeline* pipeline);
+  CodePtr Compile();
 
  private:
   ParsedFunction* parsed_function() const { return parsed_function_; }
@@ -484,7 +475,7 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
 }
 
 // Return null if bailed out.
-CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
+CodePtr CompileParsedFunctionHelper::Compile() {
   ASSERT(!FLAG_precompiled_mode);
   const Function& function = parsed_function()->function();
   if (optimized() && !function.IsOptimizable()) {
@@ -502,10 +493,6 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   volatile bool done = false;
   // volatile because the variable may be clobbered by a longjmp.
   volatile intptr_t far_branch_level = 0;
-
-  // In the JIT case we allow speculative inlining and have no need for a
-  // suppression, since we don't restart optimization.
-  SpeculativeInliningPolicy speculative_policy(/*enable_suppression=*/false);
 
   Code* volatile result = &Code::ZoneHandle(zone);
   while (!done) {
@@ -544,7 +531,7 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         }
 
         TIMELINE_DURATION(thread(), CompilerVerbose, "BuildFlowGraph");
-        flow_graph = pipeline->BuildFlowGraph(
+        flow_graph = Compiler::BuildFlowGraph(
             zone, parsed_function(), ic_data_array, osr_id(), optimized());
       }
 
@@ -558,31 +545,32 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       }
 
       if (flow_graph->should_reorder_blocks()) {
-        TIMELINE_DURATION(thread(), CompilerVerbose,
-                          "BlockScheduler::AssignEdgeWeights");
-        BlockScheduler::AssignEdgeWeights(flow_graph);
+        // Edge weights are indexed by blocks' preorder numbers. This means
+        // we can't apply them to OSR graph because it does not have the same
+        // structure as the original graph: it was mutated by RelinkToOsrEntry.
+        if (osr_id() == Compiler::kNoOSRDeoptId) {
+          TIMELINE_DURATION(thread(), CompilerVerbose,
+                            "BlockScheduler::AssignEdgeWeights");
+          BlockScheduler::AssignEdgeWeights(flow_graph);
+        }
       }
 
-      CompilerPassState pass_state(thread(), flow_graph, &speculative_policy);
+      CompilerPassState pass_state(thread(), flow_graph);
 
       if (optimized()) {
         TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
-        JitCallSpecializer call_specializer(flow_graph, &speculative_policy);
+        JitCallSpecializer call_specializer(flow_graph);
         pass_state.call_specializer = &call_specializer;
 
         flow_graph = CompilerPass::RunPipeline(CompilerPass::kJIT, &pass_state);
       }
 
-      ASSERT(pass_state.inline_id_to_function.length() ==
-             pass_state.caller_inline_id.length());
       compiler::ObjectPoolBuilder object_pool_builder;
       compiler::Assembler assembler(&object_pool_builder, far_branch_level);
-      FlowGraphCompiler graph_compiler(
-          &assembler, flow_graph, *parsed_function(), optimized(),
-          &speculative_policy, pass_state.inline_id_to_function,
-          pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
-          ic_data_array);
+      FlowGraphCompiler graph_compiler(&assembler, flow_graph,
+                                       *parsed_function(), optimized(),
+                                       ic_data_array);
       pass_state.graph_compiler = &graph_compiler;
       CompilerPass::GenerateCode(&pass_state);
 
@@ -654,9 +642,6 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         done = false;
         RELEASE_ASSERT(far_branch_level < 2);
         far_branch_level += 1;
-      } else if (error.ptr() == Object::speculative_inlining_error().ptr()) {
-        // Can only happen with precompilation.
-        UNREACHABLE();
       } else {
         // If the error isn't due to an out of range branch offset, we don't
         // try again (done = true).
@@ -679,8 +664,7 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   return result->ptr();
 }
 
-static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
-                                       const Function& function,
+static ObjectPtr CompileFunctionHelper(const Function& function,
                                        bool optimized,
                                        intptr_t osr_id) {
   Thread* const thread = Thread::Current();
@@ -708,15 +692,10 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
                 function.ToFullyQualifiedCString(),
                 function.token_pos().ToCString(), token_size);
     }
-    // Makes sure no classes are loaded during parsing in background.
-    {
-      HANDLESCOPE(thread);
-      pipeline->ParseFunction(parsed_function);
-    }
 
     CompileParsedFunctionHelper helper(parsed_function, optimized, osr_id);
 
-    const Code& result = Code::Handle(helper.Compile(pipeline));
+    const Code& result = Code::Handle(helper.Compile());
 
     if (result.IsNull()) {
       const Error& error = Error::Handle(thread->StealStickyError());
@@ -843,11 +822,8 @@ ObjectPtr Compiler::CompileFunction(Thread* thread, const Function& function) {
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, event_name, function);
 #endif  // defined(SUPPORT_TIMELINE)
 
-  CompilationPipeline* pipeline =
-      CompilationPipeline::New(thread->zone(), function);
-
   const bool optimized = function.ForceOptimize();
-  return CompileFunctionHelper(pipeline, function, optimized, kNoOSRDeoptId);
+  return CompileFunctionHelper(function, optimized, kNoOSRDeoptId);
 }
 
 ErrorPtr Compiler::EnsureUnoptimizedCode(Thread* thread,
@@ -860,11 +836,9 @@ ErrorPtr Compiler::EnsureUnoptimizedCode(Thread* thread,
   if (function.HasCode()) {
     original_code = function.CurrentCode();
   }
-  CompilationPipeline* pipeline =
-      CompilationPipeline::New(thread->zone(), function);
   const bool optimized = function.ForceOptimize();
-  const Object& result = Object::Handle(
-      CompileFunctionHelper(pipeline, function, optimized, kNoOSRDeoptId));
+  const Object& result =
+      Object::Handle(CompileFunctionHelper(function, optimized, kNoOSRDeoptId));
   if (result.IsError()) {
     return Error::Cast(result).ptr();
   }
@@ -899,10 +873,7 @@ ObjectPtr Compiler::CompileOptimizedFunction(Thread* thread,
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, event_name, function);
 #endif  // defined(SUPPORT_TIMELINE)
 
-  CompilationPipeline* pipeline =
-      CompilationPipeline::New(thread->zone(), function);
-  return CompileFunctionHelper(pipeline, function, /* optimized = */ true,
-                               osr_id);
+  return CompileFunctionHelper(function, /* optimized = */ true, osr_id);
 }
 
 void Compiler::ComputeLocalVarDescriptors(const Code& code) {
@@ -1252,12 +1223,6 @@ void BackgroundCompiler::Disable() {
 }
 
 #else  // DART_PRECOMPILED_RUNTIME
-
-CompilationPipeline* CompilationPipeline::New(Zone* zone,
-                                              const Function& function) {
-  UNREACHABLE();
-  return nullptr;
-}
 
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));

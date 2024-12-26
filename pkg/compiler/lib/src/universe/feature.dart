@@ -10,7 +10,7 @@
 ///
 /// The use of these features is typically discovered in an early phase of the
 /// compilation pipeline, for example during resolution.
-library compiler.universe.feature;
+library;
 
 import '../elements/types.dart';
 import '../ir/runtime_type_analysis.dart';
@@ -21,74 +21,74 @@ import '../util/util.dart';
 // TODO(johnniwinther): Should mirror usage be part of this?
 enum Feature {
   /// An assert statement with no message.
-  ASSERT,
+  assert_,
 
   /// An assert statement with a message.
-  ASSERT_WITH_MESSAGE,
+  assertWithMessage,
 
   /// A method with an `async` body modifier.
-  ASYNC,
+  async,
 
   /// An asynchronous for in statement like `await for (var e in i) {}`.
-  ASYNC_FOR_IN,
+  asyncForIn,
 
   /// A method with an `async*` body modifier.
-  ASYNC_STAR,
+  asyncStar,
 
   /// A catch statement.
-  CATCH_STATEMENT,
+  catchStatement,
 
   /// A fall through in a switch case.
-  FALL_THROUGH_ERROR,
+  fallThroughError,
 
   /// A field without an initializer.
-  FIELD_WITHOUT_INITIALIZER,
+  fieldWithoutInitializer,
 
   /// A field whose initialization is not a constant.
-  LAZY_FIELD,
+  lazyField,
 
   /// A local variable without an initializer.
-  LOCAL_WITHOUT_INITIALIZER,
+  localWithoutInitializer,
 
   /// Access to `loadLibrary` on a deferred import.
-  LOAD_LIBRARY,
+  loadLibrary,
 
   /// A catch clause with a variable for the stack trace.
-  STACK_TRACE_IN_CATCH,
+  stackTraceInCatch,
 
   /// String interpolation.
-  STRING_INTERPOLATION,
+  stringInterpolation,
 
   /// String juxtaposition.
-  STRING_JUXTAPOSITION,
+  stringJuxtaposition,
 
   /// An implicit call to `super.noSuchMethod`, like calling an unresolved
   /// super method.
-  SUPER_NO_SUCH_METHOD,
+  superNoSuchMethod,
 
   /// An synchronous for in statement, like `for (var e in i) {}`.
-  SYNC_FOR_IN,
+  syncForIn,
 
   /// A method with a `sync*` body modifier.
-  SYNC_STAR,
+  syncStar,
 
   /// A throw expression.
-  THROW_EXPRESSION,
+  throwExpression,
 
   /// An implicit throw of a `NoSuchMethodError`, like calling an unresolved
   /// static method.
-  THROW_NO_SUCH_METHOD,
+  throwNoSuchMethod,
 
   /// An implicit throw of a runtime error, like in a runtime type check.
-  THROW_RUNTIME_ERROR,
+  throwRuntimeError,
 
   /// An implicit throw of a `UnsupportedError`, like calling `new
   /// bool.fromEnvironment`.
-  THROW_UNSUPPORTED_ERROR,
+  throwUnsupportedError,
 
   /// The need for a type variable bound check, like instantiation of a generic
   /// type whose type variable have non-trivial bounds.
-  TYPE_VARIABLE_BOUNDS_CHECK,
+  typeVariableBoundsCheck,
 }
 
 /// Describes a use of a map literal in the program.
@@ -228,7 +228,8 @@ class RuntimeTypeUse {
   }
 
   @override
-  String toString() => 'RuntimeTypeUse(kind=$kind,receiver=$receiverType'
+  String toString() =>
+      'RuntimeTypeUse(kind=$kind,receiver=$receiverType'
       ',argument=$argumentType)';
 }
 
@@ -274,9 +275,10 @@ class GenericInstantiation {
     if (functionType == other.functionType &&
         equalElements(typeArguments, other.typeArguments)) {
       assert(
-          this.hashCode == other.hashCode,
-          '\nthis:  ${this.hashCode}  $this'
-          '\nthis:  ${other.hashCode}  $other');
+        hashCode == other.hashCode,
+        '\nthis:  $hashCode  $this'
+        '\nthis:  ${other.hashCode}  $other',
+      );
       return true;
     } else {
       return false;

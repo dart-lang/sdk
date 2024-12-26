@@ -206,6 +206,7 @@ def GenerateFromDatabase(common_database,
 def GenerateSingleFile(library_path, output_dir, generated_output_dir=None, prefix=None):
     library_dir = os.path.dirname(library_path)
     library_filename = os.path.basename(library_path)
+    # Expand part files and concatenate them.
     copy_dart_script = os.path.relpath('../../copy_dart.py', library_dir)
     output_dir = os.path.relpath(output_dir, library_dir)
     if not os.path.exists(library_dir):

@@ -12,7 +12,7 @@ void main() async {
   await Future.wait([
     writeC(),
     for (final container in Container.values) writeDart(container),
-    writeDartShared()
+    writeDartShared(),
   ]);
 }
 
@@ -42,10 +42,7 @@ class Container {
     'Array',
     2024,
     (pointerType) => '${pointerType.pointerTo}Array',
-    [
-      Test.self,
-      Test.elementAt,
-    ],
+    [Test.self, Test.elementAt],
     [
       int8,
       int16,
@@ -65,9 +62,7 @@ class Container {
     'Struct',
     2024,
     (pointerType) => '${pointerType.pointerTo}Struct',
-    [
-      Test.field,
-    ],
+    [Test.field],
     [
       int8,
       int16,
@@ -87,31 +82,11 @@ class Container {
     'TypedData',
     2024,
     (pointerType) => pointerType.dartTypedData,
-    [
-      Test.self,
-      Test.elementAt,
-      Test.view,
-      Test.viewMany,
-    ],
-    [
-      int8,
-      int16,
-      int32,
-      int64,
-      uint8,
-      uint16,
-      uint32,
-      uint64,
-      float,
-      double_,
-    ],
+    [Test.self, Test.elementAt, Test.view, Test.viewMany],
+    [int8, int16, int32, int64, uint8, uint16, uint32, uint64, float, double_],
   );
 
-  static final values = [
-    array,
-    struct,
-    typedData,
-  ];
+  static final values = [array, struct, typedData];
 }
 
 class Test {
@@ -135,9 +110,7 @@ const generatorPath = 'tests/ffi/generator/address_of_test_generator.dart';
 
 Future<void> writeDart(Container container) async {
   final StringBuffer buffer = StringBuffer();
-  buffer.write(headerDart(
-    copyrightYear: container.copyrightYear,
-  ));
+  buffer.write(headerDart(copyrightYear: container.copyrightYear));
 
   buffer.write("""
 void main() {${'''
@@ -195,13 +168,10 @@ Array<${elementType.dartCType}> make${elementType.dartCType}Array(int length){
     if (container == Container.struct) {
       buffer.write("""
 final class ${elementType.dartCType}Struct extends Struct {
-${[
-        for (int i = 0; i < manyCount; i++)
-          '''
+${[for (int i = 0; i < manyCount; i++) '''
 @${elementType.dartCType}()
 external ${elementType.dartType} a$i;
-'''
-      ].join()}
+'''].join()}
 }
 
 ${elementType.dartCType}Struct make${elementType.dartCType}Struct(int length){
@@ -234,9 +204,7 @@ void $methodName() {
   const length = $manyCount;
   final $varName = make${testName}(length);
   final expectedResult = makeExpectedResult${elementType.dartCType}(0, length);
-  final result = take${elementType.dartCType}PointerMany(${[
-            for (int i = 0; i < manyCount; i++) '$varName[$i].address,'
-          ].join()});
+  final result = take${elementType.dartCType}PointerMany(${[for (int i = 0; i < manyCount; i++) '$varName[$i].address,'].join()});
   Expect.$equals(expectedResult, result);
 }
 """);
@@ -261,10 +229,7 @@ void $methodName() {
   const length = $manyCount;
   final typedData = make${pointerType.dartTypedData}(length);
   final expectedResult = makeExpectedResult${elementType.dartCType}(0, length);
-  final result = take${elementType.dartCType}PointerMany(${[
-            for (int i = 0; i < manyCount; i++)
-              '${pointerType.dartTypedData}.sublistView(typedData, $i, $i + 1).address,'
-          ].join()});
+  final result = take${elementType.dartCType}PointerMany(${[for (int i = 0; i < manyCount; i++) '${pointerType.dartTypedData}.sublistView(typedData, $i, $i + 1).address,'].join()});
   Expect.$equals(expectedResult, result);
 }
 
@@ -275,9 +240,7 @@ void $methodName() {
   const length = $manyCount;
   final $varName = make${testName}(length);
   final expectedResult = makeExpectedResult${elementType.dartCType}(0, length);
-  final result = take${elementType.dartCType}PointerMany(${[
-            for (int i = 0; i < manyCount; i++) '$varName.a$i.address,'
-          ].join()});
+  final result = take${elementType.dartCType}PointerMany(${[for (int i = 0; i < manyCount; i++) '$varName.a$i.address,'].join()});
   Expect.$equals(expectedResult, result);
 }
 """);
@@ -289,7 +252,7 @@ void $methodName() {
     final elementType = int16;
     for (final compoundType in [
       StructType([elementType]),
-      UnionType([elementType])
+      UnionType([elementType]),
     ]) {
       final compoundKind = compoundType is StructType ? 'Struct' : 'Union';
       final pointerType = PointerType(compoundType);
@@ -301,23 +264,15 @@ void $methodName() {
   ${[for (int i = 0; i < manyCount; i++) '${pointerType.dartCType},'].join()}
 )>(symbol: 'Take${compoundKind}2BytesIntPointerMany', isLeaf: true)
 external ${elementType.dartType} take${compoundKind}2BytesIntPointerMany(
-  ${[
-        for (int i = 0; i < manyCount; i++)
-          '${pointerType.dartCType} pointer$i,',
-      ].join()}
+  ${[for (int i = 0; i < manyCount; i++) '${pointerType.dartCType} pointer$i,'].join()}
 );
 
 void testAddressOf${compoundKind}PointerMany() {
   const length = $manyCount;
   final typedData = makeInt16List(length);
-${[
-        for (int i = 0; i < manyCount; i++)
-          'final struct$i = ${compoundKind}.create<${compoundKind}2BytesInt>(typedData, $i);'
-      ].join()}
+${[for (int i = 0; i < manyCount; i++) 'final struct$i = ${compoundKind}.create<${compoundKind}2BytesInt>(typedData, $i);'].join()}
   final expectedResult = makeExpectedResult${elementType.dartCType}(0, length);
-  final result = take${compoundKind}2BytesIntPointerMany(${[
-        for (int i = 0; i < manyCount; i++) 'struct$i.address,'
-      ].join()});
+  final result = take${compoundKind}2BytesIntPointerMany(${[for (int i = 0; i < manyCount; i++) 'struct$i.address,'].join()});
   Expect.equals(expectedResult, result);
 }
 ''');
@@ -331,9 +286,7 @@ ${[
 
 Future<void> writeDartShared() async {
   final StringBuffer buffer = StringBuffer();
-  buffer.write(headerDart(
-    copyrightYear: 2024,
-  ));
+  buffer.write(headerDart(copyrightYear: 2024));
 
   for (final elementType in Container.struct.elementTypes) {
     final pointerType = PointerType(elementType);
@@ -350,9 +303,7 @@ external ${elementType.dartType} take${elementType.dartCType}Pointer(${pointerTy
   ${[for (int i = 0; i < manyCount; i++) '${pointerType.dartCType},'].join()}
 )>(symbol: 'Take${elementType.dartCType}PointerMany', isLeaf: true)
 external ${elementType.dartType} take${elementType.dartCType}PointerMany(
-  ${[
-      for (int i = 0; i < manyCount; i++) '${pointerType.dartCType} pointer$i,',
-    ].join()}
+  ${[for (int i = 0; i < manyCount; i++) '${pointerType.dartCType} pointer$i,'].join()}
 );
 
 """);
@@ -380,9 +331,10 @@ ${elementType.dartType} makeExpectedResult${elementType.dartCType}(int start, in
     }
   }
 
-  final path = Platform.script
-      .resolve("../../ffi/address_of_generated_shared.dart")
-      .toFilePath();
+  final path =
+      Platform.script
+          .resolve("../../ffi/address_of_generated_shared.dart")
+          .toFilePath();
   ;
   await File(path).writeAsString(buffer.toString());
   await runProcess(Platform.resolvedExecutable, ["format", path]);
@@ -395,9 +347,7 @@ String testPath(Container container) {
       .toFilePath();
 }
 
-String headerDart({
-  required int copyrightYear,
-}) {
+String headerDart({required int copyrightYear}) {
   return """
 ${headerCommon(copyrightYear: copyrightYear, generatorPath: generatorPath)}
 //
@@ -461,17 +411,12 @@ DART_EXPORT ${elementType.cType} Take${elementType.dartCType}Pointer(${pointerTy
 }
 
 DART_EXPORT ${elementType.cType} Take${elementType.dartCType}PointerMany(
-  ${[
-      for (int i = 0; i < manyCount; i++) '${pointerType.cType} data$i'
-    ].join(',')}
+  ${[for (int i = 0; i < manyCount; i++) '${pointerType.cType} data$i'].join(',')}
 ) {
   ${elementType.cType} result = ${elementType.zero};
-  ${[
-      for (int i = 0; i < manyCount; i++)
-        '''
+  ${[for (int i = 0; i < manyCount; i++) '''
 std::cout << "data$i[0] = " << ${coutCast('data$i[0]')} << "\\n";
-result ${elementType.addAssignOp} ${opCast('data$i[0]')};''',
-    ].join('\n')}
+result ${elementType.addAssignOp} ${opCast('data$i[0]')};'''].join('\n')}
   return result;
 }
 
@@ -481,7 +426,7 @@ result ${elementType.addAssignOp} ${opCast('data$i[0]')};''',
   final elementType = int16;
   for (final compoundType in [
     StructType([elementType]),
-    UnionType([elementType])
+    UnionType([elementType]),
   ]) {
     final pointerType = PointerType(compoundType);
 
@@ -489,17 +434,12 @@ result ${elementType.addAssignOp} ${opCast('data$i[0]')};''',
 
     buffer.write('''
 DART_EXPORT ${elementType.cType} Take${compoundType.dartCType}PointerMany(
-  ${[
-      for (int i = 0; i < manyCount; i++) '${pointerType.cType} data$i'
-    ].join(',')}
+  ${[for (int i = 0; i < manyCount; i++) '${pointerType.cType} data$i'].join(',')}
 ) {
   ${elementType.cType} result = ${elementType.zero};
-  ${[
-      for (int i = 0; i < manyCount; i++)
-        '''
+  ${[for (int i = 0; i < manyCount; i++) '''
 std::cout << "data$i->a0 = " << ${'data$i->a0'} << "\\n";
-result += data$i->a0;''',
-    ].join('\n')}
+result += data$i->a0;'''].join('\n')}
   return result;
 }
   
@@ -512,6 +452,9 @@ result += data$i->a0;''',
   await runProcess("clang-format", ["-i", ccPath]);
 }
 
-final ccPath = Platform.script
-    .resolve("../../../runtime/bin/ffi_test/ffi_test_functions_generated_2.cc")
-    .toFilePath();
+final ccPath =
+    Platform.script
+        .resolve(
+          "../../../runtime/bin/ffi_test/ffi_test_functions_generated_2.cc",
+        )
+        .toFilePath();

@@ -29,9 +29,12 @@ class ClosureDataComputer extends DataComputer<String> {
   const ClosureDataComputer();
 
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool verbose = false}) {
+  void computeMemberData(
+    Compiler compiler,
+    MemberEntity member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool verbose = false,
+  }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     GlobalLocalsMap localsMap =
@@ -39,13 +42,20 @@ class ClosureDataComputer extends DataComputer<String> {
     ClosureData closureDataLookup = closedWorld.closureDataLookup;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     assert(
-        definition.kind == MemberKind.regular ||
-            definition.kind == MemberKind.constructor,
-        failedAt(member, "Unexpected member definition $definition"));
-    ClosureIrChecker(compiler.reporter, actualMap, elementMap, member,
-            localsMap.getLocalsMap(member), closureDataLookup, closedWorld,
-            verbose: verbose)
-        .run(definition.node);
+      definition.kind == MemberKind.regular ||
+          definition.kind == MemberKind.constructor,
+      failedAt(member, "Unexpected member definition $definition"),
+    );
+    ClosureIrChecker(
+      compiler.reporter,
+      actualMap,
+      elementMap,
+      member,
+      localsMap.getLocalsMap(member),
+      closureDataLookup,
+      closedWorld,
+      verbose: verbose,
+    ).run(definition.node);
   }
 
   @override
@@ -68,15 +78,15 @@ class ClosureIrChecker extends IrDataExtractor<String> {
       const Link<ClosureRepresentationInfo>();
 
   ClosureIrChecker(
-      DiagnosticReporter reporter,
-      Map<Id, ActualData<String>> actualMap,
-      JsToElementMap elementMap,
-      this.member,
-      this._localsMap,
-      this.closureDataLookup,
-      this._closedWorld,
-      {this.verbose = false})
-      : super(reporter, actualMap) {
+    DiagnosticReporter reporter,
+    Map<Id, ActualData<String>> actualMap,
+    JsToElementMap elementMap,
+    this.member,
+    this._localsMap,
+    this.closureDataLookup,
+    this._closedWorld, {
+    this.verbose = false,
+  }) : super(reporter, actualMap) {
     pushMember(member);
   }
 
@@ -150,10 +160,12 @@ class ClosureIrChecker extends IrDataExtractor<String> {
   }
 
   void pushMember(MemberEntity member) {
-    scopeInfoStack =
-        scopeInfoStack.prepend(closureDataLookup.getScopeInfo(member));
-    capturedScopeStack =
-        capturedScopeStack.prepend(closureDataLookup.getCapturedScope(member));
+    scopeInfoStack = scopeInfoStack.prepend(
+      closureDataLookup.getScopeInfo(member),
+    );
+    capturedScopeStack = capturedScopeStack.prepend(
+      closureDataLookup.getCapturedScope(member),
+    );
     if (capturedScope.requiresContextBox) {
       boxNames[capturedScope.contextBox as BoxLocal] = 'box${boxNames.length}';
     }
@@ -168,8 +180,9 @@ class ClosureIrChecker extends IrDataExtractor<String> {
   void pushLoopNode(ir.Node node) {
     //scopeInfoStack = // TODO?
     //    scopeInfoStack.prepend(closureDataLookup.getScopeInfo(member));
-    capturedScopeStack = capturedScopeStack
-        .prepend(closureDataLookup.getCapturedLoopScope(node));
+    capturedScopeStack = capturedScopeStack.prepend(
+      closureDataLookup.getCapturedLoopScope(node),
+    );
     if (capturedScope.requiresContextBox) {
       boxNames[capturedScope.contextBox as BoxLocal] = 'box${boxNames.length}';
     }
@@ -181,8 +194,9 @@ class ClosureIrChecker extends IrDataExtractor<String> {
   }
 
   void pushLocalFunction(ir.Node node) {
-    closureRepresentationInfoStack = closureRepresentationInfoStack
-        .prepend(closureDataLookup.getClosureInfo(node as ir.LocalFunction));
+    closureRepresentationInfoStack = closureRepresentationInfoStack.prepend(
+      closureDataLookup.getClosureInfo(node as ir.LocalFunction),
+    );
     dump(node);
   }
 
@@ -197,14 +211,21 @@ class ClosureIrChecker extends IrDataExtractor<String> {
     if (object is MemberEntity) {
       print(' capturedScope (${capturedScope.runtimeType})');
       capturedScope.forEachBoxedVariable(
-          _localsMap, (a, b) => print('  boxed: $a->$b'));
+        _localsMap,
+        (a, b) => print('  boxed: $a->$b'),
+      );
     }
     print(
-        ' closureRepresentationInfo (${closureRepresentationInfo.runtimeType})');
+      ' closureRepresentationInfo (${closureRepresentationInfo.runtimeType})',
+    );
     closureRepresentationInfo?.forEachFreeVariable(
-        _localsMap, (a, b) => print('  free: $a->$b'));
+      _localsMap,
+      (a, b) => print('  free: $a->$b'),
+    );
     closureRepresentationInfo?.forEachBoxedVariable(
-        _localsMap, (a, b) => print('  boxed: $a->$b'));
+      _localsMap,
+      (a, b) => print('  boxed: $a->$b'),
+    );
   }
 
   /// Compute a string representation of the data stored for [local] in [info].
@@ -239,7 +260,9 @@ class ClosureIrChecker extends IrDataExtractor<String> {
     Features features = Features();
 
     void addLocals(
-        String name, forEach(KernelToLocalsMap localsMap, f(Local local, _))) {
+      String name,
+      forEach(KernelToLocalsMap localsMap, f(Local local, _)),
+    ) {
       List<String> names = <String>[];
       forEach(_localsMap, (Local local, _) {
         if (local is BoxLocal) {
@@ -251,7 +274,10 @@ class ClosureIrChecker extends IrDataExtractor<String> {
       String? value = names.isEmpty ? null : '[${(names..sort()).join(',')}]';
       if (features.containsKey(name)) {
         Expect.equals(
-            features[name], value, "Inconsistent values for $name on $member.");
+          features[name],
+          value,
+          "Inconsistent values for $name on $member.",
+        );
       }
       if (value != null) {
         features[name] = value;
@@ -264,7 +290,8 @@ class ClosureIrChecker extends IrDataExtractor<String> {
     if (capturedScope.requiresContextBox) {
       var keyword = 'boxed';
       addLocals(keyword, capturedScope.forEachBoxedVariable);
-      features['box'] = '(${boxNames[capturedScope.contextBox]} which holds '
+      features['box'] =
+          '(${boxNames[capturedScope.contextBox]} which holds '
           '${features[keyword]})';
       features.remove(keyword);
     }
@@ -275,8 +302,10 @@ class ClosureIrChecker extends IrDataExtractor<String> {
       final classEntity = closureInfo.closureClassEntity;
       if (classEntity != null) {
         addLocals('fields', (KernelToLocalsMap localsMap, f(Local local, _)) {
-          _closedWorld.elementEnvironment.forEachInstanceField(classEntity,
-              (_, FieldEntity field) {
+          _closedWorld.elementEnvironment.forEachInstanceField(classEntity, (
+            _,
+            FieldEntity field,
+          ) {
             if (_closedWorld.fieldAnalysis.getFieldData(field).isElided) return;
             f(closureInfo.getLocalForField(localsMap, field), field);
           });

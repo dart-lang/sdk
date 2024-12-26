@@ -30,19 +30,22 @@ DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 /// pass a struct to a c function and get a struct as return value
 void testFunctionWithStruct({bool isLeaf = false}) {
-  Pointer<NativeFunction<NativeCoordinateOp>> p1 =
-      ffiTestFunctions.lookup("TransposeCoordinate");
+  Pointer<NativeFunction<NativeCoordinateOp>> p1 = ffiTestFunctions.lookup(
+    "TransposeCoordinate",
+  );
   NativeCoordinateOp f1 =
       (isLeaf ? p1.asFunction(isLeaf: true) : p1.asFunction(isLeaf: false));
   ;
 
-  final c1 = calloc<Coordinate>()
-    ..ref.x = 10.0
-    ..ref.y = 20.0;
-  final c2 = calloc<Coordinate>()
-    ..ref.x = 42.0
-    ..ref.y = 84.0
-    ..ref.next = c1;
+  final c1 =
+      calloc<Coordinate>()
+        ..ref.x = 10.0
+        ..ref.y = 20.0;
+  final c2 =
+      calloc<Coordinate>()
+        ..ref.x = 42.0
+        ..ref.y = 84.0
+        ..ref.next = c1;
   c1.ref.next = c2;
 
   Coordinate result = f1(c1).ref;
@@ -59,8 +62,9 @@ void testFunctionWithStruct({bool isLeaf = false}) {
 
 /// pass an array of structs to a c function
 void testFunctionWithStructArray({bool isLeaf = false}) {
-  Pointer<NativeFunction<NativeCoordinateOp>> p1 =
-      ffiTestFunctions.lookup("CoordinateElemAt1");
+  Pointer<NativeFunction<NativeCoordinateOp>> p1 = ffiTestFunctions.lookup(
+    "CoordinateElemAt1",
+  );
   NativeCoordinateOp f1 =
       (isLeaf ? p1.asFunction(isLeaf: true) : p1.asFunction(isLeaf: false));
   ;
@@ -90,8 +94,8 @@ typedef VeryLargeStructSum = int Function(Pointer<VeryLargeStruct>);
 typedef NativeVeryLargeStructSum = Int64 Function(Pointer<VeryLargeStruct>);
 
 void testFunctionWithVeryLargeStruct({bool isLeaf = false}) {
-  Pointer<NativeFunction<NativeVeryLargeStructSum>> p1 =
-      ffiTestFunctions.lookup("SumVeryLargeStruct");
+  Pointer<NativeFunction<NativeVeryLargeStructSum>> p1 = ffiTestFunctions
+      .lookup("SumVeryLargeStruct");
   VeryLargeStructSum f =
       (isLeaf ? p1.asFunction(isLeaf: true) : p1.asFunction(isLeaf: false));
   ;

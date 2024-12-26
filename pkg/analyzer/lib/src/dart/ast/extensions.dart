@@ -278,6 +278,10 @@ extension IndexExpressionExtension on IndexExpression {
   Element? get writeOrReadElement {
     return _writeElement(this) ?? staticElement;
   }
+
+  Element2? get writeOrReadElement2 {
+    return _writeElement2(this) ?? element;
+  }
 }
 
 extension ListOfFormalParameterExtension on List<FormalParameter> {

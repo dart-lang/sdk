@@ -9,13 +9,15 @@ Future<String> helloWorldDumpInfo() async =>
     resolveTestFileContent('hello_world/hello_world.js.info.json');
 
 Future<String> helloWorldDeferredDumpInfo() async => resolveTestFileContent(
-    'hello_world_deferred/hello_world_deferred.js.info.json');
+  'hello_world_deferred/hello_world_deferred.js.info.json',
+);
 
 Future<String> resolveTestFileContent(String filePath) async =>
     (await resolveTestFile(filePath)).readAsStringSync();
 
 Future<File> resolveTestFile(String filePath) async {
   final mainLibraryUri = await Isolate.resolvePackageUri(
-      Uri.parse('package:dart2js_info/info.dart'));
+    Uri.parse('package:dart2js_info/info.dart'),
+  );
   return File.fromUri(mainLibraryUri!.resolve('../test/$filePath'));
 }

@@ -4,12 +4,11 @@
 
 // Test that class with a cyclic hierarchy doesn't cause a loop in dart2js.
 
-class A
+class A extends A {
 //    ^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
 // [cfe] 'A' is a supertype of itself.
-    extends A
-{
+
   // When checking that foo isn't overriding an instance method in the
   // superclass, dart2js might loop.
   static foo() {}

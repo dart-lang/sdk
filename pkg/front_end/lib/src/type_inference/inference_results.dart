@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:kernel/ast.dart';
 
 import '../codes/cfe_codes.dart';
@@ -364,19 +362,6 @@ class ExpressionInferenceResult {
       {this.postCoercionType = null})
       : assert(isKnown(inferredType), "$inferredType is not known.");
 
-  /// The guards used for null-aware access if the expression is part of a
-  /// null-shorting.
-  Link<NullAwareGuard> get nullAwareGuards => const Link<NullAwareGuard>();
-
-  /// If the expression is part of a null-shorting, this is the action performed
-  /// on the guarded variable, found as the first guard in [nullAwareGuards].
-  /// Otherwise, this is the same as [expression].
-  Expression get nullAwareAction => expression;
-
-  DartType get nullAwareActionType => inferredType;
-
-  ExpressionInferenceResult stopShorting() => this;
-
   @override
   String toString() => 'ExpressionInferenceResult($inferredType,$expression)';
 }
@@ -392,20 +377,7 @@ class NullAwareGuard {
   final InferenceVisitorBase _inferrer;
 
   NullAwareGuard(
-      this._nullAwareVariable, this._nullAwareFileOffset, this._inferrer) {
-    // Ensure the initializer of [_nullAwareVariable] is promoted to
-    // non-nullable.
-    _inferrer.flowAnalysis.nullAwareAccess_rightBegin(
-        _nullAwareVariable.initializer,
-        new SharedTypeView(_nullAwareVariable.type));
-    // Ensure [_nullAwareVariable] is promoted to non-nullable.
-    // TODO(johnniwinther): Avoid creating a [VariableGet] to promote the
-    // variable.
-    VariableGet read = new VariableGet(_nullAwareVariable);
-    _inferrer.flowAnalysis.variableRead(read, _nullAwareVariable);
-    _inferrer.flowAnalysis.nullAwareAccess_rightBegin(
-        read, new SharedTypeView(_nullAwareVariable.type));
-  }
+      this._nullAwareVariable, this._nullAwareFileOffset, this._inferrer);
 
   /// Creates the null-guarded application of [nullAwareAction] with the
   /// [inferredType].
@@ -417,8 +389,6 @@ class NullAwareGuard {
   ///
   Expression createExpression(
       DartType inferredType, Expression nullAwareAction) {
-    // End non-nullable promotion of [_nullAwareVariable].
-    _inferrer.flowAnalysis.nullAwareAccess_end();
     // End non-nullable promotion of the initializer of [_nullAwareVariable].
     _inferrer.flowAnalysis.nullAwareAccess_end();
     Expression equalsNull = _inferrer.createEqualsNull(
@@ -436,54 +406,4 @@ class NullAwareGuard {
   @override
   String toString() =>
       'NullAwareGuard($_nullAwareVariable,$_nullAwareFileOffset)';
-}
-
-/// The result of an expression inference that is guarded with a null aware
-/// variable.
-class NullAwareExpressionInferenceResult implements ExpressionInferenceResult {
-  /// The inferred type of the expression.
-  @override
-  final DartType inferredType;
-
-  /// The inferred type of the [nullAwareAction].
-  @override
-  final DartType nullAwareActionType;
-
-  @override
-  final Link<NullAwareGuard> nullAwareGuards;
-
-  @override
-  final Expression nullAwareAction;
-
-  NullAwareExpressionInferenceResult(this.inferredType,
-      this.nullAwareActionType, this.nullAwareGuards, this.nullAwareAction)
-      : assert(nullAwareGuards.isNotEmpty);
-
-  @override
-  Expression get expression {
-    throw new UnsupportedError('Shorting must be explicitly stopped before'
-        'accessing the expression result of a '
-        'NullAwareExpressionInferenceResult');
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  DartType? get postCoercionType => null;
-
-  @override
-  ExpressionInferenceResult stopShorting() {
-    Expression expression = nullAwareAction;
-    Link<NullAwareGuard> nullAwareGuard = nullAwareGuards;
-    while (nullAwareGuard.isNotEmpty) {
-      expression =
-          nullAwareGuard.head.createExpression(inferredType, expression);
-      nullAwareGuard = nullAwareGuard.tail!;
-    }
-    return new ExpressionInferenceResult(inferredType, expression);
-  }
-
-  @override
-  String toString() =>
-      'NullAwareExpressionInferenceResult($inferredType,$nullAwareGuards,'
-      '$nullAwareAction)';
 }

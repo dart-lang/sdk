@@ -9,16 +9,10 @@ dynamic dynamicMap = {1: "Let", 2: "it", 3: "be"};
 main() {}
 
 testIterables<X extends dynamic, Y extends List<int>?, Z extends List<int>>(
-  X x,
-  Y y,
-  Z z,
-) {}
+    X x, Y y, Z z) {}
 
-testMap<
-  X extends dynamic,
-  Y extends Map<int, String>?,
-  Z extends Map<int, String>
->(X x, Y y, Z z) {}
+testMap<X extends dynamic, Y extends Map<int, String>?,
+    Z extends Map<int, String>>(X x, Y y, Z z) {}
 
 var i = 1;
 
@@ -38,5 +32,5 @@ var set1 = {
   0,
   if (i > 0) ...nullableList,
   if (i > 0) ...dynamicList,
-  if (i > 0) ...nullableList!,
+  if (i > 0) ...nullableList!
 };

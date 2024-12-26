@@ -16,8 +16,10 @@ class Annotation {
 }
 
 typedef bool AnnotationFilter(Annotation annotation);
-typedef AnnotationData? AnnotationDataFunction(Iterable<Annotation> annotations,
-    {required bool forSpan});
+typedef AnnotationData? AnnotationDataFunction(
+  Iterable<Annotation> annotations, {
+  required bool forSpan,
+});
 typedef LineData LineDataFunction(lineAnnotation);
 
 bool includeAllAnnotation(Annotation annotation) => true;
@@ -26,8 +28,10 @@ class LineData {
   final String lineClass;
   final String lineNumberClass;
 
-  const LineData(
-      {this.lineClass = 'line', this.lineNumberClass = 'lineNumber'});
+  const LineData({
+    this.lineClass = 'line',
+    this.lineNumberClass = 'lineNumber',
+  });
 }
 
 class AnnotationData {
@@ -49,23 +53,28 @@ class AnnotationData {
   }
 }
 
-AnnotationDataFunction createAnnotationDataFunction(
-    {CssColorScheme colorScheme = const SingleColorScheme(),
-    required ElementScheme elementScheme}) {
+AnnotationDataFunction createAnnotationDataFunction({
+  CssColorScheme colorScheme = const SingleColorScheme(),
+  required ElementScheme elementScheme,
+}) {
   return (Iterable<Annotation> annotations, {required bool forSpan}) {
-    return getAnnotationDataFromSchemes(annotations,
-        forSpan: forSpan,
-        colorScheme: colorScheme,
-        elementScheme: elementScheme);
+    return getAnnotationDataFromSchemes(
+      annotations,
+      forSpan: forSpan,
+      colorScheme: colorScheme,
+      elementScheme: elementScheme,
+    );
   };
 }
 
 LineData getDefaultLineData(data) => const LineData();
 
-AnnotationData? getAnnotationDataFromSchemes(Iterable<Annotation> annotations,
-    {required bool forSpan,
-    CssColorScheme colorScheme = const SingleColorScheme(),
-    ElementScheme elementScheme = const ElementScheme()}) {
+AnnotationData? getAnnotationDataFromSchemes(
+  Iterable<Annotation> annotations, {
+  required bool forSpan,
+  CssColorScheme colorScheme = const SingleColorScheme(),
+  ElementScheme elementScheme = const ElementScheme(),
+}) {
   if (colorScheme.showLocationAsSpan != forSpan) return null;
   Map<String, String?> data = {};
   var id;
@@ -102,37 +111,32 @@ class HtmlPrintContext {
   final AnnotationDataFunction getAnnotationData;
   final LineDataFunction getLineData;
 
-  HtmlPrintContext(
-      {this.lineNoWidth,
-      this.usePre = true,
-      this.includeAnnotation = includeAllAnnotation,
-      this.getAnnotationData = getAnnotationDataFromSchemes,
-      this.getLineData = getDefaultLineData});
+  HtmlPrintContext({
+    this.lineNoWidth,
+    this.usePre = true,
+    this.includeAnnotation = includeAllAnnotation,
+    this.getAnnotationData = getAnnotationDataFromSchemes,
+    this.getLineData = getDefaultLineData,
+  });
 
-  HtmlPrintContext from(
-      {int? lineNoWidth,
-      bool? usePre,
-      AnnotationFilter? includeAnnotation,
-      AnnotationDataFunction? getAnnotationData,
-      LineDataFunction? getLineData}) {
+  HtmlPrintContext from({
+    int? lineNoWidth,
+    bool? usePre,
+    AnnotationFilter? includeAnnotation,
+    AnnotationDataFunction? getAnnotationData,
+    LineDataFunction? getLineData,
+  }) {
     return HtmlPrintContext(
-        lineNoWidth: lineNoWidth ?? this.lineNoWidth,
-        usePre: usePre ?? this.usePre,
-        includeAnnotation: includeAnnotation ?? this.includeAnnotation,
-        getAnnotationData: getAnnotationData ?? this.getAnnotationData,
-        getLineData: getLineData ?? this.getLineData);
+      lineNoWidth: lineNoWidth ?? this.lineNoWidth,
+      usePre: usePre ?? this.usePre,
+      includeAnnotation: includeAnnotation ?? this.includeAnnotation,
+      getAnnotationData: getAnnotationData ?? this.getAnnotationData,
+      getLineData: getLineData ?? this.getLineData,
+    );
   }
 }
 
-enum HtmlPartKind {
-  CODE,
-  LINE,
-  CONST,
-  NEWLINE,
-  TEXT,
-  TAG,
-  LINE_NUMBER,
-}
+enum HtmlPartKind { CODE, LINE, CONST, NEWLINE, TEXT, TAG, LINE_NUMBER }
 
 abstract class HtmlPart {
   void printHtmlOn(StringBuffer buffer, HtmlPrintContext context);
@@ -238,9 +242,11 @@ class TagPart implements HtmlPart {
   final Map<String, String?> properties;
   final List<HtmlPart> content;
 
-  TagPart(this.tag,
-      {this.properties = const <String, String>{},
-      this.content = const <HtmlPart>[]});
+  TagPart(
+    this.tag, {
+    this.properties = const <String, String>{},
+    this.content = const <HtmlPart>[],
+  });
 
   @override
   HtmlPartKind get kind => HtmlPartKind.TAG;
@@ -266,14 +272,16 @@ class TagPart implements HtmlPart {
       'kind': kind.index,
       'tag': tag,
       'properties': properties,
-      'content': content.map((p) => p.toJson(strategy)).toList()
+      'content': content.map((p) => p.toJson(strategy)).toList(),
     };
   }
 
   static TagPart fromJson(Map json, JsonStrategy strategy) {
-    return TagPart(json['tag'],
-        properties: json['properties'],
-        content: json['content'].map(HtmlPart.fromJson).toList());
+    return TagPart(
+      json['tag'],
+      properties: json['properties'],
+      content: json['content'].map(HtmlPart.fromJson).toList(),
+    );
   }
 }
 
@@ -301,7 +309,8 @@ class HtmlLine implements HtmlPart {
   static HtmlLine fromJson(Map json, JsonStrategy strategy) {
     HtmlLine line = HtmlLine();
     json['html'].forEach(
-        (part) => line.htmlParts.add(HtmlPart.fromJson(part, strategy)));
+      (part) => line.htmlParts.add(HtmlPart.fromJson(part, strategy)),
+    );
     return line;
   }
 }
@@ -313,15 +322,20 @@ class CodePart {
   CodePart(this.annotations, this.subsequentCode);
 
   void printHtmlOn(StringBuffer buffer, HtmlPrintContext context) {
-    Iterable<Annotation> included =
-        annotations.where(context.includeAnnotation);
+    Iterable<Annotation> included = annotations.where(
+      context.includeAnnotation,
+    );
 
     List<HtmlPart> htmlParts = <HtmlPart>[];
     if (included.isNotEmpty) {
-      AnnotationData? annotationData =
-          context.getAnnotationData(included, forSpan: false);
-      AnnotationData? annotationDataForSpan =
-          context.getAnnotationData(included, forSpan: true);
+      AnnotationData? annotationData = context.getAnnotationData(
+        included,
+        forSpan: false,
+      );
+      AnnotationData? annotationDataForSpan = context.getAnnotationData(
+        included,
+        forSpan: true,
+      );
 
       String head = subsequentCode;
       String tail = '';
@@ -331,22 +345,36 @@ class CodePart {
       }
 
       if (annotationData != null && annotationDataForSpan != null) {
-        htmlParts.add(new TagPart(annotationDataForSpan.tag,
+        htmlParts.add(
+          new TagPart(
+            annotationDataForSpan.tag,
             properties: annotationDataForSpan.properties,
             content: [
-              TagPart(annotationData.tag,
-                  properties: annotationData.properties,
-                  content: [new HtmlText(head)]),
-              HtmlText(tail)
-            ]));
+              TagPart(
+                annotationData.tag,
+                properties: annotationData.properties,
+                content: [new HtmlText(head)],
+              ),
+              HtmlText(tail),
+            ],
+          ),
+        );
       } else if (annotationDataForSpan != null) {
-        htmlParts.add(new TagPart(annotationDataForSpan.tag,
+        htmlParts.add(
+          new TagPart(
+            annotationDataForSpan.tag,
             properties: annotationDataForSpan.properties,
-            content: [new HtmlText(subsequentCode)]));
+            content: [new HtmlText(subsequentCode)],
+          ),
+        );
       } else if (annotationData != null) {
-        htmlParts.add(new TagPart(annotationData.tag,
+        htmlParts.add(
+          new TagPart(
+            annotationData.tag,
             properties: annotationData.properties,
-            content: [new HtmlText(head)]));
+            content: [new HtmlText(head)],
+          ),
+        );
         htmlParts.add(new HtmlText(tail));
       } else {
         htmlParts.add(new HtmlText(subsequentCode));
@@ -370,8 +398,9 @@ class CodePart {
 
   static CodePart fromJson(Map json, JsonStrategy strategy) {
     return CodePart(
-        json['annotations'].map((j) => strategy.decodeAnnotation(j)).toList(),
-        json['subsequentCode']);
+      json['annotations'].map((j) => strategy.decodeAnnotation(j)).toList(),
+      json['subsequentCode'],
+    );
   }
 }
 
@@ -395,15 +424,21 @@ class LineNumber extends HtmlPart {
 
   static LineNumber fromJson(Map json, JsonStrategy strategy) {
     return LineNumber(
-        json['lineNo'], strategy.decodeLineAnnotation(json['lineAnnotation']));
+      json['lineNo'],
+      strategy.decodeLineAnnotation(json['lineAnnotation']),
+    );
   }
 
   @override
   void printHtmlOn(StringBuffer buffer, HtmlPrintContext context) {
-    buffer.write(lineNumber(lineNo,
+    buffer.write(
+      lineNumber(
+        lineNo,
         width: context.lineNoWidth,
         useNbsp: !context.usePre,
-        className: context.getLineData(lineAnnotation).lineNumberClass));
+        className: context.getLineData(lineAnnotation).lineNumberClass,
+      ),
+    );
   }
 }
 
@@ -449,23 +484,30 @@ class CodeLine extends HtmlPart {
       'parts': codeParts.map((p) => p.toJson(strategy)).toList(),
       'annotations':
           annotations.map((a) => strategy.encodeAnnotation(a)).toList(),
-      'lineAnnotation': lineAnnotation != null
-          ? strategy.encodeLineAnnotation(lineAnnotation)
-          : null,
+      'lineAnnotation':
+          lineAnnotation != null
+              ? strategy.encodeLineAnnotation(lineAnnotation)
+              : null,
     };
   }
 
   static CodeLine fromJson(Map json, JsonStrategy strategy) {
-    CodeLine line = CodeLine(json['lineNo'], json['offset'],
-        uri: json['uri'] != null ? Uri.parse(json['uri']) : null);
+    CodeLine line = CodeLine(
+      json['lineNo'],
+      json['offset'],
+      uri: json['uri'] != null ? Uri.parse(json['uri']) : null,
+    );
     line.codeBuffer.write(json['code']);
     json['parts'].forEach(
-        (part) => line.codeParts.add(CodePart.fromJson(part, strategy)));
-    json['annotations']
-        .forEach((a) => line.annotations.add(strategy.decodeAnnotation(a)));
-    line.lineAnnotation = json['lineAnnotation'] != null
-        ? strategy.decodeLineAnnotation(json['lineAnnotation'])
-        : null;
+      (part) => line.codeParts.add(CodePart.fromJson(part, strategy)),
+    );
+    json['annotations'].forEach(
+      (a) => line.annotations.add(strategy.decodeAnnotation(a)),
+    );
+    line.lineAnnotation =
+        json['lineAnnotation'] != null
+            ? strategy.decodeLineAnnotation(json['lineAnnotation'])
+            : null;
     return line;
   }
 }
@@ -483,8 +525,12 @@ class JsonStrategy {
   }
 
   Annotation decodeAnnotation(Map json) {
-    return Annotation(json['id'], json['codeOffset'], json['title'],
-        data: json['data']);
+    return Annotation(
+      json['id'],
+      json['codeOffset'],
+      json['title'],
+      data: json['data'],
+    );
   }
 
   encodeLineAnnotation(lineAnnotation) => lineAnnotation;

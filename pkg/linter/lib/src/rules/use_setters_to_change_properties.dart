@@ -51,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (expression is AssignmentExpression &&
           expression.operator.type == TokenType.EQ) {
         var leftOperand = expression.writeElement2?.canonicalElement2;
-        var rightOperand = expression.rightHandSide.canonicalElement2;
+        var rightOperand = expression.rightHandSide.canonicalElement;
         var parameterElement =
             node.declaredFragment?.element.formalParameters.first;
         if (rightOperand == parameterElement && leftOperand is FieldElement2) {

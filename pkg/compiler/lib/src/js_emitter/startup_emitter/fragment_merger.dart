@@ -125,38 +125,40 @@ class EmittedOutputUnit {
   final js.Statement nativeSupport;
 
   EmittedOutputUnit(
-      this.fragment,
-      this.outputUnit,
-      this.libraries,
-      this.classPrototypes,
-      this.closurePrototypes,
-      this.inheritance,
-      this.methodAliases,
-      this.tearOffs,
-      this.constants,
-      this.typeRules,
-      this.variances,
-      this.staticNonFinalFields,
-      this.lazyInitializers,
-      this.nativeSupport);
+    this.fragment,
+    this.outputUnit,
+    this.libraries,
+    this.classPrototypes,
+    this.closurePrototypes,
+    this.inheritance,
+    this.methodAliases,
+    this.tearOffs,
+    this.constants,
+    this.typeRules,
+    this.variances,
+    this.staticNonFinalFields,
+    this.lazyInitializers,
+    this.nativeSupport,
+  );
 
   CodeFragment toCodeFragment(Program program) {
     return CodeFragment(
-        [fragment],
-        [outputUnit],
-        libraries,
-        classPrototypes,
-        closurePrototypes,
-        inheritance,
-        methodAliases,
-        tearOffs,
-        constants,
-        typeRules,
-        variances,
-        staticNonFinalFields,
-        lazyInitializers,
-        nativeSupport,
-        program.metadataTypesForOutputUnit(outputUnit));
+      [fragment],
+      [outputUnit],
+      libraries,
+      classPrototypes,
+      closurePrototypes,
+      inheritance,
+      methodAliases,
+      tearOffs,
+      constants,
+      typeRules,
+      variances,
+      staticNonFinalFields,
+      lazyInitializers,
+      nativeSupport,
+      program.metadataTypesForOutputUnit(outputUnit),
+    );
   }
 }
 
@@ -172,29 +174,32 @@ class PreFragment {
   bool shouldInterleave = false;
 
   PreFragment(
-      this.outputFileName, EmittedOutputUnit emittedOutputUnit, this.size) {
+    this.outputFileName,
+    EmittedOutputUnit emittedOutputUnit,
+    this.size,
+  ) {
     emittedOutputUnits.add(emittedOutputUnit);
   }
 
   PreFragment mergeAfter(PreFragment that) {
     assert(this != that);
-    this.emittedOutputUnits.addAll(that.emittedOutputUnits);
-    this.successors.remove(that);
-    this.predecessors.remove(that);
-    that.successors.forEach((fragment) {
-      if (fragment == this) return;
-      this.successors.add(fragment);
+    emittedOutputUnits.addAll(that.emittedOutputUnits);
+    successors.remove(that);
+    predecessors.remove(that);
+    for (var fragment in that.successors) {
+      if (fragment == this) continue;
+      successors.add(fragment);
       fragment.predecessors.remove(that);
       fragment.predecessors.add(this);
-    });
-    that.predecessors.forEach((fragment) {
-      if (fragment == this) return;
-      this.predecessors.add(fragment);
+    }
+    for (var fragment in that.predecessors) {
+      if (fragment == this) continue;
+      predecessors.add(fragment);
       fragment.successors.remove(that);
       fragment.successors.add(this);
-    });
+    }
     that.clearAll();
-    this.size += that.size;
+    size += that.size;
     return this;
   }
 
@@ -240,21 +245,22 @@ class PreFragment {
         nativeSupport.add(emittedOutputUnit.nativeSupport);
       }
       return CodeFragment(
-          fragments,
-          outputUnits,
-          libraries,
-          js.Block(classPrototypes),
-          js.Block(closurePrototypes),
-          js.Block(inheritance),
-          js.Block(methodAliases),
-          js.Block(tearOffs),
-          js.Block(constants),
-          js.Block(typeRules),
-          js.Block(variances),
-          js.Block(staticNonFinalFields),
-          js.Block(lazyInitializers),
-          js.Block(nativeSupport),
-          program.metadataTypesForOutputUnit(seedOutputUnit));
+        fragments,
+        outputUnits,
+        libraries,
+        js.Block(classPrototypes),
+        js.Block(closurePrototypes),
+        js.Block(inheritance),
+        js.Block(methodAliases),
+        js.Block(tearOffs),
+        js.Block(constants),
+        js.Block(typeRules),
+        js.Block(variances),
+        js.Block(staticNonFinalFields),
+        js.Block(lazyInitializers),
+        js.Block(nativeSupport),
+        program.metadataTypesForOutputUnit(seedOutputUnit),
+      );
     }
   }
 
@@ -271,29 +277,33 @@ class PreFragment {
   /// interleaving [EmittedOutputUnits] into a single [CodeFragment] or by
   /// bundling [EmittedOutputUnits] into multiple [CodeFragments].
   FinalizedFragment finalize(
-      Program program,
-      Map<OutputUnit, CodeFragment> outputUnitMap,
-      Map<CodeFragment, FinalizedFragment> codeFragmentMap) {
-    List<CodeFragment> codeFragments = shouldInterleave
-        ? [interleaveEmittedOutputUnits(program)]
-        : bundleEmittedOutputUnits(program);
+    Program program,
+    Map<OutputUnit, CodeFragment> outputUnitMap,
+    Map<CodeFragment, FinalizedFragment> codeFragmentMap,
+  ) {
+    List<CodeFragment> codeFragments =
+        shouldInterleave
+            ? [interleaveEmittedOutputUnits(program)]
+            : bundleEmittedOutputUnits(program);
     finalizedFragment = FinalizedFragment(outputFileName, codeFragments);
-    codeFragments.forEach((codeFragment) {
+    for (var codeFragment in codeFragments) {
       codeFragmentMap[codeFragment] = finalizedFragment;
-      codeFragment.outputUnits.forEach((outputUnit) {
+      for (var outputUnit in codeFragment.outputUnits) {
         outputUnitMap[outputUnit] = codeFragment;
-      });
-    });
+      }
+    }
     return finalizedFragment;
   }
 
   @override
   String toString() {
     // This is not an efficient operation and should only be used for debugging.
-    var successors =
-        this.successors.map((fragment) => fragment.debugName()).join(',');
-    var predecessors =
-        this.predecessors.map((fragment) => fragment.debugName()).join(',');
+    var successors = this.successors
+        .map((fragment) => fragment.debugName())
+        .join(',');
+    var predecessors = this.predecessors
+        .map((fragment) => fragment.debugName())
+        .join(',');
     var name = debugName();
     return 'PreFragment(fragments=[$name], successors=[$successors], '
         'predecessors=[$predecessors])';
@@ -308,7 +318,7 @@ class PreFragment {
       }
       outputUnitStrings.add('{${importString.join(', ')}}');
     }
-    return "${outputUnitStrings.join('+')}";
+    return outputUnitStrings.join('+');
   }
 
   /// Clears all [PreFragment] data structure and zeros out the size. Should be
@@ -339,21 +349,22 @@ class CodeFragment {
   final js.Expression deferredTypes;
 
   CodeFragment(
-      this.fragments,
-      this.outputUnits,
-      this.libraries,
-      this.classPrototypes,
-      this.closurePrototypes,
-      this.inheritance,
-      this.methodAliases,
-      this.tearOffs,
-      this.constants,
-      this.typeRules,
-      this.variances,
-      this.staticNonFinalFields,
-      this.lazyInitializers,
-      this.nativeSupport,
-      this.deferredTypes);
+    this.fragments,
+    this.outputUnits,
+    this.libraries,
+    this.classPrototypes,
+    this.closurePrototypes,
+    this.inheritance,
+    this.methodAliases,
+    this.tearOffs,
+    this.constants,
+    this.typeRules,
+    this.variances,
+    this.staticNonFinalFields,
+    this.lazyInitializers,
+    this.nativeSupport,
+    this.deferredTypes,
+  );
 
   bool isEmptyStatement(js.Statement statement) {
     if (statement is js.Block) {
@@ -447,12 +458,13 @@ class FragmentMerger {
   // The second is a map of (loadId, List<CodeFragment>) which is used to
   // compute which CodeFragments need to be loaded for a given loadId.
   void computeFragmentsToLoad(
-      Map<String, List<OutputUnit>> outputUnitsToLoad,
-      Map<OutputUnit, CodeFragment> outputUnitMap,
-      Map<CodeFragment, FinalizedFragment> codeFragmentMap,
-      Set<OutputUnit> omittedOutputUnits,
-      Map<String, List<CodeFragment>> codeFragmentsToLoad,
-      Map<String, List<FinalizedFragment>> finalizedFragmentsToLoad) {
+    Map<String, List<OutputUnit>> outputUnitsToLoad,
+    Map<OutputUnit, CodeFragment> outputUnitMap,
+    Map<CodeFragment, FinalizedFragment> codeFragmentMap,
+    Set<OutputUnit> omittedOutputUnits,
+    Map<String, List<CodeFragment>> codeFragmentsToLoad,
+    Map<String, List<FinalizedFragment>> finalizedFragmentsToLoad,
+  ) {
     outputUnitsToLoad.forEach((loadId, outputUnits) {
       Set<CodeFragment> uniqueCodeFragments = {};
       Set<FinalizedFragment> uniqueFinalizedFragments = {};
@@ -477,7 +489,8 @@ class FragmentMerger {
   /// Given a list of OutputUnits sorted by their import entities,
   /// returns a map of all the direct edges between output units.
   Map<OutputUnit, Set<OutputUnit>> createDirectEdges(
-      List<OutputUnit> allOutputUnits) {
+    List<OutputUnit> allOutputUnits,
+  ) {
     Map<OutputUnit, Set<OutputUnit>> backEdges = {};
     for (int i = 0; i < allOutputUnits.length; i++) {
       var a = allOutputUnits[i];
@@ -511,7 +524,9 @@ class FragmentMerger {
   /// Attachs predecessors and successors to each PreFragment.
   /// Expects outputUnits to be sorted.
   void attachDependencies(
-      List<OutputUnit> outputUnits, List<PreFragment> preDeferredFragments) {
+    List<OutputUnit> outputUnits,
+    List<PreFragment> preDeferredFragments,
+  ) {
     // Create a map of OutputUnit to Fragment.
     Map<OutputUnit, PreFragment> outputUnitMap = {};
     for (var preFragment in preDeferredFragments) {
@@ -535,7 +550,8 @@ class FragmentMerger {
   /// Given a list of [PreFragments], returns a list of lists of [PreFragments]
   /// where each list represents a component in the graph.
   List<List<PreFragment>> separateComponents(
-      List<PreFragment> preDeferredFragments) {
+    List<PreFragment> preDeferredFragments,
+  ) {
     List<List<PreFragment>> components = [];
     Set<PreFragment> visited = {};
 
@@ -555,8 +571,9 @@ class FragmentMerger {
         // Sort the fragments in the component so they will be in a canonical
         // order.
         component.sort((a, b) {
-          return a.emittedOutputUnits.single.outputUnit
-              .compareTo(b.emittedOutputUnits.single.outputUnit);
+          return a.emittedOutputUnits.single.outputUnit.compareTo(
+            b.emittedOutputUnits.single.outputUnit,
+          );
         });
         components.add(component);
       }
@@ -605,7 +622,8 @@ class FragmentMerger {
 
   /// Computes load lists using a list of sorted OutputUnits.
   Map<String, List<OutputUnit>> computeOutputUnitsToLoad(
-      List<OutputUnit> outputUnits) {
+    List<OutputUnit> outputUnits,
+  ) {
     // Sort the output units in descending order of the number of imports they
     // include.
 
@@ -646,23 +664,23 @@ class FragmentMerger {
   ///
   /// Where
   ///
-  /// - <library uri> is the import uri of the library making a deferred
+  /// - library uri is the import uri of the library making a deferred
   ///   import.
-  /// - <library name> is the name of the library, or "<unnamed>" if it is
+  /// - library name is the name of the library, or `"<unnamed>"` if it is
   ///   unnamed.
-  /// - <prefix> is the `as` prefix used for a given deferred import.
-  /// - <loadId> is the unique ID assigned by the compiler for each
-  ///   <library uri>/<prefix> pair.
-  /// - <list of files> is a list of the filenames the must be loaded when that
+  /// - prefix is the `as` prefix used for a given deferred import.
+  /// - loadId is the unique ID assigned by the compiler for each
+  ///   library uri/prefix pair.
+  /// - list of files is a list of the filenames the must be loaded when that
   ///   import is loaded.
   /// TODO(joshualitt): the library name is unused and should be removed. This
   /// will be a breaking change.
   Map<String, Map<String, dynamic>> computeDeferredMap(
-      Map<String, List<FinalizedFragment>> fragmentsToLoad) {
+    Map<String, List<FinalizedFragment>> fragmentsToLoad,
+  ) {
     Map<String, Map<String, dynamic>> mapping = {};
 
-    outputUnitData.deferredImportDescriptions.keys
-        .forEach((ImportEntity import) {
+    for (var import in outputUnitData.deferredImportDescriptions.keys) {
       var importDeferName = outputUnitData.importDeferName[import]!;
       final fragments = fragmentsToLoad[importDeferName]!;
       final description = outputUnitData.deferredImportDescriptions[import]!;
@@ -672,22 +690,29 @@ class FragmentMerger {
       }
 
       Map<String, dynamic> libraryMap = mapping.putIfAbsent(
-          description.importingUri,
-          () => {
-                'name': getName(description.importingLibrary),
-                'imports': <String, List<String>>{},
-                'importPrefixToLoadId': <String, String>{},
-              });
+        description.importingUri,
+        () => {
+          'name': getName(description.importingLibrary),
+          'imports': <String, List<String>>{},
+          'importPrefixToLoadId': <String, String>{},
+        },
+      );
 
-      List<String> partFileNames = fragments
-          .map((fragment) =>
-              deferredPartFileName(_options, fragment.canonicalOutputUnit.name))
-          .toList();
+      List<String> partFileNames =
+          fragments
+              .map(
+                (fragment) => deferredPartFileName(
+                  _options,
+                  fragment.canonicalOutputUnit.name,
+                ),
+              )
+              .toList();
       (libraryMap['imports'] as Map<String, List<String>>)[importDeferName] =
           partFileNames;
-      (libraryMap['importPrefixToLoadId']
-          as Map<String, String>)[import.name!] = importDeferName;
-    });
+      (libraryMap['importPrefixToLoadId'] as Map<String, String>)[import
+              .name!] =
+          importDeferName;
+    }
     return mapping;
   }
 }

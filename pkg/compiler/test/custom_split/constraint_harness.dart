@@ -14,7 +14,9 @@ typedef ImportsProcessor = List<Node> Function(List<String>);
 /// [processFunc] will then be serialized as json and sent back over the
 /// supplied [sendPort].
 void waitForImportsAndInvoke(
-    SendPort sendPort, ImportsProcessor importsProcessor) async {
+  SendPort sendPort,
+  ImportsProcessor importsProcessor,
+) async {
   ReceivePort receivePort = ReceivePort();
   sendPort.send(receivePort.sendPort);
 

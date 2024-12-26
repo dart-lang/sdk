@@ -13,12 +13,12 @@ var otherList = ['foo', 42];
 
 /*member: main:[null]*/
 main() {
-  dynamic a = otherList
+  dynamic a =
+      otherList
       /*Container([exact=JSExtendableArray], element: Union([exact=JSString], [exact=JSUInt31]), length: 2)*/
       [0];
   a /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ += 54;
-  myList
-      .
-      /*invoke: Container([exact=JSExtendableArray], element: Union([exact=JSString], [subclass=JSNumber]), length: null)*/
-      add(a);
+  myList.
+  /*invoke: Container([exact=JSExtendableArray], element: Union([exact=JSString], [subclass=JSNumber]), length: null)*/
+  add(a);
 }

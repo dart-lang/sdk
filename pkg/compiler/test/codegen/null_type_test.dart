@@ -15,9 +15,13 @@ foo() {
 
 main() {
   runTest() async {
-    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      Expect.isFalse(generated.contains('typeof (void 0)'));
-    });
+    await compile(
+      TEST_ONE,
+      entry: 'foo',
+      check: (String generated) {
+        Expect.isFalse(generated.contains('typeof (void 0)'));
+      },
+    );
   }
 
   asyncTest(() async {

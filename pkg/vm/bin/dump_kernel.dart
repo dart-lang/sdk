@@ -30,7 +30,7 @@ Usage: dump_kernel input.dill output.txt
 Dumps kernel binary file with VM-specific metadata.
 ''';
 
-main(List<String> arguments) async {
+void main(List<String> arguments) async {
   if (arguments.length != 2) {
     print(_usage);
     exit(1);

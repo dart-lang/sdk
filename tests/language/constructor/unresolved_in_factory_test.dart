@@ -10,9 +10,9 @@ class A {
     // [analyzer] COMPILE_TIME_ERROR.BODY_MIGHT_COMPLETE_NORMALLY
     // [cfe] A non-null value must be returned since the return type 'A' doesn't allow null.
     foo();
-//  ^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-// [cfe] Method not found: 'foo'.
+    // [error column 5, length 3]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [cfe] Method not found: 'foo'.
   }
 }
 

@@ -1,0 +1,11 @@
+external method() {}
+
+external get getter => 42;
+
+external set setter(_) {}
+
+class Class {
+  external method() {}
+  external get getter => 42;
+  external set setter(_) {}
+}

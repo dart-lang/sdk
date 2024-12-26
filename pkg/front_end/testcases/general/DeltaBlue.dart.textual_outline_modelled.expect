@@ -61,7 +61,7 @@ class EditConstraint extends UnaryConstraint {
 
 class EqualityConstraint extends BinaryConstraint {
   EqualityConstraint(Variable v1, Variable v2, Strength strength)
-    : super(v1, v2, strength);
+      : super(v1, v2, strength);
   void execute() {}
 }
 
@@ -86,12 +86,8 @@ class Planner {
 
 class ScaleConstraint extends BinaryConstraint {
   ScaleConstraint(
-    Variable src,
-    this.scale,
-    this.offset,
-    Variable dest,
-    Strength strength,
-  ) : super(src, dest, strength);
+      Variable src, this.scale, this.offset, Variable dest, Strength strength)
+      : super(src, dest, strength);
   final Variable offset;
   final Variable scale;
   void addToGraph() {}
@@ -107,14 +103,13 @@ class StayConstraint extends UnaryConstraint {
 }
 
 class Strength {
-  Strength nextWeaker() =>
-      const <Strength>[
+  Strength nextWeaker() => const <Strength>[
         STRONG_PREFERRED,
         PREFERRED,
         STRONG_DEFAULT,
         NORMAL,
         WEAK_DEFAULT,
-        WEAKEST,
+        WEAKEST
       ][value];
   const Strength(this.value, this.name);
   final String name;

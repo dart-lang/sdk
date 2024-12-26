@@ -22,7 +22,7 @@ Future<void> scheduleImplementedNotification(
   var searchEngine = server.searchEngine;
   for (var file in files) {
     var unit = server.getCachedResolvedUnit(file)?.unit;
-    var unitElement = unit?.declaredElement;
+    var unitElement = unit?.declaredFragment;
     if (unitElement != null) {
       try {
         var computer = ImplementedComputer(searchEngine, unitElement);

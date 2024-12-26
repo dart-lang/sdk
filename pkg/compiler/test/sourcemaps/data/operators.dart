@@ -13,7 +13,13 @@ void record(result) {
 main(args) {
   counter++;
   operations(
-      args.length > 0, 0, 1.5, args[0], Complex(0, 1), Complex(1.5, 2.5));
+    args.length > 0,
+    0,
+    1.5,
+    args[0],
+    Complex(0, 1),
+    Complex(1.5, 2.5),
+  );
   specialized(args.length > 0, null, 2, []);
   specialized(args.length > 0, 2, 2, []);
   return counter;

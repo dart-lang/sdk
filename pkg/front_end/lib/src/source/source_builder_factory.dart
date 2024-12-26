@@ -1400,7 +1400,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
               name: name,
               typeParameters: typeParameters,
               formals: formals,
-              kind: kind,
+              isOperator: kind == ProcedureKind.Operator,
               startOffset: startOffset,
               nameOffset: nameOffset,
               formalsOffset: formalsOffset,
@@ -1850,10 +1850,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         metadata: metadata,
         modifiers: modifiers,
         returnType: returnType ?? addInferableType(),
-        typeParameters: typeParameters,
+        declaredTypeParameters: typeParameters,
         typeParameterNameSpace: typeParameterNameSpace,
         typeParameterScope: typeParameterScope.lookupScope,
-        formals: formals,
+        declaredFormals: formals,
         asyncModifier: asyncModifier,
         nativeMethodName: nativeMethodName);
     _addFragment(fragment);
@@ -1913,10 +1913,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         metadata: metadata,
         modifiers: modifiers,
         returnType: returnType,
-        typeParameters: typeParameters,
+        declaredTypeParameters: typeParameters,
         typeParameterNameSpace: typeParameterNameSpace,
         typeParameterScope: typeParameterScope.lookupScope,
-        formals: formals,
+        declaredFormals: formals,
         asyncModifier: asyncModifier,
         nativeMethodName: nativeMethodName);
     _addFragment(fragment);
@@ -1936,7 +1936,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required String name,
       required List<NominalParameterBuilder>? typeParameters,
       required List<FormalParameterBuilder>? formals,
-      required ProcedureKind kind,
       required int startOffset,
       required int nameOffset,
       required int formalsOffset,
@@ -1945,7 +1944,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required AsyncMarker asyncModifier,
       required bool isInstanceMember,
       required bool isExtensionMember,
-      required bool isExtensionTypeMember}) {
+      required bool isExtensionTypeMember,
+      required bool isOperator}) {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
@@ -1960,11 +1960,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             DeclarationFragmentKind.extensionTypeDeclaration);
 
     if (returnType == null) {
-      if (kind == ProcedureKind.Operator &&
-          identical(name, indexSetName.text)) {
-        returnType = addVoidType(nameOffset);
-      } else if (kind == ProcedureKind.Setter) {
-        // Coverage-ignore-block(suite): Not run.
+      if (isOperator && identical(name, indexSetName.text)) {
         returnType = addVoidType(nameOffset);
       }
     }
@@ -1983,11 +1979,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         metadata: metadata,
         modifiers: modifiers,
         returnType: returnType ?? addInferableType(),
-        typeParameters: typeParameters,
+        declaredTypeParameters: typeParameters,
         typeParameterNameSpace: typeParameterNameSpace,
         typeParameterScope: typeParameterScope.lookupScope,
-        formals: formals,
-        kind: kind,
+        declaredFormals: formals,
+        isOperator: isOperator,
         asyncModifier: asyncModifier,
         nativeMethodName: nativeMethodName);
     _addFragment(fragment);
@@ -2375,13 +2371,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       fragment.builder.becomeNative(loader);
     }
     for (GetterFragment fragment in _nativeGetterFragments) {
-      fragment.builder.becomeNative(loader);
+      fragment.becomeNative(loader);
     }
     for (SetterFragment fragment in _nativeSetterFragments) {
-      fragment.builder.becomeNative(loader);
+      fragment.becomeNative(loader);
     }
     for (MethodFragment fragment in _nativeMethodFragments) {
-      fragment.builder.becomeNative(loader);
+      fragment.becomeNative(loader);
     }
     for (ConstructorFragment fragment in _nativeConstructorFragments) {
       fragment.builder.becomeNative(loader);

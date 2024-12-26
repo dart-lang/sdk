@@ -27,13 +27,16 @@ void test(Foo foo) {
 
 void main() {
   asyncTest(() async {
-    await compile(TEST,
-        entry: 'entry',
-        methodName: 'test',
-        disableTypeInference: false,
-        disableInlining: false, check: (String generated) {
-      RegExp regexp = RegExp(r'=== \$');
-      Expect.equals(1, regexp.allMatches(generated).length);
-    });
+    await compile(
+      TEST,
+      entry: 'entry',
+      methodName: 'test',
+      disableTypeInference: false,
+      disableInlining: false,
+      check: (String generated) {
+        RegExp regexp = RegExp(r'=== \$');
+        Expect.equals(1, regexp.allMatches(generated).length);
+      },
+    );
   });
 }

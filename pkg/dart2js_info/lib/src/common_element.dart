@@ -10,8 +10,11 @@ class CommonElement {
   String get name => longName(oldInfo, useLibraryUri: true);
 }
 
-List<CommonElement> findCommonalities(AllInfo oldInfo, AllInfo newInfo,
-    {bool mainOnly = false}) {
+List<CommonElement> findCommonalities(
+  AllInfo oldInfo,
+  AllInfo newInfo, {
+  bool mainOnly = false,
+}) {
   var finder = _InfoCommonElementFinder(oldInfo, newInfo, mainOnly: mainOnly);
   finder.run();
   return finder.commonElements;

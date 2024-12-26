@@ -63,8 +63,8 @@ public class SourceEdit {
    * For example, a change made as part of a quick-fix may use the message "Replace final with var",
    * allowing multiple changes and multiple applications of the fix to be grouped together.
    *
-   * This value may be more specific than any value in an enclosing SourceChange.message which could
-   * contain edits made for different reasons (such as during a bulk fix operation).
+   * This value may be more specific than any value in an enclosing <code>SourceChange.message</code>
+   * which could contain edits made for different reasons (such as during a bulk fix operation).
    */
   private final String description;
 
@@ -119,8 +119,8 @@ public class SourceEdit {
    * For example, a change made as part of a quick-fix may use the message "Replace final with var",
    * allowing multiple changes and multiple applications of the fix to be grouped together.
    *
-   * This value may be more specific than any value in an enclosing SourceChange.message which could
-   * contain edits made for different reasons (such as during a bulk fix operation).
+   * This value may be more specific than any value in an enclosing <code>SourceChange.message</code>
+   * which could contain edits made for different reasons (such as during a bulk fix operation).
    */
   public String getDescription() {
     return description;

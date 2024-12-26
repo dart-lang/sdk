@@ -30,8 +30,7 @@ mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
         b.addLocal(w.RefType(asyncSuspendStateInfo.struct, nullable: false));
 
     // AsyncResumeFun _resume
-    translator.globals
-        .readGlobal(b, translator.makeFunctionRef(b.module, resumeFun));
+    translator.globals.readGlobal(b, translator.makeFunctionRef(resumeFun));
 
     // WasmStructRef? _context
     if (context != null) {

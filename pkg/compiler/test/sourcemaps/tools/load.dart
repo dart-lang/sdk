@@ -33,8 +33,9 @@ Usage: load <dir-containing 'out.js.map'>
 }
 
 void mainInternal(File sourceMapFile, File? humanReadableSourceMapFile) {
-  SingleMapping sourceMap =
-      SingleMapping.fromJson(json.decode(sourceMapFile.readAsStringSync()));
+  SingleMapping sourceMap = SingleMapping.fromJson(
+    json.decode(sourceMapFile.readAsStringSync()),
+  );
   String humanReadableSourceMap = convertToHumanReadableSourceMap(sourceMap);
   if (humanReadableSourceMapFile != null) {
     humanReadableSourceMapFile.writeAsStringSync(humanReadableSourceMap);
@@ -61,9 +62,11 @@ String convertToHumanReadableSourceMap(SingleMapping sourceMap) {
   for (int lineIndex = 0; lineIndex < sourceMap.lines.length; lineIndex++) {
     TargetLineEntry lineEntry = sourceMap.lines[lineIndex];
     int line = lineEntry.line + 1;
-    for (int entryIndex = 0;
-        entryIndex < lineEntry.entries.length;
-        entryIndex++) {
+    for (
+      int entryIndex = 0;
+      entryIndex < lineEntry.entries.length;
+      entryIndex++
+    ) {
       TargetEntry entry = lineEntry.entries[entryIndex];
       int columnStart = entry.column + 1;
       int? columnEnd;

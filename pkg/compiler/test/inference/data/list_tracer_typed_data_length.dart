@@ -18,11 +18,11 @@ main() {
   // ignore: unused_local_variable
   var a = Float32List(9);
   return myList
-          /*Container([exact=NativeFloat32List], element: [subclass=JSNumber], length: 42)*/
-          [0]
+      /*Container([exact=NativeFloat32List], element: [subclass=JSNumber], length: 42)*/
+      [0]
       /*invoke: [subclass=JSNumber]*/
       +
       myOtherList
-          /*Container([exact=NativeUint8List], element: [exact=JSUInt31], length: 32)*/
-          [0];
+      /*Container([exact=NativeUint8List], element: [exact=JSUInt31], length: 32)*/
+      [0];
 }

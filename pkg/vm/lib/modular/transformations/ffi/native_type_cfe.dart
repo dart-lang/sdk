@@ -22,13 +22,14 @@ sealed class NativeTypeCfe {
     FfiTransformer transformer,
     DartType dartType, {
     List<int>? arrayDimensions,
+    bool? variableLength,
   }) {
     if (transformer.isStructOrUnionSubtype(dartType)) {
       return ReferencedCompoundSubtypeCfe(
           (dartType as InterfaceType).classNode);
     } else {
       return NativeTypeCfe(transformer, dartType,
-          arrayDimensions: arrayDimensions);
+          arrayDimensions: arrayDimensions, variableLength: variableLength);
     }
   }
 
@@ -36,6 +37,7 @@ sealed class NativeTypeCfe {
     FfiTransformer transformer,
     DartType dartType, {
     List<int>? arrayDimensions,
+    bool? variableLength,
     Map<Class, NativeTypeCfe> compoundCache = const {},
     bool alreadyInAbiSpecificType = false,
   }) {
@@ -62,13 +64,17 @@ sealed class NativeTypeCfe {
       if (arrayDimensions.isEmpty) {
         throw "Must have a size for this array dimension.";
       }
+      if (variableLength == null) {
+        throw "Must have variable length for ArrayType.";
+      }
       final elementType = transformer.arraySingleElementType(dartType);
-      final elementCfeType =
-          NativeTypeCfe(transformer, elementType, compoundCache: compoundCache);
+      final elementCfeType = NativeTypeCfe(transformer, elementType,
+          compoundCache: compoundCache, variableLength: variableLength);
       if (elementCfeType is InvalidNativeTypeCfe) {
         return elementCfeType;
       }
-      return ArrayNativeTypeCfe.multi(elementCfeType, arrayDimensions);
+      return ArrayNativeTypeCfe.multi(
+          elementCfeType, arrayDimensions, variableLength);
     }
     if (transformer.isAbiSpecificIntegerSubtype(dartType)) {
       final clazz = (dartType as InterfaceType).classNode;
@@ -741,17 +747,21 @@ class ReferencedCompoundSubtypeCfe extends NativeTypeCfe
 class ArrayNativeTypeCfe extends NativeTypeCfe {
   final NativeTypeCfe elementType;
   final int length;
+  final bool variableLength;
 
-  ArrayNativeTypeCfe(this.elementType, this.length) : super._();
+  ArrayNativeTypeCfe(this.elementType, this.length, this.variableLength)
+      : super._();
 
   factory ArrayNativeTypeCfe.multi(
-      NativeTypeCfe elementType, List<int> dimensions) {
+      NativeTypeCfe elementType, List<int> dimensions, bool variableLength) {
     if (dimensions.length == 1) {
-      return ArrayNativeTypeCfe(elementType, dimensions.single);
+      return ArrayNativeTypeCfe(elementType, dimensions.single, variableLength);
     }
     return ArrayNativeTypeCfe(
-      ArrayNativeTypeCfe.multi(elementType, dimensions.sublist(1)),
+      ArrayNativeTypeCfe.multi(
+          elementType, dimensions.sublist(1), variableLength),
       dimensions.first,
+      variableLength,
     );
   }
 
@@ -798,7 +808,9 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
           transformer.ffiInlineArrayElementTypeField.fieldReference:
               singleElementType.generateConstant(transformer),
           transformer.ffiInlineArrayLengthField.fieldReference:
-              IntConstant(dimensionsFlattened)
+              IntConstant(dimensionsFlattened),
+          transformer.ffiInlineArrayVariableLengthField.fieldReference:
+              BoolConstant(variableLength),
         },
       );
 
@@ -830,6 +842,7 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
           typedDataBase,
           offsetInBytes,
           ConstantExpression(IntConstant(length)),
+          ConstantExpression(BoolConstant(variableLength)),
           transformer.intListConstantExpression(
               nestedDimensions, Nullability.nonNullable)
         ],

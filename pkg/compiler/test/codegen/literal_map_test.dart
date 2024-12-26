@@ -16,14 +16,20 @@ foo() {
 
 main() {
   runTest() async {
-    await compile(TEST, entry: 'foo', check: (String generated) {
-      // Make sure we have all the type information we need.
-      Expect.isFalse(generated.contains('bailout'));
-      Expect.isFalse(generated.contains('interceptor'));
-      // Make sure we don't go through an interceptor.
-      Expect.isTrue(generated.contains(r'a.$indexSet(a') ||
-          generated.contains(r'.$indexSet(0'));
-    });
+    await compile(
+      TEST,
+      entry: 'foo',
+      check: (String generated) {
+        // Make sure we have all the type information we need.
+        Expect.isFalse(generated.contains('bailout'));
+        Expect.isFalse(generated.contains('interceptor'));
+        // Make sure we don't go through an interceptor.
+        Expect.isTrue(
+          generated.contains(r'a.$indexSet(a') ||
+              generated.contains(r'.$indexSet(0'),
+        );
+      },
+    );
   }
 
   asyncTest(() async {

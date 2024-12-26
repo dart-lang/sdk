@@ -221,6 +221,9 @@ class WasmF64 extends _WasmBase {
   /// Wasm `i64.trunc_sat_f64_s` instruction.
   external WasmI64 truncSatS();
 
+  /// Wasm `f64.sqrt` instruction.
+  external WasmF64 sqrt();
+
   /// Wasm `f64.copysign` instruction.
   external WasmF64 copysign(WasmF64 other);
 }
@@ -437,6 +440,10 @@ extension DoubleWasmInstructions on double {
   @pragma("wasm:prefer-inline")
   double copysign(double other) =>
       this.toWasmF64().copysign(other.toWasmF64()).toDouble();
+
+  /// Wasm `f64.sqrt` instruction.
+  @pragma("wasm:prefer-inline")
+  double sqrt() => this.toWasmF64().sqrt().toDouble();
 }
 
 extension WasmExternRefToJSAny on WasmExternRef {

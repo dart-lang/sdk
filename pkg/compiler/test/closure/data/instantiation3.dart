@@ -8,8 +8,8 @@ typedef int? F<R>(R a);
 
 method<S>() {
   return
-      /*fields=[S],free=[S]*/
-      () {
+  /*fields=[S],free=[S]*/
+  () {
     F<S> c = f;
     return c;
   };

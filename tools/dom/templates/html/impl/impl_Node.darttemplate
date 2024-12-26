@@ -163,7 +163,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
   // a local copy of childNodes is more efficient.
   int get length => _this.childNodes.length;
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError(
         "Cannot set length on immutable List.");
   }

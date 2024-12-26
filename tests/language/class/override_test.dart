@@ -11,9 +11,9 @@ class A {
 
 class B extends A {
   foo(a) {}
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
-// [cfe] The method 'B.foo' has more required arguments than those of overridden method 'A.foo'.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+  // [cfe] The method 'B.foo' has more required arguments than those of overridden method 'A.foo'.
 }
 
 main() {

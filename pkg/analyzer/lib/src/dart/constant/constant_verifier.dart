@@ -649,6 +649,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         identical(errorCode, CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT) ||
         identical(
             errorCode, CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION) ||
+        identical(
+            errorCode, CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY) ||
         identical(errorCode, CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS) ||
         identical(
             errorCode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION) ||

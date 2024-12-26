@@ -165,9 +165,11 @@ awaitNestedDoWhile(int i, int j) async {
 awaitFor() async {
   var asyncInc = (p) async => p + 1;
   var k = 0;
-  for (int j = (await bar(0)), i = (await bar(1));
-      j < (await bar(5));
-      j = (await asyncInc(j)), i = (await asyncInc(i))) {
+  for (
+    int j = (await bar(0)), i = (await bar(1));
+    j < (await bar(5));
+    j = (await asyncInc(j)), i = (await asyncInc(i))
+  ) {
     k += i;
     k += j;
   }

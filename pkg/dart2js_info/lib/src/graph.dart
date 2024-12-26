@@ -187,10 +187,7 @@ class _NodeInfo<N> {
   /// Component that contains the corresponding node.
   List<N>? component;
 
-  _NodeInfo(int depth)
-      : index = depth,
-        lowlink = depth,
-        onStack = false;
+  _NodeInfo(int depth) : index = depth, lowlink = depth, onStack = false;
 }
 
 /// Implements Tarjan's Algorithm for finding the strongly connected components

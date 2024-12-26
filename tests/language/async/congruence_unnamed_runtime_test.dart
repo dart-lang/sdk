@@ -122,12 +122,10 @@ main() {
     // `Future<Object>` but not `Future<int>`.
     Future<Object> v1 = f_inferred_futureObject();
 
-
     // Check that f_inferred_A's static return type is `Future<A>`, by verifying
     // that its return value can be assigned to `Future<A>` but not
     // `Future<B>`.
     Future<A> v3 = f_inferred_A();
-
   }
 
   checkFutureObject(f_inferred_futureObject);

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/services/top_level_declarations.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -19,24 +19,24 @@ main() {
 class TopLevelDeclarationsTest extends PubPackageResolutionTest {
   /// Verifies that the located public export for [element] is the library with
   /// URI [libraryUri].
-  Future<void> expectPublicExport(Element element, String libraryUri) async {
+  Future<void> expectPublicExport(Element2 element, String libraryUri) async {
     var publicLibrary =
-        await TopLevelDeclarations(result).publiclyExporting(element);
-    expect(publicLibrary?.source.uri.toString(), libraryUri);
+        await TopLevelDeclarations(result).publiclyExporting2(element);
+    expect(publicLibrary?.firstFragment.source.uri.toString(), libraryUri);
   }
 
   test_publiclyExporting_getter() async {
     await resolveFileCode('$testPackageLibPath/src/x.dart', "var x = 1;");
     newFile('$testPackageLibPath/x.dart', "export 'src/x.dart';");
 
-    var element = findElement.topGet('x');
+    var element = findElement2.topGet('x');
     await expectPublicExport(element, 'package:test/x.dart');
   }
 
   test_publiclyExporting_lib() async {
     await resolveFileCode('$testPackageLibPath/x.dart', "class X {}");
 
-    var element = findElement.class_('X');
+    var element = findElement2.class_('X');
     await expectPublicExport(element, 'package:test/x.dart');
   }
 
@@ -50,7 +50,7 @@ class TopLevelDeclarationsTest extends PubPackageResolutionTest {
     newFile('$testPackageLibPath/x2.dart', "export 'src/x.dart';");
     newFile('$testPackageLibPath/x3.dart', "class X {}");
 
-    var element = findElement.class_('X');
+    var element = findElement2.class_('X');
     await expectPublicExport(element, 'package:test/x2.dart');
   }
 
@@ -58,7 +58,7 @@ class TopLevelDeclarationsTest extends PubPackageResolutionTest {
     await resolveFileCode('$testPackageLibPath/src/x.dart', "var x = 1;");
     newFile('$testPackageLibPath/x.dart', "export 'src/x.dart';");
 
-    var element = findElement.topSet('x');
+    var element = findElement2.topSet('x');
     await expectPublicExport(element, 'package:test/x.dart');
   }
 
@@ -66,7 +66,7 @@ class TopLevelDeclarationsTest extends PubPackageResolutionTest {
     await resolveFileCode('$testPackageLibPath/src/x.dart', "class X {}");
     newFile('$testPackageLibPath/x.dart', "export 'src/x.dart';");
 
-    var element = findElement.class_('X');
+    var element = findElement2.class_('X');
     await expectPublicExport(element, 'package:test/x.dart');
   }
 }

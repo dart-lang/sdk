@@ -9,8 +9,8 @@ class D implements A, B {}
 main() {}
 
 method(M m) => switch (m) {
-  A() as B => 0,
-  B() => 1,
-};
+      A() as B => 0,
+      B() => 1,
+    };
 
 sealed class M {}

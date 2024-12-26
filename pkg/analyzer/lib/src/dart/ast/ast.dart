@@ -820,8 +820,8 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    var element = this.element;
-    if (element is PromotableElement) {
+    var element = element2;
+    if (element is PromotableElementImpl2) {
       return resolverVisitor
           .analyzeAssignedVariablePatternSchema(element)
           .unwrapTypeSchemaView();
@@ -892,7 +892,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 
   @experimental
   @override
-  MethodElement2? get element => (staticElement as MethodFragment?)?.element;
+  MethodElement2? get element => staticElement?.asElement2;
 
   @override
   Token get endToken => _rightHandSide.endToken;
@@ -2237,7 +2237,9 @@ final class CascadeExpressionImpl extends ExpressionImpl
 
   @override
   bool _extendsNullShorting(Expression descendant) {
-    return _cascadeSections.contains(descendant);
+    // Null shorting that occurs in a cascade section does not extend to the
+    // full cascade expression.
+    return false;
   }
 }
 
@@ -2581,7 +2583,7 @@ final class CatchClauseParameterImpl extends AstNodeImpl
 
   @experimental
   @override
-  LocalVariableElement2? get declaredElement2 {
+  LocalVariableElementImpl2? get declaredElement2 {
     return declaredElement.asElement2 as LocalVariableElementImpl2?;
   }
 
@@ -4890,7 +4892,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
 
   @experimental
   @override
-  LocalVariableElement2? get declaredElement2 {
+  LocalVariableElementImpl2? get declaredElement2 {
     return declaredElement.asElement2 as LocalVariableElementImpl2?;
   }
 
@@ -4981,7 +4983,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
 
   @experimental
   @override
-  BindPatternVariableElement2? get declaredElement2 {
+  BindPatternVariableElementImpl2? get declaredElement2 {
     return declaredElement?.element;
   }
 
@@ -5027,7 +5029,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
     var result = resolverVisitor.analyzeDeclaredVariablePattern(
         context,
         this,
-        declaredElement!,
+        declaredElement2!,
         declaredElement!.name,
         type?.typeOrThrow.wrapSharedTypeView());
     declaredElement!.type = result.staticType.unwrapTypeView();
@@ -6202,6 +6204,7 @@ sealed class ExpressionImpl extends AstNodeImpl
         case ForElement():
         case MapLiteralEntry():
         case SpreadElement():
+        case NullAwareElement():
         case VariableDeclaration():
           break;
         default:
@@ -9207,7 +9210,7 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
 
   /// Variables declared in [pattern], available in [whenClause] guard, and
   /// to the `ifTrue` node.
-  late Map<String, PatternVariableElementImpl> variables;
+  late Map<String, PatternVariableElementImpl2> variables;
 
   @override
   final WhenClauseImpl? whenClause;
@@ -12435,10 +12438,7 @@ final class NamedExpressionImpl extends ExpressionImpl
   @experimental
   @override
   FormalParameterElement? get element2 {
-    if (element case FormalParameterFragment fragment) {
-      return fragment.element;
-    }
-    return null;
+    return element?.asElement2;
   }
 
   @override
@@ -14156,7 +14156,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
 
   @experimental
   @override
-  MethodElement2? get element => (staticElement as MethodFragment?)?.element;
+  MethodElement2? get element => staticElement?.asElement2;
 
   @override
   Token get endToken => operator;
@@ -14367,7 +14367,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
 
   @experimental
   @override
-  MethodElement2? get element => (staticElement as MethodFragment?)?.element;
+  MethodElement2? get element => staticElement?.asElement2;
 
   @override
   Token get endToken => _operand.endToken;
@@ -17110,17 +17110,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    inferenceLogWriter?.enterExpression(this, contextType);
-    var previousExhaustiveness = resolver.legacySwitchExhaustiveness;
-    var staticType = resolver
-        .analyzeSwitchExpression(
-            this, expression, cases.length, SharedTypeSchemaView(contextType))
-        .type
-        .unwrapTypeView();
-    recordStaticType(staticType, resolver: resolver);
-    resolver.popRewrite();
-    resolver.legacySwitchExhaustiveness = previousExhaustiveness;
-    inferenceLogWriter?.exitExpression(this);
+    resolver.visitSwitchExpression(this, contextType: contextType);
   }
 
   @override
@@ -17284,7 +17274,7 @@ class SwitchStatementCaseGroup {
   final bool hasLabels;
 
   /// Joined variables declared in [members], available in [statements].
-  late Map<String, PromotableElement> variables;
+  late Map<String, PromotableElementImpl2> variables;
 
   SwitchStatementCaseGroup(this.members, this.hasLabels);
 

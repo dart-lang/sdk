@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.io.source_file;
+library;
 
 import 'dart:convert' show utf8;
 import 'dart:math';
@@ -21,16 +21,19 @@ abstract class SourceFile implements api.Input<Uint8List>, LocationProvider {
   Uri get uri;
 
   @override
-  api.InputKind get inputKind => api.InputKind.UTF8;
+  api.InputKind get inputKind => api.InputKind.utf8;
 
   kernel.Source? _cachedKernelSource;
 
   kernel.Source get kernelSource {
     // TODO(johnniwinther): Instead of creating a new Source object,
     // we should use the one provided by the front-end.
-    return _cachedKernelSource ??= kernel.Source(lineStarts, utf8Bytes(),
-        uri /* TODO(jensj): What is the import URI? */, uri)
-      ..cachedText = slowText();
+    return _cachedKernelSource ??= kernel.Source(
+      lineStarts,
+      utf8Bytes(),
+      uri /* TODO(jensj): What is the import URI? */,
+      uri,
+    )..cachedText = slowText();
   }
 
   /// The name of the file.
@@ -100,11 +103,14 @@ abstract class SourceFile implements api.Input<Uint8List>, LocationProvider {
   ///
   /// Use [colorize] to wrap source code text and marker characters in color
   /// escape codes.
-  String getLocationMessage(String message, int start, int end,
-      {bool includeSourceLine = true, String colorize(String text)?}) {
-    if (colorize == null) {
-      colorize = (text) => text;
-    }
+  String getLocationMessage(
+    String message,
+    int start,
+    int end, {
+    bool includeSourceLine = true,
+    String Function(String text)? colorize,
+  }) {
+    colorize ??= (text) => text;
 
     kernel.Location startLocation = kernelSource.getLocation(uri, start);
     kernel.Location endLocation = kernelSource.getLocation(uri, end);
@@ -113,7 +119,7 @@ abstract class SourceFile implements api.Input<Uint8List>, LocationProvider {
     int lineEnd = endLocation.line - 1;
     int columnEnd = endLocation.column - 1;
 
-    StringBuffer buf = StringBuffer('${filename}:');
+    StringBuffer buf = StringBuffer('$filename:');
     if (start != end || start != 0) {
       // Line/column info is relevant.
       buf.write('${lineStart + 1}:${columnStart + 1}:');
@@ -220,10 +226,10 @@ class StringSourceFile extends SourceFile {
   StringSourceFile(this.uri, this.filename, this.text);
 
   StringSourceFile.fromUri(Uri uri, String text)
-      : this(uri, uri.toString(), text);
+    : this(uri, uri.toString(), text);
 
   StringSourceFile.fromName(String filename, String text)
-      : this(Uri(path: filename), filename, text);
+    : this(Uri(path: filename), filename, text);
 
   @override
   Uint8List get data => utf8.encode(text);

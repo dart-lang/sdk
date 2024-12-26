@@ -28,6 +28,44 @@ void f() {
 }
 ''');
 
+  Future<void> test_dartCode_issue5369_field() => _testMarkedContent('''
+class A {
+  var /*[0*/^a/*0]*/ = [''].where((_) => true).toList();
+  List<String> f() {
+    return /*[1*/a/*1]*/;
+  }
+}
+
+var a; // Not a reference
+''');
+
+  Future<void> test_dartCode_issue5369_functionType() => _testMarkedContent('''
+class A {
+  String m({ required String Function(String input) /*[0*/^f/*0]*/ }) {
+    return /*[1*/f/*1]*/('');
+  }
+}
+
+var f; // Not a reference
+''');
+
+  Future<void> test_dartCode_issue5369_localVariable() => _testMarkedContent('''
+class A {
+  List<String> f() {
+    var /*[0*/^a/*0]*/ = [''].where((_) => true).toList();
+    return /*[1*/a/*1]*/;
+  }
+}
+
+var a; // Not a reference
+''');
+
+  Future<void> test_dartCode_issue5369_topLevelVariable() =>
+      _testMarkedContent('''
+var /*[0*/^a/*0]*/ = [''].where((_) => true).toList();
+var b = /*[1*/a/*1]*/;
+''');
+
   Future<void> test_forInLoop() => _testMarkedContent('''
 void f() {
   for (final /*[0*/x^/*0]*/ in []) {

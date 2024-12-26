@@ -36,7 +36,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
     _resolver.checkUnreachableNode(node);
 
-    _resolver.checkReadOfNotAssignedLocalVariable(node, node.staticElement);
+    _resolver.checkReadOfNotAssignedLocalVariable(node, node.element);
 
     _reportDeprecatedExportUse(node);
 

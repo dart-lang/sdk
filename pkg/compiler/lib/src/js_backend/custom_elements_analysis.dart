@@ -54,7 +54,10 @@ abstract class CustomElementsAnalysisBase {
   final CommonElements _commonElements;
 
   CustomElementsAnalysisBase(
-      this._elementEnvironment, this._commonElements, this._nativeData);
+    this._elementEnvironment,
+    this._commonElements,
+    this._nativeData,
+  );
 
   CustomElementsAnalysisJoin get join;
 
@@ -83,13 +86,16 @@ class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
   final CustomElementsAnalysisJoin join;
 
   CustomElementsResolutionAnalysis(
-      super.elementEnvironment,
-      super.commonElements,
-      super.nativeData,
-      BackendUsageBuilder backendUsageBuilder)
-      : join = CustomElementsAnalysisJoin(
-            elementEnvironment, commonElements, nativeData,
-            backendUsageBuilder: backendUsageBuilder) {
+    super.elementEnvironment,
+    super.commonElements,
+    super.nativeData,
+    BackendUsageBuilder backendUsageBuilder,
+  ) : join = CustomElementsAnalysisJoin(
+        elementEnvironment,
+        commonElements,
+        nativeData,
+        backendUsageBuilder: backendUsageBuilder,
+      ) {
     // TODO(sra): Remove this workaround.  We should mark allClassesSelected in
     // both joins only when we see a construct generating an unknown [Type] but
     // we can't currently recognize all cases.  In particular, the workaround
@@ -118,11 +124,16 @@ class CustomElementsCodegenAnalysis extends CustomElementsAnalysisBase {
   @override
   final CustomElementsAnalysisJoin join;
 
-  CustomElementsCodegenAnalysis(CommonElements commonElements,
-      ElementEnvironment elementEnvironment, NativeBasicData nativeData)
-      : join = CustomElementsAnalysisJoin(
-            elementEnvironment, commonElements, nativeData),
-        super(elementEnvironment, commonElements, nativeData) {
+  CustomElementsCodegenAnalysis(
+    CommonElements commonElements,
+    ElementEnvironment elementEnvironment,
+    NativeBasicData nativeData,
+  ) : join = CustomElementsAnalysisJoin(
+        elementEnvironment,
+        commonElements,
+        nativeData,
+      ),
+      super(elementEnvironment, commonElements, nativeData) {
     // TODO(sra): Remove this workaround.  We should mark allClassesSelected in
     // both joins only when we see a construct generating an unknown [Type] but
     // we can't currently recognize all cases.  In particular, the workaround
@@ -166,14 +177,16 @@ class CustomElementsAnalysisJoin {
   final Set<ClassEntity> activeClasses = {};
 
   CustomElementsAnalysisJoin(
-      this._elementEnvironment, this._commonElements, this._nativeData,
-      {BackendUsageBuilder? backendUsageBuilder})
-      : this._backendUsageBuilder = backendUsageBuilder;
+    this._elementEnvironment,
+    this._commonElements,
+    this._nativeData, {
+    BackendUsageBuilder? backendUsageBuilder,
+  }) : _backendUsageBuilder = backendUsageBuilder;
 
   WorldImpact flush() {
     if (!demanded) return const WorldImpact();
     final impactBuilder = WorldImpactBuilderImpl();
-    var newActiveClasses = Set<ClassEntity>();
+    var newActiveClasses = <ClassEntity>{};
     for (ClassEntity cls in instantiatedClasses) {
       bool isNative = _nativeData.isNativeClass(cls);
       bool isExtension = !isNative && _nativeData.isNativeOrExtendsNative(cls);
@@ -187,11 +200,13 @@ class CustomElementsAnalysisJoin {
             computeEscapingConstructors(cls);
         for (ConstructorEntity constructor in escapingConstructors) {
           impactBuilder.registerStaticUse(
-              StaticUse.constructorInvoke(constructor, CallStructure.NO_ARGS));
+            StaticUse.constructorInvoke(constructor, CallStructure.noArgs),
+          );
         }
         if (_backendUsageBuilder != null) {
-          escapingConstructors
-              .forEach(_backendUsageBuilder.registerGlobalFunctionDependency);
+          escapingConstructors.forEach(
+            _backendUsageBuilder.registerGlobalFunctionDependency,
+          );
         }
         // Force the generation of the type constant that is the key to an entry
         // in the generated table.
@@ -216,8 +231,9 @@ class CustomElementsAnalysisJoin {
     // the tests and there is no sane reason to subclass other native classes.
     if (_nativeData.isNativeClass(cls)) return result;
 
-    _elementEnvironment.forEachConstructor(cls,
-        (ConstructorEntity constructor) {
+    _elementEnvironment.forEachConstructor(cls, (
+      ConstructorEntity constructor,
+    ) {
       if (constructor.isGenerativeConstructor) {
         // Ensure that parameter structure has been computed by querying the
         // function type.

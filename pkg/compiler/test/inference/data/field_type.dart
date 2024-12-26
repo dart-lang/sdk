@@ -104,11 +104,14 @@ class A5 {
 
   /*member: A5.:[exact=A5]*/
   A5(/*[exact=JSBool]*/ x) {
-    /*update: [exact=A5]*/ f5a = "1";
+    /*update: [exact=A5]*/
+    f5a = "1";
     if (x) {
-      /*update: [exact=A5]*/ f5b = "1";
+      /*update: [exact=A5]*/
+      f5b = "1";
     } else {
-      /*update: [exact=A5]*/ f5b = "2";
+      /*update: [exact=A5]*/
+      f5b = "2";
     }
   }
 }
@@ -128,16 +131,21 @@ class A6 {
 
   /*member: A6.:[exact=A6]*/
   A6(/*[exact=JSBool]*/ x) {
-    /*update: [exact=A6]*/ f6a = "1";
+    /*update: [exact=A6]*/
+    f6a = "1";
     if (x) {
-      /*update: [exact=A6]*/ f6b = "1";
+      /*update: [exact=A6]*/
+      f6b = "1";
     } else {
-      /*update: [exact=A6]*/ f6b = "2";
+      /*update: [exact=A6]*/
+      f6b = "2";
     }
     if (x) {
-      /*update: [exact=A6]*/ f6b = [];
+      /*update: [exact=A6]*/
+      f6b = [];
     } else {
-      /*update: [exact=A6]*/ f6b = [];
+      /*update: [exact=A6]*/
+      f6b = [];
     }
   }
 }
@@ -157,17 +165,23 @@ class A7 {
 
   /*member: A7.:[exact=A7]*/
   A7(/*[exact=JSBool]*/ x) {
-    /*update: [exact=A7]*/ f7a = "1";
+    /*update: [exact=A7]*/
+    f7a = "1";
     if (x) {
-      /*update: [exact=A7]*/ f7b = "1";
+      /*update: [exact=A7]*/
+      f7b = "1";
     } else {
-      /*update: [exact=A7]*/ f7b = "2";
+      /*update: [exact=A7]*/
+      f7b = "2";
     }
     if (x) {
-      /*update: [exact=A7]*/ f7a = [];
-      /*update: [exact=A7]*/ f7b = [];
+      /*update: [exact=A7]*/
+      f7a = [];
+      /*update: [exact=A7]*/
+      f7b = [];
     } else {
-      /*update: [exact=A7]*/ f7b = [];
+      /*update: [exact=A7]*/
+      f7b = [];
     }
   }
 }
@@ -185,7 +199,8 @@ class A8 {
   /*member: A8.:[exact=A8]*/
   A8(/*[exact=JSBool]*/ x) {
     if (x) {
-      /*update: [exact=A8]*/ f8 = "1";
+      /*update: [exact=A8]*/
+      f8 = "1";
     } else {}
   }
 }
@@ -204,7 +219,8 @@ class A9 {
   A9(/*[exact=JSBool]*/ x) {
     if (x) {
     } else {
-      /*update: [exact=A9]*/ f9 = "1";
+      /*update: [exact=A9]*/
+      f9 = "1";
     }
   }
 }
@@ -221,7 +237,8 @@ class A10 {
 
   /*member: A10.:[exact=A10]*/
   A10() {
-    /*update: [exact=A10]*/ f10 = 1;
+    /*update: [exact=A10]*/
+    f10 = 1;
   }
   /*member: A10.m10:[subclass=JSUInt32]*/
   m10() => /*[exact=A10]*/ f10! /*invoke: [exact=JSUInt31]*/ + 1;
@@ -247,7 +264,8 @@ class S11 {
 
   /*member: S11.ms11:[null]*/
   ms11() {
-    /*update: [exact=A11]*/ fs11 = 1;
+    /*update: [exact=A11]*/
+    fs11 = 1;
   }
 }
 
@@ -255,7 +273,8 @@ class S11 {
 class A11 extends S11 {
   /*member: A11.m11:[null]*/
   m11() {
-    /*invoke: [exact=A11]*/ ms11();
+    /*invoke: [exact=A11]*/
+    ms11();
   }
 }
 
@@ -271,7 +290,8 @@ class S12 {
 
   /*member: S12.:[exact=S12]*/
   S12() {
-    /*update: [exact=A12]*/ fs12 = "2";
+    /*update: [exact=A12]*/
+    fs12 = "2";
   }
 }
 
@@ -284,19 +304,21 @@ test12() {
 }
 
 class S13 {
-/*member: S13.fs13:[exact=JSUInt31]*/
+  /*member: S13.fs13:[exact=JSUInt31]*/
   int? fs13;
 
   /*member: S13.:[exact=S13]*/
   S13() {
-    /*update: [exact=A13]*/ fs13 = 1;
+    /*update: [exact=A13]*/
+    fs13 = 1;
   }
 }
 
 class A13 extends S13 {
   /*member: A13.:[exact=A13]*/
   A13() {
-    /*update: [exact=A13]*/ fs13 = 1;
+    /*update: [exact=A13]*/
+    fs13 = 1;
   }
 }
 
@@ -311,11 +333,13 @@ class A14 {
 
   /*member: A14.:[exact=A14]*/
   A14() {
-    /*update: [exact=A14]*/ f14 = 1;
+    /*update: [exact=A14]*/
+    f14 = 1;
   }
   /*member: A14.other:[exact=A14]*/
   A14.other() {
-    /*update: [exact=A14]*/ f14 = 2;
+    /*update: [exact=A14]*/
+    f14 = 2;
   }
 }
 
@@ -332,12 +356,14 @@ class A15 {
 
   /*member: A15.:[exact=A15]*/
   A15() {
-    /*update: [exact=A15]*/ f15 = "1";
+    /*update: [exact=A15]*/
+    f15 = "1";
   }
 
   /*member: A15.other:[exact=A15]*/
   A15.other() {
-    /*update: [exact=A15]*/ f15 = [];
+    /*update: [exact=A15]*/
+    f15 = [];
   }
 }
 
@@ -357,7 +383,8 @@ class A16 {
 
   /*member: A16.:[exact=A16]*/
   A16() {
-    /*update: [exact=A16]*/ f16 = "1";
+    /*update: [exact=A16]*/
+    f16 = "1";
   }
 
   /*member: A16.other:[exact=A16]*/
@@ -375,7 +402,7 @@ test16() {
 g17([/*[exact=A17]*/ p]) => p. /*update: [exact=A17]*/ f17 = 1;
 
 class A17 {
-/*member: A17.f17:[null|exact=JSUInt31]*/
+  /*member: A17.f17:[null|exact=JSUInt31]*/
   var f17;
 
   /*member: A17.:[exact=A17]*/
@@ -408,16 +435,20 @@ class A18 {
 
   /*member: A18.:[exact=A18]*/
   A18(/*[exact=JSBool]*/ x) {
-    /*update: [exact=A18]*/ f18a = 1;
+    /*update: [exact=A18]*/
+    f18a = 1;
     var a;
     if (x) {
-      /*update: [exact=A18]*/ f18b = "1";
+      /*update: [exact=A18]*/
+      f18b = "1";
       a = this;
     } else {
       a = 1;
-      /*update: [exact=A18]*/ f18b = "1";
+      /*update: [exact=A18]*/
+      f18b = "1";
     }
-    /*update: [exact=A18]*/ f18c = a;
+    /*update: [exact=A18]*/
+    f18c = a;
   }
 }
 
@@ -439,16 +470,20 @@ class A19 {
 
   /*member: A19.:[exact=A19]*/
   A19(/*[exact=JSBool]*/ x) {
-    /*update: [exact=A19]*/ f19a = 1;
+    /*update: [exact=A19]*/
+    f19a = 1;
     var a;
     if (x) {
-      /*update: [exact=A19]*/ f19b = "1";
+      /*update: [exact=A19]*/
+      f19b = "1";
       a = this;
     } else {
       a = 1;
-      /*update: [exact=A19]*/ f19b = "1";
+      /*update: [exact=A19]*/
+      f19b = "1";
     }
-    /*update: [exact=A19]*/ f19c = a;
+    /*update: [exact=A19]*/
+    f19c = a;
     a();
   }
 }
@@ -469,7 +504,7 @@ class A20 {
     /*iterator: [exact=A20]*/
     /*current: [empty]*/
     /*moveNext: [empty]*/
-    for (/*update: [exact=A20]*/ f20 in a) {}
+    for ( /*update: [exact=A20]*/ f20 in a) {}
   }
 
   get iterator => this;
@@ -494,7 +529,7 @@ class A20b extends Iterable implements Iterator {
     /*iterator: [exact=A20b]*/
     /*current: [exact=A20b]*/
     /*moveNext: [exact=A20b]*/
-    for (/*update: [exact=A20b]*/ f20b in a) {}
+    for ( /*update: [exact=A20b]*/ f20b in a) {}
   }
 
   /*member: A20b.iterator:[exact=A20b]*/
@@ -527,13 +562,17 @@ class A22 {
 
   /*member: A22.:[exact=A22]*/
   A22() {
-    /*update: [exact=A22]*/ f22a = 42;
-    /*update: [exact=A22]*/ f22b = /*[exact=A22]*/ f22a == null
-        ? 42
-        : /*[exact=A22]*/ f22c == null
+    /*update: [exact=A22]*/
+    f22a = 42;
+    /*update: [exact=A22]*/
+    f22b = /*[exact=A22]*/
+        f22a == null
+            ? 42
+            : /*[exact=A22]*/ f22c == null
             ? 41
             : 43;
-    /*update: [exact=A22]*/ f22c = 'foo';
+    /*update: [exact=A22]*/
+    f22c = 'foo';
   }
 }
 
@@ -558,10 +597,10 @@ class A23 {
   /*member: A23.:[exact=A23]*/
   A23() {
     // Test string interpolation.
-    '${/*update: [exact=A23]*/ f23a = null}';
+    '${ /*update: [exact=A23]*/ f23a = null}';
     // Test string juxtaposition.
     ''
-        '${/*update: [exact=A23]*/ f23b = null}';
+        '${ /*update: [exact=A23]*/ f23b = null}';
     // Test list literal.
     [/*update: [exact=A23]*/ f23c = null];
     // Test map literal.
@@ -591,25 +630,24 @@ class A24 {
   /*member: A24.f24e:Union(null, [exact=JSNumNotInt], [exact=JSUInt31])*/
   var f24e;
 
-/*member: A24.f24f:Value([null|exact=JSString], value: "foo")*/
+  /*member: A24.f24f:Value([null|exact=JSString], value: "foo")*/
   var f24f = null;
 
   /*member: A24.:[exact=A24]*/
   A24() : f24d = 42 {
-    /*[subclass=A24]*/ /*update: [subclass=A24]*/ f24a /*invoke: [subclass=JSPositiveInt]*/ ++;
-    /*[subclass=A24]*/ /*update: [subclass=A24]*/ f24b /*invoke: [subclass=JSPositiveInt]*/ +=
-        42;
+    /*[subclass=A24]*/ /*update: [subclass=A24]*/
+    f24a /*invoke: [subclass=JSPositiveInt]*/ ++;
+    /*[subclass=A24]*/ /*update: [subclass=A24]*/
+    f24b /*invoke: [subclass=JSPositiveInt]*/ += 42;
     var f24f = 'foo';
     this. /*update: [subclass=A24]*/ f24f = f24f;
   }
 
   /*member: A24.foo:[exact=A24]*/
   A24.foo(/*[subclass=A24]*/ other)
-      : f24c = other. /*[subclass=A24]*/ f24c,
-        f24d = other. /*[subclass=A24]*/ f24d,
-        f24e = other
-            . /*invoke: [subclass=A24]*/
-            bar24();
+    : f24c = other. /*[subclass=A24]*/ f24c,
+      f24d = other. /*[subclass=A24]*/ f24d,
+      f24e = other. /*invoke: [subclass=A24]*/ bar24();
 
   /*member: A24.+:Value([exact=JSString], value: "foo")*/
   operator +(/*[empty]*/ other) => 'foo';
@@ -664,10 +702,10 @@ class B26 {
 
 /*member: test26:[null]*/
 test26() {
-  A26(). /*update: [exact=A26]*/ f26 = <dynamic>[new B26(), A26()]
-              /*Container([exact=JSExtendableArray], element: Union([exact=A26], [exact=B26]), length: 2)*/
-              [0]
-          . /*Union([exact=A26], [exact=B26])*/ f26 /*invoke: [subclass=JSPositiveInt]*/ +
+  A26(). /*update: [exact=A26]*/ f26 =
+      <dynamic>[new B26(), A26()]
+      /*Container([exact=JSExtendableArray], element: Union([exact=A26], [exact=B26]), length: 2)*/
+      [0]. /*Union([exact=A26], [exact=B26])*/ f26 /*invoke: [subclass=JSPositiveInt]*/ +
       42;
 }
 

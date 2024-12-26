@@ -18,7 +18,9 @@ class A<T extends Object?> {
   late T lr;
   T lp;
   T lq;
-  A(this.lv, this.lp, T t) : this.lu = 42, this.lq = t;
+  A(this.lv, this.lp, T t)
+      : this.lu = 42,
+        this.lq = t;
 }
 
 main() {}

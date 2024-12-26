@@ -57,8 +57,9 @@ class StackTraceLine {
       if (lastValue != null) {
         int secondToLastColon = text.lastIndexOf(':', lastColon - 1);
         if (secondToLastColon != -1) {
-          int? secondToLastValue =
-              int.tryParse(text.substring(secondToLastColon + 1, lastColon));
+          int? secondToLastValue = int.tryParse(
+            text.substring(secondToLastColon + 1, lastColon),
+          );
           if (secondToLastValue != null) {
             lineNo = secondToLastValue;
             columnNo = lastValue;

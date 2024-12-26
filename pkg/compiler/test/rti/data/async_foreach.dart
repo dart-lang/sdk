@@ -16,8 +16,9 @@ class Class<T> {
     // This happens because the closure is thought as possibly going to the
     // async.errorHandler callback.
     list.forEach(
-        /*needsSignature*/
-        (x) => makeLive(x));
+      /*needsSignature*/
+      (x) => makeLive(x),
+    );
   }
 }
 

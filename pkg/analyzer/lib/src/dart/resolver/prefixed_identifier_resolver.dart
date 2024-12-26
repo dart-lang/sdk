@@ -27,7 +27,8 @@ class PrefixedIdentifierResolver {
     PrefixedIdentifierImpl node, {
     required DartType contextType,
   }) {
-    node.prefix.accept(_resolver);
+    _resolver.analyzeExpression(node.prefix, _resolver.operations.unknownType);
+    _resolver.popRewrite();
 
     var prefixElement = node.prefix.staticElement;
     if (prefixElement is! PrefixElement) {

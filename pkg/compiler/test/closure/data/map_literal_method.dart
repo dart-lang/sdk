@@ -6,13 +6,15 @@ import 'package:expect/expect.dart';
 
 @pragma('dart2js:noInline')
 method<T>() {
-  /*fields=[T],free=[T]*/ dynamic local() => <T, int>{};
+  /*fields=[T],free=[T]*/
+  dynamic local() => <T, int>{};
   return local;
 }
 
 @pragma('dart2js:noInline')
 methodNullable<T>() {
-  /*fields=[T],free=[T]*/ dynamic local() => <T?, int?>{};
+  /*fields=[T],free=[T]*/
+  dynamic local() => <T?, int?>{};
   return local;
 }
 

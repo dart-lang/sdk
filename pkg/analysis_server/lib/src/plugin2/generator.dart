@@ -22,12 +22,12 @@ class PluginPackageGenerator {
     var imports = [
       "'package:analysis_server_plugin/src/plugin_server.dart'",
       "'package:analyzer/file_system/physical_file_system.dart'",
-      "'package:analyzer_plugin/starter.dart'",
+      "'package:analyzer_plugin/src/channel/isolate_channel.dart'",
       for (var configuration in _pluginConfigurations)
         "'package:${configuration.name}/main.dart' as ${configuration.name}",
     ];
 
-    var buffer = StringBuffer("import 'dart:isolate';");
+    var buffer = StringBuffer("import 'dart:isolate';\n");
     for (var import in imports..sort()) {
       buffer.writeln('import $import;');
     }
@@ -45,8 +45,9 @@ Future<void> main(List<String> args, SendPort sendPort) async {
     buffer.write('''
     ],
   );
-  await startPlugin();
-  ServerPluginStarter(wrangler).start(sendPort);
+  await pluginServer.initialize();
+  var channel = PluginIsolateChannel(sendPort);
+  pluginServer.start(channel);
 }
 ''');
 
@@ -62,6 +63,7 @@ name: plugin_entrypoint
 version: 0.0.1
 dependencies:
   analyzer: '$analyzerVersion'
+  analyzer_plugin: '$analyzerPluginVersion'
 ''');
 
     for (var configuration in _pluginConfigurations) {

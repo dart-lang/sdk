@@ -29,7 +29,8 @@ class Class1 {
   /*member: Class1.:[exact=Class1]*/
   Class1() {
     _method1(this);
-    /*update: [exact=Class1]*/ field = 42;
+    /*update: [exact=Class1]*/
+    field = 42;
   }
 }
 
@@ -46,8 +47,10 @@ class Class2 {
 
   /*member: Class2.:[exact=Class2]*/
   Class2() {
-    /*invoke: [exact=Class2]*/ method();
-    /*update: [exact=Class2]*/ field = 42;
+    /*invoke: [exact=Class2]*/
+    method();
+    /*update: [exact=Class2]*/
+    field = 42;
   }
 
   /*member: Class2.method:[null]*/
@@ -68,7 +71,8 @@ class Class3 {
   /*member: Class3.:[exact=Class3]*/
   Class3() {
     this;
-    /*update: [exact=Class3]*/ field = 42;
+    /*update: [exact=Class3]*/
+    field = 42;
   }
 }
 
@@ -89,7 +93,8 @@ class Class4 {
   /*member: Class4.:[exact=Class4]*/
   Class4() {
     field1 = this;
-    /*update: [exact=Class4]*/ field = 42;
+    /*update: [exact=Class4]*/
+    field = 42;
   }
 }
 
@@ -107,7 +112,8 @@ class Class5 {
   /*member: Class5.:[exact=Class5]*/
   Class5(/*[null]*/ o) {
     o. /*update: [null]*/ field5 = this;
-    /*update: [exact=Class5]*/ field = 42;
+    /*update: [exact=Class5]*/
+    field = 42;
   }
 }
 
@@ -127,7 +133,8 @@ class Class6 {
     // ignore: UNUSED_LOCAL_VARIABLE
     var o;
     o = this;
-    /*update: [exact=Class6]*/ field = 42;
+    /*update: [exact=Class6]*/
+    field = 42;
   }
 }
 
@@ -146,7 +153,8 @@ class Class7 {
   Class7() {
     // ignore: UNUSED_LOCAL_VARIABLE
     var o = this;
-    /*update: [exact=Class7]*/ field = 42;
+    /*update: [exact=Class7]*/
+    field = 42;
   }
 }
 

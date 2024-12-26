@@ -6,13 +6,9 @@ class Bar {
 class Baz {
   Baz(@foo constructorFormal);
   factory Baz.bazFactory(@foo factoryFormal) => throw '';
-  fisk(
-    @foo formal1,
-    @Bar() formal2,
-    @Bar.named(foo) formal3,
-    @foo @Bar.named(foo) formal4, [
-    @foo optional,
-  ]) {}
+  fisk(@foo formal1, @Bar() formal2, @Bar.named(foo) formal3,
+      @foo @Bar.named(foo) formal4,
+      [@foo optional]) {}
   hest({@foo named}) => null;
 }
 

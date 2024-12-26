@@ -6,11 +6,11 @@ import 'shared.dart';
 
 /*member: step:member_unit=3{step3}*/
 step() => [
-      step2a3(),
-      step2b3(),
-      step13(),
-      step2ab3(),
-      step12a3(),
-      step12b3(),
-      step12ab3(),
-    ];
+  step2a3(),
+  step2b3(),
+  step13(),
+  step2ab3(),
+  step12a3(),
+  step12b3(),
+  step12ab3(),
+];

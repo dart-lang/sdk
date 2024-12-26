@@ -26,16 +26,16 @@ void f() {
 }
 ''');
 
-    var x = findElement.localVar('x');
-    assertElement2(
-      x.metadata.single.element,
-      declaration: findElement.topGet('a'),
+    var x = findElement2.localVar('x');
+    assertElement3(
+      x.metadata2.annotations.single.element2,
+      declaration: findElement2.topGet('a'),
     );
 
-    var y = findElement.localVar('y');
-    assertElement2(
-      y.metadata.single.element,
-      declaration: findElement.topGet('a'),
+    var y = findElement2.localVar('y');
+    assertElement3(
+      y.metadata2.annotations.single.element2,
+      declaration: findElement2.topGet('a'),
     );
   }
 
@@ -62,7 +62,7 @@ void f() {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
     ]);
 
-    var x = findElement.localVar('x');
+    var x = findElement2.localVar('x');
     expect(x.isConst, isFalse);
     expect(x.isFinal, isFalse);
     expect(x.isLate, isFalse);
@@ -78,7 +78,7 @@ void f() {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
     ]);
 
-    var x = findElement.localVar('x');
+    var x = findElement2.localVar('x');
     expect(x.isConst, isTrue);
     expect(x.isFinal, isFalse);
     expect(x.isLate, isFalse);
@@ -94,7 +94,7 @@ void f() {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
     ]);
 
-    var x = findElement.localVar('x');
+    var x = findElement2.localVar('x');
     expect(x.isConst, isFalse);
     expect(x.isFinal, isTrue);
     expect(x.isLate, isFalse);
@@ -111,7 +111,7 @@ void f() {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
     ]);
 
-    var x = findElement.localVar('x');
+    var x = findElement2.localVar('x');
     expect(x.isConst, isFalse);
     expect(x.isFinal, isFalse);
     expect(x.isLate, isFalse);
@@ -127,7 +127,7 @@ void f() {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
     ]);
 
-    var x = findElement.localVar('x');
+    var x = findElement2.localVar('x');
     expect(x.isConst, isFalse);
     expect(x.isFinal, isFalse);
     expect(x.isLate, isTrue);

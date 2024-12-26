@@ -76,8 +76,10 @@ class CollectionUtils {
   }
 
   /// Orders an iterable by its values, or by a key selector. */
-  static List<T> orderBy<T>(Iterable<T> source,
-      [NumericValueSelector? selector]) {
+  static List<T> orderBy<T>(
+    Iterable<T> source, [
+    NumericValueSelector? selector,
+  ]) {
     final result = List<T>.from(source);
     sortBy(result, selector);
     return result;

@@ -15,13 +15,15 @@ void main() {
   } on TypeError catch (error) {
     var message = error.toString();
     expectStringContains(
-        "Expected a value of type 'Animal' "
-        "(in org-dartlang-app:/tests/dartdevc/cast_error/lib_b.dart)",
-        message);
+      "Expected a value of type 'Animal' "
+      "(in org-dartlang-app:/tests/dartdevc/cast_error/lib_b.dart)",
+      message,
+    );
     expectStringContains(
-        "but got one of type 'Animal' "
-        "(in org-dartlang-app:/tests/dartdevc/cast_error/lib_a.dart)",
-        message);
+      "but got one of type 'Animal' "
+      "(in org-dartlang-app:/tests/dartdevc/cast_error/lib_a.dart)",
+      message,
+    );
   }
   // Verify the libraries are properly ordered.
   var b = libB.Animal();
@@ -30,13 +32,15 @@ void main() {
   } on TypeError catch (error) {
     var message = error.toString();
     expectStringContains(
-        "Expected a value of type 'Animal' "
-        "(in org-dartlang-app:/tests/dartdevc/cast_error/lib_a.dart)",
-        message);
+      "Expected a value of type 'Animal' "
+      "(in org-dartlang-app:/tests/dartdevc/cast_error/lib_a.dart)",
+      message,
+    );
     expectStringContains(
-        "but got one of type 'Animal' "
-        "(in org-dartlang-app:/tests/dartdevc/cast_error/lib_b.dart)",
-        message);
+      "but got one of type 'Animal' "
+      "(in org-dartlang-app:/tests/dartdevc/cast_error/lib_b.dart)",
+      message,
+    );
   }
 
   // Shows library URIs when one of the types is nullable.
@@ -45,13 +49,15 @@ void main() {
   } on TypeError catch (error) {
     var message = error.toString();
     expectStringContains(
-        "Expected a value of type 'Animal?' "
-        "(in org-dartlang-app:/tests/dartdevc/cast_error/lib_a.dart)",
-        message);
+      "Expected a value of type 'Animal?' "
+      "(in org-dartlang-app:/tests/dartdevc/cast_error/lib_a.dart)",
+      message,
+    );
     expectStringContains(
-        "but got one of type 'Animal' "
-        "(in org-dartlang-app:/tests/dartdevc/cast_error/lib_b.dart)",
-        message);
+      "but got one of type 'Animal' "
+      "(in org-dartlang-app:/tests/dartdevc/cast_error/lib_b.dart)",
+      message,
+    );
   }
 
   // URIs are not displayed when the class names are different.
@@ -60,7 +66,8 @@ void main() {
   } on TypeError catch (error) {
     var message = error.toString();
     expectStringContains(
-        "Expected a value of type 'String', but got one of type 'Animal'",
-        message);
+      "Expected a value of type 'String', but got one of type 'Animal'",
+      message,
+    );
   }
 }

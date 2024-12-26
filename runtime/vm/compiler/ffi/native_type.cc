@@ -488,7 +488,7 @@ static const NativeType* CompoundFromPragma(Zone* zone,
                  .Equals(Symbols::FfiStructLayoutArray()));
       const auto& struct_layout_array_fields =
           Array::Handle(zone, struct_layout_array_class.fields());
-      ASSERT(struct_layout_array_fields.Length() == 2);
+      ASSERT(struct_layout_array_fields.Length() == 3);
       const auto& element_type_field =
           Field::Handle(zone, Field::RawCast(struct_layout_array_fields.At(0)));
       ASSERT(String::Handle(zone, element_type_field.UserVisibleName())
@@ -505,6 +505,18 @@ static const NativeType* CompoundFromPragma(Zone* zone,
       if (*error != nullptr) {
         return nullptr;
       }
+
+#if defined(DEBUG)
+      const auto& variable_length_field =
+          Field::Handle(zone, Field::RawCast(struct_layout_array_fields.At(2)));
+      ASSERT(String::Handle(zone, variable_length_field.UserVisibleName())
+                 .Equals(Symbols::VariableLength()));
+      const auto& variable_length = Bool::Handle(
+          zone, Bool::RawCast(field_instance.GetField(variable_length_field)));
+      ASSERT(variable_length.value() == true ||
+             variable_length.value() == false);
+#endif
+
       const auto field_native_type =
           new (zone) NativeArrayType(*element_type, length.Value());
       field_native_types.Add(field_native_type);

@@ -1,6 +1,9 @@
 class VariableDeclaration {
   String? _name;
   int flags = 0;
-  VariableDeclaration(this._name, {int flags = -1}) {}
+  VariableDeclaration(
+    this._name, {
+    int flags = -1,
+  }) {}
   String? get name => _name;
 }

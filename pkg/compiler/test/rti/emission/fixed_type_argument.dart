@@ -22,7 +22,8 @@ class D extends C<B> {}
 main() {
   C<A> c = D();
   c.method(
-      /*spec.checks=[$signature],instance*/
-      /*prod.checks=[],instance*/
-      (A a) {});
+    /*spec.checks=[$signature],instance*/
+    /*prod.checks=[],instance*/
+    (A a) {},
+  );
 }

@@ -6,14 +6,11 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
 
-const _desc = '$_descPrefix.';
-const _descPrefix = r'Avoid unsafe HTML APIs';
-
 class UnsafeHtml extends LintRule {
   UnsafeHtml()
       : super(
             name: LintNames.unsafe_html,
-            description: _desc,
+            description: 'Avoid unsafe HTML APIs.',
             state: State.removed(since: Version(3, 7, 0)));
 
   @override

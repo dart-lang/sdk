@@ -13,8 +13,8 @@ main() {
 // Test that we trust the explicit type of a local.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _trustLocals:[exact=JSBool]*/ _trustLocals(
-    int Function(int)? /*[null|subclass=Closure]*/ f) {
+/*member: _trustLocals:[exact=JSBool]*/
+_trustLocals(int Function(int)? /*[null|subclass=Closure]*/ f) {
   int c = f!(0);
   return c /*invoke: [subclass=JSInt]*/ == 0;
 }

@@ -26,15 +26,27 @@ foo() {
 
 main() {
   test() async {
-    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      Expect.isTrue(generated.contains("return 3;"));
-    });
-    await compile(TEST_TWO, entry: 'foo', check: (String generated) {
-      Expect.isTrue(generated.contains("return 3;"));
-    });
-    await compile(TEST_THREE, entry: 'foo', check: (String generated) {
-      Expect.isTrue(generated.contains("push(2);"));
-    });
+    await compile(
+      TEST_ONE,
+      entry: 'foo',
+      check: (String generated) {
+        Expect.isTrue(generated.contains("return 3;"));
+      },
+    );
+    await compile(
+      TEST_TWO,
+      entry: 'foo',
+      check: (String generated) {
+        Expect.isTrue(generated.contains("return 3;"));
+      },
+    );
+    await compile(
+      TEST_THREE,
+      entry: 'foo',
+      check: (String generated) {
+        Expect.isTrue(generated.contains("push(2);"));
+      },
+    );
   }
 
   asyncTest(() async {

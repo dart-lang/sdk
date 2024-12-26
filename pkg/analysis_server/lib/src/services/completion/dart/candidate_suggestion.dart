@@ -186,7 +186,8 @@ final class ConstructorSuggestion extends ExecutableSuggestion
 
     var className = enclosingClass.displayName;
 
-    var completion = element.displayName;
+    // TODO(scheglov): Wrong, if no name, should be no completion.
+    var completion = element.name3 ?? '';
     if (suggestUnnamedAsNew) {
       if (completion.isEmpty) {
         completion = 'new';

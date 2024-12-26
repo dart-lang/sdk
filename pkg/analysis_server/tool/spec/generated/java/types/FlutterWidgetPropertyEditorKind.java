@@ -16,34 +16,34 @@ package org.dartlang.analysis.server.protocol;
 public class FlutterWidgetPropertyEditorKind {
 
   /**
-   * The editor for a property of type bool.
+   * The editor for a property of type <code>bool</code>.
    */
   public static final String BOOL = "BOOL";
 
   /**
-   * The editor for a property of the type double.
+   * The editor for a property of the type <code>double</code>.
    */
   public static final String DOUBLE = "DOUBLE";
 
   /**
-   * The editor for choosing an item of an enumeration, see the enumItems field of
-   * FlutterWidgetPropertyEditor.
+   * The editor for choosing an item of an enumeration, see the <code>enumItems</code> field of
+   * <code>FlutterWidgetPropertyEditor</code>.
    */
   public static final String ENUM = "ENUM";
 
   /**
    * The editor for either choosing a pre-defined item from a list of provided static field
-   * references (like ENUM), or specifying a free-form expression.
+   * references (like <code>ENUM</code>), or specifying a free-form expression.
    */
   public static final String ENUM_LIKE = "ENUM_LIKE";
 
   /**
-   * The editor for a property of type int.
+   * The editor for a property of type <code>int</code>.
    */
   public static final String INT = "INT";
 
   /**
-   * The editor for a property of the type String.
+   * The editor for a property of the type <code>String</code>.
    */
   public static final String STRING = "STRING";
 

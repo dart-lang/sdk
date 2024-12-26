@@ -163,10 +163,11 @@ void main() {
 
   // Assignment to instance field.
   _someClass = helper.JS(
-      '',
-      '{"jsInstanceMethod": function(f) {return f();}, '
-          '"jsNonFunctionField": {"stringField":"hello js"}, '
-          '"jsFunctionFieldGetter": function(f) {return f();}}');
+    '',
+    '{"jsInstanceMethod": function(f) {return f();}, '
+        '"jsNonFunctionField": {"stringField":"hello js"}, '
+        '"jsFunctionFieldGetter": function(f) {return f();}}',
+  );
   Expect.throws((() {
     someClass.jsFunctionFieldSetter = () => 'hello';
   }));
@@ -328,23 +329,30 @@ void main() {
   method(wrappedDartStaticMethod);
 
   // Non-function fields
-  Expect.equals('hello js', someClass.jsNonFunctionField.stringField,
-      'Does not wrap access to a field');
+  Expect.equals(
+    'hello js',
+    someClass.jsNonFunctionField.stringField,
+    'Does not wrap access to a field',
+  );
 
   // No such method errors from interop calls.
   // The current behavior is that DDC does not treat these errors from the
   // JavaScript side as a LegacyJavaScriptObject.
   Expect.throwsNoSuchMethodError(
-      () => context.callMethod('eval', ['self.foo()']));
+    () => context.callMethod('eval', ['self.foo()']),
+  );
   Expect.throws<interceptors.JSNoSuchMethodError>(
-      () => context.callMethod('eval', ['self.foo()']));
+    () => context.callMethod('eval', ['self.foo()']),
+  );
   var error = Expect.throws(() => context.callMethod('eval', ['self.foo()']));
   Expect.notType<interceptors.LegacyJavaScriptObject>(error);
   Expect.notEquals(interceptors.LegacyJavaScriptObject, error.runtimeType);
   Expect.throwsNoSuchMethodError(
-      () => context.callMethod('eval', ['self.foo.bar()']));
+    () => context.callMethod('eval', ['self.foo.bar()']),
+  );
   Expect.throws<interceptors.JSNoSuchMethodError>(
-      () => context.callMethod('eval', ['self.foo.bar()']));
+    () => context.callMethod('eval', ['self.foo.bar()']),
+  );
   error = Expect.throws(() => context.callMethod('eval', ['self.foo.bar()']));
   Expect.notType<interceptors.LegacyJavaScriptObject>(error);
   Expect.notEquals(interceptors.LegacyJavaScriptObject, error.runtimeType);

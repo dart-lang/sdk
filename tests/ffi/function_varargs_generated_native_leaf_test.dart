@@ -51,7 +51,9 @@ void main() {
 }
 
 @Native<Int64 Function(Int64, VarArgs<(Int64,)>)>(
-    symbol: 'VariadicAt1Int64x2', isLeaf: true)
+  symbol: 'VariadicAt1Int64x2',
+  isLeaf: true,
+)
 external int variadicAt1Int64x2NativeLeaf(int a0, int a1);
 
 /// Single variadic argument.
@@ -70,7 +72,9 @@ void testVariadicAt1Int64x2NativeLeaf() {
 }
 
 @Native<Double Function(Double, VarArgs<(Double,)>)>(
-    symbol: 'VariadicAt1Doublex2', isLeaf: true)
+  symbol: 'VariadicAt1Doublex2',
+  isLeaf: true,
+)
 external double variadicAt1Doublex2NativeLeaf(double a0, double a1);
 
 /// Single variadic argument.
@@ -89,9 +93,16 @@ void testVariadicAt1Doublex2NativeLeaf() {
 }
 
 @Native<Int64 Function(Int64, VarArgs<(Int64, Int64, Int64, Int64)>)>(
-    symbol: 'VariadicAt1Int64x5', isLeaf: true)
+  symbol: 'VariadicAt1Int64x5',
+  isLeaf: true,
+)
 external int variadicAt1Int64x5NativeLeaf(
-    int a0, int a1, int a2, int a3, int a4);
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+);
 
 /// Variadic arguments.
 void testVariadicAt1Int64x5NativeLeaf() {
@@ -115,9 +126,16 @@ void testVariadicAt1Int64x5NativeLeaf() {
 }
 
 @Native<Double Function(Double, VarArgs<(Double, Double, Double, Double)>)>(
-    symbol: 'VariadicAt1Doublex5', isLeaf: true)
+  symbol: 'VariadicAt1Doublex5',
+  isLeaf: true,
+)
 external double variadicAt1Doublex5NativeLeaf(
-    double a0, double a1, double a2, double a3, double a4);
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+);
 
 /// Variadic arguments.
 void testVariadicAt1Doublex5NativeLeaf() {
@@ -141,51 +159,55 @@ void testVariadicAt1Doublex5NativeLeaf() {
 }
 
 @Native<
-    Int64 Function(
+  Int64 Function(
+    Int64,
+    VarArgs<
+      (
         Int64,
-        VarArgs<
-            (
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64,
-              Int64
-            )>)>(symbol: 'VariadicAt1Int64x20', isLeaf: true)
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+        Int64,
+      )
+    >,
+  )
+>(symbol: 'VariadicAt1Int64x20', isLeaf: true)
 external int variadicAt1Int64x20NativeLeaf(
-    int a0,
-    int a1,
-    int a2,
-    int a3,
-    int a4,
-    int a5,
-    int a6,
-    int a7,
-    int a8,
-    int a9,
-    int a10,
-    int a11,
-    int a12,
-    int a13,
-    int a14,
-    int a15,
-    int a16,
-    int a17,
-    int a18,
-    int a19);
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  int a7,
+  int a8,
+  int a9,
+  int a10,
+  int a11,
+  int a12,
+  int a13,
+  int a14,
+  int a15,
+  int a16,
+  int a17,
+  int a18,
+  int a19,
+);
 
 /// Variadic arguments exhaust registers.
 void testVariadicAt1Int64x20NativeLeaf() {
@@ -231,8 +253,28 @@ void testVariadicAt1Int64x20NativeLeaf() {
   a18 = -19;
   a19 = 20;
 
-  final result = variadicAt1Int64x20NativeLeaf(a0, a1, a2, a3, a4, a5, a6, a7,
-      a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19);
+  final result = variadicAt1Int64x20NativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+    a12,
+    a13,
+    a14,
+    a15,
+    a16,
+    a17,
+    a18,
+    a19,
+  );
 
   print("result = $result");
 
@@ -240,51 +282,55 @@ void testVariadicAt1Int64x20NativeLeaf() {
 }
 
 @Native<
-    Double Function(
+  Double Function(
+    Double,
+    VarArgs<
+      (
         Double,
-        VarArgs<
-            (
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double,
-              Double
-            )>)>(symbol: 'VariadicAt1Doublex20', isLeaf: true)
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+      )
+    >,
+  )
+>(symbol: 'VariadicAt1Doublex20', isLeaf: true)
 external double variadicAt1Doublex20NativeLeaf(
-    double a0,
-    double a1,
-    double a2,
-    double a3,
-    double a4,
-    double a5,
-    double a6,
-    double a7,
-    double a8,
-    double a9,
-    double a10,
-    double a11,
-    double a12,
-    double a13,
-    double a14,
-    double a15,
-    double a16,
-    double a17,
-    double a18,
-    double a19);
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  double a9,
+  double a10,
+  double a11,
+  double a12,
+  double a13,
+  double a14,
+  double a15,
+  double a16,
+  double a17,
+  double a18,
+  double a19,
+);
 
 /// Variadic arguments exhaust registers.
 void testVariadicAt1Doublex20NativeLeaf() {
@@ -330,8 +376,28 @@ void testVariadicAt1Doublex20NativeLeaf() {
   a18 = -19.0;
   a19 = 20.0;
 
-  final result = variadicAt1Doublex20NativeLeaf(a0, a1, a2, a3, a4, a5, a6, a7,
-      a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19);
+  final result = variadicAt1Doublex20NativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+    a12,
+    a13,
+    a14,
+    a15,
+    a16,
+    a17,
+    a18,
+    a19,
+  );
 
   print("result = $result");
 
@@ -339,9 +405,15 @@ void testVariadicAt1Doublex20NativeLeaf() {
 }
 
 @Native<Int64 Function(Int64, VarArgs<(Int64, Struct8BytesInt, Int64)>)>(
-    symbol: 'VariadicAt1Int64x2Struct8BytesIntInt64', isLeaf: true)
+  symbol: 'VariadicAt1Int64x2Struct8BytesIntInt64',
+  isLeaf: true,
+)
 external int variadicAt1Int64x2Struct8BytesIntInt64NativeLeaf(
-    int a0, int a1, Struct8BytesInt a2, int a3);
+  int a0,
+  int a1,
+  Struct8BytesInt a2,
+  int a3,
+);
 
 /// Variadic arguments including struct.
 void testVariadicAt1Int64x2Struct8BytesIntInt64NativeLeaf() {
@@ -358,8 +430,12 @@ void testVariadicAt1Int64x2Struct8BytesIntInt64NativeLeaf() {
   a2.a2 = -5;
   a3 = 6;
 
-  final result =
-      variadicAt1Int64x2Struct8BytesIntInt64NativeLeaf(a0, a1, a2, a3);
+  final result = variadicAt1Int64x2Struct8BytesIntInt64NativeLeaf(
+    a0,
+    a1,
+    a2,
+    a3,
+  );
 
   print("result = $result");
 
@@ -369,11 +445,17 @@ void testVariadicAt1Int64x2Struct8BytesIntInt64NativeLeaf() {
 }
 
 @Native<
-        Double Function(
-            Double, VarArgs<(Double, Struct32BytesHomogeneousDouble, Double)>)>(
-    symbol: 'VariadicAt1Doublex2Struct32BytesHomogeneousDoubleD', isLeaf: true)
+  Double Function(
+    Double,
+    VarArgs<(Double, Struct32BytesHomogeneousDouble, Double)>,
+  )
+>(symbol: 'VariadicAt1Doublex2Struct32BytesHomogeneousDoubleD', isLeaf: true)
 external double variadicAt1Doublex2Struct32BytesHomogeneousDoubleDNativeLeaf(
-    double a0, double a1, Struct32BytesHomogeneousDouble a2, double a3);
+  double a0,
+  double a1,
+  Struct32BytesHomogeneousDouble a2,
+  double a3,
+);
 
 /// Variadic arguments including struct.
 void testVariadicAt1Doublex2Struct32BytesHomogeneousDoubleDNativeLeaf() {
@@ -392,7 +474,11 @@ void testVariadicAt1Doublex2Struct32BytesHomogeneousDoubleDNativeLeaf() {
   a3 = -7.0;
 
   final result = variadicAt1Doublex2Struct32BytesHomogeneousDoubleDNativeLeaf(
-      a0, a1, a2, a3);
+    a0,
+    a1,
+    a2,
+    a3,
+  );
 
   print("result = $result");
 
@@ -402,11 +488,13 @@ void testVariadicAt1Doublex2Struct32BytesHomogeneousDoubleDNativeLeaf() {
 }
 
 @Native<
-        Double Function(
-            Double, VarArgs<(Struct12BytesHomogeneousFloat, Double)>)>(
-    symbol: 'VariadicAt1DoubleStruct12BytesHomogeneousFloatDoub', isLeaf: true)
+  Double Function(Double, VarArgs<(Struct12BytesHomogeneousFloat, Double)>)
+>(symbol: 'VariadicAt1DoubleStruct12BytesHomogeneousFloatDoub', isLeaf: true)
 external double variadicAt1DoubleStruct12BytesHomogeneousFloatDoubNativeLeaf(
-    double a0, Struct12BytesHomogeneousFloat a1, double a2);
+  double a0,
+  Struct12BytesHomogeneousFloat a1,
+  double a2,
+);
 
 /// Variadic arguments including struct.
 void testVariadicAt1DoubleStruct12BytesHomogeneousFloatDoubNativeLeaf() {
@@ -421,8 +509,11 @@ void testVariadicAt1DoubleStruct12BytesHomogeneousFloatDoubNativeLeaf() {
   a1.a2 = 4.0;
   a2 = -5.0;
 
-  final result =
-      variadicAt1DoubleStruct12BytesHomogeneousFloatDoubNativeLeaf(a0, a1, a2);
+  final result = variadicAt1DoubleStruct12BytesHomogeneousFloatDoubNativeLeaf(
+    a0,
+    a1,
+    a2,
+  );
 
   print("result = $result");
 
@@ -432,9 +523,14 @@ void testVariadicAt1DoubleStruct12BytesHomogeneousFloatDoubNativeLeaf() {
 }
 
 @Native<Int32 Function(Int32, VarArgs<(Struct20BytesHomogeneousInt32, Int32)>)>(
-    symbol: 'VariadicAt1Int32Struct20BytesHomogeneousInt32Int32', isLeaf: true)
+  symbol: 'VariadicAt1Int32Struct20BytesHomogeneousInt32Int32',
+  isLeaf: true,
+)
 external int variadicAt1Int32Struct20BytesHomogeneousInt32Int32NativeLeaf(
-    int a0, Struct20BytesHomogeneousInt32 a1, int a2);
+  int a0,
+  Struct20BytesHomogeneousInt32 a1,
+  int a2,
+);
 
 /// Variadic arguments including struct.
 void testVariadicAt1Int32Struct20BytesHomogeneousInt32Int32NativeLeaf() {
@@ -451,8 +547,11 @@ void testVariadicAt1Int32Struct20BytesHomogeneousInt32Int32NativeLeaf() {
   a1.a4 = 6;
   a2 = -7;
 
-  final result =
-      variadicAt1Int32Struct20BytesHomogeneousInt32Int32NativeLeaf(a0, a1, a2);
+  final result = variadicAt1Int32Struct20BytesHomogeneousInt32Int32NativeLeaf(
+    a0,
+    a1,
+    a2,
+  );
 
   print("result = $result");
 
@@ -462,11 +561,13 @@ void testVariadicAt1Int32Struct20BytesHomogeneousInt32Int32NativeLeaf() {
 }
 
 @Native<
-        Double Function(
-            Double, VarArgs<(Struct20BytesHomogeneousFloat, Double)>)>(
-    symbol: 'VariadicAt1DoubleStruct20BytesHomogeneousFloatDoub', isLeaf: true)
+  Double Function(Double, VarArgs<(Struct20BytesHomogeneousFloat, Double)>)
+>(symbol: 'VariadicAt1DoubleStruct20BytesHomogeneousFloatDoub', isLeaf: true)
 external double variadicAt1DoubleStruct20BytesHomogeneousFloatDoubNativeLeaf(
-    double a0, Struct20BytesHomogeneousFloat a1, double a2);
+  double a0,
+  Struct20BytesHomogeneousFloat a1,
+  double a2,
+);
 
 /// Variadic arguments including struct.
 void testVariadicAt1DoubleStruct20BytesHomogeneousFloatDoubNativeLeaf() {
@@ -483,8 +584,11 @@ void testVariadicAt1DoubleStruct20BytesHomogeneousFloatDoubNativeLeaf() {
   a1.a4 = 6.0;
   a2 = -7.0;
 
-  final result =
-      variadicAt1DoubleStruct20BytesHomogeneousFloatDoubNativeLeaf(a0, a1, a2);
+  final result = variadicAt1DoubleStruct20BytesHomogeneousFloatDoubNativeLeaf(
+    a0,
+    a1,
+    a2,
+  );
 
   print("result = $result");
 
@@ -494,7 +598,9 @@ void testVariadicAt1DoubleStruct20BytesHomogeneousFloatDoubNativeLeaf() {
 }
 
 @Native<Int32 Function(Int32, Int64, VarArgs<(IntPtr,)>)>(
-    symbol: 'VariadicAt2Int32Int64IntPtr', isLeaf: true)
+  symbol: 'VariadicAt2Int32Int64IntPtr',
+  isLeaf: true,
+)
 external int variadicAt2Int32Int64IntPtrNativeLeaf(int a0, int a1, int a2);
 
 /// Regression test for variadic arguments.
@@ -516,9 +622,17 @@ void testVariadicAt2Int32Int64IntPtrNativeLeaf() {
 }
 
 @Native<Double Function(Double, VarArgs<(Int64, Int32, Double, Int64, Int32)>)>(
-    symbol: 'VariadicAt1DoubleInt64Int32DoubleInt64Int32', isLeaf: true)
+  symbol: 'VariadicAt1DoubleInt64Int32DoubleInt64Int32',
+  isLeaf: true,
+)
 external double variadicAt1DoubleInt64Int32DoubleInt64Int32NativeLeaf(
-    double a0, int a1, int a2, double a3, int a4, int a5);
+  double a0,
+  int a1,
+  int a2,
+  double a3,
+  int a4,
+  int a5,
+);
 
 /// Variadic arguments mixed.
 void testVariadicAt1DoubleInt64Int32DoubleInt64Int32NativeLeaf() {
@@ -537,7 +651,13 @@ void testVariadicAt1DoubleInt64Int32DoubleInt64Int32NativeLeaf() {
   a5 = 6;
 
   final result = variadicAt1DoubleInt64Int32DoubleInt64Int32NativeLeaf(
-      a0, a1, a2, a3, a4, a5);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+  );
 
   print("result = $result");
 
@@ -545,11 +665,13 @@ void testVariadicAt1DoubleInt64Int32DoubleInt64Int32NativeLeaf() {
 }
 
 @Native<
-        Double Function(
-            Int64, VarArgs<(Int32, Struct12BytesHomogeneousFloat)>)>(
-    symbol: 'VariadicAt1Int64Int32Struct12BytesHomogeneousFloat', isLeaf: true)
+  Double Function(Int64, VarArgs<(Int32, Struct12BytesHomogeneousFloat)>)
+>(symbol: 'VariadicAt1Int64Int32Struct12BytesHomogeneousFloat', isLeaf: true)
 external double variadicAt1Int64Int32Struct12BytesHomogeneousFloatNativeLeaf(
-    int a0, int a1, Struct12BytesHomogeneousFloat a2);
+  int a0,
+  int a1,
+  Struct12BytesHomogeneousFloat a2,
+);
 
 /// Variadic arguments homogenous struct stack alignment on macos_arm64.
 void testVariadicAt1Int64Int32Struct12BytesHomogeneousFloatNativeLeaf() {
@@ -564,8 +686,11 @@ void testVariadicAt1Int64Int32Struct12BytesHomogeneousFloatNativeLeaf() {
   a2.a1 = 4.0;
   a2.a2 = -5.0;
 
-  final result =
-      variadicAt1Int64Int32Struct12BytesHomogeneousFloatNativeLeaf(a0, a1, a2);
+  final result = variadicAt1Int64Int32Struct12BytesHomogeneousFloatNativeLeaf(
+    a0,
+    a1,
+    a2,
+  );
 
   print("result = $result");
 
@@ -575,34 +700,36 @@ void testVariadicAt1Int64Int32Struct12BytesHomogeneousFloatNativeLeaf() {
 }
 
 @Native<
-        Double Function(
-            Double,
-            Double,
-            Double,
-            Double,
-            Double,
-            Double,
-            Double,
-            Double,
-            Float,
-            Struct12BytesHomogeneousFloat,
-            Int64,
-            VarArgs<(Int32, Struct12BytesHomogeneousFloat)>)>(
-    symbol: 'VariadicAt11Doublex8FloatStruct12BytesHomogeneousF', isLeaf: true)
+  Double Function(
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+    Double,
+    Float,
+    Struct12BytesHomogeneousFloat,
+    Int64,
+    VarArgs<(Int32, Struct12BytesHomogeneousFloat)>,
+  )
+>(symbol: 'VariadicAt11Doublex8FloatStruct12BytesHomogeneousF', isLeaf: true)
 external double variadicAt11Doublex8FloatStruct12BytesHomogeneousFNativeLeaf(
-    double a0,
-    double a1,
-    double a2,
-    double a3,
-    double a4,
-    double a5,
-    double a6,
-    double a7,
-    double a8,
-    Struct12BytesHomogeneousFloat a9,
-    int a10,
-    int a11,
-    Struct12BytesHomogeneousFloat a12);
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct12BytesHomogeneousFloat a9,
+  int a10,
+  int a11,
+  Struct12BytesHomogeneousFloat a12,
+);
 
 /// Variadic arguments homogenous struct stack alignment on macos_arm64.
 void testVariadicAt11Doublex8FloatStruct12BytesHomogeneousFNativeLeaf() {
@@ -641,7 +768,20 @@ void testVariadicAt11Doublex8FloatStruct12BytesHomogeneousFNativeLeaf() {
   a12.a2 = -17.0;
 
   final result = variadicAt11Doublex8FloatStruct12BytesHomogeneousFNativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+    a12,
+  );
 
   print("result = $result");
 
@@ -652,30 +792,33 @@ void testVariadicAt11Doublex8FloatStruct12BytesHomogeneousFNativeLeaf() {
 }
 
 @Native<
-        Double Function(
-            Double,
-            VarArgs<
-                (
-                  Int64,
-                  Int32,
-                  Struct20BytesHomogeneousInt32,
-                  Double,
-                  Int64,
-                  Int32,
-                  Struct12BytesHomogeneousFloat,
-                  Int64
-                )>)>(
-    symbol: 'VariadicAt1DoubleInt64Int32Struct20BytesHomogeneou', isLeaf: true)
+  Double Function(
+    Double,
+    VarArgs<
+      (
+        Int64,
+        Int32,
+        Struct20BytesHomogeneousInt32,
+        Double,
+        Int64,
+        Int32,
+        Struct12BytesHomogeneousFloat,
+        Int64,
+      )
+    >,
+  )
+>(symbol: 'VariadicAt1DoubleInt64Int32Struct20BytesHomogeneou', isLeaf: true)
 external double variadicAt1DoubleInt64Int32Struct20BytesHomogeneouNativeLeaf(
-    double a0,
-    int a1,
-    int a2,
-    Struct20BytesHomogeneousInt32 a3,
-    double a4,
-    int a5,
-    int a6,
-    Struct12BytesHomogeneousFloat a7,
-    int a8);
+  double a0,
+  int a1,
+  int a2,
+  Struct20BytesHomogeneousInt32 a3,
+  double a4,
+  int a5,
+  int a6,
+  Struct12BytesHomogeneousFloat a7,
+  int a8,
+);
 
 /// Variadic arguments mixed.
 void testVariadicAt1DoubleInt64Int32Struct20BytesHomogeneouNativeLeaf() {
@@ -708,7 +851,16 @@ void testVariadicAt1DoubleInt64Int32Struct20BytesHomogeneouNativeLeaf() {
   a8 = -15;
 
   final result = variadicAt1DoubleInt64Int32Struct20BytesHomogeneouNativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+  );
 
   print("result = $result");
 
@@ -719,9 +871,16 @@ void testVariadicAt1DoubleInt64Int32Struct20BytesHomogeneouNativeLeaf() {
 }
 
 @Native<Double Function(Double, Double, Double, Double, Double, VarArgs<()>)>(
-    symbol: 'VariadicAt5Doublex5', isLeaf: true)
+  symbol: 'VariadicAt5Doublex5',
+  isLeaf: true,
+)
 external double variadicAt5Doublex5NativeLeaf(
-    double a0, double a1, double a2, double a3, double a4);
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+);
 
 /// Variadic arguments function definition, but not passing any.
 void testVariadicAt5Doublex5NativeLeaf() {
@@ -745,28 +904,23 @@ void testVariadicAt5Doublex5NativeLeaf() {
 }
 
 @Native<
-        Int64 Function(
-            Int64,
-            VarArgs<
-                (
-                  Int64,
-                  Int64,
-                  Int64,
-                  Int64,
-                  Int64,
-                  Int64,
-                  Struct12BytesHomogeneousInt32
-                )>)>(
-    symbol: 'VariadicAt1Int64x7Struct12BytesHomogeneousInt32', isLeaf: true)
+  Int64 Function(
+    Int64,
+    VarArgs<
+      (Int64, Int64, Int64, Int64, Int64, Int64, Struct12BytesHomogeneousInt32)
+    >,
+  )
+>(symbol: 'VariadicAt1Int64x7Struct12BytesHomogeneousInt32', isLeaf: true)
 external int variadicAt1Int64x7Struct12BytesHomogeneousInt32NativeLeaf(
-    int a0,
-    int a1,
-    int a2,
-    int a3,
-    int a4,
-    int a5,
-    int a6,
-    Struct12BytesHomogeneousInt32 a7);
+  int a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+  int a5,
+  int a6,
+  Struct12BytesHomogeneousInt32 a7,
+);
 
 /// Struct stradles last argument register, variadic
 void testVariadicAt1Int64x7Struct12BytesHomogeneousInt32NativeLeaf() {
@@ -792,7 +946,15 @@ void testVariadicAt1Int64x7Struct12BytesHomogeneousInt32NativeLeaf() {
   a7.a2 = 10;
 
   final result = variadicAt1Int64x7Struct12BytesHomogeneousInt32NativeLeaf(
-      a0, a1, a2, a3, a4, a5, a6, a7);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+  );
 
   print("result = $result");
 
@@ -802,11 +964,18 @@ void testVariadicAt1Int64x7Struct12BytesHomogeneousInt32NativeLeaf() {
 }
 
 @Native<
-        Int32 Function(Struct12BytesHomogeneousInt32,
-            VarArgs<(Int32, Int32, Int32, Int32)>)>(
-    symbol: 'VariadicAt1Struct12BytesHomogeneousInt32Int32x4', isLeaf: true)
+  Int32 Function(
+    Struct12BytesHomogeneousInt32,
+    VarArgs<(Int32, Int32, Int32, Int32)>,
+  )
+>(symbol: 'VariadicAt1Struct12BytesHomogeneousInt32Int32x4', isLeaf: true)
 external int variadicAt1Struct12BytesHomogeneousInt32Int32x4NativeLeaf(
-    Struct12BytesHomogeneousInt32 a0, int a1, int a2, int a3, int a4);
+  Struct12BytesHomogeneousInt32 a0,
+  int a1,
+  int a2,
+  int a3,
+  int a4,
+);
 
 /// Variadic arguments test on macos_arm64.
 void testVariadicAt1Struct12BytesHomogeneousInt32Int32x4NativeLeaf() {
@@ -826,7 +995,12 @@ void testVariadicAt1Struct12BytesHomogeneousInt32Int32x4NativeLeaf() {
   a4 = -7;
 
   final result = variadicAt1Struct12BytesHomogeneousInt32Int32x4NativeLeaf(
-      a0, a1, a2, a3, a4);
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+  );
 
   print("result = $result");
 

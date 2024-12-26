@@ -15,22 +15,16 @@ class A {
 
 class B extends A {
   final b;
-  B(x)
-      : b = x + 1,
-        super(x);
+  B(x) : b = x + 1, super(x);
 
   // Const constructor cannot call non-const super constructor.
-
 }
 
 class C extends A {
   C() : super(0);
   // Implicit call to non-const constructor A(x).
-
 }
 
 main() {
-
   var b1 = new B(0);
-
 }

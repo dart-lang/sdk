@@ -21,12 +21,20 @@ import '../helpers/shared_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = Directory.fromUri(Platform.script
-        .resolve('../../../../pkg/_fe_analyzer_shared/test/constants/data'));
-    TestConfig testConfig = TestConfig(dart2jsMarker, 'dart2js',
-        ['${Flags.enableLanguageExperiments}=digit-separators']);
-    await checkTests<String>(dataDir, ConstantDataComputer(),
-        args: args, testedConfigs: [testConfig]);
+    Directory dataDir = Directory.fromUri(
+      Platform.script.resolve(
+        '../../../../pkg/_fe_analyzer_shared/test/constants/data',
+      ),
+    );
+    TestConfig testConfig = TestConfig(dart2jsMarker, 'dart2js', [
+      '${Flags.enableLanguageExperiments}=digit-separators',
+    ]);
+    await checkTests<String>(
+      dataDir,
+      ConstantDataComputer(),
+      args: args,
+      testedConfigs: [testConfig],
+    );
   });
 }
 
@@ -38,7 +46,9 @@ class ConstantDataComputer extends DataComputer<String> {
       ir.Component component = elementMap.env.mainComponent;
       ir.CoreTypes coreTypes = ir.CoreTypes(component);
       _typeEnvironment = ir.TypeEnvironment(
-          coreTypes, ir.ClassHierarchy(component, coreTypes));
+        coreTypes,
+        ir.ClassHierarchy(component, coreTypes),
+      );
     }
     return _typeEnvironment!;
   }
@@ -47,14 +57,21 @@ class ConstantDataComputer extends DataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool verbose = false}) {
+  void computeMemberData(
+    Compiler compiler,
+    MemberEntity member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool verbose = false,
+  }) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
     ir.Member node = elementMap.getMemberNode(member);
-    ConstantDataExtractor(compiler.reporter, actualMap, elementMap, member)
-        .run(node);
+    ConstantDataExtractor(
+      compiler.reporter,
+      actualMap,
+      elementMap,
+      member,
+    ).run(node);
   }
 
   @override
@@ -62,7 +79,10 @@ class ConstantDataComputer extends DataComputer<String> {
 
   @override
   String computeErrorData(
-      Compiler compiler, Id id, List<CollectedMessage> errors) {
+    Compiler compiler,
+    Id id,
+    List<CollectedMessage> errors,
+  ) {
     return errors.map((c) => c.message!.message).join(',');
   }
 
@@ -78,15 +98,20 @@ class ConstantDataExtractor extends IrDataExtractor<String> {
   final KernelToElementMap elementMap;
   final MemberEntity member;
 
-  ConstantDataExtractor(DiagnosticReporter reporter,
-      Map<Id, ActualData<String>> actualMap, this.elementMap, this.member)
-      : super(reporter, actualMap);
+  ConstantDataExtractor(
+    DiagnosticReporter reporter,
+    Map<Id, ActualData<String>> actualMap,
+    this.elementMap,
+    this.member,
+  ) : super(reporter, actualMap);
 
   @override
   String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.ConstantExpression) {
       return constantToText(
-          elementMap.types, elementMap.getConstantValue(node)!);
+        elementMap.types,
+        elementMap.getConstantValue(node)!,
+      );
     }
     return null;
   }

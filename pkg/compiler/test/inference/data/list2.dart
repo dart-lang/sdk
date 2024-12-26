@@ -6,7 +6,8 @@
 main() {
   boolFlag = !boolFlag;
   data. /*invoke: Container([exact=JSExtendableArray], element: [subclass=JSInt], length: null)*/ add(
-      100);
+    100,
+  );
 
   var lists = [
     listEmptyDefault,
@@ -71,36 +72,42 @@ get listFilledEither => List.filled(5, 'e', growable: boolFlag);
 // -------- List.generate --------
 
 /*member: listGenerateDefault:Container([exact=JSExtendableArray], element: [exact=JSString], length: 8)*/
-get listGenerateDefault => List
-    . /*update: Container([exact=JSExtendableArray], element: [exact=JSString], length: 8)*/ generate(
-        8, (i) => 'x$i');
+get listGenerateDefault =>
+    List. /*update: Container([exact=JSExtendableArray], element: [exact=JSString], length: 8)*/ generate(
+      8,
+      (i) => 'x$i',
+    );
 
 /*member: listGenerateGrowable:Container([exact=JSExtendableArray], element: [exact=JSString], length: 8)*/
-get listGenerateGrowable => List
-    . /*update: Container([exact=JSExtendableArray], element: [exact=JSString], length: 8)*/ generate(
-        8, (i) => 'g$i',
-        growable: true);
+get listGenerateGrowable =>
+    List. /*update: Container([exact=JSExtendableArray], element: [exact=JSString], length: 8)*/ generate(
+      8,
+      (i) => 'g$i',
+      growable: true,
+    );
 
 /*member: listGenerateFixed:Container([exact=JSFixedArray], element: [exact=JSString], length: 8)*/
-get listGenerateFixed => List
-    . /*update: Container([exact=JSFixedArray], element: [exact=JSString], length: 8)*/ generate(
-        8, (i) => 'f$i',
-        growable: false);
+get listGenerateFixed =>
+    List. /*update: Container([exact=JSFixedArray], element: [exact=JSString], length: 8)*/ generate(
+      8,
+      (i) => 'f$i',
+      growable: false,
+    );
 
 /*member: listGenerateEither:Container([subclass=JSMutableArray], element: [exact=JSString], length: 8)*/
 get listGenerateEither => List.generate(
-    8, /*[exact=JSString]*/ (/*[subclass=JSPositiveInt]*/ i) => 'e$i',
-    growable: boolFlag);
+  8,
+  /*[exact=JSString]*/ (/*[subclass=JSPositiveInt]*/ i) => 'e$i',
+  growable: boolFlag,
+);
 
 /*member: listGenerateBigClosure:Container([exact=JSExtendableArray], element: [exact=JSString], length: 8)*/
-get listGenerateBigClosure => List.generate(
-      8,
-      /*[exact=JSString]*/ (/*[subclass=JSPositiveInt]*/ i) {
-        if (i /*invoke: [subclass=JSPositiveInt]*/ == 1) return 'one';
-        if (i /*invoke: [subclass=JSPositiveInt]*/ == 2) return 'two';
-        return '$i';
-      },
-    );
+get listGenerateBigClosure =>
+    List.generate(8, /*[exact=JSString]*/ (/*[subclass=JSPositiveInt]*/ i) {
+      if (i /*invoke: [subclass=JSPositiveInt]*/ == 1) return 'one';
+      if (i /*invoke: [subclass=JSPositiveInt]*/ == 2) return 'two';
+      return '$i';
+    });
 
 // -------- List.of --------
 

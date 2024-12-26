@@ -24,7 +24,10 @@ extension DartTypeHelpers on DartType {
 }
 
 DartType instantiate(
-    DartTypes dartTypes, ClassEntity element, List<DartType> arguments) {
+  DartTypes dartTypes,
+  ClassEntity element,
+  List<DartType> arguments,
+) {
   return dartTypes.interfaceType(element, arguments);
 }
 
@@ -32,22 +35,25 @@ class TypeEnvironment {
   final Compiler compiler;
   final bool testBackendWorld;
 
-  static Future<TypeEnvironment> create(String source,
-      {bool expectNoErrors = false,
-      bool expectNoWarningsOrErrors = false,
-      bool testBackendWorld = false,
-      List<String> options = const <String>[],
-      Map<String, String> fieldTypeMap = const <String, String>{}}) async {
+  static Future<TypeEnvironment> create(
+    String source, {
+    bool expectNoErrors = false,
+    bool expectNoWarningsOrErrors = false,
+    bool testBackendWorld = false,
+    List<String> options = const <String>[],
+    Map<String, String> fieldTypeMap = const <String, String>{},
+  }) async {
     memory.DiagnosticCollector collector = memory.DiagnosticCollector();
     Uri uri = Uri.parse('memory:main.dart');
     memory.CompilationResult result = await memory.runCompiler(
-        entryPoint: uri,
-        memorySourceFiles: {'main.dart': source},
-        options: [Flags.disableTypeInference]..addAll(options),
-        diagnosticHandler: collector,
-        beforeRun: (compiler) {
-          compiler.stopAfterGlobalTypeInferenceForTesting = true;
-        });
+      entryPoint: uri,
+      memorySourceFiles: {'main.dart': source},
+      options: [Flags.disableTypeInference]..addAll(options),
+      diagnosticHandler: collector,
+      beforeRun: (compiler) {
+        compiler.stopAfterGlobalTypeInferenceForTesting = true;
+      },
+    );
     Compiler compiler = result.compiler!;
     if (expectNoErrors || expectNoWarningsOrErrors) {
       var errors = collector.errors;
@@ -93,8 +99,10 @@ class TypeEnvironment {
     LibraryEntity mainLibrary = elementEnvironment.mainLibrary!;
     dynamic element = elementEnvironment.lookupLibraryMember(mainLibrary, name);
     element ??= elementEnvironment.lookupClass(mainLibrary, name);
-    element ??=
-        elementEnvironment.lookupClass(commonElements.coreLibrary, name);
+    element ??= elementEnvironment.lookupClass(
+      commonElements.coreLibrary,
+      name,
+    );
     Expect.isNotNull(element, "No element named '$name' found.");
     return element;
   }
@@ -135,7 +143,9 @@ class TypeEnvironment {
   MemberEntity _getMember(String name, [ClassEntity? cls]) {
     if (cls != null) {
       return elementEnvironment.lookupLocalClassMember(
-          cls, Name(name, cls.library.canonicalUri))!;
+        cls,
+        Name(name, cls.library.canonicalUri),
+      )!;
     } else {
       LibraryEntity mainLibrary = elementEnvironment.mainLibrary!;
       return elementEnvironment.lookupLibraryMember(mainLibrary, name)!;
@@ -155,7 +165,8 @@ class TypeEnvironment {
   DartType? getClosureType(String name, [ClassEntity? cls]) {
     if (testBackendWorld) {
       throw UnsupportedError(
-          "getClosureType not supported for backend testing.");
+        "getClosureType not supported for backend testing.",
+      );
     }
     MemberEntity member = _getMember(name, cls);
     DartType? type;
@@ -221,12 +232,16 @@ class FunctionTypeData {
 /// method declarations of the form:
 ///
 ///     $returnType $name$parameters => throw "";
-String createMethods(List<FunctionTypeData> dataList,
-    {String additionalData = '', String prefix = ''}) {
+String createMethods(
+  List<FunctionTypeData> dataList, {
+  String additionalData = '',
+  String prefix = '',
+}) {
   StringBuffer sb = StringBuffer();
   for (FunctionTypeData data in dataList) {
     sb.writeln(
-        '${data.returnType} $prefix${data.name}${data.parameters} => throw "";');
+      '${data.returnType} $prefix${data.name}${data.parameters} => throw "";',
+    );
   }
   sb.write(additionalData);
   return sb.toString();
@@ -239,13 +254,17 @@ String createMethods(List<FunctionTypeData> dataList,
 ///     fx $name;
 ///
 /// where a field using the typedef is add to make the type accessible by name.
-String createTypedefs(List<FunctionTypeData> dataList,
-    {String additionalData = '', String prefix = ''}) {
+String createTypedefs(
+  List<FunctionTypeData> dataList, {
+  String additionalData = '',
+  String prefix = '',
+}) {
   StringBuffer sb = StringBuffer();
   for (int index = 0; index < dataList.length; index++) {
     FunctionTypeData data = dataList[index];
     sb.writeln(
-        'typedef f$index = ${data.returnType} Function${data.parameters};');
+      'typedef f$index = ${data.returnType} Function${data.parameters};',
+    );
   }
   for (int index = 0; index < dataList.length; index++) {
     FunctionTypeData data = dataList[index];

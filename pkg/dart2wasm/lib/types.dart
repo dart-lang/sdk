@@ -346,8 +346,7 @@ class Types {
     }
 
     translator.functions.recordClassAllocation(info.classId);
-    b.i32_const(info.classId);
-    b.i32_const(initialIdentityHash);
+    b.pushObjectHeaderFields(info);
     if (type is InterfaceType) {
       _makeInterfaceType(codeGen, type);
     } else if (type is FunctionType) {

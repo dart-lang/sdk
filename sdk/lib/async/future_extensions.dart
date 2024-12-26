@@ -31,7 +31,10 @@ extension FutureIterable<T> on Iterable<Future<T>> {
   Future<List<T>> get wait {
     var results = [for (var f in this) _FutureResult<T>(f)];
     if (results.isEmpty) return Future<List<T>>.value(<T>[]);
+
+    @pragma('vm:awaiter-link')
     final c = Completer<List<T>>.sync();
+
     _FutureResult._waitAll(results, (errors) {
       if (errors == 0) {
         c.complete([for (var r in results) r.value]);
@@ -77,6 +80,7 @@ bool _notNull(Object? object) => object != null;
 extension FutureRecord2<T1, T2> on (Future<T1>, Future<T2>) {
   /// {@macro record-parallel-wait}
   Future<(T1, T2)> get wait {
+    @pragma('vm:awaiter-link')
     final c = Completer<(T1, T2)>.sync();
     final v1 = _FutureResult<T1>($1);
     final v2 = _FutureResult<T2>($2);
@@ -104,6 +108,7 @@ extension FutureRecord2<T1, T2> on (Future<T1>, Future<T2>) {
 extension FutureRecord3<T1, T2, T3> on (Future<T1>, Future<T2>, Future<T3>) {
   /// {@macro record-parallel-wait}
   Future<(T1, T2, T3)> get wait {
+    @pragma('vm:awaiter-link')
     final c = Completer<(T1, T2, T3)>.sync();
     final v1 = _FutureResult<T1>($1);
     final v2 = _FutureResult<T2>($2);
@@ -133,6 +138,7 @@ extension FutureRecord4<T1, T2, T3, T4>
     on (Future<T1>, Future<T2>, Future<T3>, Future<T4>) {
   /// {@macro record-parallel-wait}
   Future<(T1, T2, T3, T4)> get wait {
+    @pragma('vm:awaiter-link')
     final c = Completer<(T1, T2, T3, T4)>.sync();
     final v1 = _FutureResult<T1>($1);
     final v2 = _FutureResult<T2>($2);
@@ -167,6 +173,7 @@ extension FutureRecord5<T1, T2, T3, T4, T5>
     on (Future<T1>, Future<T2>, Future<T3>, Future<T4>, Future<T5>) {
   /// {@macro record-parallel-wait}
   Future<(T1, T2, T3, T4, T5)> get wait {
+    @pragma('vm:awaiter-link')
     final c = Completer<(T1, T2, T3, T4, T5)>.sync();
     final v1 = _FutureResult<T1>($1);
     final v2 = _FutureResult<T2>($2);
@@ -223,6 +230,7 @@ extension FutureRecord6<T1, T2, T3, T4, T5, T6>
         ) {
   /// {@macro record-parallel-wait}
   Future<(T1, T2, T3, T4, T5, T6)> get wait {
+    @pragma('vm:awaiter-link')
     final c = Completer<(T1, T2, T3, T4, T5, T6)>.sync();
     final v1 = _FutureResult<T1>($1);
     final v2 = _FutureResult<T2>($2);
@@ -291,6 +299,7 @@ extension FutureRecord7<T1, T2, T3, T4, T5, T6, T7>
         ) {
   /// {@macro record-parallel-wait}
   Future<(T1, T2, T3, T4, T5, T6, T7)> get wait {
+    @pragma('vm:awaiter-link')
     final c = Completer<(T1, T2, T3, T4, T5, T6, T7)>.sync();
     final v1 = _FutureResult<T1>($1);
     final v2 = _FutureResult<T2>($2);
@@ -365,6 +374,7 @@ extension FutureRecord8<T1, T2, T3, T4, T5, T6, T7, T8>
         ) {
   /// {@macro record-parallel-wait}
   Future<(T1, T2, T3, T4, T5, T6, T7, T8)> get wait {
+    @pragma('vm:awaiter-link')
     final c = Completer<(T1, T2, T3, T4, T5, T6, T7, T8)>.sync();
     final v1 = _FutureResult<T1>($1);
     final v2 = _FutureResult<T2>($2);
@@ -445,6 +455,7 @@ extension FutureRecord9<T1, T2, T3, T4, T5, T6, T7, T8, T9>
         ) {
   /// {@macro record-parallel-wait}
   Future<(T1, T2, T3, T4, T5, T6, T7, T8, T9)> get wait {
+    @pragma('vm:awaiter-link')
     final c = Completer<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>.sync();
     final v1 = _FutureResult<T1>($1);
     final v2 = _FutureResult<T2>($2);
@@ -596,6 +607,8 @@ class _FutureResult<T> {
   // Consider integrating directly into `_Future` as a `_FutureListener`
   // to avoid creating as many function tear-offs.
 
+  final Future<T> source;
+
   /// The value or `null`.
   ///
   /// Set when the future completes with a value.
@@ -604,11 +617,7 @@ class _FutureResult<T> {
   /// Set when the future completes with an error or value.
   AsyncError? errorOrNull;
 
-  void Function(int errors) onReady = _noop;
-
-  _FutureResult(Future<T> future) {
-    future.then(_onValue, onError: _onError);
-  }
+  _FutureResult(this.source);
 
   /// The value.
   ///
@@ -616,14 +625,17 @@ class _FutureResult<T> {
   /// a value.
   T get value => valueOrNull ?? valueOrNull as T;
 
-  void _onValue(T value) {
-    valueOrNull = value;
-    onReady(0);
-  }
-
-  void _onError(Object error, StackTrace stack) {
-    this.errorOrNull = AsyncError(error, stack);
-    onReady(1);
+  void _wait(@pragma('vm:awaiter-link') void Function(int) whenReady) {
+    source.then(
+      (T value) {
+        valueOrNull = value;
+        whenReady(0);
+      },
+      onError: (Object error, StackTrace stack) {
+        errorOrNull = AsyncError(error, stack);
+        whenReady(1);
+      },
+    );
   }
 
   /// Waits for a number of [_FutureResult]s to all have completed.
@@ -631,7 +643,7 @@ class _FutureResult<T> {
   /// List must not be empty.
   static void _waitAll(
     List<_FutureResult> results,
-    void Function(int) whenReady,
+    @pragma('vm:awaiter-link') void Function(int) whenReady,
   ) {
     assert(results.isNotEmpty);
     var ready = 0;
@@ -644,7 +656,7 @@ class _FutureResult<T> {
     }
 
     for (var r in results) {
-      r.onReady = onReady;
+      r._wait(onReady);
     }
   }
 

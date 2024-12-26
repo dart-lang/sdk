@@ -40,7 +40,7 @@ import 'package:stack_trace/stack_trace.dart';
 ///
 /// The .js file must contain a `//# sourceMappingURL=` line at the end, which
 /// tells this script how to determine the name of the source-map file.
-main(List<String> args) {
+void main(List<String> args) {
   if (args.length != 1) {
     print('usage: deobfuscate.dart <stack-trace-file>');
     exit(1);
@@ -50,23 +50,32 @@ main(List<String> args) {
     String obfuscatedTrace = File(args[0]).readAsStringSync();
     String? error = extractErrorMessage(obfuscatedTrace);
     var provider = CachingFileProvider(logger: Logger());
-    StackDeobfuscationResult result =
-        deobfuscateStack(obfuscatedTrace, provider);
+    StackDeobfuscationResult result = deobfuscateStack(
+      obfuscatedTrace,
+      provider,
+    );
     Frame firstFrame = result.original.frames.first;
-    String? translatedError =
-        translate(error, provider.mappingFor(firstFrame.uri));
+    String? translatedError = translate(
+      error,
+      provider.mappingFor(firstFrame.uri),
+    );
     translatedError ??= '<no error message found>';
     printPadded(translatedError, error, sb);
-    int longest =
-        result.deobfuscated.frames.fold(0, (m, f) => max(f.member!.length, m));
+    int longest = result.deobfuscated.frames.fold(
+      0,
+      (m, f) => max(f.member!.length, m),
+    );
     for (var originalFrame in result.original.frames) {
       var deobfuscatedFrames = result.frameMap[originalFrame];
       if (deobfuscatedFrames == null) {
         printPadded('no mapping', originalFrame.location, sb);
       } else {
         for (var frame in deobfuscatedFrames) {
-          printPadded('${frame.member!.padRight(longest)} ${frame.location}',
-              originalFrame.location, sb);
+          printPadded(
+            '${frame.member!.padRight(longest)} ${frame.location}',
+            originalFrame.location,
+            sb,
+          );
         }
       }
     }
@@ -78,7 +87,7 @@ main(List<String> args) {
 final green = stdout.hasTerminal ? '\x1b[32m' : '';
 final none = stdout.hasTerminal ? '\x1b[0m' : '';
 
-printPadded(String mapping, String? original, sb) {
+void printPadded(String mapping, String? original, sb) {
   var len = mapping.length;
   var s = mapping.indexOf('\n');
   if (s >= 0) len -= s + 1;

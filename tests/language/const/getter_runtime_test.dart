@@ -12,10 +12,8 @@ import 'package:expect/expect.dart';
 class C {
   const C();
 
-
   get x => 1;
 }
-
 
 get y => 2;
 

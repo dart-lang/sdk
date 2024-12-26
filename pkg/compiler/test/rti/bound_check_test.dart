@@ -48,9 +48,10 @@ TypeError: The type argument 'A' is not a subtype of the type variable bound 'B'
 main(List<String> args) {
   asyncTest(() async {
     await runWithD8(
-        memorySourceFiles: {'main.dart': SOURCE1},
-        expectedOutput: OUTPUT1,
-        printJs: args.contains('-v'),
-        options: ['--libraries-spec=$sdkLibrariesSpecificationUri']);
+      memorySourceFiles: {'main.dart': SOURCE1},
+      expectedOutput: OUTPUT1,
+      printJs: args.contains('-v'),
+      options: ['--libraries-spec=$sdkLibrariesSpecificationUri'],
+    );
   });
 }

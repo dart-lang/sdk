@@ -63,8 +63,9 @@ main() {
 main() {
   asyncTest(() async {
     CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': code},
-        options: [Flags.omitImplicitChecks]);
+      memorySourceFiles: {'main.dart': code},
+      options: [Flags.omitImplicitChecks],
+    );
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler!;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
@@ -79,17 +80,25 @@ main() {
         }
       }
       Expect.setEquals(
-          expectedStubs,
-          actualStubs,
-          "Unexpected stubs for $element:\n "
-          "Expected: $expectedStubs\n Actual: $actualStubs");
+        expectedStubs,
+        actualStubs,
+        "Unexpected stubs for $element:\n "
+        "Expected: $expectedStubs\n Actual: $actualStubs",
+      );
     }
 
-    checkStubs(closedWorld.commonElements.getInstantiationClass(1),
-        [r'call$1', r'$signature']);
-    checkStubs(closedWorld.commonElements.getInstantiationClass(2),
-        [r'call$2', r'$signature']);
-    checkStubs(closedWorld.commonElements.getInstantiationClass(3),
-        [r'call$3', r'call$4', r'$signature']);
+    checkStubs(closedWorld.commonElements.getInstantiationClass(1), [
+      r'call$1',
+      r'$signature',
+    ]);
+    checkStubs(closedWorld.commonElements.getInstantiationClass(2), [
+      r'call$2',
+      r'$signature',
+    ]);
+    checkStubs(closedWorld.commonElements.getInstantiationClass(3), [
+      r'call$3',
+      r'call$4',
+      r'$signature',
+    ]);
   });
 }

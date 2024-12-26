@@ -340,7 +340,7 @@ class Request extends ApiNode {
 }
 
 /// Base class for all possible types.
-abstract class TypeDecl extends ApiNode {
+sealed class TypeDecl extends ApiNode {
   TypeDecl(super.html, {super.experimental, super.deprecated});
 
   T accept<T>(ApiVisitor<T> visitor);

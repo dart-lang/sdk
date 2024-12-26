@@ -8,18 +8,22 @@
 foo1() {
   final methods = [];
   var res, sum;
-  for (int i = 0;
-      i /*invoke: [subclass=JSPositiveInt]*/ != 3;
-      i /*invoke: [subclass=JSPositiveInt]*/ ++) {
+  for (
+    int i = 0;
+    i /*invoke: [subclass=JSPositiveInt]*/ != 3;
+    i /*invoke: [subclass=JSPositiveInt]*/ ++
+  ) {
     methods
         . /*invoke: Container([exact=JSExtendableArray], element: [subclass=Closure], length: null)*/ add(
-            /*[null]*/ (int /*[exact=JSUInt31]*/ x) {
-      res = x;
-      sum = x /*invoke: [exact=JSUInt31]*/ + i;
-    });
+          /*[null]*/ (int /*[exact=JSUInt31]*/ x) {
+            res = x;
+            sum = x /*invoke: [exact=JSUInt31]*/ + i;
+          },
+        );
   }
-  methods /*Container([exact=JSExtendableArray], element: [subclass=Closure], length: null)*/ [
-      0](499);
+  methods /*Container([exact=JSExtendableArray], element: [subclass=Closure], length: null)*/ [0](
+    499,
+  );
   probe1res(res);
   probe1sum(sum);
   probe1methods(methods);
@@ -33,8 +37,8 @@ probe1sum(/*[null|subclass=JSPositiveInt]*/ x) => x;
 
 /*member: probe1methods:Container([exact=JSExtendableArray], element: [subclass=Closure], length: null)*/
 probe1methods(
-        /*Container([exact=JSExtendableArray], element: [subclass=Closure], length: null)*/ x) =>
-    x;
+  /*Container([exact=JSExtendableArray], element: [subclass=Closure], length: null)*/ x,
+) => x;
 
 /*member: nonContainer:[exact=JSExtendableArray]*/
 nonContainer(/*[exact=JSUInt31]*/ choice) {
@@ -50,13 +54,17 @@ foo2(int /*[exact=JSUInt31]*/ choice) {
 
   /// ignore: unused_local_variable
   var res, sum;
-  for (int i = 0;
-      i /*invoke: [subclass=JSPositiveInt]*/ != 3;
-      i /*invoke: [subclass=JSPositiveInt]*/ ++) {
-    methods. /*invoke: [exact=JSExtendableArray]*/ add(/*[null]*/ (int
-        /*spec.[null|subclass=Object]*/
-        /*prod.[subclass=JSInt]*/
-        x) {
+  for (
+    int i = 0;
+    i /*invoke: [subclass=JSPositiveInt]*/ != 3;
+    i /*invoke: [subclass=JSPositiveInt]*/ ++
+  ) {
+    methods. /*invoke: [exact=JSExtendableArray]*/ add(/*[null]*/ (
+      int
+      /*spec.[null|subclass=Object]*/
+      /*prod.[subclass=JSInt]*/
+      x,
+    ) {
       res = x;
       sum = x /*invoke: [subclass=JSInt]*/ + i;
     });
@@ -68,10 +76,9 @@ foo2(int /*[exact=JSUInt31]*/ choice) {
 
 /*member: probe2res:[null|subclass=JSInt]*/
 probe2res(
-
-        /*[null|subclass=JSInt]*/
-        x) =>
-    x;
+  /*[null|subclass=JSInt]*/
+  x,
+) => x;
 
 /*member: probe2methods:[exact=JSExtendableArray]*/
 probe2methods(/*[exact=JSExtendableArray]*/ x) => x;

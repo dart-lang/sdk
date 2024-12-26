@@ -14,19 +14,22 @@ main() {
 
 /*member: positionalWithoutDefaultOnLocal:[null]*/
 positionalWithoutDefaultOnLocal() {
-  /*[null]*/ local([/*[null]*/ parameter]) => parameter;
+  /*[null]*/
+  local([/*[null]*/ parameter]) => parameter;
   return local();
 }
 
 /*member: positionalWithNullDefaultOnLocal:[null]*/
 positionalWithNullDefaultOnLocal() {
-  /*[null]*/ local([/*[null]*/ parameter = null]) => parameter;
+  /*[null]*/
+  local([/*[null]*/ parameter = null]) => parameter;
   return local();
 }
 
 /*member: positionalWithOneDefaultOnLocal:[exact=JSUInt31]*/
 positionalWithOneDefaultOnLocal() {
-  /*[exact=JSUInt31]*/ local([/*[exact=JSUInt31]*/ parameter = 1]) => parameter;
+  /*[exact=JSUInt31]*/
+  local([/*[exact=JSUInt31]*/ parameter = 1]) => parameter;
   return local();
 }
 

@@ -12,7 +12,7 @@ abstract final class AOutside extends FinalClass {}
 // [cfe] The class 'FinalClass' can't be extended outside of its library because it's a final class.
 
 final class BOutside extends FinalClass {
-//                           ^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] The class 'FinalClass' can't be extended outside of its library because it's a final class.
+  //                         ^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+  // [cfe] The class 'FinalClass' can't be extended outside of its library because it's a final class.
 }

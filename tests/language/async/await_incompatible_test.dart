@@ -37,10 +37,10 @@ extension type SFE2(SFE _) implements SFE {}
 void main() async {
   // 1 (use rule 1).
   await N(Future<int>.value(1));
-//^^^^^
-// [analyzer] COMPILE_TIME_ERROR.AWAIT_OF_INCOMPATIBLE_TYPE
-//      ^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
+  // [error column 3, length 5]
+  // [analyzer] COMPILE_TIME_ERROR.AWAIT_OF_INCOMPATIBLE_TYPE
+  //    ^
+  // [cfe] The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
   await F(Future<int>.value(1));
 
   N n = N(Future<int>.value(1));
@@ -50,10 +50,10 @@ void main() async {
 
   // 2.1 (use rule 2 which in turn uses rule 1).
   await nq;
-//^^^^^
-// [analyzer] COMPILE_TIME_ERROR.AWAIT_OF_INCOMPATIBLE_TYPE
-//      ^
-// [cfe] The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
+  // [error column 3, length 5]
+  // [analyzer] COMPILE_TIME_ERROR.AWAIT_OF_INCOMPATIBLE_TYPE
+  //    ^
+  // [cfe] The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
 
   await fq;
 
@@ -70,18 +70,17 @@ void main() async {
   await fofq;
 
   var fut = Future<int>.value(1);
-  foo<Object?, N, F, N?, F?, FutureOr<N>, FutureOr<F>, FutureOr<N>?,
-      FutureOr<F>?>(
-    fut,
-    N(fut),
-    F(fut),
-    null,
-    null,
-    N(fut),
-    F(fut),
-    N(fut),
-    F(fut),
-  );
+  foo<
+    Object?,
+    N,
+    F,
+    N?,
+    F?,
+    FutureOr<N>,
+    FutureOr<F>,
+    FutureOr<N>?,
+    FutureOr<F>?
+  >(fut, N(fut), F(fut), null, null, N(fut), F(fut), N(fut), F(fut));
 
   var sfe2 = SFE2(SFE(SF()));
   await sfe2;
@@ -89,15 +88,16 @@ void main() async {
 
 // Test type parameter types.
 void foo<
-    X,
-    XN extends N,
-    XF extends F,
-    XNQ extends N?,
-    XFQ extends F?,
-    XFoN extends FutureOr<N>,
-    XFoF extends FutureOr<F>,
-    XFoNQ extends FutureOr<N>?,
-    XFoFQ extends FutureOr<F>?>(
+  X,
+  XN extends N,
+  XF extends F,
+  XNQ extends N?,
+  XFQ extends F?,
+  XFoN extends FutureOr<N>,
+  XFoF extends FutureOr<F>,
+  XFoNQ extends FutureOr<N>?,
+  XFoFQ extends FutureOr<F>?
+>(
   X x,
   XN xn,
   XF xf,
@@ -112,10 +112,10 @@ void foo<
 
   // 4.1.
   await xn;
-//^^^^^
-// [analyzer] COMPILE_TIME_ERROR.AWAIT_OF_INCOMPATIBLE_TYPE
-//      ^^
-// [cfe] The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
+  // [error column 3, length 5]
+  // [analyzer] COMPILE_TIME_ERROR.AWAIT_OF_INCOMPATIBLE_TYPE
+  //    ^
+  // [cfe] The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
 
   await xf;
   await xfon;
@@ -125,10 +125,10 @@ void foo<
 
   // 4.2.
   await xnq;
-//^^^^^
-// [analyzer] COMPILE_TIME_ERROR.AWAIT_OF_INCOMPATIBLE_TYPE
-//      ^^^
-// [cfe] The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
+  // [error column 3, length 5]
+  // [analyzer] COMPILE_TIME_ERROR.AWAIT_OF_INCOMPATIBLE_TYPE
+  //    ^
+  // [cfe] The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
 
   await xfq;
 

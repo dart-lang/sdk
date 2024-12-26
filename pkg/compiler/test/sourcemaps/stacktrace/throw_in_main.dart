@@ -3,5 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  /*1:main*/ throw '>ExceptionMarker<';
+  /*1:main*/
+  throw '>ExceptionMarker<';
 }

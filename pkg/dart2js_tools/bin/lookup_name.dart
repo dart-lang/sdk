@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:dart2js_tools/src/dart2js_mapping.dart';
 import 'package:dart2js_tools/src/util.dart';
 
-main(List<String> args) {
+void main(List<String> args) {
   if (args.length < 2) {
     print('usage: read.dart <source-map-file> <name>');
     exit(1);

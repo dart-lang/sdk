@@ -20,10 +20,10 @@ int labelDoesNotExistSwitch(int x) {
   switch (x) {
     case 1:
       continue labelOtherSwitch;
-//    ^
-// [cfe] Can't find label 'labelOtherSwitch'.
-//             ^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.LABEL_UNDEFINED
+    //^
+    // [cfe] Can't find label 'labelOtherSwitch'.
+    //         ^^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.LABEL_UNDEFINED
   }
   return 0;
 }

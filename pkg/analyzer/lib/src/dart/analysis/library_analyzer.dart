@@ -403,6 +403,9 @@ class LibraryAnalyzer {
       // Skip computing lints on macro generated augmentations.
       // See: https://github.com/dart-lang/sdk/issues/54875
       if (fileAnalysis.file.isMacroPart) return;
+      // Skip computing lints on files that don't exist.
+      // See: https://github.com/Dart-Code/Dart-Code/issues/5343
+      if (!fileAnalysis.file.exists) continue;
 
       var unit = currentUnit.unit;
       var errorReporter = currentUnit.errorReporter;
@@ -412,6 +415,7 @@ class LibraryAnalyzer {
       }
 
       // Run lint rules that handle specific node types.
+      context.currentUnit = currentUnit;
       unit.accept(
         AnalysisRuleVisitor(
           nodeRegistry,

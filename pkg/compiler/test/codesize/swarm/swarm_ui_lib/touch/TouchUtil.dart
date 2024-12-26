@@ -28,9 +28,14 @@ EventListener mouseToTouchCallback(EventListener callback) {
 }
 
 /// Helper method to attach event listeners to a [node]. */
-void _addEventListeners(Element node, EventListener onStart,
-    EventListener onMove, EventListener onEnd, EventListener onCancel,
-    [bool capture = false]) {
+void _addEventListeners(
+  Element node,
+  EventListener onStart,
+  EventListener onMove,
+  EventListener onEnd,
+  EventListener onCancel, [
+  bool capture = false,
+]) {
   late final Function removeListeners;
 
   onEndWrapper(e) {
@@ -278,11 +283,14 @@ class MockTouchEvent implements TouchEvent {
   final TouchList targetTouches;
   @override
   final TouchList changedTouches;
-  MockTouchEvent(MouseEvent this.wrapped, List<Touch> touches,
-      List<Touch> targetTouches, List<Touch> changedTouches)
-      : touches = MockTouchList(touches),
-        targetTouches = MockTouchList(targetTouches),
-        changedTouches = MockTouchList(changedTouches);
+  MockTouchEvent(
+    MouseEvent this.wrapped,
+    List<Touch> touches,
+    List<Touch> targetTouches,
+    List<Touch> changedTouches,
+  ) : touches = MockTouchList(touches),
+      targetTouches = MockTouchList(targetTouches),
+      changedTouches = MockTouchList(changedTouches);
 
   @override
   bool operator ==(Object other) {
@@ -413,12 +421,14 @@ class MockTouchEvent implements TouchEvent {
     throw UnimplementedError();
   }
 
-  /*InputDeviceCapabilities*/ @override
+  /*InputDeviceCapabilities*/
+  @override
   get sourceCapabilities {
     throw UnimplementedError();
   }
 
-  /*InputDevice*/ get sourceDevice {
+  /*InputDevice*/
+  get sourceDevice {
     throw UnimplementedError();
   }
 

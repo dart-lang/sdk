@@ -104,7 +104,6 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     expect(classA.hasNonFinalField, isTrue);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   void test_hasNonFinalField_true_inherited() {
     var classA = class_(name: 'A');
     ClassElementImpl classB =

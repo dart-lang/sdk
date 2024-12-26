@@ -4,7 +4,7 @@
 
 /// Library that re-exports libraries used throughout the compiler regardless
 /// of phase or subfunctionality.
-library dart2js.common;
+library;
 
 export 'diagnostics/diagnostic_listener.dart'
     show DiagnosticMessage, DiagnosticReporter;
@@ -13,8 +13,8 @@ export 'diagnostics/messages.dart' show MessageKind;
 export 'diagnostics/source_span.dart' show SourceSpan;
 export 'diagnostics/spannable.dart'
     show
-        CURRENT_ELEMENT_SPANNABLE,
-        NO_LOCATION_SPANNABLE,
+        currentElementSpannable,
+        noLocationSpannable,
         Spannable,
         SpannableAssertionFailure;
 

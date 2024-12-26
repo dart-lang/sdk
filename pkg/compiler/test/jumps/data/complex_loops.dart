@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 simpleForInLoopWithContinue(list) {
-  /*0@continue*/ for (int i in list) {
+  /*0@continue*/
+  for (int i in list) {
     if (i % 2 == 0) /*target=0*/ continue;
     print(i);
   }
@@ -34,22 +35,27 @@ complexForInLoopWithContinueLookalike2(list) {
 
 labelledBreakInNestedWhileLoop(bool condition()) {
   int i = 111;
-  /*0@break*/ while (condition()) {
+  /*0@break*/
+  while (condition()) {
     label:
-    /*1@break*/ {
+    /*1@break*/
+    {
       while (condition()) {
-        /*target=1*/ break label;
+        /*target=1*/
+        break label;
       }
       i--;
     }
-    /*target=0*/ break;
+    /*target=0*/
+    break;
   }
   return i;
 }
 
 nestedLoopsWithInnerBreak(list) {
   for (int i in list) {
-    /*0@break*/ for (int j in list) {
+    /*0@break*/
+    for (int j in list) {
       if (i % j == 0) /*target=0*/ break;
       print(i);
     }
@@ -58,7 +64,8 @@ nestedLoopsWithInnerBreak(list) {
 
 nestedLoopsWithInnerContinue(list) {
   for (int i in list) {
-    /*0@continue*/ for (int j in list) {
+    /*0@continue*/
+    for (int j in list) {
       if (i % j == 0) /*target=0*/ continue;
       print(i);
     }

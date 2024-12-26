@@ -12,7 +12,8 @@ main() {
 /*member: noThrows:no-throw*/
 @pragma('dart2js:noThrows')
 @pragma(
-    'dart2js:noInline') // Required for the @pragma('dart2js:noThrows') annotation.
+  'dart2js:noInline',
+) // Required for the @pragma('dart2js:noThrows') annotation.
 noThrows() => throw '';
 
 // Check that the @pragma('dart2js:noInline') annotation has no impact on its own.

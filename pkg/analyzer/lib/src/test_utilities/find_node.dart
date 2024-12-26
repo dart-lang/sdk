@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
@@ -246,6 +247,11 @@ class FindNode {
   BindPatternVariableElement bindPatternVariableElement(String search) {
     var node = declaredVariablePattern(search);
     return node.declaredElement!;
+  }
+
+  BindPatternVariableElement2 bindPatternVariableElement2(String search) {
+    var node = declaredVariablePattern(search);
+    return node.declaredElement2!;
   }
 
   Block block(String search) {

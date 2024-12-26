@@ -25,7 +25,8 @@ class Class1 {
 
   /*member: Class1.:[exact=Class1]*/
   Class1() {
-    /*update: [exact=Class1]*/ field = 42;
+    /*update: [exact=Class1]*/
+    field = 42;
   }
 }
 
@@ -44,7 +45,8 @@ class Class2 {
 
   /*member: Class2.:[exact=Class2]*/
   Class2() {
-    /*update: [exact=Class2]*/ field = /*[exact=Class2]*/ field;
+    /*update: [exact=Class2]*/
+    field = /*[exact=Class2]*/ field;
   }
 }
 
@@ -61,8 +63,10 @@ class Class3 {
 
   /*member: Class3.:[exact=Class3]*/
   Class3() {
-    /*update: [exact=Class3]*/ field = /*[exact=Class3]*/ field;
-    /*update: [exact=Class3]*/ field = 42;
+    /*update: [exact=Class3]*/
+    field = /*[exact=Class3]*/ field;
+    /*update: [exact=Class3]*/
+    field = 42;
   }
 }
 
@@ -81,7 +85,8 @@ class Class4 {
   Class4() {
     // ignore: UNUSED_LOCAL_VARIABLE
     var o = /*[exact=Class4]*/ field;
-    /*update: [exact=Class4]*/ field = 42;
+    /*update: [exact=Class4]*/
+    field = 42;
   }
 }
 
@@ -98,8 +103,10 @@ class Class5 {
 
   /*member: Class5.:[exact=Class5]*/
   Class5() {
-    /*[exact=Class5]*/ /*update: [exact=Class5]*/ field /*invoke: [null|subclass=JSPositiveInt]*/ ++;
-    /*update: [exact=Class5]*/ field = 42;
+    /*[exact=Class5]*/ /*update: [exact=Class5]*/
+    field /*invoke: [null|subclass=JSPositiveInt]*/ ++;
+    /*update: [exact=Class5]*/
+    field = 42;
   }
 }
 
@@ -116,8 +123,10 @@ class Class6 {
 
   /*member: Class6.:[exact=Class6]*/
   Class6() {
-    /*update: [exact=Class6]*/ field = 42;
-    /*[exact=Class6]*/ /*update: [exact=Class6]*/ field /*invoke: [subclass=JSPositiveInt]*/ ++;
+    /*update: [exact=Class6]*/
+    field = 42;
+    /*[exact=Class6]*/ /*update: [exact=Class6]*/
+    field /*invoke: [subclass=JSPositiveInt]*/ ++;
   }
 }
 
@@ -141,8 +150,10 @@ class Class7 {
     var o1 = /*[exact=Class7]*/ field1;
     // ignore: UNUSED_LOCAL_VARIABLE
     var o2 = /*[exact=Class7]*/ field2;
-    /*update: [exact=Class7]*/ field1 = 42;
-    /*update: [exact=Class7]*/ field2 = 87;
+    /*update: [exact=Class7]*/
+    field1 = 42;
+    /*update: [exact=Class7]*/
+    field2 = 87;
   }
 }
 

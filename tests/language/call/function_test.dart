@@ -44,6 +44,8 @@ void main() {
   var s = (FooType).toString();
   var minified = s != 'FooType'; // dart2js --minify has minified names.
   dynamic d = null;
-  Expect.throws(() => d(),
-      (e) => e is NoSuchMethodError && (minified || '$e'.contains('call')));
+  Expect.throws(
+    () => d(),
+    (e) => e is NoSuchMethodError && (minified || '$e'.contains('call')),
+  );
 }

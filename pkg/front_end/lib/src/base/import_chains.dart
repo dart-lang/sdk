@@ -100,12 +100,11 @@ abstract class LoadedLibraries {
 
 class LoadedLibrariesImpl implements LoadedLibraries {
   /// The library of the compilation entry point.
-  final CompilationUnit rootCompilationUnit;
+  final List<CompilationUnit> rootCompilationUnits;
   final Map<Uri, CompilationUnit> compilationUnits = {};
 
-  // TODO(johnniwinther): Support multiple entry-points.
   LoadedLibrariesImpl(
-      this.rootCompilationUnit, Iterable<CompilationUnit> compilationUnits) {
+      this.rootCompilationUnits, Iterable<CompilationUnit> compilationUnits) {
     compilationUnits.forEach((CompilationUnit compilationUnit) {
       this.compilationUnits[compilationUnit.importUri] = compilationUnit;
     });
@@ -183,12 +182,14 @@ class LoadedLibrariesImpl implements LoadedLibraries {
       return;
     }
 
-    computeSuffixes(rootCompilationUnit, const Link<Uri>());
+    for (CompilationUnit rootCompilationUnit in rootCompilationUnits) {
+      computeSuffixes(rootCompilationUnit, const Link<Uri>());
+    }
   }
 
   @override
   String toString() =>
-      'root=$rootCompilationUnit,compilationUnits=${compilationUnits.keys}';
+      'roots=$rootCompilationUnits,compilationUnits=${compilationUnits.keys}';
 }
 
 /// [CodeLocation] divides uris into different classes.

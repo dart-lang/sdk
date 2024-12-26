@@ -21,7 +21,8 @@ main() async {
   // inferred type-arguments
   // lib.list = <lib.B>[]; // Compile time error(see tests/web)
   lib.list = []; // no error, but type parameter was injected here
-  lib.list = lib.list
-      .map(/*closure_unit=main{}*/ (x) => x!.value)
-      .toList(); // no Compile error, type parameter inferred on closure and map<T>.
+  lib.list =
+      lib.list
+          .map(/*closure_unit=main{}*/ (x) => x!.value)
+          .toList(); // no Compile error, type parameter inferred on closure and map<T>.
 }

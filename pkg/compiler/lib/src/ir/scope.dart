@@ -12,10 +12,11 @@ class ScopeModel {
   final VariableScopeModel? variableScopeModel;
   final EvaluationComplexity initializerComplexity;
 
-  const ScopeModel(
-      {this.closureScopeModel,
-      this.variableScopeModel,
-      required this.initializerComplexity});
+  const ScopeModel({
+    this.closureScopeModel,
+    this.variableScopeModel,
+    required this.initializerComplexity,
+  });
 
   /// Inspect members and mark if those members capture any state that needs to
   /// be marked as free variables.
@@ -74,7 +75,7 @@ class VariableScopeImpl implements VariableScope {
   }
 
   void registerAssignedVariable(ir.VariableDeclaration variable) {
-    _assignedVariables ??= Set<ir.VariableDeclaration>();
+    _assignedVariables ??= <ir.VariableDeclaration>{};
     _assignedVariables!.add(variable);
   }
 
@@ -95,7 +96,7 @@ mixin VariableCollectorMixin {
   VariableScopeImpl? currentVariableScope;
   VariableScopeModelImpl variableScopeModel = VariableScopeModelImpl();
 
-  void visitInVariableScope(ir.TreeNode root, void f()) {
+  void visitInVariableScope(ir.TreeNode root, void Function() f) {
     VariableScopeImpl? oldScope = currentVariableScope;
     final newScope =
         currentVariableScope = variableScopeModel.createScopeFor(root);

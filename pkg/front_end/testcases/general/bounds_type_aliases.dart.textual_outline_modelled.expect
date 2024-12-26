@@ -40,22 +40,20 @@ typedef T7 = F<Object>;
 
 typedef T8 = F<int>;
 
-typedef Typedef1 =
-    void Function<
-      T1 extends F,
-      T2 extends F<dynamic>,
-      T3 extends F<Class>,
-      T4 extends F<Class<dynamic>>,
-      T5 extends F<ConcreteClass>,
-      T6 extends F<Class<ConcreteClass>>,
-      T7 extends F<Object>,
-      T8 extends F<int>,
-      S1 extends G,
-      S2 extends G<dynamic>,
-      S3 extends G<Class>,
-      S4 extends G<Class<dynamic>>,
-      S5 extends G<ConcreteClass>,
-      S6 extends G<Class<ConcreteClass>>,
-      S7 extends G<Object>,
-      S8 extends G<int>
-    >();
+typedef Typedef1 = void Function<
+    T1 extends F,
+    T2 extends F<dynamic>,
+    T3 extends F<Class>,
+    T4 extends F<Class<dynamic>>,
+    T5 extends F<ConcreteClass>,
+    T6 extends F<Class<ConcreteClass>>,
+    T7 extends F<Object>,
+    T8 extends F<int>,
+    S1 extends G,
+    S2 extends G<dynamic>,
+    S3 extends G<Class>,
+    S4 extends G<Class<dynamic>>,
+    S5 extends G<ConcreteClass>,
+    S6 extends G<Class<ConcreteClass>>,
+    S7 extends G<Object>,
+    S8 extends G<int>>();

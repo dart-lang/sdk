@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Other-library declarations used by 
+// Other-library declarations used by
 // final_class_typedef_subtype_error_test.dart and
 // final_class_typedef_test.dart.
 

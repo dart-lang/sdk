@@ -76,7 +76,7 @@ class CreateField extends CreateFieldOrGetter {
     }
     // Prepare target `ClassDeclaration`.
     var targetFragment = targetElement.firstFragment;
-    var targetDeclarationResult = await sessionHelper.getElementDeclaration2(
+    var targetDeclarationResult = await sessionHelper.getElementDeclaration(
       targetFragment,
     );
     if (targetDeclarationResult == null) {
@@ -167,7 +167,7 @@ class CreateField extends CreateFieldOrGetter {
         staticModifier = targetElement.kind == ElementKind.CLASS;
       }
     } else {
-      targetClassElement = node.enclosingInterfaceElement2;
+      targetClassElement = node.enclosingInterfaceElement;
       staticModifier = inStaticContext;
     }
 

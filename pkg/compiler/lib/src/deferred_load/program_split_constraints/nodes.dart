@@ -51,7 +51,7 @@ class ReferenceNode extends NamedNode {
     return {
       'type': 'reference',
       'name': name,
-      'import': _uriAndPrefix.toString()
+      'import': _uriAndPrefix.toString(),
     };
   }
 
@@ -60,7 +60,9 @@ class ReferenceNode extends NamedNode {
       throw 'Unrecognized type for reference node: ${nodeJson['type']}.';
     }
     return ReferenceNode(
-        nodeJson['name'], UriAndPrefix.fromJson(nodeJson['import']));
+      nodeJson['name'],
+      UriAndPrefix.fromJson(nodeJson['import']),
+    );
   }
 
   @override
@@ -103,7 +105,10 @@ T _jsonLookup<T>(Map<String, dynamic> nodeJson, String key) {
 }
 
 NamedNode _jsonLookupNode(
-    Map<String, dynamic> nodeJson, String key, Map<String, NamedNode> nameMap) {
+  Map<String, dynamic> nodeJson,
+  String key,
+  Map<String, NamedNode> nameMap,
+) {
   var node = nameMap[_jsonLookup(nodeJson, key)];
   if (node == null) {
     throw 'Invalid "$key" name in $nodeJson';
@@ -124,12 +129,14 @@ class CombinerNode extends NamedNode {
     return {
       'type': combinerTypeToString(type),
       'name': name,
-      'nodes': nodes.map((node) => node.name).toList()
+      'nodes': nodes.map((node) => node.name).toList(),
     };
   }
 
   static CombinerNode fromJson(
-      Map<String, dynamic> nodeJson, Map<String, NamedNode> nameMap) {
+    Map<String, dynamic> nodeJson,
+    Map<String, NamedNode> nameMap,
+  ) {
     String name = _jsonLookup(nodeJson, 'name');
     List<dynamic> referencesJson = _jsonLookup(nodeJson, 'nodes');
     Set<ReferenceNode> references = {};
@@ -163,12 +170,14 @@ class RelativeOrderNode extends OrderNode {
     return {
       'type': 'relative_order',
       'predecessor': predecessor.name,
-      'successor': successor.name
+      'successor': successor.name,
     };
   }
 
   static RelativeOrderNode fromJson(
-      Map<String, dynamic> nodeJson, Map<String, NamedNode> nameMap) {
+    Map<String, dynamic> nodeJson,
+    Map<String, NamedNode> nameMap,
+  ) {
     var predecessor = _jsonLookupNode(nodeJson, 'predecessor', nameMap);
     var successor = _jsonLookupNode(nodeJson, 'successor', nameMap);
     return RelativeOrderNode(predecessor: predecessor, successor: successor);
@@ -194,7 +203,9 @@ class FuseNode extends OrderNode {
   }
 
   static FuseNode fromJson(
-      Map<String, dynamic> nodeJson, Map<String, NamedNode> nameMap) {
+    Map<String, dynamic> nodeJson,
+    Map<String, NamedNode> nameMap,
+  ) {
     List<dynamic> referencesJson = _jsonLookup(nodeJson, 'nodes');
     Set<NamedNode> nodes = {};
     for (final reference in referencesJson) {
@@ -268,15 +279,17 @@ class ProgramSplitBuilder {
   /// Creates an unnamed [RelativeOrderNode] referencing two [NamedNode]s.
   RelativeOrderNode orderNode(String predecessor, String successor) {
     return RelativeOrderNode(
-        predecessor: _lookupNamedNode(predecessor),
-        successor: _lookupNamedNode(successor));
+      predecessor: _lookupNamedNode(predecessor),
+      successor: _lookupNamedNode(successor),
+    );
   }
 
   /// Creates a [CombinerNode] which can be referenced by [name] in further
   /// calls to the builder.
   CombinerNode combinerNode(String name, Set<String> nodes, CombinerType type) {
     return _addNamedNode(
-        CombinerNode(name, type, nodes.map(_lookupReferenceNode).toSet()));
+      CombinerNode(name, type, nodes.map(_lookupReferenceNode).toSet()),
+    );
   }
 
   /// Creates an 'and' [CombinerNode] which can be referenced by [name] in

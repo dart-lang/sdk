@@ -16,12 +16,14 @@ final nativeLib = dlopenPlatformSpecific('ffi_test_functions');
 final getRootLibraryUrl = nativeLib
     .lookupFunction<Handle Function(), Object Function()>('GetRootLibraryUrl');
 
-final setFfiNativeResolverForTest =
-    nativeLib.lookupFunction<Void Function(Handle), void Function(Object)>(
-        'SetFfiNativeResolverForTest');
+final setFfiNativeResolverForTest = nativeLib
+    .lookupFunction<Void Function(Handle), void Function(Object)>(
+      'SetFfiNativeResolverForTest',
+    );
 
 @Native<Handle Function(Handle, IntPtr, IntPtr)>(
-    symbol: 'Dart_SetNativeInstanceField')
+  symbol: 'Dart_SetNativeInstanceField',
+)
 external Object setNativeInstanceField(Object obj, int index, int ptr);
 
 // Basic Native test functions.
@@ -65,16 +67,20 @@ base class ClassWithNativeField extends NativeFieldWrapperClass1 {
   external int addSelfPtrAndPtrMethod(ClassWithNativeField other);
 
   @Native<IntPtr Function(Handle, Pointer<Void>)>(
-      symbol: 'AddHandleFieldAndPtr')
+    symbol: 'AddHandleFieldAndPtr',
+  )
   external int addSelfHandleFieldAndPtrMethod(ClassWithNativeField other);
 
   @Native<IntPtr Function(Handle, Handle)>(
-      symbol: 'AddHandleFieldAndHandleField')
+    symbol: 'AddHandleFieldAndHandleField',
+  )
   external int addSelfHandleFieldAndHandleFieldMethod(
-      ClassWithNativeField other);
+    ClassWithNativeField other,
+  );
 
   @Native<IntPtr Function(Pointer<Void>, Handle)>(
-      symbol: 'AddPtrAndHandleField')
+    symbol: 'AddPtrAndHandleField',
+  )
   external int addselfPtrAndHandleFieldMethod(ClassWithNativeField other);
 }
 
@@ -146,28 +152,38 @@ void main() {
   Expect.equals(234, ClassWithoutNativeField().returnIntPtrMethod(234));
   Expect.equals(1012, ClassWithNativeField(12).addSelfPtrAndIntMethod(1000));
   Expect.equals(
-      2021, ClassWithNativeField(21).addSelfHandleFieldAndIntMethod(2000));
+    2021,
+    ClassWithNativeField(21).addSelfHandleFieldAndIntMethod(2000),
+  );
   Expect.equals(
-      3031,
-      ClassWithNativeField(31)
-          .addSelfPtrAndPtrMethod(ClassWithNativeField(3000)));
+    3031,
+    ClassWithNativeField(31).addSelfPtrAndPtrMethod(ClassWithNativeField(3000)),
+  );
   Expect.equals(
-      4041,
-      ClassWithNativeField(41)
-          .addSelfHandleFieldAndPtrMethod(ClassWithNativeField(4000)));
+    4041,
+    ClassWithNativeField(
+      41,
+    ).addSelfHandleFieldAndPtrMethod(ClassWithNativeField(4000)),
+  );
   Expect.equals(
-      5051,
-      ClassWithNativeField(51)
-          .addSelfHandleFieldAndHandleFieldMethod(ClassWithNativeField(5000)));
+    5051,
+    ClassWithNativeField(
+      51,
+    ).addSelfHandleFieldAndHandleFieldMethod(ClassWithNativeField(5000)),
+  );
   Expect.equals(
-      6061,
-      ClassWithNativeField(61)
-          .addselfPtrAndHandleFieldMethod(ClassWithNativeField(6000)));
+    6061,
+    ClassWithNativeField(
+      61,
+    ).addselfPtrAndHandleFieldMethod(ClassWithNativeField(6000)),
+  );
   Expect.throws(() {
-    ClassWithNativeField(nullptr.address)
-        .addSelfPtrAndPtrMethod(ClassWithNativeField(7000));
+    ClassWithNativeField(
+      nullptr.address,
+    ).addSelfPtrAndPtrMethod(ClassWithNativeField(7000));
   });
   // Does not throw.
-  ClassWithNativeField(8000)
-      .addSelfPtrAndPtrMethod(ClassWithNativeField(nullptr.address));
+  ClassWithNativeField(
+    8000,
+  ).addSelfPtrAndPtrMethod(ClassWithNativeField(nullptr.address));
 }

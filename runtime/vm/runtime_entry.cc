@@ -1359,7 +1359,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   // This is guaranteed on the calling side.
   ASSERT(!dst_type.IsDynamicType());
 
-  const bool is_instance_of = src_instance.IsAssignableTo(
+  const bool is_instance_of = src_instance.IsInstanceOf(
       dst_type, instantiator_type_arguments, function_type_arguments);
 
   if (FLAG_trace_type_checks) {
@@ -1433,7 +1433,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       if (result.IsError()) {
         Exceptions::PropagateError(Error::Cast(result));
       }
-      // IsAssignableTo returned false, so we should have thrown a type
+      // IsInstanceOf returned false, so we should have thrown a type
       // error in DoArgumentsTypesMatch.
       UNREACHABLE();
     }
@@ -3241,7 +3241,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     JSONStream js;
     const bool success =
         isolate_group->ReloadSources(&js, /*force_reload=*/true, script_uri);
-    if (!success) {
+    if (!success && !Dart::IsShuttingDown()) {
       FATAL("*** Isolate reload failed:\n%s\n", js.ToCString());
     }
   }

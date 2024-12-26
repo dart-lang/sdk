@@ -39,16 +39,20 @@ class C extends B {}
 
 main() async {
   // Initializer part of a C-style for loop
-  for (await ((null as Future<B>?) ??
-          (Future.value(C())..expectStaticType<Exactly<Future<C>>>()));
-      false;) {}
+  for (
+    await ((null as Future<B>?) ??
+        (Future.value(C())..expectStaticType<Exactly<Future<C>>>()));
+    false;
+  ) {}
 
   // Updater part of a C-style for loop
-  for (var i = 0;
-      i < 1;
-      i++,
-      await ((null as Future<B>?) ??
-          (Future.value(C())..expectStaticType<Exactly<Future<C>>>()))) {}
+  for (
+    var i = 0;
+    i < 1;
+    i++,
+    await ((null as Future<B>?) ??
+        (Future.value(C())..expectStaticType<Exactly<Future<C>>>()))
+  ) {}
 
   // Target of a property set
   (await ((null as Future<B>?) ??
@@ -63,9 +67,10 @@ main() async {
   // Assert statement message
   try {
     assert(
-        false,
-        await ((null as Future<B>?) ??
-            (Future.value(C())..expectStaticType<Exactly<Future<C>>>())));
+      false,
+      await ((null as Future<B>?) ??
+          (Future.value(C())..expectStaticType<Exactly<Future<C>>>())),
+    );
   } on AssertionError {}
 
   // Expression statement

@@ -8,9 +8,10 @@ import 'ffi_test_helpers.dart';
 
 main() {
   // Ensure we have FfiTrampolineData in heap.
-  final malloc = DynamicLibrary.process()
-      .lookup<NativeFunction<Pointer<Void> Function(IntPtr)>>("malloc")
-      .asFunction<Pointer<Void> Function(int)>();
+  final malloc =
+      DynamicLibrary.process()
+          .lookup<NativeFunction<Pointer<Void> Function(IntPtr)>>("malloc")
+          .asFunction<Pointer<Void> Function(int)>();
   print(malloc);
 
   triggerGc();

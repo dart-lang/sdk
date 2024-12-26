@@ -23,17 +23,19 @@ void main() async {
   const int count = 50;
   final futures = <Future>[];
   for (int i = 0; i < count; ++i) {
-    futures.add(Isolate.run(() async {
-      // First make the callback pointer.
-      final callbackFunctionPointer =
-          Pointer.fromFunction<SimpleAdditionType>(simpleAddition, 0);
+    futures.add(
+      Isolate.run(() async {
+        // First make the callback pointer.
+        final callbackFunctionPointer =
+            Pointer.fromFunction<SimpleAdditionType>(simpleAddition, 0);
 
-      // Then cause suspenion of [Thread].
-      await Future.delayed(const Duration(seconds: 1));
+        // Then cause suspenion of [Thread].
+        await Future.delayed(const Duration(seconds: 1));
 
-      // Then make use of callback.
-      CallbackTest("SimpleAddition", callbackFunctionPointer).run();
-    }));
+        // Then make use of callback.
+        CallbackTest("SimpleAddition", callbackFunctionPointer).run();
+      }),
+    );
   }
   await Future.wait(futures);
 }

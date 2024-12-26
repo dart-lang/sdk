@@ -29,7 +29,8 @@ class Class1 extends Super1 {
   /*member: Class1.:[exact=Class1]*/
   Class1() {
     super.method();
-    /*update: [exact=Class1]*/ field = 42;
+    /*update: [exact=Class1]*/
+    field = 42;
   }
 }
 
@@ -53,7 +54,8 @@ class Class2 extends Super2 {
   /*member: Class2.:[exact=Class2]*/
   Class2() {
     super.getter;
-    /*update: [exact=Class2]*/ field = 42;
+    /*update: [exact=Class2]*/
+    field = 42;
   }
 }
 
@@ -76,7 +78,8 @@ class Class3 extends Super3 {
   /*member: Class3.:[exact=Class3]*/
   Class3() {
     super.setter = null;
-    /*update: [exact=Class3]*/ field = 42;
+    /*update: [exact=Class3]*/
+    field = 42;
   }
 }
 
@@ -103,7 +106,8 @@ class Class4 extends Super4 {
 
   /*member: Class4.:[exact=Class4]*/
   Class4() {
-    /*update: [exact=Class4]*/ field = 42;
+    /*update: [exact=Class4]*/
+    field = 42;
   }
 }
 

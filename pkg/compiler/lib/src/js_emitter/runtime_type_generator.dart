@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_emitter.runtime_type_generator;
+library;
 
 import '../common/elements.dart' show CommonElements;
 import '../deferred_load/output_unit.dart' show OutputUnit, OutputUnitData;
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../js/js.dart' as jsAst;
+import '../js/js.dart' as js_ast;
 import '../js/js.dart' show js;
 import '../js_backend/namer.dart' show Namer;
 import '../js_backend/runtime_types.dart' show RuntimeTypesChecks;
@@ -20,12 +20,12 @@ import '../util/util.dart' show Setlet;
 import 'js_emitter.dart' show CodeEmitterTask;
 
 // Function signatures used in the generation of runtime type information.
-typedef FunctionTypeSignatureEmitter = void Function(
-    ClassFunctionType classFunctionType);
+typedef FunctionTypeSignatureEmitter =
+    void Function(ClassFunctionType classFunctionType);
 
 class TypeTest {
-  final jsAst.Name name;
-  final jsAst.Node expression;
+  final js_ast.Name name;
+  final js_ast.Node expression;
 
   TypeTest(this.name, this.expression);
 }
@@ -44,31 +44,36 @@ class TypeTestProperties {
   /// If the is tests were generated with `storeFunctionTypeInMetadata` set to
   /// `false`, this field is `null`, and the [properties] contain a property
   /// that encodes the function type.
-  jsAst.Expression? functionTypeIndex;
+  js_ast.Expression? functionTypeIndex;
 
   /// The properties that must be installed on the prototype of the
   /// JS constructor of the [ClassEntity] for which the is checks were
   /// generated.
   final Map<ClassEntity, TypeTests> _properties = {};
 
-  void addIsTest(ClassEntity cls, jsAst.Name name, jsAst.Node expression) {
+  void addIsTest(ClassEntity cls, js_ast.Name name, js_ast.Node expression) {
     TypeTests typeTests = _properties.putIfAbsent(cls, () => TypeTests());
     typeTests.isTest = TypeTest(name, expression);
   }
 
   void addSubstitution(
-      ClassEntity cls, jsAst.Name name, jsAst.Node expression) {
+    ClassEntity cls,
+    js_ast.Name name,
+    js_ast.Node expression,
+  ) {
     TypeTests typeTests = _properties.putIfAbsent(cls, () => TypeTests());
     typeTests.substitution = TypeTest(name, expression);
   }
 
-  void addSignature(ClassEntity cls, jsAst.Name name, jsAst.Node expression) {
+  void addSignature(ClassEntity cls, js_ast.Name name, js_ast.Node expression) {
     TypeTests typeTests = _properties.putIfAbsent(cls, () => TypeTests());
     typeTests.signature = TypeTest(name, expression);
   }
 
   void forEachProperty(
-      Sorter sorter, void f(jsAst.Name name, jsAst.Node expression)) {
+    Sorter sorter,
+    void Function(js_ast.Name name, js_ast.Node expression) f,
+  ) {
     void handleTypeTest(TypeTest? typeTest) {
       if (typeTest == null) return;
       f(typeTest.name, typeTest.expression);
@@ -90,10 +95,16 @@ class RuntimeTypeGenerator {
   final RuntimeTypesChecks _rtiChecks;
   final _TypeContainedInOutputUnitVisitor _outputUnitVisitor;
 
-  RuntimeTypeGenerator(CommonElements _commonElements, this._outputUnitData,
-      this.emitterTask, this._namer, this._rtiChecks)
-      : _outputUnitVisitor =
-            _TypeContainedInOutputUnitVisitor(_commonElements, _outputUnitData);
+  RuntimeTypeGenerator(
+    CommonElements commonElements,
+    this._outputUnitData,
+    this.emitterTask,
+    this._namer,
+    this._rtiChecks,
+  ) : _outputUnitVisitor = _TypeContainedInOutputUnitVisitor(
+        commonElements,
+        _outputUnitData,
+      );
 
   /// Generate "is tests" for [cls] itself, and the "is tests" for the
   /// classes it implements and type argument substitution functions for these
@@ -111,9 +122,11 @@ class RuntimeTypeGenerator {
   /// type (if class has one) in the metadata object and stores its index in
   /// the result. This is only possible for function types that do not contain
   /// type variables.
-  TypeTestProperties generateIsTests(ClassEntity classElement,
-      Map<MemberEntity, jsAst.Expression> generatedCode,
-      {bool storeFunctionTypeInMetadata = true}) {
+  TypeTestProperties generateIsTests(
+    ClassEntity classElement,
+    Map<MemberEntity, js_ast.Expression> generatedCode, {
+    bool storeFunctionTypeInMetadata = true,
+  }) {
     TypeTestProperties result = TypeTestProperties();
 
     // TODO(johnniwinther): Include function signatures in [ClassChecks].
@@ -125,41 +138,49 @@ class RuntimeTypeGenerator {
       // signatures. We either need them for mirrors or because [type] is
       // potentially a subtype of a checked function. Currently we eagerly
       // generate a function type index or signature for all callable classes.
-      jsAst.Expression? functionTypeIndex;
+      js_ast.Expression? functionTypeIndex;
       bool isDeferred = false;
       if (!type.containsTypeVariables) {
         // TODO(sigmund): use output unit of [method] when the classes mentioned
         // in [type] aren't in the main output unit. (Issue #31032)
         OutputUnit mainOutputUnit = _outputUnitData.mainOutputUnit;
         if (_outputUnitVisitor.isTypeContainedIn(type, mainOutputUnit)) {
-          functionTypeIndex =
-              emitterTask.metadataCollector.reifyType(type, mainOutputUnit);
+          functionTypeIndex = emitterTask.metadataCollector.reifyType(
+            type,
+            mainOutputUnit,
+          );
         } else if (!storeFunctionTypeInMetadata) {
           // TODO(johnniwinther): Support sharing deferred signatures with the
           // full emitter.
           isDeferred = true;
-          functionTypeIndex = emitterTask.metadataCollector
-              .reifyType(type, _outputUnitData.outputUnitForMember(method));
+          functionTypeIndex = emitterTask.metadataCollector.reifyType(
+            type,
+            _outputUnitData.outputUnitForMember(method),
+          );
         }
       }
       if (storeFunctionTypeInMetadata && functionTypeIndex != null) {
         result.functionTypeIndex = functionTypeIndex;
       } else {
-        jsAst.Expression? encoding =
+        js_ast.Expression? encoding =
             generatedCode[classFunctionType.signatureFunction];
         if (functionTypeIndex != null) {
           if (isDeferred) {
             // The function type index must be offset by the number of types
             // already loaded.
-            encoding = jsAst.Binary('+',
-                jsAst.VariableUse(_namer.typesOffsetName), functionTypeIndex);
+            encoding = js_ast.Binary(
+              '+',
+              js_ast.VariableUse(_namer.typesOffsetName),
+              functionTypeIndex,
+            );
           } else {
             encoding = functionTypeIndex;
           }
         }
         if (encoding != null) {
-          jsAst.Name operatorSignature =
-              _namer.asName(_namer.fixedNames.operatorSignature);
+          js_ast.Name operatorSignature = _namer.asName(
+            _namer.fixedNames.operatorSignature,
+          );
           result.addSignature(classElement, operatorSignature, encoding);
         }
       }
@@ -169,20 +190,27 @@ class RuntimeTypeGenerator {
       ClassEntity checkedClass = check.cls;
       if (check.needsIs) {
         result.addIsTest(
-            checkedClass, _namer.operatorIs(checkedClass), js('1'));
+          checkedClass,
+          _namer.operatorIs(checkedClass),
+          js('1'),
+        );
       }
     }
 
     _generateIsTestsOn(
-        classElement, generateFunctionTypeSignature, generateTypeCheck);
+      classElement,
+      generateFunctionTypeSignature,
+      generateTypeCheck,
+    );
 
     return result;
   }
 
   void _generateIsTestsOn(
-      ClassEntity cls,
-      FunctionTypeSignatureEmitter generateFunctionTypeSignature,
-      void emitTypeCheck(TypeCheck check)) {
+    ClassEntity cls,
+    FunctionTypeSignatureEmitter generateFunctionTypeSignature,
+    void Function(TypeCheck check) emitTypeCheck,
+  ) {
     Setlet<ClassEntity> generated = Setlet();
 
     // Precomputed is checks.
@@ -271,7 +299,8 @@ class _TypeContainedInOutputUnitVisitor
 
   @override
   bool visitFunctionType(FunctionType type, OutputUnit argument) {
-    bool result = visit(type.returnType, argument) &&
+    bool result =
+        visit(type.returnType, argument) &&
         visitList(type.parameterTypes, argument) &&
         visitList(type.optionalParameterTypes, argument) &&
         visitList(type.namedParameterTypes, argument);
@@ -286,7 +315,9 @@ class _TypeContainedInOutputUnitVisitor
 
   @override
   bool visitFunctionTypeVariable(
-      FunctionTypeVariable type, OutputUnit argument) {
+    FunctionTypeVariable type,
+    OutputUnit argument,
+  ) {
     return true;
   }
 

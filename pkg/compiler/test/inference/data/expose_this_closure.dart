@@ -23,9 +23,7 @@ class Class1 {
   var field2;
 
   /*member: Class1.:[exact=Class1]*/
-  Class1()
-      : field1 = 42,
-        field2 = 87;
+  Class1() : field1 = 42, field2 = 87;
 }
 
 /*member: exposeThis1:[exact=Class1]*/
@@ -43,8 +41,10 @@ class Class2 {
 
   /*member: Class2.:[exact=Class2]*/
   Class2() {
-    /*update: [exact=Class2]*/ field1 = 42;
-    /*update: [exact=Class2]*/ field2 = 87;
+    /*update: [exact=Class2]*/
+    field1 = 42;
+    /*update: [exact=Class2]*/
+    field2 = 87;
   }
 }
 
@@ -62,10 +62,9 @@ class Class4 {
   var field2;
 
   /*member: Class4.:[exact=Class4]*/
-  Class4()
-      : field1 = 42,
-        field2 = 87 {
-    /*[exact=JSUInt31]*/ () {
+  Class4() : field1 = 42, field2 = 87 {
+    /*[exact=JSUInt31]*/
+    () {
       return 42;
     };
   }
@@ -86,11 +85,14 @@ class Class5 {
 
   /*member: Class5.:[exact=Class5]*/
   Class5() {
-    /*update: [exact=Class5]*/ field1 = 42;
-    /*[exact=JSUInt31]*/ () {
+    /*update: [exact=Class5]*/
+    field1 = 42;
+    /*[exact=JSUInt31]*/
+    () {
       return 42;
     };
-    /*update: [exact=Class5]*/ field2 = 87;
+    /*update: [exact=Class5]*/
+    field2 = 87;
   }
 }
 

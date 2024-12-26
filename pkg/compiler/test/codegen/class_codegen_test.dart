@@ -81,10 +81,14 @@ twoClasses() async {
 
 subClass() async {
   checkOutput(String generated) {
-    Expect.isTrue(generated
-        .contains(RegExp(r'_inheritMany\([$A-Z]+\.Object, .*, [$A-Z]+\.A]')));
     Expect.isTrue(
-        generated.contains(RegExp(r'_inherit\([$A-Z]+\.B, [$A-Z]+\.A\)')));
+      generated.contains(
+        RegExp(r'_inheritMany\([$A-Z]+\.Object, .*, [$A-Z]+\.A]'),
+      ),
+    );
+    Expect.isTrue(
+      generated.contains(RegExp(r'_inherit\([$A-Z]+\.B, [$A-Z]+\.A\)')),
+    );
   }
 
   checkOutput(await compileAll(TEST_TWO));
@@ -93,16 +97,24 @@ subClass() async {
 
 fieldTest() async {
   String generated = await compileAll(TEST_FOUR);
-  Expect.isTrue(generated.contains(RegExp(r'B: function B\(t0, t1, t2\) {'
-      r'\s*this.y = t0;'
-      r'\s*this.z = t1;'
-      r'\s*this.x = t2;')));
+  Expect.isTrue(
+    generated.contains(
+      RegExp(
+        r'B: function B\(t0, t1, t2\) {'
+        r'\s*this.y = t0;'
+        r'\s*this.z = t1;'
+        r'\s*this.x = t2;',
+      ),
+    ),
+  );
 }
 
 constructor1() async {
   String generated = await compileAll(TEST_FIVE);
-  Expect.isTrue(generated.contains(new RegExp(r"new [$A-Z]+\.A\(a\);")),
-      '--------------------\n$generated\n');
+  Expect.isTrue(
+    generated.contains(new RegExp(r"new [$A-Z]+\.A\(a\);")),
+    '--------------------\n$generated\n',
+  );
 }
 
 main() {

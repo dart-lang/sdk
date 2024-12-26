@@ -1,7 +1,9 @@
 import 'field_promotion_and_no_such_method_lib.dart' as otherLib;
 
 abstract class C {
-  C(int? i) : _f1 = i, _f2 = i;
+  C(int? i)
+      : _f1 = i,
+        _f2 = i;
   final int? _f1;
   final int? _f2;
 }

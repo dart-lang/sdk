@@ -17,9 +17,7 @@ int E(int i) {
 
 class A {
   // f closes-over arg.  arg needs to be preserved while b2 is initialized.
-  A(arg)
-      : a = E(arg += 1),
-        f = (() => E(arg += 10)) {
+  A(arg) : a = E(arg += 1), f = (() => E(arg += 10)) {
     // b2 should be initialized between the above initializers and the following
     // statements.
     var r1 = f();
@@ -32,10 +30,7 @@ class A {
 
 class B extends A {
   // Initializers in order: b1, super, b2.
-  B(x, y)
-      : b1 = E(x++),
-        b2 = E(y++),
-        super(1000) {
+  B(x, y) : b1 = E(x++), b2 = E(y++), super(1000) {
     // Implicit super call to A's body happens here.
     E(x);
     E(y);

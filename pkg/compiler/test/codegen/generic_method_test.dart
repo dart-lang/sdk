@@ -28,11 +28,15 @@ void main () {
 
 main() {
   test() async {
-    await compile(TEST, enableTypeAssertions: true, disableInlining: false,
-        check: (generated) {
-      // 'foo' should be inlined and no type arg should be needed.
-      Expect.isFalse(generated.contains('foo'));
-    });
+    await compile(
+      TEST,
+      enableTypeAssertions: true,
+      disableInlining: false,
+      check: (generated) {
+        // 'foo' should be inlined and no type arg should be needed.
+        Expect.isFalse(generated.contains('foo'));
+      },
+    );
   }
 
   asyncTest(() async {

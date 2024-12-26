@@ -15,12 +15,16 @@
 /// number may have a lot more variability depending on system conditions.
 /// Our goal with this number is not so much to be exact, but to have a good
 /// metric we can track overtime and use to detect improvements and regressions.
+library;
+
 import 'dart:developer';
 import 'package:vm_service/vm_service_io.dart' as vm_service_io;
 
 Future<int?> _currentHeapCapacity() async {
-  final info =
-      await Service.controlWebServer(enable: true, silenceOutput: true);
+  final info = await Service.controlWebServer(
+    enable: true,
+    silenceOutput: true,
+  );
   final observatoryUri = info.serverUri;
   if (observatoryUri == null) return null;
   final wsUri = 'ws://${observatoryUri.authority}${observatoryUri.path}ws';

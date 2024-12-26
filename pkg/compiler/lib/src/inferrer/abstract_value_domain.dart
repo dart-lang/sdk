@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.abstract_value_domain;
+library;
 
 import '../common/metrics.dart';
 import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
@@ -17,52 +17,51 @@ import '../universe/selector.dart';
 /// Abstract booleans used for reporting known and unknown truth values.
 enum AbstractBool {
   /// Used when the property is known _never_ to be true.
-  False,
+  false_,
 
   /// Used when the property is known _always_ to be true.
-  True,
+  true_,
 
   /// Used when the property might or might not be true.
-  Maybe,
-  ;
+  maybe;
 
-  bool get isDefinitelyTrue => this == True;
+  bool get isDefinitelyTrue => this == true_;
 
-  bool get isPotentiallyTrue => this != False;
+  bool get isPotentiallyTrue => this != false_;
 
-  bool get isDefinitelyFalse => this == False;
+  bool get isDefinitelyFalse => this == false_;
 
-  bool get isPotentiallyFalse => this != True;
+  bool get isPotentiallyFalse => this != true_;
 
-  static AbstractBool trueOrMaybe(bool value) => value ? True : Maybe;
+  static AbstractBool trueOrMaybe(bool value) => value ? true_ : maybe;
 
-  static AbstractBool trueOrFalse(bool value) => value ? True : False;
+  static AbstractBool trueOrFalse(bool value) => value ? true_ : false_;
 
-  static AbstractBool maybeOrFalse(bool value) => value ? Maybe : False;
+  static AbstractBool maybeOrFalse(bool value) => value ? maybe : false_;
 
   static AbstractBool strengthen(AbstractBool a, AbstractBool b) {
     //TODO(coam): Assert arguments a and b are consistent
-    return a.isDefinitelyTrue ? True : (a.isDefinitelyFalse ? False : b);
+    return a.isDefinitelyTrue ? true_ : (a.isDefinitelyFalse ? false_ : b);
   }
 
   AbstractBool operator &(AbstractBool other) {
     if (isDefinitelyTrue) return other;
     if (other.isDefinitelyTrue) return this;
-    if (isDefinitelyFalse || other.isDefinitelyFalse) return False;
-    return Maybe;
+    if (isDefinitelyFalse || other.isDefinitelyFalse) return false_;
+    return maybe;
   }
 
   AbstractBool operator |(AbstractBool other) {
     if (isDefinitelyFalse) return other;
     if (other.isDefinitelyFalse) return this;
-    if (isDefinitelyTrue || other.isDefinitelyTrue) return True;
-    return Maybe;
+    if (isDefinitelyTrue || other.isDefinitelyTrue) return true_;
+    return maybe;
   }
 
   AbstractBool operator ~() {
-    if (isDefinitelyTrue) return AbstractBool.False;
-    if (isDefinitelyFalse) return AbstractBool.True;
-    return AbstractBool.Maybe;
+    if (isDefinitelyTrue) return AbstractBool.false_;
+    if (isDefinitelyFalse) return AbstractBool.true_;
+    return AbstractBool.maybe;
   }
 }
 
@@ -237,8 +236,10 @@ mixin AbstractValueDomain {
   /// [nullable] determines if the type in weak or legacy mode should be
   /// interpreted as nullable. This is passed as `false` for is-tests and `true`
   /// for as-checks and other contexts (e.g. parameter checks).
-  AbstractValueWithPrecision createFromStaticType(DartType type,
-      {required bool nullable});
+  AbstractValueWithPrecision createFromStaticType(
+    DartType type, {
+    required bool nullable,
+  });
 
   /// Creates an [AbstractValue] for a non-null exact instance of [cls].
   AbstractValue createNonNullExact(ClassEntity cls);
@@ -422,12 +423,16 @@ mixin AbstractValueDomain {
   /// Returns [AbstractValue] for the runtime values that [a] and [b] have in
   /// common.
   AbstractValue intersection(
-      covariant AbstractValue a, covariant AbstractValue b);
+    covariant AbstractValue a,
+    covariant AbstractValue b,
+  );
 
   /// Returns an [AbstractBool] that describes whether [a] and [b] have no
   /// runtime values in common.
   AbstractBool areDisjoint(
-      covariant AbstractValue a, covariant AbstractValue b);
+    covariant AbstractValue a,
+    covariant AbstractValue b,
+  );
 
   /// Returns an [AbstractBool] that describes whether [a] contains all non-null
   /// runtime values.
@@ -445,11 +450,12 @@ mixin AbstractValueDomain {
   /// The [allocationNode] is used to identify this particular map allocation.
   /// The [allocationElement] is used only for debugging.
   AbstractValue createContainerValue(
-      AbstractValue? originalValue,
-      Object? allocationNode,
-      MemberEntity? allocationElement,
-      AbstractValue elementType,
-      int? length);
+    AbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    AbstractValue elementType,
+    int? length,
+  );
 
   /// Returns the element type of [value] if it represents a container value
   /// at runtime. Returns [dynamicType] otherwise.
@@ -469,10 +475,11 @@ mixin AbstractValueDomain {
   /// The [allocationNode] is used to identify this particular set allocation.
   /// The [allocationElement] is used only for debugging.
   AbstractValue createSetValue(
-      AbstractValue? originalValue,
-      Object? allocationNode,
-      MemberEntity? allocationElement,
-      AbstractValue elementType);
+    AbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    AbstractValue elementType,
+  );
 
   /// Returns the element type of [value] if it represents a set value at
   /// runtime. Returns [dynamicType] otherwise.
@@ -487,11 +494,12 @@ mixin AbstractValueDomain {
   /// The [allocationNode] is used to identify this particular map allocation.
   /// The [allocationElement] is used only for debugging.
   AbstractValue createMapValue(
-      AbstractValue? originalValue,
-      Object? allocationNode,
-      MemberEntity? allocationElement,
-      AbstractValue key,
-      AbstractValue value);
+    AbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    AbstractValue key,
+    AbstractValue value,
+  );
 
   /// Returns the key type of [value] if it represents a map value at runtime.
   /// Returns [dynamicType] otherwise.
@@ -511,12 +519,13 @@ mixin AbstractValueDomain {
   /// The [allocationNode] is used to identify this particular map allocation.
   /// The [allocationElement] is used only for debugging.
   AbstractValue createDictionaryValue(
-      AbstractValue? originalValue,
-      Object? allocationNode,
-      MemberEntity? allocationElement,
-      AbstractValue key,
-      AbstractValue value,
-      Map<String, AbstractValue> mappings);
+    AbstractValue? originalValue,
+    Object? allocationNode,
+    MemberEntity? allocationElement,
+    AbstractValue key,
+    AbstractValue value,
+    Map<String, AbstractValue> mappings,
+  );
 
   /// Returns `true` if [value] is a dictionary value which contains [key] as
   /// a key.
@@ -547,7 +556,9 @@ mixin AbstractValueDomain {
   /// Specializations are created through [createPrimitiveValue],
   /// [createMapValue], [createDictionaryValue] and [createContainerValue].
   bool isSpecializationOf(
-      AbstractValue specialization, AbstractValue generalization);
+    AbstractValue specialization,
+    AbstractValue generalization,
+  );
 
   /// Returns the value of which [value] is a specialization. Return `null` if
   /// [value] is not a specialization.
@@ -576,7 +587,9 @@ mixin AbstractValueDomain {
   /// Creates a primitive value specialization of [originalValue] with the
   /// inferred primitive constant [value].
   AbstractValue createPrimitiveValue(
-      AbstractValue originalValue, PrimitiveConstantValue value);
+    AbstractValue originalValue,
+    PrimitiveConstantValue value,
+  );
 
   /// Returns the primitive JavaScript value of [value] if it represents a
   /// primitive JavaScript value at runtime, value at runtime. Returns `null`
@@ -590,12 +603,17 @@ mixin AbstractValueDomain {
   /// target when being invoked on a [receiver]. [name] is used to ensure
   /// library privacy is taken into account.
   AbstractBool isTargetingMember(
-      AbstractValue receiver, MemberEntity member, Name name);
+    AbstractValue receiver,
+    MemberEntity member,
+    Name name,
+  );
 
   /// Returns an [AbstractBool] that describes whether [selector] invoked on a
   /// [receiver] can hit a [noSuchMethod].
   AbstractBool needsNoSuchMethodHandling(
-      AbstractValue receiver, Selector selector);
+    AbstractValue receiver,
+    Selector selector,
+  );
 
   /// Returns the [AbstractValue] for the [parameterType] of a native
   /// method. May return `null`, for example, if [parameterType] is not modelled
@@ -633,8 +651,11 @@ mixin AbstractValueDomain {
   /// Returns a set of members that are ancestors of all possible targets for
   /// a call targeting [selector] on an entity with type represented by
   /// [receiver].
-  Iterable<DynamicCallTarget> findRootsOfTargets(AbstractValue receiver,
-      Selector selector, MemberHierarchyBuilder memberHierarchyBuilder);
+  Iterable<DynamicCallTarget> findRootsOfTargets(
+    AbstractValue receiver,
+    Selector selector,
+    MemberHierarchyBuilder memberHierarchyBuilder,
+  );
 
   /// Deserializes an [AbstractValue] for this domain from [source].
   AbstractValue readAbstractValueFromDataSource(DataSourceReader source);

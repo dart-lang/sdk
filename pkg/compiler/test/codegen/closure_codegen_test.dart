@@ -43,15 +43,27 @@ main() { A().foo(1); }
 """;
 
 Future closureInvocation({required bool minify, required String prefix}) async {
-  await compile(TEST_INVOCATION0, minify: minify, check: (String generated) {
-    Expect.isTrue(generated.contains(".$prefix\$0()"));
-  });
-  await compile(TEST_INVOCATION1, minify: minify, check: (String generated) {
-    Expect.isTrue(generated.contains(".$prefix\$1(1)"));
-  });
-  await compile(TEST_INVOCATION2, minify: minify, check: (String generated) {
-    Expect.isTrue(generated.contains(".$prefix\$2(1,${minify ? "" : " "}2)"));
-  });
+  await compile(
+    TEST_INVOCATION0,
+    minify: minify,
+    check: (String generated) {
+      Expect.isTrue(generated.contains(".$prefix\$0()"));
+    },
+  );
+  await compile(
+    TEST_INVOCATION1,
+    minify: minify,
+    check: (String generated) {
+      Expect.isTrue(generated.contains(".$prefix\$1(1)"));
+    },
+  );
+  await compile(
+    TEST_INVOCATION2,
+    minify: minify,
+    check: (String generated) {
+      Expect.isTrue(generated.contains(".$prefix\$2(1,${minify ? "" : " "}2)"));
+    },
+  );
 }
 
 // Make sure that the bailout version does not introduce a second version of

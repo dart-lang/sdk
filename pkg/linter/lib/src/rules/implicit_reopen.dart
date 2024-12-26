@@ -15,7 +15,7 @@ class ImplicitReopen extends LintRule {
       : super(
           name: LintNames.implicit_reopen,
           description: _desc,
-          state: State.experimental(),
+          state: const State.experimental(),
         );
 
   @override

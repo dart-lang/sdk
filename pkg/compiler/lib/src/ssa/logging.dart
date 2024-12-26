@@ -4,6 +4,7 @@
 
 import '../elements/entities.dart';
 import '../elements/types.dart';
+// ignore: implementation_imports
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'nodes.dart';
 
@@ -17,8 +18,12 @@ class OptimizationTestLog {
 
   late final Map<String, Set<HInstruction>> _unconverted = {};
 
-  Features? _register(String tag, HInstruction original,
-      HInstruction? converted, void f(Features features)) {
+  Features? _register(
+    String tag,
+    HInstruction original,
+    HInstruction? converted,
+    void Function(Features features) f,
+  ) {
     if (converted == null) {
       Set<HInstruction> set = _unconverted[tag] ??= {};
       if (!set.add(original)) {
@@ -44,7 +49,11 @@ class OptimizationTestLog {
   }
 
   void registerConditionValue(
-      HInstruction original, bool value, String where, int count) {
+    HInstruction original,
+    bool value,
+    String where,
+    int count,
+  ) {
     Features features = Features();
     features['value'] = '$value';
     features['where'] = where;
@@ -78,7 +87,10 @@ class OptimizationTestLog {
   }
 
   void registerConstantFieldGet(
-      HInvokeDynamicGetter original, FieldEntity field, HConstant converted) {
+    HInvokeDynamicGetter original,
+    FieldEntity field,
+    HConstant converted,
+  ) {
     Features features = Features();
     features['name'] = '${field.enclosingClass!.name}.${field.name}';
     features['value'] = converted.constant.toStructuredText(_dartTypes);
@@ -86,7 +98,10 @@ class OptimizationTestLog {
   }
 
   void registerConstantFieldCall(
-      HInvokeDynamicMethod original, FieldEntity field, HConstant converted) {
+    HInvokeDynamicMethod original,
+    FieldEntity field,
+    HConstant converted,
+  ) {
     Features features = Features();
     features['name'] = '${field.enclosingClass!.name}.${field.name}';
     features['value'] = converted.constant.toStructuredText(_dartTypes);
@@ -94,8 +109,11 @@ class OptimizationTestLog {
   }
 
   Features? _registerSpecializer(
-      HInvokeDynamic original, HInstruction? converted, String? name,
-      [String? unconvertedName]) {
+    HInvokeDynamic original,
+    HInstruction? converted,
+    String? name, [
+    String? unconvertedName,
+  ]) {
     assert(!(converted == null && unconvertedName == null));
     return _register('Specializer', original, converted, (Features features) {
       if (converted != null) {
@@ -155,25 +173,45 @@ class OptimizationTestLog {
   }
 
   void registerTruncatingDivide(
-      HInvokeDynamic original, HInstruction? converted) {
-    _registerSpecializer(original, converted, 'TruncatingDivide',
-        'TruncatingDivide.${original.selector.name}');
+    HInvokeDynamic original,
+    HInstruction? converted,
+  ) {
+    _registerSpecializer(
+      original,
+      converted,
+      'TruncatingDivide',
+      'TruncatingDivide.${original.selector.name}',
+    );
   }
 
   void registerShiftLeft(HInvokeDynamic original, HInstruction? converted) {
-    _registerSpecializer(original, converted, 'ShiftLeft',
-        'ShiftLeft.${original.selector.name}');
+    _registerSpecializer(
+      original,
+      converted,
+      'ShiftLeft',
+      'ShiftLeft.${original.selector.name}',
+    );
   }
 
   void registerShiftRight(HInvokeDynamic original, HInstruction? converted) {
-    _registerSpecializer(original, converted, 'ShiftRight',
-        'ShiftRight.${original.selector.name}');
+    _registerSpecializer(
+      original,
+      converted,
+      'ShiftRight',
+      'ShiftRight.${original.selector.name}',
+    );
   }
 
   void registerShiftRightUnsigned(
-      HInvokeDynamic original, HInstruction? converted) {
-    _registerSpecializer(original, converted, 'ShiftRightUnsigned',
-        'ShiftRightUnsigned.${original.selector.name}');
+    HInvokeDynamic original,
+    HInstruction? converted,
+  ) {
+    _registerSpecializer(
+      original,
+      converted,
+      'ShiftRightUnsigned',
+      'ShiftRightUnsigned.${original.selector.name}',
+    );
   }
 
   void registerBitOr(HInvokeDynamic original, HInstruction? converted) {
@@ -257,7 +295,10 @@ class OptimizationTestLog {
   /// projects the instruction to a string that is used as a key for counting
   /// instructions. [summarize] returns `null` to omit the instruction.
   void instructionHistogram(
-      String tag, HGraph graph, String? Function(HInstruction) summarize) {
+    String tag,
+    HGraph graph,
+    String? Function(HInstruction) summarize,
+  ) {
     Map<String, int> histogram = {};
     for (final block in graph.blocks) {
       for (HInstruction? node = block.first; node != null; node = node.next) {

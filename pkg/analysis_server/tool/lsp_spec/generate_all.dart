@@ -369,7 +369,7 @@ List<LspEntity> getCustomClasses() {
         type: 'string',
         canBeUndefined: true,
         comment:
-            'The ElementLocation of the item being completed.\n\n'
+            'The encoded ElementLocation2 of the item being completed.\n\n'
             'This is used to provide documentation in the resolved response.',
       ),
     ], baseType: 'CompletionItemResolutionInfo'),
@@ -513,6 +513,20 @@ List<LspEntity> getCustomClasses() {
             'Values are qualified in the form `EnumName.valueName`.',
       ),
       // TODO(dantup): field('properties', ...),
+    ]),
+    interface('EditArgumentParams', [
+      field('textDocument', type: 'TextDocumentIdentifier'),
+      field('position', type: 'Position'),
+      field('edit', type: 'ArgumentEdit'),
+    ]),
+    interface('ArgumentEdit', [
+      field('name', type: 'string'),
+      Field(
+        name: 'newValue',
+        type: TypeReference.LspAny,
+        allowsNull: true,
+        allowsUndefined: false,
+      ),
     ]),
     TypeAlias(
       name: 'TextDocumentEditEdits',

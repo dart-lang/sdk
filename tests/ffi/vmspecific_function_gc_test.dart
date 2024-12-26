@@ -34,37 +34,40 @@ typedef NativeNullaryOp32 = ffi.Int32 Function();
 typedef NativeNullaryOpDouble = ffi.Double Function();
 typedef NativeNullaryOpPtr = ffi.Pointer<ffi.Void> Function();
 typedef NativeUnaryOp = ffi.Void Function(ffi.Uint64);
-typedef NativeUndenaryOp = ffi.Uint64 Function(
-    ffi.Uint64,
-    ffi.Uint64,
-    ffi.Uint64,
-    ffi.Uint64,
-    ffi.Uint64,
-    ffi.Uint64,
-    ffi.Uint64,
-    ffi.Uint64,
-    ffi.Uint64,
-    ffi.Uint64,
-    ffi.Uint64);
+typedef NativeUndenaryOp =
+    ffi.Uint64 Function(
+      ffi.Uint64,
+      ffi.Uint64,
+      ffi.Uint64,
+      ffi.Uint64,
+      ffi.Uint64,
+      ffi.Uint64,
+      ffi.Uint64,
+      ffi.Uint64,
+      ffi.Uint64,
+      ffi.Uint64,
+      ffi.Uint64,
+    );
 typedef NullaryOp = int Function();
 typedef NullaryOpDbl = double Function();
 typedef NullaryOpPtr = ffi.Pointer<ffi.Void> Function();
 typedef UnaryOp = void Function(int);
-typedef UndenaryOp = int Function(
-    int, int, int, int, int, int, int, int, int, int, int);
+typedef UndenaryOp =
+    int Function(int, int, int, int, int, int, int, int, int, int, int);
 
 //// These functions return values that require boxing into different types.
 
-final minInt64 =
-    ffiTestFunctions.lookupFunction<NativeNullaryOp64, NullaryOp>("MinInt64");
+final minInt64 = ffiTestFunctions.lookupFunction<NativeNullaryOp64, NullaryOp>(
+  "MinInt64",
+);
 
 // Forces boxing into Mint on all platforms.
 void testBoxInt64() {
   Expect.equals(0x8000000000000000, minInt64());
 }
 
-NullaryOp minInt32 =
-    ffiTestFunctions.lookupFunction<NativeNullaryOp32, NullaryOp>("MinInt32");
+NullaryOp minInt32 = ffiTestFunctions
+    .lookupFunction<NativeNullaryOp32, NullaryOp>("MinInt32");
 
 // Forces boxing into Mint on 32-bit platforms only.
 void testBoxInt32() {
@@ -108,11 +111,13 @@ void testRegress37069() {
 }
 
 final unprotectCode = ffiTestFunctions.lookupFunction<
-    ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>),
-    ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>("TestUnprotectCode");
+  ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>),
+  ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)
+>("TestUnprotectCode");
 final waitForHelper = ffiTestFunctions.lookupFunction<
-    ffi.Void Function(ffi.Pointer<ffi.Void>),
-    void Function(ffi.Pointer<ffi.Void>)>("WaitForHelper");
+  ffi.Void Function(ffi.Pointer<ffi.Void>),
+  void Function(ffi.Pointer<ffi.Void>)
+>("WaitForHelper");
 
 void testWriteProtection() {
   waitForHelper(unprotectCode(ffi.nullptr));

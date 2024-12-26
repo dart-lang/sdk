@@ -13,12 +13,11 @@ class C extends A {
 }
 
 class Class {
-  method({
-    int a = 42,
-    required int b,
-    required final int c,
-    required covariant final int d,
-  }) {}
+  method(
+      {int a = 42,
+      required int b,
+      required final int c,
+      required covariant final int d}) {}
 }
 
 error() {}

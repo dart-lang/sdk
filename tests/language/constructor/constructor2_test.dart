@@ -29,10 +29,7 @@ class A {
 class B extends A {
   var b1, b2;
 
-  B(x)
-      : b1 = E(1),
-        b2 = E(5),
-        super(E(2), E(3)) {
+  B(x) : b1 = E(1), b2 = E(5), super(E(2), E(3)) {
     Expect.equals(1, b1);
     Expect.equals(5, b2);
     E(7);

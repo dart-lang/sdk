@@ -21,7 +21,7 @@ import 'analysis_error_info.dart';
 import 'lint_driver.dart';
 import 'linter_options.dart';
 
-Source createSource(Uri uri) {
+Source _createSource(Uri uri) {
   var filePath = uri.toFilePath();
   var file = file_system.PhysicalResourceProvider.INSTANCE.getFile(filePath);
   return FileSource(file, uri);
@@ -65,7 +65,7 @@ class TestLinter implements AnalysisErrorListener {
         // we need to set one ourselves.  (Needless to say, when pubspec
         // processing gets pushed down, this hack can go away.)
         if (sourceUrl != null) {
-          var source = createSource(sourceUrl);
+          var source = _createSource(sourceUrl);
           rule.reporter = ErrorReporter(this, source);
         }
         try {

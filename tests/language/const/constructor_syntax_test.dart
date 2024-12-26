@@ -34,9 +34,9 @@ class C0 implements I0 {
 
 class C1 {
   const C1();
-//      ^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
-// [cfe] Constructor is marked 'const' so all fields must be final.
+  //    ^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
+  // [cfe] Constructor is marked 'const' so all fields must be final.
   var modifiable;
 }
 
@@ -45,17 +45,16 @@ class C2 {
 }
 
 class C3 {
-  const C3()
-      : field = new C0()
-      //^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
-      //      ^
-      // [cfe] 'field' is a final instance variable that was initialized at the declaration.
-      // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
-      // [cfe] Not a constant expression.
-      //        ^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
-      // [cfe] New expression is not a constant expression.
+  const C3() : field = new C0()
+  //           ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
+  //                 ^
+  // [cfe] 'field' is a final instance variable that was initialized at the declaration.
+  // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
+  // [cfe] Not a constant expression.
+  //                   ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  // [cfe] New expression is not a constant expression.
   ;
   final field = null;
 }

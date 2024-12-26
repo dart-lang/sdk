@@ -54,7 +54,7 @@ final class IncompleteStruct extends ffi::Struct {
   static get #sizeOf() → core::int
     return ffi::_checkAbiSpecificIntegerMapping<core::int>(#C40.{core::List::[]}(ffi::_abi()){(core::int) → core::int?});
 }
-@#C45
+@#C46
 final class IncompleteArrayStruct extends ffi::Struct {
   synthetic constructor •() → self::IncompleteArrayStruct
     : super ffi::Struct::•()
@@ -69,7 +69,7 @@ final class IncompleteArrayStruct extends ffi::Struct {
   @#C47
   @#C29
   get a0() → ffi::Array<self::Incomplete>
-    return new ffi::Array::_<self::Incomplete>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::IncompleteArrayStruct::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C41, #C48);
+    return new ffi::Array::_<self::Incomplete>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::IncompleteArrayStruct::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C41, #C42, #C48);
   @#C47
   @#C29
   set a0(synthesized ffi::Array<self::Incomplete> #externalFieldValue) → void
@@ -187,12 +187,12 @@ constants  {
   #C39 = 8
   #C40 = <core::int?>[#C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C39, #C39, #C39, #C39, #C23, #C23, #C23, #C23, #C23, #C23, #C23]
   #C41 = 100
-  #C42 = ffi::_FfiInlineArray {elementType:#C33, length:#C41}
-  #C43 = <core::Type>[#C42]
-  #C44 = ffi::_FfiStructLayout {fieldTypes:#C43, packing:#C23}
-  #C45 = core::pragma {name:#C32, options:#C44}
-  #C46 = false
-  #C47 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C41, dimension2:#C23, dimension3:#C23, dimension4:#C23, dimension5:#C23, dimensions:#C23, variableLength:#C46}
+  #C42 = false
+  #C43 = ffi::_FfiInlineArray {elementType:#C33, length:#C41, variableLength:#C42}
+  #C44 = <core::Type>[#C43]
+  #C45 = ffi::_FfiStructLayout {fieldTypes:#C44, packing:#C23}
+  #C46 = core::pragma {name:#C32, options:#C45}
+  #C47 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C41, dimension2:#C23, dimension3:#C23, dimension4:#C23, dimension5:#C23, dimensions:#C23, variableDimension:#C23}
   #C48 = <core::int>[]
   #C49 = 400
   #C50 = <core::int?>[#C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C49, #C49, #C49, #C49, #C23, #C23, #C23, #C23, #C23, #C23, #C23]

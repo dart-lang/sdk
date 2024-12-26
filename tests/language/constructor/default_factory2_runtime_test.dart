@@ -9,16 +9,14 @@
 
 abstract class Foo {}
 
-abstract class IA<T> {
-
-}
+abstract class IA<T> {}
 
 class A<T extends Foo> implements IA<T> {
-  factory A() { return A._(); }
+  factory A() {
+    return A._();
+  }
 
   A._();
 }
 
-main() {
-
-}
+main() {}

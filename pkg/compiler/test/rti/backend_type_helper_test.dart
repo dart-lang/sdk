@@ -16,15 +16,17 @@ import 'package:compiler/src/util/memory_compiler.dart';
 main() {
   runTest() async {
     CompilationResult result = await runCompiler(
-        entryPoint: Platform.script.resolve('data/subtype_named_args.dart'));
+      entryPoint: Platform.script.resolve('data/subtype_named_args.dart'),
+    );
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler!;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     ProgramLookup programLookup = ProgramLookup(compiler.backendStrategy);
 
     List<ClassEntity> found = <ClassEntity>[];
-    for (ClassEntity element
-        in Collector.getBackendTypeHelpers(closedWorld.commonElements)) {
+    for (ClassEntity element in Collector.getBackendTypeHelpers(
+      closedWorld.commonElements,
+    )) {
       if (programLookup.getClass(element) != null) {
         found.add(element);
       }

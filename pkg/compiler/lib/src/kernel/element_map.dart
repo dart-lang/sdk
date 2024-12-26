@@ -8,11 +8,11 @@ import 'package:kernel/ast.dart' as ir;
 
 /// Kinds of foreign functions.
 enum ForeignKind {
-  JS,
-  JS_BUILTIN,
-  JS_EMBEDDED_GLOBAL,
-  JS_INTERCEPTOR_CONSTANT,
-  NONE,
+  js,
+  jsBuiltin,
+  jsEmbeddedGlobal,
+  jsInterceptorConstant,
+  none,
 }
 
 // Members which dart2js ignores.

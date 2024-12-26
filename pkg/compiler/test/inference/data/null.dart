@@ -58,7 +58,9 @@ ifNotThenElseNullCheck(int? /*[null|exact=JSUInt31]*/ value) {
 
 /*member: ifThenNotNullComplexCheck:[exact=JSUInt31]*/
 ifThenNotNullComplexCheck(
-    int? /*[null|exact=JSUInt31]*/ a, int? /*[null|exact=JSUInt31]*/ b) {
+  int? /*[null|exact=JSUInt31]*/ a,
+  int? /*[null|exact=JSUInt31]*/ b,
+) {
   if (a /*invoke: [null|subclass=JSInt]*/ != null &&
       a /*invoke: [exact=JSUInt31]*/ != b) {
     return a;
@@ -68,7 +70,9 @@ ifThenNotNullComplexCheck(
 
 /*member: ifThenElseNotNullComplexCheck:[null|exact=JSUInt31]*/
 ifThenElseNotNullComplexCheck(
-    int? /*[null|exact=JSUInt31]*/ a, int? /*[null|exact=JSUInt31]*/ b) {
+  int? /*[null|exact=JSUInt31]*/ a,
+  int? /*[null|exact=JSUInt31]*/ b,
+) {
   if (a /*invoke: [null|subclass=JSInt]*/ != null &&
       a /*invoke: [exact=JSUInt31]*/ != b) {
     return a;
@@ -78,7 +82,9 @@ ifThenElseNotNullComplexCheck(
 
 /*member: ifThenNotNullGradualCheck1:[exact=JSUInt31]*/
 ifThenNotNullGradualCheck1(
-    int? /*[null|exact=JSUInt31]*/ a, int /*[exact=JSUInt31]*/ b) {
+  int? /*[null|exact=JSUInt31]*/ a,
+  int /*[exact=JSUInt31]*/ b,
+) {
   if (a /*invoke: [null|exact=JSUInt31]*/ != b) {
     if (a /*invoke: [null|subclass=JSInt]*/ != null) {
       return a;
@@ -89,7 +95,9 @@ ifThenNotNullGradualCheck1(
 
 /*member: ifThenNotNullGradualCheck2:[exact=JSUInt31]*/
 ifThenNotNullGradualCheck2(
-    int? /*[null|exact=JSUInt31]*/ a, int /*[exact=JSUInt31]*/ b) {
+  int? /*[null|exact=JSUInt31]*/ a,
+  int /*[exact=JSUInt31]*/ b,
+) {
   if (a /*invoke: [null|subclass=JSInt]*/ != null) {
     if (a /*invoke: [exact=JSUInt31]*/ != b) {
       return a;

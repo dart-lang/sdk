@@ -21,15 +21,18 @@ class ForeignFuture implements Future<Null> {
 
   Future<S> then<S>(FutureOr<S> onValue(Null _), {Function? onError}) {
     assert(_future != null);
-    return _future!.then((_) {
-      _future = null;
-      return onValue(null);
-    }, onError: (error, trace) {
-      _future = null;
-      if (onError != null) {
-        onError(error, trace);
-      }
-    });
+    return _future!.then(
+      (_) {
+        _future = null;
+        return onValue(null);
+      },
+      onError: (error, trace) {
+        _future = null;
+        if (onError != null) {
+          onError(error, trace);
+        }
+      },
+    );
   }
 
   Stream<Null> asStream() {

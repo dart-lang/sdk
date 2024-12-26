@@ -33,15 +33,16 @@ class UseToAndAsIfApplicable extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context.inheritanceManager);
     registry.addMethodDeclaration(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final InheritanceManager3 inheritanceManager;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.inheritanceManager);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
@@ -51,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         nodeParameters.parameters.isEmpty &&
         !_isVoid(node.returnType) &&
         !_beginsWithAsOrTo(node.name.lexeme) &&
-        !node.hasInheritedMethod &&
+        !node.hasInheritedMethod(inheritanceManager) &&
         _checkBody(node.body)) {
       rule.reportLintForToken(node.name);
     }

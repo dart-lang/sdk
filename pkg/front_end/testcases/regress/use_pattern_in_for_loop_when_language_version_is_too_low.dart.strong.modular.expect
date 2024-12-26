@@ -1,0 +1,63 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:8:20: Error: The 'records' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
+//   var repoPaths = [(user: "a", repo: "b")];
+//                    ^
+// pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
+// // @dart=2.12
+// ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:9:12: Error: Expected an identifier, but got '('.
+// Try inserting an identifier before '('.
+//   for (var (:user, :repo) in repoPaths)  {
+//            ^
+//
+// pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:9:13: Error: For-in loops use 'in' rather than a colon.
+// Try replacing the colon with the keyword 'in'.
+//   for (var (:user, :repo) in repoPaths)  {
+//             ^
+//
+// pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:9:18: Error: Expected ')' before this.
+//   for (var (:user, :repo) in repoPaths)  {
+//                  ^
+//
+// pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:9:14: Error: Undefined name 'user'.
+//   for (var (:user, :repo) in repoPaths)  {
+//              ^^^^
+//
+// pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:10:11: Error: Undefined name 'user'.
+//     print(user);
+//           ^^^^
+//
+// pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:11:11: Error: Undefined name 'repo'.
+//     print(repo);
+//           ^^^^
+//
+// pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:9:13: Error: This couldn't be parsed.
+//   for (var (:user, :repo) in repoPaths)  {
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method foo() → void {
+  core::List<dynamic> repoPaths = <dynamic>[let final core::String #t1 = "a" in invalid-expression "This requires the experimental 'records' language feature to be enabled."];
+  {
+    invalid-expression "pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:9:13: Error: This couldn't be parsed.
+  for (var (:user, :repo) in repoPaths)  {
+            ^";
+    for (final dynamic #t2 in invalid-expression "pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:9:14: Error: Undefined name 'user'.
+  for (var (:user, :repo) in repoPaths)  {
+             ^^^^") {
+      core::print(invalid-expression "pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:10:11: Error: Undefined name 'user'.
+    print(user);
+          ^^^^");
+      core::print(invalid-expression "pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:11:11: Error: Undefined name 'repo'.
+    print(repo);
+          ^^^^");
+    }
+  }
+}

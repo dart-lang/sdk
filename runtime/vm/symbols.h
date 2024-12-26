@@ -281,6 +281,7 @@ class ObjectPointerVisitor;
   V(Value, "value")                                                            \
   V(Values, "values")                                                          \
   V(VarArgs, "VarArgs")                                                        \
+  V(VariableLength, "variableLength")                                          \
   V(WeakArray, "WeakArray")                                                    \
   V(WeakSerializationReference, "WeakSerializationReference")                  \
   V(_AsyncStarStreamController, "_AsyncStarStreamController")                  \
@@ -529,6 +530,7 @@ class ObjectPointerVisitor;
   V(index_temp, ":index_temp")                                                 \
   V(isLeaf, "isLeaf")                                                          \
   V(isPaused, "isPaused")                                                      \
+  V(main, "main")                                                              \
   V(match_end_index, ":match_end_index")                                       \
   V(match_start_index, ":match_start_index")                                   \
   V(name, "name")                                                              \

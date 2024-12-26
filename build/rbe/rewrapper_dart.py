@@ -368,9 +368,12 @@ trace to find the place to insert the appropriate support.
             arg = self.next_arg()
             if arg == 'js':
                 self.extra_paths.add(
+                    self.rebase(os.path.join(self.dart_subdir,
+                                             'dartaotruntime')))
+                self.extra_paths.add(
                     self.rebase(
                         os.path.join(self.dart_subdir,
-                                     'snapshots/dart2js.dart.snapshot')))
+                                     'snapshots/dart2js_aot.dart.snapshot')))
                 return self.parse_dart2js()
             else:
                 self.unsupported('compile', arg)

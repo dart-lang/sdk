@@ -42,14 +42,14 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
       switch (descriptor.kind) {
         case ExtensionMemberKind.Method:
           if (descriptor.isStatic) {
-            Procedure procedure = descriptor.memberReference.asProcedure;
+            Procedure procedure = descriptor.memberReference!.asProcedure;
             nameSpace.addLocalMember(
                 name.text,
                 new DillExtensionStaticMethodBuilder(
                     procedure, descriptor, libraryBuilder, this),
                 setter: false);
           } else {
-            Procedure procedure = descriptor.memberReference.asProcedure;
+            Procedure procedure = descriptor.memberReference!.asProcedure;
             Procedure? tearOff = descriptor.tearOffReference?.asProcedure;
             assert(tearOff != null, "No tear found for ${descriptor}");
             nameSpace.addLocalMember(
@@ -60,7 +60,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
           }
           break;
         case ExtensionMemberKind.Getter:
-          Procedure procedure = descriptor.memberReference.asProcedure;
+          Procedure procedure = descriptor.memberReference!.asProcedure;
           nameSpace.addLocalMember(
               name.text,
               new DillExtensionGetterBuilder(
@@ -68,7 +68,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
               setter: false);
           break;
         case ExtensionMemberKind.Field:
-          Field field = descriptor.memberReference.asField;
+          Field field = descriptor.memberReference!.asField;
           nameSpace.addLocalMember(
               name.text,
               new DillExtensionFieldBuilder(
@@ -76,7 +76,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
               setter: false);
           break;
         case ExtensionMemberKind.Setter:
-          Procedure procedure = descriptor.memberReference.asProcedure;
+          Procedure procedure = descriptor.memberReference!.asProcedure;
           nameSpace.addLocalMember(
               name.text,
               new DillExtensionSetterBuilder(
@@ -84,7 +84,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
               setter: true);
           break;
         case ExtensionMemberKind.Operator:
-          Procedure procedure = descriptor.memberReference.asProcedure;
+          Procedure procedure = descriptor.memberReference!.asProcedure;
           nameSpace.addLocalMember(
               name.text,
               new DillExtensionOperatorBuilder(

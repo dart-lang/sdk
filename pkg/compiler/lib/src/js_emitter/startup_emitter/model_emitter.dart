@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.js_emitter.startup_emitter.model_emitter;
+library;
 
 import 'dart:convert' show JsonEncoder;
 
@@ -40,6 +40,7 @@ import 'package:js_shared/synced/embedded_names.dart'
 
 import 'package:js_shared/variance.dart';
 
+// ignore: implementation_imports
 import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../../../compiler_api.dart' as api;
@@ -61,7 +62,7 @@ import '../../js/js_source_mapping.dart';
 import '../../js/size_estimator.dart';
 import '../../js_backend/js_backend.dart'
     show Namer, ConstantEmitter, StringBackedName;
-import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
+import '../../js_backend/js_interop_analysis.dart' as js_interop_analysis;
 import '../../js_backend/runtime_types.dart';
 import '../../js_backend/runtime_types_codegen.dart';
 import '../../js_backend/runtime_types_new.dart' show RecipeEncoder;
@@ -155,33 +156,37 @@ class ModelEmitter {
   static const String typeNameProperty = r"builtin$cls";
 
   ModelEmitter(
-      this._options,
-      this._reporter,
-      this._outputProvider,
-      this._dumpInfoRegistry,
-      this._namer,
-      this._closedWorld,
-      this._task,
-      this._emitter,
-      this._nativeEmitter,
-      this._sourceInformationStrategy,
-      RecipeEncoder rtiRecipeEncoder,
-      this._shouldGenerateSourceMap)
-      : _constantOrdering = ConstantOrdering(_closedWorld.sorter),
-        fragmentMerger = FragmentMerger(_options,
-            _closedWorld.elementEnvironment, _closedWorld.outputUnitData) {
-    constantEmitter = ConstantEmitter(
+    this._options,
+    this._reporter,
+    this._outputProvider,
+    this._dumpInfoRegistry,
+    this._namer,
+    this._closedWorld,
+    this._task,
+    this._emitter,
+    this._nativeEmitter,
+    this._sourceInformationStrategy,
+    RecipeEncoder rtiRecipeEncoder,
+    this._shouldGenerateSourceMap,
+  ) : _constantOrdering = ConstantOrdering(_closedWorld.sorter),
+      fragmentMerger = FragmentMerger(
         _options,
-        _namer,
-        _closedWorld.commonElements,
         _closedWorld.elementEnvironment,
-        _closedWorld.rtiNeed,
-        rtiRecipeEncoder,
-        _closedWorld.fieldAnalysis,
-        _closedWorld.recordData,
-        _emitter,
-        this.generateConstantReference,
-        constantListGenerator);
+        _closedWorld.outputUnitData,
+      ) {
+    constantEmitter = ConstantEmitter(
+      _options,
+      _namer,
+      _closedWorld.commonElements,
+      _closedWorld.elementEnvironment,
+      _closedWorld.rtiNeed,
+      rtiRecipeEncoder,
+      _closedWorld.fieldAnalysis,
+      _closedWorld.recordData,
+      _emitter,
+      generateConstantReference,
+      constantListGenerator,
+    );
   }
 
   js.Expression constantListGenerator(js.Expression array) {
@@ -232,35 +237,41 @@ class ModelEmitter {
     if (isConstantInlinedOrAlreadyEmitted(value)) {
       return constantEmitter.generate(value)!;
     }
-    return js.js('#.#',
-        [_namer.globalObjectForConstant(value), _namer.constantName(value)]);
+    return js.js('#.#', [
+      _namer.globalObjectForConstant(value),
+      _namer.constantName(value),
+    ]);
   }
 
   bool get shouldMergeFragments => _options.mergeFragmentsThreshold != null;
 
   int emitProgram(Program program, CodegenWorld codegenWorld) {
     final mainFragment = program.fragments.first as MainFragment;
-    List<DeferredFragment> deferredFragments =
-        List<DeferredFragment>.from(program.deferredFragments);
+    List<DeferredFragment> deferredFragments = List<DeferredFragment>.from(
+      program.deferredFragments,
+    );
 
     FragmentEmitter fragmentEmitter = FragmentEmitter(
-        _options,
-        _dumpInfoRegistry,
-        _namer,
-        _emitter,
-        constantEmitter,
-        this,
-        _nativeEmitter,
-        _closedWorld,
-        codegenWorld);
+      _options,
+      _dumpInfoRegistry,
+      _namer,
+      _emitter,
+      constantEmitter,
+      this,
+      _nativeEmitter,
+      _closedWorld,
+      codegenWorld,
+    );
 
     // In order to get size estimates, we partially emit deferred fragments.
     List<OutputUnit> outputUnits = [];
     List<PreFragment> preDeferredFragments = [];
     _task.measureSubtask('emit prefragments', () {
       for (var fragment in deferredFragments) {
-        var preFragment =
-            fragmentEmitter.emitPreFragment(fragment, shouldMergeFragments);
+        var preFragment = fragmentEmitter.emitPreFragment(
+          fragment,
+          shouldMergeFragments,
+        );
         outputUnits.add(fragment.outputUnit);
         preDeferredFragments.add(preFragment);
       }
@@ -269,8 +280,9 @@ class ModelEmitter {
     // Sort output units so they are in a canonical order and generate a map of
     // loadId to list of OutputUnits to load.
     outputUnits.sort();
-    var outputUnitsToLoad =
-        fragmentMerger.computeOutputUnitsToLoad(outputUnits);
+    var outputUnitsToLoad = fragmentMerger.computeOutputUnitsToLoad(
+      outputUnits,
+    );
 
     // If we are going to merge, then we attach dependencies to each PreFragment
     // and merge.
@@ -292,13 +304,17 @@ class ModelEmitter {
     Map<FinalizedFragment, List<EmittedCodeFragment>> deferredFragmentsCode =
         {};
     for (var preDeferredFragment in preDeferredFragments) {
-      var finalizedFragment =
-          preDeferredFragment.finalize(program, outputUnitMap, codeFragmentMap);
+      var finalizedFragment = preDeferredFragment.finalize(
+        program,
+        outputUnitMap,
+        codeFragmentMap,
+      );
       for (var codeFragment in finalizedFragment.codeFragments) {
         final fragmentCode = fragmentEmitter.emitCodeFragment(codeFragment);
         if (fragmentCode != null) {
-          (deferredFragmentsCode[finalizedFragment] ??= [])
-              .add(EmittedCodeFragment(codeFragment, fragmentCode));
+          (deferredFragmentsCode[finalizedFragment] ??= []).add(
+            EmittedCodeFragment(codeFragment, fragmentCode),
+          );
         } else {
           omittedOutputUnits.addAll(codeFragment.outputUnits);
         }
@@ -308,17 +324,21 @@ class ModelEmitter {
     // With all deferred fragments finalized, we can now compute a map of
     // loadId to the files(FinalizedFragments) which need to be loaded.
     fragmentMerger.computeFragmentsToLoad(
-        outputUnitsToLoad,
-        outputUnitMap,
-        codeFragmentMap,
-        omittedOutputUnits,
-        codeFragmentsToLoad,
-        finalizedFragmentsToLoad);
+      outputUnitsToLoad,
+      outputUnitMap,
+      codeFragmentMap,
+      omittedOutputUnits,
+      codeFragmentsToLoad,
+      finalizedFragmentsToLoad,
+    );
 
     // Emit main Fragment.
     var deferredLoadingState = DeferredLoadingState();
     js.Statement mainCode = fragmentEmitter.emitMainFragment(
-        program, finalizedFragmentsToLoad, deferredLoadingState);
+      program,
+      finalizedFragmentsToLoad,
+      deferredLoadingState,
+    );
 
     // Count tokens and run finalizers.
     js.TokenCounter counter = js.TokenCounter();
@@ -329,30 +349,41 @@ class ModelEmitter {
     }
     counter.countTokens(mainCode);
 
-    program.finalizers.forEach((js.TokenFinalizer f) => f.finalizeTokens());
+    for (var f in program.finalizers) {
+      f.finalizeTokens();
+    }
 
     // TODO(sra): This is where we know if the types (and potentially other
     // deferred ASTs inside the parts) have any contents. We should wait until
     // this point to decide if a part is empty.
 
-    Map<CodeFragment, String> codeFragmentHashes =
-        _task.measureSubtask('write fragments', () {
-      return writeFinalizedFragments(deferredFragmentsCode);
-    });
+    Map<CodeFragment, String> codeFragmentHashes = _task.measureSubtask(
+      'write fragments',
+      () {
+        return writeFinalizedFragments(deferredFragmentsCode);
+      },
+    );
 
     // Now that we have written the deferred hunks, we can create the deferred
     // loading data.
-    fragmentEmitter.finalizeDeferredLoadingData(codeFragmentsToLoad,
-        codeFragmentMap, codeFragmentHashes, deferredLoadingState);
+    fragmentEmitter.finalizeDeferredLoadingData(
+      codeFragmentsToLoad,
+      codeFragmentMap,
+      codeFragmentHashes,
+      deferredLoadingState,
+    );
 
     _task.measureSubtask('write fragments', () {
-      writeMainFragment(mainFragment, mainCode,
-          isSplit: program.isSplit || _options.experimentalTrackAllocations);
+      writeMainFragment(
+        mainFragment,
+        mainCode,
+        isSplit: program.isSplit || _options.experimentalTrackAllocations,
+      );
     });
 
     if (_closedWorld.backendUsage.requiresPreamble &&
         _options.compileForServer) {
-      _reporter.reportHintMessage(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
+      _reporter.reportHintMessage(noLocationSpannable, MessageKind.preamble);
     }
 
     if (_options.deferredMapUri != null) {
@@ -381,17 +412,20 @@ class ModelEmitter {
     return js.Comment(generatedBy(_options, flavor: '$flavor'));
   }
 
-  js.Statement buildDeferredInitializerGlobal(js.LiteralString partFileName,
-      {js.Expression? code}) {
+  js.Statement buildDeferredInitializerGlobal(
+    js.LiteralString partFileName, {
+    js.Expression? code,
+  }) {
     return js.js.statement(
-        '((s,d,e) => {s[d] = s[d] || {}; s[d][e] = s[d][e] || [];'
-        's[d][e].push({p:#part,e:"beginPart"});})'
-        '(self,#deferredInitializers, #eventLog)',
-        {
-          'deferredInitializers': js.string(deferredInitializersGlobal),
-          'eventLog': js.string(INITIALIZATION_EVENT_LOG),
-          'part': partFileName,
-        });
+      '((s,d,e) => {s[d] = s[d] || {}; s[d][e] = s[d][e] || [];'
+      's[d][e].push({p:#part,e:"beginPart"});})'
+      '(self,#deferredInitializers, #eventLog)',
+      {
+        'deferredInitializers': js.string(deferredInitializersGlobal),
+        'eventLog': js.string(INITIALIZATION_EVENT_LOG),
+        'part': partFileName,
+      },
+    );
   }
 
   js.Statement buildStartupMetrics() {
@@ -400,7 +434,7 @@ class ModelEmitter {
     // e.g. as a parameter of the IIFE. It is OK to use a top-level variable,
     // since the IIFE immediately reads the variable.
     return js.js.statement('''
-var ${startupMetricsGlobal} =
+var $startupMetricsGlobal =
 (function(){
   // The timestamp metrics use `performance.now()`. We feature-detect and
   // fall back on `Date.now()` for JavaScript run in a non-browser environment.
@@ -423,8 +457,11 @@ var ${startupMetricsGlobal} =
   // Writes the given [fragment]'s [code] into a file.
   //
   // Updates the shared [outputBuffers] field with the output.
-  void writeMainFragment(MainFragment fragment, js.Statement code,
-      {required bool isSplit}) {
+  void writeMainFragment(
+    MainFragment fragment,
+    js.Statement code, {
+    required bool isSplit,
+  }) {
     LocationCollector? locationCollector;
     List<CodeOutputListener>? codeOutputListeners;
     if (_shouldGenerateSourceMap) {
@@ -435,31 +472,40 @@ var ${startupMetricsGlobal} =
     }
 
     CodeOutput mainOutput = StreamCodeOutput(
-        _outputProvider.createOutputSink('', 'js', api.OutputType.js),
-        codeOutputListeners);
+      _outputProvider.createOutputSink('', 'js', api.OutputType.js),
+      codeOutputListeners,
+    );
 
     js.Program program = js.Program([
       buildGeneratedBy(),
-      js.Comment(HOOKS_API_USAGE),
+      js.Comment(hooksApiUsage),
       if (isSplit) buildDeferredInitializerGlobal(js.string('main')),
       if (_closedWorld.backendUsage.requiresStartupMetrics)
         buildStartupMetrics(),
-      code
+      code,
     ]);
 
-    CodeBuffer buffer = js.createCodeBuffer(program, _options,
-        _sourceInformationStrategy as JavaScriptSourceInformationStrategy,
-        monitor: _dumpInfoRegistry,
-        annotationMonitor: _resourceInfoCollector
-            .monitorFor(_options.outputUri?.pathSegments.last ?? 'out'));
+    CodeBuffer buffer = js.createCodeBuffer(
+      program,
+      _options,
+      _sourceInformationStrategy as JavaScriptSourceInformationStrategy,
+      monitor: _dumpInfoRegistry,
+      annotationMonitor: _resourceInfoCollector.monitorFor(
+        _options.outputUri?.pathSegments.last ?? 'out',
+      ),
+    );
     _task.measureSubtask('emit buffers', () {
       mainOutput.addBuffer(buffer);
     });
 
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {
-        mainOutput.add(SourceMapBuilder.generateSourceMapTag(
-            _options.sourceMapUri, _options.outputUri));
+        mainOutput.add(
+          SourceMapBuilder.generateSourceMapTag(
+            _options.sourceMapUri,
+            _options.outputUri,
+          ),
+        );
       });
     }
 
@@ -469,14 +515,15 @@ var ${startupMetricsGlobal} =
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {
         SourceMapBuilder.outputSourceMap(
-            mainOutput,
-            locationCollector!,
-            _namer.createMinifiedGlobalNameMap(),
-            _namer.createMinifiedInstanceNameMap(),
-            '',
-            _options.sourceMapUri,
-            _options.outputUri,
-            _outputProvider);
+          mainOutput,
+          locationCollector!,
+          _namer.createMinifiedGlobalNameMap(),
+          _namer.createMinifiedInstanceNameMap(),
+          '',
+          _options.sourceMapUri,
+          _options.outputUri,
+          _outputProvider,
+        );
       });
     }
   }
@@ -484,7 +531,8 @@ var ${startupMetricsGlobal} =
   /// Writes all [FinalizedFragments] to files, returning a map of
   /// [CodeFragment] to their initialization hashes.
   Map<CodeFragment, String> writeFinalizedFragments(
-      Map<FinalizedFragment, List<EmittedCodeFragment>> fragmentsCode) {
+    Map<FinalizedFragment, List<EmittedCodeFragment>> fragmentsCode,
+  ) {
     Map<CodeFragment, String> fragmentHashes = {};
     fragmentsCode.forEach((fragment, code) {
       writeFinalizedFragment(fragment, code, fragmentHashes);
@@ -495,9 +543,10 @@ var ${startupMetricsGlobal} =
   /// Writes a single [FinalizedFragment] and all of its [CodeFragments] to
   /// file, updating the [fragmentHashes] map as necessary.
   void writeFinalizedFragment(
-      FinalizedFragment fragment,
-      List<EmittedCodeFragment> fragmentCode,
-      Map<CodeFragment, String> fragmentHashes) {
+    FinalizedFragment fragment,
+    List<EmittedCodeFragment> fragmentCode,
+    Map<CodeFragment, String> fragmentHashes,
+  ) {
     List<CodeOutputListener> outputListeners = [];
     LocationCollector? locationCollector;
     if (_shouldGenerateSourceMap) {
@@ -509,9 +558,13 @@ var ${startupMetricsGlobal} =
 
     String outputFileName = fragment.outputFileName;
     CodeOutput output = StreamCodeOutput(
-        _outputProvider.createOutputSink(
-            outputFileName, deferredExtension, api.OutputType.jsPart),
-        outputListeners);
+      _outputProvider.createOutputSink(
+        outputFileName,
+        deferredExtension,
+        api.OutputType.jsPart,
+      ),
+      outputListeners,
+    );
 
     writeCodeFragments(fragmentCode, fragmentHashes, output, outputFileName);
 
@@ -524,7 +577,7 @@ var ${startupMetricsGlobal} =
         String hunkFileName = "$outputFileName.$deferredExtension";
 
         if (sourceMapUri != null) {
-          String mapFileName = hunkFileName + ".map";
+          String mapFileName = "$hunkFileName.map";
           List<String> mapSegments = sourceMapUri.pathSegments.toList();
           mapSegments[mapSegments.length - 1] = mapFileName;
           mapUri = _options.sourceMapUri!.replace(pathSegments: mapSegments);
@@ -538,8 +591,16 @@ var ${startupMetricsGlobal} =
 
         output.add(SourceMapBuilder.generateSourceMapTag(mapUri, partUri));
         output.close();
-        SourceMapBuilder.outputSourceMap(output, locationCollector!, {}, {},
-            partName, mapUri, partUri, _outputProvider);
+        SourceMapBuilder.outputSourceMap(
+          output,
+          locationCollector!,
+          {},
+          {},
+          partName,
+          mapUri,
+          partUri,
+          _outputProvider,
+        );
       });
     } else {
       output.close();
@@ -553,16 +614,21 @@ var ${startupMetricsGlobal} =
 
   /// Writes a list of [CodeFragments] to [CodeOutput].
   void writeCodeFragments(
-      List<EmittedCodeFragment> fragmentCode,
-      Map<CodeFragment, String> fragmentHashes,
-      CodeOutput output,
-      String outputFileName) {
+    List<EmittedCodeFragment> fragmentCode,
+    Map<CodeFragment, String> fragmentHashes,
+    CodeOutput output,
+    String outputFileName,
+  ) {
     bool isFirst = true;
     for (var emittedCodeFragment in fragmentCode) {
       var codeFragment = emittedCodeFragment.codeFragment;
       var code = emittedCodeFragment.code;
-      fragmentHashes[codeFragment] =
-          writeCodeFragment(output, code, isFirst, outputFileName);
+      fragmentHashes[codeFragment] = writeCodeFragment(
+        output,
+        code,
+        isFirst,
+        outputFileName,
+      );
       isFirst = false;
     }
   }
@@ -572,8 +638,12 @@ var ${startupMetricsGlobal} =
   // Returns the deferred fragment's hash.
   //
   // Updates the shared [outputBuffers] field with the output.
-  String writeCodeFragment(CodeOutput output, js.Expression code, bool isFirst,
-      String outputFileName) {
+  String writeCodeFragment(
+    CodeOutput output,
+    js.Expression code,
+    bool isFirst,
+    String outputFileName,
+  ) {
     // The [code] contains the function that must be invoked when the deferred
     // hunk is loaded.
     // That function must be in a map from its hashcode to the function. Since
@@ -587,16 +657,21 @@ var ${startupMetricsGlobal} =
     js.Program program = js.Program([
       if (isFirst) buildGeneratedBy(),
       if (isFirst) buildDeferredInitializerGlobal(outputFileJsString),
-      js.js.statement('#deferredInitializers.current = #code',
-          {'deferredInitializers': deferredInitializersGlobal, 'code': code})
+      js.js.statement('#deferredInitializers.current = #code', {
+        'deferredInitializers': deferredInitializersGlobal,
+        'code': code,
+      }),
     ]);
 
     Hasher hasher = Hasher();
-    CodeBuffer buffer = js.createCodeBuffer(program, _options,
-        _sourceInformationStrategy as JavaScriptSourceInformationStrategy,
-        monitor: _dumpInfoRegistry,
-        listeners: [hasher],
-        annotationMonitor: _resourceInfoCollector.monitorFor(outputFileName));
+    CodeBuffer buffer = js.createCodeBuffer(
+      program,
+      _options,
+      _sourceInformationStrategy as JavaScriptSourceInformationStrategy,
+      monitor: _dumpInfoRegistry,
+      listeners: [hasher],
+      annotationMonitor: _resourceInfoCollector.monitorFor(outputFileName),
+    );
     _task.measureSubtask('emit buffers', () {
       output.addBuffer(buffer);
       // Add semi-colon to separate from IIFE epilogue.
@@ -610,19 +685,22 @@ var ${startupMetricsGlobal} =
 
     // Now we copy the deferredInitializer.current into its correct hash.
     final epilogue = js.js.statement(
-        '((d,h)=>{d[h]=d.current; '
-        'd.#eventLog.push({p:#part,e:"endPart",h:h})})'
-        '(#deferredInitializers,#hash)',
-        {
-          'deferredInitializers': deferredInitializersGlobal,
-          'hash': js.string(hash),
-          'eventLog': js.string(INITIALIZATION_EVENT_LOG),
-          'part': outputFileJsString,
-        });
+      '((d,h)=>{d[h]=d.current; '
+      'd.#eventLog.push({p:#part,e:"endPart",h:h})})'
+      '(#deferredInitializers,#hash)',
+      {
+        'deferredInitializers': deferredInitializersGlobal,
+        'hash': js.string(hash),
+        'eventLog': js.string(INITIALIZATION_EVENT_LOG),
+        'part': outputFileJsString,
+      },
+    );
     output.add('\n');
-    output.add(js
-        .createCodeBuffer(epilogue, _options, _sourceInformationStrategy)
-        .getText());
+    output.add(
+      js
+          .createCodeBuffer(epilogue, _options, _sourceInformationStrategy)
+          .getText(),
+    );
     // Add semi-colon to separate from other fragments in the same part.
     output.add(';');
     return hash;
@@ -636,11 +714,15 @@ var ${startupMetricsGlobal} =
     Map<String, dynamic> mapping = {};
     // Json does not support comments, so we embed the explanation in the
     // data.
-    mapping["_comment"] = "This mapping shows which compiled `.js` files are "
+    mapping["_comment"] =
+        "This mapping shows which compiled `.js` files are "
         "needed for a given deferred library import.";
     mapping.addAll(fragmentMerger.computeDeferredMap(finalizedFragmentsToLoad));
     _outputProvider.createOutputSink(
-        _options.deferredMapUri!.path, '', api.OutputType.deferredMap)
+        _options.deferredMapUri!.path,
+        '',
+        api.OutputType.deferredMap,
+      )
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))
       ..close();
   }
@@ -648,9 +730,15 @@ var ${startupMetricsGlobal} =
   /// Writes out all the referenced resource identifiers as a JSON file.
   void writeResourceIdentifiers() {
     _outputProvider.createOutputSink(
-        '', 'resources.json', api.OutputType.resourceIdentifiers)
-      ..add(JsonEncoder.withIndent('  ')
-          .convert(_resourceInfoCollector.finish(_options.environment)))
+        '',
+        'resources.json',
+        api.OutputType.resourceIdentifiers,
+      )
+      ..add(
+        JsonEncoder.withIndent(
+          '  ',
+        ).convert(_resourceInfoCollector.finish(_options.environment)),
+      )
       ..close();
   }
 }

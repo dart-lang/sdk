@@ -59,10 +59,11 @@ main() {
   and with a `Flexible` widget.
 - Offer an assist to "inline" an else-block's inner if-statement with the
   else-block to read `else if`.
-  (Thanks [@FMorschel](https://github.com/FMorschel) for the above enhacements!
+  (Thanks [@FMorschel](https://github.com/FMorschel) for the above enhancements!
 - Add the experimental `specify_nonobvious_property_types` lint rule.
 - Add the experimental `omit_obvious_property_types` lint rule.
-- Deprecate the `package_api_docs` lint rule.
+- Remove the `package_api_docs` lint rule.
+- Remove the `unsafe_html` lint rule.
 
 #### Dart format
 
@@ -207,6 +208,50 @@ AOT snapshot instead of a JIT snapshot, the SDK build still includes a JIT
 snapshot of these tools as package build/build_web_compiler depends on it. The
 AOT snapshot can be used as follows to run DDC <dart-sdk>/bin/dartaotruntime
 <dart-sdk>/bin/snapshots/dartdevc_aot.dart.snapshot <options>
+
+### Libraries
+
+#### `dart:html`
+
+- `dart:html` is marked deprecated and will be removed in an upcoming release.
+  Users should migrate to using `dart:js_interop` and `package:web`. See
+  [#59716][].
+
+#### `dart:indexed_db`
+
+- `dart:indexed_db` is marked deprecated and will be removed in an upcoming
+  release. Users should migrate to using `dart:js_interop` and `package:web`.
+  See [#59716][].
+
+#### `dart:svg`
+
+- `dart:svg` is marked deprecated and will be removed in an upcoming release.
+  Users should migrate to using `dart:js_interop` and `package:web`. See
+  [#59716][].
+
+#### `dart:web_audio`
+
+- `dart:web_audio` is marked deprecated and will be removed in an upcoming
+  release. Users should migrate to using `dart:js_interop` and `package:web`.
+  See [#59716][].
+
+#### `dart:web_gl`
+
+- `dart:web_gl` is marked deprecated and will be removed in an upcoming release.
+  Users should migrate to using `dart:js_interop` and `package:web`. See
+  [#59716][].
+
+#### `dart:js`
+
+- `dart:js` is marked deprecated and will be removed in an upcoming release.
+  Users should migrate to using `dart:js_interop`. See [#59716][].
+
+#### `dart:js_util`
+
+- `dart:js_util` is marked deprecated and will be removed in an upcoming
+  release. Users should migrate to using `dart:js_interop`. See [#59716][].
+
+[#59716]: https://github.com/dart-lang/sdk/issues/59716
 
 ## 3.6.0
 

@@ -26,17 +26,20 @@ main() {
     // TODO(jmesserly): added workaround for:
     // https://github.com/dart-lang/dev_compiler/issues/269
     var sub = stream.listen((x) => list.add(x));
-    return sync.wait().whenComplete(() {
-      expect(list, equals(['*1', 1]));
-      sub.pause();
-      return sync.wait();
-    }).whenComplete(() {
-      expect(list, equals(['*1', 1, '*2']));
-      sub.cancel();
-      return Future.delayed(ms * 200, () {
-        // Should not have yielded 2 or added *3 while paused.
-        expect(list, equals(['*1', 1, '*2']));
-      });
-    });
+    return sync
+        .wait()
+        .whenComplete(() {
+          expect(list, equals(['*1', 1]));
+          sub.pause();
+          return sync.wait();
+        })
+        .whenComplete(() {
+          expect(list, equals(['*1', 1, '*2']));
+          sub.cancel();
+          return Future.delayed(ms * 200, () {
+            // Should not have yielded 2 or added *3 while paused.
+            expect(list, equals(['*1', 1, '*2']));
+          });
+        });
   });
 }

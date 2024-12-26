@@ -32,27 +32,38 @@ final freePointer = DynamicLibrary.process()
 void testRefcounted() {
   final peer = allocateRefcountedResource();
   final resource = peer.ref.resource;
-  final typedList1 = resource.asTypedList(128,
-      finalizer: decreaseRefcountPointer.cast(), token: peer.cast());
+  final typedList1 = resource.asTypedList(
+    128,
+    finalizer: decreaseRefcountPointer.cast(),
+    token: peer.cast(),
+  );
   increaseRefcount(peer);
   print(typedList1);
-  final typedList2 = resource.asTypedList(128,
-      finalizer: decreaseRefcountPointer.cast(), token: peer.cast());
+  final typedList2 = resource.asTypedList(
+    128,
+    finalizer: decreaseRefcountPointer.cast(),
+    token: peer.cast(),
+  );
   increaseRefcount(peer);
   print(typedList2);
 }
 
 @Native<Pointer<RefCountedResource> Function()>(
-    symbol: 'AllocateRefcountedResource', isLeaf: true)
+  symbol: 'AllocateRefcountedResource',
+  isLeaf: true,
+)
 external Pointer<RefCountedResource> allocateRefcountedResource();
 
 @Native<Void Function(Pointer<RefCountedResource>)>(
-    symbol: 'IncreaseRefcount', isLeaf: true)
+  symbol: 'IncreaseRefcount',
+  isLeaf: true,
+)
 external void increaseRefcount(Pointer<RefCountedResource> peer);
 
 final decreaseRefcountPointer = DynamicLibrary.process()
     .lookup<NativeFunction<Void Function(Pointer<RefCountedResource>)>>(
-        'DecreaseRefcount');
+      'DecreaseRefcount',
+    );
 
 final class RefCountedResource extends Struct {
   external Pointer<Int8> resource;

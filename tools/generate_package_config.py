@@ -35,6 +35,7 @@ def generate_package_config():
     tools_dir = os.path.dirname(os.path.realpath(__file__))
     process = subprocess.run([
         checked_in_sdk_executable(),
+        '--packages=%s' % os.path.join(tools_dir, 'empty_package_config.json'),
         os.path.join(tools_dir, 'generate_package_config.dart')
     ])
     return process.returncode

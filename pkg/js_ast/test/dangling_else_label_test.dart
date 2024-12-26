@@ -12,17 +12,24 @@ import 'package:js_ast/js_ast.dart';
 
 void check1(String expected, Statement then) {
   final actual = DebugPrint(
-      If(VariableUse('x'), then, ExpressionStatement(VariableUse('E'))));
+    If(VariableUse('x'), then, ExpressionStatement(VariableUse('E'))),
+  );
   Expect.equals(
-      expected,
-      actual,
-      '\n'
-      '\nexpected ${json.encode(expected)}'
-      '\nactual:  ${json.encode(actual)}');
+    expected,
+    actual,
+    '\n'
+    '\nexpected ${json.encode(expected)}'
+    '\nactual:  ${json.encode(actual)}',
+  );
 }
 
-void check(String expected, Statement then1,
-    [Statement? then2, Statement? then3, Statement? then4]) {
+void check(
+  String expected,
+  Statement then1, [
+  Statement? then2,
+  Statement? then3,
+  Statement? then4,
+]) {
   check1(expected, then1);
   if (then2 != null) check1(expected, then2);
   if (then3 != null) check1(expected, then3);
@@ -35,8 +42,7 @@ void main() {
   final S1 = ExpressionStatement(VariableUse('S1'));
   final S2 = ExpressionStatement(VariableUse('S2'));
 
-  check(
-    r'''
+  check(r'''
 if (x)
   L:
     if (y)
@@ -45,12 +51,9 @@ if (x)
       S2;
 else
   E;
-''',
-    LabeledStatement('L', If(y, S1, S2)),
-  );
+''', LabeledStatement('L', If(y, S1, S2)));
 
-  check(
-    r'''
+  check(r'''
 if (x) {
   L:
     if (y)
@@ -59,12 +62,9 @@ if (x) {
       S2;
 } else
   E;
-''',
-    Block([LabeledStatement('L', If(y, S1, S2))]),
-  );
+''', Block([LabeledStatement('L', If(y, S1, S2))]));
 
-  check(
-    r'''
+  check(r'''
 if (x)
   L: {
     if (y)
@@ -74,9 +74,7 @@ if (x)
   }
 else
   E;
-''',
-    LabeledStatement('L', Block([If(y, S1, S2)])),
-  );
+''', LabeledStatement('L', Block([If(y, S1, S2)])));
 
   check(
     r'''
@@ -91,8 +89,7 @@ if (x) {
     Block([LabeledStatement('L', If.noElse(y, S1))]),
   );
 
-  check(
-    r'''
+  check(r'''
 if (x) {
   L: {
     if (y)
@@ -100,12 +97,9 @@ if (x) {
   }
 } else
   E;
-''',
-    LabeledStatement('L', Block([If.noElse(y, S1)])),
-  );
+''', LabeledStatement('L', Block([If.noElse(y, S1)])));
 
-  check(
-    r'''
+  check(r'''
 if (x)
   L: {
     if (y)
@@ -114,9 +108,7 @@ if (x)
   }
 else
   E;
-''',
-    LabeledStatement('L', Block([If.noElse(y, S1), S2])),
-  );
+''', LabeledStatement('L', Block([If.noElse(y, S1), S2])));
 
   check(
     r'''
@@ -133,8 +125,7 @@ if (x) {
     Block([LabeledStatement('L', If(y, S1, If.noElse(z, S2)))]),
   );
 
-  check(
-    r'''
+  check(r'''
 if (x) {
   L: {
     if (y)
@@ -144,9 +135,7 @@ if (x) {
   }
 } else
   E;
-''',
-    LabeledStatement('L', Block([If(y, S1, If.noElse(z, S2))])),
-  );
+''', LabeledStatement('L', Block([If(y, S1, If.noElse(z, S2))])));
 
   check(
     r'''
@@ -163,7 +152,7 @@ if (x) {
 ''',
     LabeledStatement('L', If(y, S1, Block([If.noElse(z, S2)]))),
     Block([
-      LabeledStatement('L', If(y, S1, Block([If.noElse(z, S2)])))
+      LabeledStatement('L', If(y, S1, Block([If.noElse(z, S2)]))),
     ]),
   );
 
@@ -181,8 +170,7 @@ if (x) {
     Block([LabeledStatement('L', While(y, If.noElse(z, S1)))]),
   );
 
-  check(
-    r'''
+  check(r'''
 if (x) {
   L: {
     while (y)
@@ -191,12 +179,9 @@ if (x) {
   }
 } else
   E;
-''',
-    LabeledStatement('L', Block([While(y, If.noElse(z, S1))])),
-  );
+''', LabeledStatement('L', Block([While(y, If.noElse(z, S1))])));
 
-  check(
-    r'''
+  check(r'''
 if (x) {
   L:
     while (y) {
@@ -205,9 +190,7 @@ if (x) {
     }
 } else
   E;
-''',
-    LabeledStatement('L', While(y, Block([If.noElse(z, S1)]))),
-  );
+''', LabeledStatement('L', While(y, Block([If.noElse(z, S1)]))));
 
   check(
     r'''
@@ -223,8 +206,7 @@ if (x) {
     Block([LabeledStatement('L', For(null, null, null, If.noElse(z, S1)))]),
   );
 
-  check(
-    r'''
+  check(r'''
 if (x) {
   L: {
     for (;;)
@@ -233,12 +215,9 @@ if (x) {
   }
 } else
   E;
-''',
-    LabeledStatement('L', Block([For(null, null, null, If.noElse(z, S1))])),
-  );
+''', LabeledStatement('L', Block([For(null, null, null, If.noElse(z, S1))])));
 
-  check(
-    r'''
+  check(r'''
 if (x) {
   L:
     for (;;) {
@@ -247,7 +226,5 @@ if (x) {
     }
 } else
   E;
-''',
-    LabeledStatement('L', For(null, null, null, Block([If.noElse(z, S1)]))),
-  );
+''', LabeledStatement('L', For(null, null, null, Block([If.noElse(z, S1)]))));
 }

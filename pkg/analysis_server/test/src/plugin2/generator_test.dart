@@ -70,6 +70,7 @@ import 'package:no_ints/main.dart' as no_ints;
       contains('''
 dependencies:
   analyzer: '$analyzerVersion'
+  analyzer_plugin: '$analyzerPluginVersion'
   no_bools:
     git:
       url: https://example.com/example.git
@@ -93,6 +94,7 @@ dependencies:
       contains('''
 dependencies:
   analyzer: '$analyzerVersion'
+  analyzer_plugin: '$analyzerPluginVersion'
   no_bools:
     path: ../no_bools_plugin
   no_ints:
@@ -117,6 +119,7 @@ dependencies:
       contains('''
 dependencies:
   analyzer: '$analyzerVersion'
+  analyzer_plugin: '$analyzerPluginVersion'
   no_bools: ^1.0.0
   no_ints: ^1.2.0
 '''),

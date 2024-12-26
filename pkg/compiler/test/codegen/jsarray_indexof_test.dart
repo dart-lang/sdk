@@ -42,7 +42,9 @@ main() {
 
 runTest(List<String> options) async {
   CompilationResult result = await runCompiler(
-      memorySourceFiles: {'main.dart': source}, options: options);
+    memorySourceFiles: {'main.dart': source},
+    options: options,
+  );
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler!;
   JsBackendStrategy backendStrategy = compiler.backendStrategy;
@@ -52,26 +54,33 @@ runTest(List<String> options) async {
   ProgramLookup programLookup = ProgramLookup(backendStrategy);
 
   Selector getLengthSelector = Selector.getter(const PublicName('length'));
-  js.Name getLengthName =
-      backendStrategy.namerForTesting.invocationName(getLengthSelector);
+  js.Name getLengthName = backendStrategy.namerForTesting.invocationName(
+    getLengthSelector,
+  );
 
   Method method = programLookup.getMethod(jsArrayIndexOf)!;
   int lengthCount = 0;
-  forEachNode(method.code, onCall: (js.Call node) {
-    js.Node target = node.target;
-    Expect.isFalse(
+  forEachNode(
+    method.code,
+    onCall: (js.Call node) {
+      js.Node target = node.target;
+      Expect.isFalse(
         target is js.PropertyAccess && target.selector == getLengthName,
         "Unexpected .get\$length access ${js.nodeToString(node)} in\n"
-        "${js.nodeToString(method.code, pretty: true)}");
-  }, onPropertyAccess: (js.PropertyAccess node) {
-    js.Node selector = node.selector;
-    if (selector is js.LiteralString && selector.value == 'length') {
-      lengthCount++;
-    }
-  });
+        "${js.nodeToString(method.code, pretty: true)}",
+      );
+    },
+    onPropertyAccess: (js.PropertyAccess node) {
+      js.Node selector = node.selector;
+      if (selector is js.LiteralString && selector.value == 'length') {
+        lengthCount++;
+      }
+    },
+  );
   Expect.equals(
-      2,
-      lengthCount,
-      "Unexpected .length access in\n"
-      "${js.nodeToString(method.code, pretty: true)}");
+    2,
+    lengthCount,
+    "Unexpected .length access in\n"
+    "${js.nodeToString(method.code, pretty: true)}",
+  );
 }

@@ -196,7 +196,7 @@ class ApiReader {
   /// Note that the event name should not include the domain name.
   ///
   /// <params> has the same form as <object>, as described in
-  /// [typeDeclFromHtml].
+  /// [typeObjectFromHtml].
   ///
   /// Child elements can occur in any order.
   Notification notificationFromHtml(dom.Element html, String context) {
@@ -376,7 +376,7 @@ class ApiReader {
   /// </refactoring>
   ///
   /// <feedback> and <options> have the same form as <object>, as described in
-  /// [typeDeclFromHtml].
+  /// [typeObjectFromHtml].
   ///
   /// Child elements can occur in any order.
   Refactoring refactoringFromHtml(dom.Element html) {
@@ -429,7 +429,7 @@ class ApiReader {
   /// Note that the method name should not include the domain name.
   ///
   /// <params> and <result> have the same form as <object>, as described in
-  /// [typeDeclFromHtml].
+  /// [typeObjectFromHtml].
   ///
   /// Child elements can occur in any order.
   Request requestFromHtml(dom.Element html, String context) {
@@ -481,7 +481,7 @@ class ApiReader {
   ///   TYPE
   /// </type>
   ///
-  /// Where TYPE is any HTML that can be parsed by [typeDeclFromHtml].
+  /// Where TYPE is any HTML that can be parsed by [typeObjectFromHtml].
   ///
   /// Child elements can occur in any order.
   TypeDefinition typeDefinitionFromHtml(dom.Element html) {
@@ -555,7 +555,7 @@ class ApiReader {
   ///   TYPE
   /// </field>
   ///
-  /// Where TYPE is any HTML that can be parsed by [typeDeclFromHtml].
+  /// Where TYPE is any HTML that can be parsed by [typeObjectFromHtml].
   ///
   /// In addition, the attribute optional="true" may be used to specify that the
   /// field is optional, and the attribute value="..." may be used to specify

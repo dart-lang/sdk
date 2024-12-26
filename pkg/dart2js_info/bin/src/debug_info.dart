@@ -21,8 +21,10 @@ class DebugCommand extends Command<void> with PrintUsageException {
   final String description = "Dart2js-team diagnostics on a dump-info file.";
 
   DebugCommand() {
-    argParser.addOption('show-library',
-        help: "Show detailed data for a library with the given name");
+    argParser.addOption(
+      'show-library',
+      help: "Show detailed data for a library with the given name",
+    );
   }
 
   @override
@@ -58,12 +60,16 @@ void validateSize(AllInfo info, String debugLibName) {
     _pass('all fields and functions are covered');
   } else {
     if (diff1.isNotEmpty) {
-      _fail("some elements where listed globally that weren't part of any "
-          "library (non-zero ${diff1.where((f) => f.size > 0).length})");
+      _fail(
+        "some elements where listed globally that weren't part of any "
+        "library (non-zero ${diff1.where((f) => f.size > 0).length})",
+      );
     }
     if (diff2.isNotEmpty) {
-      _fail("some elements found in libraries weren't part of the global list"
-          " (non-zero ${diff2.where((f) => f.size > 0).length})");
+      _fail(
+        "some elements found in libraries weren't part of the global list"
+        " (non-zero ${diff2.where((f) => f.size > 0).length})",
+      );
     }
   }
 
@@ -74,10 +80,13 @@ void validateSize(AllInfo info, String debugLibName) {
   int accounted = totalLib + constantsSize;
 
   if (accounted != realTotal) {
-    var percent =
-        ((realTotal - accounted) * 100 / realTotal).toStringAsFixed(2);
-    _fail('$percent% size missing: $accounted (all libs + consts) '
-        '< $realTotal (total)');
+    var percent = ((realTotal - accounted) * 100 / realTotal).toStringAsFixed(
+      2,
+    );
+    _fail(
+      '$percent% size missing: $accounted (all libs + consts) '
+      '< $realTotal (total)',
+    );
   }
   int missingTotal = tracker.missing.values.fold(0, (a, b) => a + b);
   if (missingTotal > 0) {
@@ -161,7 +170,7 @@ class _SizeTracker extends RecursiveInfoVisitor {
   bool _debug = false;
   @override
   void visitLibrary(LibraryInfo info) {
-    if (_debugLibName != null) _debug = info.name.contains(_debugLibName!);
+    if (_debugLibName != null) _debug = info.name.contains(_debugLibName);
     _push();
     if (_debug) {
       _debugCode.write('{\n');
@@ -317,9 +326,11 @@ void compareGraphs(AllInfo info) {
   if (inUsesNotInDependencies == 0 && inDependenciesNotInUses == 0) {
     _pass('dependency data is consistent');
   } else {
-    _fail('inconsistencies in dependency data:\n'
-        '   $inUsesNotInDependencies edges missing from "dependencies" graph\n'
-        '   $inDependenciesNotInUses edges missing from "uses" graph');
+    _fail(
+      'inconsistencies in dependency data:\n'
+      '   $inUsesNotInDependencies edges missing from "dependencies" graph\n'
+      '   $inDependenciesNotInUses edges missing from "uses" graph',
+    );
   }
 }
 
@@ -331,11 +342,14 @@ void verifyDeps(AllInfo info) {
   var reachables = Set.from(graph.preOrder(entrypoint));
 
   var functionsAndFields = <BasicInfo>[...info.functions, ...info.fields];
-  var unreachables =
-      functionsAndFields.where((func) => !reachables.contains(func));
+  var unreachables = functionsAndFields.where(
+    (func) => !reachables.contains(func),
+  );
   if (unreachables.isNotEmpty) {
-    _fail('${unreachables.length} elements are unreachable from the '
-        'entrypoint');
+    _fail(
+      '${unreachables.length} elements are unreachable from the '
+      'entrypoint',
+    );
   } else {
     _pass('all elements are reachable from the entrypoint');
   }

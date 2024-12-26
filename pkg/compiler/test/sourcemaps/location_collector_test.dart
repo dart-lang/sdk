@@ -14,8 +14,9 @@ import '../../lib/src/util/output_collector.dart';
 test(List events, Map<int, List<int>?> expectedPositions) {
   BufferedOutputSink sink = BufferedOutputSink();
   LocationCollector locationProvider = LocationCollector();
-  CodeOutput output =
-      StreamCodeOutput(sink, <CodeOutputListener>[locationProvider]);
+  CodeOutput output = StreamCodeOutput(sink, <CodeOutputListener>[
+    locationProvider,
+  ]);
   for (var event in events) {
     if (event is String) {
       output.add(event);
@@ -28,55 +29,61 @@ test(List events, Map<int, List<int>?> expectedPositions) {
   expectedPositions.forEach((int offset, List<int>? expectedPosition) {
     if (expectedPosition == null) {
       Expect.throws(
-          () => locationProvider.getLocation(offset),
-          (e) => true,
-          'Expected out-of-bounds offset: $offset\n'
-          'text:"""${sink.text}"""\n'
-          'locationProvider:$locationProvider');
+        () => locationProvider.getLocation(offset),
+        (e) => true,
+        'Expected out-of-bounds offset: $offset\n'
+        'text:"""${sink.text}"""\n'
+        'locationProvider:$locationProvider',
+      );
     } else {
       Location location = locationProvider.getLocation(offset);
       int line = location.line - 1;
       int column = location.column - 1;
       Expect.equals(
-          expectedPosition[0],
-          line,
-          'Unexpected result: $offset -> $expectedPosition = [$line,$column]\n'
-          'text:"""${sink.text}"""\n'
-          'locationProvider:$locationProvider');
+        expectedPosition[0],
+        line,
+        'Unexpected result: $offset -> $expectedPosition = [$line,$column]\n'
+        'text:"""${sink.text}"""\n'
+        'locationProvider:$locationProvider',
+      );
       Expect.equals(
-          expectedPosition[1],
-          column,
-          'Unexpected result: $offset -> $expectedPosition = [$line,$column]\n'
-          'text:"""${sink.text}"""\n'
-          'locationProvider:$locationProvider');
+        expectedPosition[1],
+        column,
+        'Unexpected result: $offset -> $expectedPosition = [$line,$column]\n'
+        'text:"""${sink.text}"""\n'
+        'locationProvider:$locationProvider',
+      );
     }
   });
 }
 
 main() {
-  test([
-    ""
-  ], {
-    0: [0, 0],
-    1: null
-  });
+  test(
+    [""],
+    {
+      0: [0, 0],
+      1: null,
+    },
+  );
 
-  test([
-    " "
-  ], {
-    0: [0, 0],
-    1: [0, 1],
-    2: null
-  });
+  test(
+    [" "],
+    {
+      0: [0, 0],
+      1: [0, 1],
+      2: null,
+    },
+  );
 
-  test([
-    "\n "
-  ], {
-    0: [0, 0],
-    1: [1, 0],
-    2: [1, 1],
-    3: null
-  });
+  test(
+    ["\n "],
+    {
+      0: [0, 0],
+      1: [1, 0],
+      2: [1, 1],
+      3: null,
+    },
+  );
 
   Map<int, List<int>?> positions = {
     0: [0, 0],
@@ -85,7 +92,7 @@ main() {
     3: [1, 1],
     4: [2, 0],
     5: [2, 1],
-    6: null
+    6: null,
   };
 
   test(["a\nb\nc"], positions);

@@ -13,20 +13,33 @@ const m1 = const {"foo": 499};
 const m2 = const {"$str": 499};
 const m3 = const {
   // Causes in a duplicate key error.
-
-  "foo": 499
+  "foo": 499,
 };
 const m4 = const {
   // Causes in a duplicate key error.
-
-  "$str": 499
+  "$str": 499,
 };
-const m5 = const {"f" "o" "o": 499};
+const m5 = const {
+  "f"
+          "o"
+          "o":
+      499,
+};
 
 const mm1 = const {"afoo#foo": 499};
 const mm2 = const {"a$str#$str": 499};
-const mm3 = const {"a" "$str" "#" "foo": 499};
-const mm4 = const {"a$str" "#$str": 499};
+const mm3 = const {
+  "a"
+          "$str"
+          "#"
+          "foo":
+      499,
+};
+const mm4 = const {
+  "a$str"
+          "#$str":
+      499,
+};
 
 main() {
   Expect.equals(1, m1.length);

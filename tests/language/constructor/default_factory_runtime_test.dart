@@ -9,9 +9,7 @@ import "package:expect/expect.dart";
 
 // Dart test program for testing default factories.
 
-abstract class Vehicle {
-
-}
+abstract class Vehicle {}
 
 class Bike implements Vehicle, GoogleOne {
   Bike.redOne() {}
@@ -34,5 +32,4 @@ class GoogleOne implements SpaceShip {
 main() {
   Expect.equals(true, (new Bike.redOne()) is Bike);
   Expect.equals(true, (new SpaceShip()) is GoogleOne);
-
 }

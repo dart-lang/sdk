@@ -34,13 +34,18 @@ class Expectations {
 /// Convert the annotated [code] to a [Test] object using [configs] to split
 /// the annotations by prefix.
 Test processTestCode(String code, Iterable<String> configs) {
-  AnnotatedCode annotatedCode =
-      AnnotatedCode.fromText(code, commentStart, commentEnd);
+  AnnotatedCode annotatedCode = AnnotatedCode.fromText(
+    code,
+    commentStart,
+    commentEnd,
+  );
 
   Map<String, Expectations> expectationMap = <String, Expectations>{};
 
-  splitByPrefixes(annotatedCode, configs)
-      .forEach((String config, AnnotatedCode annotatedCode) {
+  splitByPrefixes(annotatedCode, configs).forEach((
+    String config,
+    AnnotatedCode annotatedCode,
+  ) {
     Map<int, StackTraceLine> stackTraceMap = <int, StackTraceLine>{};
     List<StackTraceLine> unexpectedLines = <StackTraceLine>[];
 
@@ -56,7 +61,11 @@ Test processTestCode(String code, Iterable<String> configs) {
         indexText = text;
       }
       StackTraceLine stackTraceLine = StackTraceLine(
-          methodName, inputFileName, annotation.lineNo, annotation.columnNo);
+        methodName,
+        inputFileName,
+        annotation.lineNo,
+        annotation.columnNo,
+      );
       if (indexText == '') {
         unexpectedLines.add(stackTraceLine);
       } else {
@@ -82,7 +91,7 @@ Test processTestCode(String code, Iterable<String> configs) {
 /// function returns `true` if the compilation succeeded.
 typedef CompileFunc = Future<bool> Function(String, String);
 
-List<String> emptyPreamble(input, output) => const <String>[];
+List<String> emptyPreamble(String input, String output) => const <String>[];
 String? identityConverter(String? name) => name;
 
 /// Tests the stack trace of [test] using the expectations for [config].
@@ -104,21 +113,27 @@ String? identityConverter(String? name) => name;
 /// If forcedTmpDir is given that directory is used as the out directory and
 /// will not be cleaned up. Note that if *not* giving a temporary directory and
 /// the test fails the directory will not be cleaned up.
-Future testStackTrace(Test test, String config, CompileFunc compile,
-    {bool printJs = false,
-    bool writeJs = false,
-    bool verbose = false,
-    List<String> Function(String input, String output) jsPreambles =
-        emptyPreamble,
-    List<LineException> beforeExceptions = const <LineException>[],
-    List<LineException> afterExceptions = const <LineException>[],
-    bool useJsMethodNamesOnAbsence = false,
-    String? Function(String? name) jsNameConverter = identityConverter,
-    Directory? forcedTmpDir,
-    int stackTraceLimit = 10,
-    expandDart2jsInliningData = false}) async {
-  Expect.isTrue(test.expectationMap.keys.contains(config),
-      "No expectations found for '$config' in ${test.expectationMap.keys}");
+Future testStackTrace(
+  Test test,
+  String config,
+  CompileFunc compile, {
+  bool printJs = false,
+  bool writeJs = false,
+  bool verbose = false,
+  List<String> Function(String input, String output) jsPreambles =
+      emptyPreamble,
+  List<LineException> beforeExceptions = const <LineException>[],
+  List<LineException> afterExceptions = const <LineException>[],
+  bool useJsMethodNamesOnAbsence = false,
+  String? Function(String? name) jsNameConverter = identityConverter,
+  Directory? forcedTmpDir,
+  int stackTraceLimit = 10,
+  expandDart2jsInliningData = false,
+}) async {
+  Expect.isTrue(
+    test.expectationMap.keys.contains(config),
+    "No expectations found for '$config' in ${test.expectationMap.keys}",
+  );
 
   Directory tmpDir =
       forcedTmpDir ?? await Directory.systemTemp.createTemp('stacktrace-test');
@@ -126,11 +141,15 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
   File(input).writeAsStringSync(test.code);
   String output = '${tmpDir.path}/out.js';
 
-  Expect.isTrue(await compile(input, output),
-      'Unsuccessful compilation of test:\n${test.code}');
+  Expect.isTrue(
+    await compile(input, output),
+    'Unsuccessful compilation of test:\n${test.code}',
+  );
   File sourceMapFile = File('$output.map');
   Expect.isTrue(
-      sourceMapFile.existsSync(), 'Source map not generated for $input');
+    sourceMapFile.existsSync(),
+    'Source map not generated for $input',
+  );
   String sourceMapText = sourceMapFile.readAsStringSync();
   SingleMapping sourceMap = parseSingleMapping(jsonDecode(sourceMapText));
   String jsOutput = File(output).readAsStringSync();
@@ -169,7 +188,10 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
   List<StackTraceLine> dartStackTrace = <StackTraceLine>[];
   for (StackTraceLine line in jsStackTrace) {
     TargetEntry? targetEntry = _findColumn(
-        line.lineNo! - 1, line.columnNo! - 1, _findLine(sourceMap, line));
+      line.lineNo! - 1,
+      line.columnNo! - 1,
+      _findLine(sourceMap, line),
+    );
     if (targetEntry == null || targetEntry.sourceUrlId == null) {
       dartStackTrace.add(line);
     } else {
@@ -180,8 +202,10 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
       if (expandDart2jsInliningData) {
         SourceFile file = SourceFile.fromString(jsOutput);
         int offset = file.getOffset(line.lineNo! - 1, line.columnNo! - 1);
-        Map<int, List<FrameEntry>> frames =
-            _loadInlinedFrameData(sourceMap, sourceMapText);
+        Map<int, List<FrameEntry>> frames = _loadInlinedFrameData(
+          sourceMap,
+          sourceMapText,
+        );
         List<int> indices = frames.keys.toList()..sort();
         int key = binarySearch<int>(indices, (i) => i > offset) - 1;
         int depth = 0;
@@ -191,12 +215,15 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
             if (frame.isEmpty) break outer;
             if (frame.isPush) {
               if (depth <= 0) {
-                dartStackTrace.add(StackTraceLine(
+                dartStackTrace.add(
+                  StackTraceLine(
                     '${frame.inlinedMethodName}(inlined)',
                     fileName,
                     targetLine,
                     targetColumn,
-                    isMapped: true));
+                    isMapped: true,
+                  ),
+                );
                 fileName = frame.callUri!;
                 targetLine = frame.callLine! + 1;
                 targetColumn = frame.callColumn! + 1;
@@ -220,9 +247,15 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
         methodName = jsNameConverter(line.methodName);
       }
 
-      dartStackTrace.add(StackTraceLine(
-          methodName, fileName, targetLine, targetColumn,
-          isMapped: true));
+      dartStackTrace.add(
+        StackTraceLine(
+          methodName,
+          fileName,
+          targetLine,
+          targetColumn,
+          isMapped: true,
+        ),
+      );
     }
   }
 
@@ -276,22 +309,25 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
     print(dartStackTrace.join('\n'));
   }
   Expect.equals(
-      expectedIndex,
-      expectations.expectedLines.length,
-      'Missing stack trace lines for test:\n${test.code}\n'
-      'Actual:\n${dartStackTrace.join('\n')}\n\n'
-      'Expected:\n${expectations.expectedLines.join('\n')}\n');
+    expectedIndex,
+    expectations.expectedLines.length,
+    'Missing stack trace lines for test:\n${test.code}\n'
+    'Actual:\n${dartStackTrace.join('\n')}\n\n'
+    'Expected:\n${expectations.expectedLines.join('\n')}\n',
+  );
   Expect.isTrue(
-      unexpectedLines.isEmpty,
-      'Unexpected stack trace lines for test:\n${test.code}\n'
-      'Actual:\n${dartStackTrace.join('\n')}\n\n'
-      'Unexpected:\n${expectations.unexpectedLines.join('\n')}\n');
+    unexpectedLines.isEmpty,
+    'Unexpected stack trace lines for test:\n${test.code}\n'
+    'Actual:\n${dartStackTrace.join('\n')}\n\n'
+    'Unexpected:\n${expectations.unexpectedLines.join('\n')}\n',
+  );
   Expect.isTrue(
-      unexpectedBeforeLines.isEmpty && unexpectedAfterLines.isEmpty,
-      'Unexpected stack trace lines:\n${test.code}\n'
-      'Actual:\n${dartStackTrace.join('\n')}\n\n'
-      'Unexpected before:\n${unexpectedBeforeLines.join('\n')}\n\n'
-      'Unexpected after:\n${unexpectedAfterLines.join('\n')}\n');
+    unexpectedBeforeLines.isEmpty && unexpectedAfterLines.isEmpty,
+    'Unexpected stack trace lines:\n${test.code}\n'
+    'Actual:\n${dartStackTrace.join('\n')}\n\n'
+    'Unexpected before:\n${unexpectedBeforeLines.join('\n')}\n\n'
+    'Unexpected after:\n${unexpectedAfterLines.join('\n')}\n',
+  );
 
   if (forcedTmpDir == null) {
     print("Deleting '${tmpDir.path}'.");
@@ -306,8 +342,13 @@ class StackTraceLine {
   int? columnNo;
   bool isMapped;
 
-  StackTraceLine(this.methodName, this.fileName, this.lineNo, this.columnNo,
-      {this.isMapped = false});
+  StackTraceLine(
+    this.methodName,
+    this.fileName,
+    this.lineNo,
+    this.columnNo, {
+    this.isMapped = false,
+  });
 
   /// Creates a [StackTraceLine] by parsing a d8 stack trace line [text]. The
   /// expected formats are
@@ -338,8 +379,9 @@ class StackTraceLine {
       if (lastValue != null) {
         int secondToLastColon = text.lastIndexOf(':', lastColon - 1);
         if (secondToLastColon != -1) {
-          int? secondToLastValue =
-              int.tryParse(text.substring(secondToLastColon + 1, lastColon));
+          int? secondToLastValue = int.tryParse(
+            text.substring(secondToLastColon + 1, lastColon),
+          );
           if (secondToLastValue != null) {
             lineNo = secondToLastValue;
             columnNo = lastValue;
@@ -391,15 +433,18 @@ class StackTraceLine {
 ///
 /// Copied from [SingleMapping._findLine].
 TargetLineEntry? _findLine(SingleMapping sourceMap, StackTraceLine stLine) {
-  String filename = stLine.fileName!
-      .substring(stLine.fileName!.lastIndexOf(RegExp('[\\/]')) + 1);
+  String filename = stLine.fileName!.substring(
+    stLine.fileName!.lastIndexOf(RegExp('[\\/]')) + 1,
+  );
   if (sourceMap.targetUrl != filename) return null;
   return _findLineInternal(sourceMap, stLine.lineNo! - 1);
 }
 
 TargetLineEntry? _findLineInternal(SingleMapping sourceMap, int line) {
-  int index =
-      binarySearch<TargetLineEntry>(sourceMap.lines, (e) => e.line > line);
+  int index = binarySearch<TargetLineEntry>(
+    sourceMap.lines,
+    (e) => e.line > line,
+  );
   return (index <= 0) ? null : sourceMap.lines[index - 1];
 }
 
@@ -442,7 +487,11 @@ class LineException {
 /// Search backwards in [sources] for a function declaration that includes the
 /// [start] offset.
 TargetEntry? findEnclosingFunction(
-    String sources, SourceFile file, int start, SingleMapping mapping) {
+  String sources,
+  SourceFile file,
+  int start,
+  SingleMapping mapping,
+) {
   var index = start;
   while (true) {
     index = nextDeclarationCandidate(sources, index);
@@ -479,7 +528,9 @@ int nextDeclarationCandidate(String sources, int start) {
 }
 
 Map<int, List<FrameEntry>> _loadInlinedFrameData(
-    SingleMapping mapping, String sourceMapText) {
+  SingleMapping mapping,
+  String sourceMapText,
+) {
   var json = jsonDecode(sourceMapText);
   return Dart2jsMapping(mapping, json).frames;
 }

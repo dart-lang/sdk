@@ -49,10 +49,16 @@ class RuntimeCoverageAnalysisCommand extends Command<void>
   final String description = "Analyze runtime coverage data";
 
   RuntimeCoverageAnalysisCommand() {
-    argParser.addFlag('show-packages',
-        defaultsTo: false, help: "Show coverage details at the package level.");
-    argParser.addOption('class-filter',
-        defaultsTo: '', help: "Show coverage details filtered by class.");
+    argParser.addFlag(
+      'show-packages',
+      defaultsTo: false,
+      help: "Show coverage details at the package level.",
+    );
+    argParser.addOption(
+      'class-filter',
+      defaultsTo: '',
+      help: "Show coverage details filtered by class.",
+    );
   }
 
   @override
@@ -76,10 +82,7 @@ class RuntimeCoverageAnalysisCommand extends Command<void>
   }
 }
 
-Future<void> _report(
-  String infoFile,
-  String coverageFile,
-) async {
+Future<void> _report(String infoFile, String coverageFile) async {
   final info = await infoFromFile(infoFile);
   final coverageRaw = jsonDecode(File(coverageFile).readAsStringSync());
   // The value associated with each coverage item isn't used for now.
@@ -146,10 +149,7 @@ Future<void> _report(
 }
 
 /// Generates a report aggregated at the package level.
-Future<void> _reportWithPackages(
-  String infoFile,
-  String coverageFile,
-) async {
+Future<void> _reportWithPackages(String infoFile, String coverageFile) async {
   final info = await infoFromFile(infoFile);
   final coverageRaw = jsonDecode(File(coverageFile).readAsStringSync());
   // The value associated with each coverage item isn't used for now.
@@ -222,46 +222,58 @@ Future<void> _reportWithPackages(
 
     var packageRatioString = (packageInfo.usedRatio * 100).toStringAsFixed(2);
     _leftPadded(
-        '  proportion of package used:',
-        '${packageInfo.usedSize}/${packageInfo.totalSize} '
-            '($packageRatioString%)');
+      '  proportion of package used:',
+      '${packageInfo.usedSize}/${packageInfo.totalSize} '
+          '($packageRatioString%)',
+    );
 
-    var codeRatioString =
-        (packageInfo.unusedSize / totalCode * 100).toStringAsFixed(2);
-    _leftPadded('  proportion of unused code to all code:',
-        '${packageInfo.unusedSize}/$totalCode ($codeRatioString%)');
-
-    var unusedCodeRatioString =
-        (packageInfo.unusedSize / unusedTotal * 100).toStringAsFixed(2);
-    _leftPadded('  proportion of unused code to all unused code:',
-        '${packageInfo.unusedSize}/$unusedTotal ($unusedCodeRatioString%)');
-
-    var mainUnitPackageRatioString =
-        (packageInfo.mainUnitSize / packageInfo.totalSize * 100)
-            .toStringAsFixed(2);
+    var codeRatioString = (packageInfo.unusedSize / totalCode * 100)
+        .toStringAsFixed(2);
     _leftPadded(
-        '  proportion of main unit code to package code:',
-        '${packageInfo.mainUnitSize}/${packageInfo.totalSize} '
-            '($mainUnitPackageRatioString%)');
+      '  proportion of unused code to all code:',
+      '${packageInfo.unusedSize}/$totalCode ($codeRatioString%)',
+    );
 
-    var unusedMainUnitRatioString =
-        (packageInfo.unusedMainUnitSize / packageInfo.mainUnitSize * 100)
-            .toStringAsFixed(2);
+    var unusedCodeRatioString = (packageInfo.unusedSize / unusedTotal * 100)
+        .toStringAsFixed(2);
     _leftPadded(
-        '  proportion of main unit code that is unused:',
-        '${packageInfo.unusedMainUnitSize}/${packageInfo.mainUnitSize} '
-            '($unusedMainUnitRatioString%)');
+      '  proportion of unused code to all unused code:',
+      '${packageInfo.unusedSize}/$unusedTotal ($unusedCodeRatioString%)',
+    );
+
+    var mainUnitPackageRatioString = (packageInfo.mainUnitSize /
+            packageInfo.totalSize *
+            100)
+        .toStringAsFixed(2);
+    _leftPadded(
+      '  proportion of main unit code to package code:',
+      '${packageInfo.mainUnitSize}/${packageInfo.totalSize} '
+          '($mainUnitPackageRatioString%)',
+    );
+
+    var unusedMainUnitRatioString = (packageInfo.unusedMainUnitSize /
+            packageInfo.mainUnitSize *
+            100)
+        .toStringAsFixed(2);
+    _leftPadded(
+      '  proportion of main unit code that is unused:',
+      '${packageInfo.unusedMainUnitSize}/${packageInfo.mainUnitSize} '
+          '($unusedMainUnitRatioString%)',
+    );
 
     print('   package breakdown:');
     for (var item in packageInfo.elements.toList()) {
-      var percent =
-          (item.size * 100 / packageInfo.totalSize).toStringAsFixed(2);
+      var percent = (item.size * 100 / packageInfo.totalSize).toStringAsFixed(
+        2,
+      );
       var name = qualifiedName(item);
       var used = coverage.contains(name);
       var usedTick = used ? '+' : '-';
       var mainUnitTick = item.outputUnit!.name == 'main' ? 'M' : 'D';
-      _leftPadded('    [$usedTick$mainUnitTick] ${qualifiedName(item)}:',
-          '${item.size} bytes ($percent% of package)');
+      _leftPadded(
+        '    [$usedTick$mainUnitTick] ${qualifiedName(item)}:',
+        '${item.size} bytes ($percent% of package)',
+      );
     }
 
     print('');
@@ -270,15 +282,18 @@ Future<void> _reportWithPackages(
 
 /// Generates a report filtered by class.
 Future<void> _reportWithClassFilter(
-    String infoFile, String coverageFile, String filterFile,
-    {bool showUncategorizedClasses = false}) async {
+  String infoFile,
+  String coverageFile,
+  String filterFile, {
+  bool showUncategorizedClasses = false,
+}) async {
   final info = await infoFromFile(infoFile);
   final coverageRaw = jsonDecode(File(coverageFile).readAsStringSync());
   // The value associated with each coverage item isn't used for now.
   Set<String> coverage = coverageRaw.keys.toSet();
 
   final classFilterData = {
-    for (final info in runtimeInfoFromAngularInfo(filterFile)) info.key: info
+    for (final info in runtimeInfoFromAngularInfo(filterFile)) info.key: info,
   };
 
   // Ensure that a used class's super, mixed in, and implemented classes are
@@ -311,8 +326,10 @@ Future<void> _reportWithClassFilter(
   void processInfoForClass(ClassInfo info) {
     final name = qualifiedName(info);
     final used = coverage.contains(name);
-    final nameWithoutPrefix =
-        name.substring(name.indexOf(':') + 1, name.length);
+    final nameWithoutPrefix = name.substring(
+      name.indexOf(':') + 1,
+      name.length,
+    );
 
     final runtimeClassInfo = classFilterData[nameWithoutPrefix];
     if (runtimeClassInfo == null) {
@@ -376,13 +393,18 @@ Future<void> _reportWithClassFilter(
   _section('Runtime Coverage Breakdown (filtered)', size: unusedTotal);
   print('Filtered Breakdown:');
   print('Total (count): ${categorizedClasses.length}');
-  print('Used  (count): $usedProcessedCode '
-      '(${usedProcessedCode / categorizedClasses.length * 100}%)');
+  print(
+    'Used  (count): $usedProcessedCode '
+    '(${usedProcessedCode / categorizedClasses.length * 100}%)',
+  );
   print('Total (bytes): $filterTotalCode');
-  print('Used  (bytes): $filterUsedCode '
-      '(${filterUsedCode / filterTotalCode * 100}%)');
-  for (final runtimeClassInfo in classFilterData.values
-      .sortedBy((v) => v.annotated ? (v.used ? v.size : -v.size) : 0)) {
+  print(
+    'Used  (bytes): $filterUsedCode '
+    '(${filterUsedCode / filterTotalCode * 100}%)',
+  );
+  for (final runtimeClassInfo in classFilterData.values.sortedBy(
+    (v) => v.annotated ? (v.used ? v.size : -v.size) : 0,
+  )) {
     if (!runtimeClassInfo.annotated) continue;
     final classInfo = runtimeClassInfo.info;
     final percent = (classInfo.size * 100 / filterTotalCode).toStringAsFixed(2);
@@ -390,14 +412,17 @@ Future<void> _reportWithClassFilter(
     final used = coverage.contains(name);
     final usedTick = used ? '+' : '-';
     final mainUnitTick = classInfo.outputUnit?.name == 'main' ? 'M' : 'D';
-    _leftPadded('    [$usedTick$mainUnitTick] ${qualifiedName(classInfo)}:',
-        '${classInfo.size} bytes ($percent% of filtered items)');
+    _leftPadded(
+      '    [$usedTick$mainUnitTick] ${qualifiedName(classInfo)}:',
+      '${classInfo.size} bytes ($percent% of filtered items)',
+    );
   }
 
   print('');
   print('Unaccounted classes in filter:');
-  for (final runtimeClassInfo
-      in classFilterData.values.where((v) => !v.annotated)) {
+  for (final runtimeClassInfo in classFilterData.values.where(
+    (v) => !v.annotated,
+  )) {
     print('    ${runtimeClassInfo.key}');
   }
 
@@ -413,8 +438,10 @@ Future<void> _reportWithClassFilter(
       final used = coverage.contains(name);
       final usedTick = used ? '+' : '-';
       final mainUnitTick = info.outputUnit?.name == 'main' ? 'M' : 'D';
-      _leftPadded('    [$usedTick$mainUnitTick] $name:',
-          '${info.size} bytes ($percent% of program)');
+      _leftPadded(
+        '    [$usedTick$mainUnitTick] $name:',
+        '${info.size} bytes ($percent% of program)',
+      );
     }
   }
 

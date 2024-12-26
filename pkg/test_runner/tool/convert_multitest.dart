@@ -13,18 +13,22 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:path/path.dart';
+import 'package:path/path.dart' as p;
+import 'package:test_runner/src/command_output.dart';
 import 'package:test_runner/src/multitest.dart';
 import 'package:test_runner/src/path.dart';
 import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/test_file.dart';
 import 'package:test_runner/src/update_errors.dart';
 
-import 'update_static_error_tests.dart' show runAnalyzerCli, runCfe;
+import 'update_static_error_tests.dart' show dartPath;
+
+final _analyzerPath = p.join('pkg', 'analyzer_cli', 'bin', 'analyzer.dart');
 
 Future<List<StaticError>> getErrors(
     List<String> options, String filePath) async {
-  var analyzerErrors = await runAnalyzerCli(File(filePath), options);
-  var cfeErrors = await runCfe(File(filePath), options);
+  var analyzerErrors = await _runAnalyzer(File(filePath), options);
+  var cfeErrors = await _runCfe(File(filePath), options);
   return [...analyzerErrors, ...cfeErrors];
 }
 
@@ -263,4 +267,62 @@ Future<void> main(List<String> arguments) async {
     await convertFile(testFilePath, writeToFile, verbose,
         (results["enable-experiment"] as List).cast<String>());
   }
+}
+
+/// Invoke analyzer on [file] and gather all static errors it reports.
+Future<List<StaticError>> _runAnalyzer(File file, List<String> options) async {
+  var result = await Process.run(dartPath, [
+    _analyzerPath,
+    ...options,
+    "--format=json",
+    file.absolute.path,
+  ]);
+
+  // Analyzer returns 3 when it detects errors, 2 when it detects
+  // warnings and --fatal-warnings is enabled, 1 when it detects
+  // hints and --fatal-hints or --fatal-infos are enabled.
+  if (result.exitCode < 0 || result.exitCode > 3) {
+    print("Analyzer run failed: ${result.stdout}\n${result.stderr}");
+    print("Error: failed to update ${file.path}");
+    return const [];
+  }
+
+  var errors = <StaticError>[];
+  var warnings = <StaticError>[];
+  AnalysisCommandOutput.parseErrors(result.stdout as String, errors, warnings);
+
+  return [...errors, ...warnings];
+}
+
+/// Invoke CFE on [file] and gather all static errors it reports.
+Future<List<StaticError>> _runCfe(File file, List<String> options) async {
+  var absolutePath = file.absolute.path;
+  // TODO(rnystrom): Running the CFE command line each time is slow and wastes
+  // time generating code, which we don't care about. Import it as a library or
+  // at least run it in batch mode.
+  var result = await Process.run(dartPath, [
+    "pkg/front_end/tool/compile.dart",
+    ...options,
+    "--verify",
+    "-o",
+    "dev:null", // Output is only created for file URIs.
+    absolutePath,
+  ]);
+
+  // Running the above command may generate a dill file next to the test, which
+  // we don't want, so delete it if present.
+  var dill = File("$absolutePath.dill");
+  if (await dill.exists()) {
+    await dill.delete();
+  }
+
+  if (result.exitCode != 0) {
+    print("CFE run failed: ${result.stdout}\n${result.stderr}");
+    print("Error: failed to update ${file.path}");
+    return const [];
+  }
+  var errors = <StaticError>[];
+  var warnings = <StaticError>[];
+  FastaCommandOutput.parseErrors(result.stdout as String, errors, warnings);
+  return [...errors, ...warnings];
 }

@@ -8,8 +8,6 @@
 const intValue = 0;
 const double c = 0.0;
 
-
 main() {
   print(c);
-
 }

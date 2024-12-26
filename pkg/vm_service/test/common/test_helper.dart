@@ -115,6 +115,7 @@ class _ServiceTesteeLauncher {
     bool pauseOnUnhandledExceptions,
     bool testeeControlsServer,
     bool useAuthToken,
+    bool shouldTesteeBeLaunchedWithDartRunResident,
     List<String>? experiments,
     List<String>? extraArgs,
   ) {
@@ -124,6 +125,7 @@ class _ServiceTesteeLauncher {
       pauseOnUnhandledExceptions,
       testeeControlsServer,
       useAuthToken,
+      shouldTesteeBeLaunchedWithDartRunResident,
       experiments,
       extraArgs,
     );
@@ -135,6 +137,7 @@ class _ServiceTesteeLauncher {
     bool pauseOnUnhandledExceptions,
     bool testeeControlsServer,
     bool useAuthToken,
+    bool shouldTesteeBeLaunchedWithDartRunResident,
     List<String>? experiments,
     List<String>? extraArgs,
   ) {
@@ -165,7 +168,12 @@ class _ServiceTesteeLauncher {
     if (!testeeControlsServer) {
       fullArgs.add('--enable-vm-service:0');
     }
+
+    if (shouldTesteeBeLaunchedWithDartRunResident) {
+      fullArgs.addAll(['run', '--resident']);
+    }
     fullArgs.addAll(args);
+
     return _spawnCommon(dartExecutable, fullArgs, <String, String>{});
   }
 
@@ -194,6 +202,7 @@ class _ServiceTesteeLauncher {
     bool pauseOnUnhandledExceptions,
     bool testeeControlsServer,
     bool useAuthToken,
+    bool shouldTesteeBeLaunchedWithDartRunResident,
     List<String>? experiments,
     List<String>? extraArgs,
   ) {
@@ -203,6 +212,7 @@ class _ServiceTesteeLauncher {
       pauseOnUnhandledExceptions,
       testeeControlsServer,
       useAuthToken,
+      shouldTesteeBeLaunchedWithDartRunResident,
       experiments,
       extraArgs,
     ).then((p) {
@@ -272,6 +282,7 @@ class _ServiceTesterRunner {
     bool pauseOnUnhandledExceptions = false,
     bool testeeControlsServer = false,
     bool useAuthToken = false,
+    bool shouldTesteeBeLaunchedWithDartRunResident = false,
     bool allowForNonZeroExitCode = false,
     VmServiceFactory serviceFactory = VmService.defaultFactory,
   }) async {
@@ -286,6 +297,7 @@ class _ServiceTesterRunner {
         pauseOnUnhandledExceptions,
         testeeControlsServer,
         useAuthToken,
+        shouldTesteeBeLaunchedWithDartRunResident,
         experiments,
         extraArgs,
       )
@@ -410,6 +422,9 @@ Future<void> runIsolateTests(
   bool pauseOnUnhandledExceptions = false,
   bool testeeControlsServer = false,
   bool useAuthToken = false,
+
+  /// If [true], `dart run --resident` will be used to launch the testee.
+  bool shouldTesteeBeLaunchedWithDartRunResident = false,
   bool allowForNonZeroExitCode = false,
   List<String>? experiments,
   List<String>? extraArgs,
@@ -435,6 +450,8 @@ Future<void> runIsolateTests(
       pauseOnUnhandledExceptions: pauseOnUnhandledExceptions,
       testeeControlsServer: testeeControlsServer,
       useAuthToken: useAuthToken,
+      shouldTesteeBeLaunchedWithDartRunResident:
+          shouldTesteeBeLaunchedWithDartRunResident,
       allowForNonZeroExitCode: allowForNonZeroExitCode,
     );
   }

@@ -93,6 +93,10 @@ class IlTestPrinter : public AllStatic {
         writer->CloseArray();
       }
     }
+    if (auto try_entry = block->AsTryEntry()) {
+      writer->PrintProperty("tryBody", try_entry->try_body()->block_id());
+      writer->PrintProperty("catches", try_entry->catch_target()->block_id());
+    }
     writer->OpenArray("is");
     if (auto join = block->AsJoinEntry()) {
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
@@ -1447,9 +1451,41 @@ void NativeParameterInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   marshaller_.NativeLocationOfNativeParameter(def_index_).PrintTo(f);
 }
 
+void TryEntryInstr::PrintTo(BaseTextBuffer* f) const {
+  f->Printf("B%" Pd "[try_entry try_idx %" Pd "]:%" Pd " try_body:[B%" Pd
+            "] catches:[B%" Pd "] pred(",
+            block_id(), try_index(), GetDeoptId(), try_body_->block_id(),
+            catch_target_->block_id());
+
+  for (intptr_t i = 0; i < PredecessorCount(); ++i) {
+    if (i > 0) f->AddString(", ");
+    f->Printf("B%" Pd, PredecessorAt(i)->block_id());
+  }
+  f->AddString(")");
+  if (phis() != nullptr) {
+    f->AddString(" {");
+    for (intptr_t i = 0; i < phis()->length(); ++i) {
+      if ((*phis())[i] == nullptr) continue;
+      f->AddString("\n      ");
+      (*phis())[i]->PrintTo(f);
+    }
+    f->AddString("\n}");
+  }
+
+  if (HasParallelMove()) {
+    f->AddString(" ");
+    parallel_move()->PrintTo(f);
+  }
+}
+
 void CatchBlockEntryInstr::PrintBlockHeaderTo(BaseTextBuffer* f) const {
-  f->Printf("B%" Pd "[target catch try_idx %" Pd " catch_try_idx %" Pd "]",
-            block_id(), try_index(), catch_try_index());
+  if (try_index() != kInvalidTryIndex) {
+    f->Printf("B%" Pd "[catch catch_try_index %" Pd " try_idx %" Pd "]",
+              block_id(), catch_try_index(), try_index());
+  } else {
+    f->Printf("B%" Pd "[catch catch_try_index %" Pd "]", block_id(),
+              catch_try_index());
+  }
   if (HasParallelMove()) {
     f->AddString("\n");
     parallel_move()->PrintTo(f);

@@ -21,13 +21,13 @@ dependencies:
   json_rpc_2: any
   language_server_protocol: any
   linter: any
+  matcher: any
   memory_usage: any
   meta: any
   path: any
   pub_semver: any
   stream_channel: any
   telemetry: any
-  test: any
   unified_analytics: any
   vm_service: any
   watcher: any
@@ -40,7 +40,7 @@ dev_dependencies:
   cli_util: any
   lints: any
   logging: any
-  matcher: any
+  test: any
   test_descriptor: any
   test_reflective_loader: any
   web_socket_channel: any

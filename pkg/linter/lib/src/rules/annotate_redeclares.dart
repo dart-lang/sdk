@@ -15,7 +15,7 @@ class AnnotateRedeclares extends LintRule {
       : super(
           name: LintNames.annotate_redeclares,
           description: _desc,
-          state: State.experimental(),
+          state: const State.experimental(),
         );
 
   @override

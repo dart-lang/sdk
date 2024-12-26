@@ -306,16 +306,6 @@ abstract interface class TypeAnalyzerOperations<
   /// uniformity, and to simplify the abstraction step too.
   TypeStructure lubInternal(TypeStructure type1, TypeStructure type2);
 
-  /// Computes the nullable form of [type], in other words the least upper bound
-  /// of [type] and `Null`.
-  ///
-  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
-  /// [TypeAnalyzerOperationsMixin] and implement [makeNullableInternal] to
-  /// receive a concrete implementation of [makeNullable] instead of
-  /// implementing [makeNullable] directly.
-  SharedTypeView<TypeStructure> makeNullable(
-      SharedTypeView<TypeStructure> type);
-
   /// [makeNullableInternal] should be implemented by concrete classes
   /// implementing [TypeAnalyzerOperations]. The implementations of
   /// [makeNullable] and [makeTypeSchemaNullable] are provided by mixing in

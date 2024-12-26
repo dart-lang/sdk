@@ -24,7 +24,7 @@ class BezierPhysics {
     _ONE_THIRD,
     _TWO_THIRDS,
     _TWO_THIRDS,
-    1
+    1,
   ];
 
   /// Given consistent kinematics parameters for constant acceleration, returns
@@ -32,24 +32,40 @@ class BezierPhysics {
   /// motion. All input values must have correct signs.
   /// Returns a list [:[x1, y1, x2, y2]:] representing the intermediate control
   ///     points of the cubic Bezier.
-  static List<num> calculateCubicBezierFromKinematics(num initialVelocity,
-      num finalVelocity, num totalTime, num totalDisplacement) {
+  static List<num> calculateCubicBezierFromKinematics(
+    num initialVelocity,
+    num finalVelocity,
+    num totalTime,
+    num totalDisplacement,
+  ) {
     // Total time must be greater than 0.
     assert(!GoogleMath.nearlyEquals(totalTime, 0) && totalTime > 0);
     // Total displacement must not be 0.
     assert(!GoogleMath.nearlyEquals(totalDisplacement, 0));
     // Parameters must form a consistent constant acceleration model in
     // Newtonian kinematics.
-    assert(GoogleMath.nearlyEquals(totalDisplacement,
-        (initialVelocity + finalVelocity) * 0.5 * totalTime));
+    assert(
+      GoogleMath.nearlyEquals(
+        totalDisplacement,
+        (initialVelocity + finalVelocity) * 0.5 * totalTime,
+      ),
+    );
 
     if (GoogleMath.nearlyEquals(finalVelocity, 0)) {
       return _FINAL_VELOCITY_ZERO_BEZIER;
     }
     List<num> controlPoint = _tangentLinesToQuadraticBezier(
-        initialVelocity, finalVelocity, totalTime, totalDisplacement);
+      initialVelocity,
+      finalVelocity,
+      totalTime,
+      totalDisplacement,
+    );
     controlPoint = _normalizeQuadraticBezier(
-        controlPoint[0], controlPoint[1], totalTime, totalDisplacement);
+      controlPoint[0],
+      controlPoint[1],
+      totalTime,
+      totalDisplacement,
+    );
     return _quadraticToCubic(controlPoint[0], controlPoint[1]);
   }
 
@@ -64,7 +80,11 @@ class BezierPhysics {
   /// Returns a list [:[x1, y1]:] representing the intermediate
   ///     control point of the quadratic Bezier.
   static List<num> _tangentLinesToQuadraticBezier(
-      num m0, num m2, num x2, num y2) {
+    num m0,
+    num m2,
+    num x2,
+    num y2,
+  ) {
     if (GoogleMath.nearlyEquals(m0, m2)) {
       return [0, 0];
     }

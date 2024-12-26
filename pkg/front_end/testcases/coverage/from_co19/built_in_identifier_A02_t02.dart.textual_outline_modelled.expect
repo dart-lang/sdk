@@ -2,7 +2,9 @@ class C<as> {}
 
 const void Function<as>()? c = null;
 
-enum E<as> { e1 }
+enum E<as> {
+  e1;
+}
 
 extension Ext<as> on List {}
 

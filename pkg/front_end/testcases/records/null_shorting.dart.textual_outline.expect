@@ -1,7 +1,5 @@
-test(
-  (int, String, {double d, void Function() f, Class c})? record,
-  List<(int, String, {double d, void Function() f, Class c})>? list,
-) {}
+test((int, String, {double d, void Function() f, Class c})? record,
+    List<(int, String, {double d, void Function() f, Class c})>? list) {}
 
 extension on int {
   void call() {}

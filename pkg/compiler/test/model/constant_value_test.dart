@@ -10,11 +10,11 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/constants/values.dart';
-import 'package:compiler/src/diagnostics/invariant.dart' show DEBUG_MODE;
+import 'package:compiler/src/diagnostics/invariant.dart' show debugMode;
 import '../helpers/type_test_helper.dart';
 
 void main() {
-  DEBUG_MODE = true;
+  debugMode = true;
 
   asyncTest(() async {
     TypeEnvironment env = await TypeEnvironment.create("""
@@ -29,10 +29,12 @@ void main() {
     """);
     ClassEntity C = env.getClass('C');
     InterfaceType C_raw = env.elementEnvironment.getRawType(C);
-    final field1 = env.elementEnvironment
-        .lookupClassMember(C, PublicName('field1')) as FieldEntity;
-    final field2 = env.elementEnvironment
-        .lookupClassMember(C, PublicName('field2')) as FieldEntity;
+    final field1 =
+        env.elementEnvironment.lookupClassMember(C, PublicName('field1'))
+            as FieldEntity;
+    final field2 =
+        env.elementEnvironment.lookupClassMember(C, PublicName('field2'))
+            as FieldEntity;
     ConstructedConstantValue value1 = ConstructedConstantValue(C_raw, {
       field1: IntConstantValue(BigInt.zero),
       field2: IntConstantValue(BigInt.one),

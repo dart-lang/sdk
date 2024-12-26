@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:source_maps/source_maps.dart';
 
-main(List<String> args) {
+void main(List<String> args) {
   if (args.length != 1) {
     print('usage: read.dart <source-map-file>');
     exit(1);

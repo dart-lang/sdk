@@ -183,6 +183,8 @@ void main() {
   testFrom();
 
   testLazyKeysValueEntries();
+
+  testRegressions47852();
 }
 
 void test<K, V>(Map<K, V> map) {
@@ -1240,4 +1242,18 @@ class Key implements Comparable<Key> {
   int get hashCode => id.hashCode ^ 1023;
   bool operator ==(Object other) => other is Key && id == other.id;
   int compareTo(Key other) => id.compareTo(other.id);
+}
+
+void testRegressions47852() {
+  // Bug in dev-compiler's putIfAbsent.
+  // https://dartbug.com/47852
+
+  var map = {};
+  var key = DateTime.now(); // Overrides Object.==/hashCode
+  var wasAbsent = false;
+  map.putIfAbsent(key, () {
+    wasAbsent = true;
+    Expect.isFalse(map.containsKey(key));
+  });
+  Expect.isTrue(wasAbsent);
 }

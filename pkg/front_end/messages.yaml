@@ -1782,7 +1782,6 @@ UnexpectedSeparatorInNumber:
   problemMessage: "Digit separators ('_') in a number literal can only be placed between two digits."
   correctionMessage: "Try removing the '_'."
   analyzerCode: UNEXPECTED_SEPARATOR_IN_NUMBER
-  experiments: digit-separators
   expression:
     - '123_'
     - '1.23_'
@@ -5277,6 +5276,12 @@ FfiNativeFieldType:
   analyzerCode: NATIVE_FIELD_INVALID_TYPE
   external: test/ffi_test.dart
 
+FfiNativeFunctionMissingType:
+  # Used by dart:ffi
+  problemMessage: "The native type of this function couldn't be inferred so it must be specified in the annotation."
+  analyzerCode: NATIVE_FUNCTION_MISSING_TYPE
+  external: test/ffi_test.dart
+
 FfiAddressOfMustBeNative:
   # Used by dart:ffi
   problemMessage: "Argument to 'Native.addressOf' must be annotated with @Native."
@@ -5431,6 +5436,11 @@ NonNullAwareSpreadIsNull:
     main() {
       <int>[...null];
     }
+
+NegativeVariableDimension:
+  # Used by dart:ffi
+  problemMessage: "The variable dimension of a variable-length array must be non-negative."
+  external: test/ffi_test.dart
 
 NonPositiveArrayDimensions:
   # Used by dart:ffi

@@ -15,11 +15,7 @@ import 'package:_js_interop_checks/js_interop_checks.dart'
 import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
 import 'package:kernel/ast.dart';
 
-enum ExportStatus {
-  exportError,
-  exportable,
-  nonExportable,
-}
+enum ExportStatus { exportError, exportable, nonExportable }
 
 class ExportChecker {
   final JsInteropDiagnosticReporter _diagnosticReporter;
@@ -85,7 +81,7 @@ class ExportChecker {
     var demangledCls = cls.isMixinApplication ? cls.mixin : cls;
     for (var member in [
       ...demangledCls.procedures.where((proc) => proc.exportable),
-      ...demangledCls.fields.where((field) => field.exportable)
+      ...demangledCls.fields.where((field) => field.exportable),
     ]) {
       var memberName = member.name.text;
       if (member is Procedure && member.isSetter) {
@@ -122,23 +118,25 @@ class ExportChecker {
 
     if (classHasJSExport && js_interop.getJSExportName(cls).isNotEmpty) {
       _diagnosticReporter.report(
-          templateJsInteropExportDartInterfaceHasNonEmptyJSExportValue
-              .withArguments(cls.name),
-          cls.fileOffset,
-          cls.name.length,
-          cls.location?.file);
+        templateJsInteropExportDartInterfaceHasNonEmptyJSExportValue
+            .withArguments(cls.name),
+        cls.fileOffset,
+        cls.name.length,
+        cls.location?.file,
+      );
       exportStatus[cls.reference] = ExportStatus.exportError;
     }
 
     _collectOverrides(cls);
 
     var allExportableMembers = _overrideMap[cls.reference]!.values.where(
-        (member) =>
-            // Only members that qualify are those that are exportable, and
-            // either their class has the annotation or they have it themselves.
-            member.exportable &&
-            (js_interop.hasJSExportAnnotation(member) ||
-                js_interop.hasJSExportAnnotation(member.enclosingClass!)));
+      (member) =>
+          // Only members that qualify are those that are exportable, and
+          // either their class has the annotation or they have it themselves.
+          member.exportable &&
+          (js_interop.hasJSExportAnnotation(member) ||
+              js_interop.hasJSExportAnnotation(member.enclosingClass!)),
+    );
     var exports = <String, Set<Member>>{};
 
     // Store the exportable members.
@@ -183,20 +181,24 @@ class ExportChecker {
       var sortedExistingMembers =
           existingMembers.map((member) => member.toString()).toList()..sort();
       _diagnosticReporter.report(
-          templateJsInteropExportMemberCollision.withArguments(
-              exportName, sortedExistingMembers.join(', ')),
-          cls.fileOffset,
-          cls.name.length,
-          cls.location?.file);
+        templateJsInteropExportMemberCollision.withArguments(
+          exportName,
+          sortedExistingMembers.join(', '),
+        ),
+        cls.fileOffset,
+        cls.name.length,
+        cls.location?.file,
+      );
       exportStatus[cls.reference] = ExportStatus.exportError;
     }
 
     if (exports.isEmpty) {
       _diagnosticReporter.report(
-          templateJsInteropExportNoExportableMembers.withArguments(cls.name),
-          cls.fileOffset,
-          cls.name.length,
-          cls.location?.file);
+        templateJsInteropExportNoExportableMembers.withArguments(cls.name),
+        cls.fileOffset,
+        cls.name.length,
+        cls.location?.file,
+      );
       exportStatus[cls.reference] = ExportStatus.exportError;
     }
 
@@ -212,11 +214,13 @@ class ExportChecker {
     if (memberHasJSExportAnnotation) {
       if (!member.exportable) {
         _diagnosticReporter.report(
-            templateJsInteropExportDisallowedMember
-                .withArguments(member.name.text),
-            member.fileOffset,
-            member.name.text.length,
-            member.location?.file);
+          templateJsInteropExportDisallowedMember.withArguments(
+            member.name.text,
+          ),
+          member.fileOffset,
+          member.name.text.length,
+          member.location?.file,
+        );
         if (cls != null) {
           exportStatus[cls.reference] = ExportStatus.exportError;
         }
@@ -246,7 +250,7 @@ extension ExtensionMemberDescriptorExtension on ExtensionMemberDescriptor {
   bool get isSetter => kind == ExtensionMemberKind.Setter;
   bool get isMethod => kind == ExtensionMemberKind.Method;
 
-  bool get isExternal => (memberReference.asProcedure).isExternal;
+  bool get isExternal => (memberReference!.asProcedure).isExternal;
 }
 
 extension ProcedureExtension on Procedure {

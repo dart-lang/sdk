@@ -36,7 +36,7 @@ class MultiRootFileSystem implements FileSystem {
   final List<Uri> roots;
   final FileSystem original;
 
-  MultiRootFileSystem(this.markerScheme, List roots, this.original)
+  MultiRootFileSystem(this.markerScheme, List<Uri> roots, this.original)
       : roots = roots.map(_normalize).toList();
 
   @override
@@ -116,7 +116,6 @@ class MissingFileSystemEntity implements FileSystemEntity {
       Future.error(FileSystemException(uri, 'File not found'));
 }
 
-Uri _normalize(root) {
-  Uri uri = root;
+Uri _normalize(Uri uri) {
   return uri.path.endsWith('/') ? uri : uri.replace(path: '${uri.path}/');
 }

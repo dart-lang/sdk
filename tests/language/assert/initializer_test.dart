@@ -23,8 +23,11 @@ class C {
   C.c07(x, y) : assert(x < y), x = x, super();
   C.c08(x, y) : assert(x < y), x = x, assert(y > x), super();
   C.c09(this.x, y) : assert(x < y, "$x < $y");
+  // Don't let formatter remove trailing commas.
+  // dart format off
   C.c10(this.x, y) : assert(x < y,);
   C.c11(this.x, y) : assert(x < y, "$x < $y",);
+  // dart format on
 
   const C.cc01(this.x, y) : assert(x < y);
   const C.cc02(x, y) : x = x, assert(x < y);
@@ -34,8 +37,11 @@ class C {
   const C.cc07(x, y) : assert(x < y), x = x, super();
   const C.cc08(x, y) : assert(x < y), x = x, assert(y > x), super();
   const C.cc09(this.x, y) : assert(x < y, "$x < $y");
+  // Don't let formatter remove trailing commas.
+  // dart format off
   const C.cc10(this.x, y) : assert(x < y,);
   const C.cc11(this.x, y) : assert(x < y, "$x < $y",);
+  // dart format on
 
   C.nc01(this.x, y) : assert(check(x, y));
   C.nc02(x, y) : x = x, assert(check(x, y));
@@ -45,8 +51,11 @@ class C {
   C.nc07(x, y) : assert(check(x, y)), x = x, super();
   C.nc08(x, y) : assert(check(x, y)), x = x, assert(y > x), super();
   C.nc09(this.x, y) : assert(check(x, y), "$x < $y");
+  // Don't let formatter remove trailing commas.
+  // dart format off
   C.nc10(this.x, y) : assert(check(x, y),);
   C.nc11(this.x, y) : assert(check(x, y), "$x < $y",);
+  // dart format on
 
   C.fc01(this.x, y) : assert((() => x < y)());
   C.fc02(x, y) : x = x, assert((() => x < y)());
@@ -54,12 +63,14 @@ class C {
   C.fc05(this.x, y) : assert((() => x < y)()), super();
   C.fc06(x, y) : x = x, assert((() => x < y)()), super();
   C.fc07(x, y) : assert((() => x < y)()), x = x, super();
-  C.fc08(x, y) : assert((() => x < y)()),x = x, assert(y > x), super();
+  C.fc08(x, y) : assert((() => x < y)()), x = x, assert(y > x), super();
   C.fc09(this.x, y) : assert((() => x < y)(), "$x < $y");
+  // Don't let formatter remove trailing commas.
+  // dart format off
   C.fc10(this.x, y) : assert((() => x < y)(),);
   C.fc11(this.x, y) : assert((() => x < y)(), "$x < $y",);
+  // dart format on
 }
-
 
 main() {
   // Test all constructors with both succeeding and failing asserts.
@@ -85,9 +96,14 @@ void test(int x, int y) {
   bool assertionsEnabled = false;
   assert(assertionsEnabled = true);
 
-  void Function(C Function()) doTest = (assertionsEnabled && x >= y)
-    ? (f) { Expect.throwsAssertionError(f); }
-    : (f) { Expect.equals(x, f().x); };
+  void Function(C Function()) doTest =
+      (assertionsEnabled && x >= y)
+          ? (f) {
+            Expect.throwsAssertionError(f);
+          }
+          : (f) {
+            Expect.equals(x, f().x);
+          };
 
   doTest(() => new C.c01(x, y));
   doTest(() => new C.c02(x, y));
@@ -130,4 +146,3 @@ void test(int x, int y) {
   doTest(() => new C.fc10(x, y));
   doTest(() => new C.fc11(x, y));
 }
-

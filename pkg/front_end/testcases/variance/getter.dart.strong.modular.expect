@@ -1,0 +1,142 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/variance/getter.dart:8:11: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   final T a = throw "uncalled"; // Error
+//           ^
+// pkg/front_end/testcases/variance/getter.dart:7:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/getter.dart:9:22: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   final T Function() b = () => throw "uncalled"; // Error
+//                      ^
+// pkg/front_end/testcases/variance/getter.dart:7:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/getter.dart:10:9: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//   T get c => throw "uncalled"; // Error
+//         ^
+// pkg/front_end/testcases/variance/getter.dart:7:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/getter.dart:11:10: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   late T d; // Error
+//          ^
+// pkg/front_end/testcases/variance/getter.dart:7:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/getter.dart:12:20: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   covariant late T e; // Error
+//                    ^
+// pkg/front_end/testcases/variance/getter.dart:7:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/getter.dart:13:6: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   T? f = null; // Error
+//      ^
+// pkg/front_end/testcases/variance/getter.dart:7:12: Context: This is the type variable whose bound isn't conformed to.
+// class A<in T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/getter.dart:17:11: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   final T a = throw "uncalled"; // Error
+//           ^
+// pkg/front_end/testcases/variance/getter.dart:16:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/getter.dart:18:22: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   final T Function() b = () => throw "uncalled"; // Error
+//                      ^
+// pkg/front_end/testcases/variance/getter.dart:16:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/getter.dart:19:9: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//   T get c => throw "uncalled"; // Error
+//         ^
+// pkg/front_end/testcases/variance/getter.dart:16:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/getter.dart:20:10: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   late T d; // Error
+//          ^
+// pkg/front_end/testcases/variance/getter.dart:16:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/getter.dart:21:20: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   covariant late T e; // Error
+//                    ^
+// pkg/front_end/testcases/variance/getter.dart:16:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/getter.dart:22:6: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   T? f = null; // Error
+//      ^
+// pkg/front_end/testcases/variance/getter.dart:16:17: Context: This is the type variable whose bound isn't conformed to.
+// mixin BMixin<in T> {
+//                 ^
+//
+// pkg/front_end/testcases/variance/getter.dart:26:9: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//   T get a; // Error
+//         ^
+// pkg/front_end/testcases/variance/getter.dart:25:21: Context: This is the type variable whose bound isn't conformed to.
+// abstract class C<in T> {
+//                     ^
+//
+// pkg/front_end/testcases/variance/getter.dart:30:7: Error: Can't use 'in' type variable 'T' in an 'out' position.
+//   var a; // Error
+//       ^
+// pkg/front_end/testcases/variance/getter.dart:29:12: Context: This is the type variable whose bound isn't conformed to.
+// class D<in T> extends C<T> {
+//            ^
+//
+// pkg/front_end/testcases/variance/getter.dart:30:7: Error: Field 'a' should be initialized because its type 'T' doesn't allow null.
+//   var a; // Error
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<contravariant T extends core::Object? = dynamic> extends core::Object {
+  final field self::A::T% a = throw "uncalled";
+  final field () → self::A::T% b = () → Never => throw "uncalled";
+  late field self::A::T% d;
+  late covariant-by-declaration field self::A::T% e;
+  field self::A::T? f = null;
+  synthetic constructor •() → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+  get c() → self::A::T%
+    return throw "uncalled";
+}
+abstract class BMixin<contravariant T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+  final field self::BMixin::T% a = throw "uncalled";
+  final field () → self::BMixin::T% b = () → Never => throw "uncalled";
+  late field self::BMixin::T% d;
+  late covariant-by-declaration field self::BMixin::T% e;
+  field self::BMixin::T? f = null;
+  get c() → self::BMixin::T%
+    return throw "uncalled";
+}
+abstract class C<contravariant T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T%>
+    : super core::Object::•()
+    ;
+  abstract get a() → self::C::T%;
+}
+class D<contravariant T extends core::Object? = dynamic> extends self::C<self::D::T%> {
+  field self::D::T% a = null;
+  synthetic constructor •() → self::D<self::D::T%>
+    : super self::C::•()
+    ;
+}

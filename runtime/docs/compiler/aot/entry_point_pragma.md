@@ -4,6 +4,10 @@ The annotation `@pragma("vm:entry-point", ...)` **must** be placed on a class or
 member to indicate that it may be resolved, allocated or invoked directly from
 native or VM code _in AOT mode_.
 
+To reduce the differences between JIT and AOT mode, entry point annotations are
+also checked in JIT mode except for uses of the `dart:mirrors` library and
+debugging uses via the VM service.
+
 ## Background
 
 Dart VM precompiler (AOT compiler) performs whole-program optimizations such as
@@ -88,11 +92,14 @@ three forms may be attached to static fields.
 int foo;
 ```
 
-If the second parameter is missing, `null` or `true, the field is marked for
+If the second parameter is missing, `null` or `true`, the field is marked for
 native access and for non-static fields the corresponding getter and setter in
 the interface of the enclosing class are marked for native invocation. If the
-'get'/'set' parameter is used, only the getter/setter is marked. For static
-fields, the implicit getter is always marked. The third form does not make sense
-for static fields because they do not belong to an interface.
+"get" or "set" parameter is used, only the getter or setter is marked. For
+static fields, the implicit getter is always marked if the field is marked
+for native access.
 
-Note that no form of entry-point annotation allows invoking a field.
+A field containing a closure may only be invoked using Dart_Invoke if the
+getter is marked, in which case it is the same as retrieving the closure from
+the field using Dart_GetField and then invoking the closure using
+Dart_InvokeClosure.

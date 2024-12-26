@@ -8,7 +8,4 @@ import 'function_builder.dart';
 
 abstract class ProcedureBuilder implements FunctionBuilder {
   Procedure get procedure;
-
-  @override
-  ProcedureKind get kind;
 }

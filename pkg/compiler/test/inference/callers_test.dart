@@ -18,8 +18,12 @@ import '../equivalence/id_equivalence_helper.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = Directory.fromUri(Platform.script.resolve('callers'));
-    await checkTests(dataDir, const CallersDataComputer(),
-        args: args, options: [stopAfterTypeInference]);
+    await checkTests(
+      dataDir,
+      const CallersDataComputer(),
+      args: args,
+      options: [stopAfterTypeInference],
+    );
   });
 }
 
@@ -27,19 +31,22 @@ class CallersDataComputer extends DataComputer<String> {
   const CallersDataComputer();
 
   @override
-  void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool verbose = false}) {
+  void computeMemberData(
+    Compiler compiler,
+    MemberEntity member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool verbose = false,
+  }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     CallersIrComputer(
-            compiler.reporter,
-            actualMap,
-            elementMap,
-            compiler.globalInference.typesInferrerInternal as TypeGraphInferrer,
-            closedWorld.closureDataLookup)
-        .run(definition.node);
+      compiler.reporter,
+      actualMap,
+      elementMap,
+      compiler.globalInference.typesInferrerInternal as TypeGraphInferrer,
+      closedWorld.closureDataLookup,
+    ).run(definition.node);
   }
 
   @override
@@ -53,29 +60,30 @@ class CallersIrComputer extends IrDataExtractor<String> {
   final ClosureData _closureDataLookup;
 
   CallersIrComputer(
-      DiagnosticReporter reporter,
-      Map<Id, ActualData<String>> actualMap,
-      this._elementMap,
-      this.inferrer,
-      this._closureDataLookup)
-      : super(reporter, actualMap);
+    DiagnosticReporter reporter,
+    Map<Id, ActualData<String>> actualMap,
+    this._elementMap,
+    this.inferrer,
+    this._closureDataLookup,
+  ) : super(reporter, actualMap);
 
   String? getMemberValue(MemberEntity member) {
     Iterable<MemberEntity>? callers = inferrer.getCallersOfForTesting(member);
     if (callers != null) {
-      List<String> names = callers.map((MemberEntity member) {
-        StringBuffer sb = StringBuffer();
-        if (member.enclosingClass != null) {
-          sb.write(member.enclosingClass!.name);
-          sb.write('.');
-        }
-        sb.write(member.name);
-        if (member.isSetter) {
-          sb.write('=');
-        }
-        return sb.toString();
-      }).toList()
-        ..sort();
+      List<String> names =
+          callers.map((MemberEntity member) {
+              StringBuffer sb = StringBuffer();
+              if (member.enclosingClass != null) {
+                sb.write(member.enclosingClass!.name);
+                sb.write('.');
+              }
+              sb.write(member.name);
+              if (member.isSetter) {
+                sb.write('=');
+              }
+              return sb.toString();
+            }).toList()
+            ..sort();
       return '[${names.join(',')}]';
     }
     return null;
@@ -89,8 +97,9 @@ class CallersIrComputer extends IrDataExtractor<String> {
   @override
   String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
-      ClosureRepresentationInfo info =
-          _closureDataLookup.getClosureInfo(node as ir.LocalFunction);
+      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(
+        node as ir.LocalFunction,
+      );
       return getMemberValue(info.callMethod!);
     }
     return null;

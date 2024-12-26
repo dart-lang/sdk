@@ -27,9 +27,10 @@ main() {
  type=[inst:JSNull,inst:JSString,native:bool,native:int]
 */
 testJSCall() => foreign.JS(
-    'int|bool|NativeUint8List|Rectangle|IdbFactory|TypedData|ContextAttributes',
-    '#',
-    null);
+  'int|bool|NativeUint8List|Rectangle|IdbFactory|TypedData|ContextAttributes',
+  '#',
+  null,
+);
 
 /*member: testNativeMethod:*/
 @JSName('foo')

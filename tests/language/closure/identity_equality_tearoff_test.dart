@@ -326,17 +326,23 @@ void main() {
     checkUnequal(amm.tearoffSuperMethodSecond, amm.tearoffSuperMethod);
     checkUnequal(vMixedInSuperMethodSecond1, vMixedInSuperMethod2);
 
-    checkEqual(amm.tearoffSuperMethodSecondNoSuper,
-        amm.tearoffSuperMethodSecondNoSuper);
     checkEqual(
-        vMixedInSuperMethodSecondNoSuper1, vMixedInSuperMethodSecondNoSuper2);
+      amm.tearoffSuperMethodSecondNoSuper,
+      amm.tearoffSuperMethodSecondNoSuper,
+    );
+    checkEqual(
+      vMixedInSuperMethodSecondNoSuper1,
+      vMixedInSuperMethodSecondNoSuper2,
+    );
     checkUnequal(amm.tearoffSuperMethod, amm.tearoffSuperMethodSecondNoSuper);
     checkUnequal(vMixedInSuperMethod1, vMixedInSuperMethodSecondNoSuper2);
     checkUnequal(amm.tearoffSuperMethodSecondNoSuper, amm.tearoffSuperMethod);
     checkUnequal(vMixedInSuperMethodSecondNoSuper1, vMixedInSuperMethod2);
 
     checkEqual(
-        amm.tearoffSuperMethodSecond, amm.tearoffSuperMethodSecondNoSuper);
+      amm.tearoffSuperMethodSecond,
+      amm.tearoffSuperMethodSecondNoSuper,
+    );
   }
 
   <X>() {

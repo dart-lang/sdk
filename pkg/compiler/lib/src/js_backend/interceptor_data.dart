@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js_backend.interceptor_data;
+library;
 
 import '../common/elements.dart'
     show CommonElements, KCommonElements, KElementEnvironment;
@@ -10,7 +10,7 @@ import '../common/names.dart' show Identifiers;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
-import '../js/js.dart' as jsAst;
+import '../js/js.dart' as js_ast;
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../serialization/serialization.dart';
 import '../universe/class_set.dart';
@@ -21,9 +21,10 @@ import 'native_data.dart';
 abstract class InterceptorData {
   /// Deserializes a [InterceptorData] object from [source].
   factory InterceptorData.readFromDataSource(
-      DataSourceReader source,
-      NativeData nativeData,
-      CommonElements commonElements) = InterceptorDataImpl.readFromDataSource;
+    DataSourceReader source,
+    NativeData nativeData,
+    CommonElements commonElements,
+  ) = InterceptorDataImpl.readFromDataSource;
 
   /// Serializes this [InterceptorData] to [sink].
   void writeToDataSink(DataSinkWriter sink);
@@ -43,7 +44,10 @@ abstract class InterceptorData {
   /// These selectors are not eligible for the 'dummy explicit receiver'
   /// optimization.
   bool isInterceptedMixinSelector(
-      Selector selector, AbstractValue mask, JClosedWorld closedWorld);
+    Selector selector,
+    AbstractValue mask,
+    JClosedWorld closedWorld,
+  );
 
   /// Set of classes whose methods are intercepted.
   Iterable<ClassEntity> get interceptedClasses;
@@ -53,7 +57,9 @@ abstract class InterceptorData {
   ///
   /// Returns an empty set if there is no class. Do not modify the returned set.
   Set<ClassEntity> getInterceptedClassesOn(
-      String name, JClosedWorld closedWorld);
+    String name,
+    JClosedWorld closedWorld,
+  );
 
   /// Whether the compiler can use the native `instanceof` check to test for
   /// instances of [type]. This is true for types that are not used as mixins or
@@ -104,14 +110,18 @@ class InterceptorDataImpl implements InterceptorData {
   final Set<ClassEntity> _noClasses = {};
 
   InterceptorDataImpl(
-      this._nativeData,
-      this._commonElements,
-      this.interceptedMembers,
-      this.interceptedClasses,
-      this.classesMixedIntoInterceptedClasses);
+    this._nativeData,
+    this._commonElements,
+    this.interceptedMembers,
+    this.interceptedClasses,
+    this.classesMixedIntoInterceptedClasses,
+  );
 
-  factory InterceptorDataImpl.readFromDataSource(DataSourceReader source,
-      NativeData nativeData, CommonElements commonElements) {
+  factory InterceptorDataImpl.readFromDataSource(
+    DataSourceReader source,
+    NativeData nativeData,
+    CommonElements commonElements,
+  ) {
     source.begin(tag);
     int interceptedMembersCount = source.readInt();
     Map<String, Set<MemberEntity>> interceptedMembers = {};
@@ -124,8 +134,13 @@ class InterceptorDataImpl implements InterceptorData {
     Set<ClassEntity> classesMixedIntoInterceptedClasses =
         source.readClasses().toSet();
     source.end(tag);
-    return InterceptorDataImpl(nativeData, commonElements, interceptedMembers,
-        interceptedClasses, classesMixedIntoInterceptedClasses);
+    return InterceptorDataImpl(
+      nativeData,
+      commonElements,
+      interceptedMembers,
+      interceptedClasses,
+      classesMixedIntoInterceptedClasses,
+    );
   }
 
   @override
@@ -173,13 +188,20 @@ class InterceptorDataImpl implements InterceptorData {
 
   @override
   bool isInterceptedMixinSelector(
-      Selector selector, AbstractValue? mask, JClosedWorld closedWorld) {
-    Set<MemberEntity> elements = _interceptedMixinElements[selector.name] ??=
-        (interceptedMembers[selector.name]
-                ?.where((element) => classesMixedIntoInterceptedClasses
-                    .contains(element.enclosingClass))
-                .toSet() ??
-            const {});
+    Selector selector,
+    AbstractValue? mask,
+    JClosedWorld closedWorld,
+  ) {
+    Set<MemberEntity> elements =
+        _interceptedMixinElements[selector.name] ??=
+            (interceptedMembers[selector.name]
+                    ?.where(
+                      (element) => classesMixedIntoInterceptedClasses.contains(
+                        element.enclosingClass,
+                      ),
+                    )
+                    .toSet() ??
+                const {});
     if (elements.isEmpty) return false;
     return elements.any((element) {
       return selector.applies(element) &&
@@ -207,7 +229,9 @@ class InterceptorDataImpl implements InterceptorData {
   /// Returns an empty set if there is no class. Do not modify the returned set.
   @override
   Set<ClassEntity> getInterceptedClassesOn(
-      String name, JClosedWorld closedWorld) {
+    String name,
+    JClosedWorld closedWorld,
+  ) {
     final intercepted = interceptedMembers[name];
     if (intercepted == null) return _noClasses;
     return _interceptedClassesCache.putIfAbsent(name, () {
@@ -222,8 +246,10 @@ class InterceptorDataImpl implements InterceptorData {
           result.add(classElement);
         }
         if (classesMixedIntoInterceptedClasses.contains(classElement)) {
-          final nativeSubclasses =
-              nativeSubclassesOfMixin(classElement, closedWorld);
+          final nativeSubclasses = nativeSubclassesOfMixin(
+            classElement,
+            closedWorld,
+          );
           if (nativeSubclasses != null) result.addAll(nativeSubclasses);
         }
       }
@@ -232,16 +258,19 @@ class InterceptorDataImpl implements InterceptorData {
   }
 
   Set<ClassEntity>? nativeSubclassesOfMixin(
-      ClassEntity mixin, JClosedWorld closedWorld) {
+    ClassEntity mixin,
+    JClosedWorld closedWorld,
+  ) {
     Iterable<ClassEntity> uses = closedWorld.mixinUsesOf(mixin);
     Set<ClassEntity>? result;
     for (ClassEntity use in uses) {
-      closedWorld.classHierarchy.forEachStrictSubclassOf(use,
-          (ClassEntity subclass) {
+      closedWorld.classHierarchy.forEachStrictSubclassOf(use, (
+        ClassEntity subclass,
+      ) {
         if (_nativeData.isNativeOrExtendsNative(subclass)) {
           (result ??= {}).add(subclass);
         }
-        return IterationStep.CONTINUE;
+        return IterationStep.continue_;
       });
     }
     return result;
@@ -293,22 +322,28 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
   final Set<ClassEntity> _classesMixedIntoInterceptedClasses = {};
 
   InterceptorDataBuilderImpl(
-      this._nativeData, this._elementEnvironment, this._commonElements);
+    this._nativeData,
+    this._elementEnvironment,
+    this._commonElements,
+  );
 
   @override
   InterceptorData close() {
     return InterceptorDataImpl(
-        _nativeData,
-        _commonElements,
-        _interceptedElements,
-        _interceptedClasses,
-        _classesMixedIntoInterceptedClasses);
+      _nativeData,
+      _commonElements,
+      _interceptedElements,
+      _interceptedClasses,
+      _classesMixedIntoInterceptedClasses,
+    );
   }
 
   @override
   void addInterceptorsForNativeClassMembers(ClassEntity cls) {
-    _elementEnvironment.forEachClassMember(cls,
-        (ClassEntity cls, MemberEntity member) {
+    _elementEnvironment.forEachClassMember(cls, (
+      ClassEntity cls,
+      MemberEntity member,
+    ) {
       if (member.name == Identifiers.call) return;
       // All methods on [Object] are shadowed by [Interceptor].
       if (cls == _commonElements.objectClass) return;
@@ -325,8 +360,10 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
   @override
   void addInterceptors(ClassEntity cls) {
     if (_interceptedClasses.add(cls)) {
-      _elementEnvironment.forEachClassMember(cls,
-          (ClassEntity cls, MemberEntity member) {
+      _elementEnvironment.forEachClassMember(cls, (
+        ClassEntity cls,
+        MemberEntity member,
+      ) {
         // All methods on [Object] are shadowed by [Interceptor].
         if (cls == _commonElements.objectClass) return;
         final set = _interceptedElements[member.name!] ??= {};
@@ -343,7 +380,10 @@ class OneShotInterceptorData {
   final NativeData _nativeData;
 
   OneShotInterceptorData(
-      this._interceptorData, this._commonElements, this._nativeData);
+    this._interceptorData,
+    this._commonElements,
+    this._nativeData,
+  );
 
   Iterable<OneShotInterceptor> get oneShotInterceptors {
     List<OneShotInterceptor> interceptors = [];
@@ -367,11 +407,16 @@ class OneShotInterceptorData {
 
   final Map<String, SpecializedGetInterceptor> _specializedGetInterceptors = {};
 
-  jsAst.Name registerOneShotInterceptor(
-      Selector selector, ModularNamer namer, JClosedWorld closedWorld) {
+  js_ast.Name registerOneShotInterceptor(
+    Selector selector,
+    ModularNamer namer,
+    JClosedWorld closedWorld,
+  ) {
     selector = selector.toNormalized();
-    Set<ClassEntity> classes =
-        _interceptorData.getInterceptedClassesOn(selector.name, closedWorld);
+    Set<ClassEntity> classes = _interceptorData.getInterceptedClassesOn(
+      selector.name,
+      closedWorld,
+    );
     String key = suffixForGetInterceptor(_commonElements, _nativeData, classes);
     Map<String, OneShotInterceptor> interceptors =
         _oneShotInterceptors[selector] ??= {};

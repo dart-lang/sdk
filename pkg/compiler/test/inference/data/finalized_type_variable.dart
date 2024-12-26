@@ -21,18 +21,22 @@ class ViewCardComponent extends AppView<CardComponent> {
 
   @pragma('dart2js:noInline')
   set ng_title(String /*Value([exact=JSString], value: "foo")*/ value) {
-    if (/*invoke: [exact=ViewCardComponent]*/ checkBinding(
-        /*[exact=ViewCardComponent]*/ _title, value)) {
-      /*[exact=ViewCardComponent]*/ ctx!
-          . /*update: [exact=CardComponent]*/ title = value;
-      /*update: [exact=ViewCardComponent]*/ _title = value;
+    if ( /*invoke: [exact=ViewCardComponent]*/ checkBinding(
+      /*[exact=ViewCardComponent]*/ _title,
+      value,
+    )) {
+      /*[exact=ViewCardComponent]*/
+      ctx!. /*update: [exact=CardComponent]*/ title = value;
+      /*update: [exact=ViewCardComponent]*/
+      _title = value;
     }
   }
 
   /*member: ViewCardComponent.checkBinding:Value([exact=JSBool], value: true)*/
-  checkBinding(/*Value([null|exact=JSString], value: "foo")*/ a,
-          /*Value([exact=JSString], value: "foo")*/ b) =>
-      true;
+  checkBinding(
+    /*Value([null|exact=JSString], value: "foo")*/ a,
+    /*Value([exact=JSString], value: "foo")*/ b,
+  ) => true;
 }
 
 /*member: CardComponent2.:[exact=CardComponent2]*/
@@ -48,18 +52,22 @@ class ViewCardComponent2 extends AppView<CardComponent2> {
 
   @pragma('dart2js:noInline')
   set ng_title(String /*Value([exact=JSString], value: "bar")*/ value) {
-    if (/*invoke: [exact=ViewCardComponent2]*/ checkBinding(
-        /*[exact=ViewCardComponent2]*/ _title, value)) {
-      /*[exact=ViewCardComponent2]*/ ctx!
-          . /*update: [exact=CardComponent2]*/ title = value;
-      /*update: [exact=ViewCardComponent2]*/ _title = value;
+    if ( /*invoke: [exact=ViewCardComponent2]*/ checkBinding(
+      /*[exact=ViewCardComponent2]*/ _title,
+      value,
+    )) {
+      /*[exact=ViewCardComponent2]*/
+      ctx!. /*update: [exact=CardComponent2]*/ title = value;
+      /*update: [exact=ViewCardComponent2]*/
+      _title = value;
     }
   }
 
   /*member: ViewCardComponent2.checkBinding:Value([exact=JSBool], value: true)*/
-  checkBinding(/*Value([null|exact=JSString], value: "bar")*/ a,
-          /*Value([exact=JSString], value: "bar")*/ b) =>
-      true;
+  checkBinding(
+    /*Value([null|exact=JSString], value: "bar")*/ a,
+    /*Value([exact=JSString], value: "bar")*/ b,
+  ) => true;
 }
 
 /*member: main:[null]*/

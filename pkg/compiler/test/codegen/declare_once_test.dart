@@ -14,14 +14,15 @@ main() {
   // method.
   runTest() async {
     String generated = await compile(
-        'final List a = const ["bar", "baz"];'
-        'void foo() {'
-        '  for (int i = 0; i < a.length; i++) {'
-        '    print(a[i]);'
-        '  }'
-        '}',
-        entry: 'foo',
-        minify: false);
+      'final List a = const ["bar", "baz"];'
+      'void foo() {'
+      '  for (int i = 0; i < a.length; i++) {'
+      '    print(a[i]);'
+      '  }'
+      '}',
+      entry: 'foo',
+      minify: false,
+    );
     RegExp re = RegExp(r"var ");
     Expect.isTrue(re.hasMatch(generated));
     print(generated);

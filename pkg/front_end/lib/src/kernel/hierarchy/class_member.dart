@@ -233,8 +233,15 @@ abstract class ClassMember {
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder);
 
   bool get isDuplicate;
+
+  /// The name of the member prefixed by the name of the enclosing declaration.
   String get fullName;
+
+  /// The name corresponding to the [Builder.fullNameForErrors].
+  // TODO(johnniwinther): We need better semantics for this.
   String get fullNameForErrors;
+
+  /// Returns the enclosing declaration of this member.
   DeclarationBuilder get declarationBuilder;
 
   /// Returns `true` if this class member is declared in Object from dart:core.
@@ -283,7 +290,7 @@ abstract class ClassMember {
 
   /// The interface member corresponding to this member.
   ///
-  /// If this member is declared on the source, the interface member is
+  /// If this member is declared in the source, the interface member is
   /// the member itself. For instance
   ///
   ///     abstract class Class {
@@ -326,6 +333,10 @@ abstract class ClassMember {
   ClassMember get interfaceMember;
 
   void inferType(ClassMembersBuilder membersBuilder);
+
+  /// Registers that this class member overrides [overriddenMembers].
+  ///
+  /// This is used to infer types from the [overriddenMembers].
   void registerOverrideDependency(Set<ClassMember> overriddenMembers);
 
   /// Returns `true` if this has the same underlying declaration as [other].

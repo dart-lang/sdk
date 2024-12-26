@@ -178,7 +178,13 @@ class PersistentHandle {
     ptr_ = static_cast<ObjectPtr>(reinterpret_cast<uword>(free_list));
     ASSERT(!ptr_->IsHeapObject());
   }
-  void FreeHandle(PersistentHandle* free_list) { SetNext(free_list); }
+  void FreeHandle(PersistentHandle* free_list) {
+#if defined(DEBUG)
+    Thread* thread = Thread::Current();
+    ASSERT(thread->MayAllocateHandles());
+#endif  // DEBUG
+    SetNext(free_list);
+  }
 
   ObjectPtr ptr_;
   DISALLOW_ALLOCATION();  // Allocated through AllocateHandle methods.

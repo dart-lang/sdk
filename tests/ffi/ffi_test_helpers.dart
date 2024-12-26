@@ -16,8 +16,9 @@ typedef NullaryOpVoid = void Function();
 typedef NativeUnaryOp = Void Function(IntPtr);
 typedef UnaryOpVoid = void Function(int);
 
-final DynamicLibrary ffiTestFunctions =
-    dlopenPlatformSpecific("ffi_test_functions");
+final DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific(
+  "ffi_test_functions",
+);
 
 final collectOnNthAllocation = ffiTestFunctions
     .lookupFunction<NativeUnaryOp, UnaryOpVoid>("CollectOnNthAllocation");
@@ -56,8 +57,9 @@ void createAndLoseFinalizable(Pointer<IntPtr> token) {
   setTokenFinalizer.attach(myFinalizable, token.cast());
 }
 
-final setTokenTo42Ptr =
-    ffiTestFunctions.lookup<NativeFinalizerFunction>("SetArgumentTo42");
+final setTokenTo42Ptr = ffiTestFunctions.lookup<NativeFinalizerFunction>(
+  "SetArgumentTo42",
+);
 final setTokenFinalizer = NativeFinalizer(setTokenTo42Ptr);
 
 class MyFinalizable implements Finalizable {}

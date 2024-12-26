@@ -27,7 +27,9 @@ void testClosure() {
   }
 
   // Close over for-in loop variable in element.
-  var list = [for (var i in [0, 1]) () => i];
+  var list = [
+    for (var i in [0, 1]) () => i,
+  ];
   Expect.equals(0, list[0]());
   Expect.equals(1, list[1]());
 
@@ -65,55 +67,64 @@ class Test extends TestBase {
 
     // C-style for.
     var list = [
-      for (String? global = "for"; global != null; global = null) global
+      for (String? global = "for"; global != null; global = null) global,
     ];
     Expect.listEquals(["for"], list);
 
     list = [
       for (String? staticField = "for"; staticField != null; staticField = null)
-        staticField
+        staticField,
     ];
     Expect.listEquals(["for"], list);
 
-    list = [
-      for (String? field = "for"; field != null; field = null) field
-    ];
+    list = [for (String? field = "for"; field != null; field = null) field];
     Expect.listEquals(["for"], list);
 
     list = [
-      for (String? inherited = "for"; inherited != null; inherited = null) inherited
+      for (String? inherited = "for"; inherited != null; inherited = null)
+        inherited,
     ];
     Expect.listEquals(["for"], list);
 
-    list = [
-      for (String? local = "for"; local != null; local = null) local
-    ];
+    list = [for (String? local = "for"; local != null; local = null) local];
     Expect.listEquals(["for"], list);
 
     list = [
       for (String? outer = "outer"; outer != null; outer = null)
-        for (String? outer = "for"; outer != null; outer = null)
-          outer
+        for (String? outer = "for"; outer != null; outer = null) outer,
     ];
     Expect.listEquals(["for"], list);
 
     // For-in.
-    list = [for (var global in ["for"]) global];
+    list = [
+      for (var global in ["for"]) global,
+    ];
     Expect.listEquals(["for"], list);
 
-    list = [for (var staticField in ["for"]) staticField];
+    list = [
+      for (var staticField in ["for"]) staticField,
+    ];
     Expect.listEquals(["for"], list);
 
-    list = [for (var field in ["for"]) field];
+    list = [
+      for (var field in ["for"]) field,
+    ];
     Expect.listEquals(["for"], list);
 
-    list = [for (var inherited in ["for"]) inherited];
+    list = [
+      for (var inherited in ["for"]) inherited,
+    ];
     Expect.listEquals(["for"], list);
 
-    list = [for (var local in ["for"]) local];
+    list = [
+      for (var local in ["for"]) local,
+    ];
     Expect.listEquals(["for"], list);
 
-    list = [for (var outer in ["outer"]) for (var outer in ["for"]) outer];
+    list = [
+      for (var outer in ["outer"])
+        for (var outer in ["for"]) outer,
+    ];
     Expect.listEquals(["for"], list);
   }
 
@@ -121,38 +132,33 @@ class Test extends TestBase {
     var local = "local";
 
     // C-style for.
-    var list = [
-      for (global = "for"; global == "for"; global = "after") global
-    ];
+    var list = [for (global = "for"; global == "for"; global = "after") global];
     Expect.listEquals(["for"], list);
     Expect.equals("after", global);
     global = "global";
 
     list = [
       for (staticField = "for"; staticField == "for"; staticField = "after")
-        staticField
+        staticField,
     ];
     Expect.listEquals(["for"], list);
     Expect.equals("after", staticField);
     staticField = "staticField";
 
-    list = [
-      for (field = "for"; field == "for"; field = "after") field
-    ];
+    list = [for (field = "for"; field == "for"; field = "after") field];
     Expect.listEquals(["for"], list);
     Expect.equals("after", field);
     field = "field";
 
     list = [
-      for (inherited = "for"; inherited == "for"; inherited = "after") inherited
+      for (inherited = "for"; inherited == "for"; inherited = "after")
+        inherited,
     ];
     Expect.listEquals(["for"], list);
     Expect.equals("after", inherited);
     inherited = "inherited";
 
-    list = [
-      for (local = "for"; local == "for"; local = "after") local
-    ];
+    list = [for (local = "for"; local == "for"; local = "after") local];
     Expect.listEquals(["for"], list);
     Expect.equals("after", local);
     local = "local";
@@ -160,33 +166,43 @@ class Test extends TestBase {
     list = [
       for (var outer = "outer"; outer == "outer"; outer = "outer after") ...[
         for (outer = "for"; outer == "for"; outer = "after") outer,
-        outer
-      ]
+        outer,
+      ],
     ];
     Expect.listEquals(["for", "after"], list);
 
     // For-in.
-    list = [for (global in ["for"]) global];
+    list = [
+      for (global in ["for"]) global,
+    ];
     Expect.listEquals(["for"], list);
     Expect.equals("for", global);
     global = "global";
 
-    list = [for (staticField in ["for"]) staticField];
+    list = [
+      for (staticField in ["for"]) staticField,
+    ];
     Expect.listEquals(["for"], list);
     Expect.equals("for", staticField);
     staticField = "staticField";
 
-    list = [for (field in ["for"]) field];
+    list = [
+      for (field in ["for"]) field,
+    ];
     Expect.listEquals(["for"], list);
     Expect.equals("for", field);
     field = "field";
 
-    list = [for (inherited in ["for"]) inherited];
+    list = [
+      for (inherited in ["for"]) inherited,
+    ];
     Expect.listEquals(["for"], list);
     Expect.equals("for", inherited);
     inherited = "inherited";
 
-    list = [for (local in ["for"]) local];
+    list = [
+      for (local in ["for"]) local,
+    ];
     Expect.listEquals(["for"], list);
     Expect.equals("for", local);
     local = "local";
@@ -194,8 +210,8 @@ class Test extends TestBase {
     list = [
       for (var outer in ["outer"]) ...[
         for (outer in ["for"]) outer,
-        outer
-      ]
+        outer,
+      ],
     ];
     Expect.listEquals(["for", "for"], list);
   }

@@ -16,6 +16,4 @@ const i = int;
 void main() {
   Expect.isTrue(identical(d, dynamic));
   // Duplicate key error.
-
-
 }

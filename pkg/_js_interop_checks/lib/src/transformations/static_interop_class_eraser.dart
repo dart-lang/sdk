@@ -14,14 +14,16 @@ import 'package:kernel/src/replacement_visitor.dart';
 
 /// Erasure function for `@staticInterop` types for the JS compilers.
 InterfaceType eraseStaticInteropTypesForJSCompilers(
-        CoreTypes coreTypes, InterfaceType staticInteropType) =>
-    InterfaceType(
-        coreTypes.index.getClass('dart:_interceptors', 'JavaScriptObject'),
-        staticInteropType.declaredNullability);
+  CoreTypes coreTypes,
+  InterfaceType staticInteropType,
+) => InterfaceType(
+  coreTypes.index.getClass('dart:_interceptors', 'JavaScriptObject'),
+  staticInteropType.declaredNullability,
+);
 
 class _TypeSubstitutor extends ReplacementVisitor {
   final InterfaceType Function(InterfaceType staticInteropType)
-      _eraseStaticInteropType;
+  _eraseStaticInteropType;
   _TypeSubstitutor(this._eraseStaticInteropType);
 
   @override
@@ -43,7 +45,7 @@ class StaticInteropClassEraser extends Transformer {
   // they should be erased to another type besides `JavaScriptObject`, like in
   // dart2wasm.
   late final InterfaceType Function(InterfaceType staticInteropType)
-      _eraseStaticInteropType;
+  _eraseStaticInteropType;
   // Visiting core libraries that don't contain `@staticInterop` adds overhead.
   // To avoid this, we use an allowlist that contains libraries that we know use
   // `@staticInterop`.
@@ -56,11 +58,14 @@ class StaticInteropClassEraser extends Transformer {
     '_wasm',
   };
 
-  StaticInteropClassEraser(CoreTypes coreTypes,
-      {InterfaceType Function(InterfaceType staticInteropType)?
-          eraseStaticInteropType,
-      Set<String> additionalCoreLibraries = const {}}) {
-    _eraseStaticInteropType = eraseStaticInteropType ??
+  StaticInteropClassEraser(
+    CoreTypes coreTypes, {
+    InterfaceType Function(InterfaceType staticInteropType)?
+    eraseStaticInteropType,
+    Set<String> additionalCoreLibraries = const {},
+  }) {
+    _eraseStaticInteropType =
+        eraseStaticInteropType ??
         (staticInteropType) =>
             eraseStaticInteropTypesForJSCompilers(coreTypes, staticInteropType);
     _typeSubstitutor = _TypeSubstitutor(_eraseStaticInteropType);
@@ -81,8 +86,9 @@ class StaticInteropClassEraser extends Transformer {
     var factoryClass = factoryTarget.enclosingClass!;
     assert(hasStaticInteropAnnotation(factoryClass));
     var stubName = _factoryStubName(factoryTarget);
-    var stubs = factoryClass.procedures
-        .where((procedure) => procedure.name.text == stubName);
+    var stubs = factoryClass.procedures.where(
+      (procedure) => procedure.name.text == stubName,
+    );
     if (stubs.isEmpty) {
       // We should only create the stub if we're processing the component in
       // which the stub should exist.
@@ -91,16 +97,21 @@ class StaticInteropClassEraser extends Transformer {
       }
       Name name = Name(stubName);
       var staticMethod = Procedure(
-          name, ProcedureKind.Method, FunctionNode(null),
-          isStatic: true, fileUri: factoryTarget.fileUri)
-        ..fileOffset = factoryTarget.fileOffset;
+        name,
+        ProcedureKind.Method,
+        FunctionNode(null),
+        isStatic: true,
+        fileUri: factoryTarget.fileUri,
+      )..fileOffset = factoryTarget.fileOffset;
       factoryClass.addProcedure(staticMethod);
       // Clone function node after processing the stub in case of mutually
       // recursive factories. Note that the return type of the cloned function
       // is transformed.
-      var functionNode = super
-              .visitFunctionNode(_cloner.cloneInContext(factoryTarget.function))
-          as FunctionNode;
+      var functionNode =
+          super.visitFunctionNode(
+                _cloner.cloneInContext(factoryTarget.function),
+              )
+              as FunctionNode;
       staticMethod.function = functionNode;
       return staticMethod;
     } else {
@@ -166,12 +177,13 @@ class StaticInteropClassEraser extends Transformer {
         var signatureType = newProcedure.signatureType;
         if (signatureType != null && signatureReturnType != null) {
           newProcedure.signatureType = FunctionType(
-              signatureType.positionalParameters,
-              signatureReturnType,
-              signatureType.declaredNullability,
-              namedParameters: signatureType.namedParameters,
-              typeParameters: signatureType.typeParameters,
-              requiredParameterCount: signatureType.requiredParameterCount);
+            signatureType.positionalParameters,
+            signatureReturnType,
+            signatureType.declaredNullability,
+            namedParameters: signatureType.namedParameters,
+            typeParameters: signatureType.typeParameters,
+            requiredParameterCount: signatureType.requiredParameterCount,
+          );
         }
         return newProcedure;
       }
@@ -185,10 +197,11 @@ class StaticInteropClassEraser extends Transformer {
       // Add a cast so that the result gets typed as the erased type.
       var newInvocation = super.visitConstructorInvocation(node) as Expression;
       return AsExpression(
-          newInvocation,
-          _eraseStaticInteropType(
-              node.target.function.returnType as InterfaceType))
-        ..fileOffset = newInvocation.fileOffset;
+        newInvocation,
+        _eraseStaticInteropType(
+          node.target.function.returnType as InterfaceType,
+        ),
+      )..fileOffset = newInvocation.fileOffset;
     }
     return super.visitConstructorInvocation(node);
   }
@@ -216,10 +229,11 @@ class StaticInteropClassEraser extends Transformer {
         // Add a cast so that the result gets typed as the erased type.
         var newInvocation = super.visitStaticInvocation(node) as Expression;
         return AsExpression(
-            newInvocation,
-            _eraseStaticInteropType(
-                node.target.function.returnType as InterfaceType))
-          ..fileOffset = newInvocation.fileOffset;
+          newInvocation,
+          _eraseStaticInteropType(
+            node.target.function.returnType as InterfaceType,
+          ),
+        )..fileOffset = newInvocation.fileOffset;
       }
     }
     return super.visitStaticInvocation(node);

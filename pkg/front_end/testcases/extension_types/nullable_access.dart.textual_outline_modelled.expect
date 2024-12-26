@@ -7,10 +7,4 @@ extension type ET(int? i) {
 }
 
 method<X extends ET, Y extends ET?>(
-  ET et1,
-  ET? et2,
-  X x1,
-  X? x2,
-  Y y1,
-  Y? y2,
-) {}
+    ET et1, ET? et2, X x1, X? x2, Y y1, Y? y2) {}

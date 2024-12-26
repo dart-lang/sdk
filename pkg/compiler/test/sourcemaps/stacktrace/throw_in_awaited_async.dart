@@ -15,5 +15,6 @@ test1() async {
 @pragma('dart2js:noInline')
 test2() async {
   await null;
-  /*1:test2*/ throw '>ExceptionMarker<';
+  /*1:test2*/
+  throw '>ExceptionMarker<';
 }

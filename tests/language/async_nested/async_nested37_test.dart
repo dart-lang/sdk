@@ -13,23 +13,22 @@ void main() async {
     new Node('2', []),
     await new Future.value(new Node('3', [])),
     new Node('4', [
-      new Node('5', [
-        new Node('6', []),
-        new Node('7', []),
+      new Node('5', [new Node('6', []), new Node('7', [])]),
+    ]),
+    await new Future.value(
+      new Node('8', [
+        await new Future.value(new Node('9', [])),
+        await new Future.value(
+          new Node('10', [
+            new Node('11', []),
+            new Node('12', []),
+            await new Future.value(new Node('13', [])),
+          ]),
+        ),
       ]),
-    ]),
-    await new Future.value(new Node('8', [
-      await new Future.value(new Node('9', [])),
-      await new Future.value(new Node('10', [
-        new Node('11', []),
-        new Node('12', []),
-        await new Future.value(new Node('13', [])),
-      ])),
-    ])),
+    ),
     await new Future.value(new Node('14', [])),
-    new Node('15', [
-      new Node('16', []),
-    ]),
+    new Node('15', [new Node('16', [])]),
   ]);
   String actual = node.toSimpleString();
   print(actual);

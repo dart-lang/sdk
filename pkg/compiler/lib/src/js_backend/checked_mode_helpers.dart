@@ -12,16 +12,18 @@ import '../universe/use.dart' show StaticUse;
 class CheckedModeHelper {
   final String name;
 
-  const CheckedModeHelper(String this.name);
+  const CheckedModeHelper(this.name);
 
   StaticUse getStaticUse(CommonElements commonElements) {
     // TODO(johnniwinther): Refactor this to avoid looking up directly in the
     // js helper library but instead access commonElements.
     return StaticUse.staticInvoke(
-        commonElements.findHelperFunction(name), callStructure);
+      commonElements.findHelperFunction(name),
+      callStructure,
+    );
   }
 
-  CallStructure get callStructure => CallStructure.ONE_ARG;
+  CallStructure get callStructure => CallStructure.oneArg;
 }
 
 class CheckedModeHelpers {

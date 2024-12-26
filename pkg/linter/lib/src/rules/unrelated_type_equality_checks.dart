@@ -56,17 +56,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (leftType == null) return;
     var rightType = rightOperand.staticType;
     if (rightType == null) return;
+    if (_comparable(leftType, rightType)) return;
 
-    if (_nonComparable(leftType, rightType)) {
-      rule.reportLintForToken(
-        node.operator,
-        errorCode: LinterLintCode.unrelated_type_equality_checks_in_expression,
-        arguments: [
-          rightType.getDisplayString(),
-          leftType.getDisplayString(),
-        ],
-      );
-    }
+    rule.reportLintForToken(
+      node.operator,
+      errorCode: LinterLintCode.unrelated_type_equality_checks_in_expression,
+      arguments: [
+        rightType.getDisplayString(),
+        leftType.getDisplayString(),
+      ],
+    );
   }
 
   @override
@@ -76,26 +75,25 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!node.operator.isEqualityTest) return;
     var operandType = node.operand.staticType;
     if (operandType == null) return;
-    if (_nonComparable(valueType, operandType)) {
-      rule.reportLint(
-        node,
-        errorCode: LinterLintCode.unrelated_type_equality_checks_in_pattern,
-        arguments: [
-          operandType.getDisplayString(),
-          valueType.getDisplayString(),
-        ],
-      );
-    }
+    if (_comparable(valueType, operandType)) return;
+
+    rule.reportLint(
+      node,
+      errorCode: LinterLintCode.unrelated_type_equality_checks_in_pattern,
+      arguments: [
+        operandType.getDisplayString(),
+        valueType.getDisplayString(),
+      ],
+    );
   }
 
-  bool _nonComparable(DartType leftType, DartType rightType) =>
-      typesAreUnrelated(typeSystem, leftType, rightType) &&
-      !(leftType.isFixnumIntX && rightType.isCoreInt);
+  /// Whether [leftType] and [rightType] are comparable.
+  bool _comparable(DartType leftType, DartType rightType) =>
+      (leftType.isFixnumIntX && rightType.isDartCoreInt) ||
+      !typesAreUnrelated(typeSystem, leftType, rightType);
 }
 
-extension on DartType? {
-  bool get isCoreInt => this != null && this!.isDartCoreInt;
-
+extension on DartType {
   bool get isFixnumIntX {
     var self = this;
     // TODO(pq): add tests that ensure this predicate works with fixnum >= 1.1.0-dev

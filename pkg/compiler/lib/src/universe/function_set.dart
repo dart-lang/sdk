@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library universe.function_set;
+library;
 
 import '../common/names.dart' show Identifiers, Selectors;
 import '../elements/entities.dart';
@@ -40,12 +40,18 @@ class FunctionSet {
   /// noSuchMethod handlers that are potential targets indirectly through the
   /// noSuchMethod mechanism.
   Iterable<MemberEntity> filter(
-      Selector selector, AbstractValue? receiver, AbstractValueDomain domain) {
+    Selector selector,
+    AbstractValue? receiver,
+    AbstractValueDomain domain,
+  ) {
     return query(selector, receiver, domain).functions;
   }
 
   SelectorMask _createSelectorMask(
-      Selector selector, AbstractValue? receiver, AbstractValueDomain domain) {
+    Selector selector,
+    AbstractValue? receiver,
+    AbstractValueDomain domain,
+  ) {
     return receiver != null
         ? SelectorMask(selector, receiver)
         : SelectorMask(selector, domain.dynamicType);
@@ -55,11 +61,16 @@ class FunctionSet {
   /// [selector] on a receiver constrained by [constraint] including
   /// 'noSuchMethod' methods where applicable.
   FunctionSetQuery query(
-      Selector selector, AbstractValue? receiver, AbstractValueDomain domain) {
+    Selector selector,
+    AbstractValue? receiver,
+    AbstractValueDomain domain,
+  ) {
     Name name = selector.memberName;
     SelectorMask selectorMask = _createSelectorMask(selector, receiver, domain);
-    SelectorMask noSuchMethodMask =
-        SelectorMask(Selectors.noSuchMethod_, selectorMask.receiver);
+    SelectorMask noSuchMethodMask = SelectorMask(
+      Selectors.noSuchMethod_,
+      selectorMask.receiver,
+    );
     FunctionSetNode? node;
     if (name.isPrivate) {
       final forUri = _privateNodes[name.uri];
@@ -89,8 +100,7 @@ class SelectorMask {
   final int hashCode;
 
   SelectorMask(this.selector, this.receiver)
-      : this.hashCode =
-            Hashing.mixHashCodeBits(selector.hashCode, receiver.hashCode);
+    : hashCode = Hashing.mixHashCodeBits(selector.hashCode, receiver.hashCode);
 
   String get name => selector.name;
 
@@ -132,7 +142,7 @@ class FunctionSetNode {
   // Initially, we keep the elements in a list because it is more
   // compact than a hash set. Once we get enough elements, we change
   // the representation to be a set to get faster contains checks.
-  static const int MAX_ELEMENTS_IN_LIST = 8;
+  static const int maxElementsInList = 8;
   Iterable<MemberEntity> elements = [];
   bool isList = true;
 
@@ -143,7 +153,7 @@ class FunctionSetNode {
     // reason we keep the explicit contains check even though the add
     // method ends up doing the work again (for sets).
     if (!elements.contains(element)) {
-      if (isList && elements.length >= MAX_ELEMENTS_IN_LIST) {
+      if (isList && elements.length >= maxElementsInList) {
         elements = elements.toSet();
         isList = false;
       }
@@ -154,7 +164,7 @@ class FunctionSetNode {
         final set = elements as Set<MemberEntity>;
         set.add(element);
       }
-      if (!cache.isEmpty) cache.clear();
+      if (cache.isNotEmpty) cache.clear();
     }
   }
 
@@ -167,14 +177,14 @@ class FunctionSetNode {
       if (index != list.length) {
         list[index] = last;
       }
-      if (!cache.isEmpty) cache.clear();
+      if (cache.isNotEmpty) cache.clear();
     } else {
       final set = elements as List<MemberEntity>;
       if (set.remove(element)) {
         // To avoid wobbling between the two representations, we do
         // not transition back to the list representation even if we
         // end up with few enough elements at this point.
-        if (!cache.isEmpty) cache.clear();
+        if (cache.isNotEmpty) cache.clear();
       }
     }
   }
@@ -183,14 +193,18 @@ class FunctionSetNode {
     return elements.contains(element);
   }
 
-  void forEach(void action(MemberEntity member)) {
+  void forEach(void Function(MemberEntity member) action) {
     elements.forEach(action);
   }
 
   /// Returns the set of functions that can be the target of [selectorMask]
   /// including no such method handling where applicable.
-  FunctionSetQuery query(SelectorMask selectorMask, AbstractValueDomain domain,
-      [FunctionSetNode? noSuchMethods, SelectorMask? noSuchMethodMask]) {
+  FunctionSetQuery query(
+    SelectorMask selectorMask,
+    AbstractValueDomain domain, [
+    FunctionSetNode? noSuchMethods,
+    SelectorMask? noSuchMethodMask,
+  ]) {
     FunctionSetQuery? result = cache[selectorMask];
     if (result != null) return result;
 
@@ -212,16 +226,20 @@ class FunctionSetNode {
         selectorMask.needsNoSuchMethodHandling(domain)) {
       // If [noSuchMethods] was provided then [noSuchMethodMask] should also
       // have been provided.
-      FunctionSetQuery noSuchMethodQuery =
-          noSuchMethods.query(noSuchMethodMask!, domain);
-      if (!noSuchMethodQuery.functions.isEmpty) {
+      FunctionSetQuery noSuchMethodQuery = noSuchMethods.query(
+        noSuchMethodMask!,
+        domain,
+      );
+      if (noSuchMethodQuery.functions.isNotEmpty) {
         functions ??= Setlet();
         functions.addAll(noSuchMethodQuery.functions);
       }
     }
-    cache[selectorMask] = result = (functions != null)
-        ? FullFunctionSetQuery(functions)
-        : const EmptyFunctionSetQuery();
+    cache[selectorMask] =
+        result =
+            (functions != null)
+                ? FullFunctionSetQuery(functions)
+                : const EmptyFunctionSetQuery();
     return result;
   }
 

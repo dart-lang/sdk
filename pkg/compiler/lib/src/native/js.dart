@@ -146,14 +146,18 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
   /// Returns the combined behavior of sequential execution of code having
   /// behavior [first] followed by code having behavior [second].
   static NativeThrowBehavior sequence(
-      NativeThrowBehavior first, NativeThrowBehavior second) {
+    NativeThrowBehavior first,
+    NativeThrowBehavior second,
+  ) {
     return first.then(second);
   }
 
   /// Returns the combined behavior of a choice between two paths with behaviors
   /// [first] and [second].
   static NativeThrowBehavior choice(
-      NativeThrowBehavior first, NativeThrowBehavior second) {
+    NativeThrowBehavior first,
+    NativeThrowBehavior second,
+  ) {
     return first.or(second);
   }
 
@@ -214,7 +218,8 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
 
   @override
   NativeThrowBehavior visitVariableInitialization(
-      js.VariableInitialization node) {
+    js.VariableInitialization node,
+  ) {
     final value = node.value;
     if (value == null) return NativeThrowBehavior.never;
     return visit(value);
@@ -226,8 +231,10 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
     if (target is js.PropertyAccess && _isFirstInterpolatedProperty(target)) {
       // #.f(...): Evaluate selector 'f', dereference, evaluate arguments, and
       // finally call target.
-      NativeThrowBehavior result =
-          sequence(visit(target.selector), NativeThrowBehavior.nullNsm);
+      NativeThrowBehavior result = sequence(
+        visit(target.selector),
+        NativeThrowBehavior.nullNsm,
+      );
       for (js.Expression argument in node.arguments) {
         result = sequence(result, visit(argument));
       }
@@ -292,8 +299,9 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
 
   @override
   NativeThrowBehavior visitPrefix(js.Prefix node) {
-    if (node.op == 'typeof' && node.argument is js.VariableUse)
+    if (node.op == 'typeof' && node.argument is js.VariableUse) {
       return NativeThrowBehavior.never;
+    }
     NativeThrowBehavior result = visit(node.argument);
     switch (node.op) {
       case '+':

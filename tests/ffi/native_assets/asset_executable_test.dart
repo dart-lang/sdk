@@ -43,7 +43,9 @@ main(List<String> args, Object? message) async {
 Future<void> selfInvokes() async {
   final selfSourceUri = Platform.script.resolve('asset_executable_test.dart');
   final nativeAssetsYaml = createNativeAssetYaml(
-      asset: selfSourceUri.toString(), assetMapping: ['executable']);
+    asset: selfSourceUri.toString(),
+    assetMapping: ['executable'],
+  );
   await invokeSelf(
     selfSourceUri: selfSourceUri,
     runtime: Runtime.jit,
@@ -72,8 +74,9 @@ external bool Dart_PostInteger(int port, int message);
 Future<void> testExecutable() async {
   await _testWith(Dart_PostInteger);
 
-  final viaAddressOf =
-      Native.addressOf<NativeFunction<_PostInteger>>(Dart_PostInteger);
+  final viaAddressOf = Native.addressOf<NativeFunction<_PostInteger>>(
+    Dart_PostInteger,
+  );
   await _testWith(viaAddressOf.asFunction());
 }
 
@@ -82,8 +85,9 @@ Future<void> _testWith(bool Function(int, int) postInteger) async {
 
   final completer = Completer();
 
-  final receivePort = ReceivePort()
-    ..listen((receivedMessage) => completer.complete(receivedMessage));
+  final receivePort =
+      ReceivePort()
+        ..listen((receivedMessage) => completer.complete(receivedMessage));
 
   final bool success = postInteger(receivePort.sendPort.nativePort, message);
   Expect.isTrue(success);

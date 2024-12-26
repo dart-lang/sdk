@@ -40,7 +40,7 @@ abstract class IrDataExtractor<T> extends DataExtractor<T>
   final DiagnosticReporter reporter;
 
   IrDataExtractor(this.reporter, Map<Id, ActualData<T>> actualMap)
-      : super(actualMap);
+    : super(actualMap);
 
   SourceSpan computeSourceSpan(ir.TreeNode node) {
     return computeSourceSpanFromTreeNode(node);
@@ -58,7 +58,11 @@ abstract class IrDataExtractor<T> extends DataExtractor<T>
 
 /// Print a message with a source location.
 void reportHere(
-    DiagnosticReporter reporter, Spannable node, String debugMessage) {
-  reporter.reportInfoMessage(
-      node, MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
+  DiagnosticReporter reporter,
+  Spannable node,
+  String debugMessage,
+) {
+  reporter.reportInfoMessage(node, MessageKind.generic, {
+    'text': 'HERE: $debugMessage',
+  });
 }

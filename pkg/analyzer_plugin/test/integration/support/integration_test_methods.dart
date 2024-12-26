@@ -48,7 +48,7 @@ abstract class IntegrationTestMixin {
   /// isCompatible: bool
   ///
   ///   A flag indicating whether the plugin supports the same version of the
-  ///   plugin spec as the analysis server. If the value is false, then the
+  ///   plugin spec as the analysis server. If the value is `false`, then the
   ///   plugin is expected to shutdown after returning the response.
   ///
   /// name: String
@@ -70,14 +70,11 @@ abstract class IntegrationTestMixin {
   /// interestingFiles: List<String>
   ///
   ///   The glob patterns of the files for which the plugin will provide
-  ///   information. This value is ignored if the isCompatible field is false.
-  ///   Otherwise, it will be used to identify the files for which the plugin
-  ///   should be notified of changes.
+  ///   information. This value is ignored if the `isCompatible` field is
+  ///   `false`. Otherwise, it will be used to identify the files for which the
+  ///   plugin should be notified of changes.
   Future<PluginVersionCheckResult> sendPluginVersionCheck(
-    String byteStorePath,
-    String sdkPath,
-    String version,
-  ) async {
+      String byteStorePath, String sdkPath, String version) async {
     var params =
         PluginVersionCheckParams(byteStorePath, sdkPath, version).toJson();
     var result = await server.send('plugin.versionCheck', params);
@@ -106,7 +103,7 @@ abstract class IntegrationTestMixin {
   ///
   ///   A flag indicating whether the error is a fatal error, meaning that the
   ///   plugin will shutdown automatically after sending this notification. If
-  ///   true, the server will not expect any other responses or notifications
+  ///   `true`, the server will not expect any other responses or notifications
   ///   from the plugin.
   ///
   /// message: String
@@ -128,7 +125,7 @@ abstract class IntegrationTestMixin {
   /// the given file is out of date, then the response for this request will be
   /// delayed until it has been computed. If the content of the file changes
   /// after this request was received but before a response could be sent, then
-  /// an error of type CONTENT_MODIFIED will be generated.
+  /// an error of type `CONTENT_MODIFIED` will be generated.
   ///
   /// If a navigation region overlaps (but extends either before or after) the
   /// given region of the file it will be included in the result. This means
@@ -170,10 +167,7 @@ abstract class IntegrationTestMixin {
   ///   A list of the navigation regions within the requested region of the
   ///   file.
   Future<AnalysisGetNavigationResult> sendAnalysisGetNavigation(
-    String file,
-    int offset,
-    int length,
-  ) async {
+      String file, int offset, int length) async {
     var params = AnalysisGetNavigationParams(file, offset, length).toJson();
     var result = await server.send('analysis.getNavigation', params);
     var decoder = ResponseDecoder(null);
@@ -181,7 +175,7 @@ abstract class IntegrationTestMixin {
   }
 
   /// Used to inform the plugin of changes to files in the file system. Only
-  /// events associated with files that match the interestingFiles glob
+  /// events associated with files that match the `interestingFiles` glob
   /// patterns will be forwarded to the plugin.
   ///
   /// Parameters
@@ -244,8 +238,7 @@ abstract class IntegrationTestMixin {
   ///   A table mapping services to a list of the files being subscribed to the
   ///   service.
   Future sendAnalysisSetSubscriptions(
-    Map<AnalysisService, List<String>> subscriptions,
-  ) async {
+      Map<AnalysisService, List<String>> subscriptions) async {
     var params = AnalysisSetSubscriptionsParams(subscriptions).toJson();
     var result = await server.send('analysis.setSubscriptions', params);
     outOfTestExpect(result, isNull);
@@ -301,7 +294,7 @@ abstract class IntegrationTestMixin {
   /// by the server in order to present a consistent view to the client.
   ///
   /// This notification should only be sent if the server has subscribed to it
-  /// by including the value "FOLDING" in the list of services passed in an
+  /// by including the value `"FOLDING"` in the list of services passed in an
   /// analysis.setSubscriptions request.
   ///
   /// Parameters
@@ -325,8 +318,8 @@ abstract class IntegrationTestMixin {
   /// meaning associated with a particular region.
   ///
   /// This notification should only be sent if the server has subscribed to it
-  /// by including the value "HIGHLIGHTS" in the list of services passed in an
-  /// analysis.setSubscriptions request.
+  /// by including the value `"HIGHLIGHTS"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
   ///
   /// Parameters
   ///
@@ -356,8 +349,8 @@ abstract class IntegrationTestMixin {
   /// view to the client.
   ///
   /// This notification should only be sent if the server has subscribed to it
-  /// by including the value "NAVIGATION" in the list of services passed in an
-  /// analysis.setSubscriptions request.
+  /// by including the value `"NAVIGATION"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
   ///
   /// Parameters
   ///
@@ -392,8 +385,8 @@ abstract class IntegrationTestMixin {
   /// view to the client.
   ///
   /// This notification should only be sent if the server has subscribed to it
-  /// by including the value "OCCURRENCES" in the list of services passed in an
-  /// analysis.setSubscriptions request.
+  /// by including the value `"OCCURRENCES"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
   ///
   /// Parameters
   ///
@@ -416,7 +409,7 @@ abstract class IntegrationTestMixin {
   /// cannot create a coherent outline, some fragments might be dropped.
   ///
   /// This notification should only be sent if the server has subscribed to it
-  /// by including the value "OUTLINE" in the list of services passed in an
+  /// by including the value `"OUTLINE"` in the list of services passed in an
   /// analysis.setSubscriptions request.
   ///
   /// Parameters
@@ -473,9 +466,7 @@ abstract class IntegrationTestMixin {
   ///   allows the client to respond to further keystrokes from the user
   ///   without having to make additional requests.
   Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(
-    String file,
-    int offset,
-  ) async {
+      String file, int offset) async {
     var params = CompletionGetSuggestionsParams(file, offset).toJson();
     var result = await server.send('completion.getSuggestions', params);
     var decoder = ResponseDecoder(null);
@@ -507,10 +498,7 @@ abstract class IntegrationTestMixin {
   ///
   ///   The assists that are available at the given location.
   Future<EditGetAssistsResult> sendEditGetAssists(
-    String file,
-    int offset,
-    int length,
-  ) async {
+      String file, int offset, int length) async {
     var params = EditGetAssistsParams(file, offset, length).toJson();
     var result = await server.send('edit.getAssists', params);
     var decoder = ResponseDecoder(null);
@@ -545,19 +533,13 @@ abstract class IntegrationTestMixin {
   ///   However, plugins can support pre-defined refactorings, such as a rename
   ///   refactoring, at locations not supported by server.
   Future<EditGetAvailableRefactoringsResult> sendEditGetAvailableRefactorings(
-    String file,
-    int offset,
-    int length,
-  ) async {
+      String file, int offset, int length) async {
     var params =
         EditGetAvailableRefactoringsParams(file, offset, length).toJson();
     var result = await server.send('edit.getAvailableRefactorings', params);
     var decoder = ResponseDecoder(null);
     return EditGetAvailableRefactoringsResult.fromJson(
-      decoder,
-      'result',
-      result,
-    );
+        decoder, 'result', result);
   }
 
   /// Used to request the set of fixes that are available for the errors at a
@@ -662,23 +644,13 @@ abstract class IntegrationTestMixin {
   ///   reference to a member from an unknown type. This field can be omitted
   ///   if the change field is omitted or if there are no potential edits for
   ///   the refactoring.
-  Future<EditGetRefactoringResult> sendEditGetRefactoring(
-    RefactoringKind kind,
-    String file,
-    int offset,
-    int length,
-    bool validateOnly, {
-    RefactoringOptions? options,
-  }) async {
-    var params =
-        EditGetRefactoringParams(
-          kind,
-          file,
-          offset,
-          length,
-          validateOnly,
-          options: options,
-        ).toJson();
+  Future<EditGetRefactoringResult> sendEditGetRefactoring(RefactoringKind kind,
+      String file, int offset, int length, bool validateOnly,
+      {RefactoringOptions? options}) async {
+    var params = EditGetRefactoringParams(
+            kind, file, offset, length, validateOnly,
+            options: options)
+        .toJson();
     var result = await server.send('edit.getRefactoring', params);
     var decoder = ResponseDecoder(kind);
     return EditGetRefactoringResult.fromJson(decoder, 'result', result);
@@ -693,17 +665,14 @@ abstract class IntegrationTestMixin {
     onAnalysisErrors = _onAnalysisErrors.stream.asBroadcastStream();
     _onAnalysisFolding = StreamController<AnalysisFoldingParams>(sync: true);
     onAnalysisFolding = _onAnalysisFolding.stream.asBroadcastStream();
-    _onAnalysisHighlights = StreamController<AnalysisHighlightsParams>(
-      sync: true,
-    );
+    _onAnalysisHighlights =
+        StreamController<AnalysisHighlightsParams>(sync: true);
     onAnalysisHighlights = _onAnalysisHighlights.stream.asBroadcastStream();
-    _onAnalysisNavigation = StreamController<AnalysisNavigationParams>(
-      sync: true,
-    );
+    _onAnalysisNavigation =
+        StreamController<AnalysisNavigationParams>(sync: true);
     onAnalysisNavigation = _onAnalysisNavigation.stream.asBroadcastStream();
-    _onAnalysisOccurrences = StreamController<AnalysisOccurrencesParams>(
-      sync: true,
-    );
+    _onAnalysisOccurrences =
+        StreamController<AnalysisOccurrencesParams>(sync: true);
     onAnalysisOccurrences = _onAnalysisOccurrences.stream.asBroadcastStream();
     _onAnalysisOutline = StreamController<AnalysisOutlineParams>(sync: true);
     onAnalysisOutline = _onAnalysisOutline.stream.asBroadcastStream();
@@ -716,45 +685,38 @@ abstract class IntegrationTestMixin {
     switch (event) {
       case 'plugin.error':
         outOfTestExpect(params, isPluginErrorParams);
-        _onPluginError.add(
-          PluginErrorParams.fromJson(decoder, 'params', params),
-        );
+        _onPluginError
+            .add(PluginErrorParams.fromJson(decoder, 'params', params));
         break;
       case 'analysis.errors':
         outOfTestExpect(params, isAnalysisErrorsParams);
-        _onAnalysisErrors.add(
-          AnalysisErrorsParams.fromJson(decoder, 'params', params),
-        );
+        _onAnalysisErrors
+            .add(AnalysisErrorsParams.fromJson(decoder, 'params', params));
         break;
       case 'analysis.folding':
         outOfTestExpect(params, isAnalysisFoldingParams);
-        _onAnalysisFolding.add(
-          AnalysisFoldingParams.fromJson(decoder, 'params', params),
-        );
+        _onAnalysisFolding
+            .add(AnalysisFoldingParams.fromJson(decoder, 'params', params));
         break;
       case 'analysis.highlights':
         outOfTestExpect(params, isAnalysisHighlightsParams);
-        _onAnalysisHighlights.add(
-          AnalysisHighlightsParams.fromJson(decoder, 'params', params),
-        );
+        _onAnalysisHighlights
+            .add(AnalysisHighlightsParams.fromJson(decoder, 'params', params));
         break;
       case 'analysis.navigation':
         outOfTestExpect(params, isAnalysisNavigationParams);
-        _onAnalysisNavigation.add(
-          AnalysisNavigationParams.fromJson(decoder, 'params', params),
-        );
+        _onAnalysisNavigation
+            .add(AnalysisNavigationParams.fromJson(decoder, 'params', params));
         break;
       case 'analysis.occurrences':
         outOfTestExpect(params, isAnalysisOccurrencesParams);
-        _onAnalysisOccurrences.add(
-          AnalysisOccurrencesParams.fromJson(decoder, 'params', params),
-        );
+        _onAnalysisOccurrences
+            .add(AnalysisOccurrencesParams.fromJson(decoder, 'params', params));
         break;
       case 'analysis.outline':
         outOfTestExpect(params, isAnalysisOutlineParams);
-        _onAnalysisOutline.add(
-          AnalysisOutlineParams.fromJson(decoder, 'params', params),
-        );
+        _onAnalysisOutline
+            .add(AnalysisOutlineParams.fromJson(decoder, 'params', params));
         break;
       default:
         fail('Unexpected notification: $event');

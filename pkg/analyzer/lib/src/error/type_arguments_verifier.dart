@@ -155,9 +155,15 @@ class TypeArgumentsVerifier {
   }
 
   void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    // For some function expressions, like an implicit 'call' invocation, the
+    // function type is on `node`'s `element`. For anonymous function
+    // expressions, the function is on `node`'s `function`.
+    // TODO(srawlins): It seems that `node.function`, the Expression, should
+    // always have the static type of the `call` method.
+    var functionType = node.element?.type ?? node.function.staticType;
     _checkInvocationTypeArguments(
       node.typeArguments?.arguments,
-      node.function.staticType,
+      functionType,
       node.staticInvokeType,
     );
   }

@@ -11,38 +11,14 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AddReturnType_AlwaysDeclareReturnTypesTest);
+    defineReflectiveTests(AddReturnType_StrictTopLevelInferenceTest);
     defineReflectiveTests(AddReturnTypeBulkTest);
-    defineReflectiveTests(AddReturnTypeLintTest);
   });
 }
 
 @reflectiveTest
-class AddReturnTypeBulkTest extends BulkFixProcessorTest {
-  @override
-  String get lintCode => LintNames.always_declare_return_types;
-
-  Future<void> test_singleFile() async {
-    await resolveTestCode('''
-class A {
-  get foo => 0;
-  m(p) {
-    return p;
-  }
-}
-''');
-    await assertHasFix('''
-class A {
-  int get foo => 0;
-  dynamic m(p) {
-    return p;
-  }
-}
-''');
-  }
-}
-
-@reflectiveTest
-class AddReturnTypeLintTest extends FixProcessorLintTest {
+class AddReturnType_AlwaysDeclareReturnTypesTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.ADD_RETURN_TYPE;
 
@@ -94,11 +70,14 @@ class A {
   Future<void> test_method_block_noReturn() async {
     await resolveTestCode('''
 class A {
-  m() {
-  }
+  m() {}
 }
 ''');
-    await assertNoFix();
+    await assertHasFix('''
+class A {
+  void m() {}
+}
+''');
   }
 
   Future<void> test_method_block_returnDynamic() async {
@@ -207,6 +186,60 @@ f(A a) => a.b();
     await assertNoFix();
   }
 
+  Future<void> test_topLevelFunction_async_hasReturns() async {
+    await resolveTestCode('''
+f() async {
+  if (1 == 2) {
+    return 0;
+  } else {
+    return 1.5;
+  }
+}
+''');
+    await assertHasFix('''
+Future<num> f() async {
+  if (1 == 2) {
+    return 0;
+  } else {
+    return 1.5;
+  }
+}
+''');
+  }
+
+  Future<void> test_topLevelFunction_async_noReturns() async {
+    await resolveTestCode('''
+f() async {}
+''');
+    await assertHasFix('''
+Future<void> f() async {}
+''');
+  }
+
+  Future<void> test_topLevelFunction_asyncStar_noYield() async {
+    await resolveTestCode('''
+f() async* {}
+''');
+    await assertHasFix('''
+Stream<void> f() async* {}
+''');
+  }
+
+  Future<void> test_topLevelFunction_asyncStar_withYield() async {
+    await resolveTestCode('''
+f() async* {
+  yield 0;
+  yield 1.5;
+}
+''');
+    await assertHasFix('''
+Stream<num> f() async* {
+  yield 0;
+  yield 1.5;
+}
+''');
+  }
+
   Future<void> test_topLevelFunction_block() async {
     await resolveTestCode('''
 f() {
@@ -235,6 +268,107 @@ get foo => 0;
 ''');
     await assertHasFix('''
 int get foo => 0;
+''');
+  }
+
+  Future<void> test_topLevelFunction_syncStar_noYield() async {
+    await resolveTestCode('''
+f() sync* {}
+''');
+    await assertHasFix('''
+Iterable<void> f() sync* {}
+''');
+  }
+
+  Future<void> test_topLevelFunction_syncStar_withYield() async {
+    await resolveTestCode('''
+f() sync* {
+  yield 0;
+  yield 1.5;
+}
+''');
+    await assertHasFix('''
+Iterable<num> f() sync* {
+  yield 0;
+  yield 1.5;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AddReturnType_StrictTopLevelInferenceTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_RETURN_TYPE;
+
+  @override
+  String get lintCode => LintNames.strict_top_level_inference;
+
+  Future<void> test_instanceMethod_typeVariable() async {
+    await resolveTestCode('''
+class C<T> {
+  f(T p) {
+    return p;
+  }
+}
+''');
+    await assertHasFix('''
+class C<T> {
+  T f(T p) {
+    return p;
+  }
+}
+''');
+  }
+
+  Future<void> test_topLevelFunction() async {
+    await resolveTestCode('''
+f() {
+  return '';
+}
+''');
+    await assertHasFix('''
+String f() {
+  return '';
+}
+''');
+  }
+
+  Future<void> test_topLevelFunction_typeVariable() async {
+    await resolveTestCode('''
+f<T>(T p) {
+  return [p];
+}
+''');
+    await assertHasFix('''
+List<T> f<T>(T p) {
+  return [p];
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AddReturnTypeBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.always_declare_return_types;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+class A {
+  get foo => 0;
+  m(p) {
+    return p;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int get foo => 0;
+  dynamic m(p) {
+    return p;
+  }
+}
 ''');
   }
 }

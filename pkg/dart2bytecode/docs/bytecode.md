@@ -348,7 +348,11 @@ type FunctionType extends Type {
 
   UInt functionTypeFlags = (hasOptionalPositionalParams,
                             hasOptionalNamedParams,
-                            hasTypeParams);
+                            hasTypeParams,
+                            hasEnclosingTypeParameters);
+
+  if hasEnclosingTypeParameters
+    UInt numEnclosingTypeParameters;
 
   if hasTypeParams
     TypeParametersDeclaration typeParameters;

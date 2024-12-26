@@ -131,6 +131,6 @@ extension ElementExtension on Element2? {
     var self = this;
     return self is TopLevelFunctionElement &&
         self.name3 == 'unawaited' &&
-        (self.library2?.isDartAsync ?? false);
+        self.library2.isDartAsync;
   }
 }

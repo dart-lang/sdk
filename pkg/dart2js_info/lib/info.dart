@@ -68,7 +68,7 @@ abstract class BasicInfo implements Info {
 
 /// Info associated with elements containing executable code (like fields and
 /// methods)
-abstract class CodeInfo implements Info {
+mixin CodeInfo implements Info {
   /// How does this function or field depend on others.
   List<DependencyInfo> uses = [];
 }
@@ -169,21 +169,22 @@ class ProgramInfo {
 
   final bool minified;
 
-  ProgramInfo(
-      {required this.entrypoint,
-      required this.ramUsage,
-      required this.size,
-      required this.dart2jsVersion,
-      required this.compilationMoment,
-      required this.compilationDuration,
-      required this.toJsonDuration,
-      required this.dumpInfoDuration,
-      required this.noSuchMethodEnabled,
-      required this.isRuntimeTypeUsed,
-      required this.isIsolateInUse,
-      required this.isFunctionApplyUsed,
-      this.isMirrorsUsed = false,
-      required this.minified});
+  ProgramInfo({
+    required this.entrypoint,
+    required this.ramUsage,
+    required this.size,
+    required this.dart2jsVersion,
+    required this.compilationMoment,
+    required this.compilationDuration,
+    required this.toJsonDuration,
+    required this.dumpInfoDuration,
+    required this.noSuchMethodEnabled,
+    required this.isRuntimeTypeUsed,
+    required this.isIsolateInUse,
+    required this.isFunctionApplyUsed,
+    this.isMirrorsUsed = false,
+    required this.minified,
+  });
 
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitProgram(this);
 }
@@ -197,7 +198,7 @@ class PackageInfo extends BasicInfo {
   List<LibraryInfo> libraries = <LibraryInfo>[];
 
   PackageInfo(String name, OutputUnitInfo outputUnit, int size)
-      : super(InfoKind.package, name, outputUnit, size, null);
+    : super(InfoKind.package, name, outputUnit, size, null);
 
   @override
   T accept<T>(InfoVisitor<T> visitor) =>
@@ -236,7 +237,7 @@ class LibraryInfo extends BasicInfo {
       classTypes.isEmpty;
 
   LibraryInfo(String name, this.uri, OutputUnitInfo? outputUnit, int size)
-      : super(InfoKind.library, name, outputUnit, size, null);
+    : super(InfoKind.library, name, outputUnit, size, null);
 
   LibraryInfo.internal() : super.internal(InfoKind.library);
 
@@ -254,7 +255,7 @@ class OutputUnitInfo extends BasicInfo {
   final List<String> imports = <String>[];
 
   OutputUnitInfo(this.filename, String name, int size)
-      : super(InfoKind.outputUnit, name, null, size, null);
+    : super(InfoKind.outputUnit, name, null, size, null);
 
   OutputUnitInfo.internal() : super.internal(InfoKind.outputUnit);
 
@@ -279,17 +280,19 @@ class ClassInfo extends BasicInfo {
   /// Classes in the supertype hierarchy for this class.
   List<ClassInfo> supers = <ClassInfo>[];
 
-  ClassInfo(
-      {required String name,
-      required this.isAbstract,
-      required this.supers,
-      OutputUnitInfo? outputUnit,
-      int size = 0})
-      : super(InfoKind.clazz, name, outputUnit, size, null);
+  ClassInfo({
+    required String name,
+    required this.isAbstract,
+    required this.supers,
+    OutputUnitInfo? outputUnit,
+    int size = 0,
+  }) : super(InfoKind.clazz, name, outputUnit, size, null);
 
-  ClassInfo.fromKernel(
-      {required String name, required this.isAbstract, required this.supers})
-      : super(InfoKind.clazz, name, null, 0, null);
+  ClassInfo.fromKernel({
+    required String name,
+    required this.isAbstract,
+    required this.supers,
+  }) : super(InfoKind.clazz, name, null, 0, null);
 
   ClassInfo.internal() : super.internal(InfoKind.clazz);
 
@@ -301,9 +304,11 @@ class ClassInfo extends BasicInfo {
 /// [ClassInfo] because a class and its type may end up in different output
 /// units.
 class ClassTypeInfo extends BasicInfo {
-  ClassTypeInfo(
-      {required String name, OutputUnitInfo? outputUnit, int size = 0})
-      : super(InfoKind.classType, name, outputUnit, size, null);
+  ClassTypeInfo({
+    required String name,
+    OutputUnitInfo? outputUnit,
+    int size = 0,
+  }) : super(InfoKind.classType, name, outputUnit, size, null);
 
   ClassTypeInfo.internal() : super.internal(InfoKind.classType);
 
@@ -336,7 +341,7 @@ class ConstantInfo extends BasicInfo {
 
   // TODO(sigmund): Add coverage support to constants?
   ConstantInfo({int size = 0, required this.code, OutputUnitInfo? outputUnit})
-      : super(InfoKind.constant, '', outputUnit, size, null);
+    : super(InfoKind.constant, '', outputUnit, size, null);
 
   ConstantInfo.internal() : super.internal(InfoKind.constant);
 
@@ -364,23 +369,23 @@ class FieldInfo extends BasicInfo with CodeInfo {
   /// When [isConst] is true, the constant initializer expression.
   ConstantInfo? initializer;
 
-  FieldInfo(
-      {required String name,
-      String? coverageId,
-      int size = 0,
-      required this.type,
-      required this.inferredType,
-      required this.code,
-      OutputUnitInfo? outputUnit,
-      required this.isConst})
-      : super(InfoKind.field, name, outputUnit, size, coverageId);
+  FieldInfo({
+    required String name,
+    String? coverageId,
+    int size = 0,
+    required this.type,
+    required this.inferredType,
+    required this.code,
+    OutputUnitInfo? outputUnit,
+    required this.isConst,
+  }) : super(InfoKind.field, name, outputUnit, size, coverageId);
 
-  FieldInfo.fromKernel(
-      {required String name,
-      String? coverageId,
-      required this.type,
-      required this.isConst})
-      : super(InfoKind.field, name, null, 0, coverageId);
+  FieldInfo.fromKernel({
+    required String name,
+    String? coverageId,
+    required this.type,
+    required this.isConst,
+  }) : super(InfoKind.field, name, null, 0, coverageId);
 
   FieldInfo.internal() : super.internal(InfoKind.field);
 
@@ -394,7 +399,7 @@ class TypedefInfo extends BasicInfo {
   late final String type;
 
   TypedefInfo(String name, this.type, OutputUnitInfo outputUnit)
-      : super(InfoKind.typedef, name, outputUnit, 0, null);
+    : super(InfoKind.typedef, name, outputUnit, 0, null);
 
   TypedefInfo.internal() : super.internal(InfoKind.typedef);
 
@@ -440,30 +445,30 @@ class FunctionInfo extends BasicInfo with CodeInfo {
   /// The actual generated code.
   late final List<CodeSpan> code;
 
-  FunctionInfo(
-      {required String name,
-      String? coverageId,
-      OutputUnitInfo? outputUnit,
-      int size = 0,
-      required this.functionKind,
-      required this.modifiers,
-      required this.type,
-      required this.returnType,
-      required this.inferredReturnType,
-      required this.parameters,
-      required this.sideEffects,
-      required this.inlinedCount,
-      required this.code})
-      : super(InfoKind.function, name, outputUnit, size, coverageId);
+  FunctionInfo({
+    required String name,
+    String? coverageId,
+    OutputUnitInfo? outputUnit,
+    int size = 0,
+    required this.functionKind,
+    required this.modifiers,
+    required this.type,
+    required this.returnType,
+    required this.inferredReturnType,
+    required this.parameters,
+    required this.sideEffects,
+    required this.inlinedCount,
+    required this.code,
+  }) : super(InfoKind.function, name, outputUnit, size, coverageId);
 
-  FunctionInfo.fromKernel(
-      {required String name,
-      String? coverageId,
-      required this.functionKind,
-      required this.modifiers,
-      required this.type,
-      required this.returnType})
-      : super(InfoKind.function, name, null, 0, coverageId);
+  FunctionInfo.fromKernel({
+    required String name,
+    String? coverageId,
+    required this.functionKind,
+    required this.modifiers,
+    required this.type,
+    required this.returnType,
+  }) : super(InfoKind.function, name, null, 0, coverageId);
 
   FunctionInfo.internal() : super.internal(InfoKind.function);
 
@@ -477,10 +482,10 @@ class ClosureInfo extends BasicInfo {
   late final FunctionInfo function;
 
   ClosureInfo({required String name, OutputUnitInfo? outputUnit, int size = 0})
-      : super(InfoKind.closure, name, outputUnit, size, null);
+    : super(InfoKind.closure, name, outputUnit, size, null);
 
   ClosureInfo.fromKernel({required String name})
-      : super(InfoKind.closure, name, null, 0, null);
+    : super(InfoKind.closure, name, null, 0, null);
 
   ClosureInfo.internal() : super.internal(InfoKind.closure);
 
@@ -645,7 +650,8 @@ class RecursiveInfoVisitor extends InfoVisitor<void> {
 
   void visitPackage(PackageInfo info) {
     throw Exception(
-        "PackageInfo objects are only defined for the VM Devtools format.");
+      "PackageInfo objects are only defined for the VM Devtools format.",
+    );
   }
 
   @override

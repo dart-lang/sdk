@@ -20,9 +20,11 @@ main() {
 
 /*member: simpleFor:[null]*/
 simpleFor() {
-  for (var i = 0;
-      i /*invoke: [subclass=JSPositiveInt]*/ < 10;
-      i = i /*invoke: [subclass=JSPositiveInt]*/ + 1) {
+  for (
+    var i = 0;
+    i /*invoke: [subclass=JSPositiveInt]*/ < 10;
+    i = i /*invoke: [subclass=JSPositiveInt]*/ + 1
+  ) {
     i. /*invoke: [subclass=JSPositiveInt]*/ abs();
   }
 }
@@ -47,9 +49,11 @@ forNull() {
 /*member: forNotNull:[null|exact=JSString]*/
 forNotNull() {
   var local;
-  for (var o = '';
-      o /*invoke: [exact=JSString]*/ != null;
-      o = o. /*invoke: [exact=JSString]*/ toString()) {
+  for (
+    var o = '';
+    o /*invoke: [exact=JSString]*/ != null;
+    o = o. /*invoke: [exact=JSString]*/ toString()
+  ) {
     local = o;
   }
   return local;
@@ -62,9 +66,11 @@ forNotNull() {
 /*member: forNullFalse:[null]*/
 forNullFalse() {
   var local;
-  for (var o = '';
-      o /*invoke: [exact=JSString]*/ == null;
-      o = o. /*invoke: [empty]*/ toString()) {
+  for (
+    var o = '';
+    o /*invoke: [exact=JSString]*/ == null;
+    o = o. /*invoke: [empty]*/ toString()
+  ) {
     local = o;
   }
   return local;
@@ -101,9 +107,11 @@ class Class2 {
 
 /*member: _forUnion:Union(null, [exact=Class1], [exact=Class2])*/
 _forUnion(/*[exact=Class1]*/ o) {
-  for (;
-      o = o. /*Union(null, [exact=Class1], [exact=Class2])*/ field;
-      o != null) {}
+  for (
+    ;
+    o = o. /*Union(null, [exact=Class1], [exact=Class2])*/ field;
+    o != null
+  ) {}
   return o;
 }
 
@@ -165,9 +173,11 @@ class Class6 {
 
 /*member: _forIsNot:Union(null, [exact=Class5], [exact=Class6])*/
 _forIsNot(/*[exact=Class5]*/ o) {
-  for (;
-      o is! Class6;
-      o = o. /*Union(null, [exact=Class5], [exact=Class6])*/ field) {}
+  for (
+    ;
+    o is! Class6;
+    o = o. /*Union(null, [exact=Class5], [exact=Class6])*/ field
+  ) {}
   return o;
 }
 

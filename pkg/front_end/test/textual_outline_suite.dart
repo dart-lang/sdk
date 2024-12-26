@@ -162,7 +162,8 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
           // an older language version, it will contain a `// @dart=x.y`
           // comment, which takes precedence over this argument.
           result = new DartFormatter(
-                  languageVersion: DartFormatter.latestLanguageVersion,
+                  languageVersion:
+                      DartFormatter.latestShortStyleLanguageVersion,
                   experimentFlags: experimentFlags)
               .format(result);
         } catch (e, st) {

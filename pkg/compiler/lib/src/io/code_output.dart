@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.code_output;
+library;
 
 import '../../compiler_api.dart' as api show OutputSink;
 import 'code_output_listener.dart';
@@ -28,7 +28,10 @@ abstract class SourceLocations {
   /// [inlinedMethodName].
   // TODO(48820): We might have a [pushPosition].
   void addPush(
-      int targetOffset, SourceLocation? pushPosition, String inlinedMethodName);
+    int targetOffset,
+    SourceLocation? pushPosition,
+    String inlinedMethodName,
+  );
 
   /// Record a return of an inlining call at the [targetOffset].
   ///
@@ -37,16 +40,19 @@ abstract class SourceLocations {
 
   /// Applies [f] to every target offset and associated source location.
   void forEachSourceLocation(
-      void f(int targetOffset, SourceLocation sourceLocation));
+    void Function(int targetOffset, SourceLocation sourceLocation) f,
+  );
 
   /// Applies [f] to every target offset and associated frame entry. This is
   /// mostly used to track inlining data.
-  void forEachFrameMarker(void f(int targetOffset, FrameEntry frameEntry));
+  void forEachFrameMarker(
+    void Function(int targetOffset, FrameEntry frameEntry) f,
+  );
 
   void close();
 }
 
-class _SourceLocationsImpl implements SourceLocations {
+class SourceLocationsImpl implements SourceLocations {
   @override
   final String name;
   final AbstractCodeOutput codeOutput;
@@ -54,20 +60,25 @@ class _SourceLocationsImpl implements SourceLocations {
   Map<int, List<FrameEntry>> frameMarkers = {};
   bool _closed = false;
 
-  _SourceLocationsImpl(this.name, this.codeOutput);
+  SourceLocationsImpl(this.name, this.codeOutput);
 
   @override
   void addSourceLocation(int targetOffset, SourceLocation sourceLocation) {
     assert(targetOffset <= codeOutput.length);
     if (_closed) throw UnsupportedError('SourceLocations already closed.');
-    List<SourceLocation> sourceLocations =
-        markers.putIfAbsent(targetOffset, () => []);
+    List<SourceLocation> sourceLocations = markers.putIfAbsent(
+      targetOffset,
+      () => [],
+    );
     sourceLocations.add(sourceLocation);
   }
 
   @override
-  void addPush(int targetOffset, SourceLocation? sourceLocation,
-      String inlinedMethodName) {
+  void addPush(
+    int targetOffset,
+    SourceLocation? sourceLocation,
+    String inlinedMethodName,
+  ) {
     assert(targetOffset <= codeOutput.length);
     if (_closed) throw UnsupportedError('SourceLocations already closed.');
     List<FrameEntry> frames = frameMarkers[targetOffset] ??= [];
@@ -84,7 +95,8 @@ class _SourceLocationsImpl implements SourceLocations {
 
   @override
   void forEachSourceLocation(
-      void f(int targetOffset, SourceLocation sourceLocation)) {
+    void Function(int targetOffset, SourceLocation sourceLocation) f,
+  ) {
     if (_closed) throw UnsupportedError('SourceLocations already closed.');
     markers.forEach((int targetOffset, List<SourceLocation> sourceLocations) {
       for (SourceLocation sourceLocation in sourceLocations) {
@@ -94,7 +106,9 @@ class _SourceLocationsImpl implements SourceLocations {
   }
 
   @override
-  void forEachFrameMarker(void f(int targetOffset, FrameEntry sourceLocation)) {
+  void forEachFrameMarker(
+    void Function(int targetOffset, FrameEntry sourceLocation) f,
+  ) {
     if (_closed) throw UnsupportedError('SourceLocations already closed.');
     frameMarkers.forEach((int targetOffset, List<FrameEntry> frameEntries) {
       for (FrameEntry entry in frameEntries) {
@@ -111,18 +125,20 @@ class _SourceLocationsImpl implements SourceLocations {
     markers.clear();
   }
 
-  void _merge(_SourceLocationsImpl other) {
+  void _merge(SourceLocationsImpl other) {
     assert(name == other.name);
     if (_closed) throw UnsupportedError('SourceLocations already closed.');
     int length = codeOutput.length;
-    if (other.markers.length > 0) {
-      other.markers
-          .forEach((int targetOffset, List<SourceLocation> sourceLocations) {
+    if (other.markers.isNotEmpty) {
+      other.markers.forEach((
+        int targetOffset,
+        List<SourceLocation> sourceLocations,
+      ) {
         (markers[length + targetOffset] ??= []).addAll(sourceLocations);
       });
     }
 
-    if (other.frameMarkers.length > 0) {
+    if (other.frameMarkers.isNotEmpty) {
       other.frameMarkers.forEach((int targetOffset, List<FrameEntry> frames) {
         (frameMarkers[length + targetOffset] ??= []).addAll(frames);
       });
@@ -166,7 +182,7 @@ abstract class AbstractCodeOutput extends CodeOutput {
 
   AbstractCodeOutput([this._listeners]);
 
-  Map<String, _SourceLocationsImpl> sourceLocationsMap = {};
+  Map<String, SourceLocationsImpl> sourceLocationsMap = {};
   @override
   bool isClosed = false;
 
@@ -187,7 +203,7 @@ abstract class AbstractCodeOutput extends CodeOutput {
 
   @override
   void addBuffer(CodeBuffer other) {
-    other.sourceLocationsMap.forEach((String name, _SourceLocationsImpl other) {
+    other.sourceLocationsMap.forEach((String name, SourceLocationsImpl other) {
       createSourceLocations(name)._merge(other);
     });
     if (!other.isClosed) {
@@ -209,8 +225,8 @@ abstract class AbstractCodeOutput extends CodeOutput {
   Iterable<SourceLocations> get sourceLocations => sourceLocationsMap.values;
 
   @override
-  _SourceLocationsImpl createSourceLocations(String name) {
-    return sourceLocationsMap[name] ??= _SourceLocationsImpl(name, this);
+  SourceLocationsImpl createSourceLocations(String name) {
+    return sourceLocationsMap[name] ??= SourceLocationsImpl(name, this);
   }
 }
 
@@ -258,7 +274,7 @@ class StreamCodeOutput extends AbstractCodeOutput {
   final api.OutputSink output;
 
   StreamCodeOutput(this.output, [List<CodeOutputListener>? listeners])
-      : super(listeners);
+    : super(listeners);
 
   @override
   void _addInternal(String text) {

@@ -626,6 +626,122 @@ main() {
         ]);
       });
     });
+
+    group('Method invocation:', () {
+      test('Simple', () {
+        h.run([
+          intLiteral(0)
+              .checkSchema('_')
+              .invokeMethod('toString', [])
+              .checkType('String')
+              .checkIR('toString(0)'),
+        ]);
+      });
+
+      test('Null-aware', () {
+        var v = Var('v');
+        h.run([
+          declare(v, type: 'int?'),
+          v
+              .checkSchema('_')
+              .invokeMethod('toString', [], isNullAware: true)
+              .checkType('String')
+              .parenthesized // Terminates null shorting
+              .checkType('String?')
+              .checkIR('let(t0, v, if(==(t0, null), null, toString(t0)))'),
+        ]);
+      });
+
+      group('Null shorting:', () {
+        test('Simple', () {
+          var v = Var('v');
+          h.run([
+            declare(v, type: 'int?'),
+            v
+                .invokeMethod('abs', [], isNullAware: true)
+                .invokeMethod('toString', [])
+                .checkType('String')
+                .parenthesized // Terminates null shorting
+                .checkType('String?')
+                .checkIR(
+                    'let(t0, v, if(==(t0, null), null, toString(abs(t0))))'),
+          ]);
+        });
+
+        test('Nested', () {
+          var v = Var('v');
+          h.run([
+            declare(v, type: 'int?'),
+            v
+                .invokeMethod('abs', [], isNullAware: true)
+                .invokeMethod('toString', [], isNullAware: true)
+                .checkType('String')
+                .parenthesized // Terminates null shorting
+                .checkType('String?')
+                .checkIR('let(t0, v, if(==(t0, null), null, let(t1, abs(t0), '
+                    'if(==(t1, null), null, toString(t1)))))'),
+          ]);
+        });
+      });
+    });
+
+    group('Property get:', () {
+      test('Simple', () {
+        h.run([
+          intLiteral(0)
+              .checkSchema('_')
+              .property('isEven')
+              .checkType('bool')
+              .checkIR('get_isEven(0)'),
+        ]);
+      });
+
+      test('Null-aware', () {
+        var v = Var('v');
+        h.run([
+          declare(v, type: 'int?'),
+          v
+              .checkSchema('_')
+              .property('isEven', isNullAware: true)
+              .checkType('bool')
+              .parenthesized // Terminates null shorting
+              .checkType('bool?')
+              .checkIR('let(t0, v, if(==(t0, null), null, get_isEven(t0)))'),
+        ]);
+      });
+
+      group('Null shorting:', () {
+        test('Simple', () {
+          var v = Var('v');
+          h.run([
+            declare(v, type: 'int?'),
+            v
+                .invokeMethod('abs', [], isNullAware: true)
+                .property('isEven')
+                .checkType('bool')
+                .parenthesized // Terminates null shorting
+                .checkType('bool?')
+                .checkIR(
+                    'let(t0, v, if(==(t0, null), null, get_isEven(abs(t0))))'),
+          ]);
+        });
+
+        test('Nested', () {
+          var v = Var('v');
+          h.run([
+            declare(v, type: 'int?'),
+            v
+                .invokeMethod('abs', [], isNullAware: true)
+                .property('isEven', isNullAware: true)
+                .checkType('bool')
+                .parenthesized // Terminates null shorting
+                .checkType('bool?')
+                .checkIR('let(t0, v, if(==(t0, null), null, let(t1, abs(t0), '
+                    'if(==(t1, null), null, get_isEven(t1)))))'),
+          ]);
+        });
+      });
+    });
   });
 
   group('Statements:', () {

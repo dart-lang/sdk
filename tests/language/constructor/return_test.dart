@@ -13,17 +13,17 @@ class A {
   }
   A.test1(this.x) {
     return this;
-//  ^
-// [cfe] Constructors can't have a return type.
-//         ^^^^
-// [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATIVE_CONSTRUCTOR
+    // [error column 5]
+    // [cfe] Constructors can't have a return type.
+    //     ^^^^
+    // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATIVE_CONSTRUCTOR
   }
   A.test2(this.x) {
     return null;
-//  ^
-// [cfe] Constructors can't have a return type.
-//         ^^^^
-// [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATIVE_CONSTRUCTOR
+    // [error column 5]
+    // [cfe] Constructors can't have a return type.
+    //     ^^^^
+    // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATIVE_CONSTRUCTOR
   }
   int foo(int y) => x + y;
 }
@@ -40,19 +40,21 @@ class B {
 
 class C {
   int value;
-  C() : value = 1 { return null; }
-  //                ^
-  // [cfe] Constructors can't have a return type.
-  //                       ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATIVE_CONSTRUCTOR
+  C() : value = 1 {
+    return null;
+    // [error column 5]
+    // [cfe] Constructors can't have a return type.
+    //     ^^^^
+    // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATIVE_CONSTRUCTOR
+  }
 }
 
 class D {
   int value = -1;
-  D(): value = 1 => D._();
-  //             ^^^^^^^^^
+  D() : value = 1 => D._();
+  //              ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATIVE_CONSTRUCTOR
-  //                ^
+  //                 ^
   // [cfe] Constructors can't have a return type.
 
   D._();

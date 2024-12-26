@@ -45,6 +45,9 @@ final class _FfiInlineArray {
   @pragma("vm:entry-point")
   @pragma("wasm:entry-point")
   final int length;
+  @pragma("vm:entry-point")
+  @pragma("wasm:entry-point")
+  final bool variableLength;
 
-  const _FfiInlineArray(this.elementType, this.length);
+  const _FfiInlineArray(this.elementType, this.length, this.variableLength);
 }

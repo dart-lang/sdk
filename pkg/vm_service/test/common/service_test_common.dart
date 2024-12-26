@@ -212,12 +212,12 @@ IsolateTest setBreakpointAtLineColumn(int line, int column) {
 }
 
 extension FrameLocation on Frame {
-  Future<(String, int)> getLocation(
+  Future<(String uri, (int line, int column))> getLocation(
     VmService service,
     IsolateRef isolateRef,
   ) async {
     if (location?.tokenPos == null) {
-      return ('<unknown>', -1);
+      return ('<unknown>', (-1, -1));
     }
 
     final script = (await service.getObject(
@@ -226,7 +226,10 @@ extension FrameLocation on Frame {
     )) as Script;
     return (
       script.uri!,
-      script.getLineNumberFromTokenPos(location!.tokenPos!) ?? -1
+      (
+        script.getLineNumberFromTokenPos(location!.tokenPos!) ?? -1,
+        script.getColumnNumberFromTokenPos(location!.tokenPos!) ?? -1
+      )
     );
   }
 }
@@ -244,7 +247,7 @@ Future<String> formatFrames(
       sb.write(await qualifiedFunctionName(service, isolateRef, funcRef));
     }
     if (f.location != null) {
-      final (uri, lineNo) = await f.getLocation(service, isolateRef);
+      final (uri, (lineNo)) = await f.getLocation(service, isolateRef);
       sb.write(' $uri:$lineNo');
     }
     sb.writeln();
@@ -267,9 +270,17 @@ Future<String> formatStack(
   return sb.toString();
 }
 
-IsolateTest stoppedAtLine(int line) {
+/// If column is [null], this function checks that the isolate under test is
+/// currently paused at line [line]. Otherwise, this function checks that the
+/// isolate under test is currently paused at the location specified by [line]
+/// and [column].
+IsolateTest stoppedAtLineColumn({required int line, int? column}) {
   return (VmService service, IsolateRef isolateRef) async {
-    print('Checking we are at line $line');
+    if (column == null) {
+      print('Checking we are at line $line');
+    } else {
+      print('Checking we are at $line:$column');
+    }
 
     // Make sure that the isolate has stopped.
     final id = isolateRef.id!;
@@ -283,17 +294,30 @@ IsolateTest stoppedAtLine(int line) {
     expect(frames.length, greaterThanOrEqualTo(1));
 
     final top = frames[0];
-    final (_, actualLine) = await top.getLocation(service, isolateRef);
+    final (_, (actualLine, actualColumn)) =
+        await top.getLocation(service, isolateRef);
     if (actualLine != line) {
-      print('Actual: $actualLine Line: $line');
       final sb = StringBuffer();
-      sb.write('Expected to be at line $line but actually at line $actualLine');
+      sb.writeln(
+        'Expected to be at line $line but actually at line $actualLine',
+      );
+      sb.writeln(await formatStack(service, isolateRef, stack));
+      throw sb.toString();
+    } else if (column != null && actualColumn != column) {
+      final sb = StringBuffer();
+      sb.writeln(
+        'Expected to be at $line:$column but actually at $line:$actualColumn',
+      );
       sb.writeln(await formatStack(service, isolateRef, stack));
       throw sb.toString();
     } else {
-      print('Program is stopped at line: $line');
+      print('Program is stopped at $actualLine:$actualColumn');
     }
   };
+}
+
+IsolateTest stoppedAtLine(int line) {
+  return stoppedAtLineColumn(line: line);
 }
 
 Future<void> resumeIsolate(VmService service, IsolateRef isolate) async {
