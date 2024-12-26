@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -218,6 +219,30 @@ class C with M {}
   }
 
   Future<void> test_double_oneHide() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class M {} class N {} class O {}''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+class N {}''');
+    await resolveTestCode('''
+import 'lib1.dart' hide M, O;
+import 'lib2.dart';
+
+void f(N? n) {
+  print(n);
+}
+''');
+    await assertHasFix('''
+import 'lib1.dart' hide M, O, N;
+import 'lib2.dart';
+
+void f(N? n) {
+  print(n);
+}
+''', matchFixMessage: "Hide others to use 'N' from 'lib2.dart'");
+  }
+
+  Future<void> test_double_oneHide_sort() async {
+    createAnalysisOptionsFile(lints: [LintNames.combinators_ordering]);
     newFile('$testPackageLibPath/lib1.dart', '''
 class M {} class N {} class O {}''');
     newFile('$testPackageLibPath/lib2.dart', '''
@@ -637,6 +662,37 @@ void f(N? n) {
   print(n);
 }
 ''', matchFixMessage: "Remove show to use 'N' from 'lib2.dart'");
+  }
+
+  Future<void> test_moreShow_sort() async {
+    createAnalysisOptionsFile(lints: [LintNames.combinators_ordering]);
+    newFile('$testPackageLibPath/lib1.dart', '''
+class N {}
+class M {}
+class O {}''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+class N {}''');
+    await resolveTestCode('''
+import 'lib1.dart' show N, O, M;
+import 'lib2.dart';
+
+void f(N? n, O? o) {
+  print(n);
+}
+''');
+    await assertHasFix(
+      '''
+import 'lib1.dart' show M, O;
+import 'lib2.dart';
+
+void f(N? n, O? o) {
+  print(n);
+}
+''',
+      errorFilter: (error) =>
+          error.errorCode == CompileTimeErrorCode.AMBIGUOUS_IMPORT,
+      matchFixMessage: "Remove show to use 'N' from 'lib2.dart'",
+    );
   }
 
   Future<void> test_one_show() async {

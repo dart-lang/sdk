@@ -13,6 +13,9 @@ abstract class CodeStyleOptions {
   /// should be inserted in function calls and declarations.
   bool get addTrailingCommas;
 
+  /// Whether combinators should be ordered alphabetically.
+  bool get combinatorsOrdering;
+
   /// Whether local variables should be `final` inside a for-loop.
   bool get finalInForEach;
 

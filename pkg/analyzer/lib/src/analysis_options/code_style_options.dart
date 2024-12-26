@@ -20,6 +20,9 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
   bool get addTrailingCommas => _isLintEnabled('require_trailing_commas');
 
   @override
+  bool get combinatorsOrdering => _isLintEnabled('combinators_ordering');
+
+  @override
   bool get finalInForEach => _isLintEnabled('prefer_final_in_for_each');
 
   @override
