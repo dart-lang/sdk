@@ -1176,7 +1176,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY: [InsertBody.new],
   ParserErrorCode.EXPECTED_TRY_STATEMENT_BODY: [InsertBody.new],
   ParserErrorCode.EXPECTED_TOKEN: [
-    InsertSemicolon.new, 
+    InsertSemicolon.new,
     ReplaceWithArrow.new,
     InsertOnKeyword.new,
   ],
