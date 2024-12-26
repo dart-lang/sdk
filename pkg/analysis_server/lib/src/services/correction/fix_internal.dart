@@ -38,6 +38,7 @@ import 'package:analysis_server/src/services/correction/dart/add_super_parameter
 import 'package:analysis_server/src/services/correction/dart/add_switch_case_break.dart';
 import 'package:analysis_server/src/services/correction/dart/add_trailing_comma.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
+import 'package:analysis_server/src/services/correction/dart/ambiguous_import_fix.dart';
 import 'package:analysis_server/src/services/correction/dart/change_argument_name.dart';
 import 'package:analysis_server/src/services/correction/dart/change_to.dart';
 import 'package:analysis_server/src/services/correction/dart/change_to_nearest_precise_value.dart';
@@ -104,7 +105,6 @@ import 'package:analysis_server/src/services/correction/dart/extend_class_for_mi
 import 'package:analysis_server/src/services/correction/dart/extract_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_remove_widget.dart';
 import 'package:analysis_server/src/services/correction/dart/ignore_diagnostic.dart';
-import 'package:analysis_server/src/services/correction/dart/ambiguous_import_fix.dart';
 import 'package:analysis_server/src/services/correction/dart/import_library.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
@@ -1125,8 +1125,8 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     //  updated so that only the appropriate subset is generated.
     QualifyReference.new,
   ],
-  CompileTimeErrorCode
-      .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE: [
+  CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE:
+      [
     // TODO(brianwilkerson): Consider adding fixes to create a field, getter,
     //  method or setter. The existing producers would need to be updated so
     //  that only the appropriate subset is generated.
