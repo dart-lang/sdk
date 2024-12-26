@@ -138,7 +138,7 @@ import 'fix_processor_map_test.dart' as fix_processor_map;
 import 'fix_test.dart' as fix;
 import 'format_file_test.dart' as format_file;
 import 'ignore_diagnostic_test.dart' as ignore_error;
-import 'import_add_hide_test.dart' as import_add_hide;
+import 'ambiguous_import_fix_test.dart' as ambiguous_import_fix;
 import 'import_library_hide_test.dart' as import_library_hide;
 import 'import_library_prefix_test.dart' as import_library_prefix;
 import 'import_library_project_test.dart' as import_library_project;
@@ -428,7 +428,7 @@ void main() {
     fix_processor_map.main();
     format_file.main();
     ignore_error.main();
-    import_add_hide.main();
+    ambiguous_import_fix.main();
     import_library_hide.main();
     import_library_prefix.main();
     import_library_project.main();
