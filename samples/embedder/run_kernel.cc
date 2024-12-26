@@ -104,8 +104,8 @@ int main(int argc, char** argv) {
   char* error;
 
   // Start Dart VM.
-  CheckError(dart::embedder::InitOnce(&error), error,
-             "dart::embedder::InitOnce");
+  bool result = dart::embedder::InitOnce(&error);
+  CheckError(result, error, "dart::embedder::InitOnce");
 
   std::vector<const char*> flags{};
   CheckError(Dart_SetVMFlags(flags.size(), flags.data()), "Dart_SetVMFlags");
