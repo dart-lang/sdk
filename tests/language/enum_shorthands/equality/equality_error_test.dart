@@ -60,32 +60,36 @@ class ConstConstructorAssert {
 
 void notSymmetrical(Color color, Integer integer, IntegerExt integerExt,
     IntegerMixin integerMixin) {
-  const bool symBlueEq = .blue == color;
+  const constColor = Color.blue;
+
+  const bool symBlueEq = .blue == constColor;
   // ^
   // [analyzer] unspecified
   // [cfe] unspecified
 
-  const bool symBlueNeq = .blue != color;
+  const bool symBlueNeq = .blue != constColor;
   // ^
   // [analyzer] unspecified
   // [cfe] unspecified
 
-  const bool symOneEq = .one == integer;
+  const constInteger = Integer.constOne;
+  const bool symOneEq = .one == constInteger;
   // ^
   // [analyzer] unspecified
   // [cfe] unspecified
 
-  const bool symOneNeq = .one != integer;
+  const bool symOneNeq = .one != constInteger;
   // ^
   // [analyzer] unspecified
   // [cfe] unspecified
 
-  const bool symOneExtEq = .one == integerExt;
+  const constIntegerExt = IntegerExt.constOne;
+  const bool symOneExtEq = .one == constIntegerExt;
   // ^
   // [analyzer] unspecified
   // [cfe] unspecified
 
-  const bool symOneExtNeq = .one != integerExt;
+  const bool symOneExtNeq = .one != constIntegerExt;
   // ^
   // [analyzer] unspecified
   // [cfe] unspecified
