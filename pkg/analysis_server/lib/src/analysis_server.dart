@@ -280,7 +280,8 @@ abstract class AnalysisServer {
     ProcessRunner? processRunner,
     this.notificationManager, {
     this.requestStatistics,
-    bool enableBlazeWatcher = false,
+    // Disable to avoid using this in unit tests.
+    @visibleForTesting bool enableBlazeWatcher = false,
     DartFixPromptManager? dartFixPromptManager,
     this.providedByteStore,
     PluginManager? pluginManager,

@@ -73,7 +73,9 @@ std::string ReadSnapshot(std::string_view path) {
 
   char* bytes = static_cast<char*>(std::malloc(length));
   source_file.read(bytes, length);
-  return std::string(bytes, length);
+  auto result = std::string(bytes, length);
+  std::free(bytes);
+  return result;
 }
 
 Dart_Handle ToDartStringList(const std::vector<std::string>& values) {
@@ -122,6 +124,7 @@ int main(int argc, char** argv) {
 
   // Start an isolate from a platform kernel.
   Dart_IsolateFlags isolate_flags;
+  Dart_IsolateFlagsInitialize(&isolate_flags);
 
   Dart_CreateIsolateGroupFromKernel(
       /*script_uri=*/snapshot_uri.c_str(),
