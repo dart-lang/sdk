@@ -513,7 +513,7 @@ abstract class RenameRefactoring implements Refactoring {
       return RenameTypeParameterRefactoringImpl(
         workspace,
         sessionHelper,
-        element.asElement2 as TypeParameterElement2,
+        element.asElement2,
       );
     }
     if (enclosingElement is InterfaceElement) {

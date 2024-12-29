@@ -86,7 +86,11 @@ class DynamicTypeImpl extends TypeImpl
 }
 
 /// The type of a function, method, constructor, getter, or setter.
-class FunctionTypeImpl extends TypeImpl implements FunctionType {
+class FunctionTypeImpl extends TypeImpl
+    implements
+        FunctionType,
+        SharedFunctionTypeStructure<DartType, TypeParameterElement,
+            ParameterElement> {
   @override
   late int hashCode = _computeHashCode();
 

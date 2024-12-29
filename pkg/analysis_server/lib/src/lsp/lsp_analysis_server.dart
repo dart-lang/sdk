@@ -29,7 +29,6 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/message_scheduler.dart';
 import 'package:analysis_server/src/server/performance.dart';
-import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -160,10 +159,9 @@ class LspAnalysisServer extends AnalysisServer {
     ProcessRunner? processRunner,
     DiagnosticServer? diagnosticServer,
     this.detachableFileSystemManager,
-    // Disable to avoid using this in unit tests.
-    bool enableBlazeWatcher = false,
-    DartFixPromptManager? dartFixPromptManager,
-    bool retainDataForTesting = false,
+    super.enableBlazeWatcher,
+    super.dartFixPromptManager,
+    super.retainDataForTesting,
   }) : lspClientConfiguration = LspClientConfiguration(
          baseResourceProvider.pathContext,
        ),
@@ -178,9 +176,6 @@ class LspAnalysisServer extends AnalysisServer {
          httpClient,
          processRunner,
          LspNotificationManager(baseResourceProvider.pathContext),
-         enableBlazeWatcher: enableBlazeWatcher,
-         dartFixPromptManager: dartFixPromptManager,
-         retainDataForTesting: retainDataForTesting,
        ) {
     notificationManager.server = this;
     messageHandler = UninitializedStateMessageHandler(this);
