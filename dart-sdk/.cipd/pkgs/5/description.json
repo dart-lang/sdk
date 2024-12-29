@@ -1,0 +1,4 @@
+{
+  "subdir": "sdk/buildtools/linux-x64/clang",
+  "package_name": "fuchsia/third_party/clang/linux-amd64"
+}

@@ -1,0 +1,52 @@
+{
+  "format_version": "1.1",
+  "package_name": "dart/benchmarks/fficall",
+  "install_mode": "copy",
+  "actual_install_mode": "copy",
+  "files": [
+    {
+      "name": "linux/arm/libnative_functions.so",
+      "size": 5240,
+      "executable": true,
+      "hash": "L8iSa0EN9HJmr4Z_x31h_Wxt_-T9Tswk-_l2WNb9LioC"
+    },
+    {
+      "name": "linux/arm/native_functions.o",
+      "size": 16552,
+      "hash": "22V9_E5WXUI9fETHVzeGQHDufHZdwhKhLIH7-12nBhwC"
+    },
+    {
+      "name": "linux/arm64/libnative_functions.so",
+      "size": 9848,
+      "executable": true,
+      "hash": "IiSmyD6RUcnh7SvyA0NJMdXYWqNck5B2zk2zi_4TIocC"
+    },
+    {
+      "name": "linux/arm64/native_functions.o",
+      "size": 21152,
+      "hash": "nppfOis_2ltmEJGgcNhvzg4dsF1lnLrYEx9U4K-CgOQC"
+    },
+    {
+      "name": "linux/ia32/libnative_functions.so",
+      "size": 13440,
+      "executable": true,
+      "hash": "56Q7JmOo8hQ3t8bk1RE8WBj5dEYQ5tbS1IWNRKgJV9kC"
+    },
+    {
+      "name": "linux/ia32/native_functions.o",
+      "size": 12244,
+      "hash": "Mi-xWp_qrlqskiAIrIi1A-uB5pxk-WW0w6jrMH0vsA4C"
+    },
+    {
+      "name": "linux/x64/libnative_functions.so",
+      "size": 14008,
+      "executable": true,
+      "hash": "viMvhve2xbL22qTkoTV3P5KMeD9JiMaxwFl8Xf3y0F0C"
+    },
+    {
+      "name": "linux/x64/native_functions.o",
+      "size": 17168,
+      "hash": "YpXQAV4XpbdyXNKzKYutASs5KrXN0mDQKZMur3dLLUIC"
+    }
+  ]
+}

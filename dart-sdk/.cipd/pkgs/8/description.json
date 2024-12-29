@@ -1,0 +1,4 @@
+{
+  "subdir": "sdk/buildtools/sysroot/focal",
+  "package_name": "fuchsia/third_party/sysroot/focal"
+}

@@ -1,0 +1,18 @@
+{
+  "format_version": "1.1",
+  "package_name": "dart/cfe/benchmark_data",
+  "install_mode": "copy",
+  "actual_install_mode": "copy",
+  "files": [
+    {
+      "name": "dart2js.json.gz",
+      "size": 124408,
+      "hash": "SneYG0W59bNOAybVjeo3WnO6pUhF65WAA6--qbBaRtgC"
+    },
+    {
+      "name": "large_app.json.gz",
+      "size": 2094771,
+      "hash": "RAJAGCd8mrfh0GxbtNQI08iHTYuH2SADD0IabkuINJgC"
+    }
+  ]
+}

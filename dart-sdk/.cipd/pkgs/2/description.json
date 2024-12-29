@@ -1,0 +1,4 @@
+{
+  "subdir": "sdk/benchmarks/NativeCall/native/out",
+  "package_name": "dart/benchmarks/nativecall"
+}

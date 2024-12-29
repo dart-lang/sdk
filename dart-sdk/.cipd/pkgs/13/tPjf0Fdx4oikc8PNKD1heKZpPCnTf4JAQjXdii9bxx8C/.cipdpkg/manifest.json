@@ -1,0 +1,29 @@
+{
+  "format_version": "1.1",
+  "package_name": "dart/third_party/d8/mac-arm64",
+  "install_mode": "copy",
+  "actual_install_mode": "copy",
+  "files": [
+    {
+      "name": "d8",
+      "size": 46666528,
+      "executable": true,
+      "hash": "A5qmjVmPpyFML23uKK9Tn5xyAk1o4PDl_RVdzKP8AHIC"
+    },
+    {
+      "name": "icudtl.dat",
+      "size": 10464144,
+      "hash": "kZL1RTZl_P3hgPEoPy-8zEd_TaoAgeOQPsAtkkJyGGAC"
+    },
+    {
+      "name": "snapshot_blob.bin",
+      "size": 321934,
+      "hash": "SM_wIpmXEFzOA_8gPvJ00kw19B3nVcbUlZGAlPhp1uoC"
+    },
+    {
+      "name": "v8_build_config.json",
+      "size": 1364,
+      "hash": "dVx6HI-WKOsL2Dekaq7aNw6cCUvOcv_oIS8B6B191WAC"
+    }
+  ]
+}

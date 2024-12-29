@@ -1,0 +1,14 @@
+{
+  "format_version": "1.1",
+  "package_name": "infra/3pp/tools/ninja/linux-amd64",
+  "install_mode": "copy",
+  "actual_install_mode": "copy",
+  "files": [
+    {
+      "name": "ninja",
+      "size": 8367976,
+      "executable": true,
+      "hash": "Q5R5kYySBpIaUQ4eqma54qm4EFX6x1RrtSdbbQxvit0C"
+    }
+  ]
+}

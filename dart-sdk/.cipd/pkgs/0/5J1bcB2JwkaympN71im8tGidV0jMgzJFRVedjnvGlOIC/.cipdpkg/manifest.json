@@ -1,0 +1,56 @@
+{
+  "format_version": "1.1",
+  "package_name": "dart/benchmarks/ffiboringssl",
+  "install_mode": "copy",
+  "actual_install_mode": "copy",
+  "files": [
+    {
+      "name": "linux/arm/libcrypto.so",
+      "size": 1125760,
+      "executable": true,
+      "hash": "bF2d6269UWMH8Q-2oGdkfYW4my4gXHZmTF9gwDwQZ0MC"
+    },
+    {
+      "name": "linux/arm/libssl.so",
+      "size": 413180,
+      "executable": true,
+      "hash": "jZpYyAUqf8derNufcoa8zmk5CB-coBFzLO3we6x29MoC"
+    },
+    {
+      "name": "linux/arm64/libcrypto.so",
+      "size": 1548960,
+      "executable": true,
+      "hash": "ehzm8ez-ULPNjdK5_-GIXbSHeWuornBBmElGqNYk6kEC"
+    },
+    {
+      "name": "linux/arm64/libssl.so",
+      "size": 559136,
+      "executable": true,
+      "hash": "PuEBy1VFzh2SJPPra3v-aa9pdI2yrMwTIs0NS8Mj7GIC"
+    },
+    {
+      "name": "linux/ia32/libcrypto.so",
+      "size": 1510212,
+      "executable": true,
+      "hash": "LOcX2qQssV3jpI2hYw3_gq1Iaw3ZY2WJX-6qDpGTXiAC"
+    },
+    {
+      "name": "linux/ia32/libssl.so",
+      "size": 642580,
+      "executable": true,
+      "hash": "Bs1gw-cMdwsyneSl8Cmt1MngCHUWtyJ2ytWGxPIt_L4C"
+    },
+    {
+      "name": "linux/x64/libcrypto.so",
+      "size": 2040712,
+      "executable": true,
+      "hash": "Hd8Bior05oT_Q-_ZzdfaTvOK9XUsmU4Yp1SJ1KQHqocC"
+    },
+    {
+      "name": "linux/x64/libssl.so",
+      "size": 669912,
+      "executable": true,
+      "hash": "f-OdGRaggD0o-IZ7x-kBbJEd-U8r3eBep25wKXiQBcMC"
+    }
+  ]
+}

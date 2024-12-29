@@ -1,0 +1,3104 @@
+{
+  "format_version": "1.1",
+  "package_name": "dart/third_party/flutter/devtools",
+  "install_mode": "copy",
+  "actual_install_mode": "copy",
+  "files": [
+    {
+      "name": "devtools_shared/.dart_tool/package_config.json",
+      "size": 11516,
+      "writable": true,
+      "hash": "p9RG-AlE864bTx-jYRXYGNSIczDubfC4nktW34qxtWQC"
+    },
+    {
+      "name": "devtools_shared/.dart_tool/package_config_subset",
+      "size": 9395,
+      "writable": true,
+      "hash": "EjhJfz-xGWxHa9i5cLb6AV533RbnABG7VQp9_mFpywYC"
+    },
+    {
+      "name": "devtools_shared/.dart_tool/version",
+      "size": 18,
+      "writable": true,
+      "hash": "NHjZq4vevdTrc0rq5XSmBKTb99y9ZIoiOl1lNHHRxJoC"
+    },
+    {
+      "name": "devtools_shared/.gitignore",
+      "size": 551,
+      "writable": true,
+      "hash": "Z1oGrrgaPzzLthDk3lw1rWEF603I8E4KKQCCPX__OMAC"
+    },
+    {
+      "name": "devtools_shared/CHANGELOG.md",
+      "size": 8832,
+      "writable": true,
+      "hash": "Av73WB1ELAGE8UBdKHXbNu-VLERCxYiN28lhb0F0wzoC"
+    },
+    {
+      "name": "devtools_shared/LICENSE",
+      "size": 1481,
+      "writable": true,
+      "hash": "HxftA6MQbarxPp1whpywc1SBrlU_Ap0IeHsGOApkvJgC"
+    },
+    {
+      "name": "devtools_shared/README.md",
+      "size": 586,
+      "writable": true,
+      "hash": "CMHXLtv1jAGGMcLQ_rLKsRoeNZqnyVxuDYlJMdzm_wkC"
+    },
+    {
+      "name": "devtools_shared/analysis_options.yaml",
+      "size": 34,
+      "writable": true,
+      "hash": "bheuQ1fWCXrwDkLn26F6BUonD459nvp0WqH3zT-JiRoC"
+    },
+    {
+      "name": "devtools_shared/lib/devtools_deeplink.dart",
+      "size": 312,
+      "writable": true,
+      "hash": "nZMYgz52JFCOUe1IK43dDVX0xWH6qRy3VoppCvjlFD4C"
+    },
+    {
+      "name": "devtools_shared/lib/devtools_deeplink_io.dart",
+      "size": 211,
+      "writable": true,
+      "hash": "DzevxlEgLH_CYGLew1F2jmPvCT5gSmfDMDY1Bv-YQMkC"
+    },
+    {
+      "name": "devtools_shared/lib/devtools_extensions.dart",
+      "size": 252,
+      "writable": true,
+      "hash": "Mpyw9B1TEM4p6B_mXR-0QFQjuVOQtdt2nn2d4ytp9z4C"
+    },
+    {
+      "name": "devtools_shared/lib/devtools_extensions_io.dart",
+      "size": 306,
+      "writable": true,
+      "hash": "b0AkB1Ki6G0XEzRYLweBXqt-B5HRqTj1oGlrpoXpMzQC"
+    },
+    {
+      "name": "devtools_shared/lib/devtools_server.dart",
+      "size": 282,
+      "writable": true,
+      "hash": "j_MoBsCX85Z_R2rvTF0mKjOikX6XEoNTb4X37b1dSM0C"
+    },
+    {
+      "name": "devtools_shared/lib/devtools_shared.dart",
+      "size": 745,
+      "writable": true,
+      "hash": "03nIfJYA__xgEZT326WGbQ-eODNbtAuSbsjQmzo9afkC"
+    },
+    {
+      "name": "devtools_shared/lib/devtools_test_utils.dart",
+      "size": 391,
+      "writable": true,
+      "hash": "wBs27cDsSldzuJD3IH8vCKeewdusDtCZfCUaHJyuXT0C"
+    },
+    {
+      "name": "devtools_shared/lib/service.dart",
+      "size": 201,
+      "writable": true,
+      "hash": "rGCW76hR6ysG1K4x0K6iag5LuR7XqL3Hk4oOZkYA_ZkC"
+    },
+    {
+      "name": "devtools_shared/lib/src/common.dart",
+      "size": 1542,
+      "writable": true,
+      "hash": "_lypYqpDuMDWerzLXalmq7CAt-MdGpz8DP9TwcuiQjUC"
+    },
+    {
+      "name": "devtools_shared/lib/src/deeplink/app_link_settings.dart",
+      "size": 4351,
+      "writable": true,
+      "hash": "NlM-ktUZN96MCOx3yQ-BPIBvwDoxZwTfmmWEszNRHFoC"
+    },
+    {
+      "name": "devtools_shared/lib/src/deeplink/deeplink_manager.dart",
+      "size": 5783,
+      "writable": true,
+      "hash": "C-bRuOufib7xg-ODEgZrr-b3kHX2Q-repA11mFBT5A0C"
+    },
+    {
+      "name": "devtools_shared/lib/src/deeplink/universal_link_settings.dart",
+      "size": 1310,
+      "writable": true,
+      "hash": "5560LFk9U0O5oDWj-psObWyI5geHAhULc-DVJhidFCwC"
+    },
+    {
+      "name": "devtools_shared/lib/src/deeplink/xcode_build_options.dart",
+      "size": 999,
+      "writable": true,
+      "hash": "18Z54f9D84gcQw1yjn5GEK1--ig29UlbcQPLb3KRJakC"
+    },
+    {
+      "name": "devtools_shared/lib/src/devtools_api.dart",
+      "size": 8374,
+      "writable": true,
+      "hash": "iTUt8LAjghx7CUucS6BmYT1ql-qeXvcO03tLLG6iudcC"
+    },
+    {
+      "name": "devtools_shared/lib/src/extensions/constants.dart",
+      "size": 810,
+      "writable": true,
+      "hash": "AssAm9vJK3w6rpq_4hpWSGTZWMwNlGWuX8kYCFthL7oC"
+    },
+    {
+      "name": "devtools_shared/lib/src/extensions/extension_enablement.dart",
+      "size": 5018,
+      "writable": true,
+      "hash": "QU1GJf_74xSgBE1tNltPnAWu-T-8LNVOFM9xvT9PFawC"
+    },
+    {
+      "name": "devtools_shared/lib/src/extensions/extension_manager.dart",
+      "size": 7524,
+      "writable": true,
+      "hash": "4tT5uXzWIm3EUu2Hp5IEa8qo9MD5c-x2CahLlekZ9BQC"
+    },
+    {
+      "name": "devtools_shared/lib/src/extensions/extension_model.dart",
+      "size": 12833,
+      "writable": true,
+      "hash": "MmLscG5OQ6ZGqXVFVc4JRDN8JopP8WCjfaqVFLHpu7cC"
+    },
+    {
+      "name": "devtools_shared/lib/src/extensions/yaml_utils.dart",
+      "size": 986,
+      "writable": true,
+      "hash": "WSxGbXmqPdFulncvAioGQ5oH2bhVbTBIf3yGXJape2kC"
+    },
+    {
+      "name": "devtools_shared/lib/src/memory/adb_memory_info.dart",
+      "size": 4219,
+      "writable": true,
+      "hash": "2GKGKqhvcc6ymwjCuQZFxbhFnaQlDnsFEgQu5n2I7PEC"
+    },
+    {
+      "name": "devtools_shared/lib/src/memory/class_heap_detail_stats.dart",
+      "size": 1842,
+      "writable": true,
+      "hash": "83iM5fZgqMeIR8pxmn9nwXY4I7TD5SxYPM_KzEyxEOUC"
+    },
+    {
+      "name": "devtools_shared/lib/src/memory/event_sample.dart",
+      "size": 8946,
+      "writable": true,
+      "hash": "1mJ94WdwIH-BCOennf2e1g4lhqQuCNlMkOZpY8adQTgC"
+    },
+    {
+      "name": "devtools_shared/lib/src/memory/heap_sample.dart",
+      "size": 2759,
+      "writable": true,
+      "hash": "5-IIZhW1vPhUdSnI8HS_Yx1_oY1kFU4xn4teN1MBajAC"
+    },
+    {
+      "name": "devtools_shared/lib/src/memory/heap_space.dart",
+      "size": 1321,
+      "writable": true,
+      "hash": "V4oBhMXMwfIaH428RxLizCGeh3MzHpunBfUvA-oJYVgC"
+    },
+    {
+      "name": "devtools_shared/lib/src/memory/memory_json.dart",
+      "size": 10269,
+      "writable": true,
+      "hash": "T7HnmTqBei1gvmaUlYEziL-esgu2BXen-sXaJZkvm9oC"
+    },
+    {
+      "name": "devtools_shared/lib/src/server/devtools_store.dart",
+      "size": 4865,
+      "writable": true,
+      "hash": "oAz1PW0x2k3E2Ur8D6axkH1c73Py2U7UPyjYdiKGJKMC"
+    },
+    {
+      "name": "devtools_shared/lib/src/server/file_system.dart",
+      "size": 4216,
+      "writable": true,
+      "hash": "PF_P_IqI8fbgFRydZg6Acp6rCZ7B0FJJESuEsiO71zMC"
+    },
+    {
+      "name": "devtools_shared/lib/src/server/flutter_store.dart",
+      "size": 697,
+      "writable": true,
+      "hash": "tJaOQfoGSQFuMW0fVUsBfYcZpu6ry6jzie0tTapYcNEC"
+    },
+    {
+      "name": "devtools_shared/lib/src/server/handlers/_app_size.dart",
+      "size": 1657,
+      "writable": true,
+      "hash": "w7gyW2tXXGp_lyXKvFxSubJybrwjbAklD1WnuW7MExkC"
+    },
+    {
+      "name": "devtools_shared/lib/src/server/handlers/_deeplink.dart",
+      "size": 3794,
+      "writable": true,
+      "hash": "VPLb6_Ya99Me9a3_EdvckG5FSkQgP7aA76VVkNkbjsEC"
+    },
+    {
+      "name": "devtools_shared/lib/src/server/handlers/_devtools_extensions.dart",
+      "size": 3676,
+      "writable": true,
+      "hash": "XWR23p1NgWXco06c8ZhPyfG8ieo8va1jlWzvWPSOdbAC"
+    },
+    {
+      "name": "devtools_shared/lib/src/server/handlers/_dtd.dart",
+      "size": 586,
+      "writable": true,
+      "hash": "ikpcDU1MNGw5EVR2heJYA2pkxSalojovY00zGOyHFxwC"
+    },
+    {
+      "name": "devtools_shared/lib/src/server/handlers/_general.dart",
+      "size": 7825,
+      "writable": true,
+      "hash": "vGIPB8ZOvp8kyUeKAjWEy5nqu9rmfxxnJaUJA2-v9U0C"
+    },
+    {
+      "name": "devtools_shared/lib/src/server/handlers/_preferences.dart",
+      "size": 1568,
+      "writable": true,
+      "hash": "TzvoidfxPfHNdVZIP_J0Al57TxiUwg8cwxFNVLQT-0oC"
+    },
+    {
+      "name": "devtools_shared/lib/src/server/handlers/_release_notes.dart",
+      "size": 1236,
+      "writable": true,
+      "hash": "QY8Rho0Bx5e-D8Mumy-aJb493-u45MONktcULjHprFgC"
+    },
+    {
+      "name": "devtools_shared/lib/src/server/handlers/_storage.dart",
+      "size": 869,
+      "writable": true,
+      "hash": "h3uo5YvIYb3wMEleEmg2qhCAJ52dcIioxqiMATq2-tEC"
+    },
+    {
+      "name": "devtools_shared/lib/src/server/handlers/_survey.dart",
+      "size": 2605,
+      "writable": true,
+      "hash": "U4O76-RJbY5NDcbkSPlAAjMRtqsEMgz6kZxaKNs5GrsC"
+    },
+    {
+      "name": "devtools_shared/lib/src/server/server_api.dart",
+      "size": 10167,
+      "writable": true,
+      "hash": "qvx9rtSo6SQQP1Aiz1NVFRe5XXe6_2UF6MlErMk6iOYC"
+    },
+    {
+      "name": "devtools_shared/lib/src/service/service.dart",
+      "size": 3743,
+      "writable": true,
+      "hash": "EGJXroUQ6v_gYKR3Vu6dOwdp_USCdH6X7wCFbuFbaDwC"
+    },
+    {
+      "name": "devtools_shared/lib/src/service_utils.dart",
+      "size": 2070,
+      "writable": true,
+      "hash": "L48rx1cSKcqStkuHKxmiyLQVQlfRZMzJs819Lu6cXwgC"
+    },
+    {
+      "name": "devtools_shared/lib/src/sse/_fake_sse.dart",
+      "size": 544,
+      "writable": true,
+      "hash": "7mhGiOcVQTq6fl7NkejwkKR9AYLDp_v1iSDv3K6m1ecC"
+    },
+    {
+      "name": "devtools_shared/lib/src/sse/sse_shim.dart",
+      "size": 280,
+      "writable": true,
+      "hash": "jD0ilM-2ac7jjovmpUOf7Akpu7xTXstp9Z0NYc3cnsEC"
+    },
+    {
+      "name": "devtools_shared/lib/src/test/chrome.dart",
+      "size": 7735,
+      "writable": true,
+      "hash": "DVCVFRz3ylBokLdqt8b-9NcYtB6xCPacBdTexFCkD_UC"
+    },
+    {
+      "name": "devtools_shared/lib/src/test/chrome_driver.dart",
+      "size": 1562,
+      "writable": true,
+      "hash": "ZAZFi3EeLA-ifSm39GwQcjAPebmGFA8X_-69r-bUyNQC"
+    },
+    {
+      "name": "devtools_shared/lib/src/test/cli_test_driver.dart",
+      "size": 6251,
+      "writable": true,
+      "hash": "L1kqjVDHYIIoGIQz7_qr3lqgCBJu0W-aMweasrV2gq0C"
+    },
+    {
+      "name": "devtools_shared/lib/src/test/integration_test_runner.dart",
+      "size": 11853,
+      "writable": true,
+      "hash": "gpg-e4pVqS10ht0Ohdrz_9PBoABtbaR-0Q10Htq8wFAC"
+    },
+    {
+      "name": "devtools_shared/lib/src/test/io_utils.dart",
+      "size": 3131,
+      "writable": true,
+      "hash": "SF5nltEzzvDHmCYoZA-0VVivETmzfDBja-tUTc-lw_EC"
+    },
+    {
+      "name": "devtools_shared/lib/src/test/test_utils.dart",
+      "size": 794,
+      "writable": true,
+      "hash": "WebtTAVxiImPAXm0MtpqH2qAf6rFuV-xG4NT8qqvQAAC"
+    },
+    {
+      "name": "devtools_shared/lib/src/utils/compare.dart",
+      "size": 488,
+      "writable": true,
+      "hash": "_3NdwGfvBf5JMPT-kM6VqXExJmcepVb7cGRybQVITskC"
+    },
+    {
+      "name": "devtools_shared/lib/src/utils/file_utils.dart",
+      "size": 3404,
+      "writable": true,
+      "hash": "GUcztmP13Lsk328pT0BmvuYsCnR8NR_1rVZNHNdXJ2QC"
+    },
+    {
+      "name": "devtools_shared/lib/src/utils/retry.dart",
+      "size": 1426,
+      "writable": true,
+      "hash": "HTHCQI0v0OiNbkzaG1O0eAp97deTUxRKB_hbmWqFD6YC"
+    },
+    {
+      "name": "devtools_shared/lib/src/utils/semantic_version.dart",
+      "size": 5104,
+      "writable": true,
+      "hash": "dTWCVEn4hZ6g-9Su1I-eKM7NwwwfA4C-zaf5hf8ysHMC"
+    },
+    {
+      "name": "devtools_shared/lib/src/utils/serialization.dart",
+      "size": 1077,
+      "writable": true,
+      "hash": "0tOxxqAlSkfwQt4f6ZU4f92P0FmCBWwOR_ftjhv8XYUC"
+    },
+    {
+      "name": "devtools_shared/lib/src/utils/utils.dart",
+      "size": 863,
+      "writable": true,
+      "hash": "Mv-qOywmmq-4g24dTSyEPF7BjMdmsl0Q8NoD_FAJNuQC"
+    },
+    {
+      "name": "devtools_shared/pubspec.lock",
+      "size": 13585,
+      "writable": true,
+      "hash": "98siI1L9aVmH_ylkmGTg64eWYzYTucfKF3xa_1okrm8C"
+    },
+    {
+      "name": "devtools_shared/pubspec.yaml",
+      "size": 623,
+      "writable": true,
+      "hash": "v4Yi1hnTIajUnATEn2fVdmRtu04yqRm09HWrd51N2ecC"
+    },
+    {
+      "name": "devtools_shared/test/deeplink/deeplink_manager_test.dart",
+      "size": 7052,
+      "writable": true,
+      "hash": "c2BDmcZQZ8MrhBxx80GAwEzRNzWGdey2eJcPesNJ_P4C"
+    },
+    {
+      "name": "devtools_shared/test/extensions/extension_enablement_test.dart",
+      "size": 3340,
+      "writable": true,
+      "hash": "5Rdl_PqEr4qqF8C_sBJz6Dwij2GzwG5srv9XSaGf6G8C"
+    },
+    {
+      "name": "devtools_shared/test/extensions/extension_model_test.dart",
+      "size": 12545,
+      "writable": true,
+      "hash": "lE1ukaoi3iyJMGsiBMcqQFm-InLoqtAcHt7yCOFxQKwC"
+    },
+    {
+      "name": "devtools_shared/test/fakes.dart",
+      "size": 1660,
+      "writable": true,
+      "hash": "VHD6kXUI1T8Bj2JBz0JeqrgLyLLzKrt-Me3KBKwp2LMC"
+    },
+    {
+      "name": "devtools_shared/test/helpers/extension_test_manager.dart",
+      "size": 13668,
+      "writable": true,
+      "hash": "JwLfMroxHZCXPaIeHW9QFr0K4GeRcoefnZjsy69msC8C"
+    },
+    {
+      "name": "devtools_shared/test/helpers/extension_test_manager_test.dart",
+      "size": 8284,
+      "writable": true,
+      "hash": "nD5odKY8kfGRt2EVaqRFWZZrQYugGaxV7NqIH8ZeiFYC"
+    },
+    {
+      "name": "devtools_shared/test/helpers/helpers.dart",
+      "size": 4590,
+      "writable": true,
+      "hash": "KFp0PPU-dQZWoKw1WUa9ZaYdSGt-Q9msvq7RrrfoFCQC"
+    },
+    {
+      "name": "devtools_shared/test/memory/heap_sample_test.dart",
+      "size": 1165,
+      "writable": true,
+      "hash": "xy3vog_BgRxiD1-2l6UHljDw9qsN8j1sZG76brdazDwC"
+    },
+    {
+      "name": "devtools_shared/test/semantic_version_test.dart",
+      "size": 5308,
+      "writable": true,
+      "hash": "7Oby3b0LaG5DH4vDpLPx8Wq_DH9F8h1m-OpJCAj9FkoC"
+    },
+    {
+      "name": "devtools_shared/test/server/deeplink_api_test.dart",
+      "size": 5649,
+      "writable": true,
+      "hash": "-WDcPBk3QQ96VBJ1Zap0xQmi7v4vXhv7x8oSDj7tl8IC"
+    },
+    {
+      "name": "devtools_shared/test/server/devtools_extensions_api_test.dart",
+      "size": 12605,
+      "writable": true,
+      "hash": "9OVk8GTrb6Z_qreKVMc_jPVe86Y4ctThYShz6ETe8CoC"
+    },
+    {
+      "name": "devtools_shared/test/server/dtd_api_test.dart",
+      "size": 1202,
+      "writable": true,
+      "hash": "cKUPz6LLuh7LaFhONrDvO0Z9Kl6sLdsID7Gp3qAAehIC"
+    },
+    {
+      "name": "devtools_shared/test/server/general_api_test.dart",
+      "size": 8683,
+      "writable": true,
+      "hash": "XhzCd55ErUHNYu-_AnZTrzkpnuxWbbBMEunVytSsOvQC"
+    },
+    {
+      "name": "devtools_shared/test/service_utils_test.dart",
+      "size": 2461,
+      "writable": true,
+      "hash": "lKgcnmCqcmOibADUDNLPSOfRIb8-dyv01lGrJQn60-gC"
+    },
+    {
+      "name": "devtools_shared/test/utils/file_utils_test.dart",
+      "size": 8443,
+      "writable": true,
+      "hash": "41hoFyuPKdMBmCgajwRHCq7fbQbOR9q1aVgozBO9z7cC"
+    },
+    {
+      "name": "devtools_shared/test/utils/retry_test.dart",
+      "size": 1939,
+      "writable": true,
+      "hash": "inbdqQFiGzz0kSVZw1naMhX-49_cnBnYjWsFpjjYiEQC"
+    },
+    {
+      "name": "devtools_shared/test/utils/serialization_test.dart",
+      "size": 1360,
+      "writable": true,
+      "hash": "a-CjhWrV1k0TSgxeLI3HxK8OtT7Yp_rOz5EqgrKJSm8C"
+    },
+    {
+      "name": "devtools_shared/test/utils/utils_test.dart",
+      "size": 2476,
+      "writable": true,
+      "hash": "0xUbo8kbayIs4Rl94smPCYa3j6qhUMDxmJSLwg_FyrkC"
+    },
+    {
+      "name": "web/.last_build_id",
+      "size": 32,
+      "writable": true,
+      "hash": "ilxSorjVlF-lfQUDhDONKLtmvVIiTsElE8Wgvj5BCx4C"
+    },
+    {
+      "name": "web/assets/AssetManifest.bin",
+      "size": 34347,
+      "writable": true,
+      "hash": "SKpJutMyy1XE0xrsAM6XVb4q-lExoKDP6t1R_ZO5apYC"
+    },
+    {
+      "name": "web/assets/AssetManifest.bin.json",
+      "size": 45798,
+      "writable": true,
+      "hash": "x1qR1kC2wtpzFMrFUwoNrehUHPRfKbUfQ9RQXI4im4wC"
+    },
+    {
+      "name": "web/assets/AssetManifest.json",
+      "size": 31579,
+      "writable": true,
+      "hash": "vQePMZy1hRTqrC0iAOtN7Z-KImGsodmrpQqo_pim09QC"
+    },
+    {
+      "name": "web/assets/FontManifest.json",
+      "size": 2129,
+      "writable": true,
+      "hash": "GZT1P9eieMTOxADrXpm_JLG2MlAWGTteUI1oKKW1q9YC"
+    },
+    {
+      "name": "web/assets/NOTICES",
+      "size": 2961209,
+      "writable": true,
+      "hash": "yh3uRR49_t-QrlldOyioSaQwfC9EnuthcKO87yneKZQC"
+    },
+    {
+      "name": "web/assets/assets/dart_syntax.json",
+      "size": 10012,
+      "writable": true,
+      "hash": "x52Oxe9A6BUz5azIvEvXDJlAt_aXgUzoqv5QRwzljCEC"
+    },
+    {
+      "name": "web/assets/assets/img/doc/upload_dark.png",
+      "size": 2067,
+      "writable": true,
+      "hash": "df8m8oaTfi2U0nsv4H2G06rHHz42NS3LYwrylV1HMS4C"
+    },
+    {
+      "name": "web/assets/assets/img/doc/upload_light.png",
+      "size": 1794,
+      "writable": true,
+      "hash": "ojqqYTW3tLgs9dX7hjPbMjS7nzpHukqJGxIpcsfeUH0C"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/cross_axis_alignment/baseline.png",
+      "size": 7443,
+      "writable": true,
+      "hash": "Tu6GdPVnj54ZtF-n3bGmwk51jZB1XkHdtNH4xEEmjlkC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/cross_axis_alignment/center.png",
+      "size": 1373,
+      "writable": true,
+      "hash": "Rqjhwxm-AutjWS5BRXXEJRl7hCvknQ6Gk51WD9B4XY0C"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/cross_axis_alignment/column_center.png",
+      "size": 301,
+      "writable": true,
+      "hash": "mqTRfpmHmnX5vz_p7D4G-m-UwEZCWhQ0Obm130DTg4EC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/cross_axis_alignment/column_end.png",
+      "size": 290,
+      "writable": true,
+      "hash": "6sN-wSUUFaYKAKfugGSQyFlNm01Eay4OcDQPFFbZ5cQC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/cross_axis_alignment/column_start.png",
+      "size": 287,
+      "writable": true,
+      "hash": "4kIgVro1YdJa0RVSgnk-iMsez8mSsn8_xOyRE5CNhsAC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/cross_axis_alignment/column_stretch.png",
+      "size": 296,
+      "writable": true,
+      "hash": "RuiL8x8la-SwJ8NmgJJX3JRHjcHZCazecD_Mb3tD3eoC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/cross_axis_alignment/end.png",
+      "size": 2175,
+      "writable": true,
+      "hash": "cAytDgFkDvcRlUfW_-0PvFq9iD6aTPFew95AUesyjYQC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/cross_axis_alignment/nobaseline.png",
+      "size": 6751,
+      "writable": true,
+      "hash": "cSRGhkQhW24uu09_eYplV0qit5696t6Yrn36OP93wK0C"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/cross_axis_alignment/row_center.png",
+      "size": 291,
+      "writable": true,
+      "hash": "t0NBoWdU49HErm-EvFbVGe0vciARWRFGMQY_nCDkXmQC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/cross_axis_alignment/row_end.png",
+      "size": 287,
+      "writable": true,
+      "hash": "_ZpMTGzjn4phvBb8UD1dc4308i56uzqfhsxj0-9kZ7IC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/cross_axis_alignment/row_start.png",
+      "size": 288,
+      "writable": true,
+      "hash": "0BpEQ-SwL0gWyuwlXGJq9q7Ig85PbWzD-kjEoNffFYEC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/cross_axis_alignment/row_stretch.png",
+      "size": 306,
+      "writable": true,
+      "hash": "rRlbD-B2HDoAf4WgvKvtIS-9Ub3qCU3ag-ZpuFqyXwIC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/cross_axis_alignment/start.png",
+      "size": 1327,
+      "writable": true,
+      "hash": "du3b1AI9vKrI2J8FKBYxk8dPC1-8jqITbZpFOHmM8pUC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/cross_axis_alignment/stretch.png",
+      "size": 1255,
+      "writable": true,
+      "hash": "iyyICCfEbJXRPYCccnrkqjaefnZVAZeYzyRTd9-RIawC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/main_axis_alignment/center.png",
+      "size": 1459,
+      "writable": true,
+      "hash": "2IkZVmwiQjXs3WQwxogWmHB2n7ETrUMVGQWz9h5FmgQC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/main_axis_alignment/column_center.png",
+      "size": 295,
+      "writable": true,
+      "hash": "IL4UapBo2JAXOXan04kQXkqXlIn8Wf3LsGVE7BkQSTYC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/main_axis_alignment/column_end.png",
+      "size": 296,
+      "writable": true,
+      "hash": "1Sg5uDBDvDUOAvnlQIFNyaeEHvUXm8wJGQjCReH-5jIC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/main_axis_alignment/column_spaceAround.png",
+      "size": 298,
+      "writable": true,
+      "hash": "9A_4yxgtpKZZpwiEeocOSwlfyWkJNZ2LFYi5y0_x_HAC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/main_axis_alignment/column_spaceBetween.png",
+      "size": 308,
+      "writable": true,
+      "hash": "UuQQNkbvc-KM-NlRINyLXVS2uAq8RDHOt3qgS9eDDigC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/main_axis_alignment/column_spaceEvenly.png",
+      "size": 298,
+      "writable": true,
+      "hash": "ee7M5MMstncAfhQU21h8NGd8cUPTX_WeUMnLA3BEXaAC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/main_axis_alignment/column_start.png",
+      "size": 298,
+      "writable": true,
+      "hash": "WLd3KvPvOtMhCGxzhCPCLE4t0d2fUqJuISbzUgpzcQsC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/main_axis_alignment/end.png",
+      "size": 1356,
+      "writable": true,
+      "hash": "3I-56PKp4tOiZ7Q95uaBYsUzK6QD1GrGHYi4oCMekikC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/main_axis_alignment/row_center.png",
+      "size": 299,
+      "writable": true,
+      "hash": "ku4G-TE1NDUBM_rwpdRtVyYNKRT2yPN7o7wFu9Hg5XQC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/main_axis_alignment/row_end.png",
+      "size": 299,
+      "writable": true,
+      "hash": "OQpkPttEYaGPo-Uyn81MHgqN448OyqqaOjLolXJq-VEC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/main_axis_alignment/row_spaceAround.png",
+      "size": 306,
+      "writable": true,
+      "hash": "xqlgTQd6VRFVJoqkpArSFI3iFfWxVXaLz062I-6BsGkC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/main_axis_alignment/row_spaceBetween.png",
+      "size": 314,
+      "writable": true,
+      "hash": "HYS1LaexSJAzOQ1FHnhr8i36ln9Y1fGDukDCDyeY-CoC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/main_axis_alignment/row_spaceEvenly.png",
+      "size": 306,
+      "writable": true,
+      "hash": "SAFWqOJXFNt3JtCZifJ7P93jr2wuanpVblIeovdS9ykC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/main_axis_alignment/row_start.png",
+      "size": 295,
+      "writable": true,
+      "hash": "Y24Rkd5tlqTTCx8ywLs19vnmsZa9yWXKt3skxrxQ7fsC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/main_axis_alignment/spaceAround.png",
+      "size": 1416,
+      "writable": true,
+      "hash": "9j5Vgo7jZTe7N-n2dUSyO-Mv8b3tdvMfZB_CFXt7lS0C"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/main_axis_alignment/spaceBetween.png",
+      "size": 1375,
+      "writable": true,
+      "hash": "yec9GMMDYov-1QOY823zsYMCKW9FbVTPkyOy0uvi0hEC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/main_axis_alignment/spaceEvenly.png",
+      "size": 1523,
+      "writable": true,
+      "hash": "1d_HRrR3F6zBdkPOlCVXo2yofdCAPYXN0uKtUHzZBbsC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/main_axis_alignment/start.png",
+      "size": 1388,
+      "writable": true,
+      "hash": "uNt0INL2oEZXUXh76G2UGKfSkqHSZNAuD157FiHq7YcC"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/negative_space_dark.png",
+      "size": 11189,
+      "writable": true,
+      "hash": "jrGWwaDQNKu_frelVpTvdbUkcgd7YorGZAxp_0m8204C"
+    },
+    {
+      "name": "web/assets/assets/img/layout_explorer/negative_space_light.png",
+      "size": 2990,
+      "writable": true,
+      "hash": "8LQyXId-gYAYGQcltUjEGnI39vP8GTWSKPE-lmGSAn0C"
+    },
+    {
+      "name": "web/assets/assets/img/legend/event_glyph.png",
+      "size": 621,
+      "writable": true,
+      "hash": "KxnqZQ1__Cz3WCOMzKoFkwFE5NP07-BokJxDO6pUs8sC"
+    },
+    {
+      "name": "web/assets/assets/img/legend/events_glyph.png",
+      "size": 621,
+      "writable": true,
+      "hash": "iATvYHUAKz_2Re7R9TRKpZeYrfvmGY1KV8EuTIaTnI8C"
+    },
+    {
+      "name": "web/assets/assets/img/legend/gc_manual_glyph.png",
+      "size": 868,
+      "writable": true,
+      "hash": "bbbusGW7C8k0uYY6beC1jBTqS0koDrKiLFcpfFB3HOAC"
+    },
+    {
+      "name": "web/assets/assets/img/legend/gc_vm_glyph.png",
+      "size": 666,
+      "writable": true,
+      "hash": "eEgrWULWfoJi4FmGKscrV2IyDYcegT8iYuM0DcHOhcIC"
+    },
+    {
+      "name": "web/assets/assets/img/legend/monitor_glyph.png",
+      "size": 842,
+      "writable": true,
+      "hash": "J6Zpi6Dz2SgOeptV0zDs3Uzrhb_JPK3XqlfIvLqxjEYC"
+    },
+    {
+      "name": "web/assets/assets/img/legend/reset_glyph_dark.png",
+      "size": 11895,
+      "writable": true,
+      "hash": "NFe8HdVxuXOy_naCkQEakxnN1opZD28z6d5ng_EPaxoC"
+    },
+    {
+      "name": "web/assets/assets/img/legend/reset_glyph_light.png",
+      "size": 10979,
+      "writable": true,
+      "hash": "m92-3mPLWUtRnuoKbKJNXUqi_v65fUK79Sgs_TNrjN0C"
+    },
+    {
+      "name": "web/assets/assets/img/legend/snapshot_auto_glyph.png",
+      "size": 5922,
+      "writable": true,
+      "hash": "CKhs8-1k9AWwmCEzH7N3zwq-ZZ7H3XoQDhWngR0RlpUC"
+    },
+    {
+      "name": "web/assets/assets/img/legend/snapshot_manual_glyph.png",
+      "size": 924,
+      "writable": true,
+      "hash": "jYua6Xuc1p24Bhi2ysAuOkfcWzd280f8fhwr3i86Y50C"
+    },
+    {
+      "name": "web/assets/assets/img/star.png",
+      "size": 1221,
+      "writable": true,
+      "hash": "fE_hNbxa1UMTn4ccOkienkSf6bF0_nPbJx68yLf5r7YC"
+    },
+    {
+      "name": "web/assets/fonts/MaterialIcons-Regular.otf",
+      "size": 1645184,
+      "writable": true,
+      "hash": "2YZbZxoJ1oPROoYwidiCXg9ho3aWzl19RIvIAjqmJFMC"
+    },
+    {
+      "name": "web/assets/fonts/Octicons.ttf",
+      "size": 27440,
+      "writable": true,
+      "hash": "8KI41G1nSeYBwS8g-PwDIB8Ze5_jR75MLJRP_FxLYDUC"
+    },
+    {
+      "name": "web/assets/fonts/Roboto/Roboto-Black.ttf",
+      "size": 171480,
+      "executable": true,
+      "writable": true,
+      "hash": "OHLps5dgobWaweGSYz27O1jllbTUI5MKx97VJemuJeAC"
+    },
+    {
+      "name": "web/assets/fonts/Roboto/Roboto-Bold.ttf",
+      "size": 170760,
+      "executable": true,
+      "writable": true,
+      "hash": "fQuZHuPgvnrwGtfqjNK-6mwAol5nmgImtnN_B5qv_4YC"
+    },
+    {
+      "name": "web/assets/fonts/Roboto/Roboto-Light.ttf",
+      "size": 170420,
+      "executable": true,
+      "writable": true,
+      "hash": "ptND1CW8ONuQFS-gYFixxzkeypJk8zTvZcHOF1CFxvYC"
+    },
+    {
+      "name": "web/assets/fonts/Roboto/Roboto-Medium.ttf",
+      "size": 172064,
+      "executable": true,
+      "writable": true,
+      "hash": "8gXMURgh6lYHihBVV_zqYlMSlATUEcmX4YZvvQBqu2gC"
+    },
+    {
+      "name": "web/assets/fonts/Roboto/Roboto-Regular.ttf",
+      "size": 171676,
+      "executable": true,
+      "writable": true,
+      "hash": "eehRQEZX2sIQaz0irSVtR4JKmldlRY7bcskQKkWBbZUC"
+    },
+    {
+      "name": "web/assets/fonts/Roboto/Roboto-Thin.ttf",
+      "size": 171904,
+      "executable": true,
+      "writable": true,
+      "hash": "PZH3qmnLf3BkA1iVxWasXLmyCEWC01Gvcme7Tg-6YPUC"
+    },
+    {
+      "name": "web/assets/fonts/Roboto_Mono/RobotoMono-Bold.ttf",
+      "size": 109500,
+      "writable": true,
+      "hash": "1YDr_Qi5sbtjcCGsmjTTCr3zoacxhliG7AHgxYWfKcgC"
+    },
+    {
+      "name": "web/assets/fonts/Roboto_Mono/RobotoMono-Light.ttf",
+      "size": 113488,
+      "writable": true,
+      "hash": "_Nb-n7VUB5ZhsE1lLo7lpIuRWJcMV8hudquRX-PvvMAC"
+    },
+    {
+      "name": "web/assets/fonts/Roboto_Mono/RobotoMono-Medium.ttf",
+      "size": 109292,
+      "writable": true,
+      "hash": "jj_GQ7MM_ynBDl9XU00v_PeR8TGd_zDD43wra149Z58C"
+    },
+    {
+      "name": "web/assets/fonts/Roboto_Mono/RobotoMono-Regular.ttf",
+      "size": 109212,
+      "writable": true,
+      "hash": "xZ7LbBjjjUGUJJtuHFVetVyOgJJYz22bYk0Z2SaCU78C"
+    },
+    {
+      "name": "web/assets/fonts/Roboto_Mono/RobotoMono-Thin.ttf",
+      "size": 112480,
+      "writable": true,
+      "hash": "PUHvsQNbcXr2-gHso4fbJ4v_QYwdjUT0crAO16ATBkUC"
+    },
+    {
+      "name": "web/assets/icons/Icon-192.png",
+      "size": 5292,
+      "writable": true,
+      "hash": "Pc6ZB3YC9wQhwcayokC8m4PWTYZoHUXyFUFDMQyYC-MC"
+    },
+    {
+      "name": "web/assets/icons/Icon-512.png",
+      "size": 8252,
+      "writable": true,
+      "hash": "usyyBa5F8LQhvhZXJZtJQ6xAyVCUq4d_O8vhLNVE3L4C"
+    },
+    {
+      "name": "web/assets/icons/actions/forceRefresh.png",
+      "size": 2125,
+      "writable": true,
+      "hash": "46oBPGRYBWVpyllRAl2j1OaXh7Ae2-B2V4w7UoPEEwMC"
+    },
+    {
+      "name": "web/assets/icons/actions/forceRefresh@2x.png",
+      "size": 2125,
+      "writable": true,
+      "hash": "46oBPGRYBWVpyllRAl2j1OaXh7Ae2-B2V4w7UoPEEwMC"
+    },
+    {
+      "name": "web/assets/icons/actions/forceRefresh_dark.svg",
+      "size": 984,
+      "writable": true,
+      "hash": "hq-OR1PsPzyld99ot08-gT0TzRHxtjBzvKURbR28-osC"
+    },
+    {
+      "name": "web/assets/icons/app_bar/app_size.png",
+      "size": 411,
+      "writable": true,
+      "hash": "X5SKZsT4bRjH6b1y0Kj0HKXWY1gwWN_xB6b43ErSUPUC"
+    },
+    {
+      "name": "web/assets/icons/app_bar/cpu_profiler.png",
+      "size": 602,
+      "writable": true,
+      "hash": "AzpZaN52Uj4pPsUtxQPBoTGIHlnmPBTbeZXB7ZDhuFgC"
+    },
+    {
+      "name": "web/assets/icons/app_bar/deep_links.png",
+      "size": 462,
+      "writable": true,
+      "hash": "99nPiTvB4b6Dy4wgzd9U6Fu5vSgDl2t8Jsknrr8us6EC"
+    },
+    {
+      "name": "web/assets/icons/app_bar/devtools.png",
+      "size": 774,
+      "writable": true,
+      "hash": "iyotuYk-__ieUd4zmsF13JiH4zxIY1jXzovMQzXGlr8C"
+    },
+    {
+      "name": "web/assets/icons/app_bar/devtools_extensions.png",
+      "size": 680,
+      "writable": true,
+      "hash": "W87Qu-eEq9EA1RQwJ8lX_6hTxGblF82VFKZtGwbPde0C"
+    },
+    {
+      "name": "web/assets/icons/app_bar/inspector.png",
+      "size": 660,
+      "writable": true,
+      "hash": "e4gJbwyjqNaEdzONn-1VuyQxc1jWfyhphiop_un1A3sC"
+    },
+    {
+      "name": "web/assets/icons/app_bar/logging.png",
+      "size": 476,
+      "writable": true,
+      "hash": "cK9FssYLjUtx04ZrNDeMvewGJIBpx0xBwvJebeiDxAcC"
+    },
+    {
+      "name": "web/assets/icons/app_bar/memory.png",
+      "size": 582,
+      "writable": true,
+      "hash": "DQKm-hv9GmYwaIhVnVBWWrAULpLBjtUuFszo0myQE-8C"
+    },
+    {
+      "name": "web/assets/icons/app_bar/network.png",
+      "size": 513,
+      "writable": true,
+      "hash": "YeC2CnMfbZSD5XeQhZpMGBloUKIhu1vb6NahW-LsE2sC"
+    },
+    {
+      "name": "web/assets/icons/app_bar/performance.png",
+      "size": 408,
+      "writable": true,
+      "hash": "UGWPQKoNAEi4Z4Usq5H-d6LbVHgYqo63Mw83SacTgZkC"
+    },
+    {
+      "name": "web/assets/icons/attachDebugger.png",
+      "size": 1666,
+      "writable": true,
+      "hash": "ZQSS8brFv7NmsypzMOkvuZIs7TlbEK1dWhRY7i-cDtoC"
+    },
+    {
+      "name": "web/assets/icons/attachDebugger@2x.png",
+      "size": 2180,
+      "writable": true,
+      "hash": "-c-dUQ3IBogmQ-SiaMHKihqQ5qJFne3iss5Z0QeJ3m4C"
+    },
+    {
+      "name": "web/assets/icons/baselines-dgrey.png",
+      "size": 1498,
+      "writable": true,
+      "hash": "6zCfnnWPjxQkLMx0WrB4wvIBaGLe4qz6gF_936irwHkC"
+    },
+    {
+      "name": "web/assets/icons/baselines-lgrey.png",
+      "size": 1568,
+      "writable": true,
+      "hash": "xNWoxaEK78cwtNQRs7CKCb_1QatVonWBFAy_npctW6QC"
+    },
+    {
+      "name": "web/assets/icons/baselines-white.png",
+      "size": 1102,
+      "writable": true,
+      "hash": "46lXeWEGByl4l5o6I4CraZ-D-2U9Q6K1NgLqERTIfzMC"
+    },
+    {
+      "name": "web/assets/icons/bazel_run.png",
+      "size": 1776,
+      "writable": true,
+      "hash": "cL2KcRKu8AlpIOpyngylrTeL4TKnRa4MJQPmqVFWJ3EC"
+    },
+    {
+      "name": "web/assets/icons/bazel_run@2x.png",
+      "size": 2615,
+      "writable": true,
+      "hash": "GCU0T7HYfdtBQ-BWagX8J2fn0BKILliUHaK4GeRH-P0C"
+    },
+    {
+      "name": "web/assets/icons/cancel.png",
+      "size": 438,
+      "writable": true,
+      "hash": "ZyXcWO-KmDlFyLtSqL5yh99VY4vBvCfo3l8DqQQflNkC"
+    },
+    {
+      "name": "web/assets/icons/cancel@2x.png",
+      "size": 797,
+      "writable": true,
+      "hash": "f72JSHJ9mTjVwBRRr_FdDQjnNXi5vLbmdTs92_GrRGgC"
+    },
+    {
+      "name": "web/assets/icons/custom/bg-gray-red.png",
+      "size": 869,
+      "writable": true,
+      "hash": "sXyeLIJouxPdxd17vs2jQOBZuJTfBu8tr3oqjMePrQIC"
+    },
+    {
+      "name": "web/assets/icons/custom/bg-green.png",
+      "size": 835,
+      "writable": true,
+      "hash": "jQOd7jFRW_5onNao6UMo8YkVMeE07lUiyf_3iJDp4AsC"
+    },
+    {
+      "name": "web/assets/icons/custom/bg-new-red.png",
+      "size": 848,
+      "writable": true,
+      "hash": "rV5yMQFEG_D3fgGodNTPTBWn-dN8nzdrDjK7UOMEGR4C"
+    },
+    {
+      "name": "web/assets/icons/custom/class.png",
+      "size": 841,
+      "writable": true,
+      "hash": "jjJ0vS1thZ9Xr0QuTNSo0YDfSLoca4_F9cV-L7ytaUEC"
+    },
+    {
+      "name": "web/assets/icons/custom/class_abstract.png",
+      "size": 866,
+      "writable": true,
+      "hash": "tYbce6z6TqdBPChDf0svwlMrYaR_CiDDO4ta4EXFZOcC"
+    },
+    {
+      "name": "web/assets/icons/custom/fields.png",
+      "size": 214,
+      "writable": true,
+      "hash": "tH2N1QqPI6EsUiqFIm6XcELuFXoS4Z6y5fE6Z-eph9gC"
+    },
+    {
+      "name": "web/assets/icons/custom/fields@2x.png",
+      "size": 304,
+      "writable": true,
+      "hash": "3ccc5jkP--EdPMcDRj7WqxFtuo21NZ0WBLeJ6Bl4O94C"
+    },
+    {
+      "name": "web/assets/icons/custom/info.png",
+      "size": 806,
+      "writable": true,
+      "hash": "TAW78N_J94czpmT8etZuHWZZpP2sWmCiLrFGZMrkiewC"
+    },
+    {
+      "name": "web/assets/icons/custom/info@2x.png",
+      "size": 1763,
+      "writable": true,
+      "hash": "V5lIHQHhPNVyyDJt2UulOntsKOLVZhtGZ9CoxtoUa4MC"
+    },
+    {
+      "name": "web/assets/icons/custom/interface.png",
+      "size": 206,
+      "writable": true,
+      "hash": "NI97avqyo7jBRKzn-XYN26oDlggUaC31e0_SYugxHwAC"
+    },
+    {
+      "name": "web/assets/icons/custom/interface@2x.png",
+      "size": 311,
+      "writable": true,
+      "hash": "DEC-61yBjT2sawJZL8BTVylIH3HZJn57Q8B789bvI4wC"
+    },
+    {
+      "name": "web/assets/icons/custom/method.png",
+      "size": 834,
+      "writable": true,
+      "hash": "MgdCGbCM1Q8IEwjzGzhtalS1eEkvkeFa4A0q-myTpqUC"
+    },
+    {
+      "name": "web/assets/icons/custom/method@2x.png",
+      "size": 294,
+      "writable": true,
+      "hash": "RUEmLJ7PzkbE78xSHcEAHW_Xs0AcooZJQ3jwXxoGnQkC"
+    },
+    {
+      "name": "web/assets/icons/custom/method_abstract.png",
+      "size": 859,
+      "writable": true,
+      "hash": "e2IVmJcu15Vt-WneqtEHcYsX4DLkPDCueeCTUqqdf1oC"
+    },
+    {
+      "name": "web/assets/icons/custom/property.png",
+      "size": 192,
+      "writable": true,
+      "hash": "hSogEJwvMcub9cdSzJuDgn8JyNBfH-vv8Bw_fP_G1IAC"
+    },
+    {
+      "name": "web/assets/icons/custom/property@2x.png",
+      "size": 294,
+      "writable": true,
+      "hash": "HBJZy-I9BVx0II2nVNV1Y2ePSzfZrc1MKW_zJhoqns4C"
+    },
+    {
+      "name": "web/assets/icons/debug_banner.png",
+      "size": 2762,
+      "writable": true,
+      "hash": "EXkGl0uk-a42KhHf75A5XP1eFW2cmcw7g9FK3lVk7VUC"
+    },
+    {
+      "name": "web/assets/icons/debug_banner@2x.png",
+      "size": 2762,
+      "writable": true,
+      "hash": "EXkGl0uk-a42KhHf75A5XP1eFW2cmcw7g9FK3lVk7VUC"
+    },
+    {
+      "name": "web/assets/icons/feedback.png",
+      "size": 232,
+      "writable": true,
+      "hash": "a6iqiLDnG7GsxwcdJ0GUmFOmKg8beHObH01AY3EL9ewC"
+    },
+    {
+      "name": "web/assets/icons/feedback@2x.png",
+      "size": 255,
+      "writable": true,
+      "hash": "RyYEW87qiJiHYlMsPzCI6xtf5UUgFvNABPfT1aopN8EC"
+    },
+    {
+      "name": "web/assets/icons/flutter.png",
+      "size": 1714,
+      "writable": true,
+      "hash": "GGb-7tz5QzmuiF_YGu-dr6nCOR_QfhxDUUGtG_0iZU4C"
+    },
+    {
+      "name": "web/assets/icons/flutter@2x.png",
+      "size": 2437,
+      "writable": true,
+      "hash": "Hn467OwG0KvZdaa3yfFrmKOIi4RDgosBhwl4lgiY7vUC"
+    },
+    {
+      "name": "web/assets/icons/flutter_13.png",
+      "size": 1616,
+      "writable": true,
+      "hash": "xJGqwjZykS0QNK4Z61rLen99-w0sbBdV1BNR20d0t_IC"
+    },
+    {
+      "name": "web/assets/icons/flutter_13@2x.png",
+      "size": 2211,
+      "writable": true,
+      "hash": "rJMR0AGl5bBkGYA2P9g4qh2_BnVAM2qpJ2gfGeZcNhEC"
+    },
+    {
+      "name": "web/assets/icons/flutter_64.png",
+      "size": 2948,
+      "writable": true,
+      "hash": "J-tIv2Q45T8nCzD3EhjZ65aKVSTXQmk2hCMQ3jt08voC"
+    },
+    {
+      "name": "web/assets/icons/flutter_64@2x.png",
+      "size": 3490,
+      "writable": true,
+      "hash": "ANlsJqnTQG-oswTquefviSdxev1J1czp0CMv_awX9QsC"
+    },
+    {
+      "name": "web/assets/icons/flutter_badge.png",
+      "size": 1532,
+      "writable": true,
+      "hash": "DEk1j0gfqYK7CuJBlWmPxxjqxrLl1gC8FEIrQXftQNAC"
+    },
+    {
+      "name": "web/assets/icons/flutter_badge@2x.png",
+      "size": 2132,
+      "writable": true,
+      "hash": "IiRaUksRS8bVQwLARzvA7f0qTaDJFogwXzWpL9s-5YEC"
+    },
+    {
+      "name": "web/assets/icons/flutter_inspect.png",
+      "size": 1705,
+      "writable": true,
+      "hash": "rbNE3P5VUXVcjVqFHBsKrTzuSyuLBsKis6PMuMuUB6MC"
+    },
+    {
+      "name": "web/assets/icons/flutter_inspect@2x.png",
+      "size": 1993,
+      "writable": true,
+      "hash": "LzTd5psJQQSE30UbJtu4D-U_IWqPr1It1v1HyF9VIUQC"
+    },
+    {
+      "name": "web/assets/icons/flutter_test.png",
+      "size": 1740,
+      "writable": true,
+      "hash": "k_15svwJb_Pc4yq98Lwf7owvlmslTwzRb3yr7xdszPkC"
+    },
+    {
+      "name": "web/assets/icons/flutter_test@2x.png",
+      "size": 2167,
+      "writable": true,
+      "hash": "sFTPKpqHlw5tTAF3o-uRiw-0AhCzCuyyECd2MtgkhPkC"
+    },
+    {
+      "name": "web/assets/icons/general/information.png",
+      "size": 371,
+      "writable": true,
+      "hash": "y6zWi88O2zjvTZq_Kji4l9XvDPs3jks95xt7EhWQitIC"
+    },
+    {
+      "name": "web/assets/icons/general/lightbulb_outline.png",
+      "size": 400,
+      "writable": true,
+      "hash": "J3PsPF8uYdFzddxltQu2jLGd17oO_LTrkWjwGkj_GyoC"
+    },
+    {
+      "name": "web/assets/icons/general/lightbulb_outline@2x.png",
+      "size": 751,
+      "writable": true,
+      "hash": "gHjigtjFftgueDi1sCN2ofGYcLZEvQv3vXhkLNYdDTAC"
+    },
+    {
+      "name": "web/assets/icons/general/locate.png",
+      "size": 224,
+      "writable": true,
+      "hash": "OrZnXuSTIRbDkrXSxoWYZ6kHQhTdcJuPAVBI13Cm-ewC"
+    },
+    {
+      "name": "web/assets/icons/general/locate@2x.png",
+      "size": 405,
+      "writable": true,
+      "hash": "VFEDJhNGaL0lK_TYjs8xxnV9PEiP-sxHcV1_Vt-uxDsC"
+    },
+    {
+      "name": "web/assets/icons/general/locate@2x_dark.png",
+      "size": 406,
+      "writable": true,
+      "hash": "VcyRH_fb6qBWj86CPXxlN5e9iBYJjY3o0MhwnWcYkvkC"
+    },
+    {
+      "name": "web/assets/icons/general/locateHover.png",
+      "size": 225,
+      "executable": true,
+      "writable": true,
+      "hash": "2OEzHOVcCZIvu5sWe9n3pwIjGLzrOVzbeH0IFDckI_cC"
+    },
+    {
+      "name": "web/assets/icons/general/locateHover@2x.png",
+      "size": 406,
+      "writable": true,
+      "hash": "0L6GZcpfC1UwlxhpRgtDOq_m61eRRrYRSJ-5hsXBufEC"
+    },
+    {
+      "name": "web/assets/icons/general/locateHover@2x_dark.png",
+      "size": 406,
+      "writable": true,
+      "hash": "jobqMwzdSTQJzIPOtrTh9xjZATME9iIPD8HszPP3KtoC"
+    },
+    {
+      "name": "web/assets/icons/general/locateHover_dark.png",
+      "size": 225,
+      "writable": true,
+      "hash": "rwuPW6Lti1Y100cld3wdpT0dy7zxAsfMpRZ0zrW1_GAC"
+    },
+    {
+      "name": "web/assets/icons/general/locate_dark.png",
+      "size": 225,
+      "writable": true,
+      "hash": "CHT3on6xWOnCP76S6AsA7r9r65dmVDkcyRPDtVs2hiAC"
+    },
+    {
+      "name": "web/assets/icons/general/pause_black.png",
+      "size": 176,
+      "writable": true,
+      "hash": "uE4vehhtziEQD3p9hlA1VOd92D6Jr8L8SRNk0B3--hAC"
+    },
+    {
+      "name": "web/assets/icons/general/pause_black@2x.png",
+      "size": 217,
+      "writable": true,
+      "hash": "Km1T_trx5Gf8YsJFeQjSuAzm7XAjo65x7zcBB5CKoyAC"
+    },
+    {
+      "name": "web/assets/icons/general/pause_black_disabled.png",
+      "size": 168,
+      "writable": true,
+      "hash": "34DfOBRb-BT3kKwar5_ZowLgK1OzC5Ce5acXPHNesr8C"
+    },
+    {
+      "name": "web/assets/icons/general/pause_black_disabled@2x.png",
+      "size": 209,
+      "writable": true,
+      "hash": "9UQ9SyWRMCUkNV5dIVhpz79b9My2XO1Wv4wCHO2D-vkC"
+    },
+    {
+      "name": "web/assets/icons/general/pause_white.png",
+      "size": 155,
+      "writable": true,
+      "hash": "TgRTcPB0zOmwrFHtGI_r28hGcdo9IE_gFEvhsZO6_C4C"
+    },
+    {
+      "name": "web/assets/icons/general/pause_white@2x.png",
+      "size": 186,
+      "writable": true,
+      "hash": "wLudm4dJRuSfQVLp79_0KtdH3mGe4zW_jnr711yhSu8C"
+    },
+    {
+      "name": "web/assets/icons/general/pause_white_disabled.png",
+      "size": 160,
+      "writable": true,
+      "hash": "Kliv0VvKx7TpX2g84x2ceBQYbMtqpedCivm_xQuzfFUC"
+    },
+    {
+      "name": "web/assets/icons/general/pause_white_disabled@2x.png",
+      "size": 208,
+      "writable": true,
+      "hash": "4BI7PPSb65Cm-YBXopkNQ3IKs3YYdNJUTSrrcT1lGaEC"
+    },
+    {
+      "name": "web/assets/icons/general/resume_black.png",
+      "size": 259,
+      "writable": true,
+      "hash": "LQUxSn76WaRYyGksuOJpiYYR2SvqmxnWyPq6ihugB9UC"
+    },
+    {
+      "name": "web/assets/icons/general/resume_black@2x.png",
+      "size": 492,
+      "writable": true,
+      "hash": "UxbDLxs6F_QIvwX1kdB1Do5qUXriMAPftSMoSUiKXqAC"
+    },
+    {
+      "name": "web/assets/icons/general/resume_black_disabled.png",
+      "size": 233,
+      "writable": true,
+      "hash": "Sxvj2Wz6Fp8OOklM6f0O-gKaCvSC-7TOmbgBcm36sQUC"
+    },
+    {
+      "name": "web/assets/icons/general/resume_black_disabled@2x.png",
+      "size": 486,
+      "writable": true,
+      "hash": "UlrDySfXKLe6O0LRwa5-BlIyXOLUaK7pZHtJVTh8etkC"
+    },
+    {
+      "name": "web/assets/icons/general/resume_white.png",
+      "size": 178,
+      "writable": true,
+      "hash": "GmX74XtgIL_echQBXhtLO53Io4HiNnXqGyg2Nmf1Jc4C"
+    },
+    {
+      "name": "web/assets/icons/general/resume_white@2x.png",
+      "size": 352,
+      "writable": true,
+      "hash": "WtXxJvjSEyvdM-SLGxYKMaGN_pIBcYViZAFesP5zSk0C"
+    },
+    {
+      "name": "web/assets/icons/general/resume_white_disabled.png",
+      "size": 220,
+      "writable": true,
+      "hash": "ok_1yfneyR4NGj1fCGxC31_qioF2zv4WRkP04HNIO78C"
+    },
+    {
+      "name": "web/assets/icons/general/resume_white_disabled@2x.png",
+      "size": 440,
+      "writable": true,
+      "hash": "5FPQLXK7G_7PoRXO-dtkdV9khPdWrXGEP5AUeMe-su8C"
+    },
+    {
+      "name": "web/assets/icons/general/tbShown.svg",
+      "size": 317,
+      "writable": true,
+      "hash": "0bm_v7aDEo_WIdB37Qduv5YjqZWEK_k2QP42zFL_RGAC"
+    },
+    {
+      "name": "web/assets/icons/general/tbShown_dark.svg",
+      "size": 352,
+      "writable": true,
+      "hash": "qHlz95d0tfwQEyXn4fR9Nfm371PchP0E4SvSIQVhLqgC"
+    },
+    {
+      "name": "web/assets/icons/guidelines-dgrey.png",
+      "size": 608,
+      "writable": true,
+      "hash": "Nv639ocP7AIfVScrJhVpAxzXEGtcR0yaJdNaD1ceJq0C"
+    },
+    {
+      "name": "web/assets/icons/guidelines-lgrey.png",
+      "size": 627,
+      "writable": true,
+      "hash": "py4T9orrEgqKw-yDsMR5y_aItWYT728fjDhtYaggOqwC"
+    },
+    {
+      "name": "web/assets/icons/guidelines-white.png",
+      "size": 536,
+      "writable": true,
+      "hash": "EEleoCcUZ0AIQUDDuFPDPFW6NSE12uMhOsb7P85rnesC"
+    },
+    {
+      "name": "web/assets/icons/gutter/colors.png",
+      "size": 124,
+      "writable": true,
+      "hash": "elNwmwLgaqikCXGiRWxOnC_pM-JSZCMHTIOJsUAJ51oC"
+    },
+    {
+      "name": "web/assets/icons/gutter/colors@2x.png",
+      "size": 128,
+      "writable": true,
+      "hash": "P4qAf5Y0egBqsJ5HX_3DVL9hSGB6SBZhBzgUCPZSEvsC"
+    },
+    {
+      "name": "web/assets/icons/hot-reload-white.png",
+      "size": 1500,
+      "writable": true,
+      "hash": "6ix6SzvDXqq4pv0MPLf5BMbS7Z_l33qOIgI8in3dp_IC"
+    },
+    {
+      "name": "web/assets/icons/hot-reload-white@2x.png",
+      "size": 1479,
+      "writable": true,
+      "hash": "i0MdfWRQJEOgzGfDFb1mdkZeRENOil9_YKTqS5cP3eoC"
+    },
+    {
+      "name": "web/assets/icons/hot-reload.png",
+      "size": 367,
+      "writable": true,
+      "hash": "zEiG7Y6DdzPafTW29RSzOV2DO5wf1r_piEPASC_M3ngC"
+    },
+    {
+      "name": "web/assets/icons/hot-reload@2x.png",
+      "size": 764,
+      "writable": true,
+      "hash": "SmiJP7r7UbS9vnVEZbRADWjhKkq9AOzipO1FNyN1240C"
+    },
+    {
+      "name": "web/assets/icons/hot-restart-white.png",
+      "size": 1644,
+      "writable": true,
+      "hash": "wzrnCjI4IRelm60GC5MAyicp-eGpw9BriwQOCJSVvUwC"
+    },
+    {
+      "name": "web/assets/icons/hot-restart-white@2x.png",
+      "size": 2273,
+      "writable": true,
+      "hash": "gxZ_OE3zANJEXXLvoI2X5VrcCMZoYanX7Hp6tJmwUW0C"
+    },
+    {
+      "name": "web/assets/icons/hot-restart.png",
+      "size": 1757,
+      "writable": true,
+      "hash": "9B3_K5iKEUCboboqimKlgGZEhiGgk05Cyf9k_1nV08AC"
+    },
+    {
+      "name": "web/assets/icons/hot-restart@2x.png",
+      "size": 2584,
+      "writable": true,
+      "hash": "dJSEkEqrtFDwbaUjee0Zx9QRGocxEJre11Bpwkx60qkC"
+    },
+    {
+      "name": "web/assets/icons/images-dgrey.png",
+      "size": 768,
+      "writable": true,
+      "hash": "AqRz5vSneSGrivR4ICOSz6G0wUmaGZycl8Bv8Kuy4vQC"
+    },
+    {
+      "name": "web/assets/icons/images-lgrey.png",
+      "size": 776,
+      "writable": true,
+      "hash": "lkktpO4KNpgvW3Z0xwht9p8NrRTgGKXVNzKiR5kF5TkC"
+    },
+    {
+      "name": "web/assets/icons/images-white.png",
+      "size": 698,
+      "writable": true,
+      "hash": "kczmwXOkiOpoQD3kR0AOdryfiR03ePEHJ5ocxtGcdKkC"
+    },
+    {
+      "name": "web/assets/icons/inspector/any_type.png",
+      "size": 111,
+      "writable": true,
+      "hash": "EB03N7PYNpnW7J9ZZ6V7LsFvMtEvxR9MBCYIYEWH3x0C"
+    },
+    {
+      "name": "web/assets/icons/inspector/any_type@2x.png",
+      "size": 146,
+      "writable": true,
+      "hash": "coqXN4r3RrQHJTAUOfFKz0ZoDbaSDoSNEj9LRAkAte4C"
+    },
+    {
+      "name": "web/assets/icons/inspector/atrule.png",
+      "size": 215,
+      "writable": true,
+      "hash": "ulLeFqdJpUyQc2cCUF2ZWC6rRcVl6QGwbdoYdF-0PPgC"
+    },
+    {
+      "name": "web/assets/icons/inspector/atrule@2x.png",
+      "size": 465,
+      "writable": true,
+      "hash": "yofJvRZse296Sj48VyaQU9Q3RPPBeREmEC-gabVOj4oC"
+    },
+    {
+      "name": "web/assets/icons/inspector/balloonInformation.png",
+      "size": 456,
+      "writable": true,
+      "hash": "AwpSTtqIUYKVCKj2UP0CnhT6rrTNIkRZ_ZWY3G6iBtoC"
+    },
+    {
+      "name": "web/assets/icons/inspector/balloonInformation@2x.png",
+      "size": 987,
+      "writable": true,
+      "hash": "Kbsd7pN12Jhcp7nD7wIcuEFBaS6S5fc-OhciWuZcj1sC"
+    },
+    {
+      "name": "web/assets/icons/inspector/class.png",
+      "size": 184,
+      "writable": true,
+      "hash": "VHORn11f9ngI7AFfcrRH2GdqV0KAuNh4FnsLyl-uS5sC"
+    },
+    {
+      "name": "web/assets/icons/inspector/class@2x.png",
+      "size": 345,
+      "writable": true,
+      "hash": "6Ahvv_LxIocpCLkUX_PtRjuGs2yudZk_xLRyyS3mR5gC"
+    },
+    {
+      "name": "web/assets/icons/inspector/collapse_property.png",
+      "size": 1860,
+      "executable": true,
+      "writable": true,
+      "hash": "mLAnZx0w5XSaC7qNhz5oiFe80Ogb7YDPYIM8-Yyo7K0C"
+    },
+    {
+      "name": "web/assets/icons/inspector/collapse_property@2x.png",
+      "size": 1870,
+      "executable": true,
+      "writable": true,
+      "hash": "n2a0vFaVXSM0syQfZwpPbePmUff4vO5GtJoe2cCXtIcC"
+    },
+    {
+      "name": "web/assets/icons/inspector/colors.png",
+      "size": 124,
+      "writable": true,
+      "hash": "elNwmwLgaqikCXGiRWxOnC_pM-JSZCMHTIOJsUAJ51oC"
+    },
+    {
+      "name": "web/assets/icons/inspector/colors@2x.png",
+      "size": 127,
+      "writable": true,
+      "hash": "rmtXLM9Jo7UnFnI2DtnXiDXJBdHMUg78k89BtW0bDEIC"
+    },
+    {
+      "name": "web/assets/icons/inspector/diagram.png",
+      "size": 129,
+      "writable": true,
+      "hash": "Nvxw7DHe4ophQ81Doaei0pl3HBSQNRsbibb3Wec3QIoC"
+    },
+    {
+      "name": "web/assets/icons/inspector/diagram@2x.png",
+      "size": 198,
+      "writable": true,
+      "hash": "jflyjSGuUL1O59HBEfOfX4DzQ4Jt8OAwJ_FbhacobswC"
+    },
+    {
+      "name": "web/assets/icons/inspector/expand_property.png",
+      "size": 1688,
+      "executable": true,
+      "writable": true,
+      "hash": "oxxrQ6zk_D-U3w1xUfM48zSBkgxjs3UZ-a_0tceSlXAC"
+    },
+    {
+      "name": "web/assets/icons/inspector/expand_property@2x.png",
+      "size": 1697,
+      "writable": true,
+      "hash": "raEI-q-UCuQOTiz4l9ehCwy6yqaT2dEKCiMifz1bhQ4C"
+    },
+    {
+      "name": "web/assets/icons/inspector/extAnnotation.png",
+      "size": 224,
+      "writable": true,
+      "hash": "ey7S4z0nH2mojCkp1rr9u9pgn6KinWkpOLQzo27laqsC"
+    },
+    {
+      "name": "web/assets/icons/inspector/extAnnotation@2x.png",
+      "size": 569,
+      "writable": true,
+      "hash": "FdfVT6b9PgybMkShy9DbpbGsAF5oYgHEmxqqoJsOMHYC"
+    },
+    {
+      "name": "web/assets/icons/inspector/formattedTextField.png",
+      "size": 160,
+      "writable": true,
+      "hash": "YJK8T2gvH-oEVDakAicVjNQMFWybgON6n28EzcN2VS0C"
+    },
+    {
+      "name": "web/assets/icons/inspector/formattedTextField@2x.png",
+      "size": 249,
+      "writable": true,
+      "hash": "qPTRXQflIRwfv_wdYquslpHujjptS5vQDmY0H1aHMU0C"
+    },
+    {
+      "name": "web/assets/icons/inspector/renderer.png",
+      "size": 166,
+      "writable": true,
+      "hash": "6clP9V3UBvocaL5wXiwHLLYYhhZzPcfICIEAbCxbNFkC"
+    },
+    {
+      "name": "web/assets/icons/inspector/renderer@2x.png",
+      "size": 247,
+      "writable": true,
+      "hash": "TbtdKTy677XC9c_ScoDwturAjKkkn61LXRBSMBJLacUC"
+    },
+    {
+      "name": "web/assets/icons/inspector/resume.png",
+      "size": 397,
+      "writable": true,
+      "hash": "6P6EGphluurrLDxpCfzUurQJ9VAW1xCH2c_SPUys3d8C"
+    },
+    {
+      "name": "web/assets/icons/inspector/resume@2x.png",
+      "size": 888,
+      "writable": true,
+      "hash": "VyeD4oOgEmgtQYdYupqq9yLvG0hcY6afhJwdemrknOEC"
+    },
+    {
+      "name": "web/assets/icons/inspector/scrollbar.png",
+      "size": 256,
+      "writable": true,
+      "hash": "ebKckQ_fNT6-O7U5YE2Uixcwd8UOhWOkMPZ77ofKKI4C"
+    },
+    {
+      "name": "web/assets/icons/inspector/scrollbar@2x.png",
+      "size": 483,
+      "writable": true,
+      "hash": "DEfB-nas5uZyIDoN14OdcYWvWIIAsYGL7hWFLqR4CAYC"
+    },
+    {
+      "name": "web/assets/icons/inspector/textArea.png",
+      "size": 210,
+      "writable": true,
+      "hash": "NTAapzK7c96XhWP57s9p-vCN_jWq1H1yitgtZcCl5RAC"
+    },
+    {
+      "name": "web/assets/icons/inspector/textArea@2x.png",
+      "size": 301,
+      "writable": true,
+      "hash": "EC_dyY_0Nt_R48u2QVKxx-UqYJ6lz777OHhweFVHLucC"
+    },
+    {
+      "name": "web/assets/icons/inspector/threads.png",
+      "size": 347,
+      "writable": true,
+      "hash": "zIfF3_Y26GYc_03D-aM0oxz11ibovlQOQTyuNk93mTsC"
+    },
+    {
+      "name": "web/assets/icons/inspector/threads@2x.png",
+      "size": 595,
+      "writable": true,
+      "hash": "M5YVNVJqQyE7Z2zc25v11n83hWsthxReLSC1m0EcVxAC"
+    },
+    {
+      "name": "web/assets/icons/inspector/value.png",
+      "size": 95,
+      "writable": true,
+      "hash": "P4MO8XMvzoEk_Ffg0d4N3gDN_nbh6G_8ulQaHypvuHsC"
+    },
+    {
+      "name": "web/assets/icons/inspector/value@2x.png",
+      "size": 112,
+      "writable": true,
+      "hash": "bj-Crn3vQgO3azjtcogaaKfB9a8MFAjkkIRl1i_1_HkC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/alertdialog.png",
+      "size": 559,
+      "writable": true,
+      "hash": "OWku9SI_3aPz5XuHl6JNff_r1oCKKFhDUYLPirO3ez0C"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/align.png",
+      "size": 424,
+      "writable": true,
+      "hash": "draykIdHGs-2CaR7nUih-lguPpD37xjUR7D0OuHrm7UC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/animated.png",
+      "size": 663,
+      "writable": true,
+      "hash": "oowCrtRerJ52huvAi9C2Wjt5aUcG3NNizHF-TRrhzHkC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/appbar.png",
+      "size": 551,
+      "writable": true,
+      "hash": "mwmWH-oq7NNuy8pXh2mu_5d03Hy5iI0hjLejf1_6Kk0C"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/bottomnavigationbar.png",
+      "size": 544,
+      "writable": true,
+      "hash": "FpZmk5XAhGGngSLaChjW6h9mipk-3S2yyhTJlsflGQEC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/card.png",
+      "size": 701,
+      "writable": true,
+      "hash": "V1F-Fi6GUQIpYWOKX5HJ5x1-SCGPiPj_Zj0wjjI3QCcC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/center.png",
+      "size": 511,
+      "writable": true,
+      "hash": "PCER1OaFmCx8OboxzbN4jV8rA8gVpdpBK_iJwFIMI6UC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/checkbox.png",
+      "size": 718,
+      "writable": true,
+      "hash": "GDrQAPpaWm2R7I__EADPPWFj1ja-xCbkKKcIO4fd_qIC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/circleavatar.png",
+      "size": 1508,
+      "writable": true,
+      "hash": "RdMOLGCE0PYffZ5WY0i78I-4OrEYZyfyPAdC-biUMXMC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/circularprogress.png",
+      "size": 1192,
+      "writable": true,
+      "hash": "AZdaS0HHEQ_IPysSdpLa4UeuOJYfRaJB-CFt0KHNfvQC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/column.png",
+      "size": 618,
+      "writable": true,
+      "hash": "R2YxxNUbHkptTcwyDWz08hCYvlRGba-lAWbZgzfaX80C"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/constrainedbox.png",
+      "size": 1328,
+      "writable": true,
+      "hash": "Ydrz3_yeeTW7B3Xl4yFB5NeSkwZrqKG7z51WutvxeogC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/container.png",
+      "size": 668,
+      "writable": true,
+      "hash": "eamHhIEHDirgY2nWW0Sgx7bcciHz31yd55NlWFgfXmoC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/divider.png",
+      "size": 581,
+      "writable": true,
+      "hash": "sqfWhDas3q0-GKr2eAgOZqy-l8ptJPSpAOVtM0r5_GsC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/drawer.png",
+      "size": 253,
+      "writable": true,
+      "hash": "M4TNzGXoRD5_Xe9PB4dxtu4cGAEqx74cMDcvQ2v6n9EC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/expand.png",
+      "size": 627,
+      "writable": true,
+      "hash": "1CKJxWz91_-noh_jViemp6cjGs1f-VyNXtdSR6wWSRgC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/floatingab.png",
+      "size": 951,
+      "writable": true,
+      "hash": "LP3bR893kWIGS6NX9U6OXxogKeIyD3FRtd6D_YVj1SEC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/gesture.png",
+      "size": 1337,
+      "writable": true,
+      "hash": "WfHWeydxdkuZS8cUAyX-QkLsADiiQEnU9jSsvIY6gykC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/gridview.png",
+      "size": 500,
+      "writable": true,
+      "hash": "Xl5OzjrPsaDIkCjtCYMMmqXGgKFkwxEm81kMCvNPTncC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/hero.png",
+      "size": 970,
+      "writable": true,
+      "hash": "n6wdy0u21Hpb0T0ldSr2aXC3RX8vjAoZGYD2CCDORhMC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/icon.png",
+      "size": 1576,
+      "writable": true,
+      "hash": "mb1UICkKT-_f-whra45H11wJv1-tmqV1e3narY4pWy4C"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/image.png",
+      "size": 773,
+      "writable": true,
+      "hash": "fXYP8ffwhbpAz-ilRLvZN-CfCG7n7Tj3XC1nNhR3PWcC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/inkwell.png",
+      "size": 1557,
+      "writable": true,
+      "hash": "0dsB1GSOfa9BRTnLbGX2Mhf-m62vxpidU96BO-ljPLoC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/listview.png",
+      "size": 654,
+      "writable": true,
+      "hash": "ZS0t1TN045Z2-bIwQVyUVnKT6QBsWz4Ve9uNcj049ZIC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/material.png",
+      "size": 1866,
+      "writable": true,
+      "hash": "aoqqhlYl-6KK2Rf76q2bZRj7gmJx09kK9xzJFzx_BAQC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/materialapp.png",
+      "size": 1718,
+      "writable": true,
+      "hash": "OCvbn6KxXpfgT1CVUnWpkCLRT6DVrN0lBkUQUT2P7o8C"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/onedot.png",
+      "size": 146,
+      "writable": true,
+      "hash": "fKE8k8ms4LzurzJ0K_YDbt87tigYJ06TDSCZBxEuYg0C"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/opacity.png",
+      "size": 1293,
+      "writable": true,
+      "hash": "M0EiQd7m9W4MtZ5cqj5RAWvXJCvIcn3EUj1fwf54m5YC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/outlinedbutton.png",
+      "size": 764,
+      "writable": true,
+      "hash": "3mhvSMGH4gycvs0W2akLArtPdSm3m9OEs-oZNBF7eaEC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/padding.png",
+      "size": 1019,
+      "writable": true,
+      "hash": "a45gxF6p5SjTEcytBXNjcyb3pv1vsmkexppzhDq2YiwC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/pageView.png",
+      "size": 902,
+      "writable": true,
+      "hash": "puN5ssKGIQkB4jRZbRMSszAaUMJGzUZ_BvJojmws-9oC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/radio.png",
+      "size": 1379,
+      "writable": true,
+      "hash": "n7f28tEkTMhkIktromIugMO5decMlKEiS-RhRRcmQK8C"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/root.png",
+      "size": 481,
+      "writable": true,
+      "hash": "IqirPO4wvGwL0ZMKCYYbDod-uh-NoSNZAG3TQt7U1ngC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/row.png",
+      "size": 531,
+      "writable": true,
+      "hash": "DbF0xiUyjWHzs6g75fIiT5zwFYibpnUGPjQf8jhJGKgC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/scaffold.png",
+      "size": 1172,
+      "writable": true,
+      "hash": "6wl5Yuad_eH8Jh2-1TxPZa3uZomIMNaS732Aa_cl9P8C"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/scroll.png",
+      "size": 401,
+      "writable": true,
+      "hash": "cU8HnCadFofgEv2DWbE4Jj7Kl4iECy89BukuoXixwAUC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/sizedbox.png",
+      "size": 731,
+      "writable": true,
+      "hash": "SPOLlYDwyGqmgdasvptHCAXZNVRH-Bpu7B5KwXf6zyoC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/stack.png",
+      "size": 1588,
+      "writable": true,
+      "hash": "mSOxwVqyBg75OGhsjMF-FV3VvW1rYdXQWaXqFkhCAo4C"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/tab.png",
+      "size": 509,
+      "writable": true,
+      "hash": "OJD-nivtyRixbaysoppj8L-1Lf94l1h-xv7zmGogyl0C"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/text.png",
+      "size": 649,
+      "writable": true,
+      "hash": "maSyJ46V4sFAQmdH7hV8Qa2QCGuOas-PuiZYixzY1iEC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/textbutton.png",
+      "size": 638,
+      "writable": true,
+      "hash": "FpZ1OKL7l7Oa69pu6lYvZWkrEWUpf-p7l6Jg5UKpAc4C"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/toggle.png",
+      "size": 902,
+      "writable": true,
+      "hash": "jIJ30yxpQcd35ihSGlqGoE30_cza__Uk9PSch-r_1U4C"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/transition.png",
+      "size": 2140,
+      "writable": true,
+      "hash": "FvO8RoVcdIFEYOumlfy2Rjel0bGu6DcnmEuNEPEGnEsC"
+    },
+    {
+      "name": "web/assets/icons/inspector/widget_icons/wrap.png",
+      "size": 792,
+      "writable": true,
+      "hash": "g0eoT7iB41aKmYrzhT719TT1jt0WS_Wub6m6uy1kC4kC"
+    },
+    {
+      "name": "web/assets/icons/memory/alloc_icon.png",
+      "size": 202,
+      "writable": true,
+      "hash": "NZSEA0tHnKwAtvWdCjsvLrpROq023djW9XbUWYxGc24C"
+    },
+    {
+      "name": "web/assets/icons/memory/alloc_icon@2x.png",
+      "size": 253,
+      "writable": true,
+      "hash": "pqQdkkg3tVzwG6iQ4yVepTH4khS-mx3OnCj-0zQXE9oC"
+    },
+    {
+      "name": "web/assets/icons/memory/communities_black.png",
+      "size": 5716,
+      "writable": true,
+      "hash": "MJ0KOx_ZiVaXHdrgZTu55X1574G1CRc-PjTLC8JvjZkC"
+    },
+    {
+      "name": "web/assets/icons/memory/communities_white.png",
+      "size": 652,
+      "writable": true,
+      "hash": "tei1BbtYkA2iQ4foYYun4g5ScTqXGDfS1z3MgzBLJHgC"
+    },
+    {
+      "name": "web/assets/icons/memory/ic_delete_outline_black.png",
+      "size": 114,
+      "writable": true,
+      "hash": "5qB1AJxvxxMVu1YZ-vnNq0AR-vkwTj-RwRcUcllCVpYC"
+    },
+    {
+      "name": "web/assets/icons/memory/ic_delete_outline_black@2x.png",
+      "size": 114,
+      "writable": true,
+      "hash": "5qB1AJxvxxMVu1YZ-vnNq0AR-vkwTj-RwRcUcllCVpYC"
+    },
+    {
+      "name": "web/assets/icons/memory/ic_filter_alt_black_1x_web_24dp@2x.png",
+      "size": 154,
+      "writable": true,
+      "hash": "7-YDZ9EMGTSEsD5yroaLfa8FY6_oC2znw9cGEtLt6WYC"
+    },
+    {
+      "name": "web/assets/icons/memory/ic_filter_list_alt_black.png",
+      "size": 154,
+      "writable": true,
+      "hash": "7-YDZ9EMGTSEsD5yroaLfa8FY6_oC2znw9cGEtLt6WYC"
+    },
+    {
+      "name": "web/assets/icons/memory/ic_filter_list_alt_black@2x.png",
+      "size": 223,
+      "executable": true,
+      "writable": true,
+      "hash": "S31IUXySqG2FDcUeT_ktcbRRWKFdipVULRRqQzDwq28C"
+    },
+    {
+      "name": "web/assets/icons/memory/ic_search.png",
+      "size": 282,
+      "writable": true,
+      "hash": "CR8yg3fB5aEyjTC7CG3pihTDCEEn__CdEhtED96bxb4C"
+    },
+    {
+      "name": "web/assets/icons/memory/ic_search@2x.png",
+      "size": 464,
+      "writable": true,
+      "hash": "kU4oSvt-2V1h8cCHfIJ2S-yfBbjTM4QKZaYyQo8KDHIC"
+    },
+    {
+      "name": "web/assets/icons/memory/reset_icon_black.png",
+      "size": 6472,
+      "writable": true,
+      "hash": "LruGcb-1uWwVcPxsbH_ig6a5Xg7_jEPpri_UkfLLrkEC"
+    },
+    {
+      "name": "web/assets/icons/memory/reset_icon_white.png",
+      "size": 8722,
+      "writable": true,
+      "hash": "u4jD3U241BlUjX8t4tcw8ig1YsOt2X7G1su_-3pbQZgC"
+    },
+    {
+      "name": "web/assets/icons/memory/settings.png",
+      "size": 296,
+      "executable": true,
+      "writable": true,
+      "hash": "Iae2Ak2IGP2hXEdmBdoxkezWnfFsfOoM1h-Npo_caKoC"
+    },
+    {
+      "name": "web/assets/icons/memory/settings@2x.png",
+      "size": 597,
+      "executable": true,
+      "writable": true,
+      "hash": "-AWl-Z7ekUnGWRFQKmVexnTH_OQjItHxTDwNzSVStPkC"
+    },
+    {
+      "name": "web/assets/icons/memory/snapshot_color.png",
+      "size": 1013,
+      "writable": true,
+      "hash": "NQOSGFIFhkA4DM3cireh4rhCgAidqiO8PCp3t9x69NwC"
+    },
+    {
+      "name": "web/assets/icons/memory/snapshot_color@2x.png",
+      "size": 2140,
+      "executable": true,
+      "writable": true,
+      "hash": "SjOlJ9ru838rVeRHHJTjq7qOA1InukQ6KIIjOrPa6P4C"
+    },
+    {
+      "name": "web/assets/icons/memory_dashboard.png",
+      "size": 520,
+      "writable": true,
+      "hash": "LRl2mFFuccIo9eDsIu5ygCXL6Qy59mtOJT_E2ePQB3YC"
+    },
+    {
+      "name": "web/assets/icons/memory_dashboard@2x.png",
+      "size": 887,
+      "writable": true,
+      "hash": "bT48NqG3OJXzv5Qluw7TdGGdkY45vPFsNX7E7dR1k4MC"
+    },
+    {
+      "name": "web/assets/icons/observatory.png",
+      "size": 1624,
+      "writable": true,
+      "hash": "ukHCo7JaVqo_x0RFnh6ts11yTED7NUlIkjLaHIZRoWIC"
+    },
+    {
+      "name": "web/assets/icons/observatory@2x.png",
+      "size": 2049,
+      "writable": true,
+      "hash": "g-45Zw-H42uotp1Mv3wj613RwKq1VYp9mj_-e5x1MekC"
+    },
+    {
+      "name": "web/assets/icons/observatory_overflow.png",
+      "size": 1596,
+      "writable": true,
+      "hash": "sC2x8ttt_KjBielsUO7cMXdbG6x5CHVx0izM61NSyTMC"
+    },
+    {
+      "name": "web/assets/icons/observatory_overflow@2x.png",
+      "size": 2281,
+      "writable": true,
+      "hash": "S869K5knw0vsOyhjwn64Vs0X0JLIudCRXmYSNfmkM6oC"
+    },
+    {
+      "name": "web/assets/icons/perf/GreenOK.png",
+      "size": 361,
+      "writable": true,
+      "hash": "obxTAd9J_MASOxGCMULYUVYghllK_Ec0iFHvtQJ9LMEC"
+    },
+    {
+      "name": "web/assets/icons/perf/GreenOK@2x.png",
+      "size": 1016,
+      "writable": true,
+      "hash": "35W5G79f05RHeanXxww_FUswI9BokutQyrzuW6RH8I0C"
+    },
+    {
+      "name": "web/assets/icons/perf/GreyProgr.png",
+      "size": 379,
+      "writable": true,
+      "hash": "DNwGtus39HFg2p6cYt5a6oXqQuTY_gojLB8Qt2OsDQcC"
+    },
+    {
+      "name": "web/assets/icons/perf/GreyProgr@2x.png",
+      "size": 915,
+      "writable": true,
+      "hash": "4A_ghzZsjQCtCnOMLs0X8KkaYy7hjD5p6Ylp-e8qwl8C"
+    },
+    {
+      "name": "web/assets/icons/perf/GreyProgr_1.png",
+      "size": 380,
+      "writable": true,
+      "hash": "Rmae620WSuuc84RV3d1-d7wBBUiVquD3Cb4-G7BUT_oC"
+    },
+    {
+      "name": "web/assets/icons/perf/GreyProgr_1@2x.png",
+      "size": 915,
+      "writable": true,
+      "hash": "4A_ghzZsjQCtCnOMLs0X8KkaYy7hjD5p6Ylp-e8qwl8C"
+    },
+    {
+      "name": "web/assets/icons/perf/GreyProgr_2.png",
+      "size": 426,
+      "writable": true,
+      "hash": "QIhibHhrVrZjWn89X4UQKFN4TxcY5UH3kXFqo3j7gKIC"
+    },
+    {
+      "name": "web/assets/icons/perf/GreyProgr_2@2x.png",
+      "size": 967,
+      "writable": true,
+      "hash": "K8rpOI1M9qbUEjiC1_B7ywnTXFQNXDktGsrNXef-mLoC"
+    },
+    {
+      "name": "web/assets/icons/perf/GreyProgr_3.png",
+      "size": 386,
+      "writable": true,
+      "hash": "QvNuCg-6hhKl2pfKAMAOh1vihMSElSOXJCYhF2ZEvvYC"
+    },
+    {
+      "name": "web/assets/icons/perf/GreyProgr_3@2x.png",
+      "size": 953,
+      "writable": true,
+      "hash": "zSgDB8qa8sJci_FdL9RIBrRmf5oRbogo5Hnvt68Z9-gC"
+    },
+    {
+      "name": "web/assets/icons/perf/GreyProgr_4.png",
+      "size": 439,
+      "writable": true,
+      "hash": "BoVGoGhiB0AoLccgY2lbe9YMhZ1A39CpTUEm2RTtamYC"
+    },
+    {
+      "name": "web/assets/icons/perf/GreyProgr_4@2x.png",
+      "size": 957,
+      "writable": true,
+      "hash": "tKjU-NAZyUBDDVXN0LaZWQoiJ7nkZbo5TM8WI4QVeFkC"
+    },
+    {
+      "name": "web/assets/icons/perf/GreyProgr_5.png",
+      "size": 386,
+      "writable": true,
+      "hash": "C9RL6MN7Fc3KZRn17pvwyGr6aw9TAanHx8LxCbKbAeAC"
+    },
+    {
+      "name": "web/assets/icons/perf/GreyProgr_5@2x.png",
+      "size": 921,
+      "writable": true,
+      "hash": "yG6ZavATzxqJ8H8Js9MW-iWJMYBvIm63RxxuY6zbKSAC"
+    },
+    {
+      "name": "web/assets/icons/perf/GreyProgr_6.png",
+      "size": 440,
+      "writable": true,
+      "hash": "CYcDnHhJ7pAVF4fdsV1PQ0dMY0g4AXwEV6U-KhRaklEC"
+    },
+    {
+      "name": "web/assets/icons/perf/GreyProgr_6@2x.png",
+      "size": 976,
+      "writable": true,
+      "hash": "JYurALWmL_w3vA7E3ys9aBuPO0RaTKvN--fMCvs-E14C"
+    },
+    {
+      "name": "web/assets/icons/perf/GreyProgr_7.png",
+      "size": 400,
+      "writable": true,
+      "hash": "j53-1iuQeOBTzDoE5mfZbothN7mCR42vAUQXESgu4b0C"
+    },
+    {
+      "name": "web/assets/icons/perf/GreyProgr_7@2x.png",
+      "size": 954,
+      "writable": true,
+      "hash": "Yt55OV7TCkz3xPdGZmpSBcjhPtWzw16RJ2GlAeGK_boC"
+    },
+    {
+      "name": "web/assets/icons/perf/GreyProgr_8.png",
+      "size": 439,
+      "writable": true,
+      "hash": "KJnnJubSg_seFEoqazm7O3Yxwb9g44XibGUyZQuJ7D8C"
+    },
+    {
+      "name": "web/assets/icons/perf/GreyProgr_8@2x.png",
+      "size": 982,
+      "writable": true,
+      "hash": "feYMTPeJKmrB_1qg7n2JYJw4fszWbQPocApROXx2vpgC"
+    },
+    {
+      "name": "web/assets/icons/perf/RedExcl.png",
+      "size": 362,
+      "writable": true,
+      "hash": "ddHCPuaJD5AKYeQ7Qk-ZS5ABjh8v_wqyOS2H2jfmDDsC"
+    },
+    {
+      "name": "web/assets/icons/perf/RedExcl@2x.png",
+      "size": 800,
+      "writable": true,
+      "hash": "ABtrw4E61xP-LzeYtOL1xKUmNDz9KfbHhJhnuPBaQowC"
+    },
+    {
+      "name": "web/assets/icons/perf/RedProgr.png",
+      "size": 1801,
+      "writable": true,
+      "hash": "suzF58lwGS_1RiHBlIba2MXusWMiInugNWflpRGhJusC"
+    },
+    {
+      "name": "web/assets/icons/perf/RedProgr@2x.png",
+      "size": 2469,
+      "writable": true,
+      "hash": "socbHzewPoWhyooMgfN2WlH4H7-8M1AFVxpq2yUb91MC"
+    },
+    {
+      "name": "web/assets/icons/perf/RedProgr_1.png",
+      "size": 1784,
+      "writable": true,
+      "hash": "baz5lHXvMzxUgPuB5-NBl1ij4iJuV_ooREaWqeDGbPgC"
+    },
+    {
+      "name": "web/assets/icons/perf/RedProgr_1@2x.png",
+      "size": 2475,
+      "writable": true,
+      "hash": "7deGeGbGa7J7E-AfD_rjGpZTqSUy4qViodyPW8Byf9AC"
+    },
+    {
+      "name": "web/assets/icons/perf/RedProgr_2.png",
+      "size": 1797,
+      "writable": true,
+      "hash": "4hYvTZLTpjSyhISyg5AIAO1QCw5bLFyDqeB0DNsAxHYC"
+    },
+    {
+      "name": "web/assets/icons/perf/RedProgr_2@2x.png",
+      "size": 2441,
+      "writable": true,
+      "hash": "QwciCwnOa6NWmWPcmwiks-8Ij5yfWofWyMXumobQJGoC"
+    },
+    {
+      "name": "web/assets/icons/perf/RedProgr_3.png",
+      "size": 1795,
+      "writable": true,
+      "hash": "leW3I87FiCMQXxK_VtUJrJ1gNoELxJkEwaaP_YpfI44C"
+    },
+    {
+      "name": "web/assets/icons/perf/RedProgr_3@2x.png",
+      "size": 2424,
+      "writable": true,
+      "hash": "XIMasZQmDqXPsyI4t0mqZa09smDGUgT5VVGcxvv77SsC"
+    },
+    {
+      "name": "web/assets/icons/perf/RedProgr_4.png",
+      "size": 1820,
+      "writable": true,
+      "hash": "gCc5O1EXX0xpbQRocR4_HxwXMJAj5ObQZhJHaie3Y0sC"
+    },
+    {
+      "name": "web/assets/icons/perf/RedProgr_4@2x.png",
+      "size": 2436,
+      "writable": true,
+      "hash": "Z-SO0uk2r16ZRfj2vYsAU7qz-FreaVyEnVIrAADF2FUC"
+    },
+    {
+      "name": "web/assets/icons/perf/RedProgr_5.png",
+      "size": 1806,
+      "writable": true,
+      "hash": "nbWZ2SHiwgRTqRqjFwO9rPM_JZutDvX0wYccANKyrT0C"
+    },
+    {
+      "name": "web/assets/icons/perf/RedProgr_5@2x.png",
+      "size": 2431,
+      "writable": true,
+      "hash": "z-j-jo2fkr3oIXahKWnESzwdhfN7b3nsVqWedewNcDoC"
+    },
+    {
+      "name": "web/assets/icons/perf/RedProgr_6.png",
+      "size": 1804,
+      "writable": true,
+      "hash": "f1w_Wk38GKHnZ0ujQUoeL-SiwJhQpT6w5Zh71Wm0Os8C"
+    },
+    {
+      "name": "web/assets/icons/perf/RedProgr_6@2x.png",
+      "size": 2434,
+      "writable": true,
+      "hash": "Mowqhg3VabtGNuxs90sbLd0Ngl5uXVDCw_zeQ5PTsMQC"
+    },
+    {
+      "name": "web/assets/icons/perf/RedProgr_7.png",
+      "size": 1810,
+      "writable": true,
+      "hash": "SHEIkWLbBFYWY31GUAHhmANmLG0oBu_jtd1viEsuww8C"
+    },
+    {
+      "name": "web/assets/icons/perf/RedProgr_7@2x.png",
+      "size": 2415,
+      "writable": true,
+      "hash": "nyt1MMbBAIvUrWm9CIPXVb6T9SrGN-Ph_XpJlT7a8jsC"
+    },
+    {
+      "name": "web/assets/icons/perf/RedProgr_8.png",
+      "size": 1823,
+      "writable": true,
+      "hash": "wvixNE_tBm5eARAsuozZnwqhd1VA6DRJYT7AcJkcHDoC"
+    },
+    {
+      "name": "web/assets/icons/perf/RedProgr_8@2x.png",
+      "size": 2453,
+      "writable": true,
+      "hash": "Db4thJB2WHn-Zs0QHltlHhqOSMrIu9xAB-G2Jqe-XTEC"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowProgr.png",
+      "size": 2046,
+      "writable": true,
+      "hash": "x50hLNGyARHm98yrGvaDjOfgZgvlpo5lbbrCGh-k8ccC"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowProgr@2x.png",
+      "size": 2723,
+      "writable": true,
+      "hash": "H-QGbLwvGUI9_hPGGVdbdKGkRNv5mQxQie4AjlVNC_4C"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowProgr_1.png",
+      "size": 2009,
+      "writable": true,
+      "hash": "8ORLlS857XYpIGUy-q_AcKO6FsE6bRhRYetpHAF2TqQC"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowProgr_1@2x.png",
+      "size": 2729,
+      "writable": true,
+      "hash": "qQBGuTkw-E1Ef-NHlp8JbNI2wv6xZKEREC9xDnlv7ywC"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowProgr_2.png",
+      "size": 2019,
+      "writable": true,
+      "hash": "Ps1DGVcaA5IMfM6OPXLKsSEyv2osjvzVXxuTGk24B70C"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowProgr_2@2x.png",
+      "size": 2717,
+      "writable": true,
+      "hash": "hIuZWmrl1WnKpX407Yg-9jX-v0WZlSIOWHWtF8kEmUgC"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowProgr_3.png",
+      "size": 2027,
+      "writable": true,
+      "hash": "DxXkcoXbuiSFumodepsiowr17Le_IBPvTVJmjNHJ_9wC"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowProgr_3@2x.png",
+      "size": 2701,
+      "writable": true,
+      "hash": "_dYEfPUlX-m_Z-Fno4_MrS-BjKyar1N1KHuLmg2I8dQC"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowProgr_4.png",
+      "size": 2044,
+      "writable": true,
+      "hash": "HbPYMChoBHdQd6FDs3wNNBsIZ4yA7AWE5Ks5o0TgS_gC"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowProgr_4@2x.png",
+      "size": 2719,
+      "writable": true,
+      "hash": "M2g3lXE5k98tkDCFmm7E1pi329nEAEU7GmF4KyS5j4gC"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowProgr_5.png",
+      "size": 1995,
+      "writable": true,
+      "hash": "eYtdDIJzSipYBwrqwMlMkoPY8ObnjVeKtY3C-LzErJ4C"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowProgr_5@2x.png",
+      "size": 2677,
+      "writable": true,
+      "hash": "cmun52jcP-sStVRO94ygSNEe7ULbm4rZdYKQj0_ivo4C"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowProgr_6.png",
+      "size": 2018,
+      "writable": true,
+      "hash": "_omy0d83SUeDnMfg_AZDYdmapSXbAReac9zqkxFqTSkC"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowProgr_6@2x.png",
+      "size": 2706,
+      "writable": true,
+      "hash": "kG_FDkwE1mGaQ1Ale2xBWYPay4d7nyUFkwZx83DqhsIC"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowProgr_7.png",
+      "size": 2019,
+      "writable": true,
+      "hash": "ljE_mYq6bmz1tCrNpehj7OxhK4uCanGhchXwu4MSA00C"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowProgr_7@2x.png",
+      "size": 2687,
+      "writable": true,
+      "hash": "FvO5HDE9_6Yoh3ZMve-mT8NOCRz2TwQvGfN3LZWfqpMC"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowProgr_8.png",
+      "size": 2040,
+      "writable": true,
+      "hash": "7rvfPMwAafoeRRQm2SB1bPqkpHlIk20v2GGL4oa6ChQC"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowProgr_8@2x.png",
+      "size": 2719,
+      "writable": true,
+      "hash": "r1EW9MW0b40Oy4pItk52av5BibaCSWCNTFSA_1WdqWYC"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowStr.png",
+      "size": 374,
+      "writable": true,
+      "hash": "aGAaZOeL7rmYG66b6JAa9KwwZRzVyfALi1z-Q6rSolEC"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowStr@2x.png",
+      "size": 845,
+      "writable": true,
+      "hash": "CZvDo_pAj6Ngfe_NTEHgHSXAUDC0sEff1bIxHXwDh6YC"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowStr@2x_dark.png",
+      "size": 775,
+      "writable": true,
+      "hash": "a6a21xLrDcFKXxtUaXkDeg7PRpoM7fqI4JH6LUMYfawC"
+    },
+    {
+      "name": "web/assets/icons/perf/YellowStr_dark.png",
+      "size": 378,
+      "writable": true,
+      "hash": "wQEHaD8NGf74j9izo497kJ5sy_C6fsfr5SVynP6rl4MC"
+    },
+    {
+      "name": "web/assets/icons/perf/grey_progress.gif",
+      "size": 2238,
+      "writable": true,
+      "hash": "jn6Dp7n9gO9174011FF27lMlFDEHW8nR2mm-nquDiAUC"
+    },
+    {
+      "name": "web/assets/icons/perf/red_progress.gif",
+      "size": 2238,
+      "writable": true,
+      "hash": "E5T3G95_DXAMHTb5SVRKP0PALfSyrZo6nZbnO83zbKwC"
+    },
+    {
+      "name": "web/assets/icons/perf/yellow_progress.gif",
+      "size": 2238,
+      "writable": true,
+      "hash": "9RcEdHvsLso_jMCGiAy1_fFfawS2Xl-rcHJBqVOaZN0C"
+    },
+    {
+      "name": "web/assets/icons/performance-dgrey.png",
+      "size": 385,
+      "writable": true,
+      "hash": "Az-KbwC5LTJx4ScQzJxTO2UiLooJA0Gz8KeKBM7TLe0C"
+    },
+    {
+      "name": "web/assets/icons/performance-lgrey.png",
+      "size": 389,
+      "writable": true,
+      "hash": "tMjuzO8-UMijgkhtu1vTYxjQ1zM3GGLelrUEu06u9NQC"
+    },
+    {
+      "name": "web/assets/icons/performance-white.png",
+      "size": 365,
+      "writable": true,
+      "hash": "386x00D4xZub7g5dOP68PBZX5xfQMnnOX7yRKgbm974C"
+    },
+    {
+      "name": "web/assets/icons/phone.png",
+      "size": 320,
+      "writable": true,
+      "hash": "a_gDpxHbc2PlmfPzgphkdOI0DCDAKdXoEJ1AjdB16mgC"
+    },
+    {
+      "name": "web/assets/icons/phone@2x.png",
+      "size": 416,
+      "writable": true,
+      "hash": "VAhGZZxIABJaV5kdCig-2p4KBYlLkE7hekjFO6XTi_QC"
+    },
+    {
+      "name": "web/assets/icons/refresh-dgrey.png",
+      "size": 1318,
+      "writable": true,
+      "hash": "TUHl8Bs-nM08XmQClvAmZ2jY5PagG_iaNARb323AffMC"
+    },
+    {
+      "name": "web/assets/icons/refresh-lgrey.png",
+      "size": 1320,
+      "writable": true,
+      "hash": "Ndxi6_QA_IwOUhrUM7SecCZKsdPWcHeolkqPtd_B1u4C"
+    },
+    {
+      "name": "web/assets/icons/refresh-white.png",
+      "size": 859,
+      "writable": true,
+      "hash": "mmCey4x1K5JWAkR8OxNaOlnVeZigkMMGuO-qEFP5-IYC"
+    },
+    {
+      "name": "web/assets/icons/reload_both.png",
+      "size": 1360,
+      "writable": true,
+      "hash": "hFXctPZ_ktKJwvjGVYhYLVXCKuKctvkrfqqoqggrnGQC"
+    },
+    {
+      "name": "web/assets/icons/reload_both@2x.png",
+      "size": 850,
+      "writable": true,
+      "hash": "2yd-H5fk6-fVZmU8oURag-Kr6sqhPxHCvx3AUjEForUC"
+    },
+    {
+      "name": "web/assets/icons/reload_debug.png",
+      "size": 1824,
+      "writable": true,
+      "hash": "ALbScZIQURdZui3gnt9U5vZ-6LnWzvpc1YvzzxYXaVgC"
+    },
+    {
+      "name": "web/assets/icons/reload_debug@2x.png",
+      "size": 2667,
+      "writable": true,
+      "hash": "IXey8sHmd9AEAjNi1rKkyRFbSL91hpUM-bg9qCxbDYoC"
+    },
+    {
+      "name": "web/assets/icons/reload_run.png",
+      "size": 1356,
+      "writable": true,
+      "hash": "9cqz2okLMjpxyBdjtOvSVmMr3u2aiXof7NWOAX063tIC"
+    },
+    {
+      "name": "web/assets/icons/reload_run@2x.png",
+      "size": 741,
+      "writable": true,
+      "hash": "pXVsYVxYhu62ITBlPfyT2hWnAzylYYos80WcRh_LAesC"
+    },
+    {
+      "name": "web/assets/icons/repaints-dgrey.png",
+      "size": 1429,
+      "writable": true,
+      "hash": "UQ2NwwZ4ITZsbpaUSzi4rK79lyA9loDyhinwqvu1s98C"
+    },
+    {
+      "name": "web/assets/icons/repaints-lgrey.png",
+      "size": 1475,
+      "writable": true,
+      "hash": "8pjQtl0mA3P2Pl8uTrTCgOK43R7z4f2GvitdScK3OHAC"
+    },
+    {
+      "name": "web/assets/icons/repaints-white.png",
+      "size": 1049,
+      "writable": true,
+      "hash": "kE1iORTJaCDNKMV3mDrwboNoyh7KrUY-t2mk5j069f8C"
+    },
+    {
+      "name": "web/assets/icons/restart.png",
+      "size": 1697,
+      "writable": true,
+      "hash": "LhOG-4pO1wlmpC_otAhTYUzbDg3hfOpghq4rVq5tfgoC"
+    },
+    {
+      "name": "web/assets/icons/restart@2x.png",
+      "size": 2323,
+      "writable": true,
+      "hash": "9M6TsfpOmsQEjFvkrss8P5Jm7DXuB3MdTjF81AOZY5wC"
+    },
+    {
+      "name": "web/assets/icons/slow-dgrey.png",
+      "size": 1571,
+      "writable": true,
+      "hash": "BvxYqwcUssptmyxniJ2dkbdZv2ZFY19eOPIcRT2g1s4C"
+    },
+    {
+      "name": "web/assets/icons/slow-lgrey.png",
+      "size": 1636,
+      "writable": true,
+      "hash": "sR7OsF0nSOZoPcgnAUAN26TpgArPxEan5OunPNtOimkC"
+    },
+    {
+      "name": "web/assets/icons/slow-white.png",
+      "size": 1128,
+      "writable": true,
+      "hash": "JGgLizuGaldP7hFnZVcQ50iyraaEci9nh4AXz76wMcMC"
+    },
+    {
+      "name": "web/assets/icons/template_new_module.png",
+      "size": 14319,
+      "writable": true,
+      "hash": "RbP8KQOaNb4IiAgtgXU421aOEVfWtWUzhslVGnpYwaMC"
+    },
+    {
+      "name": "web/assets/icons/template_new_package.png",
+      "size": 15328,
+      "writable": true,
+      "hash": "XbyCY2bJn5Ix7t_KL2BnJC3EICVSWq20FfCtsTbDlK0C"
+    },
+    {
+      "name": "web/assets/icons/template_new_plugin.png",
+      "size": 14621,
+      "writable": true,
+      "hash": "DoxMkE8gMDeofgkQNEEi-4UjhYirAGeJrowBrgK9CCQC"
+    },
+    {
+      "name": "web/assets/icons/template_new_project.png",
+      "size": 13740,
+      "writable": true,
+      "hash": "2RinGC84bsUVd95-pJE4gDo69Abm7B0xtSXW8Hd3a68C"
+    },
+    {
+      "name": "web/assets/icons/timeline.png",
+      "size": 236,
+      "writable": true,
+      "hash": "Vp_4rYTISnAWXtcKCxbn5pD2b_L-GlIkajtsRycYMpUC"
+    },
+    {
+      "name": "web/assets/icons/timeline@2x.png",
+      "size": 335,
+      "writable": true,
+      "hash": "5j1UNoY0x_C1kROASfc82HRN_xiFGN-00rnwJSgxUe4C"
+    },
+    {
+      "name": "web/assets/icons/trackwidget-dgrey.png",
+      "size": 674,
+      "writable": true,
+      "hash": "_mAHDUSumot2nIzgrrSDTioPGSo7jDi4Z1xSGl8DiikC"
+    },
+    {
+      "name": "web/assets/icons/trackwidget-lgrey.png",
+      "size": 703,
+      "writable": true,
+      "hash": "BGDCnsr8PQVMZ3Dof1mkpzbQe7i7gzyR1ugi4g3tHDoC"
+    },
+    {
+      "name": "web/assets/icons/trackwidget-white.png",
+      "size": 548,
+      "writable": true,
+      "hash": "5l6cdYIqiVcyLu5tbzzHoU5oWeEqXUHKpXN9B7550B0C"
+    },
+    {
+      "name": "web/assets/icons/widget-select-dgrey.png",
+      "size": 1267,
+      "writable": true,
+      "hash": "pDer422Mzy_hQYfFubRNJvidYEx1IuKhxUTEdzHxtm8C"
+    },
+    {
+      "name": "web/assets/icons/widget-select-lgrey.png",
+      "size": 1333,
+      "writable": true,
+      "hash": "9OxOZf11sDFkFfXN2EFVKHSzlmdkCLq-WRkI5Cwcf74C"
+    },
+    {
+      "name": "web/assets/icons/widget-select-white.png",
+      "size": 904,
+      "writable": true,
+      "hash": "5XvmfifZ_1mR6wBDYzUakpYF0WTC75YRqnFYVLtlCikC"
+    },
+    {
+      "name": "web/assets/packages/codicon/font/codicon.ttf",
+      "size": 62836,
+      "writable": true,
+      "hash": "HD5BJiTTuKRIi1dc_s65be_PlEredlS6rFTKz8yAwQcC"
+    },
+    {
+      "name": "web/assets/packages/codicon/lib/font/codicon.ttf",
+      "size": 62836,
+      "writable": true,
+      "hash": "HD5BJiTTuKRIi1dc_s65be_PlEredlS6rFTKz8yAwQcC"
+    },
+    {
+      "name": "web/assets/packages/devtools_app_shared/fonts/Roboto/Roboto-Black.ttf",
+      "size": 171480,
+      "executable": true,
+      "writable": true,
+      "hash": "OHLps5dgobWaweGSYz27O1jllbTUI5MKx97VJemuJeAC"
+    },
+    {
+      "name": "web/assets/packages/devtools_app_shared/fonts/Roboto/Roboto-Bold.ttf",
+      "size": 170760,
+      "executable": true,
+      "writable": true,
+      "hash": "fQuZHuPgvnrwGtfqjNK-6mwAol5nmgImtnN_B5qv_4YC"
+    },
+    {
+      "name": "web/assets/packages/devtools_app_shared/fonts/Roboto/Roboto-Light.ttf",
+      "size": 170420,
+      "executable": true,
+      "writable": true,
+      "hash": "ptND1CW8ONuQFS-gYFixxzkeypJk8zTvZcHOF1CFxvYC"
+    },
+    {
+      "name": "web/assets/packages/devtools_app_shared/fonts/Roboto/Roboto-Medium.ttf",
+      "size": 172064,
+      "executable": true,
+      "writable": true,
+      "hash": "8gXMURgh6lYHihBVV_zqYlMSlATUEcmX4YZvvQBqu2gC"
+    },
+    {
+      "name": "web/assets/packages/devtools_app_shared/fonts/Roboto/Roboto-Regular.ttf",
+      "size": 171676,
+      "executable": true,
+      "writable": true,
+      "hash": "eehRQEZX2sIQaz0irSVtR4JKmldlRY7bcskQKkWBbZUC"
+    },
+    {
+      "name": "web/assets/packages/devtools_app_shared/fonts/Roboto/Roboto-Thin.ttf",
+      "size": 171904,
+      "executable": true,
+      "writable": true,
+      "hash": "PZH3qmnLf3BkA1iVxWasXLmyCEWC01Gvcme7Tg-6YPUC"
+    },
+    {
+      "name": "web/assets/packages/devtools_app_shared/fonts/Roboto_Mono/RobotoMono-Bold.ttf",
+      "size": 109500,
+      "writable": true,
+      "hash": "1YDr_Qi5sbtjcCGsmjTTCr3zoacxhliG7AHgxYWfKcgC"
+    },
+    {
+      "name": "web/assets/packages/devtools_app_shared/fonts/Roboto_Mono/RobotoMono-Light.ttf",
+      "size": 113488,
+      "writable": true,
+      "hash": "_Nb-n7VUB5ZhsE1lLo7lpIuRWJcMV8hudquRX-PvvMAC"
+    },
+    {
+      "name": "web/assets/packages/devtools_app_shared/fonts/Roboto_Mono/RobotoMono-Medium.ttf",
+      "size": 109292,
+      "writable": true,
+      "hash": "jj_GQ7MM_ynBDl9XU00v_PeR8TGd_zDD43wra149Z58C"
+    },
+    {
+      "name": "web/assets/packages/devtools_app_shared/fonts/Roboto_Mono/RobotoMono-Regular.ttf",
+      "size": 109212,
+      "writable": true,
+      "hash": "xZ7LbBjjjUGUJJtuHFVetVyOgJJYz22bYk0Z2SaCU78C"
+    },
+    {
+      "name": "web/assets/packages/devtools_app_shared/fonts/Roboto_Mono/RobotoMono-Thin.ttf",
+      "size": 112480,
+      "writable": true,
+      "hash": "PUHvsQNbcXr2-gHso4fbJ4v_QYwdjUT0crAO16ATBkUC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/devtools/devtools_dark.css",
+      "size": 6438,
+      "writable": true,
+      "hash": "kG9pL-NJFfKo5R8HecsFz03CDWd0uRE4YBdFKUm2Ac8C"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/devtools/devtools_light.css",
+      "size": 918,
+      "writable": true,
+      "hash": "0nHcS8QAh3aE1hkbq2rdXxuqtKlEAjbteAL2QnWh5uoC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/devtools/devtools_shared.css",
+      "size": 1920,
+      "writable": true,
+      "hash": "HR5YuqNL0Y9SqBxhTydaF1p9n16wAzfi9yqUXHRFAFIC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/devtools/devtools_theme_handler.js",
+      "size": 1165,
+      "writable": true,
+      "hash": "sGpsjLVnXP8dwqK5VbS4mx9_vVxY2ZLc1iqwtPvi_JQC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/index.html",
+      "size": 5644,
+      "writable": true,
+      "hash": "3H1vdSy1xfxupPbT3Jsm7OhMDfbWHiAwaRZDUPFJdAkC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/service_worker.js",
+      "size": 9232,
+      "writable": true,
+      "hash": "V8VZTt4mbLeacLxl9qyaK1H3sV55gbDyjawtWkR0oQgC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/v34.0-16f63abe3/assets/MaterialSymbolsOutlined.woff2",
+      "size": 2287204,
+      "writable": true,
+      "hash": "_n860MwbjBXNu9elB7w-y0ibhcikbvw4IJjz1GnmEGEC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/v34.0-16f63abe3/assets/Roboto-100.woff2",
+      "size": 15712,
+      "writable": true,
+      "hash": "IkglhK6qex103gcnkyRsZeOLQCrCMfOLsNkQKAJUMjAC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/v34.0-16f63abe3/assets/Roboto-300.woff2",
+      "size": 15732,
+      "writable": true,
+      "hash": "M1MLAHBxKBqX55uqsT3ffMS53pQuvT4hIiSFczX3y5cC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/v34.0-16f63abe3/assets/Roboto-400.woff2",
+      "size": 15688,
+      "writable": true,
+      "hash": "zEYyLVxNQdpEfyb3-nFIJ_LsmhEpaMEu9XNsdJSYXsoC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/v34.0-16f63abe3/assets/Roboto-500.woff2",
+      "size": 15920,
+      "writable": true,
+      "hash": "u0btB5w908Oa9QUbStpI8p9JFR2tT6IYEXutL9teYW8C"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/v34.0-16f63abe3/assets/RobotoCondensed-Light.woff2",
+      "size": 11052,
+      "writable": true,
+      "hash": "rELob_HQ_Hinhwpyz10bvwpQmoUtuh2Kvcc0iSsNSEQC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/v34.0-16f63abe3/assets/RobotoCondensed-Regular.woff2",
+      "size": 10968,
+      "writable": true,
+      "hash": "SaG04SlmRaovUTyHoOX-VqMFp-1njC9kmWMewfOzWFYC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/v34.0-16f63abe3/assets/RobotoMono-Regular.woff2",
+      "size": 16028,
+      "writable": true,
+      "hash": "5DK7glyj4CZ9Yo-ttqjKY7DMo_xzRfFcfwgPeouCFl4C"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/v34.0-16f63abe3/assets/brand.png",
+      "size": 4000,
+      "writable": true,
+      "hash": "U34ng2vKNqzITxwkGF-PPLQiM6YdB5fvDdqyHPHqiLoC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/v34.0-16f63abe3/assets/favicon.png",
+      "size": 2238,
+      "writable": true,
+      "hash": "0kge5x4UIrS2BqOEKGzZd9l7thrAOJsoiliiwpfn4aEC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/v34.0-16f63abe3/assets/logo-128.png",
+      "size": 14930,
+      "writable": true,
+      "hash": "c-D898ryKYVcgkNLeV5Pf25yi_D_nIv0OIXwmsGv8nsC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/v34.0-16f63abe3/assets/logo-3d.png",
+      "size": 48137,
+      "writable": true,
+      "hash": "cNpuyQnaU7JRoW-T-QldM5a5xk4HwKVffw45V2tiKe0C"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/v34.0-16f63abe3/assets/scheduling_latency.png",
+      "size": 10720,
+      "writable": true,
+      "hash": "fDKu374SoZpAR5x96fagHxhg9bba9sAzhyruxILl7DUC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/v34.0-16f63abe3/engine_bundle.js",
+      "size": 238036,
+      "writable": true,
+      "hash": "qprwTNLz9lLAdyXnCTwfuMmcqt6FbDm_uv7HEZazP3wC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/v34.0-16f63abe3/frontend_bundle.js",
+      "size": 15564539,
+      "writable": true,
+      "hash": "LzbMchYuRBpyQHl0rE-PojqHwRTwdoXMLNXwhAzRDN4C"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/v34.0-16f63abe3/manifest.json",
+      "size": 3854,
+      "writable": true,
+      "hash": "2q_o5p_shiwyZ6vn-x0lBlsleonhBdNYZUD50WoDpzsC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/v34.0-16f63abe3/perfetto.css",
+      "size": 118361,
+      "writable": true,
+      "hash": "xc42pVd_Z1kRC1jqnuCAIgZ3O-XThzX8792kwDtVexIC"
+    },
+    {
+      "name": "web/assets/packages/perfetto_ui_compiled/dist/v34.0-16f63abe3/trace_processor.wasm",
+      "size": 8095438,
+      "executable": true,
+      "writable": true,
+      "hash": "Y59Thn84khjTi7wSPjYWwjY3z1mFojQHVPxi1rBoracC"
+    },
+    {
+      "name": "web/assets/shaders/ink_sparkle.frag",
+      "size": 8867,
+      "writable": true,
+      "hash": "4Bths5TPZqZBvqh-O0_jeH03L2Nsi8iipnQ4zcKdpvYC"
+    },
+    {
+      "name": "web/canvaskit/canvaskit.js",
+      "size": 86311,
+      "executable": true,
+      "writable": true,
+      "hash": "dM_yQ4mOC3LLSrMrt3udKjOTMG7DVQbqbe6gW8VkvEMC"
+    },
+    {
+      "name": "web/canvaskit/canvaskit.js.symbols",
+      "size": 1329782,
+      "executable": true,
+      "writable": true,
+      "hash": "X5TvVe9PATpqKWia0o6odIVRDeehfgWalAVrgQAhM8UC"
+    },
+    {
+      "name": "web/canvaskit/canvaskit.wasm",
+      "size": 6936555,
+      "executable": true,
+      "writable": true,
+      "hash": "-qaQaAz2ytzQ-eVzSFz8p5pualSLF1Y0uWCDLss6ahsC"
+    },
+    {
+      "name": "web/canvaskit/chromium/canvaskit.js",
+      "size": 85947,
+      "writable": true,
+      "hash": "bUIpwmiNlcl_Y87MKYWmFPsd1JtpfOIk8-mgaAIXahsC"
+    },
+    {
+      "name": "web/canvaskit/chromium/canvaskit.js.symbols",
+      "size": 1250861,
+      "writable": true,
+      "hash": "OuQCLvw8pO8QV9COcKyMG_GdlzaBfKVsPdNW-rDmALEC"
+    },
+    {
+      "name": "web/canvaskit/chromium/canvaskit.wasm",
+      "size": 5559212,
+      "writable": true,
+      "hash": "YSaGqeDHGoCpX_Un-PCXDfsEBX2ZRUNa8vQiRMcBgqoC"
+    },
+    {
+      "name": "web/canvaskit/skwasm.js",
+      "size": 66046,
+      "writable": true,
+      "hash": "lR_FcRztt5eIbnti9Cly5sk_g53XdU9jXL5sB-83yPEC"
+    },
+    {
+      "name": "web/canvaskit/skwasm.js.symbols",
+      "size": 1431562,
+      "writable": true,
+      "hash": "oTgKJEMEQngB4KB5Hw2-ogjfTqO6RGAZi5SYJl5nO5AC"
+    },
+    {
+      "name": "web/canvaskit/skwasm.wasm",
+      "size": 3395947,
+      "writable": true,
+      "hash": "zAnzAn6pToiVzNQK0hdG6o1ixk4DSM_zynzc7StqK0oC"
+    },
+    {
+      "name": "web/canvaskit/skwasm_st.js",
+      "size": 57923,
+      "writable": true,
+      "hash": "8JXolUl-7MVRBcz9chcv1jiE_Xoiijxg-_TGoXPkdhUC"
+    },
+    {
+      "name": "web/canvaskit/skwasm_st.js.symbols",
+      "size": 1427853,
+      "writable": true,
+      "hash": "tb8Xs0Iy58yKDZ6xumtQ1TULJ8G5wGBSNwyq-WWNyg0C"
+    },
+    {
+      "name": "web/canvaskit/skwasm_st.wasm",
+      "size": 3382962,
+      "writable": true,
+      "hash": "DwBoG1nmHlWk1XVr47I4DuSiG2793Ng9ecZMNVCaACEC"
+    },
+    {
+      "name": "web/devtools_analytics.js",
+      "size": 2508,
+      "writable": true,
+      "hash": "7rrtIiEhrDOv7a_nzrPA1g4SzZgzo8sEs26hhUpTg1EC"
+    },
+    {
+      "name": "web/favicon.png",
+      "size": 1767,
+      "writable": true,
+      "hash": "YzUaU6iodnbbs0XTRYJGq8PXz6p74dMxlSoBmGbjO2oC"
+    },
+    {
+      "name": "web/flutter.js",
+      "size": 7735,
+      "writable": true,
+      "hash": "LCisyaYousUOOREl-8PAyoNma50Jf6RAhHx_xkksxRYC"
+    },
+    {
+      "name": "web/flutter_bootstrap.js",
+      "size": 11668,
+      "writable": true,
+      "hash": "bQ1-Vdbj00nRXyc7vZs6LZFQOGlitgEi57lWyo2sLesC"
+    },
+    {
+      "name": "web/flutter_service_worker.js",
+      "size": 41077,
+      "writable": true,
+      "hash": "IbS-pro3OepXirYxY1mKGMRrAVxlg8sB4Hmly5gnLPEC"
+    },
+    {
+      "name": "web/index.html",
+      "size": 1772,
+      "writable": true,
+      "hash": "enLV58fXD-0X3HB7GK_xYFqtqWYd9NIlKOTxEsFXdqIC"
+    },
+    {
+      "name": "web/main.dart.js",
+      "size": 5231422,
+      "writable": true,
+      "hash": "rI_7XaXfbKR61t7-HvVCvSSm6T7Rw8tcAxWGMhJTIm8C"
+    },
+    {
+      "name": "web/main.dart.js.map",
+      "size": 5198570,
+      "writable": true,
+      "hash": "ORZT0kX_MwSQ1Nbay9dpGTzQiDgHpSUs0WFwIyrsNbAC"
+    },
+    {
+      "name": "web/main.dart.mjs",
+      "size": 49366,
+      "writable": true,
+      "hash": "Ps2A5ilkPnCxUPhx_HwuBGoKbstzFhDB7VOz2xcK7YsC"
+    },
+    {
+      "name": "web/main.dart.wasm",
+      "size": 5574630,
+      "writable": true,
+      "hash": "naPA_zjJCLB0mCeqURV1YdlVcNHg9O9ru8XU3H3HkysC"
+    },
+    {
+      "name": "web/main.dart.wasm.map",
+      "size": 4874805,
+      "writable": true,
+      "hash": "wDMAb60cb7h0UbBLF3aqDSKYowfU2RZEv1FnJ_DVql0C"
+    },
+    {
+      "name": "web/manifest.json",
+      "size": 609,
+      "writable": true,
+      "hash": "R9pYthZhrvU2R0U4HTPWu2EMe-SDkg2s7Oz6fsjrwtQC"
+    },
+    {
+      "name": "web/styles.css",
+      "size": 89,
+      "writable": true,
+      "hash": "CmusghVW6LnDP3cH7As7MmzBlTLk2K1H--bcqIHoP1UC"
+    },
+    {
+      "name": "web/unsupported-browser.html",
+      "size": 419,
+      "writable": true,
+      "hash": "25jpfGjdDOkAMePuHrPpGfJzfOPnoC2w2zDcpekWwE8C"
+    },
+    {
+      "name": "web/version.json",
+      "size": 76,
+      "writable": true,
+      "hash": "rFxmfeZZTO5wJNWim4m_nud5Y0xkFOk9TQCzIPEB8oIC"
+    }
+  ]
+}

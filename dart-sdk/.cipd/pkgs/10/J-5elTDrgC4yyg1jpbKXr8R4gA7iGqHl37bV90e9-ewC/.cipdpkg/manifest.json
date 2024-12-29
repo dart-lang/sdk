@@ -1,0 +1,23 @@
+{
+  "format_version": "1.1",
+  "package_name": "dart/third_party/babel",
+  "install_mode": "copy",
+  "actual_install_mode": "copy",
+  "files": [
+    {
+      "name": "LICENSE",
+      "size": 1106,
+      "hash": "EX2irw1M4P4cjhm1z_nc2Aat-XPTKNJ7EdREjE_yT3YC"
+    },
+    {
+      "name": "babel.js",
+      "size": 2949024,
+      "hash": "sb6u95CrQobCwFeVJzGridVPqSdLjQQBup17bvOMjD4C"
+    },
+    {
+      "name": "babel.min.js",
+      "size": 1638870,
+      "hash": "qnkqcS4t33kklEYOM0YEE8cTtjc5IMUOEYg3C30oWeMC"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  "subdir": "sdk/benchmarks/FfiBoringssl/native/out",
+  "package_name": "dart/benchmarks/ffiboringssl"
+}

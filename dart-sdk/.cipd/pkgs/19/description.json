@@ -1,0 +1,4 @@
+{
+  "subdir": "sdk/buildtools/sysroot/linux",
+  "package_name": "fuchsia/third_party/sysroot/linux"
+}
