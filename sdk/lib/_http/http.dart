@@ -1040,6 +1040,10 @@ abstract interface class HttpRequest implements Stream<Uint8List> {
 /// first time, the request header is sent. Calling any methods that
 /// change the header after it is sent throws an exception.
 ///
+/// If no "Content-Type" header is set then a default of
+/// "text/plain; charset=utf-8" is used and string data written to the IOSink
+/// will be encoded using UTF-8.
+///
 /// ## Setting the headers
 ///
 /// The HttpResponse object has a number of properties for setting up
@@ -1060,8 +1064,9 @@ abstract interface class HttpRequest implements Stream<Uint8List> {
 ///     response.headers.add(HttpHeaders.contentTypeHeader, "text/plain");
 ///     response.write(...);  // Strings written will be ISO-8859-1 encoded.
 ///
-/// An exception is thrown if you use the `write()` method
-/// while an unsupported content-type is set.
+/// If a charset is provided but it is not recognized, then the "Content-Type"
+/// header will include that charset but string data will be encoded using
+/// ISO-8859-1 (Latin 1).
 abstract interface class HttpResponse implements IOSink {
   // TODO(ajohnsen): Add documentation of how to pipe a file to the response.
   /// Gets and sets the content length of the response. If the size of

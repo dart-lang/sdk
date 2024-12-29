@@ -821,7 +821,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
     var element = element2;
-    if (element is PromotableElement2) {
+    if (element is PromotableElementImpl2) {
       return resolverVisitor
           .analyzeAssignedVariablePatternSchema(element)
           .unwrapTypeSchemaView();
@@ -2583,7 +2583,7 @@ final class CatchClauseParameterImpl extends AstNodeImpl
 
   @experimental
   @override
-  LocalVariableElement2? get declaredElement2 {
+  LocalVariableElementImpl2? get declaredElement2 {
     return declaredElement.asElement2 as LocalVariableElementImpl2?;
   }
 
@@ -4892,7 +4892,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
 
   @experimental
   @override
-  LocalVariableElement2? get declaredElement2 {
+  LocalVariableElementImpl2? get declaredElement2 {
     return declaredElement.asElement2 as LocalVariableElementImpl2?;
   }
 
@@ -4983,7 +4983,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
 
   @experimental
   @override
-  BindPatternVariableElement2? get declaredElement2 {
+  BindPatternVariableElementImpl2? get declaredElement2 {
     return declaredElement?.element;
   }
 
@@ -17274,7 +17274,7 @@ class SwitchStatementCaseGroup {
   final bool hasLabels;
 
   /// Joined variables declared in [members], available in [statements].
-  late Map<String, PromotableElement2> variables;
+  late Map<String, PromotableElementImpl2> variables;
 
   SwitchStatementCaseGroup(this.members, this.hasLabels);
 

@@ -1619,7 +1619,7 @@ abstract class LibraryElement2 implements Element2, Annotatable {
 /// An `export` directive within a library fragment.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LibraryExport {
+abstract class LibraryExport implements Annotatable {
   /// The combinators that were specified as part of the `export` directive.
   ///
   /// The combinators are in the order in which they were specified.
@@ -1718,7 +1718,7 @@ abstract class LibraryFragment implements Fragment, Annotatable {
 /// An `import` directive within a library fragment.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LibraryImport {
+abstract class LibraryImport implements Annotatable {
   /// The combinators that were specified as part of the `import` directive.
   ///
   /// The combinators are in the order in which they were specified.

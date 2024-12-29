@@ -1928,7 +1928,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _VariableBinder
-    extends VariableBinder<DartPatternImpl, PromotableElement2> {
+    extends VariableBinder<DartPatternImpl, PromotableElementImpl2> {
   final TypeProvider typeProvider;
 
   _VariableBinder({
@@ -1978,7 +1978,7 @@ class _VariableBinder
 }
 
 class _VariableBinderErrors
-    implements VariableBinderErrors<DartPatternImpl, PromotableElement2> {
+    implements VariableBinderErrors<DartPatternImpl, PromotableElementImpl2> {
   final ResolutionVisitor visitor;
 
   _VariableBinderErrors(this.visitor);

@@ -3868,6 +3868,13 @@ abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
   @override
   ExecutableElement2 get baseElement => this;
 
+  @override
+  List<Element2> get children2 => [
+        ...super.children2,
+        ...typeParameters2,
+        ...formalParameters,
+      ];
+
   bool get invokesSuperSelf {
     var firstFragment = this.firstFragment as ExecutableElementImpl;
     return firstFragment.hasModifier(Modifier.INVOKES_SUPER_SELF);

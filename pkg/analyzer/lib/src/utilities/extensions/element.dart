@@ -46,6 +46,9 @@ extension CompilationUnitElementExtension on CompilationUnitElement {
 
 extension ConstructorElement2Extension on ConstructorElement2 {
   ConstructorElement get asElement {
+    if (this case ConstructorMember member) {
+      return member;
+    }
     return baseElement.firstFragment as ConstructorElement;
   }
 }
@@ -278,6 +281,9 @@ extension EnumElementExtension on EnumElement {
 
 extension ExecutableElement2Extension on ExecutableElement2 {
   ExecutableElement get asElement {
+    if (this case ExecutableMember member) {
+      return member;
+    }
     return firstFragment as ExecutableElement;
   }
 }
@@ -324,6 +330,9 @@ extension ExtensionTypeElement2Extension on ExtensionTypeElement2 {
 
 extension FieldElement2Extension on FieldElement2 {
   FieldElement get asElement {
+    if (this case FieldMember member) {
+      return member;
+    }
     return firstFragment as FieldElement;
   }
 }
@@ -340,6 +349,9 @@ extension FieldElementExtension on FieldElement {
 
 extension FormalParameterExtension on FormalParameterElement {
   ParameterElement get asElement {
+    if (this case ParameterMember member) {
+      return member;
+    }
     return firstFragment as ParameterElement;
   }
 
@@ -437,6 +449,9 @@ extension ListOfTypeParameterElementExtension on List<TypeParameterElement> {
 
 extension MethodElement2Extension on MethodElement2 {
   MethodElement get asElement {
+    if (this case MethodMember member) {
+      return member;
+    }
     return baseElement.firstFragment as MethodElement;
   }
 }
@@ -491,6 +506,9 @@ extension PrefixElementExtension on PrefixElement {
 
 extension PropertyAccessorElement2Extension on PropertyAccessorElement2 {
   PropertyAccessorElement get asElement {
+    if (this case PropertyAccessorMember member) {
+      return member;
+    }
     return firstFragment as PropertyAccessorElement;
   }
 }
@@ -538,5 +556,11 @@ extension TypeAliasElementExtension on TypeAliasElement {
 extension TypeParameterElement2Extension on TypeParameterElement2 {
   TypeParameterElement get asElement {
     return firstFragment as TypeParameterElement;
+  }
+}
+
+extension TypeParameterElementExtension on TypeParameterElement {
+  TypeParameterElement2 get asElement2 {
+    return (this as TypeParameterElementImpl).element;
   }
 }

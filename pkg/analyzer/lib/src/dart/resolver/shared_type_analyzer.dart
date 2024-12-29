@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 
@@ -20,8 +21,14 @@ typedef SharedPatternField
 /// analyzer's [ErrorReporter] class.
 class SharedTypeAnalyzerErrors
     implements
-        shared.TypeAnalyzerErrors<AstNode, Statement, Expression,
-            PromotableElement2, SharedTypeView<DartType>, DartPattern, void> {
+        shared.TypeAnalyzerErrors<
+            AstNode,
+            Statement,
+            Expression,
+            PromotableElementImpl2,
+            SharedTypeView<DartType>,
+            DartPattern,
+            void> {
   final ErrorReporter _errorReporter;
 
   SharedTypeAnalyzerErrors(this._errorReporter);
