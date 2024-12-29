@@ -1,0 +1,3 @@
+[submodule "dart-sdk/sdk"]
+	path = dart-sdk/sdk
+	url = https://dart.googlesource.com/sdk.git
