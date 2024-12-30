@@ -10,6 +10,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     as shared;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -9188,7 +9189,10 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 
 /// A mixin that provides a common implementation for methods defined in
 /// [ParameterElement].
-mixin ParameterElementMixin implements ParameterElement {
+mixin ParameterElementMixin
+    implements
+        ParameterElement,
+        SharedNamedFunctionParameterStructure<DartType> {
   @override
   bool get isNamed => parameterKind.isNamed;
 

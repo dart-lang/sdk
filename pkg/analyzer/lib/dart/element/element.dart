@@ -2142,10 +2142,7 @@ sealed class NamespaceCombinator {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ParameterElement
-    implements
-        PromotableElement,
-        ConstantEvaluationTarget,
-        SharedNamedFunctionParameterStructure<DartType> {
+    implements PromotableElement, ConstantEvaluationTarget {
   @override
   ParameterElement get declaration;
 
@@ -2202,7 +2199,6 @@ abstract class ParameterElement
   /// change the meaning of this getter. The parameter `{@required int x}`
   /// will return `false` and the parameter `{@required required int x}`
   /// will return `true`.
-  @override
   bool get isRequired;
 
   /// Whether the parameter is both a required and named parameter.
