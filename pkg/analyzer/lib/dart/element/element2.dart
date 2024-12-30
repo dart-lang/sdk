@@ -1326,6 +1326,25 @@ abstract class InterfaceElement2 implements InstanceElement2 {
   });
 
   /// Returns the element representing the method that results from looking up
+  /// the given [methodName] in this class with respect to the given [library],
+  /// ignoring abstract methods, or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 16.15.1:
+  /// <blockquote>
+  /// The result of looking up method <i>m</i> in class <i>C</i> with respect to
+  /// library <i>L</i> is: If <i>C</i> declares an instance method named
+  /// <i>m</i> that is accessible to <i>L</i>, then that method is the result of
+  /// the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the
+  /// result of the lookup is the result of looking up method <i>m</i> in
+  /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
+  /// failed.
+  /// </blockquote>
+  // TODO(scheglov): Deprecate and remove it.
+  MethodElement2? lookUpConcreteMethod(
+      String methodName, LibraryElement2 library);
+
+  /// Returns the element representing the method that results from looking up
   /// the given [methodName] in the superclass of this class with respect to the
   /// given [library], or `null` if the look up fails.
   ///
