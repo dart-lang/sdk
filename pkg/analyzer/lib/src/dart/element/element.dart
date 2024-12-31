@@ -6447,6 +6447,13 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
       firstFragment.instantiate(
           typeArguments: typeArguments, nullabilitySuffix: nullabilitySuffix);
 
+  @override
+  MethodElement2? lookUpConcreteMethod(
+      String methodName, LibraryElement2 library) {
+    return _implementationsOfMethod2(methodName).firstWhereOrNull(
+        (method) => !method.isAbstract && method.isAccessibleIn2(library));
+  }
+
   PropertyAccessorElement2? lookUpInheritedConcreteGetter(
       String getterName, LibraryElement2 library) {
     return _implementationsOfGetter2(getterName).firstWhereOrNull((getter) =>
