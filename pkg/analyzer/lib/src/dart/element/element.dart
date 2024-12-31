@@ -7252,6 +7252,9 @@ class LibraryExportElementImpl extends _ExistingElementImpl
   ElementKind get kind => ElementKind.EXPORT;
 
   @override
+  LibraryFragment get libraryFragment => enclosingElement3;
+
+  @override
   T? accept<T>(ElementVisitor<T> visitor) {
     return visitor.visitLibraryExportElement(this);
   }
@@ -7321,7 +7324,7 @@ class LibraryImportElementImpl extends _ExistingElementImpl
   LibraryElementImpl get library2 => super.library2 as LibraryElementImpl;
 
   @override
-  LibraryFragment? get libraryFragment => enclosingElement3;
+  LibraryFragment get libraryFragment => enclosingElement3;
 
   @override
   Namespace get namespace {
@@ -9266,7 +9269,18 @@ class PartElementImpl extends _ExistingElementImpl
   String get identifier => 'part';
 
   @override
+  LibraryFragment? get includedFragment {
+    if (uri case DirectiveUriWithUnit uri) {
+      return uri.libraryFragment;
+    }
+    return null;
+  }
+
+  @override
   ElementKind get kind => ElementKind.PART;
+
+  @override
+  LibraryFragment get libraryFragment => enclosingUnit;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitPartElement(this);

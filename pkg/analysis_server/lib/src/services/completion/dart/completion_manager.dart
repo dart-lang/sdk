@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
+library;
+
 import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
@@ -78,9 +81,8 @@ class DartCompletionManager {
   /// with the import index property updated.
   final NotImportedSuggestions? notImportedSuggestions;
 
-  /// Whether the number of suggestions initallly computed was
-  /// greater than the [maxSuggestions] for a given request, and they were
-  /// truncated to fit.
+  /// Whether the number of suggestions initallly computed was greater than the
+  /// `maxSuggestions` for a given request, and they were truncated to fit.
   bool isTruncated = false;
 
   DartCompletionManager({
@@ -271,10 +273,11 @@ class DartCompletionRequest {
   /// Return the source in which the completion is being requested.
   final Source source;
 
-  /// Return the completion target.  This determines what part of the parse tree
-  /// will receive the newly inserted text.
-  /// At a minimum, all declarations in the completion scope in [target.unit]
-  /// will be resolved if they can be resolved.
+  /// The completion target.
+  ///
+  /// This determines what part of the parse tree will receive the newly
+  /// inserted text. At a minimum, all declarations in the completion scope in
+  /// `target.unit` will be resolved if they can be resolved.
   final CompletionTarget target;
 
   /// The compilation unit in which completion is being requested.
@@ -501,7 +504,7 @@ class DartCompletionRequest {
   }
 }
 
-/// Information provided by [NotImportedContributor] in addition to suggestions.
+/// Information provided by [CompletionHandler]s in addition to suggestions.
 class NotImportedSuggestions {
   /// This flag is set to `true` if the contributor decided to stop before it
   /// processed all available libraries, e.g. we ran out of budget.

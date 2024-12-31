@@ -47,7 +47,7 @@ class ElementReferencesComputer {
   }
 
   /// Returns a [Future] completing with a [List] of references to [element] or
-  /// to the corresponding hierarchy [Element]s.
+  /// to the corresponding hierarchy [Element2]s.
   Future<List<SearchMatch>> _findElementsReferences(
     Element2 element,
     OperationPerformanceImpl performance,
@@ -74,10 +74,10 @@ class ElementReferencesComputer {
     return searchEngine.searchReferences(element);
   }
 
-  /// Returns a [Future] completing with [Element]s to search references to.
+  /// Returns a [Future] completing with [Element2]s to search references to.
   ///
-  /// If a [ClassMemberElement] or a named [ParameterElement] is given, each
-  /// corresponding [Element] in the hierarchy is returned.
+  /// If an instance member or a named [FormalParameterElement] is given, each
+  /// corresponding [Element2] in the hierarchy is returned.
   ///
   /// Otherwise, only references to [element] should be searched.
   Future<Iterable<Element2>> _getRefElements(
