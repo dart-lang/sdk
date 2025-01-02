@@ -169,8 +169,9 @@ void main() {
 
   // Parsed as instantiation, can't access statics on instantiated type literal.
   expect1<Class>(Z<X, X>.instance);
-  //                     ^^^^^^^^
-  // [analyzer] unspecified
+  //             ^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CLASS_INSTANTIATION_ACCESS_TO_MEMBER
+  //                     ^
   // [cfe] Cannot access static member on an instantiated generic class.
 
 
@@ -260,13 +261,15 @@ void main() {
 
   // This would be invalid even if `X` had an `any` member. See next.
   X<X>.any; // Invalid, Class does not have any static `any` member.
-  //   ^^^
-  // [analyzer] unspecified
+  // [error column 3, length 8]
+  // [analyzer] COMPILE_TIME_ERROR.CLASS_INSTANTIATION_ACCESS_TO_MEMBER
+  //   ^
   // [cfe] Member not found: 'any'.
 
   X<X>.instance; // Does have static `instance` member, can't access this way.
-  //   ^^^^^^^^
-  // [analyzer] unspecified
+  // [error column 3, length 13]
+  // [analyzer] COMPILE_TIME_ERROR.CLASS_INSTANTIATION_ACCESS_TO_MEMBER
+  //   ^
   // [cfe] Cannot access static member on an instantiated generic class.
 
   // Parse error.
