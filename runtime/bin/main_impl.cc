@@ -1296,10 +1296,22 @@ void main(int argc, char** argv) {
             script_name);
         Platform::Exit(kErrorExitCode);
       }
+      if (app_snapshot->IsJIT() && Dart_IsPrecompiledRuntime()) {
+        Syslog::PrintErr(
+            "%s is a JIT snapshot, it cannot be run with 'dartaotruntime'\n",
+            script_name);
+        Platform::Exit(kErrorExitCode);
+      }
       vm_run_app_snapshot = true;
       app_snapshot->SetBuffers(&vm_snapshot_data, &vm_snapshot_instructions,
                                &app_isolate_snapshot_data,
                                &app_isolate_snapshot_instructions);
+    } else if (app_snapshot == nullptr && Dart_IsPrecompiledRuntime()) {
+      Syslog::PrintErr(
+          "%s is not an AOT snapshot,"
+          " it cannot be run with 'dartaotruntime'\n",
+          script_name);
+      Platform::Exit(kErrorExitCode);
     }
   };
 
