@@ -683,7 +683,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
             _state = _State.HEADER_VALUE_FOLD_OR_END;
           } else if (byte != _CharCode.SP && byte != _CharCode.HT) {
             // Start of new header value.
-            _addWithValidation(_headerValue, byte);
+            _addToHeaderValueWithValidation(_headerValue, byte);
             _state = _State.HEADER_VALUE;
           }
           break;
@@ -694,7 +694,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
           } else if (byte == _CharCode.LF) {
             _state = _State.HEADER_VALUE_FOLD_OR_END;
           } else {
-            _addWithValidation(_headerValue, byte);
+            _addToHeaderValueWithValidation(_headerValue, byte);
           }
           break;
 
@@ -710,7 +710,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
             // prior to interpreting the field value or forwarding the
             // message downstream."
             // See https://www.rfc-editor.org/rfc/rfc7230#section-3.2.4
-            _addWithValidation(_headerValue, _CharCode.SP);
+            _addToHeaderValueWithValidation(_headerValue, _CharCode.SP);
             _state = _State.HEADER_VALUE_START; // Strips leading whitespace.
           } else {
             String headerField = String.fromCharCodes(_headerField);
@@ -1115,6 +1115,16 @@ class _HttpParser extends Stream<_HttpIncoming> {
         "Failed to parse HTTP, $byte is expected to be a Hex digit",
       );
     }
+  }
+
+  void _addToHeaderValueWithValidation(List<int> list, int byte) {
+    // From RFC-9110:
+    // Field values containing CR, LF, or NUL characters are invalid and
+    // dangerous.
+    if (byte == 0 || byte == _CharCode.LF || byte == _CharCode.CR) {
+      throw HttpException("Illegal value $byte in HTTP header");
+    }
+    _addWithValidation(list, byte);
   }
 
   void _addWithValidation(List<int> list, int byte) {
