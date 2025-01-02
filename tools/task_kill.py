@@ -259,6 +259,7 @@ def KillDart():
     status += Kill("gen_snapshot", dump_stacks=True)
     status += Kill("dartaotruntime", dump_stacks=True)
     status += Kill("flutter_tester", dump_stacks=True)
+    status += Kill("crashpad_handler", dump_stacks=True)
     return status
 
 
