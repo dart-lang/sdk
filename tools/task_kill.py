@@ -24,6 +24,7 @@ POSIX_INFO = 'ps -p %s -o args'
 EXECUTABLE_NAMES = {
     'win32': {
         'chrome': 'chrome.exe',
+        'crashpad_handler': 'crashpad_handler.exe',
         'dart': 'dart.exe',
         'dartaotruntime': 'dartaotruntime.exe',
         'firefox': 'firefox.exe',
