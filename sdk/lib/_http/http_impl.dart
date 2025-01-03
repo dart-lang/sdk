@@ -845,10 +845,18 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
 
     List<String> challenge = authChallenge()!;
     assert(challenge.length == 1);
-    _HeaderValue header = _HeaderValue.parse(
-      challenge[0],
-      parameterSeparator: ",",
-    );
+    final _HeaderValue header;
+    try {
+      header = _HeaderValue.parse(challenge[0], parameterSeparator: ",");
+    } on HttpException catch (_, s) {
+      Error.throwWithStackTrace(
+        HttpException(
+          'The authentication challenge sent by the server is '
+          'not correctly formatted.',
+        ),
+        s,
+      );
+    }
     _AuthenticationScheme scheme = _AuthenticationScheme.fromString(
       header.value,
     );
