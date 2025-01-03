@@ -11,7 +11,6 @@ import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -341,10 +340,6 @@ abstract class MultiCorrectionProducer
 
   /// The library element for the library in which a correction is being
   /// produced.
-  LibraryElement get libraryElement => unitResult.libraryElement;
-
-  /// The library element for the library in which a correction is being
-  /// produced.
   LibraryElement2 get libraryElement2 => unitResult.libraryElement2;
 
   @override
@@ -375,7 +370,7 @@ abstract class ResolvedCorrectionProducer
       .getAnalysisOptionsForFile(unitResult.file);
 
   InheritanceManager3 get inheritanceManager {
-    return (libraryElement as LibraryElementImpl).session.inheritanceManager;
+    return (libraryElement2 as LibraryElementImpl).session.inheritanceManager;
   }
 
   /// Whether [node] is in a static context.
@@ -393,10 +388,6 @@ abstract class ResolvedCorrectionProducer
     var method = node.thisOrAncestorOfType<MethodDeclaration>();
     return method != null && method.isStatic;
   }
-
-  /// The library element for the library in which a correction is being
-  /// produced.
-  LibraryElement get libraryElement => unitResult.libraryElement;
 
   /// The library element for the library in which a correction is being
   /// produced.
@@ -466,21 +457,6 @@ abstract class ResolvedCorrectionProducer
 
   /// Returns the class element associated with the [target], or `null` if there
   /// is no such element.
-  InterfaceElement? getTargetInterfaceElement(Expression target) {
-    var type = target.staticType;
-    if (type is InterfaceType) {
-      return type.element;
-    } else if (target is Identifier) {
-      var element = target.staticElement;
-      if (element is InterfaceElement) {
-        return element;
-      }
-    }
-    return null;
-  }
-
-  /// Returns the class element associated with the [target], or `null` if there
-  /// is no such element.
   InterfaceElement2? getTargetInterfaceElement2(Expression target) {
     var type = target.staticType;
     if (type is InterfaceType) {
@@ -512,7 +488,7 @@ abstract class ResolvedCorrectionProducer
       if (conditionalExpression.condition == expression) {
         return _coreTypeBool;
       } else {
-        var type = conditionalExpression.staticParameterElement?.type;
+        var type = conditionalExpression.correspondingParameter?.type;
         if (type is InterfaceType && type.isDartCoreFunction) {
           return FunctionTypeImpl(
             typeFormals: const [],
@@ -526,19 +502,19 @@ abstract class ResolvedCorrectionProducer
     }
     // `=> myFunction();`.
     if (parent is ExpressionFunctionBody) {
-      var executable = expression.enclosingExecutableElement;
+      var executable = expression.enclosingExecutableElement2;
       return executable?.returnType;
     }
     // `return myFunction();`.
     if (parent is ReturnStatement) {
-      var executable = expression.enclosingExecutableElement;
+      var executable = expression.enclosingExecutableElement2;
       return executable?.returnType;
     }
     // `int v = myFunction();`.
     if (parent is VariableDeclaration) {
       var variableDeclaration = parent;
       if (variableDeclaration.initializer == expression) {
-        var variableElement = variableDeclaration.declaredElement;
+        var variableElement = variableDeclaration.declaredFragment?.element;
         if (variableElement != null) {
           return variableElement.type;
         }
@@ -561,9 +537,9 @@ abstract class ResolvedCorrectionProducer
           return assignment.writeType;
         } else {
           // `v += myFunction();`.
-          var method = assignment.staticElement;
+          var method = assignment.element;
           if (method != null) {
-            var parameters = method.parameters;
+            var parameters = method.formalParameters;
             if (parameters.length == 1) {
               return parameters[0].type;
             }
@@ -574,17 +550,17 @@ abstract class ResolvedCorrectionProducer
     // `v + myFunction();`.
     if (parent is BinaryExpression) {
       var binary = parent;
-      var method = binary.staticElement;
+      var method = binary.element;
       if (method != null) {
         if (binary.rightOperand == expression) {
-          var parameters = method.parameters;
+          var parameters = method.formalParameters;
           return parameters.length == 1 ? parameters[0].type : null;
         }
       }
     }
     // `foo( myFunction() );`.
     if (parent is ArgumentList) {
-      var parameter = expression.staticParameterElement;
+      var parameter = expression.correspondingParameter;
       return parameter?.type;
     }
     // `bool`.
