@@ -1689,6 +1689,12 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
     return visitor.visitConstructorElement(this);
   }
 
+  /// Ensures that dependencies of this constructor, such as default values
+  /// of formal parameters, are evaluated.
+  void computeConstantDependencies() {
+    firstFragment.computeConstantDependencies();
+  }
+
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {
     for (var child in children2) {

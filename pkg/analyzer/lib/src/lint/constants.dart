@@ -88,27 +88,30 @@ extension on AstNode {
   /// Whether [ConstantVerifier] reports an error when computing the value of
   /// `this` as a constant.
   bool get hasConstantVerifierError {
-    var unitElement = thisOrAncestorOfType<CompilationUnit>()?.declaredElement;
-    if (unitElement == null) return false;
-    var libraryElement = unitElement.library as LibraryElementImpl;
+    var unitNode = thisOrAncestorOfType<CompilationUnit>();
+    var unitFragment = unitNode?.declaredFragment;
+    if (unitFragment == null) return false;
+
+    var libraryElement = unitFragment.element as LibraryElementImpl;
+    var declaredVariables = libraryElement.session.declaredVariables;
 
     var dependenciesFinder = ConstantExpressionsDependenciesFinder();
     accept(dependenciesFinder);
     computeConstants(
-      declaredVariables: unitElement.session.declaredVariables,
+      declaredVariables: declaredVariables,
       constants: dependenciesFinder.dependencies.toList(),
       featureSet: libraryElement.featureSet,
       configuration: ConstantEvaluationConfiguration(),
     );
 
     var listener = _ConstantAnalysisErrorListener();
-    var errorReporter = ErrorReporter(listener, unitElement.source);
+    var errorReporter = ErrorReporter(listener, unitFragment.source);
 
     accept(
       ConstantVerifier(
         errorReporter,
         libraryElement,
-        unitElement.session.declaredVariables,
+        declaredVariables,
       ),
     );
     return listener.hasConstError;
@@ -156,14 +159,17 @@ extension ExpressionExtension on Expression {
   /// Returns a [LinterConstantEvaluationResult], containing both the computed
   /// constant value, and a list of errors that occurred during the computation.
   LinterConstantEvaluationResult computeConstantValue() {
-    var unitElement = thisOrAncestorOfType<CompilationUnit>()?.declaredElement;
-    if (unitElement == null) return LinterConstantEvaluationResult._(null, []);
-    var libraryElement = unitElement.library as LibraryElementImpl;
+    var unitNode = thisOrAncestorOfType<CompilationUnit>();
+    var unitFragment = unitNode?.declaredFragment;
+    if (unitFragment == null) {
+      return LinterConstantEvaluationResult._(null, []);
+    }
 
-    var errorListener = RecordingErrorListener();
+    var libraryElement = unitFragment.element as LibraryElementImpl;
+    var declaredVariables = libraryElement.session.declaredVariables;
 
     var evaluationEngine = ConstantEvaluationEngine(
-      declaredVariables: unitElement.session.declaredVariables,
+      declaredVariables: declaredVariables,
       configuration: ConstantEvaluationConfiguration(),
     );
 
@@ -171,16 +177,17 @@ extension ExpressionExtension on Expression {
     accept(ReferenceFinder(dependencies.add));
 
     computeConstants(
-      declaredVariables: unitElement.session.declaredVariables,
+      declaredVariables: declaredVariables,
       constants: dependencies,
       featureSet: libraryElement.featureSet,
       configuration: ConstantEvaluationConfiguration(),
     );
 
+    var errorListener = RecordingErrorListener();
     var visitor = ConstantVisitor(
       evaluationEngine,
       libraryElement,
-      ErrorReporter(errorListener, unitElement.source),
+      ErrorReporter(errorListener, unitFragment.source),
     );
 
     var constant = visitor.evaluateAndReportInvalidConstant(this);
@@ -189,11 +196,11 @@ extension ExpressionExtension on Expression {
   }
 
   bool _canBeConstInstanceCreation(InstanceCreationExpressionImpl node) {
-    var element = node.constructorName.staticElement;
+    var element = node.constructorName.element;
     if (element == null || !element.isConst) return false;
 
     // Ensure that dependencies (e.g. default parameter values) are computed.
-    var implElement = element.declaration as ConstructorElementImpl;
+    var implElement = element.baseElement as ConstructorElementImpl2;
     implElement.computeConstantDependencies();
 
     // Verify that the evaluation of the constructor would not produce an

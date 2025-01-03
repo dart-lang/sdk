@@ -104,7 +104,6 @@ lib/src/generated/resolver.dart
 lib/src/generated/testing/element_factory.dart
 lib/src/generated/testing/test_type_provider.dart
 lib/src/hint/sdk_constraint_verifier.dart
-lib/src/lint/constants.dart
 lib/src/lint/linter.dart
 lib/src/services/top_level_declarations.dart
 lib/src/summary2/ast_binary_reader.dart
