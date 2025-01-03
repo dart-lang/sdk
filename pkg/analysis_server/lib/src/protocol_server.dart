@@ -477,8 +477,15 @@ Location _locationForArgs(
 }
 
 /// Creates a new [Location].
-Location _locationForArgs2(engine.Fragment fragment, engine.SourceRange range) {
-  var lineInfo = fragment.libraryFragment!.lineInfo;
+Location? _locationForArgs2(
+  engine.Fragment fragment,
+  engine.SourceRange range,
+) {
+  var libraryFragment = fragment.libraryFragment;
+  if (libraryFragment == null) {
+    return null;
+  }
+  var lineInfo = libraryFragment.lineInfo;
 
   var startLocation = lineInfo.getLocation(range.offset);
   var endLocation = lineInfo.getLocation(range.end);

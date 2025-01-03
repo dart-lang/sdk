@@ -1112,6 +1112,23 @@ void f() {
 ''');
   }
 
+  Future<void> test_getter_topLevel_prefixedIdentifier_target() async {
+    await indexTestUnit(r'''
+void f() {
+  test.isEven;
+}
+
+int get test => [0].first;
+''');
+    _createRefactoring('test =>');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  [0].first.isEven;
+}
+''');
+  }
+
   Future<void> test_initialMode_all() async {
     await indexTestUnit(r'''
 test(a, b) {
