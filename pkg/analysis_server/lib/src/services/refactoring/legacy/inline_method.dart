@@ -93,18 +93,36 @@ String _getMethodSourceForInvocation(
     }
     // replace all occurrences of this parameter
     for (var occurrence in occurrences) {
-      var range = occurrence.range;
+      AstNode nodeToReplace = occurrence.identifier;
       // prepare argument source to apply at this occurrence
       String occurrenceArgumentSource;
-      if (occurrence.inStringInterpolation && argument is! SimpleIdentifier) {
-        occurrenceArgumentSource = '{$argumentSource}';
+      if (occurrence.identifier.parent
+          case InterpolationExpression interpolation) {
+        switch (argument) {
+          case SimpleIdentifier():
+            occurrenceArgumentSource = argumentSource;
+          case SingleStringLiteral(canDiscardSingleQuotes: true):
+            nodeToReplace = interpolation;
+            occurrenceArgumentSource = argumentSource.substring(
+              1,
+              argumentSource.length - 1,
+            );
+          default:
+            occurrenceArgumentSource = '{$argumentSource}';
+        }
       } else if (argumentPrecedence < occurrence.parentPrecedence) {
         occurrenceArgumentSource = '($argumentSource)';
       } else {
         occurrenceArgumentSource = argumentSource;
       }
       // do replace
-      edits.add(newSourceEdit_range(range, occurrenceArgumentSource));
+      var nodeToReplaceRange = range.offsetBy(
+        range.node(nodeToReplace),
+        -occurrence.baseOffset,
+      );
+      edits.add(
+        newSourceEdit_range(nodeToReplaceRange, occurrenceArgumentSource),
+      );
     }
   });
   // replace static field "qualifier" with invocation target
@@ -484,12 +502,14 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 }
 
 class _ParameterOccurrence {
-  final SourceRange range;
+  final int baseOffset;
+  final SimpleIdentifier identifier;
   final Precedence parentPrecedence;
   final bool inStringInterpolation;
 
   _ParameterOccurrence({
-    required this.range,
+    required this.baseOffset,
+    required this.identifier,
     required this.parentPrecedence,
     required this.inStringInterpolation,
   });
@@ -625,19 +645,38 @@ class _ReferenceProcessor {
           target,
           arguments,
         );
+
+        // If we inline the method expression into a string interpolation,
+        // and the expression is not a single identifier, wrap it into `{}`.
+        AstNode nodeToReplace = usage;
+        if (usage.parent case InterpolationExpression interpolation) {
+          if (interpolation.leftBracket.lexeme == r'$') {
+            switch (ref._methodExpression) {
+              case SimpleIdentifier():
+                break;
+              case SingleStringLiteral(canDiscardSingleQuotes: true):
+                nodeToReplace = interpolation;
+                source = source.substring(1, source.length - 1);
+              default:
+                source = '{$source}';
+            }
+          }
+        }
+
         if (getExpressionPrecedence(ref._methodExpression!) <
             getExpressionParentPrecedence(usage)) {
           source = '($source)';
         }
+
         // do replace
-        var methodUsageRange = range.node(usage);
+        var nodeToReplaceRange = range.node(nodeToReplace);
         var awaitKeyword = Keyword.AWAIT.lexeme;
         if (usage.parent is AwaitExpression &&
             source.startsWith(awaitKeyword)) {
           // remove the duplicate await keyword and the following whitespace.
           source = source.substring(awaitKeyword.length + 1);
         }
-        var edit = newSourceEdit_range(methodUsageRange, source);
+        var edit = newSourceEdit_range(nodeToReplaceRange, source);
         _addRefEdit(edit);
       } else {
         var edit = newSourceEdit_range(_refLineRange!, '');
@@ -842,7 +881,7 @@ class _SourcePart {
 
   void addParameterOccurrence({
     required FormalParameterElement parameter,
-    required SourceRange identifierRange,
+    required SimpleIdentifier identifier,
     required Precedence parentPrecedence,
     required bool inStringInterpolation,
   }) {
@@ -851,11 +890,11 @@ class _SourcePart {
       occurrences = [];
       _parameters[parameter] = occurrences;
     }
-    identifierRange = range.offsetBy(identifierRange, -_base);
     occurrences.add(
       _ParameterOccurrence(
+        baseOffset: _base,
         parentPrecedence: parentPrecedence,
-        range: identifierRange,
+        identifier: identifier,
         inStringInterpolation: inStringInterpolation,
       ),
     );
@@ -966,11 +1005,10 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
       return;
     }
     // OK, add occurrence
-    var nodeRange = range.node(node);
     var parentPrecedence = getExpressionParentPrecedence(node);
     result.addParameterOccurrence(
       parameter: parameterElement,
-      identifierRange: nodeRange,
+      identifier: node,
       parentPrecedence: parentPrecedence,
       inStringInterpolation: node.parent is InterpolationExpression,
     );
@@ -982,5 +1020,16 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
       var nodeRange = range.node(node);
       result.addVariable(variableElement, nodeRange);
     }
+  }
+}
+
+extension on SingleStringLiteral {
+  /// Whether this literal can be inlined as its content.
+  /// The literal can have interpolations itself.
+  bool get canDiscardSingleQuotes {
+    if (isMultiline || isRaw) {
+      return false;
+    }
+    return true;
   }
 }
