@@ -482,11 +482,6 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.SURROUND_WITH_WHILE,
     "Surround with 'while'",
   );
-  static const UNWRAP_IF_BODY = AssistKind(
-    'dart.assist.unwrap.if',
-    DartAssistKindPriority.DEFAULT,
-    "Unwrap 'if' body",
-  );
   static const USE_CURLY_BRACES = AssistKind(
     'dart.assist.surround.curlyBraces',
     DartAssistKindPriority.DEFAULT,
