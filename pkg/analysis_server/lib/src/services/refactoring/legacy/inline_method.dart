@@ -761,14 +761,16 @@ class _ReferenceProcessor {
         Expression usage = _node;
         Expression? target;
         var cascade = false;
-        if (nodeParent is PrefixedIdentifier) {
-          var propertyAccess = nodeParent;
-          usage = propertyAccess;
-          target = propertyAccess.prefix;
+        if (nodeParent case PrefixedIdentifier prefixedIdentifier) {
+          if (prefixedIdentifier.prefix == _node) {
+            usage = prefixedIdentifier.prefix;
+          } else {
+            usage = prefixedIdentifier;
+            target = prefixedIdentifier.prefix;
+          }
           cascade = false;
         }
-        if (nodeParent is PropertyAccess) {
-          var propertyAccess = nodeParent;
+        if (nodeParent case PropertyAccess propertyAccess) {
           usage = propertyAccess;
           target = propertyAccess.realTarget;
           cascade = propertyAccess.isCascaded;
