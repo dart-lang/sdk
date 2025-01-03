@@ -194,7 +194,6 @@ test/src/summary/elements/enum_test.dart
 test/src/summary/elements/extension_type_test.dart
 test/src/summary/elements/metadata_test.dart
 test/src/summary/elements/top_level_variable_test.dart
-test/src/summary/elements/type_alias_test.dart
 test/src/summary/elements/type_inference_test.dart
 test/src/summary/elements_base.dart
 test/src/summary/macro_test.dart

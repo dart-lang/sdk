@@ -635,6 +635,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isConst, 'const ');
       _sink.writeIf(e.isCovariant, 'covariant ');
       _sink.writeIf(e.isFinal, 'final ');
+      _sink.writeIf(e.hasImplicitType, 'hasImplicitType ');
 
       if (e is FieldFormalParameterElement) {
         _sink.write('this.');
@@ -2118,6 +2119,15 @@ class _ElementWriter extends _AbstractElementWriter {
     });
   }
 
+  void _assertEnclosingElement<E extends Element>(
+    Iterable<E> elements,
+    Element enclosingElement,
+  ) {
+    for (var element in elements) {
+      expect(element.enclosingElement3, same(enclosingElement));
+    }
+  }
+
   void _assertNonSyntheticElementSelf(Element element) {
     expect(element.isSynthetic, isFalse);
     expect(element.nonSynthetic, same(element));
@@ -3032,6 +3042,7 @@ class _ElementWriter extends _AbstractElementWriter {
       _sink.writeIf(e.isConst, 'const ');
       _sink.writeIf(e.isCovariant, 'covariant ');
       _sink.writeIf(e.isFinal, 'final ');
+      _sink.writeIf(e.hasImplicitType, 'hasImplicitType ');
 
       if (e is FieldFormalParameterElement) {
         _sink.write('this.');
@@ -3299,6 +3310,8 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
       _writeCodeRange(e);
+
+      _assertEnclosingElement(e.typeParameters, e);
       _writeTypeParameterElements(e.typeParameters);
 
       var aliasedType = e.aliasedType;
@@ -3306,10 +3319,21 @@ class _ElementWriter extends _AbstractElementWriter {
 
       var aliasedElement = e.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElementImpl) {
+        expect(aliasedElement.enclosingElement3, same(e));
         _sink.writelnWithIndent('aliasedElement: GenericFunctionTypeElement');
         _sink.withIndent(() {
+          _assertEnclosingElement(
+            aliasedElement.typeParameters,
+            aliasedElement,
+          );
           _writeTypeParameterElements(aliasedElement.typeParameters);
+
+          _assertEnclosingElement(
+            aliasedElement.parameters,
+            aliasedElement,
+          );
           _writeParameterElements(aliasedElement.parameters);
+
           _writeReturnType(aliasedElement.returnType);
         });
       }

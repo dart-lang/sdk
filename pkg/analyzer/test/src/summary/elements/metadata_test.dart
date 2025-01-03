@@ -83,7 +83,7 @@ library
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::A
               parameters
-                requiredPositional o @45
+                requiredPositional hasImplicitType o @45
                   type: dynamic
 ----------------------------------------
 library
@@ -126,7 +126,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional o
+            requiredPositional hasImplicitType o
               type: dynamic
 ''');
   }
@@ -184,7 +184,7 @@ library
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::A
               parameters
-                requiredPositional o @47
+                requiredPositional hasImplicitType o @47
                   type: dynamic
 ----------------------------------------
 library
@@ -227,7 +227,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional o
+            requiredPositional hasImplicitType o
               type: dynamic
 ''');
   }
@@ -2737,7 +2737,7 @@ library
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::A
               parameters
-                requiredPositional x @18
+                requiredPositional hasImplicitType x @18
                   type: dynamic
         class C @39
           reference: <testLibraryFragment>::@class::C
@@ -2798,7 +2798,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional x
+            requiredPositional hasImplicitType x
               type: dynamic
     class C
       reference: <testLibrary>::@class::C
@@ -3273,7 +3273,7 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional final this.x @47
+                requiredPositional final hasImplicitType this.x @47
                   type: dynamic
                   metadata
                     Annotation
@@ -3382,7 +3382,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           formalParameters
-            requiredPositional final x
+            requiredPositional final hasImplicitType x
               type: dynamic
               metadata
                 Annotation
@@ -3439,7 +3439,7 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                optionalPositional default final this.x @44
+                optionalPositional default final hasImplicitType this.x @44
                   type: dynamic
                   metadata
                     Annotation
@@ -3552,7 +3552,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           formalParameters
-            optionalPositional final x
+            optionalPositional final hasImplicitType x
               type: dynamic
               metadata
                 Annotation
@@ -3829,7 +3829,7 @@ library
               element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
           parameters
-            requiredPositional value @25
+            requiredPositional hasImplicitType value @25
               type: dynamic
           returnType: void
 ----------------------------------------
@@ -3896,7 +3896,7 @@ library
           element: <testLibraryFragment>::@getter::a
           element2: <testLibraryFragment>::@getter::a#element
       formalParameters
-        requiredPositional value
+        requiredPositional hasImplicitType value
           type: dynamic
 ''');
   }
@@ -4649,7 +4649,7 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement3: <testLibraryFragment>
           parameters
-            requiredPositional _ @2
+            requiredPositional hasImplicitType _ @2
               type: dynamic
           returnType: dynamic
 ----------------------------------------
@@ -4686,7 +4686,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
-        requiredPositional _
+        requiredPositional hasImplicitType _
           type: dynamic
       returnType: dynamic
 ''');
@@ -5376,7 +5376,7 @@ library
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
               parameters
-                requiredPositional value @39
+                requiredPositional hasImplicitType value @39
                   type: dynamic
               returnType: void
       topLevelVariables
@@ -5466,7 +5466,7 @@ library
               element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
           formalParameters
-            requiredPositional value
+            requiredPositional hasImplicitType value
               type: dynamic
   topLevelVariables
     const hasInitializer a
@@ -9127,7 +9127,7 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement3: <testLibraryFragment>
           parameters
-            requiredPositional x @21
+            requiredPositional hasImplicitType x @21
               type: dynamic
               metadata
                 Annotation
@@ -9186,7 +9186,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
-        requiredPositional x
+        requiredPositional hasImplicitType x
           type: dynamic
           metadata
             Annotation
@@ -9230,7 +9230,7 @@ library
               reference: <testLibraryFragment>::@class::C::@method::m
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional x @34
+                requiredPositional hasImplicitType x @34
                   type: dynamic
                   metadata
                     Annotation
@@ -9311,7 +9311,7 @@ library
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
-            requiredPositional x
+            requiredPositional hasImplicitType x
               type: dynamic
               metadata
                 Annotation
@@ -9482,7 +9482,7 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement3: <testLibraryFragment>
           parameters
-            optionalPositional default x @22
+            optionalPositional default hasImplicitType x @22
               type: dynamic
               metadata
                 Annotation
@@ -9545,7 +9545,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
-        optionalPositional x
+        optionalPositional hasImplicitType x
           type: dynamic
           metadata
             Annotation
@@ -9600,7 +9600,7 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional final super.x @75
+                requiredPositional final hasImplicitType super.x @75
                   type: int
                   metadata
                     Annotation
@@ -9698,7 +9698,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
           formalParameters
-            requiredPositional final x
+            requiredPositional final hasImplicitType x
               type: int
               metadata
                 Annotation
@@ -11082,7 +11082,7 @@ library
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::A
               parameters
-                requiredPositional _ @20
+                requiredPositional hasImplicitType _ @20
                   type: dynamic
         class C @43
           reference: <testLibraryFragment>::@class::C
@@ -11143,7 +11143,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional _
+            requiredPositional hasImplicitType _
               type: dynamic
     class C
       reference: <testLibrary>::@class::C
@@ -11179,7 +11179,7 @@ library
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::A
               parameters
-                requiredPositional _ @20
+                requiredPositional hasImplicitType _ @20
                   type: dynamic
         class C @42
           reference: <testLibraryFragment>::@class::C
@@ -11240,7 +11240,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional _
+            requiredPositional hasImplicitType _
               type: dynamic
     class C
       reference: <testLibrary>::@class::C

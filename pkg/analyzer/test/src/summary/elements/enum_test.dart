@@ -1319,7 +1319,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               enclosingElement3: <testLibraryFragment>::@enum::E
               parameters
-                requiredPositional final this.x @62
+                requiredPositional final hasImplicitType this.x @62
                   type: int
                   field: <testLibraryFragment>::@enum::E::@field::x::@def::0
           accessors
@@ -1414,7 +1414,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
           formalParameters
-            requiredPositional final x
+            requiredPositional final hasImplicitType x
               type: int
       getters
         synthetic static get v
@@ -1487,7 +1487,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               enclosingElement3: <testLibraryFragment>::@enum::E
               parameters
-                requiredPositional final this.x @29
+                requiredPositional final hasImplicitType this.x @29
                   type: dynamic
                   field: <null>
           accessors
@@ -1552,7 +1552,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
           formalParameters
-            requiredPositional final x
+            requiredPositional final hasImplicitType x
               type: dynamic
       getters
         synthetic static get v
@@ -1626,7 +1626,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               enclosingElement3: <testLibraryFragment>::@enum::E
               parameters
-                optionalNamed default final this.x @45
+                optionalNamed default final hasImplicitType this.x @45
                   reference: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x
                   type: int
                   constantInitializer
@@ -1721,7 +1721,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
           formalParameters
-            optionalNamed final x
+            optionalNamed final hasImplicitType x
               firstFragment: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x
               type: int
       getters
@@ -2110,7 +2110,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               enclosingElement3: <testLibraryFragment>::@enum::E
               parameters
-                requiredPositional final this.x @34
+                requiredPositional final hasImplicitType this.x @34
                   type: dynamic
                   field: <testLibraryFragment>::@enum::E::@field::x
           accessors
@@ -2190,7 +2190,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
           formalParameters
-            requiredPositional final x
+            requiredPositional final hasImplicitType x
               type: dynamic
       getters
         synthetic static get v
@@ -3046,7 +3046,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic static get v
@@ -7345,7 +7345,7 @@ library
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::A
               parameters
-                requiredPositional final this.value @48
+                requiredPositional final hasImplicitType this.value @48
                   type: dynamic
                   field: <testLibraryFragment>::@class::A::@field::value
           accessors
@@ -7576,7 +7576,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final value
+            requiredPositional final hasImplicitType value
               type: dynamic
       getters
         synthetic get value
@@ -12063,7 +12063,7 @@ library
               periodOffset: 48
               nameEnd: 54
               parameters
-                requiredPositional final this.f @60
+                requiredPositional final hasImplicitType this.f @60
                   type: int
                   field: <testLibraryFragment>::@enum::A::@field::f
 ----------------------------------------
@@ -12142,7 +12142,7 @@ library
         const named
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
           formalParameters
-            requiredPositional final f
+            requiredPositional final hasImplicitType f
               type: int
       getters
         synthetic static get v
@@ -14384,7 +14384,7 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@enum::A
               parameters
-                requiredPositional final this.foo @47
+                requiredPositional final hasImplicitType this.foo @47
                   type: int
                   field: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo
           accessors
@@ -14503,7 +14503,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
           formalParameters
-            requiredPositional final foo
+            requiredPositional final hasImplicitType foo
               type: int
       getters
         synthetic static get v
@@ -21165,7 +21165,7 @@ library
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo
               enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
               parameters
-                requiredPositional a @45
+                requiredPositional hasImplicitType a @45
                   type: String
               returnType: int
 ----------------------------------------
@@ -21248,7 +21248,7 @@ library
           reference: <testLibrary>::@enum::B::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: String
 ''');
   }
@@ -21322,7 +21322,7 @@ library
               reference: <testLibraryFragment>::@enum::B::@method::foo
               enclosingElement3: <testLibraryFragment>::@enum::B
               parameters
-                requiredPositional a @36
+                requiredPositional hasImplicitType a @36
                   type: String
               returnType: int
           augmented
@@ -21432,7 +21432,7 @@ library
           reference: <testLibrary>::@enum::B::@method::foo
           firstFragment: <testLibraryFragment>::@enum::B::@method::foo
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: String
 ''');
   }
@@ -21506,7 +21506,7 @@ library
               reference: <testLibraryFragment>::@enum::B::@method::foo
               enclosingElement3: <testLibraryFragment>::@enum::B
               parameters
-                requiredPositional a @36
+                requiredPositional hasImplicitType a @36
                   type: String
               returnType: int
           augmented
@@ -21616,7 +21616,7 @@ library
           reference: <testLibrary>::@enum::B::@method::foo
           firstFragment: <testLibraryFragment>::@enum::B::@method::foo
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: String
 ''');
   }

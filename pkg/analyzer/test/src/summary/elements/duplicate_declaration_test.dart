@@ -1292,7 +1292,7 @@ library
               reference: <testLibraryFragment>::@extensionType::E::@def::0::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::E::@def::0
               parameters
-                requiredPositional final this.it @21
+                requiredPositional final hasImplicitType this.it @21
                   type: int
                   field: <testLibraryFragment>::@extensionType::E::@def::0::@field::it
           accessors
@@ -1316,7 +1316,7 @@ library
               reference: <testLibraryFragment>::@extensionType::E::@def::1::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::E::@def::1
               parameters
-                requiredPositional final this.it @52
+                requiredPositional final hasImplicitType this.it @52
                   type: double
                   field: <testLibraryFragment>::@extensionType::E::@def::1::@field::it
           accessors
@@ -1389,7 +1389,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::E::@def::0::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -1409,7 +1409,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::E::@def::1::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: double
       getters
         synthetic get it
