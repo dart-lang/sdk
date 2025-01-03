@@ -23,7 +23,6 @@ lib/src/dart/ast/extensions.dart
 lib/src/dart/ast/utilities.dart
 lib/src/dart/constant/constant_verifier.dart
 lib/src/dart/constant/evaluation.dart
-lib/src/dart/constant/potentially_constant.dart
 lib/src/dart/constant/utilities.dart
 lib/src/dart/constant/value.dart
 lib/src/dart/element/class_hierarchy.dart
