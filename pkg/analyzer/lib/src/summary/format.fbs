@@ -275,18 +275,6 @@ table AnalysisDriverUnitIndex {
   usedNames:[uint] (id: 14);
 }
 
-/// Information about an available, even if not yet imported file.
-table AvailableFile {
-  /// The Dartdoc directives in the file.
-  directiveInfo:DirectiveInfo (id: 0);
-
-  /// Exports directives of the file.
-  exports:[string] (id: 1);
-
-  /// URIs of `part` directives.
-  parts:[string] (id: 2);
-}
-
 /// Errors for a single unit.
 table CiderUnitErrors {
   errors:[AnalysisDriverUnitError] (id: 0);
@@ -308,15 +296,6 @@ table DiagnosticMessage {
 
   /// The URL of the message, if any.
   url:string (id: 4);
-}
-
-/// Information about the Dartdoc directives in an [AvailableFile].
-table DirectiveInfo {
-  /// The names of the defined templates.
-  templateNames:[string] (id: 0);
-
-  /// The values of the defined templates.
-  templateValues:[string] (id: 1);
 }
 
 root_type AnalysisDriverResolvedUnit;
