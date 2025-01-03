@@ -36,7 +36,7 @@ class CiderFixesComputer {
 
   CiderFixesComputer(this._logger, this._fileResolver);
 
-  /// Compute quick fixes for errors on the line with the [offset].
+  /// Compute quick fixes for errors on the line at [lineNumber].
   Future<List<CiderErrorFixes>> compute(String path, int lineNumber) async {
     var result = <CiderErrorFixes>[];
     var resolvedLibrary = await _fileResolver.resolveLibrary2(path: path);

@@ -15,7 +15,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 
 /// Returns the container for [element] that should be used in Call Hierarchy.
 ///
-/// Returns `null` if none of [elements] are valid containers.
+/// Returns `null` if none of [element]'s ancestors are valid containers.
 ///
 /// This is used to construct (and group calls by) a [CallHierarchyItem] that
 /// contains calls and also locate their containers for additional labelling.
@@ -316,7 +316,7 @@ class DartCallHierarchyComputer {
 
   /// Finds a target for starting call hierarchy navigation at [offset].
   ///
-  /// If [offset] is an invocation, returns information about the [Element] it
+  /// If [offset] is an invocation, returns information about the [Element2] it
   /// refers to.
   CallHierarchyItem? findTarget(int offset) {
     var node = _findTargetNode(offset);
@@ -359,7 +359,7 @@ class DartCallHierarchyComputer {
     return node;
   }
 
-  /// Return the [Element] of the given [node], or `null` if [node] is `null`,
+  /// Return the [Element2] of the given [node], or `null` if [node] is `null`,
   /// does not have an element, or the element is not a valid target for call
   /// hierarchy.
   Element2? _getElementOfNode(AstNode? node) {

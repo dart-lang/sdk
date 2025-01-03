@@ -53,9 +53,10 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
     return isError ? error : null;
   }
 
-  /// Returns true if this object is an error, false if it is a result. Prefer
-  /// [mapResult] instead of checking this flag if [errors] will simply be
-  /// propagated as-is.
+  /// Returns `true` if this object is an error, `false` if it is a result.
+  ///
+  /// Prefer [mapResult] instead of checking this flag if the errors will simply
+  /// be propagated as-is.
   bool get isError => map((_) => true, (_) => false);
 
   /// Returns true if this object is aa result, false if it is an error. Prefer
