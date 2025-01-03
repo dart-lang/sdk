@@ -1146,6 +1146,132 @@ void f() {
     expect(refactoring.inlineAll, false);
   }
 
+  Future<void> test_intoStringInterpolation2_integerLiteral() async {
+    await indexTestUnit(r'''
+void f() {
+  'a: $test';
+}
+
+int get test => 0;
+''');
+    _createRefactoring('test =>');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: ${0}';
+}
+''');
+  }
+
+  Future<void>
+  test_intoStringInterpolation2_literal_simpleStringLiteral_raw() async {
+    await indexTestUnit(r'''
+void f() {
+  'a: $test';
+}
+
+String get test => r'\n';
+''');
+    _createRefactoring('test =>');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: ${r'\n'}';
+}
+''');
+  }
+
+  Future<void> test_intoStringInterpolation2_propertyAccess() async {
+    await indexTestUnit(r'''
+void f() {
+  'a: $test';
+}
+
+int get test => 0.sign;
+''');
+    _createRefactoring('test =>');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: ${0.sign}';
+}
+''');
+  }
+
+  Future<void> test_intoStringInterpolation2_propertyAccess_already() async {
+    await indexTestUnit(r'''
+void f() {
+  'a: ${test}';
+}
+
+int get test => 0.sign;
+''');
+    _createRefactoring('test =>');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: ${0.sign}';
+}
+''');
+  }
+
+  Future<void> test_intoStringInterpolation2_simpleIdentifier() async {
+    await indexTestUnit(r'''
+void f() {
+  'a: $test';
+}
+
+const value = 0;
+int get test => value;
+''');
+    _createRefactoring('test =>');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: $value';
+}
+
+const value = 0;
+''');
+  }
+
+  Future<void> test_intoStringInterpolation2_simpleStringLiteral() async {
+    await indexTestUnit(r'''
+void f() {
+  'a: $test';
+}
+
+String get test => 'b';
+''');
+    _createRefactoring('test =>');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: b';
+}
+''');
+  }
+
+  Future<void> test_intoStringInterpolation2_stringInterpolation() async {
+    await indexTestUnit(r'''
+void f() {
+  'a: $test';
+}
+
+const value = 0;
+String get test => 'foo $value bar';
+''');
+    _createRefactoring('test =>');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: foo $value bar';
+}
+
+const value = 0;
+''');
+  }
+
   Future<void> test_intoStringInterpolation_identifier() async {
     await indexTestUnit(r'''
 void f() {
@@ -1182,6 +1308,86 @@ void test(int a) {
     return _assertSuccessfulRefactoring(r'''
 void f() {
   'a: ${0}';
+}
+''');
+  }
+
+  Future<void> test_intoStringInterpolation_propertyAccess() async {
+    await indexTestUnit(r'''
+void f(int v) {
+  test(v.isEven);
+}
+
+void test(bool a) {
+  'a: $a';
+}
+''');
+    _createRefactoring('test(bool');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f(int v) {
+  'a: ${v.isEven}';
+}
+''');
+  }
+
+  Future<void> test_intoStringInterpolation_simpleStringLiteral() async {
+    await indexTestUnit(r'''
+void f() {
+  test('b');
+}
+
+void test(String a) {
+  'a: $a';
+}
+''');
+    _createRefactoring('test(String');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: b';
+}
+''');
+  }
+
+  Future<void> test_intoStringInterpolation_simpleStringLiteral_raw() async {
+    await indexTestUnit(r'''
+void f() {
+  test(r'\n');
+}
+
+void test(String a) {
+  'a: $a';
+}
+''');
+    _createRefactoring('test(String');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  'a: ${r'\n'}';
+}
+''');
+  }
+
+  Future<void> test_intoStringInterpolation_stringInterpolation() async {
+    await indexTestUnit(r'''
+const value = 0;
+
+void f() {
+  test('foo $value bar');
+}
+
+void test(String a) {
+  'a: $a';
+}
+''');
+    _createRefactoring('test(String');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+const value = 0;
+
+void f() {
+  'a: foo $value bar';
 }
 ''');
   }
