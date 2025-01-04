@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
@@ -25,22 +24,6 @@ extension AstNodeExtension on AstNode {
       }
     }
     return result;
-  }
-
-  /// The [ExecutableElement] of the enclosing executable [AstNode].
-  ExecutableElement? get enclosingExecutableElement {
-    for (var node in withParents) {
-      if (node is FunctionDeclaration) {
-        return node.declaredElement;
-      }
-      if (node is ConstructorDeclaration) {
-        return node.declaredElement;
-      }
-      if (node is MethodDeclaration) {
-        return node.declaredElement;
-      }
-    }
-    return null;
   }
 
   /// The [ExecutableElement2] of the enclosing executable [AstNode].
@@ -176,10 +159,11 @@ extension AstNodeNullableExtension on AstNode? {
 extension CompilationUnitExtension on CompilationUnit {
   /// Whether this [CompilationUnit] is found in a "test" directory.
   bool get inTestDir {
-    var declaredElement = this.declaredElement;
-    if (declaredElement == null) return false;
-    var pathContext = declaredElement.session.resourceProvider.pathContext;
-    var path = declaredElement.source.fullName;
+    var declaredFragment = this.declaredFragment;
+    if (declaredFragment == null) return false;
+    var pathContext =
+        declaredFragment.element.session.resourceProvider.pathContext;
+    var path = declaredFragment.source.fullName;
     return switch (pathContext.separator) {
       '/' => const [
           '/test/',
