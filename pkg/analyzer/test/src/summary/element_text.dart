@@ -78,6 +78,35 @@ class ElementTextConfiguration {
     this.filter = _filterTrue,
   });
 
+  void forPromotableFields({
+    Set<String> classNames = const {},
+    Set<String> enumNames = const {},
+    Set<String> extensionTypeNames = const {},
+    Set<String> mixinNames = const {},
+    Set<String> fieldNames = const {},
+  }) {
+    filter = (e) {
+      if (e is ClassElement) {
+        return classNames.contains(e.name);
+      } else if (e is ConstructorElement) {
+        return false;
+      } else if (e is EnumElement) {
+        return enumNames.contains(e.name);
+      } else if (e is ExtensionTypeElement) {
+        return extensionTypeNames.contains(e.name);
+      } else if (e is FieldElement) {
+        return fieldNames.isEmpty || fieldNames.contains(e.name);
+      } else if (e is MixinElement) {
+        return mixinNames.contains(e.name);
+      } else if (e is PartElement) {
+        return false;
+      } else if (e is PropertyAccessorElement) {
+        return false;
+      }
+      return true;
+    };
+  }
+
   static bool _filterTrue(Object element) => true;
 }
 
