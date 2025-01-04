@@ -6372,6 +6372,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 
   @override
   List<ConstructorElement2> get constructors2 {
+    firstFragment.constructors; // TODO(scheglov): remove eventually
     return constructors
         .map((constructor) =>
             (constructor.declaration as ConstructorElementImpl).element)

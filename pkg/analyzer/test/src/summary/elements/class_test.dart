@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../dart/resolution/node_text_expectations.dart';
-import '../element_text.dart';
 import '../elements_base.dart';
 
 main() {
@@ -27181,8 +27179,8 @@ mixin M {}
 class X = A with M;
 ''');
 
-    var X = library.getClass('X')!;
-    expect(X.constructors, hasLength(1));
+    var X = library.getClass2('X')!;
+    expect(X.constructors2, hasLength(1));
   }
 
   test_classAlias_constructors_default() async {
@@ -43716,36 +43714,4 @@ class ClassElementTest_fromBytes extends ClassElementTest {
 class ClassElementTest_keepLinking extends ClassElementTest {
   @override
   bool get keepLinkingLibraries => true;
-}
-
-// TODO(scheglov): This is duplicate.
-extension on ElementTextConfiguration {
-  void forPromotableFields({
-    Set<String> classNames = const {},
-    Set<String> enumNames = const {},
-    Set<String> extensionTypeNames = const {},
-    Set<String> mixinNames = const {},
-    Set<String> fieldNames = const {},
-  }) {
-    filter = (e) {
-      if (e is ClassElement) {
-        return classNames.contains(e.name);
-      } else if (e is ConstructorElement) {
-        return false;
-      } else if (e is EnumElement) {
-        return enumNames.contains(e.name);
-      } else if (e is ExtensionTypeElement) {
-        return extensionTypeNames.contains(e.name);
-      } else if (e is FieldElement) {
-        return fieldNames.isEmpty || fieldNames.contains(e.name);
-      } else if (e is MixinElement) {
-        return mixinNames.contains(e.name);
-      } else if (e is PartElement) {
-        return false;
-      } else if (e is PropertyAccessorElement) {
-        return false;
-      }
-      return true;
-    };
-  }
 }
