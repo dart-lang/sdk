@@ -143,7 +143,6 @@ lib/src/summary2/variance_builder.dart
 lib/src/test_utilities/find_element.dart
 lib/src/test_utilities/find_node.dart
 lib/src/test_utilities/mock_sdk_elements.dart
-lib/src/utilities/extensions/ast.dart
 lib/src/utilities/extensions/element.dart
 lib/src/utilities/extensions/flutter.dart
 lib/src/utilities/extensions/library_element.dart
