@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
 extension AstNodeExtension on AstNode {
@@ -37,6 +38,22 @@ extension AstNodeExtension on AstNode {
       }
       if (node is MethodDeclaration) {
         return node.declaredElement;
+      }
+    }
+    return null;
+  }
+
+  /// The [ExecutableElement2] of the enclosing executable [AstNode].
+  ExecutableElement2? get enclosingExecutableElement2 {
+    for (var node in withParents) {
+      if (node is FunctionDeclaration) {
+        return node.declaredFragment?.element;
+      }
+      if (node is ConstructorDeclaration) {
+        return node.declaredFragment?.element;
+      }
+      if (node is MethodDeclaration) {
+        return node.declaredFragment?.element;
       }
     }
     return null;

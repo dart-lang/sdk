@@ -412,7 +412,7 @@ class _ColorBuilder extends RecursiveAstVisitor<void> {
 }
 
 extension _DartObjectExtensions on DartObject {
-  /// Reads the value of the field [field] from this object.
+  /// Reads the value of the field named [fieldName] from this object.
   ///
   /// If the field is not found, recurses up the super classes.
   DartObject? getFieldFromHierarchy(String fieldName) =>

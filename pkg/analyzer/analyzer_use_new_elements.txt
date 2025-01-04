@@ -23,7 +23,6 @@ lib/src/dart/ast/extensions.dart
 lib/src/dart/ast/utilities.dart
 lib/src/dart/constant/constant_verifier.dart
 lib/src/dart/constant/evaluation.dart
-lib/src/dart/constant/potentially_constant.dart
 lib/src/dart/constant/utilities.dart
 lib/src/dart/constant/value.dart
 lib/src/dart/element/class_hierarchy.dart
@@ -72,7 +71,6 @@ lib/src/dart/resolver/function_reference_resolver.dart
 lib/src/dart/resolver/invocation_inference_helper.dart
 lib/src/dart/resolver/invocation_inferrer.dart
 lib/src/dart/resolver/lexical_lookup.dart
-lib/src/dart/resolver/list_pattern_resolver.dart
 lib/src/dart/resolver/method_invocation_resolver.dart
 lib/src/dart/resolver/named_type_resolver.dart
 lib/src/dart/resolver/postfix_expression_resolver.dart
@@ -105,7 +103,6 @@ lib/src/generated/resolver.dart
 lib/src/generated/testing/element_factory.dart
 lib/src/generated/testing/test_type_provider.dart
 lib/src/hint/sdk_constraint_verifier.dart
-lib/src/lint/constants.dart
 lib/src/lint/linter.dart
 lib/src/services/top_level_declarations.dart
 lib/src/summary2/ast_binary_reader.dart
@@ -146,7 +143,6 @@ lib/src/summary2/variance_builder.dart
 lib/src/test_utilities/find_element.dart
 lib/src/test_utilities/find_node.dart
 lib/src/test_utilities/mock_sdk_elements.dart
-lib/src/utilities/extensions/analysis_session.dart
 lib/src/utilities/extensions/ast.dart
 lib/src/utilities/extensions/element.dart
 lib/src/utilities/extensions/flutter.dart
@@ -184,25 +180,19 @@ test/src/dart/element/type_visitor_test.dart
 test/src/dart/element/upper_lower_bound_test.dart
 test/src/dart/micro/simple_file_resolver_test.dart
 test/src/dart/resolution/constant_test.dart
-test/src/dart/resolution/generic_type_alias_test.dart
 test/src/dart/resolution/prefix_element_test.dart
 test/src/dart/resolution/resolution.dart
 test/src/dart/resolution/scope_test.dart
 test/src/dart/resolution/super_formal_parameter_test.dart
 test/src/summary/element_text.dart
-test/src/summary/elements/class_test.dart
-test/src/summary/elements/enum_test.dart
-test/src/summary/elements/extension_type_test.dart
 test/src/summary/elements/metadata_test.dart
 test/src/summary/elements/top_level_variable_test.dart
-test/src/summary/elements/type_alias_test.dart
 test/src/summary/elements/type_inference_test.dart
 test/src/summary/elements_base.dart
 test/src/summary/macro_test.dart
 test/src/summary/resolved_ast_printer.dart
 test/src/task/strong/dart2_inference_test.dart
 test/src/task/strong/inferred_type_test.dart
-test/src/utilities/extensions/analysis_session_test.dart
 test/src/utilities/extensions/library_element_test.dart
 test/util/element_printer.dart
 test/util/id_testing_helper.dart

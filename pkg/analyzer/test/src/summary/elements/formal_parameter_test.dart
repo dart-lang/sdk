@@ -553,9 +553,9 @@ library
                 requiredPositional g @12
                   type: dynamic Function(dynamic, dynamic)
                   parameters
-                    requiredPositional x @14
+                    requiredPositional hasImplicitType x @14
                       type: dynamic
-                    requiredPositional y @17
+                    requiredPositional hasImplicitType y @17
                       type: dynamic
               returnType: dynamic
 ----------------------------------------
@@ -595,9 +595,9 @@ library
             requiredPositional g
               type: dynamic Function(dynamic, dynamic)
               formalParameters
-                requiredPositional x
+                requiredPositional hasImplicitType x
                   type: dynamic
-                requiredPositional y
+                requiredPositional hasImplicitType y
                   type: dynamic
 ''');
   }
@@ -892,7 +892,7 @@ library
               periodOffset: 13
               nameEnd: 24
               parameters
-                optionalPositional default x @26
+                optionalPositional default hasImplicitType x @26
                   type: dynamic
                   constantInitializer
                     IntegerLiteral
@@ -904,7 +904,7 @@ library
               periodOffset: 38
               nameEnd: 44
               parameters
-                optionalNamed default x @46
+                optionalNamed default hasImplicitType x @46
                   reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x
                   type: dynamic
                   constantInitializer
@@ -949,12 +949,12 @@ library
         positional
           firstFragment: <testLibraryFragment>::@class::C::@constructor::positional
           formalParameters
-            optionalPositional x
+            optionalPositional hasImplicitType x
               type: dynamic
         named
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
           formalParameters
-            optionalNamed x
+            optionalNamed hasImplicitType x
               firstFragment: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x
               type: dynamic
 ''');
@@ -993,7 +993,7 @@ library
               periodOffset: 22
               nameEnd: 33
               parameters
-                optionalPositional default final this.x @40
+                optionalPositional default final hasImplicitType this.x @40
                   type: dynamic
                   constantInitializer
                     IntegerLiteral
@@ -1006,7 +1006,7 @@ library
               periodOffset: 52
               nameEnd: 58
               parameters
-                optionalNamed default final this.x @65
+                optionalNamed default final hasImplicitType this.x @65
                   reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x
                   type: dynamic
                   constantInitializer
@@ -1087,12 +1087,12 @@ library
         positional
           firstFragment: <testLibraryFragment>::@class::C::@constructor::positional
           formalParameters
-            optionalPositional final x
+            optionalPositional final hasImplicitType x
               type: dynamic
         named
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
           formalParameters
-            optionalNamed final x
+            optionalNamed final hasImplicitType x
               firstFragment: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x
               type: dynamic
       getters
@@ -1136,7 +1136,7 @@ library
               reference: <testLibraryFragment>::@class::C::@method::positional
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                optionalPositional default x @36
+                optionalPositional default hasImplicitType x @36
                   type: dynamic
                   constantInitializer
                     IntegerLiteral
@@ -1147,7 +1147,7 @@ library
               reference: <testLibraryFragment>::@class::C::@method::named
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                optionalNamed default x @68
+                optionalNamed default hasImplicitType x @68
                   reference: <testLibraryFragment>::@class::C::@method::named::@parameter::x
                   type: dynamic
                   constantInitializer
@@ -1196,13 +1196,13 @@ library
           reference: <testLibrary>::@class::C::@method::positional
           firstFragment: <testLibraryFragment>::@class::C::@method::positional
           formalParameters
-            optionalPositional x
+            optionalPositional hasImplicitType x
               type: dynamic
         static named
           reference: <testLibrary>::@class::C::@method::named
           firstFragment: <testLibraryFragment>::@class::C::@method::named
           formalParameters
-            optionalNamed x
+            optionalNamed hasImplicitType x
               firstFragment: <testLibraryFragment>::@class::C::@method::named::@parameter::x
               type: dynamic
 ''');
@@ -1228,7 +1228,7 @@ library
           reference: <testLibraryFragment>::@function::positional
           enclosingElement3: <testLibraryFragment>
           parameters
-            optionalPositional default x @17
+            optionalPositional default hasImplicitType x @17
               type: dynamic
               constantInitializer
                 IntegerLiteral
@@ -1239,7 +1239,7 @@ library
           reference: <testLibraryFragment>::@function::named
           enclosingElement3: <testLibraryFragment>
           parameters
-            optionalNamed default x @40
+            optionalNamed default hasImplicitType x @40
               reference: <testLibraryFragment>::@function::named::@parameter::x
               type: dynamic
               constantInitializer
@@ -1272,14 +1272,14 @@ library
       reference: <testLibrary>::@function::positional
       firstFragment: <testLibraryFragment>::@function::positional
       formalParameters
-        optionalPositional x
+        optionalPositional hasImplicitType x
           type: dynamic
       returnType: void
     named
       reference: <testLibrary>::@function::named
       firstFragment: <testLibraryFragment>::@function::named
       formalParameters
-        optionalNamed x
+        optionalNamed hasImplicitType x
           firstFragment: <testLibraryFragment>::@function::named::@parameter::x
           type: dynamic
       returnType: void

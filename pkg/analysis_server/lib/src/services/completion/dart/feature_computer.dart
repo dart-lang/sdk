@@ -1314,9 +1314,7 @@ parent3: ${node.parent?.parent?.parent}
     return null;
   }
 
-  /// Return the result of visiting the parent of the [node] after setting the
-  /// [childNode] to the [node]. Note that this method is destructive in that it
-  /// does not reset the [childNode] before returning.
+  /// Returns the result of visiting the parent of the [node].
   DartType? _visitParent(AstNode node) {
     var parent = node.parent;
     if (parent == null) {

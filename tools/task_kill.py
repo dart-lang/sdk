@@ -24,6 +24,7 @@ POSIX_INFO = 'ps -p %s -o args'
 EXECUTABLE_NAMES = {
     'win32': {
         'chrome': 'chrome.exe',
+        'crashpad_handler': 'crashpad_handler.exe',
         'dart': 'dart.exe',
         'dartaotruntime': 'dartaotruntime.exe',
         'firefox': 'firefox.exe',
@@ -259,6 +260,7 @@ def KillDart():
     status += Kill("gen_snapshot", dump_stacks=True)
     status += Kill("dartaotruntime", dump_stacks=True)
     status += Kill("flutter_tester", dump_stacks=True)
+    status += Kill("crashpad_handler", dump_stacks=True)
     return status
 
 

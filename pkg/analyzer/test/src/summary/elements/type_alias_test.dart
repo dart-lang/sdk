@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../dart/resolution/node_text_expectations.dart';
@@ -609,33 +606,117 @@ library
     var library = await buildLibrary(r'''
 typedef void F<T>(int a);
 ''');
-    var unit = library.definingCompilationUnit;
-
-    var F = unit.typeAliases[0];
-    expect(F.name, 'F');
-
-    var T = F.typeParameters[0];
-    expect(T.name, 'T');
-    expect(T.enclosingElement3, same(F));
-
-    var function = F.aliasedElement as GenericFunctionTypeElement;
-    expect(function.enclosingElement3, same(F));
-
-    var a = function.parameters[0];
-    expect(a.name, 'a');
-    expect(a.enclosingElement3, same(function));
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      typeAliases
+        functionTypeAliasBased F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            unrelated T @15
+              defaultType: dynamic
+          aliasedType: void Function(int)
+          aliasedElement: GenericFunctionTypeElement
+            parameters
+              requiredPositional a @22
+                type: int
+            returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+          element: <testLibrary>::@typeAlias::F
+          typeParameters
+            T @15
+              element: <not-implemented>
+  typeAliases
+    F
+      firstFragment: <testLibraryFragment>::@typeAlias::F
+      typeParameters
+        T
+      aliasedType: void Function(int)
+''');
   }
 
   test_functionTypeAlias_type_element() async {
     var library = await buildLibrary(r'''
 typedef T F<T>();
-F<int> a;
+void f(F<int> a) {}
 ''');
-    var unit = library.definingCompilationUnit;
-    var type = unit.topLevelVariables[0].type as FunctionType;
-
-    expect(type.alias!.element, same(unit.typeAliases[0]));
-    _assertTypeStrings(type.alias!.typeArguments, ['int']);
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      typeAliases
+        functionTypeAliasBased F @10
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            covariant T @12
+              defaultType: dynamic
+          aliasedType: T Function()
+          aliasedElement: GenericFunctionTypeElement
+            returnType: T
+      functions
+        f @23
+          reference: <testLibraryFragment>::@function::f
+          enclosingElement3: <testLibraryFragment>
+          parameters
+            requiredPositional a @32
+              type: int Function()
+                alias: <testLibraryFragment>::@typeAlias::F
+                  typeArguments
+                    int
+          returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        F @10
+          reference: <testLibraryFragment>::@typeAlias::F
+          element: <testLibrary>::@typeAlias::F
+          typeParameters
+            T @12
+              element: <not-implemented>
+      functions
+        f @23
+          reference: <testLibraryFragment>::@function::f
+          element: <testLibrary>::@function::f
+          formalParameters
+            a @32
+              element: <testLibraryFragment>::@function::f::@parameter::a#element
+  typeAliases
+    F
+      firstFragment: <testLibraryFragment>::@typeAlias::F
+      typeParameters
+        T
+      aliasedType: T Function()
+  functions
+    f
+      reference: <testLibrary>::@function::f
+      firstFragment: <testLibraryFragment>::@function::f
+      formalParameters
+        requiredPositional a
+          type: int Function()
+            alias: <testLibraryFragment>::@typeAlias::F
+              typeArguments
+                int
+      returnType: void
+''');
   }
 
   test_functionTypeAlias_typeParameters_variance_contravariant() async {
@@ -1201,25 +1282,47 @@ library
     var library = await buildLibrary(r'''
 typedef F<T> = void Function<U>(int a);
 ''');
-    var unit = library.definingCompilationUnit;
-
-    var F = unit.typeAliases[0];
-    expect(F.name, 'F');
-
-    var T = F.typeParameters[0];
-    expect(T.name, 'T');
-    expect(T.enclosingElement3, same(F));
-
-    var function = F.aliasedElement as GenericFunctionTypeElement;
-    expect(function.enclosingElement3, same(F));
-
-    var U = function.typeParameters[0];
-    expect(U.name, 'U');
-    expect(U.enclosingElement3, same(function));
-
-    var a = function.parameters[0];
-    expect(a.name, 'a');
-    expect(a.enclosingElement3, same(function));
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            unrelated T @10
+              defaultType: dynamic
+          aliasedType: void Function<U>(int)
+          aliasedElement: GenericFunctionTypeElement
+            typeParameters
+              covariant U @29
+            parameters
+              requiredPositional a @36
+                type: int
+            returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          element: <testLibrary>::@typeAlias::F
+          typeParameters
+            T @10
+              element: <not-implemented>
+  typeAliases
+    F
+      firstFragment: <testLibraryFragment>::@typeAlias::F
+      typeParameters
+        T
+      aliasedType: void Function<U>(int)
+''');
   }
 
   test_genericTypeAlias_recursive() async {
@@ -3460,13 +3563,43 @@ library
     var library = await buildLibrary(r'''
 typedef void F(int a, b, [int c, d]);
 ''');
-    var F = library.definingCompilationUnit.typeAliases.single;
-    var function = F.aliasedElement as GenericFunctionTypeElement;
-    // TODO(scheglov): Use better textual presentation with all information.
-    expect(function.parameters[0].hasImplicitType, false);
-    expect(function.parameters[1].hasImplicitType, true);
-    expect(function.parameters[2].hasImplicitType, false);
-    expect(function.parameters[3].hasImplicitType, true);
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      typeAliases
+        functionTypeAliasBased F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+          aliasedType: void Function(int, dynamic, [int, dynamic])
+          aliasedElement: GenericFunctionTypeElement
+            parameters
+              requiredPositional a @19
+                type: int
+              requiredPositional hasImplicitType b @22
+                type: dynamic
+              optionalPositional c @30
+                type: int
+              optionalPositional hasImplicitType d @33
+                type: dynamic
+            returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+          element: <testLibrary>::@typeAlias::F
+  typeAliases
+    F
+      firstFragment: <testLibraryFragment>::@typeAlias::F
+      aliasedType: void Function(int, dynamic, [int, dynamic])
+''');
   }
 
   test_typedef_legacy_parameter_parameters() async {
@@ -3487,9 +3620,9 @@ library
               requiredPositional g @10
                 type: dynamic Function(dynamic, dynamic)
                 parameters
-                  requiredPositional x @12
+                  requiredPositional hasImplicitType x @12
                     type: dynamic
-                  requiredPositional y @15
+                  requiredPositional hasImplicitType y @15
                     type: dynamic
             returnType: dynamic
 ----------------------------------------
@@ -3688,9 +3821,9 @@ library
           aliasedType: dynamic Function(dynamic, dynamic)
           aliasedElement: GenericFunctionTypeElement
             parameters
-              requiredPositional x @10
+              requiredPositional hasImplicitType x @10
                 type: dynamic
-              requiredPositional y @13
+              requiredPositional hasImplicitType y @13
                 type: dynamic
             returnType: dynamic
 ----------------------------------------
@@ -3725,11 +3858,11 @@ library
           aliasedType: dynamic Function({dynamic x, dynamic y, dynamic z})
           aliasedElement: GenericFunctionTypeElement
             parameters
-              optionalNamed y @11
+              optionalNamed hasImplicitType y @11
                 type: dynamic
-              optionalNamed z @14
+              optionalNamed hasImplicitType z @14
                 type: dynamic
-              optionalNamed x @17
+              optionalNamed hasImplicitType x @17
                 type: dynamic
             returnType: dynamic
 ----------------------------------------
@@ -6443,9 +6576,6 @@ typedef A = int;
 void f(A a) {}
 ''');
 
-    var alias = library.definingCompilationUnit.typeAliases[0];
-    _assertTypeStr(alias.aliasedType, 'dynamic Function()');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7111,19 +7241,6 @@ library
       firstFragment: <testLibraryFragment>::@function::g
       returnType: dynamic
 ''');
-  }
-
-  // TODO(scheglov): This is duplicate.
-  void _assertTypeStr(DartType type, String expected) {
-    var typeStr = type.getDisplayString();
-    expect(typeStr, expected);
-  }
-
-  void _assertTypeStrings(List<DartType> types, List<String> expected) {
-    var typeStringList = types.map((e) {
-      return e.getDisplayString();
-    }).toList();
-    expect(typeStringList, expected);
   }
 }
 

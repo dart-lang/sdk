@@ -50,7 +50,7 @@ class CompletionHandler
   /// Whether to include symbols from libraries that have not been imported.
   final bool suggestFromUnimportedLibraries;
 
-  /// The budget to use for [NotImportedContributor] computation.
+  /// The budget to use for [NotImportedSuggestions] computation.
   ///
   /// This is usually the default value, but can be overridden via
   /// initializationOptions (used for tests, but may also be useful for

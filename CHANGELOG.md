@@ -223,6 +223,11 @@ AOT snapshot can be used as follows to run DDC <dart-sdk>/bin/dartaotruntime
   release. Users should migrate to using `dart:js_interop` and `package:web`.
   See [#59716][].
 
+#### `dart:io`
+
+- `HttpException` will be thrown by `HttpClient` and `HttpServer` if a `NUL`
+  (`0x00`) appears in a received HTTP header value.
+
 #### `dart:svg`
 
 - `dart:svg` is marked deprecated and will be removed in an upcoming release.

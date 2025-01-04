@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../dart/resolution/node_text_expectations.dart';
-import '../element_text.dart';
 import '../elements_base.dart';
 
 main() {
@@ -177,7 +175,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @27
+                requiredPositional final hasImplicitType this.it @27
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -229,7 +227,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -275,7 +273,7 @@ library
               periodOffset: 16
               nameEnd: 22
               parameters
-                requiredPositional final this.it @27
+                requiredPositional final hasImplicitType this.it @27
                   type: int
                   codeOffset: 23
                   codeLength: 6
@@ -332,7 +330,7 @@ library
         named
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::named
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -371,7 +369,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @21
+                requiredPositional final hasImplicitType this.it @21
                   type: num
                   field: <testLibraryFragment>::@extensionType::A::@field::it
             named @31
@@ -380,7 +378,7 @@ library
               periodOffset: 30
               nameEnd: 36
               parameters
-                requiredPositional final this.it @42
+                requiredPositional final hasImplicitType this.it @42
                   type: num
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -441,12 +439,12 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: num
         named
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::named
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: num
       getters
         synthetic get it
@@ -485,7 +483,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @21
+                requiredPositional final hasImplicitType this.it @21
                   type: num
                   field: <testLibraryFragment>::@extensionType::A::@field::it
             named @31
@@ -555,7 +553,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: num
         named
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::named
@@ -599,7 +597,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @21
+                requiredPositional final hasImplicitType this.it @21
                   type: num
                   field: <testLibraryFragment>::@extensionType::A::@field::it
             const named @37
@@ -694,7 +692,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: num
         const named
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::named
@@ -743,7 +741,7 @@ library
               codeOffset: 16
               codeLength: 8
               parameters
-                requiredPositional final this.it @21
+                requiredPositional final hasImplicitType this.it @21
                   type: int
                   codeOffset: 17
                   codeLength: 6
@@ -799,7 +797,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -839,7 +837,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @30
+                requiredPositional final hasImplicitType this.it @30
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -892,7 +890,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -1228,7 +1226,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @43
+                requiredPositional final hasImplicitType this.it @43
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -1282,7 +1280,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -2250,7 +2248,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @43
+                requiredPositional final hasImplicitType this.it @43
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -2304,7 +2302,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -2604,7 +2602,7 @@ library
               codeOffset: 16
               codeLength: 2
               parameters
-                requiredPositional final this.<empty> @17
+                requiredPositional final hasImplicitType this.<empty> @17
                   type: InvalidType
                   codeOffset: 17
                   codeLength: 0
@@ -2660,7 +2658,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final <empty>
+            requiredPositional final hasImplicitType <empty>
               type: InvalidType
       getters
         synthetic get <null-name>
@@ -3578,7 +3576,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @45
+                requiredPositional final hasImplicitType this.it @45
                   type: Map<T, U>
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -3639,7 +3637,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: Map<T, U>
       getters
         synthetic get it
@@ -3697,7 +3695,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @36
+                requiredPositional final hasImplicitType this.it @36
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -3802,7 +3800,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -3871,7 +3869,7 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               parameters
-                requiredPositional final this.it @65
+                requiredPositional final hasImplicitType this.it @65
                   type: int
                   field: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::it
           accessors
@@ -3974,7 +3972,7 @@ library
         new
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -4032,7 +4030,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @36
+                requiredPositional final hasImplicitType this.it @36
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -4123,7 +4121,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
         named
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named
@@ -4179,7 +4177,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @40
+                requiredPositional final hasImplicitType this.it @40
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -4289,7 +4287,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
         named
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named
@@ -4347,7 +4345,7 @@ library
               periodOffset: 31
               nameEnd: 37
               parameters
-                requiredPositional final this.it @42
+                requiredPositional final hasImplicitType this.it @42
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -4436,7 +4434,7 @@ library
         named
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::named
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
         new
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::new
@@ -4503,7 +4501,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @36
+                requiredPositional final hasImplicitType this.it @36
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -4634,7 +4632,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -4719,7 +4717,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @51
+                requiredPositional final hasImplicitType this.it @51
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -4884,7 +4882,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -4969,7 +4967,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @51
+                requiredPositional final hasImplicitType this.it @51
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -5134,7 +5132,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -5219,7 +5217,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @51
+                requiredPositional final hasImplicitType this.it @51
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -5390,7 +5388,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -5463,7 +5461,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @36
+                requiredPositional final hasImplicitType this.it @36
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -5594,7 +5592,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -5667,7 +5665,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @36
+                requiredPositional final hasImplicitType this.it @36
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -5779,7 +5777,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -5845,7 +5843,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @36
+                requiredPositional final hasImplicitType this.it @36
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -6012,7 +6010,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -6089,7 +6087,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @36
+                requiredPositional final hasImplicitType this.it @36
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -6216,7 +6214,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -6285,7 +6283,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @40
+                requiredPositional final hasImplicitType this.it @40
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -6427,7 +6425,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -6495,7 +6493,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @36
+                requiredPositional final hasImplicitType this.it @36
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -6627,7 +6625,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -6711,7 +6709,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @51
+                requiredPositional final hasImplicitType this.it @51
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -6877,7 +6875,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -6954,7 +6952,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @36
+                requiredPositional final hasImplicitType this.it @36
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -7086,7 +7084,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -7164,7 +7162,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @51
+                requiredPositional final hasImplicitType this.it @51
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -7311,7 +7309,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -7571,7 +7569,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @36
+                requiredPositional final hasImplicitType this.it @36
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -7606,7 +7604,7 @@ library
               reference: <testLibraryFragment>::@extensionType::I1::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::I1
               parameters
-                requiredPositional final this.it @79
+                requiredPositional final hasImplicitType this.it @79
                   type: int
                   field: <testLibraryFragment>::@extensionType::I1::@field::it
           accessors
@@ -7645,7 +7643,7 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
               parameters
-                requiredPositional final this.it @108
+                requiredPositional final hasImplicitType this.it @108
                   type: int
                   field: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
           accessors
@@ -7678,7 +7676,7 @@ library
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@constructor::new
               enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3
               parameters
-                requiredPositional final this.it @90
+                requiredPositional final hasImplicitType this.it @90
                   type: int
                   field: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@field::it
           accessors
@@ -7819,7 +7817,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -7839,7 +7837,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::I1::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -7859,7 +7857,7 @@ library
         new
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -7879,7 +7877,7 @@ library
         new
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -7935,7 +7933,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @39
+                requiredPositional final hasImplicitType this.it @39
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -7969,7 +7967,7 @@ library
               reference: <testLibraryFragment>::@extensionType::I1::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::I1
               parameters
-                requiredPositional final this.it @82
+                requiredPositional final hasImplicitType this.it @82
                   type: int
                   field: <testLibraryFragment>::@extensionType::I1::@field::it
           accessors
@@ -8008,7 +8006,7 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
               parameters
-                requiredPositional final this.it @104
+                requiredPositional final hasImplicitType this.it @104
                   type: int
                   field: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
           accessors
@@ -8127,7 +8125,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -8147,7 +8145,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::I1::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -8169,7 +8167,7 @@ library
         new
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -8225,7 +8223,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @39
+                requiredPositional final hasImplicitType this.it @39
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -8258,7 +8256,7 @@ library
               reference: <testLibraryFragment>::@extensionType::I1::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::I1
               parameters
-                requiredPositional final this.it @82
+                requiredPositional final hasImplicitType this.it @82
                   type: int
                   field: <testLibraryFragment>::@extensionType::I1::@field::it
           accessors
@@ -8299,7 +8297,7 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
               parameters
-                requiredPositional final this.it @108
+                requiredPositional final hasImplicitType this.it @108
                   type: int
                   field: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
           accessors
@@ -8419,7 +8417,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -8439,7 +8437,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::I1::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -8461,7 +8459,7 @@ library
         new
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -8514,7 +8512,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @36
+                requiredPositional final hasImplicitType this.it @36
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -8612,7 +8610,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -8673,7 +8671,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @36
+                requiredPositional final hasImplicitType this.it @36
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -8782,7 +8780,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -8850,7 +8848,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @36
+                requiredPositional final hasImplicitType this.it @36
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -8988,7 +8986,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -9048,7 +9046,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @39
+                requiredPositional final hasImplicitType this.it @39
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -9159,7 +9157,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -9222,7 +9220,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @39
+                requiredPositional final hasImplicitType this.it @39
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -9336,7 +9334,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -9394,7 +9392,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @36
+                requiredPositional final hasImplicitType this.it @36
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -9511,7 +9509,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -9580,7 +9578,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @36
+                requiredPositional final hasImplicitType this.it @36
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -9720,7 +9718,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -9795,7 +9793,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @36
+                requiredPositional final hasImplicitType this.it @36
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -9933,7 +9931,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -10010,7 +10008,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               parameters
-                requiredPositional final this.it @36
+                requiredPositional final hasImplicitType this.it @36
                   type: int
                   field: <testLibraryFragment>::@extensionType::A::@field::it
           accessors
@@ -10161,7 +10159,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
           formalParameters
-            requiredPositional final it
+            requiredPositional final hasImplicitType it
               type: int
       getters
         synthetic get it
@@ -10501,36 +10499,4 @@ class ExtensionTypeElementTest_keepLinking extends ElementsBaseTest
     with ExtensionTypeElementMixin {
   @override
   bool get keepLinkingLibraries => true;
-}
-
-// TODO(scheglov): This is duplicate.
-extension on ElementTextConfiguration {
-  void forPromotableFields({
-    Set<String> classNames = const {},
-    Set<String> enumNames = const {},
-    Set<String> extensionTypeNames = const {},
-    Set<String> mixinNames = const {},
-    Set<String> fieldNames = const {},
-  }) {
-    filter = (e) {
-      if (e is ClassElement) {
-        return classNames.contains(e.name);
-      } else if (e is ConstructorElement) {
-        return false;
-      } else if (e is EnumElement) {
-        return enumNames.contains(e.name);
-      } else if (e is ExtensionTypeElement) {
-        return extensionTypeNames.contains(e.name);
-      } else if (e is FieldElement) {
-        return fieldNames.isEmpty || fieldNames.contains(e.name);
-      } else if (e is MixinElement) {
-        return mixinNames.contains(e.name);
-      } else if (e is PartElement) {
-        return false;
-      } else if (e is PropertyAccessorElement) {
-        return false;
-      }
-      return true;
-    };
-  }
 }
