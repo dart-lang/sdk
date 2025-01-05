@@ -13,9 +13,6 @@ abstract class CodeStyleOptions {
   /// should be inserted in function calls and declarations.
   bool get addTrailingCommas;
 
-  /// Whether combinators should be ordered alphabetically.
-  bool get combinatorsOrdering;
-
   /// Whether local variables should be `final` inside a for-loop.
   bool get finalInForEach;
 
@@ -30,6 +27,10 @@ abstract class CodeStyleOptions {
 
   /// The preferred quote based on the enabled lints, otherwise a single quote.
   String get preferredQuoteForStrings;
+
+  /// Whether combinators should be ordered alphabetically. Difined by
+  /// `combinators_ordering`.
+  bool get sortCombinators;
 
   /// Whether constructors should be sorted first, before other class members.
   bool get sortConstructorsFirst;
