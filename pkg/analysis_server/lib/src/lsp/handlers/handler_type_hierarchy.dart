@@ -269,7 +269,7 @@ mixin _TypeHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
   /// Converts multiple server [type_hierarchy.TypeHierarchyItem] to an LSP
   /// [TypeHierarchyItem].
   ///
-  /// Reads [LineInfo]s from [unit.session], caching them for items in the same
+  /// Reads [LineInfo]s from `unit.session`, caching them for items in the same
   /// file.
   List<TypeHierarchyItem> _convertItems(
     ResolvedUnitResult unit,

@@ -98,3 +98,10 @@ class SocketServerTest {
     return server;
   }
 }
+
+extension on MockServerChannel {
+  void expectMsgCount({int responseCount = 0, int notificationCount = 0}) {
+    expect(responsesReceived, hasLength(responseCount));
+    expect(notificationsReceived, hasLength(notificationCount));
+  }
+}

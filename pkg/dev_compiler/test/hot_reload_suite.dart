@@ -930,8 +930,10 @@ abstract class HotReloadSuiteRunner {
   /// 'diff' can be unstable across platforms around newline offsets.
   (String, String) _filterLineDeltas(String diff1, String diff2) {
     bool isBlankLineOrDelta(String s) {
-      return s.trim().isEmpty ||
-          (s.startsWith('+') || s.startsWith('-')) && s.trim().length == 1;
+      var trimmed = s.trim();
+      return trimmed.isEmpty ||
+          (trimmed.startsWith('+') || trimmed.startsWith('-')) &&
+              trimmed.length == 1;
     }
 
     var diff1Lines = LineSplitter().convert(diff1)

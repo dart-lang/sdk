@@ -1,3 +1,7 @@
+## 7.2.0-dev
+* Add `ElementDirective` as superinterface for `LibraryExport`, `LibraryImport`,
+  and `PartInclude`. It implements `Annotatable`.
+
 ## 7.1.0
 * New APIs for element model with fragments.
 

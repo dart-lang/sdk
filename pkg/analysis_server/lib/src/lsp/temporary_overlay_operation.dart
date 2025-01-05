@@ -78,9 +78,9 @@ abstract class TemporaryOverlayOperation {
   }
 
   /// Locks the server from processing incoming messages until [operation]
-  /// completes just like [lockRequestsWhile] but additionally provides a
-  /// function for writing temporary overlays that will be reverted when the
-  /// operation completes.
+  /// completes just like [LspAnalysisServer.lockRequestsWhile] but
+  /// additionally provides a function for writing temporary overlays that will
+  /// be reverted when the operation completes.
   ///
   /// Additionally, sending diagnostics, outlines, etc. are suppressed by the
   /// temporary overlays and re-enabled after the overlays are restored.

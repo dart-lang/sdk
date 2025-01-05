@@ -335,7 +335,7 @@ class CheckNameResponse {
     return FlutterWidgetRename(stateName, match, replacements);
   }
 
-  /// If the given [reference] is before an interpolated [SimpleIdentifier] in
+  /// If the reference at [loc] is before an interpolated [SimpleIdentifier] in
   /// an [InterpolationExpression] without surrounding curly brackets, return
   /// it. Otherwise return `null`.
   Future<SimpleIdentifier?> _getInterpolationIdentifier(

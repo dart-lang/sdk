@@ -634,7 +634,7 @@ library
           enclosingElement3: <testLibraryFragment>
           documentationComment: /**\n * Docs\n */
           parameters
-            requiredPositional value @71
+            requiredPositional hasImplicitType value @71
               type: dynamic
           returnType: void
 ----------------------------------------
@@ -667,7 +667,7 @@ library
       firstFragment: <testLibraryFragment>::@setter::x
       documentationComment: /**\n * Docs\n */
       formalParameters
-        requiredPositional value
+        requiredPositional hasImplicitType value
           type: dynamic
 ''');
   }
@@ -813,7 +813,7 @@ library
           reference: <testLibraryFragment>::@setter::y
           enclosingElement3: <testLibraryFragment>
           parameters
-            requiredPositional value @31
+            requiredPositional hasImplicitType value @31
               type: dynamic
           returnType: void
 ----------------------------------------
@@ -864,7 +864,7 @@ library
     static set y
       firstFragment: <testLibraryFragment>::@setter::y
       formalParameters
-        requiredPositional value
+        requiredPositional hasImplicitType value
           type: dynamic
 ''');
   }

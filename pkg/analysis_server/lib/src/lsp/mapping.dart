@@ -151,10 +151,10 @@ lsp.Either2<lsp.MarkupContent, String> asMarkupContentOrString(
 
 /// Creates a [lsp.WorkspaceEdit] from simple [server.SourceFileEdit]s.
 ///
-/// [clientCapabilities] should be for the client that will handle this edit, which
-/// is not necessarily the client that triggered the request that called this
-/// function (for example a DTD client may call a request that triggers an edit
-/// that will be sent to the editor).
+/// [clientCapabilities] should be for the client that will handle this edit,
+/// which is not necessarily the client that triggered the request that called
+/// this function (for example a DTD client may call a request that triggers an
+/// edit that will be sent to the editor).
 ///
 /// If [annotateChanges] is set, change annotations will be produced and
 /// marked as needing confirmation from the user (depending on the value).
@@ -163,7 +163,7 @@ lsp.Either2<lsp.MarkupContent, String> asMarkupContentOrString(
 /// it's important to call this immediately after computing edits to ensure
 /// the document is not modified before the version number is read.
 lsp.WorkspaceEdit createPlainWorkspaceEdit(
-  AnalysisServer server,
+  AnalysisServer analysisServer,
   LspClientCapabilities clientCapabilities,
   List<server.SourceFileEdit> edits, {
   ChangeAnnotations annotateChanges = ChangeAnnotations.none,
@@ -174,14 +174,15 @@ lsp.WorkspaceEdit createPlainWorkspaceEdit(
     edits
         .map(
           (e) => FileEditInformation(
-            server.getVersionedDocumentIdentifier(e.file),
-            // If we expect to create the file, server.getLineInfo() won't
+            analysisServer.getVersionedDocumentIdentifier(e.file),
+            // If we expect to create the file, `server.getLineInfo()` won't
             // provide a LineInfo so create one from empty contents.
             e.fileStamp == -1
                 ? LineInfo.fromContent('')
-                : server.getLineInfo(e.file)!,
+                : analysisServer.getLineInfo(e.file)!,
             e.edits,
-            // fileStamp == 1 is used by the server to indicate the file needs creating.
+            // `fileStamp == 1` is used by the server to indicate the file needs
+            // creating.
             newFile: e.fileStamp == -1,
           ),
         )
@@ -214,7 +215,7 @@ WorkspaceEdit createRenameEdit(
 
 /// Creates a [lsp.WorkspaceEdit] from a [server.SourceChange].
 ///
-/// Can return experimental [server.SnippetTextEdit]s if the following are true:
+/// Can return experimental [lsp.SnippetTextEdit]s if the following are true:
 /// - the client has indicated support for in the experimental section of their
 ///   client capabilities, and
 /// - [allowSnippets] is true, and
@@ -225,7 +226,7 @@ WorkspaceEdit createRenameEdit(
 /// it's important to call this immediately after computing edits to ensure
 /// the document is not modified before the version number is read.
 lsp.WorkspaceEdit createWorkspaceEdit(
-  AnalysisServer server,
+  AnalysisServer analysisServer,
   LspClientCapabilities clientCapabilities,
   server.SourceChange change, {
   ChangeAnnotations annotateChanges = ChangeAnnotations.none,
@@ -253,7 +254,7 @@ lsp.WorkspaceEdit createWorkspaceEdit(
       change.edits.single.edits.length != 1 ||
       (change.selection == null && change.linkedEditGroups.isEmpty)) {
     return createPlainWorkspaceEdit(
-      server,
+      analysisServer,
       clientCapabilities,
       change.edits,
       annotateChanges: annotateChanges,
@@ -272,7 +273,7 @@ lsp.WorkspaceEdit createWorkspaceEdit(
 
   // Compile the edits into a TextDocumentEdit for this file.
   var textDocumentEdit = lsp.TextDocumentEdit(
-    textDocument: server.getVersionedDocumentIdentifier(fileEdit.file),
+    textDocument: analysisServer.getVersionedDocumentIdentifier(fileEdit.file),
     edits:
         snippetEdits
             .map(
@@ -873,7 +874,7 @@ String relevanceToSortText(int relevance) =>
 /// edits, so [editOffset] must to take into account both the offset of the edit
 /// _and_ any delta from edits prior to this one in the file.
 ///
-/// [selectionOffset] is also absolute and assumes [edit.replacement] will be
+/// [selectionOffset] is also absolute and assumes `edit.replacement` will be
 /// inserted at [editOffset].
 lsp.SnippetTextEdit snippetTextEditFromEditGroups(
   String filePath,
@@ -900,7 +901,8 @@ lsp.SnippetTextEdit snippetTextEditFromEditGroups(
 
 /// Creates a SnippetTextEdit for an edit with a selection placeholder.
 ///
-/// [selectionOffset] is relative to (and therefore must be within) the edit.
+/// [selectionOffsetRelative] is relative to (and therefore must be within) the
+/// edit.
 lsp.SnippetTextEdit snippetTextEditWithSelection(
   server.LineInfo lineInfo,
   server.SourceEdit edit, {
@@ -1731,7 +1733,7 @@ lsp.TextEdit toTextEdit(
 
 /// Creates an [lsp.WorkspaceEdit] for [edits].
 ///
-/// [clientCpabilities] should be for the client that will handle this edit,
+/// [clientCapabilities] should be for the client that will handle this edit,
 /// which is not necessarily the client that triggered the request that called
 /// this function (for example a DTD client may call a request that triggers an
 /// edit that will be sent to the editor).

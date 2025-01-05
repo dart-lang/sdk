@@ -134,7 +134,7 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
     }
   }
 
-  /// Returns whether [doc] is a user-editable document or not.
+  /// Returns whether the file at [uri] is a user-editable document.
   ///
   /// Only editable documents have overlays and can be modified by the client.
   bool isEditableDocument(Uri uri) {
@@ -424,7 +424,7 @@ abstract class MessageHandler<P, R, S extends AnalysisServer>
 /// provided to a handler.
 class MessageInfo {
   /// Returns the amount of time (in milliseconds) since the client sent this
-  /// request or `null` if the client did not provide [clientRequestTime].
+  /// request or `null` if the client did not provide `clientRequestTime`.
   final int? timeSinceRequest;
 
   final OperationPerformanceImpl performance;
@@ -441,8 +441,8 @@ class MessageInfo {
   final LspClientCapabilities? clientCapabilities;
 
   /// The completer used to indicate that the handler is paused waiting on user
-  /// response. The completer, if any, is set to complete before a dialog is 
-  /// shown. 
+  /// response. The completer, if any, is set to complete before a dialog is
+  /// shown.
   final Completer<void>? completer;
 
   MessageInfo({

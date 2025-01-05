@@ -11,7 +11,6 @@ import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
-import 'package:matcher/expect.dart';
 import 'package:watcher/watcher.dart';
 
 /// A mock [ServerCommunicationChannel] for testing [AnalysisServer].
@@ -45,11 +44,6 @@ class MockServerChannel implements ServerCommunicationChannel {
   @override
   void close() {
     _closed = true;
-  }
-
-  void expectMsgCount({int responseCount = 0, int notificationCount = 0}) {
-    expect(responsesReceived, hasLength(responseCount));
-    expect(notificationsReceived, hasLength(notificationCount));
   }
 
   @override
@@ -188,7 +182,7 @@ class TestPluginManager implements PluginManager {
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>
-      fail('Unexpected invocation of ${invocation.memberName}');
+      throw Exception('Unexpected invocation of ${invocation.memberName}');
 
   @override
   void removedContextRoot(analyzer.ContextRoot contextRoot) {

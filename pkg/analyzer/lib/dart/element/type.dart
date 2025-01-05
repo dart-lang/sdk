@@ -604,10 +604,8 @@ abstract class RecordTypeField {
 /// A named field in a [RecordType].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class RecordTypeNamedField
-    implements RecordTypeField, SharedNamedTypeStructure<DartType> {
+abstract class RecordTypeNamedField implements RecordTypeField {
   /// The name of the field.
-  @override
   String get name;
 }
 

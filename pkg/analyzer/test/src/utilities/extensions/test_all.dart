@@ -4,7 +4,6 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'analysis_session_test.dart' as analysis_session;
 import 'ast_test.dart' as ast;
 import 'async_test.dart' as async;
 import 'collection_test.dart' as collection;
@@ -15,7 +14,6 @@ import 'string_test.dart' as string;
 
 main() {
   defineReflectiveSuite(() {
-    analysis_session.main();
     ast.main();
     async.main();
     collection.main();

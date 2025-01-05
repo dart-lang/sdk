@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../dart/resolution/node_text_expectations.dart';
-import '../element_text.dart';
 import '../elements_base.dart';
 
 main() {
@@ -702,7 +700,7 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional final this.x @28
+                requiredPositional final hasImplicitType this.x @28
                   type: dynamic
                   field: <testLibraryFragment>::@class::C::@field::x
           accessors
@@ -767,7 +765,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           formalParameters
-            requiredPositional final x
+            requiredPositional final hasImplicitType x
               type: dynamic
       getters
         synthetic get x
@@ -1152,7 +1150,7 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional final this.x @17
+                requiredPositional final hasImplicitType this.x @17
                   type: int
                   field: <testLibraryFragment>::@class::C::@field::x::@def::0
           accessors
@@ -1247,7 +1245,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           formalParameters
-            requiredPositional final x
+            requiredPositional final hasImplicitType x
               type: int
       getters
         synthetic get x
@@ -1287,7 +1285,7 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional final this.x @17
+                requiredPositional final hasImplicitType this.x @17
                   type: dynamic
                   field: <null>
 ----------------------------------------
@@ -1317,7 +1315,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           formalParameters
-            requiredPositional final x
+            requiredPositional final hasImplicitType x
               type: dynamic
 ''');
   }
@@ -1549,7 +1547,7 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional final this.x @24
+                requiredPositional final hasImplicitType this.x @24
                   type: num
                   field: <testLibraryFragment>::@class::C::@field::x
           accessors
@@ -1614,7 +1612,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           formalParameters
-            requiredPositional final x
+            requiredPositional final hasImplicitType x
               type: num
       getters
         synthetic get x
@@ -1855,7 +1853,7 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional final this.x @24
+                requiredPositional final hasImplicitType this.x @24
                   type: dynamic
                   field: <testLibraryFragment>::@class::C::@field::x
           accessors
@@ -1920,7 +1918,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           formalParameters
-            requiredPositional final x
+            requiredPositional final hasImplicitType x
               type: dynamic
       getters
         synthetic get x
@@ -1957,7 +1955,7 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                optionalNamed default final this.x @25
+                optionalNamed default final hasImplicitType this.x @25
                   reference: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
                   type: int
                   field: <testLibraryFragment>::@class::C::@field::x
@@ -2024,7 +2022,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           formalParameters
-            optionalNamed final x
+            optionalNamed final hasImplicitType x
               firstFragment: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
               type: int
       getters
@@ -2062,7 +2060,7 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                optionalNamed default final this.x @25
+                optionalNamed default final hasImplicitType this.x @25
                   reference: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
                   type: int
                   constantInitializer
@@ -2133,7 +2131,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           formalParameters
-            optionalNamed final x
+            optionalNamed final hasImplicitType x
               firstFragment: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
               type: int
       getters
@@ -2171,7 +2169,7 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                optionalPositional default final this.x @25
+                optionalPositional default final hasImplicitType this.x @25
                   type: int
                   field: <testLibraryFragment>::@class::C::@field::x
           accessors
@@ -2236,7 +2234,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           formalParameters
-            optionalPositional final x
+            optionalPositional final hasImplicitType x
               type: int
       getters
         synthetic get x
@@ -2273,7 +2271,7 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                optionalPositional default final this.x @25
+                optionalPositional default final hasImplicitType this.x @25
                   type: int
                   constantInitializer
                     IntegerLiteral
@@ -2342,7 +2340,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           formalParameters
-            optionalPositional final x
+            optionalPositional final hasImplicitType x
               type: int
       getters
         synthetic get x
@@ -3756,7 +3754,7 @@ library
               periodOffset: 19
               nameEnd: 23
               parameters
-                requiredPositional a @24
+                requiredPositional hasImplicitType a @24
                   type: dynamic
                 optionalNamed default b @32
                   reference: <testLibraryFragment>::@class::A::@constructor::aaa::@parameter::b
@@ -3869,7 +3867,7 @@ library
         const aaa
           firstFragment: <testLibraryFragment>::@class::A::@constructor::aaa
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: dynamic
             optionalNamed b
               firstFragment: <testLibraryFragment>::@class::A::@constructor::aaa::@parameter::b
@@ -4276,7 +4274,7 @@ library
               periodOffset: 54
               nameEnd: 60
               parameters
-                requiredPositional a @61
+                requiredPositional hasImplicitType a @61
                   type: dynamic
                 optionalNamed default b @69
                   reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::b
@@ -4350,7 +4348,7 @@ library
         const named
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: dynamic
             optionalNamed b
               firstFragment: <testLibraryFragment>::@class::C::@constructor::named::@parameter::b
@@ -4781,7 +4779,7 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement3: <testLibraryFragment>
           parameters
-            requiredPositional final super.a @13
+            requiredPositional final hasImplicitType super.a @13
               type: dynamic
               superConstructorParameter: <null>
           returnType: void
@@ -4803,7 +4801,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
-        requiredPositional final a
+        requiredPositional final hasImplicitType a
           type: dynamic
       returnType: void
 ''');
@@ -4853,14 +4851,14 @@ library
                 optionalNamed default o1 @87
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o1
                   type: String
-                optionalNamed default final super.a @97
+                optionalNamed default final hasImplicitType super.a @97
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
                   type: int
                   superConstructorParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
                 optionalNamed default o2 @107
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o2
                   type: String
-                optionalNamed default final super.b @117
+                optionalNamed default final hasImplicitType super.b @117
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::b
                   type: double
                   superConstructorParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b
@@ -4936,13 +4934,13 @@ library
             optionalNamed o1
               firstFragment: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o1
               type: String
-            optionalNamed final a
+            optionalNamed final hasImplicitType a
               firstFragment: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
               type: int
             optionalNamed o2
               firstFragment: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o2
               type: String
-            optionalNamed final b
+            optionalNamed final hasImplicitType b
               firstFragment: <testLibraryFragment>::@class::B::@constructor::new::@parameter::b
               type: double
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -4992,7 +4990,7 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                optionalNamed default final hasDefaultValue super.a @62
+                optionalNamed default final hasImplicitType hasDefaultValue super.a @62
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
                   type: int
                   superConstructorParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
@@ -5050,7 +5048,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
           formalParameters
-            optionalNamed final a
+            optionalNamed final hasImplicitType a
               firstFragment: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
               type: int
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -5095,7 +5093,7 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                optionalNamed default final super.b @67
+                optionalNamed default final hasImplicitType super.b @67
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::b
                   type: dynamic
                   superConstructorParameter: <null>
@@ -5153,7 +5151,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
           formalParameters
-            optionalNamed final b
+            optionalNamed final hasImplicitType b
               firstFragment: <testLibraryFragment>::@class::B::@constructor::new::@parameter::b
               type: dynamic
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -5197,7 +5195,7 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                optionalNamed default final super.a @56
+                optionalNamed default final hasImplicitType super.a @56
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
                   type: dynamic
                   superConstructorParameter: <null>
@@ -5253,7 +5251,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
           formalParameters
-            optionalNamed final a
+            optionalNamed final hasImplicitType a
               firstFragment: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
               type: dynamic
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -5301,12 +5299,12 @@ library
               parameters
                 optionalPositional default o1 @67
                   type: String
-                optionalPositional default final super.a @77
+                optionalPositional default final hasImplicitType super.a @77
                   type: int
                   superConstructorParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
                 optionalPositional default o2 @87
                   type: String
-                optionalPositional default final super.b @97
+                optionalPositional default final hasImplicitType super.b @97
                   type: double
                   superConstructorParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
@@ -5372,11 +5370,11 @@ library
           formalParameters
             optionalPositional o1
               type: String
-            optionalPositional final a
+            optionalPositional final hasImplicitType a
               type: int
             optionalPositional o2
               type: String
-            optionalPositional final b
+            optionalPositional final hasImplicitType b
               type: double
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
@@ -5431,14 +5429,14 @@ library
                 requiredNamed default o1 @101
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o1
                   type: String
-                requiredNamed default final super.a @124
+                requiredNamed default final hasImplicitType super.a @124
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
                   type: int
                   superConstructorParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
                 requiredNamed default o2 @147
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o2
                   type: String
-                requiredNamed default final super.b @170
+                requiredNamed default final hasImplicitType super.b @170
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::b
                   type: double
                   superConstructorParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b
@@ -5514,13 +5512,13 @@ library
             requiredNamed o1
               firstFragment: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o1
               type: String
-            requiredNamed final a
+            requiredNamed final hasImplicitType a
               firstFragment: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
               type: int
             requiredNamed o2
               firstFragment: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o2
               type: String
-            requiredNamed final b
+            requiredNamed final hasImplicitType b
               firstFragment: <testLibraryFragment>::@class::B::@constructor::new::@parameter::b
               type: double
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -5570,7 +5568,7 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredNamed default final super.a @71
+                requiredNamed default final hasImplicitType super.a @71
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
                   type: int
                   superConstructorParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
@@ -5628,7 +5626,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
           formalParameters
-            requiredNamed final a
+            requiredNamed final hasImplicitType a
               firstFragment: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
               type: int
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -5676,12 +5674,12 @@ library
               parameters
                 requiredPositional o1 @66
                   type: String
-                requiredPositional final super.a @76
+                requiredPositional final hasImplicitType super.a @76
                   type: int
                   superConstructorParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
                 requiredPositional o2 @86
                   type: String
-                requiredPositional final super.b @96
+                requiredPositional final hasImplicitType super.b @96
                   type: double
                   superConstructorParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
@@ -5747,11 +5745,11 @@ library
           formalParameters
             requiredPositional o1
               type: String
-            requiredPositional final a
+            requiredPositional final hasImplicitType a
               type: int
             requiredPositional o2
               type: String
-            requiredPositional final b
+            requiredPositional final hasImplicitType b
               type: double
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
@@ -5800,7 +5798,7 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional final super.a @64
+                requiredPositional final hasImplicitType super.a @64
                   type: int
                   superConstructorParameter: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
               superConstructor: <testLibraryFragment>::@class::B::@constructor::new
@@ -5813,7 +5811,7 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional final super.a @101
+                requiredPositional final hasImplicitType super.a @101
                   type: int
                   superConstructorParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
@@ -5880,7 +5878,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           formalParameters
-            requiredPositional final a
+            requiredPositional final hasImplicitType a
               type: int
           superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
     class B
@@ -5891,7 +5889,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
           formalParameters
-            requiredPositional final a
+            requiredPositional final hasImplicitType a
               type: int
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
@@ -5940,7 +5938,7 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional final super.a @63
+                requiredPositional final hasImplicitType super.a @63
                   type: int
                   superConstructorParameter: SuperFormalParameterMember
                     base: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
@@ -5960,7 +5958,7 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional final super.a @103
+                requiredPositional final hasImplicitType super.a @103
                   type: int
                   superConstructorParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
@@ -6032,7 +6030,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           formalParameters
-            requiredPositional final a
+            requiredPositional final hasImplicitType a
               type: int
           superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
     class B
@@ -6045,7 +6043,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
           formalParameters
-            requiredPositional final a
+            requiredPositional final hasImplicitType a
               type: int
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
@@ -6083,7 +6081,7 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional final super.a @42
+                requiredPositional final hasImplicitType super.a @42
                   type: dynamic
                   superConstructorParameter: <null>
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
@@ -6130,7 +6128,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
           formalParameters
-            requiredPositional final a
+            requiredPositional final hasImplicitType a
               type: dynamic
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
@@ -6174,7 +6172,7 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional final super.a @65
+                requiredPositional final hasImplicitType super.a @65
                   type: dynamic
                   superConstructorParameter: <null>
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
@@ -6230,7 +6228,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
           formalParameters
-            requiredPositional final a
+            requiredPositional final hasImplicitType a
               type: dynamic
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
@@ -6254,7 +6252,7 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional x @12
+                requiredPositional hasImplicitType x @12
                   type: dynamic
                 requiredPositional y @19
                   type: int
@@ -6287,7 +6285,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           formalParameters
-            requiredPositional x
+            requiredPositional hasImplicitType x
               type: dynamic
             requiredPositional y
               type: int
@@ -11535,7 +11533,7 @@ library
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::A
               parameters
-                requiredPositional final this.foo @36
+                requiredPositional final hasImplicitType this.foo @36
                   type: int
                   field: <testLibraryFragment>::@class::A::@field::foo
           accessors
@@ -11604,7 +11602,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final foo
+            requiredPositional final hasImplicitType foo
               type: int
       getters
         synthetic get foo
@@ -11643,7 +11641,7 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional final this.v @34
+                requiredPositional final hasImplicitType this.v @34
                   type: int
                   field: <testLibraryFragment>::@class::C::@field::v
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
@@ -11745,7 +11743,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           formalParameters
-            requiredPositional final v
+            requiredPositional final hasImplicitType v
               type: int
           superConstructor: <testLibraryFragment>::@class::D::@constructor::new#element
       getters
@@ -12829,7 +12827,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -12912,7 +12910,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -13006,7 +13004,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -13089,7 +13087,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -13172,7 +13170,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -13262,7 +13260,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -13348,7 +13346,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -13427,7 +13425,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -13501,7 +13499,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -13650,7 +13648,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -13790,7 +13788,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -13912,7 +13910,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -14049,7 +14047,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -14173,7 +14171,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -14290,7 +14288,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -14380,7 +14378,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -14398,7 +14396,7 @@ library
           reference: <testLibrary>::@class::B::@method::A
           firstFragment: <testLibraryFragment>::@class::B::@method::A
           formalParameters
-            requiredPositional final value
+            requiredPositional final hasImplicitType value
               type: dynamic
     class C
       reference: <testLibrary>::@class::C
@@ -14515,7 +14513,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -14629,7 +14627,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -14858,7 +14856,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final _foo
+            requiredPositional final hasImplicitType _foo
               type: int?
       getters
         synthetic get _foo
@@ -18785,7 +18783,7 @@ library
               reference: <testLibraryFragment>::@class::C::@method::f
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional value @27
+                requiredPositional hasImplicitType value @27
                   type: int
               returnType: void
         abstract class D @54
@@ -18855,7 +18853,7 @@ library
           reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
-            requiredPositional value
+            requiredPositional hasImplicitType value
               type: int
     abstract class D
       reference: <testLibrary>::@class::D
@@ -19261,9 +19259,9 @@ library
               reference: <testLibraryFragment>::@class::C::@method::f
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional x @12
+                requiredPositional hasImplicitType x @12
                   type: dynamic
-                requiredPositional y @15
+                requiredPositional hasImplicitType y @15
                   type: dynamic
               returnType: dynamic
 ----------------------------------------
@@ -19302,9 +19300,9 @@ library
           reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
-            requiredPositional x
+            requiredPositional hasImplicitType x
               type: dynamic
-            requiredPositional y
+            requiredPositional hasImplicitType y
               type: dynamic
 ''');
   }
@@ -23397,7 +23395,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional value @21
+                requiredPositional hasImplicitType value @21
                   type: dynamic
               returnType: void
 ----------------------------------------
@@ -23443,7 +23441,7 @@ library
         set x
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
           formalParameters
-            requiredPositional value
+            requiredPositional hasImplicitType value
               type: dynamic
 ''');
   }
@@ -23628,7 +23626,7 @@ library
               reference: <testLibraryFragment>::@class::D::@setter::t
               enclosingElement3: <testLibraryFragment>::@class::D
               parameters
-                requiredPositional p @123
+                requiredPositional hasImplicitType p @123
                   type: dynamic
               returnType: void
 ----------------------------------------
@@ -23791,7 +23789,7 @@ library
         set t
           firstFragment: <testLibraryFragment>::@class::D::@setter::t
           formalParameters
-            requiredPositional p
+            requiredPositional hasImplicitType p
               type: dynamic
 ''');
   }
@@ -23827,7 +23825,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::f
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional value @31
+                requiredPositional hasImplicitType value @31
                   type: int
               returnType: void
         abstract class D @58
@@ -23916,7 +23914,7 @@ library
         set f
           firstFragment: <testLibraryFragment>::@class::C::@setter::f
           formalParameters
-            requiredPositional value
+            requiredPositional hasImplicitType value
               type: int
     abstract class D
       reference: <testLibrary>::@class::D
@@ -24047,7 +24045,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                optionalNamed default a @22
+                optionalNamed default hasImplicitType a @22
                   reference: <testLibraryFragment>::@class::C::@setter::x::@parameter::a
                   type: dynamic
               returnType: void
@@ -24095,7 +24093,7 @@ library
         set x
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
           formalParameters
-            optionalNamed a
+            optionalNamed hasImplicitType a
               firstFragment: <testLibraryFragment>::@class::C::@setter::x::@parameter::a
               type: dynamic
 ''');
@@ -24197,7 +24195,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                optionalPositional default a @22
+                optionalPositional default hasImplicitType a @22
                   type: dynamic
               returnType: void
 ----------------------------------------
@@ -24243,7 +24241,7 @@ library
         set x
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
           formalParameters
-            optionalPositional a
+            optionalPositional hasImplicitType a
               type: dynamic
 ''');
   }
@@ -24275,9 +24273,9 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional a @21
+                requiredPositional hasImplicitType a @21
                   type: dynamic
-                requiredPositional b @24
+                requiredPositional hasImplicitType b @24
                   type: dynamic
               returnType: void
 ----------------------------------------
@@ -24325,9 +24323,9 @@ library
         set x
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: dynamic
-            requiredPositional b
+            requiredPositional hasImplicitType b
               type: dynamic
 ''');
   }
@@ -24772,7 +24770,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::y
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional value @45
+                requiredPositional hasImplicitType value @45
                   type: dynamic
               returnType: void
 ----------------------------------------
@@ -24837,7 +24835,7 @@ library
         set y
           firstFragment: <testLibraryFragment>::@class::C::@setter::y
           formalParameters
-            requiredPositional value
+            requiredPositional hasImplicitType value
               type: dynamic
 ''');
   }
@@ -27181,8 +27179,8 @@ mixin M {}
 class X = A with M;
 ''');
 
-    var X = library.getClass('X')!;
-    expect(X.constructors, hasLength(1));
+    var X = library.getClass2('X')!;
+    expect(X.constructors2, hasLength(1));
   }
 
   test_classAlias_constructors_default() async {
@@ -30890,7 +30888,7 @@ library
               periodOffset: 37
               nameEnd: 43
               parameters
-                requiredPositional final this.x @49
+                requiredPositional final hasImplicitType this.x @49
                   type: Object
                   field: <testLibraryFragment>::@class::C::@field::x
           accessors
@@ -30984,7 +30982,7 @@ library
         const named
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
           formalParameters
-            requiredPositional final x
+            requiredPositional final hasImplicitType x
               type: Object
       getters
         synthetic get x
@@ -31048,7 +31046,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::bar
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional final this.foo @41
+                requiredPositional final hasImplicitType this.foo @41
                   type: dynamic
                   field: <null>
               returnType: void
@@ -31123,7 +31121,7 @@ library
         set bar
           firstFragment: <testLibraryFragment>::@class::C::@setter::bar
           formalParameters
-            requiredPositional final foo
+            requiredPositional final hasImplicitType foo
               type: dynamic
 ''');
   }
@@ -31159,7 +31157,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
-                requiredPositional final this.x @23
+                requiredPositional final hasImplicitType this.x @23
                   type: dynamic
                   field: <null>
               returnType: void
@@ -31206,7 +31204,7 @@ library
         set x
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
           formalParameters
-            requiredPositional final x
+            requiredPositional final hasImplicitType x
               type: dynamic
 ''');
   }
@@ -33508,7 +33506,7 @@ library
               periodOffset: 42
               nameEnd: 48
               parameters
-                requiredPositional final this.f @54
+                requiredPositional final hasImplicitType this.f @54
                   type: int
                   field: <testLibraryFragment>::@class::A::@field::f
 ----------------------------------------
@@ -33564,7 +33562,7 @@ library
         named
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
           formalParameters
-            requiredPositional final f
+            requiredPositional final hasImplicitType f
               type: int
       getters
         synthetic get f
@@ -35905,7 +35903,7 @@ library
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::A
               parameters
-                requiredPositional final this.foo @34
+                requiredPositional final hasImplicitType this.foo @34
                   type: int
                   field: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
           augmented
@@ -35984,7 +35982,7 @@ library
         new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           formalParameters
-            requiredPositional final foo
+            requiredPositional final hasImplicitType foo
               type: int
       getters
         synthetic get foo
@@ -41925,7 +41923,7 @@ library
               reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@method::foo
               enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
               parameters
-                requiredPositional a @45
+                requiredPositional hasImplicitType a @45
                   type: String
               returnType: int
 ----------------------------------------
@@ -41978,7 +41976,7 @@ library
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@method::foo
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: String
 ''');
   }
@@ -42030,7 +42028,7 @@ library
               reference: <testLibraryFragment>::@class::B::@method::foo
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @32
+                requiredPositional hasImplicitType a @32
                   type: String
               returnType: int
           augmented
@@ -42101,7 +42099,7 @@ library
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: String
 ''');
   }
@@ -42153,7 +42151,7 @@ library
               reference: <testLibraryFragment>::@class::B::@method::foo
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @32
+                requiredPositional hasImplicitType a @32
                   type: String
               returnType: int
           augmented
@@ -42225,7 +42223,7 @@ library
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: String
 ''');
   }
@@ -42284,7 +42282,7 @@ library
               reference: <testLibraryFragment>::@class::B::@method::foo
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                requiredPositional a @59
+                requiredPositional hasImplicitType a @59
                   type: String
               returnType: int
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
@@ -42305,7 +42303,7 @@ library
               reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
               enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
               parameters
-                requiredPositional a @53
+                requiredPositional hasImplicitType a @53
                   type: String
               returnType: int
               augmentationTarget: <testLibraryFragment>::@class::B::@method::foo
@@ -42368,7 +42366,7 @@ library
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: String
 ''');
   }
@@ -43716,36 +43714,4 @@ class ClassElementTest_fromBytes extends ClassElementTest {
 class ClassElementTest_keepLinking extends ClassElementTest {
   @override
   bool get keepLinkingLibraries => true;
-}
-
-// TODO(scheglov): This is duplicate.
-extension on ElementTextConfiguration {
-  void forPromotableFields({
-    Set<String> classNames = const {},
-    Set<String> enumNames = const {},
-    Set<String> extensionTypeNames = const {},
-    Set<String> mixinNames = const {},
-    Set<String> fieldNames = const {},
-  }) {
-    filter = (e) {
-      if (e is ClassElement) {
-        return classNames.contains(e.name);
-      } else if (e is ConstructorElement) {
-        return false;
-      } else if (e is EnumElement) {
-        return enumNames.contains(e.name);
-      } else if (e is ExtensionTypeElement) {
-        return extensionTypeNames.contains(e.name);
-      } else if (e is FieldElement) {
-        return fieldNames.isEmpty || fieldNames.contains(e.name);
-      } else if (e is MixinElement) {
-        return mixinNames.contains(e.name);
-      } else if (e is PartElement) {
-        return false;
-      } else if (e is PropertyAccessorElement) {
-        return false;
-      }
-      return true;
-    };
-  }
 }

@@ -266,25 +266,6 @@ abstract class AnalysisDriverUnitIndex extends base.SummaryClass {
   List<int> get usedNames;
 }
 
-/// Information about an available, even if not yet imported file.
-@TopLevel('UICF')
-abstract class AvailableFile extends base.SummaryClass {
-  factory AvailableFile.fromBuffer(List<int> buffer) =>
-      generated.readAvailableFile(buffer);
-
-  /// The Dartdoc directives in the file.
-  @Id(0)
-  DirectiveInfo? get directiveInfo;
-
-  /// Exports directives of the file.
-  @Id(1)
-  List<String> get exports;
-
-  /// URIs of `part` directives.
-  @Id(2)
-  List<String> get parts;
-}
-
 /// Errors for a single unit.
 @TopLevel('CUEr')
 abstract class CiderUnitErrors extends base.SummaryClass {
@@ -316,17 +297,6 @@ abstract class DiagnosticMessage extends base.SummaryClass {
   /// The URL of the message, if any.
   @Id(4)
   String get url;
-}
-
-/// Information about the Dartdoc directives in an [AvailableFile].
-abstract class DirectiveInfo extends base.SummaryClass {
-  /// The names of the defined templates.
-  @Id(0)
-  List<String> get templateNames;
-
-  /// The values of the defined templates.
-  @Id(1)
-  List<String> get templateValues;
 }
 
 /// Enum used to indicate the kind of an index relation.

@@ -35,12 +35,12 @@ class DartInlayHintComputer {
     return _hints;
   }
 
-  /// Adds a parameter name hint before [node] showing a the name for
+  /// Adds a parameter name hint before [nodeOrToken] showing a the name for
   /// [parameter].
   ///
   /// If the parameter has no name, no hint will be added.
   ///
-  /// A colon and padding will be added between the hint and [node]
+  /// A colon and padding will be added between the hint and [nodeOrToken]
   /// automatically.
   void _addParameterNamePrefix(
     SyntacticEntity nodeOrToken,
@@ -68,7 +68,8 @@ class DartInlayHintComputer {
     );
   }
 
-  /// Adds a type hint for [node] showing a label for type arguments [types].
+  /// Adds a type hint for [nodeOrToken] showing a label for type arguments
+  /// [types].
   ///
   /// Hints will be added before the node unless [suffix] is `true`.
   ///
@@ -98,9 +99,9 @@ class DartInlayHintComputer {
     );
   }
 
-  /// Adds a type hint before [node] showing a label for the type [type].
+  /// Adds a type hint before [nodeOrToken] showing a label for the type [type].
   ///
-  /// Padding will be added between the hint and [node] automatically.
+  /// Padding will be added between the hint and [nodeOrToken] automatically.
   void _addTypePrefix(SyntacticEntity nodeOrToken, DartType type) {
     var offset = nodeOrToken.offset;
     var position = toPosition(_lineInfo.getLocation(offset));

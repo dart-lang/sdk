@@ -8089,7 +8089,7 @@ library
               reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@method::foo
               enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
               parameters
-                requiredPositional a @45
+                requiredPositional hasImplicitType a @45
                   type: String
               returnType: int
 ----------------------------------------
@@ -8133,7 +8133,7 @@ library
           reference: <testLibrary>::@mixin::B::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@method::foo
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: String
 ''');
   }
@@ -8183,7 +8183,7 @@ library
               reference: <testLibraryFragment>::@mixin::B::@method::foo
               enclosingElement3: <testLibraryFragment>::@mixin::B
               parameters
-                requiredPositional a @32
+                requiredPositional hasImplicitType a @32
                   type: String
               returnType: int
           augmented
@@ -8248,7 +8248,7 @@ library
           reference: <testLibrary>::@mixin::B::@method::foo
           firstFragment: <testLibraryFragment>::@mixin::B::@method::foo
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: String
 ''');
   }
@@ -8296,7 +8296,7 @@ library
               reference: <testLibraryFragment>::@mixin::B::@method::foo
               enclosingElement3: <testLibraryFragment>::@mixin::B
               parameters
-                requiredPositional a @32
+                requiredPositional hasImplicitType a @32
                   type: String
               returnType: int
           augmented
@@ -8357,7 +8357,7 @@ library
           reference: <testLibrary>::@mixin::B::@method::foo
           firstFragment: <testLibraryFragment>::@mixin::B::@method::foo
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: String
 ''');
   }
@@ -8412,7 +8412,7 @@ library
               reference: <testLibraryFragment>::@mixin::B::@method::foo
               enclosingElement3: <testLibraryFragment>::@mixin::B
               parameters
-                requiredPositional a @54
+                requiredPositional hasImplicitType a @54
                   type: String
               returnType: int
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo
@@ -8433,7 +8433,7 @@ library
               reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo
               enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
               parameters
-                requiredPositional a @53
+                requiredPositional hasImplicitType a @53
                   type: String
               returnType: int
               augmentationTarget: <testLibraryFragment>::@mixin::B::@method::foo
@@ -8487,7 +8487,7 @@ library
           reference: <testLibrary>::@mixin::B::@method::foo
           firstFragment: <testLibraryFragment>::@mixin::B::@method::foo
           formalParameters
-            requiredPositional a
+            requiredPositional hasImplicitType a
               type: String
 ''');
   }

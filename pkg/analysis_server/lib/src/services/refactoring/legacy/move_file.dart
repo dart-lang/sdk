@@ -16,7 +16,6 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as path show posix, Context;
@@ -204,8 +203,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl
       return;
     }
 
-    var element = resolvedUnit.unit.declaredElement;
-    if (element == null) {
+    var libraryFragment = resolvedUnit.unit.declaredFragment;
+    if (libraryFragment == null) {
       return;
     }
 
@@ -224,12 +223,12 @@ class MoveFileRefactoringImpl extends RefactoringImpl
       ));
     }
 
-    var libraryElement = element.library;
+    var libraryElement = libraryFragment.element;
 
     // If this element is a library, handle inbound 'part of' directives which
     // are not included in `searchEngine.searchReferences` below.
-    if (element == libraryElement.definingCompilationUnit) {
-      var libraryResult = await _session.getResolvedLibraryByElement(
+    if (libraryFragment == libraryElement.firstFragment) {
+      var libraryResult = await _session.getResolvedLibraryByElement2(
         libraryElement,
       );
       if (libraryResult is! ResolvedLibraryResult) {
@@ -247,7 +246,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
             for (var uriString in partOfs) {
               recordReference(
                 range: range.node(uriString),
-                sourceFile: result.unit.declaredElement!.source.fullName,
+                sourceFile: result.unit.declaredFragment!.source.fullName,
                 targetFile: oldPath,
                 quotedUriValue: uriString.literal.lexeme,
               );
@@ -271,7 +270,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
           if (uriValue == null) continue;
           recordReference(
             range: range.node(uriString),
-            sourceFile: element.source.fullName,
+            sourceFile: libraryFragment.source.fullName,
             targetFile: pathContext.normalize(
               pathContext.join(oldDir, _uriToPath(uriValue)),
             ),
@@ -283,7 +282,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
     // Finally, locate all other incoming references to this file.
     var references = await refactoringWorkspace.searchEngine
-        .searchLibraryFragmentReferences(element.asElement2);
+        .searchLibraryFragmentReferences(libraryFragment);
     for (var reference in references) {
       recordReference(
         range: reference.range,

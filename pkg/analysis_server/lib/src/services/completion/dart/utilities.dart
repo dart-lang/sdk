@@ -229,12 +229,11 @@ InterfaceType instantiateInstanceElement(
   );
 }
 
-/// Returns true if the [parameter] is part of a constructor for a Flutter
-/// [Widget].
+/// Returns whether the [parameter] is part of a constructor for a Flutter
+/// `Widget`.
 bool isFlutterWidgetParameter(FormalParameterElement parameter) {
   var element = parameter.enclosingElement2;
-  if (element is ConstructorElement2 &&
-      element.enclosingElement2.isWidget) {
+  if (element is ConstructorElement2 && element.enclosingElement2.isWidget) {
     return true;
   }
   return false;

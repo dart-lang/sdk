@@ -28,8 +28,8 @@ class ImportElementsComputer {
   /// Initialize a newly created builder.
   ImportElementsComputer(this.resourceProvider, this.libraryResult);
 
-  /// Create the edits that will cause the list of [importedElements] to be
-  /// imported into the library at the given [path].
+  /// Creates the edits that will cause the list of [importedElementsList] to be
+  /// imported into the library.
   Future<SourceChange> createEdits(
     List<ImportedElements> importedElementsList,
   ) async {

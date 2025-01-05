@@ -836,15 +836,10 @@ class KernelCompilationRequest : public ValueObject {
     dart_embed_sources.type = Dart_CObject_kBool;
     dart_embed_sources.value.as_bool = embed_sources;
 
-    // TODO(aam): Assert that isolate exists once we move CompileAndReadScript
-    // compilation logic out of CreateIsolateAndSetupHelper and into
-    // IsolateSetupHelper in main.cc.
     auto thread = Thread::Current();
     auto isolate_group = thread != nullptr ? thread->isolate_group() : nullptr;
+    ASSERT((thread == nullptr) || (isolate_group != nullptr));
 
-    if (incremental_compile) {
-      ASSERT(isolate_group != nullptr);
-    }
     Dart_CObject isolate_id;
     isolate_id.type = Dart_CObject_kInt64;
     isolate_id.value.as_int64 = isolate_group != nullptr

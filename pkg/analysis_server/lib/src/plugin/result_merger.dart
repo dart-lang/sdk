@@ -545,15 +545,15 @@ class ResultMerger {
   }
 
   /// Return a refactoring feedback composed by merging the refactoring
-  /// feedbacks in the [partialResultList].
+  /// feedbacks in [feedbacks].
   ///
   /// The content of the resulting feedback depends on the kind of feedbacks
   /// being merged.
   ///
   /// Throw an exception if the refactoring feedbacks are of an unhandled type.
   ///
-  /// The feedbacks in the [partialResultList] are expected to all be of the
-  /// same type. If that expectation is violated, and exception might be thrown.
+  /// The [feedbacks] are expected to all be of the same type. If that
+  /// expectation is violated, and exception might be thrown.
   RefactoringFeedback? mergeRefactoringFeedbacks(
     List<RefactoringFeedback> feedbacks,
   ) {
@@ -702,7 +702,7 @@ class ResultMerger {
   ///
   /// The returned result will contain a merged list of refactoring feedbacks
   /// (as defined by [mergeRefactoringFeedbacks]) and a merged list of source
-  /// changes (as defined by [mergeChanges]).
+  /// changes (as defined by `mergeChanges`).
   ///
   /// The returned result will contain the concatenation of the potential edits.
   /// If two or more plugins produce the same potential edit, then the resulting

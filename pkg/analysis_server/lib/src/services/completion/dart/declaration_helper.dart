@@ -664,7 +664,7 @@ class DeclarationHelper {
   }
 
   /// Adds suggestions for any constructors that are visible through type
-  /// aliases declared within the [library].
+  /// aliases declared within the `importData.libraryUri`.
   void _addConstructorsForAliasedElement(
     TypeAliasElement2 alias,
     ImportData? importData,
@@ -1345,8 +1345,8 @@ class DeclarationHelper {
     }
   }
 
-  /// Add the static [accessors], [constructors], [fields], and [methods]
-  /// defined by the [containingElement].
+  /// Adds the static [getters], [setters], [constructors], [fields], and
+  /// [methods] defined by the [containingElement].
   void _addStaticMembers({
     required List<GetterElement> getters,
     required List<SetterElement> setters,
@@ -1582,8 +1582,7 @@ class DeclarationHelper {
     return null;
   }
 
-  /// Adds a suggestion for the class represented by the [element]. The [prefix]
-  /// is the prefix by which the element is imported.
+  /// Adds a suggestion for the class represented by the [element].
   void _suggestClass(ClassElement2 element, ImportData? importData) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if ((mustBeExtendable &&
@@ -1615,8 +1614,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Adds a suggestion for the constructor represented by the [element]. The
-  /// [prefix] is the prefix by which the class is imported.
+  /// Adds a suggestion for the constructor represented by the [element].
   void _suggestConstructor(
     ConstructorElement2 element, {
     required ImportData? importData,
@@ -1694,8 +1692,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Adds a suggestion for the enum represented by the [element]. The [prefix]
-  /// is the prefix by which the element is imported.
+  /// Adds a suggestion for the enum represented by the [element].
   void _suggestEnum(EnumElement2 element, ImportData? importData) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if (mustBeExtendable || mustBeImplementable || mustBeMixable) {
@@ -1722,8 +1719,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Adds a suggestion for the extension represented by the [element]. The
-  /// [prefix] is the prefix by which the element is imported.
+  /// Adds a suggestion for the extension represented by the [element].
   void _suggestExtension(ExtensionElement2 element, ImportData? importData) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if (mustBeExtendable || mustBeImplementable || mustBeMixable) {
@@ -1744,8 +1740,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Adds a suggestion for the extension type represented by the [element]. The
-  /// [prefix] is the prefix by which the element is imported.
+  /// Adds a suggestion for the extension type represented by the [element].
   void _suggestExtensionType(
     ExtensionTypeElement2 element,
     ImportData? importData,
@@ -1879,8 +1874,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Adds a suggestion for the mixin represented by the [element]. The [prefix]
-  /// is the prefix by which the element is imported.
+  /// Adds a suggestion for the mixin represented by the [element].
   void _suggestMixin(MixinElement2 element, ImportData? importData) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if (mustBeExtendable ||
@@ -2095,8 +2089,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Adds a suggestion for the function represented by the [element]. The
-  /// [prefix] is the prefix by which the element is imported.
+  /// Adds a suggestion for the function represented by the [element].
   void _suggestTopLevelFunction(
     TopLevelFunctionElement element,
     ImportData? importData,
@@ -2122,7 +2115,6 @@ class DeclarationHelper {
   }
 
   /// Adds a suggestion for the getter or setter represented by the [element].
-  /// The [prefix] is the prefix by which the element is imported.
   void _suggestTopLevelProperty(
     PropertyAccessorElement2 element,
     ImportData? importData,
@@ -2151,7 +2143,6 @@ class DeclarationHelper {
   }
 
   /// Adds a suggestion for the getter or setter represented by the [element].
-  /// The [prefix] is the prefix by which the element is imported.
   void _suggestTopLevelVariable(
     TopLevelVariableElement2 element,
     ImportData? importData,
@@ -2174,8 +2165,7 @@ class DeclarationHelper {
     }
   }
 
-  /// Adds a suggestion for the type alias represented by the [element]. The
-  /// [prefix] is the prefix by which the element is imported.
+  /// Adds a suggestion for the type alias represented by the [element].
   void _suggestTypeAlias(TypeAliasElement2 element, ImportData? importData) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       var matcherScore = state.matcher.score(element.displayName);

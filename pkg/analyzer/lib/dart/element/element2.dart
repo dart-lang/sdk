@@ -524,6 +524,17 @@ abstract class Element2 {
   void visitChildren2<T>(ElementVisitor2<T> visitor);
 }
 
+/// A directive within a library fragment.
+///
+/// Clients may not extend, implement or mix-in this class.
+sealed class ElementDirective implements Annotatable {
+  /// The library fragment that contains this object.
+  LibraryFragment get libraryFragment;
+
+  /// The interpretation of the URI specified in the directive.
+  DirectiveUri get uri;
+}
+
 /// An object that can be used to visit an element structure.
 ///
 /// Clients may not extend, implement or mix-in this class. There are classes
@@ -1315,6 +1326,25 @@ abstract class InterfaceElement2 implements InstanceElement2 {
   });
 
   /// Returns the element representing the method that results from looking up
+  /// the given [methodName] in this class with respect to the given [library],
+  /// ignoring abstract methods, or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 16.15.1:
+  /// <blockquote>
+  /// The result of looking up method <i>m</i> in class <i>C</i> with respect to
+  /// library <i>L</i> is: If <i>C</i> declares an instance method named
+  /// <i>m</i> that is accessible to <i>L</i>, then that method is the result of
+  /// the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the
+  /// result of the lookup is the result of looking up method <i>m</i> in
+  /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
+  /// failed.
+  /// </blockquote>
+  // TODO(scheglov): Deprecate and remove it.
+  MethodElement2? lookUpConcreteMethod(
+      String methodName, LibraryElement2 library);
+
+  /// Returns the element representing the method that results from looking up
   /// the given [methodName] in the superclass of this class with respect to the
   /// given [library], or `null` if the look up fails.
   ///
@@ -1619,7 +1649,7 @@ abstract class LibraryElement2 implements Element2, Annotatable {
 /// An `export` directive within a library fragment.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LibraryExport implements Annotatable {
+abstract class LibraryExport implements ElementDirective {
   /// The combinators that were specified as part of the `export` directive.
   ///
   /// The combinators are in the order in which they were specified.
@@ -1630,9 +1660,6 @@ abstract class LibraryExport implements Annotatable {
 
   /// The offset of the `export` keyword.
   int get exportKeywordOffset;
-
-  /// The interpretation of the URI specified in the directive.
-  DirectiveUri get uri;
 }
 
 /// The portion of a [LibraryElement2] coming from a single compilation unit.
@@ -1718,7 +1745,7 @@ abstract class LibraryFragment implements Fragment, Annotatable {
 /// An `import` directive within a library fragment.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LibraryImport implements Annotatable {
+abstract class LibraryImport implements ElementDirective {
   /// The combinators that were specified as part of the `import` directive.
   ///
   /// The combinators are in the order in which they were specified.
@@ -1737,9 +1764,6 @@ abstract class LibraryImport implements Annotatable {
   /// an implicit import of `dart:core`.
   bool get isSynthetic;
 
-  /// The library fragment that contains this object.
-  LibraryFragment? get libraryFragment;
-
   /// The [Namespace] that this directive contributes to the containing library.
   Namespace get namespace;
 
@@ -1747,9 +1771,6 @@ abstract class LibraryImport implements Annotatable {
   ///
   /// Returns `null` if there was no prefix specified.
   PrefixFragment? get prefix2;
-
-  /// The interpretation of the URI specified in the directive.
-  DirectiveUri get uri;
 }
 
 /// An element that can be (but is not required to be) defined within a method
@@ -2090,9 +2111,9 @@ abstract class MultiplyDefinedFragment implements Fragment {
 /// A 'part' directive within a library fragment.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class PartInclude {
-  /// The interpretation of the URI specified in the directive.
-  DirectiveUri get uri;
+abstract class PartInclude implements ElementDirective {
+  /// The [LibraryFragment], if [uri] is a [DirectiveUriWithUnit].
+  LibraryFragment? get includedFragment;
 }
 
 /// A pattern variable.

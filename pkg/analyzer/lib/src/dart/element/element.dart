@@ -10,6 +10,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     as shared;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -1686,6 +1687,12 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitConstructorElement(this);
+  }
+
+  /// Ensures that dependencies of this constructor, such as default values
+  /// of formal parameters, are evaluated.
+  void computeConstantDependencies() {
+    firstFragment.computeConstantDependencies();
   }
 
   @override
@@ -6365,6 +6372,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 
   @override
   List<ConstructorElement2> get constructors2 {
+    firstFragment.constructors; // TODO(scheglov): remove eventually
     return constructors
         .map((constructor) =>
             (constructor.declaration as ConstructorElementImpl).element)
@@ -6445,6 +6453,13 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   }) =>
       firstFragment.instantiate(
           typeArguments: typeArguments, nullabilitySuffix: nullabilitySuffix);
+
+  @override
+  MethodElement2? lookUpConcreteMethod(
+      String methodName, LibraryElement2 library) {
+    return _implementationsOfMethod2(methodName).firstWhereOrNull(
+        (method) => !method.isAbstract && method.isAccessibleIn2(library));
+  }
 
   PropertyAccessorElement2? lookUpInheritedConcreteGetter(
       String getterName, LibraryElement2 library) {
@@ -7251,6 +7266,9 @@ class LibraryExportElementImpl extends _ExistingElementImpl
   ElementKind get kind => ElementKind.EXPORT;
 
   @override
+  LibraryFragment get libraryFragment => enclosingElement3;
+
+  @override
   T? accept<T>(ElementVisitor<T> visitor) {
     return visitor.visitLibraryExportElement(this);
   }
@@ -7320,7 +7338,7 @@ class LibraryImportElementImpl extends _ExistingElementImpl
   LibraryElementImpl get library2 => super.library2 as LibraryElementImpl;
 
   @override
-  LibraryFragment? get libraryFragment => enclosingElement3;
+  LibraryFragment get libraryFragment => enclosingElement3;
 
   @override
   Namespace get namespace {
@@ -9188,7 +9206,10 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 
 /// A mixin that provides a common implementation for methods defined in
 /// [ParameterElement].
-mixin ParameterElementMixin implements ParameterElement {
+mixin ParameterElementMixin
+    implements
+        ParameterElement,
+        SharedNamedFunctionParameterStructure<DartType> {
   @override
   bool get isNamed => parameterKind.isNamed;
 
@@ -9262,7 +9283,18 @@ class PartElementImpl extends _ExistingElementImpl
   String get identifier => 'part';
 
   @override
+  LibraryFragment? get includedFragment {
+    if (uri case DirectiveUriWithUnit uri) {
+      return uri.libraryFragment;
+    }
+    return null;
+  }
+
+  @override
   ElementKind get kind => ElementKind.PART;
+
+  @override
+  LibraryFragment get libraryFragment => enclosingUnit;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitPartElement(this);

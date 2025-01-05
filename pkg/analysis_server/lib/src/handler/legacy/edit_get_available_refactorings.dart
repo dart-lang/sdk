@@ -7,10 +7,9 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/file_paths.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// The handler for the `edit.getAvailableRefactorings` request.
@@ -81,21 +80,21 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
     var resolvedUnit = await server.getResolvedUnit(file);
     if (resolvedUnit != null) {
       var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-      var element = server.getElementOfNode(node);
+      var element = server.getElementOfNode2(node);
       if (element != null) {
         var refactoringWorkspace = server.refactoringWorkspace;
         // try CONVERT_METHOD_TO_GETTER
-        if (element is ExecutableElement) {
+        if (element is ExecutableElement2) {
           if (ConvertMethodToGetterRefactoring(
             refactoringWorkspace,
             resolvedUnit.session,
-            element.asElement2,
+            element,
           ).isAvailable()) {
             kinds.add(RefactoringKind.CONVERT_METHOD_TO_GETTER);
           }
         }
         // try RENAME
-        var renameRefactoring = RenameRefactoring.create(
+        var renameRefactoring = RenameRefactoring.create2(
           refactoringWorkspace,
           resolvedUnit,
           element,

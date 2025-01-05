@@ -369,8 +369,8 @@ Future<lsp.CompletionItem?> toLspCompletionItem(
   );
 }
 
-/// Return the [lsp.CompletionItemKind] or [null] for the given
-/// [CandidateSuggestion] and the set of supported [lsp.CompletionItemKind]'s.
+/// Returns the [lsp.CompletionItemKind] or `null` for the given
+/// [CandidateSuggestion] and the set of supported [lsp.CompletionItemKind]s.
 lsp.CompletionItemKind? _candidateToCompletionItemKind(
   Set<lsp.CompletionItemKind> supportedCompletionKinds,
   CandidateSuggestion suggestion,

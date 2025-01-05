@@ -112,7 +112,7 @@ class DartLazyTypeHierarchyComputer {
     return element is InterfaceElement2 ? element : null;
   }
 
-  /// Gets immediate sub types for the class/mixin [element].
+  /// Gets immediate subtypes for the class/mixin [target].
   Future<List<TypeHierarchyRelatedItem>> _getSubtypes(
     InterfaceElement2 target,
     SearchEngine searchEngine,

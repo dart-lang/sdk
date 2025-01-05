@@ -61,8 +61,8 @@ class A {
 
   @pragma('weak-tearoff-reference')
   external T Function()? weakReference12<T>(T Function()? x);
-//                       ^
-// [cfe] Weak reference pragma can be used on a static method only.
+  //                     ^
+  // [cfe] Weak reference pragma can be used on a static method only.
 }
 
 class B {
@@ -83,42 +83,42 @@ void main() {
   validWeakRef(B.validTarget); // OK
 
   validWeakRef(B.new);
-//^
-// [cfe] The target of weak reference should be a tearoff of a static method.
+  // [error column 3]
+  // [cfe] The target of weak reference should be a tearoff of a static method.
 
   validWeakRef(B.bar);
-//^
-// [cfe] The target of weak reference should be a tearoff of a static method.
+  // [error column 3]
+  // [cfe] The target of weak reference should be a tearoff of a static method.
 
   validWeakRef(B.baz);
-//^
-// [cfe] The target of weak reference should be a tearoff of a static method.
+  // [error column 3]
+  // [cfe] The target of weak reference should be a tearoff of a static method.
 
   validWeakRef(B().instanceMethod);
-//^
-// [cfe] The target of weak reference should be a tearoff of a static method.
+  // [error column 3]
+  // [cfe] The target of weak reference should be a tearoff of a static method.
 
   final x = B.validTarget;
   validWeakRef(x);
-//^
-// [cfe] The target of weak reference should be a tearoff of a static method.
+  // [error column 3]
+  // [cfe] The target of weak reference should be a tearoff of a static method.
 
   const y = B.validTarget;
   validWeakRef(y); // OK
 
   validWeakRef(B.arg1);
-//^
-// [cfe] The target of weak reference should not take parameters.
+  // [error column 3]
+  // [cfe] The target of weak reference should not take parameters.
 
   validWeakRef(B.arg2);
-//^
-// [cfe] The target of weak reference should not take parameters.
+  // [error column 3]
+  // [cfe] The target of weak reference should not take parameters.
 
   validWeakRef(B.arg3);
-//^
-// [cfe] The target of weak reference should not take parameters.
+  // [error column 3]
+  // [cfe] The target of weak reference should not take parameters.
 
   validWeakRef(B.arg4);
-//^
-// [cfe] The target of weak reference should not take parameters.
+  // [error column 3]
+  // [cfe] The target of weak reference should not take parameters.
 }

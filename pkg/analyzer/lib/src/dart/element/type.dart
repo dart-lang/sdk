@@ -90,7 +90,7 @@ class FunctionTypeImpl extends TypeImpl
     implements
         FunctionType,
         SharedFunctionTypeStructure<DartType, TypeParameterElement,
-            ParameterElement> {
+            ParameterElementMixin> {
   @override
   late int hashCode = _computeHashCode();
 
@@ -113,7 +113,7 @@ class FunctionTypeImpl extends TypeImpl
   final int requiredPositionalParameterCount;
 
   @override
-  final List<ParameterElement> sortedNamedParameters;
+  final List<ParameterElementMixin> sortedNamedParameters;
 
   factory FunctionTypeImpl({
     required List<TypeParameterElement> typeFormals,
@@ -166,7 +166,9 @@ class FunctionTypeImpl extends TypeImpl
         nullabilitySuffix: nullabilitySuffix,
         positionalParameterTypes: positionalParameterTypes,
         requiredPositionalParameterCount: requiredPositionalParameterCount,
-        sortedNamedParameters: sortedNamedParameters,
+        // TODO(paulberry): avoid the cast by changing the type of
+        // `sortedNamedParameters`.
+        sortedNamedParameters: sortedNamedParameters.cast(),
         alias: alias);
   }
 
@@ -1453,7 +1455,7 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
 }
 
 class RecordTypeNamedFieldImpl extends RecordTypeFieldImpl
-    implements RecordTypeNamedField {
+    implements RecordTypeNamedField, SharedNamedTypeStructure<DartType> {
   @override
   final String name;
 

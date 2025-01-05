@@ -28,14 +28,17 @@ String syntax(Object? x) {
     return '{${x.map(syntax).join(', ')}}';
   } else if (x is Map) {
     if (x.isEmpty) return '{}';
-    var entries = x.entries
-        .map((entry) => '${syntax(entry.key)}: ${syntax(entry.value)}');
+    var entries = x.entries.map(
+      (entry) => '${syntax(entry.key)}: ${syntax(entry.value)}',
+    );
     return '{ ${entries.join(', ')} }';
   } else if (x is String) {
     return json.encode(x);
   } else {
-    throw UnimplementedError('Unknown syntax for $x.  '
-        'Consider adding to `SyntaxTracker.known`.');
+    throw UnimplementedError(
+      'Unknown syntax for $x.  '
+      'Consider adding to `SyntaxTracker.known`.',
+    );
   }
 }
 
@@ -58,18 +61,23 @@ class SyntaxTracker {
   static Map<Object?, String> known = {
     true: 'true',
     false: 'false',
-    null: 'null'
+    null: 'null',
   };
 }
 
 /// Extension allowing us to detect the syntax of most operations performed on
 /// arbitrary types.
 extension SyntaxTrackingExtension on Object? {
-  Object? method<T, U>([Object? x = absent, Object? y = absent]) => SyntaxTracker(
-      '${syntax(this)}.method${SyntaxTracker.typeArgs(T, U)}${SyntaxTracker.args(x, y)}');
+  Object? method<T, U>([
+    Object? x = absent,
+    Object? y = absent,
+  ]) => SyntaxTracker(
+    '${syntax(this)}.method${SyntaxTracker.typeArgs(T, U)}${SyntaxTracker.args(x, y)}',
+  );
 
   Object? call<T, U>([Object? x = absent, Object? y = absent]) => SyntaxTracker(
-      '${syntax(this)}${SyntaxTracker.typeArgs(T, U)}${SyntaxTracker.args(x, y)}');
+    '${syntax(this)}${SyntaxTracker.typeArgs(T, U)}${SyntaxTracker.args(x, y)}',
+  );
 
   Object? get getter => SyntaxTracker('${syntax(this)}.getter');
 
@@ -131,6 +139,7 @@ void checkSyntax(Object? x, String expectedSyntax) {
 }
 
 Object? f<T, U>([Object? x = absent, Object? y = absent]) => SyntaxTracker(
-    'f${SyntaxTracker.typeArgs(T, U)}${SyntaxTracker.args(x, y)}');
+  'f${SyntaxTracker.typeArgs(T, U)}${SyntaxTracker.args(x, y)}',
+);
 
 Object? x = SyntaxTracker('x');

@@ -655,16 +655,13 @@ class /*[0*/A/*0]*/ {}
   }
 
   Future<void> test_type_dynamic() async {
-    addTestFile('''
+    await assertOccurrences(kind: ElementKind.UNKNOWN, '''
 void f() {
-  dynamic a = 1;
-  dynamic b = 2;
+  /*[0*/dynamic/*0]*/ a = 1;
+  /*[1*/dynamic/*1]*/ b = 2;
 }
-dynamic V = 3;
+/*[2*/dynamic/*2]*/ V = 3;
 ''');
-    await prepareOccurrences();
-    var offset = findOffset('dynamic a');
-    findRegion(offset, 'dynamic'.length, exists: false);
   }
 
   Future<void> test_type_void() async {

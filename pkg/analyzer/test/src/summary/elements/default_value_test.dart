@@ -136,7 +136,7 @@ library
               reference: <testLibraryFragment>::@class::X::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::X
               parameters
-                optionalNamed default final this.f @90
+                optionalNamed default final hasImplicitType this.f @90
                   reference: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f
                   type: void Function(dynamic)
                     alias: <testLibraryFragment>::@typeAlias::F
@@ -246,7 +246,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
           formalParameters
-            optionalNamed final f
+            optionalNamed final hasImplicitType f
               firstFragment: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f
               type: void Function(dynamic)
                 alias: <testLibraryFragment>::@typeAlias::F
@@ -313,7 +313,7 @@ library
               reference: <testLibraryFragment>::@class::B::@method::foo
               enclosingElement3: <testLibraryFragment>::@class::B
               parameters
-                optionalNamed default a @50
+                optionalNamed default hasImplicitType a @50
                   reference: <testLibraryFragment>::@class::B::@method::foo::@parameter::a
                   type: dynamic
                   constantInitializer
@@ -403,7 +403,7 @@ library
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
           formalParameters
-            optionalNamed a
+            optionalNamed hasImplicitType a
               firstFragment: <testLibraryFragment>::@class::B::@method::foo::@parameter::a
               type: dynamic
 ''');
@@ -428,7 +428,7 @@ library
             requiredPositional g @8
               type: dynamic Function({dynamic a})
               parameters
-                optionalNamed a @11
+                optionalNamed hasImplicitType a @11
                   type: dynamic
           returnType: void
 ----------------------------------------
@@ -452,7 +452,7 @@ library
         requiredPositional g
           type: dynamic Function({dynamic a})
           formalParameters
-            optionalNamed a
+            optionalNamed hasImplicitType a
               type: dynamic
       returnType: void
 ''');

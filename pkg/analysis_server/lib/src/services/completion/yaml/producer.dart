@@ -158,7 +158,7 @@ class MapProducer extends KeyValueProducer {
   final Map<String, Producer> _children;
 
   /// Initialize a location whose valid values are the keys of a map as encoded
-  /// by the map of [children].
+  /// by the map of [_children].
   const MapProducer(this._children);
 
   @override

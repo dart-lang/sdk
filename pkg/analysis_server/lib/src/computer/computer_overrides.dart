@@ -40,7 +40,8 @@ class DartUnitOverridesComputer {
     return _overrides;
   }
 
-  /// Add a new [Override] for the declaration with the given name [token].
+  /// Add a new [proto.Override] for the declaration with the given name
+  /// [token].
   void _addOverride(Token token, Element2? element) {
     if (element != null) {
       var overridesResult = _OverriddenElementsFinder(element).find();

@@ -164,6 +164,15 @@ abstract interface class TypeAnalyzerOperations<
   SharedTypeView<TypeStructure> greatestClosure(
       SharedTypeSchemaView<TypeStructure> schema);
 
+  /// Computes the greatest closure of a type.
+  ///
+  /// Computing the greatest closure of a type is described here:
+  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#type-variable-elimination-least-and-greatest-closure-of-a-type
+  TypeStructure greatestClosureOfTypeInternal(
+      TypeStructure type,
+      List<SharedTypeParameterStructure<TypeStructure>>
+          typeParametersToEliminate);
+
   /// Queries whether [type] is an "always-exhaustive" type (as defined in the
   /// patterns spec).  Exhaustive types are types for which the switch statement
   /// is required to be exhaustive when patterns support is enabled.
@@ -196,17 +205,17 @@ abstract interface class TypeAnalyzerOperations<
   @override
   bool isNever(SharedTypeView<TypeStructure> type);
 
-  /// Returns `true` if `Null` is a subtype of all types matching [type].
-  ///
-  /// The predicate of [isNullableInternal] could be computed directly with a
-  /// subtype query, but the implementations can do that more efficiently.
-  bool isNullableInternal(TypeStructure type);
-
   /// Returns `true` if `Null` is not a subtype of all types matching [type].
   ///
   /// The predicate of [isNonNullableInternal] could be computed directly with
   /// a subtype query, but the implementations can do that more efficiently.
   bool isNonNullableInternal(TypeStructure type);
+
+  /// Returns `true` if `Null` is a subtype of all types matching [type].
+  ///
+  /// The predicate of [isNullableInternal] could be computed directly with a
+  /// subtype query, but the implementations can do that more efficiently.
+  bool isNullableInternal(TypeStructure type);
 
   /// Returns `true` if [type] is `Object` from `dart:core`. The method returns
   /// `false` for `Object?` and `Object*`.
@@ -233,6 +242,15 @@ abstract interface class TypeAnalyzerOperations<
   /// Returns the type schema `Iterable`, with type argument.
   SharedTypeSchemaView<TypeStructure> iterableTypeSchema(
       SharedTypeSchemaView<TypeStructure> elementTypeSchema);
+
+  /// Computes the least closure of a type.
+  ///
+  /// Computing the greatest closure of a type is described here:
+  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#type-variable-elimination-least-and-greatest-closure-of-a-type
+  TypeStructure leastClosureOfTypeInternal(
+      TypeStructure type,
+      List<SharedTypeParameterStructure<TypeStructure>>
+          typeParametersToEliminate);
 
   /// Returns the type `List`, with type argument [elementType].
   ///
@@ -426,27 +444,6 @@ abstract interface class TypeAnalyzerOperations<
   /// step too.
   TypeStructure? matchFutureOrInternal(TypeStructure type);
 
-  /// If [type] is a parameter type with empty nullability suffix, returns its
-  /// bound, whether it is its type parameter bound or its promoted bound.
-  /// Otherwise, returns null.
-  ///
-  /// In the example below matching the appearance of `X` in the parameters of
-  /// `foo` returns `num`, matching the appearance of `Y` in the parameters of
-  /// the function type `int Function<Y extends Object>(Y)` returns `Object`,
-  /// and matching the inferred type of the variable `z`, which is `X & int`,
-  /// `X` promoted to `int`, returns `int`. Matching a non-type parameter type,
-  /// such as `int`, would return null.
-  ///
-  ///   int foo<X extends num>(int Function<Y extends Object>(Y) f, X x) {
-  ///     if (x is int) {
-  ///       var z = x;
-  ///       return z;
-  ///     } else {
-  ///       return f(x);
-  ///     }
-  ///   }
-  TypeStructure? matchTypeParameterBoundInternal(TypeStructure type);
-
   /// If [type] is a parameter type that is of a kind used in type inference,
   /// returns the corresponding parameter.
   ///
@@ -528,6 +525,27 @@ abstract interface class TypeAnalyzerOperations<
   /// returns null.
   TypeDeclarationMatchResult<TypeDeclarationType, TypeDeclaration,
       TypeStructure>? matchTypeDeclarationTypeInternal(TypeStructure type);
+
+  /// If [type] is a parameter type with empty nullability suffix, returns its
+  /// bound, whether it is its type parameter bound or its promoted bound.
+  /// Otherwise, returns null.
+  ///
+  /// In the example below matching the appearance of `X` in the parameters of
+  /// `foo` returns `num`, matching the appearance of `Y` in the parameters of
+  /// the function type `int Function<Y extends Object>(Y)` returns `Object`,
+  /// and matching the inferred type of the variable `z`, which is `X & int`,
+  /// `X` promoted to `int`, returns `int`. Matching a non-type parameter type,
+  /// such as `int`, would return null.
+  ///
+  ///   int foo<X extends num>(int Function<Y extends Object>(Y) f, X x) {
+  ///     if (x is int) {
+  ///       var z = x;
+  ///       return z;
+  ///     } else {
+  ///       return f(x);
+  ///     }
+  ///   }
+  TypeStructure? matchTypeParameterBoundInternal(TypeStructure type);
 
   /// If [typeSchema] takes the form `FutureOr<T>`, `FutureOr<T>?`, or
   /// `FutureOr<T>*` for some `T`, returns the type schema `T`. Otherwise
@@ -672,24 +690,6 @@ abstract interface class TypeAnalyzerOperations<
   SharedTypeSchemaView<TypeStructure> typeSchemaLub(
       SharedTypeSchemaView<TypeStructure> typeSchema1,
       SharedTypeSchemaView<TypeStructure> typeSchema2);
-
-  /// Computes the greatest closure of a type.
-  ///
-  /// Computing the greatest closure of a type is described here:
-  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#type-variable-elimination-least-and-greatest-closure-of-a-type
-  TypeStructure greatestClosureOfTypeInternal(
-      TypeStructure type,
-      List<SharedTypeParameterStructure<TypeStructure>>
-          typeParametersToEliminate);
-
-  /// Computes the least closure of a type.
-  ///
-  /// Computing the greatest closure of a type is described here:
-  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#type-variable-elimination-least-and-greatest-closure-of-a-type
-  TypeStructure leastClosureOfTypeInternal(
-      TypeStructure type,
-      List<SharedTypeParameterStructure<TypeStructure>>
-          typeParametersToEliminate);
 
   /// Converts a type into a corresponding type schema.
   SharedTypeSchemaView<TypeStructure> typeToSchema(
@@ -905,6 +905,11 @@ abstract class TypeConstraintGenerator<
     TypeDeclarationType extends Object,
     TypeDeclaration extends Object,
     AstNode extends Object> {
+  /// True if the language feature inference-using-bounds is enabled.
+  final bool inferenceUsingBoundsIsEnabled;
+
+  TypeConstraintGenerator({required this.inferenceUsingBoundsIsEnabled});
+
   /// The current sate of the constraint generator.
   ///
   /// The states of the generator obtained via [currentState] can be treated as
@@ -921,14 +926,12 @@ abstract class TypeConstraintGenerator<
   /// https://github.com/dart-lang/sdk/issues/51156#issuecomment-2158825417.
   bool get enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr;
 
-  /// True if the language feature inference-using-bounds is enabled.
-  final bool inferenceUsingBoundsIsEnabled;
-
   /// Abstract type operations to be used in the matching methods.
   TypeAnalyzerOperations<TypeStructure, Variable, TypeParameterStructure,
       TypeDeclarationType, TypeDeclaration> get typeAnalyzerOperations;
 
-  TypeConstraintGenerator({required this.inferenceUsingBoundsIsEnabled});
+  /// Type parameters being constrained by [TypeConstraintGenerator].
+  Iterable<TypeParameterStructure> get typeParametersToConstrain;
 
   /// Add constraint: [lower] <: [typeParameter] <: TOP.
   void addLowerConstraintForParameter(
@@ -940,11 +943,44 @@ abstract class TypeConstraintGenerator<
       TypeParameterStructure typeParameter, TypeStructure upper,
       {required AstNode? astNodeForTesting});
 
+  /// Iterates over all of the type constraints generated since
+  /// [eliminationStartState] and eliminates the type variables in them using
+  /// [typeParametersToEliminate].
+  ///
+  /// This step is required as a part of the subtype constraint generation
+  /// algorithm, in the step for generic function types. See
+  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#subtype-constraint-generation.
+  void eliminateTypeParametersInGeneratedConstraints(
+      List<TypeParameterStructure> typeParametersToEliminate,
+      TypeConstraintGeneratorState eliminationStartState,
+      {required AstNode? astNodeForTesting});
+
   /// Returns the type arguments of the supertype of [type] that is an
   /// instantiation of [typeDeclaration]. If none of the supertypes of [type]
   /// are instantiations of [typeDeclaration], returns null.
   List<TypeStructure>? getTypeArgumentsAsInstanceOf(
       TypeDeclarationType type, TypeDeclaration typeDeclaration);
+
+  /// Creates fresh type parameters, instantiates the non-generic parts of [p]
+  /// and [q] with the new parameters as type arguments, and returns the
+  /// instantiated non-generic function types and the eliminator that
+  /// eliminates the new type parameters.
+  ///
+  /// This operation is required as a part of the subtype constraint generation
+  /// algorithm, in the step for the generic function types.  See
+  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#subtype-constraint-generation.
+  (
+    TypeStructure,
+    TypeStructure, {
+    List<TypeParameterStructure> typeParametersToEliminate
+  }) instantiateFunctionTypesAndProvideFreshTypeParameters(
+      SharedFunctionTypeStructure<TypeStructure, TypeParameterStructure,
+              FunctionParameterStructure>
+          p,
+      SharedFunctionTypeStructure<TypeStructure, TypeParameterStructure,
+              FunctionParameterStructure>
+          q,
+      {required bool leftSchema});
 
   /// Matches [p] against [q].
   ///
@@ -976,208 +1012,75 @@ abstract class TypeConstraintGenerator<
     return false;
   }
 
-  /// Matches non-generic function type [p] against non-generic function type
-  /// [q].
+  /// Matches [p] against [q].
   ///
-  /// See the documentation on
-  /// [performSubtypeConstraintGenerationForFunctionTypes] for details.
-  bool _handleNonGenericFunctionTypes(
-      SharedFunctionTypeStructure<TypeStructure, TypeParameterStructure,
-              FunctionParameterStructure>
-          p,
-      SharedFunctionTypeStructure<TypeStructure, TypeParameterStructure,
-              FunctionParameterStructure>
-          q,
-      {required bool leftSchema,
-      required AstNode? astNodeForTesting}) {
-    assert(p.typeFormals.isEmpty && q.typeFormals.isEmpty);
-    // A function type (M0,..., Mn, [M{n+1}, ..., Mm]) -> R0 is a subtype
-    // match for a function type (N0,..., Nk, [N{k+1}, ..., Nr]) -> R1 with
-    // respect to L under constraints C0 + ... + Cr + C
-    //
-    // If R0 is a subtype match for a type R1 with respect to L under
-    // constraints C.  If n <= k and r <= m.  And for i in 0...r, Ni is a
-    // subtype match for Mi with respect to L under constraints Ci.
-    if (p.sortedNamedParameters.isEmpty &&
-        q.sortedNamedParameters.isEmpty &&
-        p.requiredPositionalParameterCount <=
-            q.requiredPositionalParameterCount &&
-        p.positionalParameterTypes.length >=
-            q.positionalParameterTypes.length) {
+  /// If [p] is of the form `FutureOr<p0>` for some `p0`, and [p] is a subtype
+  /// of [q] under some constraints, the constraints making the relation
+  /// possible are recorded, and `true` is returned. Otherwise, the constraint
+  /// state is unchanged (or rolled back using [restoreState]), and `false` is
+  /// returned.
+  ///
+  /// An invariant of the type inference is that only [p] or [q] may be a
+  /// schema (in other words, may contain the unknown type `_`); the other must
+  /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
+  /// `false`, [q] may contain `_`.
+  bool performSubtypeConstraintGenerationForLeftFutureOr(
+      TypeStructure p, TypeStructure q,
+      {required bool leftSchema, required AstNode? astNodeForTesting}) {
+    // If `P` is `FutureOr<P0>` the match holds under constraint set `C1 + C2`:
+    NullabilitySuffix pNullability = p.nullabilitySuffix;
+    if (typeAnalyzerOperations.matchFutureOrInternal(p) case var p0?
+        when pNullability == NullabilitySuffix.none) {
       final TypeConstraintGeneratorState state = currentState;
 
-      if (!performSubtypeConstraintGenerationInternal(
-          p.returnType, q.returnType,
-          leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
-        return false;
+      // If `Future<P0>` is a subtype match for `Q` under constraint set `C1`.
+      // And if `P0` is a subtype match for `Q` under constraint set `C2`.
+      TypeStructure futureP0 = typeAnalyzerOperations.futureTypeInternal(p0);
+      if (performSubtypeConstraintGenerationInternal(futureP0, q,
+              leftSchema: leftSchema, astNodeForTesting: astNodeForTesting) &&
+          performSubtypeConstraintGenerationInternal(p0, q,
+              leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+        return true;
       }
-      for (int i = 0; i < q.positionalParameterTypes.length; ++i) {
-        if (!performSubtypeConstraintGenerationInternal(
-            q.positionalParameterTypes[i], p.positionalParameterTypes[i],
-            leftSchema: !leftSchema, astNodeForTesting: astNodeForTesting)) {
-          restoreState(state);
-          return false;
-        }
-      }
-      return true;
-    } else if (p.positionalParameterTypes.length ==
-            p.requiredPositionalParameterCount &&
-        q.positionalParameterTypes.length ==
-            q.requiredPositionalParameterCount &&
-        p.requiredPositionalParameterCount ==
-            q.requiredPositionalParameterCount &&
-        p.sortedNamedParameters.isNotEmpty &&
-        q.sortedNamedParameters.length <= p.sortedNamedParameters.length) {
-      // Function types with named parameters are treated analogously to the
-      // positional parameter case above.
 
-      final TypeConstraintGeneratorState state = currentState;
-
-      if (!performSubtypeConstraintGenerationInternal(
-          p.returnType, q.returnType,
-          leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
-        return false;
-      }
-      for (int i = 0; i < p.positionalParameterTypes.length; ++i) {
-        if (!performSubtypeConstraintGenerationInternal(
-            q.positionalParameterTypes[i], p.positionalParameterTypes[i],
-            leftSchema: !leftSchema, astNodeForTesting: astNodeForTesting)) {
-          restoreState(state);
-          return false;
-        }
-      }
-      // Consume parameter names from p and q in order. Since the named
-      // parameters in p and q are already sorted by name, we can do this by
-      // iterating through both lists in tandem.
-      int i = 0;
-      int j = 0;
-      while (true) {
-        // Determine whether the next parameter should be consumed from p,
-        // q, or both (because the next set of names matches). If the next
-        // parameter should be consumed from p, comparisonResult will be set
-        // to a value < 0. If the next parameter should be consumed from q,
-        // comparisonResult will be set to a value > 0. If the next
-        // parameter should be consumed from both, comparisonResult will be
-        // set to 0.
-        int comparisonResult;
-        if (i >= p.sortedNamedParameters.length) {
-          if (j >= q.sortedNamedParameters.length) {
-            // No parameters left.
-            return true;
-          } else {
-            // No more parameters in p, so the next parameter must come from
-            // q.
-            comparisonResult = 1;
-          }
-        } else if (j >= q.sortedNamedParameters.length) {
-          // No more parameters in q, so the next parameter must come from
-          // p.
-          comparisonResult = -1;
-        } else {
-          comparisonResult = p.sortedNamedParameters[i].name
-              .compareTo(q.sortedNamedParameters[j].name);
-        }
-        if (comparisonResult > 0) {
-          // Extra parameter in q that q that doesn't exist in p. No match.
-          restoreState(state);
-          return false;
-        } else if (comparisonResult < 0) {
-          // Extra parameter in p that doesn't exist in q. Ok if not
-          // required.
-          if (p.sortedNamedParameters[i].isRequired) {
-            restoreState(state);
-            return false;
-          } else {
-            i++;
-          }
-        } else {
-          // The next parameter in p and q matches, so match their types.
-          if (!performSubtypeConstraintGenerationInternal(
-              q.sortedNamedParameters[j].type, p.sortedNamedParameters[i].type,
-              leftSchema: !leftSchema, astNodeForTesting: astNodeForTesting)) {
-            restoreState(state);
-            return false;
-          }
-          i++;
-          j++;
-        }
-      }
+      restoreState(state);
     }
 
     return false;
   }
 
-  /// Matches generic function type [p] against generic function type [q].
+  /// Matches [p] against [q] as a subtype against supertype.
   ///
-  /// See the documentation on
-  /// [performSubtypeConstraintGenerationForFunctionTypes] for details.
-  bool _handleGenericFunctionTypes(
-      SharedFunctionTypeStructure<TypeStructure, TypeParameterStructure,
-              FunctionParameterStructure>
-          p,
-      SharedFunctionTypeStructure<TypeStructure, TypeParameterStructure,
-              FunctionParameterStructure>
-          q,
-      {required bool leftSchema,
-      required AstNode? astNodeForTesting}) {
-    assert(p.typeFormals.isNotEmpty || q.typeFormals.isNotEmpty);
-    // A generic function type <T0 extends B00, ..., Tn extends B0n>F0 is a
-    // subtype match for a generic function type <S0 extends B10, ..., Sn
-    // extends B1n>F1 with respect to L under constraint set C2
-    //
-    // If B0i is a subtype match for B1i with constraint set Ci0.  And B1i
-    // is a subtype match for B0i with constraint set Ci1.  And Ci2 is Ci0
-    // + Ci1.
-    //
-    // And Z0...Zn are fresh variables with bounds B20, ..., B2n, Where B2i
-    // is B0i[Z0/T0, ..., Zn/Tn] if P is a type schema.  Or B2i is
-    // B1i[Z0/S0, ..., Zn/Sn] if Q is a type schema.  In other words, we
-    // choose the bounds for the fresh variables from whichever of the two
-    // generic function types is a type schema and does not contain any
-    // variables from L.
-    //
-    // And F0[Z0/T0, ..., Zn/Tn] is a subtype match for F1[Z0/S0, ...,
-    // Zn/Sn] with respect to L under constraints C0.  And C1 is C02 + ...
-    // + Cn2 + C0.  And C2 is C1 with each constraint replaced with its
-    // closure with respect to [Z0, ..., Zn].
-    if (p.typeFormals.length == q.typeFormals.length) {
+  /// - If [p] is `p0?` for some `p0` and [p] is a subtype of [q] under some
+  ///   constraints, the constraints making the relation possible are recorded,
+  ///   and `true` is returned.
+  /// - Otherwise, the constraint state is unchanged (or rolled back using
+  ///   [restoreState]), and `false` is returned.
+  ///
+  /// An invariant of the type inference is that only [p] or [q] may be a
+  /// schema (in other words, may contain the unknown type `_`); the other must
+  /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
+  /// `false`, [q] may contain `_`.
+  bool performSubtypeConstraintGenerationForLeftNullableType(
+      TypeStructure p, TypeStructure q,
+      {required bool leftSchema, required AstNode? astNodeForTesting}) {
+    // If `P` is `P0?` the match holds under constraint set `C1 + C2`:
+    NullabilitySuffix pNullability = p.nullabilitySuffix;
+    if (pNullability == NullabilitySuffix.question) {
+      TypeStructure p0 = typeAnalyzerOperations.withNullabilitySuffixInternal(
+          p, NullabilitySuffix.none);
       final TypeConstraintGeneratorState state = currentState;
 
-      bool isMatch = true;
-      for (int i = 0; isMatch && i < p.typeFormals.length; ++i) {
-        isMatch = isMatch &&
-            performSubtypeConstraintGenerationInternal(
-                p.typeFormals[i].bound ??
-                    typeAnalyzerOperations.objectQuestionType.unwrapTypeView(),
-                q.typeFormals[i].bound ??
-                    typeAnalyzerOperations.objectQuestionType.unwrapTypeView(),
-                leftSchema: leftSchema,
-                astNodeForTesting: astNodeForTesting) &&
-            performSubtypeConstraintGenerationInternal(
-                q.typeFormals[i].bound ??
-                    typeAnalyzerOperations.objectQuestionType.unwrapTypeView(),
-                p.typeFormals[i].bound ??
-                    typeAnalyzerOperations.objectQuestionType.unwrapTypeView(),
-                leftSchema: !leftSchema,
-                astNodeForTesting: astNodeForTesting);
+      // If `P0` is a subtype match for `Q` under constraint set `C1`.
+      // And if `Null` is a subtype match for `Q` under constraint set `C2`.
+      if (performSubtypeConstraintGenerationInternal(p0, q,
+              leftSchema: leftSchema, astNodeForTesting: astNodeForTesting) &&
+          performSubtypeConstraintGenerationInternal(
+              typeAnalyzerOperations.nullType.unwrapTypeView(), q,
+              leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+        return true;
       }
-      if (isMatch) {
-        var (
-          instantiatedP,
-          instantiatedQ,
-          typeParametersToEliminate: typeParametersToEliminate
-        ) = instantiateFunctionTypesAndProvideFreshTypeParameters(p, q,
-            leftSchema: leftSchema);
 
-        if (performSubtypeConstraintGenerationInternal(
-            instantiatedP, instantiatedQ,
-            leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
-          eliminateTypeParametersInGeneratedConstraints(
-              typeParametersToEliminate, state,
-              astNodeForTesting: astNodeForTesting);
-          return true;
-        }
-      }
       restoreState(state);
     }
 
@@ -1236,39 +1139,6 @@ abstract class TypeConstraintGenerator<
     return true;
   }
 
-  /// Creates fresh type parameters, instantiates the non-generic parts of [p]
-  /// and [q] with the new parameters as type arguments, and returns the
-  /// instantiated non-generic function types and the eliminator that
-  /// eliminates the new type parameters.
-  ///
-  /// This operation is required as a part of the subtype constraint generation
-  /// algorithm, in the step for the generic function types.  See
-  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#subtype-constraint-generation.
-  (
-    TypeStructure,
-    TypeStructure, {
-    List<TypeParameterStructure> typeParametersToEliminate
-  }) instantiateFunctionTypesAndProvideFreshTypeParameters(
-      SharedFunctionTypeStructure<TypeStructure, TypeParameterStructure,
-              FunctionParameterStructure>
-          p,
-      SharedFunctionTypeStructure<TypeStructure, TypeParameterStructure,
-              FunctionParameterStructure>
-          q,
-      {required bool leftSchema});
-
-  /// Iterates over all of the type constraints generated since
-  /// [eliminationStartState] and eliminates the type variables in them using
-  /// [typeParametersToEliminate].
-  ///
-  /// This step is required as a part of the subtype constraint generation
-  /// algorithm, in the step for generic function types. See
-  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#subtype-constraint-generation.
-  void eliminateTypeParametersInGeneratedConstraints(
-      List<TypeParameterStructure> typeParametersToEliminate,
-      TypeConstraintGeneratorState eliminationStartState,
-      {required AstNode? astNodeForTesting});
-
   /// Matches [p] against [q].
   ///
   /// If [q] is of the form `FutureOr<q0>` for some `q0`, and [p] is a subtype
@@ -1322,139 +1192,6 @@ abstract class TypeConstraintGenerator<
       if (isMatchWithFuture && !matchWithFutureAddsConstraints) {
         return true;
       }
-    }
-
-    return false;
-  }
-
-  /// Matches [p] against [q].
-  ///
-  /// If [p] is of the form `FutureOr<p0>` for some `p0`, and [p] is a subtype
-  /// of [q] under some constraints, the constraints making the relation
-  /// possible are recorded, and `true` is returned. Otherwise, the constraint
-  /// state is unchanged (or rolled back using [restoreState]), and `false` is
-  /// returned.
-  ///
-  /// An invariant of the type inference is that only [p] or [q] may be a
-  /// schema (in other words, may contain the unknown type `_`); the other must
-  /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
-  /// `false`, [q] may contain `_`.
-  bool performSubtypeConstraintGenerationForLeftFutureOr(
-      TypeStructure p, TypeStructure q,
-      {required bool leftSchema, required AstNode? astNodeForTesting}) {
-    // If `P` is `FutureOr<P0>` the match holds under constraint set `C1 + C2`:
-    NullabilitySuffix pNullability = p.nullabilitySuffix;
-    if (typeAnalyzerOperations.matchFutureOrInternal(p) case var p0?
-        when pNullability == NullabilitySuffix.none) {
-      final TypeConstraintGeneratorState state = currentState;
-
-      // If `Future<P0>` is a subtype match for `Q` under constraint set `C1`.
-      // And if `P0` is a subtype match for `Q` under constraint set `C2`.
-      TypeStructure futureP0 = typeAnalyzerOperations.futureTypeInternal(p0);
-      if (performSubtypeConstraintGenerationInternal(futureP0, q,
-              leftSchema: leftSchema, astNodeForTesting: astNodeForTesting) &&
-          performSubtypeConstraintGenerationInternal(p0, q,
-              leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
-        return true;
-      }
-
-      restoreState(state);
-    }
-
-    return false;
-  }
-
-  /// Matches [p] against [q] as a subtype against supertype.
-  ///
-  /// If [p] and [q] are both type declaration types, then:
-  ///
-  /// - If [p] is a subtype of [q] under some constraints, the constraints
-  ///   making the relation possible are recorded, and `true` is returned.
-  /// - Otherwise, the constraint state is unchanged (or rolled back using
-  ///   [restoreState]), and `false` is returned.
-  ///
-  /// Otherwise (either [p] or [q] is not a type declaration type), the
-  /// constraint state is unchanged, and `null` is returned.
-  ///
-  /// An invariant of the type inference is that only [p] or [q] may be a
-  /// schema (in other words, may contain the unknown type `_`); the other must
-  /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
-  /// `false`, [q] may contain `_`.
-  bool? performSubtypeConstraintGenerationForTypeDeclarationTypes(
-      TypeStructure p, TypeStructure q,
-      {required bool leftSchema, required AstNode? astNodeForTesting}) {
-    switch ((
-      typeAnalyzerOperations.matchTypeDeclarationTypeInternal(p),
-      typeAnalyzerOperations.matchTypeDeclarationTypeInternal(q)
-    )) {
-      // If `P` is `C<M0, ..., Mk> and `Q` is `C<N0, ..., Nk>`, then the match
-      // holds under constraints `C0 + ... + Ck`:
-      //   If `Mi` is a subtype match for `Ni` with respect to L under
-      //   constraints `Ci`.
-      case (
-            TypeDeclarationMatchResult(
-              typeDeclarationKind: TypeDeclarationKind pTypeDeclarationKind,
-              typeDeclaration: TypeDeclaration pDeclarationObject,
-              typeArguments: List<TypeStructure> pTypeArguments
-            ),
-            TypeDeclarationMatchResult(
-              typeDeclarationKind: TypeDeclarationKind qTypeDeclarationKind,
-              typeDeclaration: TypeDeclaration qDeclarationObject,
-              typeArguments: List<TypeStructure> qTypeArguments
-            )
-          )
-          when pTypeDeclarationKind == qTypeDeclarationKind &&
-              pDeclarationObject == qDeclarationObject:
-        return _interfaceTypeArguments(
-            pDeclarationObject, pTypeArguments, qTypeArguments, leftSchema,
-            astNodeForTesting: astNodeForTesting);
-
-      case (TypeDeclarationMatchResult(), TypeDeclarationMatchResult()):
-        return _interfaceTypes(p, q, leftSchema,
-            astNodeForTesting: astNodeForTesting);
-
-      case (
-          TypeDeclarationMatchResult? pMatched,
-          TypeDeclarationMatchResult? qMatched
-        ):
-        assert(pMatched == null || qMatched == null);
-        return null;
-    }
-  }
-
-  /// Matches [p] against [q] as a subtype against supertype.
-  ///
-  /// - If [p] is `p0?` for some `p0` and [p] is a subtype of [q] under some
-  ///   constraints, the constraints making the relation possible are recorded,
-  ///   and `true` is returned.
-  /// - Otherwise, the constraint state is unchanged (or rolled back using
-  ///   [restoreState]), and `false` is returned.
-  ///
-  /// An invariant of the type inference is that only [p] or [q] may be a
-  /// schema (in other words, may contain the unknown type `_`); the other must
-  /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
-  /// `false`, [q] may contain `_`.
-  bool performSubtypeConstraintGenerationForLeftNullableType(
-      TypeStructure p, TypeStructure q,
-      {required bool leftSchema, required AstNode? astNodeForTesting}) {
-    // If `P` is `P0?` the match holds under constraint set `C1 + C2`:
-    NullabilitySuffix pNullability = p.nullabilitySuffix;
-    if (pNullability == NullabilitySuffix.question) {
-      TypeStructure p0 = typeAnalyzerOperations.withNullabilitySuffixInternal(
-          p, NullabilitySuffix.none);
-      final TypeConstraintGeneratorState state = currentState;
-
-      // If `P0` is a subtype match for `Q` under constraint set `C1`.
-      // And if `Null` is a subtype match for `Q` under constraint set `C2`.
-      if (performSubtypeConstraintGenerationInternal(p0, q,
-              leftSchema: leftSchema, astNodeForTesting: astNodeForTesting) &&
-          performSubtypeConstraintGenerationInternal(
-              typeAnalyzerOperations.nullType.unwrapTypeView(), q,
-              leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
-        return true;
-      }
-
-      restoreState(state);
     }
 
     return false;
@@ -1529,8 +1266,63 @@ abstract class TypeConstraintGenerator<
     return false;
   }
 
-  /// Type parameters being constrained by [TypeConstraintGenerator].
-  Iterable<TypeParameterStructure> get typeParametersToConstrain;
+  /// Matches [p] against [q] as a subtype against supertype.
+  ///
+  /// If [p] and [q] are both type declaration types, then:
+  ///
+  /// - If [p] is a subtype of [q] under some constraints, the constraints
+  ///   making the relation possible are recorded, and `true` is returned.
+  /// - Otherwise, the constraint state is unchanged (or rolled back using
+  ///   [restoreState]), and `false` is returned.
+  ///
+  /// Otherwise (either [p] or [q] is not a type declaration type), the
+  /// constraint state is unchanged, and `null` is returned.
+  ///
+  /// An invariant of the type inference is that only [p] or [q] may be a
+  /// schema (in other words, may contain the unknown type `_`); the other must
+  /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
+  /// `false`, [q] may contain `_`.
+  bool? performSubtypeConstraintGenerationForTypeDeclarationTypes(
+      TypeStructure p, TypeStructure q,
+      {required bool leftSchema, required AstNode? astNodeForTesting}) {
+    switch ((
+      typeAnalyzerOperations.matchTypeDeclarationTypeInternal(p),
+      typeAnalyzerOperations.matchTypeDeclarationTypeInternal(q)
+    )) {
+      // If `P` is `C<M0, ..., Mk> and `Q` is `C<N0, ..., Nk>`, then the match
+      // holds under constraints `C0 + ... + Ck`:
+      //   If `Mi` is a subtype match for `Ni` with respect to L under
+      //   constraints `Ci`.
+      case (
+            TypeDeclarationMatchResult(
+              typeDeclarationKind: TypeDeclarationKind pTypeDeclarationKind,
+              typeDeclaration: TypeDeclaration pDeclarationObject,
+              typeArguments: List<TypeStructure> pTypeArguments
+            ),
+            TypeDeclarationMatchResult(
+              typeDeclarationKind: TypeDeclarationKind qTypeDeclarationKind,
+              typeDeclaration: TypeDeclaration qDeclarationObject,
+              typeArguments: List<TypeStructure> qTypeArguments
+            )
+          )
+          when pTypeDeclarationKind == qTypeDeclarationKind &&
+              pDeclarationObject == qDeclarationObject:
+        return _interfaceTypeArguments(
+            pDeclarationObject, pTypeArguments, qTypeArguments, leftSchema,
+            astNodeForTesting: astNodeForTesting);
+
+      case (TypeDeclarationMatchResult(), TypeDeclarationMatchResult()):
+        return _interfaceTypes(p, q, leftSchema,
+            astNodeForTesting: astNodeForTesting);
+
+      case (
+          TypeDeclarationMatchResult? pMatched,
+          TypeDeclarationMatchResult? qMatched
+        ):
+        assert(pMatched == null || qMatched == null);
+        return null;
+    }
+  }
 
   /// Implementation backing [performSubtypeConstraintGenerationLeftSchema] and
   /// [performSubtypeConstraintGenerationRightSchema].
@@ -1744,6 +1536,214 @@ abstract class TypeConstraintGenerator<
   /// The [state] to restore the constraint generator to can be obtained via
   /// [currentState].
   void restoreState(TypeConstraintGeneratorState state);
+
+  /// Matches generic function type [p] against generic function type [q].
+  ///
+  /// See the documentation on
+  /// [performSubtypeConstraintGenerationForFunctionTypes] for details.
+  bool _handleGenericFunctionTypes(
+      SharedFunctionTypeStructure<TypeStructure, TypeParameterStructure,
+              FunctionParameterStructure>
+          p,
+      SharedFunctionTypeStructure<TypeStructure, TypeParameterStructure,
+              FunctionParameterStructure>
+          q,
+      {required bool leftSchema,
+      required AstNode? astNodeForTesting}) {
+    assert(p.typeFormals.isNotEmpty || q.typeFormals.isNotEmpty);
+    // A generic function type <T0 extends B00, ..., Tn extends B0n>F0 is a
+    // subtype match for a generic function type <S0 extends B10, ..., Sn
+    // extends B1n>F1 with respect to L under constraint set C2
+    //
+    // If B0i is a subtype match for B1i with constraint set Ci0.  And B1i
+    // is a subtype match for B0i with constraint set Ci1.  And Ci2 is Ci0
+    // + Ci1.
+    //
+    // And Z0...Zn are fresh variables with bounds B20, ..., B2n, Where B2i
+    // is B0i[Z0/T0, ..., Zn/Tn] if P is a type schema.  Or B2i is
+    // B1i[Z0/S0, ..., Zn/Sn] if Q is a type schema.  In other words, we
+    // choose the bounds for the fresh variables from whichever of the two
+    // generic function types is a type schema and does not contain any
+    // variables from L.
+    //
+    // And F0[Z0/T0, ..., Zn/Tn] is a subtype match for F1[Z0/S0, ...,
+    // Zn/Sn] with respect to L under constraints C0.  And C1 is C02 + ...
+    // + Cn2 + C0.  And C2 is C1 with each constraint replaced with its
+    // closure with respect to [Z0, ..., Zn].
+    if (p.typeFormals.length == q.typeFormals.length) {
+      final TypeConstraintGeneratorState state = currentState;
+
+      bool isMatch = true;
+      for (int i = 0; isMatch && i < p.typeFormals.length; ++i) {
+        isMatch = isMatch &&
+            performSubtypeConstraintGenerationInternal(
+                p.typeFormals[i].bound ??
+                    typeAnalyzerOperations.objectQuestionType.unwrapTypeView(),
+                q.typeFormals[i].bound ??
+                    typeAnalyzerOperations.objectQuestionType.unwrapTypeView(),
+                leftSchema: leftSchema,
+                astNodeForTesting: astNodeForTesting) &&
+            performSubtypeConstraintGenerationInternal(
+                q.typeFormals[i].bound ??
+                    typeAnalyzerOperations.objectQuestionType.unwrapTypeView(),
+                p.typeFormals[i].bound ??
+                    typeAnalyzerOperations.objectQuestionType.unwrapTypeView(),
+                leftSchema: !leftSchema,
+                astNodeForTesting: astNodeForTesting);
+      }
+      if (isMatch) {
+        var (
+          instantiatedP,
+          instantiatedQ,
+          typeParametersToEliminate: typeParametersToEliminate
+        ) = instantiateFunctionTypesAndProvideFreshTypeParameters(p, q,
+            leftSchema: leftSchema);
+
+        if (performSubtypeConstraintGenerationInternal(
+            instantiatedP, instantiatedQ,
+            leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+          eliminateTypeParametersInGeneratedConstraints(
+              typeParametersToEliminate, state,
+              astNodeForTesting: astNodeForTesting);
+          return true;
+        }
+      }
+      restoreState(state);
+    }
+
+    return false;
+  }
+
+  /// Matches non-generic function type [p] against non-generic function type
+  /// [q].
+  ///
+  /// See the documentation on
+  /// [performSubtypeConstraintGenerationForFunctionTypes] for details.
+  bool _handleNonGenericFunctionTypes(
+      SharedFunctionTypeStructure<TypeStructure, TypeParameterStructure,
+              FunctionParameterStructure>
+          p,
+      SharedFunctionTypeStructure<TypeStructure, TypeParameterStructure,
+              FunctionParameterStructure>
+          q,
+      {required bool leftSchema,
+      required AstNode? astNodeForTesting}) {
+    assert(p.typeFormals.isEmpty && q.typeFormals.isEmpty);
+    // A function type (M0,..., Mn, [M{n+1}, ..., Mm]) -> R0 is a subtype
+    // match for a function type (N0,..., Nk, [N{k+1}, ..., Nr]) -> R1 with
+    // respect to L under constraints C0 + ... + Cr + C
+    //
+    // If R0 is a subtype match for a type R1 with respect to L under
+    // constraints C.  If n <= k and r <= m.  And for i in 0...r, Ni is a
+    // subtype match for Mi with respect to L under constraints Ci.
+    if (p.sortedNamedParameters.isEmpty &&
+        q.sortedNamedParameters.isEmpty &&
+        p.requiredPositionalParameterCount <=
+            q.requiredPositionalParameterCount &&
+        p.positionalParameterTypes.length >=
+            q.positionalParameterTypes.length) {
+      final TypeConstraintGeneratorState state = currentState;
+
+      if (!performSubtypeConstraintGenerationInternal(
+          p.returnType, q.returnType,
+          leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+        return false;
+      }
+      for (int i = 0; i < q.positionalParameterTypes.length; ++i) {
+        if (!performSubtypeConstraintGenerationInternal(
+            q.positionalParameterTypes[i], p.positionalParameterTypes[i],
+            leftSchema: !leftSchema, astNodeForTesting: astNodeForTesting)) {
+          restoreState(state);
+          return false;
+        }
+      }
+      return true;
+    } else if (p.positionalParameterTypes.length ==
+            p.requiredPositionalParameterCount &&
+        q.positionalParameterTypes.length ==
+            q.requiredPositionalParameterCount &&
+        p.requiredPositionalParameterCount ==
+            q.requiredPositionalParameterCount &&
+        p.sortedNamedParameters.isNotEmpty &&
+        q.sortedNamedParameters.length <= p.sortedNamedParameters.length) {
+      // Function types with named parameters are treated analogously to the
+      // positional parameter case above.
+
+      final TypeConstraintGeneratorState state = currentState;
+
+      if (!performSubtypeConstraintGenerationInternal(
+          p.returnType, q.returnType,
+          leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+        return false;
+      }
+      for (int i = 0; i < p.positionalParameterTypes.length; ++i) {
+        if (!performSubtypeConstraintGenerationInternal(
+            q.positionalParameterTypes[i], p.positionalParameterTypes[i],
+            leftSchema: !leftSchema, astNodeForTesting: astNodeForTesting)) {
+          restoreState(state);
+          return false;
+        }
+      }
+      // Consume parameter names from p and q in order. Since the named
+      // parameters in p and q are already sorted by name, we can do this by
+      // iterating through both lists in tandem.
+      int i = 0;
+      int j = 0;
+      while (true) {
+        // Determine whether the next parameter should be consumed from p,
+        // q, or both (because the next set of names matches). If the next
+        // parameter should be consumed from p, comparisonResult will be set
+        // to a value < 0. If the next parameter should be consumed from q,
+        // comparisonResult will be set to a value > 0. If the next
+        // parameter should be consumed from both, comparisonResult will be
+        // set to 0.
+        int comparisonResult;
+        if (i >= p.sortedNamedParameters.length) {
+          if (j >= q.sortedNamedParameters.length) {
+            // No parameters left.
+            return true;
+          } else {
+            // No more parameters in p, so the next parameter must come from
+            // q.
+            comparisonResult = 1;
+          }
+        } else if (j >= q.sortedNamedParameters.length) {
+          // No more parameters in q, so the next parameter must come from
+          // p.
+          comparisonResult = -1;
+        } else {
+          comparisonResult = p.sortedNamedParameters[i].name
+              .compareTo(q.sortedNamedParameters[j].name);
+        }
+        if (comparisonResult > 0) {
+          // Extra parameter in q that q that doesn't exist in p. No match.
+          restoreState(state);
+          return false;
+        } else if (comparisonResult < 0) {
+          // Extra parameter in p that doesn't exist in q. Ok if not
+          // required.
+          if (p.sortedNamedParameters[i].isRequired) {
+            restoreState(state);
+            return false;
+          } else {
+            i++;
+          }
+        } else {
+          // The next parameter in p and q matches, so match their types.
+          if (!performSubtypeConstraintGenerationInternal(
+              q.sortedNamedParameters[j].type, p.sortedNamedParameters[i].type,
+              leftSchema: !leftSchema, astNodeForTesting: astNodeForTesting)) {
+            restoreState(state);
+            return false;
+          }
+          i++;
+          j++;
+        }
+      }
+    }
+
+    return false;
+  }
 
   /// Match arguments [pTypeArguments] of P against arguments [qTypeArguments]
   /// of Q, taking into account the variance of type variables in [declaration].
