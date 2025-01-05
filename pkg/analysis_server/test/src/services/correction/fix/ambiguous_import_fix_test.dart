@@ -23,9 +23,9 @@ class ImportAddHideTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_HIDE;
 
   Future<void> test_double() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 class N {}''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 class N {}''');
     await resolveTestCode('''
 import 'lib1.dart';
@@ -60,9 +60,9 @@ void f(N? n) {
   }
 
   Future<void> test_double_aliased() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 class N {}''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 class N {}''');
     await resolveTestCode('''
 import 'lib1.dart' as i;
@@ -97,9 +97,9 @@ void f(i.N? n) {
   }
 
   Future<void> test_double_constant() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 const foo = 0;''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 const foo = 0;''');
     await resolveTestCode('''
 import 'lib1.dart';
@@ -120,35 +120,61 @@ void f() {
   }
 
   Future<void> test_double_exportedByImport() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
-export 'lib3.dart';''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 mixin M {}''');
-    newFile('$testPackageLibPath/lib3.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 mixin M {}''');
+    newFile(join(testPackageLibPath,'lib3.dart'), '''
+export 'lib2.dart';''');
     await resolveTestCode('''
 import 'lib1.dart';
-import 'lib2.dart';
+import 'lib3.dart';
 
 class C with M {}
 ''');
     await assertHasFix('''
 import 'lib1.dart' hide M;
-import 'lib2.dart';
+import 'lib3.dart';
 
 class C with M {}
-''', matchFixMessage: "Hide others to use 'M' from 'lib2.dart'",
+''', matchFixMessage: "Hide others to use 'M' from 'lib3.dart'",
+        errorFilter: (error) {
+      return error.errorCode == CompileTimeErrorCode.AMBIGUOUS_IMPORT;
+    });
+  }
+
+  Future<void> test_double_doubleExportedByImport() async {
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
+mixin M {}''');
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
+mixin M {}''');
+    newFile(join(testPackageLibPath,'lib3.dart'), '''
+export 'lib2.dart';''');
+    newFile(join(testPackageLibPath, 'lib4.dart'), '''
+export 'lib3.dart';''');
+    await resolveTestCode('''
+import 'lib1.dart';
+import 'lib4.dart';
+
+class C with M {}
+''');
+    await assertHasFix('''
+import 'lib1.dart' hide M;
+import 'lib4.dart';
+
+class C with M {}
+''', matchFixMessage: "Hide others to use 'M' from 'lib4.dart'",
         errorFilter: (error) {
       return error.errorCode == CompileTimeErrorCode.AMBIGUOUS_IMPORT;
     });
   }
 
   Future<void> test_double_extension() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 extension E on int {
   bool get isDivisibleByThree => this % 3 == 0;
 }''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 extension E on int {
   bool get isDivisibleByThree => this % 3 == 0;
 }''');
@@ -174,9 +200,9 @@ void foo(int i) {
   }
 
   Future<void> test_double_function() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 void bar() {}''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 void bar() {}''');
     await resolveTestCode('''
 import 'lib1.dart';
@@ -197,9 +223,9 @@ void foo() {
   }
 
   Future<void> test_double_mixin() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 mixin M {}''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 mixin M {}''');
     await resolveTestCode('''
 import 'lib1.dart';
@@ -219,9 +245,9 @@ class C with M {}
   }
 
   Future<void> test_double_oneHide() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 class M {} class N {} class O {}''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 class N {}''');
     await resolveTestCode('''
 import 'lib1.dart' hide M, O;
@@ -243,9 +269,9 @@ void f(N? n) {
 
   Future<void> test_double_oneHide_sort() async {
     createAnalysisOptionsFile(lints: [LintNames.combinators_ordering]);
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 class M {} class N {} class O {}''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 class N {}''');
     await resolveTestCode('''
 import 'lib1.dart' hide M, O;
@@ -266,9 +292,9 @@ void f(N? n) {
   }
 
   Future<void> test_double_oneShow() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 class N {}''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 class N {}''');
     await resolveTestCode('''
 import 'lib1.dart' show N;
@@ -289,9 +315,9 @@ void f(N? n) {
   }
 
   Future<void> test_double_variable() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 var foo = 0;''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 var foo = 0;''');
     await resolveTestCode('''
 import 'lib1.dart' show foo;
@@ -325,26 +351,26 @@ void f() {
     //         - test              has reference <-- testing this
     //             - level3_other  has import
 
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 class A {}
 ''');
 
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 class A {}
 ''');
 
-    newFile('$testPackageLibPath/root.dart', '''
+    newFile(join(testPackageLibPath,'root.dart'), '''
 import 'lib1.dart';
 part 'level1_other.dart';
 part 'level1.dart';
 ''');
 
-    newFile('$testPackageLibPath/level1_other.dart', '''
+    newFile(join(testPackageLibPath,'level1_other.dart'), '''
 part of 'root.dart';
 import 'lib1.dart';
 ''');
 
-    newFile('$testPackageLibPath/level1.dart', '''
+    newFile(join(testPackageLibPath,'level1.dart'), '''
 part of 'root.dart';
 import 'lib1.dart';
 import 'lib2.dart';
@@ -352,12 +378,12 @@ part 'level2_other.dart';
 part 'test.dart';
 ''');
 
-    newFile('$testPackageLibPath/level2_other.dart', '''
+    newFile(join(testPackageLibPath,'level2_other.dart'), '''
 part of 'level1.dart';
 import 'lib1.dart';
 ''');
 
-    newFile('$testPackageLibPath/level3_other.dart', '''
+    newFile(join(testPackageLibPath,'level3_other.dart'), '''
 part of 'test.dart';
 import 'lib1.dart';
 ''');
@@ -377,17 +403,17 @@ import 'lib2.dart';
 part 'level2_other.dart';
 part 'test.dart';
 ''',
-      target: '$testPackageLibPath/level1.dart',
+      target: join(testPackageLibPath,'level1.dart'),
       matchFixMessage: "Hide others to use 'A' from 'lib2.dart'",
     );
   }
 
   Future<void> test_part() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 class N {}''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 class N {}''');
-    newFile('$testPackageLibPath/other.dart', '''
+    newFile(join(testPackageLibPath,'other.dart'), '''
 import 'lib1.dart';
 import 'lib2.dart';
 part 'test.dart';
@@ -435,9 +461,9 @@ void f(N? n) {
   }
 
   Future<void> test_show_prefixed() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 class N {}''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 class N {}''');
     await resolveTestCode('''
 import 'lib1.dart' as l show N;
@@ -458,11 +484,11 @@ void f(l.N? n) {
   }
 
   Future<void> test_triple() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 export 'lib3.dart';''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 mixin M {}''');
-    newFile('$testPackageLibPath/lib3.dart', '''
+    newFile(join(testPackageLibPath,'lib3.dart'), '''
 mixin M {}''');
     await resolveTestCode('''
 import 'lib1.dart';
@@ -504,9 +530,9 @@ class C with M {}
   }
 
   Future<void> test_triple_oneAliased() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 const foo = 0;''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 const foo = 0;''');
     await resolveTestCode('''
 import 'lib1.dart' as lib;
@@ -529,9 +555,9 @@ void f() {
   }
 
   Future<void> test_triple_twoAliased() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 const foo = 0;''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 const foo = 0;''');
     await resolveTestCode('''
 import 'lib1.dart';
@@ -560,9 +586,9 @@ class ImportRemoveShowTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_REMOVE_SHOW;
 
   Future<void> test_double() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 class N {}''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 class N {}''');
     await resolveTestCode('''
 import 'lib1.dart' show N;
@@ -583,9 +609,9 @@ void f(N? n) {
   }
 
   Future<void> test_double_aliased() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 class N {}''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 class N {}''');
     await resolveTestCode('''
 import 'lib1.dart' as l show N;
@@ -620,9 +646,9 @@ void f(l.N? n) {
   }
 
   Future<void> test_double_oneHide() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 const foo = 0;''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 const foo = 0;''');
     await resolveTestCode('''
 import 'lib1.dart' hide foo;
@@ -636,10 +662,10 @@ void f() {
   }
 
   Future<void> test_moreShow() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 class N {}
 class M {}''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 class N {}''');
     await resolveTestCode('''
 import 'lib1.dart' show N, M;
@@ -666,11 +692,11 @@ void f(N? n) {
 
   Future<void> test_moreShow_sort() async {
     createAnalysisOptionsFile(lints: [LintNames.combinators_ordering]);
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 class N {}
 class M {}
 class O {}''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 class N {}''');
     await resolveTestCode('''
 import 'lib1.dart' show N, O, M;
@@ -696,9 +722,9 @@ void f(N? n, O? o) {
   }
 
   Future<void> test_one_show() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 var foo = 0;''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 var foo = 0;''');
     await resolveTestCode('''
 import 'lib1.dart' show foo;
@@ -719,9 +745,9 @@ void f() {
   }
 
   Future<void> test_triple_twoAliased() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
+    newFile(join(testPackageLibPath,'lib1.dart'), '''
 const foo = 0;''');
-    newFile('$testPackageLibPath/lib2.dart', '''
+    newFile(join(testPackageLibPath,'lib2.dart'), '''
 const foo = 0;''');
     await resolveTestCode('''
 import 'lib1.dart';

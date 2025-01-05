@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/results.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
 class AmbiguousImportFix extends MultiCorrectionProducer {
@@ -40,7 +41,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
       return const [];
     }
 
-    var (uris, unit, importDirectives) = _getImportDirectives(
+    var (unit, importDirectives, uris) = _getImportDirectives(
       libraryResult,
       unitResult,
       conflictingElements,
@@ -51,26 +52,27 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
       return const [];
     }
 
-    var producers = <ResolvedCorrectionProducer>{};
+    var producers = <ResolvedCorrectionProducer>[];
+    var thisContext = CorrectionProducerContext.createResolved(
+      libraryResult: libraryResult,
+      unitResult: unit,
+      applyingBulkFixes: applyingBulkFixes,
+      dartFixContext: context.dartFixContext,
+    );
+
     for (var uri in uris) {
-      var thisContext = CorrectionProducerContext.createResolved(
-        libraryResult: libraryResult,
-        unitResult: unit,
-        applyingBulkFixes: applyingBulkFixes,
-        dartFixContext: context.dartFixContext,
-        diagnostic: diagnostic,
-        selectionLength: selectionLength,
-        selectionOffset: selectionOffset,
-      );
-      var directives = importDirectives
-          .whereNot((directive) => directive.uri.stringValue == uri)
-          .toSet();
-      producers.addAll([
+      var directives =
+          importDirectives
+              .whereNot((directive) => directive.uri.stringValue == uri)
+              .toSet();
+      producers.add(
         _ImportAddHide(name, uri, prefix, directives, context: thisContext),
+      );
+      producers.add(
         _ImportRemoveShow(name, uri, prefix, directives, context: thisContext),
-      ]);
+      );
     }
-    return producers.toList();
+    return producers;
   }
 
   /// Returns [ImportDirective]s that import the given [conflictingElements]
@@ -84,8 +86,8 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
   /// directives. Usually this is the unit that contains the conflicting
   /// element, but it could be a parent unit if the conflicting element is
   /// a part file and the relevant imports are in an upstream file in the
-  /// library hierarchy (enhanced parts).
-  (Set<String>, ResolvedUnitResult?, Set<ImportDirective>) _getImportDirectives(
+  /// part hierarchy (enhanced parts).
+  (ResolvedUnitResult?, Set<ImportDirective>, Set<String>) _getImportDirectives(
     ResolvedLibraryResult libraryResult,
     ResolvedUnitResult? unitResult,
     List<Element2> conflictingElements,
@@ -95,23 +97,24 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
     var uris = <String>{};
     // The import directives that import the conflicting elements.
     var importDirectives = <ImportDirective>{};
+
+    var name = conflictingElements.firstOrNull?.name3;
+    if (name == null || name.isEmpty) {
+      return (null, importDirectives, uris);
+    }
+
     // Search in each unit up the chain for related imports.
     while (unitResult is ResolvedUnitResult) {
       for (var conflictingElement in conflictingElements) {
-        var library = conflictingElement.enclosingElement2?.library2;
-        if (library == null) {
-          continue;
-        }
-
         // Find all ImportDirective that import this library in this unit
         // and have the same prefix.
-        for (var directive in unitResult.unit.directives
-            .whereType<ImportDirective>()
-            .whereNot(importDirectives.contains)) {
-          var imported = directive.libraryImport?.importedLibrary2;
-          if (imported == null) {
+        for (var directive
+            in unitResult.unit.directives.whereType<ImportDirective>()) {
+          var libraryImport = directive.libraryImport;
+          if (libraryImport == null) {
             continue;
           }
+
           // If the prefix is different, then this directive is not relevant.
           if (directive.prefix?.name != prefix) {
             continue;
@@ -119,8 +122,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
 
           // If this library is imported directly or if the directive exports the
           // library for this element.
-          if (imported == library ||
-              imported.exportedLibraries2.contains(library)) {
+          if (libraryImport.namespace.get2(name) == conflictingElement) {
             var uri = directive.uri.stringValue;
             if (uri != null) {
               uris.add(uri);
@@ -138,7 +140,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
       unitResult = libraryResult.parentUnitOf(unitResult);
     }
 
-    return (uris, unitResult, importDirectives);
+    return (unitResult, importDirectives, uris);
   }
 }
 
@@ -149,8 +151,12 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
   final String _elementName;
 
   _ImportAddHide(
-      this._elementName, this.uri, this.prefix, this.importDirectives,
-      {required super.context});
+    this._elementName,
+    this.uri,
+    this.prefix,
+    this.importDirectives, {
+    required super.context,
+  });
 
   @override
   CorrectionApplicability get applicability =>
@@ -201,8 +207,7 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
           }
           // TODO(FMorschel): Use the utility function instead of ', '.
           var combinator = 'hide ${allNames.join(', ')}';
-          var range = SourceRange(hide.offset, hide.length);
-          builder.addSimpleReplacement(range, combinator);
+          builder.addSimpleReplacement(range.node(hide), combinator);
         } else {
           var hideCombinator = ' hide $_elementName';
           builder.addSimpleInsertion(directive.end - 1, hideCombinator);
@@ -219,8 +224,12 @@ class _ImportRemoveShow extends ResolvedCorrectionProducer {
   final String? prefix;
 
   _ImportRemoveShow(
-      this._elementName, this.uri, this.prefix, this.importDirectives,
-      {required super.context});
+    this._elementName,
+    this.uri,
+    this.prefix,
+    this.importDirectives, {
+    required super.context,
+  });
 
   @override
   CorrectionApplicability get applicability =>
@@ -284,5 +293,5 @@ class _ImportRemoveShow extends ResolvedCorrectionProducer {
 
 extension on ResolvedCorrectionProducer {
   bool get _sortCombinators =>
-      getCodeStyleOptions(unitResult.file).combinatorsOrdering;
+      getCodeStyleOptions(unitResult.file).sortCombinators;
 }
