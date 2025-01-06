@@ -181,14 +181,14 @@ class LibraryAnalyzer {
           file.uri, inferenceDataForTesting!);
 
       // TODO(scheglov): We don't need to do this for the whole unit.
-      parsedUnit.accept(ScopeResolverVisitor(
-        _libraryElement,
-        file.source,
-        _typeProvider,
-        errorListener,
-        nameScope: unitElement.scope,
-        unitElement: unitElement,
-      ));
+      parsedUnit.accept(
+        ScopeResolverVisitor(
+          file.source,
+          errorListener,
+          nameScope: unitElement.scope,
+          unitElement: unitElement,
+        ),
+      );
 
       FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
           _testingData != null, _libraryElement.featureSet,
@@ -857,9 +857,7 @@ class LibraryAnalyzer {
         fileAnalysis.file.uri, inferenceDataForTesting!);
 
     unit.accept(ScopeResolverVisitor(
-      _libraryElement,
       source,
-      _typeProvider,
       errorListener,
       nameScope: unitElement.scope,
       unitElement: unitElement,

@@ -4510,18 +4510,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 // TODO(paulberry): migrate the responsibility for all scope resolution into
 // this visitor.
 class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
-  /// The element for the library containing the compilation unit being visited.
-  final LibraryElementImpl definingLibrary;
-
-  /// The source representing the compilation unit being visited.
-  final Source source;
-
-  /// The object used to access the types from the core library.
-  final TypeProviderImpl typeProvider;
-
   /// The error reporter that will be informed of any errors that are found
   /// during resolution.
-  final ErrorReporter errorReporter;
+  final ErrorReporter _errorReporter;
 
   /// The scope used to resolve identifiers.
   Scope nameScope;
@@ -4534,7 +4525,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   /// The scope used to resolve labels for `break` and `continue` statements, or
   /// `null` if no labels have been defined in the current context.
-  LabelScope? labelScope;
+  LabelScope? _labelScope;
 
   /// The container with information about local variables.
   final LocalVariableInfo _localVariableInfo = LocalVariableInfo();
@@ -4546,12 +4537,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
-  /// [definingLibrary] is the element for the library containing the node being
-  /// visited.
   /// [source] is the source representing the compilation unit containing the
   /// node being visited.
-  /// [typeProvider] is the object used to access the types from the core
-  /// library.
   /// [errorListener] is the error listener that will be informed of any errors
   /// that are found during resolution.
   /// [nameScope] is the scope used to resolve identifiers in the node that will
@@ -4559,13 +4546,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   /// [docImportLibraries] are the `@docImport` imported elements of this node's
   /// library.
   ScopeResolverVisitor(
-    this.definingLibrary,
-    this.source,
-    this.typeProvider,
+    Source source,
     AnalysisErrorListener errorListener, {
     required this.nameScope,
     required CompilationUnitElementImpl unitElement,
-  })  : errorReporter = ErrorReporter(errorListener, source),
+  })  : _errorReporter = ErrorReporter(errorListener, source),
         _docImportScope = DocumentationCommentScope(nameScope, unitElement);
 
   /// Return the implicit label scope in which the current node is being
@@ -5090,7 +5075,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     try {
       super.visitLabeledStatement(node);
     } finally {
-      labelScope = outerScope;
+      _labelScope = outerScope;
     }
   }
 
@@ -5246,7 +5231,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (node.inSetterContext()) {
         if (element is PatternVariableElementImpl &&
             element.isVisitingWhenClause) {
-          errorReporter.atNode(
+          _errorReporter.atNode(
             node,
             CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
           );
@@ -5278,16 +5263,16 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitSwitchStatement(covariant SwitchStatementImpl node) {
-    var outerScope = labelScope;
-    ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
+    var outerScope = _labelScope;
+    var outerImplicitScope = _implicitLabelScope;
     try {
       _implicitLabelScope = _implicitLabelScope.nest(node);
-      for (SwitchMember member in node.members) {
-        for (Label label in member.labels) {
-          SimpleIdentifier labelName = label.label;
-          LabelElement labelElement = labelName.staticElement as LabelElement;
-          labelScope =
-              LabelScope(labelScope, labelName.name, member, labelElement);
+      for (var member in node.members) {
+        for (var label in member.labels) {
+          var labelName = label.label;
+          var labelElement = labelName.staticElement as LabelElement;
+          _labelScope =
+              LabelScope(_labelScope, labelName.name, member, labelElement);
         }
       }
       node.expression.accept(this);
@@ -5313,7 +5298,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         });
       }
     } finally {
-      labelScope = outerScope;
+      _labelScope = outerScope;
       _implicitLabelScope = outerImplicitScope;
     }
   }
@@ -5351,12 +5336,12 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   ///
   /// Returns the scope that was in effect before the new scopes were added.
   LabelScope? _addScopesFor(NodeList<Label> labels, AstNode node) {
-    var outerScope = labelScope;
-    for (Label label in labels) {
-      SimpleIdentifier labelNameNode = label.label;
-      String labelName = labelNameNode.name;
-      LabelElement labelElement = labelNameNode.staticElement as LabelElement;
-      labelScope = LabelScope(labelScope, labelName, node, labelElement);
+    var outerScope = _labelScope;
+    for (var label in labels) {
+      var labelNameNode = label.label;
+      var labelName = labelNameNode.name;
+      var labelElement = labelNameNode.staticElement as LabelElement;
+      _labelScope = LabelScope(_labelScope, labelName, node, labelElement);
     }
     return outerScope;
   }
@@ -5375,11 +5360,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     if (labelNode == null) {
       return implicitLabelScope.getTarget(isContinue);
     } else {
-      var labelScope = this.labelScope;
+      var labelScope = _labelScope;
       if (labelScope == null) {
         // There are no labels in scope, so by definition the label is
         // undefined.
-        errorReporter.atNode(
+        _errorReporter.atNode(
           labelNode,
           CompileTimeErrorCode.LABEL_UNDEFINED,
           arguments: [labelNode.name],
@@ -5390,7 +5375,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (definingScope == null) {
         // No definition of the given label name could be found in any
         // enclosing scope.
-        errorReporter.atNode(
+        _errorReporter.atNode(
           labelNode,
           CompileTimeErrorCode.LABEL_UNDEFINED,
           arguments: [labelNode.name],
@@ -5403,7 +5388,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           definingScope.element.thisOrAncestorOfType();
       if (_enclosingClosure != null &&
           !identical(labelContainer, _enclosingClosure)) {
-        errorReporter.atNode(
+        _errorReporter.atNode(
           labelNode,
           CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
           arguments: [labelNode.name],
@@ -5415,7 +5400,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           node is! ForStatement &&
           node is! SwitchMember &&
           node is! WhileStatement) {
-        errorReporter.atNode(
+        _errorReporter.atNode(
           parentNode,
           CompileTimeErrorCode.CONTINUE_LABEL_INVALID,
         );

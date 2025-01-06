@@ -38,9 +38,7 @@ class AstResolver {
     dataForTesting: null,
   );
   late final _scopeResolverVisitor = ScopeResolverVisitor(
-    _unitElement.library,
     _unitElement.source,
-    _unitElement.library.typeProvider,
     _errorListener,
     nameScope: _nameScope,
     unitElement: _unitElement,
