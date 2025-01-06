@@ -27,7 +27,7 @@ class SharedTypeAnalyzerErrors
             ExpressionImpl,
             PromotableElementImpl2,
             SharedTypeView<DartType>,
-            DartPattern,
+            DartPatternImpl,
             void> {
   final ErrorReporter _errorReporter;
 

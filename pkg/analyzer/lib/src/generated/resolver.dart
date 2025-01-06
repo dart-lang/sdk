@@ -98,7 +98,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 bool Function(Source) inferenceLoggingPredicate = (_) => false;
 
 typedef SharedMatchContext = shared.MatchContext<AstNode, ExpressionImpl,
-    DartPattern, SharedTypeView<DartType>, PromotableElementImpl2>;
+    DartPatternImpl, SharedTypeView<DartType>, PromotableElementImpl2>;
 
 typedef SharedPatternField
     = shared.RecordPatternField<PatternFieldImpl, DartPatternImpl>;
@@ -126,7 +126,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             StatementImpl,
             ExpressionImpl,
             PromotableElementImpl2,
-            DartPattern,
+            DartPatternImpl,
             void,
             TypeParameterElementImpl2,
             InterfaceTypeImpl,
@@ -936,7 +936,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  shared.MapPatternEntry<ExpressionImpl, DartPattern>? getMapPatternEntry(
+  shared.MapPatternEntry<ExpressionImpl, DartPatternImpl>? getMapPatternEntry(
     covariant MapPatternElementImpl element,
   ) {
     if (element is MapPatternEntryImpl) {
@@ -970,7 +970,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartPattern? getRestPatternElementPattern(
+  DartPatternImpl? getRestPatternElementPattern(
     covariant RestPatternElementImpl element,
   ) {
     return element.pattern;
