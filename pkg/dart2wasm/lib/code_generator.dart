@@ -3256,6 +3256,9 @@ class TearOffCodeGenerator extends AstCodeGenerator {
 
     b.pushObjectHeaderFields(info);
     b.local_get(paramLocals[0]); // `this` as context
+    // The closure requires a struct value so box `this` if necessary.
+    translator.convertType(b, paramLocals[0].type,
+        struct.fields[FieldIndex.closureContext].type.unpacked);
     translator.globals.readGlobal(b, closure.vtable);
     types.makeType(this, functionType);
     b.struct_new(struct);
