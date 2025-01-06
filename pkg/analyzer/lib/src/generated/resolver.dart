@@ -128,9 +128,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             PromotableElementImpl2,
             DartPattern,
             void,
-            TypeParameterElement,
+            TypeParameterElementImpl2,
             InterfaceType,
-            InterfaceElement>,
+            InterfaceElementImpl2>,
         // TODO(paulberry): not yet used.
         NullShortingMixin<Null, Expression, SharedTypeView<DartType>> {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
@@ -455,9 +455,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   shared.TypeAnalyzerOperations<
       DartType,
       PromotableElementImpl2,
-      TypeParameterElement,
+      TypeParameterElementImpl2,
       InterfaceType,
-      InterfaceElement> get operations => flowAnalysis.typeOperations;
+      InterfaceElementImpl2> get operations => flowAnalysis.typeOperations;
 
   /// Gets the current depth of the [_rewriteStack].  This may be used in
   /// assertions to verify that pushes and pops are properly balanced.
@@ -847,9 +847,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     var typeNode = pattern.type;
     if (typeNode.typeArguments == null) {
-      var typeNameElement = typeNode.element;
-      if (typeNameElement is InterfaceElement) {
-        var typeParameters = typeNameElement.typeParameters;
+      var typeNameElement = typeNode.element2;
+      if (typeNameElement is InterfaceElementImpl2) {
+        var typeParameters = typeNameElement.typeParameters2;
         if (typeParameters.isNotEmpty) {
           var typeArguments = _inferTypeArguments(
             typeParameters: typeParameters,
@@ -863,8 +863,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             nullabilitySuffix: NullabilitySuffix.none,
           ));
         }
-      } else if (typeNameElement is TypeAliasElement) {
-        var typeParameters = typeNameElement.typeParameters;
+      } else if (typeNameElement is TypeAliasElementImpl2) {
+        var typeParameters = typeNameElement.typeParameters2;
         if (typeParameters.isNotEmpty) {
           var typeArguments = _inferTypeArguments(
             typeParameters: typeParameters,
@@ -4049,7 +4049,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// Infers type arguments corresponding to [typeParameters] used it the
   /// [declaredType], so that thr resulting type is a subtype of [contextType].
   List<DartType> _inferTypeArguments({
-    required List<TypeParameterElement> typeParameters,
+    required List<TypeParameterElementImpl2> typeParameters,
     required AstNode errorNode,
     required DartType declaredType,
     required DartType contextType,
@@ -4510,15 +4510,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 // TODO(paulberry): migrate the responsibility for all scope resolution into
 // this visitor.
 class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
-  /// The element for the library containing the compilation unit being visited.
-  final LibraryElementImpl definingLibrary;
-
-  /// The source representing the compilation unit being visited.
-  final Source source;
-
-  /// The object used to access the types from the core library.
-  final TypeProviderImpl typeProvider;
-
   /// The error reporter that will be informed of any errors that are found
   /// during resolution.
   final ErrorReporter errorReporter;
@@ -4527,14 +4518,14 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   Scope nameScope;
 
   /// The scope of libraries imported by `@docImport`s.
-  final DocImportScope _docImportScope;
+  final DocumentationCommentScope _docImportScope;
 
   /// The scope used to resolve unlabeled `break` and `continue` statements.
   ImplicitLabelScope _implicitLabelScope = ImplicitLabelScope.ROOT;
 
   /// The scope used to resolve labels for `break` and `continue` statements, or
   /// `null` if no labels have been defined in the current context.
-  LabelScope? labelScope;
+  LabelScope? _labelScope;
 
   /// The container with information about local variables.
   final LocalVariableInfo _localVariableInfo = LocalVariableInfo();
@@ -4546,27 +4537,15 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
-  /// [definingLibrary] is the element for the library containing the node being
-  /// visited.
-  /// [source] is the source representing the compilation unit containing the
-  /// node being visited.
-  /// [typeProvider] is the object used to access the types from the core
-  /// library.
-  /// [errorListener] is the error listener that will be informed of any errors
+  /// [errorReporter] is the error reporter that will be informed of any errors
   /// that are found during resolution.
   /// [nameScope] is the scope used to resolve identifiers in the node that will
   /// first be visited.
-  /// [docImportLibraries] are the `@docImport` imported elements of this node's
-  /// library.
   ScopeResolverVisitor(
-    this.definingLibrary,
-    this.source,
-    this.typeProvider,
-    AnalysisErrorListener errorListener, {
+    this.errorReporter, {
     required this.nameScope,
-    List<LibraryElement> docImportLibraries = const [],
-  })  : errorReporter = ErrorReporter(errorListener, source),
-        _docImportScope = DocImportScope(nameScope, docImportLibraries);
+    required CompilationUnitElementImpl unitElement,
+  }) : _docImportScope = DocumentationCommentScope(nameScope, unitElement);
 
   /// Return the implicit label scope in which the current node is being
   /// resolved.
@@ -5090,7 +5069,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     try {
       super.visitLabeledStatement(node);
     } finally {
-      labelScope = outerScope;
+      _labelScope = outerScope;
     }
   }
 
@@ -5278,16 +5257,16 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitSwitchStatement(covariant SwitchStatementImpl node) {
-    var outerScope = labelScope;
-    ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
+    var outerScope = _labelScope;
+    var outerImplicitScope = _implicitLabelScope;
     try {
       _implicitLabelScope = _implicitLabelScope.nest(node);
-      for (SwitchMember member in node.members) {
-        for (Label label in member.labels) {
-          SimpleIdentifier labelName = label.label;
-          LabelElement labelElement = labelName.staticElement as LabelElement;
-          labelScope =
-              LabelScope(labelScope, labelName.name, member, labelElement);
+      for (var member in node.members) {
+        for (var label in member.labels) {
+          var labelName = label.label;
+          var labelElement = labelName.staticElement as LabelElement;
+          _labelScope =
+              LabelScope(_labelScope, labelName.name, member, labelElement);
         }
       }
       node.expression.accept(this);
@@ -5313,7 +5292,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         });
       }
     } finally {
-      labelScope = outerScope;
+      _labelScope = outerScope;
       _implicitLabelScope = outerImplicitScope;
     }
   }
@@ -5351,12 +5330,12 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   ///
   /// Returns the scope that was in effect before the new scopes were added.
   LabelScope? _addScopesFor(NodeList<Label> labels, AstNode node) {
-    var outerScope = labelScope;
-    for (Label label in labels) {
-      SimpleIdentifier labelNameNode = label.label;
-      String labelName = labelNameNode.name;
-      LabelElement labelElement = labelNameNode.staticElement as LabelElement;
-      labelScope = LabelScope(labelScope, labelName, node, labelElement);
+    var outerScope = _labelScope;
+    for (var label in labels) {
+      var labelNameNode = label.label;
+      var labelName = labelNameNode.name;
+      var labelElement = labelNameNode.staticElement as LabelElement;
+      _labelScope = LabelScope(_labelScope, labelName, node, labelElement);
     }
     return outerScope;
   }
@@ -5375,7 +5354,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     if (labelNode == null) {
       return implicitLabelScope.getTarget(isContinue);
     } else {
-      var labelScope = this.labelScope;
+      var labelScope = _labelScope;
       if (labelScope == null) {
         // There are no labels in scope, so by definition the label is
         // undefined.
@@ -5424,7 +5403,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     }
   }
 
-  /// Visits a documentation comment with a [DocImportScope] that encloses the
+  /// Visits a documentation comment with a [DocumentationCommentScope] that encloses the
   /// current [nameScope].
   void _visitDocumentationComment(CommentImpl? node) {
     if (node == null) return;

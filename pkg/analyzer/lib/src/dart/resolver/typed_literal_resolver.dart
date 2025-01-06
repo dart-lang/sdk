@@ -427,9 +427,13 @@ class TypedLiteralResolver {
 
   GenericInferrer _inferListTypeDownwards(ListLiteral node,
       {required DartType contextType}) {
-    var element = _typeProvider.listElement;
-    var typeParameters = element.typeParameters;
-    inferenceLogWriter?.enterGenericInference(typeParameters, element.thisType);
+    var element = _typeProvider.listElement2;
+    var typeParameters = element.typeParameters2;
+    inferenceLogWriter?.enterGenericInference(
+        // TODO(paulberry): make this cast unnecessary by changing
+        // `TypeProviderImpl.listElement2` to `ClassElementImpl2`.
+        typeParameters.cast(),
+        element.thisType);
 
     return _typeSystem.setupGenericTypeInference(
       typeParameters: typeParameters,
@@ -490,11 +494,14 @@ class TypedLiteralResolver {
 
   GenericInferrer _inferMapTypeDownwards(
       SetOrMapLiteral node, DartType contextType) {
-    var element = _typeProvider.mapElement;
+    var element = _typeProvider.mapElement2;
     inferenceLogWriter?.enterGenericInference(
-        element.typeParameters, element.thisType);
+        // TODO(paulberry): make this cast unnecessary by changing
+        // `TypeProviderImpl.mapElement2` to `ClassElementImpl2`.
+        element.typeParameters2.cast(),
+        element.thisType);
     return _typeSystem.setupGenericTypeInference(
-      typeParameters: element.typeParameters,
+      typeParameters: element.typeParameters2,
       declaredReturnType: element.thisType,
       contextReturnType: contextType,
       isConst: node.isConst,
@@ -595,11 +602,14 @@ class TypedLiteralResolver {
 
   GenericInferrer _inferSetTypeDownwards(
       SetOrMapLiteral node, DartType contextType) {
-    var element = _typeProvider.setElement;
+    var element = _typeProvider.setElement2;
     inferenceLogWriter?.enterGenericInference(
-        element.typeParameters, element.thisType);
+        // TODO(paulberry): make this cast unnecessary by changing
+        // `TypeProviderImpl.setElement2` to `ClassElementImpl2`.
+        element.typeParameters2.cast(),
+        element.thisType);
     return _typeSystem.setupGenericTypeInference(
-      typeParameters: element.typeParameters,
+      typeParameters: element.typeParameters2,
       declaredReturnType: element.thisType,
       contextReturnType: contextType,
       isConst: node.isConst,

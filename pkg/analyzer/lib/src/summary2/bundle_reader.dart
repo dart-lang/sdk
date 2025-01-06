@@ -198,6 +198,13 @@ class CompilationUnitElementLinkedData
       );
     }
 
+    for (var import in element.docLibraryImports) {
+      var uri = import.uri;
+      if (uri is DirectiveUriWithLibraryImpl) {
+        uri.library = reader.libraryOfUri(uri.source.uri);
+      }
+    }
+
     applyConstantOffsets?.perform();
   }
 }
@@ -1219,19 +1226,20 @@ class LibraryReader {
 
   LibraryImportElementImpl _readImportElement({
     required CompilationUnitElementImpl containerUnit,
+    required bool isDocLibraryImport,
   }) {
     var element = LibraryImportElementImpl(
       combinators: _reader.readTypedList(_readNamespaceCombinator),
       importKeywordOffset: -1,
       prefix: _readImportElementPrefix(
         containerUnit: containerUnit,
+        isDocLibraryImport: isDocLibraryImport,
       ),
       prefix2: _readLibraryImportPrefixFragment(
         libraryFragment: containerUnit,
+        isDocLibraryImport: isDocLibraryImport,
       ),
-      uri: _readDirectiveUri(
-        containerUnit: containerUnit,
-      ),
+      uri: _readDirectiveUri(containerUnit: containerUnit),
     );
     LibraryImportElementFlags.read(_reader, element);
     return element;
@@ -1239,6 +1247,7 @@ class LibraryReader {
 
   ImportElementPrefixImpl? _readImportElementPrefix({
     required CompilationUnitElementImpl containerUnit,
+    required bool isDocLibraryImport,
   }) {
     PrefixElementImpl buildElement(String name, Reference reference) {
       // TODO(scheglov): Make reference required.
@@ -1246,7 +1255,12 @@ class LibraryReader {
       if (existing is PrefixElementImpl) {
         return existing;
       } else {
-        var result = PrefixElementImpl(name, -1, reference: reference);
+        var result = PrefixElementImpl(
+          name,
+          -1,
+          reference: reference,
+          isDocLibraryImport: isDocLibraryImport,
+        );
         result.enclosingElement3 = containerUnit;
         return result;
       }
@@ -1289,6 +1303,7 @@ class LibraryReader {
 
   PrefixFragmentImpl? _readLibraryImportPrefixFragment({
     required CompilationUnitElementImpl libraryFragment,
+    required bool isDocLibraryImport,
   }) {
     return _reader.readOptionalObject((reader) {
       var fragmentName = _readFragmentName();
@@ -1306,6 +1321,7 @@ class LibraryReader {
         element = PrefixElementImpl2(
           reference: reference,
           firstFragment: fragment,
+          isDocLibraryImport: isDocLibraryImport,
         );
       } else {
         element.addFragment(fragment);
@@ -1823,12 +1839,20 @@ class LibraryReader {
     unitElement.libraryImports = _reader.readTypedList(() {
       return _readImportElement(
         containerUnit: unitElement,
+        isDocLibraryImport: false,
       );
     });
 
     unitElement.libraryExports = _reader.readTypedList(() {
       return _readExportElement(
         containerUnit: unitElement,
+      );
+    });
+
+    unitElement.docLibraryImports = _reader.readTypedList(() {
+      return _readImportElement(
+        containerUnit: unitElement,
+        isDocLibraryImport: true,
       );
     });
 

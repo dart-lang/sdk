@@ -195,6 +195,9 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
             ...fileKind.libraryExports
                 .whereType<LibraryExportWithFile>()
                 .map((export) => export.exportedLibrary),
+            ...fileKind.docLibraryImports
+                .whereType<LibraryImportWithFile>()
+                .map((import) => import.importedLibrary),
           ];
         })
         .flattenedToList

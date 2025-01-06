@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:test/test.dart';
@@ -1267,7 +1268,9 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     List<String> expected,
   ) {
     var gatherer = TypeConstraintGatherer(
-      typeParameters: typeParameters,
+      typeParameters: typeParameters
+          .map((e) => (e as TypeParameterElementImpl).element)
+          .toList(),
       typeSystemOperations:
           TypeSystemOperations(typeSystem, strictCasts: false),
       inferenceUsingBoundsIsEnabled: false,
@@ -1282,7 +1285,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     var constraintsStr = constraints.entries.map((e) {
       var lowerStr = e.value.lower.getDisplayString();
       var upperStr = e.value.upper.getDisplayString();
-      return '$lowerStr <: ${e.key.name} <: $upperStr';
+      return '$lowerStr <: ${e.key.name3} <: $upperStr';
     }).toList();
 
     expect(constraintsStr, unorderedEquals(expected));
@@ -1295,7 +1298,9 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     bool leftSchema,
   ) {
     var gatherer = TypeConstraintGatherer(
-      typeParameters: typeParameters,
+      typeParameters: typeParameters
+          .map((e) => (e as TypeParameterElementImpl).element)
+          .toList(),
       typeSystemOperations:
           TypeSystemOperations(typeSystem, strictCasts: false),
       inferenceUsingBoundsIsEnabled: false,

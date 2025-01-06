@@ -424,10 +424,10 @@ class FlowAnalysisHelper {
 class TypeSystemOperations
     with
         TypeAnalyzerOperationsMixin<DartType, PromotableElementImpl2,
-            TypeParameterElement, InterfaceType, InterfaceElement>
+            TypeParameterElementImpl2, InterfaceType, InterfaceElementImpl2>
     implements
         TypeAnalyzerOperations<DartType, PromotableElementImpl2,
-            TypeParameterElement, InterfaceType, InterfaceElement> {
+            TypeParameterElementImpl2, InterfaceType, InterfaceElementImpl2> {
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
 
@@ -529,10 +529,8 @@ class TypeSystemOperations
 
   @override
   Variance getTypeParameterVariance(
-      InterfaceElement typeDeclaration, int parameterIndex) {
-    return (typeDeclaration.typeParameters[parameterIndex]
-            as TypeParameterElementImpl)
-        .variance;
+      InterfaceElementImpl2 typeDeclaration, int parameterIndex) {
+    return typeDeclaration.typeParameters2[parameterIndex].variance;
   }
 
   @override
@@ -551,7 +549,7 @@ class TypeSystemOperations
   DartType greatestClosureOfTypeInternal(DartType type,
       List<SharedTypeParameterStructure<DartType>> typeParametersToEliminate) {
     return typeSystem.greatestClosure(
-        type, typeParametersToEliminate.cast<TypeParameterElement>());
+        type, typeParametersToEliminate.cast<TypeParameterElementImpl2>());
   }
 
   @override
@@ -660,7 +658,7 @@ class TypeSystemOperations
   DartType leastClosureOfTypeInternal(DartType type,
       List<SharedTypeParameterStructure<DartType>> typeParametersToEliminate) {
     return typeSystem.leastClosure(
-        type, typeParametersToEliminate.cast<TypeParameterElement>());
+        type, typeParametersToEliminate.cast<TypeParameterElementImpl2>());
   }
 
   @override
@@ -696,9 +694,9 @@ class TypeSystemOperations
   }
 
   @override
-  TypeParameterElement? matchInferableParameterInternal(DartType type) {
-    if (type is TypeParameterType) {
-      return type.element;
+  TypeParameterElementImpl2? matchInferableParameterInternal(DartType type) {
+    if (type is TypeParameterTypeImpl) {
+      return type.element3;
     } else {
       return null;
     }
@@ -740,21 +738,21 @@ class TypeSystemOperations
   }
 
   @override
-  TypeDeclarationMatchResult<InterfaceType, InterfaceElement, DartType>?
+  TypeDeclarationMatchResult<InterfaceType, InterfaceElementImpl2, DartType>?
       matchTypeDeclarationTypeInternal(DartType type) {
     if (isInterfaceTypeInternal(type)) {
-      InterfaceType interfaceType = type as InterfaceType;
+      InterfaceTypeImpl interfaceType = type as InterfaceTypeImpl;
       return TypeDeclarationMatchResult(
           typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
           typeDeclarationType: interfaceType,
-          typeDeclaration: interfaceType.element,
+          typeDeclaration: interfaceType.element3,
           typeArguments: interfaceType.typeArguments);
     } else if (isExtensionTypeInternal(type)) {
-      InterfaceType interfaceType = type as InterfaceType;
+      InterfaceTypeImpl interfaceType = type as InterfaceTypeImpl;
       return TypeDeclarationMatchResult(
           typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
           typeDeclarationType: interfaceType,
-          typeDeclaration: interfaceType.element,
+          typeDeclaration: interfaceType.element3,
           typeArguments: interfaceType.typeArguments);
     } else {
       return null;

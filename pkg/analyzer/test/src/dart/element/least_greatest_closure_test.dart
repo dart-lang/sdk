@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,7 +18,7 @@ main() {
 
 @reflectiveTest
 class GreatestClosureTest extends AbstractTypeSystemTest {
-  late final TypeParameterElement T;
+  late final TypeParameterElementImpl2 T;
   late final TypeParameterType T_none;
   late final TypeParameterType T_question;
 
@@ -25,9 +26,9 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
   void setUp() {
     super.setUp();
 
-    T = typeParameter('T');
-    T_none = typeParameterTypeNone(T);
-    T_question = typeParameterTypeQuestion(T);
+    T = typeParameter('T').asElement2 as TypeParameterElementImpl2;
+    T_none = typeParameterTypeNone(T.asElement);
+    T_question = typeParameterTypeQuestion(T.asElement);
   }
 
   test_contravariant() {

@@ -38,11 +38,9 @@ class AstResolver {
     dataForTesting: null,
   );
   late final _scopeResolverVisitor = ScopeResolverVisitor(
-    _unitElement.library,
-    _unitElement.source,
-    _unitElement.library.typeProvider,
-    _errorListener,
+    ErrorReporter(_errorListener, _unitElement.source),
     nameScope: _nameScope,
+    unitElement: _unitElement,
   );
   late final _flowAnalysis = FlowAnalysisHelper(false, _featureSet,
       typeSystemOperations: TypeSystemOperations(

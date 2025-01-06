@@ -25,16 +25,16 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 /// mapping to be used for replacing other types to use the new type parameters.
 FreshTypeParameters getFreshTypeParameters(
     List<TypeParameterElement> typeParameters) {
-  var freshParameters = List<TypeParameterElementImpl>.generate(
+  var freshParameters = List<TypeParameterElementImpl2>.generate(
     typeParameters.length,
-    (i) => TypeParameterElementImpl(typeParameters[i].name, -1),
+    (i) => TypeParameterElementImpl(typeParameters[i].name, -1).element,
     growable: false,
   );
 
   var map = <TypeParameterElement, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
     map[typeParameters[i]] = TypeParameterTypeImpl(
-      element: freshParameters[i],
+      element: freshParameters[i].firstFragment,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
@@ -46,13 +46,13 @@ FreshTypeParameters getFreshTypeParameters(
     // variance is added to the interface.
     var typeParameter = typeParameters[i] as TypeParameterElementImpl;
     if (!typeParameter.isLegacyCovariant) {
-      freshParameters[i].variance = typeParameter.variance;
+      freshParameters[i].firstFragment.variance = typeParameter.variance;
     }
 
     var bound = typeParameter.bound;
     if (bound != null) {
       var newBound = substitution.substituteType(bound);
-      freshParameters[i].bound = newBound;
+      freshParameters[i].firstFragment.bound = newBound;
     }
   }
 
@@ -120,14 +120,14 @@ NullabilitySuffix uniteNullabilities(NullabilitySuffix a, NullabilitySuffix b) {
 }
 
 class FreshTypeParameters {
-  final List<TypeParameterElement> freshTypeParameters;
+  final List<TypeParameterElementImpl2> freshTypeParameters;
   final Substitution substitution;
 
   FreshTypeParameters(this.freshTypeParameters, this.substitution);
 
   FunctionType applyToFunctionType(FunctionType type) {
     return FunctionTypeImpl(
-      typeFormals: freshTypeParameters,
+      typeFormals: freshTypeParameters.map((e) => e.firstFragment).toList(),
       parameters: type.parameters.map((parameter) {
         var type = substitute(parameter.type);
         return parameter.copyWith(type: type);

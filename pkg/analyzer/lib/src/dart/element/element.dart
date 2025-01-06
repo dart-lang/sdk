@@ -781,11 +781,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<LibraryImportElementImpl> _libraryImports =
       _Sentinel.libraryImportElement;
 
+  /// The libraries imported by this unit with a `@docImport`.
+  List<LibraryImportElementImpl> _docLibraryImports =
+      _Sentinel.libraryImportElement;
+
   /// The cached list of prefixes from [libraryImports].
   List<PrefixElementImpl>? _libraryImportPrefixes;
 
   /// The cached list of prefixes from [prefixes].
   List<PrefixElementImpl2>? _libraryImportPrefixes2;
+
+  /// The cached list of prefixes from [docLibraryImports].
+  List<PrefixElementImpl2>? _docLibraryImportPrefixes;
 
   /// The parts included by this unit.
   List<PartElementImpl> _parts = const <PartElementImpl>[];
@@ -898,6 +905,23 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ClassFragment> get classes2 => classes.cast<ClassFragment>();
+
+  List<PrefixElementImpl2> get docLibraryImportPrefixes {
+    return _docLibraryImportPrefixes ??= _buildDocLibraryImportPrefixes();
+  }
+
+  List<LibraryImportElementImpl> get docLibraryImports {
+    linkedData?.read(this);
+    return _docLibraryImports;
+  }
+
+  set docLibraryImports(List<LibraryImportElementImpl> imports) {
+    _docLibraryImports = imports;
+  }
+
+  List<LibraryImportElementImpl> get docLibraryImports_unresolved {
+    return _docLibraryImports;
+  }
 
   @override
   LibraryElementImpl get element => library;
@@ -1297,6 +1321,17 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       prefix: node.importPrefix?.name.lexeme,
       name: node.name2.lexeme,
     );
+  }
+
+  List<PrefixElementImpl2> _buildDocLibraryImportPrefixes() {
+    var prefixes = <PrefixElementImpl2>{};
+    for (var import in docLibraryImports) {
+      var prefix = import.prefix2?.element;
+      if (prefix is PrefixElementImpl2) {
+        prefixes.add(prefix);
+      }
+    }
+    return prefixes.toFixedList();
   }
 
   List<PrefixElementImpl> _buildLibraryImportPrefixes() {
@@ -5609,9 +5644,9 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       .toList();
 
   @override
-  List<TypeParameterElement2> get typeParameters2 =>
+  List<TypeParameterElementImpl2> get typeParameters2 =>
       firstFragment.typeParameters
-          .map((fragment) => (fragment as TypeParameterFragment).element)
+          .map((fragment) => (fragment as TypeParameterElementImpl).element)
           .toList();
 
   @override
@@ -9377,9 +9412,13 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   /// The scope of this prefix, `null` if not set yet.
   PrefixScope? _scope;
 
+  final bool _isDocLibraryImport;
+
   /// Initialize a newly created method element to have the given [name] and
   /// [nameOffset].
-  PrefixElementImpl(String super.name, super.nameOffset, {super.reference});
+  PrefixElementImpl(String super.name, super.nameOffset,
+      {super.reference, required bool isDocLibraryImport})
+      : _isDocLibraryImport = isDocLibraryImport;
 
   @override
   List<Element2> get children2 => const [];
@@ -9388,9 +9427,15 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   String get displayName => name;
 
   PrefixElementImpl2 get element2 {
-    return enclosingElement3.prefixes.firstWhere((element) {
-      return (element.name3 ?? '') == name;
-    });
+    if (_isDocLibraryImport) {
+      return enclosingElement3.docLibraryImportPrefixes.firstWhere((element) {
+        return (element.name3 ?? '') == name;
+      });
+    } else {
+      return enclosingElement3.prefixes.firstWhere((element) {
+        return (element.name3 ?? '') == name;
+      });
+    }
   }
 
   @override
@@ -9448,10 +9493,14 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
 
   PrefixFragmentImpl lastFragment;
 
+  final bool _isDocLibraryImport;
+
   PrefixElementImpl2({
     required this.reference,
     required this.firstFragment,
-  }) : lastFragment = firstFragment {
+    required bool isDocLibraryImport,
+  })  : lastFragment = firstFragment,
+        _isDocLibraryImport = isDocLibraryImport {
     reference.element2 = this;
   }
 
@@ -9473,9 +9522,15 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
 
   @override
   List<LibraryImportElementImpl> get imports {
-    return firstFragment.enclosingFragment.libraryImports
-        .where((import) => import.prefix2?.element == this)
-        .toList();
+    if (_isDocLibraryImport) {
+      return firstFragment.enclosingFragment.docLibraryImports
+          .where((import) => import.prefix2?.element == this)
+          .toList();
+    } else {
+      return firstFragment.enclosingFragment.libraryImports
+          .where((import) => import.prefix2?.element == this)
+          .toList();
+    }
   }
 
   @override
@@ -10771,7 +10826,7 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
   String? get name3 => firstFragment.name2;
 
   @override
-  List<TypeParameterElement2> get typeParameters2 =>
+  List<TypeParameterElementImpl2> get typeParameters2 =>
       firstFragment.typeParameters2
           .map((fragment) => fragment.element)
           .toList();
@@ -10985,7 +11040,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
         FragmentedAnnotatableElementMixin<TypeParameterFragment>,
         FragmentedElementMixin<TypeParameterFragment>,
         _NonTopLevelVariableOrParameter
-    implements TypeParameterElement2 {
+    implements TypeParameterElement2, SharedTypeParameterStructure<DartType> {
   @override
   final TypeParameterElementImpl firstFragment;
 
@@ -11010,11 +11065,15 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   @override
   TypeParameterElement2 get baseElement => this;
 
+  bool get isLegacyCovariant => firstFragment.isLegacyCovariant;
+
   @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
 
   @override
   LibraryElement2? get library2 => firstFragment.library2;
+
+  shared.Variance get variance => firstFragment.variance;
 
   @override
   Element? get _enclosingFunction => firstFragment._enclosingElement3;
@@ -11077,8 +11136,8 @@ mixin TypeParameterizedElementMixin on ElementImpl
   }
 
   @override
-  List<TypeParameterFragment> get typeParameters2 =>
-      typeParameters.cast<TypeParameterFragment>();
+  List<TypeParameterElementImpl> get typeParameters2 =>
+      typeParameters.cast<TypeParameterElementImpl>();
 
   List<TypeParameterElement> get typeParameters_unresolved {
     return _typeParameters;

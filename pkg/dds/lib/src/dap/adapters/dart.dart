@@ -2260,8 +2260,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
     // Extract all the URIs so we can send a batch request for resolving them.
     final lines = message.split('\n');
-    final frames = lines.map(parseDartStackFrame).toList();
-    final uris = frames.nonNulls.map((f) => f.uri).toList();
+    final frameLocations = lines.map(parseDartStackFrame).toList();
+    final uris = frameLocations.nonNulls.map((f) => f.uri).toList();
 
     // We need an Isolate to resolve package URIs. Since we don't know what
     // isolate printed an error to stderr, we just have to use the first one and
@@ -2294,7 +2294,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     // Convert any URIs to paths and if we successfully get a path, check
     // whether it's inside the users workspace so we can fade out unrelated
     // frames.
-    final paths = await Future.wait(frames.map((frame) async {
+    final framePaths = await Future.wait(frameLocations.map((frame) async {
       final uri = frame?.uri;
       if (uri == null) return null;
       if (isSupportedFileScheme(uri)) {
@@ -2316,16 +2316,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     final supportsAnsiColors = args.allowAnsiColorOutput ?? false;
     for (var i = 0; i < lines.length; i++) {
       final line = lines[i];
-      final frame = frames[i];
-      final uri = frame?.uri;
-      final pathInfo = paths[i];
+      final frameLocation = frameLocations[i];
+      final uri = frameLocation?.uri;
+      final framePathInfo = framePaths[i];
 
       // A file-like URI ('file://' or 'dart-macro+file://').
-      final fileLikeUri = pathInfo?.uri;
+      final fileLikeUri = framePathInfo?.uri;
 
       // Default to true so that if we don't know whether this is user-project
       // then we leave the formatting as-is and don't fade anything out.
-      final isUserProject = pathInfo?.isUserCode ?? true;
+      final isUserProject = framePathInfo?.isUserCode ?? true;
 
       // For the name, we usually use the package URI, but if we only had a file
       // URI to begin with, try to make it relative to cwd so it's not so long.
@@ -2362,8 +2362,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           output: output,
           source:
               clientPath != null ? Source(name: name, path: clientPath) : null,
-          line: frame?.line,
-          column: frame?.column,
+          line: frameLocation?.line,
+          column: frameLocation?.column,
         ),
       );
     }

@@ -175,7 +175,7 @@ class NamedTypeResolver with ScopeHelpers {
     if (element == enclosingClass) {
       return element.thisType;
     } else {
-      var typeParameters = element.typeParameters;
+      var typeParameters = element.asElement2.typeParameters2;
       if (typeParameters.isEmpty) {
         return element.thisType;
       } else {
