@@ -128,7 +128,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             PromotableElementImpl2,
             DartPattern,
             void,
-            TypeParameterElement,
+            TypeParameterElementImpl2,
             InterfaceType,
             InterfaceElement>,
         // TODO(paulberry): not yet used.
@@ -455,7 +455,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   shared.TypeAnalyzerOperations<
       DartType,
       PromotableElementImpl2,
-      TypeParameterElement,
+      TypeParameterElementImpl2,
       InterfaceType,
       InterfaceElement> get operations => flowAnalysis.typeOperations;
 
@@ -847,9 +847,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     var typeNode = pattern.type;
     if (typeNode.typeArguments == null) {
-      var typeNameElement = typeNode.element;
-      if (typeNameElement is InterfaceElement) {
-        var typeParameters = typeNameElement.typeParameters;
+      var typeNameElement = typeNode.element2;
+      if (typeNameElement is InterfaceElementImpl2) {
+        var typeParameters = typeNameElement.typeParameters2;
         if (typeParameters.isNotEmpty) {
           var typeArguments = _inferTypeArguments(
             typeParameters: typeParameters,
@@ -863,8 +863,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             nullabilitySuffix: NullabilitySuffix.none,
           ));
         }
-      } else if (typeNameElement is TypeAliasElement) {
-        var typeParameters = typeNameElement.typeParameters;
+      } else if (typeNameElement is TypeAliasElementImpl2) {
+        var typeParameters = typeNameElement.typeParameters2;
         if (typeParameters.isNotEmpty) {
           var typeArguments = _inferTypeArguments(
             typeParameters: typeParameters,
@@ -4049,7 +4049,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// Infers type arguments corresponding to [typeParameters] used it the
   /// [declaredType], so that thr resulting type is a subtype of [contextType].
   List<DartType> _inferTypeArguments({
-    required List<TypeParameterElement> typeParameters,
+    required List<TypeParameterElementImpl2> typeParameters,
     required AstNode errorNode,
     required DartType declaredType,
     required DartType contextType,

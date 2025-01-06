@@ -219,10 +219,14 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     } else {
       rawType = getFreshTypeParameters(rawType.typeFormals)
           .applyToFunctionType(rawType);
-      inferenceLogWriter?.enterGenericInference(rawType.typeFormals, rawType);
+      inferenceLogWriter?.enterGenericInference(
+          // TODO(paulberry): make this cast unnecessary by changing `rawType`
+          // to `FunctionTypeImpl?`.
+          rawType.typeParameters.cast(),
+          rawType);
 
       inferrer = resolver.typeSystem.setupGenericTypeInference(
-        typeParameters: rawType.typeFormals,
+        typeParameters: rawType.typeParameters,
         declaredReturnType: rawType.returnType,
         contextReturnType: contextType,
         isConst: _isConst,

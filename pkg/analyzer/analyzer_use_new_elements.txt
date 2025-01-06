@@ -98,7 +98,6 @@ lib/src/generated/element_resolver.dart
 lib/src/generated/element_walker.dart
 lib/src/generated/error_verifier.dart
 lib/src/generated/exhaustiveness.dart
-lib/src/generated/inference_log.dart
 lib/src/generated/resolver.dart
 lib/src/generated/testing/element_factory.dart
 lib/src/generated/testing/test_type_provider.dart

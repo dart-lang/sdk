@@ -424,10 +424,10 @@ class FlowAnalysisHelper {
 class TypeSystemOperations
     with
         TypeAnalyzerOperationsMixin<DartType, PromotableElementImpl2,
-            TypeParameterElement, InterfaceType, InterfaceElement>
+            TypeParameterElementImpl2, InterfaceType, InterfaceElement>
     implements
         TypeAnalyzerOperations<DartType, PromotableElementImpl2,
-            TypeParameterElement, InterfaceType, InterfaceElement> {
+            TypeParameterElementImpl2, InterfaceType, InterfaceElement> {
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
 
@@ -551,7 +551,7 @@ class TypeSystemOperations
   DartType greatestClosureOfTypeInternal(DartType type,
       List<SharedTypeParameterStructure<DartType>> typeParametersToEliminate) {
     return typeSystem.greatestClosure(
-        type, typeParametersToEliminate.cast<TypeParameterElement>());
+        type, typeParametersToEliminate.cast<TypeParameterElementImpl2>());
   }
 
   @override
@@ -660,7 +660,7 @@ class TypeSystemOperations
   DartType leastClosureOfTypeInternal(DartType type,
       List<SharedTypeParameterStructure<DartType>> typeParametersToEliminate) {
     return typeSystem.leastClosure(
-        type, typeParametersToEliminate.cast<TypeParameterElement>());
+        type, typeParametersToEliminate.cast<TypeParameterElementImpl2>());
   }
 
   @override
@@ -696,9 +696,9 @@ class TypeSystemOperations
   }
 
   @override
-  TypeParameterElement? matchInferableParameterInternal(DartType type) {
-    if (type is TypeParameterType) {
-      return type.element;
+  TypeParameterElementImpl2? matchInferableParameterInternal(DartType type) {
+    if (type is TypeParameterTypeImpl) {
+      return type.element3;
     } else {
       return null;
     }

@@ -5644,9 +5644,9 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       .toList();
 
   @override
-  List<TypeParameterElement2> get typeParameters2 =>
+  List<TypeParameterElementImpl2> get typeParameters2 =>
       firstFragment.typeParameters
-          .map((fragment) => (fragment as TypeParameterFragment).element)
+          .map((fragment) => (fragment as TypeParameterElementImpl).element)
           .toList();
 
   @override
@@ -10826,7 +10826,7 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
   String? get name3 => firstFragment.name2;
 
   @override
-  List<TypeParameterElement2> get typeParameters2 =>
+  List<TypeParameterElementImpl2> get typeParameters2 =>
       firstFragment.typeParameters2
           .map((fragment) => fragment.element)
           .toList();
@@ -11040,7 +11040,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
         FragmentedAnnotatableElementMixin<TypeParameterFragment>,
         FragmentedElementMixin<TypeParameterFragment>,
         _NonTopLevelVariableOrParameter
-    implements TypeParameterElement2 {
+    implements TypeParameterElement2, SharedTypeParameterStructure<DartType> {
   @override
   final TypeParameterElementImpl firstFragment;
 
@@ -11065,11 +11065,15 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   @override
   TypeParameterElement2 get baseElement => this;
 
+  bool get isLegacyCovariant => firstFragment.isLegacyCovariant;
+
   @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
 
   @override
   LibraryElement2? get library2 => firstFragment.library2;
+
+  shared.Variance get variance => firstFragment.variance;
 
   @override
   Element? get _enclosingFunction => firstFragment._enclosingElement3;
@@ -11132,8 +11136,8 @@ mixin TypeParameterizedElementMixin on ElementImpl
   }
 
   @override
-  List<TypeParameterFragment> get typeParameters2 =>
-      typeParameters.cast<TypeParameterFragment>();
+  List<TypeParameterElementImpl> get typeParameters2 =>
+      typeParameters.cast<TypeParameterElementImpl>();
 
   List<TypeParameterElement> get typeParameters_unresolved {
     return _typeParameters;

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -536,12 +537,12 @@ class _MixinInference {
       return mixinType;
     }
 
-    List<TypeParameterElement>? typeParameters;
+    List<TypeParameterElement2>? typeParameters;
     List<InterfaceType>? supertypeConstraints;
     InterfaceType Function(List<DartType> typeArguments)? instantiate;
-    var mixinElement = mixinNode.element;
-    if (mixinElement is InterfaceElement) {
-      typeParameters = mixinElement.typeParameters;
+    var mixinElement = mixinNode.element2;
+    if (mixinElement is InterfaceElement2) {
+      typeParameters = mixinElement.typeParameters2;
       if (typeParameters.isNotEmpty) {
         supertypeConstraints = typeSystem
             .gatherMixinSupertypeConstraintsForInference(mixinElement);
@@ -552,10 +553,10 @@ class _MixinInference {
           );
         };
       }
-    } else if (mixinElement is TypeAliasElementImpl) {
-      typeParameters = mixinElement.typeParameters;
+    } else if (mixinElement is TypeAliasElementImpl2) {
+      typeParameters = mixinElement.typeParameters2;
       if (typeParameters.isNotEmpty) {
-        var rawType = mixinElement.rawType;
+        var rawType = mixinElement.aliasedType;
         if (rawType is InterfaceType) {
           supertypeConstraints = rawType.superclassConstraints;
           instantiate = (typeArguments) {
@@ -593,7 +594,9 @@ class _MixinInference {
     // mixinSupertypeConstraints to find the correct set of type
     // parameters to apply to the mixin.
     var inferredTypeArguments = typeSystem.matchSupertypeConstraints(
-      typeParameters,
+      // TODO(paulberry): make this cast unnecessary by changing the type of
+      // `typeParameters`.
+      typeParameters.cast(),
       supertypeConstraints,
       matchingInterfaceTypes,
       genericMetadataIsEnabled: featureSet.isEnabled(Feature.generic_metadata),

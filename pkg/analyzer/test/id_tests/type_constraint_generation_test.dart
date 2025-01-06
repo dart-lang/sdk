@@ -74,11 +74,12 @@ class _TypeConstraintGenerationDataInterpreter
         if (i > 0) {
           sb.write(',');
         }
+        var name = actualData[i].typeParameter.name3;
         if (actualData[i].isUpper) {
-          sb.write("${actualData[i].typeParameter.name} <: ");
+          sb.write("$name <: ");
           sb.write(actualData[i].constraint.getDisplayString());
         } else {
-          sb.write("${actualData[i].typeParameter.name} :> ");
+          sb.write("$name :> ");
           sb.write(actualData[i].constraint.getDisplayString());
         }
       }
