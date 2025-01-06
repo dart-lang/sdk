@@ -262,8 +262,8 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
 base class _CustomHashMap<K, V> extends _HashMap<K, V> {
   final _Equality<K> _equals;
   final _Hasher<K> _hashCode;
-  final _Predicate _validKey;
-  _CustomHashMap(this._equals, this._hashCode, _Predicate? validKey)
+  final bool Function(Object?) _validKey;
+  _CustomHashMap(this._equals, this._hashCode, bool Function(Object?)? validKey)
     : _validKey = (validKey != null) ? validKey : TypeTest<K>().test;
 
   bool containsKey(Object? key) {
@@ -807,8 +807,8 @@ base class _IdentityHashSet<E> extends _HashSet<E> {
 base class _CustomHashSet<E> extends _HashSet<E> {
   final _Equality<E> _equality;
   final _Hasher<E> _hasher;
-  final _Predicate _validKey;
-  _CustomHashSet(this._equality, this._hasher, _Predicate? validKey)
+  final bool Function(Object?) _validKey;
+  _CustomHashSet(this._equality, this._hasher, bool Function(Object?)? validKey)
     : _validKey = (validKey != null) ? validKey : TypeTest<E>().test;
 
   bool remove(Object? element) {

@@ -29,10 +29,10 @@ abstract interface class SharedFunctionTypeStructure<
   TypeStructure get returnType;
 
   /// All the named parameters, sorted by name.
-  List<FunctionParameterStructure> get sortedNamedParameters;
+  List<FunctionParameterStructure> get sortedNamedParametersShared;
 
   /// The type parameters of the function type.
-  List<TypeParameterStructure> get typeFormals;
+  List<TypeParameterStructure> get typeParametersShared;
 }
 
 /// Common interface for data structures used by the implementations to
@@ -52,7 +52,7 @@ abstract interface class SharedNamedFunctionParameterStructure<
   bool get isRequired;
 
   /// The name of the parameter.
-  String get name;
+  String get nameShared;
 
   /// The type of the parameter.
   TypeStructure get type;
@@ -62,7 +62,7 @@ abstract interface class SharedNamedFunctionParameterStructure<
 /// represent a name/type pair.
 abstract interface class SharedNamedTypeStructure<
     TypeStructure extends SharedTypeStructure<TypeStructure>> {
-  String get name;
+  String get nameShared;
   TypeStructure get type;
 }
 
@@ -156,7 +156,7 @@ extension type SharedNamedTypeView<
             TypeStructure extends SharedTypeStructure<TypeStructure>>(
         SharedNamedTypeStructure<TypeStructure> _namedTypeStructure)
     implements Object {
-  String get name => _namedTypeStructure.name;
+  String get name => _namedTypeStructure.nameShared;
 
   SharedTypeView<TypeStructure> get type =>
       new SharedTypeView(_namedTypeStructure.type);

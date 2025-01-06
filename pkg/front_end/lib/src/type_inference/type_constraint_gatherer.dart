@@ -82,7 +82,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     if (leftSchema) {
       List<DartType> typeParametersForAlphaRenaming =
           new List<DartType>.generate(
-              p.typeFormals.length,
+              p.typeParametersShared.length,
               (int i) => new StructuralParameterType.forAlphaRenaming(
                   q.typeParameters[i], p.typeParameters[i]));
       instantiatedP = p.withoutTypeParameters;
@@ -92,7 +92,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       // Coverage-ignore-block(suite): Not run.
       List<DartType> typeParametersForAlphaRenaming =
           new List<DartType>.generate(
-              p.typeFormals.length,
+              p.typeParametersShared.length,
               (int i) => new StructuralParameterType.forAlphaRenaming(
                   p.typeParameters[i], q.typeParameters[i]));
       instantiatedP = FunctionTypeInstantiator.instantiate(

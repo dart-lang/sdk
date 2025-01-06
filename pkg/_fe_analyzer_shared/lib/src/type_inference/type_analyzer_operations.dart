@@ -1000,7 +1000,7 @@ abstract class TypeConstraintGenerator<
             FunctionParameterStructure> &&
         q is SharedFunctionTypeStructure<TypeStructure, TypeParameterStructure,
             FunctionParameterStructure>) {
-      if (p.typeFormals.isEmpty && q.typeFormals.isEmpty) {
+      if (p.typeParametersShared.isEmpty && q.typeParametersShared.isEmpty) {
         return _handleNonGenericFunctionTypes(p, q,
             leftSchema: leftSchema, astNodeForTesting: astNodeForTesting);
       } else {
@@ -1127,7 +1127,8 @@ abstract class TypeConstraintGenerator<
     // check that the named parameters at the same index have the same name
     // and matching types.
     for (int i = 0; i < p.sortedNamedTypes.length; ++i) {
-      if (p.sortedNamedTypes[i].name != q.sortedNamedTypes[i].name ||
+      if (p.sortedNamedTypes[i].nameShared !=
+              q.sortedNamedTypes[i].nameShared ||
           !performSubtypeConstraintGenerationInternal(
               p.sortedNamedTypes[i].type, q.sortedNamedTypes[i].type,
               leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
@@ -1550,7 +1551,8 @@ abstract class TypeConstraintGenerator<
           q,
       {required bool leftSchema,
       required AstNode? astNodeForTesting}) {
-    assert(p.typeFormals.isNotEmpty || q.typeFormals.isNotEmpty);
+    assert(
+        p.typeParametersShared.isNotEmpty || q.typeParametersShared.isNotEmpty);
     // A generic function type <T0 extends B00, ..., Tn extends B0n>F0 is a
     // subtype match for a generic function type <S0 extends B10, ..., Sn
     // extends B1n>F1 with respect to L under constraint set C2
@@ -1570,23 +1572,23 @@ abstract class TypeConstraintGenerator<
     // Zn/Sn] with respect to L under constraints C0.  And C1 is C02 + ...
     // + Cn2 + C0.  And C2 is C1 with each constraint replaced with its
     // closure with respect to [Z0, ..., Zn].
-    if (p.typeFormals.length == q.typeFormals.length) {
+    if (p.typeParametersShared.length == q.typeParametersShared.length) {
       final TypeConstraintGeneratorState state = currentState;
 
       bool isMatch = true;
-      for (int i = 0; isMatch && i < p.typeFormals.length; ++i) {
+      for (int i = 0; isMatch && i < p.typeParametersShared.length; ++i) {
         isMatch = isMatch &&
             performSubtypeConstraintGenerationInternal(
-                p.typeFormals[i].bound ??
+                p.typeParametersShared[i].bound ??
                     typeAnalyzerOperations.objectQuestionType.unwrapTypeView(),
-                q.typeFormals[i].bound ??
+                q.typeParametersShared[i].bound ??
                     typeAnalyzerOperations.objectQuestionType.unwrapTypeView(),
                 leftSchema: leftSchema,
                 astNodeForTesting: astNodeForTesting) &&
             performSubtypeConstraintGenerationInternal(
-                q.typeFormals[i].bound ??
+                q.typeParametersShared[i].bound ??
                     typeAnalyzerOperations.objectQuestionType.unwrapTypeView(),
-                p.typeFormals[i].bound ??
+                p.typeParametersShared[i].bound ??
                     typeAnalyzerOperations.objectQuestionType.unwrapTypeView(),
                 leftSchema: !leftSchema,
                 astNodeForTesting: astNodeForTesting);
@@ -1628,7 +1630,7 @@ abstract class TypeConstraintGenerator<
           q,
       {required bool leftSchema,
       required AstNode? astNodeForTesting}) {
-    assert(p.typeFormals.isEmpty && q.typeFormals.isEmpty);
+    assert(p.typeParametersShared.isEmpty && q.typeParametersShared.isEmpty);
     // A function type (M0,..., Mn, [M{n+1}, ..., Mm]) -> R0 is a subtype
     // match for a function type (N0,..., Nk, [N{k+1}, ..., Nr]) -> R1 with
     // respect to L under constraints C0 + ... + Cr + C
@@ -1636,8 +1638,8 @@ abstract class TypeConstraintGenerator<
     // If R0 is a subtype match for a type R1 with respect to L under
     // constraints C.  If n <= k and r <= m.  And for i in 0...r, Ni is a
     // subtype match for Mi with respect to L under constraints Ci.
-    if (p.sortedNamedParameters.isEmpty &&
-        q.sortedNamedParameters.isEmpty &&
+    if (p.sortedNamedParametersShared.isEmpty &&
+        q.sortedNamedParametersShared.isEmpty &&
         p.requiredPositionalParameterCount <=
             q.requiredPositionalParameterCount &&
         p.positionalParameterTypes.length >=
@@ -1664,8 +1666,9 @@ abstract class TypeConstraintGenerator<
             q.requiredPositionalParameterCount &&
         p.requiredPositionalParameterCount ==
             q.requiredPositionalParameterCount &&
-        p.sortedNamedParameters.isNotEmpty &&
-        q.sortedNamedParameters.length <= p.sortedNamedParameters.length) {
+        p.sortedNamedParametersShared.isNotEmpty &&
+        q.sortedNamedParametersShared.length <=
+            p.sortedNamedParametersShared.length) {
       // Function types with named parameters are treated analogously to the
       // positional parameter case above.
 
@@ -1698,8 +1701,8 @@ abstract class TypeConstraintGenerator<
         // parameter should be consumed from both, comparisonResult will be
         // set to 0.
         int comparisonResult;
-        if (i >= p.sortedNamedParameters.length) {
-          if (j >= q.sortedNamedParameters.length) {
+        if (i >= p.sortedNamedParametersShared.length) {
+          if (j >= q.sortedNamedParametersShared.length) {
             // No parameters left.
             return true;
           } else {
@@ -1707,13 +1710,13 @@ abstract class TypeConstraintGenerator<
             // q.
             comparisonResult = 1;
           }
-        } else if (j >= q.sortedNamedParameters.length) {
+        } else if (j >= q.sortedNamedParametersShared.length) {
           // No more parameters in q, so the next parameter must come from
           // p.
           comparisonResult = -1;
         } else {
-          comparisonResult = p.sortedNamedParameters[i].name
-              .compareTo(q.sortedNamedParameters[j].name);
+          comparisonResult = p.sortedNamedParametersShared[i].nameShared
+              .compareTo(q.sortedNamedParametersShared[j].nameShared);
         }
         if (comparisonResult > 0) {
           // Extra parameter in q that q that doesn't exist in p. No match.
@@ -1722,7 +1725,7 @@ abstract class TypeConstraintGenerator<
         } else if (comparisonResult < 0) {
           // Extra parameter in p that doesn't exist in q. Ok if not
           // required.
-          if (p.sortedNamedParameters[i].isRequired) {
+          if (p.sortedNamedParametersShared[i].isRequired) {
             restoreState(state);
             return false;
           } else {
@@ -1731,8 +1734,10 @@ abstract class TypeConstraintGenerator<
         } else {
           // The next parameter in p and q matches, so match their types.
           if (!performSubtypeConstraintGenerationInternal(
-              q.sortedNamedParameters[j].type, p.sortedNamedParameters[i].type,
-              leftSchema: !leftSchema, astNodeForTesting: astNodeForTesting)) {
+              q.sortedNamedParametersShared[j].type,
+              p.sortedNamedParametersShared[i].type,
+              leftSchema: !leftSchema,
+              astNodeForTesting: astNodeForTesting)) {
             restoreState(state);
             return false;
           }

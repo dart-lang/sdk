@@ -979,10 +979,10 @@ class FunctionType extends DartType
   int get requiredPositionalParameterCount => requiredParameterCount;
 
   @override
-  List<NamedType> get sortedNamedParameters => namedParameters;
+  List<NamedType> get sortedNamedParametersShared => namedParameters;
 
   @override
-  List<StructuralParameter> get typeFormals => typeParameters;
+  List<StructuralParameter> get typeParametersShared => typeParameters;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitFunctionType(this);
@@ -1525,7 +1525,6 @@ class NamedType extends Node
   // Flag used for serialization if [isRequired].
   static const int FlagRequiredNamedType = 1 << 0;
 
-  @override
   final String name;
   @override
   final DartType type;
@@ -1533,6 +1532,9 @@ class NamedType extends Node
   final bool isRequired;
 
   const NamedType(this.name, this.type, {this.isRequired = false});
+
+  @override
+  String get nameShared => name;
 
   @override
   bool operator ==(Object other) => equals(other, null);

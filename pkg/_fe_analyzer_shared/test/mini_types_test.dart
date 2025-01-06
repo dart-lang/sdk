@@ -76,14 +76,16 @@ main() {
 
       test('type formals, unbounded', () {
         expect(
-            FunctionType(VoidType.instance, [], typeFormals: [t, u]).toString(),
+            FunctionType(VoidType.instance, [], typeParametersShared: [t, u])
+                .toString(),
             'void Function<T, U>()');
       });
 
       test('type formals, bounded', () {
         t.explicitBound = TypeParameterType(u);
         expect(
-            FunctionType(VoidType.instance, [], typeFormals: [t, u]).toString(),
+            FunctionType(VoidType.instance, [], typeParametersShared: [t, u])
+                .toString(),
             'void Function<T extends U, U>()');
       });
 
@@ -425,20 +427,20 @@ main() {
       group('type formals:', () {
         test('single', () {
           var type = Type('int Function<T>()') as FunctionType;
-          expect(type.typeFormals, hasLength(1));
-          expect(type.typeFormals[0].name, 'T');
+          expect(type.typeParametersShared, hasLength(1));
+          expect(type.typeParametersShared[0].name, 'T');
         });
 
         test('multiple', () {
           var type = Type('int Function<T, U>()') as FunctionType;
-          expect(type.typeFormals, hasLength(2));
-          expect(type.typeFormals[0].name, 'T');
-          expect(type.typeFormals[1].name, 'U');
+          expect(type.typeParametersShared, hasLength(2));
+          expect(type.typeParametersShared[0].name, 'T');
+          expect(type.typeParametersShared[1].name, 'U');
         });
 
         test('return type and parameters can refer to type formal', () {
           var type = Type('T Function<T>(T, {T t})') as FunctionType;
-          var t = type.typeFormals.single;
+          var t = type.typeParametersShared.single;
           expect((type.returnType as TypeParameterType).typeParameter, same(t));
           expect(
               (type.positionalParameters.single as TypeParameterType)
@@ -452,20 +454,20 @@ main() {
 
         test('unbounded', () {
           var type = Type('void Function<T>()') as FunctionType;
-          var t = type.typeFormals.single;
+          var t = type.typeParametersShared.single;
           expect(t.explicitBound, isNull);
         });
 
         test('bounded', () {
           var type = Type('void Function<T extends Object>()') as FunctionType;
-          var t = type.typeFormals.single;
+          var t = type.typeParametersShared.single;
           expect(t.explicitBound!.type, 'Object');
         });
 
         test('F-bounded', () {
           var type = Type('void Function<T extends U, U>()') as FunctionType;
-          var t = type.typeFormals[0];
-          var u = type.typeFormals[1];
+          var t = type.typeParametersShared[0];
+          var u = type.typeParametersShared[1];
           expect((t.explicitBound as TypeParameterType).typeParameter, same(u));
         });
 
@@ -694,10 +696,12 @@ main() {
       checkNotEqual(Type('T&int'), Type('T&String'));
       // Type formals from different function types are not equal
       checkNotEqual(
-          TypeParameterType(
-              (Type('void Function<T>()') as FunctionType).typeFormals.single),
-          TypeParameterType(
-              (Type('void Function<T>()') as FunctionType).typeFormals.single));
+          TypeParameterType((Type('void Function<T>()') as FunctionType)
+              .typeParametersShared
+              .single),
+          TypeParameterType((Type('void Function<T>()') as FunctionType)
+              .typeParametersShared
+              .single));
     });
 
     test('UnknownType', () {
@@ -1253,32 +1257,33 @@ main() {
           ((substitutedType.returnType as PrimaryType).args[0]
                   as TypeParameterType)
               .typeParameter,
-          same(substitutedType.typeFormals[0]));
+          same(substitutedType.typeParametersShared[0]));
       expect(
           ((substitutedType.returnType as PrimaryType).args[1]
                   as TypeParameterType)
               .typeParameter,
-          same(substitutedType.typeFormals[1]));
+          same(substitutedType.typeParametersShared[1]));
       expect(
-          (substitutedType.typeFormals[1].explicitBound as TypeParameterType)
+          (substitutedType.typeParametersShared[1].explicitBound
+                  as TypeParameterType)
               .typeParameter,
-          same(substitutedType.typeFormals[0]));
+          same(substitutedType.typeParametersShared[0]));
       expect(
           (substitutedType.positionalParameters[0] as TypeParameterType)
               .typeParameter,
-          same(substitutedType.typeFormals[0]));
+          same(substitutedType.typeParametersShared[0]));
       expect(
           (substitutedType.positionalParameters[1] as TypeParameterType)
               .typeParameter,
-          same(substitutedType.typeFormals[1]));
+          same(substitutedType.typeParametersShared[1]));
       expect(
           (substitutedType.namedParameters[0].type as TypeParameterType)
               .typeParameter,
-          same(substitutedType.typeFormals[0]));
+          same(substitutedType.typeParametersShared[0]));
       expect(
           (substitutedType.namedParameters[1].type as TypeParameterType)
               .typeParameter,
-          same(substitutedType.typeFormals[1]));
+          same(substitutedType.typeParametersShared[1]));
       // Finally, verify that the original type didn't change (this is important
       // because `TypeParameter.explicitBound` is non-final in order to allow
       // for the creation of F-bounded types).
