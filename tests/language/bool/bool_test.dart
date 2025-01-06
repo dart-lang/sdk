@@ -53,28 +53,36 @@ class BoolTest {
     if (identical(false, true)) {
       throw "Expect.equals broken";
     }
-    if (true == true) {} else {
+    if (true == true) {
+    } else {
       throw "Expect.equals broken";
     }
-    if (false == false) {} else {
+    if (false == false) {
+    } else {
       throw "Expect.equals broken";
     }
-    if (identical(true, true)) {} else {
+    if (identical(true, true)) {
+    } else {
       throw "Expect.equals broken";
     }
-    if (identical(false, false)) {} else {
+    if (identical(false, false)) {
+    } else {
       throw "Expect.equals broken";
     }
-    if (true != false) {} else {
+    if (true != false) {
+    } else {
       throw "Expect.equals broken";
     }
-    if (false != true) {} else {
+    if (false != true) {
+    } else {
       throw "Expect.equals broken";
     }
-    if (!identical(true, false)) {} else {
+    if (!identical(true, false)) {
+    } else {
       throw "Expect.equals broken";
     }
-    if (!identical(false, true)) {} else {
+    if (!identical(false, true)) {
+    } else {
       throw "Expect.equals broken";
     }
     if (true != true) {
