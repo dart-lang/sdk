@@ -119,15 +119,16 @@ part 'a.dart';
     );
 
     newFile('$testPackageLibPath/a.dart', '''
-part of 'test.dart';
+part 'test.dart';
+part 'b.dart';
 
-class A { }
+class C{}
 
-var a = new A();
+var c = C();
 ''');
 
     newFile('$testPackageLibPath/b.dart', '''
-part of 'test.dart';
+part of 'a.dart';
 
 class B { }
 
@@ -135,15 +136,15 @@ var b = new B();
 ''');
 
     await resolveTestCode('''
-part 'a.dart';
-part 'b.dart';
+part of 'a.dart';
 
-class C{}
-var c = new C();
+class A { }
+
+var a = new A();
 ''');
 
     expect(await computeHasFixes(), isTrue);
-    expect(processor.changeMap.libraryMap.length, 3);
+    expect(processor.changeMap.libraryMap.length, 1);
   }
 
   /// https://github.com/dart-lang/sdk/issues/59572
@@ -177,8 +178,10 @@ void a() {
 ''');
 
     expect(await computeHasFixes(), isTrue);
-    expect(processor.changeMap.libraryMap.length, 2);
-    expect(processor.fixDetails.length, 2);
+    expect(processor.changeMap.libraryMap.length, 1);
+    expect(processor.fixDetails.length, 1);
+    var details = processor.fixDetails;
+    expect(details.first.fixes, hasLength(1));
   }
 
   Future<void> test_hasFixes_stoppedAfterFirst() async {
@@ -284,10 +287,12 @@ import 'package:b/b.dart';
 import 'package:c/c.dart';
 import 'package:d/d.dart';
 import 'package:test/lib.dart';
+
 void f() {
   print(C());
 }
 ''');
+
     await getResolvedUnit(testFile);
     await assertFixPubspec(content, expected);
   }
@@ -385,6 +390,7 @@ import 'package:b/b.dart';
 import 'package:c/c.dart';
 import 'package:d/d.dart';
 import 'package:test/lib.dart';
+
 void f() {
   print(C());
 }

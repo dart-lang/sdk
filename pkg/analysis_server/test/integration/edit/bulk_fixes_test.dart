@@ -37,7 +37,6 @@ class B extends A {
     expect(result.edits, hasLength(1));
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/59572')
   Future<void> test_bulk_fix_with_parts() async {
     writeFile(sourcePath(file_paths.analysisOptionsYaml), '''
 linter:
