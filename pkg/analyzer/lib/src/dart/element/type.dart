@@ -1338,7 +1338,8 @@ abstract class RecordTypeFieldImpl implements RecordTypeField {
   });
 }
 
-class RecordTypeImpl extends TypeImpl implements RecordType {
+class RecordTypeImpl extends TypeImpl
+    implements RecordType, SharedRecordTypeStructure<DartType> {
   @override
   final List<RecordTypePositionalFieldImpl> positionalFields;
 
@@ -1395,10 +1396,10 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   @override
   String? get name => null;
 
-  List<SharedNamedTypeStructure<DartType>> get namedTypes => namedFields;
+  List<RecordTypeNamedFieldImpl> get namedTypes => namedFields;
 
   @override
-  List<SharedNamedTypeStructure<DartType>> get sortedNamedTypes => namedTypes;
+  List<RecordTypeNamedFieldImpl> get sortedNamedTypes => namedTypes;
 
   @override
   bool operator ==(Object other) {
