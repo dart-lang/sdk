@@ -129,7 +129,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             DartPattern,
             void,
             TypeParameterElementImpl2,
-            InterfaceType,
+            InterfaceTypeImpl,
             InterfaceElementImpl2>,
         // TODO(paulberry): not yet used.
         NullShortingMixin<Null, Expression, SharedTypeView<DartType>> {
@@ -456,7 +456,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       DartType,
       PromotableElementImpl2,
       TypeParameterElementImpl2,
-      InterfaceType,
+      InterfaceTypeImpl,
       InterfaceElementImpl2> get operations => flowAnalysis.typeOperations;
 
   /// Gets the current depth of the [_rewriteStack].  This may be used in

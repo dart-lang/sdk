@@ -424,10 +424,14 @@ class FlowAnalysisHelper {
 class TypeSystemOperations
     with
         TypeAnalyzerOperationsMixin<DartType, PromotableElementImpl2,
-            TypeParameterElementImpl2, InterfaceType, InterfaceElementImpl2>
+            TypeParameterElementImpl2, InterfaceTypeImpl, InterfaceElementImpl2>
     implements
-        TypeAnalyzerOperations<DartType, PromotableElementImpl2,
-            TypeParameterElementImpl2, InterfaceType, InterfaceElementImpl2> {
+        TypeAnalyzerOperations<
+            DartType,
+            PromotableElementImpl2,
+            TypeParameterElementImpl2,
+            InterfaceTypeImpl,
+            InterfaceElementImpl2> {
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
 
@@ -738,8 +742,8 @@ class TypeSystemOperations
   }
 
   @override
-  TypeDeclarationMatchResult<InterfaceType, InterfaceElementImpl2, DartType>?
-      matchTypeDeclarationTypeInternal(DartType type) {
+  TypeDeclarationMatchResult<InterfaceTypeImpl, InterfaceElementImpl2,
+      DartType>? matchTypeDeclarationTypeInternal(DartType type) {
     if (isInterfaceTypeInternal(type)) {
       InterfaceTypeImpl interfaceType = type as InterfaceTypeImpl;
       return TypeDeclarationMatchResult(
