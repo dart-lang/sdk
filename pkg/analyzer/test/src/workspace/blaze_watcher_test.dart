@@ -24,7 +24,7 @@ main() {
 class BlazeWatcherTest with ResourceProviderMixin {
   late final BlazeWorkspace workspace;
 
-  void test_blazeFileWatcher() async {
+  void test_blazeFileWatcher() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
     ]);
@@ -235,7 +235,7 @@ class BlazeWatcherTest with ResourceProviderMixin {
     recPort.close();
   }
 
-  void test_blazeFileWatcherWithFolder() async {
+  void test_blazeFileWatcherWithFolder() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
     ]);

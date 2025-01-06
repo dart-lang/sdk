@@ -476,7 +476,7 @@ class OptionsProviderTest with ResourceProviderMixin {
   }
 
   void assertErrorsInOptionsFile(
-      String code, List<ExpectedError> expectedErrors) async {
+      String code, List<ExpectedError> expectedErrors) {
     newFile(optionsFilePath, code);
     var errors = analyzeAnalysisOptions(
       sourceFactory.forUri2(toUri(optionsFilePath))!,

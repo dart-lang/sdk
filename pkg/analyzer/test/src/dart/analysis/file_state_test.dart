@@ -394,7 +394,7 @@ var x = 0;
 
 @reflectiveTest
 class FileSystemState_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
-  void test_getFileForUri_hasGenerated_askGeneratedFirst() async {
+  void test_getFileForUri_hasGenerated_askGeneratedFirst()  {
     var relPath = 'dart/my/test/a.dart';
     var writablePath = convertPath('$workspaceRootPath/$relPath');
     var generatedPath = convertPath('$workspaceRootPath/blaze-bin/$relPath');
@@ -422,7 +422,7 @@ class FileSystemState_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
     expect(writableFile2, same(generatedFile));
   }
 
-  void test_getFileForUri_hasGenerated_askWritableFirst() async {
+  void test_getFileForUri_hasGenerated_askWritableFirst() {
     var relPath = 'dart/my/test/a.dart';
     var writablePath = convertPath('$workspaceRootPath/$relPath');
     var generatedPath = convertPath('$workspaceRootPath/blaze-bin/$relPath');
@@ -450,7 +450,7 @@ class FileSystemState_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
     expect(writableFile2, same(generatedFile));
   }
 
-  void test_getFileForUri_nestedLib_notCanonicalUri() async {
+  void test_getFileForUri_nestedLib_notCanonicalUri() {
     var outer = getFile('$workspaceRootPath/my/outer/lib/a.dart');
     var outerUri = Uri.parse('package:my.outer/a.dart');
 

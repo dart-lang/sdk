@@ -877,10 +877,7 @@ void f(bar a) {}
   }
 
   // Asserts that the results of the rename is the [expectedCode].
-  void _assertTestChangeResult(
-    String expectedCode,
-    List<ReplaceInfo> changes,
-  ) async {
+  void _assertTestChangeResult(String expectedCode, List<ReplaceInfo> changes) {
     var edits = <SourceEdit>[];
     for (var change in changes) {
       var offset =

@@ -50,7 +50,7 @@ class AnalysisSessionImpl_BlazeWorkspaceTest
     expect(result.uri.toString(), 'package:dart.my/a.dart');
   }
 
-  void test_getParsedLibrary_notFileOfUri() async {
+  void test_getParsedLibrary_notFileOfUri() {
     var relPath = 'dart/my/lib/a.dart';
     newFile('$workspaceRootPath/blaze-bin/$relPath', '');
 
