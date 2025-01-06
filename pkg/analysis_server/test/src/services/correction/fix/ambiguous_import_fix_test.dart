@@ -150,6 +150,29 @@ class C with M {}
     );
   }
 
+  Future<void> test_double_equal_importUris() async {
+    // https://github.com/dart-lang/sdk/issues/56830#issuecomment-2573945155
+    newFile(join(testPackageLibPath, 'lib1.dart'), '''
+var foo = 0;
+var bar = 0;
+var baz = 0;
+''');
+    newFile(join(testPackageLibPath, 'lib2.dart'), '''
+var foo = 0;''');
+    await resolveTestCode('''
+import 'lib1.dart' hide bar;
+import 'lib1.dart' hide baz;
+import 'lib2.dart';
+
+void f() {
+  print(bar);
+  print(baz);
+  print(foo);
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_double_exportedByImport() async {
     newFile(join(testPackageLibPath, 'lib1.dart'), '''
 mixin M {}''');
@@ -661,6 +684,29 @@ void f(l.N? n) {
   print(n);
 }
 ''', matchFixMessage: "Remove show to use 'N' from 'lib1.dart' as l");
+  }
+
+  Future<void> test_double_equal_importUris() async {
+    // https://github.com/dart-lang/sdk/issues/56830#issuecomment-2573945155
+    newFile(join(testPackageLibPath, 'lib1.dart'), '''
+var foo = 0;
+var bar = 0;
+var baz = 0;
+''');
+    newFile(join(testPackageLibPath, 'lib2.dart'), '''
+var foo = 0;''');
+    await resolveTestCode('''
+import 'lib1.dart' show bar, foo;
+import 'lib1.dart' show baz, foo;
+import 'lib2.dart';
+
+void f() {
+  print(bar);
+  print(baz);
+  print(foo);
+}
+''');
+    await assertNoFix();
   }
 
   Future<void> test_double_oneHide() async {

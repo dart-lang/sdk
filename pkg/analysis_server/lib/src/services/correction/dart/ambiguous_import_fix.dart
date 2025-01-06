@@ -48,6 +48,11 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
       prefix,
     );
 
+    // If we have multiple imports of the same library, then we won't fix it.
+    if (uris.length != uris.toSet().length) {
+      return const [];
+    }
+
     if (unit == null || importDirectives.isEmpty || uris.isEmpty) {
       return const [];
     }
@@ -161,9 +166,8 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments {
@@ -235,9 +239,8 @@ class _ImportRemoveShow extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments {
