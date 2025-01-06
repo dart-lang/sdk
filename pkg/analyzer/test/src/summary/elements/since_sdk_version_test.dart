@@ -384,6 +384,7 @@ library
         foo
           reference: dart:foo::@class::A::@method::foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
+          sinceSdkVersion: 2.16.0
 ''');
   }
 
@@ -440,6 +441,7 @@ library
         foo
           reference: dart:foo::@class::A::@method::foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
+          sinceSdkVersion: 2.14.0
 ''');
   }
 
@@ -906,6 +908,7 @@ library
     foo
       reference: dart:foo::@function::foo
       firstFragment: dart:foo::<fragment>::@function::foo
+      sinceSdkVersion: 2.15.0
       returnType: void
     bar
       reference: dart:foo::@function::bar
@@ -950,6 +953,7 @@ library
     foo
       reference: dart:foo::@function::foo
       firstFragment: dart:foo::<fragment>::@function::foo
+      sinceSdkVersion: 2.15.3-dev.7
       returnType: void
 ''');
   }
@@ -990,6 +994,7 @@ library
     foo
       reference: dart:foo::@function::foo
       firstFragment: dart:foo::<fragment>::@function::foo
+      sinceSdkVersion: 2.15.3
       returnType: void
 ''');
   }
@@ -1132,6 +1137,7 @@ library
         optionalNamed p2
           firstFragment: dart:foo::<fragment>::@function::f::@parameter::p2
           type: int?
+          sinceSdkVersion: 2.15.0
       returnType: void
 ''');
   }
@@ -1189,6 +1195,7 @@ library
           type: int
         optionalPositional p2
           type: int?
+          sinceSdkVersion: 2.15.0
       returnType: void
 ''');
   }
@@ -1227,6 +1234,7 @@ library
   typeAliases
     A
       firstFragment: dart:foo::<fragment>::@typeAlias::A
+      sinceSdkVersion: 2.15.0
       aliasedType: List<int>
 ''');
   }
@@ -1280,6 +1288,7 @@ library
     final hasInitializer foo
       reference: dart:foo::@topLevelVariable::foo
       firstFragment: dart:foo::<fragment>::@topLevelVariable::foo
+      sinceSdkVersion: 2.15.0
       type: int
       getter: dart:foo::<fragment>::@getter::foo#element
   getters
