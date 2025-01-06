@@ -97,7 +97,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 /// By default, no files have inference logging enabled.
 bool Function(Source) inferenceLoggingPredicate = (_) => false;
 
-typedef SharedMatchContext = shared.MatchContext<AstNode, ExpressionImpl,
+typedef SharedMatchContext = shared.MatchContext<AstNodeImpl, ExpressionImpl,
     DartPatternImpl, SharedTypeView<DartType>, PromotableElementImpl2>;
 
 typedef SharedPatternField
@@ -122,7 +122,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         ErrorDetectionHelpers,
         TypeAnalyzer<
             DartType,
-            AstNode,
+            AstNodeImpl,
             StatementImpl,
             ExpressionImpl,
             PromotableElementImpl2,
@@ -437,7 +437,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ExecutableElement? get enclosingFunction => _enclosingFunction;
 
   @override
-  FlowAnalysis<AstNode, StatementImpl, ExpressionImpl, PromotableElementImpl2,
+  FlowAnalysis<
+      AstNodeImpl,
+      StatementImpl,
+      ExpressionImpl,
+      PromotableElementImpl2,
       SharedTypeView<DartType>> get flow => flowAnalysis.flow!;
 
   bool get isConstructorTearoffsEnabled =>
@@ -810,7 +814,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   PatternResult<DartType> dispatchPattern(
-      SharedMatchContext context, AstNode node) {
+      SharedMatchContext context, AstNodeImpl node) {
     shared.PatternResult<DartType> analysisResult;
     if (node is DartPatternImpl) {
       analysisResult = node.resolvePattern(this, context);
@@ -977,8 +981,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SwitchExpressionMemberInfo<AstNode, ExpressionImpl, PromotableElementImpl2>
-      getSwitchExpressionMemberInfo(
+  SwitchExpressionMemberInfo<AstNodeImpl, ExpressionImpl,
+      PromotableElementImpl2> getSwitchExpressionMemberInfo(
     covariant SwitchExpressionImpl node,
     int index,
   ) {
@@ -995,12 +999,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SwitchStatementMemberInfo<AstNode, StatementImpl, ExpressionImpl,
+  SwitchStatementMemberInfo<AstNodeImpl, StatementImpl, ExpressionImpl,
       PromotableElementImpl2> getSwitchStatementMemberInfo(
     covariant SwitchStatementImpl node,
     int index,
   ) {
-    CaseHeadOrDefaultInfo<AstNode, ExpressionImpl, PromotableElementImpl2>
+    CaseHeadOrDefaultInfo<AstNodeImpl, ExpressionImpl, PromotableElementImpl2>
         ofMember(
       SwitchMemberImpl member,
     ) {
@@ -3792,7 +3796,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitTryStatement(TryStatement node) {
+  void visitTryStatement(covariant TryStatementImpl node) {
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     var flow = flowAnalysis.flow!;

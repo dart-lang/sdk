@@ -22,7 +22,7 @@ typedef SharedPatternField
 class SharedTypeAnalyzerErrors
     implements
         shared.TypeAnalyzerErrors<
-            AstNode,
+            AstNodeImpl,
             StatementImpl,
             ExpressionImpl,
             PromotableElementImpl2,

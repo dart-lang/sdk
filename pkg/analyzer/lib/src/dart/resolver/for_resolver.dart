@@ -120,8 +120,8 @@ class ForResolver {
     return iteratedType.typeArguments.single;
   }
 
-  void _forEachParts(AstNode node, bool isAsync, ForEachPartsImpl forEachParts,
-      void Function() visitBody) {
+  void _forEachParts(AstNodeImpl node, bool isAsync,
+      ForEachPartsImpl forEachParts, void Function() visitBody) {
     ExpressionImpl iterable = forEachParts.iterable;
     DeclaredIdentifierImpl? loopVariable;
     SimpleIdentifierImpl? identifier;
@@ -200,7 +200,7 @@ class ForResolver {
   }
 
   void _forParts(
-      AstNode node, ForPartsImpl forParts, void Function() visitBody) {
+      AstNodeImpl node, ForPartsImpl forParts, void Function() visitBody) {
     if (forParts is ForPartsWithDeclarationsImpl) {
       forParts.variables.accept(_resolver);
     } else if (forParts is ForPartsWithExpressionImpl) {

@@ -77,7 +77,7 @@ class FlowAnalysisHelper {
   final TypeSystemOperations typeOperations;
 
   /// Precomputed sets of potentially assigned variables.
-  AssignedVariables<AstNode, PromotableElementImpl2>? assignedVariables;
+  AssignedVariables<AstNodeImpl, PromotableElementImpl2>? assignedVariables;
 
   /// The result for post-resolution stages of analysis, for testing only.
   final FlowAnalysisDataForTesting? dataForTesting;
@@ -96,8 +96,8 @@ class FlowAnalysisHelper {
   final bool inferenceUpdate4Enabled;
 
   /// The current flow, when resolving a function body, or `null` otherwise.
-  FlowAnalysis<AstNode, StatementImpl, ExpressionImpl, PromotableElementImpl2,
-      SharedTypeView<DartType>>? flow;
+  FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,
+      PromotableElementImpl2, SharedTypeView<DartType>>? flow;
 
   FlowAnalysisHelper(bool retainDataForTesting, FeatureSet featureSet,
       {required TypeSystemOperations typeSystemOperations})
@@ -174,10 +174,10 @@ class FlowAnalysisHelper {
         retainDataForTesting: dataForTesting != null, visit: visit);
     if (dataForTesting != null) {
       dataForTesting!.assignedVariables[node] = assignedVariables
-          as AssignedVariablesForTesting<AstNode, PromotableElementImpl2>;
+          as AssignedVariablesForTesting<AstNodeImpl, PromotableElementImpl2>;
     }
     flow = isNonNullableByDefault
-        ? FlowAnalysis<AstNode, StatementImpl, ExpressionImpl,
+        ? FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,
             PromotableElementImpl2, SharedTypeView<DartType>>(
             typeOperations,
             assignedVariables!,
@@ -186,7 +186,7 @@ class FlowAnalysisHelper {
             fieldPromotionEnabled: fieldPromotionEnabled,
             inferenceUpdate4Enabled: inferenceUpdate4Enabled,
           )
-        : FlowAnalysis<AstNode, StatementImpl, ExpressionImpl,
+        : FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,
                 PromotableElementImpl2, SharedTypeView<DartType>>.legacy(
             typeOperations, assignedVariables!);
   }
@@ -228,7 +228,7 @@ class FlowAnalysisHelper {
   }
 
   void executableDeclaration_enter(
-      AstNode node, FormalParameterList? parameters,
+      AstNodeImpl node, FormalParameterList? parameters,
       {required bool isClosure}) {
     if (isClosure) {
       flow!.functionExpression_begin(node);
@@ -261,7 +261,7 @@ class FlowAnalysisHelper {
     flow?.for_bodyBegin(node is StatementImpl ? node : null, condition);
   }
 
-  void for_conditionBegin(AstNode node) {
+  void for_conditionBegin(AstNodeImpl node) {
     flow?.for_conditionBegin(node);
   }
 
@@ -348,11 +348,11 @@ class FlowAnalysisHelper {
   }
 
   /// Computes the [AssignedVariables] map for the given [node].
-  static AssignedVariables<AstNode, PromotableElementImpl2>
+  static AssignedVariables<AstNodeImpl, PromotableElementImpl2>
       computeAssignedVariables(AstNode node, FormalParameterList? parameters,
           {bool retainDataForTesting = false,
           void Function(AstVisitor<Object?> visitor)? visit}) {
-    AssignedVariables<AstNode, PromotableElementImpl2> assignedVariables =
+    AssignedVariables<AstNodeImpl, PromotableElementImpl2> assignedVariables =
         retainDataForTesting
             ? AssignedVariablesForTesting()
             : AssignedVariables();
