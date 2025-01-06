@@ -20,7 +20,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart'
         TypeConstraintOrigin,
         UnknownTypeConstraintOrigin;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -39,7 +38,7 @@ typedef MergedTypeConstraint = shared.MergedTypeConstraint<
     TypeParameterElementImpl2,
     PromotableElementImpl2,
     InterfaceType,
-    InterfaceElement>;
+    InterfaceElementImpl2>;
 
 /// Instance of [shared.TypeConstraintFromArgument] specific to the Analyzer.
 typedef TypeConstraintFromArgument = shared.TypeConstraintFromArgument<
@@ -47,12 +46,12 @@ typedef TypeConstraintFromArgument = shared.TypeConstraintFromArgument<
     PromotableElementImpl2,
     TypeParameterElementImpl2,
     InterfaceType,
-    InterfaceElement>;
+    InterfaceElementImpl2>;
 
 /// Instance of [shared.TypeConstraintFromExtendsClause] specific to the Analyzer.
 typedef TypeConstraintFromExtendsClause
     = shared.TypeConstraintFromExtendsClause<DartType, PromotableElementImpl2,
-        TypeParameterElementImpl2, InterfaceType, InterfaceElement>;
+        TypeParameterElementImpl2, InterfaceType, InterfaceElementImpl2>;
 
 /// Instance of [shared.TypeConstraintFromFunctionContext] specific to the Analyzer.
 typedef TypeConstraintFromFunctionContext
@@ -63,7 +62,7 @@ typedef TypeConstraintFromFunctionContext
         PromotableElementImpl2,
         TypeParameterElementImpl2,
         InterfaceType,
-        InterfaceElement>;
+        InterfaceElementImpl2>;
 
 /// Instance of [shared.TypeConstraintFromReturnType] specific to the Analyzer.
 typedef TypeConstraintFromReturnType = shared.TypeConstraintFromReturnType<
@@ -73,7 +72,7 @@ typedef TypeConstraintFromReturnType = shared.TypeConstraintFromReturnType<
     PromotableElementImpl2,
     TypeParameterElementImpl2,
     InterfaceType,
-    InterfaceElement>;
+    InterfaceElementImpl2>;
 
 /// Instance of [shared.TypeConstraintOrigin] specific to the Analyzer.
 typedef TypeConstraintOrigin = shared.TypeConstraintOrigin<
@@ -81,7 +80,7 @@ typedef TypeConstraintOrigin = shared.TypeConstraintOrigin<
     PromotableElementImpl2,
     TypeParameterElementImpl2,
     InterfaceType,
-    InterfaceElement>;
+    InterfaceElementImpl2>;
 
 /// Instance of [shared.UnknownTypeConstraintOrigin] specific to the Analyzer.
 typedef UnknownTypeConstraintOrigin = shared.UnknownTypeConstraintOrigin<
@@ -89,7 +88,7 @@ typedef UnknownTypeConstraintOrigin = shared.UnknownTypeConstraintOrigin<
     PromotableElementImpl2,
     TypeParameterElementImpl2,
     InterfaceType,
-    InterfaceElement>;
+    InterfaceElementImpl2>;
 
 /// Creates sets of [GeneratedTypeConstraint]s for type parameters, based on an
 /// attempt to make one type schema a subtype of another.
@@ -99,7 +98,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         PromotableElementImpl2,
         TypeParameterElementImpl2,
         InterfaceType,
-        InterfaceElement,
+        InterfaceElementImpl2,
         AstNode>
     with
         shared.TypeConstraintGeneratorMixin<
@@ -108,7 +107,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
             PromotableElementImpl2,
             TypeParameterElementImpl2,
             InterfaceType,
-            InterfaceElement,
+            InterfaceElementImpl2,
             AstNode> {
   @override
   final Set<TypeParameterElementImpl2> typeParametersToConstrain =
@@ -213,9 +212,9 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
 
   @override
   List<DartType>? getTypeArgumentsAsInstanceOf(
-      InterfaceType type, InterfaceElement typeDeclaration) {
+      InterfaceType type, InterfaceElementImpl2 typeDeclaration) {
     for (var interface in type.element.allSupertypes) {
-      if (interface.element == typeDeclaration) {
+      if (interface.element3 == typeDeclaration) {
         var substitution = Substitution.fromInterfaceType(type);
         var substitutedInterface =
             substitution.substituteType(interface) as InterfaceType;

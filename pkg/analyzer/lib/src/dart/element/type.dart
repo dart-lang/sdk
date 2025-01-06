@@ -683,7 +683,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       .toList();
 
   @override
-  InterfaceElement2 get element3 => (element as InterfaceFragment).element;
+  InterfaceElementImpl2 get element3 =>
+      (element as InterfaceElementImpl).element;
 
   @override
   List<GetterElement> get getters => accessors
