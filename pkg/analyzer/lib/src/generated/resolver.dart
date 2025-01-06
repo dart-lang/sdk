@@ -4512,7 +4512,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   /// The error reporter that will be informed of any errors that are found
   /// during resolution.
-  final ErrorReporter _errorReporter;
+  final ErrorReporter errorReporter;
 
   /// The scope used to resolve identifiers.
   Scope nameScope;
@@ -4537,21 +4537,15 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
-  /// [source] is the source representing the compilation unit containing the
-  /// node being visited.
-  /// [errorListener] is the error listener that will be informed of any errors
+  /// [errorReporter] is the error reporter that will be informed of any errors
   /// that are found during resolution.
   /// [nameScope] is the scope used to resolve identifiers in the node that will
   /// first be visited.
-  /// [docImportLibraries] are the `@docImport` imported elements of this node's
-  /// library.
   ScopeResolverVisitor(
-    Source source,
-    AnalysisErrorListener errorListener, {
+    this.errorReporter, {
     required this.nameScope,
     required CompilationUnitElementImpl unitElement,
-  })  : _errorReporter = ErrorReporter(errorListener, source),
-        _docImportScope = DocumentationCommentScope(nameScope, unitElement);
+  }) : _docImportScope = DocumentationCommentScope(nameScope, unitElement);
 
   /// Return the implicit label scope in which the current node is being
   /// resolved.
@@ -5231,7 +5225,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (node.inSetterContext()) {
         if (element is PatternVariableElementImpl &&
             element.isVisitingWhenClause) {
-          _errorReporter.atNode(
+          errorReporter.atNode(
             node,
             CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
           );
@@ -5364,7 +5358,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (labelScope == null) {
         // There are no labels in scope, so by definition the label is
         // undefined.
-        _errorReporter.atNode(
+        errorReporter.atNode(
           labelNode,
           CompileTimeErrorCode.LABEL_UNDEFINED,
           arguments: [labelNode.name],
@@ -5375,7 +5369,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (definingScope == null) {
         // No definition of the given label name could be found in any
         // enclosing scope.
-        _errorReporter.atNode(
+        errorReporter.atNode(
           labelNode,
           CompileTimeErrorCode.LABEL_UNDEFINED,
           arguments: [labelNode.name],
@@ -5388,7 +5382,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           definingScope.element.thisOrAncestorOfType();
       if (_enclosingClosure != null &&
           !identical(labelContainer, _enclosingClosure)) {
-        _errorReporter.atNode(
+        errorReporter.atNode(
           labelNode,
           CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
           arguments: [labelNode.name],
@@ -5400,7 +5394,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           node is! ForStatement &&
           node is! SwitchMember &&
           node is! WhileStatement) {
-        _errorReporter.atNode(
+        errorReporter.atNode(
           parentNode,
           CompileTimeErrorCode.CONTINUE_LABEL_INVALID,
         );

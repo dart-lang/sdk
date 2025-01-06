@@ -183,8 +183,7 @@ class LibraryAnalyzer {
       // TODO(scheglov): We don't need to do this for the whole unit.
       parsedUnit.accept(
         ScopeResolverVisitor(
-          file.source,
-          errorListener,
+          fileAnalysis.errorReporter,
           nameScope: unitElement.scope,
           unitElement: unitElement,
         ),
@@ -857,8 +856,7 @@ class LibraryAnalyzer {
         fileAnalysis.file.uri, inferenceDataForTesting!);
 
     unit.accept(ScopeResolverVisitor(
-      source,
-      errorListener,
+      fileAnalysis.errorReporter,
       nameScope: unitElement.scope,
       unitElement: unitElement,
     ));
