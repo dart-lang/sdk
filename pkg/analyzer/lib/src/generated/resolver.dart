@@ -123,7 +123,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         TypeAnalyzer<
             DartType,
             AstNode,
-            Statement,
+            StatementImpl,
             Expression,
             PromotableElementImpl2,
             DartPattern,
@@ -437,7 +437,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ExecutableElement? get enclosingFunction => _enclosingFunction;
 
   @override
-  FlowAnalysis<AstNode, Statement, Expression, PromotableElementImpl2,
+  FlowAnalysis<AstNode, StatementImpl, Expression, PromotableElementImpl2,
       SharedTypeView<DartType>> get flow => flowAnalysis.flow!;
 
   bool get isConstructorTearoffsEnabled =>
@@ -995,7 +995,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SwitchStatementMemberInfo<AstNode, Statement, Expression,
+  SwitchStatementMemberInfo<AstNode, StatementImpl, Expression,
       PromotableElementImpl2> getSwitchStatementMemberInfo(
     covariant SwitchStatementImpl node,
     int index,
@@ -2452,7 +2452,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitDoStatement(DoStatement node) {
+  void visitDoStatement(covariant DoStatementImpl node) {
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
 
@@ -3124,7 +3124,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitLabel(Label node) {}
 
   @override
-  void visitLabeledStatement(LabeledStatement node) {
+  void visitLabeledStatement(covariant LabeledStatementImpl node) {
     inferenceLogWriter?.enterStatement(node);
     flowAnalysis.labeledStatement_enter(node);
     checkUnreachableNode(node);
@@ -3922,7 +3922,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitWhileStatement(WhileStatement node) {
+  void visitWhileStatement(covariant WhileStatementImpl node) {
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
 

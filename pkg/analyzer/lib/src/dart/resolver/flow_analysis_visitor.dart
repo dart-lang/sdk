@@ -96,7 +96,7 @@ class FlowAnalysisHelper {
   final bool inferenceUpdate4Enabled;
 
   /// The current flow, when resolving a function body, or `null` otherwise.
-  FlowAnalysis<AstNode, Statement, Expression, PromotableElementImpl2,
+  FlowAnalysis<AstNode, StatementImpl, Expression, PromotableElementImpl2,
       SharedTypeView<DartType>>? flow;
 
   FlowAnalysisHelper(bool retainDataForTesting, FeatureSet featureSet,
@@ -177,8 +177,8 @@ class FlowAnalysisHelper {
           as AssignedVariablesForTesting<AstNode, PromotableElementImpl2>;
     }
     flow = isNonNullableByDefault
-        ? FlowAnalysis<AstNode, Statement, Expression, PromotableElementImpl2,
-            SharedTypeView<DartType>>(
+        ? FlowAnalysis<AstNode, StatementImpl, Expression,
+            PromotableElementImpl2, SharedTypeView<DartType>>(
             typeOperations,
             assignedVariables!,
             respectImplicitlyTypedVarInitializers:
@@ -186,8 +186,8 @@ class FlowAnalysisHelper {
             fieldPromotionEnabled: fieldPromotionEnabled,
             inferenceUpdate4Enabled: inferenceUpdate4Enabled,
           )
-        : FlowAnalysis<AstNode, Statement, Expression, PromotableElementImpl2,
-                SharedTypeView<DartType>>.legacy(
+        : FlowAnalysis<AstNode, StatementImpl, Expression,
+                PromotableElementImpl2, SharedTypeView<DartType>>.legacy(
             typeOperations, assignedVariables!);
   }
 
@@ -258,7 +258,7 @@ class FlowAnalysisHelper {
   }
 
   void for_bodyBegin(AstNode node, Expression? condition) {
-    flow?.for_bodyBegin(node is Statement ? node : null, condition);
+    flow?.for_bodyBegin(node is StatementImpl ? node : null, condition);
   }
 
   void for_conditionBegin(AstNode node) {
@@ -309,7 +309,7 @@ class FlowAnalysisHelper {
     );
   }
 
-  void labeledStatement_enter(LabeledStatement node) {
+  void labeledStatement_enter(LabeledStatementImpl node) {
     if (flow == null) return;
 
     flow!.labeledStatement_begin(node);
@@ -372,18 +372,22 @@ class FlowAnalysisHelper {
   /// not specify a label), so the default enclosing target is returned.
   ///
   /// [isBreak] is `true` for `break`, and `false` for `continue`.
-  static Statement? getLabelTarget(AstNode? node, Element? element,
+  static StatementImpl? getLabelTarget(AstNode? node, Element? element,
       {required bool isBreak}) {
     for (; node != null; node = node.parent) {
       if (element == null) {
-        if (node is DoStatement ||
-            node is ForStatement ||
-            (isBreak && node is SwitchStatement) ||
-            node is WhileStatement) {
-          return node as Statement;
+        switch (node) {
+          case DoStatementImpl():
+            return node;
+          case ForStatementImpl():
+            return node;
+          case SwitchStatementImpl() when isBreak:
+            return node;
+          case WhileStatementImpl():
+            return node;
         }
       } else {
-        if (node is LabeledStatement) {
+        if (node is LabeledStatementImpl) {
           if (_hasLabel(node.labels, element)) {
             var statement = node.statement;
             // The inner statement is returned for labeled loops and
@@ -399,7 +403,7 @@ class FlowAnalysisHelper {
             return statement;
           }
         }
-        if (node is SwitchStatement) {
+        if (node is SwitchStatementImpl) {
           for (var member in node.members) {
             if (_hasLabel(member.labels, element)) {
               return node;

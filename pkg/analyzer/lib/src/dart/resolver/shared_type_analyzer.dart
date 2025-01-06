@@ -23,7 +23,7 @@ class SharedTypeAnalyzerErrors
     implements
         shared.TypeAnalyzerErrors<
             AstNode,
-            Statement,
+            StatementImpl,
             Expression,
             PromotableElementImpl2,
             SharedTypeView<DartType>,
@@ -238,7 +238,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   void switchCaseCompletesNormally(
-      {required covariant SwitchStatement node, required int caseIndex}) {
+      {required covariant SwitchStatementImpl node, required int caseIndex}) {
     _errorReporter.atToken(
       node.members[caseIndex].keyword,
       CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
