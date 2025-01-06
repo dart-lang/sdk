@@ -1424,7 +1424,7 @@ abstract class JoinPatternVariableFragment implements PatternVariableFragment {
   @override
   JoinPatternVariableElement2 get element;
 
-  /// Whether the [variables] are consistent.
+  /// Whether the [variables2] are consistent.
   ///
   /// The variables are consistent if they are present in all branches, and have
   /// the same type and finality.
@@ -1796,7 +1796,7 @@ abstract class LocalFunctionElement
   LocalFunctionFragment get firstFragment;
 }
 
-/// The portion of a [LocalFunctionElement2] contributed by a single
+/// The portion of a [LocalFunctionElement] contributed by a single
 /// declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.

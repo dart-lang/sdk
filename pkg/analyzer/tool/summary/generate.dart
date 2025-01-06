@@ -210,7 +210,7 @@ class _BuilderGenerator extends _BaseGenerator {
 
   void _generateCollectApiSignature() {
     out();
-    out('/// Accumulate non-[informative] data into [signature].');
+    out('/// Accumulate non-informative data into [signatureSink].');
     out('void collectApiSignature(api_sig.ApiSignature signatureSink) {');
 
     void writeField(idl_model.FieldDeclaration field) {
@@ -368,7 +368,7 @@ class _BuilderGenerator extends _BaseGenerator {
 
   void _generateFlushInformative() {
     out();
-    out('/// Flush [informative] data recursively.');
+    out('/// Flush informative data recursively.');
     out('void flushInformative() {');
 
     void writeField(String name, idl_model.FieldType type, bool isInformative) {

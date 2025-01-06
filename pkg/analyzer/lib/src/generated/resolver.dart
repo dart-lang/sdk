@@ -4424,9 +4424,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return true;
   }
 
-  /// Report [CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS] or one of
-  /// its derivatives at the specified [token], considering the name of the
-  /// [nameNode].
+  /// Reports [CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR] or
+  /// [CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL] at the
+  /// specified [token], considering the name of the [nameNode].
   static void _reportNotEnoughPositionalArguments(
       {required Token token,
       required int requiredParameterCount,

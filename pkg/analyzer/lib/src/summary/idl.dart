@@ -105,13 +105,13 @@ abstract class AnalysisDriverResolvedUnit extends base.SummaryClass {
 /// Information about a subtype of one or more classes.
 abstract class AnalysisDriverSubtype extends base.SummaryClass {
   /// The names of defined instance members.
-  /// They are indexes into [AnalysisDriverUnitError.strings] list.
+  /// They are indexes into [AnalysisDriverUnitIndex.strings] list.
   /// The list is sorted in ascending order.
   @Id(1)
   List<int> get members;
 
   /// The name of the class.
-  /// It is an index into [AnalysisDriverUnitError.strings] list.
+  /// It is an index into [AnalysisDriverUnitIndex.strings] list.
   @Id(0)
   int get name;
 }
@@ -364,7 +364,7 @@ enum IndexRelationKind {
   IS_WRITTEN_BY,
 }
 
-/// When we need to reference a synthetic element in [PackageIndex] we use a
+/// When we need to reference a synthetic element in PackageIndex we use a
 /// value of this enum to specify which kind of the synthetic element we
 /// actually reference.
 enum IndexSyntheticElementKind {

@@ -401,7 +401,7 @@ class ManifestValidator {
   /// [source].
   ManifestValidator(this.source);
 
-  /// Validate the [contents] of the Android Manifest file.
+  /// Validate the [content] of the Android Manifest file.
   List<AnalysisError> validate(String content, bool checkManifest) {
     // TODO(srawlins): Simplify [checkManifest] notion. Why call the method if
     //  the caller always knows whether it should just return empty?

@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/src/error/best_practices_verifier.dart';
+library;
+
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -54,9 +57,6 @@ mixin ErrorDetectionHelpers {
 
   /// Verify that the given [argument] can be assigned to its corresponding
   /// parameter.
-  ///
-  /// This method corresponds to
-  /// [BestPracticesVerifier.checkForArgumentTypeNotAssignableForArgument].
   ///
   /// See [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void checkForArgumentTypeNotAssignableForArgument(Expression argument,
@@ -291,9 +291,9 @@ mixin ErrorDetectionHelpers {
   }
 
   /// Computes the appropriate set of context messages to report along with an
-  /// error that may have occurred because [expression] was not type promoted.
+  /// error that may have occurred because an expression was not type promoted.
   ///
-  /// If [expression] is `null`, it means the expression that was not type
+  /// If the expression is `null`, it means the expression that was not type
   /// promoted was an implicit `this`.
   ///
   /// [errorEntity] is the entity whose location will be associated with the

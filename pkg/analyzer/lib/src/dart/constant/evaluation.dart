@@ -1351,9 +1351,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   /// Builds a list constant by adding the evaluated entries of [elements] to
   /// the given [list].
   ///
-  /// The [typeSystem], [listType], and [elementType] are used to create a valid
-  /// constant. We return an [InvalidConstant] if the evaluation of any of the
-  /// elements failed.
+  /// The [typeSystem] and [listType] are used to create a valid constant. We
+  /// return an [InvalidConstant] if the evaluation of any of the elements
+  /// failed.
   Constant _buildListConstant(
     List<DartObjectImpl> list,
     List<CollectionElement> elements,
