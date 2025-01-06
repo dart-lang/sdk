@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Utility methods for computing dominators of an arbitrary graph.
-library vm_snapshot_analysis.src.dominators;
+library;
 
 import 'dart:math' as math;
 
