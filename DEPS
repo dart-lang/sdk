@@ -135,7 +135,7 @@ vars = {
   "ecosystem_rev": "efe4ee4af6ac2e4c90aa525fae213b65c97295a9",
   "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
   "glob_rev": "eee18d1a577d5f965f6afbbd251798e065dced43",
-  "http_rev": "dada989f4c30a618b6b707da23215802a8c6c085",
+  "http_rev": "6ecd13a88b82c2fdc8a555f218bafb0ad0370f51",
   "http_multi_server_rev": "2b84a4500460d1f3848e54b47169bdf8c504dded",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
@@ -146,7 +146,7 @@ vars = {
   "native_rev": "0f9cb0bea17cdd39bacc498e36d687d6baddd0a3", # disable tools/rev_sdk_deps.dart
   "package_config_rev": "07097d7ae60d40b34ce8daabdce318ecc168b7d1",
   "pool_rev": "bf27900420ba382b6e5c0484ab3c79daad703dcd",
-  "protobuf_rev": "da7279c56734cffed4deb1e3a6f93bdcefccf6b8",
+  "protobuf_rev": "b7dd58cdbd879beee4c3fbf8ee80fce8e97bad26",
   "pub_rev": "58de642dc1d07601f6eb2b4ecd94555c0210106b", # disable tools/rev_sdk_deps.dart
   "pub_semver_rev": "960f91309e325ae037e5f1434acb77b83a12d91e",
   "shelf_rev": "2b5b683e78f5cc84e479a43297fd7b5489d7db02",
