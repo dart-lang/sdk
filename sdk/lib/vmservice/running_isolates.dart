@@ -130,6 +130,22 @@ final class _ResidentCompilerInfo {
 
 /// Class that knows how to orchestrate expression evaluation in dart2 world.
 class _Evaluator {
+  static const _successString = 'success';
+  static const _compileExpressionString = 'compileExpression';
+  static const _isolateIdString = 'isolateId';
+  static const _expressionString = 'expression';
+  static const _definitionsString = 'definitions';
+  static const _definitionTypesString = 'definitionTypes';
+  static const _typeDefinitionsString = 'typeDefinitions';
+  static const _typeBoundsString = 'typeBounds';
+  static const _typeDefaultsString = 'typeDefaults';
+  static const _libraryUriString = 'libraryUri';
+  static const _tokenPosString = 'tokenPos';
+  static const _isStaticString = 'isStatic';
+  static const _scriptUriString = 'scriptUri';
+  static const _methodString = 'method';
+  static const _rootLibraryUriString = 'rootLibraryUri';
+
   _Evaluator(this._message, this._isolate, this._service);
 
   Future<Response> run() async {
@@ -232,7 +248,7 @@ class _Evaluator {
       jsonResponse = jsonDecode(data);
     } catch (e) {
       jsonResponse = <String, dynamic>{
-        'success': false,
+        _successString: false,
         'errorMessage': e.toString(),
       };
     }
@@ -248,36 +264,36 @@ class _Evaluator {
     Map<String, dynamic> buildScopeResponseResult,
   ) async {
     Client? externalClient = _service._findFirstClientThatHandlesService(
-      'compileExpression',
+      _compileExpressionString,
     );
 
     final compileParams = <String, dynamic>{
-      'isolateId': _message.params['isolateId']!,
-      'expression': _message.params['expression']!,
-      'definitions': buildScopeResponseResult['param_names']!,
-      'definitionTypes': buildScopeResponseResult['param_types']!,
-      'typeDefinitions': buildScopeResponseResult['type_params_names']!,
-      'typeBounds': buildScopeResponseResult['type_params_bounds']!,
-      'typeDefaults': buildScopeResponseResult['type_params_defaults']!,
-      'libraryUri': buildScopeResponseResult['libraryUri']!,
-      'tokenPos': buildScopeResponseResult['tokenPos']!,
-      'isStatic': buildScopeResponseResult['isStatic']!,
+      _isolateIdString: _message.params[_isolateIdString]!,
+      _expressionString: _message.params[_expressionString]!,
+      _definitionsString: buildScopeResponseResult['param_names']!,
+      _definitionTypesString: buildScopeResponseResult['param_types']!,
+      _typeDefinitionsString: buildScopeResponseResult['type_params_names']!,
+      _typeBoundsString: buildScopeResponseResult['type_params_bounds']!,
+      _typeDefaultsString: buildScopeResponseResult['type_params_defaults']!,
+      _libraryUriString: buildScopeResponseResult[_libraryUriString]!,
+      _tokenPosString: buildScopeResponseResult[_tokenPosString]!,
+      _isStaticString: buildScopeResponseResult[_isStaticString]!,
     };
     final klass = buildScopeResponseResult['klass'];
     if (klass != null) {
       compileParams['klass'] = klass;
     }
-    final scriptUri = buildScopeResponseResult['scriptUri'];
+    final scriptUri = buildScopeResponseResult[_scriptUriString];
     if (scriptUri != null) {
-      compileParams['scriptUri'] = scriptUri;
+      compileParams[_scriptUriString] = scriptUri;
     }
-    final method = buildScopeResponseResult['method'];
+    final method = buildScopeResponseResult[_methodString];
     if (method != null) {
-      compileParams['method'] = method;
+      compileParams[_methodString] = method;
     }
     if (externalClient != null) {
       // Let the external client handle expression compilation.
-      final compileExpression = Message.forMethod('compileExpression');
+      final compileExpression = Message.forMethod(_compileExpressionString);
       compileExpression.client = externalClient;
       compileExpression.params.addAll(compileParams);
 
@@ -295,7 +311,7 @@ class _Evaluator {
         Response.json(
           compileExpression.forwardToJson({
             'id': id,
-            'method': 'compileExpression',
+            _methodString: _compileExpressionString,
           }),
         ),
       );
@@ -311,25 +327,26 @@ class _Evaluator {
       final response =
           await _sendRequestToResidentFrontendCompilerAndRecieveResponse(
             jsonEncode({
-              'command': 'compileExpression',
-              'expression': compileParams['expression'],
-              'definitions': compileParams['definitions'],
-              'definitionTypes': compileParams['definitionTypes'],
-              'typeDefinitions': compileParams['typeDefinitions'],
-              'typeBounds': compileParams['typeBounds'],
-              'typeDefaults': compileParams['typeDefaults'],
-              'libraryUri': compileParams['libraryUri'],
-              'offset': compileParams['tokenPos'],
-              'isStatic': compileParams['isStatic'],
+              'command': _compileExpressionString,
+              _expressionString: compileParams[_expressionString],
+              _definitionsString: compileParams[_definitionsString],
+              _definitionTypesString: compileParams[_definitionTypesString],
+              _typeDefinitionsString: compileParams[_typeDefinitionsString],
+              _typeBoundsString: compileParams[_typeBoundsString],
+              _typeDefaultsString: compileParams[_typeDefaultsString],
+              _libraryUriString: compileParams[_libraryUriString],
+              'offset': compileParams[_tokenPosString],
+              _isStaticString: compileParams[_isStaticString],
               'class': compileParams['klass'],
-              'scriptUri': compileParams['scriptUri'],
-              'method': compileParams['method'],
-              'rootLibraryUri': buildScopeResponseResult['rootLibraryUri'],
+              _scriptUriString: compileParams[_scriptUriString],
+              _methodString: compileParams[_methodString],
+              _rootLibraryUriString:
+                  buildScopeResponseResult[_rootLibraryUriString],
             }),
             VMServiceEmbedderHooks.getResidentCompilerInfoFile!()!,
           );
 
-      if (response['success'] == true) {
+      if (response[_successString] == true) {
         return response['kernelBytes'];
       } else if (response['errorMessage'] != null) {
         throw _CompileExpressionErrorDetails(response['errorMessage']);
