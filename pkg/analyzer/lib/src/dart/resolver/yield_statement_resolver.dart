@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
@@ -29,7 +29,7 @@ class YieldStatementResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(YieldStatement node) {
+  void resolve(YieldStatementImpl node) {
     var bodyContext = _resolver.bodyContext;
     if (bodyContext != null && bodyContext.isGenerator) {
       _resolve_generator(bodyContext, node);
@@ -162,7 +162,7 @@ class YieldStatementResolver {
 
   void _resolve_generator(
     BodyInferenceContext bodyContext,
-    YieldStatement node,
+    YieldStatementImpl node,
   ) {
     _resolver.analyzeExpression(node.expression,
         SharedTypeSchemaView(_computeContextType(bodyContext, node)));
@@ -182,7 +182,7 @@ class YieldStatementResolver {
     _checkForUseOfVoidResult(node.expression);
   }
 
-  void _resolve_notGenerator(YieldStatement node) {
+  void _resolve_notGenerator(YieldStatementImpl node) {
     _resolver.analyzeExpression(
         node.expression, _resolver.operations.unknownType);
     _resolver.popRewrite();

@@ -96,7 +96,7 @@ class FlowAnalysisHelper {
   final bool inferenceUpdate4Enabled;
 
   /// The current flow, when resolving a function body, or `null` otherwise.
-  FlowAnalysis<AstNode, StatementImpl, Expression, PromotableElementImpl2,
+  FlowAnalysis<AstNode, StatementImpl, ExpressionImpl, PromotableElementImpl2,
       SharedTypeView<DartType>>? flow;
 
   FlowAnalysisHelper(bool retainDataForTesting, FeatureSet featureSet,
@@ -126,7 +126,7 @@ class FlowAnalysisHelper {
     return _LocalVariableTypeProvider(this);
   }
 
-  void asExpression(AsExpression node) {
+  void asExpression(AsExpressionImpl node) {
     if (flow == null) return;
 
     var expression = node.expression;
@@ -136,7 +136,7 @@ class FlowAnalysisHelper {
         expression, SharedTypeView(typeAnnotation.typeOrThrow));
   }
 
-  void assignmentExpression(AssignmentExpression node) {
+  void assignmentExpression(AssignmentExpressionImpl node) {
     if (flow == null) return;
 
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
@@ -177,7 +177,7 @@ class FlowAnalysisHelper {
           as AssignedVariablesForTesting<AstNode, PromotableElementImpl2>;
     }
     flow = isNonNullableByDefault
-        ? FlowAnalysis<AstNode, StatementImpl, Expression,
+        ? FlowAnalysis<AstNode, StatementImpl, ExpressionImpl,
             PromotableElementImpl2, SharedTypeView<DartType>>(
             typeOperations,
             assignedVariables!,
@@ -186,7 +186,7 @@ class FlowAnalysisHelper {
             fieldPromotionEnabled: fieldPromotionEnabled,
             inferenceUpdate4Enabled: inferenceUpdate4Enabled,
           )
-        : FlowAnalysis<AstNode, StatementImpl, Expression,
+        : FlowAnalysis<AstNode, StatementImpl, ExpressionImpl,
                 PromotableElementImpl2, SharedTypeView<DartType>>.legacy(
             typeOperations, assignedVariables!);
   }
@@ -257,7 +257,7 @@ class FlowAnalysisHelper {
     }
   }
 
-  void for_bodyBegin(AstNode node, Expression? condition) {
+  void for_bodyBegin(AstNode node, ExpressionImpl? condition) {
     flow?.for_bodyBegin(node is StatementImpl ? node : null, condition);
   }
 
@@ -295,7 +295,7 @@ class FlowAnalysisHelper {
     return isUnassigned;
   }
 
-  void isExpression(IsExpression node) {
+  void isExpression(IsExpressionImpl node) {
     if (flow == null) return;
 
     var expression = node.expression;
@@ -1198,7 +1198,7 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   _LocalVariableTypeProvider(this._manager);
 
   @override
-  DartType getType(SimpleIdentifier node, {required bool isRead}) {
+  DartType getType(SimpleIdentifierImpl node, {required bool isRead}) {
     var variable = node.element as VariableElement2;
     if (variable is PromotableElementImpl2) {
       var promotedType = isRead

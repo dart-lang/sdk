@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -60,7 +60,7 @@ class TypePropertyResolver {
   ///
   /// The [nameErrorEntity] is used to report an ambiguous extension issue.
   ResolutionResult resolve({
-    required Expression? receiver,
+    required ExpressionImpl? receiver,
     required DartType receiverType,
     required String name,
     required SyntacticEntity propertyErrorEntity,

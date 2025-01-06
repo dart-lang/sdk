@@ -406,9 +406,9 @@ class BinaryExpressionResolver {
     String methodName, {
     bool promoteLeftTypeToNonNull = false,
   }) {
-    Expression leftOperand = node.leftOperand;
+    ExpressionImpl leftOperand = node.leftOperand;
 
-    if (leftOperand is ExtensionOverride) {
+    if (leftOperand is ExtensionOverrideImpl) {
       var extension = leftOperand.element;
       var member = extension.getMethod(methodName);
       if (member == null) {

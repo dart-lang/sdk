@@ -24,7 +24,7 @@ class SharedTypeAnalyzerErrors
         shared.TypeAnalyzerErrors<
             AstNode,
             StatementImpl,
-            Expression,
+            ExpressionImpl,
             PromotableElementImpl2,
             SharedTypeView<DartType>,
             DartPattern,

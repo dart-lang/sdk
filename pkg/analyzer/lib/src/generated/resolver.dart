@@ -97,7 +97,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 /// By default, no files have inference logging enabled.
 bool Function(Source) inferenceLoggingPredicate = (_) => false;
 
-typedef SharedMatchContext = shared.MatchContext<AstNode, Expression,
+typedef SharedMatchContext = shared.MatchContext<AstNode, ExpressionImpl,
     DartPattern, SharedTypeView<DartType>, PromotableElementImpl2>;
 
 typedef SharedPatternField
@@ -124,7 +124,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             DartType,
             AstNode,
             StatementImpl,
-            Expression,
+            ExpressionImpl,
             PromotableElementImpl2,
             DartPattern,
             void,
@@ -132,7 +132,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             InterfaceTypeImpl,
             InterfaceElementImpl2>,
         // TODO(paulberry): not yet used.
-        NullShortingMixin<Null, Expression, SharedTypeView<DartType>> {
+        NullShortingMixin<Null, ExpressionImpl, SharedTypeView<DartType>> {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite], [pushRewrite], and [replaceExpression] will be printed.
   static const bool _debugRewriteStack = false;
@@ -437,7 +437,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ExecutableElement? get enclosingFunction => _enclosingFunction;
 
   @override
-  FlowAnalysis<AstNode, StatementImpl, Expression, PromotableElementImpl2,
+  FlowAnalysis<AstNode, StatementImpl, ExpressionImpl, PromotableElementImpl2,
       SharedTypeView<DartType>> get flow => flowAnalysis.flow!;
 
   bool get isConstructorTearoffsEnabled =>
@@ -478,7 +478,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   SharedTypeView<DartType> analyzeExpression(
-      Expression node, SharedTypeSchemaView<DartType> schema,
+      ExpressionImpl node, SharedTypeSchemaView<DartType> schema,
       {bool continueNullShorting = false}) {
     inferenceLogWriter?.setExpressionVisitCodePath(
         node, ExpressionVisitCodePath.analyzeExpression);
@@ -821,7 +821,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       // [ConstantPattern].  So we mimic what
       // [ConstantPatternImpl.resolvePattern] would do.
       analysisResult =
-          analyzeConstantPattern(context, node, node as Expression);
+          analyzeConstantPattern(context, node, node as ExpressionImpl);
       // Stack: (Expression)
       popRewrite();
       // Stack: ()
@@ -936,7 +936,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  shared.MapPatternEntry<Expression, DartPattern>? getMapPatternEntry(
+  shared.MapPatternEntry<ExpressionImpl, DartPattern>? getMapPatternEntry(
     covariant MapPatternElementImpl element,
   ) {
     if (element is MapPatternEntryImpl) {
@@ -977,7 +977,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SwitchExpressionMemberInfo<AstNode, Expression, PromotableElementImpl2>
+  SwitchExpressionMemberInfo<AstNode, ExpressionImpl, PromotableElementImpl2>
       getSwitchExpressionMemberInfo(
     covariant SwitchExpressionImpl node,
     int index,
@@ -995,12 +995,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SwitchStatementMemberInfo<AstNode, StatementImpl, Expression,
+  SwitchStatementMemberInfo<AstNode, StatementImpl, ExpressionImpl,
       PromotableElementImpl2> getSwitchStatementMemberInfo(
     covariant SwitchStatementImpl node,
     int index,
   ) {
-    CaseHeadOrDefaultInfo<AstNode, Expression, PromotableElementImpl2> ofMember(
+    CaseHeadOrDefaultInfo<AstNode, ExpressionImpl, PromotableElementImpl2>
+        ofMember(
       SwitchMemberImpl member,
     ) {
       if (member is SwitchCaseImpl) {
@@ -1427,7 +1428,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// Resolve LHS [node] of an assignment, an explicit [AssignmentExpression],
   /// or implicit [PrefixExpression] or [PostfixExpression].
   PropertyElementResolverResult resolveForWrite({
-    required Expression node,
+    required ExpressionImpl node,
     required bool hasRead,
   }) {
     inferenceLogWriter?.enterLValue(node);
@@ -1450,7 +1451,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
       inferenceLogWriter?.exitLValue(node);
       return PropertyElementResolverResult();
-    } else if (node is IndexExpression) {
+    } else if (node is IndexExpressionImpl) {
       var target = node.target;
       if (target != null) {
         analyzeExpression(
@@ -1506,7 +1507,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         hasRead: hasRead,
         hasWrite: true,
       );
-    } else if (node is PropertyAccess) {
+    } else if (node is PropertyAccessImpl) {
       if (node.target case var target?) {
         analyzeExpression(target, operations.unknownType);
         popRewrite();
@@ -1713,8 +1714,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       if (element is PropertyAccessorElement && element.isGetter) {
         readType = element.returnType;
       } else if (element is VariableElement) {
-        readType = localVariableTypeProvider.getType(node as SimpleIdentifier,
-            isRead: true);
+        readType = localVariableTypeProvider
+            .getType(node as SimpleIdentifierImpl, isRead: true);
       }
     }
 
@@ -1821,7 +1822,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitAdjacentStrings(AdjacentStrings node,
+  void visitAdjacentStrings(covariant AdjacentStringsImpl node,
       {DartType contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
@@ -1829,7 +1830,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       analyzeExpression(string, operations.unknownType);
       popRewrite();
     }
-    typeAnalyzer.visitAdjacentStrings(node as AdjacentStringsImpl);
+    typeAnalyzer.visitAdjacentStrings(node);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -1898,7 +1899,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitAssertInitializer(AssertInitializer node) {
+  void visitAssertInitializer(covariant AssertInitializerImpl node) {
     flowAnalysis.flow?.assert_begin();
     analyzeExpression(
         node.condition, SharedTypeSchemaView(typeProvider.boolType));
@@ -1917,7 +1918,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitAssertStatement(AssertStatement node) {
+  void visitAssertStatement(covariant AssertStatementImpl node) {
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     flowAnalysis.flow?.assert_begin();
@@ -2086,14 +2087,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitAwaitExpression(AwaitExpression node,
+  void visitAwaitExpression(covariant AwaitExpressionImpl node,
       {DartType contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     analyzeExpression(
         node.expression, SharedTypeSchemaView(_createFutureOr(contextType)));
     popRewrite();
-    typeAnalyzer.visitAwaitExpression(node as AwaitExpressionImpl);
+    typeAnalyzer.visitAwaitExpression(node);
     _insertImplicitCallReference(
         insertGenericFunctionInstantiation(node, contextType: contextType),
         contextType: contextType);
@@ -2137,13 +2138,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitBooleanLiteral(BooleanLiteral node,
+  void visitBooleanLiteral(covariant BooleanLiteralImpl node,
       {DartType contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     flowAnalysis.flow?.booleanLiteral(node, node.value);
     checkUnreachableNode(node);
     node.visitChildren(this);
-    typeAnalyzer.visitBooleanLiteral(node as BooleanLiteralImpl);
+    typeAnalyzer.visitBooleanLiteral(node);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -2271,11 +2272,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitConditionalExpression(ConditionalExpression node,
+  void visitConditionalExpression(covariant ConditionalExpressionImpl node,
       {DartType contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
-    Expression condition = node.condition;
+    ExpressionImpl condition = node.condition;
     var flow = flowAnalysis.flow;
     flow?.conditional_conditionBegin();
 
@@ -2294,7 +2295,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite();
     nullSafetyDeadCodeVerifier.flowEnd(node.thenExpression);
 
-    Expression elseExpression = node.elseExpression;
+    ExpressionImpl elseExpression = node.elseExpression;
 
     if (flow != null) {
       flow.conditional_elseBegin(
@@ -2306,8 +2307,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
     elseExpression = popRewrite()!;
 
-    typeAnalyzer.visitConditionalExpression(node as ConditionalExpressionImpl,
-        contextType: contextType);
+    typeAnalyzer.visitConditionalExpression(node, contextType: contextType);
     if (flow != null) {
       flow.conditional_end(node, SharedTypeView(node.typeOrThrow),
           elseExpression, SharedTypeView(elseExpression.typeOrThrow));
@@ -2646,7 +2646,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitExpressionStatement(ExpressionStatement node) {
+  void visitExpressionStatement(covariant ExpressionStatementImpl node) {
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     analyzeExpression(node.expression, operations.unknownType);
@@ -2995,7 +2995,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitImplicitCallReference(ImplicitCallReference node) {
+  void visitImplicitCallReference(covariant ImplicitCallReferenceImpl node) {
     checkUnreachableNode(node);
     analyzeExpression(
         node.expression, SharedTypeSchemaView(UnknownInferredType.instance));
@@ -3091,7 +3091,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitInterpolationExpression(InterpolationExpression node) {
+  void visitInterpolationExpression(
+      covariant InterpolationExpressionImpl node) {
     checkUnreachableNode(node);
     analyzeExpression(node.expression, operations.unknownType);
     popRewrite();
@@ -3153,7 +3154,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitMapLiteralEntry(MapLiteralEntry node,
+  void visitMapLiteralEntry(covariant MapLiteralEntryImpl node,
       {CollectionLiteralContext? context}) {
     inferenceLogWriter?.enterElement(node);
     checkUnreachableNode(node);
@@ -3296,14 +3297,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitNamedExpression(NamedExpression node,
+  void visitNamedExpression(covariant NamedExpressionImpl node,
       {DartType contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.name.accept(this);
     analyzeExpression(node.expression, SharedTypeSchemaView(contextType));
     popRewrite();
-    typeAnalyzer.visitNamedExpression(node as NamedExpressionImpl);
+    typeAnalyzer.visitNamedExpression(node);
     // Any "why not promoted" information that flow analysis had associated with
     // `node.expression` now needs to be forwarded to `node`, so that when
     // `visitArgumentList` iterates through the arguments, it will find it.
@@ -3327,7 +3328,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartType visitNativeFunctionBody(NativeFunctionBody node,
+  DartType visitNativeFunctionBody(covariant NativeFunctionBodyImpl node,
       {DartType? imposedType}) {
     checkUnreachableNode(node);
     if (node.stringLiteral case var stringLiteral?) {
@@ -3338,7 +3339,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitNullAwareElement(NullAwareElement node,
+  void visitNullAwareElement(covariant NullAwareElementImpl node,
       {CollectionLiteralContext? context}) {
     inferenceLogWriter?.enterElement(node);
 
@@ -3366,14 +3367,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitParenthesizedExpression(ParenthesizedExpression node,
+  void visitParenthesizedExpression(covariant ParenthesizedExpressionImpl node,
       {DartType contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     analyzeExpression(node.expression, SharedTypeSchemaView(contextType));
     popRewrite();
-    typeAnalyzer
-        .visitParenthesizedExpression(node as ParenthesizedExpressionImpl);
+    typeAnalyzer.visitParenthesizedExpression(node);
     flowAnalysis.flow?.parenthesizedExpression(node, node.expression);
     inferenceLogWriter?.exitExpression(node);
   }
@@ -3586,7 +3586,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitReturnStatement(ReturnStatement node) {
+  void visitReturnStatement(covariant ReturnStatementImpl node) {
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     var expression = node.expression;
@@ -3647,7 +3647,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitSpreadElement(SpreadElement node,
+  void visitSpreadElement(covariant SpreadElementImpl node,
       {CollectionLiteralContext? context}) {
     inferenceLogWriter?.enterElement(node);
     var iterableType = context?.iterableType;
@@ -3772,14 +3772,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitThrowExpression(ThrowExpression node,
+  void visitThrowExpression(covariant ThrowExpressionImpl node,
       {DartType contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     analyzeExpression(
         node.expression, SharedTypeSchemaView(typeProvider.objectType));
     popRewrite();
-    typeAnalyzer.visitThrowExpression(node as ThrowExpressionImpl);
+    typeAnalyzer.visitThrowExpression(node);
     flowAnalysis.flow?.handleExit();
     inferenceLogWriter?.exitExpression(node);
   }
@@ -3926,7 +3926,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
 
-    Expression condition = node.condition;
+    ExpressionImpl condition = node.condition;
 
     flowAnalysis.flow?.whileStatement_conditionBegin(node);
     analyzeExpression(condition, SharedTypeSchemaView(typeProvider.boolType));
@@ -3952,7 +3952,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitYieldStatement(YieldStatement node) {
+  void visitYieldStatement(covariant YieldStatementImpl node) {
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     _yieldStatementResolver.resolve(node);
@@ -4196,17 +4196,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// ordinary method invocation. So, we need to perform the same null shorting
   /// as for method invocations.
   void _resolveRewrittenFunctionExpressionInvocation(
-      FunctionExpressionInvocation node,
+      FunctionExpressionInvocationImpl node,
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
       {required DartType contextType}) {
     var function = node.function;
 
-    if (function is PropertyAccess && function.isNullAware) {
+    if (function is PropertyAccessImpl && function.isNullAware) {
       _startNullAwareAccess(function, function.target);
     }
 
-    _functionExpressionInvocationResolver.resolve(
-        node as FunctionExpressionInvocationImpl, whyNotPromotedArguments,
+    _functionExpressionInvocationResolver.resolve(node, whyNotPromotedArguments,
         contextType: contextType);
 
     nullShortingTermination(node);
@@ -4253,7 +4252,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return false;
   }
 
-  void _startNullAwareAccess(NullShortableExpression node, Expression? target) {
+  void _startNullAwareAccess(
+      NullShortableExpression node, ExpressionImpl? target) {
     var flow = flowAnalysis.flow;
     if (flow != null) {
       switch (target) {
@@ -4267,7 +4267,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           // `?.` to access static methods is equivalent to `.`, so do nothing.
           break;
         case ExtensionOverride(
-            argumentList: ArgumentList(arguments: [var expression])
+            argumentList: ArgumentListImpl(arguments: [var expression])
           ):
         case var expression:
           flow.nullAwareAccess_rightBegin(
