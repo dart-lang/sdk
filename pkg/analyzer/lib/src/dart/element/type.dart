@@ -234,9 +234,16 @@ class FunctionTypeImpl extends TypeImpl
       positionalParameterTypes.sublist(requiredPositionalParameterCount);
 
   @override
+  List<ParameterElementMixin> get sortedNamedParametersShared =>
+      sortedNamedParameters;
+
+  @override
   List<TypeParameterElement2> get typeParameters => typeFormals
       .map((fragment) => (fragment as TypeParameterFragment).element)
       .toList();
+
+  @override
+  List<TypeParameterElement> get typeParametersShared => typeFormals;
 
   @override
   bool operator ==(Object other) {
@@ -1463,6 +1470,9 @@ class RecordTypeNamedFieldImpl extends RecordTypeFieldImpl
     required this.name,
     required super.type,
   });
+
+  @override
+  String get nameShared => name;
 }
 
 class RecordTypePositionalFieldImpl extends RecordTypeFieldImpl

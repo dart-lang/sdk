@@ -9235,6 +9235,9 @@ mixin ParameterElementMixin
   bool get isRequiredPositional => parameterKind.isRequiredPositional;
 
   @override
+  String get nameShared => name;
+
+  @override
   // Overridden to remove the 'deprecated' annotation.
   ParameterKind get parameterKind;
 
