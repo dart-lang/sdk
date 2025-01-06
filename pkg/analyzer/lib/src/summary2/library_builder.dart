@@ -942,6 +942,7 @@ class LibraryBuilder with MacroApplicationsContainer {
       return _buildLibraryImport(
         containerUnit: containerUnit,
         state: state,
+        isDocLibraryImport: false,
       );
     }).toFixedList();
 
@@ -950,6 +951,14 @@ class LibraryBuilder with MacroApplicationsContainer {
         containerLibrary: element,
         containerUnit: containerUnit,
         state: partState,
+      );
+    }).toFixedList();
+
+    containerUnit.docLibraryImports = kind.docLibraryImports.map((state) {
+      return _buildLibraryImport(
+        containerUnit: containerUnit,
+        state: state,
+        isDocLibraryImport: true,
       );
     }).toFixedList();
   }
@@ -1027,12 +1036,14 @@ class LibraryBuilder with MacroApplicationsContainer {
   LibraryImportElementImpl _buildLibraryImport({
     required CompilationUnitElementImpl containerUnit,
     required LibraryImportState state,
+    required bool isDocLibraryImport,
   }) {
     var importPrefix = state.unlinked.prefix.mapOrNull((unlinked) {
       var prefix = _buildLibraryImportPrefix(
         nameOffset: unlinked.nameOffset,
         name: unlinked.name,
         containerUnit: containerUnit,
+        isDocLibraryImport: isDocLibraryImport,
       );
       if (unlinked.deferredOffset != null) {
         return DeferredImportElementPrefixImpl(
@@ -1050,6 +1061,7 @@ class LibraryBuilder with MacroApplicationsContainer {
         libraryFragment: containerUnit,
         unlinkedName: unlinked.name,
         isDeferred: unlinked.deferredOffset != null,
+        isDocLibraryImport: isDocLibraryImport,
       );
     });
 
@@ -1128,6 +1140,7 @@ class LibraryBuilder with MacroApplicationsContainer {
     required int nameOffset,
     required UnlinkedLibraryImportPrefixName? name,
     required CompilationUnitElementImpl containerUnit,
+    required bool isDocLibraryImport,
   }) {
     // TODO(scheglov): Make reference required.
     var containerRef = containerUnit.reference!;
@@ -1141,6 +1154,7 @@ class LibraryBuilder with MacroApplicationsContainer {
         name?.name ?? '',
         nameOffset,
         reference: reference,
+        isDocLibraryImport: isDocLibraryImport,
       );
       result.enclosingElement3 = containerUnit;
       return result;
@@ -1151,6 +1165,7 @@ class LibraryBuilder with MacroApplicationsContainer {
     required CompilationUnitElementImpl libraryFragment,
     required UnlinkedLibraryImportPrefixName? unlinkedName,
     required bool isDeferred,
+    required bool isDocLibraryImport,
   }) {
     var fragment = PrefixFragmentImpl(
       enclosingFragment: libraryFragment,
@@ -1168,6 +1183,7 @@ class LibraryBuilder with MacroApplicationsContainer {
       element = PrefixElementImpl2(
         reference: reference,
         firstFragment: fragment,
+        isDocLibraryImport: isDocLibraryImport,
       );
     } else {
       element.addFragment(fragment);

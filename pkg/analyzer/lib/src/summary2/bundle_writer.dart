@@ -725,6 +725,7 @@ class BundleWriter {
     // Write the metadata for parts here, even though we write parts below.
     // The reason is that resolution data must be in a single chunk.
     _writePartElementsMetadata(unitElement);
+    _writeList(unitElement.docLibraryImports, _writeImportElement);
 
     _writeList(unitElement.classes, _writeClassElement);
     _writeList(unitElement.enums, _writeEnumElement);

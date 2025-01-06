@@ -43,6 +43,7 @@ class AstResolver {
     _unitElement.library.typeProvider,
     _errorListener,
     nameScope: _nameScope,
+    unitElement: _unitElement,
   );
   late final _flowAnalysis = FlowAnalysisHelper(false, _featureSet,
       typeSystemOperations: TypeSystemOperations(

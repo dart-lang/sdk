@@ -436,6 +436,13 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
+  void _writeDocLibraryImport(LibraryImport e) {
+    _sink.writeIndentedLine(() {
+      _writeDirectiveUri(e.uri);
+      _writeImportElementPrefix((e as LibraryImportElementImpl).prefix2);
+    });
+  }
+
   void _writeDocumentation(String? documentation) {
     if (documentation != null) {
       var str = documentation;
@@ -1191,9 +1198,20 @@ class _Element2Writer extends _AbstractElementWriter {
           imports,
           _writeLibraryImport,
         );
+        _writeList(
+          'docLibraryImports',
+          f.docLibraryImports,
+          _writeDocLibraryImport,
+        );
       }
       _writeElementList(
           'prefixes', f.library2!, f.prefixes, _writePrefixElement);
+      _writeElementList(
+        'docLibraryImportPrefixes',
+        f.library2!,
+        f.docLibraryImportPrefixes,
+        _writePrefixElement,
+      );
       // _writeList(
       //     'libraryExports', f.libraryExports, _writeLibraryExportElement);
       // _writeList('parts', f.parts, _writePartElement);
@@ -2416,6 +2434,17 @@ class _ElementWriter extends _AbstractElementWriter {
     }
   }
 
+  void _writeDocLibraryImportElement(LibraryImportElementImpl e) {
+    _sink.writeIndentedLine(() {
+      _writeDirectiveUri(e.uri);
+      _writeImportElementPrefix(e.prefix);
+    });
+
+    _sink.withIndent(() {
+      _writeReference(e);
+    });
+  }
+
   void _writeDocumentation(Element element) {
     var documentation = element.documentationComment;
     if (documentation != null) {
@@ -3132,6 +3161,17 @@ class _ElementWriter extends _AbstractElementWriter {
     });
   }
 
+  /*void _writePrefixElement2(PrefixElementImpl2 e) {
+    _sink.writeIndentedLine(() {
+      _writeName2(e);
+    });
+
+    _sink.withIndent(() {
+      _writeReference(e);
+      _writeEnclosingElement(e);
+    });
+  }*/
+
   void _writePropertyAccessorElement(PropertyAccessorElement e) {
     e as PropertyAccessorElementImpl;
 
@@ -3443,10 +3483,20 @@ class _ElementWriter extends _AbstractElementWriter {
         return configuration.withSyntheticDartCoreImport || !import.isSynthetic;
       }).toList();
       _writeElements('libraryImports', imports, _writeLibraryImportElement);
+      _writeElements(
+        'docLibraryImports',
+        e.docLibraryImports,
+        _writeDocLibraryImportElement,
+      );
     }
     _writeElements(
       'libraryImportPrefixes',
       e.libraryImportPrefixes,
+      _writePrefixElement,
+    );
+    _writeElements(
+      'docLibraryImportPrefixes',
+      e.docLibraryImportPrefixes.map((e) => e.asElement).toList(),
       _writePrefixElement,
     );
     _writeElements(

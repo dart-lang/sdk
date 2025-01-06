@@ -18,6 +18,42 @@ main() {
 }
 
 abstract class LibraryImportElementTest extends ElementsBaseTest {
+  test_docImport_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', 'library a; class C {}');
+    var library = await buildLibrary('''
+/// @docImport "a.dart" as a;
+library;
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  documentationComment: /// @docImport "a.dart" as a;
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      docLibraryImports
+        package:test/a.dart as a @27
+      docLibraryImportPrefixes
+        a @27
+          reference: <testLibraryFragment>::@prefix::a
+          enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  documentationComment: /// @docImport "a.dart" as a;
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      docLibraryImports
+        package:test/a.dart as a @27
+      docLibraryImportPrefixes
+        <testLibraryFragment>::@prefix2::a
+          fragments: @27
+''');
+  }
+
   test_import_configurations_useDefault() async {
     declaredVariables = {
       'dart.library.io': 'false',
@@ -749,10 +785,6 @@ library
   test_import_prefixed() async {
     newFile('$testPackageLibPath/a.dart', 'library a; class C {}');
     var library = await buildLibrary('import "a.dart" as a; a.C c;');
-
-    var prefixElement =
-        library.definingCompilationUnit.libraryImports[0].prefix!.element;
-    expect(prefixElement.nameOffset, 19);
 
     checkElementText(library, r'''
 library

@@ -23,6 +23,57 @@ main() {
 }
 
 abstract class LibraryFragmentElementTest extends ElementsBaseTest {
+  test_docImports() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+/// @docImport 'dart:math';
+part of 'test.dart';
+''');
+
+    var library = await buildLibrary(r'''
+/// @docImport 'dart:io';
+library;
+
+part 'a.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  documentationComment: /// @docImport 'dart:io';
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      docLibraryImports
+        dart:io
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/a.dart
+      enclosingElement3: <testLibraryFragment>
+      docLibraryImports
+        dart:math
+----------------------------------------
+library
+  reference: <testLibrary>
+  documentationComment: /// @docImport 'dart:io';
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      docLibraryImports
+        dart:io
+    <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
+      previousFragment: <testLibraryFragment>
+      docLibraryImports
+        dart:math
+''');
+  }
+
   test_libraryExports() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
