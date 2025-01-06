@@ -64,7 +64,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
       var directives =
           importDirectives
               .whereNot((directive) => directive.uri.stringValue == uri)
-              .toSet();
+              .toList();
       producers.add(
         _ImportAddHide(name, uri, prefix, directives, context: thisContext),
       );
@@ -87,16 +87,17 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
   /// element, but it could be a parent unit if the conflicting element is
   /// a part file and the relevant imports are in an upstream file in the
   /// part hierarchy (enhanced parts).
-  (ResolvedUnitResult?, Set<ImportDirective>, Set<String>) _getImportDirectives(
+  (ResolvedUnitResult?, List<ImportDirective>, List<String>)
+  _getImportDirectives(
     ResolvedLibraryResult libraryResult,
     ResolvedUnitResult? unitResult,
     List<Element2> conflictingElements,
     String? prefix,
   ) {
     // The uris of all import directives that import the conflicting elements.
-    var uris = <String>{};
+    var uris = <String>[];
     // The import directives that import the conflicting elements.
-    var importDirectives = <ImportDirective>{};
+    var importDirectives = <ImportDirective>[];
 
     var name = conflictingElements.firstOrNull?.name3;
     if (name == null || name.isEmpty) {
@@ -145,7 +146,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
 }
 
 class _ImportAddHide extends ResolvedCorrectionProducer {
-  final Set<ImportDirective> importDirectives;
+  final List<ImportDirective> importDirectives;
   final String uri;
   final String? prefix;
   final String _elementName;
@@ -160,8 +161,9 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments {
@@ -218,7 +220,7 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
 }
 
 class _ImportRemoveShow extends ResolvedCorrectionProducer {
-  final Set<ImportDirective> importDirectives;
+  final List<ImportDirective> importDirectives;
   final String _elementName;
   final String uri;
   final String? prefix;
@@ -233,8 +235,9 @@ class _ImportRemoveShow extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments {

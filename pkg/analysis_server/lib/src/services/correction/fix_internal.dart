@@ -541,9 +541,7 @@ final _builtInNonLintMultiProducers = {
   CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE: [
     AddExtensionOverride.new,
   ],
-  CompileTimeErrorCode.AMBIGUOUS_IMPORT: [
-    AmbiguousImportFix.new,
-  ],
+  CompileTimeErrorCode.AMBIGUOUS_IMPORT: [AmbiguousImportFix.new],
   CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [DataDriven.new],
   CompileTimeErrorCode.CAST_TO_NON_TYPE: [
     DataDriven.new,
@@ -1102,8 +1100,8 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     //  updated so that only the appropriate subset is generated.
     QualifyReference.new,
   ],
-  CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE:
-      [
+  CompileTimeErrorCode
+      .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE: [
     // TODO(brianwilkerson): Consider adding fixes to create a field, getter,
     //  method or setter. The existing producers would need to be updated so
     //  that only the appropriate subset is generated.
