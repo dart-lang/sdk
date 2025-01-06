@@ -90,7 +90,7 @@ class FunctionTypeImpl extends TypeImpl
     implements
         FunctionType,
         SharedFunctionTypeStructure<DartType, TypeParameterElementImpl2,
-            ParameterElementMixin> {
+            FormalParameterElementOrMember> {
   @override
   late int hashCode = _computeHashCode();
 
@@ -234,8 +234,13 @@ class FunctionTypeImpl extends TypeImpl
       positionalParameterTypes.sublist(requiredPositionalParameterCount);
 
   @override
-  List<ParameterElementMixin> get sortedNamedParametersShared =>
-      sortedNamedParameters;
+  // TODO(paulberry): see if this type can be changed to
+  // `List<FormalParameterElementImpl>`. See
+  // https://dart-review.googlesource.com/c/sdk/+/402341/comment/b1669e20_15938fcd/.
+  List<FormalParameterElementOrMember> get sortedNamedParametersShared =>
+      sortedNamedParameters
+          .map((p) => p.asElement2 as FormalParameterElementOrMember)
+          .toList();
 
   @override
   List<TypeParameterElementImpl2> get typeParameters => typeFormals
