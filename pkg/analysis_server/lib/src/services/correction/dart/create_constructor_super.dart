@@ -67,7 +67,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
     var buffer = StringBuffer();
     buffer.write('super');
     var constructorName = _constructor.name3;
-    if (libraryElement2.featureSet.isEnabled(Feature.super_parameters)) {
+    if (isEnabled(Feature.super_parameters)) {
       if (constructorName != null && constructorName != 'new') {
         buffer.write('.');
         buffer.write(constructorName);
@@ -90,7 +90,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (libraryElement2.featureSet.isEnabled(Feature.super_parameters)) {
+    if (isEnabled(Feature.super_parameters)) {
       await _computeWithSuperParameters(builder);
     } else {
       await _computeWithoutSuperParameters(builder);
