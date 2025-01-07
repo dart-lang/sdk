@@ -58,22 +58,16 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
     }
 
     if (newTypeParameters.isNotEmpty) {
-      List<StructuralParameterType> aTypeParameterTypes =
-          new List<StructuralParameterType>.generate(newTypeParameters.length,
-              (int i) {
-        return new StructuralParameterType.forAlphaRenaming(
-            a.typeParameters[i], newTypeParameters[i]);
-      }, growable: false);
-      aInstantiator =
-          FunctionTypeInstantiator.fromInstantiation(a, aTypeParameterTypes);
-      List<StructuralParameterType> bTypeParameterTypes =
-          new List<StructuralParameterType>.generate(newTypeParameters.length,
-              (int i) {
-        return new StructuralParameterType.forAlphaRenaming(
-            b.typeParameters[i], newTypeParameters[i]);
-      }, growable: false);
-      bInstantiator =
-          FunctionTypeInstantiator.fromInstantiation(b, bTypeParameterTypes);
+      aInstantiator = FunctionTypeInstantiator.fromInstantiation(a, [
+        for (int i = 0; i < newTypeParameters.length; i++)
+          new StructuralParameterType(newTypeParameters[i],
+              a.typeParameters[i].computeNullabilityFromBound())
+      ]);
+      bInstantiator = FunctionTypeInstantiator.fromInstantiation(b, [
+        for (int i = 0; i < newTypeParameters.length; i++)
+          new StructuralParameterType(newTypeParameters[i],
+              b.typeParameters[i].computeNullabilityFromBound())
+      ]);
 
       for (int i = 0; i < newTypeParameters.length; i++) {
         DartType? newBound =

@@ -22,12 +22,12 @@ typedef SharedPatternField
 class SharedTypeAnalyzerErrors
     implements
         shared.TypeAnalyzerErrors<
-            AstNode,
-            Statement,
-            Expression,
+            AstNodeImpl,
+            StatementImpl,
+            ExpressionImpl,
             PromotableElementImpl2,
             SharedTypeView<DartType>,
-            DartPattern,
+            DartPatternImpl,
             void> {
   final ErrorReporter _errorReporter;
 
@@ -238,7 +238,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   void switchCaseCompletesNormally(
-      {required covariant SwitchStatement node, required int caseIndex}) {
+      {required covariant SwitchStatementImpl node, required int caseIndex}) {
     _errorReporter.atToken(
       node.members[caseIndex].keyword,
       CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,

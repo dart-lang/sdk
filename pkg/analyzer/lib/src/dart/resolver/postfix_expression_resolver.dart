@@ -124,7 +124,7 @@ class PostfixExpressionResolver {
   }
 
   void _resolve1(PostfixExpressionImpl node, DartType receiverType) {
-    Expression operand = node.operand;
+    ExpressionImpl operand = node.operand;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
       _resolver.errorReporter.atNode(

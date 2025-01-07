@@ -81,10 +81,10 @@ class ExtensionMemberResolver {
   /// that defines the member with the given [name].
   ///
   /// If no applicable extensions are found, returns
-  /// [ExtensionResolutionResult.none].
+  /// [ExtensionResolutionError.none].
   ///
   /// If the match is ambiguous, reports an error on the [nameEntity], and
-  /// returns [ExtensionResolutionResult.ambiguous].
+  /// returns [ExtensionResolutionError.ambiguous].
   ExtensionResolutionResult findExtension(
       DartType type, SyntacticEntity nameEntity, Name name) {
     var extensions = _resolver.libraryFragment.accessibleExtensions

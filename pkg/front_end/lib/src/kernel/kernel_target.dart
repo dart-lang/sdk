@@ -1366,9 +1366,8 @@ class KernelTarget {
     List<DartType> typeParameterTypes = <DartType>[];
     for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
       TypeParameter typeParameter = enclosingClass.typeParameters[i];
-      typeParameterTypes.add(
-          new TypeParameterType.withDefaultNullabilityForLibrary(
-              typeParameter, enclosingClass.enclosingLibrary));
+      typeParameterTypes
+          .add(new TypeParameterType.withDefaultNullability(typeParameter));
     }
     return new InterfaceType(enclosingClass,
         enclosingClass.enclosingLibrary.nonNullable, typeParameterTypes);

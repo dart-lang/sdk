@@ -77,7 +77,7 @@ class FlowAnalysisHelper {
   final TypeSystemOperations typeOperations;
 
   /// Precomputed sets of potentially assigned variables.
-  AssignedVariables<AstNode, PromotableElementImpl2>? assignedVariables;
+  AssignedVariables<AstNodeImpl, PromotableElementImpl2>? assignedVariables;
 
   /// The result for post-resolution stages of analysis, for testing only.
   final FlowAnalysisDataForTesting? dataForTesting;
@@ -96,8 +96,8 @@ class FlowAnalysisHelper {
   final bool inferenceUpdate4Enabled;
 
   /// The current flow, when resolving a function body, or `null` otherwise.
-  FlowAnalysis<AstNode, Statement, Expression, PromotableElementImpl2,
-      SharedTypeView<DartType>>? flow;
+  FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,
+      PromotableElementImpl2, SharedTypeView<DartType>>? flow;
 
   FlowAnalysisHelper(bool retainDataForTesting, FeatureSet featureSet,
       {required TypeSystemOperations typeSystemOperations})
@@ -126,7 +126,7 @@ class FlowAnalysisHelper {
     return _LocalVariableTypeProvider(this);
   }
 
-  void asExpression(AsExpression node) {
+  void asExpression(AsExpressionImpl node) {
     if (flow == null) return;
 
     var expression = node.expression;
@@ -136,7 +136,7 @@ class FlowAnalysisHelper {
         expression, SharedTypeView(typeAnnotation.typeOrThrow));
   }
 
-  void assignmentExpression(AssignmentExpression node) {
+  void assignmentExpression(AssignmentExpressionImpl node) {
     if (flow == null) return;
 
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
@@ -174,11 +174,11 @@ class FlowAnalysisHelper {
         retainDataForTesting: dataForTesting != null, visit: visit);
     if (dataForTesting != null) {
       dataForTesting!.assignedVariables[node] = assignedVariables
-          as AssignedVariablesForTesting<AstNode, PromotableElementImpl2>;
+          as AssignedVariablesForTesting<AstNodeImpl, PromotableElementImpl2>;
     }
     flow = isNonNullableByDefault
-        ? FlowAnalysis<AstNode, Statement, Expression, PromotableElementImpl2,
-            SharedTypeView<DartType>>(
+        ? FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,
+            PromotableElementImpl2, SharedTypeView<DartType>>(
             typeOperations,
             assignedVariables!,
             respectImplicitlyTypedVarInitializers:
@@ -186,8 +186,8 @@ class FlowAnalysisHelper {
             fieldPromotionEnabled: fieldPromotionEnabled,
             inferenceUpdate4Enabled: inferenceUpdate4Enabled,
           )
-        : FlowAnalysis<AstNode, Statement, Expression, PromotableElementImpl2,
-                SharedTypeView<DartType>>.legacy(
+        : FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,
+                PromotableElementImpl2, SharedTypeView<DartType>>.legacy(
             typeOperations, assignedVariables!);
   }
 
@@ -228,7 +228,7 @@ class FlowAnalysisHelper {
   }
 
   void executableDeclaration_enter(
-      AstNode node, FormalParameterList? parameters,
+      AstNodeImpl node, FormalParameterList? parameters,
       {required bool isClosure}) {
     if (isClosure) {
       flow!.functionExpression_begin(node);
@@ -257,11 +257,11 @@ class FlowAnalysisHelper {
     }
   }
 
-  void for_bodyBegin(AstNode node, Expression? condition) {
-    flow?.for_bodyBegin(node is Statement ? node : null, condition);
+  void for_bodyBegin(AstNode node, ExpressionImpl? condition) {
+    flow?.for_bodyBegin(node is StatementImpl ? node : null, condition);
   }
 
-  void for_conditionBegin(AstNode node) {
+  void for_conditionBegin(AstNodeImpl node) {
     flow?.for_conditionBegin(node);
   }
 
@@ -295,7 +295,7 @@ class FlowAnalysisHelper {
     return isUnassigned;
   }
 
-  void isExpression(IsExpression node) {
+  void isExpression(IsExpressionImpl node) {
     if (flow == null) return;
 
     var expression = node.expression;
@@ -309,7 +309,7 @@ class FlowAnalysisHelper {
     );
   }
 
-  void labeledStatement_enter(LabeledStatement node) {
+  void labeledStatement_enter(LabeledStatementImpl node) {
     if (flow == null) return;
 
     flow!.labeledStatement_begin(node);
@@ -348,11 +348,11 @@ class FlowAnalysisHelper {
   }
 
   /// Computes the [AssignedVariables] map for the given [node].
-  static AssignedVariables<AstNode, PromotableElementImpl2>
+  static AssignedVariables<AstNodeImpl, PromotableElementImpl2>
       computeAssignedVariables(AstNode node, FormalParameterList? parameters,
           {bool retainDataForTesting = false,
           void Function(AstVisitor<Object?> visitor)? visit}) {
-    AssignedVariables<AstNode, PromotableElementImpl2> assignedVariables =
+    AssignedVariables<AstNodeImpl, PromotableElementImpl2> assignedVariables =
         retainDataForTesting
             ? AssignedVariablesForTesting()
             : AssignedVariables();
@@ -372,18 +372,22 @@ class FlowAnalysisHelper {
   /// not specify a label), so the default enclosing target is returned.
   ///
   /// [isBreak] is `true` for `break`, and `false` for `continue`.
-  static Statement? getLabelTarget(AstNode? node, Element? element,
+  static StatementImpl? getLabelTarget(AstNode? node, Element? element,
       {required bool isBreak}) {
     for (; node != null; node = node.parent) {
       if (element == null) {
-        if (node is DoStatement ||
-            node is ForStatement ||
-            (isBreak && node is SwitchStatement) ||
-            node is WhileStatement) {
-          return node as Statement;
+        switch (node) {
+          case DoStatementImpl():
+            return node;
+          case ForStatementImpl():
+            return node;
+          case SwitchStatementImpl() when isBreak:
+            return node;
+          case WhileStatementImpl():
+            return node;
         }
       } else {
-        if (node is LabeledStatement) {
+        if (node is LabeledStatementImpl) {
           if (_hasLabel(node.labels, element)) {
             var statement = node.statement;
             // The inner statement is returned for labeled loops and
@@ -399,7 +403,7 @@ class FlowAnalysisHelper {
             return statement;
           }
         }
-        if (node is SwitchStatement) {
+        if (node is SwitchStatementImpl) {
           for (var member in node.members) {
             if (_hasLabel(member.labels, element)) {
               return node;
@@ -424,10 +428,14 @@ class FlowAnalysisHelper {
 class TypeSystemOperations
     with
         TypeAnalyzerOperationsMixin<DartType, PromotableElementImpl2,
-            TypeParameterElementImpl2, InterfaceType, InterfaceElementImpl2>
+            TypeParameterElementImpl2, InterfaceTypeImpl, InterfaceElementImpl2>
     implements
-        TypeAnalyzerOperations<DartType, PromotableElementImpl2,
-            TypeParameterElementImpl2, InterfaceType, InterfaceElementImpl2> {
+        TypeAnalyzerOperations<
+            DartType,
+            PromotableElementImpl2,
+            TypeParameterElementImpl2,
+            InterfaceTypeImpl,
+            InterfaceElementImpl2> {
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
 
@@ -738,8 +746,8 @@ class TypeSystemOperations
   }
 
   @override
-  TypeDeclarationMatchResult<InterfaceType, InterfaceElementImpl2, DartType>?
-      matchTypeDeclarationTypeInternal(DartType type) {
+  TypeDeclarationMatchResult<InterfaceTypeImpl, InterfaceElementImpl2,
+      DartType>? matchTypeDeclarationTypeInternal(DartType type) {
     if (isInterfaceTypeInternal(type)) {
       InterfaceTypeImpl interfaceType = type as InterfaceTypeImpl;
       return TypeDeclarationMatchResult(
@@ -1190,7 +1198,7 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   _LocalVariableTypeProvider(this._manager);
 
   @override
-  DartType getType(SimpleIdentifier node, {required bool isRead}) {
+  DartType getType(SimpleIdentifierImpl node, {required bool isRead}) {
     var variable = node.element as VariableElement2;
     if (variable is PromotableElementImpl2) {
       var promotedType = isRead

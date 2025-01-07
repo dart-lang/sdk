@@ -153,9 +153,9 @@ class PrefixExpressionResolver {
     TokenType operatorType = operator.type;
     if (operatorType.isUserDefinableOperator ||
         operatorType.isIncrementOperator) {
-      Expression operand = node.operand;
+      ExpressionImpl operand = node.operand;
       String methodName = _getPrefixOperator(node);
-      if (operand is ExtensionOverride) {
+      if (operand is ExtensionOverrideImpl) {
         var element = operand.element;
         var member = element.getMethod(methodName);
         if (member == null) {

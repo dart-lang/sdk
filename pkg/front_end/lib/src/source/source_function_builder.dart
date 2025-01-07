@@ -355,12 +355,10 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
             parent as SourceExtensionTypeDeclarationBuilder;
         List<DartType> typeArguments;
         if (_thisTypeParameters != null) {
-          typeArguments = new List<DartType>.generate(
-              _thisTypeParameters!.length,
-              (int index) => new TypeParameterType(
-                  _thisTypeParameters![index],
-                  TypeParameterType.computeNullabilityFromBound(
-                      _thisTypeParameters![index])));
+          typeArguments = [
+            for (TypeParameter parameter in _thisTypeParameters!)
+              new TypeParameterType.withDefaultNullability(parameter)
+          ];
         } else {
           typeArguments = [];
         }

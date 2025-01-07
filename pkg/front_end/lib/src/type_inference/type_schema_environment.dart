@@ -281,8 +281,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       for (int i = 0; i < helperTypeParameters.length; ++i) {
         if (inferredTypes[i] is UnknownType) {
           inferredSubstitution[helperTypeParameters[i]] =
-              new TypeParameterType.forAlphaRenaming(
-                  helperTypeParameters[i], helperTypeParameters[i]);
+              new TypeParameterType.withDefaultNullability(
+                  helperTypeParameters[i]);
         } else {
           assert(isKnown(inferredTypes[i]));
           inferredSubstitution[helperTypeParameters[i]] = inferredTypes[i];

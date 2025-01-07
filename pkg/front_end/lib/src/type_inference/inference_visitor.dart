@@ -8560,8 +8560,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.target.enclosingClass.typeParameters;
     List<DartType> typeArguments = new List<DartType>.generate(
         classTypeParameters.length,
-        (int i) => new TypeParameterType.withDefaultNullabilityForLibrary(
-            classTypeParameters[i], libraryBuilder.library),
+        (int i) => new TypeParameterType.withDefaultNullability(
+            classTypeParameters[i]),
         growable: false);
     // The redirecting initializer syntax doesn't include type arguments passed
     // to the target constructor but we need to add them to the arguments before
@@ -8593,8 +8593,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         constructorDeclaration!.function.typeParameters;
     List<DartType> typeArguments = new List<DartType>.generate(
         constructorTypeParameters.length,
-        (int i) => new TypeParameterType.withDefaultNullabilityForLibrary(
-            constructorTypeParameters[i], libraryBuilder.library),
+        (int i) => new TypeParameterType.withDefaultNullability(
+            constructorTypeParameters[i]),
         growable: false);
     // The redirecting initializer syntax doesn't include type arguments passed
     // to the target constructor but we need to add them to the arguments before

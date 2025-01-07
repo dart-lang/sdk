@@ -524,18 +524,18 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     HSubExpressionBlockInformation expressionInfo = info;
     SubGraph limits = expressionInfo.subExpression!;
 
-    // Start assuming that we can generate declarations. If we find a
-    // counter-example, we degrade our assumption to either expression or
-    // statement, and in the latter case, we can return immediately since
-    // it can't get any worse. E.g., a function call where the return value
-    // isn't used can't be in a declaration.
+    // Start assuming that we can generate declarations for simple local
+    // variables. If we find a counter-example, we degrade our assumption to
+    // either expression or statement, and in the latter case, we can return
+    // immediately since it can't get any worse. E.g., a function call where the
+    // return value isn't used can't be in a declaration.
     var result = _ExpressionCodegenType.declaration;
     HBasicBlock basicBlock = limits.start;
     do {
       HInstruction current = basicBlock.first!;
       while (current != basicBlock.last) {
         // E.g, bounds check.
-        if (current.isControlFlow()) {
+        if (current.isJsStatement()) {
           return _ExpressionCodegenType.statement;
         }
         // HFieldSet generates code on the form "x.y = ...", which isn't valid

@@ -925,9 +925,8 @@ class DeclaredSourceConstructorBuilder
     List<DartType> typeParameterTypes = <DartType>[];
     for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
       TypeParameter typeParameter = enclosingClass.typeParameters[i];
-      typeParameterTypes.add(
-          new TypeParameterType.withDefaultNullabilityForLibrary(
-              typeParameter, libraryBuilder.library));
+      typeParameterTypes
+          .add(new TypeParameterType.withDefaultNullability(typeParameter));
     }
     InterfaceType type = new InterfaceType(
         enclosingClass, Nullability.nonNullable, typeParameterTypes);
@@ -1490,9 +1489,8 @@ class SourceExtensionTypeConstructorBuilder
     List<DartType> typeParameterTypes = <DartType>[];
     for (int i = 0; i < function.typeParameters.length; i++) {
       TypeParameter typeParameter = function.typeParameters[i];
-      typeParameterTypes.add(
-          new TypeParameterType.withDefaultNullabilityForLibrary(
-              typeParameter, libraryBuilder.library));
+      typeParameterTypes
+          .add(new TypeParameterType.withDefaultNullability(typeParameter));
     }
     ExtensionType type = new ExtensionType(
         extensionTypeDeclaration, Nullability.nonNullable, typeParameterTypes);
@@ -1581,10 +1579,8 @@ class SourceExtensionTypeConstructorBuilder
           declarationBuilder.extensionTypeDeclaration.typeParameters,
           new List<DartType>.generate(
               declarationBuilder.typeParameters!.length,
-              (int index) =>
-                  new TypeParameterType.withDefaultNullabilityForLibrary(
-                      function.typeParameters[index],
-                      libraryBuilder.origin.library)));
+              (int index) => new TypeParameterType.withDefaultNullability(
+                  function.typeParameters[index])));
     } else {
       _substitutionCache = Substitution.empty;
     }

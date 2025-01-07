@@ -99,12 +99,12 @@ class AnalysisDriverExceptionContextBuilder extends Object
         _path = path,
         _stackTrace = stackTrace;
 
-  /// Flush [informative] data recursively.
+  /// Flush informative data recursively.
   void flushInformative() {
     _files?.forEach((b) => b.flushInformative());
   }
 
-  /// Accumulate non-[informative] data into [signature].
+  /// Accumulate non-informative data into [signatureSink].
   void collectApiSignature(api_sig.ApiSignature signatureSink) {
     signatureSink.addString(this._path ?? '');
     signatureSink.addString(this._exception ?? '');
@@ -281,10 +281,10 @@ class AnalysisDriverExceptionFileBuilder extends Object
       : _content = content,
         _path = path;
 
-  /// Flush [informative] data recursively.
+  /// Flush informative data recursively.
   void flushInformative() {}
 
-  /// Accumulate non-[informative] data into [signature].
+  /// Accumulate non-informative data into [signatureSink].
   void collectApiSignature(api_sig.ApiSignature signatureSink) {
     signatureSink.addString(this._path ?? '');
     signatureSink.addString(this._content ?? '');
@@ -400,13 +400,13 @@ class AnalysisDriverResolvedUnitBuilder extends Object
       : _errors = errors,
         _index = index;
 
-  /// Flush [informative] data recursively.
+  /// Flush informative data recursively.
   void flushInformative() {
     _errors?.forEach((b) => b.flushInformative());
     _index?.flushInformative();
   }
 
-  /// Accumulate non-[informative] data into [signature].
+  /// Accumulate non-informative data into [signatureSink].
   void collectApiSignature(api_sig.ApiSignature signatureSink) {
     var errors = this._errors;
     if (errors == null) {
@@ -526,7 +526,7 @@ class AnalysisDriverSubtypeBuilder extends Object
   List<int> get members => _members ??= <int>[];
 
   /// The names of defined instance members.
-  /// They are indexes into [AnalysisDriverUnitError.strings] list.
+  /// They are indexes into [AnalysisDriverUnitIndex.strings] list.
   /// The list is sorted in ascending order.
   set members(List<int> value) {
     assert(value.every((e) => e >= 0));
@@ -537,7 +537,7 @@ class AnalysisDriverSubtypeBuilder extends Object
   int get name => _name ??= 0;
 
   /// The name of the class.
-  /// It is an index into [AnalysisDriverUnitError.strings] list.
+  /// It is an index into [AnalysisDriverUnitIndex.strings] list.
   set name(int value) {
     assert(value >= 0);
     this._name = value;
@@ -547,10 +547,10 @@ class AnalysisDriverSubtypeBuilder extends Object
       : _members = members,
         _name = name;
 
-  /// Flush [informative] data recursively.
+  /// Flush informative data recursively.
   void flushInformative() {}
 
-  /// Accumulate non-[informative] data into [signature].
+  /// Accumulate non-informative data into [signatureSink].
   void collectApiSignature(api_sig.ApiSignature signatureSink) {
     signatureSink.addInt(this._name ?? 0);
     var members = this._members;
@@ -711,12 +711,12 @@ class AnalysisDriverUnitErrorBuilder extends Object
         _offset = offset,
         _uniqueName = uniqueName;
 
-  /// Flush [informative] data recursively.
+  /// Flush informative data recursively.
   void flushInformative() {
     _contextMessages?.forEach((b) => b.flushInformative());
   }
 
-  /// Accumulate non-[informative] data into [signature].
+  /// Accumulate non-informative data into [signatureSink].
   void collectApiSignature(api_sig.ApiSignature signatureSink) {
     signatureSink.addInt(this._offset ?? 0);
     signatureSink.addInt(this._length ?? 0);
@@ -1172,12 +1172,12 @@ class AnalysisDriverUnitIndexBuilder extends Object
         _usedNameOffsets = usedNameOffsets,
         _usedNames = usedNames;
 
-  /// Flush [informative] data recursively.
+  /// Flush informative data recursively.
   void flushInformative() {
     _subtypes?.forEach((b) => b.flushInformative());
   }
 
-  /// Accumulate non-[informative] data into [signature].
+  /// Accumulate non-informative data into [signatureSink].
   void collectApiSignature(api_sig.ApiSignature signatureSink) {
     var strings = this._strings;
     if (strings == null) {
@@ -1868,12 +1868,12 @@ class CiderUnitErrorsBuilder extends Object
   CiderUnitErrorsBuilder({List<AnalysisDriverUnitErrorBuilder>? errors})
       : _errors = errors;
 
-  /// Flush [informative] data recursively.
+  /// Flush informative data recursively.
   void flushInformative() {
     _errors?.forEach((b) => b.flushInformative());
   }
 
-  /// Accumulate non-[informative] data into [signature].
+  /// Accumulate non-informative data into [signatureSink].
   void collectApiSignature(api_sig.ApiSignature signatureSink) {
     var errors = this._errors;
     if (errors == null) {
@@ -2021,10 +2021,10 @@ class DiagnosticMessageBuilder extends Object
         _offset = offset,
         _url = url;
 
-  /// Flush [informative] data recursively.
+  /// Flush informative data recursively.
   void flushInformative() {}
 
-  /// Accumulate non-[informative] data into [signature].
+  /// Accumulate non-informative data into [signatureSink].
   void collectApiSignature(api_sig.ApiSignature signatureSink) {
     signatureSink.addString(this._filePath ?? '');
     signatureSink.addInt(this._length ?? 0);

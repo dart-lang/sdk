@@ -60,7 +60,7 @@ class SinceSdkVersionComputer {
         }
       }
     }
-    return null;
+    return result;
   }
 
   /// Returns the parsed [Version], or `null` if wrong format.

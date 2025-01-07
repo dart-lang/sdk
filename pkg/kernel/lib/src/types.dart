@@ -230,8 +230,8 @@ class Types with StandardBounds {
             result = result.and(performNullabilityAwareMutualSubtypesCheck(
                 sTypeVariable.bound, tTypeVariable.bound));
             typeVariableSubstitution.add(
-                new StructuralParameterType.forAlphaRenaming(
-                    sTypeVariable, tTypeVariable));
+                new StructuralParameterType.withDefaultNullability(
+                    tTypeVariable));
           }
           FunctionTypeInstantiator instantiator =
               FunctionTypeInstantiator.fromIterables(

@@ -1498,14 +1498,14 @@ class SourceClassBuilder extends ClassBuilderImpl
       } else if (declaredFunction.typeParameters.length == 1) {
         substitution = Substitution.fromSingleton(
             interfaceFunction.typeParameters[0],
-            new TypeParameterType.forAlphaRenaming(interfaceTypeParameters[0],
+            new TypeParameterType.withDefaultNullability(
                 declaredFunction.typeParameters[0]));
       } else {
         Map<TypeParameter, DartType> substitutionMap =
             <TypeParameter, DartType>{};
         for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
           substitutionMap[interfaceFunction.typeParameters[i]] =
-              new TypeParameterType.forAlphaRenaming(interfaceTypeParameters[i],
+              new TypeParameterType.withDefaultNullability(
                   declaredFunction.typeParameters[i]);
         }
         substitution = Substitution.fromMap(substitutionMap);

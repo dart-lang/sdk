@@ -122,8 +122,8 @@ abstract class SourceFactory {
   ///         there is no such SDK
   DartSdk? get dartSdk;
 
-  /// A table mapping package names to paths of directories containing
-  /// the package (or [null] if there is no registered package URI resolver).
+  /// A table mapping package names to paths of directories containing the
+  /// package (or `null` if there is no registered package URI resolver).
   Map<String, List<Folder>>? get packageMap;
 
   /// Return a source object representing the given absolute URI, or `null` if

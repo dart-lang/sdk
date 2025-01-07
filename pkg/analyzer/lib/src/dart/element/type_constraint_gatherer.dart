@@ -37,7 +37,7 @@ typedef MergedTypeConstraint = shared.MergedTypeConstraint<
     DartType,
     TypeParameterElementImpl2,
     PromotableElementImpl2,
-    InterfaceType,
+    InterfaceTypeImpl,
     InterfaceElementImpl2>;
 
 /// Instance of [shared.TypeConstraintFromArgument] specific to the Analyzer.
@@ -45,13 +45,13 @@ typedef TypeConstraintFromArgument = shared.TypeConstraintFromArgument<
     DartType,
     PromotableElementImpl2,
     TypeParameterElementImpl2,
-    InterfaceType,
+    InterfaceTypeImpl,
     InterfaceElementImpl2>;
 
 /// Instance of [shared.TypeConstraintFromExtendsClause] specific to the Analyzer.
 typedef TypeConstraintFromExtendsClause
     = shared.TypeConstraintFromExtendsClause<DartType, PromotableElementImpl2,
-        TypeParameterElementImpl2, InterfaceType, InterfaceElementImpl2>;
+        TypeParameterElementImpl2, InterfaceTypeImpl, InterfaceElementImpl2>;
 
 /// Instance of [shared.TypeConstraintFromFunctionContext] specific to the Analyzer.
 typedef TypeConstraintFromFunctionContext
@@ -61,7 +61,7 @@ typedef TypeConstraintFromFunctionContext
         DartType,
         PromotableElementImpl2,
         TypeParameterElementImpl2,
-        InterfaceType,
+        InterfaceTypeImpl,
         InterfaceElementImpl2>;
 
 /// Instance of [shared.TypeConstraintFromReturnType] specific to the Analyzer.
@@ -71,7 +71,7 @@ typedef TypeConstraintFromReturnType = shared.TypeConstraintFromReturnType<
     DartType,
     PromotableElementImpl2,
     TypeParameterElementImpl2,
-    InterfaceType,
+    InterfaceTypeImpl,
     InterfaceElementImpl2>;
 
 /// Instance of [shared.TypeConstraintOrigin] specific to the Analyzer.
@@ -79,7 +79,7 @@ typedef TypeConstraintOrigin = shared.TypeConstraintOrigin<
     DartType,
     PromotableElementImpl2,
     TypeParameterElementImpl2,
-    InterfaceType,
+    InterfaceTypeImpl,
     InterfaceElementImpl2>;
 
 /// Instance of [shared.UnknownTypeConstraintOrigin] specific to the Analyzer.
@@ -87,7 +87,7 @@ typedef UnknownTypeConstraintOrigin = shared.UnknownTypeConstraintOrigin<
     DartType,
     PromotableElementImpl2,
     TypeParameterElementImpl2,
-    InterfaceType,
+    InterfaceTypeImpl,
     InterfaceElementImpl2>;
 
 /// Creates sets of [GeneratedTypeConstraint]s for type parameters, based on an
@@ -97,7 +97,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         FormalParameterElementOrMember,
         PromotableElementImpl2,
         TypeParameterElementImpl2,
-        InterfaceType,
+        InterfaceTypeImpl,
         InterfaceElementImpl2,
         AstNode>
     with
@@ -106,7 +106,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
             FormalParameterElementOrMember,
             PromotableElementImpl2,
             TypeParameterElementImpl2,
-            InterfaceType,
+            InterfaceTypeImpl,
             InterfaceElementImpl2,
             AstNode> {
   @override

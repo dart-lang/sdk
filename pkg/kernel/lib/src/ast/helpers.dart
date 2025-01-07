@@ -310,7 +310,7 @@ List<DartType> getAsTypeArguments(
   if (typeParameters.isEmpty) return const <DartType>[];
   return new List<DartType>.generate(
       typeParameters.length,
-      (int i) => new TypeParameterType.withDefaultNullabilityForLibrary(
-          typeParameters[i], library),
+      (int i) => new TypeParameterType.withDefaultNullability(
+          typeParameters[i]),
       growable: false);
 }

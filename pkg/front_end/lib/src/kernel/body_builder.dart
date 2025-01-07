@@ -1421,8 +1421,8 @@ class BodyBuilder extends StackListenerImpl
   RedirectionTarget _getRedirectionTarget(Procedure factory) {
     List<DartType> typeArguments = new List<DartType>.generate(
         factory.function.typeParameters.length, (int i) {
-      return new TypeParameterType.withDefaultNullabilityForLibrary(
-          factory.function.typeParameters[i], factory.enclosingLibrary);
+      return new TypeParameterType.withDefaultNullability(
+          factory.function.typeParameters[i]);
     }, growable: true);
 
     // Cyclic factories are detected earlier, so we're guaranteed to

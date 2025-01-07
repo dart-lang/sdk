@@ -157,12 +157,11 @@ class BuilderMixinInferrer {
     }
     // Bounds might mention the mixin class's type parameters so we have to
     // substitute them before calling instantiate to bounds.
-    Substitution substitution = Substitution.fromPairs(
-        mixinClass.typeParameters,
-        new List<DartType>.generate(
-            parameters.length,
-            (i) => new TypeParameterType.forAlphaRenaming(
-                mixinClass.typeParameters[i], parameters[i])));
+    Substitution substitution =
+        Substitution.fromPairs(mixinClass.typeParameters, [
+      for (TypeParameter parameter in parameters)
+        new TypeParameterType.withDefaultNullability(parameter)
+    ]);
     for (TypeParameter p in parameters) {
       p.bound = substitution.substituteType(p.bound);
     }

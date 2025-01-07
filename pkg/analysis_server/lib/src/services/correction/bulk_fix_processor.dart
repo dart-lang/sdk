@@ -534,8 +534,9 @@ class BulkFixProcessor {
           }
         }
         if (resolvedLibrary is ResolvedLibraryResult) {
-          await _fixErrorsInLibrary(
+          await _fixErrorsInLibraryAt(
             resolvedLibrary,
+            path: path,
             stopAfterFirst: stopAfterFirst,
           );
           if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
@@ -591,12 +592,14 @@ class BulkFixProcessor {
 
   /// Uses the change [builder] to create fixes for the diagnostics in the
   /// library associated with the analysis [libraryResult].
-  Future<void> _fixErrorsInLibrary(
+  Future<void> _fixErrorsInLibraryAt(
     ResolvedLibraryResult libraryResult, {
+    required String path,
     bool stopAfterFirst = false,
     bool autoTriggered = false,
   }) async {
-    for (var unitResult in libraryResult.units) {
+    var unitResult = libraryResult.unitWithPath(path);
+    if (unitResult != null) {
       await _fixErrorsInLibraryUnit(
         libraryResult,
         unitResult,

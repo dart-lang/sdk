@@ -169,7 +169,7 @@ class BlazeFileWatcherIsolate {
 
   Future<void> get hasFinished => _hasFinished.future;
 
-  void handleRequest(dynamic request) async {
+  void handleRequest(dynamic request) {
     if (request is BlazeWatcherStartWatching) {
       var workspaceData = _perWorkspaceData[request.workspace];
       if (workspaceData == null) {

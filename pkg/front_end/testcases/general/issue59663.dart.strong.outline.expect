@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object? = dynamic> extends core::Object {
+  covariant-by-class field <Y extends self::A::X% = dynamic>(Y%) → dynamic foo;
+  constructor •(<Y extends self::A::X% = dynamic>(Y%) → dynamic foo) → self::A<self::A::X%>
+    ;
+}
+static method bar<T extends core::num>(self::bar::T t) → dynamic
+  ;
+static method main() → dynamic
+  ;

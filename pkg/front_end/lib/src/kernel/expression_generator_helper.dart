@@ -215,16 +215,15 @@ bool isProperRenameForTypeDeclaration(
   }
   for (int i = 0; i < fromParameters.length; ++i) {
     if (typeArguments[i] !=
-        new TypeParameterType.withDefaultNullabilityForLibrary(
-            fromParameters[i], typedefLibrary)) {
+        new TypeParameterType.withDefaultNullability(fromParameters[i])) {
       return false;
     }
   }
 
   Map<TypeParameter, DartType> substitutionMap = {};
   for (int i = 0; i < fromParameters.length; ++i) {
-    substitutionMap[fromParameters[i]] = new TypeParameterType.forAlphaRenaming(
-        fromParameters[i], toParameters[i]);
+    substitutionMap[fromParameters[i]] =
+        new TypeParameterType.withDefaultNullability(toParameters[i]);
   }
   Substitution substitution = Substitution.fromMap(substitutionMap);
   for (int i = 0; i < fromParameters.length; ++i) {

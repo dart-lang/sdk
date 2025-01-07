@@ -1757,6 +1757,12 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
+  static const LintCode unnecessary_underscores = LinterLintCode(
+    LintNames.unnecessary_underscores,
+    "Unnecessary use of multiple underscores.",
+    correctionMessage: "Try using '_'.",
+  );
+
   static const LintCode unreachable_from_main = LinterLintCode(
     LintNames.unreachable_from_main,
     "Unreachable member '{0}' in an executable library.",

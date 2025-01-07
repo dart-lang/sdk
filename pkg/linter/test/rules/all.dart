@@ -286,6 +286,7 @@ import 'unnecessary_string_interpolations_test.dart'
 import 'unnecessary_this_test.dart' as unnecessary_this;
 import 'unnecessary_to_list_in_spreads_test.dart'
     as unnecessary_to_list_in_spreads;
+import 'unnecessary_underscores_test.dart' as unnecessary_underscores;
 import 'unreachable_from_main_test.dart' as unreachable_from_main;
 import 'unrelated_type_equality_checks_test.dart'
     as unrelated_type_equality_checks;
@@ -358,8 +359,8 @@ void main() {
   avoid_relative_lib_imports.main();
   avoid_renaming_method_parameters.main();
   avoid_return_types_on_setters.main();
-  avoid_returning_null.main();
   avoid_returning_null_for_void.main();
+  avoid_returning_null.main();
   avoid_returning_this.main();
   avoid_setters_without_getters.main();
   avoid_shadowing_type_parameters.main();
@@ -530,6 +531,7 @@ void main() {
   unnecessary_string_interpolations.main();
   unnecessary_this.main();
   unnecessary_to_list_in_spreads.main();
+  unnecessary_underscores.main();
   unreachable_from_main.main();
   unrelated_type_equality_checks.main();
   unsafe_variance.main();

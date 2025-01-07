@@ -120,15 +120,15 @@ class ForResolver {
     return iteratedType.typeArguments.single;
   }
 
-  void _forEachParts(AstNode node, bool isAsync, ForEachParts forEachParts,
-      void Function() visitBody) {
-    Expression iterable = forEachParts.iterable;
+  void _forEachParts(AstNodeImpl node, bool isAsync,
+      ForEachPartsImpl forEachParts, void Function() visitBody) {
+    ExpressionImpl iterable = forEachParts.iterable;
     DeclaredIdentifierImpl? loopVariable;
-    SimpleIdentifier? identifier;
+    SimpleIdentifierImpl? identifier;
     Element2? identifierElement;
     if (forEachParts is ForEachPartsWithDeclarationImpl) {
       loopVariable = forEachParts.loopVariable;
-    } else if (forEachParts is ForEachPartsWithIdentifier) {
+    } else if (forEachParts is ForEachPartsWithIdentifierImpl) {
       identifier = forEachParts.identifier;
       // TODO(scheglov): replace with lexical lookup
       inferenceLogWriter?.setExpressionVisitCodePath(
@@ -199,16 +199,17 @@ class ForResolver {
     _resolver.flowAnalysis.flow?.forEach_end();
   }
 
-  void _forParts(AstNode node, ForParts forParts, void Function() visitBody) {
-    if (forParts is ForPartsWithDeclarations) {
+  void _forParts(
+      AstNodeImpl node, ForPartsImpl forParts, void Function() visitBody) {
+    if (forParts is ForPartsWithDeclarationsImpl) {
       forParts.variables.accept(_resolver);
-    } else if (forParts is ForPartsWithExpression) {
+    } else if (forParts is ForPartsWithExpressionImpl) {
       if (forParts.initialization case var initialization?) {
         _resolver.analyzeExpression(
             initialization, _resolver.operations.unknownType);
         _resolver.popRewrite();
       }
-    } else if (forParts is ForPartsWithPattern) {
+    } else if (forParts is ForPartsWithPatternImpl) {
       forParts.variables.accept(_resolver);
     } else {
       throw StateError('Unrecognized for loop parts');

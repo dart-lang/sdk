@@ -2455,6 +2455,8 @@ LintCode.unnecessary_this:
   status: hasFix
 LintCode.unnecessary_to_list_in_spreads:
   status: hasFix
+LintCode.unnecessary_underscores:
+  status: needsFix  
 LintCode.unreachable_from_main:
   status: hasFix
 LintCode.unrelated_type_equality_checks_in_expression:

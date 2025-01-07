@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: implementation_imports
-
-library front_end.test.src.multi_root_file_system.dart;
+// ignore_for_file: implementation_import
 
 import 'dart:async';
 
@@ -41,7 +39,8 @@ main() {
 
   setUp(() {
     memoryFs = MemoryFileSystem(root);
-    final rootUris = ['r1', 'r2/', 'A/B/', ''].map((r) => root.resolve(r)).toList();
+    final rootUris =
+        ['r1', 'r2/', 'A/B/', ''].map((r) => root.resolve(r)).toList();
     multiRoot = MultiRootFileSystem('multi-root', rootUris, memoryFs);
   });
 

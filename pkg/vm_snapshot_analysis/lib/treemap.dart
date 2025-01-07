@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Helper for building a treemap out of AOT snapshot size dump.
-library vm_snapshot_analysis.treemap;
+library;
 
 import 'dart:math';
 

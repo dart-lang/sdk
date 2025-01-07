@@ -38,17 +38,10 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, Variance> {
 
     FunctionTypeInstantiator? instantiator;
     if (newTypeParameters != null) {
-      List<DartType> typeParameterTypes =
-          new List<DartType>.generate(newTypeParameters.length, (int i) {
-        // Note that we don't use [StructuralParameterType.forAlphaRenaming]
-        // here. The bound of the new [StructuralParameter] may have changed,
-        // which means that replacing old variables with the new ones is not
-        // simply a matter of parameter identity, but has semantic meaning.
-        return new StructuralParameterType(
-            newTypeParameters![i],
-            StructuralParameterType.computeNullabilityFromBound(
-                newTypeParameters[i]));
-      }, growable: false);
+      List<DartType> typeParameterTypes = [
+        for (StructuralParameter parameter in newTypeParameters)
+          new StructuralParameterType.withDefaultNullability(parameter)
+      ];
       instantiator =
           FunctionTypeInstantiator.fromInstantiation(node, typeParameterTypes);
       for (int i = 0; i < newTypeParameters.length; i++) {

@@ -99,10 +99,10 @@ class AstResolver {
   }
 
   void resolveExpression(
-    Expression Function() getNode, {
+    ExpressionImpl Function() getNode, {
     DartType contextType = UnknownInferredType.instance,
   }) {
-    Expression node = getNode();
+    ExpressionImpl node = getNode();
     node.accept(_resolutionVisitor);
     // Node may have been rewritten so get it again.
     node = getNode();

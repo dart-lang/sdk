@@ -1397,9 +1397,8 @@ class GenericInterfacesInfoImpl implements GenericInterfacesInfo {
     final cached = useCache ? cachedFlattenedTypeArgs[klass] : null;
     if (cached != null) return cached;
 
-    final flattenedTypeArguments = List<DartType>.from(klass.typeParameters.map(
-        (t) => new TypeParameterType(
-            t, TypeParameterType.computeNullabilityFromBound(t))));
+    final flattenedTypeArguments = List<DartType>.from(klass.typeParameters
+        .map((t) => new TypeParameterType.withDefaultNullability(t)));
 
     for (final Supertype intf in hierarchy.genericSupertypesOf(klass)) {
       int offset = findOverlap(flattenedTypeArguments, intf.typeArguments);
