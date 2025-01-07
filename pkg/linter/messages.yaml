@@ -13005,6 +13005,49 @@ LintCode:
         ...['foo', 'bar', 'baz'].map((String s) => Text(s)),
       ]
       ```
+  unnecessary_underscores:
+    problemMessage: "Unnecessary use of multiple underscores."
+    correctionMessage: "Try using '_'."
+    state:
+      experimental: "3.7"
+    categories: [brevity, style]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an unused variable is named
+      with mutiple underscores (for example `__`). A single `_` wildcard variable
+      can be used instead.
+
+      #### Example
+
+      The following code produces this diagnostic because the `__` parameter is unused:
+
+      ```dart
+      void function(int [!__!]) { }
+      ```
+
+      #### Common fixes
+
+      Replace the name with a single underscore:
+
+      ```dart
+      void function(int _) { }
+      ```
+    deprecatedDetails: |-
+      **AVOID** using multiple underscores when a single wildcard will do.
+
+      **BAD:**
+      ```dart
+      void function(int __) { }
+      ```
+
+      **GOOD:**
+      ```dart
+      void function(int _) { }
+      ```
+
+
   unreachable_from_main:
     problemMessage: "Unreachable member '{0}' in an executable library."
     correctionMessage: "Try referencing the member or removing it."

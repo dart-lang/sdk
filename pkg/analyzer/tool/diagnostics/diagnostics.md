@@ -29211,6 +29211,32 @@ List<String> toLowercase(List<String> strings) {
 }
 ```
 
+### unnecessary_underscores
+
+_Unnecessary use of multiple underscores._
+
+#### Description
+
+The analyzer produces this diagnostic when an unused variable is named
+with mutiple underscores (for example `__`). A single `_` wildcard variable
+can be used instead.
+
+#### Example
+
+The following code produces this diagnostic because the `__` parameter is unused:
+
+```dart
+void function(int [!__!]) { }
+```
+
+#### Common fixes
+
+Replace the name with a single underscore:
+
+```dart
+void function(int _) { }
+```
+
 ### unrelated_type_equality_checks
 
 _The type of the operand ('{0}') isn't a subtype or a supertype of the value
