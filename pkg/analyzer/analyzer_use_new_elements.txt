@@ -165,7 +165,6 @@ test/src/dart/element/name_union_test.dart
 test/src/dart/element/normalize_type_test.dart
 test/src/dart/element/nullable_test.dart
 test/src/dart/element/runtime_type_equality_test.dart
-test/src/dart/element/string_types.dart
 test/src/dart/element/subtype_test.dart
 test/src/dart/element/top_merge_test.dart
 test/src/dart/element/type_algebra_test.dart
