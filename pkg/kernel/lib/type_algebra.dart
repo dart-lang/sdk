@@ -305,6 +305,28 @@ FreshStructuralParameters? getFreshStructuralParametersSubstitutingBounds(
       parameterBoundsHaveChanged = true;
     }
 
+    freshTypeParameter.variance =
+        typeParameter.isLegacyCovariant ? null : typeParameter.variance;
+    // Annotations on a type parameter are specific to the declaration of the
+    // type parameter, rather than the type parameter as such, and therefore
+    // should not be copied here.
+  }
+
+  if (parameterBoundsHaveChanged) {
+    // Since the bounds have changed, the nullabilities of fresh structural
+    // parameter types should be updated.
+    freshTypeArguments = [
+      for (int i = 0; i < freshParameters.length; i++)
+        new StructuralParameterType.withDefaultNullability(freshParameters[i])
+    ];
+    instantiator = FunctionTypeInstantiator.fromIterables(
+        typeParameters, freshTypeArguments);
+  }
+
+  for (int i = 0; i < typeParameters.length; ++i) {
+    StructuralParameter typeParameter = typeParameters[i];
+    StructuralParameter freshTypeParameter = freshParameters[i];
+
     // TODO(cstefantsova): Replace the following by an assert checking that the
     // type parameters don't occur in the default types.
     DartType? defaultTypeVisitedByOuter =
@@ -317,13 +339,8 @@ FreshStructuralParameters? getFreshStructuralParametersSubstitutingBounds(
     if (defaultTypeVisitedByThis != null || defaultTypeVisitedByThis != null) {
       parameterBoundsHaveChanged = true;
     }
-
-    freshTypeParameter.variance =
-        typeParameter.isLegacyCovariant ? null : typeParameter.variance;
-    // Annotations on a type parameter are specific to the declaration of the
-    // type parameter, rather than the type parameter as such, and therefore
-    // should not be copied here.
   }
+
   if (!parameterBoundsHaveChanged) {
     return null;
   } else {
