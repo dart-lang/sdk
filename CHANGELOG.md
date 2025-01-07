@@ -9,10 +9,14 @@
   [#57084][]).
 - Fixes analysis options discovery in the presence of workspaces
   (issue [#56552][]).
+- When running `dart fix` on a folder that contains a library with multiple
+  files and more than one needs a fix, the fix will now be applied correctly
+  only once to each file (issue [#59572][]).
 
 [pub#4445]: https://github.com/dart-lang/pub/issues/4445
 [#57084]: https://github.com/dart-lang/sdk/issues/57084
 [#56552]: https://github.com/dart-lang/sdk/issues/56552
+[#59572]: https://github.com/dart-lang/sdk/issues/59572
 
 ## 3.6.0 - 2024-12-11
 

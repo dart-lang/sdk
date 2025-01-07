@@ -16,19 +16,6 @@ void main() {
 final bullet = '•';
 final nonAnsiBullet = '-';
 
-/// Allow for different bullets; depending on how the test harness is run,
-/// subprocesses may decide to give us ansi bullets or normal bullets.
-/// TODO(jcollins): find a way to detect which one we should be expecting.
-Matcher stringContainsInOrderWithVariableBullets(List<String> substrings) {
-  var substitutedSubstrings = substrings;
-  if (substrings.any((s) => s.contains(bullet))) {
-    substitutedSubstrings =
-        substrings.map((s) => s.replaceAll(bullet, nonAnsiBullet)).toList();
-  }
-  return anyOf(stringContainsInOrder(substrings),
-      stringContainsInOrder(substitutedSubstrings));
-}
-
 void defineFix() {
   TestProject? p;
   late ProcessResult result;
@@ -403,6 +390,98 @@ linter:
           ]));
     });
 
+    test(
+      '--apply part.dart',
+      () async {
+        p = project(
+          mainSrc: '''
+part 'part.dart';
+void a() {
+  b();
+}
+''',
+          analysisOptions: '''
+linter:
+  rules:
+    - prefer_const_constructors
+''',
+        );
+        p!.file('lib/part.dart', '''
+part of 'main.dart';
+Stream<String> b() {
+  return Stream.empty();
+}
+''');
+        var result = await p!.runFix([
+          '--apply',
+          '--code',
+          'empty_statements',
+          '--code',
+          'prefer_const_constructors',
+          './lib/part.dart'
+        ], workingDir: p!.dirPath);
+        expect(result.exitCode, 0);
+        expect(result.stderr, isEmpty);
+        expect(
+            result.stdout,
+            stringContainsInOrderWithVariableBullets([
+              'Applying fixes...',
+              'part.dart',
+              '  prefer_const_constructors $bullet 1 fix',
+              '1 fix made in 1 file.',
+            ]));
+      },
+    );
+
+    test(
+      '--apply --code=(multiple) [part file]',
+      () async {
+        p = project(
+          mainSrc: '''
+part 'part.dart';
+void a() {
+  // need to trigger a lint in main.dart for the bug to happen
+  ;
+  b();
+}
+''',
+          analysisOptions: '''
+linter:
+  rules:
+    - empty_statements
+    - prefer_const_constructors
+''',
+        );
+        p!.file('lib/part.dart', '''
+part of 'main.dart';
+Stream<String> b() {
+  // dart fix should only add a single const
+  return Stream.empty();
+}
+''');
+        var result = await p!.runFix([
+          '--apply',
+          '--code',
+          'empty_statements',
+          '--code',
+          'prefer_const_constructors',
+          '.'
+        ], workingDir: p!.dirPath);
+        expect(result.exitCode, 0);
+        expect(result.stderr, isEmpty);
+        expect(
+            result.stdout,
+            stringContainsInOrderWithVariableBullets([
+              'Applying fixes...',
+              'lib${Platform.pathSeparator}main.dart',
+              '  empty_statements $bullet 1 fix',
+              'lib${Platform.pathSeparator}part.dart',
+              '  prefer_const_constructors $bullet 1 fix',
+              '2 fixes made in 2 files.',
+            ]));
+      },
+    );
+
     test('--apply --code=(multiple: comma-delimited)', () async {
       p = project(
         mainSrc: '''
@@ -712,4 +791,18 @@ class A {
       assertResult(exitCode: 1);
     });
   });
+}
+
+/// Allow for different bullets; depending on how the test harness is run,
+/// subprocesses may decide to give us ansi bullets or normal bullets.
+/// TODO(jcollins): find a way to detect which one we should be expecting.
+Matcher stringContainsInOrderWithVariableBullets(List<String> substrings) {
+  var substringMatcher = stringContainsInOrder(substrings);
+  if (substrings.any((s) => s.contains(bullet))) {
+    var alternatives = [
+      for (var s in substrings) s.replaceAll(bullet, nonAnsiBullet)
+    ];
+    return anyOf(substringMatcher, stringContainsInOrder(alternatives));
+  }
+  return substringMatcher;
 }
