@@ -18,7 +18,6 @@ import 'dylib_utils.dart';
 DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 testLeafCall() {
-  // Note: This test currently fails on Windows AOT: https://dartbug.com/40579
   // Regular calls should transition generated -> native.
   final isThreadInGenerated = ffiTestFunctions
       .lookupFunction<Int8 Function(), int Function()>("IsThreadInGenerated");

@@ -904,7 +904,7 @@ void f(bar a) {}
     return canRename?.checkNewName(newName);
   }
 
-  Future<CanRenameResponse?> _compute(String content) async {
+  Future<CanRenameResponse?> _compute(String content) {
     _updateFile(content);
 
     return CiderRenameComputer(fileResolver).canRename2(

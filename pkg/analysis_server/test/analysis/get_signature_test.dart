@@ -21,7 +21,7 @@ class AnalysisSignatureTest extends PubPackageAnalysisServerTest {
     return prepareRawSignatureAt(offset);
   }
 
-  Future<Response> prepareRawSignatureAt(int offset, {String? file}) async {
+  Future<Response> prepareRawSignatureAt(int offset, {String? file}) {
     var request = AnalysisGetSignatureParams(
       file ?? testFile.path,
       offset,

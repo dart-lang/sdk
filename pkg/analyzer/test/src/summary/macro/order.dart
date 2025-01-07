@@ -19,22 +19,22 @@ import 'package:macros/macros.dart';
   const AddClass(this.name);
 
   @override
-  buildTypesForClass(clazz, builder) async {
+  buildTypesForClass(clazz, builder) {
     _add(builder);
   }
 
   @override
-  buildTypesForEnum(declaration, builder) async {
+  buildTypesForEnum(declaration, builder) {
     _add(builder);
   }
 
   @override
-  buildTypesForEnumValue(declaration, builder) async {
+  buildTypesForEnumValue(declaration, builder) {
     _add(builder);
   }
 
   @override
-  buildTypesForLibrary(declaration, builder) async {
+  buildTypesForLibrary(declaration, builder) {
     _add(builder);
   }
 
@@ -64,7 +64,7 @@ import 'package:macros/macros.dart';
   const AddFunction(this.name);
 
   @override
-  buildDeclarationsForClass(clazz, builder) async {
+  buildDeclarationsForClass(clazz, builder) {
     _add(builder);
   }
 

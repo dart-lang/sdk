@@ -50,7 +50,7 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
 
   Future<protocol.FlutterGetWidgetDescriptionResult?> getDescription(
     String search,
-  ) async {
+  ) {
     var content = testAnalysisResult.content;
 
     var offset = content.indexOf(search);

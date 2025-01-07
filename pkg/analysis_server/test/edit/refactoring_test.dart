@@ -933,7 +933,7 @@ class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
   }
 
   /// Tests that there is a RENAME refactoring available at the [search] offset.
-  Future<void> assertHasRenameRefactoring(String code, String search) async {
+  Future<void> assertHasRenameRefactoring(String code, String search) {
     return assertHasKind(code, search, RefactoringKind.RENAME, true);
   }
 
@@ -1516,7 +1516,7 @@ import 'dart:math';
 import 'original_folder/file.dart';
 ''');
     _setOptions('$testPackageLibPath/new_folder');
-    return assertEmptySuccessfulRefactoring(() async {
+    return assertEmptySuccessfulRefactoring(() {
       return _sendAndCancelMoveRequest(
         getFolder('$testPackageLibPath/original_folder').path,
       );
@@ -1531,7 +1531,7 @@ import 'original_folder/file.dart';
 ''');
     _setOptions('$testPackageLibPath/new_folder');
     return assertSuccessfulRefactoring(
-      () async {
+      () {
         return _sendMoveRequest(
           getFolder('$testPackageLibPath/original_folder').path,
         );

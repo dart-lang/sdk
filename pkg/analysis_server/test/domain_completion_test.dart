@@ -242,7 +242,7 @@ completion: Test
     String content, {
     required String completion,
     required String libraryUri,
-  }) async {
+  }) {
     return _getCodeDetails(
       path: convertPath(testFilePath),
       content: content,

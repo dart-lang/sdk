@@ -134,12 +134,12 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
           if (constKeyword != null) {
             switch (constantContext.$1) {
               case InstanceCreationExpression contextNode:
-                await builder.addDartFileEdit(file, (builder) async {
+                await builder.addDartFileEdit(file, (builder) {
                   _deleteToken(builder, constKeyword);
                   contextNode.accept(_PushConstVisitor(builder, expression));
                 });
               case TypedLiteral contextNode:
-                await builder.addDartFileEdit(file, (builder) async {
+                await builder.addDartFileEdit(file, (builder) {
                   _deleteToken(builder, constKeyword);
                   contextNode.accept(_PushConstVisitor(builder, expression));
                 });

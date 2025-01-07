@@ -30,7 +30,7 @@ final a = new [!My^Class!]();
     return _test_prepare(content, 'MyClass');
   }
 
-  Future<void> test_prepare_class_newKeyword() async {
+  Future<void> test_prepare_class_newKeyword() {
     const content = '''
 class MyClass {}
 final a = n^ew [!MyClass!]();
@@ -47,7 +47,7 @@ class [!MyClass^!]<T> {}
     return _test_prepare(content, 'MyClass');
   }
 
-  Future<void> test_prepare_class_typeParameter_atDeclaration() async {
+  Future<void> test_prepare_class_typeParameter_atDeclaration() {
     const content = '''
 class A<[!T^!]> {
   final List<T> values = [];
@@ -57,7 +57,7 @@ class A<[!T^!]> {
     return _test_prepare(content, 'T');
   }
 
-  Future<void> test_prepare_class_typeParameter_atReference() async {
+  Future<void> test_prepare_class_typeParameter_atReference() {
     const content = '''
 class A<T> {
   final List<[!T^!]> values = [];
@@ -92,7 +92,7 @@ final a = MyEnum.[!o^ne!];
     return _test_prepare(content, 'one');
   }
 
-  Future<void> test_prepare_extensionType_onName_begin() async {
+  Future<void> test_prepare_extensionType_onName_begin() {
     const content = '''
 extension type [!^MyType!](int it) {}
 ''';
@@ -100,7 +100,7 @@ extension type [!^MyType!](int it) {}
     return _test_prepare(content, 'MyType');
   }
 
-  Future<void> test_prepare_extensionType_onName_end() async {
+  Future<void> test_prepare_extensionType_onName_end() {
     const content = '''
 extension type [!MyType^!](int it) {}
 ''';
@@ -108,7 +108,7 @@ extension type [!MyType^!](int it) {}
     return _test_prepare(content, 'MyType');
   }
 
-  Future<void> test_prepare_extensionType_onName_inside() async {
+  Future<void> test_prepare_extensionType_onName_inside() {
     const content = '''
 extension type [!My^Type!](int it) {}
 ''';
@@ -132,7 +132,7 @@ void [!aaaa!]^<T>() {}
     return _test_prepare(content, 'aaaa');
   }
 
-  Future<void> test_prepare_importPrefix() async {
+  Future<void> test_prepare_importPrefix() {
     const content = '''
 import 'dart:async' as [!myPr^efix!];
 ''';
@@ -140,7 +140,7 @@ import 'dart:async' as [!myPr^efix!];
     return _test_prepare(content, 'myPrefix');
   }
 
-  Future<void> test_prepare_importWithoutPrefix() async {
+  Future<void> test_prepare_importWithoutPrefix() {
     const content = '''
 imp[!^!]ort 'dart:async';
 ''';
@@ -148,7 +148,7 @@ imp[!^!]ort 'dart:async';
     return _test_prepare(content, '');
   }
 
-  Future<void> test_prepare_importWithPrefix() async {
+  Future<void> test_prepare_importWithPrefix() {
     const content = '''
 imp^ort 'dart:async' as [!myPrefix!];
 ''';
@@ -156,7 +156,7 @@ imp^ort 'dart:async' as [!myPrefix!];
     return _test_prepare(content, 'myPrefix');
   }
 
-  Future<void> test_prepare_invalidRenameLocation() async {
+  Future<void> test_prepare_invalidRenameLocation() {
     const content = '''
 void f() {
   // comm^ent
@@ -210,7 +210,7 @@ final a = new [!Ob^ject!]();
     expect(response.error!.message, contains('is defined in the SDK'));
   }
 
-  Future<void> test_prepare_variable() async {
+  Future<void> test_prepare_variable() {
     const content = '''
 void f() {
   var variable = 0;
@@ -221,7 +221,7 @@ void f() {
     return _test_prepare(content, 'variable');
   }
 
-  Future<void> test_prepare_variable_forEach_statement() async {
+  Future<void> test_prepare_variable_forEach_statement() {
     const content = '''
 void f(List<int> values) {
   for (final [!value^!] in values) {
@@ -290,7 +290,7 @@ final a = new MyNewMain();
     );
   }
 
-  Future<void> test_rename_class_doesRenameFile_afterPrompt() async {
+  Future<void> test_rename_class_doesRenameFile_afterPrompt() {
     const content = '''
 class Main {}
 final a = new [!Ma^in!]();

@@ -133,7 +133,7 @@ abstract final class DartPostfixCompletion {
   static Future<PostfixCompletion?> expandAssert(
     PostfixCompletionProcessor processor,
     PostfixCompletionKind kind,
-  ) async {
+  ) {
     return processor.expand(kind, processor.findAssertExpression, (expr) {
       return 'assert(${processor.utils.getNodeText(expr)});';
     }, withBraces: false);
@@ -142,7 +142,7 @@ abstract final class DartPostfixCompletion {
   static Future<PostfixCompletion?> expandElse(
     PostfixCompletionProcessor processor,
     PostfixCompletionKind kind,
-  ) async {
+  ) {
     return processor.expand(
       kind,
       processor.findBoolExpression,
@@ -153,7 +153,7 @@ abstract final class DartPostfixCompletion {
   static Future<PostfixCompletion?> expandFor(
     PostfixCompletionProcessor processor,
     PostfixCompletionKind kind,
-  ) async {
+  ) {
     return processor.expand(kind, processor.findIterableExpression, (expr) {
       var value = processor.newVariable('value');
       return 'for (var $value in ${processor.utils.getNodeText(expr)})';
@@ -163,7 +163,7 @@ abstract final class DartPostfixCompletion {
   static Future<PostfixCompletion?> expandFori(
     PostfixCompletionProcessor processor,
     PostfixCompletionKind kind,
-  ) async {
+  ) {
     return processor.expand(kind, processor.findIntExpression, (expr) {
       var index = processor.newVariable('i');
       return 'for (int $index = 0; $index < ${processor.utils.getNodeText(expr)}; $index++)';
@@ -173,7 +173,7 @@ abstract final class DartPostfixCompletion {
   static Future<PostfixCompletion?> expandIf(
     PostfixCompletionProcessor processor,
     PostfixCompletionKind kind,
-  ) async {
+  ) {
     return processor.expand(
       kind,
       processor.findBoolExpression,
@@ -184,7 +184,7 @@ abstract final class DartPostfixCompletion {
   static Future<PostfixCompletion?> expandNegate(
     PostfixCompletionProcessor processor,
     PostfixCompletionKind kind,
-  ) async {
+  ) {
     return processor.expand(
       kind,
       processor.findBoolExpression,
@@ -196,7 +196,7 @@ abstract final class DartPostfixCompletion {
   static Future<PostfixCompletion?> expandNotNull(
     PostfixCompletionProcessor processor,
     PostfixCompletionKind kind,
-  ) async {
+  ) {
     return processor.expand(kind, processor.findObjectExpression, (expr) {
       return expr is NullLiteral
           ? 'if (false)'
@@ -207,7 +207,7 @@ abstract final class DartPostfixCompletion {
   static Future<PostfixCompletion?> expandNull(
     PostfixCompletionProcessor processor,
     PostfixCompletionKind kind,
-  ) async {
+  ) {
     return processor.expand(kind, processor.findObjectExpression, (expr) {
       return expr is NullLiteral
           ? 'if (true)'
@@ -218,7 +218,7 @@ abstract final class DartPostfixCompletion {
   static Future<PostfixCompletion?> expandParen(
     PostfixCompletionProcessor processor,
     PostfixCompletionKind kind,
-  ) async {
+  ) {
     return processor.expand(
       kind,
       processor.findObjectExpression,
@@ -230,7 +230,7 @@ abstract final class DartPostfixCompletion {
   static Future<PostfixCompletion?> expandReturn(
     PostfixCompletionProcessor processor,
     PostfixCompletionKind kind,
-  ) async {
+  ) {
     return processor.expand(
       kind,
       processor.findObjectExpression,
@@ -242,7 +242,7 @@ abstract final class DartPostfixCompletion {
   static Future<PostfixCompletion?> expandSwitch(
     PostfixCompletionProcessor processor,
     PostfixCompletionKind kind,
-  ) async {
+  ) {
     return processor.expand(
       kind,
       processor.findObjectExpression,
@@ -253,21 +253,21 @@ abstract final class DartPostfixCompletion {
   static Future<PostfixCompletion?> expandTry(
     PostfixCompletionProcessor processor,
     PostfixCompletionKind kind,
-  ) async {
+  ) {
     return processor.expandTry(kind, processor.findStatement);
   }
 
   static Future<PostfixCompletion?> expandTryon(
     PostfixCompletionProcessor processor,
     PostfixCompletionKind kind,
-  ) async {
+  ) {
     return processor.expandTry(kind, processor.findStatement, withOn: true);
   }
 
   static Future<PostfixCompletion?> expandWhile(
     PostfixCompletionProcessor processor,
     PostfixCompletionKind kind,
-  ) async {
+  ) {
     return processor.expand(
       kind,
       processor.findBoolExpression,

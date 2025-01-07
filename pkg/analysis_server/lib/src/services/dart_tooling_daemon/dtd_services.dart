@@ -84,7 +84,7 @@ class DtdServices {
     IncomingMessage message,
     OperationPerformanceImpl performance,
     Completer<Map<String, Object?>> completer,
-      Completer<void> schedulerCompleter,
+    Completer<void> schedulerCompleter,
   ) async {
     var info = MessageInfo(
       performance: performance,
@@ -189,7 +189,7 @@ class DtdServices {
     Method method,
     Parameters params,
     OperationPerformanceImpl performance,
-  ) async {
+  ) {
     // Map the incoming request into types we use for LSP request handling.
     var message = IncomingMessage(
       jsonrpc: jsonRpcVersion,

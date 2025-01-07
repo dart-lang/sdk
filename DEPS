@@ -76,7 +76,7 @@ vars = {
   "jsc_tag": "version:287397",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
-  "clang_version": "git_revision:388d7f144880dcd85ff31f06793304405a9f44b6",
+  "clang_version": "git_revision:684052173971868aab0e6b62d7770a6299e84141",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
   "gn_version": "git_revision:c97a86a72105f3328a540f5a5ab17d11989ab7dd",
@@ -139,7 +139,6 @@ vars = {
   "http_multi_server_rev": "2b84a4500460d1f3848e54b47169bdf8c504dded",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
-  "lints_rev": "df1f635888837ddce6819294b87450dae06b6c68",
   "markdown_rev": "19aaded4300d24bedcbf52ade792b203ddf030b0",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
@@ -377,8 +376,6 @@ deps = {
       Var("dart_git") + "intl.git" + "@" + Var("intl_rev"),
   Var("dart_root") + "/third_party/pkg/leak_tracker":
       Var("dart_git") + "leak_tracker.git" + "@" + Var("leak_tracker_rev"),
-  Var("dart_root") + "/third_party/pkg/lints":
-      Var("dart_git") + "lints.git" + "@" + Var("lints_rev"),
   Var("dart_root") + "/third_party/pkg/markdown":
       Var("dart_git") + "markdown.git" + "@" + Var("markdown_rev"),
   Var("dart_root") + "/third_party/pkg/material_color_utilities": {
