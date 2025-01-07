@@ -511,6 +511,7 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   ],
   LinterLintCode.unnecessary_to_list_in_spreads: [RemoveToList.new],
   LinterLintCode.unnecessary_this: [RemoveThisExpression.new],
+  LinterLintCode.unnecessary_underscores: [ConvertToWildcardVariable.new],
   LinterLintCode.unreachable_from_main: [RemoveUnusedElement.new],
   LinterLintCode.use_colored_box: [ReplaceContainerWithColoredBox.new],
   LinterLintCode.use_decorated_box: [ReplaceWithDecoratedBox.new],
