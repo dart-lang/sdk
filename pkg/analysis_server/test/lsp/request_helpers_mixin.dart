@@ -99,7 +99,7 @@ mixin LspProgressNotificationsMixin {
 
     requestsFromServer
         .where((r) => r.method == Method.window_workDoneProgress_create)
-        .listen((request) async {
+        .listen((request) {
           var params = WorkDoneProgressCreateParams.fromJson(
             request.params as Map<String, Object?>,
           );

@@ -36,7 +36,7 @@ Availability analyzeAvailability({
 
 /// Continues analysis of the selection in [available], and returns either
 /// a [ValidSelectionState], or one of [ErrorSelectionState] subtypes.
-Future<SelectionState> analyzeSelection({required Available available}) async {
+Future<SelectionState> analyzeSelection({required Available available}) {
   return _SelectionAnalyzer(available: available).analyze();
 }
 

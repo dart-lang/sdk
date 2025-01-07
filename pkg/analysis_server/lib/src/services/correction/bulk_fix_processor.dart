@@ -1100,7 +1100,7 @@ class IterativeBulkFixProcessor {
     OperationPerformanceImpl performance,
     String path, {
     required bool autoTriggered,
-  }) async {
+  }) {
     return performance.runAsync('IterativeBulkFixProcessor.fixErrorsForFile', (
       performance,
     ) async {

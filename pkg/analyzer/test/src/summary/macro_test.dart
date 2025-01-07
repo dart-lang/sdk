@@ -17452,7 +17452,7 @@ abstract class MacroTypesTest extends MacroElementsBaseTest {
   bool get retainDataForTesting => true;
 
   @override
-  Future<void> tearDown() async {
+  Future<void> tearDown() {
     for (var directory in _ioDirectoriesToDelete) {
       try {
         directory.deleteSync(

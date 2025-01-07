@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('ProcessProfiler', () {
-    test('getProfilerForPlatform', () async {
+    test('getProfilerForPlatform', () {
       expect(ProcessProfiler.getProfilerForPlatform(), isNotNull);
     });
 

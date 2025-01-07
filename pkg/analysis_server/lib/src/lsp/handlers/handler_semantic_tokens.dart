@@ -58,7 +58,7 @@ abstract class AbstractSemanticTokensHandler<T>
     TextDocumentIdentifier textDocument,
     CancellationToken token, {
     Range? range,
-  }) async {
+  }) {
     var path = pathOfDoc(textDocument);
 
     return path.mapResult((path) async {

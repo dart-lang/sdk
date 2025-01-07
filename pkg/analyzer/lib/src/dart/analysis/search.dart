@@ -420,7 +420,7 @@ class Search {
 
   /// Returns references to the [element].
   Future<List<SearchResult>> references2(
-      Element2? element, SearchedFiles searchedFiles) async {
+      Element2? element, SearchedFiles searchedFiles) {
     return references(element.asElement, searchedFiles);
   }
 

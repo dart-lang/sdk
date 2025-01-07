@@ -553,7 +553,7 @@ class ContextManagerImpl implements ContextManager {
   /// rebuild will occur only once it has exited.
   ///
   /// Returns a [Future] that completes once the requested rebuild completes.
-  Future<void> _createAnalysisContexts() async {
+  Future<void> _createAnalysisContexts() {
     /// A helper that performs a context rebuild while monitoring the included
     /// paths for changes until the contexts file watchers are ready.
     ///

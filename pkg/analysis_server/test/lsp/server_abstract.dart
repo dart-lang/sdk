@@ -214,8 +214,8 @@ abstract class AbstractLspAnalysisServerTest
   List<TextDocumentEdit> extractTextDocumentEdits(
     DocumentChanges documentChanges,
   ) =>
-          // Extract TextDocumentEdits from union of resource changes
-          documentChanges
+      // Extract TextDocumentEdits from union of resource changes
+      documentChanges
           .map(
             (change) => change.map(
               (create) => null,
@@ -323,7 +323,7 @@ abstract class AbstractLspAnalysisServerTest
       httpClient: httpClient,
       processRunner: processRunner,
       dartFixPromptManager: dartFixPromptManager,
-        retainDataForTesting: retainDataForTesting,
+      retainDataForTesting: retainDataForTesting,
     );
     errorNotifier.server = server;
     server.pluginManager = pluginManager;
@@ -1057,9 +1057,7 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     await sendNotificationToServer(notification);
   }
 
-  Future<Object?> executeCodeAction(
-    Either2<Command, CodeAction> codeAction,
-  ) async {
+  Future<Object?> executeCodeAction(Either2<Command, CodeAction> codeAction) {
     var command = codeAction.map(
       (command) => command,
       (codeAction) => codeAction.command!,
@@ -1071,7 +1069,7 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     Command command, {
     T Function(Map<String, Object?>)? decoder,
     ProgressToken? workDoneToken,
-  }) async {
+  }) {
     var supportedCommands =
         _serverCapabilities?.executeCommandProvider?.commands ?? [];
     if (!supportedCommands.contains(command.command)) {
@@ -1677,7 +1675,7 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     return closingLabelsParams.labels;
   }
 
-  Future<List<Diagnostic>?> waitForDiagnostics(Uri uri) async {
+  Future<List<Diagnostic>?> waitForDiagnostics(Uri uri) {
     return publishedDiagnostics
         .where((params) => params.uri == uri)
         .map<List<Diagnostic>?>((params) => params.diagnostics)

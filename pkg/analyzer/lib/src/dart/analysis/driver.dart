@@ -711,7 +711,7 @@ class AnalysisDriver {
   }
 
   /// Notify the driver that the client is going to stop using it.
-  Future<void> dispose2() async {
+  Future<void> dispose2() {
     var completer = Completer<void>();
     _disposed = true;
     _disposeRequests.add(completer);
@@ -784,7 +784,7 @@ class AnalysisDriver {
   ///
   /// This method does not use analysis priorities, and must not be used in
   /// interactive analysis, such as Analysis Server or its plugins.
-  Future<SomeErrorsResult> getErrors(String path) async {
+  Future<SomeErrorsResult> getErrors(String path) {
     if (!_isAbsolutePath(path)) {
       return Future.value(
         InvalidPathResult(),
@@ -1299,7 +1299,7 @@ class AnalysisDriver {
     required String path,
     required int offset,
     required OperationPerformanceImpl performance,
-  }) async {
+  }) {
     var request = _ResolveForCompletionRequest(
       path: path,
       offset: offset,
@@ -1325,7 +1325,7 @@ class AnalysisDriver {
   Future<void> _analyzeFileImpl({
     required String path,
     required OperationPerformanceImpl performance,
-  }) async {
+  }) {
     // We will produce the result for this file, at least.
     // And for any other files of the same library.
     _fileTracker.fileWasAnalyzed(path);
@@ -2037,7 +2037,7 @@ class AnalysisDriver {
 
   Future<ResolvedForCompletionResultImpl?> _resolveForCompletion(
     _ResolveForCompletionRequest request,
-  ) async {
+  ) {
     return request.performance.runAsync('body', (performance) async {
       var path = request.path;
       if (!_isAbsolutePath(path)) {

@@ -55,8 +55,7 @@ class DartFixContext implements FixContext {
   /// this library, and has the requested base name.
   ///
   /// For getters and setters the corresponding top-level variable is returned.
-  Future<Map<LibraryElement2, Element2>> getTopLevelDeclarations(
-      String name) async {
+  Future<Map<LibraryElement2, Element2>> getTopLevelDeclarations(String name) {
     return TopLevelDeclarations(unitResult).withName(name);
   }
 

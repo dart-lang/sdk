@@ -70,7 +70,7 @@ class Driver extends IntegrationTest {
   /// Launch the analysis server.
   ///
   /// Return a [Future] that completes when analysis server has started.
-  Future<void> startServer() async {
+  Future<void> startServer() {
     logger.log(Level.FINE, 'starting server');
     server = Server();
     var serverConnected = Completer<void>();

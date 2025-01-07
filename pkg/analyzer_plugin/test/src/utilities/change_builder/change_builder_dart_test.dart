@@ -2171,7 +2171,7 @@ A'''));
 @reflectiveTest
 class DartFileEditBuilderImplTest extends AbstractContextTest
     with DartChangeBuilderMixin {
-  Future<ResolvedUnitResult> resolveContent(String path, String content) async {
+  Future<ResolvedUnitResult> resolveContent(String path, String content) {
     path = convertPath(path);
     addSource(path, content);
     return resolveFile(path);
