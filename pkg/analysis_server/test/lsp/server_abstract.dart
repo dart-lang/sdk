@@ -1134,7 +1134,15 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     var firstRequest = requestsFromServer.firstWhere((n) => n.method == method);
     await f();
 
-    var requestFromServer = await firstRequest.timeout(timeout);
+    var requestFromServer = await firstRequest.timeout(
+      timeout,
+      onTimeout:
+          () =>
+              throw TimeoutException(
+                'Did not receive the expected $method request from the server in the timeout period',
+                timeout,
+              ),
+    );
 
     expect(requestFromServer, isNotNull);
     return requestFromServer;
@@ -1174,6 +1182,7 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     Duration timeout = const Duration(seconds: 5),
   }) async {
     late Future<T> outboundRequest;
+    Object? outboundRequestError;
 
     // Run [f] and wait for the incoming request from the server.
     var incomingRequest = await expectRequest(method, () {
@@ -1182,15 +1191,23 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
       outboundRequest = f();
 
       // Because we don't await this future until "later", if it throws the
-      // error is treated as unhandled and will fail the test. Attaching an
-      // error handler prevents that, though since the Future completed with
-      // an error it will still be handled as such when the future is later
-      // awaited.
-
-      // TODO(srawlins): Fix this static error.
-      // ignore: body_might_complete_normally_catch_error
-      outboundRequest.catchError((_) {});
-    });
+      // error is treated as unhandled and will fail the test even if expected.
+      // Instead, capture the error and suppress it. But if we time out (in
+      // which case we will never return outboundRequest), then we'll raise this
+      // error.
+      outboundRequest.then(
+        (_) {},
+        onError: (e) {
+          outboundRequestError = e;
+          return null;
+        },
+      );
+    }, timeout: timeout).catchError((Object timeoutException) {
+      // We timed out waiting for the request from the server. Probably this is
+      // because our outbound request for some reason, so if we have an error
+      // for that, then throw it. Otherwise, propogate the timeout.
+      throw outboundRequestError ?? timeoutException;
+    }, test: (e) => e is TimeoutException);
 
     // Handle the request from the server and send the response back.
     var clientsResponse = await handler(
