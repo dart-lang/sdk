@@ -1123,6 +1123,9 @@ executable("run_vm_tests") {
 shared_library("entrypoints_verification_test") {
   deps = [ ":dart" ]
   sources = [ "entrypoints_verification_test.cc" ]
+  if (is_win) {
+    sources += [ "dart_api_win.c" ]
+  }
   include_dirs = [ ".." ]
 }
 
@@ -1149,19 +1152,17 @@ shared_library("ffi_test_functions") {
     "ffi_test/ffi_test_functions_generated_2.cc",
     "ffi_test/ffi_test_functions_vmspecific.cc",
   ]
+
+  if (is_win) {
+    sources += [ "dart_api_win.c" ]
+  }
+
   if (is_win && current_cpu == "x64") {
     sources += [ "ffi_test/clobber_x64_win.S" ]
   } else if (!is_win) {
     sources += [ "ffi_test/clobber_$current_cpu.S" ]
   }
   include_dirs = [ ".." ]
-
-  if (is_win) {
-    # TODO(dartbug.com/40579): This wrongly links in dart.exe on precompiled.
-    libs = [ "dart.lib" ]
-    abs_root_out_dir = rebase_path(root_out_dir)
-    ldflags = [ "/LIBPATH:$abs_root_out_dir" ]
-  }
 }
 
 # DartLibFuzzer only "exists" for restricted configurations.
