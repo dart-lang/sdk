@@ -1406,8 +1406,7 @@ class Arguments extends TreeNode {
             .toList(),
         types: function.typeParameters
             .map<DartType>((p) =>
-                new TypeParameterType.withDefaultNullabilityForLibrary(
-                    p, library))
+                new TypeParameterType.withDefaultNullability(p))
             .toList());
   }
 

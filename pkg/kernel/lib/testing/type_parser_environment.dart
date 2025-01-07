@@ -360,7 +360,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       Nullability nullability =
           identical(declaration.bound, TypeParameter.unsetBoundSentinel)
               ? Nullability.nonNullable
-              : TypeParameterType.computeNullabilityFromBound(declaration);
+              : declaration.computeNullabilityFromBound();
       TypeParameterType type = new TypeParameterType(
           declaration,
           interpretParsedNullability(node.parsedNullability,
@@ -378,10 +378,10 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       if (arguments.isNotEmpty) {
         throw "Type variable can't have arguments (${node.name})";
       }
-      Nullability nullability = identical(
-              declaration.bound, StructuralParameter.unsetBoundSentinel)
-          ? Nullability.nonNullable
-          : StructuralParameterType.computeNullabilityFromBound(declaration);
+      Nullability nullability =
+          identical(declaration.bound, StructuralParameter.unsetBoundSentinel)
+              ? Nullability.nonNullable
+              : declaration.computeNullabilityFromBound();
       StructuralParameterType type = new StructuralParameterType(
           declaration,
           interpretParsedNullability(node.parsedNullability,
@@ -631,12 +631,10 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
     for (Object type in nestedEnvironment.pendingNullabilities) {
       assert(type is TypeParameterType || type is StructuralParameterType);
       if (type is TypeParameterType) {
-        type.declaredNullability =
-            TypeParameterType.computeNullabilityFromBound(type.parameter);
+        type.declaredNullability = type.parameter.computeNullabilityFromBound();
       } else {
         type as StructuralParameterType;
-        type.declaredNullability =
-            StructuralParameterType.computeNullabilityFromBound(type.parameter);
+        type.declaredNullability = type.parameter.computeNullabilityFromBound();
       }
     }
     nestedEnvironment.pendingNullabilities.clear();
@@ -681,14 +679,10 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
         freshTypeParametersFromStructuralParameters =
         getFreshTypeParametersFromStructuralParameters(typeParameters);
     Substitution substitution = Substitution.fromPairs(
-        freshTypeParametersFromStructuralParameters.freshTypeParameters,
-        new List<DartType>.generate(
-            typeParameters.length,
-            (int i) =>
-                new StructuralParameterType.forAlphaRenamingFromTypeParameters(
-                    freshTypeParametersFromStructuralParameters
-                        .freshTypeParameters[i],
-                    typeParameters[i])));
+        freshTypeParametersFromStructuralParameters.freshTypeParameters, [
+      for (StructuralParameter parameter in typeParameters)
+        new StructuralParameterType.withDefaultNullability(parameter)
+    ]);
     List<DartType> defaultTypes = calculateBounds(
         freshTypeParametersFromStructuralParameters.freshTypeParameters,
         objectClass);
@@ -700,12 +694,10 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
     for (Object type in nestedEnvironment.pendingNullabilities) {
       assert(type is TypeParameterType || type is StructuralParameterType);
       if (type is TypeParameterType) {
-        type.declaredNullability =
-            TypeParameterType.computeNullabilityFromBound(type.parameter);
+        type.declaredNullability = type.parameter.computeNullabilityFromBound();
       } else {
         type as StructuralParameterType;
-        type.declaredNullability =
-            StructuralParameterType.computeNullabilityFromBound(type.parameter);
+        type.declaredNullability = type.parameter.computeNullabilityFromBound();
       }
     }
     nestedEnvironment.pendingNullabilities.clear();

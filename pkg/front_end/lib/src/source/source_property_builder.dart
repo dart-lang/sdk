@@ -592,14 +592,10 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl {
             procedure.function.typeParameters;
         assert(getterExtensionTypeParameters.length ==
             setterExtensionTypeParameters.length);
-        setterType = Substitution.fromPairs(
-                setterExtensionTypeParameters,
-                new List<DartType>.generate(
-                    getterExtensionTypeParameters.length,
-                    (int index) => new TypeParameterType.forAlphaRenaming(
-                        setterExtensionTypeParameters[index],
-                        getterExtensionTypeParameters[index])))
-            .substituteType(setterType);
+        setterType = Substitution.fromPairs(setterExtensionTypeParameters, [
+          for (TypeParameter parameter in getterExtensionTypeParameters)
+            new TypeParameterType.withDefaultNullability(parameter)
+        ]).substituteType(setterType);
       }
     } else {
       setterType = procedure.setterType;

@@ -171,8 +171,8 @@ ${ownType} is not a subtype of ${superType}
       for (int i = 0; i < ownFunction.typeParameters.length; ++i) {
         TypeParameter subParameter = ownFunction.typeParameters[i];
         TypeParameter superParameter = superFunction.typeParameters[i];
-        typeParameterMap[subParameter] = new TypeParameterType.forAlphaRenaming(
-            subParameter, superParameter);
+        typeParameterMap[subParameter] =
+            new TypeParameterType.withDefaultNullability(superParameter);
       }
 
       ownSubstitution = Substitution.combine(

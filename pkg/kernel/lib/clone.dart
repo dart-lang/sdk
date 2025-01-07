@@ -628,7 +628,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
         newNode = new TypeParameter(node.name);
         typeParams[node] = newNode;
         typeSubstitution[node] =
-            new TypeParameterType.forAlphaRenaming(node, newNode);
+            new TypeParameterType(newNode, node.computeNullabilityFromBound());
       }
     }
   }

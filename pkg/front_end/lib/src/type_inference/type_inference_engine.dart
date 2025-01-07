@@ -669,8 +669,7 @@ class OperationsCfe
           // `x != null && x is T`.
           return new SharedTypeView(new IntersectionType(
               unwrappedFrom.withDeclaredNullability(
-                  TypeParameterType.computeNullabilityFromBound(
-                      unwrappedFrom.parameter)),
+                  unwrappedFrom.parameter.computeNullabilityFromBound()),
               unwrappedTo));
         } else {
           return new SharedTypeView(

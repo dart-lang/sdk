@@ -2165,12 +2165,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Let `[T/S]` denote the type substitution where each `Si` is replaced
       // with the corresponding `Ti`.
       instantiator = new FunctionTypeInstantiator.fromIterables(
-          typeContext.typeParameters,
-          new List<DartType>.generate(
-              typeContext.typeParameters.length,
-              (int i) => new TypeParameterType
-                  .forAlphaRenamingFromStructuralParameters(
-                  typeContext.typeParameters[i], functionTypeParameters[i])));
+          typeContext.typeParameters, [
+        for (TypeParameter parameter in functionTypeParameters)
+          new TypeParameterType.withDefaultNullability(parameter)
+      ]);
     } else {
       // If the match is not successful because  `K` is `_`, let all `Si`, all
       // `Qi`, and `N` all be `_`.

@@ -109,11 +109,11 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
       (i) => new TypeParameter(typeParameters[i].name)
         ..flags = typeParameters[i].flags,
       growable: false);
-  List<DartType> freshTypeArguments =
-      new List<DartType>.generate(typeParameters.length, (int i) {
-    return new TypeParameterType.forAlphaRenaming(
-        typeParameters[i], freshParameters[i]);
-  }, growable: false);
+  List<DartType> freshTypeArguments = [
+    for (int i = 0; i < freshParameters.length; i++)
+      new TypeParameterType(
+          freshParameters[i], typeParameters[i].computeNullabilityFromBound())
+  ];
   Substitution substitution =
       Substitution.fromPairs(typeParameters, freshTypeArguments);
   for (int i = 0; i < typeParameters.length; ++i) {
@@ -167,13 +167,11 @@ FreshStructuralParametersFromTypeParameters
             ..uri = typeParameters[i].location?.file
             ..fileOffset = typeParameters[i].fileOffset,
           growable: false);
-  List<StructuralParameterType> freshTypeArguments =
-      new List<StructuralParameterType>.generate(
-          typeParameters.length,
-          (int i) =>
-              new StructuralParameterType.forAlphaRenamingFromTypeParameters(
-                  typeParameters[i], freshParameters[i]),
-          growable: false);
+  List<StructuralParameterType> freshTypeArguments = [
+    for (int i = 0; i < freshParameters.length; i++)
+      new StructuralParameterType(
+          freshParameters[i], typeParameters[i].computeNullabilityFromBound())
+  ];
   Substitution substitution;
   if (typeParameters.length == 1) {
     substitution =
@@ -232,11 +230,11 @@ FreshTypeParametersFromStructuralParameters
       (i) => new TypeParameter(typeParameters[i].name)
         ..flags = typeParameters[i].flags,
       growable: false);
-  List<DartType> freshTypeArguments =
-      new List<DartType>.generate(typeParameters.length, (int i) {
-    return new TypeParameterType.forAlphaRenamingFromStructuralParameters(
-        typeParameters[i], freshParameters[i]);
-  }, growable: false);
+  List<DartType> freshTypeArguments = [
+    for (int i = 0; i < freshParameters.length; i++)
+      new TypeParameterType(
+          freshParameters[i], typeParameters[i].computeNullabilityFromBound())
+  ];
   FunctionTypeInstantiator instantiator =
       FunctionTypeInstantiator.fromIterables(
           typeParameters, freshTypeArguments);
@@ -283,11 +281,11 @@ FreshStructuralParameters? getFreshStructuralParametersSubstitutingBounds(
           (i) => new StructuralParameter(typeParameters[i].name)
             ..flags = typeParameters[i].flags,
           growable: false);
-  List<DartType> freshTypeArguments = new List<DartType>.generate(
-      typeParameters.length,
-      (int i) => new StructuralParameterType.forAlphaRenaming(
-          typeParameters[i], freshParameters[i]),
-      growable: false);
+  List<DartType> freshTypeArguments = [
+    for (int i = 0; i < freshParameters.length; i++)
+      new StructuralParameterType(
+          freshParameters[i], typeParameters[i].computeNullabilityFromBound())
+  ];
   FunctionTypeInstantiator instantiator =
       FunctionTypeInstantiator.fromIterables(
           typeParameters, freshTypeArguments);
@@ -347,11 +345,10 @@ FreshStructuralParameters getFreshStructuralParametersReusingBounds(
                 ? null
                 : typeParameters[i].variance,
           growable: false);
-  List<DartType> freshTypeArguments = new List<DartType>.generate(
-      typeParameters.length,
-      (int i) => new StructuralParameterType.forAlphaRenaming(
-          typeParameters[i], freshParameters[i]),
-      growable: false);
+  List<DartType> freshTypeArguments = [
+    for (StructuralParameter parameter in freshParameters)
+      new StructuralParameterType.withDefaultNullability(parameter)
+  ];
   FunctionTypeInstantiator instantiator =
       FunctionTypeInstantiator.fromIterables(
           typeParameters, freshTypeArguments);
@@ -634,7 +631,7 @@ class _NullSubstitution extends Substitution {
 
   @override
   DartType getSubstitute(TypeParameter parameter, bool upperBound) {
-    return new TypeParameterType.forAlphaRenaming(parameter, parameter);
+    return new TypeParameterType.withDefaultNullability(parameter);
   }
 
   @override
@@ -769,7 +766,7 @@ class _InnerTypeSubstitutor extends _SubstitutorBase {
     StructuralParameter fresh = new StructuralParameter(node.name)
       ..flags = node.flags;
     StructuralParameterType typeParameterType = substitution[node] =
-        new StructuralParameterType.forAlphaRenaming(node, fresh);
+        new StructuralParameterType(fresh, node.computeNullabilityFromBound());
     fresh.bound = visit(node.bound);
     fresh.defaultType = visit(node.defaultType);
     // If the bound was changed from substituting the bound we need to update
@@ -779,8 +776,7 @@ class _InnerTypeSubstitutor extends _SubstitutorBase {
     // If the type variable occurred in the bound then the bound was
     // of the form `Foo<...T..>` or `FutureOr<T>` and the nullability therefore
     // has not changed.
-    typeParameterType.declaredNullability =
-        StructuralParameterType.computeNullabilityFromBound(fresh);
+    typeParameterType.declaredNullability = fresh.computeNullabilityFromBound();
     return fresh;
   }
 
@@ -1904,14 +1900,14 @@ class _NullabilityConstructorUnwrapper implements DartTypeVisitor<DartType> {
 
   @override
   DartType visitTypeParameterType(TypeParameterType node) {
-    return node.withDeclaredNullability(
-        TypeParameterType.computeNullabilityFromBound(node.parameter));
+    return node
+        .withDeclaredNullability(node.parameter.computeNullabilityFromBound());
   }
 
   @override
   DartType visitStructuralParameterType(StructuralParameterType node) {
-    return node.withDeclaredNullability(
-        StructuralParameterType.computeNullabilityFromBound(node.parameter));
+    return node
+        .withDeclaredNullability(node.parameter.computeNullabilityFromBound());
   }
 
   @override
@@ -2112,13 +2108,13 @@ DartType computeTypeWithoutNullabilityMarker(DartType type) {
   if (type is TypeParameterType) {
     // The default nullability for library is used when there are no
     // nullability markers on the type.
-    return new TypeParameterType(type.parameter,
-        _defaultNullabilityForTypeParameterType(type.parameter));
+    return new TypeParameterType(
+        type.parameter, type.parameter.computeNullabilityFromBound());
   } else if (type is StructuralParameterType) {
     // The default nullability for library is used when there are no
     // nullability markers on the type.
-    return new StructuralParameterType(type.parameter,
-        _defaultNullabilityForStructuralParameterType(type.parameter));
+    return new StructuralParameterType(
+        type.parameter, type.parameter.computeNullabilityFromBound());
   } else if (type is IntersectionType) {
     // Intersection types can't be arguments to the nullable and the legacy
     // type constructors, so nothing can be peeled off.
@@ -2142,7 +2138,7 @@ bool isTypeParameterTypeWithoutNullabilityMarker(TypeParameterType type) {
   // The default nullability for library is used when there are no nullability
   // markers on the type.
   return type.declaredNullability ==
-      _defaultNullabilityForTypeParameterType(type.parameter);
+      type.parameter.computeNullabilityFromBound();
 }
 
 /// Returns true if [type] is declared without nullability markers.
@@ -2156,7 +2152,7 @@ bool isStructuralParameterTypeWithoutNullabilityMarker(
   // The default nullability for library is used when there are no nullability
   // markers on the type.
   return type.declaredNullability ==
-      _defaultNullabilityForStructuralParameterType(type.parameter);
+      type.parameter.computeNullabilityFromBound();
 }
 
 bool isTypeWithoutNullabilityMarker(DartType type) {
@@ -2292,15 +2288,6 @@ bool isLegacyTypeConstructorApplication(DartType type) {
   }
 }
 
-Nullability _defaultNullabilityForTypeParameterType(TypeParameter parameter) {
-  return TypeParameterType.computeNullabilityFromBound(parameter);
-}
-
-Nullability _defaultNullabilityForStructuralParameterType(
-    StructuralParameter parameter) {
-  return StructuralParameterType.computeNullabilityFromBound(parameter);
-}
-
 /// Recalculates and updates nullabilities of the bounds in [typeParameters].
 ///
 /// The procedure is intended to be used on type parameters that are in the
@@ -2336,8 +2323,7 @@ void _updateBoundNullabilities(
     if (nextIndex != -1) {
       _updateBoundNullabilities(typeParameters, visited, nextIndex);
       Nullability updatedNullability =
-          TypeParameterType.computeNullabilityFromBound(
-              typeParameters[nextIndex]);
+          typeParameters[nextIndex].computeNullabilityFromBound();
       if (bound.declaredNullability != updatedNullability) {
         parameter.bound = _updateNestedFutureOrNullability(
             parameter.bound, updatedNullability);

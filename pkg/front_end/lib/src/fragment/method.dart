@@ -704,9 +704,8 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
     for (TypeParameter typeParameter in procedure.function.typeParameters) {
       TypeParameter newTypeParameter = new TypeParameter(typeParameter.name);
       typeParameters.add(newTypeParameter);
-      typeArguments.add(substitutionMap[typeParameter] =
-          new TypeParameterType.forAlphaRenaming(
-              typeParameter, newTypeParameter));
+      typeArguments.add(substitutionMap[typeParameter] = new TypeParameterType(
+          newTypeParameter, typeParameter.computeNullabilityFromBound()));
     }
 
     List<TypeParameter> tearOffTypeParameters = <TypeParameter>[];

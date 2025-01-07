@@ -377,7 +377,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
   EvaluationComplexity visitTypeParameter(ir.TypeParameter node) {
     TypeVariableTypeWithContext typeVariable(ir.Library library) =>
         TypeVariableTypeWithContext(
-          ir.TypeParameterType.withDefaultNullabilityForLibrary(node, library),
+          ir.TypeParameterType.withDefaultNullability(node),
           // If this typeParameter is part of a function type then its
           // declaration is null because it has no context. Just pass in null
           // for the context in that case.

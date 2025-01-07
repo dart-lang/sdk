@@ -483,9 +483,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
         for (int i = 0; i < function.typeParameters.length; i++) {
           substitution[function.typeParameters[i]] =
-              new TypeParameterType.withDefaultNullabilityForLibrary(
-                  actualOrigin!.function.typeParameters[i],
-                  libraryBuilder.library);
+              new TypeParameterType.withDefaultNullability(
+                  actualOrigin!.function.typeParameters[i]);
         }
         typeArguments = new List<DartType>.generate(typeArguments.length,
             (int i) => substitute(typeArguments[i], substitution),
@@ -867,9 +866,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
         for (int i = 0; i < function.typeParameters.length; i++) {
           substitution[function.typeParameters[i]] =
-              new TypeParameterType.withDefaultNullabilityForLibrary(
-                  actualOrigin!.function.typeParameters[i],
-                  libraryBuilder.library);
+              new TypeParameterType.withDefaultNullability(
+                  actualOrigin!.function.typeParameters[i]);
         }
         factoryType = substitute(factoryType, substitution) as FunctionType;
       }
@@ -880,8 +878,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     for (int i = 0; i < factoryType.typeParameters.length; i++) {
       TypeParameter functionTypeParameter = origin.function.typeParameters[i];
       substitutionMap[functionTypeParameter] =
-          new StructuralParameterType.forAlphaRenamingFromTypeParameters(
-              functionTypeParameter, factoryType.typeParameters[i]);
+          new StructuralParameterType.withDefaultNullability(
+              factoryType.typeParameters[i]);
     }
     redirecteeType = redirecteeType != null
         ? substitute(redirecteeType, substitutionMap) as FunctionType

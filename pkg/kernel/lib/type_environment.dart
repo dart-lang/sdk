@@ -436,10 +436,7 @@ abstract class TypeEnvironment extends Types {
                     checkTargetType.declaredNullability, [
                   for (TypeParameter typeParameter
                       in checkTargetTypeOwnTypeParameters)
-                    new TypeParameterType(
-                        typeParameter,
-                        TypeParameterType.computeNullabilityFromBound(
-                            typeParameter))
+                    new TypeParameterType.withDefaultNullability(typeParameter)
                 ]),
                 expressionStaticType.classNode)!;
         // Now we search for the occurrences of `X1`, ..., `Xn` in `B<R1,
