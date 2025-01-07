@@ -94,7 +94,7 @@ typedef UnknownTypeConstraintOrigin = shared.UnknownTypeConstraintOrigin<
 /// attempt to make one type schema a subtype of another.
 class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         DartType,
-        ParameterElementMixin,
+        FormalParameterElementOrMember,
         PromotableElementImpl2,
         TypeParameterElementImpl2,
         InterfaceType,
@@ -103,7 +103,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     with
         shared.TypeConstraintGeneratorMixin<
             DartType,
-            ParameterElementMixin,
+            FormalParameterElementOrMember,
             PromotableElementImpl2,
             TypeParameterElementImpl2,
             InterfaceType,

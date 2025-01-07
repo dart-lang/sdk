@@ -90,7 +90,7 @@ class FunctionTypeImpl extends TypeImpl
     implements
         FunctionType,
         SharedFunctionTypeStructure<DartType, TypeParameterElementImpl2,
-            ParameterElementMixin> {
+            FormalParameterElementOrMember> {
   @override
   late int hashCode = _computeHashCode();
 
@@ -234,8 +234,13 @@ class FunctionTypeImpl extends TypeImpl
       positionalParameterTypes.sublist(requiredPositionalParameterCount);
 
   @override
-  List<ParameterElementMixin> get sortedNamedParametersShared =>
-      sortedNamedParameters;
+  // TODO(paulberry): see if this type can be changed to
+  // `List<FormalParameterElementImpl>`. See
+  // https://dart-review.googlesource.com/c/sdk/+/402341/comment/b1669e20_15938fcd/.
+  List<FormalParameterElementOrMember> get sortedNamedParametersShared =>
+      sortedNamedParameters
+          .map((p) => p.asElement2 as FormalParameterElementOrMember)
+          .toList();
 
   @override
   List<TypeParameterElementImpl2> get typeParameters => typeFormals
@@ -1338,7 +1343,8 @@ abstract class RecordTypeFieldImpl implements RecordTypeField {
   });
 }
 
-class RecordTypeImpl extends TypeImpl implements RecordType {
+class RecordTypeImpl extends TypeImpl
+    implements RecordType, SharedRecordTypeStructure<DartType> {
   @override
   final List<RecordTypePositionalFieldImpl> positionalFields;
 
@@ -1395,10 +1401,10 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   @override
   String? get name => null;
 
-  List<SharedNamedTypeStructure<DartType>> get namedTypes => namedFields;
+  List<RecordTypeNamedFieldImpl> get namedTypes => namedFields;
 
   @override
-  List<SharedNamedTypeStructure<DartType>> get sortedNamedTypes => namedTypes;
+  List<RecordTypeNamedFieldImpl> get sortedNamedTypes => namedTypes;
 
   @override
   bool operator ==(Object other) {

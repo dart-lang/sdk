@@ -1079,7 +1079,7 @@ class MethodMember extends ExecutableMember
 /// type parameters are known.
 class ParameterMember extends VariableMember
     with ParameterElementMixin
-    implements ParameterElement, FormalParameterElement {
+    implements ParameterElement, FormalParameterElementOrMember {
   @override
   final List<TypeParameterElement> typeParameters;
 
@@ -1166,6 +1166,9 @@ class ParameterMember extends VariableMember
 
   @override
   String? get name3 => _element2.name3;
+
+  @override
+  String get nameShared => name;
 
   @override
   Element2 get nonSynthetic2 => _element2;

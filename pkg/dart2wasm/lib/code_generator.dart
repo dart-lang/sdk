@@ -2561,20 +2561,25 @@ abstract class AstCodeGenerator
 
   @override
   w.ValueType visitNullCheck(NullCheck node, w.ValueType expectedType) {
-    return _nullCheck(node.operand, translator.throwNullCheckError);
-  }
-
-  w.ValueType _nullCheck(Expression operand, Procedure errorProcedure) {
-    w.ValueType operandType = translator.translateType(dartTypeOf(operand));
+    w.ValueType operandType =
+        translator.translateType(dartTypeOf(node.operand));
     w.ValueType nonNullOperandType = operandType.withNullability(false);
-    w.Label nullCheckBlock = b.block(const [], [nonNullOperandType]);
-    translateExpression(operand, operandType);
 
-    // We lower a null check to a br_on_non_null, throwing a [TypeError] in the
-    // null case.
+    // In rare cases the operand is non-nullable but TFA doesn't optimize away
+    // the null check. If the operand is an unboxed type, the br_on_non_null
+    // would fail to compile.
+    if (!operandType.nullable) {
+      translateExpression(node.operand, operandType);
+      return nonNullOperandType;
+    }
+    w.Label nullCheckBlock = b.block(const [], [nonNullOperandType]);
+    translateExpression(node.operand, operandType);
+
+    // We lower a null check to a br_on_non_null, throwing a [TypeError] in
+    // the null case.
     b.br_on_non_null(nullCheckBlock);
     call(translator.stackTraceCurrent.reference);
-    call(errorProcedure.reference);
+    call(translator.throwNullCheckError.reference);
     b.unreachable();
     b.end();
     return nonNullOperandType;
@@ -3256,6 +3261,9 @@ class TearOffCodeGenerator extends AstCodeGenerator {
 
     b.pushObjectHeaderFields(info);
     b.local_get(paramLocals[0]); // `this` as context
+    // The closure requires a struct value so box `this` if necessary.
+    translator.convertType(b, paramLocals[0].type,
+        struct.fields[FieldIndex.closureContext].type.unpacked);
     translator.globals.readGlobal(b, closure.vtable);
     types.makeType(this, functionType);
     b.struct_new(struct);

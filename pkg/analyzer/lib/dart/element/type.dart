@@ -574,8 +574,7 @@ abstract class ParameterizedType implements DartType {
 /// The type of a record literal or a record type annotation.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class RecordType
-    implements DartType, SharedRecordTypeStructure<DartType> {
+abstract class RecordType implements DartType {
   /// Creates a record type from of [positional] and [named] fields.
   factory RecordType({
     required List<DartType> positional,
@@ -591,6 +590,24 @@ abstract class RecordType
 
   /// The positional fields (might be empty).
   List<RecordTypePositionalField> get positionalFields;
+
+  /// The types of the positional fields (might be empty).
+  ///
+  /// Deprecated: this getter is a part of the analyzer's private
+  /// implementation, and was exposed by accident (see
+  /// https://github.com/dart-lang/sdk/issues/59763). Please use
+  /// [positionalFields] instead.
+  @Deprecated('Use positionalFields instead')
+  List<DartType> get positionalTypes;
+
+  /// All the named fields, sorted by name (might be empty).
+  ///
+  /// Deprecated: this getter is a part of the analyzer's private
+  /// implementation, and was exposed by accident (see
+  /// https://github.com/dart-lang/sdk/issues/59763). Please use [namedFields]
+  /// instead.
+  @Deprecated('Use namedFields instead')
+  List<RecordTypeNamedField> get sortedNamedTypes;
 }
 
 /// A field in a [RecordType].

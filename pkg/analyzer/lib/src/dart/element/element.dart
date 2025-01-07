@@ -4400,8 +4400,8 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   });
 
   @override
-  FieldFormalParameterElement2 get element =>
-      super.element as FieldFormalParameterElement2;
+  FieldFormalParameterElementImpl2 get element =>
+      super.element as FieldFormalParameterElementImpl2;
 
   /// Initializing formals are visible only in the "formal parameter
   /// initializer scope", which is the current scope of the initializer list
@@ -4428,7 +4428,7 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
       visitor.visitFieldFormalParameterElement(this);
 
   @override
-  FormalParameterElement _createElement(
+  FieldFormalParameterElementImpl2 _createElement(
           FormalParameterFragment firstFragment) =>
       FieldFormalParameterElementImpl2(firstFragment as ParameterElementImpl);
 }
@@ -4453,7 +4453,7 @@ class FormalParameterElementImpl extends PromotableElementImpl2
         FragmentedAnnotatableElementMixin<FormalParameterFragment>,
         FragmentedElementMixin<FormalParameterFragment>,
         _NonTopLevelVariableOrParameter
-    implements FormalParameterElement {
+    implements FormalParameterElementOrMember {
   final ParameterElementImpl wrappedElement;
 
   FormalParameterElementImpl(this.wrappedElement) {
@@ -4552,6 +4552,9 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   String? get name3 => wrappedElement.name;
 
   @override
+  String get nameShared => wrappedElement.name;
+
+  @override
   // TODO(augmentations): Implement the merge of formal parameters.
   DartType get type => wrappedElement.type;
 
@@ -4587,6 +4590,11 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   //     .map((fragment) => (fragment as TypeParameterElementImpl).element)
   //     .toList();
 }
+
+abstract class FormalParameterElementOrMember
+    implements
+        FormalParameterElement,
+        SharedNamedFunctionParameterStructure<DartType> {}
 
 mixin FragmentedAnnotatableElementMixin<E extends Fragment>
     implements FragmentedElementMixin<E> {
@@ -9029,7 +9037,7 @@ class ParameterElementImpl extends VariableElementImpl
   bool inheritsCovariant = false;
 
   /// The element corresponding to this fragment.
-  FormalParameterElement? _element;
+  FormalParameterElementImpl? _element;
 
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
@@ -9065,7 +9073,7 @@ class ParameterElementImpl extends VariableElementImpl
   ParameterElement get declaration => this;
 
   @override
-  FormalParameterElement get element {
+  FormalParameterElementImpl get element {
     if (_element != null) {
       return _element!;
     }
@@ -9080,7 +9088,7 @@ class ParameterElementImpl extends VariableElementImpl
     return _createElement(firstFragment);
   }
 
-  set element(FormalParameterElement element) => _element = element;
+  set element(FormalParameterElementImpl element) => _element = element;
 
   @override
   Fragment? get enclosingFragment => enclosingElement3 as Fragment?;
@@ -9170,7 +9178,7 @@ class ParameterElementImpl extends VariableElementImpl
     builder.writeFormalParameter(this);
   }
 
-  FormalParameterElement _createElement(
+  FormalParameterElementImpl _createElement(
           FormalParameterFragment firstFragment) =>
       FormalParameterElementImpl(firstFragment as ParameterElementImpl);
 }
@@ -9241,10 +9249,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 
 /// A mixin that provides a common implementation for methods defined in
 /// [ParameterElement].
-mixin ParameterElementMixin
-    implements
-        ParameterElement,
-        SharedNamedFunctionParameterStructure<DartType> {
+mixin ParameterElementMixin implements ParameterElement {
   @override
   bool get isNamed => parameterKind.isNamed;
 
@@ -9268,9 +9273,6 @@ mixin ParameterElementMixin
 
   @override
   bool get isRequiredPositional => parameterKind.isRequiredPositional;
-
-  @override
-  String get nameShared => name;
 
   @override
   // Overridden to remove the 'deprecated' annotation.
@@ -10274,8 +10276,8 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
   });
 
   @override
-  SuperFormalParameterElement2 get element =>
-      super.element as SuperFormalParameterElement2;
+  SuperFormalParameterElementImpl2 get element =>
+      super.element as SuperFormalParameterElementImpl2;
 
   /// Super parameters are visible only in the initializer list scope,
   /// and introduce final variables.
@@ -10329,7 +10331,7 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
   }
 
   @override
-  FormalParameterElement _createElement(
+  FormalParameterElementImpl _createElement(
           FormalParameterFragment firstFragment) =>
       SuperFormalParameterElementImpl2(firstFragment as ParameterElementImpl);
 }

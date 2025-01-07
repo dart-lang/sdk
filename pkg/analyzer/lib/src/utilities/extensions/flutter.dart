@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -169,18 +168,6 @@ extension AstNodeExtension on AstNode? {
   }
 }
 
-extension ClassElementExtension on ClassElement {
-  /// Whether this is the Flutter class `State`.
-  bool get isExactState => _isExactly(_nameState, _uriFramework);
-
-  /// Whether this has the Flutter class `State` as a superclass.
-  bool get isState => _hasSupertype(_uriFramework, _nameState);
-
-  /// Whether this is a [ClassElement] that extends the Flutter class
-  /// `StatefulWidget`.
-  bool get isStatefulWidgetDeclaration => supertype.isExactlyStatefulWidgetType;
-}
-
 extension ClassElementExtension2 on ClassElement2 {
   /// Whether this is the Flutter class `State`.
   bool get isExactState => _isExactly(_nameState, _uriFramework);
@@ -201,8 +188,8 @@ extension DartTypeExtension on DartType? {
       return false;
     }
 
-    return [self, ...self.element.allSupertypes].any((t) =>
-        t.element.name == 'Color' && t.element.library.name == 'dart.ui');
+    return [self, ...self.element3.allSupertypes].any((t) =>
+        t.element3.name3 == 'Color' && t.element3.library2.name3 == 'dart.ui');
   }
 
   /// Whether this is the Flutter mixin `Diagnosticable` or a subtype.
@@ -212,93 +199,93 @@ extension DartTypeExtension on DartType? {
       return false;
     }
 
-    return [self, ...self.element.allSupertypes].any((t) =>
-        t.element.name == 'Diagnosticable' &&
-        t.element.source.uri == _uriDiagnostics);
+    return [self, ...self.element3.allSupertypes].any((t) =>
+        t.element3.name3 == 'Diagnosticable' &&
+        t.element3.library2.firstFragment.source.uri == _uriDiagnostics);
   }
 
   /// Whether this is the Flutter type `EdgeInsetsGeometry`.
   bool get isExactEdgeInsetsGeometryType {
     var self = this;
     return self is InterfaceType &&
-        self.element._isExactly('EdgeInsetsGeometry', _uriEdgeInsets);
+        self.element3._isExactly('EdgeInsetsGeometry', _uriEdgeInsets);
   }
 
   /// Whether this is the Flutter class `StatefulWidget`.
   bool get isExactlyStatefulWidgetType {
     var self = this;
     return self is InterfaceType &&
-        self.element._isExactly(_nameStatefulWidget, _uriFramework);
+        self.element3._isExactly(_nameStatefulWidget, _uriFramework);
   }
 
   /// Whether this is the Flutter class `StatelessWidget`.
   bool get isExactlyStatelessWidgetType {
     var self = this;
     return self is InterfaceType &&
-        self.element._isExactly(_nameStatelessWidget, _uriFramework);
+        self.element3._isExactly(_nameStatelessWidget, _uriFramework);
   }
 
   /// Whether this is the Flutter class `Align`.
   bool get isExactWidgetTypeAlign {
     var self = this;
     return self is InterfaceType &&
-        self.element._isExactly(_nameAlign, _uriBasic);
+        self.element3._isExactly(_nameAlign, _uriBasic);
   }
 
   /// Whether this is the Flutter class `StreamBuilder`.
   bool get isExactWidgetTypeBuilder {
     var self = this;
     return self is InterfaceType &&
-        self.element._isExactly(_nameBuilder, _uriBasic);
+        self.element3._isExactly(_nameBuilder, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Center`.
   bool get isExactWidgetTypeCenter {
     var self = this;
     return self is InterfaceType &&
-        self.element._isExactly(_nameCenter, _uriBasic);
+        self.element3._isExactly(_nameCenter, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Container`.
   bool get isExactWidgetTypeContainer {
     var self = this;
     return self is InterfaceType &&
-        self.element._isExactly(_nameContainer, _uriContainer);
+        self.element3._isExactly(_nameContainer, _uriContainer);
   }
 
   /// Whether this is the Flutter class `Expanded`.
   bool get isExactWidgetTypeExpanded {
     var self = this;
     return self is InterfaceType &&
-        self.element._isExactly(_nameExpanded, _uriBasic);
+        self.element3._isExactly(_nameExpanded, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Flexible`.
   bool get isExactWidgetTypeFlexible {
     var self = this;
     return self is InterfaceType &&
-        self.element._isExactly(_nameFlexible, _uriBasic);
+        self.element3._isExactly(_nameFlexible, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Padding`.
   bool get isExactWidgetTypePadding {
     var self = this;
     return self is InterfaceType &&
-        self.element._isExactly(_namePadding, _uriBasic);
+        self.element3._isExactly(_namePadding, _uriBasic);
   }
 
   /// Whether this is the Flutter class `SizedBox`.
   bool get isExactWidgetTypeSizedBox {
     var self = this;
     return self is InterfaceType &&
-        self.element._isExactly(_nameSizedBox, _uriBasic);
+        self.element3._isExactly(_nameSizedBox, _uriBasic);
   }
 
   /// Whether this is the Flutter class `StreamBuilder`.
   bool get isExactWidgetTypeStreamBuilder {
     var self = this;
     return self is InterfaceType &&
-        self.element._isExactly(_nameStreamBuilder, _uriAsync);
+        self.element3._isExactly(_nameStreamBuilder, _uriAsync);
   }
 
   /// Whether this is the Flutter class `Widget`, or its subtype.
@@ -317,15 +304,15 @@ extension DartTypeExtension on DartType? {
       return false;
     }
 
-    return [self, ...self.element.allSupertypes].any((t) =>
-        t.element.name == 'Matrix4' &&
-        t.element.library.name == 'vector_math_64');
+    return [self, ...self.element3.allSupertypes].any((t) =>
+        t.element3.name3 == 'Matrix4' &&
+        t.element3.library2.name3 == 'vector_math_64');
   }
 
   /// Whether this is the Flutter class `Widget`, or its subtype.
   bool get isWidgetType {
     var self = this;
-    return self is InterfaceType && self.element.isWidget;
+    return self is InterfaceType && self.element3.isWidget;
   }
 }
 
@@ -389,8 +376,7 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
   /// Whether this is a constructor invocation for a class that has the Flutter
   /// class `Widget` as a superclass.
   bool get isWidgetCreation {
-    var element = constructorName
-        .staticElement?.enclosingElement3.augmented.firstFragment;
+    var element = constructorName.element?.enclosingElement2;
     return element.isWidget;
   }
 
@@ -408,8 +394,7 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
 
   /// The presentation for this node.
   String? get widgetPresentationText {
-    var element = constructorName
-        .staticElement?.enclosingElement3.augmented.firstFragment;
+    var element = constructorName.element?.enclosingElement2;
     if (!element.isWidget) {
       return null;
     }
@@ -432,7 +417,7 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
         return 'Text';
       }
     }
-    return element?.name;
+    return element?.name3;
   }
 }
 
@@ -450,61 +435,7 @@ extension InterfaceElement2Extension on InterfaceElement2? {
       return true;
     }
     return self.allSupertypes
-        .any((type) => type.element._isExactly(_nameFlex, _uriBasic));
-  }
-}
-
-extension InterfaceElementExtension on InterfaceElement? {
-  /// Whether this is the Flutter class `Alignment`.
-  bool get isExactAlignment {
-    return _isExactly('Alignment', _uriAlignment);
-  }
-
-  /// Whether this is the Flutter class `AlignmentDirectional`.
-  bool get isExactAlignmentDirectional {
-    return _isExactly('AlignmentDirectional', _uriAlignment);
-  }
-
-  /// Whether this is the Flutter class `AlignmentGeometry`.
-  bool get isExactAlignmentGeometry {
-    return _isExactly('AlignmentGeometry', _uriAlignment);
-  }
-
-  /// Whether this is the Flutter class `Widget`, or a subtype.
-  bool get isWidget {
-    var self = this;
-    if (self is! ClassElement) {
-      return false;
-    }
-    if (_isExactly(_nameWidget, _uriFramework)) {
-      return true;
-    }
-    return self.allSupertypes
-        .any((type) => type.element._isExactly(_nameWidget, _uriFramework));
-  }
-
-  /// Whether this has a supertype with the [requiredName] defined in the file
-  /// with the [requiredUri].
-  bool _hasSupertype(Uri requiredUri, String requiredName) {
-    var self = this;
-    if (self == null) {
-      return false;
-    }
-    for (var type in self.allSupertypes) {
-      if (type.element.name == requiredName) {
-        var uri = type.element.source.uri;
-        if (uri == requiredUri) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  /// Whether this is the exact [type] defined in the file with the given [uri].
-  bool _isExactly(String type, Uri uri) {
-    var self = this;
-    return self is ClassElement && self.name == type && self.source.uri == uri;
+        .any((type) => type.element3._isExactly(_nameFlex, _uriBasic));
   }
 }
 
@@ -534,7 +465,7 @@ extension InterfaceElementExtension2 on InterfaceElement2? {
       return true;
     }
     return self.allSupertypes
-        .any((type) => type.element._isExactly(_nameWidget, _uriFramework));
+        .any((type) => type.element3._isExactly(_nameWidget, _uriFramework));
   }
 
   /// Whether this has a supertype with the [requiredName] defined in the file
@@ -545,8 +476,8 @@ extension InterfaceElementExtension2 on InterfaceElement2? {
       return false;
     }
     for (var type in self.allSupertypes) {
-      if (type.element.name == requiredName) {
-        var uri = type.element.source.uri;
+      if (type.element3.name3 == requiredName) {
+        var uri = type.element3.library2.firstFragment.source.uri;
         if (uri == requiredUri) {
           return true;
         }
