@@ -1399,6 +1399,14 @@ abstract class AstCodeGenerator
       b.local_set(switchValueNonNullableLocal);
     }
 
+    final dynamicTypeGuard = switchInfo.dynamicTypeGuard;
+    if (dynamicTypeGuard != null) {
+      final success = b.block(const [], [translator.topInfo.nonNullableType]);
+      dynamicTypeGuard(switchValueNonNullableLocal, success);
+      b.br(switchLabels[defaultCase] ?? doneLabel);
+      b.end();
+    }
+
     // Compare against all case values
     for (SwitchCase c in node.cases) {
       for (Expression exp in c.expressions) {
@@ -4114,6 +4122,12 @@ class SwitchInfo {
   /// expression is nullable.
   late final w.ValueType nonNullableType;
 
+  /// Generates code that will br on [successLabel] if [switchExprLocal] has the
+  /// correct type for the case checks on this switch. Only set for switches
+  /// where the switch expression is dynamic.
+  void Function(w.Local switchExprLocal, w.Label successLabel)?
+      dynamicTypeGuard;
+
   /// Generates code that compares value of a `case` expression with the
   /// `switch` expression's value. Calls [pushCaseExpr] once.
   late final void Function(
@@ -4178,6 +4192,16 @@ class SwitchInfo {
       // named arguments. So we don't have to check `ParamInfo` for it and
       // add missing optional parameters.
       assert(equalsMemberSignature.inputs.length == 2);
+
+      dynamicTypeGuard = (switchExprLocal, successLabel) {
+        codeGen.b.local_get(switchExprLocal);
+        codeGen.b.br_on_cast(
+            successLabel,
+            switchExprLocal.type as w.RefType,
+            equalsMemberSignature.inputs[0]
+                .withNullability(switchExprLocal.type.nullable) as w.RefType);
+        codeGen.b.drop();
+      };
 
       compare = (switchExprLocal, pushCaseExpr) {
         final caseExprType = pushCaseExpr();
