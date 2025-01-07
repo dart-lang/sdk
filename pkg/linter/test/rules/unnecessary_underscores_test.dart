@@ -17,6 +17,17 @@ class UnnecessaryUnderscoresTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_underscores';
 
+  test_enum_field_unused() async {
+    await assertDiagnostics(r'''
+enum E {
+  __,
+}
+''', [
+      // No lint.
+      error(WarningCode.UNUSED_FIELD, 11, 2),
+    ]);
+  }
+
   test_field_unused() async {
     await assertDiagnostics(r'''
 class C {
@@ -87,6 +98,30 @@ void f() {
   print(__);
 }
 ''');
+  }
+
+  test_localFunction_parameter_unused() async {
+    await assertDiagnostics(r'''
+void f() {
+  g(int __) {}
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 13, 1),
+      lint(19, 2),
+    ]);
+  }
+
+  test_localFunction_parameter_used() async {
+    await assertDiagnostics(r'''
+void f() {
+  g(int __) {
+    print(__);
+  }
+}
+''', [
+      // No lint.
+      error(WarningCode.UNUSED_ELEMENT, 13, 1),
+    ]);
   }
 
   test_localFunction_unused() async {
