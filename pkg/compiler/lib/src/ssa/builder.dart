@@ -2481,6 +2481,11 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     // a throwing prior subexpression, e.g. `[throw e, {...[]}]`.
     if (!_isReachable) return;
 
+    localsHandler.enterScope(
+      _closureDataLookup.getCapturedBlockScope(node),
+      _sourceInformationBuilder.buildBlock(node),
+    );
+
     for (ir.Statement statement in node.statements) {
       statement.accept(this);
       if (!_isReachable) {

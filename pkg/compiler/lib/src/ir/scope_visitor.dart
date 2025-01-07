@@ -205,10 +205,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
 
       KernelCapturedScope capturedScope;
       var nodeBox = NodeBox(getBoxName(), _executableContext!);
-      if (node is ir.ForStatement ||
-          node is ir.ForInStatement ||
-          node is ir.WhileStatement ||
-          node is ir.DoStatement) {
+      if (node is ir.LoopStatement) {
         capturedScope = KernelCapturedLoopScope(
           capturedVariablesForScope,
           nodeBox,
@@ -1373,7 +1370,17 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
 
   @override
   EvaluationComplexity visitBlock(ir.Block node) {
-    visitNodes(node.statements);
+    final parent = node.parent;
+    if (parent is ir.FunctionNode || parent is ir.LoopStatement) {
+      // Scoping for these blocks are handled by their parent nodes.
+      visitNodes(node.statements);
+    } else {
+      enterNewScope(node, () {
+        visitInVariableScope(node, () {
+          visitNodes(node.statements);
+        });
+      });
+    }
     return const EvaluationComplexity.lazy();
   }
 

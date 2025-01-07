@@ -488,6 +488,11 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   }
 
   @override
+  SourceInformation buildBlock(ir.TreeNode node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
   SourceInformation buildCall(
     covariant ir.TreeNode receiver,
     covariant ir.TreeNode call,
