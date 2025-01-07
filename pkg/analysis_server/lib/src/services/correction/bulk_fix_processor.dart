@@ -17,7 +17,6 @@ import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
-import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -80,9 +79,10 @@ class BulkFixProcessor {
   ];
 
   /// A map from an error code to a list of generators used to create multiple
-  /// correction producers used to build fixes for those diagnostics. The
-  /// generators used for lint rules are in the
-  /// [FixProcessor.lintMultiProducerMap].
+  /// correction producers used to build fixes for those diagnostics.
+  ///
+  /// The generators used for lint rules are in
+  /// `_RegisteredFixGenerators.lintMultiProducers`.
   ///
   /// The expectation is that only one of the correction producers will produce
   /// a change for a given fix. If more than one change is produced the result

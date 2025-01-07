@@ -207,7 +207,7 @@ LibraryImportElement? _getImportElementInfo(SimpleIdentifier prefixNode) {
   return _getImportElement(libraryElement, prefix, usedElement);
 }
 
-/// Returns the [LibraryImport2] that is referenced by [prefixNode] with a
+/// Returns the [LibraryImport] that is referenced by [prefixNode] with a
 /// [PrefixElement], maybe `null`.
 LibraryImport? _getImportElementInfo2(SimpleIdentifier prefixNode) {
   // prepare environment

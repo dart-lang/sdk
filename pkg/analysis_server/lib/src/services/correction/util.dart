@@ -329,8 +329,8 @@ bool isDeclaredIn(AstNode root, String name) {
   return collector.isDeclared;
 }
 
-/// Checks if given [DartNode] is the left hand side of an assignment, or a
-/// declaration of a variable.
+/// Returns whether the given [node] is the left hand side of an assignment, or
+/// a declaration of a variable.
 bool isLeftHandOfAssignment(SimpleIdentifier node) {
   if (node.inSetterContext()) {
     return true;

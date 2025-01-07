@@ -215,8 +215,8 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     }
   }
 
-  /// Fixes all instances of the [LintNames.diagnostic_describe_all_properties] in the given
-  /// [declaration].
+  /// Fixes all instances of the [LintNames.diagnostic_describe_all_properties]
+  /// in the given [declaration].
   Future<void> _fixAllDiagnosticPropertyReferences(
     ChangeBuilder builder,
     ClassDeclaration declaration,
@@ -366,7 +366,8 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
   }
 
   /// Returns a list of all the [AnalysisError]s of type
-  /// [DiagnosticDescribeAllProperties.code] fpr the given [declaration].
+  /// [LinterLintCode.diagnostic_describe_all_properties] for the given
+  /// [declaration].
   List<AnalysisError> _getAllDiagnosticsInClass(ClassDeclaration declaration) {
     var propertyErrors = <AnalysisError>[];
     var startOffset = declaration.offset;

@@ -142,9 +142,8 @@ class PubspecFixGenerator {
     return fixes;
   }
 
-  /// Add a fix whose edits were built by the [builder] that has the given
-  /// [kind]. If [args] are provided, they will be used to fill in the message
-  /// for the fix.
+  /// Adds a fix whose edits were built by the [builder] that has the given
+  /// [kind].
   void _addFixFromBuilder(ChangeBuilder builder, FixKind kind) {
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {

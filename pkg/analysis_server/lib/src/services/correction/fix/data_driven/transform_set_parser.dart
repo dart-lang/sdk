@@ -174,8 +174,8 @@ class TransformSetParser {
     return _translateTransformSet(node);
   }
 
-  /// Convert the given [template] into a list of components. Variable
-  /// references in the template are looked up in the map of [generators].
+  /// Converts the given [template] into a list of components. Variable
+  /// references in the template are looked up in [variableScope].
   List<TemplateComponent> _extractTemplateComponents(
     String template,
     VariableScope variableScope,
@@ -301,8 +301,8 @@ class TransformSetParser {
     return null;
   }
 
-  /// Report that the value represented by the [node] does not have the
-  /// [expectedType], using the [context] to get the key to use in the message.
+  /// Reports that the value represented by the [node] is not one of the
+  /// [allowedValues], using the [context] to get the key to use in the message.
   Null _reportInvalidValueOneOf(
     YamlNode node,
     ErrorContext context,

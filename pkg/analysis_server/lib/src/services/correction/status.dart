@@ -7,7 +7,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 /// An outcome of a condition checking operation.
 class RefactoringStatus {
   /// The current severity of this [RefactoringStatus] - the maximum of the
-  /// severities of its [entries].
+  /// severities of its [problems].
   RefactoringProblemSeverity? _severity;
 
   /// A list of [RefactoringProblem]s.

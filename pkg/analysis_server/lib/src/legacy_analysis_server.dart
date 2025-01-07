@@ -620,7 +620,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     );
   }
 
-  /// Handle a [request] that was read from the communication channel.
+  /// Handle a [requestOrResponse] that was read from the communication channel.
   void handleRequestOrResponse(RequestOrResponse requestOrResponse) {
     if (requestOrResponse is Request) {
       var cancellationToken = CancelableToken();
