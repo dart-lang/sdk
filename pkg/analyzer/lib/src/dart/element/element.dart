@@ -4476,9 +4476,7 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   ElementKind get kind => ElementKind.PARAMETER;
 
   @override
-  LibraryElement2 get library2 =>
-      wrappedElement.thisOrAncestorOfType<LibraryElementImpl>()
-          as LibraryElement2;
+  LibraryElement2? get library2 => wrappedElement.library2;
 
   @override
   String? get name3 => wrappedElement.name;
@@ -4859,8 +4857,10 @@ mixin FragmentedAnnotatableElementMixin<E extends Fragment>
       -1, metadata.cast<ElementAnnotationImpl>(), () => sinceSdkVersion);
 
   Version? get sinceSdkVersion {
-    var annotations = metadata.cast<ElementAnnotationImpl>();
-    return SinceSdkVersionComputer.fromAnnotations(annotations);
+    if (this is Element2) {
+      return SinceSdkVersionComputer().compute2(this as Element2);
+    }
+    return null;
   }
 }
 
