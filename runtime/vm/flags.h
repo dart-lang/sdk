@@ -124,8 +124,6 @@ class Flags {
 #define PRECOMPILE_FLAG_MACRO(name, precompiled_value, product_value, type,    \
                               default_value, comment)                          \
   const type FLAG_##name = precompiled_value;
-#define AOT_FLAG_MACRO(name, precompiled_value, type, default_value, comment)  \
-  const type FLAG_##name = precompiled_value;
 
 #elif defined(PRODUCT)  // !PRECOMPILED
 #define RELEASE_FLAG_MACRO(name, product_value, type, default_value, comment)  \
@@ -133,16 +131,12 @@ class Flags {
 #define PRECOMPILE_FLAG_MACRO(name, precompiled_value, product_value, type,    \
                               default_value, comment)                          \
   const type FLAG_##name = product_value;
-#define AOT_FLAG_MACRO(name, precompiled_value, type, default_value, comment)  \
-  extern type FLAG_##name;
 
 #elif defined(DART_PRECOMPILED_RUNTIME)  // !PRODUCT
 #define RELEASE_FLAG_MACRO(name, product_value, type, default_value, comment)  \
   extern type FLAG_##name;
 #define PRECOMPILE_FLAG_MACRO(name, precompiled_value, product_value, type,    \
                               default_value, comment)                          \
-  const type FLAG_##name = precompiled_value;
-#define AOT_FLAG_MACRO(name, precompiled_value, type, default_value, comment)  \
   const type FLAG_##name = precompiled_value;
 
 #else  // !PRODUCT && !PRECOMPILED
@@ -151,8 +145,6 @@ class Flags {
 #define PRECOMPILE_FLAG_MACRO(name, precompiled_value, product_value, type,    \
                               default_value, comment)                          \
   extern type FLAG_##name;
-#define AOT_FLAG_MACRO(name, precompiled_value, type, default_value, comment)  \
-  extern type FLAG_##name;
 
 #endif
 
@@ -160,13 +152,11 @@ class Flags {
 FLAG_LIST(PRODUCT_FLAG_MACRO,
           RELEASE_FLAG_MACRO,
           PRECOMPILE_FLAG_MACRO,
-          AOT_FLAG_MACRO,
           DEBUG_FLAG_MACRO)
 
 #undef RELEASE_FLAG_MACRO
 #undef DEBUG_FLAG_MACRO
 #undef PRODUCT_FLAG_MACRO
-#undef AOT_FLAG_MACRO
 #undef PRECOMPILE_FLAG_MACRO
 
 #if defined(DART_PRECOMPILER)
