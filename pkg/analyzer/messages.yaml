@@ -2391,7 +2391,7 @@ CompileTimeErrorCode:
   CONFLICTING_TYPE_VARIABLE_AND_EXTENSION:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
     problemMessage: "'{0}' can't be used to name both a type parameter and the extension in which the type parameter is defined."
-    correctionMessage: Try renaming either the type variaparameterble or the extension.
+    correctionMessage: Try renaming either the type parameter or the extension.
     hasPublishedDocs: true
     comment: |-
       Parameters:
@@ -19215,7 +19215,7 @@ FfiCode:
   NATIVE_FUNCTION_MISSING_TYPE:
     problemMessage: The native type of this function couldn't be inferred so it must be specified in the annotation.
     correctionMessage: Try adding a type parameter extending `NativeType` to the `@Native` annotation.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters
     documentation: |-
       #### Description
@@ -20452,7 +20452,7 @@ FfiCode:
   NEGATIVE_VARIABLE_DIMENSION:
     problemMessage: The variable dimension of a variable-length array must be non-negative.
     correctionMessage: Try using a value that is zero or greater.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -27529,7 +27529,7 @@ WarningCode:
   UNUSED_ELEMENT_PARAMETER:
     problemMessage: "A value for optional parameter '{0}' isn't ever given."
     correctionMessage: Try removing the unused parameter.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the parameter that is declared but not used

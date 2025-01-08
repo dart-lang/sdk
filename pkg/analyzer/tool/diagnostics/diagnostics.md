@@ -29218,7 +29218,7 @@ _Unnecessary use of multiple underscores._
 #### Description
 
 The analyzer produces this diagnostic when an unused variable is named
-with mutiple underscores (for example `__`). A single `_` wildcard variable
+with multiple underscores (for example `__`). A single `_` wildcard variable
 can be used instead.
 
 #### Example

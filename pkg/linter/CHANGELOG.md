@@ -1,12 +1,13 @@
 # 3.7.0-wip
 
 - new lint: `unnecessary_underscores`
-- removed lint: `package_api_docs`
-- removed lint: `unsafe_html`
-- _(soon to be)_ deprecated lint: `avoid_null_checks_in_equality_operators`
+- new lint: `strict_top_level_inference`
 - new _(experimental)_ lint: `omit_obvious_property_types`
 - new _(experimental)_ lint: `specify_nonobvious_property_types`
 - new _(experimental)_ lint: `unsafe_variance`
+- removed lint: `package_api_docs`
+- removed lint: `unsafe_html`
+- _(soon to be)_ deprecated lint: `avoid_null_checks_in_equality_operators`
 
 # 3.6.0
 

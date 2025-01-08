@@ -2420,7 +2420,20 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "Do type annotate initialized top-level or static variables when the type is\nnon-obvious.\n\nType annotations on top-level or static variables can serve as a request for\ntype inference, documenting the expected outcome of the type inference step,\nand declaratively allowing the compiler and analyzer to solve the possibly\ncomplex task of finding type arguments and annotations in the initializing\nexpression that yield the desired result.\n\nType annotations on top-level or static variables can also inform readers about\nthe type of the initializing expression, which will allow them to proceed\nreading the locations in code where this variable is used with known good\ninformation about the type of the given variable (which may not be immediately\nevident by looking at the initializing expression).\n\nAn expression is considered to have a non-obvious type when it does not\nhave an obvious type.\n\nAn expression e has an obvious type in the following cases:\n\n- e is a non-collection literal. For instance, 1, true, 'Hello, $name!'.\n- e is a collection literal with actual type arguments. For instance,\n  <int, bool>{}.\n- e is a list literal or a set literal where at least one element has an\n  obvious type, and all elements have the same type. For instance, [1, 2] and\n  { [true, false], [] }, but not [1, 1.5].\n- e is a map literal where all key-value pair have a key with an obvious type\n  and a value with an obvious type, and all keys have the same type, and all\n  values have the same type. For instance, { #a: <int>[] }, but not\n  {1: 1, 2: true}.\n- e is an instance creation expression whose class part is not raw. For\n  instance C(14) if C is a non-generic class, or C<int>(14) if C accepts one\n  type argument, but not C(14) if C accepts one or more type arguments.\n- e is a cascade whose target has an obvious type. For instance,\n  1..isEven..isEven has an obvious type because 1 has an obvious type.\n- e is a type cast. For instance, myComplexpression as int.\n\n**BAD:**\n```dart\nfinal myTopLevelVariable =\n    genericFunctionWrittenByOtherFolks(with, args);\n\nclass A {\n  static var myStaticVariable =\n      myTopLevelVariable.update('foo', null);\n}\n```\n\n**GOOD:**\n```dart\nfinal Map<String, Widget?> myTopLevelVariable =\n    genericFunctionWrittenByOtherFolks(with, args);\n\nclass A {\n  static Map<String, Widget?> myStaticVariable =\n      myTopLevelVariable.update('foo', null);\n}\n```\n\n**This rule is experimental.** It is being evaluated, and it may be changed\nor removed. Feedback on its behavior is welcome! The main issue is here:\nhttps://github.com/dart-lang/linter/issues/5101.",
+    "details": "Do type annotate initialized top-level or static variables when the type is\nnon-obvious.\n\nType annotations on top-level or static variables can serve as a request for\ntype inference, documenting the expected outcome of the type inference step,\nand declaratively allowing the compiler and analyzer to solve the possibly\ncomplex task of finding type arguments and annotations in the initializing\nexpression that yield the desired result.\n\nType annotations on top-level or static variables can also inform readers about\nthe type of the initializing expression, which will allow them to proceed\nreading the locations in code where this variable is used with known good\ninformation about the type of the given variable (which may not be immediately\nevident by looking at the initializing expression).\n\nAn expression is considered to have a non-obvious type when it does not\nhave an obvious type.\n\nAn expression e has an obvious type in the following cases:\n\n- e is a non-collection literal. For instance, 1, true, 'Hello, $name!'.\n- e is a collection literal with actual type arguments. For instance,\n  <int, bool>{}.\n- e is a list literal or a set literal where at least one element has an\n  obvious type, and all elements have the same type. For instance, [1, 2] and\n  { [true, false], [] }, but not [1, 1.5].\n- e is a map literal where all key-value pair have a key with an obvious type\n  and a value with an obvious type, and all keys have the same type, and all\n  values have the same type. For instance, { #a: <int>[] }, but not\n  {1: 1, 2: true}.\n- e is an instance creation expression whose class part is not raw. For\n  instance C(14) if C is a non-generic class, or C<int>(14) if C accepts one\n  type argument, but not C(14) if C accepts one or more type arguments.\n- e is a cascade whose target has an obvious type. For instance,\n  1..isEven..isEven has an obvious type because 1 has an obvious type.\n- e is a type cast. For instance, `myComplexExpression as int`.\n\n**BAD:**\n```dart\nfinal myTopLevelVariable =\n    genericFunctionWrittenByOtherFolks(with, args);\n\nclass A {\n  static var myStaticVariable =\n      myTopLevelVariable.update('foo', null);\n}\n```\n\n**GOOD:**\n```dart\nfinal Map<String, Widget?> myTopLevelVariable =\n    genericFunctionWrittenByOtherFolks(with, args);\n\nclass A {\n  static Map<String, Widget?> myStaticVariable =\n      myTopLevelVariable.update('foo', null);\n}\n```\n\n**This rule is experimental.** It is being evaluated, and it may be changed\nor removed. Feedback on its behavior is welcome! The main issue is here:\nhttps://github.com/dart-lang/linter/issues/5101.",
+    "sinceDartSdk": "3.7"
+  },
+  {
+    "name": "strict_top_level_inference",
+    "description": "Specify type annotations.",
+    "categories": [
+      "style"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "Do type annotate top-level and class-like member declarations, where types\nare not inferred from super-interfaces or initializers.\n\nThe lint warns about every omitted return type, parameter type, and\nvariable type of a top-level declaration or class-like-namespace-level\ndeclaration (static or instance member or constructor declaration), which\nis not given a type by inference, and which therefore defaults to dynamic.\n\nThe only omitted types that can be given a type by top-level inference,\nare those of variable declarations with initializer expressions, and\nreturn and parameter types of instance members that override a consistent\ncombined super-interface signature.\n\nSetters do not need a return type, as it is always assumed to be `void`.\n\n**BAD:**\n```dart\nvar _zeroPointCache;\nclass Point {\n  get zero => ...;\n  final x, y;\n  Point(x, y) {}\n  closest(b, c) => distance(b) <= distance(c) ? b : c;\n  distance(other) => ...;\n}\n_sq(v) => v * v;\n```\n\n**GOOD:**\n```dart\nPoint? _zeroPointCache;\nclass Point {\n  Point get zero => ...;\n  final int x, y;\n  Point(int x, int y) {}\n  closest(Point b, Point c) =>\n      distance(b) <= distance(c) ? b : c;\n  distance(Point other) => ...;\n}\nint _sq(int v) => v * v;\n```",
     "sinceDartSdk": "3.7"
   },
   {
@@ -2888,6 +2901,20 @@
     "fixStatus": "hasFix",
     "details": "Unnecessary `toList()` in spreads.\n\n**BAD:**\n```dart\nchildren: <Widget>[\n  ...['foo', 'bar', 'baz'].map((String s) => Text(s)).toList(),\n]\n```\n\n**GOOD:**\n```dart\nchildren: <Widget>[\n  ...['foo', 'bar', 'baz'].map((String s) => Text(s)),\n]\n```",
     "sinceDartSdk": "2.18"
+  },
+  {
+    "name": "unnecessary_underscores",
+    "description": "Unnecessary underscores can be removed.",
+    "categories": [
+      "brevity",
+      "style"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "**AVOID** using multiple underscores when a single wildcard will do.\n\n**BAD:**\n```dart\nvoid function(int __) { }\n```\n\n**GOOD:**\n```dart\nvoid function(int _) { }\n```",
+    "sinceDartSdk": "3.7"
   },
   {
     "name": "unreachable_from_main",
