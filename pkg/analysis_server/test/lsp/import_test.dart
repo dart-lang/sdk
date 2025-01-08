@@ -79,7 +79,7 @@ void foo() {
   }
 
   Future<void> test_import_double() async {
-    newFile('/home/my_project/lib/other.dart', '''
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
 export 'dart:math';
 ''');
     await _verifyGoToImports(
@@ -93,10 +93,10 @@ Rando^m? r;
   }
 
   Future<void> test_import_double_ambiguous() async {
-    newFile('/home/my_project/lib/a1.dart', '''
+    newFile(join(projectFolderPath, 'lib', 'a1.dart'), '''
 class A {}
 ''');
-    newFile('/home/my_project/lib/a2.dart', '''
+    newFile(join(projectFolderPath, 'lib', 'a2.dart'), '''
 class A {}
 ''');
     await _verifyGoToImports(
@@ -111,10 +111,10 @@ class A {}
   }
 
   Future<void> test_import_double_hide() async {
-    newFile('/home/my_project/lib/a1.dart', '''
+    newFile(join(projectFolderPath, 'lib', 'a1.dart'), '''
 class A {}
 ''');
-    newFile('/home/my_project/lib/a2.dart', '''
+    newFile(join(projectFolderPath, 'lib', 'a2.dart'), '''
 class A {}
 ''');
     await _verifyGoToImports(
@@ -128,7 +128,7 @@ import 'a1.dart' hide A;
   }
 
   Future<void> test_import_double_same_different_alias() async {
-    newFile('/home/my_project/lib/other.dart', '''
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
 export 'dart:math';
 ''');
     await _verifyGoToImports(
@@ -142,7 +142,7 @@ other.Rando^m? r;
   }
 
   Future<void> test_import_double_same_different_alias_prefix() async {
-    newFile('/home/my_project/lib/other.dart', '''
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
 export 'dart:math';
 ''');
     await _verifyGoToImports(
@@ -156,12 +156,12 @@ other.Ran^dom? r;
   }
 
   Future<void> test_import_double_show() async {
-    newFile('/home/my_project/lib/a1.dart', '''
+    newFile(join(projectFolderPath, 'lib', 'a1.dart'), '''
 class A {}
 
 class B {}
 ''');
-    newFile('/home/my_project/lib/a2.dart', '''
+    newFile(join(projectFolderPath, 'lib', 'a2.dart'), '''
 class A {}
 ''');
     await _verifyGoToImports(
@@ -175,10 +175,10 @@ import 'a1.dart' show B;
   }
 
   Future<void> test_import_double_unambiguous_aliased() async {
-    newFile('/home/my_project/lib/a1.dart', '''
+    newFile(join(projectFolderPath, 'lib', 'a1.dart'), '''
 class A {}
 ''');
-    newFile('/home/my_project/lib/a2.dart', '''
+    newFile(join(projectFolderPath, 'lib', 'a2.dart'), '''
 class A {}
 ''');
     await _verifyGoToImports(
@@ -371,7 +371,7 @@ math.Rando^m? r;
   }
 
   Future<void> test_import_single_exported() async {
-    newFile('/home/my_project/lib/other.dart', '''
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
 export 'dart:math';
 ''');
     await _verifyGoToImports(
@@ -397,7 +397,7 @@ class LocalClass {}
   }
 
   Future<void> test_nestedInvocations() async {
-    newFile('/home/my_project/lib/other.dart', '''
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
 class A {
   const A();
   A foo() => A();
@@ -414,7 +414,7 @@ var a = A().foo().ba^r();
   }
 
   Future<void> test_nestedInvocations_extension() async {
-    newFile('/home/my_project/lib/other.dart', '''
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
 extension E on int {
   void bar() {}
 }
@@ -424,6 +424,36 @@ extension E on int {
 [!import 'other.dart';!]
 
 var a = 1.abs().ba^r();
+'''),
+    );
+  }
+
+  Future<void> test_staticDeclarations() async {
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
+class A {
+  static const a = 1;
+}
+''');
+    await _verifyGoToImports(
+      TestCode.parse('''
+[!import 'other.dart';!]
+
+var a = A^.a;
+'''),
+    );
+  }
+
+  Future<void> test_staticDeclarations_prefixed() async {
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
+class A {
+  static const a = 1;
+}
+''');
+    await _verifyGoToImports(
+      TestCode.parse('''
+[!import 'other.dart' as o;!]
+
+var a = o.A^.a;
 '''),
     );
   }
