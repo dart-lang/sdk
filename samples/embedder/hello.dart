@@ -4,6 +4,7 @@
 
 import 'package:collection/collection.dart';
 
+@pragma('vm:entry-point')
 void main(List<String>? args) {
   final greetee = args?.singleOrNull ?? 'world';
   print('Hello, $greetee!');
