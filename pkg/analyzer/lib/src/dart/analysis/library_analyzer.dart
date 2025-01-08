@@ -185,7 +185,6 @@ class LibraryAnalyzer {
         ScopeResolverVisitor(
           fileAnalysis.errorReporter,
           nameScope: unitElement.scope,
-          unitElement: unitElement,
         ),
       );
 
@@ -821,7 +820,7 @@ class LibraryAnalyzer {
       for (var i = 0; i < docImports.length; i++) {
         _resolveLibraryDocImportDirective(
           directive: docImports[i].import as ImportDirectiveImpl,
-          state: fileKind.docLibraryImports[i],
+          state: fileKind.docImports[i],
           errorReporter: containerErrorReporter,
         );
       }
@@ -855,10 +854,16 @@ class LibraryAnalyzer {
     _testingData?.recordTypeConstraintGenerationDataForTesting(
         fileAnalysis.file.uri, inferenceDataForTesting!);
 
+    var docImportLibraries = [
+      for (var import in _library.docImports)
+        if (import is LibraryImportWithFile)
+          _libraryElement.session.elementFactory
+              .libraryOfUri2(import.importedFile.uri)
+    ];
     unit.accept(ScopeResolverVisitor(
       fileAnalysis.errorReporter,
       nameScope: unitElement.scope,
-      unitElement: unitElement,
+      docImportLibraries: docImportLibraries,
     ));
 
     // Nothing for RESOLVED_UNIT8?

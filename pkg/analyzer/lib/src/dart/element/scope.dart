@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// @docImport 'package:analyzer/src/generated/resolver.dart';
-library;
-
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -30,58 +27,32 @@ class ConstructorInitializerScope extends EnclosedScope {
   }
 }
 
-/// The scope that looks up elements in documentation comments.
+/// The scope that looks up elements in doc imports.
 ///
 /// Attempts to look up elements in its [innerScope] before searching
-/// through any doc imports.
-class DocumentationCommentScope implements Scope {
+/// through the doc imports.
+class DocImportScope with _GettersAndSetters implements Scope {
   /// The scope that will be prioritized in look ups before searching in doc
   /// imports.
   ///
-  /// Will be set for each specific comment scope in the [ScopeResolverVisitor].
+  /// Will be set for each specific comment scope in the `ScopeResolverVisitor`.
   Scope innerScope;
 
-  final LibraryFragmentScope? _parent;
-
-  final CompilationUnitElementImpl _fragment;
-
-  final PrefixScope _noPrefixScope;
-
-  final Map<String, PrefixElementImpl2> _prefixElements = {};
-
-  factory DocumentationCommentScope(
-      Scope innerScope, CompilationUnitElementImpl fragment) {
-    var parent = fragment.enclosingElement3?.scope;
-    return DocumentationCommentScope._(
-      innerScope: innerScope,
-      parent: parent,
-      fragment: fragment,
-      noPrefixScope: PrefixScope(
-        libraryFragment: fragment,
-        parent: parent?._noPrefixScope,
-        libraryImports: fragment.docLibraryImports,
-        prefix: null,
-      ),
-    );
-  }
-
-  DocumentationCommentScope._({
-    required this.innerScope,
-    required LibraryFragmentScope? parent,
-    required CompilationUnitElementImpl fragment,
-    required PrefixScope noPrefixScope,
-  })  : _parent = parent,
-        _fragment = fragment,
-        _noPrefixScope = noPrefixScope {
-    for (var prefix in fragment.docLibraryImportPrefixes) {
-      var prefix1 = prefix.asElement;
-      _prefixElements[prefix1.name] = prefix;
-      prefix1.scope = PrefixScope(
-        libraryFragment: fragment,
-        parent: _getParentPrefixScope(prefix1),
-        libraryImports: fragment.docLibraryImports,
-        prefix: prefix1,
-      );
+  DocImportScope(this.innerScope, List<LibraryElement> docImportLibraries) {
+    for (var importedLibrary in docImportLibraries) {
+      if (importedLibrary is LibraryElementImpl) {
+        // TODO(kallentu): Handle combinators.
+        for (var exportedReference in importedLibrary.exportedReferences) {
+          var reference = exportedReference.reference;
+          var element = importedLibrary.session.elementFactory
+              .elementOfReference(reference)!;
+          if (element is PropertyAccessorElement && element.isSetter) {
+            _addSetter(element);
+          } else {
+            _addGetter(element);
+          }
+        }
+      }
     }
   }
 
@@ -89,50 +60,10 @@ class DocumentationCommentScope implements Scope {
   ScopeLookupResult lookup(String id) {
     var result = innerScope.lookup(id);
     if (result.getter != null || result.setter != null) return result;
-
-    // Try the combined import scope.
-    var importResult = _lookupCombined(id);
-    if (importResult != null) {
-      return importResult;
-    }
-
-    // No result.
-    return ScopeLookupResultImpl(getter: null, setter: null);
-  }
-
-  PrefixScope? _getParentPrefixScope(PrefixElementImpl prefix) {
-    var isDeferred = prefix.imports
-        .any((import) => import.prefix is DeferredImportElementPrefix);
-    if (isDeferred) {
-      return null;
-    }
-
-    for (var scope = _parent; scope != null; scope = scope._parent) {
-      var parentPrefix = scope._prefixElements[prefix.name];
-      if (parentPrefix != null) {
-        return parentPrefix.scope;
-      }
-    }
-    return null;
-  }
-
-  ScopeLookupResult? _lookupCombined(String id) {
-    // Try prefix elements.
-    if (_fragment.isAllowedAsPrefixElement(id)) {
-      if (_prefixElements[id] case var prefixElement?) {
-        var prefix1 = prefixElement.asElement;
-        return ScopeLookupResultImpl(getter: prefix1, setter: null);
-      }
-    }
-
-    // Try imports of the library fragment.
-    var noPrefixResult = _noPrefixScope.lookup(id);
-    if (noPrefixResult.getter != null || noPrefixResult.setter != null) {
-      return noPrefixResult;
-    }
-
-    // Try the parent's combined import scope.
-    return _parent?._lookupCombined(id);
+    return ScopeLookupResultImpl(
+      getter: _getters[id],
+      setter: _setters[id],
+    );
   }
 }
 
@@ -404,9 +335,9 @@ class LibraryDeclarations with _GettersAndSetters {
 }
 
 class LibraryFragmentScope implements Scope {
-  final LibraryFragmentScope? _parent;
-  final CompilationUnitElementImpl _fragment;
-  final PrefixScope _noPrefixScope;
+  final LibraryFragmentScope? parent;
+  final CompilationUnitElementImpl fragment;
+  final PrefixScope noPrefixScope;
 
   final Map<String, PrefixElementImpl> _prefixElements = {};
 
@@ -428,7 +359,7 @@ class LibraryFragmentScope implements Scope {
       fragment: fragment,
       noPrefixScope: PrefixScope(
         libraryFragment: fragment,
-        parent: parent?._noPrefixScope,
+        parent: parent?.noPrefixScope,
         libraryImports: fragment.libraryImports,
         prefix: null,
       ),
@@ -436,31 +367,29 @@ class LibraryFragmentScope implements Scope {
   }
 
   LibraryFragmentScope._({
-    required LibraryFragmentScope? parent,
-    required CompilationUnitElementImpl fragment,
-    required PrefixScope noPrefixScope,
-  })  : _parent = parent,
-        _fragment = fragment,
-        _noPrefixScope = noPrefixScope {
-    for (var prefix in _fragment.libraryImportPrefixes) {
+    required this.parent,
+    required this.fragment,
+    required this.noPrefixScope,
+  }) {
+    for (var prefix in fragment.libraryImportPrefixes) {
       _prefixElements[prefix.name] = prefix;
       prefix.scope = PrefixScope(
         libraryFragment: fragment,
         parent: _getParentPrefixScope(prefix),
-        libraryImports: _fragment.libraryImports,
+        libraryImports: fragment.libraryImports,
         prefix: prefix,
       );
     }
   }
 
-  /// The extensions accessible within [_fragment].
+  /// The extensions accessible within [fragment].
   List<ExtensionElement> get accessibleExtensions {
-    var libraryDeclarations = _fragment.library.libraryDeclarations;
+    var libraryDeclarations = fragment.library.libraryDeclarations;
     return _extensions ??= {
       ...libraryDeclarations.extensions,
-      ..._noPrefixScope._extensions,
+      ...noPrefixScope._extensions,
       for (var prefix in _prefixElements.values) ...prefix.scope._extensions,
-      ...?_parent?.accessibleExtensions,
+      ...?parent?.accessibleExtensions,
     }.toFixedList();
   }
 
@@ -476,7 +405,7 @@ class LibraryFragmentScope implements Scope {
   }
 
   void importsTrackingDestroy() {
-    _noPrefixScope.importsTrackingDestroy();
+    noPrefixScope.importsTrackingDestroy();
     for (var prefixElement in _prefixElements.values) {
       prefixElement.scope.importsTrackingDestroy();
     }
@@ -486,7 +415,7 @@ class LibraryFragmentScope implements Scope {
   ImportsTracking importsTrackingInit() {
     return _importsTracking = ImportsTracking(
       map: {
-        null: _noPrefixScope.importsTrackingInit(),
+        null: noPrefixScope.importsTrackingInit(),
         for (var prefixElement in _prefixElements.values)
           prefixElement: prefixElement.scope.importsTrackingInit(),
       },
@@ -525,7 +454,7 @@ class LibraryFragmentScope implements Scope {
       return null;
     }
 
-    for (var scope = _parent; scope != null; scope = scope._parent) {
+    for (var scope = parent; scope != null; scope = scope.parent) {
       var parentPrefix = scope._prefixElements[prefix.name];
       if (parentPrefix != null) {
         return parentPrefix.scope;
@@ -536,7 +465,7 @@ class LibraryFragmentScope implements Scope {
 
   ScopeLookupResult? _lookupCombined(String id) {
     // Try prefix elements.
-    if (_fragment.isAllowedAsPrefixElement(id)) {
+    if (_shouldTryPrefixElement(id)) {
       if (_prefixElements[id] case var prefixElement?) {
         return ScopeLookupResultImpl(
           getter: prefixElement,
@@ -546,17 +475,17 @@ class LibraryFragmentScope implements Scope {
     }
 
     // Try imports of the library fragment.
-    var noPrefixResult = _noPrefixScope.lookup(id);
+    var noPrefixResult = noPrefixScope.lookup(id);
     if (noPrefixResult.getter != null || noPrefixResult.setter != null) {
       return noPrefixResult;
     }
 
     // Try the parent's combined import scope.
-    return _parent?._lookupCombined(id);
+    return parent?._lookupCombined(id);
   }
 
   ScopeLookupResult? _lookupLibrary(String id) {
-    var libraryDeclarations = _fragment.library.libraryDeclarations;
+    var libraryDeclarations = fragment.library.libraryDeclarations;
     var libraryGetter = libraryDeclarations._getters[id];
     var librarySetter = libraryDeclarations._setters[id];
     if (libraryGetter != null || librarySetter != null) {
@@ -566,6 +495,14 @@ class LibraryFragmentScope implements Scope {
       );
     }
     return null;
+  }
+
+  bool _shouldTryPrefixElement(String id) {
+    if (id == '_') {
+      var featureSet = fragment.library.featureSet;
+      return !featureSet.isEnabled(Feature.wildcard_variables);
+    }
+    return true;
   }
 }
 
@@ -884,17 +821,5 @@ mixin _GettersAndSetters {
       var id = considerCanonicalizeString(name.substring(0, name.length - 1));
       _setters[id] ??= element;
     }
-  }
-}
-
-extension on CompilationUnitElementImpl {
-  /// Whether we should try to resolve an element via a prefix named '_' (which
-  /// depends on whether the 'wildcard-variables' feature is enabled).
-  bool isAllowedAsPrefixElement(String id) {
-    if (id == '_') {
-      var featureSet = library.featureSet;
-      return !featureSet.isEnabled(Feature.wildcard_variables);
-    }
-    return true;
   }
 }
