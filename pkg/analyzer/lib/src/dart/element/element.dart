@@ -3466,39 +3466,6 @@ class ElementLocationImpl implements ElementLocation {
     _components = _decode(encoding);
   }
 
-  /// Initialize a newly created location from the given [components].
-  ElementLocationImpl.con3(List<String> components) {
-    _components = components;
-  }
-
-  /// Initialize a newly created location to represent the given [element].
-  ElementLocationImpl.fromElement(Element2 element) {
-    List<String> components = <String>[];
-    Element2? ancestor = element;
-    while (ancestor != null) {
-      if (ancestor is! ElementImpl2) {
-        if (ancestor is LibraryElementImpl) {
-          components.insert(0, ancestor.identifier);
-        } else if (ancestor is AugmentableElement) {
-          components.insert(0, ancestor.identifier);
-        } else {
-          throw '${ancestor.runtimeType} is not an ElementImpl2';
-        }
-        ancestor = ancestor.enclosingElement2;
-      } else {
-        components.insert(0, ancestor.identifier);
-        if (ancestor is LocalFunctionElementImpl) {
-          ancestor = (ancestor.wrappedElement._enclosingElement3
-                  as ExecutableElementImpl)
-              .element;
-        } else {
-          ancestor = ancestor.enclosingElement2;
-        }
-      }
-    }
-    _components = components.toFixedList();
-  }
-
   @override
   List<String> get components => _components;
 
