@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:test/test.dart';
 
@@ -41,11 +42,24 @@ class RenameRefactoringTest extends RefactoringTest {
   /// Creates a new [RenameRefactoring] in [refactoring] for the [Element] of
   /// the [SimpleIdentifier] at the given [search] pattern.
   void createRenameRefactoringAtString(String search) {
-    var identifier = findNode.any(search);
-    var element = ElementLocator.locate(identifier);
-    if (identifier is SimpleIdentifier && element is PrefixElement) {
-      element = getImportElement(identifier);
+    var node = findNode.any(search);
+
+    Element? element;
+    switch (node) {
+      case ExportDirective():
+        element = node.element;
+      case ImportDirective():
+        element = node.element;
+      case PartOfDirective():
+        element = node.element;
+      default:
+        element = ElementLocator.locate2(node).asElement;
     }
+
+    if (node is SimpleIdentifier && element is PrefixElement) {
+      element = getImportElement(node);
+    }
+
     createRenameRefactoringForElement(element);
   }
 

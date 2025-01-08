@@ -12,6 +12,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
 
 import 'abstract_context.dart';
@@ -69,7 +70,17 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     if (node == null) {
       return null;
     }
-    return ElementLocator.locate(node);
+
+    switch (node) {
+      case ExportDirective():
+        return node.element;
+      case ImportDirective():
+        return node.element;
+      case PartOfDirective():
+        return node.element;
+      default:
+        return ElementLocator.locate2(node).asElement;
+    }
   }
 
   int findOffset(String search) {

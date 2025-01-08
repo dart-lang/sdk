@@ -18,7 +18,6 @@ lib/src/dart/analysis/search.dart
 lib/src/dart/analysis/session.dart
 lib/src/dart/analysis/session_helper.dart
 lib/src/dart/ast/ast.dart
-lib/src/dart/ast/element_locator.dart
 lib/src/dart/ast/extensions.dart
 lib/src/dart/ast/utilities.dart
 lib/src/dart/constant/constant_verifier.dart
