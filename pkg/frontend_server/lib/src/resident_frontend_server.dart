@@ -22,7 +22,10 @@ import 'package:kernel/kernel.dart' show Component, loadComponentFromBytes;
 import 'package:path/path.dart' as path;
 
 import '../frontend_server.dart';
-import '../resident_frontend_server_utils.dart' show computeCachedDillPath;
+import '../resident_frontend_server_utils.dart'
+    show
+        CachedDillAndCompilerOptionsPaths,
+        computeCachedDillAndCompilerOptionsPaths;
 
 /// Floor the system time by this amount in order to correctly detect modified
 /// source files on all platforms. This has no effect on correctness,
@@ -321,6 +324,8 @@ class ResidentFrontendServer {
   static const String _packageString = 'packages';
   static const String _successString = 'success';
   static const String _outputString = 'output-dill';
+  static const String _useCachedCompilerOptionsAsBaseString =
+      'useCachedCompilerOptionsAsBase';
   static const String _compileExpressionString = 'compileExpression';
   static const String _libraryUriString = 'libraryUri';
   static const String _rootLibraryUriString = 'rootLibraryUri';
@@ -351,11 +356,18 @@ class ResidentFrontendServer {
 
   /// Returns a [ResidentCompiler] that has been configured with
   /// [compileOptions] and prepared to compile the [canonicalizedLibraryPath]
-  /// entrypoint.
-  static ResidentCompiler _getResidentCompilerForEntrypoint(
-    String canonicalizedLibraryPath,
-    ArgResults compileOptions,
-  ) {
+  /// entrypoint. This function also writes [compileOptions.arguments] to
+  /// [cachedCompilerOptions] as a JSON list.
+  static ResidentCompiler _getResidentCompilerForEntrypoint({
+    required final String canonicalizedLibraryPath,
+    required final ArgResults compileOptions,
+    required final File cachedCompilerOptions,
+  }) {
+    cachedCompilerOptions.createSync();
+    cachedCompilerOptions.writeAsStringSync(
+      compileOptions.arguments.map(jsonEncode).toList().toString(),
+    );
+
     late final ResidentCompiler residentCompiler;
     if (compilers[canonicalizedLibraryPath] == null) {
       // Avoids using too much memory.
@@ -398,8 +410,14 @@ class ResidentFrontendServer {
         component.mainMethod!.enclosingLibrary.fileUri.toFilePath(),
       );
 
-      final String cachedDillPath =
-          computeCachedDillPath(canonicalizedLibraryPath);
+      final String cachedDillPath;
+      try {
+        cachedDillPath =
+            computeCachedDillAndCompilerOptionsPaths(canonicalizedLibraryPath)
+                .cachedDillPath;
+      } on Exception catch (e) {
+        return _encodeErrorMessage(e.toString());
+      }
       replacementDillFile.copySync(cachedDillPath);
     } catch (e) {
       return _encodeErrorMessage('Failed to replace cached dill');
@@ -427,21 +445,29 @@ class ResidentFrontendServer {
     final String canonicalizedExecutablePath =
         path.canonicalize(request[_executableString]);
 
-    late final String cachedDillPath;
+    final String cachedDillPath;
+    final File cachedCompilerOptions;
     try {
-      cachedDillPath = computeCachedDillPath(canonicalizedExecutablePath);
+      final CachedDillAndCompilerOptionsPaths computationResult =
+          computeCachedDillAndCompilerOptionsPaths(canonicalizedExecutablePath);
+      cachedDillPath = computationResult.cachedDillPath;
+      cachedCompilerOptions =
+          new File(computationResult.cachedCompilerOptionsPath);
     } on Exception catch (e) {
       return _encodeErrorMessage(e.toString());
     }
 
     final ArgResults options = _generateCompilerOptions(
       request: request,
+      cachedCompilerOptions: cachedCompilerOptions,
       outputDillOverride: cachedDillPath,
       initializeFromDillPath: cachedDillPath,
     );
+
     final ResidentCompiler residentCompiler = _getResidentCompilerForEntrypoint(
-      canonicalizedExecutablePath,
-      options,
+      canonicalizedLibraryPath: canonicalizedExecutablePath,
+      compileOptions: options,
+      cachedCompilerOptions: cachedCompilerOptions,
     );
     final Map<String, dynamic> response = await residentCompiler.compile();
 
@@ -488,8 +514,17 @@ class ResidentFrontendServer {
       );
     }
 
-    final String cachedDillPath =
-        computeCachedDillPath(canonicalizedLibraryPath);
+    final String cachedDillPath;
+    final File cachedCompilerOptions;
+    try {
+      final CachedDillAndCompilerOptionsPaths computationResult =
+          computeCachedDillAndCompilerOptionsPaths(canonicalizedLibraryPath);
+      cachedDillPath = computationResult.cachedDillPath;
+      cachedCompilerOptions =
+          new File(computationResult.cachedCompilerOptionsPath);
+    } on Exception catch (e) {
+      return _encodeErrorMessage(e.toString());
+    }
     // Make the [ResidentCompiler] output the compiled expression to
     // [compiledExpressionDillPath] to prevent it from overwriting the
     // cached program dill.
@@ -499,14 +534,19 @@ class ResidentFrontendServer {
       null,
       '.expr.dill',
     );
+
     final ArgResults options = _generateCompilerOptions(
       request: request,
+      cachedCompilerOptions: cachedCompilerOptions,
       outputDillOverride: compiledExpressionDillPath,
       initializeFromDillPath: cachedDillPath,
     );
 
-    final ResidentCompiler residentCompiler =
-        _getResidentCompilerForEntrypoint(canonicalizedLibraryPath, options);
+    final ResidentCompiler residentCompiler = _getResidentCompilerForEntrypoint(
+      canonicalizedLibraryPath: canonicalizedLibraryPath,
+      compileOptions: options,
+      cachedCompilerOptions: cachedCompilerOptions,
+    );
 
     final String expression = request[_expressionString];
     final List<String> definitions =
@@ -580,13 +620,32 @@ class ResidentFrontendServer {
   /// Generates the compiler options needed to handle the [request].
   static ArgResults _generateCompilerOptions({
     required Map<String, dynamic> request,
+    required File cachedCompilerOptions,
 
     /// The compiled kernel file will be stored at this path, and not at
     /// [request['--output-dill']].
     required String outputDillOverride,
     required String initializeFromDillPath,
   }) {
-    return argParser.parse(<String>[
+    final Map<String, dynamic> options = {};
+    if (request[_useCachedCompilerOptionsAsBaseString] == true &&
+        cachedCompilerOptions.existsSync()) {
+      // If [request[_useCachedCompilerOptionsAsBaseString]] is true, then we
+      // start with the cached options and apply any options specified in
+      // [request] as overrides.
+      final String cachedCompilerOptionsContents =
+          cachedCompilerOptions.readAsStringSync();
+      final List<String> cachedCompilerOptionsAsList =
+          (jsonDecode(cachedCompilerOptionsContents) as List<dynamic>)
+              .cast<String>();
+      final ArgResults cachedOptions =
+          argParser.parse(cachedCompilerOptionsAsList);
+      for (final String option in cachedOptions.options) {
+        options[option] = cachedOptions[option];
+      }
+    }
+
+    final ArgResults overrides = argParser.parse(<String>[
       '--sdk-root=${_sdkUri.toFilePath()}',
       if (!(request['aot'] ?? false)) '--incremental',
       '--platform=${_platformKernelUri.path}',
@@ -623,6 +682,28 @@ class ResidentFrontendServer {
       if (request['enable-experiment'] != null)
         for (String experiment in request['enable-experiment']) experiment,
     ]);
+
+    for (final String option in overrides.options) {
+      options[option] = overrides[option];
+    }
+
+    // Transform [options] into a list that can be passed to [argParser.parse].
+    final List<String> optionsAsList = <String>[];
+    for (final MapEntry<String, dynamic>(:key, :value) in options.entries) {
+      if (value is List<dynamic>) {
+        for (final Object multiOptionValue in value) {
+          optionsAsList.add('--$key=$multiOptionValue');
+        }
+      } else if (value is bool) {
+        if (value) {
+          optionsAsList.add('--$key');
+        }
+      } else {
+        optionsAsList.add('--$key=$value');
+      }
+    }
+
+    return argParser.parse(optionsAsList);
   }
 
   /// Encodes the [message] in JSON to be sent over the socket.

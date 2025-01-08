@@ -30,6 +30,8 @@ String _extractErrorMessageFromResidentFrontendCompilerResponse(
 class RunningIsolates implements MessageRouter {
   static const _isolateIdString = 'isolateId';
   static const _successString = 'success';
+  static const _useCachedCompilerOptionsAsBaseString =
+      'useCachedCompilerOptionsAsBase';
 
   final isolates = <int, RunningIsolate>{};
   int? _rootPortId;
@@ -92,6 +94,7 @@ class RunningIsolates implements MessageRouter {
           await _sendRequestToResidentFrontendCompilerAndRecieveResponse(
             jsonEncode(<String, Object?>{
               'command': 'compile',
+              _useCachedCompilerOptionsAsBaseString: true,
               'executable': Uri.parse(rootLibUri).toFilePath(),
               'output-dill': outputDill.path,
             }),
@@ -421,6 +424,7 @@ class _Evaluator {
           await _sendRequestToResidentFrontendCompilerAndRecieveResponse(
             jsonEncode({
               'command': _compileExpressionString,
+              RunningIsolates._useCachedCompilerOptionsAsBaseString: true,
               _expressionString: compileParams[_expressionString],
               _definitionsString: compileParams[_definitionsString],
               _definitionTypesString: compileParams[_definitionTypesString],
