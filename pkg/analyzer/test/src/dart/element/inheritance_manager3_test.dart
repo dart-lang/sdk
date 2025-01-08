@@ -2400,6 +2400,28 @@ abstract class B extends A {}
     expect(returnType.element, same(T));
   }
 
+  test_getMember_method_covariantAfterSubstitutedParameter_merged() async {
+    await resolveTestCode(r'''
+class A<T> {
+  void foo<U>(covariant Object a, U b, int c) {}
+}
+
+class B extends A<int> implements C {}
+
+class C {
+  void foo<U>(Object a, U b, covariant Object c) {}
+}
+''');
+    var member = manager.getMember2(
+      findElement.classOrMixin('B'),
+      Name(null, 'foo'),
+      concrete: true,
+    )!;
+    expect(member.parameters[0].isCovariant, isTrue);
+    expect(member.parameters[1].isCovariant, isFalse);
+    expect(member.parameters[2].isCovariant, isTrue);
+  }
+
   test_getMember_method_covariantByDeclaration_inherited() async {
     await resolveTestCode('''
 abstract class A {
