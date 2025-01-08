@@ -480,6 +480,8 @@ abstract final class LintNames {
   static const String unintended_html_in_doc_comment =
       'unintended_html_in_doc_comment';
 
+  static const String unnecessary_async = 'unnecessary_async';
+
   static const String unnecessary_await_in_return =
       'unnecessary_await_in_return';
 

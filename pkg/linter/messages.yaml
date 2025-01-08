@@ -11632,6 +11632,35 @@ LintCode:
       /// \<assignment\> -> \<variable\> = \<expression\>`
       /// <http://foo.bar.baz>
       ```
+  unnecessary_async:
+    problemMessage: "Don't make a function 'async' if it doesn't use 'await'."
+    correctionMessage: "Try removing the 'async' modifier."
+    state:
+      experimental: "3.7"
+    categories: [style]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      Functions that don't do `await` don't have to be `async`.
+
+      Usually such functions also don't have to return a `Future`, which allows
+      an invoker to avoid `await` in its code, etc. Synchronous code in
+      general runs faster, and is easier to reason about.
+
+      **BAD:**
+      ```dart
+      void f() async {
+        // await Future.delayed(const Duration(seconds: 2));
+        print(0);
+      }
+      ```
+
+      **GOOD:**
+      ```dart
+      void f() {
+        // await Future.delayed(const Duration(seconds: 2));
+        print(0);
+      }
+      ```
   unnecessary_await_in_return:
     problemMessage: "Unnecessary 'await'."
     correctionMessage: "Try removing the 'await'."

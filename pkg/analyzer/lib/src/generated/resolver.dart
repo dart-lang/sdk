@@ -543,14 +543,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required FunctionBodyImpl body,
     required SyntacticEntity errorNode,
   }) {
-    if (!flowAnalysis.flow!.isReachable) {
-      return;
-    }
-
     var bodyContext = body.bodyContext;
     if (bodyContext == null) {
       return;
     }
+
+    if (!flowAnalysis.flow!.isReachable) {
+      bodyContext.mayCompleteNormally = false;
+      return;
+    }
+
     var returnType = bodyContext.contextType;
     if (returnType == null) {
       if (errorNode is BlockFunctionBody) {

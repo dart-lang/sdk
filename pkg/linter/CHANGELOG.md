@@ -4,6 +4,7 @@
 - new lint: `strict_top_level_inference`
 - new _(experimental)_ lint: `omit_obvious_property_types`
 - new _(experimental)_ lint: `specify_nonobvious_property_types`
+- new _(experimental)_ lint: `unnecessary_async`
 - new _(experimental)_ lint: `unsafe_variance`
 - removed lint: `package_api_docs`
 - removed lint: `unsafe_html`

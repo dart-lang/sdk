@@ -253,6 +253,7 @@ import 'type_literal_in_constant_pattern_test.dart'
 import 'unawaited_futures_test.dart' as unawaited_futures;
 import 'unintended_html_in_doc_comment_test.dart'
     as unintended_html_in_doc_comment;
+import 'unnecessary_async_test.dart' as unnecessary_async;
 import 'unnecessary_await_in_return_test.dart' as unnecessary_await_in_return;
 import 'unnecessary_brace_in_string_interps_test.dart'
     as unnecessary_brace_in_string_interps;
@@ -506,6 +507,7 @@ void main() {
   type_literal_in_constant_pattern.main();
   unawaited_futures.main();
   unintended_html_in_doc_comment.main();
+  unnecessary_async.main();
   unnecessary_await_in_return.main();
   unnecessary_brace_in_string_interps.main();
   unnecessary_breaks.main();
