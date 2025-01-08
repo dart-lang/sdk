@@ -48,6 +48,87 @@ class InvocationImpl extends Invocation {
   }
 }
 
+/// Encodes [property] as a valid JS member name.
+String stringNameForProperty(property) {
+  if (JS<bool>('', 'typeof # === "symbol"', property)) {
+    return _toSymbolName(property);
+  }
+  if (JS<bool>('', 'typeof # === "string"', property)) {
+    return '$property';
+  }
+  throw Exception('Unable to construct a valid JS string name for $property.');
+}
+
+/// Used for canonicalizing tearoffs via a two-way lookup of enclosing object
+/// and member name.
+final tearoffCache = JS<Object>('!', 'new WeakMap()');
+
+/// Constructs a static tearoff, on `context[property]`.
+///
+/// Static tearoffs are canonicalized at runtime via `tearoffCache`.
+staticTearoff(context, property) {
+  if (context == null) context = jsNull;
+  var propertyMap = _lookupNonTerminal(tearoffCache, context);
+  var canonicalizedTearoff = JS<Object?>('', '#.get(#)', propertyMap, property);
+  if (canonicalizedTearoff != null) return canonicalizedTearoff;
+  var tear = tearoff(context, property);
+  JS('', '#.set(#, #)', propertyMap, property, tear);
+  return tear;
+}
+
+/// Constructs a new tearoff, on `context[property]`. Tearoffs are represented
+/// as a closure that resolves its underlying member late.
+///
+/// Note: We do not canonicalize instance tearoffs to be consistent with
+/// Dart2JS, but we should update this if the spec changes. See #3612.
+tearoff(context, property) {
+  if (context == null) context = jsNull;
+  var tear = JS('', '(...args) => #[#](...args)', context, property);
+  var rtiName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
+  // Type-resolving members on tearoffs must be resolved late. Static tearoffs
+  // are tagged with their RTIs ahead of time. Runtime/instance tearoffs must
+  // access them through `getMethodType` and `getMethodDefaultTypeArgs`.
+  defineAccessor(
+    tear,
+    rtiName,
+    get: () {
+      var existingRti = JS<Object?>('', '#[#][#]', context, property, rtiName);
+      return existingRti ?? getMethodType(context, property);
+    },
+    configurable: true,
+    enumerable: false,
+  );
+  defineAccessor(
+    tear,
+    '_defaultTypeArgs',
+    get: () {
+      var existingDefaultTypeArgs = JS<Object?>(
+        '',
+        '#[#][#]',
+        context,
+        property,
+        '_defaultTypeArgs',
+      );
+      return existingDefaultTypeArgs ??
+          getMethodDefaultTypeArgs(context, property);
+    },
+    configurable: true,
+    enumerable: false,
+  );
+  defineAccessor(
+    tear,
+    '_boundMethod',
+    get: () {
+      return JS<Object?>('', '#[#]', context, property);
+    },
+    configurable: true,
+    enumerable: false,
+  );
+  JS('', '#._boundObject = #', tear, context);
+  JS('', '#._boundName = #', tear, stringNameForProperty(property));
+  return tear;
+}
+
 /// Given an object and a method name, tear off the method.
 /// Sets the runtime type of the torn off method appropriately,
 /// and also binds the object.
@@ -62,6 +143,7 @@ bind(obj, name, method) {
   var f = JS('', '#.bind(#)', method, obj);
   // TODO(jmesserly): canonicalize tearoffs.
   JS('', '#._boundObject = #', f, obj);
+  JS('', '#._boundName = #', f, stringNameForProperty(name));
   JS('', '#._boundMethod = #', f, method);
   var methodType = getMethodType(obj, name);
   // Native JavaScript methods do not have Dart signatures attached that need
@@ -85,8 +167,8 @@ bind(obj, name, method) {
 /// canonical member [name].
 ///
 /// [name] is typically `"call"` but it could be the [extensionSymbol] for
-/// `call`, if we define it on a native type, and [obj] is known statially to be
-/// a native type/interface with `call`.
+/// `call`, if we define it on a native type, and [obj] is known statically to
+/// be a native type/interface with `call`.
 bindCall(obj, name) {
   if (obj == null) return null;
   var ftype = getMethodType(obj, name);
@@ -151,7 +233,7 @@ dload(obj, field) {
 
     if (hasField(typeSigHolder, f) || hasGetter(typeSigHolder, f))
       return JS('', '#[#]', obj, f);
-    if (hasMethod(typeSigHolder, f)) return bind(obj, f, null);
+    if (hasMethod(typeSigHolder, f)) return tearoff(obj, f);
 
     // Handle record types by trying to access [f] via convenience getters.
     if (_jsInstanceOf(obj, RecordImpl) && f is String) {
@@ -551,7 +633,7 @@ dcall(f, args, [named]) => _checkAndCall(
   null,
   args,
   named,
-  JS('', '#.name', f),
+  JS('', '#._boundName || #.name', f, f),
 );
 
 dgcall(f, typeArgs, args, [named]) => _checkAndCall(
@@ -561,7 +643,7 @@ dgcall(f, typeArgs, args, [named]) => _checkAndCall(
   typeArgs,
   args,
   named,
-  JS('', "#.name || 'call'", f),
+  JS('', "#._boundName || #.name || 'call'", f, f),
 );
 
 /// Helper for REPL dynamic invocation variants that make a best effort to
@@ -922,7 +1004,7 @@ String Function() toStringTearoff(obj) {
       JS<bool>('!', '#[#] !== void 0', obj, extensionSymbol('toString'))) {
     // The bind helper can handle finding the toString method for null or Dart
     // Objects.
-    return bind(obj, extensionSymbol('toString'), null);
+    return tearoff(obj, extensionSymbol('toString'));
   }
   // Otherwise bind the native JavaScript toString method.
   // This differs from dart2js to provide a more useful toString at development
@@ -930,7 +1012,7 @@ String Function() toStringTearoff(obj) {
   // If obj does not have a native toString method this will throw but that
   // matches the behavior of dart2js and it would be misleading to make this
   // work at development time but allow it to fail in production.
-  return bind(obj, 'toString', null);
+  return tearoff(obj, 'toString');
 }
 
 /// Converts to a non-null [String], equivalent to
@@ -999,7 +1081,7 @@ dynamic Function(Invocation) noSuchMethodTearoff(obj) {
       JS<bool>('!', '#[#] !== void 0', obj, extensionSymbol('noSuchMethod'))) {
     // The bind helper can handle finding the toString method for null or Dart
     // Objects.
-    return bind(obj, extensionSymbol('noSuchMethod'), null);
+    return tearoff(obj, extensionSymbol('noSuchMethod'));
   }
   // Otherwise, manually pass the Dart Core Object noSuchMethod to the bind
   // helper.

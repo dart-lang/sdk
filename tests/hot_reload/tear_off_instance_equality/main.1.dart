@@ -24,6 +24,8 @@ Future<void> main() async {
   Expect.equals('new', f1());
   Expect.equals('new', f2());
   Expect.equals(f1, f2);
+  // We test that instance tearoffs are not identical to be consistent wih the
+  // VM. This behavior is not guaranteed by the spec.
   Expect.notIdentical(f1, f2);
 }
 /** DIFF **/

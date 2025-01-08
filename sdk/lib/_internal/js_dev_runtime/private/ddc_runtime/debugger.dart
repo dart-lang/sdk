@@ -270,15 +270,21 @@ void _collectFieldDescriptors(
 /// returns `C.functionName`.
 /// Otherwise, returns function name.
 String getFunctionMetadata(@notNull Function function) {
-  var name = _get<String>(function, 'name');
+  var boundName = _get<String?>(function, '_boundName');
+  var name = boundName ?? _get<String>(function, 'name');
   var boundObject = _get<Object?>(function, '_boundObject');
 
   if (boundObject != null) {
-    var cls = _get<Object>(boundObject, 'constructor');
-    var className = _dartClassName(cls);
-
-    var boundMethod = _get<Object>(function, '_boundMethod');
-    name = className + '.' + _get<String>(boundMethod, 'name');
+    if (_hasConstructor(boundObject)) {
+      // Bound objects for global methods are libraries, which don't have a
+      // constructor.
+      var constructor = _get<Object>(boundObject, 'constructor');
+      if (JS<bool>('', '# == null', constructor)) return name;
+      if (_isDartClassObject(boundObject)) {
+        var className = _dartClassName(boundObject);
+        name = className + '.' + name;
+      }
+    }
   }
   return name;
 }
@@ -306,7 +312,9 @@ Object getObjectMetadata(@notNull Object object) {
           // When the object is actually represented by a JavaScript Array use
           // the interceptor class that matches the reified type.
           ? JS_CLASS_REF(JSArray)
-          : _get<Object?>(object, 'constructor');
+          : (_hasConstructor(object)
+              ? _get<Object>(object, 'constructor')
+              : object);
   if (cls != null) {
     libraryId = getLibraryUri(cls);
   }
@@ -391,7 +399,8 @@ Object getObjectMetadata(@notNull Object object) {
 @notNull
 List<String> getObjectFieldNames(@notNull Object object) {
   var fieldNames = <String>[];
-  var cls = _get<Object>(object, 'constructor');
+  var cls =
+      _hasConstructor(object) ? _get<Object>(object, 'constructor') : object;
 
   _collectObjectFieldNames(fieldNames, getFields(cls));
   return fieldNames..sort();
@@ -537,6 +546,10 @@ Object getSubRange(@notNull Object object, int offset, int count) {
   }
   return object;
 }
+
+@notNull
+bool _hasConstructor(@notNull Object object) =>
+    _get(object, 'constructor') != null;
 
 @notNull
 bool _isDartClassObject(@notNull Object object) =>
