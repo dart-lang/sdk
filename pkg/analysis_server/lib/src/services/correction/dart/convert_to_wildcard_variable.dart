@@ -30,6 +30,12 @@ class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
     if (!wildcardVariablesEnabled) return;
 
     var node = this.node;
+
+    if (node is FormalParameter) {
+      await computeFormalParameterConversion(builder, node);
+      return;
+    }
+
     if (node is! VariableDeclaration) return;
 
     var nameToken = node.name;
@@ -53,6 +59,15 @@ class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
       for (var sourceRange in sourceRanges) {
         builder.addSimpleReplacement(sourceRange, '_');
       }
+    });
+  }
+
+  Future<void> computeFormalParameterConversion(
+    ChangeBuilder builder,
+    FormalParameter node,
+  ) async {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addSimpleReplacement(range.token(node.name!), '_');
     });
   }
 }

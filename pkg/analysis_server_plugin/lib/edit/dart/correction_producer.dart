@@ -10,6 +10,7 @@ import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -613,6 +614,9 @@ abstract class ResolvedCorrectionProducer
     // We don't know.
     return null;
   }
+
+  bool isEnabled(Feature feature) =>
+      libraryElement2.featureSet.isEnabled(feature);
 }
 
 final class StubCorrectionProducerContext implements CorrectionProducerContext {

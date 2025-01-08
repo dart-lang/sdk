@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,6 +18,8 @@ void main() {
 
 @reflectiveTest
 class FindElementByNameOffsetTest extends AbstractSingleUnitTest {
+  Element get testUnitElement => testLibraryElement.asElement;
+
   Future<void> test_class() async {
     await resolveTestCode(r'''
 class AAA {}

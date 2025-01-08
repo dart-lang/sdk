@@ -36,7 +36,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (!libraryElement2.featureSet.isEnabled(Feature.super_parameters)) {
+    if (!isEnabled(Feature.super_parameters)) {
       // If the library doesn't support super_parameters then the change isn't
       // appropriate.
       return;

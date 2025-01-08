@@ -332,7 +332,7 @@ import 'package:ddd/ddd.dart';
     await addLibraryImports(
       testAnalysisResult.session,
       change,
-      testLibraryElement2,
+      testLibraryElement,
       newLibraries.toSet(),
     );
     var testEdit = change.getFileEdit(testFile.path);

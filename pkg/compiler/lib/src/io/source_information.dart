@@ -181,6 +181,9 @@ class SourceInformationBuilder {
   /// Generate [SourceInformation] for the if statement in [node].
   SourceInformation? buildIf(ir.TreeNode node) => null;
 
+  /// Generate [SourceInformation] for the block statement in [node].
+  SourceInformation? buildBlock(ir.TreeNode node) => null;
+
   /// Generate [SourceInformation] for the constructor invocation in [node].
   SourceInformation? buildNew(ir.TreeNode node) => null;
 

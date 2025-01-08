@@ -201,6 +201,10 @@ class ClosureDataImpl implements ClosureData {
   }
 
   @override
+  CapturedScope getCapturedBlockScope(ir.Block blockNode) =>
+      _capturedScopesMap.loaded()[blockNode] ?? const CapturedScope();
+
+  @override
   // TODO(efortuna): Eventually capturedScopesMap[node] should always
   // be non-null, and we should just test that with an assert.
   CapturedLoopScope getCapturedLoopScope(ir.Node loopNode) =>

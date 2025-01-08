@@ -38,6 +38,10 @@ abstract class ClosureData {
   /// the SSA builder.
   CapturedScope getCapturedScope(MemberEntity entity);
 
+  /// Look up scope information about a block. Used by the SSA builder to box
+  /// variables if needed.
+  CapturedScope getCapturedBlockScope(ir.Block node);
+
   /// If [entity] is a closure call method or closure signature method, the
   /// original enclosing member is returned. Otherwise [entity] is returned.
   ///
