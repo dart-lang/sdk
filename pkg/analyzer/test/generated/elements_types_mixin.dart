@@ -434,7 +434,7 @@ mixin ElementsTypesMixin {
     return fragment;
   }
 
-  ParameterElement namedParameter({
+  ParameterElementImpl namedParameter({
     required String name,
     required DartType type,
     bool isCovariant = false,

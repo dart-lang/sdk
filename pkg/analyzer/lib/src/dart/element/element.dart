@@ -781,18 +781,11 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<LibraryImportElementImpl> _libraryImports =
       _Sentinel.libraryImportElement;
 
-  /// The libraries imported by this unit with a `@docImport`.
-  List<LibraryImportElementImpl> _docLibraryImports =
-      _Sentinel.libraryImportElement;
-
   /// The cached list of prefixes from [libraryImports].
   List<PrefixElementImpl>? _libraryImportPrefixes;
 
   /// The cached list of prefixes from [prefixes].
   List<PrefixElementImpl2>? _libraryImportPrefixes2;
-
-  /// The cached list of prefixes from [docLibraryImports].
-  List<PrefixElementImpl2>? _docLibraryImportPrefixes;
 
   /// The parts included by this unit.
   List<PartElementImpl> _parts = const <PartElementImpl>[];
@@ -905,23 +898,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ClassFragment> get classes2 => classes.cast<ClassFragment>();
-
-  List<PrefixElementImpl2> get docLibraryImportPrefixes {
-    return _docLibraryImportPrefixes ??= _buildDocLibraryImportPrefixes();
-  }
-
-  List<LibraryImportElementImpl> get docLibraryImports {
-    linkedData?.read(this);
-    return _docLibraryImports;
-  }
-
-  set docLibraryImports(List<LibraryImportElementImpl> imports) {
-    _docLibraryImports = imports;
-  }
-
-  List<LibraryImportElementImpl> get docLibraryImports_unresolved {
-    return _docLibraryImports;
-  }
 
   @override
   LibraryElementImpl get element => library;
@@ -1321,17 +1297,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       prefix: node.importPrefix?.name.lexeme,
       name: node.name2.lexeme,
     );
-  }
-
-  List<PrefixElementImpl2> _buildDocLibraryImportPrefixes() {
-    var prefixes = <PrefixElementImpl2>{};
-    for (var import in docLibraryImports) {
-      var prefix = import.prefix2?.element;
-      if (prefix is PrefixElementImpl2) {
-        prefixes.add(prefix);
-      }
-    }
-    return prefixes.toFixedList();
   }
 
   List<PrefixElementImpl> _buildLibraryImportPrefixes() {
@@ -9414,13 +9379,9 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   /// The scope of this prefix, `null` if not set yet.
   PrefixScope? _scope;
 
-  final bool _isDocLibraryImport;
-
   /// Initialize a newly created method element to have the given [name] and
   /// [nameOffset].
-  PrefixElementImpl(String super.name, super.nameOffset,
-      {super.reference, required bool isDocLibraryImport})
-      : _isDocLibraryImport = isDocLibraryImport;
+  PrefixElementImpl(String super.name, super.nameOffset, {super.reference});
 
   @override
   List<Element2> get children2 => const [];
@@ -9429,15 +9390,9 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   String get displayName => name;
 
   PrefixElementImpl2 get element2 {
-    if (_isDocLibraryImport) {
-      return enclosingElement3.docLibraryImportPrefixes.firstWhere((element) {
-        return (element.name3 ?? '') == name;
-      });
-    } else {
-      return enclosingElement3.prefixes.firstWhere((element) {
-        return (element.name3 ?? '') == name;
-      });
-    }
+    return enclosingElement3.prefixes.firstWhere((element) {
+      return (element.name3 ?? '') == name;
+    });
   }
 
   @override
@@ -9495,14 +9450,10 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
 
   PrefixFragmentImpl lastFragment;
 
-  final bool _isDocLibraryImport;
-
   PrefixElementImpl2({
     required this.reference,
     required this.firstFragment,
-    required bool isDocLibraryImport,
-  })  : lastFragment = firstFragment,
-        _isDocLibraryImport = isDocLibraryImport {
+  }) : lastFragment = firstFragment {
     reference.element2 = this;
   }
 
@@ -9524,15 +9475,9 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
 
   @override
   List<LibraryImportElementImpl> get imports {
-    if (_isDocLibraryImport) {
-      return firstFragment.enclosingFragment.docLibraryImports
-          .where((import) => import.prefix2?.element == this)
-          .toList();
-    } else {
-      return firstFragment.enclosingFragment.libraryImports
-          .where((import) => import.prefix2?.element == this)
-          .toList();
-    }
+    return firstFragment.enclosingFragment.libraryImports
+        .where((import) => import.prefix2?.element == this)
+        .toList();
   }
 
   @override

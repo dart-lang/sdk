@@ -40,7 +40,6 @@ class AstResolver {
   late final _scopeResolverVisitor = ScopeResolverVisitor(
     ErrorReporter(_errorListener, _unitElement.source),
     nameScope: _nameScope,
-    unitElement: _unitElement,
   );
   late final _flowAnalysis = FlowAnalysisHelper(false, _featureSet,
       typeSystemOperations: TypeSystemOperations(

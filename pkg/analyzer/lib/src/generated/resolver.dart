@@ -4522,7 +4522,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   Scope nameScope;
 
   /// The scope of libraries imported by `@docImport`s.
-  final DocumentationCommentScope _docImportScope;
+  final DocImportScope _docImportScope;
 
   /// The scope used to resolve unlabeled `break` and `continue` statements.
   ImplicitLabelScope _implicitLabelScope = ImplicitLabelScope.ROOT;
@@ -4548,8 +4548,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   ScopeResolverVisitor(
     this.errorReporter, {
     required this.nameScope,
-    required CompilationUnitElementImpl unitElement,
-  }) : _docImportScope = DocumentationCommentScope(nameScope, unitElement);
+    List<LibraryElement> docImportLibraries = const [],
+  }) : _docImportScope = DocImportScope(nameScope, docImportLibraries);
 
   /// Return the implicit label scope in which the current node is being
   /// resolved.
@@ -5407,7 +5407,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     }
   }
 
-  /// Visits a documentation comment with a [DocumentationCommentScope] that encloses the
+  /// Visits a documentation comment with a [DocImportScope] that encloses the
   /// current [nameScope].
   void _visitDocumentationComment(CommentImpl? node) {
     if (node == null) return;

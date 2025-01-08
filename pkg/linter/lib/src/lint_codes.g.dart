@@ -1761,6 +1761,7 @@ class LinterLintCode extends LintCode {
     LintNames.unnecessary_underscores,
     "Unnecessary use of multiple underscores.",
     correctionMessage: "Try using '_'.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode unreachable_from_main = LinterLintCode(
@@ -1795,6 +1796,7 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try using a more general type that doesn't contain any type "
         "parameters in such a position.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode use_build_context_synchronously_async_use =

@@ -100,7 +100,6 @@ class InformativeDataApplier {
     unitElement.setCodeRange(unitInfo.codeOffset, unitInfo.codeLength);
     unitElement.lineInfo = LineInfo(unitInfo.lineStarts);
 
-    _applyToDocImports(unitElement.docLibraryImports_unresolved, unitInfo);
     _applyToImports(unitElement.libraryImports_unresolved, unitInfo);
     _applyToExports(unitElement.libraryExports_unresolved, unitInfo);
 
@@ -108,7 +107,6 @@ class InformativeDataApplier {
       unitInfo.libraryConstantOffsets,
       (applier) {
         applier.applyToMetadata(unitElement);
-        applier.applyToImports(unitElement.docLibraryImports);
         applier.applyToImports(unitElement.libraryImports);
         applier.applyToExports(unitElement.libraryExports);
         applier.applyToParts(unitElement.parts);
@@ -335,32 +333,6 @@ class InformativeDataApplier {
         } else {
           applyOffsets.perform();
         }
-      },
-    );
-  }
-
-  void _applyToDocImports(
-    List<LibraryImportElementImpl> imports,
-    _InfoUnit info,
-  ) {
-    forCorrespondingPairs<LibraryImportElement, _InfoImport>(
-      imports,
-      info.docImports,
-      (element, info) {
-        element as LibraryImportElementImpl;
-        element.nameOffset = info.nameOffset;
-
-        var prefixElement = element.prefix?.element;
-        if (prefixElement is PrefixElementImpl) {
-          if (prefixElement.nameOffset == -1) {
-            prefixElement.nameOffset = info.prefixOffset;
-          }
-        }
-
-        if (element.prefix2 case var prefixFragment?) {
-          prefixFragment.nameOffset2 = info.prefixOffset2;
-        }
-        _applyToCombinators(element.combinators, info.combinators);
       },
     );
   }
@@ -1464,19 +1436,6 @@ class _InformativeDataWriter {
     var firstDirective = unit.directives.firstOrNull;
     _writeDocumentationCommentNode(firstDirective?.documentationComment);
 
-    var libraryDirective =
-        unit.directives.whereType<LibraryDirective>().firstOrNull;
-    var docImports = libraryDirective?.documentationComment?.docImports;
-    var docImportDirectives =
-        docImports?.map((e) => e.import).toList() ?? <ImportDirective>[];
-
-    sink.writeList2<ImportDirective>(docImportDirectives, (directive) {
-      sink.writeUInt30(directive.importKeyword.offset);
-      sink.writeUInt30(1 + (directive.prefix?.offset ?? -1));
-      sink.writeOptionalUInt30(directive.prefix?.token.offsetIfNotEmpty);
-      _writeCombinators(directive.combinators);
-    });
-
     sink.writeList2<ImportDirective>(unit.directives, (directive) {
       sink.writeUInt30(directive.importKeyword.offset);
       sink.writeUInt30(1 + (directive.prefix?.offset ?? -1));
@@ -2068,7 +2027,6 @@ class _InfoUnit {
   final _InfoLibraryName libraryName;
   final Uint32List libraryConstantOffsets;
   final String docComment;
-  final List<_InfoImport> docImports;
   final List<_InfoImport> imports;
   final List<_InfoExport> exports;
   final List<_InfoPart> parts;
@@ -2093,9 +2051,6 @@ class _InfoUnit {
       libraryName: _InfoLibraryName(reader),
       libraryConstantOffsets: reader.readUInt30List(),
       docComment: reader.readStringUtf8(),
-      docImports: reader.readTypedList(
-        () => _InfoImport(reader),
-      ),
       imports: reader.readTypedList(
         () => _InfoImport(reader),
       ),
@@ -2148,7 +2103,6 @@ class _InfoUnit {
     required this.libraryName,
     required this.libraryConstantOffsets,
     required this.docComment,
-    required this.docImports,
     required this.imports,
     required this.exports,
     required this.parts,

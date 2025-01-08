@@ -10837,7 +10837,7 @@ LintCode:
         type argument, but not C(14) if C accepts one or more type arguments.
       - e is a cascade whose target has an obvious type. For instance,
         1..isEven..isEven has an obvious type because 1 has an obvious type.
-      - e is a type cast. For instance, myComplexpression as int.
+      - e is a type cast. For instance, `myComplexExpression as int`.
 
       **BAD:**
       ```dart
@@ -13011,12 +13011,12 @@ LintCode:
     state:
       experimental: "3.7"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
       The analyzer produces this diagnostic when an unused variable is named
-      with mutiple underscores (for example `__`). A single `_` wildcard variable
+      with multiple underscores (for example `__`). A single `_` wildcard variable
       can be used instead.
 
       #### Example
@@ -13295,7 +13295,7 @@ LintCode:
     state:
       experimental: "3.7"
     categories: [errorProne]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 

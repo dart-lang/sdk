@@ -743,7 +743,7 @@ class CompileTimeErrorCode extends ErrorCode {
     "'{0}' can't be used to name both a type parameter and the extension in "
         "which the type parameter is defined.",
     correctionMessage:
-        "Try renaming either the type variaparameterble or the extension.",
+        "Try renaming either the type parameter or the extension.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION',
   );
@@ -7643,6 +7643,7 @@ class WarningCode extends ErrorCode {
     'UNUSED_ELEMENT_PARAMETER',
     "A value for optional parameter '{0}' isn't ever given.",
     correctionMessage: "Try removing the unused parameter.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:

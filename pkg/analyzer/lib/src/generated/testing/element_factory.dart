@@ -302,8 +302,7 @@ class ElementFactory {
     return parameter;
   }
 
-  static PrefixElementImpl prefix(String name) =>
-      PrefixElementImpl(name, 0, isDocLibraryImport: false);
+  static PrefixElementImpl prefix(String name) => PrefixElementImpl(name, 0);
 
   static ParameterElementImpl requiredParameter(String name) {
     return ParameterElementImpl(
