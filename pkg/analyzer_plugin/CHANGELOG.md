@@ -1,3 +1,6 @@
+## 0.13.0-dev
+- Remove `elementName()` from `RangeFactory`. Use `fragmentName()` instead.
+
 ## 0.12.0
 - Breaking changes to `DartFileEditBuilder`: `convertFunctionFromSyncToAsync`
   and `replaceTypeWithFuture`.

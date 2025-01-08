@@ -31,14 +31,6 @@ class RenameProcessor {
   );
 
   /// Add the edit that updates the [element] declaration.
-  void addDeclarationEdit(Element? element) {
-    if (element != null && workspace.containsElement(element)) {
-      var edit = newSourceEdit_range(range.elementName(element), newName);
-      doSourceChange_addElementEdit(change, element, edit);
-    }
-  }
-
-  /// Add the edit that updates the [element] declaration.
   void addDeclarationEdit2(Element2? element) {
     if (element == null) {
       return;
@@ -70,14 +62,6 @@ class RenameProcessor {
       }
       reference.addEdit(change, newName);
     }
-  }
-
-  /// Update the [element] declaration and reference to it.
-  Future<void> renameElement(Element element) {
-    addDeclarationEdit(element);
-    return workspace.searchEngine
-        .searchReferences(element.asElement2!)
-        .then(addReferenceEdits);
   }
 
   /// Update the [element] declaration and references to it.
