@@ -323,14 +323,14 @@ class ChangeBuilderImpl implements ChangeBuilder {
     }
     var timeStamp = result.exists ? 0 : -1;
 
-    var declaredUnit = result.unit.declaredElement;
-    var libraryUnit = declaredUnit?.library.definingCompilationUnit;
+    var declaredFragment = result.unit.declaredFragment;
+    var firstFragment = declaredFragment?.element.firstFragment;
 
     DartFileEditBuilderImpl? libraryEditBuilder;
-    if (libraryUnit != null && libraryUnit != declaredUnit) {
+    if (firstFragment != null && firstFragment != declaredFragment) {
       // If the receiver is a part file builder, then proactively cache the
       // library file builder so that imports can be finalized synchronously.
-      await addDartFileEdit(libraryUnit.source.fullName, (builder) {
+      await addDartFileEdit(firstFragment.source.fullName, (builder) {
         libraryEditBuilder = builder as DartFileEditBuilderImpl;
       }, createEditsForImports: createEditsForImports);
     }
