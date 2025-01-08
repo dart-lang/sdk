@@ -14,6 +14,7 @@ import 'mocks.dart';
 import 'pubspec_test.dart' as pubspec;
 import 'rule_test.dart' as rule;
 import 'rules/all.dart' as rules;
+import 'scope_util_test.dart' as scope_util;
 import 'utils_test.dart' as utils;
 import 'validate_incompatible_rules_test.dart' as validate_incompatible_rules;
 import 'validate_no_rule_description_references_test.dart'
@@ -38,6 +39,7 @@ void main() {
   pubspec.main();
   rule.main();
   rules.main();
+  scope_util.main();
   utils.main();
   validate_incompatible_rules.main();
   validate_no_rule_description_references.main();
