@@ -1604,11 +1604,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
           Args<TypeExpr>([expr, _nullType]));
       final narrowedNotNull = _makeNarrowNotNull(node, expr);
       final int varIndex = _variablesInfo.varIndex[lhs.variable]!;
+      final result = _makeUnaryOperation(UnaryOp.IsNull, expr);
       if (!_aggregateVariable[varIndex]) {
-        trueState[varIndex] = _nullType;
+        trueState[varIndex] = _makeUnaryOperation(UnaryOp.Move, _nullType)
+          ..condition = result;
         falseState[varIndex] = narrowedNotNull;
       }
-      final result = _makeUnaryOperation(UnaryOp.IsNull, expr);
       _variableValues = const <TypeExpr?>[]; // Should not be used.
       return result;
     } else if (node is IsExpression && node.operand is VariableGet) {
