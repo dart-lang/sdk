@@ -41,8 +41,8 @@ class _TypeConstraintGenerationDataComputer
       Map<Id, ActualData<List<GeneratedTypeConstraint>>> actualMap) {
     _TypeConstraintGenerationDataExtractor(
             testingData.uriToTypeConstraintGenerationData[
-                unit.declaredElement!.source.uri]!,
-            unit.declaredElement!.source.uri,
+                unit.declaredFragment?.source.uri]!,
+            unit.declaredFragment!.source.uri,
             actualMap)
         .run(unit);
   }
