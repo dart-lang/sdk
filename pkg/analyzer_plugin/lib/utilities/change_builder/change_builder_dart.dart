@@ -4,14 +4,12 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:meta/meta.dart';
 
 /// The optional generator for prefix that should be used for new imports.
 typedef ImportPrefixGenerator = String Function(Uri);
@@ -32,7 +30,7 @@ abstract class DartEditBuilder implements EditBuilder {
   /// types.
   ///
   /// The logic is the same as the one used in [writeType].
-  bool canWriteType(DartType? type, {ExecutableElement? methodBeingCopied});
+  bool canWriteType(DartType? type, {ExecutableElement2? methodBeingCopied});
 
   /// Returns the indentation with the given [level].
   String getIndent(int level);
@@ -131,7 +129,6 @@ abstract class DartEditBuilder implements EditBuilder {
   /// included in the parameter declaration.
   ///
   /// If [isRequiredType] is `true` then the type is always written.
-  @experimental
   void writeFormalParameter(String name,
       {bool isCovariant,
       bool isRequiredNamed,
@@ -149,7 +146,6 @@ abstract class DartEditBuilder implements EditBuilder {
   /// types.
   ///
   /// If [requiredTypes] is `true`, then the types are always written.
-  @experimental
   void writeFormalParameters(Iterable<FormalParameterElement> parameters,
       {ExecutableElement2? methodBeingCopied,
       bool includeDefaultValues = true,
@@ -245,22 +241,6 @@ abstract class DartEditBuilder implements EditBuilder {
   /// If [setSelection] is `true`, then the cursor will be placed in the body of
   /// the override.
   void writeOverride(
-    ExecutableElement element, {
-    StringBuffer? displayTextBuffer,
-    bool invokeSuper = false,
-    bool setSelection = true,
-  });
-
-  /// Appends a placeholder for an override of the specified inherited
-  /// [element].
-  ///
-  /// If provided, writes a string value suitable for display (e.g., in a
-  /// completion popup) in the given [displayTextBuffer]. If [invokeSuper] is
-  /// `true`, then the corresponding `super.name()` will be added in the body.
-  /// If [setSelection] is `true`, then the cursor will be placed in the body of
-  /// the override.
-  @experimental
-  void writeOverride2(
     ExecutableElement2 element, {
     StringBuffer? displayTextBuffer,
     bool invokeSuper = false,
@@ -292,7 +272,7 @@ abstract class DartEditBuilder implements EditBuilder {
   void writeParameter(String name,
       {bool isCovariant,
       bool isRequiredNamed,
-      ExecutableElement? methodBeingCopied,
+      ExecutableElement2? methodBeingCopied,
       String? nameGroupName,
       DartType? type,
       String? typeGroupName,
@@ -308,19 +288,6 @@ abstract class DartEditBuilder implements EditBuilder {
   void writeParameterMatchingArgument(
       Expression argument, int index, Set<String> usedNames);
 
-  /// Writes the code for a list of [parameters], including the surrounding
-  /// parentheses and default values (unless [includeDefaultValues] is `false`).
-  ///
-  /// If a [methodBeingCopied] is provided, then type parameters defined by that
-  /// method are assumed to be part of what is being written and hence valid
-  /// types.
-  ///
-  /// If [requiredTypes] is `true`, then the types are always written.
-  void writeParameters(Iterable<ParameterElement> parameters,
-      {ExecutableElement? methodBeingCopied,
-      bool includeDefaultValues = true,
-      bool requiredTypes});
-
   /// Writes the code for a list of parameters that would match the given list
   /// of [arguments].
   ///
@@ -331,14 +298,7 @@ abstract class DartEditBuilder implements EditBuilder {
   ///
   /// If the [element] is a top-level element that has not been imported into
   /// the current library, imports will be updated.
-  void writeReference(Element element);
-
-  /// Writes the code that references the [element].
-  ///
-  /// If the [element] is a top-level element that has not been imported into
-  /// the current library, imports will be updated.
-  @experimental
-  void writeReference2(Element2 element);
+  void writeReference(Element2 element);
 
   /// Writes the code for a declaration of a setter with the given [name].
   ///
@@ -377,30 +337,6 @@ abstract class DartEditBuilder implements EditBuilder {
   bool writeType(DartType? type,
       {bool addSupertypeProposals = false,
       String? groupName,
-      ExecutableElement? methodBeingCopied,
-      bool required = false});
-
-  /// Writes the code for a type annotation for the given [type].
-  ///
-  /// If the [type] is either `null` or represents the type `dynamic`, then the
-  /// behavior depends on whether a type is [required]. If [required] is `true`,
-  /// then the keyword `var` will be written; otherwise, nothing is written.
-  ///
-  /// If the [groupName] is not `null`, then the name of the type (including
-  /// type parameters) will be included as a region in the linked edit group
-  /// with that name. If the [groupName] is not `null` and
-  /// [addSupertypeProposals] is `true`, then all of the supertypes of the
-  /// [type] will be added as suggestions for alternatives to the type name.
-  ///
-  /// If a [methodBeingCopied] is provided, then type parameters defined by that
-  /// method are assumed to be part of what is being written and hence valid
-  /// types.
-  ///
-  /// Returns `true` if any text was written.
-  @experimental
-  bool writeType2(DartType? type,
-      {bool addSupertypeProposals = false,
-      String? groupName,
       ExecutableElement2? methodBeingCopied,
       bool required = false});
 
@@ -411,18 +347,7 @@ abstract class DartEditBuilder implements EditBuilder {
   /// If a [methodBeingCopied] is provided, then type parameters defined by that
   /// method are assumed to be part of what is being written and hence valid
   /// types.
-  void writeTypeParameter(TypeParameterElement typeParameter,
-      {ExecutableElement? methodBeingCopied});
-
-  /// Writes the code to declare the given [typeParameter].
-  ///
-  /// The enclosing angle brackets are not automatically written.
-  ///
-  /// If a [methodBeingCopied] is provided, then type parameters defined by that
-  /// method are assumed to be part of what is being written and hence valid
-  /// types.
-  @experimental
-  void writeTypeParameter2(TypeParameterElement2 typeParameter,
+  void writeTypeParameter(TypeParameterElement2 typeParameter,
       {ExecutableElement2? methodBeingCopied});
 
   /// Writes the code to declare the given list of [typeParameters]. The
@@ -431,17 +356,7 @@ abstract class DartEditBuilder implements EditBuilder {
   /// If a [methodBeingCopied] is provided, then type parameters defined by that
   /// method are assumed to be part of what is being written and hence valid
   /// types.
-  void writeTypeParameters(List<TypeParameterElement> typeParameters,
-      {ExecutableElement? methodBeingCopied});
-
-  /// Writes the code to declare the given list of [typeParameters]. The
-  /// enclosing angle brackets are automatically written.
-  ///
-  /// If a [methodBeingCopied] is provided, then type parameters defined by that
-  /// method are assumed to be part of what is being written and hence valid
-  /// types.
-  @experimental
-  void writeTypeParameters2(List<TypeParameterElement2> typeParameters,
+  void writeTypeParameters(List<TypeParameterElement2> typeParameters,
       {ExecutableElement2? methodBeingCopied});
 
   /// Writes the code for a comma-separated list of [types], optionally prefixed
@@ -481,7 +396,7 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   /// If a [methodBeingCopied] is provided, then type parameters defined by that
   /// method are assumed to be part of what is being written and hence valid
   /// types.
-  bool canWriteType(DartType? type, {ExecutableElement? methodBeingCopied});
+  bool canWriteType(DartType? type, {ExecutableElement2? methodBeingCopied});
 
   /// Creates one or more edits that will convert the given function [body] from
   /// being synchronous to be asynchronous. This includes adding the `async`

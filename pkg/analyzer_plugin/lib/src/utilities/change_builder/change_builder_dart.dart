@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -17,7 +16,6 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/services/top_level_declarations.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
@@ -44,23 +42,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// by the edit isn't inside a class declaration.
   ///
   /// This field is lazily initialized in [_initializeEnclosingElements].
-  ClassElement? _enclosingClass;
-
-  /// The enclosing class element, or `null` if the region that will be modified
-  /// by the edit isn't inside a class declaration.
-  ///
-  /// This field is lazily initialized in [_initializeEnclosingElements].
-  ClassElement2? _enclosingClass2;
+  ClassElement2? _enclosingClass;
 
   /// The enclosing executable element, possibly `null`.
   ///
   /// This field is lazily initialized in [_initializeEnclosingElements].
-  ExecutableElement? _enclosingExecutable;
-
-  /// The enclosing executable element, possibly `null`.
-  ///
-  /// This field is lazily initialized in [_initializeEnclosingElements].
-  ExecutableElement2? _enclosingExecutable2;
+  ExecutableElement2? _enclosingExecutable;
 
   /// If not `null`, [write] will copy everything into this buffer.
   StringBuffer? _carbonCopyBuffer;
@@ -79,7 +66,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           (builder) => buildLinkedEdit(builder as DartLinkedEditBuilder));
 
   @override
-  bool canWriteType(DartType? type, {ExecutableElement? methodBeingCopied}) =>
+  bool canWriteType(DartType? type, {ExecutableElement2? methodBeingCopied}) =>
       type != null && type is! DynamicType
           ? _canWriteType(type, methodBeingCopied: methodBeingCopied)
           : false;
@@ -249,13 +236,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       if (typeGroupName != null) {
         late bool hasType;
         addLinkedEdit(typeGroupName, (DartLinkedEditBuilder builder) {
-          hasType = _writeType2(type,
+          hasType = _writeType(type,
               methodBeingCopied: methodBeingCopied, required: isRequiredType);
           builder.addSuperTypesAsSuggestions(type);
         });
         return hasType;
       }
-      return _writeType2(type, methodBeingCopied: methodBeingCopied);
+      return _writeType(type, methodBeingCopied: methodBeingCopied);
     }
 
     void writeName() {
@@ -434,7 +421,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write('.');
       }
     } else {
-      var prefix = import.prefix;
+      var prefix = import.prefix2;
       if (prefix != null) {
         write(prefix.element.displayName);
         write('.');
@@ -511,7 +498,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeOverride(
-    ExecutableElement element, {
+    ExecutableElement2 element, {
     StringBuffer? displayTextBuffer,
     String? returnTypeGroupName,
     bool invokeSuper = false,
@@ -536,7 +523,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     var isGetter = elementKind == ElementKind.GETTER;
     var isSetter = elementKind == ElementKind.SETTER;
     var isMethod = elementKind == ElementKind.METHOD;
-    var isOperator = isMethod && (element as MethodElement).isOperator;
+    var isOperator = isMethod && (element as MethodElement2).isOperator;
     var memberName = element.displayName;
 
     // `@override` annotation.
@@ -589,139 +576,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     // Method.
-    var parameters = element.parameters;
-    withCarbonCopyBuffer(() {
-      writeTypeParameters(element.type.typeFormals, methodBeingCopied: element);
-      writeParameters(parameters, methodBeingCopied: element);
-    });
-    writeln(' {');
-
-    // TO-DO comment.
-    write(prefix2);
-    write('// TODO: implement $memberName');
-
-    if (isSetter) {
-      if (invokeSuper) {
-        writeln();
-        write(prefix2);
-        selectAllIfSetSelection(
-            () => write('super.$memberName = ${parameters[0].name};'));
-      } else {
-        if (setSelection) selectHere();
-      }
-    } else if (returnType is VoidType) {
-      if (invokeSuper) {
-        writeln();
-        write(prefix2);
-        selectAllIfSetSelection(() {
-          write('super');
-          _writeSuperMemberInvocation(element, memberName, parameters);
-        });
-      } else {
-        if (setSelection) selectHere();
-      }
-    } else {
-      writeln();
-      write(prefix2);
-      if (invokeSuper) {
-        selectAllIfSetSelection(() {
-          write('return super');
-          _writeSuperMemberInvocation(element, memberName, parameters);
-        });
-      } else {
-        selectAllIfSetSelection(() => write('throw UnimplementedError();'));
-      }
-    }
-    writeln();
-    // Close method.
-    write(prefix);
-    write('}');
-    displayTextBuffer?.write(' { … }');
-  }
-
-  @override
-  void writeOverride2(
-    ExecutableElement2 element, {
-    StringBuffer? displayTextBuffer,
-    String? returnTypeGroupName,
-    bool invokeSuper = false,
-    bool setSelection = true,
-  }) {
-    void withCarbonCopyBuffer(void Function() f) {
-      _carbonCopyBuffer = displayTextBuffer;
-      try {
-        f();
-      } finally {
-        _carbonCopyBuffer = null;
-      }
-    }
-
-    void selectAllIfSetSelection(void Function() writer) =>
-        setSelection ? selectAll(writer) : writer();
-
-    var prefix = getIndent(1);
-    var prefix2 = getIndent(2);
-    var elementKind = element.kind;
-
-    var isGetter = elementKind == ElementKind.GETTER;
-    var isSetter = elementKind == ElementKind.SETTER;
-    var isMethod = elementKind == ElementKind.METHOD;
-    var isOperator = isMethod && (element as MethodElement2).isOperator;
-    var memberName = element.displayName;
-
-    // `@override` annotation.
-    writeln('@override');
-    write(prefix);
-
-    if (isGetter) {
-      writeln('// TODO: implement $memberName');
-      write(prefix);
-    }
-
-    // Return type.
-    var returnType = element.returnType;
-    if (!isSetter) {
-      var typeWritten = writeType2(returnType,
-          groupName: returnTypeGroupName, methodBeingCopied: element);
-      if (typeWritten) {
-        write(' ');
-      }
-    }
-    if (isGetter) {
-      write(Keyword.GET.lexeme);
-      write(' ');
-    } else if (isSetter) {
-      write(Keyword.SET.lexeme);
-      write(' ');
-    } else if (isOperator) {
-      write(Keyword.OPERATOR.lexeme);
-      write(' ');
-    }
-
-    // Name.
-    withCarbonCopyBuffer(() {
-      write(memberName);
-    });
-
-    // Parameters and body.
-    if (isGetter) {
-      if (invokeSuper) {
-        write(' => ');
-        selectAllIfSetSelection(() => write('super.$memberName'));
-        writeln(';');
-      } else {
-        write(' => ');
-        selectAllIfSetSelection(() => write('throw UnimplementedError()'));
-        write(';');
-      }
-      displayTextBuffer?.write(' => …');
-      return;
-    }
-
-    // Method.
     var parameters = element.formalParameters;
     withCarbonCopyBuffer(() {
-      writeTypeParameters2(element.type.typeParameters,
+      writeTypeParameters(element.type.typeParameters,
           methodBeingCopied: element);
       writeFormalParameters(parameters, methodBeingCopied: element);
     });
@@ -746,7 +603,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write(prefix2);
         selectAllIfSetSelection(() {
           write('super');
-          _writeSuperMemberInvocation2(element, memberName, parameters);
+          _writeSuperMemberInvocation(element, memberName, parameters);
         });
       } else {
         if (setSelection) selectHere();
@@ -757,7 +614,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       if (invokeSuper) {
         selectAllIfSetSelection(() {
           write('return super');
-          _writeSuperMemberInvocation2(element, memberName, parameters);
+          _writeSuperMemberInvocation(element, memberName, parameters);
         });
       } else {
         selectAllIfSetSelection(() => write('throw UnimplementedError();'));
@@ -774,7 +631,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void writeParameter(String name,
       {bool isCovariant = false,
       bool isRequiredNamed = false,
-      ExecutableElement? methodBeingCopied,
+      ExecutableElement2? methodBeingCopied,
       String? nameGroupName,
       DartType? type,
       String? typeGroupName,
@@ -850,71 +707,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeParameters(Iterable<ParameterElement> parameters,
-      {ExecutableElement? methodBeingCopied,
-      bool includeDefaultValues = true,
-      bool requiredTypes = false}) {
-    var parameterNames = {
-      for (var parameter in parameters.where((p) => p.name.isNotEmpty))
-        parameter.name,
-    };
-
-    write('(');
-    var sawNamed = false;
-    var sawPositional = false;
-    for (var i = 0; i < parameters.length; i++) {
-      var parameter = parameters.elementAt(i);
-      if (i > 0) {
-        write(', ');
-      }
-      // Might be optional.
-      if (parameter.isNamed) {
-        if (!sawNamed) {
-          write('{');
-          sawNamed = true;
-        }
-      } else if (parameter.isOptionalPositional) {
-        if (!sawPositional) {
-          write('[');
-          sawPositional = true;
-        }
-      }
-      // Parameter.
-      var name = parameter.name;
-      if (name.isEmpty) {
-        name = _generateUniqueName(parameterNames, 'p');
-        parameterNames.add(name);
-      }
-      var groupPrefix =
-          methodBeingCopied != null ? '${methodBeingCopied.name}:' : '';
-      writeParameter(name,
-          isCovariant: parameter.isCovariant,
-          isRequiredNamed: parameter.isRequiredNamed,
-          methodBeingCopied: methodBeingCopied,
-          nameGroupName: parameter.isNamed ? null : '${groupPrefix}PARAM$i',
-          type: parameter.type,
-          typeGroupName: '${groupPrefix}TYPE$i',
-          isRequiredType: requiredTypes);
-      // default value
-      if (includeDefaultValues) {
-        var defaultCode = parameter.defaultValueCode;
-        if (defaultCode != null) {
-          write(' = ');
-          write(defaultCode);
-        }
-      }
-    }
-    // close parameters
-    if (sawNamed) {
-      write('}');
-    }
-    if (sawPositional) {
-      write(']');
-    }
-    write(')');
-  }
-
-  @override
   void writeParametersMatchingArguments(ArgumentList argumentList) {
     // TODO(brianwilkerson): Handle the case when there are required parameters
     // after named parameters.
@@ -938,17 +730,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeReference(Element element) {
-    if (element.enclosingElement3 is CompilationUnitElement) {
-      _writeLibraryReference(element);
-    }
-    write(element.displayName);
-  }
-
-  @override
-  void writeReference2(Element2 element) {
+  void writeReference(Element2 element) {
     if (element.enclosingElement2 is LibraryElement2) {
-      _writeLibraryReference2(element);
+      _writeLibraryReference(element);
     }
     write(element.displayName);
   }
@@ -993,7 +777,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     DartType? type, {
     bool addSupertypeProposals = false,
     String? groupName,
-    ExecutableElement? methodBeingCopied,
+    ExecutableElement2? methodBeingCopied,
     bool required = false,
   }) {
     var wroteType = false;
@@ -1017,37 +801,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  bool writeType2(
-    DartType? type, {
-    bool addSupertypeProposals = false,
-    String? groupName,
-    ExecutableElement2? methodBeingCopied,
-    bool required = false,
-  }) {
-    var wroteType = false;
-    if (type != null && type is! DynamicType) {
-      if (groupName != null) {
-        addLinkedEdit(groupName, (LinkedEditBuilder builder) {
-          wroteType = _writeType2(type, methodBeingCopied: methodBeingCopied);
-          if (wroteType && addSupertypeProposals) {
-            _addSuperTypeProposals(builder, type, {});
-          }
-        });
-      } else {
-        wroteType = _writeType2(type, methodBeingCopied: methodBeingCopied);
-      }
-    }
-    if (!wroteType && required) {
-      write(Keyword.VAR.lexeme);
-      return true;
-    }
-    return wroteType;
-  }
-
-  @override
-  void writeTypeParameter(TypeParameterElement typeParameter,
-      {ExecutableElement? methodBeingCopied}) {
-    write(typeParameter.name);
+  void writeTypeParameter(TypeParameterElement2 typeParameter,
+      {ExecutableElement2? methodBeingCopied}) {
+    write(typeParameter.name3 ?? '');
     if (typeParameter.bound != null) {
       write(' extends ');
       _writeType(typeParameter.bound, methodBeingCopied: methodBeingCopied);
@@ -1055,18 +811,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeTypeParameter2(TypeParameterElement2 typeParameter,
+  void writeTypeParameters(List<TypeParameterElement2> typeParameters,
       {ExecutableElement2? methodBeingCopied}) {
-    write(typeParameter.name3 ?? '');
-    if (typeParameter.bound != null) {
-      write(' extends ');
-      _writeType2(typeParameter.bound, methodBeingCopied: methodBeingCopied);
-    }
-  }
-
-  @override
-  void writeTypeParameters(List<TypeParameterElement> typeParameters,
-      {ExecutableElement? methodBeingCopied}) {
     if (typeParameters.isNotEmpty) {
       write('<');
       writeTypeParameter(typeParameters.first,
@@ -1074,22 +820,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       for (var typeParameter in typeParameters.skip(1)) {
         write(', ');
         writeTypeParameter(typeParameter, methodBeingCopied: methodBeingCopied);
-      }
-      write('>');
-    }
-  }
-
-  @override
-  void writeTypeParameters2(List<TypeParameterElement2> typeParameters,
-      {ExecutableElement2? methodBeingCopied}) {
-    if (typeParameters.isNotEmpty) {
-      write('<');
-      writeTypeParameter2(typeParameters.first,
-          methodBeingCopied: methodBeingCopied);
-      for (var typeParameter in typeParameters.skip(1)) {
-        write(', ');
-        writeTypeParameter2(typeParameter,
-            methodBeingCopied: methodBeingCopied);
       }
       write('>');
     }
@@ -1164,7 +894,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   ///
   /// See also [_writeType].
   bool _canWriteType(DartType? type,
-      {ExecutableElement? methodBeingCopied, bool required = false}) {
+      {ExecutableElement2? methodBeingCopied, bool required = false}) {
     type = _getVisibleType(type, methodBeingCopied: methodBeingCopied);
 
     // If not a useful type, don't write it.
@@ -1242,7 +972,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
     }
     // Positional argument.
-    var parameter = expression.staticParameterElement;
+    var parameter = expression.correspondingParameter;
     if (parameter != null) {
       return parameter.displayName;
     }
@@ -1271,7 +1001,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         return namedType.name2.lexeme;
       }
       // `new prefix.ClassName()`.
-      if (importPrefix.element is PrefixElement) {
+      if (importPrefix.element2 is PrefixElement2) {
         return namedType.name2.lexeme;
       }
       // `new ClassName.constructorName()`.
@@ -1304,8 +1034,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   /// Given a list of [imports] that do, or can, make the [name] visible in
   /// scope, returns the one that will lead to the cleanest code.
-  LibraryImportElement? _getBestImportForName(
-      List<LibraryImportElement> imports, String name) {
+  LibraryImport? _getBestImportForName(
+      List<LibraryImport> imports, String name) {
     if (imports.isEmpty) {
       return null;
     } else if (imports.length == 1) {
@@ -1313,14 +1043,14 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
     imports.sort((first, second) {
       // Prefer imports that make the name visible.
-      var firstDefinesName = first.namespace.definedNames.containsKey(name);
-      var secondDefinesName = second.namespace.definedNames.containsKey(name);
+      var firstDefinesName = first.namespace.definedNames2.containsKey(name);
+      var secondDefinesName = second.namespace.definedNames2.containsKey(name);
       if (firstDefinesName != secondDefinesName) {
         return firstDefinesName ? -1 : 1;
       }
       // Prefer imports without prefixes.
-      var firstHasPrefix = first.prefix != null;
-      var secondHasPrefix = second.prefix != null;
+      var firstHasPrefix = first.prefix2 != null;
+      var secondHasPrefix = second.prefix2 != null;
       if (firstHasPrefix != secondHasPrefix) {
         return firstHasPrefix ? 1 : -1;
       }
@@ -1387,7 +1117,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       } else if (expectedType.isDartCoreString) {
         _addSingleCharacterName(excluded, res, $s);
       } else if (expectedType is InterfaceType) {
-        var className = expectedType.element.name;
+        var className = expectedType.element3.name3;
         _addAll(excluded, res, _getCamelWordCombinations(className));
       }
     }
@@ -1400,41 +1130,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// in the case of a type parameter from a superclass), then returns the type
   /// that is locally visible. Otherwise, return `null`.
   DartType? _getVisibleType(DartType? type,
-      {ExecutableElement? methodBeingCopied}) {
-    if (type is InterfaceType) {
-      var element = type.element;
-      if (element.isPrivate &&
-          !dartFileEditBuilder._isDefinedLocally(element)) {
-        return null;
-      }
-      return type;
-    }
-    if (type is TypeParameterType) {
-      _initializeEnclosingElements();
-      var element = type.element;
-      var enclosing = element.enclosingElement3;
-      while (enclosing is GenericFunctionTypeElement ||
-          enclosing is ParameterElement) {
-        enclosing = enclosing!.enclosingElement3;
-      }
-      if (enclosing == _enclosingExecutable ||
-          enclosing == _enclosingClass ||
-          enclosing == methodBeingCopied) {
-        return type;
-      }
-      return null;
-    }
-    return type;
-  }
-
-  /// If the given [type] is visible in either the [_enclosingExecutable] or
-  /// [_enclosingClass], or if there is a local equivalent to the type (such as
-  /// in the case of a type parameter from a superclass), then returns the type
-  /// that is locally visible. Otherwise, return `null`.
-  DartType? _getVisibleType2(DartType? type,
       {ExecutableElement2? methodBeingCopied}) {
     if (type is InterfaceType) {
-      var element = type.element;
+      var element = type.element3;
       if (element.isPrivate &&
           !dartFileEditBuilder._isDefinedLocally(element)) {
         return null;
@@ -1449,8 +1147,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           enclosing is FormalParameterElement) {
         enclosing = enclosing!.enclosingElement2;
       }
-      if (enclosing == _enclosingExecutable2 ||
-          enclosing == _enclosingClass2 ||
+      if (enclosing == _enclosingExecutable ||
+          enclosing == _enclosingClass ||
           enclosing == methodBeingCopied) {
         return type;
       }
@@ -1465,9 +1163,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       var finder = _EnclosingElementFinder();
       finder.find(dartFileEditBuilder.resolvedUnit.unit, offset);
       _enclosingClass = finder.enclosingClass;
-      _enclosingClass2 = finder.enclosingClass2;
       _enclosingExecutable = finder.enclosingExecutable;
-      _enclosingExecutable2 = finder.enclosingExecutable2;
       _hasEnclosingElementsInitialized = true;
     }
   }
@@ -1479,45 +1175,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// [element]. If there are no existing import that exports the [element], a
   /// library that exports the [element] is scheduled for import, possibly with
   /// a prefix.
-  void _writeLibraryReference(Element element) {
+  void _writeLibraryReference(Element2 element) {
     // If the element is defined in the library, then no prefix needed.
     if (dartFileEditBuilder._isDefinedLocally(element)) {
-      return;
-    }
-
-    // TODO(scheglov): We should use "methodBeingCopied" to verify that
-    // we really are just copying this type parameter.
-    if (element is TypeParameterElement) {
-      return;
-    }
-
-    var import = dartFileEditBuilder._getImportElement(element);
-    if (import == null) {
-      var library = element.library?.source.uri;
-      if (library != null) {
-        import = dartFileEditBuilder._importLibrary(library);
-      }
-    }
-    if (import == null) {
-      return;
-    }
-    import.ensureShown(element.name!);
-    var prefix = import.prefix;
-    if (prefix.isNotEmpty) {
-      write('$prefix.');
-    }
-  }
-
-  /// Writes the import prefix to reference the [element], if needed.
-  ///
-  /// The prefix is not needed if the [element] is defined in the target
-  /// library, or there is already an import without prefix that exports the
-  /// [element]. If there are no existing import that exports the [element], a
-  /// library that exports the [element] is scheduled for import, possibly with
-  /// a prefix.
-  void _writeLibraryReference2(Element2 element) {
-    // If the element is defined in the library, then no prefix needed.
-    if (dartFileEditBuilder._isDefinedLocally2(element)) {
       return;
     }
 
@@ -1527,7 +1187,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       return;
     }
 
-    var import = dartFileEditBuilder._getImportElement2(element);
+    var import = dartFileEditBuilder._getImportElement(element);
     if (import == null) {
       var library = element.library2?.uri;
       if (library != null) {
@@ -1544,26 +1204,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
   }
 
-  void _writeSuperMemberInvocation(ExecutableElement element, String memberName,
-      List<ParameterElement> parameters) {
-    var isOperator = element.isOperator;
-    write(isOperator ? ' ' : '.');
-    write(memberName);
-    write(isOperator ? ' ' : '(');
-    for (var i = 0; i < parameters.length; i++) {
-      if (i > 0) {
-        write(', ');
-      }
-      if (parameters[i].isNamed) {
-        write(parameters[i].name);
-        write(': ');
-      }
-      write(parameters[i].name);
-    }
-    write(isOperator ? ';' : ');');
-  }
-
-  void _writeSuperMemberInvocation2(ExecutableElement2 element,
+  void _writeSuperMemberInvocation(ExecutableElement2 element,
       String memberName, List<FormalParameterElement> parameters) {
     var isOperator = element is MethodElement2 && element.isOperator;
     write(isOperator ? ' ' : '.');
@@ -1593,7 +1234,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// Causes any libraries whose elements are used by the generated code, to be
   /// imported.
   bool _writeType(DartType? type,
-      {ExecutableElement? methodBeingCopied, bool required = false}) {
+      {ExecutableElement2? methodBeingCopied, bool required = false}) {
     type = _getVisibleType(type, methodBeingCopied: methodBeingCopied);
 
     // If not a useful type, don't write it.
@@ -1615,7 +1256,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     var alias = type.alias;
     if (alias != null) {
       _writeTypeElementArguments(
-        element: alias.element,
+        element: alias.element2,
         typeArguments: alias.typeArguments,
         methodBeingCopied: methodBeingCopied,
       );
@@ -1628,141 +1269,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write(' ');
       }
       write('Function');
-      writeTypeParameters(type.typeFormals,
-          methodBeingCopied: methodBeingCopied);
-      writeParameters(
-        type.parameters,
-        methodBeingCopied: methodBeingCopied,
-        includeDefaultValues: false,
-        requiredTypes: true,
-      );
-      if (type.nullabilitySuffix == NullabilitySuffix.question) {
-        write('?');
-      }
-      return true;
-    }
-
-    if (type is InterfaceType) {
-      _writeTypeElementArguments(
-        element: type.element,
-        typeArguments: type.typeArguments,
-        methodBeingCopied: methodBeingCopied,
-      );
-      _writeTypeNullability(type);
-      return true;
-    }
-
-    if (type is NeverType) {
-      write('Never');
-      _writeTypeNullability(type);
-      return true;
-    }
-
-    if (type is TypeParameterType) {
-      write(type.element.name);
-      _writeTypeNullability(type);
-      return true;
-    }
-
-    if (type is VoidType) {
-      write('void');
-      return true;
-    }
-
-    if (type is RecordType) {
-      // TODO(brianwilkerson): This should return `false` if the `records`
-      //  feature is not enabled. More importantly, we can't currently return
-      //  `false` if some portion of a type has already been written, so we
-      //  need to figure out what to do when a record type is nested in another
-      //  type in a context where it isn't allowed. For example, we might
-      //  enhance `_canWriteType` to be recursive, then guard all invocations of
-      //  this method with a call to `_canWriteType` (and remove the return type
-      //  from this method).
-      write('(');
-      var isFirst = true;
-      for (var field in type.positionalFields) {
-        if (isFirst) {
-          isFirst = false;
-        } else {
-          write(', ');
-        }
-        _writeType(field.type);
-      }
-      var namedFields = type.namedFields;
-      if (namedFields.isNotEmpty) {
-        if (isFirst) {
-          write('{');
-        } else {
-          write(', {');
-        }
-        isFirst = true;
-        for (var field in namedFields) {
-          if (isFirst) {
-            isFirst = false;
-          } else {
-            write(', ');
-          }
-          _writeType(field.type);
-          write(' ');
-          write(field.name);
-        }
-        write('}');
-      }
-      write(')');
-      _writeTypeNullability(type);
-      return true;
-    }
-
-    throw UnimplementedError('(${type.runtimeType}) $type');
-  }
-
-  /// Writes the code to reference [type] in this compilation unit.
-  ///
-  /// If a [methodBeingCopied] is provided, then the type parameters of that
-  /// method will be duplicated in the copy and will therefore be visible.
-  ///
-  /// If [required] it `true`, then the type will be written even if it would
-  /// normally be omitted, such as with `dynamic`.
-  ///
-  /// Causes any libraries whose elements are used by the generated code, to be
-  /// imported.
-  bool _writeType2(DartType? type,
-      {ExecutableElement2? methodBeingCopied, bool required = false}) {
-    type = _getVisibleType2(type, methodBeingCopied: methodBeingCopied);
-
-    // If not a useful type, don't write it.
-    if (type == null) {
-      return false;
-    }
-    if (type is DynamicType || type is InvalidType) {
-      if (required) {
-        write('dynamic');
-        return true;
-      }
-      return false;
-    }
-    if (type.isBottom) {
-      write('Never');
-      return true;
-    }
-
-    var alias = type.alias;
-    if (alias != null) {
-      _writeTypeElementArguments2(
-        element: alias.element,
-        typeArguments: alias.typeArguments,
-        methodBeingCopied: methodBeingCopied,
-      );
-      _writeTypeNullability(type);
-      return true;
-    }
-
-    if (type is FunctionType) {
-      if (_writeType2(type.returnType, methodBeingCopied: methodBeingCopied)) {
-        write(' ');
-      }
-      write('Function');
-      writeTypeParameters2(type.typeParameters,
+      writeTypeParameters(type.typeParameters,
           methodBeingCopied: methodBeingCopied);
       writeFormalParameters(
         type.formalParameters,
@@ -1777,8 +1284,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     if (type is InterfaceType) {
-      _writeTypeElementArguments2(
-        element: type.element,
+      _writeTypeElementArguments(
+        element: type.element3,
         typeArguments: type.typeArguments,
         methodBeingCopied: methodBeingCopied,
       );
@@ -1793,7 +1300,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     if (type is TypeParameterType) {
-      write(type.element.name);
+      write(type.element3.name3!);
       _writeTypeNullability(type);
       return true;
     }
@@ -1851,9 +1358,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   void _writeTypeElementArguments({
-    required Element element,
+    required Element2 element,
     required List<DartType> typeArguments,
-    required ExecutableElement? methodBeingCopied,
+    required ExecutableElement2? methodBeingCopied,
   }) {
     // Ensure that the element is imported.
     _writeLibraryReference(element);
@@ -1882,45 +1389,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
             write(', ');
           }
           _writeType(argument,
-              required: true, methodBeingCopied: methodBeingCopied);
-        }
-        write('>');
-      }
-    }
-  }
-
-  void _writeTypeElementArguments2({
-    required Element element,
-    required List<DartType> typeArguments,
-    required ExecutableElement2? methodBeingCopied,
-  }) {
-    // Ensure that the element is imported.
-    _writeLibraryReference(element);
-
-    // Write the simple name.
-    var name = element.displayName;
-    write(name);
-
-    // Write type arguments.
-    if (typeArguments.isNotEmpty) {
-      // Check if has arguments.
-      var hasArguments = false;
-      var allArgumentsVisible = true;
-      for (var argument in typeArguments) {
-        hasArguments = hasArguments || argument is! DynamicType;
-        allArgumentsVisible = allArgumentsVisible &&
-            _getVisibleType2(argument, methodBeingCopied: methodBeingCopied) !=
-                null;
-      }
-      // Write type arguments only if they are useful.
-      if (hasArguments && allArgumentsVisible) {
-        write('<');
-        for (var i = 0; i < typeArguments.length; i++) {
-          var argument = typeArguments[i];
-          if (i != 0) {
-            write(', ');
-          }
-          _writeType2(argument,
               required: true, methodBeingCopied: methodBeingCopied);
         }
         write('>');
@@ -1998,7 +1466,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           range, (builder) => buildEdit(builder as DartEditBuilder));
 
   @override
-  bool canWriteType(DartType? type, {ExecutableElement? methodBeingCopied}) {
+  bool canWriteType(DartType? type, {ExecutableElement2? methodBeingCopied}) {
     var builder = createEditBuilder(0, 0);
     return builder.canWriteType(type, methodBeingCopied: methodBeingCopied);
   }
@@ -2081,7 +1549,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       }
     }
 
-    var languageVersion = resolvedUnit.libraryElement.languageVersion.effective;
+    var languageVersion =
+        resolvedUnit.libraryElement2.languageVersion.effective;
     var formattedResult =
         DartFormatter(languageVersion: languageVersion).formatSource(
       SourceCode(
@@ -2112,63 +1581,14 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// If [useShow] is `true`, new imports will be added that `show` only the
   /// requested element (or if there is a pending import for the library, added
   /// to its `show` combinator).
-  Future<void> importElementLibrary(Element element,
-      {Map<Element, LibraryElement?>? resultCache,
+  Future<void> importElementLibrary(Element2 element,
+      {Map<Element2, LibraryElement2?>? resultCache,
       bool useShow = false}) async {
     if (_isDefinedLocally(element)) {
       return;
     }
 
     var existingImport = _getImportElement(element);
-    var name = element.name;
-    if (existingImport != null && name != null) {
-      existingImport.ensureShown(name, useShow: useShow);
-      return;
-    }
-
-    var elementLibrariesToImport =
-        (libraryChangeBuilder ?? this)._elementLibrariesToImport;
-    var libraryToImport = resultCache?[element] ??
-        await TopLevelDeclarations(resolvedUnit)
-            .publiclyExporting(element, resultCache: resultCache) ??
-        // Fall back to the elements library if we didn't find a better one.
-        element.library;
-
-    var uriToImport = libraryToImport?.source.uri;
-    if (uriToImport != null) {
-      var newImport =
-          elementLibrariesToImport[element.asElement2!] = _importLibrary(
-        uriToImport,
-        isExplicitImport: false,
-        shownName: element.name,
-        useShow: useShow,
-      );
-
-      // It's possible this new import can satisfy other pending elements
-      // imports in which case we could remove them to avoid adding unnecessary
-      // imports.
-      _removeUnnecessaryPendingElementImports(newImport, libraryToImport);
-    }
-  }
-
-  /// Arranges to have an import added that makes [element] available.
-  ///
-  /// If [element] is already available in the current library, does nothing.
-  ///
-  /// If the library [element] is declared in is inside the `src` folder, will
-  /// try to locate a public URI to import instead.
-  ///
-  /// If [useShow] is `true`, new imports will be added that `show` only the
-  /// requested element (or if there is a pending import for the library, added
-  /// to its `show` combinator).
-  Future<void> importElementLibrary2(Element2 element,
-      {Map<Element2, LibraryElement2?>? resultCache,
-      bool useShow = false}) async {
-    if (_isDefinedLocally2(element)) {
-      return;
-    }
-
-    var existingImport = _getImportElement2(element);
     var name = element.name3;
     if (existingImport != null && name != null) {
       existingImport.ensureShown(name, useShow: useShow);
@@ -2195,8 +1615,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       // It's possible this new import can satisfy other pending element's
       // imports in which case we could remove them to avoid adding unnecessary
       // imports.
-      _removeUnnecessaryPendingElementImports(
-          newImport, libraryToImport as LibraryElement);
+      _removeUnnecessaryPendingElementImports(newImport, libraryToImport);
     }
   }
 
@@ -2210,15 +1629,15 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   ImportLibraryElementResult importLibraryElement(Uri uri) {
-    if (resolvedUnit.libraryElement.source.uri == uri) {
+    if (resolvedUnit.libraryElement2.uri == uri) {
       return ImportLibraryElementResultImpl(null);
     }
 
     for (var import
-        in resolvedUnit.libraryElement.definingCompilationUnit.libraryImports) {
-      var importedLibrary = import.importedLibrary;
-      if (importedLibrary != null && importedLibrary.source.uri == uri) {
-        return ImportLibraryElementResultImpl(import.prefix?.element.name);
+        in resolvedUnit.libraryElement2.firstFragment.libraryImports2) {
+      var importedLibrary = import.importedLibrary2;
+      if (importedLibrary != null && importedLibrary.uri == uri) {
+        return ImportLibraryElementResultImpl(import.prefix2?.element.name3);
       }
     }
 
@@ -2260,13 +1679,13 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   @override
   bool importsLibrary(Uri uri) {
     // Self-reference.
-    if (resolvedUnit.libraryElement.source.uri == uri) return false;
+    if (resolvedUnit.libraryElement2.uri == uri) return false;
 
     // Existing import.
     for (var import
-        in resolvedUnit.libraryElement.definingCompilationUnit.libraryImports) {
-      var importedLibrary = import.importedLibrary;
-      if (importedLibrary != null && importedLibrary.source.uri == uri) {
+        in resolvedUnit.libraryElement2.firstFragment.libraryImports2) {
+      var importedLibrary = import.importedLibrary2;
+      if (importedLibrary != null && importedLibrary.uri == uri) {
         return true;
       }
     }
@@ -2785,50 +2204,14 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// as when the element is declared in the same library.
   ///
   /// The result may be an existing import, or one that is pending.
-  _LibraryImport? _getImportElement(Element element) {
-    for (var import
-        in resolvedUnit.libraryElement.definingCompilationUnit.libraryImports) {
-      var lookupName = element.name ?? '<null>';
-      if (import.prefix case var importPrefix?) {
-        lookupName = '${importPrefix.element.name}.$lookupName';
-      }
-
-      var definedNames = import.namespace.definedNames;
-      var importedElement = definedNames[lookupName];
-      if (importedElement != null &&
-          importedElement.librarySource?.uri == element.librarySource?.uri) {
-        return _LibraryImport(
-          uriText: import.librarySource.uri.toString(),
-          isExplicitlyImported: true,
-          shownNames: [
-            for (var combinator in import.combinators)
-              if (combinator is ShowElementCombinator)
-                combinator.shownNames.toList(),
-          ],
-          hiddenNames: [
-            for (var combinator in import.combinators)
-              if (combinator is HideElementCombinator)
-                combinator.hiddenNames.toList(),
-          ],
-          prefix: import.prefix?.element.displayName ?? '',
-        );
-      }
-    }
-
-    return (libraryChangeBuilder ?? this)
-        ._elementLibrariesToImport[element.asElement2];
-  }
-
-  /// Returns information about the library used to import the given [element]
-  /// into the target library, or `null` if the element was not imported, such
-  /// as when the element is declared in the same library.
-  ///
-  /// The result may be an existing import, or one that is pending.
-  _LibraryImport? _getImportElement2(Element2 element) {
+  _LibraryImport? _getImportElement(Element2 element) {
     for (var import
         in resolvedUnit.libraryElement2.firstFragment.libraryImports2) {
+      var lookupName = element.lookupName;
       var definedNames = import.namespace.definedNames2;
-      if (definedNames.containsValue(element)) {
+      var importedElement = definedNames[lookupName];
+      if (importedElement != null &&
+          importedElement.library2?.uri == element.library2?.uri) {
         var importedLibrary = import.importedLibrary2;
         if (importedLibrary != null) {
           return _LibraryImport(
@@ -2853,11 +2236,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return (libraryChangeBuilder ?? this)._elementLibrariesToImport[element];
   }
 
-  List<LibraryImportElement> _getImportsForUri(Uri uri) {
+  List<LibraryImport> _getImportsForUri(Uri uri) {
     return [
       for (var import
-          in resolvedUnit.libraryElement.definingCompilationUnit.libraryImports)
-        if (import.importedLibrary?.source.uri == uri) import,
+          in resolvedUnit.libraryElement2.firstFragment.libraryImports2)
+        if (import.importedLibrary2?.uri == uri) import,
     ];
   }
 
@@ -2875,7 +2258,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
     /// Returns the relative path to import [whatPath] into [resolvedUnit].
     String getRelativePath(String whatPath) {
-      var libraryPath = resolvedUnit.libraryElement.source.fullName;
+      var libraryPath =
+          resolvedUnit.libraryElement2.firstFragment.source.fullName;
       var libraryFolder = pathContext.dirname(libraryPath);
       var relativeFile = pathContext.relative(whatPath, from: libraryFolder);
       return pathContext.split(relativeFile).join('/');
@@ -2940,17 +2324,17 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           forceAbsolute: forceAbsolute, forceRelative: forceRelative);
       // Collect the list of existing shows and hides for any imports that match
       // the URI and prefix we care about.
-      for (var element in resolvedUnit
-          .libraryElement.definingCompilationUnit.libraryImports) {
-        var library = element.importedLibrary;
+      for (var element
+          in resolvedUnit.libraryElement2.firstFragment.libraryImports2) {
+        var library = element.importedLibrary2;
         if (library == null) {
           continue;
         }
-        if ((element.prefix?.element.name ?? '') != (prefix ?? '')) {
+        if ((element.prefix2?.element.name3 ?? '') != (prefix ?? '')) {
           // Imports need to have the same prefix to be replaced.
           continue;
         }
-        var elementUrlText = _getLibraryUriText(library.source.uri,
+        var elementUrlText = _getLibraryUriText(library.uri,
             forceAbsolute: forceAbsolute, forceRelative: forceRelative);
         if (uriText != elementUrlText) {
           continue;
@@ -2982,20 +2366,15 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   /// Returns whether the [element] is defined in the target library.
-  bool _isDefinedLocally(Element element) {
-    return element.library == resolvedUnit.libraryElement;
-  }
-
-  /// Returns whether the [element] is defined in the target library.
-  bool _isDefinedLocally2(Element2 element) {
+  bool _isDefinedLocally(Element2 element) {
     return element.library2 == resolvedUnit.libraryElement2;
   }
 
-  /// Removes any pending imports (for [Element]s) that are no longer necessary
+  /// Removes any pending imports (for [Element2]s) that are no longer necessary
   /// because the newly-added [newImport] for [newLibrary] also provides those
-  /// [Element]s.
+  /// [Element2]s.
   void _removeUnnecessaryPendingElementImports(
-      _LibraryImport newImport, LibraryElement? newLibrary) {
+      _LibraryImport newImport, LibraryElement2? newLibrary) {
     var elementLibrariesToImport =
         (libraryChangeBuilder ?? this)._elementLibrariesToImport;
 
@@ -3111,10 +2490,8 @@ class ImportLibraryElementResultImpl implements ImportLibraryElementResult {
 }
 
 class _EnclosingElementFinder {
-  ClassElement? enclosingClass;
-  ClassElement2? enclosingClass2;
-  ExecutableElement? enclosingExecutable;
-  ExecutableElement2? enclosingExecutable2;
+  ClassElement2? enclosingClass;
+  ExecutableElement2? enclosingExecutable;
 
   _EnclosingElementFinder();
 
@@ -3122,17 +2499,13 @@ class _EnclosingElementFinder {
     var node = NodeLocator2(offset).searchWithin(target);
     while (node != null) {
       if (node is ClassDeclaration) {
-        enclosingClass = node.declaredElement;
-        enclosingClass2 = node.declaredFragment?.element;
+        enclosingClass = node.declaredFragment?.element;
       } else if (node is ConstructorDeclaration) {
-        enclosingExecutable = node.declaredElement;
-        enclosingExecutable2 = node.declaredFragment?.element;
+        enclosingExecutable = node.declaredFragment?.element;
       } else if (node is MethodDeclaration) {
-        enclosingExecutable = node.declaredElement;
-        enclosingExecutable2 = node.declaredFragment?.element;
+        enclosingExecutable = node.declaredFragment?.element;
       } else if (node is FunctionDeclaration) {
-        enclosingExecutable = node.declaredElement;
-        enclosingExecutable2 = node.declaredFragment?.element;
+        enclosingExecutable = node.declaredFragment?.element;
       }
       node = node.parent;
     }
@@ -3311,10 +2684,10 @@ class _LibraryImport implements Comparable<_LibraryImport> {
   final List<List<String>> hiddenNames;
 
   /// Whether this import was added explicitly, either because it already exists
-  /// or a caller requested it was added without the context of an [Element].
+  /// or a caller requested it was added without the context of an [Element2].
   ///
   /// If `false`, this is a pending import that only currently exists to satisfy
-  /// [Element] imports and could be removed if subsequent imports also provide
+  /// [Element2] imports and could be removed if subsequent imports also provide
   /// that element. If an explicit call is made to import this library, this
   /// flag may change from `false` to `true`.
   bool isExplicitlyImported;

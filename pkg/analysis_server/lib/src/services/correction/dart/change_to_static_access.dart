@@ -59,7 +59,7 @@ class ChangeToStaticAccess extends ResolvedCorrectionProducer {
         _className = declaringElementName;
         await builder.addDartFileEdit(file, (builder) {
           builder.addReplacement(range.node(target_final), (builder) {
-            builder.writeReference2(declaringElement);
+            builder.writeReference(declaringElement);
           });
         });
       }
@@ -69,7 +69,7 @@ class ChangeToStaticAccess extends ResolvedCorrectionProducer {
         _className = extensionName;
         await builder.addDartFileEdit(file, (builder) {
           builder.addReplacement(range.node(target_final), (builder) {
-            builder.writeReference2(declaringElement);
+            builder.writeReference(declaringElement);
           });
         });
       }
