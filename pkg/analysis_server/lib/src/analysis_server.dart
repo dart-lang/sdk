@@ -698,7 +698,19 @@ abstract class AnalysisServer {
     if (node is StringLiteral && node.parent is UriBasedDirective) {
       return null;
     }
-    var element = ElementLocator.locate(node);
+
+    Element? element;
+    switch (node) {
+      case ExportDirective():
+        element = node.element;
+      case ImportDirective():
+        element = node.element;
+      case PartOfDirective():
+        element = node.element;
+      default:
+        element = ElementLocator.locate2(node).asElement;
+    }
+
     if (node is SimpleIdentifier && element is PrefixElement) {
       element = getImportElement(node);
     }

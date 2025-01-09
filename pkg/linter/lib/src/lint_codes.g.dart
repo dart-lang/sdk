@@ -1572,6 +1572,12 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
+  static const LintCode unnecessary_async = LinterLintCode(
+    LintNames.unnecessary_async,
+    "Don't make a function 'async' if it doesn't use 'await'.",
+    correctionMessage: "Try removing the 'async' modifier.",
+  );
+
   static const LintCode unnecessary_await_in_return = LinterLintCode(
     LintNames.unnecessary_await_in_return,
     "Unnecessary 'await'.",

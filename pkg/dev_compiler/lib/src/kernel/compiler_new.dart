@@ -1236,12 +1236,32 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var jsCtors = _defineConstructors(c, className);
     var jsProperties = _emitClassProperties(c);
+    var jsStaticMethodTypeTags = <js_ast.Statement>[];
+    for (var member in c.procedures) {
+      // TODO(#57049): We tag all static members because we don't know if
+      // they've been changed after a hot reload. This won't be necessary if we
+      // can tag them during the delta diff phase.
+      if (member.isStatic && _reifyTearoff(member) && !member.isExternal) {
+        var propertyAccessor = _emitStaticTarget(member);
+        var result = js.call(
+            '#.#', [propertyAccessor.receiver, propertyAccessor.selector]);
+        // We only need to tag static functions that are torn off at
+        // compile-time. We attach these at late so tearoffs have access to
+        // their types.
+        var reifiedType = member.function
+            .computeThisFunctionType(member.enclosingLibrary.nonNullable);
+        jsStaticMethodTypeTags.add(
+            _emitFunctionTagged(result, reifiedType, asLazy: true)
+                .toStatement());
+      }
+    }
 
     _emitSuperHelperSymbols(body);
 
     // Emit the class, e.g. `core.Object = class Object { ... }`
     _defineClass(c, className, jsProperties, body);
     body.addAll(jsCtors);
+    body.addAll(jsStaticMethodTypeTags);
 
     // Emit things that come after the ES6 `class ... { ... }`.
 
@@ -2473,7 +2493,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     } else {
       method.sourceInformation = _nodeEnd(member.fileEndOffset);
     }
-
     return method;
   }
 
@@ -3454,10 +3473,23 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         .where((p) =>
             !p.isExternal && !p.isAbstract && !_isStaticInteropTearOff(p))
         .toList();
-    _moduleItems.addAll(procedures
-        .where((p) => !p.isAccessor)
-        .map(_emitLibraryFunction)
-        .toList());
+    for (var p in procedures) {
+      if (!p.isAccessor) {
+        _moduleItems.add(_emitLibraryFunction(p));
+      }
+      // TODO(#57049): We tag all static members because we don't know if
+      // they've been changed after a hot reload. This won't be necessary if we
+      // can tag them during the delta diff phase.
+      if (p.isStatic && _reifyTearoff(p) && !p.isExternal) {
+        var nameExpr = _emitTopLevelName(p);
+        _moduleItems.add(_emitFunctionTagged(
+                nameExpr,
+                p.function
+                    .computeThisFunctionType(p.enclosingLibrary.nonNullable),
+                asLazy: true)
+            .toStatement());
+      }
+    }
     var accessors =
         procedures.where((p) => p.isAccessor).map(_emitLibraryAccessor);
     libraryProperties.addAll(accessors);
@@ -3638,13 +3670,15 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return candidateName;
   }
 
-  js_ast.Expression _emitFunctionTagged(
-      js_ast.Expression fn, FunctionType type) {
+  js_ast.Expression _emitFunctionTagged(js_ast.Expression fn, FunctionType type,
+      {bool asLazy = false}) {
     var typeRep = _emitType(
         // Avoid tagging a closure as Function? or Function*
         type.withDeclaredNullability(Nullability.nonNullable));
     if (type.typeParameters.isEmpty) {
-      return _runtimeCall('fn(#, #)', [fn, typeRep]);
+      return asLazy
+          ? _runtimeCall('lazyFn(#, () => #)', [fn, typeRep])
+          : _runtimeCall('fn(#, #)', [fn, typeRep]);
     } else {
       var typeParameterDefaults = [
         for (var parameter in type.typeParameters)
@@ -3652,8 +3686,11 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ];
       var defaultInstantiatedBounds =
           _emitConstList(const DynamicType(), typeParameterDefaults);
-      return _runtimeCall(
-          'gFn(#, #, #)', [fn, typeRep, defaultInstantiatedBounds]);
+      return asLazy
+          ? _runtimeCall('lazyGFn(#, () => #, () => #)',
+              [fn, typeRep, defaultInstantiatedBounds])
+          : _runtimeCall(
+              'gFn(#, #, #)', [fn, typeRep, defaultInstantiatedBounds]);
     }
   }
 
@@ -5422,7 +5459,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     var jsMemberName = _emitMemberName(memberName, member: member);
     if (_reifyTearoff(member)) {
-      return _runtimeCall('bind(#, #)', [jsReceiver, jsMemberName]);
+      return _runtimeCall('tearoff(#, #)', [jsReceiver, jsMemberName]);
     }
     var jsPropertyAccess = js_ast.PropertyAccess(jsReceiver, jsMemberName);
     return isJsMember(member)
@@ -5612,15 +5649,12 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _emitStaticGet(node.target);
 
   js_ast.Expression _emitStaticGet(Member target) {
-    var result = _emitStaticTarget(target);
+    var propertyAccessor = _emitStaticTarget(target);
+    var context = propertyAccessor.receiver;
+    var property = propertyAccessor.selector;
+    var result = js.call('#.#', [context, property]);
     if (_reifyTearoff(target)) {
-      // TODO(jmesserly): we could tag static/top-level function types once
-      // in the module initialization, rather than at the point where they
-      // escape.
-      return _emitFunctionTagged(
-          result,
-          target.function!
-              .computeThisFunctionType(target.enclosingLibrary.nonNullable));
+      return _runtimeCall('staticTearoff(#, #)', [context, property]);
     }
     return result;
   }
@@ -6721,7 +6755,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   /// Emits the target of a [StaticInvocation], [StaticGet], or [StaticSet].
-  js_ast.Expression _emitStaticTarget(Member target) {
+  js_ast.PropertyAccess _emitStaticTarget(Member target) {
     var c = target.enclosingClass;
     if (c != null) {
       // A static native element should just forward directly to the JS type's
@@ -6731,9 +6765,12 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (isExternal && (target as Procedure).isStatic) {
         var nativeName = _extensionTypes.getNativePeers(c);
         if (nativeName.isNotEmpty) {
-          var memberName = _annotationName(target, isJSName) ??
-              _emitStaticMemberName(target.name.text, target);
-          return _runtimeCall('global.#.#', [nativeName[0], memberName]);
+          var annotationName = _annotationName(target, isJSName);
+          var memberName = annotationName == null
+              ? _emitStaticMemberName(target.name.text, target)
+              : js.string(annotationName);
+          return js_ast.PropertyAccess(
+              _runtimeCall('global.#', [nativeName[0]]), memberName);
         }
       }
       return js_ast.PropertyAccess(_emitStaticClassName(c, isExternal),

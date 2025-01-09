@@ -26,8 +26,5 @@ helper() {
 Future<void> main() async {
   helper();
   await hotReload();
-  Expect.throws<NoSuchMethodError>(
-      helper,
-      (err) => '$err'.contains("Closure call with mismatched arguments: "
-          "function 'C.foo'"));
+  Expect.throws<NoSuchMethodError>(helper);
 }

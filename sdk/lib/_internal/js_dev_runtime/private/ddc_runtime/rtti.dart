@@ -53,8 +53,6 @@ fn(closure, type) {
 }
 
 /// Tag a generic [closure] with a [type] and the [defaultTypeArgs] values.
-///
-/// Only called from generated code when running with the new type system.
 gFn(Object closure, Object type, JSArray<Object> defaultTypeArgs) {
   JS('', '#[#] = #', closure, JS_GET_NAME(JsGetName.SIGNATURE_NAME), type);
   JS('', '#._defaultTypeArgs = #', closure, defaultTypeArgs);
@@ -72,10 +70,54 @@ gFn(Object closure, Object type, JSArray<Object> defaultTypeArgs) {
 lazyFn(closure, Object Function() computeType) {
   defineAccessor(
     closure,
-    _runtimeType,
-    get: () => defineValue(closure, _runtimeType, computeType()),
-    set: (value) => defineValue(closure, _runtimeType, value),
+    JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+    get:
+        () => defineValue(
+          closure,
+          JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+          computeType(),
+        ),
+    set:
+        (value) =>
+            defineValue(closure, JS_GET_NAME(JsGetName.SIGNATURE_NAME), value),
     configurable: true,
+    enumerable: false,
+  );
+  return closure;
+}
+
+/// Tag a generic [closure] with a getter that uses [computeType] and
+/// [computeDefaultTypeArgs] to lazily return its runtime type and default type
+/// arguments, respectively,
+lazyGFn(
+  Object closure,
+  Object Function() computeType,
+  Object Function() computeDefaultTypeArgs,
+) {
+  defineAccessor(
+    closure,
+    JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+    get:
+        () => defineValue(
+          closure,
+          JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+          computeType(),
+        ),
+    set:
+        (value) =>
+            defineValue(closure, JS_GET_NAME(JsGetName.SIGNATURE_NAME), value),
+    configurable: true,
+    enumerable: false,
+  );
+  defineAccessor(
+    closure,
+    '_defaultTypeArgs',
+    get:
+        () =>
+            defineValue(closure, '_defaultTypeArgs', computeDefaultTypeArgs()),
+    set: (value) => defineValue(closure, '_defaultTypeArgs', value),
+    configurable: true,
+    enumerable: false,
   );
   return closure;
 }

@@ -26,6 +26,14 @@ class BodyInferenceContext {
   /// Types of all `return` or `yield` statements in the body.
   final List<DartType> _returnTypes = [];
 
+  /// Whether the execution flow can reach the end of the body.
+  ///
+  /// For example here, because there is no `return` at the end.
+  /// ```
+  /// void f() {}
+  /// ```
+  bool mayCompleteNormally = true;
+
   factory BodyInferenceContext({
     required TypeSystemImpl typeSystem,
     required FunctionBodyImpl node,

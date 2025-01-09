@@ -27,8 +27,5 @@ helper() {
 Future<void> main() async {
   helper();
   await hotReload();
-  Expect.throws<NoSuchMethodError>(
-      helper,
-      (err) => '$err'.contains("Class 'C' has no instance method "
-          "'foo' with matching arguments."));
+  Expect.throws<NoSuchMethodError>(helper);
 }
