@@ -70,7 +70,7 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
     //   and `L` contains any free type variables from any of the `Bi`:
     //  - The least closure of `S` with respect to `L` is `Never`
     //  - The greatest closure of `S` with respect to `L` is `Function`
-    for (var typeParameter in node.typeFormals) {
+    for (var typeParameter in node.typeParameters) {
       if (typeParameter.bound case TypeImpl bound?
           when bound.referencesAny2(eliminationTargets)) {
         return _functionReplacement;

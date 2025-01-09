@@ -31,7 +31,6 @@ lib/src/dart/element/field_name_non_promotability_info.dart
 lib/src/dart/element/generic_inferrer.dart
 lib/src/dart/element/greatest_lower_bound.dart
 lib/src/dart/element/inheritance_manager3.dart
-lib/src/dart/element/least_greatest_closure.dart
 lib/src/dart/element/least_upper_bound.dart
 lib/src/dart/element/member.dart
 lib/src/dart/element/name_union.dart
