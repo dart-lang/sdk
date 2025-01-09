@@ -104,23 +104,20 @@ class EditableArgumentsHandler
     ) = invocation;
 
     // Build the complete list of editable arguments.
+    //
+    // Arguments should be returned in the order of the parameters in the source
+    // code. This keeps things consistent across different instances of the same
+    // Widget class and prevents the order from changing as a user adds/removes
+    // arguments.
+    //
+    // If an editor wants to sort provided arguments first (and keep these stable
+    // across add/removes) it could still do so client-side, whereas if server
+    // orders them that way, the opposite (using source-order) is not possible.
     var editableArguments = [
-      // First arguments that exist in the order they were specified.
-      for (var MapEntry(key: parameter, value: argument)
-          in parameterArguments.entries)
+      for (var parameter in parameters)
         _toEditableArgument(
           parameter,
-          argument,
-          numPositionals: numPositionals,
-          numSuppliedPositionals: numSuppliedPositionals,
-        ),
-      // Then the remaining parameters that don't have existing arguments.
-      for (var parameter in parameters.where(
-        (p) => !parameterArguments.containsKey(p),
-      ))
-        _toEditableArgument(
-          parameter,
-          null,
+          parameterArguments[parameter],
           positionalIndex: positionalParameterIndexes[parameter],
           numPositionals: numPositionals,
           numSuppliedPositionals: numSuppliedPositionals,
