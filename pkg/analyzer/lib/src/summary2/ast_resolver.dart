@@ -107,7 +107,7 @@ class AstResolver {
     node = getNode();
     node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
-    _flowAnalysis.bodyOrInitializer_enter(node.parent!, null);
+    _flowAnalysis.bodyOrInitializer_enter(node.parent as AstNodeImpl, null);
     _resolverVisitor.analyzeExpression(node, SharedTypeSchemaView(contextType));
     _resolverVisitor.popRewrite();
     _resolverVisitor.checkIdle();

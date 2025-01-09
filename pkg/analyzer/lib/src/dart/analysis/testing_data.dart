@@ -39,10 +39,14 @@ class TestingData {
   void recordTypeConstraintGenerationDataForTesting(
       Uri uri, TypeConstraintGenerationDataForTesting result) {
     TypeConstraintGenerationDataForTesting? existing =
+        // ignore: analyzer_use_new_elements
         uriToTypeConstraintGenerationData[uri];
+    // ignore: analyzer_use_new_elements
     if (existing != null) {
+      // ignore: analyzer_use_new_elements
       existing.mergeIn(result);
     } else {
+      // ignore: analyzer_use_new_elements
       uriToTypeConstraintGenerationData[uri] = result;
     }
   }

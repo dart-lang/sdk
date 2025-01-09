@@ -171,7 +171,7 @@ class NamedTypeResolver with ScopeHelpers {
   /// [enclosingClass].
   InterfaceType _inferRedirectedConstructor(InterfaceElement element,
       {required TypeConstraintGenerationDataForTesting? dataForTesting,
-      required AstNode? nodeForTesting}) {
+      required AstNodeImpl? nodeForTesting}) {
     if (element == enclosingClass) {
       return element.thisType;
     } else {
@@ -200,7 +200,7 @@ class NamedTypeResolver with ScopeHelpers {
     }
   }
 
-  DartType _instantiateElement(NamedType node, Element element,
+  DartType _instantiateElement(NamedTypeImpl node, Element element,
       {required TypeConstraintGenerationDataForTesting? dataForTesting}) {
     var nullability = _getNullability(node);
 

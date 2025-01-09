@@ -186,7 +186,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     return _environment.getTypeArgumentsAsInstanceOf(type, typeDeclaration);
   }
 
-  /// Returns the set of type constraints that was gathered.
+  @override
   Map<StructuralParameter, MergedTypeConstraint> computeConstraints() {
     Map<StructuralParameter, MergedTypeConstraint> result = {};
     for (StructuralParameter parameter in typeParametersToConstrain) {

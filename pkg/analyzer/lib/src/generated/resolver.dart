@@ -2763,7 +2763,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitFormalParameterList(FormalParameterList node) {
+  void visitFormalParameterList(covariant FormalParameterListImpl node) {
     // Formal parameter lists can contain default values, which in turn contain
     // expressions, so we need flow analysis to be available to process those
     // expressions.
@@ -4059,7 +4059,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required AstNode errorNode,
     required DartType declaredType,
     required DartType contextType,
-    required AstNode? nodeForTesting,
+    required AstNodeImpl? nodeForTesting,
   }) {
     inferenceLogWriter?.enterGenericInference(typeParameters, declaredType);
     var inferrer = GenericInferrer(

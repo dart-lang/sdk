@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/src/dart/ast/ast.dart' show AstNodeImpl;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
@@ -644,7 +645,7 @@ class TypeSystemImpl implements TypeSystem {
     required bool strictInference,
     required bool strictCasts,
     required TypeConstraintGenerationDataForTesting? dataForTesting,
-    required AstNode? nodeForTesting,
+    required AstNodeImpl? nodeForTesting,
   }) {
     if (contextType.typeFormals.isNotEmpty || fnType.typeFormals.isEmpty) {
       return const <DartType>[];
@@ -1687,7 +1688,7 @@ class TypeSystemImpl implements TypeSystem {
     required bool strictCasts,
     required TypeSystemOperations typeSystemOperations,
     required TypeConstraintGenerationDataForTesting? dataForTesting,
-    required AstNode? nodeForTesting,
+    required AstNodeImpl? nodeForTesting,
   }) {
     // Create a GenericInferrer that will allow certain type parameters to be
     // inferred. It will optimistically assume these type parameters can be

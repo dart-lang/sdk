@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/inference_log.dart';
@@ -166,7 +167,8 @@ class FlowAnalysisHelper {
   /// the top level declaration. This is used to compute assigned variables
   /// information within the body or initializer. If `null`, the entire [node]
   /// will be visited.
-  void bodyOrInitializer_enter(AstNode node, FormalParameterList? parameters,
+  void bodyOrInitializer_enter(
+      AstNodeImpl node, FormalParameterList? parameters,
       {void Function(AstVisitor<Object?> visitor)? visit}) {
     inferenceLogWriter?.enterBodyOrInitializer(node);
     assert(flow == null);
@@ -349,7 +351,8 @@ class FlowAnalysisHelper {
 
   /// Computes the [AssignedVariables] map for the given [node].
   static AssignedVariables<AstNodeImpl, PromotableElementImpl2>
-      computeAssignedVariables(AstNode node, FormalParameterList? parameters,
+      computeAssignedVariables(
+          AstNodeImpl node, FormalParameterList? parameters,
           {bool retainDataForTesting = false,
           void Function(AstVisitor<Object?> visitor)? visit}) {
     AssignedVariables<AstNodeImpl, PromotableElementImpl2> assignedVariables =
@@ -505,6 +508,28 @@ class TypeSystemOperations
     } else {
       return TypeClassification.potentiallyNullable;
     }
+  }
+
+  @override
+  TypeConstraintGenerator<
+          DartType,
+          FormalParameterElementOrMember,
+          PromotableElementImpl2,
+          TypeParameterElementImpl2,
+          InterfaceTypeImpl,
+          InterfaceElementImpl2,
+          AstNodeImpl>
+      createTypeConstraintGenerator(
+          {required covariant TypeConstraintGenerationDataForTesting?
+              typeConstraintGenerationDataForTesting,
+          required List<TypeParameterElementImpl2> typeParametersToInfer,
+          required covariant TypeSystemOperations typeAnalyzerOperations,
+          required bool inferenceUsingBoundsIsEnabled}) {
+    return TypeConstraintGatherer(
+        typeParameters: typeParametersToInfer,
+        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+        typeSystemOperations: typeAnalyzerOperations,
+        dataForTesting: typeConstraintGenerationDataForTesting);
   }
 
   @override

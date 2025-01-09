@@ -28,10 +28,13 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide MapPatternEntry, RecordPatternField;
+import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:test/test.dart';
+
+import 'type_inference/type_constraint_gatherer_test.dart';
 
 import 'mini_ir.dart';
 import 'mini_types.dart';
@@ -3224,6 +3227,21 @@ class MiniAstOperations
   @override
   Type withNullabilitySuffixInternal(Type type, NullabilitySuffix modifier) {
     return type.withNullability(modifier);
+  }
+
+  @override
+  TypeConstraintGenerator<Type, NamedFunctionParameter, Var, TypeParameter,
+          Type, String, Node>
+      createTypeConstraintGenerator(
+          {required TypeConstraintGenerationDataForTesting?
+              typeConstraintGenerationDataForTesting,
+          required List<TypeParameter> typeParametersToInfer,
+          required TypeAnalyzerOperations<Type, Var, TypeParameter, Type,
+                  String>
+              typeAnalyzerOperations,
+          required bool inferenceUsingBoundsIsEnabled}) {
+    return TypeConstraintGatherer(
+        {for (var typeParameter in typeParametersToInfer) typeParameter.name});
   }
 }
 
