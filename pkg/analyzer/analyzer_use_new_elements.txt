@@ -9,7 +9,6 @@ lib/dart/element/type_provider.dart
 lib/dart/element/type_system.dart
 lib/dart/element/visitor.dart
 lib/error/listener.dart
-lib/src/dart/analysis/driver.dart
 lib/src/dart/analysis/index.dart
 lib/src/dart/analysis/library_analyzer.dart
 lib/src/dart/analysis/library_context.dart

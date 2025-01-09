@@ -597,7 +597,7 @@ class AnalysisDriver {
       var uriStr = uri.toString();
       var libraryResult = await getLibraryByUri(uriStr);
       if (libraryResult is LibraryElementResult) {
-        var libraryElement = libraryResult.element as LibraryElementImpl;
+        var libraryElement = libraryResult.element2 as LibraryElementImpl;
         bundleWriter.writeLibraryElement(libraryElement);
 
         packageBundleBuilder.addLibrary(
@@ -894,7 +894,7 @@ class AnalysisDriver {
     if (_pendingFileChanges.isEmpty) {
       var rootReference = libraryContext.elementFactory.rootReference;
       var reference = rootReference.getChild('$uriObj');
-      var element = reference.element;
+      var element = reference.element2;
       if (element is LibraryElementImpl) {
         return LibraryElementResultImpl(element);
       }
