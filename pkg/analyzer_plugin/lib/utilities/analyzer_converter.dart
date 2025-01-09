@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart' as analyzer;
-import 'package:analyzer/dart/element/element2.dart' as engine;
+import 'package:analyzer/dart/element/element2.dart' as analyzer;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/source/error_processor.dart' as analyzer;
 import 'package:analyzer/source/line_info.dart' as analyzer;
 import 'package:analyzer/source/source_range.dart' as analyzer;
-import 'package:analyzer/source/source_range.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -125,49 +123,26 @@ class AnalyzerConverter {
             endLine: endLine, endColumn: endColumn));
   }
 
-  /// Convert the given [element] from the 'analyzer' package to an element
-  /// defined by the plugin API.
-  plugin.Element convertElement(analyzer.Element element) {
-    var kind = _convertElementToElementKind(element);
-    return plugin.Element(
-      kind,
-      element.displayName,
-      plugin.Element.makeFlags(
-        isPrivate: element.isPrivate,
-        isDeprecated: element.hasDeprecated,
-        isAbstract: _isAbstract(element),
-        isConst: _isConst(element),
-        isFinal: _isFinal(element),
-        isStatic: _isStatic(element),
-      ),
-      location: locationFromElement(element),
-      typeParameters: _getTypeParametersString(element),
-      aliasedType: _getAliasedTypeString(element),
-      parameters: _getParametersString(element),
-      returnType: _getReturnTypeString(element),
-    );
-  }
-
-  Element convertElement2(engine.Element2 element) {
-    var kind = convertElementToElementKind2(element);
-    var name = getElementDisplayName2(element);
-    var elementTypeParameters = _getTypeParametersString2(element);
-    var aliasedType = _getAliasedTypeString2(element);
-    var elementParameters = _getParametersString2(element);
-    var elementReturnType = _getReturnTypeString2(element);
+  Element convertElement(analyzer.Element2 element) {
+    var kind = convertElementToElementKind(element);
+    var name = getElementDisplayName(element);
+    var elementTypeParameters = _getTypeParametersString(element);
+    var aliasedType = _getAliasedTypeString(element);
+    var elementParameters = _getParametersString(element);
+    var elementReturnType = _getReturnTypeString(element);
     return Element(
       kind,
       name,
       Element.makeFlags(
         isPrivate: element.isPrivate,
-        isDeprecated: (element is engine.Annotatable) &&
-            (element as engine.Annotatable).metadata2.hasDeprecated,
-        isAbstract: _isAbstract2(element),
-        isConst: _isConst2(element),
-        isFinal: _isFinal2(element),
-        isStatic: _isStatic2(element),
+        isDeprecated: (element is analyzer.Annotatable) &&
+            (element as analyzer.Annotatable).metadata2.hasDeprecated,
+        isAbstract: _isAbstract(element),
+        isConst: _isConst(element),
+        isFinal: _isFinal(element),
+        isStatic: _isStatic(element),
       ),
-      location: newLocation_fromElement2(element),
+      location: newLocation_fromElement(element),
       typeParameters: elementTypeParameters,
       aliasedType: aliasedType,
       parameters: elementParameters,
@@ -185,14 +160,14 @@ class AnalyzerConverter {
   plugin.ElementKind convertElementKind(analyzer.ElementKind kind) =>
       kind.toPluginElementKind;
 
-  /// Return an [ElementKind] corresponding to the given [engine.Element2].
-  ElementKind convertElementToElementKind2(engine.Element2 element) {
-    if (element is engine.EnumElement2) {
+  /// Return an [ElementKind] corresponding to the given [analyzer.Element2].
+  ElementKind convertElementToElementKind(analyzer.Element2 element) {
+    if (element is analyzer.EnumElement2) {
       return ElementKind.ENUM;
-    } else if (element is engine.MixinElement2) {
+    } else if (element is analyzer.MixinElement2) {
       return ElementKind.MIXIN;
     }
-    if (element is engine.FieldElement2 && element.isEnumConstant) {
+    if (element is analyzer.FieldElement2 && element.isEnumConstant) {
       return ElementKind.ENUM_CONSTANT;
     }
     return convertElementKind(element.kind);
@@ -209,132 +184,50 @@ class AnalyzerConverter {
   plugin.AnalysisErrorType convertErrorType(analyzer.ErrorType type) =>
       plugin.AnalysisErrorType.values.byName(type.name);
 
-  String getElementDisplayName2(engine.Element2 element) {
-    if (element is engine.LibraryFragment) {
-      return path.basename((element as engine.LibraryFragment).source.fullName);
+  String getElementDisplayName(analyzer.Element2 element) {
+    if (element is analyzer.LibraryFragment) {
+      return path
+          .basename((element as analyzer.LibraryFragment).source.fullName);
     } else {
       return element.displayName;
     }
   }
 
-  /// Create a location based on an the given [element].
-  // TODO(srawlins): Deprecate this.
-  plugin.Location? locationFromElement(analyzer.Element? element,
-          {int? offset, int? length}) =>
-      element.toLocation(offset: offset, length: length);
-
-  /// Create a Location based on an [engine.Element2].
-  Location? newLocation_fromElement2(engine.Element2? element) {
+  /// Create a Location based on an [analyzer.Element2].
+  Location? newLocation_fromElement(analyzer.Element2? element) {
     if (element == null) {
       return null;
     }
-    if (element is engine.FormalParameterElement &&
+    if (element is analyzer.FormalParameterElement &&
         element.enclosingElement2 == null) {
       return null;
     }
     var fragment = element.firstFragment;
-    var offset = fragment.nameOffset2 ?? 0;
+    var offset = fragment.nameOffset2 ?? -1;
     var length = fragment.name2?.length ?? 0;
-    var range = engine.SourceRange(offset, length);
-    return _locationForArgs2(fragment, range);
+    var range = analyzer.SourceRange(offset, length);
+    return _locationForArgs(fragment, range);
   }
 
-  /// Convert the element kind of the [element] from the 'analyzer' package to
-  /// an element kind defined by the plugin API.
-  plugin.ElementKind _convertElementToElementKind(analyzer.Element element) {
-    if (element is analyzer.EnumElement) {
-      return plugin.ElementKind.ENUM;
-    } else if (element is analyzer.FieldElement && element.isEnumConstant
-        // MyEnum.values and MyEnum.one.index return isEnumConstant = true
-        // so these additional checks are necessary.
-        // TODO(danrubel): MyEnum.values is constant, but is a list
-        // so should it return isEnumConstant = true?
-        // MyEnum.one.index is final but *not* constant
-        // so should it return isEnumConstant = true?
-        // Or should we return ElementKind.ENUM_CONSTANT here
-        // in either or both of these cases?
-        ) {
-      var type = element.type;
-      if (type is InterfaceType && type.element == element.enclosingElement3) {
-        return plugin.ElementKind.ENUM_CONSTANT;
-      }
-    }
-    return convertElementKind(element.kind);
-  }
-
-  String? _getAliasedTypeString(analyzer.Element element) {
-    if (element is analyzer.TypeAliasElement) {
+  String? _getAliasedTypeString(analyzer.Element2 element) {
+    if (element is analyzer.TypeAliasElement2) {
       var aliasedType = element.aliasedType;
       return aliasedType.getDisplayString();
     }
     return null;
   }
 
-  String? _getAliasedTypeString2(engine.Element2 element) {
-    if (element is engine.TypeAliasElement2) {
-      var aliasedType = element.aliasedType;
-      return aliasedType.getDisplayString();
-    }
-    return null;
-  }
-
-  /// Return a textual representation of the parameters of the given [element],
-  /// or `null` if the element does not have any parameters.
-  String? _getParametersString(analyzer.Element element) {
+  String? _getParametersString(analyzer.Element2 element) {
     // TODO(scheglov): expose the corresponding feature from ExecutableElement
-    List<analyzer.ParameterElement> parameters;
-    if (element is analyzer.ExecutableElement) {
+    List<analyzer.FormalParameterElement> parameters;
+    if (element is analyzer.ExecutableElement2) {
       // valid getters don't have parameters
       if (element.kind == analyzer.ElementKind.GETTER &&
-          element.parameters.isEmpty) {
-        return null;
-      }
-      parameters = element.parameters;
-    } else if (element is analyzer.TypeAliasElement) {
-      var aliasedElement = element.aliasedElement;
-      if (aliasedElement is analyzer.GenericFunctionTypeElement) {
-        parameters = aliasedElement.parameters;
-      } else {
-        return null;
-      }
-    } else {
-      return null;
-    }
-    var buffer = StringBuffer();
-    var closeOptionalString = '';
-    buffer.write('(');
-    for (var i = 0; i < parameters.length; i++) {
-      var parameter = parameters[i];
-      if (i > 0) {
-        buffer.write(', ');
-      }
-      if (closeOptionalString.isEmpty) {
-        if (parameter.isNamed) {
-          buffer.write('{');
-          closeOptionalString = '}';
-        } else if (parameter.isOptionalPositional) {
-          buffer.write('[');
-          closeOptionalString = ']';
-        }
-      }
-      parameter.appendToWithoutDelimiters(buffer);
-    }
-    buffer.write(closeOptionalString);
-    buffer.write(')');
-    return buffer.toString();
-  }
-
-  String? _getParametersString2(engine.Element2 element) {
-    // TODO(scheglov): expose the corresponding feature from ExecutableElement
-    List<engine.FormalParameterElement> parameters;
-    if (element is engine.ExecutableElement2) {
-      // valid getters don't have parameters
-      if (element.kind == engine.ElementKind.GETTER &&
           element.formalParameters.isEmpty) {
         return null;
       }
       parameters = element.formalParameters.toList();
-    } else if (element is engine.TypeAliasElement2) {
+    } else if (element is analyzer.TypeAliasElement2) {
       var aliasedType = element.aliasedType;
       if (aliasedType is FunctionType) {
         parameters = aliasedType.formalParameters.toList();
@@ -373,37 +266,17 @@ class AnalyzerConverter {
     return '($sb)';
   }
 
-  /// Return a textual representation of the return type of the given [element],
-  /// or `null` if the element does not have a return type.
-  String? _getReturnTypeString(analyzer.Element element) {
-    if (element is analyzer.ExecutableElement) {
+  String? _getReturnTypeString(analyzer.Element2 element) {
+    if (element is analyzer.ExecutableElement2) {
       if (element.kind == analyzer.ElementKind.SETTER) {
-        return null;
-      }
-      return element.returnType.getDisplayString();
-    } else if (element is analyzer.VariableElement) {
-      return element.type.getDisplayString();
-    } else if (element is analyzer.TypeAliasElement) {
-      var aliasedType = element.aliasedType;
-      if (aliasedType is FunctionType) {
-        var returnType = aliasedType.returnType;
-        return returnType.getDisplayString();
-      }
-    }
-    return null;
-  }
-
-  String? _getReturnTypeString2(engine.Element2 element) {
-    if (element is engine.ExecutableElement2) {
-      if (element.kind == engine.ElementKind.SETTER) {
         return null;
       } else {
         return element.returnType.getDisplayString();
       }
-    } else if (element is engine.VariableElement2) {
+    } else if (element is analyzer.VariableElement2) {
       var type = element.type;
       return type.getDisplayString();
-    } else if (element is engine.TypeAliasElement2) {
+    } else if (element is analyzer.TypeAliasElement2) {
       var aliasedType = element.aliasedType;
       if (aliasedType is FunctionType) {
         var returnType = aliasedType.returnType;
@@ -413,24 +286,11 @@ class AnalyzerConverter {
     return null;
   }
 
-  /// Return a textual representation of the type parameters of the given
-  /// [element], or `null` if the element does not have type parameters.
-  String? _getTypeParametersString(analyzer.Element element) {
-    if (element is analyzer.TypeParameterizedElement) {
-      var typeParameters = element.typeParameters;
-      if (typeParameters.isEmpty) {
-        return null;
-      }
-      return '<${typeParameters.join(', ')}>';
-    }
-    return null;
-  }
-
-  String? _getTypeParametersString2(engine.Element2 element) {
-    List<engine.TypeParameterElement2>? typeParameters;
-    if (element is engine.InterfaceElement2) {
+  String? _getTypeParametersString(analyzer.Element2 element) {
+    List<analyzer.TypeParameterElement2>? typeParameters;
+    if (element is analyzer.InterfaceElement2) {
       typeParameters = element.typeParameters2;
-    } else if (element is engine.TypeAliasElement2) {
+    } else if (element is analyzer.TypeAliasElement2) {
       typeParameters = element.typeParameters2;
     }
     if (typeParameters == null || typeParameters.isEmpty) {
@@ -439,90 +299,50 @@ class AnalyzerConverter {
     return '<${typeParameters.join(', ')}>';
   }
 
-  bool _isAbstract(analyzer.Element element) {
-    // TODO(scheglov): add isAbstract to Element API
-    if (element is analyzer.ClassElement) {
-      return element.isAbstract;
-    } else if (element is analyzer.MethodElement) {
-      return element.isAbstract;
-    } else if (element is analyzer.PropertyAccessorElement) {
+  bool _isAbstract(analyzer.Element2 element) {
+    if (element is analyzer.ClassElement2) {
       return element.isAbstract;
     }
-    return false;
-  }
-
-  bool _isAbstract2(engine.Element2 element) {
-    if (element is engine.ClassElement2) {
+    if (element is analyzer.MethodElement2) {
       return element.isAbstract;
     }
-    if (element is engine.MethodElement2) {
-      return element.isAbstract;
-    }
-    if (element is engine.MixinElement2) {
+    if (element is analyzer.MixinElement2) {
       return true;
     }
     return false;
   }
 
-  bool _isConst(analyzer.Element element) {
-    // TODO(scheglov): add isConst to Element API
-    if (element is analyzer.ConstructorElement) {
+  bool _isConst(analyzer.Element2 element) {
+    if (element is analyzer.ConstructorElement2) {
       return element.isConst;
-    } else if (element is analyzer.VariableElement) {
+    }
+    if (element is analyzer.VariableElement2) {
       return element.isConst;
     }
     return false;
   }
 
-  bool _isConst2(engine.Element2 element) {
-    if (element is engine.ConstructorElement2) {
-      return element.isConst;
-    }
-    if (element is engine.VariableElement2) {
-      return element.isConst;
-    }
-    return false;
-  }
-
-  bool _isFinal(analyzer.Element element) {
-    // TODO(scheglov): add isFinal to Element API
-    if (element is analyzer.VariableElement) {
+  bool _isFinal(analyzer.Element2 element) {
+    if (element is analyzer.VariableElement2) {
       return element.isFinal;
     }
     return false;
   }
 
-  bool _isFinal2(engine.Element2 element) {
-    if (element is engine.VariableElement2) {
-      return element.isFinal;
-    }
-    return false;
-  }
-
-  bool _isStatic(analyzer.Element element) {
-    // TODO(scheglov): add isStatic to Element API
-    if (element is analyzer.ExecutableElement) {
-      return element.isStatic;
-    } else if (element is analyzer.PropertyInducingElement) {
+  bool _isStatic(analyzer.Element2 element) {
+    if (element is analyzer.ExecutableElement2) {
       return element.isStatic;
     }
-    return false;
-  }
-
-  bool _isStatic2(engine.Element2 element) {
-    if (element is engine.ExecutableElement2) {
-      return element.isStatic;
-    }
-    if (element is engine.PropertyInducingElement2) {
+    if (element is analyzer.PropertyInducingElement2) {
       return element.isStatic;
     }
     return false;
   }
 
   /// Creates a new [Location].
-  Location? _locationForArgs2(
-    engine.Fragment fragment,
-    engine.SourceRange range,
+  Location? _locationForArgs(
+    analyzer.Fragment fragment,
+    analyzer.SourceRange range,
   ) {
     var libraryFragment = fragment.libraryFragment;
     if (libraryFragment == null) {
@@ -551,8 +371,8 @@ class AnalyzerConverter {
 
   /// Sort required named parameters before optional ones.
   int _preferRequiredParams2(
-    engine.FormalParameterElement e1,
-    engine.FormalParameterElement e2,
+    analyzer.FormalParameterElement e1,
+    analyzer.FormalParameterElement e2,
   ) {
     var rank1 = (e1.isRequiredNamed || e1.metadata2.hasRequired)
         ? 0
@@ -565,63 +385,6 @@ class AnalyzerConverter {
             ? -1
             : 1;
     return rank1 - rank2;
-  }
-}
-
-// TODO(srawlins): Move this to a better location.
-extension ElementExtensions on analyzer.Element? {
-  /// Return the compilation unit containing the given [element].
-  analyzer.CompilationUnitElement? get _unitElement {
-    var currentElement = this;
-    for (;
-        currentElement != null;
-        currentElement = currentElement.enclosingElement3) {
-      if (currentElement is analyzer.CompilationUnitElement) {
-        return currentElement;
-      } else if (currentElement is analyzer.LibraryElement) {
-        return currentElement.definingCompilationUnit;
-      }
-    }
-    return null;
-  }
-
-  /// Create a location based on this element.
-  plugin.Location? toLocation({int? offset, int? length}) {
-    var self = this;
-    if (self == null || self.source == null) {
-      return null;
-    }
-    offset ??= self.nameOffset;
-    length ??= self.nameLength;
-    if (self is analyzer.CompilationUnitElement ||
-        (self is analyzer.LibraryElement && offset < 0)) {
-      offset = 0;
-      length = 0;
-    }
-    return _locationForArgs(
-        self._unitElement, analyzer.SourceRange(offset, length));
-  }
-
-  /// Create and return a location within the given [unitElement] at the given
-  /// [range].
-  plugin.Location? _locationForArgs(
-      analyzer.CompilationUnitElement? unitElement,
-      analyzer.SourceRange range) {
-    if (unitElement == null) {
-      return null;
-    }
-
-    var lineInfo = unitElement.lineInfo;
-    var offsetLocation = lineInfo.getLocation(range.offset);
-    var endLocation = lineInfo.getLocation(range.offset + range.length);
-    var startLine = offsetLocation.lineNumber;
-    var startColumn = offsetLocation.columnNumber;
-    var endLine = endLocation.lineNumber;
-    var endColumn = endLocation.columnNumber;
-
-    return plugin.Location(unitElement.source.fullName, range.offset,
-        range.length, startLine, startColumn,
-        endLine: endLine, endColumn: endColumn);
   }
 }
 
