@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -106,8 +105,8 @@ class CompletionTarget {
   final int? argIndex;
 
   /// If the target is an argument in an [ArgumentList], then this is the
-  /// invoked [ExecutableElement], otherwise this is `null`.
-  ExecutableElement? _executableElement;
+  /// invoked [ExecutableElement2], otherwise this is `null`.
+  ExecutableElement2? _executableElement;
 
   /// If the target is in an argument list of a [FunctionExpressionInvocation],
   /// then this is the static type of the function being invoked, otherwise this
@@ -115,9 +114,9 @@ class CompletionTarget {
   FunctionType? _functionType;
 
   /// If the target is an argument in an [ArgumentList], then this is the
-  /// corresponding [ParameterElement] in the invoked [ExecutableElement],
-  /// otherwise this is `null`.
-  ParameterElement? _parameterElement;
+  /// corresponding [FormalParameterElement] in the invoked
+  /// [ExecutableElement2], otherwise this is `null`.
+  FormalParameterElement? _parameterElement;
 
   /// The enclosing [InterfaceElement2], or `null` if not in a class.
   late final InterfaceElement2? enclosingInterfaceElement = () {
@@ -132,10 +131,11 @@ class CompletionTarget {
     }
   }();
 
-  /// The enclosing [ExtensionElement], or `null` if not in an extension.
-  late final ExtensionElement? enclosingExtensionElement = containingNode
+  /// The enclosing [ExtensionElement2], or `null` if not in an extension.
+  late final ExtensionElement2? enclosingExtensionElement = containingNode
       .thisOrAncestorOfType<ExtensionDeclaration>()
-      ?.declaredElement;
+      ?.declaredFragment
+      ?.element;
 
   /// Compute the appropriate [CompletionTarget] for the given [offset] within
   /// the [entryPoint].
@@ -282,7 +282,7 @@ class CompletionTarget {
       var importPrefix = node.importPrefix;
       if (importPrefix != null && identical(node.name2, entity)) {
         return SimpleIdentifierImpl(importPrefix.name)
-          ..staticElement = importPrefix.element;
+          ..element = importPrefix.element2;
       }
     }
     if (node is PropertyAccess) {
@@ -301,8 +301,8 @@ class CompletionTarget {
   }
 
   /// If the target is an argument in an argument list, and the invocation is
-  /// resolved, return the invoked [ExecutableElement].
-  ExecutableElement? get executableElement {
+  /// resolved, return the invoked [ExecutableElement2].
+  ExecutableElement2? get executableElement {
     if (_executableElement == null) {
       AstNode? argumentList = containingNode;
       if (argumentList is NamedExpression) {
@@ -314,26 +314,26 @@ class CompletionTarget {
 
       var invocation = argumentList.parent;
 
-      Element? executable;
+      Element2? executable;
       if (invocation is Annotation) {
-        executable = invocation.element;
+        executable = invocation.element2;
       } else if (invocation is EnumConstantArguments) {
         var enumConstant = invocation.parent;
         if (enumConstant is! EnumConstantDeclaration) {
           return null;
         }
-        executable = enumConstant.constructorElement;
+        executable = enumConstant.constructorElement2;
       } else if (invocation is InstanceCreationExpression) {
-        executable = invocation.constructorName.staticElement;
+        executable = invocation.constructorName.element;
       } else if (invocation is MethodInvocation) {
-        executable = invocation.methodName.staticElement;
+        executable = invocation.methodName.element;
       } else if (invocation is RedirectingConstructorInvocation) {
-        executable = invocation.staticElement;
+        executable = invocation.element;
       } else if (invocation is SuperConstructorInvocation) {
-        executable = invocation.staticElement;
+        executable = invocation.element;
       }
 
-      if (executable is ExecutableElement) {
+      if (executable is ExecutableElement2) {
         _executableElement = executable;
       }
     }
@@ -453,13 +453,13 @@ class CompletionTarget {
   }
 
   /// If the target is an argument in an argument list, and the invocation is
-  /// resolved, return the corresponding [ParameterElement].
-  ParameterElement? get parameterElement {
+  /// resolved, return the corresponding [FormalParameterElement].
+  FormalParameterElement? get parameterElement {
     if (_parameterElement == null) {
       var executable = executableElement;
       if (executable != null) {
         _parameterElement = _getParameterElement(
-            executable.parameters, containingNode, argIndex);
+            executable.formalParameters, containingNode, argIndex);
       }
     }
     return _parameterElement;
@@ -699,17 +699,17 @@ class CompletionTarget {
     return null;
   }
 
-  /// Return the [ParameterElement] that corresponds to the given [argumentNode]
-  /// at the given [argumentIndex].
-  static ParameterElement? _getParameterElement(
-    List<ParameterElement> parameters,
+  /// Return the [FormalParameterElement] that corresponds to the given
+  /// [argumentNode] at the given [argumentIndex].
+  static FormalParameterElement? _getParameterElement(
+    List<FormalParameterElement> parameters,
     AstNode argumentNode,
     int? argumentIndex,
   ) {
     if (argumentNode is NamedExpression) {
       var name = argumentNode.name.label.name;
       for (var parameter in parameters) {
-        if (parameter.name == name) {
+        if (parameter.name3 == name) {
           return parameter;
         }
       }
