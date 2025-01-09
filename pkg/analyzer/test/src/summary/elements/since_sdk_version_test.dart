@@ -103,6 +103,7 @@ library
       constructors
         named
           firstFragment: dart:foo::<fragment>::@class::A::@constructor::named
+          sinceSdkVersion: 2.15.0
     class B
       reference: dart:foo::@class::B
       firstFragment: dart:foo::<fragment>::@class::B
@@ -198,9 +199,11 @@ library
       getters
         synthetic get foo
           firstFragment: dart:foo::<fragment>::@class::A::@getter::foo
+          sinceSdkVersion: 2.15.0
       setters
         synthetic set foo
           firstFragment: dart:foo::<fragment>::@class::A::@setter::foo
+          sinceSdkVersion: 2.15.0
           formalParameters
             requiredPositional _foo
               type: int
@@ -273,6 +276,7 @@ library
       getters
         get foo
           firstFragment: dart:foo::<fragment>::@class::A::@getter::foo
+          sinceSdkVersion: 2.15.0
 ''');
   }
 
@@ -328,6 +332,7 @@ library
         foo
           reference: dart:foo::@class::A::@method::foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
+          sinceSdkVersion: 2.15.0
 ''');
   }
 
@@ -441,7 +446,7 @@ library
         foo
           reference: dart:foo::@class::A::@method::foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
-          sinceSdkVersion: 2.14.0
+          sinceSdkVersion: 2.15.0
 ''');
   }
 
@@ -517,6 +522,7 @@ library
       setters
         set foo
           firstFragment: dart:foo::<fragment>::@class::A::@setter::foo
+          sinceSdkVersion: 2.15.0
           formalParameters
             requiredPositional _
               type: int
@@ -739,12 +745,15 @@ library
       getters
         synthetic static get v
           firstFragment: dart:foo::<fragment>::@enum::E::@getter::v
+          sinceSdkVersion: 2.15.0
         synthetic static get values
           firstFragment: dart:foo::<fragment>::@enum::E::@getter::values
+          sinceSdkVersion: 2.15.0
       methods
         foo
           reference: dart:foo::@enum::E::@method::foo
           firstFragment: dart:foo::<fragment>::@enum::E::@method::foo
+          sinceSdkVersion: 2.15.0
 ''');
   }
 
@@ -801,6 +810,7 @@ library
         foo
           reference: dart:foo::@extension::E::@method::foo
           firstFragment: dart:foo::<fragment>::@extension::E::@method::foo
+          sinceSdkVersion: 2.15.0
 ''');
   }
 
@@ -860,6 +870,7 @@ library
         foo
           reference: dart:foo::@mixin::M::@method::foo
           firstFragment: dart:foo::<fragment>::@mixin::M::@method::foo
+          sinceSdkVersion: 2.15.0
 ''');
   }
 
@@ -1077,6 +1088,7 @@ library
     foo
       reference: dart:foo::@function::foo
       firstFragment: dart:foo::<fragment>::@function::foo
+      sinceSdkVersion: 2.15.0
       returnType: void
 ''');
   }

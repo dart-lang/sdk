@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -12,7 +12,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
 
 import 'abstract_context.dart';
@@ -62,7 +61,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return findNodeAtOffset(offset, predicate);
   }
 
-  Element? findNodeElementAtString(
+  Element2? findNodeElementAtString(
     String search, [
     bool Function(AstNode)? predicate,
   ]) {
@@ -70,17 +69,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     if (node == null) {
       return null;
     }
-
-    switch (node) {
-      case ExportDirective():
-        return node.element;
-      case ImportDirective():
-        return node.element;
-      case PartOfDirective():
-        return node.element;
-      default:
-        return ElementLocator.locate2(node).asElement;
-    }
+    return ElementLocator.locate2(node);
   }
 
   int findOffset(String search) {

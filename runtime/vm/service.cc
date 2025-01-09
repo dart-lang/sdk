@@ -27,6 +27,7 @@
 #include "vm/heap/safepoint.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
+#include "vm/kernel.h"
 #include "vm/kernel_isolate.h"
 #include "vm/lockers.h"
 #include "vm/message.h"
@@ -3953,6 +3954,88 @@ static void GetSourceReport(Thread* thread, JSONStream* js) {
 #endif  // !DART_PRECOMPILED_RUNTIME
 }
 
+static const MethodParameter* const reload_kernel_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    new BoolParameter("force", false),
+    new BoolParameter("pause", false),
+    new StringParameter("kernelFilePath", false),
+    nullptr,
+};
+
+/// Replaces the program running in the isolate group containing the isolate
+/// specified by |js->LookupParam("isolateId")| with the program defined by
+/// |js->LookupParam("kernelFilePath")|.
+static void ReloadKernel(Thread* thread, JSONStream* js) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  js->PrintError(kFeatureDisabled, "Compiler is disabled in AOT mode.");
+#else
+  if (!js->HasParam("kernelFilePath")) {
+    PrintMissingParamError(js, "kernelFilePath");
+    return;
+  }
+
+  IsolateGroup* isolate_group = thread->isolate_group();
+  if (isolate_group->library_tag_handler() == nullptr) {
+    js->PrintError(kFeatureDisabled,
+                   "A library tag handler must be installed.");
+    return;
+  }
+  Isolate* isolate = thread->isolate();
+  if ((isolate->sticky_error() != Error::null()) ||
+      (Thread::Current()->sticky_error() != Error::null())) {
+    js->PrintError(kIsolateReloadBarred,
+                   "The specified isolate cannot reload from a kernel file "
+                   "anymore because it encountered an unhandled exception. "
+                   "Restart the isolate.");
+    return;
+  }
+  if (isolate_group->IsReloading()) {
+    js->PrintError(kIsolateIsReloading,
+                   "The specified isolate group is already in the process of "
+                   "being reloaded.");
+    return;
+  }
+  if (!isolate_group->CanReload()) {
+    js->PrintError(kFeatureDisabled,
+                   "The specified isolate group cannot reload from a kernel "
+                   "file right now.");
+    return;
+  }
+
+  Dart_FileOpenCallback file_open = Dart::file_open_callback();
+  Dart_FileReadCallback file_read = Dart::file_read_callback();
+  Dart_FileCloseCallback file_close = Dart::file_close_callback();
+  if ((file_open == nullptr) || (file_read == nullptr) ||
+      (file_close == nullptr)) {
+    js->PrintError(kInternalError,
+                   "An internal error occurred when trying to read the "
+                   "specified kernel file.");
+    return;
+  }
+
+  void* file = (*file_open)(js->LookupParam("kernelFilePath"), /*write=*/false);
+  if (file == nullptr) {
+    js->PrintError(kIsolateReloadBarred,
+                   "The specified kernel file could not be read. Please ensure "
+                   "that the provided 'kernelFilePath' argument is correct.");
+    return;
+  }
+
+  uint8_t* kernel_buffer = nullptr;
+  intptr_t kernel_buffer_size = -1;
+  (*file_read)(&kernel_buffer, &kernel_buffer_size, file);
+
+  const bool force_reload =
+      BoolParameter::Parse(js->LookupParam("force"), false);
+  isolate_group->ReloadKernel(js, force_reload, kernel_buffer,
+                              kernel_buffer_size);
+
+  free(kernel_buffer);
+
+  Service::CheckForPause(isolate, js);
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
+
 static const MethodParameter* const reload_sources_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     new BoolParameter("force", false),
@@ -6207,6 +6290,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     pause_params },
   { "removeBreakpoint", RemoveBreakpoint,
     remove_breakpoint_params },
+  { "_reloadKernel", ReloadKernel,
+    reload_kernel_params },
   { "reloadSources", ReloadSources,
     reload_sources_params },
   { "_reloadSources", ReloadSources,

@@ -49,9 +49,14 @@ final class ResidentCompilerInfo {
   });
 }
 
-/// Returns the absolute path to the cached kernel file associated with
-/// [canonicalizedLibraryPath].
-String computeCachedDillPath(
+typedef CachedDillAndCompilerOptionsPaths = ({
+  String cachedDillPath,
+  String cachedCompilerOptionsPath
+});
+
+/// Returns the absolute paths to the cached kernel file and the cached compiler
+/// options file associated with [canonicalizedLibraryPath].
+CachedDillAndCompilerOptionsPaths computeCachedDillAndCompilerOptionsPaths(
   final String canonicalizedLibraryPath,
 ) {
   final String dirname = path.dirname(canonicalizedLibraryPath);
@@ -73,7 +78,14 @@ String computeCachedDillPath(
     );
   }
 
-  return path.join(cachedKernelDirectoryPath, '$basename.dill');
+  final String cachedDillPath =
+      path.join(cachedKernelDirectoryPath, '$basename.dill');
+  final String cachedCompilerOptionsPath =
+      path.join(cachedKernelDirectoryPath, '${basename}_options.json');
+  return (
+    cachedDillPath: cachedDillPath,
+    cachedCompilerOptionsPath: cachedCompilerOptionsPath
+  );
 }
 
 /// Sends a compilation [request] to the resident frontend compiler associated

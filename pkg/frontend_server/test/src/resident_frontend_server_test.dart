@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:frontend_server/src/resident_frontend_server.dart';
 import 'package:frontend_server/resident_frontend_server_utils.dart'
-    show computeCachedDillPath, sendAndReceiveResponse;
+    show computeCachedDillAndCompilerOptionsPaths, sendAndReceiveResponse;
 import 'package:frontend_server/starter.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -22,16 +22,21 @@ void main() async {
   const int statGranularity = 1100;
 
   group('Resident Frontend Server utility functions: ', () {
-    test('computeCachedDillPath', () async {
-      // [computeCachedDillPath] is implemented using [path.dirname] and
-      // [path.basename], and those functions are platform-sensitive, so we test
-      // with an example of a Windows path on Windows, and an example of a POSIX
-      // path on other platforms.
+    test('computeCachedDillAndCompilerOptionsPaths', () async {
+      // [computeCachedDillAndCompilerOptionsPaths] is implemented using
+      // [path.dirname] and [path.basename], and those functions are platform-
+      // sensitive, so we test with an example of a Windows path on Windows, and
+      // an example of a POSIX path on other platforms.
       if (Platform.isWindows) {
         const String exampleCanonicalizedLibraryPath =
             r'C:\Users\user\directory\file.dart';
+        final (:cachedDillPath, :cachedCompilerOptionsPath) =
+            computeCachedDillAndCompilerOptionsPaths(
+          exampleCanonicalizedLibraryPath,
+        );
+
         expect(
-          computeCachedDillPath(exampleCanonicalizedLibraryPath),
+          cachedDillPath,
           path.join(
             Directory.systemTemp.path,
             'dart_resident_compiler_kernel_cache',
@@ -39,16 +44,39 @@ void main() async {
             'file.dart.dill',
           ),
         );
+        expect(
+          cachedCompilerOptionsPath,
+          path.join(
+            Directory.systemTemp.path,
+            'dart_resident_compiler_kernel_cache',
+            'C__Users_user_directory_file',
+            'file.dart_options.json',
+          ),
+        );
       } else {
         const String exampleCanonicalizedLibraryPath =
             '/home/user/directory/file.dart';
+        final (:cachedDillPath, :cachedCompilerOptionsPath) =
+            computeCachedDillAndCompilerOptionsPaths(
+          exampleCanonicalizedLibraryPath,
+        );
+
         expect(
-          computeCachedDillPath(exampleCanonicalizedLibraryPath),
+          cachedDillPath,
           path.join(
             Directory.systemTemp.path,
             'dart_resident_compiler_kernel_cache',
             '_home_user_directory',
             'file.dart.dill',
+          ),
+        );
+        expect(
+          cachedCompilerOptionsPath,
+          path.join(
+            Directory.systemTemp.path,
+            'dart_resident_compiler_kernel_cache',
+            '_home_user_directory',
+            'file.dart_options.json',
           ),
         );
       }
@@ -121,8 +149,11 @@ void main() async {
     });
 
     test('basic', () async {
-      final File cachedDillFile =
-          new File(computeCachedDillPath(executable.path));
+      final File cachedDillFile = new File(
+        computeCachedDillAndCompilerOptionsPaths(
+          executable.path,
+        ).cachedDillPath,
+      );
       expect(cachedDillFile.existsSync(), false);
 
       final Map<String, dynamic> compileResult =

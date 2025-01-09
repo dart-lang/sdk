@@ -1,4 +1,3 @@
-lib/src/utilities/change_builder/change_builder_core.dart
 lib/src/utilities/change_builder/change_builder_dart.dart
 lib/src/utilities/completion/completion_target.dart
 lib/src/utilities/completion/element_suggestion_builder.dart
@@ -11,11 +10,7 @@ lib/utilities/change_builder/change_builder_dart.dart
 lib/utilities/completion/inherited_reference_contributor.dart
 lib/utilities/completion/suggestion_builder.dart
 lib/utilities/completion/type_member_contributor.dart
-lib/utilities/range_factory.dart
 test/src/utilities/change_builder/change_builder_dart_test.dart
 test/src/utilities/completion/completion_target_test.dart
 test/src/utilities/visitors/local_declaration_visitor_test.dart
-test/support/abstract_context.dart
-test/support/abstract_single_unit.dart
 test/utilities/analyzer_converter_test.dart
-test/utilities/range_factory_test.dart

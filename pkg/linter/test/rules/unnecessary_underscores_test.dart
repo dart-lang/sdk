@@ -69,7 +69,7 @@ void f(int _, int __) {}
     await assertNoDiagnostics(r'''
 // @dart = 3.6
 
-void f(int _, int __) {} 
+void f(int _, int __) {}
 ''');
   }
 
@@ -77,7 +77,7 @@ void f(int _, int __) {}
     await assertNoDiagnostics(r'''
 void f(int _, int __) {
   print(__);
-} 
+}
 ''');
   }
 

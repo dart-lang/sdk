@@ -6,7 +6,10 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:frontend_server/resident_frontend_server_utils.dart'
-    show computeCachedDillPath, ResidentCompilerInfo, sendAndReceiveResponse;
+    show
+        computeCachedDillAndCompilerOptionsPaths,
+        ResidentCompilerInfo,
+        sendAndReceiveResponse;
 import 'package:kernel/binary/tag.dart' show isValidSdkHash;
 import 'package:path/path.dart' as p;
 import 'package:pub/pub.dart';
@@ -57,7 +60,9 @@ Future<DartExecutableWithPackageConfig> generateKernel(
       packageRoot != null ? p.join(packageRoot, packageConfigName) : null;
 
   final canonicalizedExecutablePath = p.canonicalize(executable.executable);
-  final cachedDillPath = computeCachedDillPath(canonicalizedExecutablePath);
+  final cachedDillPath =
+      computeCachedDillAndCompilerOptionsPaths(canonicalizedExecutablePath)
+          .cachedDillPath;
 
   Map<String, dynamic> result;
   try {
