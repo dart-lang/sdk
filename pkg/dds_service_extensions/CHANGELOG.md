@@ -1,3 +1,6 @@
+# 2.0.1
+- Update `vm_service` to `>=14.0.0 <16.0.0`.
+
 # 2.0.0
 - Updated to DDS protocol 2.0.
 - Added:
