@@ -26,18 +26,18 @@ final instanceId = const Identifier(
 );
 
 void main(List<String> arguments) async {
-  await link(arguments, (config, output) async {
-    final file = File.fromUri(config.recordedUsagesFile!);
+  await link(arguments, (input, output) async {
+    final file = File.fromUri(input.recordedUsagesFile!);
     final string = await file.readAsString();
     final usages =
         RecordedUsages.fromJson(jsonDecode(string) as Map<String, dynamic>);
 
-    final codeAssets = config.codeAssets;
+    final codeAssets = input.assets.code;
     print('Received assets: ${codeAssets.map((a) => a.id).join(', ')}.');
 
     final symbols = <String>{};
     final argumentsFile =
-        await File.fromUri(config.outputDirectory.resolve('arguments.txt'))
+        await File.fromUri(input.outputDirectory.resolve('arguments.txt'))
             .create();
 
     final dataLines = <String>[];
@@ -71,8 +71,8 @@ void main(List<String> arguments) async {
     ];
 
     print('Keeping only ${neededCodeAssets.map((e) => e.id).join(', ')}.');
-    output.codeAssets.addAll(neededCodeAssets);
+    output.assets.code.addAll(neededCodeAssets);
 
-    output.addDependency(config.packageRoot.resolve('hook/link.dart'));
+    output.addDependency(input.packageRoot.resolve('hook/link.dart'));
   });
 }
