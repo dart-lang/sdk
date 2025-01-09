@@ -1374,7 +1374,7 @@ class AnalysisDriver {
           },
         );
 
-        for (var import in library.docImports) {
+        for (var import in library.docLibraryImports) {
           if (import is LibraryImportWithFile) {
             if (import.importedLibrary case var libraryFileKind?) {
               await libraryContext.load(

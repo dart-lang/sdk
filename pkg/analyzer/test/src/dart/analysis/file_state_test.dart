@@ -1127,7 +1127,7 @@ files
       kind: library_0
         libraryImports
           library_1 dart:core synthetic
-        docImports
+        docLibraryImports
           library_3 dart:async
           library_5 dart:math
         fileKinds: library_0
@@ -4256,7 +4256,7 @@ files
       kind: partOfUriKnown_1
         uriFile: file_0
         library: library_0
-        docImports
+        docLibraryImports
           library_4 dart:async
           library_6 dart:math
       referencingFiles: file_0
@@ -4297,7 +4297,7 @@ files
       kind: partOfUriKnown_7
         uriFile: file_0
         library: library_0
-        docImports
+        docLibraryImports
           library_4 dart:async
       referencingFiles: file_0
       unlinkedKey: k02
@@ -5111,7 +5111,7 @@ class C {}
 
     fileStateFor(a);
 
-    // `c.dart` is imported by `b.dart`, so it is a dependency of `c.dart`.
+    // `c.dart` is imported by `b.dart`, so it is a dependency of `a.dart`.
     assertDriverStateString(testFile, r'''
 files
   /home/test/lib/a.dart
