@@ -182,6 +182,7 @@ final class BoxedDouble implements double {
     return intBitsToDouble(aBits);
   }
 
+  @pragma("wasm:intrinsic")
   external double operator -();
 
   @pragma("wasm:prefer-inline")
@@ -283,8 +284,11 @@ final class BoxedDouble implements double {
     return intBitsToDouble(rounded);
   }
 
+  @pragma("wasm:intrinsic")
   external double floorToDouble();
+  @pragma("wasm:intrinsic")
   external double ceilToDouble();
+  @pragma("wasm:intrinsic")
   external double truncateToDouble();
 
   num clamp(num lowerLimit, num upperLimit) {

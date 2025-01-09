@@ -32,6 +32,10 @@ class Error {
       error._stackTrace ??= stackTrace;
     }
   }
+
+  @patch
+  @pragma("wasm:intrinsic")
+  external Never _throw(Object object, StackTrace stackTrace);
 }
 
 class _Error extends Error {

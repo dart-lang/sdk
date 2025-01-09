@@ -10,6 +10,7 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import 'list_factory_specializer.dart';
+import 'util.dart';
 
 void transformLibraries(
     List<Library> libraries, CoreTypes coreTypes, ClassHierarchy hierarchy) {
@@ -208,6 +209,7 @@ class _WasmTransformer extends Transformer {
           isExternal: true,
           isSynthetic: true,
           fileUri: cls.fileUri);
+      addPragma(getTypeArguments, 'wasm:intrinsic', coreTypes);
       cls.addProcedure(getTypeArguments);
     }
     return super.visitClass(cls);
