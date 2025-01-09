@@ -3,14 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart' as analyzer;
+import 'package:analyzer/dart/element/element2.dart' as engine;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/source/error_processor.dart' as analyzer;
 import 'package:analyzer/source/line_info.dart' as analyzer;
 import 'package:analyzer/source/source_range.dart' as analyzer;
+import 'package:analyzer/source/source_range.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:path/path.dart' as path;
 
 /// An object used to convert between objects defined by the 'analyzer' package
 /// and those defined by the plugin protocol.
@@ -144,6 +148,33 @@ class AnalyzerConverter {
     );
   }
 
+  Element convertElement2(engine.Element2 element) {
+    var kind = convertElementToElementKind2(element);
+    var name = getElementDisplayName2(element);
+    var elementTypeParameters = _getTypeParametersString2(element);
+    var aliasedType = _getAliasedTypeString2(element);
+    var elementParameters = _getParametersString2(element);
+    var elementReturnType = _getReturnTypeString2(element);
+    return Element(
+      kind,
+      name,
+      Element.makeFlags(
+        isPrivate: element.isPrivate,
+        isDeprecated: (element is engine.Annotatable) &&
+            (element as engine.Annotatable).metadata2.hasDeprecated,
+        isAbstract: _isAbstract2(element),
+        isConst: _isConst2(element),
+        isFinal: _isFinal2(element),
+        isStatic: _isStatic2(element),
+      ),
+      location: newLocation_fromElement2(element),
+      typeParameters: elementTypeParameters,
+      aliasedType: aliasedType,
+      parameters: elementParameters,
+      returnType: elementReturnType,
+    );
+  }
+
   /// Convert the element [kind] from the 'analyzer' package to an element kind
   /// defined by the plugin API.
   ///
@@ -153,6 +184,19 @@ class AnalyzerConverter {
   // TODO(srawlins): Deprecate this.
   plugin.ElementKind convertElementKind(analyzer.ElementKind kind) =>
       kind.toPluginElementKind;
+
+  /// Return an [ElementKind] corresponding to the given [engine.Element2].
+  ElementKind convertElementToElementKind2(engine.Element2 element) {
+    if (element is engine.EnumElement2) {
+      return ElementKind.ENUM;
+    } else if (element is engine.MixinElement2) {
+      return ElementKind.MIXIN;
+    }
+    if (element is engine.FieldElement2 && element.isEnumConstant) {
+      return ElementKind.ENUM_CONSTANT;
+    }
+    return convertElementKind(element.kind);
+  }
 
   /// Convert the error [severity] from the 'analyzer' package to an analysis
   /// error severity defined by the plugin API.
@@ -165,11 +209,35 @@ class AnalyzerConverter {
   plugin.AnalysisErrorType convertErrorType(analyzer.ErrorType type) =>
       plugin.AnalysisErrorType.values.byName(type.name);
 
+  String getElementDisplayName2(engine.Element2 element) {
+    if (element is engine.LibraryFragment) {
+      return path.basename((element as engine.LibraryFragment).source.fullName);
+    } else {
+      return element.displayName;
+    }
+  }
+
   /// Create a location based on an the given [element].
   // TODO(srawlins): Deprecate this.
   plugin.Location? locationFromElement(analyzer.Element? element,
           {int? offset, int? length}) =>
       element.toLocation(offset: offset, length: length);
+
+  /// Create a Location based on an [engine.Element2].
+  Location? newLocation_fromElement2(engine.Element2? element) {
+    if (element == null) {
+      return null;
+    }
+    if (element is engine.FormalParameterElement &&
+        element.enclosingElement2 == null) {
+      return null;
+    }
+    var fragment = element.firstFragment;
+    var offset = fragment.nameOffset2 ?? 0;
+    var length = fragment.name2?.length ?? 0;
+    var range = engine.SourceRange(offset, length);
+    return _locationForArgs2(fragment, range);
+  }
 
   /// Convert the element kind of the [element] from the 'analyzer' package to
   /// an element kind defined by the plugin API.
@@ -196,6 +264,14 @@ class AnalyzerConverter {
 
   String? _getAliasedTypeString(analyzer.Element element) {
     if (element is analyzer.TypeAliasElement) {
+      var aliasedType = element.aliasedType;
+      return aliasedType.getDisplayString();
+    }
+    return null;
+  }
+
+  String? _getAliasedTypeString2(engine.Element2 element) {
+    if (element is engine.TypeAliasElement2) {
       var aliasedType = element.aliasedType;
       return aliasedType.getDisplayString();
     }
@@ -248,6 +324,55 @@ class AnalyzerConverter {
     return buffer.toString();
   }
 
+  String? _getParametersString2(engine.Element2 element) {
+    // TODO(scheglov): expose the corresponding feature from ExecutableElement
+    List<engine.FormalParameterElement> parameters;
+    if (element is engine.ExecutableElement2) {
+      // valid getters don't have parameters
+      if (element.kind == engine.ElementKind.GETTER &&
+          element.formalParameters.isEmpty) {
+        return null;
+      }
+      parameters = element.formalParameters.toList();
+    } else if (element is engine.TypeAliasElement2) {
+      var aliasedType = element.aliasedType;
+      if (aliasedType is FunctionType) {
+        parameters = aliasedType.formalParameters.toList();
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
+
+    parameters.sort(_preferRequiredParams2);
+
+    var sb = StringBuffer();
+    var closeOptionalString = '';
+    for (var parameter in parameters) {
+      if (sb.isNotEmpty) {
+        sb.write(', ');
+      }
+      if (closeOptionalString.isEmpty) {
+        if (parameter.isNamed) {
+          sb.write('{');
+          closeOptionalString = '}';
+        } else if (parameter.isOptionalPositional) {
+          sb.write('[');
+          closeOptionalString = ']';
+        }
+      }
+      if (parameter.isRequiredNamed) {
+        sb.write('required ');
+      } else if (parameter.metadata2.hasDeprecated) {
+        sb.write('@required ');
+      }
+      parameter.appendToWithoutDelimiters2(sb);
+    }
+    sb.write(closeOptionalString);
+    return '($sb)';
+  }
+
   /// Return a textual representation of the return type of the given [element],
   /// or `null` if the element does not have a return type.
   String? _getReturnTypeString(analyzer.Element element) {
@@ -259,6 +384,26 @@ class AnalyzerConverter {
     } else if (element is analyzer.VariableElement) {
       return element.type.getDisplayString();
     } else if (element is analyzer.TypeAliasElement) {
+      var aliasedType = element.aliasedType;
+      if (aliasedType is FunctionType) {
+        var returnType = aliasedType.returnType;
+        return returnType.getDisplayString();
+      }
+    }
+    return null;
+  }
+
+  String? _getReturnTypeString2(engine.Element2 element) {
+    if (element is engine.ExecutableElement2) {
+      if (element.kind == engine.ElementKind.SETTER) {
+        return null;
+      } else {
+        return element.returnType.getDisplayString();
+      }
+    } else if (element is engine.VariableElement2) {
+      var type = element.type;
+      return type.getDisplayString();
+    } else if (element is engine.TypeAliasElement2) {
       var aliasedType = element.aliasedType;
       if (aliasedType is FunctionType) {
         var returnType = aliasedType.returnType;
@@ -281,6 +426,19 @@ class AnalyzerConverter {
     return null;
   }
 
+  String? _getTypeParametersString2(engine.Element2 element) {
+    List<engine.TypeParameterElement2>? typeParameters;
+    if (element is engine.InterfaceElement2) {
+      typeParameters = element.typeParameters2;
+    } else if (element is engine.TypeAliasElement2) {
+      typeParameters = element.typeParameters2;
+    }
+    if (typeParameters == null || typeParameters.isEmpty) {
+      return null;
+    }
+    return '<${typeParameters.join(', ')}>';
+  }
+
   bool _isAbstract(analyzer.Element element) {
     // TODO(scheglov): add isAbstract to Element API
     if (element is analyzer.ClassElement) {
@@ -289,6 +447,19 @@ class AnalyzerConverter {
       return element.isAbstract;
     } else if (element is analyzer.PropertyAccessorElement) {
       return element.isAbstract;
+    }
+    return false;
+  }
+
+  bool _isAbstract2(engine.Element2 element) {
+    if (element is engine.ClassElement2) {
+      return element.isAbstract;
+    }
+    if (element is engine.MethodElement2) {
+      return element.isAbstract;
+    }
+    if (element is engine.MixinElement2) {
+      return true;
     }
     return false;
   }
@@ -303,9 +474,26 @@ class AnalyzerConverter {
     return false;
   }
 
+  bool _isConst2(engine.Element2 element) {
+    if (element is engine.ConstructorElement2) {
+      return element.isConst;
+    }
+    if (element is engine.VariableElement2) {
+      return element.isConst;
+    }
+    return false;
+  }
+
   bool _isFinal(analyzer.Element element) {
     // TODO(scheglov): add isFinal to Element API
     if (element is analyzer.VariableElement) {
+      return element.isFinal;
+    }
+    return false;
+  }
+
+  bool _isFinal2(engine.Element2 element) {
+    if (element is engine.VariableElement2) {
       return element.isFinal;
     }
     return false;
@@ -319,6 +507,64 @@ class AnalyzerConverter {
       return element.isStatic;
     }
     return false;
+  }
+
+  bool _isStatic2(engine.Element2 element) {
+    if (element is engine.ExecutableElement2) {
+      return element.isStatic;
+    }
+    if (element is engine.PropertyInducingElement2) {
+      return element.isStatic;
+    }
+    return false;
+  }
+
+  /// Creates a new [Location].
+  Location? _locationForArgs2(
+    engine.Fragment fragment,
+    engine.SourceRange range,
+  ) {
+    var libraryFragment = fragment.libraryFragment;
+    if (libraryFragment == null) {
+      return null;
+    }
+    var lineInfo = libraryFragment.lineInfo;
+
+    var startLocation = lineInfo.getLocation(range.offset);
+    var endLocation = lineInfo.getLocation(range.end);
+
+    var startLine = startLocation.lineNumber;
+    var startColumn = startLocation.columnNumber;
+    var endLine = endLocation.lineNumber;
+    var endColumn = endLocation.columnNumber;
+
+    return Location(
+      fragment.libraryFragment!.source.fullName,
+      range.offset,
+      range.length,
+      startLine,
+      startColumn,
+      endLine: endLine,
+      endColumn: endColumn,
+    );
+  }
+
+  /// Sort required named parameters before optional ones.
+  int _preferRequiredParams2(
+    engine.FormalParameterElement e1,
+    engine.FormalParameterElement e2,
+  ) {
+    var rank1 = (e1.isRequiredNamed || e1.metadata2.hasRequired)
+        ? 0
+        : !e1.isNamed
+            ? -1
+            : 1;
+    var rank2 = (e2.isRequiredNamed || e2.metadata2.hasRequired)
+        ? 0
+        : !e2.isNamed
+            ? -1
+            : 1;
+    return rank1 - rank2;
   }
 }
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
@@ -26,9 +26,9 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
   /// [requiredParams] and [namedParams].
   void addDefaultArgDetails(
       CompletionSuggestion suggestion,
-      Element element,
-      Iterable<ParameterElement> requiredParams,
-      Iterable<ParameterElement> namedParams) {
+      Element2 element,
+      Iterable<FormalParameterElement> requiredParams,
+      Iterable<FormalParameterElement> namedParams) {
     // Copied from analysis_server/lib/src/services/completion/dart/suggestion_builder.dart
     var buffer = StringBuffer();
     var ranges = <int>[];
@@ -40,17 +40,17 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
         buffer.write(', ');
       }
       offset = buffer.length;
-      var name = param.name;
+      var name = param.name3 ?? '';
       buffer.write(name);
       ranges.addAll([offset, name.length]);
     }
 
     for (var param in namedParams) {
-      if (param.hasRequired || param.isRequiredNamed) {
+      if (param.metadata2.hasRequired || param.isRequiredNamed) {
         if (buffer.isNotEmpty) {
           buffer.write(', ');
         }
-        var name = param.name;
+        var name = param.name3 ?? '';
         buffer.write('$name: ');
         offset = buffer.length;
         buffer.write(name);
@@ -65,7 +65,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
   }
 
   @override
-  CompletionSuggestion? forElement(Element? element,
+  CompletionSuggestion? forElement(Element2? element,
       {String? completion,
       CompletionSuggestionKind? kind,
       int relevance = DART_RELEVANCE_DEFAULT}) {
@@ -73,12 +73,18 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
     if (element == null) {
       return null;
     }
-    if (element is ExecutableElement && element.isOperator) {
+    if (element is MethodElement2 && element.isOperator) {
       // Do not include operators in suggestions
       return null;
     }
     completion ??= element.displayName;
-    var isDeprecated = element.hasDeprecated;
+
+    Annotatable? annotatable;
+    if (element case Annotatable annotatable2) {
+      annotatable = annotatable2;
+    }
+
+    var isDeprecated = annotatable?.metadata2.hasDeprecated ?? false;
     var suggestion = CompletionSuggestion(
         kind ?? CompletionSuggestionKind.INVOCATION,
         isDeprecated ? DART_RELEVANCE_LOW : relevance,
@@ -89,31 +95,30 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
         false);
 
     // Attach docs.
-    var doc = removeDartDocDelimiters(element.documentationComment);
+    var doc = removeDartDocDelimiters(annotatable?.documentationComment);
     suggestion.docComplete = doc;
     suggestion.docSummary = getDartDocSummary(doc);
 
-    suggestion.element = converter.convertElement(element);
-    var enclosingElement = element.enclosingElement3;
-    if (enclosingElement is ClassElement) {
+    suggestion.element = converter.convertElement2(element);
+    var enclosingElement = element.enclosingElement2;
+    if (enclosingElement is ClassElement2) {
       suggestion.declaringType = enclosingElement.displayName;
     }
     suggestion.returnType = getReturnTypeString(element);
-    if (element is ExecutableElement && element is! PropertyAccessorElement) {
-      suggestion.parameterNames = element.parameters
-          .map((ParameterElement parameter) => parameter.name)
+    if (element is ExecutableElement2 && element is! PropertyAccessorElement2) {
+      suggestion.parameterNames = element.formalParameters
+          .map((parameter) => parameter.name3 ?? '')
           .toList();
-      suggestion.parameterTypes =
-          element.parameters.map((ParameterElement parameter) {
+      suggestion.parameterTypes = element.formalParameters.map((parameter) {
         return parameter.type.getDisplayString();
       }).toList();
 
-      var requiredParameters = element.parameters
-          .where((ParameterElement param) => param.isRequiredPositional);
+      var requiredParameters =
+          element.formalParameters.where((param) => param.isRequiredPositional);
       suggestion.requiredParameterCount = requiredParameters.length;
 
       var namedParameters =
-          element.parameters.where((ParameterElement param) => param.isNamed);
+          element.formalParameters.where((param) => param.isNamed);
       suggestion.hasNamedParameters = namedParameters.isNotEmpty;
 
       addDefaultArgDetails(
@@ -122,20 +127,20 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
     return suggestion;
   }
 
-  String? getReturnTypeString(Element element) {
+  String? getReturnTypeString(Element2 element) {
     // Copied from analysis_server/lib/src/protocol_server.dart
-    if (element is ExecutableElement) {
+    if (element is ExecutableElement2) {
       if (element.kind == ElementKind.SETTER) {
         return null;
       } else {
         return element.returnType.getDisplayString();
       }
-    } else if (element is VariableElement) {
+    } else if (element is VariableElement2) {
       var type = element.type;
       return type.getDisplayString();
-    } else if (element is TypeAliasElement) {
-      var aliasedElement = element.aliasedElement;
-      if (aliasedElement is GenericFunctionTypeElement) {
+    } else if (element is TypeAliasElement2) {
+      var aliasedElement = element.aliasedElement2;
+      if (aliasedElement is GenericFunctionTypeElement2) {
         var returnType = aliasedElement.returnType;
         return returnType.getDisplayString();
       } else {

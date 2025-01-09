@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
@@ -52,7 +53,7 @@ mixin ElementSuggestionBuilder {
       return;
     }
     var builder = SuggestionBuilderImpl(resourceProvider);
-    var suggestion = builder.forElement(element,
+    var suggestion = builder.forElement(element.asElement2,
         completion: completion, kind: kind, relevance: relevance);
     if (suggestion != null) {
       if (element.isSynthetic && element is PropertyAccessorElement) {

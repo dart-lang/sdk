@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/suggestion_builder.dart';
@@ -397,7 +398,8 @@ class _SuggestionBuilder {
       assert(false);
       return;
     }
-    var suggestion = builder.forElement(element, relevance: relevance);
+    var suggestion =
+        builder.forElement(element.asElement2!, relevance: relevance);
     if (suggestion != null) {
       _suggestionMap[suggestion.completion] = suggestion;
     }

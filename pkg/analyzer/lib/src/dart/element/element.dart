@@ -4384,6 +4384,7 @@ class FormalParameterElementImpl extends PromotableElementImpl2
     with
         FragmentedAnnotatableElementMixin<FormalParameterFragment>,
         FragmentedElementMixin<FormalParameterFragment>,
+        FormalParameterElementMixin,
         _NonTopLevelVariableOrParameter
     implements FormalParameterElementOrMember {
   final ParameterElementImpl wrappedElement;
@@ -4501,12 +4502,6 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   }
 
   @override
-  void appendToWithoutDelimiters2(StringBuffer buffer) {
-    // TODO(augmentations): Implement the merge of formal parameters.
-    wrappedElement.appendToWithoutDelimiters(buffer);
-  }
-
-  @override
   // TODO(augmentations): Implement the merge of formal parameters.
   DartObject? computeConstantValue() => wrappedElement.computeConstantValue();
 
@@ -4519,6 +4514,23 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   // firstFragment.typeParameters
   //     .map((fragment) => (fragment as TypeParameterElementImpl).element)
   //     .toList();
+}
+
+/// A mixin that provides a common implementation for methods defined in
+/// [FormalParameterElement].
+mixin FormalParameterElementMixin implements FormalParameterElement {
+  @override
+  void appendToWithoutDelimiters2(StringBuffer buffer) {
+    buffer.write(
+      type.getDisplayString(),
+    );
+    buffer.write(' ');
+    buffer.write(displayName);
+    if (defaultValueCode != null) {
+      buffer.write(' = ');
+      buffer.write(defaultValueCode);
+    }
+  }
 }
 
 abstract class FormalParameterElementOrMember
